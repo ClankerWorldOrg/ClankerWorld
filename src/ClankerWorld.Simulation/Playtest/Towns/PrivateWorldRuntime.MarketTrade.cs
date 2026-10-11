@@ -191,7 +191,7 @@ public sealed partial class PrivateWorldRuntime
         if (!MarketAdult(actor)) yield break;
         var inventory = society.Checkpoint.Inventory;
         var ready = ReadyForMarket(actor);
-        var goods = MarketGoodsFor(actor);
+        MarketGoodsBasis? goods = null;
         var offeredLoad = false;
         foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
             foreach (var market in town.Markets.OrderBy(item => item.Id, StringComparer.Ordinal))
@@ -214,6 +214,7 @@ public sealed partial class PrivateWorldRuntime
                                 "collect", town, market, stall, occupancy, lot, quantity);
                     }
                     if (!LiveMarketStall(town, market, stall)) continue;
+                    goods ??= MarketGoodsFor(actor);
                     foreach (var trade in market.Trades.Where(item => IsOpenMarketTrade(item) && item.StallBuildingId == stall.BuildingId &&
                                  (item.SellerAgentId == actor || item.BuyerId == actor)).OrderBy(item => item.OfferId, StringComparer.Ordinal))
                     {
