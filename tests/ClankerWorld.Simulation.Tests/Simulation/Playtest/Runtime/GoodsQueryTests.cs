@@ -117,6 +117,63 @@ public sealed class GoodsQueryTests
         Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(sale.ExportState()));
     }
 
+    [Theory]
+    [InlineData("same-job", 1, 3)]
+    [InlineData("fully-reserved", 0, 3)]
+    [InlineData("other-job", 1, 1)]
+    [InlineData("broken-parent", 0, 0)]
+    [InlineData("delivery", 0, 0)]
+    [InlineData("borrowed-stall", 0, 0)]
+    public async Task SameJobCoverageNeverTurnsCommittedOrUnusablePaperIntoPickupStock(
+        string boundary, int available, int covered)
+    {
+        var state = await PaidMarketWorld.StateAsync();
+        const string owner = "household:camp-alpha";
+        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var house = PaidMarketWorld.HouseOf(state, owner);
+        var stall = PaidMarketWorld.StallTile(state, 0);
+        var inventory = InventoryFixture.AddLot(state.Society.Society.Inventory,
+            "covered-paper-cart", "handcart", owner, 1,
+            groundPosition: boundary == "borrowed-stall" ? new(stall.X, stall.Y) : new(house.Position.X, house.Position.Y));
+        inventory = InventoryFixture.AddLot(inventory, "covered-paper", "paper", owner, 3,
+            containerLotId: boundary == "delivery" ? null : "covered-paper-cart");
+        if (boundary == "delivery")
+            inventory = InventoryFixture.Transfer(inventory, "covered-paper-delivery", owner, actor, "covered-paper", 3,
+                "household_stock_picked_up", destinationDeliveryBuildingId: house.InstanceId);
+        inventory = InventoryFixture.Reserve(inventory, "covered-paper-reservation", boundary == "delivery" ? actor : owner, "covered-paper",
+            boundary == "fully-reserved" ? 3 : 2,
+            boundary == "other-job" ? "other-work" : AgentKnowledgeRules.MaterialPurpose("covered-book", "paper"), long.MaxValue);
+        if (boundary == "broken-parent")
+            inventory = inventory with
+            {
+                Lots = inventory.Lots.Select(lot => lot.Id == "covered-paper-cart"
+                    ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
+            };
+        state = PaidMarketWorld.WithInventory(state, inventory);
+        if (boundary == "borrowed-stall") state = PaidMarketWorld.Borrowing(state, actor, 0);
+        using var world = PrivateWorldRuntime.Restore(state, _ => new Idle());
+        var bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        var request = new GoodsRequest(GoodsUse.Holdings, actor, new GoodsOwners([owner, actor]), GoodsKinds.One("paper"),
+            DemandCoverage: GoodsDemandCoverage.KnowledgeWriting);
+        var answer = world.FindGoods(request);
+        Assert.Equal(available, answer.Total);
+        Assert.Equal(covered, answer.CoveredTotal);
+        Assert.Equal(covered - available, answer.CoveredReservations);
+        Assert.Equal(answer.Matches, world.FindGoods(request with { DemandCoverage = GoodsDemandCoverage.None }).Matches);
+        var rechecked = world.RecheckGoods(request, "covered-paper");
+        Assert.Equal(available == 0 ? null : (int?)available, rechecked?.Quantity);
+        var collect = request with { Use = GoodsUse.Collect, DemandCoverage = GoodsDemandCoverage.None };
+        Assert.DoesNotContain(world.FindGoods(collect).Matches, match => match.Lot.Id == "covered-paper");
+        Assert.Null(world.RecheckGoods(collect, "covered-paper"));
+        Assert.Throws<ArgumentException>(() => world.FindGoods(collect with { DemandCoverage = GoodsDemandCoverage.KnowledgeWriting }));
+        Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+        world.Validate();
+        using var reload = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), _ => new Idle());
+        var reloaded = reload.FindGoods(request);
+        Assert.Equal(answer.Matches, reloaded.Matches);
+        Assert.Equal(answer.CoveredTotal, reloaded.CoveredTotal);
+    }
+
     private static (string Id, int Quantity)[] PlainScan(InventoryCheckpoint inventory, GoodsUse use, string? building) =>
         inventory.Lots.Where(lot => building is null || lot.StorageBuildingId == building)
             .Where(lot => lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0 &&

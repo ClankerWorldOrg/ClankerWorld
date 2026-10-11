@@ -884,9 +884,10 @@ border alone does not silently take over another claim or transfer a building,
 its stock or a household's private goods. Physical occupation or model text
 cannot rewrite these records. Every Town has a Council from founding; its
 initial small Council consists of all adult residents. Land approvals use the
-ordinary Council majority procedure from the start. Residents can later approve
-creating an elected mayor through the protected government-change process.
-Its creation, term and elections are agreed in
+ordinary Council majority procedure from the start. Every Town also starts with
+a vacant mayor’s office for land and non-land cases. Residents can later change
+its duties or remove it through the protected government-change process.
+Its term and elections are agreed in
 [The mayor's office and elections](#the-mayors-office-and-elections);
 [Land hearings and rulings](#land-hearings-and-rulings) settles adjudication.
 

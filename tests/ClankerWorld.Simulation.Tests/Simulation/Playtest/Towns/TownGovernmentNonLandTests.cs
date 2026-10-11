@@ -74,7 +74,7 @@ public sealed class TownGovernmentNonLandTests
     public void OnlyTheNamedCurrentHolderWhoLearnedThisProposalCanAcceptItsDuties()
     {
         var town = Town.Elect("land");
-        town.Read(town.Government.Changes[0].Id, "a");
+        town.Read(town.Government.Changes[1].Id, "a");
         town.Advance(20);
         var change = town.ProposeExtension("land");
         town.Read(change, "b");
@@ -336,7 +336,7 @@ public sealed class TownGovernmentNonLandTests
         private const string Id = "town:non-land-test";
         private static readonly string[] Adults = ["a", "b", "c", "d"];
         public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(Adults);
-        public TownGovernmentState Government { get; set; } = TownGovernmentState.Create();
+        public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice(Id, Adults, 10);
         public long Tick { get; private set; }
 
         public static Town Elect(string mandate)

@@ -1,0 +1,1 @@
+- When households decide to make, grow or buy supplies, they ignore goods in broken containers, promised for delivery or held at a borrowed market stall. Paper reserved for their own books still counts toward their writing supply.

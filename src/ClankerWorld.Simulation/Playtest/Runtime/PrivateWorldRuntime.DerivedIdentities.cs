@@ -84,9 +84,6 @@ public sealed partial class PrivateWorldRuntime
     private static string RenameMemoryId(string agent, long eventId) => DerivedId.Hash(agent, "player-rename:" + eventId.ToString("D20", CultureInfo.InvariantCulture) + ":");
     private static string AnimalSupplyId(string lot, string yard, string? animal, string? action) =>
         DerivedId.Hash($"{lot}:{yard}:{animal}:{action}", "animal:supply:", 24);
-    private static string MilkStockId(string jug, string building) => DerivedId.Hash(JsonSerializer.Serialize(new[] { jug, building }), "animal:milk_stock:", 24);
-    private static string MilkSaleId(string seller, string buyer, string milk, string jug, string payment, string building) =>
-        DerivedId.Hash(JsonSerializer.Serialize(new[] { seller, buyer, milk, jug, payment, building }), "animal:milk_offer:", 24);
     private static string AnimalActionId(string action, string animal, string? other) => DerivedId.Hash($"{animal}:{other}", "animal:" + action + ":", 24);
     private static string AnimalAgreementId(string action, string animal, string other, string? lot) =>
         DerivedId.Hash(JsonSerializer.Serialize(new[] { action, animal, other, lot }), "animal:agreement:", 24);
@@ -97,9 +94,7 @@ public sealed partial class PrivateWorldRuntime
     private static string AnimalProductReservationId(string product) => DerivedId.Create(product + "-held");
     private static string AnimalSaddleOperationId(string animal, long tick, long eventId) => DerivedId.Hash($"{animal}:{tick}:{eventId}", "fit-saddle-", 24);
     private static string AnimalSaddleReservationId(string operation) => DerivedId.Create(operation + "-held");
-    private static string MilkSaleReservationId(string offer) => DerivedId.Create(offer + "-milk");
     private static string AnimalSupplyTripId(string actor) => DerivedId.Hash(actor, "animal:supply_trip:", 24);
-    private static string SpoiledMilkChoiceId(string jug) => DerivedId.Hash(jug, "animal:empty_milk:", 24);
     private static string AnimalPickupId(string actor, long tick, long eventId) => DerivedId.Hash($"{actor}:{tick}:{eventId}", "animal-pickup-", 24);
     private static string AnimalOrderReceiptId(string instruction, string animal, string? completion) =>
         DerivedId.Hash($"{instruction}:{animal}:{completion}", "animal-order:", 24);
@@ -111,7 +106,6 @@ public sealed partial class PrivateWorldRuntime
         DerivedId.Hash($"{rider}:{tick}:{eventId}:{lot}", "dismount-cargo-", 24);
     private static string AnimalOfferId(string actor, string animal, long tick, long eventId) =>
         DerivedId.Hash($"{actor}:{animal}:{tick}:{eventId}", "animal-offer-", 24);
-    private static string MilkOfferId(string choice, long tick, long eventId) => DerivedId.Hash($"{choice}:{tick}:{eventId}", "milk-sale-", 24);
     private static string AutomaticBuildingId(string inhabitant, BuildingDefinition definition) =>
         inhabitant.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
             ? DerivedId.Create($"build-{inhabitant}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")

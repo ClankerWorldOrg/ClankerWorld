@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
@@ -155,14 +156,23 @@ internal static class NonviolentRuntimeFixture
         var town = state.Towns![0];
         var tick = state.Society.Society.WorldTick;
         var (council, government) = TownGovernmentRules.RegisterMayor(town.Governance!, town.Government!,
-            Judge, "land", town.ResidentIds, tick);
+            Judge, "land+non_land", town.ResidentIds, tick);
         (council, government) = TownGovernmentRules.Propose(council, government, town.Id, Judge,
-            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, town.ResidentIds, tick, Day);
+            new(TownArrangementRules.AllAdultCouncil, TownArrangementRules.Mayor, TownArrangementRules.Mayor), false, town.ResidentIds, tick, Day);
         foreach (var voter in town.ResidentIds.Take(3))
             government = TownGovernmentRules.Vote(government, government.Changes[^1].Id, voter, true, tick);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
             state.WorldSeed, town.ResidentIds, tick, Day);
+        var arrangement = new TownArrangement(TownArrangementRules.AllAdultCouncil,
+            TownArrangementRules.Mayor, TownArrangementRules.Mayor);
+        Assert.Equal(arrangement, government.Arrangement);
+        Assert.Equal("completed", Assert.Single(government.Changes).Status);
+        // Retained vacant duties need no successor for the ordinary-authority handover.
+        // The following advance opens their joint vacancy election after that change completes.
+        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
+            state.WorldSeed, town.ResidentIds, tick, Day);
         var contest = Assert.IsType<TownMayoralContest>(government.Contest);
+        Assert.Equal(("vacancy", "land+non_land", "voting"), (contest.Purpose, contest.Mandates, contest.Stage));
         foreach (var voter in town.ResidentIds)
             government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(contest), voter, Judge, tick);
         state = state with { Towns = [town with { Governance = council, Government = government }] };
@@ -173,18 +183,14 @@ internal static class NonviolentRuntimeFixture
         }
         town = state.Towns![0];
         tick = state.Society.Society.WorldTick;
-        (council, government) = TownGovernmentRules.Propose(town.Governance!, town.Government!, town.Id, Judge,
-            town.Government!.Arrangement with { NonLand = TownArrangementRules.Mayor }, false, town.ResidentIds, tick, Day, "land");
-        var change = government.Changes[^1];
-        council = TownGovernanceRules.LearnNotices(council, Judge,
-            council.Notices.Where(notice => notice.Kind == "government" && notice.SubjectId == change.Id).Select(notice => notice.Id), tick);
-        (council, government) = TownGovernmentRules.AcceptNonLandDuties(council, government, change.Id, Judge, town.ResidentIds, tick);
-        foreach (var voter in town.ResidentIds.Take(3))
-            government = TownGovernmentRules.Vote(government, change.Id, voter, true, tick);
-        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
-            state.WorldSeed, town.ResidentIds, tick, Day);
+        government = town.Government!;
+        Assert.Equal(arrangement, government.Arrangement);
+        var ordinaryChange = Assert.Single(government.Changes);
+        Assert.Equal((arrangement, "completed"), (ordinaryChange.Target, ordinaryChange.Status));
+        Assert.Equal(2, government.Offices.Count);
+        Assert.All(government.Offices, office => Assert.Equal(Judge, office.HolderId));
         Assert.Equal(Judge, TownGovernmentRules.CurrentNonLandAuthority(government, tick)!.HolderId);
-        state = Strict(state with { Towns = [town with { Governance = council, Government = government }] });
+        state = Strict(state);
         var provider = new NonviolentTestProvider
         {
             Choose = observation => observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
@@ -194,6 +200,8 @@ internal static class NonviolentRuntimeFixture
                 ? new(Statement: "I answer for myself and acknowledge the reported passage, without promising goods.") : null
         };
         using var prepared = Create(state, provider);
+        foreach (var (actor, index) in town.ResidentIds.Select((actor, index) => (actor, index)))
+            Wake(prepared, actor, "inspect-elected-mayor-case:" + index.ToString(CultureInfo.InvariantCulture));
         await UntilAsync(prepared, () => TownNonviolentRules.ReadCurrent(prepared.Towns[0].Nonviolent.Cases[0], Judge, prepared.WorldTick) &&
             prepared.Towns[0].Nonviolent.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].Nonviolent.Cases[0].Allegation.SubjectId), 16);
         Wake(prepared, Judge, "fresh-reasoned-choice");
@@ -227,7 +235,7 @@ internal static class NonviolentRuntimeFixture
 
     private static byte[] CreateBaseline()
     {
-        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new NonviolentTestProvider());
+        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new NonviolentTestProvider(), ticksPerDay: Day);
         var state = generated.ExportState();
         var town = state.Towns![0];
         var board = town.OriginSite!.Value;
@@ -247,7 +255,6 @@ internal static class NonviolentRuntimeFixture
         foreach (var actor in new[] { Subject, Witness, Judge })
             council = TownGovernanceRules.LearnNotices(council, actor, council.Notices.Select(notice => notice.Id), 0);
         var society = state.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
         var inventory = InventoryFixture.AddLot(society.Inventory, ReturnLot, "wood", Subject, 2);
         state = state with
         {
@@ -258,19 +265,11 @@ internal static class NonviolentRuntimeFixture
                 HungerBasisPoints = 9_000,
                 LastDecisionContext = null
             }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, map),
             Society = state.Society with
             {
                 Society = society with
                 {
                     Inventory = inventory,
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
-                    {
-                        BirthTick = person.BirthTick / oldDay * Day,
-                        BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null
-                    }).ToArray()
                 }
             }
         };

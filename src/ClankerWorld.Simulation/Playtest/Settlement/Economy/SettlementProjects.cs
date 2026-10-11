@@ -291,33 +291,7 @@ public sealed partial class PrivateWorldRuntime
         var changedChunkCoordinates = additions.Select(resource =>
                 ChunkRules.ToChunkCoordinate(resource.Position, campChunk.ChunkSize))
             .ToHashSet();
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources.Concat(additions.Select(resource => new EcologyResource(
-                    resource.Id, resource.Kind, resource.Position, resource.IsRenewable, 16, 16,
-                    resource.IsRenewable ? 4 : 0, resource.IsRenewable ? 1 : 0, SeasonKind.Spring,
-                    WorldCalendarRules.FromTick(WorldTick, worldSystems.Config).DayIndex + 1, EcologyResourceState.Available)))
-                    .OrderBy(resource => resource.Id, StringComparer.Ordinal).ToArray(),
-            },
-            Chunks = worldSystems.Chunks.Select(chunk =>
-            {
-                if (!changedChunkCoordinates.Contains(chunk.Coordinate))
-                    return chunk;
-                var origin = chunk.Coordinate.Origin(chunk.ChunkSize);
-                return ChunkManifestCodec.WithDigest(chunk with
-                {
-                    Resources = map.Resources.Where(resource =>
-                            resource.Position.X >= origin.X && resource.Position.X < origin.X + chunk.Width &&
-                            resource.Position.Y >= origin.Y && resource.Position.Y < origin.Y + chunk.Height)
-                        .Select(resource => new ChunkResourceMetadata(
-                            resource.Id, resource.Kind,
-                            new GridPoint(resource.Position.X - origin.X, resource.Position.Y - origin.Y),
-                            resource.IsRenewable)).ToArray(),
-                });
-            }).ToArray(),
-        };
+        environmentSystem.AddSettlementResources(map, additions, changedChunkCoordinates, WorldTick);
         SyncEcologyResourceStates();
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("settlement_resources_added", string.Join(',', additions.Select(resource => resource.Kind)));
@@ -347,7 +321,7 @@ public sealed partial class PrivateWorldRuntime
 
     private static void ValidateProject(SettlementProject project, long worldTick)
     {
-        if (string.IsNullOrWhiteSpace(project.CandidateId) || project.CandidateId.Length > 512 ||
+        if (string.IsNullOrWhiteSpace(project.CandidateId) ||
             !TownConstructionCandidateIds.TryParse(project.CandidateId, out _) ||
             string.IsNullOrWhiteSpace(project.Label) || project.Label.Length > 256 ||
             project.StartedTick < 0 || project.StartedTick > worldTick ||
@@ -920,13 +894,7 @@ public sealed partial class PrivateWorldRuntime
         // A failed inventory/capacity transition therefore leaves the source
         // untouched and does not wear a tool.
         ApplyGatheringInventory(inhabitantId, itemKind, plan, deliveryBuildingId);
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources.Select(resource => resource.Id == source.Id ? harvested : resource).ToArray(),
-            },
-        };
+        environmentSystem.ReplaceEcologyResource(source.Id, harvested);
         SyncEcologyResourceStates();
         RecordNonviolentConduct(inhabitantId, plan.FellTree ? "fell_tree" : "gather_material", source.Position,
             source.Id, itemKind, plan.Quantity, $"gather-material:{WorldTick}:{inhabitantId}:{nextEventId}");

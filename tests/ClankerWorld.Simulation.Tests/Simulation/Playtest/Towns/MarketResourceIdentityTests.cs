@@ -11,6 +11,7 @@ public sealed class MarketResourceIdentityTests
     [Theory]
     [InlineData(128)]
     [InlineData(129)]
+    [InlineData(512)]
     public async Task LongResourceStockAndPaymentSurviveNativeMarketPhases(int resourceLength)
     {
         var state = await PaidMarketWorld.StateAsync();

@@ -120,7 +120,11 @@ bytes, continued training, unanswered partnership and strict reload remain check
 
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment
-identity replies, wills and conversation turns use separate task queues. Waiting
+identity replies, wills and conversation turns use separate task queues. Native
+household formation also finishes ordinary and life-moment replies before
+counting its next bounded tick, using the shared land-transfer wait. Formation
+succeeds only from committed membership; constructing a provider reply does
+not end the fixture's offered choices. Waiting
 only for ordinary decisions can compare a requested identity in one checkpoint
 with a kept identity in the other. The child household-change fixture awaits all
 four queues without advancing another tick, retaining complete checkpoint bytes,

@@ -122,8 +122,6 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("ConversationTurnId")]
     [InlineData("ConversationWrapUpId")]
     [InlineData("AnimalSupplyId")]
-    [InlineData("MilkStockId")]
-    [InlineData("MilkSaleId")]
     [InlineData("AnimalActionId")]
     [InlineData("AnimalAgreementId")]
     [InlineData("AnimalHideId")]
@@ -133,13 +131,11 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("AnimalProductReservationId")]
     [InlineData("AnimalSaddleOperationId")]
     [InlineData("AnimalSaddleReservationId")]
-    [InlineData("MilkSaleReservationId")]
     [InlineData("DeveloperVesselUnitId")]
     [InlineData("BoatTripId")]
     [InlineData("NonviolentRemedyChoiceId")]
     [InlineData("NonviolentRelayChoiceId")]
     [InlineData("AnimalSupplyTripId")]
-    [InlineData("SpoiledMilkChoiceId")]
     [InlineData("AnimalPickupId")]
     [InlineData("AnimalOrderReceiptId")]
     [InlineData("AnimalHideTransferId-collect")]
@@ -147,7 +143,6 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("AnimalInputReservationId")]
     [InlineData("AnimalCargoDismountId")]
     [InlineData("AnimalOfferId")]
-    [InlineData("MilkOfferId")]
     [InlineData("AutomaticBuildingId")]
     [InlineData("AutomaticBuildingId-legacy")]
     [InlineData("ReplacementBuildingId")]
@@ -188,7 +183,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             Households = society.Households.Select(household =>
             household.Id == home ? household with { Name = "Household " + new string('h', 118) } : household).ToArray()
         };
-        var sourceLot = Assert.Single(society.Inventory.Lots, lot => lot.ItemKind == "milk").Id;
+        var sourceLot = society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" && lot.ProvenanceLotId is not null)
+            .OrderBy(lot => lot.Id, StringComparer.Ordinal).Last().Id;
+        Assert.Equal(DerivedId.MaximumLength, sourceLot.Length);
         var animalId = "animal:" + new string('a', 121);
         var building = state.WorldSimulation!.Buildings.OrderBy(record => record.InstanceId, StringComparer.Ordinal).Last().InstanceId;
         var buildingDefinition = state.WorldContent!.Buildings.OrderBy(record => record.CanonicalId, StringComparer.Ordinal).Last();
@@ -330,9 +327,6 @@ public sealed partial class GrownAgentHelperMemoryTests
             "ConversationTurnId" => [ConversationSystem.ConversationId(society.WorldTick, actor, relative), AgentConversationRules.MaximumPublicTurns],
             "ConversationWrapUpId" => [ConversationSystem.ConversationId(society.WorldTick, actor, relative)],
             "AnimalSupplyId" => [sourceLot, building, animalId, "feed"],
-            "MilkStockId" => [society.Inventory.GetLot(sourceLot).ContainerLotId, building],
-            "MilkSaleId" => [actor, relative, sourceLot, society.Inventory.GetLot(sourceLot).ContainerLotId,
-                society.Inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.OwnerId == relative).Id, building],
             "AnimalActionId" => ["guide", animalId, actor],
             "AnimalAgreementId" => ["buy", animalId, actor, sourceLot],
             "AnimalHideId" => [animalId],
@@ -344,23 +338,17 @@ public sealed partial class GrownAgentHelperMemoryTests
             "AnimalSaddleReservationId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("AnimalSaddleOperationId",
                 BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [animalId, society.WorldTick,
                     society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1]))],
-            "MilkSaleReservationId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("MilkSaleId",
-                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [actor, relative, sourceLot,
-                    society.Inventory.GetLot(sourceLot).ContainerLotId,
-                    society.Inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.OwnerId == relative).Id, building]))],
             "DeveloperVesselUnitId" => [cartId, int.MaxValue],
             "BoatTripId" => [townId, building, cartId],
             "NonviolentRemedyChoiceId" => [townId, sourceLot, cartId],
             "NonviolentRelayChoiceId" => [townId, sourceLot, relative],
             "AnimalSupplyTripId" => [actor],
-            "SpoiledMilkChoiceId" => [society.Inventory.GetLot(sourceLot).ContainerLotId],
             "AnimalPickupId" => [actor, society.WorldTick, long.MaxValue],
             "AnimalOrderReceiptId" => [instruction.InstructionId, animalId, sourceLot],
             "AnimalHideTransferId-collect" or "AnimalHideTransferId-carry" => [actor, animalId, society.WorldTick, factory.EndsWith("-carry", StringComparison.Ordinal)],
             "AnimalInputReservationId" => [actor, society.WorldTick, long.MaxValue, "feed", int.MaxValue],
             "AnimalCargoDismountId" => [actor, society.WorldTick, long.MaxValue, sourceLot],
             "AnimalOfferId" => [actor, animalId, society.WorldTick, long.MaxValue],
-            "MilkOfferId" => [sourceLot, society.WorldTick, long.MaxValue],
             "AutomaticBuildingId" => [actor, buildingDefinition],
             "AutomaticBuildingId-legacy" => [new string('b', DerivedId.MaximumLength), buildingDefinition],
             "ReplacementBuildingId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("AutomaticBuildingId",

@@ -229,11 +229,14 @@ public sealed partial class PrivateWorldRuntime
                     society.Checkpoint.GetInhabitant(patient).Name));
         }
         var trip = AuthorizedMedicalSupplyTrip(actor);
+        var destination = trip?.LastSeenPosition;
+        if (destination is null && ObservableMedicalNeeds(actor).FirstOrDefault() is { } observedPatient)
+            destination = inhabitants[observedPatient].Position;
         if (trip is not null && HasCarriedOwnItem(actor, "medicine") && !CanObserveMedicalPatient(actor, trip.PatientId))
             candidates.Add(new(MedicalCollectPrefix + "medicine",
                 "Return with the medicine to where you last saw the consenting patient.", 8, trip.PatientId));
-        else if (!HasCarriedOwnItem(actor, "medicine") && (ObservableMedicalNeeds(actor).Any() || trip is not null) && FreeCarryCapacity(actor) > 0 &&
-            SharedItem("medicine", actor) is { } shared)
+        else if (!HasCarriedOwnItem(actor, "medicine") && destination is { } patientPosition && FreeCarryCapacity(actor) > 0 &&
+            SharedItem("medicine", actor, patientPosition, ResourceInteractionRange) is { } shared)
             candidates.Add(new(MedicalCollectPrefix + "medicine", "Visit accessible care stock and collect one real dose of medicine.",
                 8, shared.StorageBuildingId));
         var existing = inhabitants[actor].MedicalConsent?.CaregiverIds ?? [];
@@ -265,7 +268,7 @@ public sealed partial class PrivateWorldRuntime
                 MoveToward(actor, inhabitants[actor], trip.LastSeenPosition, "medical_patient", ResourceInteractionRange);
                 return;
             }
-            CollectEquipment(actor, inhabitants[actor], "medicine");
+            CollectEquipment(actor, inhabitants[actor], "medicine", trip.LastSeenPosition, ResourceInteractionRange);
             return;
         }
         if (!candidate.StartsWith(MedicalTreatPrefix, StringComparison.Ordinal)) return;

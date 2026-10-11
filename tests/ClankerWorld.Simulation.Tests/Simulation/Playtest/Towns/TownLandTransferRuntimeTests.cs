@@ -84,7 +84,8 @@ public sealed partial class TownLandTransferRuntimeTests
         });
         Assert.Equal(grantReceipt, JsonSerializer.Serialize(world.HouseholdLandUseRequests.Single(item => item.Id == grant.Id)));
         Assert.Empty(world.Towns[0].LandHearings.Cases);
-        Assert.Empty(world.Towns[0].Government!.Offices);
+        Assert.Equal(2, world.Towns[0].Government!.Offices.Count);
+        Assert.All(world.Towns[0].Government!.Offices, office => Assert.Null(office.HolderId));
         Assert.Equal(property, PrivateProperty(world.ExportState()));
         Assert.Contains(provider.Selected, item => item.Contains("|land_transfer_propose|", StringComparison.Ordinal));
         Assert.Contains(provider.Selected, item => item.Contains("|land_transfer_accept|", StringComparison.Ordinal));
@@ -336,7 +337,7 @@ public sealed partial class TownLandTransferRuntimeTests
 
     private static PrivateWorldRuntime NewWorld(TransferProvider provider, bool generatedClock = false, string seed = "government-personal-path")
     {
-        using var generated = NormalPathWorld.CreateGenerated(seed, _ => provider);
+        using var generated = NormalPathWorld.CreateGenerated(seed, _ => provider, ticksPerDay: generatedClock ? null : Day);
         var state = generated.ExportState();
         var society = state.Society.Society;
         var oldDay = society.Config.TicksPerWorldDay;

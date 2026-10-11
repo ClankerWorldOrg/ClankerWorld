@@ -33,6 +33,14 @@ public sealed partial class TownMembershipTests
         Assert.Equal(new[] { founder }.Concat(children).Order(StringComparer.Ordinal), founded.ResidentIds);
         Assert.Equal([founder], founded.Governance!.Members);
         Assert.NotNull(founded.Government);
+        Assert.Equal(TownArrangementRules.Initial, founded.Government.Arrangement);
+        Assert.Equal(2, founded.Government.Offices.Count);
+        Assert.All(founded.Government.Offices, office =>
+        {
+            Assert.Null(office.HolderId);
+            Assert.Null(office.ElectionId);
+            Assert.Equal(founded.FoundedTick, office.VacantSinceTick);
+        });
         Assert.DoesNotContain(world.Towns.Single(town => town.Id == First).ResidentIds,
             id => id == founder || children.Contains(id));
         Assert.Equal(JsonSerializer.Serialize(state.WorldSimulation!.Buildings), JsonSerializer.Serialize(world.WorldSimulation.Buildings));

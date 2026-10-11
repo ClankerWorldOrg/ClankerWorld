@@ -28,11 +28,12 @@ opaque receipt that can be replaced by a hash.
 ## Executable generator inventory
 
 The native inventory uses three actual accepted births. Its milk trace performs
-50 paid kernel exchanges with exclusive milk reservations, separately owned
-jugs, wood payments and complete provenance. Each exchange saves and strictly
-reloads the private world, then recalls a memory keyed by the new milk ID.
-This is a controlled-stock kernel trace. The ordinary admitted milk-trade
-workflow has separate native resale regression coverage.
+50 ordinary kernel barters with both parties consenting, exclusive holds,
+whole-lot milk and partial wood payments. Milk retains its identity; each new
+payment lot preserves its source. Each barter saves and strictly reloads the
+private world, then recalls a memory keyed by its new payment ID. This is a
+controlled-stock kernel trace. The admitted Store and Market purchase workflows
+have separate native regression coverage.
 
 The following matrices list the production generators they exercise. Pure
 factory rows invoke the production method, rather than copying its formula.
@@ -44,7 +45,7 @@ factory-input records do not represent model-admitted civic or owner orders.
 | Inventory | Production generators and variants |
 | --- | --- |
 | `NativeDerivedInventoryIdTests` | Partial transfer, containment, take, relocation, handcart load/unload, barter holds and settlement, milk and payment splits |
-| `NativePaidMilkDerivedIdTests` | Fifty successive paid milk exchanges, payment quantities, vessel ownership, reservation release, complete source links and recall after every exchange |
+| `NativePaidMilkDerivedIdTests` | Fifty successive ordinary milk barters, both consents, payment quantities, stable milk identity, completed reservations, complete payment source links and recall after every barter |
 | `NativeDerivedSocietyIdTests` | Native child and request IDs, protected parentage/care/membership records, birth food holds, domestic-person and frozen birth-family handles, household creation/join/rejoin, consumption holds and memory summaries |
 | `NativeDerivedWorkIdTests` | Native personal and borrowed tool repair, partial tool/material splits, gifts to the household, completed material reservations and owner-order completion receipts; actual paid placement of a 128-character building instance |
 | `NativeDerivedCivicIdTests` | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |

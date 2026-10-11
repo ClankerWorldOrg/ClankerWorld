@@ -377,9 +377,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 IdentityCalled.TrySetResult(request);
                 await ReleaseIdentity.Task.WaitAsync(cancellationToken);
             }
-            return new(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
-                observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
-                choice.Id, 1, new Dictionary<string, double> { [choice.Id] = 1 });
+            return KeepNativeIdentity(request);
         }
         private async ValueTask<CognitionDecisionResponse> ProposeOverHttpAsync(CognitionDecisionRequest request,
             string candidate, CancellationToken cancellationToken)

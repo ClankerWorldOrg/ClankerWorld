@@ -42,13 +42,14 @@
     "worldEventLog",
     "worldSeed",
     "worldSimulation",
-    "worldSystems"
+    "environmentSystem"
   ],
   "live": [
     "AgentBeliefChanged",
     "conversationWorld",
     "civicWorld",
     "gate",
+    "environmentWorld",
     "maxCognitionDispatchPerCycle",
     "memoryCompactionTransitions",
     "observerGeneration",

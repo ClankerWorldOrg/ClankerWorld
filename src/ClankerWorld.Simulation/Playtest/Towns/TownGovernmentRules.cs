@@ -167,10 +167,8 @@ public static partial class TownGovernmentRules
         var changesOrdinaryAuthority = handover is not null && handover.Target.Ordinary != state.Arrangement.Ordinary;
         var targetNeedsCouncil = changesOrdinaryAuthority && NeedsElectedCouncil(handover!.Target, adults.Length);
         var currentNeedsCouncil = state.Arrangement.Ordinary is TownArrangementRules.Council or TownArrangementRules.ElectedCouncil;
-        // Whether the current arrangement elects or keeps representatives without this change: its own
-        // threshold, a seated representative council kept above three adults, or one retrying for candidates.
-        var currentElectsCouncil = currentNeedsCouncil && (NeedsElectedCouncil(state.Arrangement, adults.Length) ||
-            adults.Length > TownGovernanceRules.Seats && (council.Form == "representative" || council.Fallback == "candidates"));
+        // Both automatic and explicit representation now start and resume at four adults.
+        var currentElectsCouncil = currentNeedsCouncil && NeedsElectedCouncil(state.Arrangement, adults.Length);
         var leader = GoverningOffice(state);
         if (state.Arrangement.Ordinary == TownArrangementRules.Mayor)
             council = TownGovernanceRules.ChangeCouncil(council, leader?.HolderId is { } holder ? [holder] : adults,

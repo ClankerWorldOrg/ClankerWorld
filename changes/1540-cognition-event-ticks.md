@@ -1,0 +1,1 @@
+- Late model replies and ignored model failures record known world time rather than a run number in cognition diagnostics, including after reload.

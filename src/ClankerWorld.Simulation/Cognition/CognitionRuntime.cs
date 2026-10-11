@@ -211,7 +211,7 @@ public sealed class CognitionRuntime
                 var outcome = retiredRequestIds.Contains(response.RequestId)
                     ? "superseded_request"
                     : "no_in_flight_request";
-                AppendEvent(response.RunEpoch, "cognition_response_rejected", $"{response.RequestId}:{outcome}");
+                AppendEvent(DiagnosticWorldTick(response.RequestId), "cognition_response_rejected", $"{response.RequestId}:{outcome}");
                 return Rejected(outcome);
             }
 
@@ -288,7 +288,7 @@ public sealed class CognitionRuntime
         {
             if (inFlight is null || !string.Equals(inFlight.Request.RequestId, normalizedRequestId, StringComparison.Ordinal))
             {
-                AppendEvent(runEpoch, "cognition_failure_ignored", $"{normalizedRequestId}:{normalizedReason}");
+                AppendEvent(DiagnosticWorldTick(normalizedRequestId), "cognition_failure_ignored", $"{normalizedRequestId}:{normalizedReason}");
                 return Rejected("no_in_flight_request");
             }
 
@@ -537,6 +537,14 @@ public sealed class CognitionRuntime
         requests[retired.Request.RequestId] = retired;
         retiredRequestIds.Add(retired.Request.RequestId);
         inFlight = null;
+    }
+
+    private long DiagnosticWorldTick(string? requestId)
+    {
+        if (inFlight is not null) return inFlight.Request.Observation.WorldTick;
+        if (requestId is not null && requests.TryGetValue(requestId, out var request)) return request.Request.Observation.WorldTick;
+        // Restore retains events and intentions, but not request records.
+        return events.Count > 0 ? events[^1].WorldTick : currentIntention?.WorldTick ?? 0;
     }
 
     private void AppendEvent(long worldTick, string kind, string detail)

@@ -59,7 +59,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 "tame" => $"Approach and tame {animal.Name} for your household with two feed and one jug water; lead it to the animal yard.",
                 "care" => $"Bring physical feed and jug water to care for {animal.Name} for one day.",
-                "collect" => $"Collect {AnimalRules.Definition(animal.Species).Product} from {animal.Name} into household goods; milk requires a household jug.",
+                "collect" => $"Collect {AnimalRules.Definition(animal.Species).Product} from {animal.Name} into household goods.",
                 "collect_hide" => $"Collect the unowned hide left by {animal.Name}'s natural death at its actual position.",
                 "lead_home" => $"Lead {animal.Name} along a legal route to the household's animal yard.",
                 "saddle" => $"Fit a real household saddle on {animal.Name}.",
@@ -71,11 +71,9 @@ public sealed partial class PrivateWorldRuntime
         }
         AddAnimalSupplyCandidates(candidates, actor);
         AddAnimalPermissionAndTradeCandidates(candidates, actor);
-        AddMilkCandidates(candidates, actor);
     }
     private bool ApplyAnimalCandidate(string actor, string candidateId)
     {
-        if (ApplyMilkStockChoice(actor, candidateId) || ApplySpoiledMilkChoice(actor, candidateId)) return true;
         if (candidateId == "drink_milk")
         {
             if (CarriedMilk(actor) is { } milk)
@@ -96,17 +94,12 @@ public sealed partial class PrivateWorldRuntime
         if (choice is null) return true;
         var animal = Animal(choice.AnimalId)!;
         var person = inhabitants[actor];
-        if (choice.Action is "care" or "collect" or "saddle")
+        if (choice.Action is "care" or "saddle")
         {
             var needsSupply = choice.Action switch
             {
                 "care" => AnimalCareInputs(actor, animal, AnimalRules.Definition(animal.Species).DailyFeed,
                     AnimalRules.Definition(animal.Species).DailyWater) is null,
-                "collect" => animal.Species == "cow" && !society.Checkpoint.Inventory.Lots.Any(lot =>
-                    lot.ItemKind == InventoryContainerRules.WaterJug && lot.OwnerId == animal.HouseholdId &&
-                    PersonalEquipmentRules.IsCarried(lot, actor) && !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id) &&
-                    society.Checkpoint.Inventory.Lots.Where(content => content.ContainerLotId == lot.Id).All(content => content.ItemKind == "milk") &&
-                    ContainerContentsQuantity(society.Checkpoint.Inventory, lot.Id) <= InventoryContainerRules.WaterJugCapacity - 2),
                 _ => !AnimalSuppliesAtHand(actor, animal).Any(lot => lot.ItemKind == "saddle" && lot.OwnerId == animal.HouseholdId),
             };
             if (needsSupply && AnimalSupplyChoices(actor).FirstOrDefault(supply => supply.AnimalId == animal.Id && supply.Action == choice.Action) is { } supply)
@@ -237,9 +230,7 @@ public sealed partial class PrivateWorldRuntime
         if (quantity == 0 || household is null) return true;
         var people = society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        var ready = society.Checkpoint.Inventory.Lots.Where(item => IsEdibleFood(item.ItemKind) &&
-            InUsableVesselOrLoose(item) && !OnBorrowedMarketStall(item) &&
-            (item.OwnerId == household || people.Contains(item.OwnerId))).Sum(AvailableLotQuantity);
+        var ready = HoldingsTotal(people.Append(household), EdibleFoodGoods);
         return ready - quantity >= people.Count * 2 + (inhabitants.Values.Any(person => people.Contains(person.InhabitantId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
     }
     private void ConsumeAnimalInputs(string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)
@@ -258,8 +249,9 @@ public sealed partial class PrivateWorldRuntime
         });
     }
     private InventoryLot? CarriedMilk(string actor) => society.Checkpoint.Inventory.Lots.FirstOrDefault(lot =>
-        lot.ItemKind == "milk" && lot.DeliveryBuildingId is null && lot.ContainerLotId is { } jug &&
-        society.Checkpoint.Inventory.GetLot(jug) is { ConditionBasisPoints: > 0, DeliveryBuildingId: null } && AvailableLotQuantity(lot) > 0 &&
+        lot.ItemKind == "milk" && lot.DeliveryBuildingId is null &&
+        (lot.ContainerLotId is null || society.Checkpoint.Inventory.GetLot(lot.ContainerLotId) is
+        { ConditionBasisPoints: > 0, DeliveryBuildingId: null }) && AvailableLotQuantity(lot) > 0 &&
         PersonalEquipmentRules.IsPhysicallyCarried(society.Checkpoint.Inventory, lot, actor) &&
         (lot.OwnerId == actor || lot.OwnerId == HouseholdFor(actor)));
 
@@ -274,37 +266,9 @@ public sealed partial class PrivateWorldRuntime
         if (!MayCareForAnimal(actor, animal) || animal.ReadyProductLotId is not { } id ||
             society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == id) is not { } product ||
             product.FreshnessBasisPoints == 0 || FreeCarryCapacity(actor) < product.Quantity) return;
-        var inventory = society.Checkpoint.Inventory;
-        InventoryLot? jug = null;
-        if (product.ItemKind == "milk")
-        {
-            jug = inventory.Lots.FirstOrDefault(lot => lot.ItemKind == InventoryContainerRules.WaterJug &&
-                lot.OwnerId == animal.HouseholdId && lot.ConditionBasisPoints > 0 && !HasActiveContainerReservation(inventory, lot.Id) &&
-                (PersonalEquipmentRules.IsCarried(lot, actor) || lot.StorageBuildingId == animal.YardId &&
-                    worldSimulation.Buildings.Any(building => building.InstanceId == animal.YardId && building.Position == inhabitants[actor].Position)) &&
-                inventory.Lots.Where(content => content.ContainerLotId == lot.Id).All(content => content.ItemKind == "milk") &&
-                ContainerContentsQuantity(inventory, lot.Id) + product.Quantity <= InventoryContainerRules.WaterJugCapacity &&
-                (PersonalEquipmentRules.IsCarried(lot, actor) ||
-                 ContainerFamilyQuantity(inventory, lot.Id) + product.Quantity <= FreeCarryCapacity(actor)));
-            if (jug is null) return;
-        }
         ClearAnimalProduct(animal, discard: false);
-        if (jug is null)
-            ApplyInventoryTransition(current => InventoryFixture.Relocate(current, "animal-collect-" + WorldTick + "-" + nextEventId,
-                product.Id, product.OwnerId, product.Quantity, carrierId: actor));
-        else
-        {
-            var vessel = jug;
-            ApplyInventoryTransition(current =>
-            {
-                var next = InventoryFixture.Relocate(current, "animal-milk-jug-" + WorldTick + "-" + nextEventId,
-                    vessel.Id, vessel.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y));
-                next = InventoryFixture.PutIntoContainer(next, "animal-milk-" + WorldTick + "-" + nextEventId,
-                    vessel.OwnerId, vessel.Id, product.Id, product.Quantity);
-                return InventoryFixture.Relocate(next, "animal-milk-carry-" + WorldTick + "-" + nextEventId,
-                    vessel.Id, vessel.OwnerId, 1, carrierId: actor);
-            });
-        }
+        ApplyInventoryTransition(current => InventoryFixture.Relocate(current, "animal-collect-" + WorldTick + "-" + nextEventId,
+            product.Id, product.OwnerId, product.Quantity, carrierId: actor));
         SetAnimal(animal with { ReadyProductLotId = null, ReadyProductReservationId = null });
         FinishAnimalSupplyTrip(actor);
         AppendEvent("animal_product_collected", actor + ":" + animal.Id + ":" + product.ItemKind + ":" + product.Quantity, animal.Position);

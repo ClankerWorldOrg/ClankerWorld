@@ -19,7 +19,7 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         var election = new HearingProvider();
         using var elected = NewWorld(election);
-        await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(), Day * 3, election);
+        await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, election);
         var state = elected.ExportState();
         var household = state.Society.Society.GetInhabitant(Filer).HouseholdId!;
         var stock = state.Society.Society.Inventory.Lots.First(lot => lot.OwnerId == household &&

@@ -1,0 +1,1 @@
+- Agents check whether goods can reach their destination before collecting animal-yard water, planting seeds, medicine, repair supplies, cart materials or food for a child. Swimming pickups keep within the load limit. Ordinary milk uses the shared Store stocking checks for reachable sources and loaded returns.

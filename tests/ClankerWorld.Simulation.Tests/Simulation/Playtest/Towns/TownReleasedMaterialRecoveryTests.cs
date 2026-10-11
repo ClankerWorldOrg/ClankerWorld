@@ -176,6 +176,9 @@ public sealed class TownReleasedMaterialRecoveryTests
         inventory = InventoryFixture.ReleaseReservation(inventory, "recovery:fixture-claim:" + otherLoad.Id, "fixture_custody");
         inventory = InventoryFixture.Relocate(inventory, "recovery:full-carrier", otherLoad.Id, otherLoad.OwnerId,
             otherLoad.Quantity, carrierId: actor);
+        // Keep the other parcel committed so native ID ordering cannot choose it instead of the released parcel.
+        inventory = InventoryFixture.Reserve(inventory, "recovery:other-claim", otherLoad.OwnerId, otherLoad.Id,
+            otherLoad.Quantity, "unrelated-job", long.MaxValue);
         Assert.Equal(PersonalEquipmentRules.BaseCapacity, PersonalEquipmentRules.CarriedQuantity(inventory, actor, null));
         if (reservedRemainder)
             inventory = InventoryFixture.Reserve(inventory, "recovery:held-claim", lot.OwnerId, lot.Id, 1,
@@ -210,6 +213,10 @@ public sealed class TownReleasedMaterialRecoveryTests
         Assert.Null(dropped.CarrierId);
         Assert.Equal(lot.GroundPosition, dropped.GroundPosition);
         Assert.Equal(lot.OwnerId, dropped.OwnerId);
+        Assert.Equal(actor, world.Society.Inventory.GetLot(otherLoad.Id).CarrierId);
+        var otherClaim = world.Society.Inventory.GetReservation("recovery:other-claim");
+        Assert.Equal(otherLoad.Quantity, otherClaim.Quantity);
+        Assert.Equal(InventoryReservationState.Reserved, otherClaim.State);
         using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(world.ExportState())),
             _ => new RecoveryChoice(actor));
         for (var tick = 0; tick < 30 && world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints <= 1_000; tick++)
