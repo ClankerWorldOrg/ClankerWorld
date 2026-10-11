@@ -1,1 +1,0 @@
-- After merge, let an adult deposit personal food on a Market stall and eat their carried reserve, then give them another task while urgently hungry. Check that they retrieve and eat their own available food, keep the original task and its progress, and leave unrelated goods at the stall. Save/load during the interruption and check that cancelling the task stays cancelled.

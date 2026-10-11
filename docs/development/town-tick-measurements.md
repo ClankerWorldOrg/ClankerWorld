@@ -201,4 +201,4 @@ On Windows, use a grown private world and record F12's tick readout alongside
 the world size, Roads, residents, buildings, seed, game time and machine.
 Repeat the same point on the builds being compared. Also note visible
 stutter: tick time alone does not measure frame presentation. The pending
-hands-on checks are in [the #944 playtest list](../../playtest/944-grown-town-tick-times.md).
+hands-on checks are in [the #944 playtest list](../../playtest/alpha-1.md).

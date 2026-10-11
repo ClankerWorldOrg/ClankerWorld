@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-10
+updated: 2026-10-11
 ---
 
 # Device pairing
@@ -309,7 +309,12 @@ apart from a server pairing. Before starting the host it checks the port: a
 running host of the exact same version and source revision, started by an
 earlier launch, is reused only after a side-effect-free `GET /api/v1/local/companion`
 confirms the secret already in its file on the approval listener. Anything else on
-the port is refused with a message and never stopped. The host's output goes to
+the port is refused with a message and never stopped. Discovery or proof requests
+that time out are retried within the existing startup window, retaining their
+two-second request deadlines; an explicit build mismatch, invalid response or
+secret refusal ends the attempt immediately. An unresponsive existing host is
+reported as timed out, without starting a second process or replacing its secret.
+Caller cancellation also leaves that host and secret intact. The host's output goes to
 `logs/host.log` in the player's data folder, and each start first moves the
 previous one to `logs/host.previous.log` so a crash can still be reported.
 Saves, the owner authority and the provider files sit in separate folders

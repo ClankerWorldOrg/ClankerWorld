@@ -1468,7 +1468,7 @@ correction marker, resolved from the owner's original ledger. A later correction
 marks the source corrected without changing the saved extract. Switching the
 helper off prevents new summaries but preserves existing recall. The summary
 event contains only owner and source count. Timing and usefulness remain
-provisional; see the [memory summary playtest](../../playtest/1312-memory-summaries.md).
+provisional; see the [memory summary playtest](../../playtest/alpha-1.md).
 
 Childhood talk, play and learning record owner-private experiences whose keys
 fit the same 128-character memory boundary used by recall and Jev scoring.
@@ -3285,7 +3285,7 @@ live reservations while preserving completed consumption receipts. Permission,
 active progress and closed receipts survive current-format save/reload; a
 paused world advances no treatment time. See [saves and replay](saves-and-replay.md).
 Automated checks cover this path; the
-[Windows playtest](../../playtest/565-clinic-care.md) is still pending.
+[Windows playtest](../../playtest/alpha-1.md) is still pending.
 
 Death archives the last physical state, frozen age and the Town the agent lived
 in, then removes the active actor. Existing personal inventory is frozen in
