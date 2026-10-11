@@ -41,4 +41,8 @@ public static partial class ManualWorldSaveTelemetry
     [LoggerMessage(EventId = 2261, Level = LogLevel.Information,
         Message = "world_deletion kind={Kind} outcome=deleted cleanup_complete={Complete}")]
     public static partial void Deleted(ILogger logger, string kind, bool complete);
+
+    [LoggerMessage(EventId = 2262, Level = LogLevel.Warning,
+        Message = "manual_save outcome=cleanup_pending save={SaveId} error_type={ErrorType} published=true")]
+    public static partial void SupersededCheckpointRetained(ILogger logger, string saveId, string errorType);
 }

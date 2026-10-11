@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
 
@@ -206,7 +208,9 @@ public sealed partial class PrivateWorldRuntime
             lesson = lesson with { Stage = "completed" };
             GainSkill(student.InhabitantId, lesson.Skill, actor);
             IncreaseTrust(student.InhabitantId, actor, 2, "teaching_completed");
-            var memoryId = $"lesson-gratitude:{student.InhabitantId}:{actor}:{lesson.Skill}";
+            var memoryKey = $"lesson-gratitude:{student.InhabitantId}:{actor}:{lesson.Skill}";
+            var memoryId = memoryKey.Length <= 128 ? memoryKey :
+                $"lesson-gratitude:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
             if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
             {
                 society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new(memoryId, student.InhabitantId, actor,

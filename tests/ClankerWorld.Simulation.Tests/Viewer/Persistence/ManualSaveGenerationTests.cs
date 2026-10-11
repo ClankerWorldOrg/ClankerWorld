@@ -34,6 +34,7 @@ public sealed class ManualSaveGenerationTests
             var newSettings = oldSettings with { Enabled = false, IntervalMinutes = 1 };
             var newAssignments = new InhabitantProviderAssignment[] { oldAssignments[0] with { Model = "new-model" } };
             var first = store.Overwrite(save.Id, runtime, newAssignments, newSettings);
+            Assert.Single(CheckpointFiles(path, save.Id));
             var reopened = new ManualWorldSaveStore(path);
             Assert.Equal(name, reopened.List().Single(item => item.Id == save.Id).Name);
             Assert.Equal(recoveryName, reopened.List().Single(item => item.Id == first.BackupId).Name);
@@ -45,12 +46,51 @@ public sealed class ManualSaveGenerationTests
             Assert.Equal(oldAssignments, reopened.ReadAssignments(first.BackupId));
             runtime.SetJevEnabled(true);
             var second = reopened.Overwrite(save.Id, runtime, oldAssignments, oldSettings);
+            Assert.Single(CheckpointFiles(path, save.Id));
             Assert.Equal(recoveryName, new ManualWorldSaveStore(path).List().Single(item => item.Id == second.BackupId).Name);
             Assert.False(reopened.Read(second.BackupId).JevEnabled);
             Assert.Equal(newAssignments, reopened.ReadAssignments(second.BackupId));
             Assert.Equal(newSettings, reopened.ReadAutosaveSettings(second.BackupId));
             Assert.True(reopened.Read(save.Id).JevEnabled);
             Assert.Equal(3, reopened.List().Count);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [WindowsSaveFact]
+    public void LockedSupersededCheckpointKeepsPublishedOverwriteAndRecoveryReadable()
+    {
+        var directory = Directory.CreateTempSubdirectory("save-generation-retirement-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "world.json");
+            using var runtime = new PrivateWorldRuntime("save-generation-retirement");
+            runtime.Pause();
+            var logger = new RecordingLogger<ManualWorldSaveStore>();
+            var store = new ManualWorldSaveStore(path, logger);
+            const string privateSaveName = "Private save name kept out of diagnostics";
+            var save = store.Create(privateSaveName, runtime, []);
+            var previous = Assert.Single(CheckpointFiles(path, save.Id));
+            var original = File.ReadAllBytes(previous);
+            runtime.SetJevEnabled(false);
+            ManualSaveOverwriteReceipt receipt;
+            using (var locked = new FileStream(previous, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                receipt = store.Overwrite(save.Id, runtime, []);
+                var reopened = new ManualWorldSaveStore(path);
+                Assert.False(reopened.Read(save.Id).JevEnabled);
+                Assert.Equal(original, PrivateWorldRuntimeCodec.Encode(reopened.Read(receipt.BackupId)));
+                Assert.Equal(original, File.ReadAllBytes(previous));
+                Assert.Contains(logger.Messages, message => message.Contains("outcome=cleanup_pending", StringComparison.Ordinal) &&
+                    message.Contains("published=true", StringComparison.Ordinal));
+                Assert.All(logger.Messages, message =>
+                {
+                    Assert.DoesNotContain(privateSaveName, message, StringComparison.Ordinal);
+                    Assert.DoesNotContain(previous, message, StringComparison.Ordinal);
+                });
+            }
+            Assert.False(store.Read(receipt.Saved.Id).JevEnabled);
+            Assert.Equal(original, PrivateWorldRuntimeCodec.Encode(store.Read(receipt.BackupId)));
         }
         finally { directory.Delete(recursive: true); }
     }
@@ -81,13 +121,22 @@ public sealed class ManualSaveGenerationTests
             Assert.Equal(assignments, reopened.ReadAssignments(save.Id));
             Assert.Equal(settings, reopened.ReadAutosaveSettings(save.Id));
             Assert.Equal(2, reopened.List().Count);
+            // A failed publication retains the original selected file and the
+            // intentionally unpublished generation, rather than retiring either.
+            Assert.Equal(2, CheckpointFiles(path, save.Id).Length);
             using var restored = PrivateWorldRuntime.Restore(reopened.Read(save.Id));
             Assert.True(restored.JevEnabled);
             var retry = reopened.Overwrite(save.Id, runtime, [assignments[0] with { Model = "new-model" }], settings with { Enabled = false });
             Assert.False(reopened.Read(retry.Saved.Id).JevEnabled);
+            Assert.Equal(2, CheckpointFiles(path, save.Id).Length);
+            Assert.False(File.Exists(Path.Combine(path + ".manual", save.Id + ".save")));
         }
         finally { directory.Delete(recursive: true); }
     }
+
+    private static string[] CheckpointFiles(string activePath, string id) =>
+        Directory.GetFiles(activePath + ".manual", "*.save")
+            .Where(file => Path.GetFileName(file).Split('.')[0] == id).ToArray();
 }
 
 public sealed class WindowsSaveFactAttribute : FactAttribute
