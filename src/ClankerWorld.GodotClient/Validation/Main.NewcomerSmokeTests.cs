@@ -2,6 +2,8 @@ using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.UI;
 using Godot;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -71,13 +73,21 @@ public partial class Main
             if (offerScrolls)
                 throw new InvalidOperationException("The newcomer offer and a short Event Log must fit without scrolling: " + offerLayout);
             var requests = new List<string>();
+            var requestTrace = new ConcurrentQueue<string>();
+            var requestClock = Stopwatch.StartNew();
+            // The real button callback also lays out the UI before sending its
+            // first request. Under CPU contention that work can exceed five
+            // seconds, so bound the whole interaction rather than each read.
+            using var setupDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var responses = Task.Run(async () =>
             {
                 for (var index = 0; index < 4; index++)
                 {
-                    var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                    requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms waiting for request {index + 1}/4");
+                    var context = await listener.GetContextAsync().WaitAsync(setupDeadline.Token);
                     var path = context.Request.Url!.AbsolutePath;
                     requests.Add(path);
+                    requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms received {path}");
                     object response = path switch
                     {
                         OwnerPairingEndpoints.ChallengeIssue => new OwnerChallenge(authority, registration.DeviceId,
@@ -92,10 +102,24 @@ public partial class Main
                     await JsonSerializer.SerializeAsync(context.Response.OutputStream, response, response.GetType(),
                         CompatibilitySmokeJsonOptions);
                     context.Response.Close();
+                    requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms responded to {path}");
                 }
             });
+            requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms emitting newcomer button");
             NewcomerOfferButton()!.EmitSignal(BaseButton.SignalName.Pressed);
-            await responses;
+            requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms newcomer button callback returned");
+            try
+            {
+                await responses;
+            }
+            catch (OperationCanceledException exception) when (setupDeadline.IsCancellationRequested)
+            {
+                throw new InvalidOperationException(
+                    $"Newcomer setup reads timed out: ownerAction={isOwnerAction}, " +
+                    $"panelVisible={founderSetupPanel.Visible}, placingAddedAgent={placingAddedAgent}, " +
+                    $"trace=[{string.Join("; ", requestTrace)}]", exception);
+            }
+            GD.Print("Newcomer setup reads: " + string.Join("; ", requestTrace));
             for (var frame = 0; frame < 10 && isOwnerAction; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!founderSetupPanel.Visible || !placingAddedAgent || requests.Count != 4 ||

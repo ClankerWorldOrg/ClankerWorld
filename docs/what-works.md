@@ -34,7 +34,7 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own host is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
+| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own host is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Player-chosen supplies are unfinished. |
 | Move around and inspect the map | Available in the game | Zoom, overview, wrapped east/west movement, tile facts, building cards with stored items as icons, and separate filters for Town title, household use, disputes, building property and Town borders. The disputes filter shows contested tiles in pending household land requests. Building Details lists the workstation’s registered recipes with input/output quantities, and running work shows its recipe and the materials held for it. Details also lists recent recorded storage additions and removals. |
@@ -191,7 +191,10 @@ A newborn starts with a temporary name. A chosen child's name must use one
 biological parent's surname and an unused first name. The player can name the
 child in Profile; automatic naming waits until the child is old enough for
 ordinary personal-model calls. Later parent renames do not change a child's
-existing name.
+existing name. Removing the last chosen biological-parent surname available
+to a minor child is refused before the parent's name, events or rename memory
+change. Removing one parent's surname still works when another biological
+parent supplies a chosen surname.
 
 A child's personal model is recorded at birth from the parents' explicit
 personal assignments. When those differ, the parent who began the family plan
@@ -1007,10 +1010,13 @@ An adult on buildable unclaimed land away from other Towns can deliberately foun
 
 Each founded Town has its own council. Its recorded living adult residents
 include travelers and adults without a home; visitors gain no vote. All adults
-govern initially. At eight adults the Town opens elections for three willing
+govern initially. At four adults the Town opens elections for three willing
 representatives, with ten-day terms, vacancy contests and one cutoff runoff
 followed by a saved draw when needed. A Town with an elected council keeps
-representation at seven adults and returns to all adults at three or fewer.
+representation at four adults and returns to all adults at three or fewer,
+until it has four adults again. The ordinary four-founder Town opens its first
+election on day 1. Without three willing candidates, the attempt fails and the
+all-adult council continues under the usual retry rules.
 
 Agents personally register willingness, visit the public notice place near the
 Town's founding site, read actual notices and relay learned information nearby.

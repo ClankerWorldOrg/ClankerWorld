@@ -1316,6 +1316,12 @@ rule includes deceased biological parents and does not substitute caregivers.
 An invalid surname follows the existing unusable-name outcome; only a taken
 first name earns the extra paid retry. Parent renames do not retroactively
 invalidate a child's name or saved state.
+`RenameInhabitant` refuses removal of a chosen parent's surname when the
+proposed checkpoint would leave any minor biological child with no allowed
+surname. The check runs before commit, so player refusal publishes no name,
+event or permanent memory. Other chosen biological parents, including deceased
+parents, can still supply a surname. Initial unchosen parents and saved child
+names keep their existing treatment; no new saved-state invariant is added.
 
 The response must select a legal candidate. Any finite confidence from 0 to 1
 is accepted; confidence does not veto the choice or a valid chosen name.
@@ -2292,7 +2298,12 @@ visitors use ordinary admission. A built House alone never founds a Town.
 
 Each `TownRuntimeState` carries its own `TownGovernanceState`. `TownGovernanceRules`
 implements all-adult and representative councils from recorded living adult
-residents, independently of geometry and household affiliation. A separate
+residents, independently of geometry and household affiliation. Automatic
+representation starts at four adults, so the ordinary four-founder Town opens
+its first election on day 1. At three or fewer adults, representation and an
+initial all-adult election end; the all-adult council governs until it has four
+adults again. Candidate-failure retries use the same four-adult minimum and the
+ordinary day-or-material-improvement wait. A separate
 `SettlementCouncil` remains the household-food steward prototype.
 
 Household food-policy ballots last 120 ticks and can pass through their saved
@@ -2499,8 +2510,9 @@ description; event prose does not establish ownership or case kind.
 `TownRuntimeState.Nonviolent` records non-land allegations, notice revisions,
 sources, responses and civil findings separately from permission adjustments.
 `TownHearingProcedure` supplies shared response, conflict and case-election
-rules. The non-land mandate needs protected resident approval and personal
-agreement. An extension names its existing office and retains that office's
+rules. Founding supplies the vacant non-land mandate; standing for election
+requires personal agreement. Later scope changes need protected resident
+approval. An extension names its existing office and retains that office's
 original term; its added authority begins only at the actual handover.
 
 Native completed actions capture applicable law wording, title and membership
@@ -2640,7 +2652,7 @@ mandates added by the target arrangement; explicit replacement requires every
 targeted mandate. A retained vacancy follows its existing succession rules.
 Explicit all-adult government disables automatic representation, and explicit
 elected government seeks three representatives above three adults. The initial
-arrangement retains the eight-adult threshold.
+arrangement uses the four-adult threshold.
 Each transition records the exact Council election it caused to open, including
 an attempt that fails immediately. Only that election waits for the transition
 or is cancelled when it lapses. An ordinary election keeps its own result and
@@ -4310,6 +4322,22 @@ skill name so older clients can still display it; new code calls it `Skill`.
 This is separate from the saved lesson record, which now stores a skill.
 
 ## World-list requests
+
+Launcher handoffs carry the catalog entry ID with the requested game version.
+Both process boundaries use separate arguments; `--choose-world` accepts only
+the catalog's 32-character hexadecimal ID, never a path or a display name.
+Quit to Launcher obtains the active ID through the existing signed, read-only
+catalog request before stopping the host. A failed read keeps the game open;
+retry repeats the read. Failed stopping or launcher startup retains the
+resolved version and ID together.
+
+The game still starts at Main Menu. On the first successful visible Load World
+listing, it selects the matching ID and consumes the hint. Failed listings
+retain it for retry; later refreshes do not reapply it over a player's choice.
+Successfully entering a world also discards the startup hint.
+A missing ID leaves every row unselected with an explanation. Existing
+compatibility and action-availability checks apply. Selection sends no pause,
+select-world, load, save or delete request, and never enters a world.
 
 The private host can retain an untouched, nongenerated bootstrap checkpoint
 before the player creates a world. Its founder observation reports

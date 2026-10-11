@@ -34,7 +34,7 @@ public sealed record TownGovernanceState(string Form, string Fallback, long Revi
 /// <summary>One Town's ordinary civic rules. The world validates and executes approved land claims separately.</summary>
 public static class TownGovernanceRules
 {
-    public const int RepresentationThreshold = 8;
+    public const int RepresentationThreshold = 4;
     public const int Seats = 3;
     public const int TermDays = 10;
     public const int MaximumProposalText = 256;
@@ -60,7 +60,8 @@ public static class TownGovernanceRules
         var adults = Ordered(adultResidents);
         var candidates = state.Candidates.Where(c => Has(adults, c.AgentId)).ToArray();
         state = state with { Candidates = candidates };
-        if ((state.Form == "representative" || state.Fallback == "candidates") && adults.Length <= Seats)
+        if ((state.Form == "representative" || state.Fallback == "candidates" ||
+            state.Form == "all_adult" && state.Election is not null) && adults.Length <= Seats)
         {
             state = CancelElection(state, tick, "Population fell to three or fewer adults.");
             state = ChangeCouncil(state, adults, "all_adult", "demographic", null, tick);
@@ -116,7 +117,7 @@ public static class TownGovernanceRules
             else if (allowNewElections && state.Form == "representative" && state.Members.Count < Seats && state.TermEndTick is { } remainder)
                 state = OpenElection(state, townId, adults, tick, ticksPerDay, "replacement", remainder);
             else if (allowNewElections && (forceRepresentation && state.Form != "representative" && adults.Length > Seats ||
-                state.Form == "all_adult" && (adults.Length >= RepresentationThreshold || state.Fallback == "candidates" && adults.Length > Seats)))
+                state.Form == "all_adult" && adults.Length >= RepresentationThreshold))
                 state = OpenElection(state, townId, adults, tick, ticksPerDay, "initial", tick + (long)(TermDays + 1) * ticksPerDay);
         }
         foreach (var proposal in state.Proposals.Where(p => p.Status == "pending").ToArray())

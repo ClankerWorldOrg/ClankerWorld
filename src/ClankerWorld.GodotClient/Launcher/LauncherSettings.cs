@@ -62,23 +62,35 @@ public static class SavedWorlds
 /// <summary>Starts an installed game version.</summary>
 public static class GameStarter
 {
+    public const string WorldOption = "--choose-world=";
+
+    /// <summary>A catalog ID is a selection hint, never a path or a request to load a world.</summary>
+    public static string? WorldId(string? value) =>
+        value is { Length: 32 } && value.All(char.IsAsciiHexDigit) ? value : null;
+
+    public static string? RequestedWorld(IEnumerable<string> arguments) =>
+        WorldId(arguments.FirstOrDefault(value => value.StartsWith(WorldOption, StringComparison.Ordinal))?[WorldOption.Length..]);
+
     /// <summary>
     /// Start options the game reads: which launcher started it, so it can
     /// offer Quit to Launcher, and whether Developer mode is on.
     /// </summary>
-    public static IReadOnlyList<string> Arguments(string launcherExecutable, bool developerMode) =>
-        developerMode
-            ? ["--", "--launcher=" + launcherExecutable, "--developer-mode"]
-            : ["--", "--launcher=" + launcherExecutable];
+    public static IReadOnlyList<string> Arguments(string launcherExecutable, bool developerMode, string? worldId = null)
+    {
+        List<string> arguments = ["--", "--launcher=" + launcherExecutable];
+        if (developerMode) arguments.Add("--developer-mode");
+        if (WorldId(worldId) is { } id) arguments.Add(WorldOption + id);
+        return arguments;
+    }
 
-    public static Process Start(InstalledVersion version, string launcherExecutable, bool developerMode)
+    public static Process Start(InstalledVersion version, string launcherExecutable, bool developerMode, string? worldId = null)
     {
         var start = new ProcessStartInfo(version.Executable)
         {
             WorkingDirectory = version.Directory,
             UseShellExecute = false,
         };
-        foreach (var argument in Arguments(launcherExecutable, developerMode)) start.ArgumentList.Add(argument);
+        foreach (var argument in Arguments(launcherExecutable, developerMode, worldId)) start.ArgumentList.Add(argument);
         return Process.Start(start) ?? throw new GameInstallException($"ClankerWorld {version.Version} didn't start.");
     }
 }

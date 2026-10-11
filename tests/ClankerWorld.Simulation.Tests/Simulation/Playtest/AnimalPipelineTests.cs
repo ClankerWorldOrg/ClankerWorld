@@ -191,21 +191,9 @@ public sealed partial class AnimalPipelineTests
     [InlineData(false)]
     public async Task OnlyOldAgeKillsAnimalsAndHideRemainsAtTheDeathPosition(bool owned)
     {
-        var (state, actor, home, yard) = CreateYard("animal-old-age");
+        var (state, actor, home, yard) = CreateYard("animal-old-age", ticksPerDay: 2);
         state = state with
         {
-            Society = state.Society with
-            {
-                Society = state.Society.Society with
-                {
-                    Config = state.Society.Society.Config with { TicksPerWorldDay = 2 },
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person with
-                    {
-                        BirthTick = person.BirthTick / 180,
-                        BirthLifeTick = person.BirthLifeTick / 180
-                    }).ToArray()
-                }
-            },
             WorldSystems = WorldSystemsRules.CreateGenesis(state.WorldSeed,
             state.WorldSystems!.Config with { TicksPerDay = 2, CalendarOffsetTicks = 0 }, state.WorldSystems.Ecology.Resources,
             state.WorldSystems.Factions, state.WorldSystems.Currency, state.WorldSystems.Culture, state.WorldSystems.Chunks)
@@ -561,9 +549,9 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(100, Progress("due"));
     }
 
-    private static (PrivateWorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed)
+    private static (PrivateWorldRuntimeState State, string Actor, string Home, PlacedBuilding Yard) CreateYard(string seed, int? ticksPerDay = null)
     {
-        using var setup = NormalPathWorld.CreateGenerated(seed, _ => new AnimalChooser());
+        using var setup = NormalPathWorld.CreateGenerated(seed, _ => new AnimalChooser(), ticksPerDay: ticksPerDay);
         var state = setup.ExportState();
         var actor = state.Inhabitants[0].InhabitantId;
         var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;

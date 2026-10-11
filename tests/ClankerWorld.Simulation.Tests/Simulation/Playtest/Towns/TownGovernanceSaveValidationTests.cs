@@ -160,11 +160,12 @@ public sealed class TownGovernanceSaveValidationTests
         AssertRoundtrips(state);
 
         var decoded = PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(state));
+        var priorSequence = decoded.Towns![0].Governance!.Sequence;
         governance = TownGovernanceRules.SubmitProposal(decoded.Towns![0].Governance!, town.Id, town.ResidentIds[0],
             "law", null, "Post storm notices.", "same", town.ResidentIds, 0, state.WorldSystems!.Config.TicksPerDay);
         var next = WithGovernance(decoded, governance);
         AssertRoundtrips(next);
-        Assert.Equal(town.Id + ":proposal:3", governance.Proposals[^1].Id);
+        Assert.Equal(town.Id + ":proposal:" + (priorSequence + 1), governance.Proposals[^1].Id);
         Assert.Equal(Enumerable.Range(1, governance.Notices.Count).Select(number => "notice:" + number),
             governance.Notices.Select(notice => notice.Id));
         Assert.Equal(governance.Notices.Count, governance.Notices.Select(notice => notice.Id).Distinct().Count());

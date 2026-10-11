@@ -9,7 +9,10 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         var provider = new HearingProvider();
         using var world = NewWorld(provider);
-        await UntilAsync(world, () => world.Towns[0].Government!.Offices.All(office => office.HolderId == Judge), Day * 3, provider);
+        await UntilAsync(world, () => world.Towns[0].Government!.Offices.Count == 2 &&
+            world.Towns[0].Government!.Offices.All(office => office.HolderId == Judge), Day * 3, provider);
+        Assert.Equal(2, world.Towns[0].Government!.Offices.Count);
+        Assert.All(world.Towns[0].Government!.Offices, office => Assert.Equal(Judge, office.HolderId));
         var household = world.Society.GetInhabitant(Judge).HouseholdId!;
         provider.Plot = world.ExportState().HouseholdLandUseRights!.Where(right => right.HouseholdId == household)
             .OrderBy(right => right.Id, StringComparer.Ordinal).First().Tiles.ToArray();

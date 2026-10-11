@@ -105,11 +105,11 @@ public sealed partial class TownGovernmentHandoverTests
         Assert.Equal("completed", town.Government.Changes[^1].Status);
     }
 
-    // Five adults under the starting council, willing council candidates but no mayor: nothing is seated.
+    // An explicit all-adult council, willing representatives but no mayor: nothing is seated.
     [Fact]
-    public void RepresentativesTheStartingCouncilWouldNotElectWaitForTheHandover()
+    public void RepresentativesAnExplicitAllAdultCouncilWouldNotElectWaitForTheHandover()
     {
-        var town = new Town("a", "b", "c", "d", "e");
+        var town = AllAdultTown();
         town.RegisterCouncil("a", "b", "c");
         town.Yes(town.Propose(ElectedMayor), "a", "b", "c");
         for (var tick = 1L; tick <= Day * 3; tick++)
@@ -118,7 +118,7 @@ public sealed partial class TownGovernmentHandoverTests
             town.Advance(tick);
         }
         Assert.Equal("cancelled", town.Government.Changes[^1].Status);
-        Assert.Equal(TownGovernmentTestSetup.NoOffice, town.Government.Arrangement);
+        Assert.Equal(AllAdult, town.Government.Arrangement);
         // The lapse cancels the waiting election too, so it is never seated afterwards.
         for (var tick = Day * 3 + 1; tick <= Day * 6; tick++) town.Advance(tick);
         Assert.Null(town.Council.Election);
