@@ -63,25 +63,16 @@ public sealed partial class PrivateWorldRuntime
                  !UnusableDeliveryStock(inventory, inventory.GetLot(containerId)) &&
                  ContainerFamilyQuantity(inventory, containerId) <= DestinationRoom(inventory, building.InstanceId))))
             .Sum(lot => UsableWorkstationQuantity(inventory, lot));
-        var householdStock = inventory.Lots.Where(lot => lot.OwnerId == householdId && lot.ItemKind == itemKind &&
-                lot.CarrierId is null && !OnBorrowedMarketStall(lot) &&
-                lot.DeliveryBuildingId is null && UsableWorkstationQuantity(inventory, lot) > 0 &&
+        var householdStock = restaurants.Where(building => WorkstationInputTarget(building, itemKind) >
+                WorkstationOnsiteQuantity(inventory, building, itemKind) + WorkstationIncomingQuantity(inventory, building, itemKind))
+            .SelectMany(building => FindGoods(DeliveryGoodsRequest(actor, householdId, itemKind, building.InstanceId)).Matches
+                .Where(match => WorkstationPickupQuantity(actor, inventory, match.Root, building.InstanceId, int.MaxValue) > 0))
+            .Select(match => match.Lot).DistinctBy(lot => lot.Id)
+            .Where(lot => lot.CarrierId is null &&
                 (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
                     building.InstanceId == lot.StorageBuildingId && worldContent.Buildings.Any(definition =>
                         definition.CanonicalId == building.DefinitionId &&
                         definition.Tags.Any(tag => tag is "house" or "silo" or "farmhouse" or "restaurant")))))
-            .Where(lot => lot.ContainerLotId is not { } containerId ||
-                CanRemoveWorkstationStock(inventory, inventory.GetLot(containerId), 1))
-            .Where(lot => restaurants.Any(building => WorkstationInputTarget(building, itemKind) >
-                    WorkstationOnsiteQuantity(inventory, building, itemKind) +
-                    WorkstationIncomingQuantity(inventory, building, itemKind) &&
-                WorkstationPickupQuantity(actor, inventory,
-                    lot.ContainerLotId is { } containerId ? inventory.GetLot(containerId) : lot,
-                    building.InstanceId, int.MaxValue) > 0))
-            .Where(lot => IsWithinInteractionRange(inhabitants[actor].Position, HouseholdStockPosition(lot),
-                    HouseholdStockInteractionRange(lot)) ||
-                FindUnoccupiedRoute(actor, inhabitants[actor].Position, HouseholdStockPosition(lot),
-                    HouseholdStockInteractionRange(lot)).Count > 0)
             .GroupBy(lot => lot.StorageBuildingId)
             // Reserve the source's target once across all of its lots.
             .Sum(group => Math.Min(group.Sum(lot => UsableWorkstationQuantity(inventory, lot)),
