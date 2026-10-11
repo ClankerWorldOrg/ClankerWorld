@@ -889,7 +889,7 @@ handcart marker. Each short reported move retargets a one-second linear glide
 from its current drawing; it never predicts a future tile. A separate local
 quarter-second phase selects the approved walk frames and one-pixel bob for
 agents/animals. The same `WalkingMotion` code feeds the implemented reference
-animation. Pausing freezes elapsed glide and pose time; a paused authoring
+animation. Pausing freezes elapsed glide and pose time; a paused
 relocation, a move longer than three tiles, a new world or a checkpoint rewind
 snaps and clears the phase. Wrapped targets use the nearest world copy and
 camera/zoom changes retain intermediate tile coordinates. Pointer targets,
@@ -1034,7 +1034,7 @@ camera. A new placed building must replace a previously observed construction
 site with the same definition and footprint, with its placement tick between
 the last and current observations. Only a visible close/mid-zoom completion
 starts the local three-second effect. Cancelled sites, existing buildings,
-paused authoring insertions and off-screen completions never queue a moment.
+buildings first observed while paused and off-screen completions never queue a moment.
 The first observation is a quiet baseline. World, map or observer timeline
 changes, rewind and gaps over a game hour clear display history; removal
 clears that building's active effect.
@@ -1734,7 +1734,7 @@ saved state, events or movement effects.
 
 Short observed outdoor agent and animal moves leave pressed footprints on
 that cover, using the shortest east-west path on wrapped maps. Spawns, moves
-over three tiles, repeated observations and paused authoring moves make no
+over three tiles, repeated observations and moves while paused make no
 trail. Prints fade in one game hour; at most 4,096 are held, and small overview
 zooms keep their positions without drawing tiny marks. The visible ground
 pass draws the approved snow colours after Roads and before bridges,
@@ -3694,11 +3694,14 @@ and a visible fitting can be selected for its paid project details.
 
 ## Approved authored assets
 
-Paused authoring can reference only an exact normalized `assetId` and lowercase
-`sha256:<64-hex>` digest in the immutable host-approved catalog loaded at startup.
-A missing catalog denies all references. Malformed, ambiguous or unknown-schema
+The immutable host-approved catalog is loaded at startup. Its reference policy
+accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` digest;
+a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
-This is a narrow reference rule, not the future complete art-generation pipeline.
+The native authoring endpoint refuses submitted batches with
+`private_world_authoring_pending`; it does not apply them. The fixture's working
+authoring branch is retired. Catalog validation remains available for future
+native authoring and does not provide a complete art-generation pipeline.
 
 ## Building storage history
 
