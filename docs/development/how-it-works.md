@@ -4335,6 +4335,9 @@ Animal gifts, sales and named outsider permissions need fresh, admitted personal
 model choices. Built-in fallback and forced orders cannot give personal consent.
 Receiving space and the exact payment lot are checked again on acceptance;
 transfer clears old permissions and preserves position for physical leading.
+Dead animals offer no new permission, gift or sale choices. Existing care and
+riding permissions may still be revoked, including after the recipient moves
+away.
 
 Care for a different animal first ends the actor's existing ride through the
 normal dismount operation, then approaches the care target on foot. That

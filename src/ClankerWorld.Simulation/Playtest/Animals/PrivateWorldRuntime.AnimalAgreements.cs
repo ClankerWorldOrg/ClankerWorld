@@ -17,7 +17,8 @@ public sealed partial class PrivateWorldRuntime
         if (!AdultResident(actor)) yield break;
         foreach (var animal in animalWorld.Animals.Where(animal => AnimalHouseholdMember(actor, animal)))
         {
-            foreach (var recipient in inhabitants.Values.Where(person => person.InhabitantId != actor && AdultResident(person.InhabitantId) &&
+            foreach (var recipient in inhabitants.Values.Where(person => animal.DiedTick is null &&
+                         person.InhabitantId != actor && AdultResident(person.InhabitantId) &&
                          HouseholdFor(person.InhabitantId) != animal.HouseholdId &&
                          IsWithinInteractionRange(inhabitants[actor].Position, person.Position, ResourceInteractionRange))
                          .OrderBy(person => person.InhabitantId, StringComparer.Ordinal).Take(8))
