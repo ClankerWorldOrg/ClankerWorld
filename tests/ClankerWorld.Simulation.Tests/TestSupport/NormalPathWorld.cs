@@ -65,6 +65,38 @@ internal static class NormalPathWorld
         return world;
     }
 
+    /// <summary>Keep candidate-less failed election windows consistent with a fixture's new day length.</summary>
+    internal static PrivateWorldRuntimeState ReclockCandidateLessCouncilAttempts(PrivateWorldRuntimeState state, int day)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(day);
+        return state with
+        {
+            Towns = state.Towns?.Select(town =>
+            {
+                if (town.Governance is not { } council) return town;
+                Assert.Null(council.Election);
+                Assert.Empty(council.Candidates);
+                Assert.All(council.ElectionHistory, election =>
+                {
+                    Assert.Equal("failed", election.Stage);
+                    Assert.Empty(election.Candidates);
+                    Assert.Empty(election.Ballots);
+                    Assert.Empty(election.SettledSeats);
+                    Assert.Empty(election.DrawOrder);
+                });
+                // Keep the actual IDs, opening ticks and resident rosters when a fixture changes day length.
+                return town with
+                {
+                    Governance = council with
+                    {
+                        ElectionHistory = council.ElectionHistory.Select(election => election with
+                        { DeadlineTick = election.OpenedTick + day }).ToArray(),
+                    },
+                };
+            }).ToArray(),
+        };
+    }
+
     /// <summary>Choose a feasible site near the camp without changing generated terrain or resources.</summary>
     internal static GridPoint FindStartingTownSite(SeededMap map)
     {

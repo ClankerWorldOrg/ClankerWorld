@@ -9,9 +9,11 @@ public sealed partial class TownGovernmentHandoverTests
     // Controlled explicit authority keeps forced handovers distinct from ordinary four-adult elections.
     private static Town AllAdultTown(string id = "town:test")
     {
-        var town = new Town("a", "b", "c", "d", "e") { Id = id };
+        var town = new Town("a", "b", "c", "d") { Id = id };
         town.Yes(town.Propose(AllAdult), "a", "b", "c");
         Assert.Equal(AllAdult, town.Government.Arrangement);
+        // A fifth adult is a real improvement over the earlier ordinary attempt's four-adult roster.
+        town.Adults = ["a", "b", "c", "d", "e"];
         return town;
     }
 

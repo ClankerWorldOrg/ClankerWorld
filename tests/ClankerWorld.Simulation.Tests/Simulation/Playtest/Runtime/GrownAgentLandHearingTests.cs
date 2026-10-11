@@ -197,6 +197,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var oldDay = society.Config.TicksPerWorldDay;
         var life = society.LifeTickAt(society.WorldTick);
         var worldConfig = state.WorldSystems!.Config with { TicksPerDay = day, CalendarOffsetTicks = 0 };
+        state = NormalPathWorld.ReclockCandidateLessCouncilAttempts(state, day);
         // Compress only the test's calendar and age intervals. Keep actual birth
         // records, full native identities, Houses, stock and household ownership.
         society = society with

@@ -157,7 +157,7 @@ internal static class NonviolentRuntimeFixture
         var (council, government) = TownGovernmentRules.RegisterMayor(town.Governance!, town.Government!,
             Judge, "land", town.ResidentIds, tick);
         (council, government) = TownGovernmentRules.Propose(council, government, town.Id, Judge,
-            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, town.ResidentIds, tick, Day);
+            new(TownArrangementRules.AllAdultCouncil, TownArrangementRules.Mayor), false, town.ResidentIds, tick, Day);
         foreach (var voter in town.ResidentIds.Take(3))
             government = TownGovernmentRules.Vote(government, government.Changes[^1].Id, voter, true, tick);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
