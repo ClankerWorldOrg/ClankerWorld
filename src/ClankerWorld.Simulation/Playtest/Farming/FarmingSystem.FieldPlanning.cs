@@ -41,7 +41,7 @@ internal sealed partial class FarmingSystem
         if (!hasHoe || fields.Count(field => field.HouseholdId == householdId) >= wantedFields) return;
         var heldByOthers = world.HouseholdLandHeldByOthers(householdId);
         var site = NearbyFarmTiles(world, farmhouse.Position)
-            .Where(point => !heldByOthers.Contains(point) && FarmableFreeTile(world, point))
+            .Where(point => !heldByOthers.Contains(point) && FarmableFreeTile(world, point, fertility))
             .OrderByDescending(point => fields.Any(field => field.HouseholdId == householdId && world.Map.FootDistance(field.Position, point) == 1))
             .ThenByDescending(point => fertility.At(point) - world.Map.FootDistance(farmhouse.Position, point) * 2)
             .ThenBy(point => point.Y).ThenBy(point => point.X)

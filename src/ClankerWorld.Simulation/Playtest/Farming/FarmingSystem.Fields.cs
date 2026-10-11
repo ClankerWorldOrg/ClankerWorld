@@ -85,9 +85,9 @@ internal sealed partial class FarmingSystem
         return isolatedId;
     }
 
-    internal bool FarmableFreeTile(IFarmingWorld world, GridPoint position)
+    internal bool FarmableFreeTile(IFarmingWorld world, GridPoint position, LandFertility? queryFertility = null)
     {
-        if (!Fertility(world.Map).CanFarm(position) || fields.Any(field => field.Position == position) || world.TownProjectProtectedSites().Contains(position) ||
+        if (!(queryFertility ?? Fertility(world.Map)).CanFarm(position) || fields.Any(field => field.Position == position) || world.TownProjectProtectedSites().Contains(position) ||
             world.MarketSiteTiles().Contains(position) ||
             world.RoadAndBridgeTiles().Contains(position) || world.Map.CampObjects.Any(item => item.Position == position) ||
             (world.Simulation.BuildingExpansions ?? []).Any(job => (job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused) && PrivateWorldRuntime.FarmingSharedRules.ExpansionTiles(job).Contains(position)) ||
