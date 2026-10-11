@@ -1087,12 +1087,14 @@ and business economics.
 
 ### Election threshold to try
 
-Once a Town reaches **eight adult residents**—double the four-agent
-starting population—it begins electing a smaller representative council
-instead of keeping every adult as a council member. Count adults in that
-Town, not across the world. Eight is an initial threshold to playtest,
-not a claim that every Town must forever follow this exact rule. All
-adult residents should retain a vote in those elections.
+Once a Town has **four adult residents**, the same as the starting
+population, it begins electing a smaller representative council instead of
+keeping every adult as a council member. **Agreed by the owner in chat on
+October 11, 2026**, lowered from eight so that a new Town holds its first
+election on day 1. Count adults in that Town, not across the world. Four is
+an initial threshold to playtest, not a claim that every Town must forever
+follow this exact rule. All adult residents should retain a vote in those
+elections.
 
 ### Council proposals and election ballots
 
@@ -1118,8 +1120,8 @@ adult residents should retain a vote in those elections.
   [notice rules](#election-eligibility-ballots-and-notices). Changes to the
   council roster follow the agreed
   [proposal and scheduling rules](#council-changes-and-election-scheduling).
-- **The first elected council has three seats.** Use the already agreed
-  eight-adult trial threshold to begin representation. A Town may later change
+- **The first elected council has three seats.** Use the agreed four-adult
+  trial threshold to begin representation. A Town may later change
   its governing arrangement through the agreed in-world process; three seats
   are its starting design, not an immutable world constraint.
 - **Each adult resident may support up to one different willing candidate
@@ -1160,12 +1162,10 @@ for broader changes to the governing arrangement are agreed in
   formed, temporarily return to the all-adult council. Proposal majorities
   during vacancies and election retries follow the agreed
   [scheduling rules](#council-changes-and-election-scheduling).
-- **Falling below eight adults does not immediately end representation.**
-  Keep the elected arrangement until only three or fewer adult Town residents
-  remain. Then use the all-adult council until the Town reaches eight adults
-  again. A fall from eight adults to seven therefore keeps representation.
-  Count recorded residents, including travelers and homeless adults, rather
-  than adults currently standing inside the border.
+- **Representation ends when only three or fewer adult Town residents
+  remain.** Then use the all-adult council until the Town has four adults
+  again. Count recorded residents, including travelers and homeless adults,
+  rather than adults currently standing inside the border.
 - **The initial election window is one unpaused world day.** The existing
   council governs until a valid replacement is ready. During the first
   election, the all-adult council continues governing. The vacancy and small
@@ -1258,9 +1258,8 @@ election interview.
   regular election does not shorten the incumbents' remaining term; after
   that term ends, use the all-adult fallback while retrying. An unfinished
   runoff retains the existing council under the agreed continuity rule.
-  Candidate-related fallback may retry below eight residents while more than
-  three adults remain. If representation ended because the population fell
-  to three or fewer, elections still wait until eight adults again.
+  If representation ended because the population fell to three or fewer,
+  elections wait until the Town has four adults again.
 - **Keep one active election process per Town; the scheduled full election
   takes priority when its voting opens.** Stop unresolved replacement voting
   and use fresh ballots for the full election. Already decided replacement
@@ -1307,9 +1306,9 @@ Town membership and admission integration in
 - **A change to the governing arrangement needs yes votes from more than
   half of all adult Town residents.** Representatives cannot replace
   elections with a permanent ruler using an ordinary council vote. An
-  eight-adult Town needs five yes votes to establish a mayor or change its
-  electoral arrangement. Silence supplies no approval. The voting roster,
-  procedure and handover safeguards are agreed in
+  eight-adult Town needs five yes votes to change its electoral arrangement.
+  Silence supplies no approval. The voting roster, procedure and handover
+  safeguards are agreed in
   [Government-change procedure and safeguards](#government-change-procedure-and-safeguards).
 - **A new law applies from its recorded adoption onward.** Assess earlier
   conduct under the laws that existed then; do not create a new violation by
@@ -1401,11 +1400,14 @@ remains separate in [#426](https://github.com/compoodment/ClankerWorld/issues/42
 
 **Agreed with the owner on October 1, answers 58A, 59A, 60B and 61A–63A:**
 
-- **Start the first mayoral election promptly after residents approve creating
-  the office through the protected government-change vote.** There is no
-  minimum population. A four-adult Town can approve the office without waiting
-  to reach eight adults. Authority begins only at a valid recorded handover;
-  approval alone does not appoint a mayor.
+- **Every Town starts with an empty mayor's office.** **Agreed by the owner in
+  chat on October 11, 2026**, replacing the October 1 rule that residents
+  first vote to create the office. The office exists from the Town's founding
+  and covers land disputes and non-land cases. Its first election opens as
+  soon as a willing, eligible adult resident stands, with no minimum
+  population. Authority begins only at a valid recorded handover; an empty
+  office appoints nobody. Residents can still change or remove the office
+  through the protected government-change vote.
 - **Initially the mayor works alongside the council.** The mayor handles the
   already agreed land disputes and permission expiries; the council retains
   ordinary laws and admissions. Giving one elected leader those broader
@@ -1566,13 +1568,15 @@ combat consequences belong to the later combat stage.
   without credible evidence of prior notice, initially favor explanation and a
   warning; proven harm may still warrant a request to restore it. A claim of
   ignorance is evidence to assess, not automatic immunity or proof of knowledge.
-- **Non-land adjudication needs its own resident-approved mandate.** The land
-  mayor does not automatically gain these powers. Extend the elected office
-  through the protected government-change process, with the scope explicit and
-  the officeholder's consent to added duties. Keeping the same willing holder
-  does not reset their term. Before valid handover, the council may mediate and
-  offer advice, while formal enforcement cases remain pending. Reuse the land
-  hearing, evidence, notice, recusal and reopening rules for this mandate.
+- **Non-land adjudication is part of the mayor's office from the Town's
+  founding.** **Agreed by the owner in chat on October 11, 2026**, replacing
+  the earlier rule that residents had to approve this mandate separately.
+  Standing for mayor means consenting to both land and non-land cases.
+  Residents may still narrow or remove this duty through the protected
+  government-change process. While no mayor holds office, the council may
+  mediate and offer advice, and formal enforcement cases remain pending. Reuse
+  the land hearing, evidence, notice, recusal and reopening rules for this
+  duty.
 - **Record a reasoned finding before an adverse formal consequence.** Require
   the available evidence to make the violation more likely than not, as the
   initial civil standard, with reasons and uncertainty recorded. Silence, rumor
