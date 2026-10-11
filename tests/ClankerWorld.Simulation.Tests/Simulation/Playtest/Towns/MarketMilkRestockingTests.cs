@@ -73,8 +73,12 @@ public sealed class MarketMilkRestockingTests
         var (seller, collector, _) = Actors(state);
         state = await LeaveAsync(state, seller);
         var source = MarketContent.StallSite(PaidMarketWorld.Market(state).Site, 0);
+        // Leaving the stall releases the goods but does not vacate their pickup tile.
+        state = PaidMarketWorld.At(state, seller, MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0));
+        Assert.DoesNotContain(state.Inhabitants, person => person.Position == source);
         var away = state.Map.Tiles.Select(item => item.Position).First(point => state.Map.IsBuildable(point) &&
             state.Map.FootDistance(point, source) is >= 6 and <= 8 &&
+            state.Map.IsReachableOnFoot(point, source) &&
             state.Inhabitants.All(person => person.Position != point));
         state = PaidMarketWorld.At(state, collector, away);
         var borrowing = false;
