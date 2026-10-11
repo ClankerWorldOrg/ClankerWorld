@@ -2,7 +2,7 @@
 
 Pending hands-on checks for alpha 1, in 98 checks. Nothing here has been checked by hand yet.
 
-This checklist targets the planned alpha 1 build. Milk without jugs ([#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706)), council elections at four adults ([#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713)), an empty mayor's office from the start ([#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714)), and one mod ID limit ([#1606](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1606)) are agreed changes still awaiting implementation. Use a build that includes them for those checks; earlier builds keep the previous rules.
+This checklist targets the planned alpha 1 build. Milk without jugs ([#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706)), council elections at four adults ([#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713)), an empty mayor's office from the start ([#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714)), and one mod ID limit ([#1606](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1606)) are agreed changes required for these checks. Use a build that includes them for those checks; earlier builds keep the previous rules.
 
 Each check is one short play session. Its steps say what to do, then, after the arrow, what you should see. Do the **Start here** checks first: they cover what has to work in your first hour. Try the rest as you reach that part of the game, and tell any agent what you found ([how results are recorded](README.md#keeping-the-list-current)).
 

@@ -198,7 +198,6 @@ public sealed partial class PrivateWorldRuntime
 
     private void ReconcileAnimalCustody()
     {
-        ReconcileMilkOffers();
         foreach (var animal in animalWorld.Animals.ToArray())
         {
             if (animal.RiderId is { } rider && (!MayRideAnimal(rider, animal) || !AnimalRules.HasCare(animal, WorldTick) ||

@@ -29,10 +29,8 @@ public sealed class MilkDeliveryDrinkingTests
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         var ground = new InventoryGroundPosition(point.X, point.Y);
         var owner = assigned ? household : actor;
-        if (kind == "milk")
-            inventory = InventoryFixture.AddLot(inventory, "promised-jug", "water_jug", owner, 1, groundPosition: assigned ? ground : null);
         inventory = InventoryFixture.AddLot(inventory, "promised-food", kind, owner, 2,
-            groundPosition: assigned && kind != "milk" ? ground : null, containerLotId: kind == "milk" ? "promised-jug" : null);
+            groundPosition: assigned ? ground : null);
         var prepared = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
@@ -67,7 +65,7 @@ public sealed class MilkDeliveryDrinkingTests
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < (deliver ? 160 : 80) && !world.ExportState().Events.Any(item => item.Kind == "milk_drunk") &&
-             !(deliver && world.Society.Inventory.GetLot("promised-jug").StorageBuildingId == house.InstanceId); tick++)
+             !(deliver && world.Society.Inventory.GetLot("promised-food").StorageBuildingId == house.InstanceId); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         Assert.NotEmpty(policy.Offered);
@@ -75,20 +73,13 @@ public sealed class MilkDeliveryDrinkingTests
         if (!deliver) Assert.Equal(canDrink, policy.Offered.Any(candidates => candidates.Contains(choice)));
         Assert.Equal(canDrink ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "milk_drunk"));
         Assert.Equal(canDrink ? 1 : 2, world.Society.Inventory.GetLot("promised-food").Quantity);
-        if (kind == "milk")
+        Assert.Null(world.Society.Inventory.GetLot("promised-food").ContainerLotId);
+        if (deliver)
         {
-            var jug = world.Society.Inventory.GetLot("promised-jug");
-            Assert.Equal(1, jug.Quantity);
-            Assert.True(jug.ConditionBasisPoints > 0);
-            Assert.Equal(jug.Id, world.Society.Inventory.GetLot("promised-food").ContainerLotId);
-            if (deliver)
-            {
-                Assert.Equal(household, jug.OwnerId);
-                Assert.Equal(house.InstanceId, jug.StorageBuildingId);
-                Assert.Null(jug.DeliveryBuildingId);
-                Assert.Equal(house.InstanceId, world.Society.Inventory.GetLot("promised-food").StorageBuildingId);
-                Assert.Single(world.ExportState().Events, item => item.Kind == "household_stock_delivered");
-            }
+            Assert.Equal(household, world.Society.Inventory.GetLot("promised-food").OwnerId);
+            Assert.Equal(house.InstanceId, world.Society.Inventory.GetLot("promised-food").StorageBuildingId);
+            Assert.Null(world.Society.Inventory.GetLot("promised-food").DeliveryBuildingId);
+            Assert.Single(world.ExportState().Events, item => item.Kind == "household_stock_delivered");
         }
         if (canDrink) Assert.True(world.ExportState().Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > 3_500);
         world.Validate();

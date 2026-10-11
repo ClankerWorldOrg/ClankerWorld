@@ -341,9 +341,8 @@ arrival waits one world day before returning to a usable departure Port.
 The Towns trip row follows the boat’s current arrival Port during recovery and
 shows when it is returning or waiting for a safe arrival. A queued request
 still names its requested destination.
-Passengers can eat their carried food or drink fresh milk from a usable carried
-jug during travel and while waiting to land. Drinking uses one portion and
-leaves the jug intact.
+Passengers can eat their carried food or drink fresh carried milk during travel
+and while waiting to land. Drinking uses one portion.
 
 When agents talk, a chat bubble appears above each participant and nearby
 listeners. Click a bubble to see who spoke and whether the conversation is
@@ -1297,18 +1296,15 @@ Taming needs two grain/greens and one jug water. Chickens need one feed and one
 water daily; sheep, cows and horses need two each. Jugs remain reusable.
 
 Products belong to the animal's household. Eggs and milk spoil; collect them
-promptly. Milk needs an empty household jug or one already holding milk, with
-room for two portions. **Return borrowed water jug** carries a collected jug
-back to its owning household's House. Adults can haul the products into their
-workstations through ordinary supply choices and orders. House/Restaurant
-recipes cook eggs or milk porridge; Restaurants prepare rich meals. Tailors
-make wool padded coats, process hides into leather, and make leather sacks or
-saddles. A leather sack carries 32 units. Adults can haul household milk jugs
-to their Store or borrowed Market stall. A seller offers one portion for an
-exact personal payment; the buyer accepts with a carried empty or milk jug.
-Each milk lot can have only one pending offer. Remaining portions can be
-offered after that sale ends.
-Both vessels keep their owners. Pouring away spoiled milk frees its jug for reuse.
+promptly. Milk needs room for two portions in the adult's carried goods, with
+no vessel. **Return borrowed milk** takes collected milk back to its owning
+household's House. Adults can haul products into workstations through ordinary
+supply choices and orders. House/Restaurant recipes cook eggs or milk porridge;
+Restaurants prepare rich meals. Tailors make wool padded coats, process hides
+into leather, and make leather sacks or saddles. A leather sack carries 32 units.
+Milk can be stored, gifted, bartered and stocked at Stores or borrowed Market
+stalls like other food. Buyers make an ordinary offer and the seller may refuse.
+Water jugs hold fresh water only, including the water used for animal care.
 
 For a cared adult horse, use **Saddle Moss**, **Mount Moss** and **Dismount Moss**.
 A mount needs a real household saddle and gives twice walking speed plus eight

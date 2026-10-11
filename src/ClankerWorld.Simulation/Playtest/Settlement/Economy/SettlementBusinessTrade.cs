@@ -26,8 +26,8 @@ public sealed partial class PrivateWorldRuntime
         .Where(pair => pair.Trade.BuildingInstanceId == buildingId)
         .Sum(pair => Math.Max(0, pair.Offer.SecondQuantity - pair.Offer.FirstQuantity));
 
-    private static bool IsLooseBusinessLot(InventoryLot lot) => lot.ContainerLotId is null &&
-        !InventoryContainerRules.IsContainer(lot.ItemKind) && lot.DeliveryBuildingId is null && lot.GroundPosition is null &&
+    private static bool IsLooseBusinessLot(InventoryLot lot, bool includeGround = false) => lot.ContainerLotId is null &&
+        !InventoryContainerRules.IsContainer(lot.ItemKind) && lot.DeliveryBuildingId is null && (includeGround || lot.GroundPosition is null) &&
         lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0;
 
     private bool MayRespondAtBusiness(string actor, BusinessTradeState trade) => AdultResident(actor) &&
