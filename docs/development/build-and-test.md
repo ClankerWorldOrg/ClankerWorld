@@ -11,13 +11,15 @@ This page is for contributors building the code. Players use the Windows
 bundle; they do not need the Godot editor or a development SDK.
 See [Playing](../playing.md).
 
-The host supports only private worlds. Protocol tests use a populated native
-private world with automatic advancement disabled; `fixture` world mode is
-rejected at actual host startup. The October 11 unused-code cleanup retires only
-checks of the scripted fixture, its authoring/persistence branches, the PNG
-normalizer and prototype world-level currency/faction records. Native pairing,
-signed controls, instruction retries, save integrity, content lifecycle,
-observation knowledge and replay checks remain.
+The host supports only private worlds. Protocol tests default to a populated
+native private world with automatic advancement disabled; tests can also use
+fresh founder setup. `fixture` world mode is rejected at actual host startup.
+The unused-code cleanup retires checks of the scripted fixture, its
+authoring/persistence branches, the test-only PNG normalizer and prototype
+world-level faction/law, currency and culture records. Native pairing, signed
+controls, instruction retries, save integrity, content lifecycle, observation
+knowledge and replay checks remain. Mod import and approved-asset catalog
+validation keep their existing paths.
 
 ## Toolchain
 
