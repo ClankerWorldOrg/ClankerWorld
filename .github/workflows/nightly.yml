@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: nightly
   cancel-in-progress: false
@@ -38,8 +42,8 @@ jobs:
         run: |
           sha="$(git rev-parse HEAD)"
           echo "sha=${sha}" >> "${GITHUB_OUTPUT}"
-          last="$(gh api "repos/${GH_REPO}/releases?per_page=50" \
-            --jq '[.[] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""')"
+          last="$(gh api "repos/${GH_REPO}/releases?per_page=100" --paginate --slurp \
+            --jq '[.[][] | select(.tag_name | test("^v[0-9.]+-nightly\\."))] | sort_by(.created_at) | last | .target_commitish // ""')"
           if [[ "${last}" == "${sha}" ]]; then
             echo "The newest nightly build already has ${sha}."
             echo "build=false" >> "${GITHUB_OUTPUT}"
@@ -85,8 +89,8 @@ jobs:
       - name: Remove older nightly builds
         if: steps.decide.outputs.build == 'true'
         run: |
-          gh api "repos/${GH_REPO}/releases?per_page=100" \
-            --jq "[.[] | select(.tag_name | test(\"^v[0-9.]+-nightly\\\\.\"))] | sort_by(.created_at) | reverse | .[${KEEP_NIGHTLIES}:] | .[].tag_name" |
+          gh api "repos/${GH_REPO}/releases?per_page=100" --paginate --slurp \
+            --jq "[.[][] | select(.tag_name | test(\"^v[0-9.]+-nightly\\\\.\"))] | sort_by(.created_at) | reverse | .[${KEEP_NIGHTLIES}:] | .[].tag_name" |
           while IFS= read -r tag; do
             echo "Removing ${tag}"
             gh release delete "${tag}" --yes --cleanup-tag

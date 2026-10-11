@@ -134,22 +134,29 @@ public sealed partial class PrivateWorldRuntime
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         if (heldReservations.Length > 0)
             ApplyInventoryTransition(inventory => InventoryFixture.HoldReservations(inventory, heldReservations));
-        // A carried delivery is borrowed household stock, never a personal windfall on leaving.
-        foreach (var lot in society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor &&
-                     lot.ContainerLotId is null && lot.DeliveryBuildingId is { } delivery && worldSimulation.Buildings.Any(building =>
-                         building.InstanceId == delivery && building.HouseholdId == householdId)).ToArray())
-        {
-            ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
-                $"depart-delivery:{actor}:{WorldTick}:{lot.Id}", actor, householdId, lot.Id, lot.Quantity,
-                "delivery_ownership_restored"));
-            ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory,
-                $"depart-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, actor));
-        }
+        foreach (var id in group) RestoreHouseholdDeliveries(id, householdId, "depart");
         foreach (var job in personalJobs) AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("household_left", $"{actor}|{householdId}|{cause}|{allowance}");
         ReconcileGuardianPlacements();
         return true;
+    }
+
+    private void RestoreHouseholdDeliveries(string actor, string householdId, string transition)
+    {
+        // Every moving member's unfinished House delivery is borrowed household stock.
+        // Restore its owner and clear the old promise, keeping its actual physical carrier.
+        foreach (var lot in society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor &&
+                     lot.ContainerLotId is null && lot.DeliveryBuildingId is { } delivery && worldSimulation.Buildings.Any(building =>
+                         building.InstanceId == delivery && building.HouseholdId == householdId)).ToArray())
+        {
+            var carrier = lot.CarrierId ?? actor;
+            ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
+                $"{transition}-delivery:{actor}:{WorldTick}:{lot.Id}", actor, householdId, lot.Id, lot.Quantity,
+                "delivery_ownership_restored"));
+            ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory,
+                $"{transition}-custody:{actor}:{WorldTick}:{lot.Id}", lot.Id, householdId, lot.Quantity, carrier));
+        }
     }
 
     private int PhysicalUnreservedQuantity(InventoryLot lot) =>
@@ -340,15 +347,15 @@ public sealed partial class PrivateWorldRuntime
         }
         foreach (var lot in BorrowedGoods(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal))
             if (lot.OwnerId != society.Checkpoint.GetInhabitant(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
-                StorageRoomAfterInboundDeliveries(ownerHouse.InstanceId) > 0 &&
-                VesselFits(lot, StorageRoomAfterInboundDeliveries(ownerHouse.InstanceId)))
+                DestinationRoom(ownerHouse.InstanceId) > 0 &&
+                VesselFits(lot, DestinationRoom(ownerHouse.InstanceId)))
                 candidates.Add(new("household_return:" + lot.Id, $"Physically return borrowed {lot.ItemKind.Replace('_', ' ')} to its owning household.", 22));
             // Goods carried to or from the Market stay household property and can only be used again from the House.
             else if (lot.OwnerId == home && MarketTradeRules.IsLoose(lot) && !ProtectedMarketItem(actor, lot) &&
                      PhysicalUnreservedQuantity(lot) > 0 && HouseForHousehold(lot.OwnerId) is { } ownHouse &&
-                     StorageRoomAfterInboundDeliveries(ownHouse.InstanceId) > 0)
+                     DestinationRoom(ownHouse.InstanceId) > 0)
                 candidates.Add(new("household_return:" + lot.Id, $"Carry your household's {lot.ItemKind.Replace('_', ' ')} back to its House.", 22));
-        if (home is not null && HouseForHousehold(home) is { } house && StorageRoomAfterInboundDeliveries(house.InstanceId) > 0)
+        if (home is not null && HouseForHousehold(home) is { } house && DestinationRoom(house.InstanceId) > 0)
         {
             foreach (var lot in PersonalStorageLots(actor, house.InstanceId))
                 candidates.Add(new("household_store_personal:" + lot.Id, $"Store your own {lot.ItemKind.Replace('_', ' ')} in your House while keeping personal ownership.",
