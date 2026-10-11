@@ -2804,6 +2804,10 @@ for profiling, native state-change comparisons, lower allocations and mixed timi
 The later [walking-route neighbor measurements](route-neighbor-query-measurements.md)
 record the default-route follow-up; custom callbacks, including swimming,
 keep their existing neighbor path.
+Road-frontage scoring reuses the rectangular footprint and cardinal direction
+checks with direct loops, avoiding nested iterator and predicate allocations.
+The [Road-frontage measurements](road-frontage-query-measurements.md) record
+matched native captures, lower allocations and mixed timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
