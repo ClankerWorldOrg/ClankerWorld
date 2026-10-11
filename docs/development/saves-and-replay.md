@@ -104,6 +104,8 @@ Anthropic record; the provider file's schema stays 3.
 
 Private-world schema 126 and world-systems schema 4 remove the unused prototype
 faction/law, currency and culture collections and the culture-tag bound.
+Native legacy-map starts previously wrote world-systems schema 2, while generated
+founder starts wrote schema 3; both now write schema 4.
 Current saves retain weather, ecology, chunks and the native Town law and
 ownership systems. Creation, play and replay keep their existing behavior.
 Earlier alpha checkpoints are refused and preserved through the normal

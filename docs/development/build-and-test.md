@@ -27,6 +27,12 @@ with `PrivateWorldRuntimeCodec`; instruction IDs and issuer IDs come from the
 host's receipt and saved native instruction. These checks exercise the
 private-world authorization and persistence boundary used by the game.
 
+Fixture-retirement replay checks cover both native starting paces. The
+pre-retirement baseline writes world-systems schema 2 for legacy-map starts and
+schema 3 for generated founder starts; both write schema 4 after retirement.
+Compare every remaining state field, event and provider observation, and require
+exact checkpoint bytes after reload.
+
 ## Toolchain
 
 The server and simulation use C# 14 on .NET 10. The exact SDK baseline is
