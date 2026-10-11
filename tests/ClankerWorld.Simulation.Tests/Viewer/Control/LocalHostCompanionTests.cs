@@ -3,8 +3,8 @@ using System.Net.Http.Json;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Text.Json;
 using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Pairing;
 
 namespace ClankerWorld.Simulation.Tests;
 
@@ -41,6 +41,77 @@ public sealed class LocalHostCompanionTests
     }
 
     [Fact]
+    public void BundledHostGetsNoProviderKeysOrSettingOverridesFromThePlayersEnvironment()
+    {
+        var environment = new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            ["OPENAI_API_KEY"] = "one", ["ANTHROPIC_API_KEY"] = "two", ["OLLAMA_API_KEY"] = "three",
+            ["typesafe_api_key"] = "four", ["ClankerWorld__Runtime__DecisionProvider"] = "openai",
+            ["clankerworld__pairing__statepath"] = "elsewhere", ["ClankerWorld:Runtime:Model"] = "model",
+            ["DOTNET_ClankerWorld__Http__Port"] = "1", ["ASPNETCORE_CLANKERWORLD__RUNTIME__SEED"] = "seed",
+            ["PATH"] = "/usr/bin", ["DOTNET_ROOT"] = "/dotnet", ["ClankerWorld_Notes"] = "kept",
+            ["OPENAI_API_KEY_BACKUP"] = "kept",
+        };
+        LocalHostLayout.WithholdHostSettings(environment);
+        Assert.Equal("ClankerWorld_Notes,DOTNET_ROOT,OPENAI_API_KEY_BACKUP,PATH",
+            string.Join(',', environment.Keys.Order(StringComparer.Ordinal)));
+
+        // The start the game uses applies this to the environment it inherits.
+        const string Probe = "ClankerWorld__Tests__CompanionEnvironmentProbe";
+        Environment.SetEnvironmentVariable(Probe, "set");
+        try
+        {
+            var layout = new LocalHostLayout("host", [], "host-folder", "data");
+            var start = layout.StartInfo(5188, 5189);
+            Assert.False(start.Environment.ContainsKey(Probe));
+            Assert.DoesNotContain(start.Environment.Keys, name =>
+                LocalHostLayout.ProviderKeyVariables.Contains(name, StringComparer.OrdinalIgnoreCase));
+            Assert.Equal(Environment.GetEnvironmentVariable("PATH"), start.Environment["PATH"]);
+            Assert.Equal(layout.HostArguments(5188, 5189), start.ArgumentList);
+            Assert.Equal("host-folder", start.WorkingDirectory);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(Probe, null);
+        }
+    }
+
+    [Fact]
+    public async Task PairingWithAnotherServerKeepsThePublicRoute()
+    {
+        using var handler = new RecordingHandler();
+        using var http = new HttpClient(handler);
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var signer = new Signer(key);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => new OwnerPairingClient(http)
+            .StartPairingAsync(new Uri("https://world.example.test/"), signer, CancellationToken.None));
+
+        var request = Assert.Single(handler.Requests);
+        Assert.Equal(new Uri("https://world.example.test/api/v1/pairings"), request.RequestUri);
+        Assert.False(request.Headers.Contains(LocalHostCompanion.SecretHeader));
+    }
+
+    private sealed class RecordingHandler : HttpMessageHandler
+    {
+        public List<HttpRequestMessage> Requests { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests.Add(request);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.TooManyRequests));
+        }
+    }
+
+    private sealed class Signer(ECDsa key) : IOwnerDeviceSigner
+    {
+        public string PublicKeySpkiBase64 => Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+        public string PublicKeyFingerprint => OwnerPairingProtocol.CreatePublicKeyFingerprint(key.ExportSubjectPublicKeyInfo());
+        public string SignCanonicalProof(string canonicalProof) => OwnerPairingProtocol.SignP256Sha256P1363(key, canonicalProof);
+        public void Dispose() { } // The test owns the key.
+    }
+
+    [Fact]
     public async Task GameStartsPairsWithAndStopsItsOwnHost()
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-companion-{Guid.NewGuid():N}");
@@ -64,17 +135,37 @@ public sealed class LocalHostCompanionTests
             var otherBuild = new LocalHostCompanion(layout, http, port, approvalPort);
             Assert.Equal(LocalHostOutcome.PortInUse, (await otherBuild.StartAsync("9.9.9", revision, CancellationToken.None)).Outcome);
 
+            // Use up the public route's shared budget and every pending slot.
+            for (var attempt = 0; attempt < 8; attempt++)
+            {
+                using var other = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+                using var filled = await http.PostAsJsonAsync(new Uri(game.Origin, "api/v1/pairings"),
+                    new { publicKeySpkiBase64 = Convert.ToBase64String(other.ExportSubjectPublicKeyInfo()) });
+                Assert.Equal(HttpStatusCode.OK, filled.StatusCode);
+            }
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            using var start = await http.PostAsJsonAsync(new Uri(game.Origin, "api/v1/pairings"),
+            using var publicStart = await http.PostAsJsonAsync(new Uri(game.Origin, "api/v1/pairings"),
                 new { publicKeySpkiBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
-            using var pending = JsonDocument.Parse(await start.Content.ReadAsStringAsync());
-            var pairingId = pending.RootElement.GetProperty("pairingId").GetString()!;
-            var code = pending.RootElement.GetProperty("pairingCode").GetString()!;
-            Assert.False(await otherBuild.ApprovePairingAsync(pairingId, code, CancellationToken.None));
-            Assert.True(await game.ApprovePairingAsync(pairingId, code, CancellationToken.None));
-            using var status = JsonDocument.Parse(await http.GetStringAsync(new Uri(game.Origin, $"api/v1/pairings/{pairingId}")));
-            Assert.Equal((int)ClankerWorld.GodotClient.Pairing.OwnerPairingState.Approved,
-                status.RootElement.GetProperty("state").GetInt32());
+            Assert.Equal(HttpStatusCode.TooManyRequests, publicStart.StatusCode);
+            using var withoutSecret = await http.PostAsJsonAsync(new Uri($"http://127.0.0.1:{approvalPort}/api/v1/local/pairings"),
+                new { publicKeySpkiBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
+            Assert.Equal(HttpStatusCode.NotFound, withoutSecret.StatusCode);
+
+            // The game still pairs with its own host, through the local route and its secret.
+            using var signer = new Signer(key);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => otherBuild.StartPairingAsync(signer, CancellationToken.None));
+            var pairing = await game.StartPairingAsync(signer, CancellationToken.None);
+            Assert.False(await otherBuild.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode, CancellationToken.None));
+            Assert.True(await game.ApprovePairingAsync(pairing.PairingId, pairing.PairingCode, CancellationToken.None));
+            // Status and activation stay on the origin the registration is pinned to.
+            var pairingClient = new OwnerPairingClient(http);
+            Assert.Equal(OwnerPairingState.Approved,
+                (await pairingClient.GetPairingStatusAsync(game.Origin, pairing.PairingId, CancellationToken.None)).State);
+            var device = await pairingClient.ActivatePairingAsync(game.Origin, pairing, signer, CancellationToken.None);
+            Assert.Equal(OwnerDeviceState.Active, device.State);
+            Assert.True(game.Serves(new Uri($"http://127.0.0.1:{port}/")));
+            Assert.False(game.Serves(new Uri($"http://127.0.0.1:{approvalPort}/")));
+            Assert.False(game.Serves(new Uri("https://world.example.test/")));
 
             await game.StopAsync(CancellationToken.None);
             Assert.False(game.StartedHost);

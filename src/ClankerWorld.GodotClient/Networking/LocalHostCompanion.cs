@@ -3,6 +3,8 @@ using System.Globalization;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
+using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Pairing;
 
 namespace ClankerWorld.GodotClient.Networking;
 
@@ -60,6 +62,54 @@ public sealed record LocalHostLayout(
         $"--ClankerWorld:Runtime:ProviderStatePath={Path.Combine(SettingsDirectory, "provider-configuration.json")}",
         $"--ClankerWorld:Runtime:ProviderUsagePath={Path.Combine(SettingsDirectory, "provider-usage.json")}",
     ];
+
+    /// <summary>
+    /// Provider keys a standalone host saves from its environment on first
+    /// start (the Viewer's <c>Program.cs</c>). The game's own host takes keys
+    /// only from the API keys screen, so these are not passed to it.
+    /// </summary>
+    public static IReadOnlyList<string> ProviderKeyVariables { get; } =
+        ["TYPESAFE_API_KEY", "OPENAI_API_KEY", "OLLAMA_API_KEY", "ANTHROPIC_API_KEY"];
+
+    /// <summary>
+    /// How the game starts its host: the settings above, with the player's
+    /// environment minus provider keys and ClankerWorld setting overrides.
+    /// </summary>
+    public ProcessStartInfo StartInfo(int port, int approvalPort)
+    {
+        var start = new ProcessStartInfo(FileName)
+        {
+            WorkingDirectory = HostDirectory,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        foreach (var argument in HostArguments(port, approvalPort)) start.ArgumentList.Add(argument);
+        WithholdHostSettings(start.Environment);
+        return start;
+    }
+
+    /// <summary>Removes provider keys and ClankerWorld setting overrides; keeps every other variable.</summary>
+    public static void WithholdHostSettings(IDictionary<string, string?> environment)
+    {
+        foreach (var name in environment.Keys.Where(IsHostSetting).ToArray()) environment.Remove(name);
+    }
+
+    private static bool IsHostSetting(string name)
+    {
+        if (ProviderKeyVariables.Contains(name, StringComparer.OrdinalIgnoreCase)) return true;
+        // The host reads ClankerWorld__Section__Key as a setting, with or
+        // without the DOTNET_ or ASPNETCORE_ prefix, in any letter case.
+        foreach (var hostPrefix in (string[])["DOTNET_", "ASPNETCORE_"])
+        {
+            if (!name.StartsWith(hostPrefix, StringComparison.OrdinalIgnoreCase)) continue;
+            name = name[hostPrefix.Length..];
+            break;
+        }
+        return name.StartsWith("ClankerWorld__", StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith("ClankerWorld:", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 public enum LocalHostOutcome
@@ -209,6 +259,22 @@ public sealed class LocalHostCompanion : IAsyncDisposable
         }
         await StopAsync(cancellationToken);
         return new LocalHostStart(LocalHostOutcome.TimedOut);
+    }
+
+    /// <summary>True when <paramref name="origin"/> is this game's own host, not another server.</summary>
+    public bool Serves(Uri origin) => WorldServerOrigin.Same(origin, Origin);
+
+    /// <summary>
+    /// Starts this game's pairing on its own host's approval listener, with
+    /// this launch's secret, so it does not depend on the public route's
+    /// shared request budget or pending slots. Status and activation still
+    /// use <see cref="Origin"/>, the origin the registration is pinned to.
+    /// </summary>
+    public Task<OwnerPairingStart> StartPairingAsync(IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
+    {
+        if (secret is null) throw new InvalidOperationException("The world server on this PC has not started yet.");
+        return new OwnerPairingClient(http).StartPairingAsync(ApprovalOrigin, OwnerPairingEndpoints.LocalPairings,
+            deviceKey, new KeyValuePair<string, string>(SecretHeader, secret), cancellationToken);
     }
 
     /// <summary>
@@ -374,16 +440,7 @@ public sealed class LocalHostCompanion : IAsyncDisposable
         {
             AutoFlush = true,
         };
-        var start = new ProcessStartInfo(layout.FileName)
-        {
-            WorkingDirectory = layout.HostDirectory,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        foreach (var argument in layout.HostArguments(port, approvalPort)) start.ArgumentList.Add(argument);
-        var started = new Process { StartInfo = start, EnableRaisingEvents = true };
+        var started = new Process { StartInfo = layout.StartInfo(port, approvalPort), EnableRaisingEvents = true };
         started.OutputDataReceived += (_, line) => WriteLog(line.Data);
         started.ErrorDataReceived += (_, line) => WriteLog(line.Data);
         if (!started.Start()) throw new InvalidOperationException("The host process did not start.");

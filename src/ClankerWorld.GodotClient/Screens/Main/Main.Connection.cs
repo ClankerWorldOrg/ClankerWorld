@@ -86,12 +86,14 @@ public partial class Main
         try
         {
             var origin = ResolveWorldUri();
-            pendingPairing = await ownerApi.StartPairingAsync(
-                origin,
-                deviceKey,
-                CancellationToken.None);
+            // The game's own host pairs on its local listener with this
+            // launch's secret; any other server keeps the public route.
+            var ownHost = localHost is not null && localHost.Serves(origin);
+            pendingPairing = ownHost
+                ? await localHost!.StartPairingAsync(deviceKey, CancellationToken.None)
+                : await ownerApi.StartPairingAsync(origin, deviceKey, CancellationToken.None);
             pendingPairingOrigin = origin;
-            if (localHost is not null && await ApproveLocalPairingAsync(pendingPairing)) return;
+            if (ownHost && await ApproveLocalPairingAsync(pendingPairing)) return;
             pairingPanel.Show();
             pairingInstructionLabel.Text = "Give the host the pairing ID and short comparison code below. The host approves it on its private loopback listener; this code is not a password.";
             pairingCodeLabel.Text = pendingPairing.PairingCode;
