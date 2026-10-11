@@ -161,8 +161,9 @@ While the owner prepares a release, a release label marks the issues it
 needs; it is `release:alpha-1` now, for `v0.1.0-alpha.1`. Fixers take labelled
 issues first, highest priority first, and other issues only when no labelled
 one is ready. A new P0 or P1 bug, or work the owner asks to include, gets the
-label; other new issues wait for the next release. When every labelled issue
-is closed, the owner announces a merge day
+label; other new issues wait for the next release. On a merge day, which the
+owner names in chat, everyone works to close the open issues and merge the
+open pull requests
 ([Releasing](docs/development/releasing.md#release-scope-and-merge-day)).
 
 ## Claims

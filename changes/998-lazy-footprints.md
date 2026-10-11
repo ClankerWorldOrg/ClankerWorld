@@ -1,0 +1,1 @@
+- Reduce temporary allocations when agents consider building sites in grown Towns, while preserving their choices and placement rules.

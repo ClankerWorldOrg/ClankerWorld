@@ -32,6 +32,8 @@ public static class OwnerPairingEndpoints
 {
     public const string Pairings = "/api/v1/pairings";
     public const string PairingActivation = "/api/v1/pairings/activate";
+    /// <summary>Pairing start on a host's separate local approval listener, not the forwarded port.</summary>
+    public const string LocalPairings = "/api/v1/local/pairings";
     public const string ChallengeIssue = "/api/v1/owner/challenges";
     public const string OwnerReconnect = "/api/v1/owner/reconnect";
     public const string OwnerPause = "/api/v1/owner/control/pause";
@@ -138,18 +140,32 @@ public sealed class OwnerPairingClient
     /// Registers a device's public P-256 SPKI and validates that the returned
     /// activation proof is bound to that exact public key before returning it.
     /// </summary>
-    public async Task<OwnerPairingStart> StartPairingAsync(
+    public Task<OwnerPairingStart> StartPairingAsync(
         Uri serverBaseUri,
         IOwnerDeviceSigner deviceKey,
+        CancellationToken cancellationToken) =>
+        StartPairingAsync(serverBaseUri, endpoints.PairingsPath, deviceKey, header: null, cancellationToken);
+
+    /// <summary>
+    /// Starts a pairing on another route that takes the same request, such as
+    /// a host's local approval listener, with one extra request header. The
+    /// response is checked exactly as for the public route.
+    /// </summary>
+    public async Task<OwnerPairingStart> StartPairingAsync(
+        Uri serverBaseUri,
+        string pairingsPath,
+        IOwnerDeviceSigner deviceKey,
+        KeyValuePair<string, string>? header,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(deviceKey);
         using var deadline = CreatePairingDeadline(cancellationToken);
         var pairing = await SendJsonAsync<OwnerPairingStartRequest, OwnerPairingStart>(
             HttpMethod.Post,
-            BuildEndpointUri(serverBaseUri, endpoints.PairingsPath),
+            BuildEndpointUri(serverBaseUri, pairingsPath),
             new OwnerPairingStartRequest(deviceKey.PublicKeySpkiBase64),
-            deadline.Token).ConfigureAwait(false);
+            deadline.Token,
+            header).ConfigureAwait(false);
 
         ValidatePairingStart(pairing, deviceKey);
         return pairing;
@@ -480,13 +496,15 @@ public sealed class OwnerPairingClient
         HttpMethod method,
         Uri endpointUri,
         TRequest requestBody,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        KeyValuePair<string, string>? header = null)
         where TResponse : class
     {
         using var request = new HttpRequestMessage(method, endpointUri)
         {
             Content = JsonContent.Create(requestBody, options: JsonOptions),
         };
+        if (header is { } extra) request.Headers.Add(extra.Key, extra.Value);
         using var response = await httpClient.SendAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,

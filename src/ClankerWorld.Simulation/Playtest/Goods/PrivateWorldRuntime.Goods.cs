@@ -49,6 +49,8 @@ public sealed partial class PrivateWorldRuntime
         Dictionary<(GridPoint Position, int Range), bool>? routes = null)
     {
         if (GoodsInventoryQuery.IsRecovery(request.Use)) return RecoveryGoodsExclusion(request, index, lot, routes);
+        if (request.Use is GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal)
+            return SpendingGoodsExclusion(request, index, lot);
         if (request.Use == GoodsUse.Cargo)
             return lot.OwnerId == request.Actor && index.Root(lot).ItemKind == InventoryContainerRules.Handcart
                 ? null : GoodsReason.Custody;

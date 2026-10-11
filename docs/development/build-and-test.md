@@ -77,6 +77,13 @@ stay unchanged during each wait. Thirty-second phase deadlines diagnose a
 stalled request without polling native ticks. The check retains one harvest,
 unchanged completion units, the actual late reply and strict checkpoint reload.
 
+The held housing-reply fixture captures the registered request before waiting
+for provider startup. Its deferred-start rows keep that same request pending
+through lesson progress, then observe entry with the world frozen. It retains
+the unapproved housing request, no admission or completed reply, refused-tick
+preservation and strict reload. The thirty-second entry bound is diagnostic;
+waiting for it spends no native ticks.
+
 The held harvest/eating check keeps its two adjacent physical frames: one
 harvest without consumption, then consumption on the following tick. Its
 deferred-entry row holds a private preparation gate until both frames are
@@ -117,6 +124,12 @@ entry. Its delayed-entry case holds preparation until two more ticks commit.
 The progress baseline is captured only after entry, with room for three further
 lesson steps. The offered partnership answer stays held throughout; denied-tick
 bytes, continued training, unanswered partnership and strict reload remain checked.
+
+The held identity-routing fixture waits for the runtime's hosted task to finish
+before polling admission. Its deferred-return case holds the provider after
+constructing the reply and checks that the wait keeps the complete checkpoint
+unchanged. The completion wait has a five-second bound; the three-second startup,
+twenty admission ticks, retained-work checks and next-tick reload comparison remain.
 
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment

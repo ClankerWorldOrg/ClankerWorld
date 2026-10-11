@@ -3,7 +3,7 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.Playtest;
 
-public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Eat, VesselFor, ReturnVessel, Cargo }
+public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Spend, Sell, StorePersonal, Eat, VesselFor, ReturnVessel, Cargo }
 
 public enum GoodsDemandCoverage { None, KnowledgeWriting }
 
