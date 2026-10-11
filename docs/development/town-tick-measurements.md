@@ -82,8 +82,9 @@ does not promise that every selected site will create a street.
 
 The setup still stops after 256 workshop placements and considers at most
 2,048 sites per placement. If it cannot reach the requested Road count, it
-fails before the sampling gate instead of reporting a smaller completed case. Starting food is controlled so setup does not depend on
-whether a particular agent first gathers berries.
+fails before the sampling gate instead of reporting a smaller completed case.
+Starting food is controlled so setup does not depend on whether a particular
+agent first gathers berries.
 
 The Road count is a target: a generated street can overshoot it. The report
 includes actual Roads, Houses, Town buildings, residents, map digest and
@@ -94,7 +95,9 @@ traffic; those need their own measurements.
 
 Sampling uses the playable host's nonblocking tick method and built-in
 choices. The report records admitted provider and action families and any
-fallbacks so a change in decision workload is visible.
+fallbacks so a change in decision workload is visible. Fixture construction
+and setup ticks are excluded from the timing samples. The script validates
+the prepared world before advancing it.
 
 The portable probe and the three setup copies under
 `construction-query-probe`, `footprint-query-probe` and
@@ -103,9 +106,7 @@ reports retain their original source hashes, counts and samples. Their
 [previous setup sources](https://github.com/ClankerWorldOrg/ClankerWorld/tree/bc343b79b6c77207a5cad0a189967693d06e57b9/docs/development)
 remain available for exact historical reproduction. Generate fresh checkpoints
 for a current-main experiment and compare actual fixture counts; a repaired
-setup is not a runtime speed improvement. Fixture construction
-and setup ticks are excluded from the timing samples. The script validates
-the prepared world before advancing it.
+setup is not a runtime speed improvement.
 
 ## Recorded comparison
 

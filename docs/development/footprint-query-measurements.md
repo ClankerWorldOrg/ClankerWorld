@@ -2,7 +2,7 @@
 title: Footprint query measurements
 type: performance-report
 status: complete
-updated: 2026-10-08
+updated: 2026-10-11
 ---
 
 # Footprint query measurements

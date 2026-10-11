@@ -2,7 +2,7 @@
 title: Construction query measurements
 type: performance-report
 status: complete
-updated: 2026-10-05
+updated: 2026-10-11
 ---
 
 # Construction query measurements
