@@ -22,8 +22,8 @@ preserves a schema-122 reproduction for #998 and an incomplete dense setup.
 The [October 11 input-query report](construction-input-query-measurements.md)
 records the follow-up profile, bounded filter repair and native comparisons.
 The [layout neighbor report](layout-neighbor-query-measurements.md) records
-a later pre-edit profile and native correctness comparisons; it establishes
-no timing or allocation improvement.
+a later pre-edit profile, fresh matched native comparisons and lower
+allocations; timing changes remain mixed.
 
 ## Run a comparison
 
