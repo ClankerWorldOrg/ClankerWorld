@@ -987,7 +987,7 @@ If its site can no longer be used, the Town stops the
 project and the Towns page says why; its leftover materials stay Town
 property where they are. See [What works today](what-works.md#life-work-and-society)
 for this first version's limits and provisional amounts. Its
-[hands-on checklist](../playtest/767-town-projects.md) remains pending.
+[hands-on checklist](../playtest/alpha-1.md) remains pending.
 
 To begin a Market, use **Speak → Suggest** to ask an adult resident to consider a
 named Market proposal. **World Info → Towns** shows its site, exact budget,
@@ -1009,7 +1009,7 @@ a sale or give away goods. An urgently hungry owner can still retrieve their
 available food from a stall and eat it, including during an unrelated active
 Order. That survival interruption keeps the task and its progress. Other
 Market work waits until urgent hunger passes. The
-[Market hands-on checklist](../playtest/564-market-stalls.md) remains pending.
+[Market hands-on checklist](../playtest/alpha-1.md) remains pending.
 
 A preparing birth cannot count or spend household food on a stall while borrowing
 is active. Its food shortage is shown in the parents' cards and caregiver's
@@ -1027,7 +1027,7 @@ and keeps the edge that was approved. The Road itself stays open.
 
 Completed lanterns show by day, light at dusk and go out at dawn. They need no
 fuel and do not change what agents can see or do. Select the visible fitting for
-its project and payment details. The [street-lantern checklist](../playtest/892-street-lanterns.md)
+its project and payment details. The [street-lantern checklist](../playtest/alpha-1.md)
 still needs a hands-on check.
 
 ## Pause, settings and controls
@@ -1324,4 +1324,4 @@ Household hides remain private; nearby adults may collect untamed animals'
 old-age hides from their actual death tile.
 For a quick trial, pause and open **Developer tools (F12)**, choose an adult
 with yard space, and use **Add household animal**. The Event Log records it.
-The [animal playtest list](../playtest/433-animals.md) remains untried on Windows.
+The [animal playtest list](../playtest/alpha-1.md) remains untried on Windows.

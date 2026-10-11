@@ -164,6 +164,6 @@ checks event-stack nesting and counts inclusive intervals under the tick core.
 The [capture comparer](footprint-query-probe/compare-captures.py) accepts the
 output directory, `main` and `optimized`; all 57 matching capture files must
 exist before running it. Compare full bytes before interpreting timings.
-The [paired Windows/F12 check](../../playtest/998-skip-blocked-footprints.md)
+The [paired Windows/F12 check](../../playtest/alpha-1.md)
 remains pending. Further work should profile current main after merge and
 preserve eligibility, ranks, ownership and action-time authority.

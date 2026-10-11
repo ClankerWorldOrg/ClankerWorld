@@ -151,6 +151,6 @@ request in its first three ticks; the controls instead use actor 10, actually
 queried at ticks 257–258 in the unchanged ordinary baseline. Neither preflight
 failure is a game failure or an excluded performance sample.
 
-The existing [Windows/F12 checks](../../playtest/944-grown-town-tick-times.md)
+The existing [Windows/F12 checks](../../playtest/alpha-1.md)
 remain pending. This report does not claim a universal speedup or completion
 of the broader latency investigation.

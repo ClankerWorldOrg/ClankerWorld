@@ -87,8 +87,10 @@ Before publishing:
    categories.
 2. Run the applicable build, test and Godot-export gates. The owner also runs
    the [Windows release smoke check](#windows-release-smoke-check) below.
-   List every remaining file in `playtest/`, except its README, in the release
-   notes as "not yet checked by hand".
+   Fold every per-change file in `playtest/` into this release's checklist,
+   such as `playtest/alpha-2.md`
+   ([how](../../playtest/README.md#keeping-the-list-current)), and list its
+   remaining checks in the release notes as "not yet checked by hand".
 3. If compatibility changed, verify replay and rollback from a matching backup.
    Also verify migration and old-save handling when the release promises that
    older saves load.
@@ -128,7 +130,7 @@ test device and disposable world:
 
 Record the build and each result. A failed check gets a Bug issue and blocks
 the release unless the owner explicitly accepts it. This short release check
-does not claim that the remaining `playtest/` checks were performed.
+does not claim that the release checklist's remaining checks were performed.
 
 ## Nightly builds
 

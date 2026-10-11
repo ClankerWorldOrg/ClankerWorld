@@ -38,12 +38,12 @@ test alone does not make it available in the game.
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Player-chosen supplies are unfinished. |
 | Move around and inspect the map | Available in the game | Zoom, overview, wrapped east/west movement, tile facts, building cards with stored items as icons, and separate filters for Town title, household use, disputes, building property and Town borders. The disputes filter shows contested tiles in pending household land requests. Building Details lists the workstation’s registered recipes with input/output quantities, and running work shows its recipe and the materials held for it. Details also lists recent recorded storage additions and removals. |
-| Approved art for playable content | Available in the game | Clinics and Restaurants have their approved exteriors. Medicinal herb patches and picked or depleted natural sites use their matching drawings on the map and tile cards. Potatoes, cultivated green seeds, medicinal herbs, diamond ornaments and simple meals use their approved item icons. Refined gold, gold ore, plain gold ornaments, iron fittings, saddles, cooked eggs, milk, berry and fruit porridge, rich meals and leather sacks have their own icons from the October 7 art review; crude wooden axes and pickaxes use the wooden tool icons. [Windows visual checks](../playtest/792-approved-playable-art.md) are still wanted. |
+| Approved art for playable content | Available in the game | Clinics and Restaurants have their approved exteriors. Medicinal herb patches and picked or depleted natural sites use their matching drawings on the map and tile cards. Potatoes, cultivated green seeds, medicinal herbs, diamond ornaments and simple meals use their approved item icons. Refined gold, gold ore, plain gold ornaments, iron fittings, saddles, cooked eggs, milk, berry and fruit porridge, rich meals and leather sacks have their own icons from the October 7 art review; crude wooden axes and pickaxes use the wooden tool icons. [Windows visual checks](../playtest/alpha-1.md) are still wanted. |
 | Pause, inspect agents, view family trees and read events | Available in the game | The Agents list keeps its browsing position through information refreshes; selecting another agent still brings that card into view. Deceased profiles retain recorded thoughts and memories, and show any final will and final words; old deaths without an archive cannot be reconstructed. |
 | Developer tools | Available in the game | With Developer mode on (the launcher's setting, the `--developer-mode` start option, or any run from the Godot editor), **F12** opens them in a world without pausing it: the tile's coordinates and facts, frame time, how long the server takes per step of world time, the agent count, jumping to an agent and drawing their planned path, plus the aging override, lost-reply recovery, paused world editing and paired-device management. While paused, **Edit selected agent** sets fullness, warmth, illness or nutrition, gives/removes carried goods, adds/removes skills, and starts/ends partnerships; each accepted change is saved and marked **Developer edit** in the Event Log. There are no time tools such as stepping one tick. The Windows playtest is pending. |
 | Report a problem | Available in the game | **Settings > Build > Report a problem** saves a zip of the game's logs and a summary for a bug report, with keys and secrets blanked. The world server's logs are included only when the game runs its own server, which needs the unpublished local package ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)); a private server's logs stay on that server. The player sends the zip by hand. The Windows playtest is pending. |
 | Display and interface settings | Available in the game | Light and Dark text contrast is checked at 4.5:1 or better, including button states, fields, menus and badges. Themes, window size, weather switches, a 24-hour or 12-hour clock, and dates by season (the default, such as Autumn 2, Year 1) or as DD-MM-YYYY, MM-DD-YYYY or YYYY-MM-DD. A server too old to report season lengths shows numeric dates. The interface grows with the screen in whole steps (100%, 200% at 1080p and 1440p, 300% at 4K) with no setting, and the game always draws at the screen's own resolution. Windows visual and keyboard acceptance is still being checked. |
-| Keyboard controls | Available in the game | Tab/Shift+Tab traverse the open menu or panel, Enter uses a control, and arrows browse lists. K focuses world tiles for arrow movement and Enter selection or placement; World Map arrows move the camera. Numeric editors and scrollable readers have visible focus. Key remapping is outside the baseline. [Windows keyboard acceptance](../playtest/1324-keyboard-access.md) is pending. |
+| Keyboard controls | Available in the game | Tab/Shift+Tab traverse the open menu or panel, Enter uses a control, and arrows browse lists. K focuses world tiles for arrow movement and Enter selection or placement; World Map arrows move the camera. Numeric editors and scrollable readers have visible focus. Key remapping is outside the baseline. [Windows keyboard acceptance](../playtest/alpha-1.md) is pending. |
 
 Building Details shows up to ten recent recorded storage changes, newest first,
 with the exact additions or removals and when they happened. Moving a filled
@@ -115,7 +115,7 @@ colder outdoors (see [Life, work and society](#life-work-and-society)).
 Dawn adds a soft rose glow and dusk a gold one, following seasonal twilight.
 Both fade away in full day and night. Names, moving figures,
 night lights and weather stay above the glow, and pause holds its transition.
-The [Windows glow check](../playtest/1465-rose-dawn-gold-dusk.md) is pending.
+The [Windows glow check](../playtest/alpha-1.md) is pending.
 
 At close and mid zoom, an occupied House or working Blacksmith forge emits
 a soft grey column of smoke that rises, leans east and fades. Empty Houses
@@ -164,7 +164,7 @@ born in the world. Children keep their own model; conversations, identity,
 wills and planning use the agent's personal model throughout life. Switching
 cancels pending work and preserves memories.
 The Decisions integration is checked against the published API contract and
-sample replies; the live-account Windows check is still [pending](../playtest/magical-heisenberg-mwvofv-routine-helper.md).
+sample replies; the live-account Windows check is still [pending](../playtest/alpha-1.md).
 When a personal model names a new agent, it gets a stable first-letter hint to
 encourage varied names. Each chosen first name is unique across the world,
 including deceased agents. Different surnames, capitalization or spacing do
@@ -185,7 +185,7 @@ agents are not told. Memories marks it Permanent. The model and Memories list
 keep the latest permanent records as ordinary experiences accumulate, and earlier
 rename history remains saved. Refusal and an unchanged-name retry add nothing.
 This has automated runtime, signed HTTP, save/replay and native UI checks;
-three [Windows checks](../playtest/1330-permanent-rename-memory.md) remain pending.
+three [Windows checks](../playtest/alpha-1.md) remain pending.
 
 A newborn starts with a temporary name. A chosen child's name must use one
 biological parent's surname and an unused first name. The player can name the
@@ -261,7 +261,7 @@ Log names the agent and failure reason once while the same problem continues;
 a successful reply allows a later failure to appear again. Waiting, successful
 replies and canceled requests do not add rows.
 Those facts survive a refresh and save/reload. The paired Windows/model-wait
-check remains in [the playtest list](../playtest/453-model-choices-and-checks.md).
+check remains in [the playtest list](../playtest/alpha-1.md).
 
 **Settings → Game → Model calls**, also reachable from the Main Menu, shows the
 installation's model-call count and its optional limit. One count and limit
@@ -275,7 +275,7 @@ mark that only later calls can cross. Reaching the limit pauses
 the world until the limit is raised or more calls are allowed and the world is
 resumed. After that, time keeps running under the new allowance, even if an
 earlier limit notice was delayed. Per-world limits and cost estimates are not offered. The Windows
-check is in [the playtest list](../playtest/670-model-call-limit-game-settings.md).
+check is in [the playtest list](../playtest/alpha-1.md).
 
 The agent card's **Speak to them** box sends a message as a **Suggest** or an
 **Order**. A new suggestion or recognized order asks for one fresh decision from
@@ -333,7 +333,7 @@ acceptance, suspension and the actual outcome. Finishing means the talk
 attempt ended, including refusal; it does not mean an agreement was applied.
 Queued work waits for that outcome. An accepted unfinished conversation loads
 stopped and needs both people's fresh resume choices. Unavailable people,
-models, allowances and routes leave useful blockers. Marriage uses a separate proposal order. [The Windows check](../playtest/1222-talk-order.md)
+models, allowances and routes leave useful blockers. Marriage uses a separate proposal order. [The Windows check](../playtest/alpha-1.md)
 is written, but has not been run.
 
 Reading orders cover personally owned, carried field records, maps and books.
@@ -345,7 +345,7 @@ reserved items leave a blocker. An unreadable item or one with no new sites
 does not finish the task. Only that agent's own successful native read counts;
 another person's reading teaches them separately. Queueing, cancellation,
 replacement, urgent survival and saving preserve the task and its actual
-progress. [The Windows reading-order check](../playtest/1223-reading-orders.md)
+progress. [The Windows reading-order check](../playtest/alpha-1.md)
 is pending.
 
 "Propose marriage" and "Propose marriage to my partner" attempt the existing
@@ -358,7 +358,7 @@ marriage waits for the separate shared-surname conversation to finish. Pauses,
 failed calls and reload leave it unfinished, with two fresh resume choices
 required. Cancellation removes the task while preserving consent and surname
 progress; it never changes household admission. Missing or changed eligibility
-blocks rather than selecting another person. [The Windows checks](../playtest/1230-marriage-order.md)
+blocks rather than selecting another person. [The Windows checks](../playtest/alpha-1.md)
 are pending.
 
 Orders currently cover eating carried food, collecting accessible household
@@ -704,9 +704,9 @@ does not stop the agent from following its task or handling an urgent need.
 Deterministic local choices do not claim the model heard a message, and
 suggestions do not block recognized orders. Hands-on Windows paired-client
 checks remain pending in the
-[playtest list](../playtest/586-observer-guidance.md), the
-[food-order checklist](../playtest/587-food-orders.md) and the
-[order list checklist](../playtest/589-order-cards.md).
+[playtest list](../playtest/alpha-1.md), the
+[food-order checklist](../playtest/alpha-1.md) and the
+[order list checklist](../playtest/alpha-1.md).
 
 Thoughts, memories, beliefs and explored map facts belong to the individual
 agent. The player can inspect mistakes and where a belief came from. Jev can
@@ -842,8 +842,8 @@ neglect deaths, horse-drawn carts and animal boat transport remain excluded.
 | House resident places, expansion and guests | Basic version | A House gives three resident places per tile, or four when one recorded domestic family unit is at least two people and a strict majority. Travelers and infants count; dead people and invited storm guests do not. A full House can be expanded for more places when the work completes. Add Agent and unanimous household admission check the House's room before adding someone to a household that holds one. Birth still completes into the primary caregiver's current household and can make it overcrowded; the building card and agent context show the count and limit. Existing overcrowding gives eligible adults one unpaused world day to move, with volunteers first and sole caregivers protected; notices, requests and expansion progress appear in agent inspection. Adult household members may also expand a nearly full House for storage; adult Town residents may expand a nearly full Warehouse from 2×2 to 2×3. Expansion keeps identity, stock and cooking jobs, reserves materials and cancels safely if space or permission changes. Any adult household member may invite or revoke a named storm guest. Guests cannot use House stock or cooking. Storage limits, costs and work time are trial values. |
 | Exploration and physical knowledge goods | Basic version | Agents can continue scouting beyond eight steps and choose to return to the trip's starting point. Outings record personal knowledge through real movement. The Event Log reports when an agent sets out, turns back, comes home or ends a trip early. Scouting with an attached cart respects its movement limits. Actual revisits refresh changed terrain and resources, and planting teaches the planter; distant agents keep their own accounts. Existing written items and unfinished writing retain their original contents. A House makes paper from real fiber and jug-carried water; adults use paper to write field records and maps, or paper and cloth to bind books. Completed production teaches its worker a personal recipe account, which field records and books can carry alongside sites. Reading, sharing and trading teach only their actual contents to the recipient, without granting a skill. Adults can exchange records, maps or books of the same kind when both contain discoveries the recipient has not learned. Copies cost fresh materials. Food needs, unpaid project inputs and untargeted gathering orders can give an outing a saved resource purpose; material needs may also offer forest or mountain terrain. Matching discoveries must be usable before an order resumes, and scouting earns no harvest credit. Seeking other Towns remains unfinished. |
 | Trade, relationships, conversations and teaching | Basic version | One-for-one barter, where both people must meet and have room for what they receive. Spare carried goods can come from separate stacks while keeping one usable unit of the same kind; individual artifacts and unworn ornaments keep their existing exception. Positive trust, accepted/refused partnerships, and bounded public conversations with mutual consent for a structured trust effect. Close biological relatives cannot become partners or plan a child together: parents and children, grandparents and grandchildren, full or half siblings, and aunts or uncles with their nieces or nephews. First cousins can; shared households and caregiving do not count as kinship. Each agent has at most two conversation starts or acceptances per world day; this and the six-turn limit are provisional. Adults can ask a free, healthy agent with a saved skill for a practical lesson when both can reach its teaching site. An adult carrying out an active Order task is unavailable as a teacher until it finishes or is cancelled; ordinary suggestive guidance still permits teaching. An isolated teacher does not hide another available teacher. The learner keeps the skill, teacher and time, and the agent card shows them. Matching skills shorten work by a provisional 20%, rounded to whole ticks or progress units. They grant no recipe or tool access, and the agent's model sees only that agent's learned skills. Pricing, currency, conflict and broader group dialogue remain unfinished. |
-| Household shops | Basic version | Adults can offer exact goods for goods kept at a nearby Farmhouse, Blacksmith, Tailor Shop, Clinic, Restaurant or Store. Both traders meet there before anything changes hands. The buyer carries the purchase; payment goes into household stock at that shop. Buyers can seek better tool tiers, clothing that protects them better in the current weather or medicine for an observed illness. Store goods must be carried in first. The building card shows the terms and progress; cancelled offers release both lots. Buying grants no access to private stock, cooking, treatment or household membership. A customer may ask a Blacksmith household for a tool before it is stocked. The household may accept or refuse; accepted work uses its own real materials, and a finished tool is purchased through the usual physical barter. No payment, price promise or future ownership is created by the request. Request status and any missing-input or storage blocker appear on the Blacksmith and relevant agent cards; [its Windows checklist](../playtest/564-tool-making.md) is pending. Market stall trading is described below. Restaurant adults buy missing ingredients and customers buy meals after walking to shops in any Town. Its [Windows checklist](../playtest/561-concrete-meals.md) is pending. Barter rates and shelf sizes are provisional. |
-| Clinic supplies and illness care | Basic version | Reachable renewable herb patches supply a household-held 1×1 or 1×2 Clinic. It makes medicine from herbs, wood and water in a reusable jug; a House or Tailor Shop cuts cloth into bandages. One real medicine dose reduces illness gradually. Adults choose up to 16 named caregivers through a fresh accepted personal-model decision and may revoke permission. The last free permission still offers nearby alternatives. Self-care and a dependent's accepted caregiver use their existing authority. Jev, failed replies, repeated intentions and owner orders cannot grant adult permission. Interrupted treatment stops without refunding the spent dose. A caregiver who starts fetching medicine remembers the patient and where they last saw them, brings back one dose and treats only a consenting patient they can find nearby. Saving during either leg keeps the trip; withdrawal of permission stops it. Saving keeps permission and progress; pausing stops recovery time. Injury causes and bandage treatment remain deferred. Automated checks cover this path; [the Windows playtest](../playtest/565-clinic-care.md) remains pending. |
+| Household shops | Basic version | Adults can offer exact goods for goods kept at a nearby Farmhouse, Blacksmith, Tailor Shop, Clinic, Restaurant or Store. Both traders meet there before anything changes hands. The buyer carries the purchase; payment goes into household stock at that shop. Buyers can seek better tool tiers, clothing that protects them better in the current weather or medicine for an observed illness. Store goods must be carried in first. The building card shows the terms and progress; cancelled offers release both lots. Buying grants no access to private stock, cooking, treatment or household membership. A customer may ask a Blacksmith household for a tool before it is stocked. The household may accept or refuse; accepted work uses its own real materials, and a finished tool is purchased through the usual physical barter. No payment, price promise or future ownership is created by the request. Request status and any missing-input or storage blocker appear on the Blacksmith and relevant agent cards; [its Windows checklist](../playtest/alpha-1.md) is pending. Market stall trading is described below. Restaurant adults buy missing ingredients and customers buy meals after walking to shops in any Town. Its [Windows checklist](../playtest/alpha-1.md) is pending. Barter rates and shelf sizes are provisional. |
+| Clinic supplies and illness care | Basic version | Reachable renewable herb patches supply a household-held 1×1 or 1×2 Clinic. It makes medicine from herbs, wood and water in a reusable jug; a House or Tailor Shop cuts cloth into bandages. One real medicine dose reduces illness gradually. Adults choose up to 16 named caregivers through a fresh accepted personal-model decision and may revoke permission. The last free permission still offers nearby alternatives. Self-care and a dependent's accepted caregiver use their existing authority. Jev, failed replies, repeated intentions and owner orders cannot grant adult permission. Interrupted treatment stops without refunding the spent dose. A caregiver who starts fetching medicine remembers the patient and where they last saw them, brings back one dose and treats only a consenting patient they can find nearby. Saving during either leg keeps the trip; withdrawal of permission stops it. Saving keeps permission and progress; pausing stops recovery time. Injury causes and bandage treatment remain deferred. Automated checks cover this path; [the Windows playtest](../playtest/alpha-1.md) remains pending. |
 | Parenthood, guardians, life stages and death | Basic version | Ordinary consent/preparation binds an explicit primary caregiver and intended home; the accepting parent chooses a named caregiver-and-home option. Birth joins the caregiver's current household even if it has changed, is full, or has lost its House; a missing home is recorded as a housing need, and the other parent stays put. If the current primary caregiver dies or ends care, living relatives, household adults and then Town residents are asked in order, and each wider group keeps the earlier ones. A willing adult must accept; until then the child's card and Event Log say “Needs a guardian,” nearby adults may still feed them, and the player can suggest an adult who is being asked in a message. An adult can also be ordered to accept a named child through the same active search; Queue, Cancel task and normal eligibility checks still apply. A completed House with room in the same known Town permits household placement at acceptance. Otherwise care stays accepted while a pending move waits for a suitable home: the guardian collects the child and accompanies them to their House, including in another Town. Household and Town membership change together on arrival, after care authority and room are checked again; birth records stay unchanged. The agent card shows waiting, travel and blockers, and pending moves survive save/load. Infant care, child talk/play/help and age restrictions are enforced. Children can choose another reachable person when nearer contacts are on cooldown for all their social actions; up to three available contacts are offered. Children can recall newly recorded talk, play and learning experiences after save/load, including those with generated identities. Only adults can have children; elders cannot, and a plan ends if either partner becomes an elder before the birth. While fewer than four eligible adult couples are available, the continuity rule lets a partnered couple with no infant put off a child for up to two days but not refuse. Parents' selected child model is recorded at birth; children without an explicit model use safe local choices. The owner can later choose another model or leave the child unconfigured; world defaults are not inherited. |
 | Towns and household property | Basic version | First-Town membership/borders, building ownership, household stores, household food steward, and an adult with no household asking to join a household that holds a House, with every adult member's agreement. The accepted first-Town layout records Town title over its connected land and starter household use rights on owned building footprints; later border growth alone does not add title. Councils can approve explicit claims to adjoining unclaimed land. Add Agent uses recorded rights; one pending request does not assign a household, and conflicting claims make placement ambiguous. Owners can reassign or remove buildings when stored goods, deliveries and active work allow; Town borders and title stay unchanged, while a household building takes its existing footprint use right to the new household. Empty Towns appear as abandoned and keep their identity, property, borders and laws. Agents may salvage real unreserved communal stock on the ground or at the Warehouse; one adult physically in the Town may deliberately resettle it with their Town care group. Revival restores ordinary communal access and admission. Adults may leave without a vote, retrieve their personal goods and form a household alone after seeking an accepting existing home. An adult with no Town can join one through its council (below). Recorded multiple Towns can be saved and validated. Existing use permissions can transfer with every current adult's acceptance in all giving and receiving households; public land hearings decide disputes and expiry with sourced rulings and grounded rehearings. Non-land hearings record sourced civil findings and voluntary remedies; adults can deliberately found another Town on unclaimed land with their Town care group, without receiving free property; currencies remain unfinished. Nonconflicting household land grants require Council approval and every current adult household member's explicit acceptance. House expansion needs recorded use rights on its extra tiles. |
 
@@ -861,7 +861,7 @@ exclude that sale stock. Once borrowing ends, it can count and pay normally.
 Usable household food elsewhere can fund the birth while the stall stays stocked.
 
 Restaurant trading uses the normal private-world path; its
-[Windows playtest checklist](../playtest/561-concrete-meals.md) is pending.
+[Windows playtest checklist](../playtest/alpha-1.md) is pending.
 Restaurant adults visit ingredient shops in any Town, and adult customers
 can visit another Town's Restaurants for meals. Exact goods and terms are checked
 after arrival; a visit reveals no private stock remotely and transfers nothing.
@@ -886,7 +886,7 @@ adult who has carrying space or sell it through physical barter. Full-handed
 neighbors do not hide another nearby adult who can receive the gift. Ornaments
 give no warmth, carrying
 or combat bonus and add no art. These paths have automated checks;
-[the Windows playtest](../playtest/567-ornaments.md) remains pending.
+[the Windows playtest](../playtest/alpha-1.md) remains pending.
 
 Life-stage thresholds are child at day 3, adult at day 15, elder at day 45 and
 death by day 60 from birth. Nobody dies of old age before day 45; from then
@@ -940,7 +940,7 @@ then fades over the next calendar day; pausing holds that game time. The same
 person keeps the same marker after loading. Water, Roads, building footprints,
 construction and other occupied ground move it to the nearest clear tile.
 Building over a marker relocates it. Graves do not block movement or change
-moods, memories or estate handling. The [Windows grave checks](../playtest/1476-grave-markers.md)
+moods, memories or estate handling. The [Windows grave checks](../playtest/alpha-1.md)
 remain pending.
 
 When an agent with a personal model dies owning something, their model is
@@ -993,7 +993,7 @@ and laws stay intact. Its council restarts from the returning living adults.
 Later visitors need that government's admission. Salvage alone grants no
 membership, and public pickup stops on revival while already collected goods
 stay with their carrier. The Towns panel, map labels and Event Log show the
-change; [its Windows playtest](../playtest/410-abandoned-towns.md) is pending.
+change; [its Windows playtest](../playtest/alpha-1.md) is pending.
 An abandoned Town's buildings look neglected on the map: faded and mossy,
 with weeds and boarded doors. Once it has stood empty for a full season they
 look falling apart, with holes in the roofs, fallen planks and saplings; a
@@ -1001,7 +1001,7 @@ revived Town looks lived in again. Its street lanterns and its Port's pier
 lantern stay dark at night; the street lanterns also fade, gathering moss and
 weeds, the lantern fittings on its buildings fade with them, and its bridges
 fade and lose boards, then whole planks once the Town falls apart.
-An adult on buildable unclaimed land away from other Towns can deliberately found a new Town through their personal model. Its first layout records title and an all-adult council. The founder leaves their old Town; dependent children who shared it follow membership without moving or changing care. Existing household buildings and fields keep their owners and use rights; other households’ property blocks the site. Founding supplies no House or materials. Roads appear once the Town has its first completed building, including an existing House incorporated into the Town. Later visitors need ordinary admission. A House built outside all Towns remains an ordinary household House until an adult deliberately founds there. [The Windows founding playtest](../playtest/1305-found-new-town.md) is pending.
+An adult on buildable unclaimed land away from other Towns can deliberately found a new Town through their personal model. Its first layout records title and an all-adult council. The founder leaves their old Town; dependent children who shared it follow membership without moving or changing care. Existing household buildings and fields keep their owners and use rights; other households’ property blocks the site. Founding supplies no House or materials. Roads appear once the Town has its first completed building, including an existing House incorporated into the Town. Later visitors need ordinary admission. A House built outside all Towns remains an ordinary household House until an adult deliberately founds there. [The Windows founding playtest](../playtest/alpha-1.md) is pending.
 
 Each founded Town has its own council. Its recorded living adult residents
 include travelers and adults without a home; visitors gain no vote. All adults
@@ -1165,8 +1165,8 @@ keep four usable personal units across carried lots, including stock split by
 storage and collection. No fine, seizure, expulsion or forced work is available.
 Windows civic pacing and
 visual checks remain pending; see the unchecked
-[#633 playtest](../playtest/633-land-hearings.md) and
-[#635 playtest](../playtest/635-nonviolent-town-hearings.md).
+[#633 playtest](../playtest/alpha-1.md) and
+[#635 playtest](../playtest/alpha-1.md).
 
 An agent belongs to one Town or none, and travel never changes that. Losing a
 home keeps Town membership, the council vote and in-person Warehouse
@@ -1230,7 +1230,7 @@ bell-tower drawing and south-facing Road entrance. It becomes the Town's civic
 notice place; it adds no private storage or new government powers.
 Automated checks cover gathering, carried deliveries, fresh donations, paid
 construction, saves and civic notices. The
-[Windows checklist](../playtest/767-town-projects.md) is unchecked. This Hall
+[Windows checklist](../playtest/alpha-1.md) is unchecked. This Hall
 supplies the shared construction rules used by Markets, Ports and communal boats.
 
 A Council can approve a Port in any of four shoreline directions. Its two-tile
@@ -1272,7 +1272,7 @@ rowing and shipped oars. The pier lantern lights at night. Medium zoom uses
 the approved 16-pixel boat ([#914](https://github.com/compoodment/ClankerWorld/issues/914)).
 Automated checks cover paid construction, travel,
 save/load, permissions, queues and recovery; the
-[Windows checklist](../playtest/411-ports-boats.md) awaits hands-on play.
+[Windows checklist](../playtest/alpha-1.md) awaits hands-on play.
 
 A Council can also approve a Market: a Town-owned 2×2 hall beside a fixed 7×4
 packed-earth plaza. Its first paid project includes two 1×1 stalls, one in each
@@ -1327,7 +1327,7 @@ exchange progress. Only paid stalls appear on the map, and the Event Log reports
 Market and Town project events. Automated checks cover
 paid construction, another paid stall, real barter, ingredient and seed buying,
 actual planting, visitors and current-format saves. The nine checks in the
-[Windows checklist](../playtest/564-market-stalls.md) are pending.
+[Windows checklist](../playtest/alpha-1.md) are pending.
 
 Street lanterns use the same Council-approved supply and construction path.
 An adult can propose a stone street lamp or hanging street lantern at a clear
@@ -1340,7 +1340,7 @@ The Towns page and selected fitting show Council approval, materials and work.
 Daytime fittings use the approved art; at dusk they light automatically and
 go out at dawn, without fuel or visibility effects. In an abandoned Town they
 stay dark until it is resettled, and the selected fitting says why. The map never places
-them itself. [Windows checks](../playtest/892-street-lanterns.md) remain pending.
+them itself. [Windows checks](../playtest/alpha-1.md) remain pending.
 
 Towns grow along their streets. Building sites that can face an existing Road
 rank higher. Each new building's street runs on a few tiles past it, and a
@@ -1414,7 +1414,7 @@ every adult member's agreement, or start their own household when no suitable
 home can be asked. If notice expires with no home ready, the eligible adult
 leaves membership and keeps a visible housing need; goods and people still move
 physically under the departure rules. The
-[Windows relocation checks](../playtest/599-overcrowding-relocation.md) remain
+[Windows relocation checks](../playtest/alpha-1.md) remain
 pending.
 
 Until a household formed alone builds its House, its adult relies on clothing,
@@ -1505,13 +1505,13 @@ whether it is waiting for materials or being built, and how much of the work is
 done. Port materials wait on the actual bank, ladders follow the doorway, and
 mid-zoom stages retain the approved pixels. Lantern sites remain visible when
 zoomed out; their fittings stay unlit until construction finishes.
-The [Windows checklist](../playtest/1090-construction-sites.md) is
+The [Windows checklist](../playtest/alpha-1.md) is
 pending.
 
 A building finishing on screen at close or mid zoom gets the approved ring
 of settling dust and roof twinkles once. Pause holds the frame; reopening a
 world or panning to an earlier off-screen completion stays quiet. It changes
-no building work or saved state. The [Windows checklist](../playtest/1468-building-completion-moment.md)
+no building work or saved state. The [Windows checklist](../playtest/alpha-1.md)
 is pending.
 
 ### Household building sizes
@@ -1535,7 +1535,7 @@ bandages, Clinic medicine and Restaurant meals. Each has one production place;
 a larger building grants no extra worker, speed or healing effect. A household
 still holds at most one building of each kind. These are choices for new
 construction; changing an existing building's size remains limited to Houses
-and Warehouses. The [Windows checklist](../playtest/829-building-sizes.md)
+and Warehouses. The [Windows checklist](../playtest/alpha-1.md)
 covers the new sizes and their ordinary work.
 
 ## Maps, weather and appearance
@@ -1551,7 +1551,7 @@ frames every quarter second and a one-pixel bob. Boats and handcarts glide
 without a bob. Pause freezes local motion; resume continues it. Long jumps,
 world switches and checkpoint rewinds snap. Hit targets, names and the
 selected agent's quick card follow the drawing, while the host still decides
-actual travel and position. [Windows movement checks](../playtest/1461-gliding-map-markers.md)
+actual travel and position. [Windows movement checks](../playtest/alpha-1.md)
 remain pending.
 
 In autumn, a few fallen leaves lie beneath mature broadleaf and fruiting or
@@ -1662,8 +1662,8 @@ gable, hipped and conical slopes keep the approved shaded-side snow and sunny
 ridge-to-eave dusting. Flues, outlines, grass shadows and open yards stay clear;
 roofs crossing a region edge use each side's cover. Water, trees and permanent
 snow retain their own artwork. Roof appearance at close/mid zoom still needs
-[the Windows check](../playtest/1475-roof-snow.md). Snowy walking
-still need [the Windows check](../playtest/1463-ground-snow-footprints.md).
+[the Windows check](../playtest/alpha-1.md). Snowy walking
+still need [the Windows check](../playtest/alpha-1.md).
 
 Rain, storms and snow fade in or out over 1.2 seconds when regional weather
 changes; pause freezes the transition. Loading a world shows its current
@@ -1728,7 +1728,7 @@ and opens the recovered world paused. Unusable newer autosaves are skipped;
 without a usable autosave, the screen offers checking again or quitting. Older
 alpha formats remain refused, with a format explanation and no migration.
 Automated restart, file-preservation and native UI checks cover this path; the
-[Windows playtest](../playtest/1319-checkpoint-recovery.md) remains pending.
+[Windows playtest](../playtest/alpha-1.md) remains pending.
 
 If a live world tick fails, the server holds the world paused. A failed active
 checkpoint write can retry while paused, but other live faults require operator
@@ -1796,4 +1796,4 @@ the latest verified copy and any recovery currently continued from, and names
 every proposed removal before confirmation. Manual saves, migration originals,
 unclassified older copies and unverifiable checkpoints are protected. Canceling
 does nothing; a changed preview is refused. Nothing runs automatically or deletes
-by age. The [Windows playtest](../playtest/1322-recovery-cleanup.md) is pending.
+by age. The [Windows playtest](../playtest/alpha-1.md) is pending.
