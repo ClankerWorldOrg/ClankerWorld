@@ -90,7 +90,7 @@ public sealed class MorningWorldStartTests
         using var legacy = new PrivateWorldRuntime("morning-legacy-save");
         var before = legacy.ExportState();
         Assert.Equal(0, before.WorldSystems!.Config.CalendarOffsetTicks);
-        Assert.Equal(2, before.WorldSystems.SchemaVersion);
+        Assert.Equal(WorldSystemsRules.SchemaVersion, before.WorldSystems.SchemaVersion);
         var encoded = PrivateWorldRuntimeCodec.Encode(before);
         Assert.DoesNotContain("calendarOffsetTicks", Encoding.UTF8.GetString(encoded), StringComparison.OrdinalIgnoreCase);
         using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(encoded));
@@ -126,7 +126,7 @@ public sealed class MorningWorldStartTests
         Assert.Equal(0, world.WorldSystems.WorldTick);
         Assert.Equal(360, world.WorldSystems.Config.TicksPerDay);
         Assert.Equal(90, world.WorldSystems.Config.CalendarOffsetTicks);
-        Assert.Equal(3, world.WorldSystems.SchemaVersion);
+        Assert.Equal(WorldSystemsRules.SchemaVersion, world.WorldSystems.SchemaVersion);
         var calendar = WorldCalendarRules.FromTick(world.WorldTick, world.WorldSystems.Config);
         Assert.Equal(0, calendar.WorldTick);
         Assert.Equal(0, calendar.DayIndex);
