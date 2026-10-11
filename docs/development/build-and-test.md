@@ -76,6 +76,13 @@ prevents repairs. Use this pattern only where advancing ticks preserves the
 intended cancellation boundary; orders that can already complete physical work
 must keep the world at that boundary while waiting for provider entry.
 
+The held lesson-continuation fixture keeps its three-second startup deadline
+and permits at most six additional native ticks before awaiting actual provider
+entry. Its delayed-entry case holds preparation until two more ticks commit.
+The progress baseline is captured only after entry, with room for three further
+lesson steps. The offered partnership answer stays held throughout; denied-tick
+bytes, continued training, unanswered partnership and strict reload remain checked.
+
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Waiting
