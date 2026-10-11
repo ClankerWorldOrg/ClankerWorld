@@ -28,8 +28,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(2, participants.Length);
         var requester = participants[0];
         var helper = participants[1];
-        Assert.Equal(nativeBorn, requester.Length > 128);
-        Assert.Equal(nativeBorn, helper.Length > 128);
+        Assert.InRange(requester.Length, 1, DerivedId.MaximumLength);
+        Assert.InRange(helper.Length, 1, DerivedId.MaximumLength);
         var household = Assert.IsType<string>(society.GetInhabitant(requester).HouseholdId);
         var house = initial.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             initial.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)

@@ -37,7 +37,7 @@ public sealed partial class PrivateWorldRuntime
             : Math.Min(PhysicalUnreservedQuantity(lot), room);
         quantity = Math.Min(quantity, maximumQuantity);
         if (quantity <= 0) return null;
-        var moveId = $"personal:{actor}:{WorldTick}:{lot.Id}";
+        var moveId = PersonalMoveId(actor, WorldTick, lot.Id);
         ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory,
             moveId, lot.Id, lot.OwnerId, quantity, storageBuildingId: house.InstanceId));
         AppendEvent("borrowed_goods_returned", $"{actor}|{lot.ItemKind}|{quantity}|{lot.OwnerId}");

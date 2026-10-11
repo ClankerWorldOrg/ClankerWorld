@@ -342,7 +342,7 @@ public sealed partial class PrivateWorldRuntime
         contentRegistry = proposed.contentRegistry;
         worldSystems = proposed.worldSystems;
         survivalState = proposed.survivalState;
-        council = proposed.council;
+        civicSystem = proposed.civicSystem;
         continuity = proposed.continuity;
         worldContent = proposed.worldContent;
         worldSimulation = proposed.worldSimulation;

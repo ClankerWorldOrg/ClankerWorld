@@ -12,7 +12,8 @@ public sealed partial class PrivateWorldRuntime
             throw new InvalidDataException("The current checkpoint requires complete animal state.");
         if (!world.Seeded && (world.Animals.Count != 0 || world.Offers.Count != 0 || world.SupplyTrips.Count != 0 || world.MilkOffers.Count != 0))
             throw new InvalidDataException("An unseeded animal world cannot contain animal history or custody.");
-        static bool Identifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 512 && !value.Any(char.IsControl);
+        static bool Name(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 512 && !value.Any(char.IsControl);
+        static bool Identifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= DerivedId.MaximumLength && !value.Any(char.IsControl);
         static bool InventoryReference(string? value) => !string.IsNullOrWhiteSpace(value) && !value.Any(char.IsControl);
         var society = state.Society.Society;
         var people = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
@@ -54,18 +55,18 @@ public sealed partial class PrivateWorldRuntime
             var buyer = society.Inhabitants.FirstOrDefault(person => person.Id == offer.BuyerId);
             if (seller is null || buyer is null || seller.HouseholdId == buyer.HouseholdId || milk is null || milk.ItemKind != "milk" ||
                 milk.ContainerLotId is null || !(milk.OwnerId == seller.Id || milk.OwnerId == seller.HouseholdId) || !InventoryReference(offer.ReceivingJugId) || !InventoryReference(offer.PaymentLotId) ||
-                !Identifier(offer.BuildingId) || !map.IsPassable(offer.Position) || offer.OfferedTick < 0 || offer.OfferedTick > society.WorldTick ||
+                !InventoryReference(offer.BuildingId) || !map.IsPassable(offer.Position) || offer.OfferedTick < 0 || offer.OfferedTick > society.WorldTick ||
                 !state.WorldSimulation!.Buildings.Any(building => building.InstanceId == offer.BuildingId && building.Position == offer.Position) ||
                 !inventory.Lots.Any(jug => jug.Id == offer.ReceivingJugId && jug.ItemKind == InventoryContainerRules.WaterJug &&
                     (jug.OwnerId == buyer.Id || jug.OwnerId == buyer.HouseholdId) && PersonalEquipmentRules.IsCarried(jug, buyer.Id)) ||
                 !inventory.Lots.Any(payment => payment.Id == offer.PaymentLotId && payment.OwnerId == buyer.Id && PersonalEquipmentRules.IsCarried(payment, buyer.Id)) ||
-                !inventory.Reservations.Any(held => held.Id == offer.Id + "-milk" && held.LotId == milk.Id && held.OwnerId == milk.OwnerId &&
+                !inventory.Reservations.Any(held => held.Id == MilkSaleReservationId(offer.Id) && held.LotId == milk.Id && held.OwnerId == milk.OwnerId &&
                     held.Quantity == 1 && held.IsExclusive && held.State == InventoryReservationState.Reserved && held.Purpose == "milk-sale:" + offer.Id))
                 throw new InvalidDataException("A milk exchange requires its exact held product, parties, payment, receiving jug and physical shop or stall.");
         }
         foreach (var animal in world.Animals)
         {
-            if (!Identifier(animal.Name) || !Identifier(animal.HerdId) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
+            if (!Name(animal.Name) || !Identifier(animal.HerdId) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
                 animal.Sex is not ("female" or "male") || animal.CarePermissions is null || animal.RidingPermissions is null)
                 throw new InvalidDataException("An animal has invalid species, sex, name or permissions.");
             var definition = AnimalRules.Definition(animal.Species);

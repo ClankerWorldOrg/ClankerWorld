@@ -82,8 +82,8 @@ public static class AgentMarriageRules
                 (marriage.UsedTieBreak ? " The original surname was chosen by a draw after four turns without agreement." : string.Empty);
     }
 
-    public static string Id(string consentId) => "marriage:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(consentId)));
+    public static string Id(string consentId) => DerivedId.Hash(consentId, "marriage:");
+    internal static string SurnameConversationId(string marriageId) => DerivedId.Create(marriageId + ":surname");
 
     public static IReadOnlyList<string> AllowedSurnames(AgentMarriage marriage) =>
         new[] { InhabitantNameRules.SurnameKey(marriage.InitiatorNameAtAcceptance)!,

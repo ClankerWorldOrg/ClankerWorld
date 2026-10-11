@@ -83,7 +83,7 @@ public sealed partial class PrivateWorldRuntime
             ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
         if (ReturnBorrowedGoods(instruction.TargetInhabitantId, lotId, remaining,
                 order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is not { } effect) return;
-        var receipt = "return:borrowed:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(effect.MoveId)));
+        var receipt = BorrowedReturnReceipt(effect.MoveId);
         CreditOrderEffect(instruction, receipt, order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
         // Another load may use another lot, but it must keep the original owner and House.
         var current = instructionsByIdempotency[instruction.IdempotencyKey];

@@ -14,8 +14,9 @@ validation. No neighbor result, terrain or bridge legality is cached between
 steps or searches. Occupied corners, Road costs, queue order, stopping rules
 and action-time checks retain their existing authority.
 
-The [fresh matched dataset](layout-neighbor-query-probe/matched-native.json)
-records lower allocations in all ten ordinary/repeat pairs, by about
+The fresh matched dataset is in git history at commit `afbc35e8` as
+`docs/development/layout-neighbor-query-probe/matched-native.json`.
+It records lower allocations in all ten ordinary/repeat pairs, by about
 1.1–2.2%. Timing changes are mixed, so retain this bounded allocation reduction
 without claiming a consistent latency improvement. Wider construction and
 layout costs remain in [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
@@ -133,8 +134,9 @@ comparisons. The collector's legacy `main-96` trace filename does not describe
 this dense fixture. This continuation profile precedes the retention decision,
 not the earlier optimization edit.
 
-The [historical profile/conformance dataset](layout-neighbor-query-probe/conformance.json)
-remains unchanged. Its pre-edit profile ran on main `a7bd1642`, schema 122,
+The historical profile/conformance dataset is in git history at commit
+`afbc35e8` as `docs/development/layout-neighbor-query-probe/conformance.json`.
+Its pre-edit profile ran on main `a7bd1642`, schema 122,
 with 16/100/36/14 counts and 64 nonblocking native ticks. A separate
 one-processor regression suite was running then. It sampled 53,896.7 ms under
 the native tick stack: 96.41% candidate creation, 52.33% Town proposals,
@@ -157,6 +159,6 @@ for the fresh-process repeat and preserve all samples, including regressions.
 Full checkpoints, captures, trace, Speedscope conversion, input manifests and
 logs are retained under `.evidence/keep/998-current/effee-matched/` in Codex
 session e0f464b8's workspace. Earlier records remain under the parent evidence
-directory. Existing [Windows/F12 checks](../../playtest/998-route-step-costs.md)
+directory. Existing [Windows/F12 checks](../../playtest/alpha-1.md)
 remain pending. These Linux records establish no Windows frame-performance
 or hosted-model speedup; broader construction/layout work stays open in #998.

@@ -97,7 +97,7 @@ public sealed class AgentKnowledgeTests
                     9_500, 0, "curious", "explore")).ToArray(),
             };
         }
-        Assert.True(parent.Length > 128);
+        Assert.InRange(parent.Length, 1, DerivedId.MaximumLength);
         state = WithWritingPaper(state, parent);
         var provider = new CandidateProvider(parent, "explore");
         using var world = PrivateWorldRuntime.Restore(

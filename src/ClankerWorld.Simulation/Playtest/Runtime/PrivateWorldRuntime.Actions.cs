@@ -260,7 +260,7 @@ public sealed partial class PrivateWorldRuntime
             },
         };
         SyncEcologyResourceStates();
-        var harvestedLotId = $"food:harvest:{WorldTick:D10}:{inhabitantId}";
+        var harvestedLotId = FoodHarvestLotId(WorldTick, inhabitantId);
         ApplyInventoryTransition(inventory => InventoryFixture.AddLot(
             inventory, harvestedLotId,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
@@ -274,10 +274,10 @@ public sealed partial class PrivateWorldRuntime
         AppendEvent("food_harvested", $"{inhabitantId}:{harvestYield}");
         if (source.TreeKind == TreeGrowthRules.Orchard)
         {
-            var lotId = $"orchard-seed:{WorldTick:D10}:{inhabitantId}";
+            var lotId = OrchardSeedLotId(WorldTick, inhabitantId);
             ApplyInventoryTransition(inventory => InventoryFixture.Reserve(
                 InventoryFixture.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, inhabitantId,
-                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingPrefix + lotId,
+                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
                 inhabitantId, lotId, 1, "orchard_replanting", long.MaxValue));
             AppendEvent("fruit_harvested", $"{inhabitantId}:{source.Id}:{harvestYield}:picked");
         }
@@ -333,6 +333,7 @@ public sealed partial class PrivateWorldRuntime
     private bool TryCollectHouseholdServing(string actor, PlaytestInhabitantState state, InventoryLot food,
         string operationId, string purpose, string movementReason)
     {
+        operationId = DerivedId.Create(operationId);
         if (FreeCarryCapacity(actor) < 1 || AvailableLotQuantity(food) < 1 || food.CarrierId is not null ||
             society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId || food.OwnerId != householdId)
             return false;

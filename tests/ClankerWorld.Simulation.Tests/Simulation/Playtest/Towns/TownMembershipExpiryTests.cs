@@ -119,8 +119,10 @@ public sealed partial class TownMembershipTests
         AssertRoundTrip(world);
     }
 
-    [Fact]
-    public async Task AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan(bool deferEntry)
     {
         var newcomer = NewAgentId();
         var approved = await OneSponsoredApprovalAsync("membership-held-acceptance", newcomer);
@@ -128,12 +130,15 @@ public sealed partial class TownMembershipTests
         var deadline = proposal.SettledTick!.Value + AcceptanceDay;
         using var waiting = Reopen(approved, new ScriptedModel());
         await AdvanceUntil(waiting, () => waiting.WorldTick == deadline - 2, AcceptanceDay);
-        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|");
+        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry);
         using var world = Reopen(Paused(waiting), holding);
         try
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var heldRequest = await holding.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            // The committed request exists before the provider's background preparation enters.
+            var (heldRequest, heldTask) = CaptureHeldAdmissionCall(world, newcomer);
+            Assert.False(heldTask.IsCompleted);
+            if (deferEntry) Assert.False(holding.Started.Task.IsCompleted);
             var offered = heldRequest.Observation;
             Assert.Equal(deadline - 1, offered.WorldTick);
             Assert.Contains(offered.Candidates, candidate => candidate.Id == holding.Choice);
@@ -145,8 +150,11 @@ public sealed partial class TownMembershipTests
             Assert.Equal("acceptance_expired", Assert.Single(world.Towns[0].Admissions!).Reason);
             Assert.False(holding.Replied.Task.IsCompleted);
             var beforeReplyEvent = world.ExportState().Events[^1].EventId;
+            holding.Enter.TrySetResult(true);
             holding.Release.TrySetResult(true);
             var reply = await holding.Replied.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(holding.Started.Task.IsCompletedSuccessfully);
+            Assert.Same(heldRequest, await holding.Started.Task);
             Assert.Equal((heldRequest.RequestId, newcomer, heldRequest.ProviderEpoch),
                 (reply.RequestId, reply.InhabitantId, reply.ProviderEpoch));
             Assert.Equal((holding.Choice, offered.RunEpoch, offered.DecisionGeneration, offered.ObservationDigest),
@@ -208,6 +216,7 @@ public sealed partial class TownMembershipTests
         }
         finally
         {
+            holding.Enter.TrySetResult(true);
             holding.Release.TrySetResult(true);
         }
     }
@@ -320,10 +329,32 @@ public sealed partial class TownMembershipTests
         }),
     });
 
-    private sealed class HeldAdmissionModel(string newcomer, string choice) : IDecisionProvider
+    private static (CognitionDecisionRequest Request, Task Task) CaptureHeldAdmissionCall(
+        PrivateWorldRuntime world, string newcomer)
     {
+        var field = typeof(PrivateWorldRuntime).GetField("pendingHosted",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
+        var call = pending[newcomer];
+        Assert.NotNull(call);
+        return (Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call)),
+            Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call)));
+    }
+
+    private sealed class HeldAdmissionModel : IDecisionProvider
+    {
+        private readonly string newcomer;
+
+        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry)
+        {
+            this.newcomer = newcomer;
+            Choice = choice;
+            if (!deferEntry) Enter.TrySetResult(true);
+        }
+
         public const string StaleThought = "This held admission reply must not commit after expiry.";
-        public string Choice { get; } = choice;
+        public string Choice { get; }
+        public TaskCompletionSource<bool> Enter { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CognitionDecisionRequest> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CognitionDecisionResponse> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -341,6 +372,7 @@ public sealed partial class TownMembershipTests
             if (held)
             {
                 selected = Choice;
+                await Enter.Task;
                 Started.TrySetResult(request);
                 // Deliberately return despite cancellation: the actual deadline must defeat a previously valid personal reply.
                 await Release.Task;

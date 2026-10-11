@@ -117,6 +117,24 @@ public sealed partial class PrivateWorldRuntime
         return new CognitionCandidate("explore", "Explore nearby terrain to discover a suitable food site.", 0);
     }
 
+    private static string FoodArrivalReceipt(string resourceId, GridPoint position) =>
+        DerivedId.Create($"arrival:{resourceId}:{position.X}:{position.Y}");
+
+    private bool MatchesFoodArrivalReceipt(string? receipt, MapResource resource)
+    {
+        if (receipt is null) return false;
+        // A receipt records the arrival tile. Recompute the small interaction area so a
+        // hashed identity still excludes the same source after the person moves away.
+        for (var x = resource.Position.X - ResourceInteractionRange; x <= resource.Position.X + ResourceInteractionRange; x++)
+            for (var y = resource.Position.Y - ResourceInteractionRange; y <= resource.Position.Y + ResourceInteractionRange; y++)
+            {
+                var position = new GridPoint(x, y);
+                if (IsWithinInteractionRange(position, resource.Position, ResourceInteractionRange) &&
+                    receipt == FoodArrivalReceipt(resource.Id, position)) return true;
+            }
+        return false;
+    }
+
     private MapResource? KnownFoodSourceForOrder(OwnerQueuedInstruction instruction, PlaytestInhabitantState person)
     {
         var order = instruction.Order!;
@@ -125,7 +143,7 @@ public sealed partial class PrivateWorldRuntime
                 resources.GetValueOrDefault(resource.Id) == ResourceState.Available &&
                 (order.TargetResourceId is null || resource.Id == order.TargetResourceId) &&
                 !(order.RepeatUntilCancelled && order.Action == "seek_food" &&
-                    order.LastEffectId?.StartsWith($"arrival:{resource.Id}:", StringComparison.Ordinal) == true) &&
+                    MatchesFoodArrivalReceipt(order.LastEffectId, resource)) &&
                 (order.TargetFoodKind is null || FoodKnowledgeKind(resource) == order.TargetFoodKind) &&
                 (order.TargetPosition is null || resource.Position == order.TargetPosition.Value) &&
                 (IsWithinInteractionRange(person.Position, resource.Position, ResourceInteractionRange) ||
@@ -320,8 +338,7 @@ public sealed partial class PrivateWorldRuntime
             case "consume_food":
                 if (ConsumeFood(actor, person, order.TargetFoodKind) is { } consumedLotId)
                 {
-                    var identity = $"consume:{WorldTick:D10}:{actor}:{consumedLotId}";
-                    var receipt = "consume:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+                    var receipt = ConsumptionOrderReceipt(WorldTick, actor, consumedLotId);
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 else
@@ -347,7 +364,7 @@ public sealed partial class PrivateWorldRuntime
                     {
                         if (order.Action == "seek_food")
                             CreditOrderEffect(instruction,
-                                $"arrival:{target.Id}:{current.Position.X}:{current.Position.Y}", 1);
+                                FoodArrivalReceipt(target.Id, current.Position), 1);
                         return;
                     }
                     MoveToward(actor, current, target.Position, "owner_order_food", ResourceInteractionRange);
@@ -355,7 +372,7 @@ public sealed partial class PrivateWorldRuntime
                     if (order.Action == "seek_food" &&
                         IsWithinInteractionRange(current.Position, target.Position, ResourceInteractionRange))
                         CreditOrderEffect(instruction,
-                            $"arrival:{target.Id}:{current.Position.X}:{current.Position.Y}", 1);
+                            FoodArrivalReceipt(target.Id, current.Position), 1);
                     return;
                 }
             case "harvest_food":
@@ -373,7 +390,7 @@ public sealed partial class PrivateWorldRuntime
                     }
                     if (HarvestFood(actor, inhabitants[actor], source) is { } effect &&
                         (order.TargetFoodKind is null || effect.ItemKind == order.TargetFoodKind))
-                        CreditOrderEffect(instruction, $"harvest:{effect.LotId}",
+                        CreditOrderEffect(instruction, FoodHarvestReceipt(effect.LotId),
                             order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
                     else
                         SetOrderStatus(instruction, "blocked", "The requested food site did not yield the requested food.");

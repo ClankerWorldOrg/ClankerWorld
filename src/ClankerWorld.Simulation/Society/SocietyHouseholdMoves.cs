@@ -67,7 +67,7 @@ public static partial class SocietyFixture
             adult.HouseholdId is null || adult.HouseholdId != child.HouseholdId || child.PrimaryCaregiverId == adultId ||
             !HasActivePrimaryCaregiver(checkpoint, childId))
             return Reject(checkpoint, "care_assignment_rejected", "replacement_not_eligible");
-        var edgeId = $"replacement-care:{adultId}:{childId}:{checkpoint.WorldTick}";
+        var edgeId = ReplacementCareId(adultId, childId, checkpoint.WorldTick);
         if (checkpoint.Relationships.Any(edge => edge.Id == edgeId))
             return Reject(checkpoint, "care_assignment_rejected", "duplicate_assignment");
         var edge = new SocietyRelationship(edgeId, 1, SocietyRelationshipType.Caregiver, adultId, childId,

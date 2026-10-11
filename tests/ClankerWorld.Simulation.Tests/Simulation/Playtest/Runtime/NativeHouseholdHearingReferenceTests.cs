@@ -36,7 +36,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var pending = world.Towns[0].LandHearings.Cases.Single(item => item.Property?.Request.TargetHouseholdId == household);
         Assert.Null(pending.Property!.Transfer);
         Assert.Contains(choices.Selected, choice => choice.Choice.Contains("|hearing_property_request|", StringComparison.Ordinal) &&
-            choice.Choice.EndsWith("|agent-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(household))), StringComparison.Ordinal));
+            choice.Choice.EndsWith("|" + household, StringComparison.Ordinal));
         AssertInvalidHouseholdProperty(world.ExportState(), pending);
         var before = host.Saved();
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -139,9 +139,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
         await HouseholdHearingUntil(world, host, () => world.Society.GetInhabitant(actor).HouseholdId is { } home &&
-            home.StartsWith("household:solo:" + actor + ":", StringComparison.Ordinal), 40);
+            world.Society.GetHousehold(home).MemberIds.SequenceEqual([actor]), 40);
         var household = world.Society.GetInhabitant(actor).HouseholdId!;
-        Assert.Equal(later ? 351 : 156, household.Length);
+        Assert.InRange(household.Length, 1, DerivedId.MaximumLength);
         Assert.Contains("household_found", choices.Selected);
         Assert.Equal([actor], world.Society.GetHousehold(household).MemberIds);
         return host.Saved();

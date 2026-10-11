@@ -30,7 +30,7 @@ public static class TownLandCasePartyRules
             if (representative is null && town.Government is { Arrangement.Ordinary: TownArrangementRules.Mayor } government)
                 representative = government.Offices.SingleOrDefault(office => office.Mandates == "ordinary" &&
                     office.HolderId is not null && office.TermEndTick > tick)?.HolderId;
-            parties.Add(new("town:" + town.Id, "town", null, town.Id, [], representative));
+            parties.Add(new(TownRecordIds.TownParty(town.Id), "town", null, town.Id, [], representative));
         }
         return item?.Property is { } property ? TownPropertyRules.Parties(parties, property, town.Id, inhabitants) :
             parties.OrderBy(party => party.Id, StringComparer.Ordinal).ToArray();
@@ -39,7 +39,7 @@ public static class TownLandCasePartyRules
     internal static string HouseholdPartyId(string household)
     {
         var id = "household:" + household;
-        return id.Length <= 256 ? id : "household-sha256:" + TownLandHearingRules.Digest(household);
+        return DerivedId.Create(id, "household-sha256:");
     }
 
     public static bool TownFilingAuthority(TownRuntimeState town, string actor, string? authorityId,

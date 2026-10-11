@@ -1,0 +1,52 @@
+name: Unblock waiting work
+
+# Removes status:blocked from an open issue or pull request once every item its
+# description names as "Blocked by #N" or "Waits on #N" has merged or closed as
+# completed, and puts an issue nobody holds back in the queue. See
+# CONTRIBUTING.md, "Labels", and docs/development/labels.md.
+# It runs when an issue or pull request closes, and every 30 minutes to catch
+# closes that start no workflow, such as those another workflow makes.
+# pull_request_target gives closes from forks a token that can label. It reads
+# GitHub data only and runs main's copy of the script; pull request code is
+# never checked out or run.
+on:
+  issues:
+    types: [closed]
+  pull_request_target:
+    types: [closed]
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only list what would be unblocked
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+# One run at a time, so two never post the same comment. Each run checks every
+# blocked item, so a run that replaces a waiting one loses nothing.
+concurrency:
+  group: unblock
+  cancel-in-progress: false
+
+jobs:
+  unblock:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Remove status:blocked where every blocker is done
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const unblockFinishedWork = require('./.github/scripts/unblock.js');
+            await unblockFinishedWork({ github, context, core, dryRun: ${{ inputs.dry_run == true }} });
