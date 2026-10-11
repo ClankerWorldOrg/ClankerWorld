@@ -152,19 +152,21 @@ public sealed class CivicSystemTests
         system.RestoreHouseholdLandUseRights([new("z", "z", "household", [], 0, "initial"), new("a", "a", "household", [], 0, "initial")]);
         system.RestoreHouseholdLandUseRequests([new("z", "z", "household", "agent-a", [], 0), new("a", "a", "household", "agent-a", [], 0)]);
         var live = system.State;
+        var canonicalOrder = new[] { "a", "z" };
+        var actionOrder = new[] { "z", "a" };
 
         var proposal = new CivicSystem(system.CheckpointState);
 
-        Assert.Equal(new[] { "a", "z" }, proposal.State.Towns.Select(town => town.Id));
-        Assert.Equal(new[] { "a", "z" }, proposal.State.TownLandTitles.Select(title => title.Id));
-        Assert.Equal(new[] { "a", "z" }, proposal.State.HouseholdLandUseRights.Select(right => right.Id));
-        Assert.Equal(new[] { "a", "z" }, proposal.State.HouseholdLandUseRequests.Select(request => request.Id));
+        Assert.Equal(canonicalOrder, proposal.State.Towns.Select(town => town.Id));
+        Assert.Equal(canonicalOrder, proposal.State.TownLandTitles.Select(title => title.Id));
+        Assert.Equal(canonicalOrder, proposal.State.HouseholdLandUseRights.Select(right => right.Id));
+        Assert.Equal(canonicalOrder, proposal.State.HouseholdLandUseRequests.Select(request => request.Id));
         Assert.Same(proposal.State, proposal.CheckpointState);
         Assert.Same(live, system.State);
-        Assert.Equal(new[] { "z", "a" }, system.State.Towns.Select(town => town.Id));
-        Assert.Equal(new[] { "z", "a" }, system.State.TownLandTitles.Select(title => title.Id));
-        Assert.Equal(new[] { "z", "a" }, system.State.HouseholdLandUseRights.Select(right => right.Id));
-        Assert.Equal(new[] { "z", "a" }, system.State.HouseholdLandUseRequests.Select(request => request.Id));
+        Assert.Equal(actionOrder, system.State.Towns.Select(town => town.Id));
+        Assert.Equal(actionOrder, system.State.TownLandTitles.Select(title => title.Id));
+        Assert.Equal(actionOrder, system.State.HouseholdLandUseRights.Select(right => right.Id));
+        Assert.Equal(actionOrder, system.State.HouseholdLandUseRequests.Select(request => request.Id));
     }
 
     [Fact]
