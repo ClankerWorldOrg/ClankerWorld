@@ -6,17 +6,17 @@ namespace ClankerWorld.Simulation.Playtest;
 internal sealed partial class CivicSystem
 {
     internal static readonly string[] NonviolentFindingChoices = ["unsupported", "explanation", "warning", "censure"];
-    internal static void AddChildNonviolentCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor)
+    internal void AddChildNonviolentCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor)
     {
         if (!world.ChildResident(actor) || PrivateWorldRuntime.CivicSharedRules.NeedsUrgentFood(world.Inhabitants[actor]) || world.NeedsUrgentWarmth(world.Inhabitants[actor])) return;
         foreach (var town in world.Towns.Where(town => town.FoundingState == "founded" && town.Governance is not null))
             AddTownNonviolentCandidates(world, candidates, actor, town);
     }
 
-    internal static void AddTownNonviolentCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
+    internal void AddTownNonviolentCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
         if (town.Governance is not { } council || !world.Inhabitants.TryGetValue(actor, out var actorState) || world.Society.GetInhabitant(actor).AgeBand == SocietyAgeBand.Infant) return;
-        var adult = world.LandHearingAdult(actor);
+        var adult = LandHearingAdult(world, actor);
         var atBoard = NearCivicBoard(world, actor, town);
         var history = CivicHistory(town);
         if (!atBoard && MayVisitNonviolentCase(world, actor, town) && !candidates.Any(candidate => candidate.Id == CivicAction(world, town.Id, "visit")))
@@ -144,13 +144,13 @@ internal sealed partial class CivicSystem
     internal static string NonviolentOfferTiming(ICivicTownWorld world, TownRemedyOffer offer) =>
         "Complete within " + NonviolentDaysText(world, offer.CompletionTicks) + " after everyone accepts. Answer within " +
         NonviolentDaysText(world, offer.ResponseDeadlineTick - offer.PublishedTick) + " of publication.";
-    internal static string NonviolentRemedyReferences(ICivicTownWorld world, TownRuntimeState town, string actor)
+    internal string NonviolentRemedyReferences(ICivicTownWorld world, TownRuntimeState town, string actor)
     {
         var people = world.Inhabitants.Values.Where(person => person.InhabitantId == actor || town.ResidentIds.Contains(person.InhabitantId) || world.IsWithinInteractionRange(person.Position, world.Inhabitants[actor].Position, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange)).ToArray();
         var lots = world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor || lot.OwnerId == world.HouseholdFor(actor) || world.Inhabitants.TryGetValue(lot.OwnerId, out var holder) && ToolProgressionRules.IsTopLevelCarriedLot(lot, lot.OwnerId) && world.IsWithinInteractionRange(holder.Position, world.Inhabitants[actor].Position, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
             CanObserveNonviolentAct(world, actor, lot.OwnerId, holder.Position));
         var warehouses = world.WorldSimulation.Buildings.Where(building => building.TownId == town.Id &&
-            (world.TownForResident(actor) == town.Id || world.IsWithinInteractionRange(building.Position, world.Inhabitants[actor].Position, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange)));
+            (TownForResident(world, actor) == town.Id || world.IsWithinInteractionRange(building.Position, world.Inhabitants[actor].Position, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange)));
         return " Use these references in terms. People: " + string.Join("; ", people.Select(person => world.Society.GetInhabitant(person.InhabitantId).Name + " (" + CivicAgentToken(person.InhabitantId) + ")")) +
             ". Town: " + town.Name + " (" + CivicAgentToken(town.Id) + "). Known goods: " + string.Join("; ", lots.Select(lot =>
                 lot.ItemKind.Replace('_', ' ') + " (" + CivicAgentToken(lot.Id) + ") held by " + CivicAgentToken(lot.OwnerId))) +

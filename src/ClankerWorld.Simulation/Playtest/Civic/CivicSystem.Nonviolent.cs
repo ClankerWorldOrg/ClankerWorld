@@ -41,7 +41,7 @@ internal sealed partial class CivicSystem
     }
 
     internal static bool TownNonviolentElectionBusy(TownRuntimeState town) => town.Nonviolent.Cases.Any(item => item.Contest is { Stage: "voting" });
-    internal static bool MayVisitNonviolentCase(ICivicTownWorld world, string actor, TownRuntimeState town) => world.Inhabitants.ContainsKey(actor) && world.CanWalkToCivicBoard(actor, town) && (town.Nonviolent.Cases.Any(item => NonviolentMayInspect(world, town, item, actor) && NonviolentKnows(world, town, item, actor)) ||
+    internal static bool MayVisitNonviolentCase(ICivicTownWorld world, string actor, TownRuntimeState town) => world.Inhabitants.ContainsKey(actor) && CanWalkToCivicBoard(world, actor, town) && (town.Nonviolent.Cases.Any(item => NonviolentMayInspect(world, town, item, actor) && NonviolentKnows(world, town, item, actor)) ||
             NonviolentKnownReports(world, town, actor).Length > 0);
     internal static (TownGovernanceState Council, TownNonviolentState Nonviolent) AdvanceTownNonviolent(ICivicTownWorld world, TownRuntimeState town,
         TownGovernanceState council, TownGovernmentState government)
@@ -73,7 +73,7 @@ internal sealed partial class CivicSystem
             { DirectStakeIds = item.Filings.Select(filing => filing.AgentId).Concat(NonviolentParties(world, town, item).Select(party => party.SubjectId)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray() }).ToArray()
         };
         var parties = state.Cases.ToDictionary(item => item.Id, item => (IReadOnlyList<TownCaseParty>)NonviolentParties(world, town, item), StringComparer.Ordinal);
-        (state, council) = TownCaseJudgeRules.Advance(state, council, government, TownAdults(world, town), world.LandHearingHouseholds(), world.WorldTick, CivicDay(world), PrivateWorldRuntime.CivicSharedRules.TownLandHearingElectionBusy(town) || government.Contest is { Stage: "voting" or "ready" } || council.Election is { Stage: "ready" }, parties);
+        (state, council) = TownCaseJudgeRules.Advance(state, council, government, TownAdults(world, town), LandHearingHouseholds(world), world.WorldTick, CivicDay(world), TownLandHearingElectionBusy(town) || government.Contest is { Stage: "voting" or "ready" } || council.Election is { Stage: "ready" }, parties);
         return (council, state);
     }
 

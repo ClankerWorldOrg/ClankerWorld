@@ -66,4 +66,30 @@ public sealed class RuntimeStateBoundaryTests
             Assert.Equal(value, typeof(PrivateWorldRuntime).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(committed));
         committed.Validate();
     }
+
+    [Fact]
+    public void TrustedPreparationSharesCivicRecordsUntilAProposedWrite()
+    {
+        using var committed = NormalPathWorld.CreateGenerated("civic-snapshot-sharing", _ => new DeterministicDecisionProvider());
+        var civicField = typeof(PrivateWorldRuntime).GetField("civicSystem", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var original = ((CivicSystem)civicField.GetValue(committed)!).State;
+        var before = PrivateWorldRuntimeCodec.Encode(committed.ExportState());
+        var restore = typeof(PrivateWorldRuntime).GetMethod("RestoreCore", BindingFlags.Static | BindingFlags.NonPublic)!;
+        using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed.ExportState(), null, 4, true, false, null, original])!;
+        var proposed = (CivicSystem)civicField.GetValue(prepared)!;
+        Assert.Same(original, proposed.State);
+        var town = Assert.Single(prepared.Towns);
+        var setTown = typeof(PrivateWorldRuntime).GetMethod("SetTown", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        setTown.Invoke(prepared, [town with { Name = "Prepared Town" }]);
+
+        Assert.NotSame(original, proposed.State);
+        Assert.Same(original.TownLandTitles, proposed.State.TownLandTitles);
+        Assert.Same(original.HouseholdLandUseRights, proposed.State.HouseholdLandUseRights);
+        Assert.Same(original.HouseholdLandUseRequests, proposed.State.HouseholdLandUseRequests);
+        Assert.Equal("Prepared Town", Assert.Single(prepared.Towns).Name);
+        Assert.Same(original, ((CivicSystem)civicField.GetValue(committed)!).State);
+        Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(committed.ExportState()));
+        prepared.Validate();
+    }
 }

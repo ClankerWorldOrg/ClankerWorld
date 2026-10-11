@@ -33,7 +33,7 @@ public sealed partial class PrivateWorldRuntime
     private string ResolveCivicAgentToken(string token) => CivicSystem.ResolveCivicAgentToken(civicWorld, token);
     private string CivicAction(string town, string kind, string subject = "", string choice = "") => CivicSystem.CivicAction(civicWorld, town, kind, subject, choice);
     private static string CivicRoundToken(TownElection election) => CivicSystem.CivicRoundToken(election);
-    private void AddTownCivicCandidates(List<CognitionCandidate> candidates, string actor, IReadOnlyList<string>? buildingsWithoutSites = null) => CivicSystem.AddTownCivicCandidates(civicWorld, candidates, actor, buildingsWithoutSites);
-    private void ContinueTownCivicVisit(string actor, string candidate) => CivicSystem.ContinueTownCivicVisit(civicWorld, actor, candidate);
+    private void AddTownCivicCandidates(List<CognitionCandidate> candidates, string actor, IReadOnlyList<string>? buildingsWithoutSites = null) => civicSystem.AddTownCivicCandidates(civicWorld, candidates, actor, buildingsWithoutSites);
+    private void ContinueTownCivicVisit(string actor, string candidate) => civicSystem.ContinueTownCivicVisit(civicWorld, actor, candidate);
     private void ApplyTownCivicCandidate(string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null, IReadOnlyList<CognitionLandTile>? landTiles = null, CognitionLandHearingChoice? hearingChoice = null, CognitionNonviolentChoice? nonviolentChoice = null) => civicSystem.ApplyTownCivicCandidate(civicWorld, actor, candidate, proposalText, ballot, landTiles, hearingChoice, nonviolentChoice);
 }

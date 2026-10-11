@@ -16,41 +16,21 @@ public sealed partial class PrivateWorldRuntime
 {
     private sealed partial class CivicWorldAdapter
     {
-        public void AcceptTownAdmission(string actor, string townId, string proposalId) => runtime.AcceptTownAdmission(actor, townId, proposalId);
         public void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddBoatAccessCandidates(candidates, actor, town);
         public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, PlaytestInhabitantState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
         public void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
                 PlaytestInhabitantState person) => runtime.AddHandcartCandidates(candidates, actor, person);
-        public void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddHouseholdLandCandidates(candidates, actor, town);
         public void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor) => runtime.AddToolRepairCandidates(candidates, actor);
-        public void AddTownAdmissionCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownAdmissionCandidates(candidates, actor, town);
-        public void AddTownLandHearingCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownLandHearingCandidates(candidates, actor, town);
-        public void AddTownLandTransferCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownLandTransferCandidates(candidates, actor, town);
         public void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownProjectProposalCandidates(candidates, actor, town);
-        public string AdmissionRequestText(string actor, TownRuntimeState town) => runtime.AdmissionRequestText(actor, town);
         public bool AdultResident(string actor) => runtime.AdultResident(actor);
-        public (TownGovernanceState Council, TownLandHearingState LandHearings) AdvanceTownLandHearings(
-                TownRuntimeState town, TownGovernanceState council, TownGovernmentState government) => runtime.AdvanceTownLandHearings(town, council, government);
-        public (TownGovernanceState Council, TownLandHearingState LandHearings) AdvanceTownLandTransfers(
-                TownRuntimeState town, TownGovernanceState council) => runtime.AdvanceTownLandTransfers(town, council);
         public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
-        public (TownRuntimeState Town, TownGovernanceState Governance) ApplyApprovedTownLandClaims(
-                TownRuntimeState town, TownGovernanceState updated) => runtime.ApplyApprovedTownLandClaims(town, updated);
         public bool ApplyHandcartCandidate(string actor, PlaytestInhabitantState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
-        public (TownGovernanceState Council, TownLandHearingState LandHearings) ApplyTownLandHearingAction(TownRuntimeState town,
-                string actor, string action, string subject, string choice, string? proposalText, IReadOnlyList<CognitionLandTile>? landTiles,
-                CognitionLandHearingChoice? hearingChoice, TownGovernanceState council, TownGovernmentState government) => runtime.ApplyTownLandHearingAction(town, actor, action, subject, choice, proposalText, landTiles, hearingChoice, council, government);
-        public (TownGovernanceState Council, TownLandHearingState LandHearings) ApplyTownLandTransferAction(
-                TownRuntimeState town, string actor, string action, string subject, string choice,
-                IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownGovernanceState council) => runtime.ApplyTownLandTransferAction(town, actor, action, subject, choice, landTiles, hearingChoice, council);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
         public bool CanPrepareEquipmentRepair(string actor, PlaytestInhabitantState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
-        public bool CanWalkToCivicBoard(string actor, TownRuntimeState town) => runtime.CanWalkToCivicBoard(actor, town);
         public IEnumerable<PlaytestInhabitantState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);
         public bool ChildResident(string actor) => runtime.ChildResident(actor);
         public EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
-        public TownGovernanceState DecideHouseholdLandUse(TownGovernanceState state, string actor, string requestId, string action) => runtime.DecideHouseholdLandUse(state, actor, requestId, action);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot) => runtime.EquipmentRepairSite(actor, lot);
         public List<GridPoint> FindUnoccupiedRoute(
@@ -60,7 +40,6 @@ public sealed partial class PrivateWorldRuntime
                 int interactionRange,
                 bool allowSwimming = true,
                 int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(inhabitantId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
-        public void FoundTown(string actor, string candidate) => runtime.FoundTown(actor, candidate);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public bool HasCarriedMaterial(string actor, string itemKind, int quantity) => runtime.HasCarriedMaterial(actor, itemKind, quantity);
         public PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag) => runtime.HouseholdBuildingWithTag(householdId, tag);
@@ -69,17 +48,8 @@ public sealed partial class PrivateWorldRuntime
         public IReadOnlyList<HouseholdLandUseRight> HouseholdLandUseRights { get => runtime.householdLandUseRights; }
         public IEnumerable<string> IllDependentsNeedingCare(string adult) => runtime.IllDependentsNeedingCare(adult);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) => runtime.IsWithinInteractionRange(origin, destination, interactionRange);
-        public bool LandHearingAdult(string actor) => runtime.LandHearingAdult(actor);
-        public Dictionary<string, string?> LandHearingHouseholds() => runtime.LandHearingHouseholds();
-        public string LandUseTerms(HouseholdLandUseRequest request) => runtime.LandUseTerms(request);
         public void MaintainTownProjects() => runtime.MaintainTownProjects();
         public SeededMap Map { get => runtime.map; }
-        public bool MayBeSponsoredForAdmission(string nominee, TownRuntimeState town) => runtime.MayBeSponsoredForAdmission(nominee, town);
-        public bool MayRequestOwnAdmission(string actor, TownRuntimeState town) => runtime.MayRequestOwnAdmission(actor, town);
-        public bool MayResettleTown(string actor, TownRuntimeState town) => runtime.MayResettleTown(actor, town);
-        public bool MayVisitAsNewcomer(string actor, TownRuntimeState town) => runtime.MayVisitAsNewcomer(actor, town);
-        public bool MayVisitLandHearing(string actor, TownRuntimeState town) => runtime.MayVisitLandHearing(actor, town);
-        public bool MayVisitLandTransfer(string actor, TownRuntimeState town) => runtime.MayVisitLandTransfer(actor, town);
         public void MoveToward(
                 string inhabitantId,
                 PlaytestInhabitantState state,
@@ -99,20 +69,7 @@ public sealed partial class PrivateWorldRuntime
         public void RepairEquipment(string actor, PlaytestInhabitantState person, string? requestedLotId = null, string? orderInstructionId = null) => runtime.RepairEquipment(actor, person, requestedLotId, orderInstructionId);
         public string? RepairTool(string actor, PlaytestInhabitantState state, string lotId,
                 IReadOnlyList<string>? protectedToolIds = null) => runtime.RepairTool(actor, state, lotId, protectedToolIds);
-        public GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => runtime.RequestableLandNear(town, from, count);
-        public string ResettlementText(string actor, TownRuntimeState town) => runtime.ResettlementText(actor, town);
-        public void ResettleTown(string actor, TownRuntimeState town) => runtime.ResettleTown(actor, town);
-        public TownGovernanceState ResolveHouseholdLandRequests(TownRuntimeState town, TownGovernanceState state) => runtime.ResolveHouseholdLandRequests(town, state);
-        public void SettleTownAdmissions() => runtime.SettleTownAdmissions();
-        public void SetTown(TownRuntimeState updated) => runtime.SetTown(updated);
         public int SkilledWorkTicks(string actor, SettlementSkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
-        public TownGovernanceState SubmitExpansionLandRequest(TownRuntimeState town, TownGovernanceState state, string actor, string buildingId) => runtime.SubmitExpansionLandRequest(town, state, actor, buildingId);
-        public TownGovernanceState SubmitPersonalLandUseRequest(TownRuntimeState town, TownGovernanceState state,
-                string actor, IReadOnlyList<CognitionLandTile>? landTiles) => runtime.SubmitPersonalLandUseRequest(town, state, actor, landTiles);
-        public TownGovernanceState SubmitTownLandClaim(TownRuntimeState town, TownGovernanceState state,
-                string actor, IReadOnlyList<CognitionLandTile>? requested) => runtime.SubmitTownLandClaim(town, state, actor, requested);
-        public string? TownForResident(string residentId) => runtime.TownForResident(residentId);
-        public TownRuntimeState? TownFoundingLayout(string actor) => runtime.TownFoundingLayout(actor);
         public IReadOnlyList<TownLandTitleRecord> TownLandTitles { get => runtime.townLandTitles; }
         public string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
                 string? projectId = null, string? actor = null, bool ignorePendingRequests = false) => runtime.TownProjectSiteFailure(town, plan, projectId, actor, ignorePendingRequests);
@@ -121,9 +78,48 @@ public sealed partial class PrivateWorldRuntime
         public PlacedBuilding? WarehouseForResident(string actor) => runtime.WarehouseForResident(actor);
         public DeclarativeWorldContentState WorldContent { get => runtime.worldContent; }
         public string WorldSeed { get => runtime.worldSeed; }
-        public WorldContentSimulationState WorldSimulation { get => runtime.worldSimulation; }
+        public WorldContentSimulationState WorldSimulation { get => runtime.worldSimulation; set => runtime.worldSimulation = value; }
         public IEnumerable<InventoryLot> WornEquipmentItems(string actor) => runtime.WornEquipmentItems(actor);
         public WorldSystemsConfig CalendarConfig => runtime.worldSystems.Config;
+        public string[] HouseholdAdults(string householdId) => runtime.HouseholdAdults(householdId);
+        public IEnumerable<GridPoint> RoadAndBridgeTiles() => runtime.RoadAndBridgeTiles();
+        public IEnumerable<GridPoint> TownProjectProtectedSites(string? exceptProjectId = null) => runtime.TownProjectProtectedSites(exceptProjectId);
+        public HashSet<GridPoint> PendingTownProjectSiteTiles() => runtime.PendingTownProjectSiteTiles();
+        public IEnumerable<GridPoint> MarketSiteTiles() => runtime.MarketSiteTiles();
+        public bool MayExpandBuilding(string actor, PlacedBuilding building, out string failure) => runtime.MayExpandBuilding(actor, building, out failure);
+        public IEnumerable<(GridPoint Position, BuildingFootprintRevision Footprint)> ExpansionShapes(PlacedBuilding building) => runtime.ExpansionShapes(building);
+        public bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure, string? ownJobId = null, bool requireLandRights = true) => runtime.CanFitExpansion(building, position, footprint, out failure, ownJobId, requireLandRights);
+        public void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownPropertyCandidates(candidates, actor, town);
+        public bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item) => runtime.PropertyCanTransfer(town, item);
+        public bool PropertyMayReopen(TownRuntimeState town, TownLandCase item) => runtime.PropertyMayReopen(town, item);
+        public (TownGovernanceState Council, TownLandHearingState LandHearings) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownGovernanceState council, TownGovernmentState government) => runtime.RequestPropertyCase(town, actor, subject, choice, statement, council, government);
+        public TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision) => runtime.CaptureProperty(town, request, revision);
+        public TownLandHearingState TransferCaseProperty(TownRuntimeState town, TownLandHearingState hearings, string caseId, TownPropertySnapshot prior) => runtime.TransferCaseProperty(town, hearings, caseId, prior);
+        public int CaregiverFoodCarryRequirement(string actor, PlaytestInhabitantState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
+        public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
+        public int MarketSurplus(string actor, InventoryLot lot) => runtime.MarketSurplus(actor, lot);
+        public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
+        public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
+        public bool ReadyForBriefInteraction(string actor) => runtime.ReadyForBriefInteraction(actor);
+        public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
+        public IEnumerable<PlacedBuilding> WarehousesForTown(string townId) => runtime.WarehousesForTown(townId);
+        public bool VesselFits(InventoryLot lot, int room) => runtime.VesselFits(lot, room);
+        public void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding) => runtime.GenerateRoadBetweenTowns(town, firstBuilding);
+        public bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination) => runtime.CanReachByFootOrSwimming(actor, from, destination);
+        public PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
+        public bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
+        public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => runtime.GenerateRoadToBuilding(building, border);
+        public IReadOnlyList<FarmFieldState> Fields => runtime.fields;
+        public IReadOnlyList<BridgeState> Bridges => runtime.bridges;
+        public IReadOnlySet<GridPoint> RoadTiles { get => runtime.roadTiles; set => runtime.roadTiles = value.ToHashSet(); }
+        public GroundOccupancy Ground => runtime.Ground;
+        public bool HasGeneratedGeography => runtime.geographyOptions is not null;
+        public ContentRegistryState ContentState => runtime.contentRegistry.ExportState();
+        public void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> operation) => runtime.society.Apply(operation);
+        public void ResumeSociety() => runtime.society.Resume();
+        public void AddInhabitant(string id, PlaytestInhabitantState person) => runtime.inhabitants.Add(id, person);
+        public void SetInhabitant(string id, PlaytestInhabitantState person) => runtime.inhabitants[id] = person;
+        public void RemoveInhabitant(string id) => runtime.inhabitants.Remove(id);
     }
     internal static class CivicSharedRules
     {
@@ -137,16 +133,24 @@ public sealed partial class PrivateWorldRuntime
         internal static string NonviolentRelayChoiceId(string town, string act, string listener) => PrivateWorldRuntime.NonviolentRelayChoiceId(town, act, listener);
         internal static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) => PrivateWorldRuntime.BoatProjectPlan(port, name);
         internal static bool IsEdibleFood(string kind) => PrivateWorldRuntime.IsEdibleFood(kind);
-        internal static string LandHearingLawToken(TownLaw law, TownLawVersion version) => PrivateWorldRuntime.LandHearingLawToken(law, version);
-        internal static string LandHearingRightText(HouseholdLandUseRight right) => PrivateWorldRuntime.LandHearingRightText(right);
-        internal static string LandHearingRulingText(TownLandRuling ruling) => PrivateWorldRuntime.LandHearingRulingText(ruling);
-        internal static string LandHearingTitleText(TownLandTitleRecord title) => PrivateWorldRuntime.LandHearingTitleText(title);
         internal static bool NeedsUrgentFood(PlaytestInhabitantState person) => PrivateWorldRuntime.NeedsUrgentFood(person);
         internal static string RepairCartPrefix => PrivateWorldRuntime.RepairCartPrefix;
         internal static string RepairToolPrefix => PrivateWorldRuntime.RepairToolPrefix;
         internal static int ResourceInteractionRange => PrivateWorldRuntime.ResourceInteractionRange;
-        internal static bool TownLandHearingElectionBusy(TownRuntimeState town) => PrivateWorldRuntime.TownLandHearingElectionBusy(town);
         internal static int WarehouseLoadQuantity => PrivateWorldRuntime.WarehouseLoadQuantity;
         internal static HashSet<string> WarehouseResourceKinds => PrivateWorldRuntime.WarehouseResourceKinds;
+        internal static int HouseholdStockInteractionRange(InventoryLot lot) => PrivateWorldRuntime.HouseholdStockInteractionRange(lot);
+        internal static string TownSalvageOperationId(long tick, string actor, string candidate) => PrivateWorldRuntime.TownSalvageOperationId(tick, actor, candidate);
+        internal const string HouseholdId = PrivateWorldRuntime.HouseholdId;
+        internal const string SecondHouseholdId = PrivateWorldRuntime.SecondHouseholdId;
+        internal const string FoodLotId = PrivateWorldRuntime.FoodLotId;
+        internal const string TownSalvagePrefix = PrivateWorldRuntime.TownSalvagePrefix;
+        internal const string AdmissionApproved = PrivateWorldRuntime.AdmissionApproved;
+        internal const string AdmissionAdmitted = PrivateWorldRuntime.AdmissionAdmitted;
+        internal const string AdmissionLapsed = PrivateWorldRuntime.AdmissionLapsed;
+        internal static IReadOnlyList<string> AdmissionLapseReasons => PrivateWorldRuntime.AdmissionLapseReasons;
+        internal static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) => PrivateWorldRuntime.ExpansionTiles(job);
+        internal static bool HasActiveContainerReservation(InventoryCheckpoint inventory, string containerId) => PrivateWorldRuntime.HasActiveContainerReservation(inventory, containerId);
+        internal static int AvailableLotQuantity(InventoryCheckpoint inventory, InventoryLot lot) => PrivateWorldRuntime.AvailableLotQuantity(inventory, lot);
     }
 }

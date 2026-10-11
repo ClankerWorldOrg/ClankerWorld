@@ -30,7 +30,7 @@ internal sealed partial class CivicSystem
     {
         if (!world.Inhabitants.ContainsKey(actor)) return;
         nativeActId = DerivedId.Create(nativeActId);
-        var actorTownId = world.TownForResident(actor);
+        var actorTownId = TownForResident(world, actor);
         foreach (var town in world.Towns.ToArray())
         {
             if (town.Government is null) continue;
@@ -181,12 +181,12 @@ internal sealed partial class CivicSystem
         return true;
     }
 
-    internal static bool NonviolentRemedyTermKnownTo(ICivicTownWorld world, TownRuntimeState town, TownRemedyTerm term, string actor)
+    internal bool NonviolentRemedyTermKnownTo(ICivicTownWorld world, TownRuntimeState town, TownRemedyTerm term, string actor)
     {
         if (term.TargetId is null) return true;
         if (term.Kind == "public_service_goods") return world.WorldSimulation.Buildings.Any(building =>
             building.InstanceId == term.TargetId && building.TownId == town.Id &&
-            (world.TownForResident(actor) == town.Id || world.Inhabitants.TryGetValue(actor, out var person) && world.IsWithinInteractionRange(person.Position, building.Position, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange)));
+            (TownForResident(world, actor) == town.Id || world.Inhabitants.TryGetValue(actor, out var person) && world.IsWithinInteractionRange(person.Position, building.Position, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange)));
         var lot = world.Society.Inventory.Lots.FirstOrDefault(item => item.Id == term.TargetId);
         if (lot is null) return false;
         if (lot.OwnerId == actor || lot.OwnerId == world.HouseholdFor(actor)) return true;
@@ -465,7 +465,7 @@ internal sealed partial class CivicSystem
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, "repair_equipment", actor, world.WorldTick,
             originalTarget.OwnerId, originalTarget.ItemKind, 1, originalTarget.Id, originalTarget.Id,
             repairedLotId, originalTarget.OwnerId, result.OwnerId, position,
-            originalTarget.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), world.TownForResident(actor),
+            originalTarget.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),
             originalTarget.Quantity, 1, NonviolentRepairMaterials(originalTarget.ItemKind).Zip(reservationIds,
                 (input, id) => new TownNativeRepairInput(input.ResourceId, world.Society.Inventory.GetReservation(id))).ToArray());
         RecordNonviolentNativeReceipt(world, receipt);
@@ -480,7 +480,7 @@ internal sealed partial class CivicSystem
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, kind, actor, world.WorldTick, recipientId,
             sourceLot.ItemKind, quantity, storageBuildingId ?? sourceLot.Id, sourceLot.Id, resultId,
             sourceLot.OwnerId, result.OwnerId, world.Inhabitants[actor].Position,
-            sourceLot.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), world.TownForResident(actor),
+            sourceLot.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),
             sourceLot.Quantity, world.AvailableLotQuantity(sourceLot), [], carriedAvailableBefore);
         RecordNonviolentNativeReceipt(world, receipt);
         RecordNonviolentConduct(world, actor, kind, receipt.Position, receipt.TargetId, receipt.ItemKind, quantity, nativeReceiptId);

@@ -111,13 +111,26 @@ order cancellation, death recording and event sink. The system retains no
 runtime reference, and its adapter stays on the committed coordinator. Existing
 private environment and exposure methods remain forwarders.
 
-`Civic/CivicSystem.cs` owns the settlement council and each Town's governance,
-government and nonviolent-law snapshots in one immutable `CivicState`. The
-coordinator keeps the full Town checkpoint views, including land and membership;
-its central Town write imports civic changes, and checkpoint capture projects
-the system's civic snapshots onto those views. A prepared tick commits the
-system with one assignment. Civic operations receive the current world through
-an adapter on each call, and the adapter stays on the committed coordinator.
+`Civic/CivicSystem.cs` owns the settlement council, complete Town records,
+Town land titles, household land-use rights and requests, and founder setup in
+one immutable `CivicState`. Membership, abandonment, admission, first-Town setup,
+land grants, hearings, transfers and sales run in this system alongside Town
+governance, government and nonviolent law. Every write replaces its affected
+read-only collection and snapshot; one central Town write records abandonment
+and revival. Checkpoint capture reads these records directly. Trusted tick
+preparation shares the captured civic snapshot until a write replaces it, and
+commit transfers the system with one assignment. External loads keep their full
+validation and canonical ordering. The admission loop's recursion guard is live
+system state and never enters a checkpoint.
+
+Civic operations receive the current world through an adapter on each call,
+and the adapter stays on the committed coordinator. Founder placement and setup
+keep their public coordinator locks. Existing private methods remain forwarders.
+Town writes need only the clock and event sink; land consent needs those services
+and current household adults through `ICivicLandConsentWorld`. Other operations
+query current physical state or request inventory, society, road, construction
+and property transitions through `ICivicTownWorld`. No system retains the adapter
+or a runtime reference.
 The civic-history index uses `Derived` with the immutable governance snapshot
 as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
 copies; replacing governance invalidates the lookup. Physical needs, positions,
