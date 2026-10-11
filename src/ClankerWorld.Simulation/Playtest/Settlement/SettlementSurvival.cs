@@ -78,10 +78,10 @@ public sealed partial class PrivateWorldRuntime
     // Provisional balance: trees give about half a building's storm protection.
     private const int NaturalStormProtection = 22;
 
-    private static bool NeedsUrgentFood(PlaytestInhabitantState person) => person.HungerBasisPoints < UrgentFullness;
+    private static bool NeedsUrgentFood(PlaytestInhabitantState person) => ResidentQueries.NeedsUrgentFood(person, UrgentFullness);
 
     private bool NeedsUrgentWarmth(PlaytestInhabitantState person) =>
-        person.Survival is { } condition && condition.WarmthBasisPoints < UrgentWarmth && WarmthChange(person) < 0;
+        ResidentQueries.NeedsUrgentWarmth(residentWorld, person, UrgentWarmth);
 
     private bool ReadyForBriefInteraction(string actor) => inhabitants.TryGetValue(actor, out var person) &&
         !NeedsUrgentWarmth(person);
@@ -262,7 +262,6 @@ public sealed partial class PrivateWorldRuntime
             survivalState = new SettlementSurvivalState(WorldTick, []);
             // Do not retroactively rot years of legacy inventory on migration.
             ApplyInventoryTransition(inventory => InventoryFixture.ProcessSpoilage(inventory, WorldTick, 0));
-            checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent("survival_activated", "weather_equipment_and_food");
         }
         var existingIds = worldSimulation.Buildings.Select(building => building.InstanceId).ToHashSet(StringComparer.Ordinal);
