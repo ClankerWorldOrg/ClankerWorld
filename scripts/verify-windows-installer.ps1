@@ -111,7 +111,10 @@ if ($StandardUser) {
     $uninstallCommand = (Get-ItemProperty $registration).UninstallString
     Assert-Condition ($uninstallCommand -match '^"([^"]+\.exe)"') 'Registered uninstall command is missing.'
     Invoke-Program $Matches[1] @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=`"$(Join-Path $OutputDirectory 'uninstall.log')`"") 'Uninstall'
-    Assert-Condition (-not (Test-Path $launcher)) 'Uninstall kept the launcher executable.'
+    # Inno removes its own running executable through a short-lived helper.
+    $removalDeadline = [DateTime]::UtcNow.AddSeconds(30)
+    while ((Test-Path $programRoot) -and [DateTime]::UtcNow -lt $removalDeadline) { Start-Sleep -Milliseconds 100 }
+    Assert-Condition (-not (Test-Path $programRoot)) 'Uninstall kept launcher program files.'
     Assert-Condition (-not (Test-Path $registration)) 'Uninstall kept its Windows registration.'
     Assert-Condition (-not (Test-Path $menuShortcut) -and -not (Test-Path $desktopShortcut)) 'Uninstall kept shortcuts.'
     Assert-Preserved $installed
