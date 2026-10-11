@@ -25,13 +25,13 @@ public sealed partial class GrownAgentHelperMemoryTests
         if (formedHousehold)
         {
             state = await FormNativeLandHouseholdAsync(state, native);
-            Assert.True(state.Society.Society.GetInhabitant(native).HouseholdId!.Length > (later ? 256 : 128));
+            Assert.InRange(state.Society.Society.GetInhabitant(native).HouseholdId!.Length, 1, DerivedId.MaximumLength);
         }
-        var control = state.Society.Society.Inhabitants.First(person => person.Id.Length <= 128 &&
+        var control = state.Society.Society.Inhabitants.First(person => person.Id != native && person.Id.Length <= 128 &&
             person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var actor = shortControl ? control : native;
-        Assert.True(native.Length > (later ? 256 : 128));
+        Assert.InRange(native.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(later ? 3 : 1, state.Society.Society.Births.Count);
         var town = Assert.Single(state.Towns!, item => item.ResidentIds.Contains(native));
         Assert.Contains(control, town.ResidentIds);

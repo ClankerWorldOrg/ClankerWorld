@@ -25,7 +25,7 @@ public sealed partial class PrivateWorldRuntime
         var quantity = match.Quantity;
         quantity = Math.Min(quantity, maximumQuantity);
         if (quantity <= 0) return null;
-        var moveId = $"personal:{actor}:{WorldTick}:{lot.Id}";
+        var moveId = PersonalMoveId(actor, WorldTick, lot.Id);
         ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory,
             moveId, lot.Id, lot.OwnerId, quantity, actor));
         AppendEvent("personal_goods_collected", $"{actor}|{lot.ItemKind}|{quantity}|{lot.OwnerId}");

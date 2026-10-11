@@ -110,10 +110,10 @@ public sealed partial class PrivateWorldRuntime
     private static string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction)
     {
         var completion = instruction.Order!.KnowledgeReadCompletion!;
-        return "read-order:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
+        return DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order.TargetKnowledgeArtifactId}|{completion.WorldTick}|" +
             string.Join(';', completion.LearnedSites.Select(point => $"{point.X},{point.Y}")) + "|" +
-            string.Join(';', completion.LearnedRecipes))));
+            string.Join(';', completion.LearnedRecipes), "read-order:");
     }
 
     private static bool IsValidKnowledgeReadOrderShape(OwnerInstructionOrder order, OwnerQueuedInstruction instruction, long worldTick) =>
@@ -137,7 +137,7 @@ public sealed partial class PrivateWorldRuntime
             completion.LearnedSites.SequenceEqual(completion.LearnedSites.OrderBy(point => point.Y).ThenBy(point => point.X)) &&
             order.LastEffectId == KnowledgeReadOrderEffectId(instruction));
 
-    private static bool IsKnowledgeArtifactOrderId(string id) => !string.IsNullOrWhiteSpace(id) && id.Length <= 128 &&
+    private static bool IsKnowledgeArtifactOrderId(string id) => !string.IsNullOrWhiteSpace(id) && id.Length <= DerivedId.MaximumLength &&
         id == id.Trim() && !id.Any(char.IsControl);
 
     // Canonical recipe IDs follow active content definitions, whose local names have no length cap.

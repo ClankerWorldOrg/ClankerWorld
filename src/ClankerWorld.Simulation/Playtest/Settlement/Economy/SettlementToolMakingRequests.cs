@@ -29,12 +29,12 @@ public sealed partial class PrivateWorldRuntime
     private string? ToolMakingRequestNoteCore(string actor) => inhabitants.ContainsKey(actor)
         ? ToolMakingRequestRules.Note(toolMakingRequests, actor, HouseholdFor(actor)) : null;
 
-    private static string ToolRequestChoice(string verb, params string[] identity) => ToolRequestPrefix + verb + ":" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(identity))));
+    private static string ToolRequestChoice(string verb, params string[] identity) =>
+        DerivedId.Hash(JsonSerializer.Serialize(identity), ToolRequestPrefix + verb + ":");
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
-        "tool-making-request:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(
-            new[] { actor, building, recipe, tick.ToString(System.Globalization.CultureInfo.InvariantCulture) }))));
+        DerivedId.Hash(JsonSerializer.Serialize(
+            new[] { actor, building, recipe, tick.ToString(System.Globalization.CultureInfo.InvariantCulture) }), "tool-making-request:");
 
     private bool IsToolRequestSeller(string actor, ToolMakingRequestState request) =>
         inhabitants.ContainsKey(actor) && AdultResident(actor) && HouseholdFor(actor) == request.SellerHouseholdId &&
@@ -213,7 +213,7 @@ public sealed partial class PrivateWorldRuntime
 
     private BusinessQuote? ToolRequestQuote(string actor, ToolMakingRequestState request, PlacedBuilding shop) =>
         request.JobId is { } jobId && worldSimulation.ProductionJobs.Any(job => job.JobId == jobId && job.State == WorldProductionJobState.Completed)
-            ? BusinessOpportunity(actor, shop, jobId + ":output:00", requestedGoods: true) : null;
+            ? BusinessOpportunity(actor, shop, ProductionOutputLotId(jobId, 0), requestedGoods: true) : null;
 
     private bool HasToolMakingDemand(RecipeDefinition recipe, string? owner, string? worker) => toolMakingRequests.Any(request =>
         request.SellerHouseholdId == owner && request.RecipeId == recipe.CanonicalId &&
@@ -331,7 +331,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 var linkedTrade = businessTrades.FirstOrDefault(trade => trade.BuyerId == request.RequesterId &&
                     trade.BuildingInstanceId == request.BuildingInstanceId && society.Checkpoint.Inventory.Offers.Any(offer =>
-                        offer.Id == trade.OfferId && offer.FirstLotId == request.JobId + ":output:00" &&
+                        offer.Id == trade.OfferId && offer.FirstLotId == ProductionOutputLotId(request.JobId!, 0) &&
                         offer.State is DirectBarterState.Open or DirectBarterState.Settled));
                 if (linkedTrade is not null)
                 {
@@ -345,7 +345,7 @@ public sealed partial class PrivateWorldRuntime
                         offer.State == DirectBarterState.Settled ? "tool_request_completed" : null);
                     continue;
                 }
-                var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == request.JobId + ":output:00");
+                var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == ProductionOutputLotId(request.JobId!, 0));
                 if (lot is null || lot.OwnerId != request.SellerHouseholdId || lot.StorageBuildingId != request.BuildingInstanceId ||
                     !IsLooseBusinessLot(lot) || AvailableLotQuantity(lot) < 1)
                     SetToolRequest(request with { Status = ToolMakingRequestStatus.Interrupted, Blocker = "The household's finished tool is no longer available." }, "tool_request_interrupted");

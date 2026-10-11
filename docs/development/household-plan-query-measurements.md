@@ -18,7 +18,9 @@ rough guidance and needs fresh profiling after this change merges.
 
 Baseline is main `621899dcc50974c367a039f331f93dac4e1ca757`, schema 100.
 Only `SettlementHouseholdPlanning.cs` differs among the 297 runtime inputs whose
-hashes are recorded in [the raw data](household-plan-query-probe/samples.json).
+hashes are recorded in the raw data. It is in git history at commit `14715cc3`
+as `docs/development/household-plan-query-probe/samples.json`, and the steps
+under Repeat the comparison rerun the measurement.
 Every synchronous query still obtains its identity from the current actor,
 design and reservation state. Candidate eligibility, ranking and action-time
 checks use their existing native paths.

@@ -130,7 +130,7 @@ public sealed record CognitionWillContext(
     public const int MaximumItems = 24;
     public const int MaximumHeirChoices = 17;
     public const int MaximumNamedHeirs = 3;
-    public const int MaximumHeirKeyLength = 160;
+    public const int MaximumHeirKeyLength = DerivedId.MaximumLength;
     public const string HouseholdCandidateId = "will:household";
     public const string HeirsCandidateId = "will:heirs";
     public const string EqualSplit = "equal";
@@ -350,10 +350,10 @@ public sealed record InhabitantObservation(
         if (ConversationChoiceContext is { Length: > 512 })
             throw new ArgumentException("Conversation choice context exceeds its bound.", nameof(ConversationChoiceContext));
 
-        if (WorldId is not null && (string.IsNullOrWhiteSpace(WorldId) || WorldId.Length > 128 || WorldId.Any(char.IsControl)))
+        if (WorldId is not null && (string.IsNullOrWhiteSpace(WorldId) || WorldId.Length > DerivedId.MaximumLength || WorldId.Any(char.IsControl)))
             throw new ArgumentException("World identity must be bounded and contain no control characters.", nameof(WorldId));
         if (OperativeOrderInstructionId is { } orderId &&
-            (string.IsNullOrWhiteSpace(orderId) || orderId.Length > 128 || orderId.Any(char.IsControl)))
+            (string.IsNullOrWhiteSpace(orderId) || orderId.Length > DerivedId.MaximumLength || orderId.Any(char.IsControl)))
             throw new ArgumentException("Operative order identity must be bounded and contain no control characters.", nameof(OperativeOrderInstructionId));
 
         var guidance = ObserverGuidance ?? [];
@@ -363,8 +363,8 @@ public sealed record InhabitantObservation(
         foreach (var message in guidance)
         {
             ArgumentNullException.ThrowIfNull(message);
-            if (string.IsNullOrWhiteSpace(message.InstructionId) || message.InstructionId.Length > 128 ||
-                string.IsNullOrWhiteSpace(message.IssuerId) || message.IssuerId.Length > 128 ||
+            if (string.IsNullOrWhiteSpace(message.InstructionId) || message.InstructionId.Length > DerivedId.MaximumLength ||
+                string.IsNullOrWhiteSpace(message.IssuerId) || message.IssuerId.Length > DerivedId.MaximumLength ||
                 message.TargetInhabitantId != InhabitantId ||
                 message.Kind is not ("suggestive" or "must_do") ||
                 string.IsNullOrWhiteSpace(message.Text) || message.Text.Length > MaximumObserverGuidanceTextLength ||
@@ -422,7 +422,7 @@ public sealed record InhabitantObservation(
         }
 
         if (IdentityMoment is { } moment && (string.IsNullOrWhiteSpace(moment) ||
-            moment.Length > 128 || moment.Any(char.IsControl) || !RequiresPersonalProvider ||
+            moment.Length > DerivedId.MaximumLength || moment.Any(char.IsControl) || !RequiresPersonalProvider ||
             !NeedsPersonality || !NeedsAspiration || NeedsName || Candidates.Count != 1 ||
             Candidates[0].Id != "identity_optional"))
             throw new ArgumentException("The life-moment identity request is invalid.", nameof(IdentityMoment));
@@ -437,7 +437,7 @@ public sealed record InhabitantObservation(
             string.IsNullOrWhiteSpace(self.LifeStage) || self.LifeStage.Length > 32 ||
             self.Personality is null || self.Personality.Length > 256 ||
             self.Aspiration is null || self.Aspiration.Length > 256 ||
-            self.HouseholdId?.Length > 128 || self.RecentThought?.Length > 160 ||
+            self.HouseholdId?.Length > DerivedId.MaximumLength || self.RecentThought?.Length > 160 ||
             self.HouseholdName?.Length > 128 || self.TownName?.Length > 128 || self.HousingNote?.Length > 256 ||
             self.EquipmentNote?.Length > 256 || self.ContinuityNote?.Length > 256 || self.DepartureNote?.Length > 256 ||
             self.CivicNote?.Length > 1024 || self.MedicalCareNote?.Length > 256 || self.TownMembershipNote?.Length > 256 ||
@@ -494,13 +494,13 @@ public sealed record InhabitantObservation(
             ArgumentNullException.ThrowIfNull(memory);
             if (!string.Equals(memory.OwnerId, InhabitantId, StringComparison.Ordinal) ||
                 string.IsNullOrWhiteSpace(memory.Id) || string.IsNullOrWhiteSpace(memory.SubjectId) ||
-                memory.Id.Length > 128 || memory.SubjectId.Length > 128 ||
+                memory.Id.Length > DerivedId.MaximumLength || memory.SubjectId.Length > DerivedId.MaximumLength ||
                 string.IsNullOrWhiteSpace(memory.Summary) || memory.Summary.Length > 160 ||
                 memory.SourceTick < 0 || memory.SourceTick > WorldTick ||
                 memory.Kind is not ("experience" or "belief" or "summary") || !IsOptionalBounded(memory.Visibility, 32) ||
                 memory.Provenance is not (null or "firsthand" or "hearsay" or "inference") ||
                 memory.ConfidenceBasisPoints is < 0 or > 10_000 ||
-                !IsOptionalBounded(memory.SourceAgentId, 128) || memory.SourceEventId is <= 0 ||
+                !IsOptionalBounded(memory.SourceAgentId, DerivedId.MaximumLength) || memory.SourceEventId is <= 0 ||
                 memory.ImportanceBasisPoints is < 0 or > 10_000 ||
                 memory.ImportanceConfidenceBasisPoints is < 0 or > 10_000)
                 throw new ArgumentException("Memory context must be bounded and owned by the actor.", nameof(RetrievedMemories));
@@ -524,15 +524,15 @@ public sealed record InhabitantObservation(
         {
             ArgumentNullException.ThrowIfNull(candidate);
             if (!string.Equals(candidate.OwnerId, InhabitantId, StringComparison.Ordinal) ||
-                string.IsNullOrWhiteSpace(candidate.Id) || candidate.Id.Length > 128 ||
+                string.IsNullOrWhiteSpace(candidate.Id) || candidate.Id.Length > DerivedId.MaximumLength ||
                 !compactionIds.Add($"{candidate.Kind}:{candidate.Id}") ||
                 !IsMemoryKind(candidate.Kind) || string.IsNullOrWhiteSpace(candidate.SubjectId) ||
-                candidate.SubjectId.Length > 128 || string.IsNullOrWhiteSpace(candidate.Summary) ||
+                candidate.SubjectId.Length > DerivedId.MaximumLength || string.IsNullOrWhiteSpace(candidate.Summary) ||
                 candidate.Summary.Length > 160 || candidate.SourceTick < 0 || candidate.SourceTick > WorldTick ||
                 !IsOptionalBounded(candidate.Visibility, 32) ||
                 candidate.Provenance is not (null or "firsthand" or "hearsay" or "inference") ||
                 candidate.ConfidenceBasisPoints is < 0 or > 10_000 ||
-                !IsOptionalBounded(candidate.SourceAgentId, 128) || candidate.SourceEventId is <= 0)
+                !IsOptionalBounded(candidate.SourceAgentId, DerivedId.MaximumLength) || candidate.SourceEventId is <= 0)
                 throw new ArgumentException("Memory compaction context must be bounded and owned by the actor.", nameof(MemoryCompactionCandidates));
         }
 
@@ -544,7 +544,7 @@ public sealed record InhabitantObservation(
             if (fact.X < 0 || fact.Y < 0 || string.IsNullOrWhiteSpace(fact.Terrain) || fact.Terrain.Length > 32 ||
                 fact.ResourceKinds is null || fact.ResourceKinds.Count > 4 ||
                 fact.ResourceKinds.Any(kind => string.IsNullOrWhiteSpace(kind) || kind.Length > 48) ||
-                string.IsNullOrWhiteSpace(fact.DiscovererId) || fact.DiscovererId.Length > 128 ||
+                string.IsNullOrWhiteSpace(fact.DiscovererId) || fact.DiscovererId.Length > DerivedId.MaximumLength ||
                 fact.LearnedTick < 0 || fact.LearnedTick > WorldTick ||
                 fact.Acquisition is not ("firsthand" or "shared" or "read"))
                 throw new ArgumentException("Map-knowledge context must be bounded and privately owned by the actor.", nameof(KnownMapFacts));
@@ -559,11 +559,11 @@ public sealed record InhabitantObservation(
         if (sources is null || sources.Count is < 4 or > 12) throw new ArgumentException("Invalid private summary sources.");
         var ids = new HashSet<string>(StringComparer.Ordinal);
         foreach (var source in sources)
-            if (source is null || string.IsNullOrWhiteSpace(source.Id) || source.Id.Length > 128 ||
+            if (source is null || string.IsNullOrWhiteSpace(source.Id) || source.Id.Length > DerivedId.MaximumLength ||
                 !ids.Add(source.Kind + ":" + source.Id) || !IsMemoryKind(source.Kind) || source.SourceTick < 0 || source.SourceTick > tick ||
-                string.IsNullOrWhiteSpace(source.SubjectId) || source.SubjectId.Length > 128 ||
+                string.IsNullOrWhiteSpace(source.SubjectId) || source.SubjectId.Length > DerivedId.MaximumLength ||
                 source.Provenance is not (null or "firsthand" or "hearsay" or "inference") ||
-                source.ConfidenceBasisPoints is < 0 or > 10_000 || !IsOptionalBounded(source.SourceAgentId, 128) || source.SourceEventId is <= 0)
+                source.ConfidenceBasisPoints is < 0 or > 10_000 || !IsOptionalBounded(source.SourceAgentId, DerivedId.MaximumLength) || source.SourceEventId is <= 0)
                 throw new ArgumentException("Invalid private summary source attribution.");
     }
 
@@ -710,7 +710,7 @@ public sealed record CognitionDecisionResponse(
         foreach (var reply in ObserverReplies ?? [])
         {
             ArgumentNullException.ThrowIfNull(reply);
-            if (string.IsNullOrWhiteSpace(reply.InstructionId) || reply.InstructionId.Length > 128 ||
+            if (string.IsNullOrWhiteSpace(reply.InstructionId) || reply.InstructionId.Length > DerivedId.MaximumLength ||
                 NormalizeObserverReply(reply.Text) != reply.Text || !observerReplyIds.Add(reply.InstructionId))
                 throw new ArgumentOutOfRangeException(nameof(ObserverReplies));
         }
@@ -721,7 +721,7 @@ public sealed record CognitionDecisionResponse(
         foreach (var score in MemoryCompactionScores ?? [])
         {
             ArgumentNullException.ThrowIfNull(score);
-            if (string.IsNullOrWhiteSpace(score.Id) || score.Id.Length > 128 ||
+            if (string.IsNullOrWhiteSpace(score.Id) || score.Id.Length > DerivedId.MaximumLength ||
                 string.IsNullOrWhiteSpace(score.OwnerId) ||
                 score.Kind is not ("experience" or "belief") || score.SourceTick < 0 ||
                 score.ImportanceBasisPoints is < 0 or > 10_000 ||
