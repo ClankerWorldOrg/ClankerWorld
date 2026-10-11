@@ -4361,6 +4361,29 @@ The owner observation keeps its existing JSON `role` field for the lesson's
 skill name so older clients can still display it; new code calls it `Skill`.
 This is separate from the saved lesson record, which now stores a skill.
 
+## Launcher developer runs
+
+`LauncherSettings` remembers test-data and detailed-log choices. They apply
+only with Developer mode on. Test data defaults on and lives under
+`%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; host saves, provider settings,
+usage, authority, companion secret and logs all derive from that root. Client
+preferences, registration and pending submissions use its `client/` folder,
+and the Windows signing key uses a separate `.TestData` name. Usual client
+storage and keys retain their existing locations. Folder buttons and saved-world
+version counts follow the selected data root. Quit to Launcher carries that
+choice with the world/version hint.
+
+`GameStarter` uses separate process arguments for local and installed games.
+It sends `--test-data` and `--detailed-logs` only with `--developer-mode`.
+Godot's `--log-file` points at `logs/game.log` in the selected data root;
+`--verbose` applies only to a detailed run. The bundled host receives a
+per-process `Logging:LogLevel:ClankerWorld=Debug` override and records a bounded
+launch diagnostic. Framework logging, saved settings and the prohibition on
+private model payloads in logs stay unchanged. Problem reports read these
+selected logs through the existing redactor. A build without the manifest's
+launch-option capability marker is refused when test data or detailed logs
+are selected. A local build must include its bundled host. No save schema changes.
+
 ## World-list requests
 
 Select World refuses an empty, missing or whitespace-only catalog ID with HTTP

@@ -28,7 +28,7 @@ public partial class Main : Control
     private readonly OwnerDeviceRegistrationStore registrationStore;
     private readonly OwnerPendingSubmissionStore pendingSubmissionStore;
     private readonly GameDisplayPreferencesStore displayPreferencesStore = new(
-        ProjectSettings.GlobalizePath("user://game-display-preferences.json"));
+        GameUserPath("game-display-preferences.json"));
     private readonly Dictionary<long, OwnerWorldEvent> knownEvents = [];
     private readonly Dictionary<string, AgentMarker> inhabitantVisuals = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Label> mapObjectVisuals = new(StringComparer.Ordinal);
@@ -258,9 +258,9 @@ public partial class Main : Control
         // pairing an older client saved in the same user folder.
         var prefix = localHost is null ? string.Empty : "local-";
         registrationStore = new OwnerDeviceRegistrationStore(
-            ProjectSettings.GlobalizePath($"user://{prefix}owner-device-registration.json"));
+            GameUserPath($"{prefix}owner-device-registration.json"));
         pendingSubmissionStore = new OwnerPendingSubmissionStore(
-            ProjectSettings.GlobalizePath($"user://{prefix}owner-pending-submission.json"));
+            GameUserPath($"{prefix}owner-pending-submission.json"));
     }
 
     public override void _Ready()
@@ -289,6 +289,11 @@ public partial class Main : Control
         ApplyUiScale();
         GetWindow().SizeChanged += RefreshRenderSize;
         ShowMainMenu();
+        if (OS.GetCmdlineUserArgs().Contains("--launcher-options-smoke-test", StringComparer.Ordinal))
+        {
+            VerifyDeveloperRunOptions();
+            return;
+        }
         if (OS.GetCmdlineUserArgs().Contains("--measure-map-draw", StringComparer.Ordinal))
         {
             _ = MeasureMapDrawAsync();

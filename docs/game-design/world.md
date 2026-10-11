@@ -84,7 +84,10 @@ everything that is available in the current build. See [what works today](../wha
   version cannot load a world, the launcher offers the version that last saved
   it, so an alpha update never strands a world. With **Developer mode** on, it
   also offers a nightly build of main (the owner's choice in chat, October 10,
-  [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)). In a
+  [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)). With
+  Developer mode on the launcher also offers separate test data, starting a local
+  build and detailed logs, accepted in that launcher design and confirmed by
+  the owner on October 11 ([#1764](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1764)). In a
   later alpha, a **per-user
   installer** that needs no administrator rights installs the launcher, adds a
   Start-menu and desktop shortcut and can uninstall it without removing saves.

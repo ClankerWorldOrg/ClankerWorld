@@ -1,0 +1,1 @@
+- Developer mode in the launcher offers a separate test data folder, starting a locally built portable game, and detailed logs for a run. Test worlds, keys and settings stay apart from your usual data; older builds that cannot honor these options are refused.
