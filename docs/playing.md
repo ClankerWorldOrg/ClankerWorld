@@ -725,7 +725,8 @@ has the details.
 
 Click a building to outline it and open a small card beside it: who owns it,
 what is being made there or who is inside, and what it stores, shown as item
-icons with the amount in the corner. **Details** opens the rest on the left:
+icons with the amount in the corner. Hover over a clipped building name on
+either card to read it in full. **Details** opens the rest on the left:
 who may use it, when it was built, which side its door faces, the work in
 progress, a larger storage grid with each item's name, and who is inside or
 lives there. Long item names fit within their slots; hover to read the full
