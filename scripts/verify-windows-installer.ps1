@@ -106,7 +106,9 @@ if ($StandardUser) {
     Assert-Preserved $installed
     $launcherProcess = Start-Process -FilePath $launcher -ArgumentList @('--headless', '--', '--launcher-smoke-test') -PassThru -RedirectStandardOutput (Join-Path $OutputDirectory 'launcher.log') -RedirectStandardError (Join-Path $OutputDirectory 'launcher-errors.log')
     if (-not $launcherProcess.WaitForExit(60000)) { Stop-Process -Id $launcherProcess.Id -Force; throw 'Installed launcher timed out.' }
-    Assert-Condition ($launcherProcess.ExitCode -eq 0) 'Installed launcher did not run.'
+    Get-Content (Join-Path $OutputDirectory 'launcher.log')
+    Get-Content (Join-Path $OutputDirectory 'launcher-errors.log')
+    Assert-Condition ($launcherProcess.ExitCode -eq 0) "Installed launcher did not run (exit $($launcherProcess.ExitCode))."
     Assert-Condition ((Get-Content (Join-Path $OutputDirectory 'launcher.log') -Raw).Contains('Launcher checks passed:')) 'Installed launcher checks did not complete.'
     $uninstallCommand = (Get-ItemProperty $registration).UninstallString
     Assert-Condition ($uninstallCommand -match '^"([^"]+\.exe)"') 'Registered uninstall command is missing.'
