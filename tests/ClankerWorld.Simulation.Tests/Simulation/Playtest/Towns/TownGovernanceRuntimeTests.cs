@@ -5,6 +5,7 @@ using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Playtest;
+using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Viewer.Observation;
 using GodotSnapshot = ClankerWorld.GodotClient.UI.OwnerWorldSnapshot;
@@ -18,6 +19,38 @@ public sealed class TownGovernanceRuntimeTests
     private const string SecondAuthor = "founder:00000000000000000000000000000003";
     private const string FirstText = "Harvest dates: Publish harvest dates for our Town.";
     private const string SecondText = "Storm notices: Share notices about storms in our Town.";
+
+    [Fact]
+    public async Task OrdinaryFourFounderWorldOpensCouncilElectionOnDayOneWithoutBuiltInConsentAndReplays()
+    {
+        using var world = NormalPathWorld.CreateGenerated("four-founder-day-one-council",
+            _ => new ActionCoverageRecorder(chooseIdle: true));
+        var initial = world.ExportState();
+        var town = Assert.Single(initial.Towns!);
+        var adults = initial.Society.Society.Inhabitants.Where(person =>
+            town.ResidentIds.Contains(person.Id) && person.Status == SocietyInhabitantStatus.Active &&
+            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Select(person => person.Id).Order().ToArray();
+        Assert.Equal(4, adults.Length);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var council = world.Towns[0].Governance!;
+        var election = Assert.Single(council.ElectionHistory);
+        Assert.Equal("initial", election.Kind);
+        Assert.Equal(1, WorldCalendarRules.FromTick(election.OpenedTick, world.WorldSystems.Config).DayIndex + 1);
+        Assert.Equal(adults, election.Voters);
+        Assert.Equal("failed", election.Stage);
+        Assert.Empty(election.Candidates);
+        Assert.Empty(election.Ballots);
+        Assert.Empty(council.Candidates);
+        Assert.Equal("all_adult", council.Form);
+        world.Validate();
+        var bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes),
+            _ => new ActionCoverageRecorder(chooseIdle: true));
+        Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
+    }
 
     [Theory]
     [InlineData("built_in")]
@@ -160,16 +193,10 @@ public sealed class TownGovernanceRuntimeTests
             _ => new ElectionProvider(observed));
         await generated.AdvanceOneTickAsync();
         Assert.Equal(4, generated.Towns[0].Governance!.Candidates.Count);
-        for (var ordinal = 5; ordinal <= 8; ordinal++)
-        {
-            var state = generated.ExportState();
-            var site = state.Towns![0].BorderTiles.First(p => state.Map.IsBuildable(p) &&
-                !state.Map.Resources.Any(r => r.Position == p) && !state.Map.CampObjects.Any(o => o.Position == p) &&
-                !state.Inhabitants.Any(i => i.Position == p));
-            generated.AddAgent($"agent:{ordinal:D32}", site);
-        }
         var opening = generated.Towns[0].Governance!.Election!;
-        Assert.Equal(4, opening.Candidates.Count);
+        Assert.Equal(4, opening.Voters.Count);
+        Assert.Equal(3, opening.Candidates.Count); // Voting opens as soon as three of the four founders consent.
+        Assert.Equal(1, WorldCalendarRules.FromTick(opening.OpenedTick, generated.WorldSystems.Config).DayIndex + 1);
         var positioned = generated.ExportState();
         using var world = PrivateWorldRuntime.Restore(positioned with
         {
@@ -182,7 +209,8 @@ public sealed class TownGovernanceRuntimeTests
         Assert.All(election.Ballots, b => Assert.Equal(3, b.Choices.Count));
         Assert.Contains(firstCandidate, election.Candidates);
         Assert.Contains(election.Ballots, b => b.Choices.Contains(firstCandidate));
-        Assert.Equal(4, election.Candidates.Count); // Later personal registrations stay in the continuing register.
+        Assert.Equal(3, election.Candidates.Count); // Later personal registrations stay in the continuing register.
+        Assert.Equal(4, world.Towns[0].Governance!.Candidates.Count);
         Assert.Contains(observed, o => o.Candidates.Any(c => c.Id.Contains("|ballot|", StringComparison.Ordinal)) && o.Self?.CivicNote is not null);
         var encoded = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(encoded));

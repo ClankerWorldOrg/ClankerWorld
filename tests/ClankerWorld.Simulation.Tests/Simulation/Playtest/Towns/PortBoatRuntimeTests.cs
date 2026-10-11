@@ -548,7 +548,7 @@ public sealed partial class PortBoatRuntimeTests
         for (var index = 0; index < placements.Length; index++)
             created.PlaceFounder($"founder:{index + 1:D32}", placements[index].Position);
         created.StartWorld();
-        var state = created.ExportState();
+        var state = NormalPathWorld.ReclockCandidateLessCouncilAttempts(created.ExportState(), ticksPerDay);
         Assert.Equal(0, created.WorldTick);
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
         var inventory = state.Society.Society.Inventory;

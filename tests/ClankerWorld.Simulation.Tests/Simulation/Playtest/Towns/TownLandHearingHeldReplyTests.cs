@@ -133,7 +133,7 @@ public sealed class TownLandHearingHeldReplyTests
 
     private static PrivateWorldRuntime NewWorld(HeldReplyProvider provider)
     {
-        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new ActionCoverageRecorder(chooseIdle: true));
+        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new ActionCoverageRecorder(chooseIdle: true), ticksPerDay: Day);
         var state = generated.ExportState();
         var society = state.Society.Society;
         var oldDay = society.Config.TicksPerWorldDay;

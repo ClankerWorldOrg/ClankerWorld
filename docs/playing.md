@@ -833,6 +833,13 @@ household heirs share the rest. Whole vessels stay together. With no living
 household heir, goods belong to the deceased resident's Town; non-food goods
 in an abandoned Town's Warehouse can be salvaged through the usual choice.
 
+All adult residents govern a new Town initially. At four living adult residents,
+the Town opens an election for a three-seat council, including on day 1 in an
+ordinary four-founder world. An elected council returns to all-adult government
+at three or fewer adults and elects again at four. Without three willing
+candidates, the all-adult council continues; a failed election may retry after
+one unpaused world day or sooner when adult or candidate availability improves.
+
 Town residents make civic choices through their normal personal-model turns.
 Adults can agree to stand for election, visit their Town's public notice place
 near its founding site, read notices, relay what they learned to someone nearby,

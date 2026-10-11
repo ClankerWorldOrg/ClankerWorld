@@ -231,7 +231,7 @@ public sealed class PrivateMemoryArchiveTests
 
     private static PrivateWorldRuntimeState NearBoundary(bool generated = false)
     {
-        using var seed = generated ? NormalPathWorld.CreateGenerated("memory-archive-native", _ => new IdleProvider()) :
+        using var seed = generated ? NormalPathWorld.CreateGenerated("memory-archive-native", _ => new IdleProvider(), ticksPerDay: 2) :
             new PrivateWorldRuntime("memory-archive-native", _ => new IdleProvider());
         var state = seed.ExportState();
         var config = state.Society.Society.Config with { TicksPerWorldDay = 2, BaseNaturalMortalityBasisPoints = 0 };

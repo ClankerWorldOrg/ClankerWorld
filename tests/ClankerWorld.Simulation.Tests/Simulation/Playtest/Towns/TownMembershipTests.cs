@@ -664,9 +664,14 @@ public sealed partial class TownMembershipTests
         Assert.Contains(observations, observation => observation.WorldTick >= settled + day &&
             observation.Candidates.Any(candidate => candidate.Id == admission));
         // Told of the refusal only after reading the posted result.
-        var unread = Assert.Single(observations, observation => observation.WorldTick >= settled &&
+        var unread = observations.First(observation => observation.WorldTick >= settled &&
             observation.Candidates.Any(candidate => candidate.Id == Civic(First, "read") + "|"));
         Assert.DoesNotContain("did not approve", unread.Self?.TownMembershipNote ?? "", StringComparison.Ordinal);
+        var council = world.Towns.Single(town => town.Id == First).Governance!;
+        var resultNotice = Assert.Single(council.Notices, notice => notice.SubjectId == refused.Id && notice.Kind == "result");
+        var learned = Assert.Single(council.Knowledge, receipt => receipt.AgentId == applicant && receipt.NoticeId == resultNotice.Id);
+        Assert.All(observations.Where(observation => observation.WorldTick >= settled && observation.WorldTick < learned.LearnedTick),
+            observation => Assert.DoesNotContain("did not approve", observation.Self?.TownMembershipNote ?? "", StringComparison.Ordinal));
         Assert.Contains(observations, observation => observation.WorldTick > unread.WorldTick &&
             observation.Self?.TownMembershipNote?.EndsWith(refusal, StringComparison.Ordinal) == true);
         Assert.DoesNotContain(world.Towns, town => town.ResidentIds.Contains(applicant, StringComparer.Ordinal));
