@@ -23,6 +23,11 @@ forms, `.github/scripts/` and the searches in CONTRIBUTING, AGENTS.md and the
 skills that name it. The workflow-script tests check that every label the
 forms, scripts and documented searches use is active.
 
+A release label, such as `release:alpha-1`, marks the issues the release being
+prepared needs ([Release scope](../../CONTRIBUTING.md#release-scope)). It is
+added by hand and retired after the release is published
+([Releasing](releasing.md#release-scope-and-merge-day)).
+
 ## What the workflows do on issues
 
 - Issue forms filed on GitHub's website set the type and `priority:p2`, and the

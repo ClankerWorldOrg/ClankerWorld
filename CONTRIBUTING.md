@@ -84,6 +84,7 @@ one and what the label workflows do on their own. Never create a label by hand.
 | Pull request status | `status:needs-review` (ready for review), `status:reviewing` ([claimed by a reviewer](#claims)) |
 | Either | `status:needs-decision` (waiting on the owner), `status:blocked` (waiting on something its description names, such as `Blocked by #123`) |
 | Other | `owner-task` (only computment can do it), `owner-priority` (the owner chose this priority), `regression`, `from:playtest`, `accessibility` |
+| Release | `release:alpha-1` (needed for the release being prepared; see [Release scope](#release-scope)) |
 
 Add by hand: every label on an issue created without a form; on other new
 issues, its areas, a priority if it is not P2 and any status that applies;
@@ -108,6 +109,7 @@ searches find it.
 | `priority:p2` | Normal: agreed features and ordinary bugs. The default | In order, oldest first |
 | `priority:p3` | Polish: cosmetic issues, edge cases, nice-to-haves | Only when no higher issue is waiting |
 
+- **Release scope comes before priority.** See [Release scope](#release-scope).
 - **Priorities decide what to pick up next.** They never hold back finished
   work, and other jobs don't switch: a bug finder files a P0 and tells the
   owner in chat but fixes it only if asked, and a reviewer finishes its current
@@ -147,6 +149,16 @@ searches find it.
   comment saying why. When the owner picks a priority, add `owner-priority`
   and say so in that comment. Nobody else moves an owner-picked priority,
   even to make room.
+
+### Release scope
+
+While the owner prepares a release, a release label marks the issues it
+needs; it is `release:alpha-1` now, for `v0.1.0-alpha.1`. Fixers take labelled
+issues first, highest priority first, and other issues only when no labelled
+one is ready. A new P0 or P1 bug, or work the owner asks to include, gets the
+label; other new issues wait for the next release. When every labelled issue
+is closed, the owner announces a merge day
+([Releasing](docs/development/releasing.md#release-scope-and-merge-day)).
 
 ## Claims
 
