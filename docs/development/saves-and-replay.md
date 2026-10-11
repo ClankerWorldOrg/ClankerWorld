@@ -1794,8 +1794,13 @@ Manual overwrite first writes an immutable checkpoint generation, then
 atomically publishes its metadata pointer with the matching model assignments
 and autosave settings. Failure before publication leaves the previous selected
 pair intact. Legacy saves without a generation pointer remain readable.
-Unpublished generations are retained; no cleanup policy is implied. Older
-binaries do not understand this pointer and must not load newly overwritten
+After publication, the previously selected checkpoint file is removed; the
+separate **Before overwriting** recovery copy keeps its original bytes,
+assignments and autosave settings. A locked or unwritable old file stays on
+disk with a structured cleanup-pending warning, while the published overwrite
+remains successful. Unpublished generations are retained; this retirement does
+not sweep unrelated files. Older binaries do not understand this pointer and
+must not load newly overwritten
 saves. Use a matching pre-upgrade backup for rollback.
 
 The world catalog keeps a small terrain thumbnail for each world, packed like
