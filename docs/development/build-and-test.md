@@ -38,7 +38,12 @@ consenting. Changing a test provider's flags does not wake an admitted idle
 intention. A controlled row reserves the actual garment stock to keep an
 unrelated clothing choice from waking the readers, then verifies their exact
 requested guidance, offered reading choice and admitted idle reply. Each phase
-keeps its forty-tick limit and waits for actual hosted tasks before admission.
+keeps its forty-tick limit and waits for ordinary and life-moment identity
+replies before admission. Parenthood and midlife requests use a separate task
+queue and defer that adult's ordinary choices until their replies are admitted.
+The fixture answers the actual optional-identity choice by keeping the person's
+identity. A controlled row holds a real midlife reply and checks that the
+fixture waits, then retains all notice, consent, checkpoint and replay checks.
 Reading and silence still give no consent; each adult must personally accept,
 including the separately held filer. Host disk writes, unchanged permissions
 before agreement, rollback, strict reload and complete-byte replay remain checked.
