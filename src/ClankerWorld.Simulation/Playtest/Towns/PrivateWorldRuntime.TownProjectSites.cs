@@ -7,21 +7,11 @@ namespace ClankerWorld.Simulation.Playtest;
 
 public sealed partial class PrivateWorldRuntime
 {
-    private IEnumerable<GridPoint> TownProjectFootprintTiles(string? exceptProjectId = null) => towns
-        .SelectMany(t => t.Projects)
-        .Where(p => p.Id != exceptProjectId && p.Stage is not ("completed" or "cancelled"))
-        .SelectMany(p => TownProjectRules.Footprint(p.Plan));
+    private IEnumerable<GridPoint> TownProjectFootprintTiles(string? exceptProjectId = null) =>
+        Ground.ProjectFootprints(exceptProjectId);
 
     private IEnumerable<GridPoint> TownProjectProtectedSites(string? exceptProjectId = null) =>
-        TownProjectFootprintTiles(exceptProjectId).Concat(towns.SelectMany(town => town.Projects)
-            .Where(project => project.Id != exceptProjectId && project.Plan.BoatPortId is null && project.Stage is not ("completed" or "cancelled"))
-            .Select(project => project.Plan.Entrance))
-        .Concat(towns.SelectMany(town => town.Projects)
-            .Where(project => project.Id != exceptProjectId && project.Stage is not ("completed" or "cancelled") &&
-                project.Plan.BoatPortId is null && TownProjectRules.DefinitionFor(project.Plan.DefinitionId) is { } definition &&
-                PortNavigationRules.IsPort(definition))
-            .SelectMany(project => PortNavigationRules.Geometry(map,
-                TownProjectRules.DefinitionFor(project.Plan.DefinitionId)!, project.Plan.Site).DockingTiles));
+        Ground.ProtectedProjectSites(exceptProjectId);
 
     // Proposed project sites, so a second proposal or a household request cannot overlap one while its vote is open.
     private HashSet<GridPoint> PendingTownProjectSiteTiles() => towns
@@ -52,13 +42,13 @@ public sealed partial class PrivateWorldRuntime
         bool ignorePendingRequests = false) => new(town.Id, projectId, ignorePendingRequests,
         new(() => TownProjectLandTiles(town, ignorePendingRequests), LazyThreadSafetyMode.None),
         new(PendingTownProjectSiteTiles, LazyThreadSafetyMode.None),
-        new(() => map.Resources.Select(resource => resource.Position).Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(fields.Select(field => field.Position))
-            .Concat(worldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
-                worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building)))
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
-                .SelectMany(ExpansionTiles)).Concat(TownProjectProtectedSites(projectId)).ToHashSet(), LazyThreadSafetyMode.None),
-        new(() => bridges.SelectMany(bridge => bridge.Entrances).ToHashSet(), LazyThreadSafetyMode.None),
+        new(() =>
+        {
+            var ground = Ground;
+            return GroundOccupancy.Combine(ground.Resources, ground.CampObjects, ground.Fields,
+                ground.BuildingFootprints, ground.ExpansionSites, ground.ProtectedProjectSites(projectId));
+        }, LazyThreadSafetyMode.None),
+        new(() => Ground.BridgeEntrances.ToHashSet(), LazyThreadSafetyMode.None),
         new(() => CreatePortProjectSiteWorld(projectId), LazyThreadSafetyMode.None), CreateBuildingPlacementWorld(projectId));
 
     private string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,

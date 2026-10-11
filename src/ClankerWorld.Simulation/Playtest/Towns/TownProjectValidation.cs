@@ -177,16 +177,11 @@ public static class TownProjectValidation
         var claimed = rights.SelectMany(item => item.Tiles)
             .Concat(requests.Where(item => item.Status == "pending").SelectMany(item => item.Tiles))
             .Concat(titles.Where(item => item.TownId != town.Id).SelectMany(item => item.Tiles)).ToHashSet();
-        var occupied = map.Resources.Select(item => item.Position).Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(fields.Select(item => item.Position))
-            .Concat(simulation.Buildings.Where(building => building.InstanceId != project.Plan.BoatPortId).SelectMany(building => PortNavigationRules.ProtectedBuildingTiles(
-                map, content.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)))
-            .Concat((simulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
-                .SelectMany(job => Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(y =>
-                    Enumerable.Range(0, job.TargetFootprint.Width).Select(x => new GridPoint(job.TargetPosition.X + x, job.TargetPosition.Y + y)))))
-            .Concat(towns.SelectMany(item => item.Projects).Where(other => other.Id != project.Id && other.Plan.BoatPortId is null && other.Stage is not ("completed" or "cancelled"))
-                .SelectMany(other => TownProjectRules.Footprint(other.Plan).Append(other.Plan.Entrance)))
-            .ToHashSet();
+        var ground = new GroundOccupancy(map, content, simulation, fields);
+        var occupied = GroundOccupancy.Combine(ground.Resources, ground.CampObjects, ground.Fields,
+            ground.ProtectedBuildingTiles(project.Plan.BoatPortId), ground.ExpansionSites,
+            towns.SelectMany(item => item.Projects).Where(other => other.Id != project.Id && other.Plan.BoatPortId is null && other.Stage is not ("completed" or "cancelled"))
+                .SelectMany(other => TownProjectRules.Footprint(other.Plan).Append(other.Plan.Entrance)));
         var legalLand = isPort ? geometry!.LandTiles.Append(project.Plan.Entrance) : footprint;
         if (boat && !simulation.Buildings.Any(building => building.InstanceId == project.Plan.BoatPortId &&
                 building.DefinitionId == project.Plan.DefinitionId && building.TownId == town.Id &&

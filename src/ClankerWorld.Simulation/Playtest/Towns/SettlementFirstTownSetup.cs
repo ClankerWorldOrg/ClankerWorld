@@ -21,7 +21,7 @@ public sealed partial class PrivateWorldRuntime
                 throw new InvalidOperationException("Other building work prevents replacing the initial layout.");
             var plan = FirstTownLayoutPlanner.Plan(map, roughSite)
                 ?? throw new ArgumentException("No connected five-building layout fits near this rough site.", nameof(roughSite));
-            var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+            var definitions = worldContent.BuildingDefinitions;
             if (plan.Buildings.Any(building => !definitions.ContainsKey(building.DefinitionId)))
                 throw new InvalidOperationException("The initial building definitions are not active.");
 
@@ -67,7 +67,6 @@ public sealed partial class PrivateWorldRuntime
             householdLandUseRequests = [];
             roadTiles = plan.RoadTiles.ToHashSet();
             ApplyInventoryTransition(_ => starterInventory);
-            checkpointSchemaVersion = StateSchemaVersion;
             if (firstTownWasUnplaced) AppendEvent("town_founding_started", TownBorderRules.FirstTownId);
             AppendEvent(existing.Count == 0 ? "first_town_layout_accepted" : "first_town_layout_redone",
                 $"{roughSite.X},{roughSite.Y}:buildings:{placed.Length}:roads:{roadTiles.Count}");

@@ -75,6 +75,17 @@ aliases. Content package identifiers retain their import rules.
 
 ## Runtime systems
 
+`GroundOccupancy` is a read view over the current map, content, placed buildings,
+fields, roads, bridges, Town projects, Markets and animals. Its named layers
+retain each source's enumeration order. Callers combine the layers in their
+existing order and add resident positions or ownership constraints for that
+query. Original building footprints, expanded footprints and protected Port
+tiles remain separate choices. Occupancy is recomputed from current snapshots;
+no layer cache, saved field or tick phase is added. The immutable declarative
+content snapshot supplies one read-only definition index shared by these queries.
+To add a new obstacle kind, define its layer here and explicitly select it in
+the queries whose rules need it.
+
 The approved runtime refactor is tracked in
 [#1377](https://github.com/compoodment/ClankerWorld/issues/1377). The runtime
 coordinates the simulation through a partial class. `Conversations/ConversationSystem.cs`
