@@ -19,9 +19,22 @@ The actual generated fixture has 16 residents, 100 Roads, 36 Town buildings,
 14 Houses and a Council-approved, supplied and completed Market. The raw
 report preserves every sample, probe digest, actual counts and machine
 information. It is in git history at commit `ab3d1119` as
-`docs/development/measurements/998-2026-10-10-main.json`; this page gives no
-exact command, but the portable probe with the settings above reruns the
-measurement.
+`docs/development/measurements/998-2026-10-10-main.json`.
+
+To repeat the baseline, use that checkout's runner and probe so later fixture
+changes do not alter the workload:
+
+```bash
+git worktree add --detach /tmp/clankerworld-998-baseline \
+  d5cc9f0885864f918f524948a720b28a530f2c36
+DOTNET_PROCESSOR_COUNT=4 bash \
+  /tmp/clankerworld-998-baseline/scripts/measure-town-ticks.sh \
+  /tmp/clankerworld-998-timings baseline \
+  /tmp/clankerworld-998-baseline 16:96 256 64
+```
+
+Run with SDK 10.0.401 and runtime 10.0.12, without another local build, test
+or sampler. New raw reports go to the temporary output directory.
 
 Median native tick time was 475.4 ms; p95 was 700.4 ms. The run admitted 124
 decisions with zero fallbacks. Its 139.99-second setup is excluded. The machine
@@ -34,8 +47,11 @@ establish Windows presentation or hosted-model latency.
 
 The unchanged [fresh-checkpoint setup](footprint-query-probe/setup.cs.txt) then
 completed the `4:96` and `16:96` fixtures. Its `16:384` fixture stopped at the
-256-workshop guard with 310 Roads and 276 buildings. No dense checkpoint or
-measured-phase trace was produced. The one-tick setup samples are not ordinary
+256-workshop guard with 310 Roads and 276 buildings. This is a historical
+failure. The current setup uses the connected-ground selection documented in
+[Measuring Town tick time](town-tick-measurements.md#what-the-fixture-controls);
+the original failed run and its evidence remain unchanged. That run produced
+no dense checkpoint or measured-phase trace. The one-tick setup samples are not ordinary
 timing comparisons.
 
 At the end of this run, profiling still needed an achievable dense fixture

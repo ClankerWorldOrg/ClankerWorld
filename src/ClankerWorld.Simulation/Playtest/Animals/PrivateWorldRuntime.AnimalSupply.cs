@@ -10,7 +10,7 @@ public sealed partial class PrivateWorldRuntime
     private sealed record AnimalSupplyChoice(InventoryLot Lot, PlacedBuilding Yard, int Quantity,
         string? AnimalId = null, string? Action = null)
     {
-        public string Id => "animal:supply:" + AnimalKey(Lot.Id + ":" + Yard.InstanceId + ":" + AnimalId + ":" + Action);
+        public string Id => AnimalSupplyId(Lot.Id, Yard.InstanceId, AnimalId, Action);
     }
 
     private IEnumerable<AnimalSupplyChoice> AnimalSupplyChoices(string actor, bool ignoreActiveTrip = false)
@@ -91,7 +91,7 @@ public sealed partial class PrivateWorldRuntime
     private void AddAnimalSupplyCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (animalWorld.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor) is { } trip)
-            candidates.Add(new("animal:supply_trip:" + AnimalKey(actor), trip.AnimalId is null ?
+            candidates.Add(new(AnimalSupplyTripId(actor), trip.AnimalId is null ?
                 "Carry the collected feed or jug to the household animal yard." : "Carry the collected supply to the animal and finish its care task.", 14, trip.AnimalId ?? trip.YardId));
         else foreach (var choice in AnimalSupplyChoices(actor).Take(12))
             candidates.Add(new(choice.Id, $"Collect physical {choice.Lot.ItemKind.Replace('_', ' ')} for " +
@@ -151,10 +151,10 @@ public sealed partial class PrivateWorldRuntime
         // The trip follows the chosen physical load, including when it was already carried.
         if (!carried || choice.Quantity < source.Quantity)
         {
-            var operation = "animal-pickup-" + AnimalKey(actor + ":" + WorldTick + ":" + nextEventId);
+            var operation = AnimalPickupId(actor, WorldTick, nextEventId);
             ApplyInventoryTransition(current => InventoryFixture.Relocate(current, operation, source.Id, source.OwnerId,
                 choice.Quantity, carrierId: actor));
-            if (choice.Quantity < source.Quantity) source = society.Checkpoint.Inventory.GetLot(source.Id + "#move:" + operation);
+            if (choice.Quantity < source.Quantity) source = society.Checkpoint.Inventory.GetLot(DerivedId.Create(source.Id + "#move:" + operation));
         }
         animalWorld = animalWorld with
         {

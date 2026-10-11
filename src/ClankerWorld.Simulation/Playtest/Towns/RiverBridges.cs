@@ -351,7 +351,7 @@ public static class RiverBridgeRules
                 bridge.Trigger is not (BridgeTriggers.Road or BridgeTriggers.Traffic) ||
                 bridge.Trigger == BridgeTriggers.Road && (bridge.RouteId is null ||
                     !bridge.RouteId.StartsWith("road:", StringComparison.Ordinal) ||
-                    bridge.RouteId.Length > 600 || !roadSet.Contains(bridge.Entrances[0]) ||
+                    bridge.RouteId.Length > DerivedId.MaximumLength || !roadSet.Contains(bridge.Entrances[0]) ||
                     !roadSet.Contains(bridge.Entrances[1])) ||
                 bridge.Trigger == BridgeTriggers.Traffic && bridge.RouteId is not null ||
                 bridge.Span.Any(tile => !decks.Add(tile)))

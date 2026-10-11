@@ -369,8 +369,8 @@ public sealed partial class PrivateWorldRuntime
         var lot = choice.Lot!;
         var receiptId = MarketTradeRules.ReceiptId(choice.Occupancy!.Id, lot.Id, lot.OwnerId, choice.Quantity,
             WorldTick, choice.Market.NextStockReceiptSequence);
-        var operation = receiptId + ":deposit";
-        var movedId = lot.Quantity == choice.Quantity ? lot.Id : lot.Id + "#move:" + operation;
+        var operation = TownRecordIds.DepositOperation(receiptId);
+        var movedId = lot.Quantity == choice.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
         long eventId = 0;
         ApplyInventoryTransition(inventory =>
         {
@@ -470,8 +470,8 @@ public sealed partial class PrivateWorldRuntime
         // The named seller's own admitted choice accepts for personal goods or their current household.
         var goods = society.Checkpoint.Inventory.GetLot(offer.FirstLotId);
         var payment = society.Checkpoint.Inventory.GetLot(offer.SecondLotId);
-        var goodsId = goods.Quantity == offer.FirstQuantity ? goods.Id : goods.Id + "#barter:" + offer.Id;
-        var paymentId = payment.Quantity == offer.SecondQuantity ? payment.Id : payment.Id + "#barter:" + offer.Id;
+        var goodsId = goods.Quantity == offer.FirstQuantity ? goods.Id : DerivedId.Create(goods.Id + "#barter:" + offer.Id);
+        var paymentId = payment.Quantity == offer.SecondQuantity ? payment.Id : DerivedId.Create(payment.Id + "#barter:" + offer.Id);
         var receiptId = MarketTradeRules.ReceiptId(trade.OccupancyId, paymentId, trade.PaymentOwnerId,
             offer.SecondQuantity, WorldTick, choice.Market.NextStockReceiptSequence, offer.Id);
         long eventId = 0;
@@ -483,7 +483,7 @@ public sealed partial class PrivateWorldRuntime
             if (trade.GoodsOwnerId != trade.PaymentOwnerId)
                 settled = InventoryFixture.Transfer(settled, offer.Id + ":household-payment", trade.GoodsOwnerId,
                     trade.PaymentOwnerId, paymentId, offer.SecondQuantity, "market_household_payment");
-            settled = InventoryFixture.Relocate(settled, receiptId + ":deposit", paymentId, trade.PaymentOwnerId,
+            settled = InventoryFixture.Relocate(settled, TownRecordIds.DepositOperation(receiptId), paymentId, trade.PaymentOwnerId,
                 offer.SecondQuantity, groundPosition: new(trade.Position.X, trade.Position.Y));
             eventId = settled.Events[^1].EventId;
             return settled;

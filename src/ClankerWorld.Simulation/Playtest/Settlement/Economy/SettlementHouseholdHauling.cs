@@ -371,7 +371,7 @@ public sealed partial class PrivateWorldRuntime
             InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed).ToArray();
         if (claims.Length != 1) return null;
         var claim = claims[0];
-        return claim.Id == OrchardReplantingPrefix + lot.Id && claim.OwnerId == actor &&
+        return claim.Id == OrchardReplantingReservationId(lot.Id) && claim.OwnerId == actor &&
             claim.Purpose == "orchard_replanting" && claim.ExpiryTick >= WorldTick &&
             claim.State is (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed) &&
             claim.Quantity > 0 && claim.Quantity <= lot.Quantity ? claim : null;

@@ -2,7 +2,7 @@
 title: Footprint query measurements
 type: performance-report
 status: complete
-updated: 2026-10-08
+updated: 2026-10-11
 ---
 
 # Footprint query measurements
@@ -134,8 +134,11 @@ main: their newer minimum schemas reject schema 101. A current-main experiment
 needs freshly generated checkpoints shared by two variants of that same
 current version, and separately recorded results.
 
-The exact fresh setup source is [archived here](footprint-query-probe/setup.cs.txt); its invariant numeric
-parsing allows normal repository analyzers. Create a temporary net10.0 console
+The [fresh setup source](footprint-query-probe/setup.cs.txt) keeps invariant numeric
+parsing and now filters Road-growth sites as described in
+[Measuring Town tick time](town-tick-measurements.md#what-the-fixture-controls).
+The previous source linked there retains the setup used for this historical
+report; its recorded digests and measurements are unchanged. Create a temporary net10.0 console
 project referencing the selected checkout's Simulation project, copy the
 source to `Program.cs`, and run with these arguments:
 
@@ -166,6 +169,6 @@ checks event-stack nesting and counts inclusive intervals under the tick core.
 The [capture comparer](footprint-query-probe/compare-captures.py) accepts the
 output directory, `main` and `optimized`; all 57 matching capture files must
 exist before running it. Compare full bytes before interpreting timings.
-The [paired Windows/F12 check](../../playtest/998-skip-blocked-footprints.md)
+The [paired Windows/F12 check](../../playtest/alpha-1.md)
 remains pending. Further work should profile current main after merge and
 preserve eligibility, ranks, ownership and action-time authority.

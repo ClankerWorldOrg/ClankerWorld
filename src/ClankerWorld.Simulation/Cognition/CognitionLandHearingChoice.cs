@@ -34,7 +34,7 @@ public sealed record CognitionLandHearingChoice(
     private static bool ValidHouseholdReference(string? value) => value is { Length: > 0 } &&
         !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
 
-    private static bool ValidReference(string? value) => value is { Length: <= 256 } && ValidHouseholdReference(value);
+    private static bool ValidReference(string? value) => value is { Length: <= DerivedId.MaximumLength } && ValidHouseholdReference(value);
 
     private static bool ValidReferences(IReadOnlyList<string>? values) => values is null ||
         values.Count <= MaximumReferences && values.All(ValidReference) &&

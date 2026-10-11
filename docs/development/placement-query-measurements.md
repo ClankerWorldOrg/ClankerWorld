@@ -113,4 +113,4 @@ checkout, with fresh checkpoint/output paths, then compare each pair's request,
 admission and final-state files byte for byte. Keep profiled runs separate.
 
 The pending Windows/F12 check is in the
-[playtest list](../../playtest/998-placement-layout-costs.md).
+[playtest list](../../playtest/alpha-1.md).

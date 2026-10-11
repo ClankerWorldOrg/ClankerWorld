@@ -91,7 +91,7 @@ No list survives a query, tick, movement, membership/content change or reload.
 Physical collection and project execution retain current-state validation.
 
 No saved field, event format, schema version or migration changes. This repair
-needs independent review and a [paired Windows/F12 check](../../playtest/998-warehouse-query-costs.md).
+needs independent review and a [paired Windows/F12 check](../../playtest/alpha-1.md).
 After it merges, profile current main before choosing the next #998 repair.
 
 ## Repeat
