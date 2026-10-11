@@ -1791,8 +1791,11 @@ public static partial class SocietyFixture
             var speaker = current.GetInhabitant(estate.DeceasedId).Name;
             foreach (var listener in listeners)
             {
+                var memoryKey = $"final-words:{estate.Id}:{listener}";
+                var memoryId = memoryKey.Length <= 128 ? memoryKey :
+                    $"final-words:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
                 current = RecordSocialMemory(current, new SocietySocialMemory(
-                    $"final-words:{estate.Id}:{listener}", listener, estate.DeceasedId,
+                    memoryId, listener, estate.DeceasedId,
                     $"{speaker}'s final words were: '{words}'", "private", targetTick)
                 { Kind = SocietyMemoryKind.LifeEvent }).Checkpoint;
             }

@@ -1675,6 +1675,12 @@ supported Town inheritance law effective at the death can change this default.
 Estate settlement waits for the pending will and commits once. An accepted will
 may divide lots between up to three heirs, including children or the deceased
 person's Town. Positive personal recipients alone receive its final words.
+New final-words memory keys retain `final-words:{estate}:{heir}` when it fits
+the 128-character recall boundary; longer keys use a stable SHA-256 key with
+the `final-words:` prefix. Saved owner and deceased-person references remain
+complete. Settlement replay produces the same key and private text once.
+No schema or record shape changes. Existing saved keys stay unchanged, and
+oversized or malformed existing keys remain excluded from recall.
 Personal inheritance changes ownership while retaining ground, House storage,
 a recorded departure allowance's Store location or a living carrier's custody;
 goods carried by the deceased are dropped at their last tile. Eligible Town shares move into the Town's current Warehouse, clearing
