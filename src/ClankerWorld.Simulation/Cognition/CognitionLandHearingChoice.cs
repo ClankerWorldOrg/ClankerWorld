@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Cognition;
 
@@ -27,17 +28,18 @@ public sealed record CognitionLandHearingChoice(
             RequestedOutcome is not null and not ("confirm" or "renew" or "amend" or "end" or "reject" or "reclaim" or "grant") ||
             !ValidReferences(EvidenceIds) || !ValidReferences(LawIds) ||
             (PaymentItemKind is null) != (PaymentQuantity is null) ||
-            PaymentItemKind is not null && !ValidReference(PaymentItemKind) || PaymentQuantity is <= 0)
+            PaymentItemKind is not null && !ValidReference(PaymentItemKind, ContentPackageRules.MaximumContentIdLength) || PaymentQuantity is <= 0)
             throw new ArgumentOutOfRangeException(nameof(CognitionLandHearingChoice), "The hearing submission is malformed or too large.");
     }
 
     private static bool ValidHouseholdReference(string? value) => value is { Length: > 0 } &&
         !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
 
-    private static bool ValidReference(string? value) => value is { Length: <= 256 } && ValidHouseholdReference(value);
+    private static bool ValidReference(string? value, int maximumLength = 256) => value is { } &&
+        value.Length <= maximumLength && ValidHouseholdReference(value);
 
     private static bool ValidReferences(IReadOnlyList<string>? values) => values is null ||
-        values.Count <= MaximumReferences && values.All(ValidReference) &&
+        values.Count <= MaximumReferences && values.All(value => ValidReference(value)) &&
         values.Distinct(StringComparer.Ordinal).Count() == values.Count;
 
     internal static CognitionLandHearingChoice? Parse(JsonElement answer)
@@ -65,18 +67,18 @@ public sealed record CognitionLandHearingChoice(
             Text(payload, "statement"), Reference(payload, "household_id", household: true), endTick,
             References(payload, "evidence_ids"), References(payload, "law_ids"),
             Text(payload, "grounds"), Reference(payload, "requested_outcome"),
-            Reference(payload, "payment_item_kind"), paymentQuantity);
+            Reference(payload, "payment_item_kind", maximumLength: ContentPackageRules.MaximumContentIdLength), paymentQuantity);
         try { choice.Validate(); }
         catch (ArgumentException error)
         { throw new InvalidDataException("The provider returned a malformed hearing submission.", error); }
         return choice;
     }
 
-    private static string? Reference(JsonElement payload, string name, bool household = false)
+    private static string? Reference(JsonElement payload, string name, bool household = false, int maximumLength = 256)
     {
         if (!payload.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null) return null;
         if (value.ValueKind != JsonValueKind.String ||
-            !(household ? ValidHouseholdReference(value.GetString()) : ValidReference(value.GetString())))
+            !(household ? ValidHouseholdReference(value.GetString()) : ValidReference(value.GetString(), maximumLength)))
             throw new InvalidDataException("The provider returned an invalid hearing reference.");
         return value.GetString();
     }

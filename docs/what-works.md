@@ -1763,6 +1763,11 @@ data-only building proposals and host approval rules remain, but agents no
 longer create the retired shelter, storehouse or hearth proposals, and they do
 not build approved designs, because households plan only their own buildings. General invention,
 player review controls, personal libraries and mod import/export are unfinished.
+The existing data-only package API checks one 512-character limit for content
+IDs, including full definition IDs and resource kinds. Longer IDs are refused
+before a package is recorded. Accepted IDs work in crafting, wills, land-sale
+prices and resource knowledge. A will shows a short goods label while keeping
+the full identity for inheritance.
 Asset-validation and rights tools are built but not connected to a complete
 creator experience. Arbitrary generated scripts are disabled. The agreed
 [invention sandbox](game-design/inventions-and-mods.md#inventions-mods-and-technology)

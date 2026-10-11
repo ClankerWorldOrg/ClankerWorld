@@ -740,7 +740,7 @@ public sealed partial class PrivateWorldRuntime
         if (!knownStatus || (order.Status == "queued" && !instruction.Queue) ||
             order.BlockedReason is { Length: > 256 } || order.BlockedReason?.Any(char.IsControl) == true ||
             order.LastEffectId is { Length: > 512 } || order.LastEffectId?.Any(char.IsControl) == true ||
-            order.TargetResourceId is { Length: > 128 } || order.TargetResourceId?.Any(char.IsControl) == true ||
+            order.TargetResourceId is { Length: > ContentPackageRules.MaximumContentIdLength } || order.TargetResourceId?.Any(char.IsControl) == true ||
             order.Action != "produce_item" && (order.TargetRecipeId is not null || order.TargetOutputKind is not null ||
                 order.ProductionBuildingId is not null || order.ProductionJobId is not null || order.ProductionProjectStartedTick is not null) ||
             order.Action is not ("collect_goods" or "store_goods" or "return_borrowed" or "deliver_stock" or "read_knowledge" or "load_handcart" or "unload_handcart" or "unload_handcart_ground") && order.TargetItemKind is not null ||

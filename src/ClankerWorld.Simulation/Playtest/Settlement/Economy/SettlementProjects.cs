@@ -347,7 +347,7 @@ public sealed partial class PrivateWorldRuntime
 
     private static void ValidateProject(SettlementProject project, long worldTick)
     {
-        if (string.IsNullOrWhiteSpace(project.CandidateId) || project.CandidateId.Length > 512 ||
+        if (string.IsNullOrWhiteSpace(project.CandidateId) ||
             !TownConstructionCandidateIds.TryParse(project.CandidateId, out _) ||
             string.IsNullOrWhiteSpace(project.Label) || project.Label.Length > 256 ||
             project.StartedTick < 0 || project.StartedTick > worldTick ||

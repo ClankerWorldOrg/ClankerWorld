@@ -1,4 +1,5 @@
 using System.Buffers;
+using ClankerWorld.Simulation.Content;
 using System.Net;
 using System.Collections.ObjectModel;
 using System.Net.Http.Headers;
@@ -128,6 +129,7 @@ public sealed record CognitionWillContext(
     IReadOnlyList<CognitionWillHeir> Heirs)
 {
     public const int MaximumItems = 24;
+    public const int MaximumItemKindLength = 48;
     public const int MaximumHeirChoices = 17;
     public const int MaximumNamedHeirs = 3;
     public const int MaximumHeirKeyLength = 160;
@@ -143,7 +145,7 @@ public sealed record CognitionWillContext(
         var keys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in Items)
         {
-            if (item is null || !IsBoundedText(item.Key, 16) || !IsBoundedText(item.Kind, 48) ||
+            if (item is null || !IsBoundedText(item.Key, 16) || !IsBoundedText(item.Kind, MaximumItemKindLength) ||
                 item.Quantity <= 0 || item.Contents is not null && !IsBoundedText(item.Contents, 128) || !keys.Add(item.Key))
                 throw new ArgumentException("A will item is malformed.", nameof(Items));
         }
@@ -543,7 +545,7 @@ public sealed record InhabitantObservation(
             ArgumentNullException.ThrowIfNull(fact);
             if (fact.X < 0 || fact.Y < 0 || string.IsNullOrWhiteSpace(fact.Terrain) || fact.Terrain.Length > 32 ||
                 fact.ResourceKinds is null || fact.ResourceKinds.Count > 4 ||
-                fact.ResourceKinds.Any(kind => string.IsNullOrWhiteSpace(kind) || kind.Length > 48) ||
+                fact.ResourceKinds.Any(kind => !ContentPackageRules.IsValidLocalId(kind)) ||
                 string.IsNullOrWhiteSpace(fact.DiscovererId) || fact.DiscovererId.Length > 128 ||
                 fact.LearnedTick < 0 || fact.LearnedTick > WorldTick ||
                 fact.Acquisition is not ("firsthand" or "shared" or "read"))

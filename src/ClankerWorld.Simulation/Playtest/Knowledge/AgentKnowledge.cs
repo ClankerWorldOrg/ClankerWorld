@@ -2,6 +2,7 @@ using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Society;
+using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Playtest;
 
@@ -161,7 +162,7 @@ internal static partial class AgentKnowledgeRules
             map.Contains(fact.Position) && map.IsPassable(fact.Position) &&
             Enum.TryParse<TerrainKind>(fact.Terrain, ignoreCase: false, out _) &&
             fact.ResourceKinds is not null && fact.ResourceKinds.Count <= MaximumResourceKindsPerFact &&
-            fact.ResourceKinds.All(kind => IsSafeToken(kind, 48)) && fact.ResourceKinds.Distinct(StringComparer.Ordinal).Count() == fact.ResourceKinds.Count &&
+            fact.ResourceKinds.All(ContentPackageRules.IsValidLocalId) && fact.ResourceKinds.Distinct(StringComparer.Ordinal).Count() == fact.ResourceKinds.Count &&
             fact.LearnedTick >= 0 && fact.LearnedTick <= latestTick &&
             (fact.Acquisition == "firsthand" && fact.OwnerId == fact.DiscovererId && fact.SourceAgentId is null && fact.SourceArtifactId is null ||
              fact.Acquisition is "shared" or "read" && fact.SourceAgentId is { } source && agents.Contains(source) &&
@@ -281,6 +282,4 @@ internal static partial class AgentKnowledgeRules
         first.Acquisition == second.Acquisition && first.SourceAgentId == second.SourceAgentId && first.SourceArtifactId == second.SourceArtifactId;
     private static bool ValidText(string? value, int maximumLength) => !string.IsNullOrWhiteSpace(value) &&
         value.Length <= maximumLength && !value.Any(char.IsControl);
-    private static bool IsSafeToken(string? value, int maximumLength) => ValidText(value, maximumLength) &&
-        value!.All(character => char.IsAsciiLetterOrDigit(character) || character is '_' or '-');
 }

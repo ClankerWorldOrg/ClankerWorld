@@ -99,6 +99,7 @@ public sealed record ContentDefinition(
         {
             throw new ArgumentException("A content payload must be non-empty when supplied.", nameof(PayloadJson));
         }
+        ContentDefinitionPayloadCodec.ValidateContentIdLengths(this);
     }
 }
 
@@ -220,6 +221,8 @@ public sealed record ContentRegistryState(
 
 public static class ContentPackageRules
 {
+    public const int MaximumContentIdLength = 512;
+
     public static string CanonicalDefinitionId(
         string packageDigest,
         string kind,
@@ -229,12 +232,15 @@ public static class ContentPackageRules
         ValidateDigest(packageDigest, nameof(packageDigest));
         ValidateSchemaKind(kind);
         ValidateLocalId(localId);
-        return $"{packageDigest}/{kind}/{localId}@{version}";
+        var id = $"{packageDigest}/{kind}/{localId}@{version}";
+        ValidateContentIdLength(id);
+        return id;
     }
 
     public static void ValidatePackageId(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        ValidateContentIdLength(value);
         if (value != value.Trim() || value.Any(character =>
                 !(char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')) ||
             !char.IsLower(value[0]) || value.Any(char.IsWhiteSpace))
@@ -246,6 +252,7 @@ public static class ContentPackageRules
     public static void ValidateSchemaKind(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        ValidateContentIdLength(value);
         if (value != value.Trim() || value.Any(character =>
                 !(char.IsLower(character) || char.IsDigit(character) || character == '_')))
         {
@@ -256,11 +263,20 @@ public static class ContentPackageRules
     public static void ValidateLocalId(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
-        if (value != value.Trim() || value.Any(character =>
-                !(char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')))
+        ValidateContentIdLength(value);
+        if (!IsValidLocalId(value))
         {
             throw new ArgumentException($"Local content ID '{value}' is not canonical.", nameof(value));
         }
+    }
+
+    public static bool IsValidLocalId(string? value) => value is { Length: > 0 and <= MaximumContentIdLength } &&
+        value.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_');
+
+    internal static void ValidateContentIdLength(string value)
+    {
+        if (value.Length > MaximumContentIdLength)
+            throw new ArgumentException($"Content IDs must be at most {MaximumContentIdLength} characters; this ID has {value.Length}.", nameof(value));
     }
 
     public static void ValidateDigest(string value, string parameterName)
