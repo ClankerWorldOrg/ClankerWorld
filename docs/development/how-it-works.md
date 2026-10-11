@@ -3383,7 +3383,12 @@ spaces, and refuses text over 80 UTF-16 units or containing markup characters
 before admission; a directly supplied typed reply with invalid words is refused.
 An admitted reply keeps its words even when its division falls back. At settlement
 each living person who receives goods gets the private memory
-`final-words:{estate}:{heir}` ("Name's final words were: '…'"). The owner sees
+`final-words:{estate}:{heir}` ("Name's final words were: '…'"). New keys over
+128 characters use `final-words:sha256:` followed by a hash of that complete
+key, so native-born heirs can retrieve the words in later personal decisions.
+Short keys stay unchanged. The saved owner and deceased subject keep their
+complete identities; text, privacy, kind and source tick stay unchanged.
+The owner sees
 the words on the historical profile through
 `ViewerFinalWill`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for
