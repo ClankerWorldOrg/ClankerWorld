@@ -57,10 +57,11 @@ public sealed partial class PrivateWorldRuntime
             return;
 
         var inventory = society.Checkpoint.Inventory;
-        var carriedJug = CarriedWaterJugForRefill(actor) ?? CarriedContainer(actor, InventoryContainerRules.WaterJug);
+        var refillJug = CarriedWaterJugForRefill(actor);
+        var carriedJug = refillJug ?? CarriedContainer(actor, InventoryContainerRules.WaterJug);
         if (carriedJug is not null)
         {
-            var shore = CarriedWaterJugForRefill(actor) is not null && FreeCarryCapacity(actor) > 0
+            var shore = refillJug is not null && FreeCarryCapacity(actor) > 0
                 ? FindFreshWaterShore(actor, person.Position, returnTo: WaterJugRefillReturnDestination(actor, carriedJug))
                 : null;
             if (shore is { } fillAt)
