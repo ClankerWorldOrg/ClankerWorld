@@ -545,7 +545,7 @@ public sealed partial class PrivateWorldRuntime
         "berry_porridge" or "fruit_porridge" or "bread" or "stew" or "restaurant_meal" or "cooked_eggs" or "milk_porridge" or "rich_meal";
 
     private static bool IsEdibleFood(string kind) => IsPreparedMeal(kind) ||
-        kind is "food" or "fruit" or "berries" or "wild_greens" or "cultivated_greens";
+        kind is "food" or "fruit" or "berries" or "wild_greens" or "cultivated_greens" or "milk";
 
     private static int FoodNourishment(string kind) => kind switch
     {

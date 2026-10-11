@@ -101,7 +101,6 @@ public sealed partial class PrivateWorldRuntime
 
     private bool ApplyAnimalConsentDecision(SocietyCognitionDispatchResult decision)
     {
-        if (ApplyMilkSaleDecision(decision)) return true;
         var selected = decision.Admission.Intention;
         if (selected is null || !selected.CandidateId.StartsWith("animal:agreement:", StringComparison.Ordinal)) return false;
         if (!decision.Admission.Accepted || decision.Admission.FellBack || selected.Provider != DecisionProviderKind.LargeLanguageModel ||

@@ -12,25 +12,25 @@ public sealed partial class PrivateWorldRuntimeTests
     [InlineData("bread")]
     [InlineData("reserved")]
     [InlineData("spoiled")]
-    [InlineData("broken-jug")]
+    [InlineData("broken-pot")]
     public async Task UrgentCarriedMilkInterruptsAnOrderWithoutBypassingAvailability(string food)
     {
         var (state, source) = MaterialOrderState("stone", "wooden_pickaxe");
         var inventory = WithoutFoodLots(state.Society.Society.Inventory);
-        inventory = InventoryFixture.AddLot(inventory, "order-milk-jug", "water_jug", HarvestInstructionActor, 1);
+        if (food == "broken-pot") inventory = InventoryFixture.AddLot(inventory, "order-milk-pot", "storage_pot", HarvestInstructionActor, 1);
         inventory = InventoryFixture.AddLot(inventory, "order-milk", "milk", HarvestInstructionActor, 2,
-            containerLotId: "order-milk-jug");
+            containerLotId: food == "broken-pot" ? "order-milk-pot" : null);
         if (food == "bread")
             inventory = InventoryFixture.AddLot(inventory, "order-bread", "bread", HarvestInstructionActor, 1);
         if (food == "reserved")
             inventory = InventoryFixture.Reserve(inventory, "order-held-milk", HarvestInstructionActor, "order-milk", 2,
                 "other-personal-work", long.MaxValue);
-        if (food is "spoiled" or "broken-jug")
+        if (food is "spoiled" or "broken-pot")
             inventory = inventory with
             {
                 Lots = inventory.Lots.Select(lot => food == "spoiled" && lot.Id == "order-milk"
                     ? lot with { FreshnessBasisPoints = 0 }
-                    : food == "broken-jug" && lot.Id == "order-milk-jug"
+                    : food == "broken-pot" && lot.Id == "order-milk-pot"
                         ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
             };
         state = state with
@@ -56,9 +56,11 @@ public sealed partial class PrivateWorldRuntimeTests
         Assert.Equal(usableMilk ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "milk_drunk"));
         Assert.Equal(food == "bread" ? 5_496 : usableMilk ? 4_496 : 1_496,
             world.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor).HungerBasisPoints);
-        var jug = world.Society.Inventory.GetLot("order-milk-jug");
-        Assert.Equal((HarvestInstructionActor, 1, food == "broken-jug" ? 0 : 10_000),
-            (jug.OwnerId, jug.Quantity, jug.ConditionBasisPoints));
+        if (food == "broken-pot")
+            Assert.Equal((HarvestInstructionActor, 1, 0), (world.Society.Inventory.GetLot("order-milk-pot").OwnerId,
+                world.Society.Inventory.GetLot("order-milk-pot").Quantity,
+                world.Society.Inventory.GetLot("order-milk-pot").ConditionBasisPoints));
+        else Assert.Null(world.Society.Inventory.GetLot("order-milk").ContainerLotId);
         if (food == "reserved") Assert.Equal(InventoryReservationState.Reserved,
             world.Society.Inventory.GetReservation("order-held-milk").State);
         if (food == "spoiled") Assert.Equal(0, world.Society.Inventory.GetLot("order-milk").FreshnessBasisPoints);
@@ -75,7 +77,6 @@ public sealed partial class PrivateWorldRuntimeTests
             Assert.Equal(6, Assert.Single(world.Society.Inventory.Lots,
                 lot => lot.OwnerId == HarvestInstructionActor && lot.ItemKind == "stone").Quantity);
             Assert.Equal(0, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
-            Assert.Equal(HarvestInstructionActor, world.Society.Inventory.GetLot("order-milk-jug").OwnerId);
         }
         world.Validate();
         replay.Validate();

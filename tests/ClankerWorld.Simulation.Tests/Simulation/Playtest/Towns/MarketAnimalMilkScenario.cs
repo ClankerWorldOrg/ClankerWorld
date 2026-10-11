@@ -21,11 +21,13 @@ internal static class MarketAnimalMilkScenario
         var home = boundary.Society.Society.GetInhabitant(seller).HouseholdId!;
         var buyer = town.ResidentIds.First(id => boundary.Society.Society.GetInhabitant(id).AgeBand == SocietyAgeBand.Adult &&
             boundary.Society.Society.GetInhabitant(id).HouseholdId != home);
-        var inventory = InventoryFixture.AddLot(boundary.Society.Society.Inventory, "market-milk-jug", "water_jug", home, 1);
-        inventory = InventoryFixture.AddLot(inventory, "market-milk", "milk", home, 2, containerLotId: "market-milk-jug");
-        inventory = InventoryFixture.Relocate(inventory, "milk-fixture-carried", "market-milk-jug", home, 1, carrierId: seller);
-        inventory = InventoryFixture.AddLot(inventory, "market-milk-buyer-jug", "water_jug", buyer, 1);
+        var inventory = InventoryFixture.AddLot(boundary.Society.Society.Inventory, "market-milk", "milk", home, 2);
+        inventory = InventoryFixture.Relocate(inventory, "milk-fixture-carried", "market-milk", home, 2, carrierId: seller);
         inventory = InventoryFixture.AddLot(inventory, "market-milk-payment", "stone", buyer, 2);
+        var house = boundary.WorldSimulation!.Buildings.First(item => item.HouseholdId == home &&
+            boundary.WorldContent!.Buildings.Any(definition => definition.CanonicalId == item.DefinitionId && definition.Tags.Contains("house")));
+        inventory = InventoryFixture.AddLot(inventory, "market-kept-milk", "milk", home,
+            2 * boundary.Society.Society.GetHousehold(home).MemberIds.Count, storageBuildingId: house.InstanceId);
         var state = boundary with
         {
             Towns = boundary.Towns!.Select(item => item.Id == town.Id ? item with { Markets = [market] } : item).ToArray(),
@@ -33,7 +35,7 @@ internal static class MarketAnimalMilkScenario
             Inhabitants = boundary.Inhabitants.Select(person => person with
             {
                 Position = person.InhabitantId == seller ? site : person.InhabitantId == buyer ? new(site.X + 1, site.Y) : person.Position,
-                HungerBasisPoints = 9500,
+                HungerBasisPoints = person.InhabitantId == buyer ? 5000 : 9500,
                 LastDecisionContext = null,
                 Project = null,
             }).ToArray(),
@@ -42,13 +44,13 @@ internal static class MarketAnimalMilkScenario
         using var world = PrivateWorldRuntime.Restore(state, _ => choices);
         await Until(() => world.Towns[0].Markets[0].Occupancies.Any(item => item.EndedTick is null && item.SellerAgentId == seller));
         choices.Mode = "stock";
-        await Until(() => world.Towns[0].Markets[0].StockReceipts.Any(receipt => receipt.LotId == "market-milk-jug"));
-        Assert.Equal((home, new InventoryGroundPosition(site.X, site.Y)), (world.Society.Inventory.GetLot("market-milk-jug").OwnerId,
-            world.Society.Inventory.GetLot("market-milk-jug").GroundPosition));
+        await Until(() => world.Towns[0].Markets[0].StockReceipts.Any(receipt => receipt.LotId == "market-milk"));
+        Assert.Equal((home, new InventoryGroundPosition(site.X, site.Y)), (world.Society.Inventory.GetLot("market-milk").OwnerId,
+            world.Society.Inventory.GetLot("market-milk").GroundPosition));
         choices.Mode = "sale";
-        await Until(() => world.Society.Inventory.Lots.Any(lot => lot.ContainerLotId == "market-milk-buyer-jug"));
-        Assert.Equal((home, buyer, 1), (world.Society.Inventory.GetLot("market-milk-jug").OwnerId,
-            world.Society.Inventory.GetLot("market-milk-buyer-jug").OwnerId, world.Society.Inventory.GetLot("market-milk").Quantity));
+        await Until(() => world.Society.Inventory.Lots.Any(lot => lot.ItemKind == "milk" && lot.OwnerId == buyer));
+        Assert.Equal((home, buyer, 1), (world.Society.Inventory.GetLot("market-milk").OwnerId,
+            Assert.Single(world.Society.Inventory.Lots, lot => lot.ItemKind == "milk" && lot.OwnerId == buyer).OwnerId, world.Society.Inventory.GetLot("market-milk").Quantity));
         var payment = Assert.Single(world.Society.Inventory.Lots, lot => lot.ProvenanceLotId == "market-milk-payment");
         Assert.Equal(home, payment.OwnerId);
         Assert.Contains(world.Towns[0].Markets[0].StockReceipts, receipt => receipt.LotId == payment.Id);
@@ -60,7 +62,7 @@ internal static class MarketAnimalMilkScenario
         choices.Mode = "leave";
         await Until(() => world.Towns[0].Markets[0].Occupancies.All(item => item.EndedTick is not null));
         choices.Mode = "recover";
-        await Until(() => PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("market-milk-jug"), seller));
+        await Until(() => PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("market-milk"), seller));
         Assert.Equal(home, world.Society.Inventory.GetLot("market-milk").OwnerId);
         Assert.True(PersonalEquipmentRules.IsPhysicallyCarried(world.Society.Inventory, world.Society.Inventory.GetLot("market-milk"), seller));
         world.Validate();
@@ -84,12 +86,12 @@ internal static class MarketAnimalMilkScenario
             var choice = candidates.FirstOrDefault(candidate => observation.InhabitantId == seller && (Mode switch
             {
                 "borrow" => candidate.Description.Contains("borrow this empty", StringComparison.Ordinal),
-                "stock" => candidate.Id.StartsWith("animal:milk_stock:", StringComparison.Ordinal),
-                "sale" => candidate.Id.StartsWith("animal:milk_offer:", StringComparison.Ordinal),
+                "stock" => candidate.Id.StartsWith("market_deposit:", StringComparison.Ordinal) && candidate.Description.Contains(" milk at your borrowed stall;", StringComparison.Ordinal),
+                "sale" => candidate.Id.StartsWith("market_continue:", StringComparison.Ordinal),
                 "leave" => candidate.Description.StartsWith("Give up this stall", StringComparison.Ordinal),
-                "recover" => candidate.Description.StartsWith("Collect 1 of your water_jug", StringComparison.Ordinal),
+                "recover" => candidate.Id.StartsWith("market_collect:", StringComparison.Ordinal) && candidate.Description.Contains("milk", StringComparison.Ordinal),
                 _ => false,
-            }) || observation.InhabitantId == buyer && Mode == "sale" && candidate.Id.StartsWith("animal:milk_accept:", StringComparison.Ordinal)) ??
+            }) || observation.InhabitantId == buyer && Mode == "sale" && candidate.Id.StartsWith("market_buy:", StringComparison.Ordinal) && candidate.Description.Contains(" for 1 milk;", StringComparison.Ordinal)) ??
                 candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,

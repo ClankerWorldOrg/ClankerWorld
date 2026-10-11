@@ -35,13 +35,7 @@ public sealed record AnimalWorldState([property: JsonRequired] bool Seeded, [pro
 {
     public static AnimalWorldState Empty { get; } = new(false, [], []);
     [JsonRequired] public IReadOnlyList<AnimalSupplyTrip> SupplyTrips { get; init; } = [];
-    [JsonRequired] public IReadOnlyList<MilkSaleOffer> MilkOffers { get; init; } = [];
 }
-
-public sealed record MilkSaleOffer([property: JsonRequired] string Id, [property: JsonRequired] string SellerId,
-    [property: JsonRequired] string BuyerId, [property: JsonRequired] string MilkLotId,
-    [property: JsonRequired] string ReceivingJugId, [property: JsonRequired] string PaymentLotId,
-    [property: JsonRequired] string BuildingId, [property: JsonRequired] GridPoint Position, [property: JsonRequired] long OfferedTick);
 
 public sealed record AnimalSupplyTrip([property: JsonRequired] string ActorId, [property: JsonRequired] string LotId,
     [property: JsonRequired] string YardId, [property: JsonRequired] string? AnimalId = null, [property: JsonRequired] string? Action = null);
