@@ -47,7 +47,7 @@ Town handles retain a counter and validate by exact recomputation against the
 original scope. Earlier alpha saves are refused and preserved; no migration
 runs.
 
-Schema 124 adds action refusals and their cumulative count. A refusal records
+Schema 125 adds action refusals and their cumulative count. A refusal records
 the complete actor and candidate, refusal tick, one-day retry boundary and a
 bounded check name. The matching world event retains the accepted refusal for
 history and replay. Active cooldowns are authoritative saved state; they are
