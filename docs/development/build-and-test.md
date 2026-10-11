@@ -83,6 +83,13 @@ this wait could store another load before cancellation, because chosen work
 continues while a model waits. The check retains one stored load, the untouched
 second load and exact checkpoint reload after releasing the cancelled reply.
 
+The long-recipe tool-request fixture admits its request through the personal
+provider and saves it through the real host. For byte-for-byte continuation,
+it pauses that world, captures one checkpoint, and restores both compared
+worlds with synchronous idle providers for every resident. The personal
+provider returns for withdrawal. Independent background reply timing is not a
+matching replay input, even when both providers choose idle.
+
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
 License. Keep `fusion-pixel-OFL.txt` beside it; the export preset's include
