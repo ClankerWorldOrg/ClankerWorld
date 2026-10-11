@@ -59,6 +59,49 @@ public sealed class TownLayoutTests
         Assert.False(TownConstructionCandidateIds.TryParse(TownConstructionCandidateIds.Building(oversized, distantSite), out _));
     }
 
+    [Theory]
+    [InlineData(0, -1, true)]
+    [InlineData(1, 0, true)]
+    [InlineData(0, 1, true)]
+    [InlineData(-1, 0, true)]
+    [InlineData(1, -1, false)]
+    [InlineData(1, 1, false)]
+    [InlineData(-1, 1, false)]
+    [InlineData(-1, -1, false)]
+    public void RoadFrontageRequiresACardinalFootprintNeighbor(int dx, int dy, bool facesRoad)
+    {
+        var map = MarketLayoutMeadowMap(6, 6);
+        var origin = new GridPoint(2, 2);
+        var costs = map.Tiles.ToDictionary(tile => tile.Position, _ => 100);
+        var building = new BuildingDefinition("sha256:" + new string('a', 64), "test-house",
+            ContentVersion.Parse("1.0.0"), "Test house", 1, 1, 1);
+        var ordinary = new TownLayoutContext(map, null, [], costs, [], []);
+        var besideRoad = new TownLayoutContext(map, null, [], costs, [], [],
+            roadTiles: [new GridPoint(origin.X + dx, origin.Y + dy)]);
+
+        Assert.True(TownLayoutService.TryEvaluateConstructionSite(ordinary, building, origin, out var withoutRoad));
+        Assert.True(TownLayoutService.TryEvaluateConstructionSite(besideRoad, building, origin, out var withRoad));
+        Assert.Equal(facesRoad, withRoad!.Reasons.Any(reason => reason.Code == TownConstructionSiteReasonCodes.RoadFrontage));
+        Assert.Equal(withoutRoad!.Score + (facesRoad ? 24 : 0), withRoad.Score);
+    }
+
+    [Theory]
+    [InlineData(4, 3, true)]
+    [InlineData(7, 2, false)]
+    public void CustomSiteRoadFrontageStillUsesTheBuildingRectangle(int roadX, int roadY, bool facesRoad)
+    {
+        var map = MarketLayoutMeadowMap(8, 6);
+        var origin = new GridPoint(2, 2);
+        var costs = map.Tiles.ToDictionary(tile => tile.Position, _ => 100);
+        var building = new BuildingDefinition("sha256:" + new string('a', 64), "test-house",
+            ContentVersion.Parse("1.0.0"), "Test house", 2, 2, 1);
+        var context = new TownLayoutContext(map, null, [], costs, [], [],
+            roadTiles: [new GridPoint(roadX, roadY)], requiredFootprintOffsets: [new GridPoint(4, 0)]);
+
+        Assert.True(TownLayoutService.TryEvaluateConstructionSite(context, building, origin, out var site));
+        Assert.Equal(facesRoad, site!.Reasons.Any(reason => reason.Code == TownConstructionSiteReasonCodes.RoadFrontage));
+    }
+
     [Fact]
     public void CustomFootprintsCheckCoveredTilesAndRoadExceptionsRetainProtection()
     {
