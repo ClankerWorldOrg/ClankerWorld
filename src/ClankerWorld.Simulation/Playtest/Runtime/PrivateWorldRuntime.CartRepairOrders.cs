@@ -58,16 +58,16 @@ public sealed partial class PrivateWorldRuntime
 
     private void ExecuteCartRepairOrderStep(OwnerQueuedInstruction instruction, PlaytestInhabitantState person, InventoryLot cart)
     {
-        var candidate = CartRepairOrderCandidateFor(instruction, cart);
-        if (candidate.Id.StartsWith(CollectCartRepairPrefix, StringComparison.Ordinal))
+        var collection = CartRepairCollectionPlan(instruction.TargetInhabitantId, cart);
+        if (collection is null) return;
+        if (collection.Count > 0)
         {
-            var collection = CartRepairCollectionPlan(instruction.TargetInhabitantId, cart);
-            if (collection is not { Count: > 0 }) return;
             var input = collection[0];
             CollectEquipment(instruction.TargetInhabitantId, person,
                 input.Kind, CartPosition(cart), plannedLotId: input.Stock!.Id);
             return;
         }
+        var candidate = CartRepairOrderCandidateFor(instruction, cart);
         ApplyHandcartCandidate(instruction.TargetInhabitantId, person, candidate.Id);
         if (candidate.Id != RepairCartPrefix + cart.Id ||
             society.Checkpoint.Inventory.GetLot(cart.Id).ConditionBasisPoints <= cart.ConditionBasisPoints) return;

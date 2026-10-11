@@ -1807,7 +1807,8 @@ changes.
 Book writing, selected-cart repair and tool repair plan their remaining
 material pickups as a sequence. A transient search tries the existing input
 order first, then the other orders, checking each actual interaction point
-with the cumulative physical load. Cart and tool repairs also check the final
+with the cumulative physical load. Separate paper lots count as separate
+pickups. Cart and tool repairs also check the final
 trip to the cart or Blacksmith; writing can begin at the last pickup. The next
 action resolves its source and permission again. Tool repair retains its
 ordinary spare-cargo storage and gathering-tool preparation when those are

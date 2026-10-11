@@ -63,8 +63,15 @@ public sealed partial class PrivateWorldRuntime
         {
             var missing = Math.Max(0, input.Quantity - CarriedWritingMaterials(actor, input.Kind).Sum(AvailableLotQuantity));
             if (missing == 0) continue;
-            if (SharedItem(input.Kind, actor) is not { } stock) return null;
-            inputs.Add(StockCollectionStep(stock, missing));
+            foreach (var stock in SharedStockItems(input.Kind, actor, GoodsUse.Collect))
+            {
+                var quantity = Math.Min(missing, AvailableLotQuantity(stock));
+                if (quantity <= 0) continue;
+                inputs.Add(StockCollectionStep(stock, quantity));
+                missing -= quantity;
+                if (missing == 0) break;
+            }
+            if (missing > 0) return null;
         }
         return PlanInputCollection(actor, inputs);
     }
@@ -134,7 +141,7 @@ public sealed partial class PrivateWorldRuntime
         var facts = FactsToWrite(actor, kind, source);
         var recipes = RecipesToWrite(actor, kind, source);
         if (facts.Length + recipes.Length == 0 || source is not null && !HasCompleteCopyContents(actor, source, facts, recipes) ||
-            AlreadyWrote(actor, kind, facts, recipes) || !CanSupplyWriting(actor, kind)) return;
+            AlreadyWrote(actor, kind, facts, recipes)) return;
         var collection = WritingCollectionPlan(actor, kind);
         if (collection is null) return;
         if (collection.Count > 0)
@@ -176,8 +183,8 @@ public sealed partial class PrivateWorldRuntime
 
     private void CollectKnowledgeMaterial(string actor, PlaytestInhabitantState person, string kind, int missing, string plannedLotId)
     {
-        var item = SharedItem(kind, actor);
-        if (item is null || item.Id != plannedLotId || item.DeliveryBuildingId is not null || item.ConditionBasisPoints <= 0 || item.FreshnessBasisPoints <= 0) return;
+        var item = SharedStockItems(kind, actor, GoodsUse.Collect).FirstOrDefault(lot => lot.Id == plannedLotId);
+        if (item is null || item.DeliveryBuildingId is not null || item.ConditionBasisPoints <= 0 || item.FreshnessBasisPoints <= 0) return;
         var quantity = Math.Min(missing, Math.Min(FreeCarryCapacity(actor), AvailableLotQuantity(item)));
         if (quantity <= 0) return;
         var position = HouseholdStockPosition(item);
@@ -187,7 +194,7 @@ public sealed partial class PrivateWorldRuntime
             MoveToward(actor, person, position, "knowledge_materials", range);
             return;
         }
-        // SharedItem resolves household/Town permission at pickup time; physical possession alone grants none.
+        // Resolve household/Town permission for the planned lot again at pickup time.
         ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
             $"knowledge-material:{WorldTick}:{CognitionDiscovererId(actor)}:{kind}", item.OwnerId, actor, item.Id, quantity,
             "knowledge_material_collected"));
