@@ -36,10 +36,11 @@ public sealed partial class PrivateWorldRuntime
             lot.ContainerLotId is null && lot.DeliveryBuildingId is null && PlantingSeedQuantity(lot) > 0)
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
-    private InventoryLot? CollectableTreeOrderSeed(string actor, string kind) =>
-        RecoverablePersonalGoods(actor, kind).Where(lot => PlantingSeedQuantity(lot) > 0)
+    private InventoryLot? CollectableTreeOrderSeed(string actor, string kind, GridPoint site) =>
+        RecoverablePersonalGoods(actor, kind).Where(lot => PlantingSeedQuantity(lot) > 0 &&
+            PickupCarryCapacity(actor, lot, site, ResourceInteractionRange) >= 1)
             .OrderBy(lot => map.FootDistance(inhabitants[actor].Position, HouseholdStockPosition(lot)))
-            .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault() ?? SharedItem(kind, actor);
+            .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault() ?? SharedItem(kind, actor, site, ResourceInteractionRange);
 
     private TreeOrderPlan? TreePlantingOrderPlan(OwnerQueuedInstruction instruction, PlaytestInhabitantState person)
     {
@@ -48,7 +49,7 @@ public sealed partial class PrivateWorldRuntime
         var species = TreeOrderSpecies(instruction.Order!, site);
         var kind = TreeGrowthRules.SeedItem(species);
         if (CarriedTreeOrderSeed(actor, kind) is { } carried) return new(site, species, carried, true);
-        return FreeCarryCapacity(actor) > 0 && CollectableTreeOrderSeed(actor, kind) is { } stock
+        return FreeCarryCapacity(actor) > 0 && CollectableTreeOrderSeed(actor, kind, site) is { } stock
             ? new(site, species, stock, false) : null;
     }
 
@@ -70,7 +71,7 @@ public sealed partial class PrivateWorldRuntime
         if (!plan.Carried)
         {
             if (plan.Seed.OwnerId == actor) _ = CollectPersonalGoods(actor, plan.Seed.Id, 1);
-            else CollectEquipment(actor, person, TreeGrowthRules.SeedItem(plan.Species));
+            else CollectEquipment(actor, person, TreeGrowthRules.SeedItem(plan.Species), plan.Site, ResourceInteractionRange);
             return;
         }
         if (!IsWithinInteractionRange(person.Position, plan.Site, ResourceInteractionRange))
@@ -101,6 +102,8 @@ public sealed partial class PrivateWorldRuntime
         var kind = TreeGrowthRules.SeedItem(TreeOrderSpecies(instruction.Order!, destination));
         if (CarriedTreeOrderSeed(actor, kind) is not null) return "The planting site is temporarily unavailable.";
         if (FreeCarryCapacity(actor) <= 0) return "Make carrying space to collect a planting seed.";
+        if (RecoverablePersonalGoods(actor, kind).Any() || SharedItem(kind, actor) is not null)
+            return "No route can bring a seed to the planting site with the current load; make carrying space or use another reachable seed.";
         return $"Carry an available {kind.Replace('_', ' ')} or leave one in permitted reachable stock; reserved and foreign seeds cannot be used.";
     }
 }

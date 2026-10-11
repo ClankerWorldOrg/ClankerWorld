@@ -41,6 +41,11 @@ public sealed partial class PrivateWorldRuntime
         AppendEvent("spoiled_milk_emptied", actor + ":" + jug.Id);
         return true;
     }
+    private bool CanStockMilkJug(string actor, InventoryLot jug, GridPoint destination) =>
+        PersonalEquipmentRules.IsCarried(jug, actor)
+            ? FindUnoccupiedRoute(actor, inhabitants[actor].Position, destination, 0).Count > 0
+            : VesselFits(jug, PickupCarryCapacity(actor, jug, destination));
+
     private IEnumerable<MilkStockChoice> MilkStockChoices(string actor)
     {
         if (!AdultResident(actor) || HouseholdFor(actor) is not { } home) yield break;
@@ -52,9 +57,8 @@ public sealed partial class PrivateWorldRuntime
                      CanRemoveWorkstationStock(inventory, jug, 1)).OrderBy(jug => jug.Id, StringComparer.Ordinal))
         {
             if (MilkSaleSite(actor, inventory.Lots.First(lot => lot.ContainerLotId == jug.Id && lot.ItemKind == "milk"), out _, out _)) continue;
-            if (!PersonalEquipmentRules.IsCarried(jug, actor) && !VesselFits(jug, FreeCarryCapacity(actor))) continue;
             if (HouseholdBuildingWithTag(home, "store") is { } store && jug.StorageBuildingId != store.InstanceId &&
-                VesselFits(jug, DestinationRoom(inventory, store.InstanceId)))
+                VesselFits(jug, DestinationRoom(inventory, store.InstanceId)) && CanStockMilkJug(actor, jug, store.Position))
                 yield return new(jug, store.InstanceId, store.Position);
             foreach (var town in towns)
                 foreach (var market in town.Markets.Where(market => market.RemovedTick is null))
@@ -64,7 +68,8 @@ public sealed partial class PrivateWorldRuntime
                         var stall = market.Stalls.Single(stall => stall.BuildingId == occupancy.StallBuildingId);
                         var position = MarketContent.StallSite(market.Site, stall.SlotIndex);
                         if (!MarketTradeRules.IsAt(jug, position) &&
-                            ContainerFamilyQuantity(inventory, jug.Id) <= MarketTradeRules.StallCapacity - MarketStockQuantity(market, stall))
+                            ContainerFamilyQuantity(inventory, jug.Id) <= MarketTradeRules.StallCapacity - MarketStockQuantity(market, stall) &&
+                            CanStockMilkJug(actor, jug, position))
                             yield return new(jug, stall.BuildingId, position, town, market, occupancy);
                     }
         }

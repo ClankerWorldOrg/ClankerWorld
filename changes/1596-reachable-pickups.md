@@ -1,0 +1,1 @@
+- Agents check whether goods can reach their destination before collecting milk jugs, animal-yard water, planting seeds, medicine, repair supplies, cart materials or food for a child. Swimming pickups keep within the load limit, and unreachable milk stock is no longer offered.

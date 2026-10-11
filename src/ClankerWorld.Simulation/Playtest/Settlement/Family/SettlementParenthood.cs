@@ -388,10 +388,10 @@ public sealed partial class PrivateWorldRuntime
         if (child.HungerBasisPoints < 7_000 && PreferredFood(actor, actor).FirstOrDefault() is null)
         {
             if (NeedsUrgentFood(parent)) return;
-            if (AvailableHouseholdServing(actor, parent.Position) is { } sharedFood)
+            if (AvailableHouseholdServing(actor, parent.Position, returnTo: child.Position, returnRange: ResourceInteractionRange) is { } sharedFood)
             {
                 TryCollectHouseholdServing(actor, parent, sharedFood, $"care-food:{WorldTick}:{actor}",
-                    "caregiver_food", "care_food");
+                    "caregiver_food", "care_food", child.Position, ResourceInteractionRange);
             }
             else
             {

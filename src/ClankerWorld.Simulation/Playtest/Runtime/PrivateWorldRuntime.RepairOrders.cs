@@ -64,7 +64,7 @@ public sealed partial class PrivateWorldRuntime
         if (targets.All(lot => PersonalEquipmentRules.RepairMaterials(lot.ItemKind).Any(input =>
                 !HasCarriedOwnItem(actor, input.ResourceId) && SharedItem(input.ResourceId, actor) is null)))
             return "The repair needs available materials in the agent's hands or household stock.";
-        return "No open walking route reaches the repair site right now.";
+        return "The agent and repair materials need an open route to the work site; make carrying space if the trip needs swimming.";
     }
 
     private void CancelRepairForOrder(OwnerQueuedInstruction instruction)

@@ -169,12 +169,13 @@ public sealed partial class PrivateWorldRuntime
         PlaytestInhabitantState person)
     {
         var inventory = society.Checkpoint.Inventory;
-        if (HandcartToBuild(actor) is { } craftRecipe)
+        if (HandcartToBuild(actor) is { } craftRecipe && HouseholdFor(actor) is { } home &&
+            HouseholdBuildingWithTag(home, "blacksmith") is { } smith)
         {
             foreach (var input in craftRecipe.Inputs)
             {
                 if (CarriedMaterialQuantity(actor, input.ResourceId) < input.Amount && FreeCarryCapacity(actor) > 0 &&
-                    SharedItem(input.ResourceId, actor) is not null)
+                    SharedItem(input.ResourceId, actor, smith.Position) is not null)
                     candidates.Add(new(CollectCartMaterialPrefix + input.ResourceId,
                         $"Collect nearby {input.ResourceId.Replace('_', ' ')} and carry it to build a handcart at your household Blacksmith.", 25));
             }
@@ -252,13 +253,15 @@ public sealed partial class PrivateWorldRuntime
         {
             var kind = candidateId[CollectCartMaterialPrefix.Length..];
             var input = HandcartToBuild(actor)?.Inputs.FirstOrDefault(item => item.ResourceId == kind);
-            if (input is null || input.Value.Amount <= 0 || SharedItem(kind, actor) is not { } stock) return true;
+            if (input is null || input.Value.Amount <= 0 || HouseholdFor(actor) is not { } home ||
+                HouseholdBuildingWithTag(home, "blacksmith") is not { } smith ||
+                SharedItem(kind, actor, smith.Position) is not { } stock) return true;
             var source = HouseholdStockPosition(stock);
             if (!IsWithinInteractionRange(person.Position, source, HouseholdStockInteractionRange(stock)))
             { MoveToward(actor, person, source, "handcart_material", HouseholdStockInteractionRange(stock)); return true; }
             if (RecheckGoods(SharedCollectionRequest(actor, stock.OwnerId, kind), stock.Id) is not { } match) return true;
             var quantity = Math.Min(input.Value.Amount - CarriedMaterialQuantity(actor, kind),
-                match.Quantity);
+                Math.Min(match.Quantity, PickupCarryCapacity(actor, stock, smith.Position)));
             if (quantity <= 0) return true;
             ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, $"cart-material:{WorldTick}:{actor}",
                 stock.OwnerId, actor, stock.Id, quantity, "handcart_material_collected"));
