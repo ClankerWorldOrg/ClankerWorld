@@ -59,6 +59,38 @@ byte for byte, without normalization. All rows have zero fallbacks and exact
 final strict reload. Each dense row admits 122 decisions; each small row admits
 10.
 
+## Fresh-process repeats
+
+A separate baseline process ran before a fresh candidate process on the same
+unchanged source inputs. All four allocation totals decrease. Timing remains
+mixed, including increased small personal median and p95.
+
+| Fixture label | Provider | Baseline ms | Lazy footprint ms | Allocation change |
+| --- | --- | --- | --- | --- |
+| 4-96 | Built-in | 80.7 / 246.7 | 80.7 / 252.1 | -4.73% |
+| 4-96 | Personal | 64.6 / 77.8 | 66.0 / 84.2 | -4.62% |
+| 16-192 | Built-in | 341.9 / 508.9 | 355.8 / 518.5 | -5.48% |
+| 16-192 | Personal | 341.6 / 495.9 | 351.7 / 481.3 | -5.48% |
+
+All 16 complete repeated capture files match byte for byte, with zero fallbacks
+and exact final strict reload. Ordinary and repeated runs cover 1,280 measured
+native ticks across both versions; all ten pairs allocate less.
+
+## State changes and native parity
+
+The unchanged mutation probe covers control, resident movement, shared and
+reserved stock, depleted resources, household land, a removed Road and native
+Workshop removal through both provider paths. All 16 scenario/provider pairs
+match full request/candidate and final checkpoint bytes: 32 files. Each version
+also passes 16 refused-tick preservation checks and 16 paired reload
+continuations, with the affected resident actually queried. These controlled
+mutations do not imply that every scenario changes a candidate.
+
+The standard native comparison matches all 68 generated/legacy frames across
+two seeds: complete checkpoints, ordered events and observation digests, with no
+normalization. The normal Release solution build has zero warnings/errors;
+22 focused layout/border/runtime checks and five documentation checks pass.
+
 ## Reproduce and retained evidence
 
 Use the unchanged published probe on two checkouts and one checkpoint directory:
@@ -74,6 +106,10 @@ DOTNET_PROCESSOR_COUNT=4 bash docs/development/construction-input-query-probe/ru
 python docs/development/construction-input-query-probe/compare-captures.py OUTPUT/baseline OUTPUT/candidate ordinary ordinary
 ```
 
+[Immutable original samples and provenance](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777#issuecomment-6113547223)
+retain every ordinary/repeat timing and allocation total, including regressions.
+[Complete native capture comparison manifests](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777#issuecomment-6113571608)
+record ordinary, repeat and state-change equivalence.
 Original samples, complete captures, traces, probe sources and source/configuration
 hashes are retained outside Git under `.evidence/keep/998-ff19ed5a/`.
 Broader construction/layout/route/input cost remains in
