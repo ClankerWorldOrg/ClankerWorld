@@ -12,10 +12,12 @@ public sealed partial class PrivateWorldRuntime
     private const int PlantingSearchRadius = 10;
     private const string OrchardReplantingPrefix = "orchard-replant:";
 
+    private static string OrchardReplantingReservationId(string lotId) => DerivedId.Create(OrchardReplantingPrefix + lotId);
+
     private int PlantingSeedQuantity(InventoryLot lot) => lot.FreshnessBasisPoints <= 0 || lot.ConditionBasisPoints <= 0 ? 0 : AvailableLotQuantity(lot) +
         society.Checkpoint.Inventory.Reservations.Where(reservation => reservation.LotId == lot.Id &&
             reservation.OwnerId == lot.OwnerId && reservation.State is (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed) &&
-            reservation.ExpiryTick >= WorldTick && reservation.Id.StartsWith(OrchardReplantingPrefix, StringComparison.Ordinal))
+            reservation.ExpiryTick >= WorldTick && reservation.Id == OrchardReplantingReservationId(lot.Id))
         .Sum(reservation => reservation.Quantity);
 
     private InventoryLot? CarriedPlantingSeed(string actor, string kind) => society.Checkpoint.Inventory.Lots
@@ -144,7 +146,7 @@ public sealed partial class PrivateWorldRuntime
 
         if (species == TreeGrowthRules.Orchard)
             foreach (var reservation in society.Checkpoint.Inventory.Reservations.Where(item => item.LotId == seed.Id &&
-                         item.State is (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed) && item.Id.StartsWith(OrchardReplantingPrefix, StringComparison.Ordinal)).ToArray())
+                         item.State is (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed) && item.Id == OrchardReplantingReservationId(seed.Id)).ToArray())
                 ApplyInventoryTransition(inventory => InventoryFixture.ReleaseReservation(inventory, reservation.Id));
         society.Apply(checkpoint => SocietyFixture.ConsumeInventory(checkpoint,
             planterId, seed.Id, 1, "tree_planting"));

@@ -172,7 +172,7 @@ public sealed record OwnerQueuedInstruction(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerInstructionOrder? Order = null)
 {
     public const int MaximumTextLength = 512;
-    public const int MaximumIdentifierLength = 128;
+    public const int MaximumIdentifierLength = DerivedId.MaximumLength;
 }
 
 /// <summary>

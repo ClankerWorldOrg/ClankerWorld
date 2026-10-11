@@ -1,1 +1,0 @@
-- On the paired world: have a household cow waiting with milk and an adult carrying five stone with no carry aid or jug. Ask the adult to collect; both milk portions fit. Repeat with seven stone: collection waits for enough room for the entire batch. Save and reload to check quantities and ownership. ([#1215](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1215))

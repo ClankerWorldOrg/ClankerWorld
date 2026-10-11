@@ -1,1 +1,0 @@
-- On the paired world: have adults from different households barter the same fresh milk portion back and forth twenty times. Save and return after several exchanges; another ordinary offer should remain usable and can be accepted or refused without stopping the world. ([#1677](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1677))

@@ -9,7 +9,7 @@ public sealed partial class PrivateWorldRuntime
 {
     private sealed record AnimalAgreement(string Action, string AnimalId, string OtherId, string? LotId = null)
     {
-        public string Id => "animal:agreement:" + AnimalKey(System.Text.Json.JsonSerializer.Serialize(new[] { Action, AnimalId, OtherId, LotId }));
+        public string Id => AnimalAgreementId(Action, AnimalId, OtherId, LotId);
     }
 
     private IEnumerable<AnimalAgreement> AnimalAgreements(string actor)
@@ -123,7 +123,7 @@ public sealed partial class PrivateWorldRuntime
         {
             var home = HouseholdFor(agreement.OtherId)!;
             var payment = agreement.LotId is null ? null : society.Checkpoint.Inventory.GetLot(agreement.LotId);
-            var offer = new AnimalTradeOffer("animal-offer-" + AnimalKey(actor + ":" + animal.Id + ":" + WorldTick + ":" + nextEventId),
+            var offer = new AnimalTradeOffer(AnimalOfferId(actor, animal.Id, WorldTick, nextEventId),
                 animal.Id, actor, agreement.OtherId, home, AnimalYard(home)!.InstanceId, payment?.ItemKind, payment is null ? 0 : 1, WorldTick)
             { PaymentLotId = payment?.Id };
             animalWorld = animalWorld with { Offers = animalWorld.Offers.Append(offer).OrderBy(offer => offer.Id, StringComparer.Ordinal).ToArray() };
@@ -135,7 +135,7 @@ public sealed partial class PrivateWorldRuntime
             if (agreement.Action == "accept")
             {
                 if (offer.PaymentLotId is { } payment)
-                    ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, offer.Id + "-payment", actor,
+                    ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, DerivedId.Create(offer.Id + "-payment"), actor,
                         animal.HouseholdId!, payment, offer.PaymentQuantity, "animal_sale_payment",
                         destinationGroundPosition: new(animal.Position.X, animal.Position.Y)));
                 if (animal.SaddleReservationId is { } saddleHeld)
@@ -144,7 +144,7 @@ public sealed partial class PrivateWorldRuntime
                 {
                     HouseholdId = offer.ReceivingHouseholdId,
                     YardId = offer.ReceivingYardId,
-                    HerdId = "household:" + offer.ReceivingHouseholdId,
+                    HerdId = AnimalHerdId(offer.ReceivingHouseholdId),
                     CarePermissions = [],
                     RidingPermissions = [],
                     SaddleLotId = null,

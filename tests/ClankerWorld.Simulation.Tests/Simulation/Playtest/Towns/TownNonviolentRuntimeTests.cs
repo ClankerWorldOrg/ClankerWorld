@@ -17,7 +17,7 @@ public sealed class TownNonviolentRuntimeTests
         // Keep the fixture's canonical roster order while extending this opaque actor ID.
         var subject = NonviolentRuntimeFixture.Subject + ":child:" + new string('a', 250);
         var state = await NonviolentRuntimeFixture.ReadyToFindAsync(subject);
-        Assert.True(Assert.Single(state.Towns![0].Nonviolent.ConductRecords).Id.Length > 256);
+        Assert.InRange(Assert.Single(state.Towns![0].Nonviolent.ConductRecords).Id.Length, 1, DerivedId.MaximumLength);
         var provider = new NonviolentTestProvider
         {
             Choose = observation => observation.InhabitantId == NonviolentRuntimeFixture.Judge
@@ -39,7 +39,11 @@ public sealed class TownNonviolentRuntimeTests
         var finding = Assert.Single(item.Findings);
         Assert.Equal("supported", finding.Result);
         Assert.Equal("warning", finding.Consequence);
-        Assert.Contains(finding.EvidenceIds, id => id.Length > 256 && item.Evidence.Any(evidence => evidence.Id == id));
+        Assert.All(finding.EvidenceIds, id =>
+        {
+            Assert.InRange(id.Length, 1, DerivedId.MaximumLength);
+            Assert.Contains(item.Evidence, evidence => evidence.Id == id);
+        });
         var found = NonviolentRuntimeFixture.Strict(world.ExportState());
         var household = found.Society.Society.GetInhabitant(subject).HouseholdId!;
         var lotId = "personal-stone:" + subject;

@@ -12,7 +12,8 @@ public sealed partial class PrivateWorldRuntime
             throw new InvalidDataException("The current checkpoint requires complete animal state.");
         if (!world.Seeded && (world.Animals.Count != 0 || world.Offers.Count != 0 || world.SupplyTrips.Count != 0))
             throw new InvalidDataException("An unseeded animal world cannot contain animal history or custody.");
-        static bool Identifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 512 && !value.Any(char.IsControl);
+        static bool Name(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 512 && !value.Any(char.IsControl);
+        static bool Identifier(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= DerivedId.MaximumLength && !value.Any(char.IsControl);
         static bool InventoryReference(string? value) => !string.IsNullOrWhiteSpace(value) && !value.Any(char.IsControl);
         var society = state.Society.Society;
         var people = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
@@ -39,7 +40,7 @@ public sealed partial class PrivateWorldRuntime
         var map = TravelMap(state);
         foreach (var animal in world.Animals)
         {
-            if (!Identifier(animal.Name) || !Identifier(animal.HerdId) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
+            if (!Name(animal.Name) || !Identifier(animal.HerdId) || !AnimalRules.Species.Any(species => species.Id == animal.Species) ||
                 animal.Sex is not ("female" or "male") || animal.CarePermissions is null || animal.RidingPermissions is null)
                 throw new InvalidDataException("An animal has invalid species, sex, name or permissions.");
             var definition = AnimalRules.Definition(animal.Species);

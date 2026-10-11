@@ -29,11 +29,12 @@ public sealed partial class BusinessTradeTests
             var quantity = inventory.GetLot(paymentId).Quantity - 1;
             var moveId = $"personal:{buyer}:{index}:{paymentId}";
             inventory = InventoryFixture.Relocate(inventory, moveId, paymentId, buyer, quantity, carrierId: buyer);
-            paymentId += "#move:" + moveId;
+            paymentId = DerivedId.Create(paymentId + "#move:" + moveId);
             if (index < partialMoves)
                 inventory = InventoryFixture.Relocate(inventory, "history-return-" + index, paymentId, buyer, quantity,
                     storageBuildingId: house.InstanceId);
         }
+        Assert.InRange(paymentId.Length, 1, DerivedId.MaximumLength);
         var paymentBefore = inventory.GetLot(paymentId).Quantity;
         state = state with
         {

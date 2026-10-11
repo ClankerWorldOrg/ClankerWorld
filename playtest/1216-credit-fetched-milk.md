@@ -1,1 +1,0 @@
-- With a cow's milk ready, order an adult standing beside it to collect with no jug. The adult receives two milk portions and the order finishes once. Save and reload; its completed progress remains. Try again with an unrelated water jug already carried or stored at the Yard; it stays where it was. ([#1216](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1216))

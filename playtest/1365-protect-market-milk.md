@@ -1,1 +1,0 @@
-- On the paired world: deposit spare household milk at a borrowed Market stall while the household holds a Store. Ask a housemate to restock; milk stays at the active stall. Have the seller leave, then restock: the available milk can move to the Store without duplicate portions or receipts. ([#1365](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1365))

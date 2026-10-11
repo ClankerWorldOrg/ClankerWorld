@@ -18,7 +18,7 @@ public sealed partial class PrivateWorldRuntime
                 !packages.Any(package => package.Manifest.PackageId == id && package.Lifecycle == ContentPackageLifecycle.Active))) return;
         StageBuiltInContent(AnimalContent.PackageId, RestaurantContent.PackageId, AnimalContent.Create, "animal_content_staged");
     }
-    private static string AnimalKey(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)))[..24];
+    private static string AnimalKey(string value) => DerivedId.Hash(value, hexadecimalCharacters: 24);
     private AnimalState? Animal(string id) => animalWorld.Animals.FirstOrDefault(item => item.Id == id);
     private void SetAnimal(AnimalState animal) => animalWorld = animalWorld with
     {
@@ -100,7 +100,7 @@ public sealed partial class PrivateWorldRuntime
                 ClearAnimalProduct(animal, discard: true);
                 if (animal.Species != "chicken")
                     ApplyInventoryTransition(inventory => InventoryFixture.AddLot(inventory,
-                        "animal-hide-" + AnimalKey(animal.Id), "hide", animal.HouseholdId ?? animal.Id, 1, tick,
+                        AnimalHideId(animal.Id), "hide", animal.HouseholdId ?? animal.Id, 1, tick,
                         groundPosition: new(animal.Position.X, animal.Position.Y)));
                 SetAnimal(animal with
                 {
@@ -143,8 +143,8 @@ public sealed partial class PrivateWorldRuntime
                 var progress = animal.ProductProgressTicks + 1;
                 if (progress >= definition.ProductDays * AnimalDayTicks)
                 {
-                    var productId = "animal-product-" + AnimalKey(animal.Id + ":" + tick);
-                    var reservationId = productId + "-held";
+                    var productId = AnimalProductId(animal.Id, tick);
+                    var reservationId = AnimalProductReservationId(productId);
                     ApplyInventoryTransition(inventory => InventoryFixture.Reserve(InventoryFixture.AddLot(inventory,
                         productId, definition.Product!, animal.HouseholdId, definition.ProductQuantity, tick,
                         groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
@@ -166,7 +166,7 @@ public sealed partial class PrivateWorldRuntime
                         !animalWorld.Animals.Any(item => item.DiedTick is null && item.Position == tile)).Cast<GridPoint?>().FirstOrDefault()
                         : FreeAnimalYardTile(yard, near: animal.Position);
                     if (position is null) continue;
-                    var childId = "animal-born-" + AnimalKey(animal.Id + ":" + pregnancy.StartedTick);
+                    var childId = AnimalBornId(animal.Id, pregnancy.StartedTick);
                     SetAnimal(new(childId, definition.Id + " " + childId[^4..], definition.Id,
                         AnimalKey(childId)[0] % 2 == 0 ? "female" : "male", tick, position.Value, animal.HerdId,
                         animal.HouseholdId, animal.YardId));

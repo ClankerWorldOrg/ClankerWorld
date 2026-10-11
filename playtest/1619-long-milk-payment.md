@@ -1,1 +1,0 @@
-- Let a buyer offer wood for Store milk after several partial collections and returns of that wood. Save and reload while the offer is pending, then let the seller accept or refuse. Acceptance exchanges exactly one milk and the quoted wood; refusal exchanges nothing. ([#1619](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1619))

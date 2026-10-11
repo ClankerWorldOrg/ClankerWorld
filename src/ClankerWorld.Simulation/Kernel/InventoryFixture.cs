@@ -438,7 +438,7 @@ public static partial class InventoryFixture
         ArgumentException.ThrowIfNullOrWhiteSpace(recipientId);
         ArgumentException.ThrowIfNullOrWhiteSpace(purpose);
         if (senderId == recipientId || quantity <= 0 ||
-            checkpoint.Lots.Any(lot => string.Equals(lot.Id, $"{lotId}#transfer:{transferId}", StringComparison.Ordinal)))
+            checkpoint.Lots.Any(lot => string.Equals(lot.Id, DerivedId.Create($"{lotId}#transfer:{transferId}"), StringComparison.Ordinal)))
         {
             throw new InvalidOperationException("A transfer requires distinct parties, a positive quantity, and a unique ID.");
         }
@@ -492,7 +492,7 @@ public static partial class InventoryFixture
                     : lot)
                 .Append(source with
                 {
-                    Id = $"{source.Id}#transfer:{transferId}",
+                    Id = DerivedId.Create($"{source.Id}#transfer:{transferId}"),
                     OwnerId = recipientId,
                     CarrierId = null,
                     Quantity = quantity,
@@ -547,7 +547,7 @@ public static partial class InventoryFixture
         }
         else
         {
-            var splitId = $"{source.Id}#contained:{container.Id}:{operationId}";
+            var splitId = DerivedId.Create($"{source.Id}#contained:{container.Id}:{operationId}");
             if (checkpoint.Lots.Any(lot => lot.Id == splitId))
                 throw new InvalidOperationException("The container placement ID is already in use.");
             lots = checkpoint.Lots.Select(lot => lot.Id == source.Id
@@ -620,7 +620,7 @@ public static partial class InventoryFixture
         }
         else
         {
-            var splitId = $"{source.Id}#taken:{operationId}";
+            var splitId = DerivedId.Create($"{source.Id}#taken:{operationId}");
             if (checkpoint.Lots.Any(lot => lot.Id == splitId))
                 throw new InvalidOperationException("The container take ID is already in use.");
             lots = checkpoint.Lots.Select(lot => lot.Id == source.Id
@@ -653,7 +653,7 @@ public static partial class InventoryFixture
         ValidateCheckpoint(checkpoint);
         ArgumentException.ThrowIfNullOrWhiteSpace(moveId);
         var source = checkpoint.GetLot(lotId);
-        var movedId = $"{lotId}#move:{moveId}";
+        var movedId = DerivedId.Create($"{lotId}#move:{moveId}");
         // An owner carrying their own goods is recorded without a separate carrier.
         if (carrierId == ownerId && storageBuildingId is null && groundPosition is null) carrierId = null;
         if (source.OwnerId != ownerId || quantity <= 0 || quantity > source.Quantity ||
@@ -782,10 +782,10 @@ public static partial class InventoryFixture
         EnsureOwnerAndAvailableQuantity(checkpoint, firstLot, proposal.FirstPartyId, proposal.FirstQuantity);
         EnsureOwnerAndAvailableQuantity(checkpoint, secondLot, proposal.SecondPartyId, proposal.SecondQuantity);
         var firstReservation = new InventoryReservation(
-            $"{proposal.Id}:first", proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
+            DerivedId.Create($"{proposal.Id}:first"), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved);
         var secondReservation = new InventoryReservation(
-            $"{proposal.Id}:second", proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
+            DerivedId.Create($"{proposal.Id}:second"), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved);
         if (checkpoint.Reservations.Any(reservation =>
             string.Equals(reservation.Id, firstReservation.Id, StringComparison.Ordinal) ||
@@ -851,7 +851,7 @@ public static partial class InventoryFixture
             throw new InvalidOperationException("Only a party to the exact open offer may decline or withdraw it.");
         }
         var reservations = checkpoint.Reservations.Select(reservation =>
-            reservation.Id == offer.Id + ":first" || reservation.Id == offer.Id + ":second"
+            reservation.Id == DerivedId.Create(offer.Id + ":first") || reservation.Id == DerivedId.Create(offer.Id + ":second")
                 ? reservation with { State = InventoryReservationState.Released }
                 : reservation).ToArray();
         return Commit(checkpoint, reservations: reservations,
@@ -862,8 +862,8 @@ public static partial class InventoryFixture
 
     private static InventoryCheckpoint Settle(InventoryCheckpoint checkpoint, DirectBarterOffer offer)
     {
-        var firstReservation = checkpoint.GetReservation($"{offer.Id}:first");
-        var secondReservation = checkpoint.GetReservation($"{offer.Id}:second");
+        var firstReservation = checkpoint.GetReservation(DerivedId.Create($"{offer.Id}:first"));
+        var secondReservation = checkpoint.GetReservation(DerivedId.Create($"{offer.Id}:second"));
         if (firstReservation.State != InventoryReservationState.Reserved ||
             secondReservation.State != InventoryReservationState.Reserved ||
             checkpoint.WorldTick > offer.ExpiryTick)
@@ -904,7 +904,7 @@ public static partial class InventoryFixture
                 .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         }
 
-        var transferId = $"{source.Id}#barter:{offerId}";
+        var transferId = DerivedId.Create($"{source.Id}#barter:{offerId}");
         if (lots.Any(lot => lot.Id == transferId))
         {
             throw new InvalidOperationException("The barter transfer lot ID is already in use.");

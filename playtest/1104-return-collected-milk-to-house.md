@@ -1,1 +1,0 @@
-- On the paired world: collect a cow's milk, then order the carrying adult to "return two borrowed milk" while that household has a Store with space. With room in the House, both portions return to the owning House, keep household ownership and finish two portions of progress. ([#1104](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1104))

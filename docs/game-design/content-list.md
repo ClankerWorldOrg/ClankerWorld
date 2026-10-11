@@ -147,7 +147,7 @@ permissions are recorded there.
 | 5.4 | Agreed | Simple cooked meal | House-cooked potatoes, wild greens or cultivated greens with wood fuel; one specific meal item with a generic icon. |
 | 5.5 | Agreed | Porridge; bread; vegetable stew | Grain/water/fuel porridge; flour/water/fuel bread; potato/cultivated-greens/water/fuel stew. House or Restaurant; quantities and nutrition are provisional in the [approved pipelines](towns.md#item-and-resource-pipelines). |
 | 5.6 | Agreed | Restaurant meal | Bread, cultivated greens and wood fuel at the Restaurant give better nourishment and variety; sold from actual on-site stock. |
-| 5.7 | Agreed | Milk; eggs | Physical cow/chicken products under the [approved animal pipeline](towns.md#animal-pipeline): milk in reusable jugs, cooked egg portions, milk porridge and rich Restaurant meals. No meat or hunting. |
+| 5.7 | Agreed | Milk; eggs | Physical cow/chicken products under the [approved animal pipeline](towns.md#animal-pipeline): milk stored like any other good, with no jug (agreed on October 11), cooked egg portions, milk porridge and rich Restaurant meals. No meat or hunting. |
 | 5.8 | Agreed | Bandage; medicine | Cut cloth into bandages at a House/Tailor Shop; Clinic turns medicinal herbs, water and fuel into medicine. **October 2 staging:** make, store and trade bandages now; injury causes and bandage treatment wait for the injury stage. Medicine supports gradual illness recovery with physically present supplies, without instant full-health restoration. |
 | 5.9 | Agreed | Medicinal herbs | Gather from a wild herb patch, carry to a Clinic and make medicine. |
 

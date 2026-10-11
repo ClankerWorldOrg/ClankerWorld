@@ -1,1 +1,0 @@
-- Watch a hungry adult carrying milk assigned to its House. The assigned portions remain intact until delivered. Save and reload during the trip; the milk keeps its destination. Unassigned personal milk still restores fullness when drunk. ([#1337](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1337))

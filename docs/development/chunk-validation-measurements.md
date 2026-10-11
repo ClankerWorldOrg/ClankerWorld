@@ -18,9 +18,12 @@ whole-game tick speedup.
 
 Baseline main is `a0cf9070c45f9f973f0923a6d39d0673af41a86c`. Of 355 recorded
 simulation, host and build inputs, only `WorldSystemsContracts.cs` changes.
-[Raw samples, input hashes and full-byte comparison results](chunk-validation-probe/samples.json)
-and [the exact disposable probe](chunk-validation-probe/probe.cs.txt) accompany
-this report. The probe is separate from the committed regression tests.
+[The exact disposable probe](chunk-validation-probe/probe.cs.txt) accompanies
+this report. The data file of raw samples, input hashes and full-byte
+comparison results is in git history at commit `4a67259d` as
+`docs/development/chunk-validation-probe/samples.json`, and the command under
+Repeat the comparison reruns the measurement. The probe is separate from the
+committed regression tests.
 After measurement, normal-analyzer verification required the out-of-range
 exception to name the method's `state` parameter. This changes only the error
 parameter name for an invalid resource bound; valid measured work is unchanged.

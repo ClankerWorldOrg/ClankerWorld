@@ -32,7 +32,9 @@ admission; neither contacts a hosted model.
 Measurements ran alone on shared Debian 13, four effective processors/cgroup
 cores, SDK 10.0.401 and runtime 10.0.12. They do not establish Windows, Godot
 rendering or remote-model performance. Source/probe/input digests, raw timing
-samples and comparison results are in [the data file](warehouse-query-probe/samples.json).
+samples and comparison results are in the data file. It is in git history at
+commit `b359b9d2` as `docs/development/warehouse-query-probe/samples.json`, and
+the portable commands named under Repeat rerun the measurement.
 
 ## Ordinary native timings
 
@@ -89,7 +91,7 @@ No list survives a query, tick, movement, membership/content change or reload.
 Physical collection and project execution retain current-state validation.
 
 No saved field, event format, schema version or migration changes. This repair
-needs independent review and a [paired Windows/F12 check](../../playtest/998-warehouse-query-costs.md).
+needs independent review and a [paired Windows/F12 check](../../playtest/alpha-1.md).
 After it merges, profile current main before choosing the next #998 repair.
 
 ## Repeat
