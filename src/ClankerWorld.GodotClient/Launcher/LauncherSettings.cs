@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using ClankerWorld.GodotClient.Networking;
 
 namespace ClankerWorld.GodotClient.Launcher;
 
@@ -128,7 +129,7 @@ public static class GameStarter
     {
         if (!settings.DeveloperMode) throw new GameInstallException("Turn on Developer mode to run a local build.");
         var directory = Path.GetDirectoryName(Path.GetFullPath(executable))!;
-        if (!File.Exists(executable) || !File.Exists(Path.Combine(directory, "host", "ClankerWorld.Viewer.exe")))
+        if (!File.Exists(executable) || !File.Exists(Path.Combine(directory, LocalHostLayout.HostFolderName, LocalHostLayout.WindowsHostFileName)))
             throw new GameInstallException("Choose a locally built portable game with its host folder. Your saves are safe.");
         return Start(executable, launcherExecutable, settings, layout);
     }

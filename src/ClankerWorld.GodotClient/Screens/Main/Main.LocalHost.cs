@@ -28,8 +28,11 @@ public partial class Main
         var layout = LocalHostLayout.FindBundled(OS.GetExecutablePath(),
             System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData));
         if (layout is null) return null;
-        layout = layout with { DataDirectory = GameStarter.DataDirectory(
-            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), OS.GetCmdlineUserArgs()) };
+        layout = layout with
+        {
+            DataDirectory = GameStarter.DataDirectory(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), OS.GetCmdlineUserArgs())
+        };
         return new LocalHostCompanion(layout, httpClient, detailedLogs: GameStarter.UsesDetailedLogs(OS.GetCmdlineUserArgs()));
     }
 

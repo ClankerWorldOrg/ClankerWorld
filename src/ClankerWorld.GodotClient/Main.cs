@@ -265,11 +265,6 @@ public partial class Main : Control
 
     public override void _Ready()
     {
-        if (OS.GetCmdlineUserArgs().Contains("--launcher-options-smoke-test", StringComparer.Ordinal))
-        {
-            VerifyDeveloperRunOptions();
-            return;
-        }
         // Developer command: rewrite the Windows program icon from the logo art.
         if (OS.HasFeature("editor") && OS.GetCmdlineUserArgs().Contains("--write-app-icon", StringComparer.Ordinal))
         {
@@ -294,6 +289,11 @@ public partial class Main : Control
         ApplyUiScale();
         GetWindow().SizeChanged += RefreshRenderSize;
         ShowMainMenu();
+        if (OS.GetCmdlineUserArgs().Contains("--launcher-options-smoke-test", StringComparer.Ordinal))
+        {
+            VerifyDeveloperRunOptions();
+            return;
+        }
         if (OS.GetCmdlineUserArgs().Contains("--measure-map-draw", StringComparer.Ordinal))
         {
             _ = MeasureMapDrawAsync();

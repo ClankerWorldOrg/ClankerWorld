@@ -92,6 +92,8 @@ public partial class Launcher : Control
         RefreshInstalled();
         if (smokeTest)
         {
+            GetTree().Root.ContentScaleSize = new Vector2I(960, 640);
+            GetWindow().Size = new Vector2I(960, 640);
             _ = RunSmokeTestAsync();
             return;
         }
@@ -291,6 +293,8 @@ public partial class Launcher : Control
         };
         chooser.FileSelected += path =>
         {
+            chooser.Hide();
+            chooser.QueueFree();
             if (busy || !settings.DeveloperMode) return;
             try
             {
@@ -708,6 +712,7 @@ public partial class Launcher : Control
             Expect(status.Text == "An operation is already running.", "Repair cannot start during another operation");
             confirmation.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
             Expect(Directory.Exists(testDirectory), "An earlier Remove confirmation cannot race an operation");
+            confirmation.Hide();
             confirmation.QueueFree();
             SetBusy(false);
             Expect(versionActions.All(button => !button.Disabled), "Version actions are enabled again after an operation");
@@ -720,11 +725,14 @@ public partial class Launcher : Control
             testData.ButtonPressed = false;
             Expect(LauncherSettings.Load(layout) is { UseTestData: false, DetailedLogs: true }, "Developer run options are remembered");
             testData.ButtonPressed = true;
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            Expect(settingsPage.GetGlobalRect().Position.Y >= 0 && settingsPage.GetGlobalRect().End.Y <= GetViewportRect().End.Y,
+                "The Developer settings fit inside the launcher window");
             ChooseLocalBuild();
             var chooser = GetChildren().OfType<FileDialog>().Single();
             chooser.EmitSignal(FileDialog.SignalName.FileSelected, Path.Combine(layout.Root, "missing-game.exe"));
             Expect(status.Text.Contains("locally built portable game", StringComparison.Ordinal), "An incomplete local build is visibly refused");
-            chooser.QueueFree();
             Expect(availableRows.GetChildCount() == 3, "Developer mode lists the nightly build");
             Expect(playButton.Text == "Install and Play 0.1.0-alpha.1", "Developer mode keeps the chosen version");
             developerMode.ButtonPressed = false;
