@@ -2,15 +2,21 @@
 title: Warehouse query measurements
 type: performance-report
 status: complete
-updated: 2026-10-07
+updated: 2026-10-11
 ---
 
 # Warehouse query measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 This is a bounded follow-up to [#998](https://github.com/compoodment/ClankerWorld/issues/998).
 It removes repeated Warehouse discovery during recipe and expansion planning.
 It preserves the candidate set, ranks, admissions and resulting world. The
-broader layout, route and input-query cost remains open; the experiment's
+broader layout, route and input-query cost was still open at measurement time; the experiment's
 rough 50/200 ms guidance is still unmet and is not a gameplay promise.
 
 ## Source and workload
@@ -92,7 +98,8 @@ Physical collection and project execution retain current-state validation.
 
 No saved field, event format, schema version or migration changes. This repair
 needs independent review and a [paired Windows/F12 check](../../playtest/alpha-1.md).
-After it merges, profile current main before choosing the next #998 repair.
+At the time of this repair, the next step was to profile current main before choosing
+another #998 repair.
 
 ## Repeat
 

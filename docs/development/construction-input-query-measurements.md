@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Construction input query measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Project-input checks now reject an unrelated resource kind before looking up
 its current availability by ID. Wood still accepts construction sources.
 Matching sources retain their current ecology quantity, ownership, stock,
@@ -15,7 +21,7 @@ cache, field, event or schema version.
 
 This bounded repair follows a fresh measured-phase profile of main
 `0c68c3dc427f90a836c953d63213498c1e53b86f`, schema 122. Wider construction,
-layout and route costs remain in
+layout and route costs were tracked in
 [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
 The [October 10 baseline](construction-current-main-baseline.md) remains
 historical evidence from the earlier author of this draft.

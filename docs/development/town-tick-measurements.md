@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Measuring Town tick time
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Use `scripts/measure-town-ticks.sh` to compare native private-world ticks on
 this checkout or a historical one. It reads `LastTickMilliseconds`, the same
 committed-tick readout shown in [Developer tools](how-it-works.md#developer-tools-readouts).
