@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
@@ -220,8 +222,10 @@ public sealed partial class PrivateWorldRuntime
             foreach (var (owner, subject) in new[] { (offer.FirstPartyId, offer.SecondPartyId), (offer.SecondPartyId, offer.FirstPartyId) })
             {
                 IncreaseTrust(owner, subject, 1, "barter_completed");
-                var memoryId = "settlement-trust:" + owner + ":" + subject;
-                if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
+                var memoryKey = "settlement-trust:" + owner + ":" + subject;
+                var memoryId = memoryKey.Length <= 128 ? memoryKey :
+                    "settlement-trust:sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)));
+                if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId || memory.Id == memoryKey))
                 {
                     society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new(memoryId, owner, subject,
                         $"Completed a mutually accepted exchange with {checkpoint.GetInhabitant(subject).Name}.", "public", WorldTick)

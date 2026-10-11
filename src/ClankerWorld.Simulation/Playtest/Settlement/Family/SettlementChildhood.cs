@@ -10,8 +10,7 @@ public sealed partial class PrivateWorldRuntime
 {
     private const int ChildSocialCooldownTicks = 120;
 
-    private bool ChildResident(string actor) => inhabitants.ContainsKey(actor) &&
-        society.Checkpoint.GetInhabitant(actor).AgeBand is SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
+    private bool ChildResident(string actor) => ResidentQueries.ChildResident(residentWorld, actor);
 
     // This is the final world-side gate, in addition to the legal candidate list
     // used by cognition admission. It also protects continuing intentions after

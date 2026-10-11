@@ -329,6 +329,13 @@ land-use proposals. Closed requests remain history without competing claims.
 Prepared-tick rollback and current-format reload preserve approval progress and
 commit the final grant once. Older alpha schemas are refused without migration.
 
+Land requests retain the complete canonical identities of their known requester
+and household, including native-born adults who form their own household and
+whose family identity is longer than a request key.
+Filing still requires an active adult or elder household member who resides in
+the Town. A filed request supplies no adult consent, Council vote or land-use
+grant. Request keys keep their 128-character limit; the saved shape is unchanged.
+
 Private-world schema 72 adds field orders and their optional `TargetCropKind`;
 schema 77 adds an optional exact tile below.
 `FarmFieldWork.OrderInstructionId` binds work to its actor's active field order.
@@ -1510,6 +1517,15 @@ migration.
 
 ## Private memory archives
 
+New personal barter cooperation memories keep the complete owner, subject,
+summary and source tick. Their `settlement-trust:` keys remain unchanged at
+128 characters or fewer; longer directional keys use a deterministic SHA-256
+digest under the same prefix. The two traders retain distinct memories through
+strict reload and paired continuation. This changes newly completed exchanges
+without a schema change or migration: existing oversized keys remain saved
+unchanged and excluded from bounded personal recall. A later exchange recognizes
+the original pair key and does not add a duplicate bounded-key memory.
+
 The once-per-world-day native rule moves eligible old, low-importance ordinary
 sources into `ArchivedMemories` and `ArchivedBeliefs`, retaining their complete
 record and `ArchivedTick`. Each live or archived source ID appears exactly once.
@@ -1681,6 +1697,12 @@ supported Town inheritance law effective at the death can change this default.
 Estate settlement waits for the pending will and commits once. An accepted will
 may divide lots between up to three heirs, including children or the deceased
 person's Town. Positive personal recipients alone receive its final words.
+New final-words memory keys retain `final-words:{estate}:{heir}` when it fits
+the 128-character recall boundary; longer keys use a stable SHA-256 key with
+the `final-words:` prefix. Saved owner and deceased-person references remain
+complete. Settlement replay produces the same key and private text once.
+No schema or record shape changes. Existing saved keys stay unchanged, and
+oversized or malformed existing keys remain excluded from recall.
 Personal inheritance changes ownership while retaining ground, House storage,
 a recorded departure allowance's Store location or a living carrier's custody;
 goods carried by the deceased are dropped at their last tile. Eligible Town shares move into the Town's current Warehouse, clearing

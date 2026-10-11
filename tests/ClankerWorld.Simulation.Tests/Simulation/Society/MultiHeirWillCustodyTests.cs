@@ -177,6 +177,7 @@ public sealed class MultiHeirWillCustodyTests
 
         Assert.All(settled.Inventory.Lots, lot => Assert.Equal("bob", lot.OwnerId));
         var memory = Assert.Single(settled.Memories, item => item.Id.StartsWith("final-words:", StringComparison.Ordinal));
+        Assert.Equal($"final-words:{Assert.Single(settled.Estates).Id}:bob", memory.Id);
         Assert.Equal(("bob", "alice", "private", "Alice's final words were: 'Share the harvest.'"),
             (memory.OwnerId, memory.SubjectId, memory.Visibility, memory.Summary));
         AssertRoundtrip(settled);
