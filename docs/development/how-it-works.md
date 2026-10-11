@@ -1458,6 +1458,13 @@ all on cooldown consumes no slot; distance and stable identity still order the
 eligible targets. The 120-tick per-action cooldown and age restrictions apply
 both when offering and when executing an action.
 
+Project assistance records gratitude with a key that fits recall's 128-character
+boundary. Oversized keys hash the complete requester/helper key with SHA-256,
+retaining the `project-gratitude:` prefix used by social standing and durable
+memory protection. Short keys, full saved owner/subject references, gratitude
+text, source time and material-help trust effects remain unchanged. Existing
+oversized records are retained without rewriting and remain excluded from recall.
+
 Exploration records personal knowledge; it does not create free inventory.
 Each completed outward or return scouting step observes its actual arrival tile;
 blocked steps do not observe the requested destination. An actual observation
