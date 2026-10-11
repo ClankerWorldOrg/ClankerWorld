@@ -115,6 +115,9 @@ public sealed partial class PrivateWorldRuntime
             .Where(lot => lot.ItemKind == itemKind && lot.DeliveryBuildingId == building.InstanceId)
             .Sum(AvailableLotQuantity);
 
+    private static GoodsRequest ExpansionMaterialRequest(string actor, string owner, string itemKind) =>
+        new(GoodsUse.ReachableHoldings, actor, GoodsOwners.One(owner), GoodsKinds.One(itemKind));
+
     private InventoryLot? ExpansionSharedMaterialSource(string actor, PlacedBuilding building, string itemKind)
     {
         var owner = ExpansionOwner(building);
@@ -123,12 +126,9 @@ public sealed partial class PrivateWorldRuntime
         // actor's own Town, or an empty Town's Warehouse anyone may recover.
         var warehouseStock = building.HouseholdId is not null
             ? AvailableWarehouseStock(actor, itemKind) : Enumerable.Empty<InventoryLot>();
-        return society.Checkpoint.Inventory.Lots
-            .Where(lot => lot.OwnerId == owner && lot.ItemKind == itemKind &&
-                lot.StorageBuildingId != building.InstanceId && lot.DeliveryBuildingId is null && lot.CarrierId is null &&
-                lot.GroundPosition != site && lot.ContainerLotId is null && AvailableLotQuantity(lot) > 0)
-            .OrderBy(lot => lot.Id, StringComparer.Ordinal)
-            .Where(lot => CanReachSharedItem(actor, lot))
+        return FindGoods(ExpansionMaterialRequest(actor, owner, itemKind)).Matches.Select(match => match.Lot)
+            .Where(lot => lot.StorageBuildingId != building.InstanceId && lot.CarrierId is null &&
+                lot.GroundPosition != site && lot.ContainerLotId is null)
             .Concat(warehouseStock)
             .Where(lot => !IsActiveTownProjectDelivery(lot.Id) && PickupCarryCapacity(actor, lot, building.Position) > 0)
             .FirstOrDefault();
@@ -408,7 +408,9 @@ public sealed partial class PrivateWorldRuntime
                     return;
                 }
 
-                var quantity = sharedPickup.Quantity;
+                if (RecheckGoods(ExpansionMaterialRequest(actor, shared.OwnerId, missing.ResourceId), shared.Id) is not { } available)
+                    return;
+                var quantity = Math.Min(sharedPickup.Quantity, available.Quantity);
                 if (quantity > 0)
                 {
                     ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
