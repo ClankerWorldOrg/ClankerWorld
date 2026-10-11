@@ -65,6 +65,15 @@ prevents repairs. Use this pattern only where advancing ticks preserves the
 intended cancellation boundary; orders that can already complete physical work
 must keep the world at that boundary while waiting for provider entry.
 
+Paired native host checkpoint fixtures must finish matching external inputs
+before advancing either continuation. Ordinary hosted decisions, life-moment
+identity replies, wills and conversation turns use separate task queues. Waiting
+only for ordinary decisions can compare a requested identity in one checkpoint
+with a kept identity in the other. The child household-change fixture awaits all
+four queues without advancing another tick, retaining complete checkpoint bytes,
+strict file reload, cargo and refused-arrival checks. Its controlled identity
+check holds a real provider request to verify that the fixture waits at this boundary.
+
 The held storage-cancellation check keeps the world at its first committed
 load while waiting for actual provider invocation, the validated operative
 request and the late reply. Its deferred-entry row holds provider preparation
