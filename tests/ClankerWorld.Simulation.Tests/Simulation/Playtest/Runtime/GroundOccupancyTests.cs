@@ -76,12 +76,20 @@ public sealed class GroundOccupancyTests
         };
         var current = new Dictionary<string, IEnumerable<GridPoint>>(StringComparer.Ordinal)
         {
-            ["resources"] = ground.Resources, ["camp"] = ground.CampObjects, ["fields"] = ground.Fields,
-            ["roads"] = ground.Roads, ["bridges"] = ground.BridgeEntrances, ["buildings"] = ground.BuildingFootprints,
-            ["original"] = ground.OriginalBuildingFootprints, ["protected"] = ground.ProtectedBuildingTiles(),
-            ["expansions"] = ground.ExpansionSites, ["projects"] = ground.ProjectFootprints(),
-            ["sites"] = ground.ProtectedProjectSites(), ["markets"] = ground.MarketSites,
-            ["slots"] = ground.MarketStallSlots, ["animals"] = ground.AnimalPositions(),
+            ["resources"] = ground.Resources,
+            ["camp"] = ground.CampObjects,
+            ["fields"] = ground.Fields,
+            ["roads"] = ground.Roads,
+            ["bridges"] = ground.BridgeEntrances,
+            ["buildings"] = ground.BuildingFootprints,
+            ["original"] = ground.OriginalBuildingFootprints,
+            ["protected"] = ground.ProtectedBuildingTiles(),
+            ["expansions"] = ground.ExpansionSites,
+            ["projects"] = ground.ProjectFootprints(),
+            ["sites"] = ground.ProtectedProjectSites(),
+            ["markets"] = ground.MarketSites,
+            ["slots"] = ground.MarketStallSlots,
+            ["animals"] = ground.AnimalPositions(),
         };
         foreach (var key in old.Keys) Assert.Equal(old[key].ToArray(), current[key].ToArray());
         // These are the pre-refactor recipes, including their deliberately different layer orders.
