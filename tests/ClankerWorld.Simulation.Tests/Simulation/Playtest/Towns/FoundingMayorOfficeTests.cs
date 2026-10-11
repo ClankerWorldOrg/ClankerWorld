@@ -1,11 +1,41 @@
+using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Playtest;
+using ClankerWorld.Viewer.Observation;
+using GodotSnapshot = ClankerWorld.GodotClient.UI.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Simulation.Tests;
 
 public sealed partial class TownGovernmentRuntimeTests
 {
     private static readonly string[] FoundingMayorMandates = ["land", "non_land"];
+    private static readonly JsonSerializerOptions FoundingSnapshotJsonOptions = new(JsonSerializerDefaults.Web);
+
+    [Fact]
+    public void FoundingJointElectionWaitsForTheScheduledCouncilElection()
+    {
+        string[] adults = ["a", "b", "c", "d", "e", "f", "g", "h"];
+        var council = TownGovernanceState.Create(adults);
+        var government = TownGovernmentState.Create();
+        foreach (var actor in adults.Take(3))
+            council = TownGovernanceRules.Register(council, actor, true, null, adults, 0);
+        (council, government) = TownGovernmentRules.RegisterMayor(council, government, "a", "land+non_land", adults, 0);
+        (council, government) = TownGovernmentRules.Advance(council, government, "town:queue", "Queue Town", "seed", adults, 0, Day);
+        var councilElection = Assert.IsType<TownElection>(council.Election);
+        Assert.Equal("main", councilElection.Stage);
+        Assert.Equal("waiting", government.Contest!.Stage);
+        Assert.Null(government.Contest.RoundDeadlineTick);
+        council = TownGovernanceRules.VoteElection(council, councilElection.Id, "a", adults.Take(3).ToArray(), 0);
+        (council, government) = TownGovernmentRules.Advance(council, government, "town:queue", "Queue Town", "seed", adults, Day, Day);
+        Assert.Equal("representative", council.Form);
+        var mayorElection = Assert.IsType<TownMayoralContest>(government.Contest);
+        Assert.Equal(("voting", "land+non_land"), (mayorElection.Stage, mayorElection.Mandates));
+        Assert.All(government.Offices, office => Assert.Null(office.HolderId));
+        government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(mayorElection), "a", "a", Day);
+        (council, government) = TownGovernmentRules.Advance(council, government, "town:queue", "Queue Town", "seed", adults, Day * 2, Day);
+        Assert.All(government.Offices, office => Assert.Equal("a", office.HolderId));
+        Assert.Empty(government.Changes);
+    }
 
     [Fact]
     public void NativeFoundingStartsWithVacantLandAndNonLandMayoralDuties()
@@ -76,6 +106,15 @@ public sealed partial class TownGovernmentRuntimeTests
         Assert.Empty(government.Changes);
         Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "town_civic_mayor");
+        var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
+        var client = JsonSerializer.Deserialize<GodotSnapshot>(JsonSerializer.Serialize(snapshot, FoundingSnapshotJsonOptions),
+            FoundingSnapshotJsonOptions)!;
+        var visible = Assert.Single(client.Towns).Government!;
+        Assert.Equal(2, visible.Offices.Count);
+        Assert.All(visible.Offices, office => Assert.NotNull(office.HolderName));
+        Assert.True(visible.NonLandAuthorized);
+        Assert.NotNull(visible.NonLandAuthority);
+        Assert.Equal("completed", visible.LatestElection!.Stage);
     }
 
     private sealed class FirstMayorProvider : IDecisionProvider

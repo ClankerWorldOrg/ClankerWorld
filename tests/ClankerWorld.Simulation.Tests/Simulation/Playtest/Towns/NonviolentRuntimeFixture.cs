@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
@@ -185,7 +186,8 @@ internal static class NonviolentRuntimeFixture
                 ? new(Statement: "I answer for myself and acknowledge the reported passage, without promising goods.") : null
         };
         using var prepared = Create(state, provider);
-        foreach (var actor in town.ResidentIds) Wake(prepared, actor, "inspect-elected-mayor-case:" + actor);
+        foreach (var (actor, index) in town.ResidentIds.Select((actor, index) => (actor, index)))
+            Wake(prepared, actor, "inspect-elected-mayor-case:" + index.ToString(CultureInfo.InvariantCulture));
         await UntilAsync(prepared, () => TownNonviolentRules.ReadCurrent(prepared.Towns[0].Nonviolent.Cases[0], Judge, prepared.WorldTick) &&
             prepared.Towns[0].Nonviolent.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].Nonviolent.Cases[0].Allegation.SubjectId), 16);
         Wake(prepared, Judge, "fresh-reasoned-choice");
