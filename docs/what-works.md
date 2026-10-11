@@ -1577,7 +1577,9 @@ one or two tiles wide, from bank to bank: a one-tile river at half walking
 speed, and a two-tile river at a provisional third of walking speed. Eligible
 agents can swim wider rivers and lakes much more slowly, losing warmth and
 carrying at most four units. Cold, ill or heavily loaded agents do not start
-swimming. Carts and animals stay on their existing land routes; the sea still
+swimming. Milk restocking, yard water, planting seeds, medicine, repair supplies,
+cart materials and food for a child check the loaded trip before collection.
+Unreachable milk sources are withheld too. Carts and animals stay on their existing land routes; the sea still
 requires a boat. Swimming has its own motion and label on the map. Communal boats
 travel between completed Ports over connected water. Swimming and two-tile
 wading still need hands-on Windows playtesting.

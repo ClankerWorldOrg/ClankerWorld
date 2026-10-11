@@ -1891,7 +1891,14 @@ carry aids follow the usual cargo exemptions. Pickups and whole harvests with
 a known delivery destination check the load after collection against the
 return route. A foot or cart return keeps its usual capacity; a freshwater-only
 return limits loose pickups to the remaining swimming capacity and keeps an
-oversized vessel family intact. Water collection also keeps room to return
+oversized vessel family intact. Ordinary milk uses the shared Store stocking
+checks for the source, destination and loaded return. Yard supplies, personal and
+household planting seeds, autonomous replanting, repair cloth, cart-building
+materials and child-care food pass their actual destination through selection
+and pickup checks. Medicine uses the consenting patient's last observed position,
+without discovering a moved patient remotely. Tool-repair preparation uses the
+same Blacksmith destination as collection, so unavailable return routes produce
+a blocker rather than leaving the order doing. Water collection also keeps room to return
 with the jug and its contents. A rider, an animal
 leader or a cart puller cannot start swimming, and moving dependants must also
 meet the starting conditions. Infants and adults carrying guardian-placement

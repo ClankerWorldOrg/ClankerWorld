@@ -75,9 +75,12 @@ public sealed partial class PrivateWorldRuntime
                 !hasWater && root.ItemKind == InventoryContainerRules.WaterJug && inventory.Lots.Any(content =>
                     content.ContainerLotId == root.Id && content.ItemKind == InventoryContainerRules.FreshWater && AvailableLotQuantity(content) > 0) ? 1 : 0;
             var quantity = Math.Min(wanted, Math.Min(AvailableLotQuantity(root), DestinationRoom(yard.InstanceId)));
-            if (!PersonalEquipmentRules.IsCarried(root, actor)) quantity = Math.Min(quantity, FreeCarryCapacity(actor));
+            var carried = PersonalEquipmentRules.IsCarried(root, actor);
+            var capacity = carried ? FreeCarryCapacity(actor) : PickupCarryCapacity(actor, root, yard.Position);
+            if (carried && FindUnoccupiedRoute(actor, inhabitants[actor].Position, yard.Position, 0).Count == 0) continue;
+            if (!carried) quantity = Math.Min(quantity, capacity);
             if (quantity <= 0 || !VesselFits(root, DestinationRoom(yard.InstanceId)) ||
-                !PersonalEquipmentRules.IsCarried(root, actor) && !VesselFits(root, FreeCarryCapacity(actor)) ||
+                !carried && !VesselFits(root, capacity) ||
                 AnimalRules.IsFeed(root.ItemKind) && !AnimalFeedMayBeSpent(actor, animals[0], root, quantity)) continue;
             yield return new(root, yard, quantity);
         }

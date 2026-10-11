@@ -31,17 +31,24 @@ public sealed partial class PrivateWorldRuntime
     private void AddForestryCandidates(List<CognitionCandidate> candidates, string actor,
         PlaytestInhabitantState state)
     {
-        if ((CarriedPlantingSeed(actor, TreeGrowthRules.OrchardSeedItem) is not null ||
-             FreeCarryCapacity(actor) > 0 && SharedItem(TreeGrowthRules.OrchardSeedItem, actor) is not null) &&
-            PlantingSite(actor, state.Position) is not null)
+        var carried = HasCarriedOwnItem(actor, TreeGrowthRules.TreeSeedItem);
+        var orchardCarried = CarriedPlantingSeed(actor, TreeGrowthRules.OrchardSeedItem) is not null;
+        var collecting = FreeCarryCapacity(actor) > 0;
+        var treeAvailable = carried || collecting && SharedItem(TreeGrowthRules.TreeSeedItem, actor) is not null;
+        var orchardAvailable = orchardCarried || collecting && SharedItem(TreeGrowthRules.OrchardSeedItem, actor) is not null;
+        // Keep agents without seeds out of the planting-site and stump scans.
+        if (!treeAvailable && !orchardAvailable) return;
+        var site = PlantingSite(actor, state.Position);
+        if (orchardAvailable && site is { } orchardSite && (orchardCarried ||
+             SharedItem(TreeGrowthRules.OrchardSeedItem, actor, orchardSite, ResourceInteractionRange) is not null))
             candidates.Add(new CognitionCandidate("plant_orchard", "Plant an orchard seed on open ground.", 31));
-        if (!HasCarriedOwnItem(actor, TreeGrowthRules.TreeSeedItem) &&
-            (FreeCarryCapacity(actor) <= 0 || SharedItem(TreeGrowthRules.TreeSeedItem, actor) is null))
-            return;
-        if (ReplantableTree(actor, state.Position) is { } tree)
+        if (!treeAvailable) return;
+        if (ReplantableTree(actor, state.Position) is { } tree && (carried ||
+            SharedItem(TreeGrowthRules.TreeSeedItem, actor, tree.Position, ResourceInteractionRange) is not null))
             candidates.Add(new CognitionCandidate("replant_tree",
                 "Carry a tree seed to a stump and replant it.", 32, tree.Id));
-        if (PlantingSite(actor, state.Position) is not null)
+        if (site is { } plantingSite && (carried ||
+            SharedItem(TreeGrowthRules.TreeSeedItem, actor, plantingSite, ResourceInteractionRange) is not null))
             candidates.Add(new CognitionCandidate("plant_tree",
                 "Plant a tree seed on open ground outside the Town.", 34));
     }
@@ -66,7 +73,7 @@ public sealed partial class PrivateWorldRuntime
         if (tree is null) return;
         if (!HasCarriedOwnItem(actor, TreeGrowthRules.TreeSeedItem))
         {
-            CollectEquipment(actor, state, TreeGrowthRules.TreeSeedItem);
+            CollectEquipment(actor, state, TreeGrowthRules.TreeSeedItem, tree.Position, ResourceInteractionRange);
             return;
         }
         if (!IsWithinInteractionRange(state.Position, tree.Position, ResourceInteractionRange))
@@ -167,7 +174,7 @@ public sealed partial class PrivateWorldRuntime
         var seedKind = orchard ? TreeGrowthRules.OrchardSeedItem : TreeGrowthRules.TreeSeedItem;
         if (CarriedPlantingSeed(actor, seedKind) is not { } seed)
         {
-            CollectEquipment(actor, state, seedKind);
+            CollectEquipment(actor, state, seedKind, site, ResourceInteractionRange);
             return;
         }
         if (!IsWithinInteractionRange(state.Position, site, ResourceInteractionRange))
