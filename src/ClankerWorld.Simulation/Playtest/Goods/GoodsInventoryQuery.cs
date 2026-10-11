@@ -53,18 +53,25 @@ internal static class GoodsInventoryQuery
         ArgumentNullException.ThrowIfNull(request.Owners);
         ArgumentNullException.ThrowIfNull(request.Kinds);
         if (request.Use is not (GoodsUse.Holdings or GoodsUse.ConsumeAt or GoodsUse.Collect or GoodsUse.ReachableHoldings or
-                GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo) ||
+                GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or
+                GoodsUse.Eat or GoodsUse.VesselFor or GoodsUse.ReturnVessel or GoodsUse.Cargo) ||
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
-            request.Near is not null || request.Destination is not null || request.ExtraUnits < 0 ||
+            request.ExtraUnits < 0 ||
             request.Use != GoodsUse.VesselFor && (request.ExtraUnits != 0 || request.ContentsKind is not null) ||
             request.ContentsKind is not null && string.IsNullOrWhiteSpace(request.ContentsKind) ||
             (request.Use == GoodsUse.Cargo ? string.IsNullOrWhiteSpace(request.ContainerId) : request.ContainerId is not null) ||
+            (request.Use == GoodsUse.Deliver
+                ? request.DeliveryPurpose == GoodsDeliveryPurpose.TownProject
+                    ? request.Near is null || request.Destination is not null
+                    : string.IsNullOrWhiteSpace(request.Destination) || request.Near is not null
+                : request.Near is not null || request.Destination is not null || request.DeliveryPurpose != GoodsDeliveryPurpose.Stock) ||
+            !Enum.IsDefined(request.DeliveryPurpose) ||
             request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
             request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
-            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Eat or GoodsUse.Cargo) &&
+            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver or GoodsUse.Eat or GoodsUse.Cargo) &&
                 string.IsNullOrWhiteSpace(request.Actor))
-            throw new ArgumentException("Use exact owners and kinds, an actor for personal uses, spending and selling, and a container for Cargo. Contents and extra units apply only to VesselFor; destination uses are separate steps.", nameof(request));
+            throw new ArgumentException("Use exact owners and kinds, an actor for personal uses and Deliver, and a container for Cargo. Contents and extra units apply only to VesselFor; Deliver requires its native destination and purpose.", nameof(request));
     }
 
     internal static bool IsRecovery(GoodsUse use) => use is GoodsUse.RecoveryHoldings or GoodsUse.Recover;

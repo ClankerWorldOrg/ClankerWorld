@@ -75,7 +75,7 @@ public sealed class RuntimeStateBoundaryTests
         var original = ((CivicSystem)civicField.GetValue(committed)!).State;
         var before = PrivateWorldRuntimeCodec.Encode(committed.ExportState());
         var restore = typeof(PrivateWorldRuntime).GetMethod("RestoreCore", BindingFlags.Static | BindingFlags.NonPublic)!;
-        using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed.ExportState(), null, 4, true, false, null, original])!;
+        using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed.ExportState(), null, 4, true, false, null, original, null])!;
         var proposed = (CivicSystem)civicField.GetValue(prepared)!;
         Assert.Same(original, proposed.State);
         var snapshot = prepared.ExportState();

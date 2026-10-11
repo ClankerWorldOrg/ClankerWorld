@@ -1,1 +1,0 @@
-- [ ] On Windows, rename an agent to a long name (up to 48 characters), then open Read all, All orders and a conversation involving them. At 1280×720 and 1920×1080, check that each reader and its Close button stay on screen, hovering shows the full heading, and Close works with the mouse and keyboard.

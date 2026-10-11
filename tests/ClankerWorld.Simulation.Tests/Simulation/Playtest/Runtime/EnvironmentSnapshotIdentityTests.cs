@@ -14,7 +14,7 @@ public sealed class EnvironmentSnapshotIdentityTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var committed = world.ExportState();
         var restore = typeof(PrivateWorldRuntime).GetMethod("RestoreCore", BindingFlags.Static | BindingFlags.NonPublic)!;
-        using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed, factory, 4, true, false, null, null])!;
+        using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed, factory, 4, true, false, null, null, null])!;
         var copied = prepared.ExportState();
         Assert.Same(committed.Map, copied.Map);
         Assert.Same(committed.WorldContent, copied.WorldContent);

@@ -59,8 +59,10 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private readonly Func<string, IDecisionProvider>? providerFactory;
     private readonly int maxCognitionDispatchPerCycle;
     private SeededMap map;
-    private LandFertility fertility;
-    private List<FarmFieldState> fields = [];
+    private FarmingSystem farmingSystem;
+    private readonly IFarmingWorld farmingWorld;
+    private LandFertility fertility => farmingSystem.Fertility(map);
+    private IReadOnlyList<FarmFieldState> fields => farmingSystem.State.Fields;
     private SocietyWorldRuntime society;
     private ContentPackageRegistry contentRegistry;
     private EnvironmentSystem environmentSystem;
@@ -161,6 +163,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         residentWorld = new ResidentWorldAdapter(this);
         environmentWorld = new EnvironmentWorldAdapter(this);
         civicWorld = new CivicWorldAdapter(this);
+        farmingWorld = new FarmingWorldAdapter(this);
         if (geographyOptions is not null &&
             (startPace != WorldStartPace.FounderSetup ||
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
@@ -185,7 +188,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
                 ? BaseCampMapGenerator.Generate(this.worldSeed, includeLegacyBedroll)
                 : GeographyCandidateSelector.GenerateCandidate(geographyOptions, includeLegacyBedroll: includeLegacyBedroll)
             : SeededMapGenerator.Generate(this.worldSeed, includeLegacyBedroll));
-        fertility = new LandFertility(map, this.worldSeed);
+        farmingSystem = new(FarmingState.Empty, this.worldSeed);
         // Restore supplies an already validated saved state or a trusted tick
         // snapshot. Only a new world needs genesis ecology, chunks and weather.
         environmentSystem = new(restoringState?.WorldSystems ?? CreateWorldSystems(this.worldSeed, map, startPace));
@@ -333,7 +336,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         bool trustedPreparedState,
         bool applyLoadTransitions = true,
         ConversationState? preparedConversations = null,
-        CivicState? preparedCivic = null)
+        CivicState? preparedCivic = null,
+        FarmingSystem? preparedFarming = null)
     {
         if (!trustedPreparedState) ValidateStateForCodec(state);
         var runtime = new PrivateWorldRuntime(
@@ -359,12 +363,12 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         runtime.jevEnabled = state.JevEnabled ?? true;
         runtime.routineHelper = state.RoutineHelper;
         runtime.jevPolicyRevision = state.JevPolicyRevision;
-        runtime.fertility = new LandFertility(runtime.map, state.WorldSeed);
         runtime.handcartHitches = state.HandcartHitches!.ToList();
         runtime.boatTransport = state.BoatTransport;
         runtime.animalWorld = state.AnimalWorld;
-        runtime.fields = state.Fields!.OrderBy(field => field.Position.Y)
-            .ThenBy(field => field.Position.X).ToList();
+        runtime.farmingSystem = trustedPreparedState && preparedFarming is not null
+            ? preparedFarming.Fork() : new(new(state.Fields!.OrderBy(field => field.Position.Y)
+                .ThenBy(field => field.Position.X)), state.WorldSeed);
         if (trustedPreparedState && preparedCivic is not null)
             runtime.civicSystem = new(preparedCivic);
         else
@@ -487,7 +491,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
                 // Keep the live world paused throughout the write. A failed write
                 // discards this proposal, including its resume event and epoch.
                 using var proposed = RestoreCore(CaptureState(), providerFactory, maxCognitionDispatchPerCycle,
-                    trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState, preparedCivic: civicSystem.CheckpointState);
+                    trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState,
+                    preparedCivic: civicSystem.CheckpointState, preparedFarming: farmingSystem);
                 proposed.Resume();
                 var persisted = persist(proposed.CaptureState());
                 if (persisted.HistoryArchiveHead != proposed.historyArchiveHead)

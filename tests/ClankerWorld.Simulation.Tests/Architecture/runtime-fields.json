@@ -13,8 +13,6 @@
     "conversationSystem",
     "civicSystem",
     "deceasedInhabitants",
-    "fertility",
-    "fields",
     "geographyOptions",
     "handcartHitches",
     "inhabitants",
@@ -39,7 +37,8 @@
     "worldSimulation",
     "environmentSystem",
     "actionRefusals",
-    "refusedActionCount"
+    "refusedActionCount",
+    "farmingSystem"
   ],
   "live": [
     "AgentBeliefChanged",
@@ -58,7 +57,8 @@
     "pendingWills",
     "providerFactory",
     "residentWorld",
-    "tickGate"
+    "tickGate",
+    "farmingWorld"
   ],
   "scratch": [
     "guardianPlacementActions",

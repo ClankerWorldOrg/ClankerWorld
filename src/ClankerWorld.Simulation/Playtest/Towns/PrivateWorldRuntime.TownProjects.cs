@@ -211,7 +211,9 @@ public sealed partial class PrivateWorldRuntime
         var site = new InventoryGroundPosition(TownProjectRules.WorkSite(project.Plan).X, TownProjectRules.WorkSite(project.Plan).Y);
         var recoverable = town.Projects.SelectMany(item => item.Deliveries).Where(delivery => delivery.ReleasedTick is not null)
             .Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
-        return society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == town.Id && lot.ItemKind == itemKind &&
+        var request = new GoodsRequest(GoodsUse.Deliver, actor, GoodsOwners.One(town.Id), GoodsKinds.One(itemKind),
+            Near: TownProjectRules.WorkSite(project.Plan), DeliveryPurpose: GoodsDeliveryPurpose.TownProject);
+        return FindGoods(request).Matches.Select(match => match.Lot).Where(lot =>
                 lot.ContainerLotId is null && lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
                 !IsActiveTownProjectDelivery(lot.Id) &&
                 (lot.CarrierId == actor || lot.CarrierId is null &&

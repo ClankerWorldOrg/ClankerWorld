@@ -1,2 +1,0 @@
-- In a Windows launcher-started game, use Quit to Launcher, then Play. The game opens at Main Menu; Load World has the previous world selected, and it opens only after Open World. ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
-- Use Open in another version for a world the current version cannot open, then Play in the launcher. Load World selects that same world even when another has the same name. Failed closing or launcher startup keeps the chosen version and world for Retry. ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))

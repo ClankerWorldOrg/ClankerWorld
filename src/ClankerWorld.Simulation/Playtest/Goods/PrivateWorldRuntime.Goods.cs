@@ -22,21 +22,25 @@ public sealed partial class PrivateWorldRuntime
     private GoodsAnswer FindGoods(InventoryCheckpoint inventory, GoodsRequest request)
     {
         GoodsInventoryQuery.Validate(request);
-        var routes = request.Use is GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Recover
+        var routes = request.Use is GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Recover or GoodsUse.Deliver
             ? new Dictionary<(GridPoint Position, int Range), bool>() : null;
+        var deliveries = request.Use == GoodsUse.Deliver ? new Dictionary<string, int>(StringComparer.Ordinal) : null;
         return GoodsInventoryQuery.FindGoods(inventory, request,
-            (index, lot) => GoodsContextExclusion(request, index, lot, routes),
-            (index, lot) => MakeGoodsMatch(index, lot, request));
+            (index, lot) => GoodsContextExclusion(request, index, lot, routes, deliveries),
+            (index, lot) => MakeGoodsMatch(index, lot, request, deliveries));
     }
 
-    private GoodsMatch MakeGoodsMatch(InventoryIndex index, InventoryLot lot, GoodsRequest request)
+    private GoodsMatch MakeGoodsMatch(InventoryIndex index, InventoryLot lot, GoodsRequest request,
+        Dictionary<string, int>? deliveries = null)
     {
-        var quantity = GoodsQuantity(index, lot, request);
+        var quantity = request.Use == GoodsUse.Deliver ? DeliveryGoodsQuantity(request, index, lot, deliveries) : GoodsQuantity(index, lot, request);
         var root = index.Root(lot);
-        return new(lot, root, GoodsPlaceFor(root), quantity,
-            InventoryContainerRules.IsContainer(lot.ItemKind) ? index.FamilyQuantity(lot.Id) :
-                request.Use == GoodsUse.Collect && InventoryContainerRules.IsContainer(root.ItemKind)
-                    ? index.FamilyQuantity(root.Id) : quantity);
+        var family = InventoryContainerRules.IsContainer(root.ItemKind) &&
+            (InventoryContainerRules.IsContainer(lot.ItemKind) || request.Use is GoodsUse.Collect or GoodsUse.Deliver);
+        var partialFarmLoad = request.Use == GoodsUse.Deliver && request.DeliveryPurpose == GoodsDeliveryPurpose.FarmStock &&
+            (index.FamilyQuantity(root.Id) > DeliveryGoodsCapacity(request, root, deliveries) ||
+             UnusableDeliveryStock(society.Checkpoint.Inventory, root));
+        return new(lot, root, GoodsPlaceFor(root), quantity, family && !partialFarmLoad ? index.FamilyQuantity(root.Id) : quantity);
     }
 
     private GoodsReason? GoodsExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
@@ -46,7 +50,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private GoodsReason? GoodsContextExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot,
-        Dictionary<(GridPoint Position, int Range), bool>? routes = null)
+        Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
         if (GoodsInventoryQuery.IsRecovery(request.Use)) return RecoveryGoodsExclusion(request, index, lot, routes);
         if (request.Use is GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal)
@@ -63,12 +67,13 @@ public sealed partial class PrivateWorldRuntime
         }
         if (request.Use is GoodsUse.VesselFor or GoodsUse.ReturnVessel && index.Root(lot).DeliveryBuildingId is not null)
             return GoodsReason.Delivery;
-        if (request.Use is GoodsUse.Holdings or GoodsUse.Collect or GoodsUse.ReachableHoldings)
+        if (request.Use is GoodsUse.Holdings or GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.Deliver)
         {
             var root = index.Root(lot);
             if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
             if (OnBorrowedMarketStall(root)) return GoodsReason.MarketStall;
         }
+        if (request.Use == GoodsUse.Deliver) return DeliveryGoodsExclusion(request, index, lot, routes, deliveries);
         if (request.Use == GoodsUse.Collect) return CollectGoodsExclusion(request.Actor!, index, lot, routes);
         if (request.Use == GoodsUse.ReachableHoldings) return GoodsRouteExclusion(request.Actor!, index.Root(lot), routes);
         return null;

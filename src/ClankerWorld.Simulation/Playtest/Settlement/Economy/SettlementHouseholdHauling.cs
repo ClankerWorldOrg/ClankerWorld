@@ -102,8 +102,8 @@ public sealed partial class PrivateWorldRuntime
     /// </summary>
     private InventoryLot? UnlocatedHouseholdStock(string householdId, string? actor = null,
         string? houseId = null, string? itemKind = null, int maximumQuantity = int.MaxValue) =>
-        society.Checkpoint.Inventory.Lots
-            .Where(lot => lot.OwnerId == householdId && lot.CarrierId is null && lot.ContainerLotId is null &&
+        HouseholdStockGoods(householdId, actor, houseId)
+            .Where(lot => lot.CarrierId is null && lot.ContainerLotId is null &&
                 lot.StorageBuildingId is null && lot.DeliveryBuildingId is null && !OnBorrowedMarketStall(lot) &&
                 (itemKind is null || DeliveryResourceQuantity(lot, itemKind) > 0 &&
                     (!InventoryContainerRules.IsContainer(lot.ItemKind) || DeliveryResourceQuantity(lot, itemKind) <= maximumQuantity)) &&
@@ -115,19 +115,16 @@ public sealed partial class PrivateWorldRuntime
             .OrderBy(lot => lot.ItemKind == "food" ? 0 : 1)
             .ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => actor is null || houseId is null ||
-                HouseHaulPickupQuantity(actor, lot, houseId) > 0 &&
-                CanReachHouseHaulStock(actor, lot, houseId));
+                HouseHaulPickupQuantity(actor, lot, houseId) > 0);
 
-    private bool CanReachHouseHaulStock(string actor, InventoryLot stock, string houseId)
+    private IEnumerable<InventoryLot> HouseholdStockGoods(string householdId, string? actor, string? houseId)
     {
-        if (worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == houseId) is not { } house)
-            return false;
-        var source = HouseholdStockPosition(stock);
-        var range = HouseholdStockInteractionRange(stock);
-        var position = inhabitants[actor].Position;
-        return (IsWithinInteractionRange(position, source, range) ||
-                FindUnoccupiedRoute(actor, position, source, range).Count > 0) &&
-            FindUnoccupiedRoute(actor, source, house.Position, 0).Count > 0;
+        var kinds = InventoryIndex.For(society.Checkpoint.Inventory).OwnedBy(householdId)
+            .Select(lot => lot.ItemKind).Distinct(StringComparer.Ordinal).ToArray();
+        if (kinds.Length == 0) return [];
+        var request = new GoodsRequest(actor is not null && houseId is not null ? GoodsUse.Deliver : GoodsUse.Holdings,
+            actor, GoodsOwners.One(householdId), new GoodsKinds(kinds), Destination: actor is not null ? houseId : null);
+        return FindGoods(request).Matches.Select(match => match.Lot);
     }
 
     private void AddHouseHaulCandidate(List<CognitionCandidate> candidates,

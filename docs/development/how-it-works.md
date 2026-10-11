@@ -94,6 +94,22 @@ owns conversations, daily budgets and marriages in one immutable
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
 
+`Farming/FarmingSystem.cs` owns household fields in an immutable `FarmingState`
+and handles field work, crop planning, validation and forestry. Field writes
+replace the read-only snapshot. Trusted preparation captures and shares that
+snapshot; each proposal has a separate system, and commit transfers it with one
+assignment. `IFarmingWorld` supplies the current inventory, residents, land,
+routes, environment and event sink per call, through an adapter that stays on
+the coordinator. Field and tree orders retain their existing adapters and
+private forwarders. Tree planting updates the coordinator's map and the
+EnvironmentSystem's ecology and chunks through those world services.
+
+Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
+prepared farming systems for the same world seed. A changed map gets a new
+value. The verification switch rebuilds and compares its terrain and rainfall
+inputs on cache hits. Positions, reservations and planting obstacles remain
+current-world queries; no fertility or cache data enters saves or digests.
+
 `Environment/EnvironmentSystem.cs` owns the immutable `WorldSystemsState`
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
 animal forage, tree planting and settlement resources. Weather advances at its
@@ -306,10 +322,23 @@ Physical Market stock counts also remain physical, including damaged contents,
 so usable sale selection cannot undercount occupied space. These queries add no
 route, saved state or persistent world cache.
 
-Delivery selection and remaining uses belong to the later steps of
-[#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
-origin/destination fields are refused rather than silently ignored. Extra units
-and a contents kind apply only to `VesselFor`.
+`Deliver` extends usable holdings with custody, free vessel families, carrying
+room, the native pickup and loaded return routes, and receiving space from
+`DestinationRoom`. Requests name a destination building. Matches and action
+rechecks share these checks; inbound promises cannot leave a stale load eligible.
+A query reuses each root's loaded-route capacity across its matching contents.
+
+Delivery purposes preserve the existing physical operations. Ordinary stock
+moves whole vessel families. Farm stock permits the established grain/flour
+partial-vessel haul, while its planner retains source deficits, load limits and
+whole-family preference. Expansion materials go to a building's outdoor site,
+and Town-project materials go to the approved work site named by `Near`;
+neither occupies indoor storage. These outdoor uses retain Town material access
+and active-project custody. Source ordering and workstation surplus remain caller
+filters. House, Farmhouse, Silo, Blacksmith, workstation, expansion and Town-project
+selectors share these queries. Restaurant household supply uses the same eligible
+matches before applying each source's reserve once. Gathering falls back only
+when no stock can supply the destination.
 
 `VesselFor` selects usable, unreserved vessel families and checks room for the
 requested additional contents. Jug refill, stored-jug pickup, empty-vessel return
@@ -328,6 +357,11 @@ goods and broken carts, but excludes a family reserved for another job. Actions
 recheck the same query before unloading; load selection uses `ConsumeAt` and
 retains its native custody and food-policy rules. `Kernel/FoodRules.cs` is the
 single food catalog: ingredients can be stored without becoming edible servings.
+
+The remaining uses belong to later steps of
+[#1366](https://github.com/compoodment/ClankerWorld/issues/1366). Unsupported
+origin/destination combinations are refused rather than silently ignored. Extra
+units and a contents kind apply only to `VesselFor`.
 
 `DestinationRoom(buildingId, movingRoot)` is the shared read-only calculation
 for space at a building. It subtracts all stored physical units, positive net
