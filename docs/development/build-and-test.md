@@ -31,6 +31,16 @@ that historical check does not verify every later build.
 
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
+
+The held quantified-harvest fixture captures the actor's exact outstanding
+hosted request and task. After one native harvest finishes, it releases the
+provider and waits for that task to complete before the admission tick. A
+provider's response-construction signal can precede task completion. A private
+deferred-return row holds this boundary explicitly; complete checkpoint bytes
+stay unchanged during each wait. Thirty-second phase deadlines diagnose a
+stalled request without polling native ticks. The check retains one harvest,
+unchanged completion units, the actual late reply and strict checkpoint reload.
+
 Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
