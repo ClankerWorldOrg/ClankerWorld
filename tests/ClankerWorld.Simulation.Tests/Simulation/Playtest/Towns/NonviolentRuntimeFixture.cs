@@ -163,7 +163,16 @@ internal static class NonviolentRuntimeFixture
             government = TownGovernmentRules.Vote(government, government.Changes[^1].Id, voter, true, tick);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
             state.WorldSeed, town.ResidentIds, tick, Day);
+        var arrangement = new TownArrangement(TownArrangementRules.AllAdultCouncil,
+            TownArrangementRules.Mayor, TownArrangementRules.Mayor);
+        Assert.Equal(arrangement, government.Arrangement);
+        Assert.Equal("completed", Assert.Single(government.Changes).Status);
+        // Retained vacant duties need no successor for the ordinary-authority handover.
+        // The following advance opens their joint vacancy election after that change completes.
+        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
+            state.WorldSeed, town.ResidentIds, tick, Day);
         var contest = Assert.IsType<TownMayoralContest>(government.Contest);
+        Assert.Equal(("vacancy", "land+non_land", "voting"), (contest.Purpose, contest.Mandates, contest.Stage));
         foreach (var voter in town.ResidentIds)
             government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(contest), voter, Judge, tick);
         state = state with { Towns = [town with { Governance = council, Government = government }] };
@@ -175,8 +184,6 @@ internal static class NonviolentRuntimeFixture
         town = state.Towns![0];
         tick = state.Society.Society.WorldTick;
         government = town.Government!;
-        var arrangement = new TownArrangement(TownArrangementRules.AllAdultCouncil,
-            TownArrangementRules.Mayor, TownArrangementRules.Mayor);
         Assert.Equal(arrangement, government.Arrangement);
         var ordinaryChange = Assert.Single(government.Changes);
         Assert.Equal((arrangement, "completed"), (ordinaryChange.Target, ordinaryChange.Status));
