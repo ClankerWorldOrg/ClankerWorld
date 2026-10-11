@@ -81,6 +81,10 @@ checkpoints, replay events or save metadata. The world schema is unchanged.
 
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
+Cognition diagnostics retain their world ticks through export and restore.
+Late replies and ignored failures use known observation or saved world time;
+run epochs are generation markers, not timestamps. This changes new diagnostic
+events without changing the schema or rewriting events already saved.
 New generated worlds have a deterministic identity derived from their seed,
 selected generation options and accepted map digests. Different maps can reuse
 a seed while keeping separate checkpoints, save timelines and owner-action
