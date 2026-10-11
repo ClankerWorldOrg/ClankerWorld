@@ -7,13 +7,13 @@ public static class TownNonviolentRules
 {
     public const string CivilStandard = "more_likely_than_not";
     public static TownCaseRevision CurrentRevision(TownViolationCase item) => item.Revisions[^1];
-    public static string RevisionToken(TownViolationCase item) => item.Id + ":" + CurrentRevision(item).Number.ToString(CultureInfo.InvariantCulture);
+    public static string RevisionToken(TownViolationCase item) => DerivedId.Create(item.Id + ":" + CurrentRevision(item).Number.ToString(CultureInfo.InvariantCulture));
     public static string CaseKey(string townId, TownViolationAllegation allegation) =>
         TownHearingProcedure.Digest(new { Town = townId, allegation.IncidentId, allegation.LawId, allegation.LawVersion });
     internal static TownNonviolentState Replace(TownNonviolentState state, TownViolationCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
     internal static string NextId(TownNonviolentState state, string kind, string? townId = null) =>
-        "nonviolent-" + kind + ":" + (townId ?? state.Cases[0].TownId) + ":" + checked(state.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+        DerivedId.Create("nonviolent-" + kind + ":" + (townId ?? state.Cases[0].TownId) + ":" + checked(state.Sequence + 1).ToString(CultureInfo.InvariantCulture));
     private static TownViolationCase Exact(TownNonviolentState state, string id, int revision) =>
         state.Cases.SingleOrDefault(c => c.Id == id && CurrentRevision(c).Number == revision) ??
             throw new InvalidOperationException("This case notice has changed.");

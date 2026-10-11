@@ -8,13 +8,13 @@ namespace ClankerWorld.Simulation.Tests;
 public sealed partial class LongInventoryActionCheckpointTests
 {
     [Theory]
-    [InlineData(1, 94)]
-    [InlineData(3, 550)]
-    [InlineData(4, 1158)]
-    public async Task CookingOrderKeepsSplitKnifeIdentityThroughHostCheckpointAndCompletion(int splits, int length)
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public async Task CookingOrderKeepsSplitKnifeIdentityThroughHostCheckpointAndCompletion(int splits)
     {
         var (state, lotId) = await SplitInventoryState("iron_knife", splits);
-        Assert.Equal(length, lotId.Length);
+        Assert.InRange(lotId.Length, 1, DerivedId.MaximumLength);
         var house = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == House);
         var inventory = state.Society.Society.Inventory;
         // Match the short control's carried count to the three-split case.

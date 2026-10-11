@@ -35,7 +35,7 @@ public sealed class ChildhoodMemoryRecallTests
             checkpoint.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(checkpoint, parent, "Recall"),
             PrimaryCaregiverId: parent));
         var child = Assert.IsType<string>(birth.CreatedId);
-        Assert.True(child.Length > 128);
+        Assert.InRange(child.Length, 1, DerivedId.MaximumLength);
         checkpoint = birth.Checkpoint;
         var age = Assert.IsType<SocietyDayLifecycle>(checkpoint.Config.DayLifecycle).ChildStartDay;
         var birthLifeTick = checkpoint.LifeTickAt(checkpoint.WorldTick) - age * checkpoint.Config.TicksPerLifecycleAge;
@@ -101,7 +101,7 @@ public sealed class ChildhoodMemoryRecallTests
         Assert.Equal(child, recalledRename.OwnerId);
         Assert.Equal(rename.Summary, recalledRename.Summary);
         Assert.InRange(recalledRename.SubjectId.Length, 1, 128);
-        Assert.StartsWith("agent-sha256:", recalledRename.SubjectId);
+        Assert.Equal(child, recalledRename.SubjectId);
         Assert.Equal(rename, Assert.Single(restored.Society.Memories, item => item.Id == rename.Id));
         Assert.DoesNotContain(observed.Candidates, candidate => candidate.Id == choice);
         Assert.Equal(memory, Assert.Single(restored.Society.Memories, item => item.Id == memory.Id));

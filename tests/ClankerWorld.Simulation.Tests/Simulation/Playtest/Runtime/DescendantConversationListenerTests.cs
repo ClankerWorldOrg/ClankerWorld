@@ -28,7 +28,7 @@ public sealed class DescendantConversationListenerTests
             Speaker, Partner, household, caregivers, [Speaker, Partner], "food:camp-alpha", 2, society.WorldTick,
             ChildName: ChosenBirthNameTestFixture.ChildName(society, Speaker, "Listener"), PrimaryCaregiverId: Speaker));
         var child = Assert.IsType<string>(birth.CreatedId);
-        Assert.True(child.Length > 128);
+        Assert.InRange(child.Length, 1, DerivedId.MaximumLength);
         society = birth.Checkpoint;
         // Accelerate age only; retain the actual birth identity, ancestry and family records.
         var adultBirth = society.LifeTickAt(society.WorldTick) - 20 * society.Config.TicksPerLifecycleAge;
@@ -172,7 +172,7 @@ public sealed class DescendantConversationListenerTests
                 Assert.Equal(child, memory.OwnerId);
                 Assert.Equal(turn.SpeakerId, memory.SourceAgentId);
                 Assert.InRange(memory.SubjectId.Length, 1, 128);
-                Assert.StartsWith("agent-sha256:", memory.SubjectId, StringComparison.Ordinal);
+                Assert.Equal(child, memory.SubjectId);
             });
             Assert.Single(recalled.Select(memory => memory.SubjectId).Distinct(StringComparer.Ordinal));
         }

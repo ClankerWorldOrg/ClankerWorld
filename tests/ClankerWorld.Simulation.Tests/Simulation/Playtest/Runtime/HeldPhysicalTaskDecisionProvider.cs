@@ -5,6 +5,7 @@ namespace ClankerWorld.Simulation.Tests;
 
 internal sealed class HeldPhysicalTaskDecisionProvider : IDecisionProvider
 {
+    public Func<bool>? CanStart { get; set; }
     public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
     public long ProviderEpoch => 1;
     public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
@@ -13,6 +14,8 @@ internal sealed class HeldPhysicalTaskDecisionProvider : IDecisionProvider
     public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
         CancellationToken cancellationToken = default)
     {
+        while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
+        request.Validate();
         Requests.Enqueue(request.Observation);
         Started.TrySetResult(true);
         await Task.Delay(Timeout.Infinite, cancellationToken);

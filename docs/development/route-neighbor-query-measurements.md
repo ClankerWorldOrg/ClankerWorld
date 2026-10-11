@@ -15,7 +15,7 @@ Live terrain and bridge checks, narrow-wrap order, occupied corners, checked
 costs, queue ties, stopping rules and action-time authority are unchanged.
 No new cache or saved state is introduced.
 
-The [complete dataset](route-neighbor-query-probe/samples.json) records lower
+The [complete dataset recorded on PR #1731](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1731) records lower
 allocations in all ten ordinary/repeat pairs for the final candidate, by
 0.698–1.257%. Timing changes are mixed, including worse p95 values;
 this supports a bounded allocation reduction, not a uniform latency improvement.
@@ -178,9 +178,18 @@ fresh-process repeat. Compare complete captures with
 [the comparison script](construction-input-query-probe/compare-captures.py).
 Retain all samples and source/assembly hashes, including slower runs.
 
+For the historical comparison, use the probe copies at baseline `afbc35e8`
+(their hashes are recorded in the dataset):
+
+```bash
+bash /path/to/base/docs/development/construction-input-query-probe/run.sh setup /path/to/base /tmp/route-checkpoints /tmp/route-results/setup
+bash /path/to/base/docs/development/construction-input-query-probe/run.sh replay /path/to/base /tmp/route-checkpoints /tmp/route-results/base
+bash /path/to/base/docs/development/construction-input-query-probe/run.sh replay /path/to/candidate /tmp/route-checkpoints /tmp/route-results/candidate
+```
+
 Full checkpoints, ordered captures, raw trace, Speedscope conversion, input
 manifests and logs are retained under `.evidence/keep/998-construction-profile/`
 in Codex session d9925a9c's workspace. The public dataset includes their
 comparison hashes and trace hashes, not private saves or model payloads.
-Existing [Windows/F12 checks](../../playtest/998-route-step-costs.md) remain
-pending. Independent review and full green CI are required before readiness.
+Existing [Windows/F12 checks](../../playtest/998-walking-route-neighbors.md) remain
+pending. Independent review and full green CI are required before merging.

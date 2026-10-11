@@ -210,14 +210,12 @@ internal static class PrivateWorldMemoryRetrieval
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
-    private static bool IsValidId(string? value) => value is { Length: <= 128 } && IsCanonicalId(value);
+    private static bool IsValidId(string? value) => value is { Length: <= DerivedId.MaximumLength } && IsCanonicalId(value);
 
     private static bool IsCanonicalId(string? value) => value is { Length: > 0 } &&
         value == value.Trim() && !value.Any(char.IsControl);
 
-    private static string CognitionAgentId(string agentId) => agentId.Length <= 128
-        ? agentId
-        : "agent-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(agentId)));
+    private static string CognitionAgentId(string agentId) => DerivedId.Create(agentId, "agent-sha256:");
 
     private static string? BoundedOptional(string? value, int limit) => value is null
         ? null

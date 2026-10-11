@@ -28,14 +28,16 @@ public sealed partial class GrownAgentHelperMemoryTests
             ? state.Society.Society.Births.OrderBy(item => item.CommittedTick).Last()
             : Assert.Single(state.Society.Society.Births);
         var child = birth.ChildId;
-        Assert.True(child.Length > 128);
+        Assert.InRange(child.Length, 1, DerivedId.MaximumLength);
         var actor = role == "initiator" ? child : birth.PrimaryCaregiverId;
         var partner = role == "initiator" ? birth.PrimaryCaregiverId : role == "invitee" ? child :
             state.Society.Society.Inhabitants.First(person => person.Id != child && person.Id != actor).Id;
         if (laterGeneration)
         {
-            Assert.True(actor.Length + partner.Length > 512);
-            Assert.True(child.Length > 512);
+            Assert.Equal(5, state.Society.Society.Births.Count);
+            Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
+            Assert.InRange(partner.Length, 1, DerivedId.MaximumLength);
+            Assert.InRange(child.Length, 1, DerivedId.MaximumLength);
         }
         var occupied = state.Map.CampObjects.Select(item => item.Position)
             .Concat(state.Map.Resources.Select(item => item.Position)).ToHashSet();

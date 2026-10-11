@@ -24,9 +24,13 @@ Ready work is agreed, unblocked, unclaimed and not waiting on the owner:
 is:issue is:open label:"status:needs-pr" -label:"type:decision" -label:owner-task -label:"status:in-progress" -label:"status:blocked" -label:"status:needs-decision" sort:created-asc
 ```
 
-Take the highest priority first: add `label:"priority:p0"` to the search, then
-p1, p2 and p3. At that level, pick one of the five oldest results at random,
-so sessions that search at the same moment don't all land on the same issue.
+While a release is being prepared
+([Release scope](../../CONTRIBUTING.md#release-scope)), first add its label,
+now `label:"release:alpha-1"`, and take issues without it only when none with
+it is ready. Take the highest priority first: add `label:"priority:p0"` to the
+search, then p1, p2 and p3. At that level, pick one of the five oldest results
+at random, so sessions that search at the same moment don't all land on the
+same issue.
 Before you claim, check whether an owner decision outranks it: search
 `is:open label:"status:needs-decision"` and
 `is:issue is:open label:"type:decision"` for the same or a higher priority,
@@ -150,8 +154,10 @@ comment keeps the issue ([Claims](../../CONTRIBUTING.md#claims)).
   blocker, add `status:blocked`, name each blocker in the issue description
   as `Blocked by #123` or describe the outside event, push what you have and
   remove `status:in-progress`. A blocked issue stays out of the queue until
-  whoever finishes the blocker, or learns that the outside event has happened,
-  removes `status:blocked` and adds `status:needs-pr` if nobody holds it.
+  `status:blocked` comes off and, if nobody holds it, `status:needs-pr` goes
+  on: a workflow does this once every `Blocked by #123` item has merged or
+  closed as completed, and whoever learns that an outside event has happened
+  does it by hand.
 - **Stopping:** push your branch, put `status:needs-pr` back in place of
   `status:in-progress` (or `status:blocked`, as above), and comment with what
   you learned and the branch name.
@@ -195,7 +201,9 @@ next person will look.
    - **If your pull request needs another one's code or approved design** but
      is not stacked on it, write `Waits on #A` on the overlap line.
 4. Keep to one concern, with the docs and tests it needs
-   ([Every change](../../CONTRIBUTING.md#every-change)). Before marking ready,
+   ([Every change](../../CONTRIBUTING.md#every-change)). Fix by simplifying:
+   reuse a shared check or remove a rule before you add a special case, and
+   put the lines added and removed in the description. Before marking ready,
    run `node scripts/find-stale-docs.js <names>` and fix each sentence your
    change made false
    ([how](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful)).

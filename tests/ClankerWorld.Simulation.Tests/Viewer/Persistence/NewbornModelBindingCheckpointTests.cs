@@ -67,7 +67,7 @@ public sealed class NewbornModelBindingCheckpointTests
             }
             var birth = Assert.Single(world.Society.Births);
             var childId = birth.ChildId;
-            Assert.Equal(!seedIdentified || seedSuffix == 78, childId.Length > 128);
+            Assert.InRange(childId.Length, 1, DerivedId.MaximumLength);
             Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
             var child = world.Inhabitants.Single(person => person.InhabitantId == childId);
             Assert.Equal("deterministic", child.ChildModelSelection!.Provider);
