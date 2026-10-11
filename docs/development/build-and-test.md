@@ -32,6 +32,12 @@ that historical check does not verify every later build.
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
 
+The companion relaunch fixture separates request timeout from caller cancellation.
+Its timeout rows keep the caller token live and bound observation separately;
+the cancellation row cancels only after the held relaunch request starts.
+A controlled row delays delivery of the actual two-second request timeout beyond
+the former five-second caller timer, retaining the real host and secret checks.
+
 The native land-transfer fixture sends each eligible adult one suggestive
 instruction when its private provider changes from waiting to reading or
 consenting. Changing a test provider's flags does not wake an admitted idle
