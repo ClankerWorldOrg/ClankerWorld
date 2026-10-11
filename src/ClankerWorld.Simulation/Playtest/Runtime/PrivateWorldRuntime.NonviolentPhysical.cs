@@ -30,7 +30,7 @@ public sealed partial class PrivateWorldRuntime
     private TownCaseEvidence NonviolentEvidence(TownConductRecord record, TownConductAcquisition acquired, string actor, int revision) => CivicSystem.NonviolentEvidence(civicWorld, record, acquired, actor, revision);
     private TownNonviolentState AcquireNonviolentInspectedSources(TownRuntimeState town, TownViolationCase file, string actor) => CivicSystem.AcquireNonviolentInspectedSources(civicWorld, town, file, actor);
     private bool RelayNonviolentKnownReport(TownRuntimeState town, string source, string recipient, string incidentId, string statement) => civicSystem.RelayNonviolentKnownReport(civicWorld, town, source, recipient, incidentId, statement);
-    private bool NonviolentRemedyTermKnownTo(TownRuntimeState town, TownRemedyTerm term, string actor) => CivicSystem.NonviolentRemedyTermKnownTo(civicWorld, town, term, actor);
+    private bool NonviolentRemedyTermKnownTo(TownRuntimeState town, TownRemedyTerm term, string actor) => civicSystem.NonviolentRemedyTermKnownTo(civicWorld, town, term, actor);
     private bool NonviolentWorkAllowed(string actor) => CivicSystem.NonviolentWorkAllowed(civicWorld, actor);
     private bool NonviolentEquipmentRepairPaused(string actor) => CivicSystem.NonviolentEquipmentRepairPaused(civicWorld, actor);
     private InventoryLot? NonviolentReturnLot(TownRemedyTerm term) => CivicSystem.NonviolentReturnLot(civicWorld, term);

@@ -30,7 +30,7 @@ internal sealed partial class CivicSystem
         { Id = id, Revision = NonviolentRevision(item).Number, SubmittedByAgentId = actor, SubmittedTick = world.WorldTick }, council.Knowledge);
     }
 
-    internal static (TownGovernanceState Council, TownNonviolentState Nonviolent) ApplyTownNonviolentAction(ICivicTownWorld world, TownRuntimeState town,
+    internal (TownGovernanceState Council, TownNonviolentState Nonviolent) ApplyTownNonviolentAction(ICivicTownWorld world, TownRuntimeState town,
         string actor, string action, string subject, string choice, CognitionNonviolentChoice? payload,
         TownGovernanceState council, TownGovernmentState government)
     {
@@ -114,7 +114,7 @@ internal sealed partial class CivicSystem
                 var version = law.Versions.Single(version => version.Version == item.Allegation.LawVersion);
                 var lawText = ("Applicable law at the alleged act: " + TownLawRules.Text(version.Subject, version.Rule));
                 state = AddNonviolentEvidence(world, state, state.Cases.Single(current => current.Id == item.Id),
-                    new(TownRecordIds.LawEvidence(law.Id, version.Version), revision.Number, "record", "record_inspection", actor, PrivateWorldRuntime.CivicSharedRules.LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick,
+                    new(TownRecordIds.LawEvidence(law.Id, version.Version), revision.Number, "record", "record_inspection", actor, LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick,
                         actor, world.WorldTick, NonviolentExcerpt(lawText, 256)), actor, council);
                 state = TownNonviolentRules.Inspect(state, item.Id, revision.Number, actor, world.WorldTick);
                 state = AcquireNonviolentInspectedSources(world, town with { Nonviolent = state, Governance = council },
@@ -137,7 +137,7 @@ internal sealed partial class CivicSystem
                 state = TownNonviolentRules.Respond(state, item.Id, revision.Number, actor, party.SubjectId, party.Id,
                     action == "law_case_answer" ? "answer" : "waive", action == "law_case_answer" ? NonviolentText(payload?.Statement) : "I waive only this response opportunity, without admitting the allegation.", world.WorldTick, council.Knowledge, parties);
                 break;
-            case "law_case_judge_register": state = TownCaseJudgeRules.Register(state, item.Id, actor, TownAdults(world, town), world.LandHearingHouseholds(), world.WorldTick, parties); break;
+            case "law_case_judge_register": state = TownCaseJudgeRules.Register(state, item.Id, actor, TownAdults(world, town), LandHearingHouseholds(world), world.WorldTick, parties); break;
             case "law_case_judge_withdraw": state = TownCaseJudgeRules.Withdraw(state, item.Id, actor, world.WorldTick); break;
             case "law_case_judge_resign": state = TownCaseJudgeRules.Resign(state, item.Id, actor, world.WorldTick); break;
             case "law_case_judge_vote": state = TownCaseJudgeRules.Vote(state, item.Id, TownCaseJudgeRules.RoundToken(item.Contest!), actor, ResolveCivicAgentToken(world, choice), world.WorldTick); break;
@@ -189,7 +189,7 @@ internal sealed partial class CivicSystem
         return (council, state);
     }
 
-    internal static TownRemedyTerm[] NonviolentTerms(ICivicTownWorld world, TownRuntimeState town, string actor, string caseId, CognitionNonviolentChoice? payload, string? replacingAgreementId = null)
+    internal TownRemedyTerm[] NonviolentTerms(ICivicTownWorld world, TownRuntimeState town, string actor, string caseId, CognitionNonviolentChoice? payload, string? replacingAgreementId = null)
     {
         if (payload?.Terms is not { Count: > 0 } terms) throw new InvalidOperationException("A restorative offer needs finite named goods or work.");
         string? PhysicalReference(string? reference) => reference is null ? null : world.Society.Inventory.Lots.Select(lot => lot.Id).Concat(world.WorldSimulation.Buildings.Select(building => building.InstanceId))
@@ -206,7 +206,7 @@ internal sealed partial class CivicSystem
                 Nonviolent = town.Nonviolent with
                 { Agreements = town.Nonviolent.Agreements.Where(agreement => agreement.Id != replacingAgreementId).ToArray() }
             };
-        if (result.Any(term => !world.LandHearingAdult(term.ContributorId) || !NonviolentRemedyFeasible(world, town, term) || !NonviolentRemedyTermKnownTo(world, town, term, actor)))
+        if (result.Any(term => !LandHearingAdult(world, term.ContributorId) || !NonviolentRemedyFeasible(world, town, term) || !NonviolentRemedyTermKnownTo(world, town, term, actor)))
             throw new InvalidOperationException("A proposed contribution must be feasible, lawful and known without searching private property.");
         var duration = payload.CompletionTicks ?? checked(3L * CivicDay(world));
         if (duration > long.MaxValue - world.WorldTick - CivicDay(world) || !NonviolentRemedyDurationFeasible(world, town, result, duration))

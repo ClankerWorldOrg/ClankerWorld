@@ -13,11 +13,8 @@
     "conversationSystem",
     "civicSystem",
     "deceasedInhabitants",
-    "founderSetup",
     "geographyOptions",
     "handcartHitches",
-    "householdLandUseRequests",
-    "householdLandUseRights",
     "inhabitants",
     "instructionReceipts",
     "instructionsByIdempotency",
@@ -34,8 +31,6 @@
     "society",
     "survivalState",
     "toolMakingRequests",
-    "townLandTitles",
-    "towns",
     "worldContent",
     "worldEventLog",
     "worldSeed",
@@ -72,7 +67,6 @@
     "plannedRoutes",
     "previousPlannedRoutes",
     "routeSearches",
-    "settlingTownAdmissions",
     "attemptedActions",
     "withheldActions"
   ]

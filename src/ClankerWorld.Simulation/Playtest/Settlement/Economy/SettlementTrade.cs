@@ -102,14 +102,15 @@ public sealed partial class PrivateWorldRuntime
         {
             return null;
         }
-        var lots = society.Checkpoint.Inventory.Lots;
-        foreach (var give in lots.Where(lot => lot.OwnerId == actor && TradeQuantityAvailable(lot) &&
+        var giving = SpendingGoods(actor, GoodsUse.Spend, [actor]).Select(match => match.Lot).ToArray();
+        var taking = SpendingGoods(other, GoodsUse.Spend, [other]).Select(match => match.Lot).ToArray();
+        foreach (var give in giving.Where(lot => TradeQuantityAvailable(lot) &&
                      !WantsTradeItem(actor, lot) && WantsTradeItem(other, lot) &&
                      (!IsEdibleFood(lot.ItemKind) || inhabitants[actor].HungerBasisPoints >= 6_500)))
         {
             // Records of the same kind can contain different discoveries. The
             // reciprocal demand checks still require contents each recipient lacks.
-            var take = lots.FirstOrDefault(lot => lot.OwnerId == other &&
+            var take = taking.FirstOrDefault(lot =>
                 (lot.ItemKind != give.ItemKind || AgentKnowledgeRules.IsArtifactKind(lot.ItemKind)) &&
                 TradeQuantityAvailable(lot) && !WantsTradeItem(other, lot) && WantsTradeItem(actor, lot) &&
                 (!IsEdibleFood(lot.ItemKind) || inhabitants[other].HungerBasisPoints >= 6_500));
@@ -237,8 +238,8 @@ public sealed partial class PrivateWorldRuntime
 
     private bool TradeQuantityAvailable(InventoryLot lot) => UsablePersonalTradeLot(lot) &&
         (AvailableLotQuantity(lot) >= 2 || AgentKnowledgeRules.IsArtifactKind(lot.ItemKind) ||
-         OrnamentContent.IsOrnament(lot.ItemKind) || society.Checkpoint.Inventory.Lots.Any(other =>
-             other.Id != lot.Id && other.OwnerId == lot.OwnerId && other.ItemKind == lot.ItemKind &&
+         OrnamentContent.IsOrnament(lot.ItemKind) || SpendingGoods(lot.OwnerId, GoodsUse.Spend, [lot.OwnerId], lot.ItemKind)
+             .Select(match => match.Lot).Any(other => other.Id != lot.Id &&
              UsablePersonalTradeLot(other)));
 
     private bool UsablePersonalTradeLot(InventoryLot lot) =>

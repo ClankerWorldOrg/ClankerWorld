@@ -46,6 +46,7 @@ public sealed partial class PrivateWorldRuntime
             PrivateWorldRuntimeState baseline;
             ConversationState baselineConversations;
             FarmingSystem baselineFarming;
+            CivicState baselineCivic;
             long baselineEventId;
             int baselineOrderCancellationCount;
             IReadOnlyDictionary<string, PlaytestPlannedRoute> routesBefore;
@@ -119,6 +120,7 @@ public sealed partial class PrivateWorldRuntime
                 baseline = CaptureState();
                 baselineConversations = conversationSystem.CheckpointState;
                 baselineFarming = farmingSystem.Fork();
+                baselineCivic = civicSystem.CheckpointState;
                 baselineEventId = nextEventId;
                 baselineOrderCancellationCount = orderCancellations.Count;
                 routesBefore = plannedRoutes;
@@ -148,7 +150,8 @@ public sealed partial class PrivateWorldRuntime
             async Task<PreparedTick> PrepareAttemptAsync(IReadOnlySet<string>? withheld, PrivateWorldActionRefusal? refusal = null)
             {
                 var proposed = RestoreCore(baseline, attemptProviders, maxCognitionDispatchPerCycle,
-                    trustedPreparedState: true, preparedConversations: baselineConversations, preparedFarming: baselineFarming);
+                    trustedPreparedState: true, preparedConversations: baselineConversations,
+                    preparedCivic: baselineCivic, preparedFarming: baselineFarming);
                 proposed.previousPlannedRoutes = routesBefore;
                 proposed.withheldActions = withheld;
                 proposed.attemptedActions = recorder is null && replayRefusal is null ? null : new(StringComparer.Ordinal);
@@ -458,11 +461,6 @@ public sealed partial class PrivateWorldRuntime
         jevEnabled = proposed.jevEnabled;
         routineHelper = proposed.routineHelper;
         jevPolicyRevision = proposed.jevPolicyRevision;
-        founderSetup = proposed.founderSetup;
-        towns = proposed.towns;
-        townLandTitles = proposed.townLandTitles;
-        householdLandUseRights = proposed.householdLandUseRights;
-        householdLandUseRequests = proposed.householdLandUseRequests;
         roadTiles = proposed.roadTiles;
         bridges = proposed.bridges;
         bridgeTraffic = proposed.bridgeTraffic;

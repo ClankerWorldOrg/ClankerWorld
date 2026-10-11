@@ -366,8 +366,8 @@ public sealed partial class PrivateWorldRuntime
                 var updated = inventory;
                 foreach (var kind in CartRepairKinds)
                 {
-                    var material = updated.Lots.Where(lot => lot.ItemKind == kind && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) &&
-                        lot.OwnerId == actor && PersonalEquipmentRules.AvailableQuantity(updated, lot) > 0).OrderBy(lot => lot.Id, StringComparer.Ordinal).First();
+                    var material = SpendingGoods(actor, GoodsUse.Spend, [actor], kind, inventory: updated)
+                        .First(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor)).Lot;
                     var id = CartRepairReservationId(WorldTick, actor, kind);
                     updated = InventoryFixture.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1);
                     reservations.Add(id);

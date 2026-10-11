@@ -34,7 +34,7 @@ public sealed partial class PrivateWorldRuntime
             if (edit.ExpectedEventId != nextEventId - 1)
                 return new(false, false, "The world changed. Refresh before editing.");
             using var proposed = RestoreCore(CaptureState(), providerFactory,
-                maxCognitionDispatchPerCycle, trustedPreparedState: true);
+                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: civicSystem.CheckpointState);
             try
             {
                 proposed.ApplyDeveloperEditCore(edit);
