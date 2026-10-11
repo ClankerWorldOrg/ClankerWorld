@@ -62,6 +62,23 @@ owns conversations, daily budgets and marriages in one immutable
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
 
+`Environment/EnvironmentSystem.cs` owns the immutable `WorldSystemsState`
+snapshot, including ecology, chunks and weather. Named writes handle harvesting,
+animal forage, tree planting and settlement resources. Weather advances at its
+existing tick phase, and the runtime commits the system with one assignment.
+Map, declarative content and world-content simulation snapshots remain owned by
+the coordinator. Trusted tick preparation shares all four snapshots by reference
+until a write replaces one; external loads retain full validation and map
+regeneration checks. Restore initializes saved services directly instead of
+creating founders, physical state or genesis events first.
+
+Environment operations receive `IEnvironmentWorld` or
+`IEnvironmentResidentWorld` per call. A live coordinator adapter supplies the
+current map, weather anchor, resource availability, resident state, inventory,
+order cancellation, death recording and event sink. The system retains no
+runtime reference, and its adapter stays on the committed coordinator. Existing
+private environment and exposure methods remain forwarders.
+
 A system owns its saved state, its rules and a small `I…World` interface for
 the services it needs from other areas. Saved state is an immutable record
 replaced on writes; a hot mutable collection instead replaces a `Version`

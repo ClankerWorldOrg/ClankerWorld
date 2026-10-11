@@ -952,8 +952,12 @@ checkpoint and does not change saved world identity or replay. See
 [observer recovery](device-pairing.md#recovering-after-another-device-loads-a-world)
 for ordering, cache and retained-request boundaries.
 
-The internally captured proposed tick can reuse its committed map. External
-loads still validate and regenerate it; this shortcut must not weaken input
+The internally captured proposed tick reuses its committed map, declarative
+content, world systems and world-content simulation snapshots by reference.
+An environment write replaces its immutable snapshot; committing transfers the
+environment system, while discarding the proposal leaves committed state alone.
+Restore initializes saved services directly without running new-world genesis.
+External loads still fully validate state and regenerate the map; this shortcut must not weaken input
 validation. Missing/corrupt referenced history must fail closed. See Issues for
 current defects rather than treating these requirements as proof of every load path.
 

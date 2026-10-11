@@ -109,26 +109,12 @@ public sealed partial class PrivateWorldRuntime
             : worldContent.Recipes.Any(recipe => selection.DefinitionId == recipe.CanonicalId &&
                 recipe.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId))));
 
-    private WeatherKind WeatherAt(GridPoint position) => WeatherRules.At(worldSystems, position, map.Height,
-        WeatherRules.RegionClimate(map, position));
+    private WeatherKind WeatherAt(GridPoint position) => environmentSystem.WeatherAt(map, position);
 
     /// <summary>The cold of being outdoors here now: weather, climate and season, plus night.</summary>
-    private int OutdoorExposure(GridPoint position) => WeatherExposure(position) +
-        NightChillAtFullDarkness * DaylightRules.DarknessBasisPoints(worldSystems) / DaylightRules.FullDarkness;
+    private int OutdoorExposure(GridPoint position) => environmentSystem.OutdoorExposure(map, position, NightChillAtFullDarkness);
 
-    private int WeatherExposure(GridPoint position) => WeatherAt(position) switch
-    {
-        WeatherKind.Snow => 60,
-        WeatherKind.Storm => 55,
-        WeatherKind.Rain => 25,
-        _ => map.ClimateAt(position) switch
-        {
-            ClimateZone.Tropical => 0,
-            ClimateZone.Polar => 55,
-            ClimateZone.Cold => worldSystems.Climate.Season == SeasonKind.Winter ? 45 : 15,
-            _ => worldSystems.Climate.Season == SeasonKind.Winter ? 40 : 0,
-        },
-    };
+    private int WeatherExposure(GridPoint position) => environmentSystem.WeatherExposure(map, position);
 
     private bool HasCarriedItem(string actor, string kind) => society.Checkpoint.Inventory.Lots.Any(lot =>
         PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&

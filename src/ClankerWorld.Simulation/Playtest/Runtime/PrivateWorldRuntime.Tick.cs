@@ -340,7 +340,7 @@ public sealed partial class PrivateWorldRuntime
         animalWorld = proposed.animalWorld;
         geographyOptions = proposed.geographyOptions;
         contentRegistry = proposed.contentRegistry;
-        worldSystems = proposed.worldSystems;
+        environmentSystem = proposed.environmentSystem;
         survivalState = proposed.survivalState;
         council = proposed.council;
         continuity = proposed.continuity;
@@ -511,21 +511,7 @@ public sealed partial class PrivateWorldRuntime
             society.AdvanceTo(targetTick, TownStoresForDueEstates(targetTick), DefaultEstateDivisionsForDueEstates(targetTick));
             foreach (var boat in boatTransport.Boats.Where(boat => boat.GroundCargoLotIds is { Count: > 0 }).ToArray())
                 MoveBoatGroundCargo(boat, preserveCustody: true);
-            var previousClimate = worldSystems.Climate;
-            var campPosition = WeatherAnchor;
-            var previousCampWeather = WeatherAt(campPosition);
-            // Old saves retain their exact active daily weather until the first
-            // resumed tick imports it into an episode. Loading alone changes nothing.
-            worldSystems = RegionalWeatherRules.Initialize(worldSystems, map);
-            worldSystems = WorldSystemsRules.AdvanceOneTick(worldSystems);
-            SyncEcologyResourceStates();
-            var campWeather = WeatherAt(campPosition);
-            if (previousClimate.Season != worldSystems.Climate.Season || previousCampWeather != campWeather)
-            {
-                AppendEvent(
-                    "weather_changed",
-                    $"{worldSystems.Climate.Season.ToString().ToLowerInvariant()}:{campWeather.ToString().ToLowerInvariant()}");
-            }
+            AdvanceEnvironmentWeather();
 
             var activatedWorldContent = worldContent;
             foreach (var package in readyPackages)

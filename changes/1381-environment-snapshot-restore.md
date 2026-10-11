@@ -1,0 +1,1 @@
+- Prepared ticks preserve unchanged environment snapshot identities, and restoring a saved world initializes its saved services without running new-world genesis first.

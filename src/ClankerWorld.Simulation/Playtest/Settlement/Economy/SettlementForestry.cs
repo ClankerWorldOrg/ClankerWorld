@@ -86,14 +86,7 @@ public sealed partial class PrivateWorldRuntime
             IsPlanted = true,
             NextRegenerationDay = day + TreeGrowthRules.SaplingGrowthDays,
         };
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources.Select(resource =>
-                    resource.Id == tree.Id ? planted : resource).ToArray(),
-            },
-        };
+        environmentSystem.ReplaceEcologyResource(tree.Id, planted);
         SyncEcologyResourceStates();
         AppendEvent("tree_replanted", $"{actor}:{tree.Id}:{tree.TreeKind}");
     }
@@ -158,23 +151,7 @@ public sealed partial class PrivateWorldRuntime
         var day = WorldCalendarRules.FromTick(WorldTick, worldSystems.Config).DayIndex;
         var chunk = worldSystems.Chunks.Single(item =>
             item.Coordinate == ChunkRules.ToChunkCoordinate(destination, item.ChunkSize));
-        var origin = chunk.Coordinate.Origin(chunk.ChunkSize);
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources.Append(TreeGrowthRules.PlantedSapling(tree, day))
-                    .OrderBy(resource => resource.Id, StringComparer.Ordinal).ToArray(),
-            },
-            Chunks = worldSystems.Chunks.Select(item => item.Coordinate != chunk.Coordinate
-                ? item
-                : ChunkManifestCodec.WithDigest(item with
-                {
-                    Resources = item.Resources.Append(new ChunkResourceMetadata(tree.Id, tree.Kind,
-                            new GridPoint(destination.X - origin.X, destination.Y - origin.Y), true))
-                        .OrderBy(resource => resource.ResourceId, StringComparer.Ordinal).ToArray(),
-                })).ToArray(),
-        };
+        environmentSystem.PlantTree(tree, day, chunk);
         SyncEcologyResourceStates();
         checkpointSchemaVersion = StateSchemaVersion;
         RecordKnowledgeFact(planterId, destination);

@@ -250,15 +250,7 @@ public sealed partial class PrivateWorldRuntime
                     harvest.Resource.RegenerationIntervalDays,
             }
             : harvest.Resource;
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources
-                    .Select(resource => resource.Id == source.Id ? harvested : resource)
-                    .ToArray(),
-            },
-        };
+        environmentSystem.ReplaceEcologyResource(source.Id, harvested);
         SyncEcologyResourceStates();
         var harvestedLotId = $"food:harvest:{WorldTick:D10}:{inhabitantId}";
         ApplyInventoryTransition(inventory => InventoryFixture.AddLot(
