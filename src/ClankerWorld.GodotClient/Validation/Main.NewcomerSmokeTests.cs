@@ -75,12 +75,16 @@ public partial class Main
             var requests = new List<string>();
             var requestTrace = new ConcurrentQueue<string>();
             var requestClock = Stopwatch.StartNew();
+            // The real button callback also lays out the UI before sending its
+            // first request. Under CPU contention that work can exceed five
+            // seconds, so bound the whole interaction rather than each read.
+            using var setupDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             var responses = Task.Run(async () =>
             {
                 for (var index = 0; index < 4; index++)
                 {
                     requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms waiting for request {index + 1}/4");
-                    var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                    var context = await listener.GetContextAsync().WaitAsync(setupDeadline.Token);
                     var path = context.Request.Url!.AbsolutePath;
                     requests.Add(path);
                     requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms received {path}");
@@ -101,12 +105,14 @@ public partial class Main
                     requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms responded to {path}");
                 }
             });
+            requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms emitting newcomer button");
             NewcomerOfferButton()!.EmitSignal(BaseButton.SignalName.Pressed);
+            requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms newcomer button callback returned");
             try
             {
                 await responses;
             }
-            catch (TimeoutException exception)
+            catch (OperationCanceledException exception) when (setupDeadline.IsCancellationRequested)
             {
                 throw new InvalidOperationException(
                     $"Newcomer setup reads timed out: ownerAction={isOwnerAction}, " +
