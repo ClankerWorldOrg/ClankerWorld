@@ -1,2 +1,0 @@
-- [ ] Stop an approved Town Hall after materials reach its site by granting a household land request there. Check that residents carry its unused Town-owned materials back to the Warehouse without starting another project.
-- [ ] Try recovery with a nearly full carrier or Warehouse, and with a hungry resident carrying an unused load. Check that food needs take priority and goods stay Town property.

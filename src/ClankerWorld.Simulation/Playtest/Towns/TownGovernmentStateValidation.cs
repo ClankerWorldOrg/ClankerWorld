@@ -157,7 +157,7 @@ internal static class TownGovernmentStateValidation
             var change = state.Changes.SingleOrDefault(change => change.Id == grant.ChangeId);
             var baseEnd = change?.NonLandExtension is { } target ? BaseEnd(state, target) : null;
             if (change is not { Status: "completed", NonLandExtension: { } extension } ||
-                grant.Id != change.Id + ":non-land" || grant.HolderId != extension.HolderId ||
+                grant.Id != TownGovernmentRules.NonLandGrantId(change.Id) || grant.HolderId != extension.HolderId ||
                 grant.BaseMandate != extension.BaseMandate || grant.BaseElectionId != extension.BaseElectionId ||
                 grant.ConsentTick != extension.ConsentTick || grant.EffectiveTick != change.SettledTick ||
                 grant.EffectiveTick < grant.ConsentTick || grant.EffectiveTick >= grant.TermEndTick ||

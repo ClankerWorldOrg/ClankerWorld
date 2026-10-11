@@ -25,8 +25,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:camp-beta").Id;
         var second = nativeBorn ? births[1].ChildId : checkpoint.Inhabitants.First(person => person.Id != first &&
             person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:camp-beta").Id;
-        Assert.Equal(nativeBorn, first.Length > 128);
-        Assert.Equal(nativeBorn, second.Length > 128);
+        Assert.InRange(first.Length, 1, DerivedId.MaximumLength);
+        Assert.InRange(second.Length, 1, DerivedId.MaximumLength);
         var beforeTrust = new[] { (Owner: first, Subject: second), (Owner: second, Subject: first) }
             .ToDictionary(pair => pair.Owner, pair => state.Inhabitants.Single(person => person.InhabitantId == pair.Owner)
                 .SocialStanding?.SingleOrDefault(item => item.SubjectId == pair.Subject)?.Trust ?? 0);

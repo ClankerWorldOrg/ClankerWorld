@@ -30,7 +30,7 @@ public static partial class SocietyFixture
         var relationships = checkpoint.Relationships;
         if (caregiver is null)
         {
-            var relationshipId = $"guardian-care:{childId}:{adultId}:{checkpoint.WorldTick}";
+            var relationshipId = GuardianCareId(childId, adultId, checkpoint.WorldTick);
             if (checkpoint.Relationships.Any(edge => edge.Id == relationshipId))
                 return Reject(checkpoint, "care_assignment_rejected", "duplicate_guardian_acceptance");
             caregiver = new SocietyRelationship(relationshipId, 1, SocietyRelationshipType.Caregiver,
@@ -98,10 +98,10 @@ public static partial class SocietyFixture
         if (newHomeRecord is null || child.HouseholdId is not null && oldHome is null)
             return null;
 
-        var membershipId = $"{newHome}:guardian-membership:{childId}:{checkpoint.WorldTick}";
+        var membershipId = GuardianMembershipId(newHome, childId, checkpoint.WorldTick, 0);
         var suffix = 0;
         while (checkpoint.Relationships.Any(edge => edge.Id == membershipId))
-            membershipId = $"{newHome}:guardian-membership:{childId}:{checkpoint.WorldTick}:{++suffix}";
+            membershipId = GuardianMembershipId(newHome, childId, checkpoint.WorldTick, ++suffix);
         var membership = new SocietyRelationship(membershipId, 1, SocietyRelationshipType.HouseholdMembership,
             newHome, childId, SocietyRelationshipState.Accepted, SocietyConsentState.Accepted,
             checkpoint.WorldTick, checkpoint.WorldTick, "household", newHome,
@@ -167,7 +167,7 @@ public static partial class SocietyFixture
                 edge.ProposerId == adultId && edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted))
             return AssumePrimaryCare(checkpoint, adultId, childId);
 
-        var id = $"dependent-care:{adultId}:{childId}:{checkpoint.WorldTick}";
+        var id = DependentCareId(adultId, childId, checkpoint.WorldTick);
         if (checkpoint.Relationships.Any(edge => edge.Id == id))
             return Reject(checkpoint, "care_assignment_rejected", "duplicate_assignment");
         var edge = new SocietyRelationship(id, 1, SocietyRelationshipType.Caregiver, adultId, childId,

@@ -108,11 +108,11 @@ public sealed class MarketLotHistoryCheckpointTests
             Assert.Equal(4, receipt.Quantity);
             Assert.Equal(Seller, receipt.OwnerId);
             Assert.Equal("wood", receipt.ItemKind);
-            Assert.Equal(partial ? sourceId + "#move:" + receipt.Id + ":deposit" : sourceId, receipt.LotId);
+            Assert.Equal(partial ? DerivedId.Create(sourceId + "#move:" + DerivedId.Create(receipt.Id + ":deposit")) : sourceId, receipt.LotId);
             if (partial)
             {
-                Assert.True(receipt.LotId.Length > 2048);
-                if (splits == 4) Assert.True(sourceId.Length <= 2048);
+                Assert.InRange(receipt.LotId.Length, 1, DerivedId.MaximumLength);
+                Assert.InRange(sourceId.Length, 1, DerivedId.MaximumLength);
                 Assert.Equal(1, world.Society.Inventory.GetLot(sourceId).Quantity);
                 Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot(sourceId), Seller));
             }
@@ -151,7 +151,7 @@ public sealed class MarketLotHistoryCheckpointTests
             var source = inventory.GetLot(sourceId);
             var operation = $"personal:{Seller}:{sequence}:{sourceId}";
             inventory = InventoryFixture.Relocate(inventory, operation, sourceId, Seller, source.Quantity - 1, carrierId: Seller);
-            sourceId += "#move:" + operation;
+            sourceId = DerivedId.Create(sourceId + "#move:" + operation);
             if (sequence + 1 < splits)
                 inventory = InventoryFixture.Relocate(inventory, $"return:{sequence}", sourceId, Seller,
                     inventory.GetLot(sourceId).Quantity, storageBuildingId: house.InstanceId);

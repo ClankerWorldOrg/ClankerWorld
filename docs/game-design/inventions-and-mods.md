@@ -94,6 +94,12 @@ roster; invention pictures and their placeholder are agreed below.
   global view browses the latest save for each world and handles the personal
   library and imports/exports. Tabs such as This World, Personal Library,
   Import/Export, and History are accepted as a starting arrangement.
+- **Mod content ID length, agreed by the owner in chat on October 11:** every
+  content ID a mod declares has one length limit, checked when the package is
+  imported. A package with a longer ID is refused with a clear reason. Every
+  other part of the game accepts any ID that passed that check, so a valid
+  mod good or recipe is never quietly refused later. The exact limit is set
+  with the implementation ([#1606](https://github.com/compoodment/ClankerWorld/issues/1606)).
 - **Mod versions and conflicts, agreed on October 8
   ([#1272](https://github.com/compoodment/ClankerWorld/issues/1272)):** each
   world locks the exact versions of the mods it uses, and updating one is an

@@ -87,7 +87,7 @@ public sealed class BuildingVariantRestaurantTests
         Assert.Equal(new[] { buyer }, offer.AcceptedBy);
         Assert.Equal(fixture.Household, offering.Society.Inventory.GetLot(outputId).OwnerId);
         Assert.Equal(buyer, offering.Society.Inventory.GetLot(paymentId).OwnerId);
-        foreach (var reservationId in new[] { offer.Id + ":first", offer.Id + ":second" })
+        foreach (var reservationId in new[] { DerivedId.Create(offer.Id + ":first"), DerivedId.Create(offer.Id + ":second") })
             Assert.Equal(InventoryReservationState.Reserved,
                 offering.Society.Inventory.GetReservation(reservationId).State);
 

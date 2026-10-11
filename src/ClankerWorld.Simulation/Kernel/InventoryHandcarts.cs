@@ -23,7 +23,7 @@ public static partial class InventoryFixture
         var filled = checkpoint.Lots.Where(lot => lot.ContainerLotId == cart.Id).Sum(lot => lot.Quantity);
         if (quantity > InventoryContainerRules.HandcartCapacity - filled)
             throw new InvalidOperationException("The cart does not have room for those goods.");
-        var loadedId = quantity == cargo.Quantity ? cargo.Id : $"{cargo.Id}#contained:{cart.Id}:{operationId}";
+        var loadedId = quantity == cargo.Quantity ? cargo.Id : DerivedId.Create($"{cargo.Id}#contained:{cart.Id}:{operationId}");
         if (loadedId != cargo.Id && checkpoint.Lots.Any(lot => lot.Id == loadedId))
             throw new InvalidOperationException("This load ID is already in use.");
         var loaded = cargo with
@@ -54,7 +54,7 @@ public static partial class InventoryFixture
         EnsureOwnerAndAvailablePhysicalQuantity(checkpoint, cargo, ownerId, quantity);
         EnsureNoActiveReservations(checkpoint, checkpoint.Lots
             .Where(lot => lot.Id == cart.Id || lot.ContainerLotId == cart.Id).Select(lot => lot.Id));
-        var splitId = quantity == cargo.Quantity ? cargo.Id : $"{cargo.Id}#unloaded:{operationId}";
+        var splitId = quantity == cargo.Quantity ? cargo.Id : DerivedId.Create($"{cargo.Id}#unloaded:{operationId}");
         if (splitId != cargo.Id && checkpoint.Lots.Any(lot => lot.Id == splitId))
             throw new InvalidOperationException("This unload ID is already in use.");
         var unloaded = cargo with

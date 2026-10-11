@@ -19,19 +19,22 @@ public sealed class MultiHeirWillAdmissionTests
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task ALongDescendantIdentityUsesABoundedPromptKeyAndKeepsItsExactBequestAfterReload(bool rawKeyCollision)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task NativeDescendantAndLongExternalHeirKeysKeepTheirExactBequestsAfterReload(bool externalLongHeir, bool rawKeyCollision)
     {
         using var handler = new LongHeirHandler();
         using var client = new HttpClient(handler);
         var provider = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key",
             new Uri("https://model.invalid/v1/chat/completions"), "synthetic-model", providerEpoch: 42);
-        using var world = NewWorld(provider, longDescendant: true, rawKeyCollision: rawKeyCollision);
+        using var world = NewWorld(provider, longDescendant: true, rawKeyCollision: rawKeyCollision, externalLongHeir: externalLongHeir);
         var firstBirth = Assert.Single(world.Society.Births, birth => birth.PrimaryCaregiverId == Actor);
-        var heirId = Assert.Single(world.Society.Births, birth => birth.PrimaryCaregiverId == firstBirth.ChildId).ChildId;
+        var nativeHeirId = Assert.Single(world.Society.Births, birth => birth.PrimaryCaregiverId == firstBirth.ChildId).ChildId;
+        Assert.InRange(nativeHeirId.Length, 1, DerivedId.MaximumLength);
+        var heirId = externalLongHeir ? world.Society.Inhabitants.Single(person => person.Name == "External Heir").Id : nativeHeirId;
         handler.ExpectedHeirName = world.Society.GetInhabitant(heirId).Name;
-        Assert.True(heirId.Length > CognitionWillContext.MaximumHeirKeyLength);
+        Assert.Equal(externalLongHeir, heirId.Length > CognitionWillContext.MaximumHeirKeyLength);
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await handler.Started.Task.WaitAsync(Deadline);
@@ -46,9 +49,9 @@ public sealed class MultiHeirWillAdmissionTests
         Assert.Equal([heirId], estate.WillHeirIds);
         Assert.Equal([new SocietyWillBequest("will-seed", heirId, 3)], estate.WillBequests);
         Assert.Equal(1, handler.RequestCount);
-        Assert.StartsWith("will:heir:sha256:", handler.HeirKey);
+        Assert.Equal(DerivedId.Create("will:heir:" + heirId + (rawKeyCollision ? ":1" : ""),
+            "will:heir:sha256:"), handler.HeirKey);
         Assert.InRange(handler.HeirKey!.Length, 1, CognitionWillContext.MaximumHeirKeyLength);
-        Assert.Equal(rawKeyCollision, handler.HeirKey!.EndsWith(":1", StringComparison.Ordinal));
         if (rawKeyCollision)
             Assert.Equal("will:heir:" + world.Society.Inhabitants.Single(person => person.Name == "Hash Twin").Id,
                 handler.CollisionKey);
@@ -226,7 +229,7 @@ public sealed class MultiHeirWillAdmissionTests
     }
 
     private static PrivateWorldRuntime NewWorld(IDecisionProvider provider, bool longDescendant = false,
-        bool rawKeyCollision = false)
+        bool rawKeyCollision = false, bool externalLongHeir = false)
     {
         using var seed = new PrivateWorldRuntime(longDescendant ? new string('s', 100) : "multiheir-will-admission");
         var state = seed.ExportState();
@@ -275,9 +278,24 @@ public sealed class MultiHeirWillAdmissionTests
                 };
                 parentId = childId;
             }
+            if (externalLongHeir)
+            {
+                // A legal standalone identity is outside the derived-ID boundary. Keep it complete.
+                parentId = "external-heir:" + new string('h', 170);
+                checkpoint = SocietyFixture.AddAdult(checkpoint, parentId, checkpoint.GetInhabitant(Actor).HouseholdId).Checkpoint;
+                checkpoint = SocietyFixture.RenameInhabitant(checkpoint, parentId, "External Heir").Checkpoint;
+                var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>
+                    state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point) &&
+                    state.Map.FootNeighbors(point).Any(state.Map.IsPassable));
+                state = state with
+                {
+                    Inhabitants = state.Inhabitants.Append(new PlaytestInhabitantState(parentId,
+                    position, 9_500, 0, "careful", "keep the orchard going")).ToArray()
+                };
+            }
             if (rawKeyCollision)
             {
-                var rawIdentity = "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(parentId))).ToLowerInvariant();
+                var rawIdentity = DerivedId.Create("will:heir:" + parentId, "will:heir:sha256:")["will:heir:".Length..];
                 checkpoint = SocietyFixture.AddAdult(checkpoint, rawIdentity, checkpoint.GetInhabitant(Actor).HouseholdId).Checkpoint;
                 checkpoint = SocietyFixture.RenameInhabitant(checkpoint, rawIdentity, "Hash Twin").Checkpoint;
                 var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>

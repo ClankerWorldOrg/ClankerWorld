@@ -1,1 +1,0 @@
-- In a generated world, let a child talk, play or learn beside another agent, save and reload, then send the child a message about that experience with their personal model enabled. Check that their response can refer to the experience and that normal social actions still work after reload. [#970](https://github.com/compoodment/ClankerWorld/issues/970)

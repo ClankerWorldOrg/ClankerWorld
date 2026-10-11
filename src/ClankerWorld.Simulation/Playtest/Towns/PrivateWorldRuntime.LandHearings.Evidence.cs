@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.Playtest;
 public sealed partial class PrivateWorldRuntime
 {
     private static string LandHearingLawToken(TownLaw law, TownLawVersion version) =>
-        law.Id + "@" + version.Version.ToString(CultureInfo.InvariantCulture);
+        TownLandHearingRules.LawRecordId(law.Id, version.Version);
 
     private (TownLaw Law, TownLawVersion Version)[] LandHearingApplicableLaws(TownRuntimeState town, TownLandCase item)
     {

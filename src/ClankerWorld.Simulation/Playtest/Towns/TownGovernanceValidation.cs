@@ -116,9 +116,7 @@ public static partial class TownGovernanceValidation
     }
 
     private static bool ValidGeneratedId(string id, string prefix, long sequence) =>
-        !string.IsNullOrWhiteSpace(id) && id.StartsWith(prefix, StringComparison.Ordinal) &&
-        long.TryParse(id.AsSpan(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var number) &&
-        number > 0 && number <= sequence && id == prefix + number.ToString(CultureInfo.InvariantCulture);
+        DerivedId.MatchesNumbered(id, prefix, sequence);
 
     private static void ValidateKnowledge(TownGovernanceState state, HashSet<string> known, long tick)
     {

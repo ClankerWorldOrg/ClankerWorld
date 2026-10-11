@@ -73,7 +73,7 @@ public sealed partial class PrivateWorldRuntime
             equipment.ClothingLotId is not null && equipment.ClothingLotId == equipment.CarryAidLotId ||
             equipment.Repair is { } repair &&
             (InvalidId(repair.LotId) || InvalidId(repair.BuildingId) || InvalidId(repair.OrderInstructionId) ||
-             repair.OrderInstructionId is { Length: > 128 } || repair.LotId is null || repair.BuildingId is null ||
+             repair.OrderInstructionId is { Length: > DerivedId.MaximumLength } || repair.LotId is null || repair.BuildingId is null ||
              repair.StartedTick < 0 || repair.StartedTick > tick || tick - repair.StartedTick > 120 ||
              repair.WorkDone < 0 || repair.WorkDone >= PersonalEquipmentRules.RepairWorkTicks ||
              repair.WorkDone > tick - repair.StartedTick || repair.MaterialReservationIds is null ||
