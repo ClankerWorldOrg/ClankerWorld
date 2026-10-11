@@ -1,0 +1,1 @@
+- Mod content IDs share a 512-character limit checked when a package is imported. Accepted IDs work in crafting, wills, land-sale prices and resource knowledge; longer IDs are refused with a clear reason.

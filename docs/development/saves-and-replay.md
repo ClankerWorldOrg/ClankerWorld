@@ -11,6 +11,30 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Mod content identities
+
+Content IDs use the 512-character import limit in
+`ContentPackageRules.MaximumContentIdLength`. It covers package and local IDs,
+schema kinds, complete canonical definition and asset IDs, and resource and
+workstation references in building/recipe payloads. The complete canonical ID
+must fit; its digest, separators and version count toward the limit. A package
+with a longer ID is refused before its proposal record or event is created.
+Existing typed-payload, dependency, authority and activation checks still apply.
+
+Construction candidates allow the ID plus their action prefix and optional
+site coordinates. Inventory, recipe projects, frozen estate lots, will
+bequests, land-sale prices and payment receipts retain complete identities.
+Long will goods labels are shortened to the model's display budget and include
+their offered `item:N` key; the reply maps that key to the original frozen lot.
+Resource knowledge and its model context use the import limit and local-ID
+syntax, including periods.
+
+No saved fields or schema change. Native boundary checks retain complete
+checkpoint bytes through reload and matched continuations, including completed
+inheritance and actual land-sale payment. Earlier alpha saves containing
+over-limit mod IDs may be refused under the new import validation; they are
+preserved, and no ID shortening or migration is performed.
+
 ## Bounded derived identities
 
 Private-world schema 123 applies one 128 UTF-16-unit limit to generated
