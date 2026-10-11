@@ -10,7 +10,7 @@ public sealed partial class AnimalPipelineTests
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
-    public async Task MilkCollectionCreditsTheOrderWithAFetchedOrCarriedJug(bool alreadyCarried, bool repeat)
+    public async Task MilkCollectionCreditsTheOrderWithoutMovingAnUnrelatedJug(bool alreadyCarried, bool repeat)
     {
         var (state, actor, home, yard) = CreateYard("animal-milk-sale");
         var day = state.WorldSystems!.Config.TicksPerDay;
@@ -46,10 +46,11 @@ public sealed partial class AnimalPipelineTests
         }
         Assert.Null(world.Animals.Single(animal => animal.Id == cow.Id).ReadyProductLotId);
         var collected = world.Society.Inventory.GetLot(productId);
-        Assert.Equal((home, "milk", 2, "collection-credit-jug"),
+        Assert.Equal((home, "milk", 2, (string?)null),
             (collected.OwnerId, collected.ItemKind, collected.Quantity, collected.ContainerLotId));
         Assert.True(PersonalEquipmentRules.IsPhysicallyCarried(world.Society.Inventory, collected, actor));
-        Assert.Equal(actor, world.Society.Inventory.GetLot("collection-credit-jug").CarrierId);
+        Assert.Equal(alreadyCarried ? actor : null, world.Society.Inventory.GetLot("collection-credit-jug").CarrierId);
+        Assert.Equal(alreadyCarried ? null : yard.InstanceId, world.Society.Inventory.GetLot("collection-credit-jug").StorageBuildingId);
         Assert.NotEqual(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(reservationId).State);
         var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
         Assert.Equal(1, order.CompletedUnits);

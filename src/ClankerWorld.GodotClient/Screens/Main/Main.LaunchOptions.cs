@@ -21,7 +21,10 @@ public partial class Main
     private const string OtherVersion = "other_version";
     private readonly ConfirmationDialog openInVersionConfirmation = new();
     private string? pendingOpenVersion;
+    private string? pendingOpenWorld;
     private string? failedLauncherVersion;
+    private string? failedLauncherWorld;
+    private string? requestedWorldToSelect = GameStarter.RequestedWorld(OS.GetCmdlineUserArgs());
     private bool? developerMode;
     private string? launcherPath;
     private bool launcherPathRead;
@@ -58,7 +61,7 @@ public partial class Main
         StyleConfirmation(openInVersionConfirmation, "Open in another version?", "Open in Launcher");
         openInVersionConfirmation.Confirmed += () =>
         {
-            if (pendingOpenVersion is { } version) _ = QuitGameAsync(openLauncher: true, version);
+            if (pendingOpenVersion is { } version) _ = QuitGameAsync(openLauncher: true, version, pendingOpenWorld);
         };
         AddChild(openInVersionConfirmation);
     }
@@ -67,6 +70,7 @@ public partial class Main
     {
         if (GameVersionName.Parse(world.GameVersion) is not { } version || LauncherPath is null) return;
         pendingOpenVersion = version.ToString();
+        pendingOpenWorld = GameStarter.WorldId(world.Id);
         openInVersionConfirmation.DialogText =
             $"ClankerWorld {version} last saved {world.Name}. Save and close this game, then choose {version} in the launcher to open it?";
         PopupDialog(openInVersionConfirmation);
@@ -79,15 +83,17 @@ public partial class Main
             : $"ClankerWorld {world.GameVersion} saved this world. Choose Open in {world.GameVersion} to play it there. Your save is safe.";
 
     /// <summary>Opens the launcher with this version chosen, as the game closes.</summary>
-    private bool TryOpenLauncher(string? version = null)
+    private bool TryOpenLauncher(string? version = null, string? worldId = null)
     {
         failedLauncherVersion = version ?? BuildInformation.Version;
+        failedLauncherWorld = GameStarter.WorldId(worldId);
         try
         {
             if (LauncherPath is not { } path) throw new IOException("The launcher is no longer available.");
             var start = new ProcessStartInfo(path) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(path) };
             start.ArgumentList.Add("--");
             start.ArgumentList.Add("--choose-version=" + failedLauncherVersion);
+            if (failedLauncherWorld is { } id) start.ArgumentList.Add(GameStarter.WorldOption + id);
             using var process = Process.Start(start);
             if (process is null) throw new IOException("The launcher did not start.");
             return true;
@@ -107,7 +113,7 @@ public partial class Main
             StyleConfirmation(launcherStartFailure, "Couldn't open the launcher", "Try Again");
             launcherStartFailure.CancelButtonText = "Keep Game Open";
             launcherStartFailure.DialogText = "The launcher couldn't start. The game will stay open so you can try again. Check that the launcher is still installed.";
-            launcherStartFailure.Confirmed += () => _ = QuitGameAsync(openLauncher: true, failedLauncherVersion);
+            launcherStartFailure.Confirmed += () => _ = QuitGameAsync(openLauncher: true, failedLauncherVersion, failedLauncherWorld);
             AddChild(launcherStartFailure);
         }
         PopupDialog(launcherStartFailure);

@@ -229,6 +229,7 @@ public partial class Main
         // Title-screen notices such as "continue from Main Menu" are stale here.
         statusToast.Hide();
         isInWorld = true;
+        requestedWorldToSelect = null;
         if (resumeWorldOnContinue)
         {
             resumeWorldOnContinue = false;
@@ -674,6 +675,19 @@ public partial class Main
             }
             worldSelectionList.Placeholder = "No worlds yet. Make one with New World.";
             worldMenuStatus.Text = listedWorlds.Length == 0 ? "No worlds yet." : "Choose a world. Double-click to open it.";
+            if (requestedWorldToSelect is { } requested)
+            {
+                // Consume only a successful visible listing. A failed request may be retried,
+                // but later refreshes must not override the player's own choice.
+                requestedWorldToSelect = null;
+                var index = Array.FindIndex(listedWorlds, world => world.Id == requested);
+                if (index >= 0)
+                {
+                    worldSelectionList.Select(index);
+                    worldSelectionList.EmitSignal(SlotList.SignalName.ItemSelected, (long)index);
+                }
+                else worldMenuStatus.Text = "The requested world is no longer in this saves folder. Choose another world.";
+            }
         }
         // The list fills after its containers update; size the first opening once it has.
         Callable.From(LayoutWorldMenu).CallDeferred();

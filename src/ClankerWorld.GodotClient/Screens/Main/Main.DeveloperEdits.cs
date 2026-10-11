@@ -11,7 +11,7 @@ public partial class Main
         ["berries", "fruit", "wild_greens", "cultivated_greens", "grain", "flour", "wood", "stone",
          "fiber", "rope", "cloth", "clothing", "padded_coat", "rain_cloak", "basket", "sack",
          "wooden_axe", "wooden_pickaxe", "iron_ore", "iron", "storage_pot", "water_jug", "medicine", "tree_seed",
-         "eggs", "wool", "hide", "leather", "leather_sack", "saddle", "cooked_eggs", "milk_porridge", "rich_meal"];
+         "eggs", "milk", "wool", "hide", "leather", "leather_sack", "saddle", "cooked_eggs", "milk_porridge", "rich_meal"];
     private readonly Label developerEditAgent = new();
     private readonly Label developerEditHint = new();
     private readonly OptionButton developerEditKind = new();

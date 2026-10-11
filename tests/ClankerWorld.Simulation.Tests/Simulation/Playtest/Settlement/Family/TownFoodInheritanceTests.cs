@@ -9,7 +9,8 @@ public sealed class TownFoodInheritanceTests
 {
     [Theory]
     [InlineData("eggs", null, true)]
-    [InlineData("milk", "water_jug", true)]
+    [InlineData("milk", null, true)]
+    [InlineData("milk", "storage_pot", true)]
     [InlineData("cooked_eggs", null, true)]
     [InlineData("milk_porridge", "storage_pot", true)]
     [InlineData("rich_meal", "storage_pot", true)]

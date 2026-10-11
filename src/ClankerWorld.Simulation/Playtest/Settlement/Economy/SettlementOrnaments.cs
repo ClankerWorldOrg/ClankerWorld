@@ -21,8 +21,7 @@ public sealed partial class PrivateWorldRuntime
         candidate.StartsWith(GiftOrnamentPrefix, StringComparison.Ordinal);
 
     // Preserve complete lot/agent identities without delimiter ambiguity or unbounded action IDs.
-    private static string OrnamentChoiceId(string prefix, params string[] identity) => prefix +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(identity))));
+    private static string OrnamentChoiceId(string prefix, params string[] identity) => DerivedId.Hash(JsonSerializer.Serialize(identity), prefix);
 
     private bool LivingOrnamentAdult(string actor) => inhabitants.ContainsKey(actor) && AdultResident(actor);
 
@@ -35,19 +34,20 @@ public sealed partial class PrivateWorldRuntime
         PersonalEquipmentRules.IsOrnament(lot.ItemKind) && lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
         lot.ContainerLotId is null && lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0;
 
+    private static GoodsRequest OrnamentCollectionRequest(string actor, string owner) => new(
+        GoodsUse.Collect, actor, GoodsOwners.One(owner), new GoodsKinds(["gold_ornament", "diamond_ornament"]));
+
     private IEnumerable<InventoryLot> OrnamentSources(string actor)
     {
         if (!LivingOrnamentAdult(actor)) return [];
         var household = society.Checkpoint.GetInhabitant(actor).HouseholdId;
-        return society.Checkpoint.Inventory.Lots.Where(lot => PersonalEquipmentRules.IsOrnament(lot.ItemKind) &&
-                lot.ContainerLotId is null && lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
-                !OnBorrowedMarketStall(lot) &&
+        var owners = household is not null ? new[] { actor, household } : [actor];
+        return owners.SelectMany(owner => FindGoods(OrnamentCollectionRequest(actor, owner)).Matches)
+            .Select(match => match.Lot).Where(lot => lot.ContainerLotId is null &&
                 (IsPersonallyCarriedOrnament(lot, actor) || household is not null && lot.OwnerId == household &&
                     (lot.CarrierId is null || lot.CarrierId == actor) && FreeCarryCapacity(actor) > 0 &&
                     (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
-                        building.InstanceId == lot.StorageBuildingId && building.HouseholdId == household)) &&
-                    (IsWithinInteractionRange(inhabitants[actor].Position, HouseholdStockPosition(lot),
-                         HouseholdStockInteractionRange(lot)) || CanReachSharedItem(actor, lot))))
+                        building.InstanceId == lot.StorageBuildingId && building.HouseholdId == household))))
             .OrderBy(lot => lot.OwnerId == actor ? 0 : 1).ThenBy(lot => lot.Id, StringComparer.Ordinal);
     }
 
@@ -150,6 +150,9 @@ public sealed partial class PrivateWorldRuntime
         if (lot.OwnerId != actor && !IsWithinInteractionRange(person.Position, HouseholdStockPosition(lot),
                 HouseholdStockInteractionRange(lot)))
             return new(false, Failure: "Walk to the ornament's actual household stock first.");
+        if (RecheckGoods(OrnamentCollectionRequest(actor, lot.OwnerId), lot.Id) is not { } match)
+            return new(false, Failure: "Choose a usable, unreserved ornament you carry or your household holds.");
+        lot = match.Lot;
         var previous = person.Equipment;
         var equippedId = lot.Id;
         try
@@ -160,11 +163,11 @@ public sealed partial class PrivateWorldRuntime
                 {
                     var operation = $"ornament-wear:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
                     inventory = InventoryFixture.Transfer(inventory, operation, lot.OwnerId, actor, lot.Id, 1, "ornament_collected");
-                    equippedId = lot.Quantity == 1 ? lot.Id : lot.Id + "#transfer:" + operation;
+                    equippedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
                 }
                 else if (lot.Quantity > 1)
                 {
-                    equippedId = $"ornament-unit:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
+                    equippedId = OrnamentUnitId(WorldTick, nextEventId, actor, lot.Id);
                     inventory = InventoryFixture.SplitLot(inventory, lot.Id, 1, equippedId);
                 }
                 inhabitants[actor] = person with
@@ -216,7 +219,7 @@ public sealed partial class PrivateWorldRuntime
         if (FreeCarryCapacity(recipientId) < 1) return new(false, Failure: "The recipient has no room to carry the gift.");
         var person = inhabitants[actor];
         var operation = $"ornament-gift:{WorldTick}:{nextEventId}:{actor}:{recipientId}:{lot.Id}";
-        var receivedId = lot.Quantity == 1 ? lot.Id : lot.Id + "#transfer:" + operation;
+        var receivedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
         try
         {
             ApplyInventoryTransition(inventory =>

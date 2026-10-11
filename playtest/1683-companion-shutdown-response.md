@@ -1,1 +1,0 @@
-- On a local Windows world: make a visible change, quit the game, then restart and Continue. The change is saved, the previous host has exited, and quitting does not report a shutdown failure. ([#1683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1683))

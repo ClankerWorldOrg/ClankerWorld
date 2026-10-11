@@ -59,9 +59,7 @@ public sealed partial class PrivateWorldRuntime
                     if (!boatTransport.Boats.Where(boat => boat.TownId == townId && boat.DockedPortId == origin.InstanceId && boat.Journey is null)
                             .Any(boat => PortNavigationRules.WaterRoute(map, boat.Position,
                                 PortGeometryFor(destination).DockingTiles, PortObstacles()).Count > 0)) continue;
-                    var key = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(
-                        new[] { townId, origin.InstanceId, destination.InstanceId }))));
-                    yield return new(BoatTripPrefix + key, townId, origin, destination);
+                    yield return new(BoatTripId(townId, origin.InstanceId, destination.InstanceId), townId, origin, destination);
                 }
             }
         }

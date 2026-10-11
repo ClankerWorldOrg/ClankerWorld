@@ -14,8 +14,7 @@ public sealed partial class PrivateWorldRuntime
         if (renamed.NewEvents is not { Count: > 0 }) return renamed;
         var identity = renamed.Checkpoint.GetInhabitant(agentId);
         // The saved world-event ordinal distinguishes same-tick renames and survives setup undo and reload.
-        var id = "player-rename:" + nextEventId.ToString("D20", CultureInfo.InvariantCulture) + ":" +
-            Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(agentId)));
+        var id = RenameMemoryId(agentId, nextEventId);
         var day = CivicDayNumber(checkpoint.WorldTick).ToString(CultureInfo.InvariantCulture);
         var recorded = SocietyFixture.RecordSocialMemory(renamed.Checkpoint,
             new(id, agentId, agentId, $"I was renamed on day {day} to {identity.Name}.", "private", checkpoint.WorldTick, Permanent: true));

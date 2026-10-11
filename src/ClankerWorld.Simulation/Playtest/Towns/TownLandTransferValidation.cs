@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Playtest;
 
@@ -47,7 +48,7 @@ public static class TownLandTransferValidation
             Check(request.Tiles.All(tile => request.RightVersions.Count(version => version.Right.Tiles.Contains(tile)) == 1),
                 "A transfer plot must consist entirely of unambiguous existing permissions.");
             if (request.Price is { } price)
-                Check(price.Quantity > 0 && Id(price.ItemKind) && price.ItemKind.Length <= 128 && !price.ItemKind.Any(char.IsWhiteSpace) &&
+                Check(price.Quantity > 0 && TownLandHearingRules.ValidText(price.ItemKind, ContentPackageRules.MaximumContentIdLength) && !price.ItemKind.Any(char.IsWhiteSpace) &&
                     !InventoryContainerRules.IsContainer(price.ItemKind) && price.ItemKind != "handcart" &&
                     request.RightVersions.All(version => version.Right.HouseholdId == price.SellerHouseholdId) &&
                     request.Parties.Any(party => party.HouseholdId == price.SellerHouseholdId && party.AdultIds.Contains(request.FilerId)),
@@ -123,7 +124,7 @@ public static class TownLandTransferValidation
                     retained.Kind == "inventory_transferred" && retained.WorldTick == receipt.Tick &&
                     retained.Detail == $"{transferId}:{payment.BuyerAgentId}:{price.SellerHouseholdId}:{lot.SourceLotId}:{lot.Quantity}:land_use_right_payment",
                     "A sale payment receipt must match its actual committed inventory transfer.");
-                var destinationId = lot.SourceLotId + "#transfer:" + transferId;
+                var destinationId = DerivedId.Create(lot.SourceLotId + "#transfer:" + transferId);
                 Check(inventory.Lots.Where(item => item.Id == destinationId || item.Id == lot.SourceLotId)
                     .All(item => item.ItemKind == price.ItemKind), "A retained paid lot must have the agreed goods kind.");
             }
@@ -151,7 +152,7 @@ public static class TownLandTransferValidation
             "A transfer must retain precisely its source and beneficiary households and actual adult signatories.");
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(right => right.Tiles.Select(tile =>
         JsonSerializer.Serialize(new { tile.X, tile.Y, right.TownId, right.HouseholdId, right.GrantedTick, right.GrantSource, right.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? value) => TownLandHearingRules.ValidText(value, 256);
+    private static bool Id(string? value) => TownLandHearingRules.ValidText(value, DerivedId.MaximumLength);
     private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(TownHearingProcedure.Id) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

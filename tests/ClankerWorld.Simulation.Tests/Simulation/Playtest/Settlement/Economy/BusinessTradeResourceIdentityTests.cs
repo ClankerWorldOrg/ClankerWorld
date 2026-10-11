@@ -13,6 +13,7 @@ public sealed partial class BusinessTradeTests
     [Theory]
     [InlineData(128)]
     [InlineData(129)]
+    [InlineData(512)]
     public async Task ModProducedStorePaymentSurvivesHostCheckpointAndSettlement(int resourceLength)
     {
         var (state, buyer, seller, shopId) = CreateShopState("store");

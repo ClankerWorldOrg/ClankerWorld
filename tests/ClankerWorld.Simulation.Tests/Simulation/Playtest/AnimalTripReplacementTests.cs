@@ -12,7 +12,7 @@ public sealed partial class AnimalPipelineTests
     [InlineData(false, true, false)]
     [InlineData(true, false, false)]
     [InlineData(false, false, true)]
-    public async Task ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal(bool finishFirst, bool cancelFirst, bool retainedTrip)
+    public async Task ReplacingMilkCollectionDoesNotBlockCareForAnotherAnimal(bool finishFirst, bool cancelFirst, bool reloadBeforeReplacement)
     {
         var (state, actor, home, yard) = CreateYard("animal-milk-sale");
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == home &&
@@ -44,17 +44,18 @@ public sealed partial class AnimalPipelineTests
         Assert.NotNull(setup.Animals.Single(animal => animal.Id == moss.Id).ReadyProductLotId);
         using var collecting = RestoreAnimalOrder(setup.ExportState(), actor);
         var old = collecting.SubmitInstruction(new("replacement-collect", "owner", actor, OwnerInstructionKind.MustDo, "collect from Moss"));
-        await Until(collecting, () => collecting.ExportState().AnimalWorld.SupplyTrips.Any(trip => trip.ActorId == actor && trip.AnimalId == moss.Id));
-        var pickedTrips = collecting.ExportState().AnimalWorld.SupplyTrips;
-        Assert.Equal((home, actor), (collecting.Society.Inventory.GetLot("replacement-empty-jug").OwnerId,
-            collecting.Society.Inventory.GetLot("replacement-empty-jug").CarrierId));
+        Assert.DoesNotContain(collecting.ExportState().AnimalWorld.SupplyTrips, trip => trip.ActorId == actor);
+        if (reloadBeforeReplacement)
+        {
+            var pending = PrivateWorldRuntimeCodec.Encode(collecting.ExportState());
+            using var pendingReload = RestoreAnimalOrder(PrivateWorldRuntimeCodec.Decode(pending), actor);
+            Assert.Equal(pending, PrivateWorldRuntimeCodec.Encode(pendingReload.ExportState()));
+        }
         if (finishFirst) await Until(collecting, () => collecting.ExportState().Instructions!.Single(instruction => instruction.InstructionId == old.InstructionId).Order!.Status == "finished");
         if (cancelFirst) Assert.True(collecting.CancelOrder(new("replacement-cancel", "owner", collecting.Society.WorldId, actor, old.InstructionId)).Changed);
         var current = collecting.SubmitInstruction(new("replacement-care", "owner", actor, OwnerInstructionKind.MustDo, "care for Fern"));
         Assert.DoesNotContain(collecting.ExportState().AnimalWorld.SupplyTrips, trip => trip.ActorId == actor);
         var checkpoint = collecting.ExportState();
-        // Before the repair, a valid saved replacement retained this actual native pickup trip.
-        if (retainedTrip) checkpoint = checkpoint with { AnimalWorld = checkpoint.AnimalWorld with { SupplyTrips = pickedTrips } };
         var bytes = PrivateWorldRuntimeCodec.Encode(checkpoint);
         using var world = RestoreAnimalOrder(PrivateWorldRuntimeCodec.Decode(bytes), actor);
         using var replay = RestoreAnimalOrder(PrivateWorldRuntimeCodec.Decode(bytes), actor);
@@ -75,7 +76,8 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(4, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("replacement-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "replacement-water");
         Assert.Equal(home, world.Society.Inventory.GetLot("replacement-empty-jug").OwnerId);
-        Assert.Equal(actor, world.Society.Inventory.GetLot("replacement-empty-jug").CarrierId);
+        Assert.Null(world.Society.Inventory.GetLot("replacement-empty-jug").CarrierId);
+        Assert.Equal(house.InstanceId, world.Society.Inventory.GetLot("replacement-empty-jug").StorageBuildingId);
         Assert.Equal(2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk").Sum(lot => lot.Quantity));
         Assert.Equal(!finishFirst, world.Animals.Single(animal => animal.Id == moss.Id).ReadyProductLotId is not null);
         Assert.DoesNotContain(final.AnimalWorld.SupplyTrips, trip => trip.ActorId == actor);

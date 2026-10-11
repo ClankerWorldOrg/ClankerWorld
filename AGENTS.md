@@ -75,8 +75,9 @@ comments: if they record the owner's answer, record it in the game design
 instead of asking again, unless an open pull request already does
 (`status:has-pr`).
 
-Then add the [playtest list](playtest/README.md): how many files and checks are
-waiting for the owner to try in the game by hand. Playtest checks are never
+Then add the [playtest list](playtest/README.md): how many checks the release
+checklist and any newer per-change files hold for the owner to try in the game
+by hand. Playtest checks are never
 owner-task issues, so these searches do not show them.
 
 ## Sign your comments

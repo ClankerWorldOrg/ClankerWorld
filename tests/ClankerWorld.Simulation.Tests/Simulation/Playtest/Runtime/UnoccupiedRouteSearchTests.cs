@@ -59,6 +59,42 @@ public sealed class UnoccupiedRouteSearchTests
             search.RouteTo(new GridPoint(1, 0), 0));
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void NarrowWrappedRoutesMatchFreshSearches(int width)
+    {
+        var map = new SeededMap(width, 5, 0,
+            [.. from y in Enumerable.Range(0, 5)
+                from x in Enumerable.Range(0, width)
+                select new TerrainTile(new GridPoint(x, y), TerrainKind.Meadow)],
+            [], [], string.Empty) with
+        { WrapsEastWest = true };
+        var origin = new GridPoint(0, 0);
+        HashSet<GridPoint> occupied = [new(width - 1, 2)];
+        using var search = new UnoccupiedRouteSearch(map, origin, occupied, map.FootStepCost);
+
+        foreach (var tile in map.Tiles.Reverse())
+            Assert.Equal(FreshRoute(map, origin, occupied, map.FootStepCost, tile.Position, 0),
+                search.RouteTo(tile.Position, 0));
+    }
+
+    [Fact]
+    public void CustomNeighborsCanCrossTilesThatOrdinaryWalkingCannot()
+    {
+        var map = new SeededMap(3, 1, 0,
+            [new(new(0, 0), TerrainKind.Meadow), new(new(1, 0), TerrainKind.Lake),
+             new(new(2, 0), TerrainKind.Meadow)], [], [], string.Empty);
+        var origin = new GridPoint(0, 0);
+        var destination = new GridPoint(2, 0);
+        using var walking = new UnoccupiedRouteSearch(map, origin, [], (_, _) => 1);
+        using var custom = new UnoccupiedRouteSearch(map, origin, [], (_, _) => 1,
+            point => point.X < 2 ? [new GridPoint(point.X + 1, 0)] : []);
+
+        Assert.Empty(walking.RouteTo(destination, 0));
+        Assert.Equal([origin, new GridPoint(1, 0), destination], custom.RouteTo(destination, 0));
+    }
+
     private static void CompareWithFreshSearches(SeededMap map, int origins, int questions, int seed)
     {
         var random = new Random(seed);

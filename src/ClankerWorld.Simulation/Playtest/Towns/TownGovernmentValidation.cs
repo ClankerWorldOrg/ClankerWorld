@@ -137,7 +137,5 @@ public static class TownGovernmentValidation
     }
 
     internal static bool ValidId(string? id, string prefix, long sequence) =>
-        !string.IsNullOrWhiteSpace(id) && id.StartsWith(prefix, StringComparison.Ordinal) &&
-        long.TryParse(id.AsSpan(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var number) &&
-        number > 0 && number <= sequence && id == prefix + number.ToString(CultureInfo.InvariantCulture);
+        DerivedId.MatchesNumbered(id, prefix, sequence);
 }

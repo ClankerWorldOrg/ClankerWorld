@@ -12,6 +12,11 @@ public partial class Main
         var previousMode = developerMode;
         var previousLauncher = launcherPath;
         var previousPathRead = launcherPathRead;
+        var previousFailedVersion = failedLauncherVersion;
+        var previousFailedWorld = failedLauncherWorld;
+        var previousRetryVersion = retryLauncherVersion;
+        var previousRetryWorld = retryLauncherWorld;
+        var previousRetryChoice = retryChooseCurrentWorld;
         var directory = Directory.CreateTempSubdirectory("launcher handoff ");
         try
         {
@@ -40,6 +45,15 @@ public partial class Main
                 throw new InvalidOperationException("A missing launcher must report failure and keep the game open for retry.");
             launcherStartFailure.Hide();
 
+            const string worldId = "0123456789abcdef0123456789abcdef";
+            ShowLocalHostStopFailure("0.0.1-older", worldId);
+            localHostStopFailure.Hide();
+            localHostStopFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
+            if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" ||
+                failedLauncherWorld != worldId || isQuittingGame)
+                throw new InvalidOperationException("A refused-stop retry must preserve the complete launcher target.");
+            launcherStartFailure.Hide();
+
             if (OperatingSystem.IsLinux())
             {
                 launcherPath = Path.Combine(directory.FullName, "launcher with spaces.sh");
@@ -53,12 +67,12 @@ public partial class Main
                 if (!File.Exists(arguments) || !File.ReadAllLines(arguments).SequenceEqual(new[] { "--", "--choose-version=" + BuildInformation.Version }))
                     throw new InvalidOperationException("Launcher hand-off must retain argument boundaries and the actual game version.");
                 File.Delete(arguments);
-                if (!TryOpenLauncher("0.0.1-older")) throw new InvalidOperationException("The requested-version hand-off must start.");
+                if (!TryOpenLauncher("0.0.1-older", worldId)) throw new InvalidOperationException("The requested-version hand-off must start.");
                 deadline.Restart();
-                while ((!File.Exists(arguments) || File.ReadAllLines(arguments).Length < 2) && deadline.Elapsed < TimeSpan.FromSeconds(5))
+                while ((!File.Exists(arguments) || File.ReadAllLines(arguments).Length < 3) && deadline.Elapsed < TimeSpan.FromSeconds(5))
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (!File.Exists(arguments) || File.ReadAllLines(arguments) is not ["--", "--choose-version=0.0.1-older"])
-                    throw new InvalidOperationException("The real launcher process must receive the selected world's version.");
+                if (!File.Exists(arguments) || !File.ReadAllLines(arguments).SequenceEqual(new[] { "--", "--choose-version=0.0.1-older", "--choose-world=" + worldId }))
+                    throw new InvalidOperationException("The real launcher process must receive the selected world's version and complete catalog ID.");
             }
             GD.Print("Game launch option checks passed: Developer mode off, F1 list, busy quit, missing launcher and version hand-off.");
         }
@@ -68,6 +82,12 @@ public partial class Main
             launcherPath = previousLauncher;
             launcherPathRead = previousPathRead;
             launcherStartFailure.Hide();
+            localHostStopFailure.Hide();
+            failedLauncherVersion = previousFailedVersion;
+            failedLauncherWorld = previousFailedWorld;
+            retryLauncherVersion = previousRetryVersion;
+            retryLauncherWorld = previousRetryWorld;
+            retryChooseCurrentWorld = previousRetryChoice;
             controlsPanel.Hide();
             developerMode = previousMode;
             renderedControlsTheme = null;

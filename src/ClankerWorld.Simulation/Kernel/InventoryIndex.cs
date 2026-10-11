@@ -13,6 +13,7 @@ public sealed class InventoryIndex
     private readonly FrozenDictionary<string, IReadOnlyList<InventoryLot>> byDestination;
     private readonly FrozenDictionary<string, IReadOnlyList<InventoryLot>> byContainer;
     private readonly FrozenDictionary<string, int> reserved;
+    private readonly FrozenDictionary<string, IReadOnlyList<InventoryReservation>> reservationsByLot;
     private readonly FrozenSet<string> reservedFamilies;
 
     private InventoryIndex(InventoryCheckpoint checkpoint)
@@ -24,6 +25,9 @@ public sealed class InventoryIndex
         byDestination = Group(Lots, lot => lot.DeliveryBuildingId);
         byContainer = Group(Lots, lot => lot.ContainerLotId);
         var active = checkpoint.Reservations.Where(reservation => InventoryRules.IsActive(reservation.State)).ToArray();
+        reservationsByLot = active.GroupBy(reservation => reservation.LotId, StringComparer.Ordinal)
+            .ToFrozenDictionary(group => group.Key,
+                group => (IReadOnlyList<InventoryReservation>)Array.AsReadOnly(group.ToArray()), StringComparer.Ordinal);
         reserved = active.GroupBy(reservation => reservation.LotId, StringComparer.Ordinal)
             .ToFrozenDictionary(group => group.Key, group => group.Sum(reservation => reservation.Quantity), StringComparer.Ordinal);
         reservedFamilies = active.Select(reservation => byId.TryGetValue(reservation.LotId, out var lot)
@@ -46,6 +50,7 @@ public sealed class InventoryIndex
     public IReadOnlyList<InventoryLot> InboundTo(string id) => byDestination.GetValueOrDefault(id) ?? [];
     public IReadOnlyList<InventoryLot> ContentsOf(string id) => byContainer.GetValueOrDefault(id) ?? [];
     public int ReservedQuantity(string id) => reserved.GetValueOrDefault(id);
+    public IReadOnlyList<InventoryReservation> ActiveReservationsFor(string id) => reservationsByLot.GetValueOrDefault(id) ?? [];
     public bool HasActiveReservation(string id) => reserved.ContainsKey(id);
     public bool HasReservedFamily(string rootId) => reservedFamilies.Contains(rootId);
     public int ContentsQuantity(string id) => ContentsOf(id).Sum(lot => lot.Quantity);
