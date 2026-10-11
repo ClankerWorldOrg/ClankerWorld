@@ -1100,7 +1100,9 @@ restores all-adult decisions until lawful succession; land cases wait.
 
 The Towns page shows the approved arrangement, offices, recent government
 votes, current and last mayoral contests, and the latest sixteen laws with
-scope, version and effective dates. Complete histories stay in the save.
+scope, version and effective dates. The Event Log reports law decisions,
+government votes and handovers, and mayoral elections or office changes.
+Complete histories stay in the save.
 
 Affected households and the legitimate Town government can file public land
 hearings. Each affected adult gets a formal response period; actual reading or
