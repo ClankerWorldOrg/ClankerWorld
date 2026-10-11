@@ -115,11 +115,14 @@ All sixteen repeat capture files match, with zero fallbacks across another
 ordinary baseline exactly. These repeats support the bounded improvement
 without explaining every shared-host outlier or promising Windows latency.
 
-The [raw report](construction-input-query-probe/samples.json) retains every
-ordinary/repeat sample, fresh setup counts, source/probe/checkpoint hashes,
-compiled assembly hashes and all 76 before/after or profile capture-file
-comparisons. Only SettlementProjects.cs differs among the 332 Simulation and
-project/toolchain inputs. Full native captures, checkpoints, trace, profile
+The raw report retains every ordinary/repeat sample, fresh setup counts,
+source/probe/checkpoint hashes, compiled assembly hashes and all 76
+before/after or profile capture-file comparisons. It is in git history at
+commit `ab3d1119` as
+`docs/development/construction-input-query-probe/samples.json`, and the
+commands under Repeat the native comparison rerun the measurement. Only
+SettlementProjects.cs differs among the 332 Simulation and project/toolchain
+inputs. Full native captures, checkpoints, trace, profile
 analysis and preflight-failure notes are retained in
 `.evidence/keep/998/` in the baseline and fixing worktrees of Codex session
 c57361c5.

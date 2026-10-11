@@ -23,10 +23,12 @@ times are milliseconds; allocation is bytes per refresh on the current thread.
 | Small, 32,768 tiles | 2.964 / 4.949 | 2.928 / 5.685 | 1,290,000 | 665,300 |
 | Medium, 131,072 tiles | 7.346 / 13.305 | 7.052 / 9.694 | 5,550,979 | 3,066,912 |
 
-[Raw samples and input metadata](measurements/1195-cached-observations.json)
-retain every timing and allocation sample, the direct layer-digest and fertility
-constructor phases, checkpoint digests and source hashes. Those direct phases
-are measured separately; their times are not exact attribution of a refresh.
+Raw samples and input metadata retain every timing and allocation sample, the
+direct layer-digest and fertility constructor phases, checkpoint digests and
+source hashes. They are in git history at commit `0bd49313` as
+`docs/development/measurements/1195-cached-observations.json`, and the commands
+under Repeat rerun the measurement. Those direct phases are measured
+separately; their times are not exact attribution of a refresh.
 
 ## Method and limits
 

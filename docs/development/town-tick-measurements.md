@@ -113,8 +113,10 @@ setup is not a runtime speed improvement.
 
 ## Recorded comparison
 
-The [raw dataset](measurements/944-town-ticks.json) preserves every ordinary
-timing sample, actual world counts and admitted actions. The comparison uses
+The raw dataset preserves every ordinary timing sample, actual world counts
+and admitted actions. It is in git history at commit `e49bf25a` as
+`docs/development/measurements/944-town-ticks.json`, and the commands under
+Run a comparison rerun the measurement. The comparison uses
 ticks 257–320 on Debian 13, SDK 10.0.401, .NET 10.0.12 and an AMD EPYC 9V74
 shared host with a four-core CPU quota and `DOTNET_PROCESSOR_COUNT=4`. Runs
 are sequential. Founder-start clock settings match across all seven runtimes

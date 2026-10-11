@@ -136,19 +136,21 @@ public sealed partial class PrivateWorldRuntime
         SharedStockItem(kind, actor, GoodsUse.ReachableHoldings, returnTo, returnRange);
 
     private InventoryLot? SharedStockItem(string kind, string actor, GoodsUse use, GridPoint? returnTo, int returnRange)
+        => SharedStockItems(kind, actor, use).FirstOrDefault(lot =>
+            returnTo is null || CanPrepareSharedPickup(actor, lot, returnTo.Value, returnRange));
+
+    private IEnumerable<InventoryLot> SharedStockItems(string kind, string actor, GoodsUse use)
     {
         if (HouseholdFor(actor) is { } household)
         {
             var request = new GoodsRequest(use, actor, GoodsOwners.One(household), GoodsKinds.One(kind));
-            var source = FindGoods(request).Matches.FirstOrDefault(match => match.Lot.ContainerLotId is null && match.Lot.CarrierId is null &&
-                (returnTo is null || CanPrepareSharedPickup(actor, match.Lot, returnTo.Value, returnRange)));
-            if (source is not null) return source.Lot;
+            foreach (var match in FindGoods(request).Matches)
+                if (match.Lot.ContainerLotId is null && match.Lot.CarrierId is null) yield return match.Lot;
         }
-        if (kind == "food") return null;
+        if (kind == "food") yield break;
         foreach (var lot in AvailableWarehouseStock(actor, kind))
-            if (RecheckGoods(new(use, actor, GoodsOwners.One(lot.OwnerId), GoodsKinds.One(kind)), lot.Id) is { } match &&
-                (returnTo is null || CanPrepareSharedPickup(actor, match.Lot, returnTo.Value, returnRange))) return match.Lot;
-        return null;
+            if (RecheckGoods(new(use, actor, GoodsOwners.One(lot.OwnerId), GoodsKinds.One(kind)), lot.Id) is { } match)
+                yield return match.Lot;
     }
 
     private bool CanReachSharedItem(string actor, InventoryLot lot) =>
@@ -316,10 +318,11 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private void CollectEquipment(string actor, PlaytestInhabitantState person, string kind,
-        GridPoint? returnTo = null, int returnRange = 0)
+        GridPoint? returnTo = null, int returnRange = 0, string? plannedLotId = null)
     {
         if (FreeCarryCapacity(actor) <= 0 || HasCarriedEquipmentAtLeast(actor, kind) ||
-            SharedItem(kind, actor, returnTo, returnRange) is not { ContainerLotId: null } item)
+            SharedItem(kind, actor, returnTo, returnRange) is not { ContainerLotId: null } item ||
+            plannedLotId is not null && item.Id != plannedLotId)
         {
             return;
         }

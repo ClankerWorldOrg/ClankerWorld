@@ -100,6 +100,18 @@ order cancellation, death recording and event sink. The system retains no
 runtime reference, and its adapter stays on the committed coordinator. Existing
 private environment and exposure methods remain forwarders.
 
+`Civic/CivicSystem.cs` owns the settlement council and each Town's governance,
+government and nonviolent-law snapshots in one immutable `CivicState`. The
+coordinator keeps the full Town checkpoint views, including land and membership;
+its central Town write imports civic changes, and checkpoint capture projects
+the system's civic snapshots onto those views. A prepared tick commits the
+system with one assignment. Civic operations receive the current world through
+an adapter on each call, and the adapter stays on the committed coordinator.
+The civic-history index uses `Derived` with the immutable governance snapshot
+as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
+copies; replacing governance invalidates the lookup. Physical needs, positions,
+inventory availability and remedy admission remain current-world queries.
+
 A system owns its saved state, its rules and a small `I…World` interface for
 the services it needs from other areas. Saved state is an immutable record
 replaced on writes; a hot mutable collection instead replaces a `Version`
@@ -1865,6 +1877,16 @@ swimming eligibility alongside terrain, Roads and occupancy. Swimming is
 projected from the actual water position, and the map alternates existing approved poses and displays
 **Swimming** beside the agent. No sprite atlas or saved movement-mode field
 changes.
+
+Book writing, selected-cart repair and tool repair plan their remaining
+material pickups as a sequence. A transient search tries the existing input
+order first, then the other orders, checking each actual interaction point
+with the cumulative physical load. Separate paper lots count as separate
+pickups. Cart and tool repairs also check the final
+trip to the cart or Blacksmith; writing can begin at the last pickup. The next
+action resolves its source and permission again. Tool repair retains its
+ordinary spare-cargo storage and gathering-tool preparation when those are
+needed before a complete collection plan can be formed. No plan is saved.
 
 Checkpoint map acceptance keeps a weak, derived camp-reachability cache for
 each map's current starting point. Before reuse it compares actual terrain,

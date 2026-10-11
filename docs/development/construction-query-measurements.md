@@ -44,9 +44,12 @@ workload, so they are compared only within their own matched pair.
 ## Method and limits
 
 Baseline production is main `bfef85e8802d63ff2bccf506cd61d304416735ec`.
-[Raw samples and metadata](construction-query-probe/samples.json) preserve all
-768 ordinary tick/wall samples, starting-state and candidate/final digests,
-production/probe source hashes, actual fixture counts and state-change results.
+Raw samples and metadata preserve all 768 ordinary tick/wall samples,
+starting-state and candidate/final digests, production/probe source hashes,
+actual fixture counts and state-change results. They are in git history at
+commit `ab35fdcf` as
+`docs/development/construction-query-probe/samples.json`, and the commands under
+Repeat the comparison rerun the measurement.
 
 Setup uses the portable native growth probe from
 [#997](https://github.com/compoodment/ClankerWorld/pull/997), with one checkpoint

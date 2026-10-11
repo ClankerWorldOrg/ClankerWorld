@@ -18,10 +18,25 @@ public sealed partial class PrivateWorldRuntime
 
     private CognitionCandidate CartRepairOrderCandidateFor(OwnerQueuedInstruction instruction, InventoryLot cart)
     {
-        var missing = CartRepairKinds.FirstOrDefault(kind => !HasCarriedMaterial(instruction.TargetInhabitantId, kind, 1));
+        var actor = instruction.TargetInhabitantId;
+        var collection = CartRepairCollectionPlan(actor, cart);
+        var missing = collection is { Count: > 0 } ? collection[0].Kind :
+            CartRepairKinds.FirstOrDefault(kind => !HasCarriedMaterial(actor, kind, 1));
         return missing is null
             ? new(RepairCartPrefix + cart.Id, "Reach and repair the selected cart with your carried wood, iron fitting and rope.", 0, cart.Id)
             : new(CollectCartRepairPrefix + missing, "Collect the permitted repair supplies for the selected cart.", 0, cart.Id);
+    }
+
+    private List<InputCollectionStep>? CartRepairCollectionPlan(string actor, InventoryLot cart)
+    {
+        var inputs = new List<InputCollectionStep>();
+        foreach (var kind in CartRepairKinds)
+        {
+            if (HasCarriedMaterial(actor, kind, 1)) continue;
+            if (SharedItem(kind, actor, CartPosition(cart)) is not { } stock) return null;
+            inputs.Add(StockCollectionStep(stock, 1));
+        }
+        return PlanInputCollection(actor, inputs, CartPosition(cart));
     }
 
     private string? CartRepairOrderBlocker(string actor, PlaytestInhabitantState person, InventoryLot cart)
@@ -36,18 +51,23 @@ public sealed partial class PrivateWorldRuntime
             return "Make carrying space for the cart's repair supplies.";
         if (missing.Any(kind => SharedItem(kind, actor, CartPosition(cart)) is null))
             return "The cart repair needs one available wood, iron fitting and rope in your hands or permitted household or Town stock.";
+        if (CartRepairCollectionPlan(actor, cart) is null)
+            return "Waiting for a legal route to collect the repair supplies and return to the selected cart.";
         return null;
     }
 
     private void ExecuteCartRepairOrderStep(OwnerQueuedInstruction instruction, PlaytestInhabitantState person, InventoryLot cart)
     {
-        var candidate = CartRepairOrderCandidateFor(instruction, cart);
-        if (candidate.Id.StartsWith(CollectCartRepairPrefix, StringComparison.Ordinal))
+        var collection = CartRepairCollectionPlan(instruction.TargetInhabitantId, cart);
+        if (collection is null) return;
+        if (collection.Count > 0)
         {
+            var input = collection[0];
             CollectEquipment(instruction.TargetInhabitantId, person,
-                candidate.Id[CollectCartRepairPrefix.Length..], CartPosition(cart));
+                input.Kind, CartPosition(cart), plannedLotId: input.Stock!.Id);
             return;
         }
+        var candidate = CartRepairOrderCandidateFor(instruction, cart);
         ApplyHandcartCandidate(instruction.TargetInhabitantId, person, candidate.Id);
         if (candidate.Id != RepairCartPrefix + cart.Id ||
             society.Checkpoint.Inventory.GetLot(cart.Id).ConditionBasisPoints <= cart.ConditionBasisPoints) return;

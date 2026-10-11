@@ -285,6 +285,24 @@ public sealed partial class PrivateWorldRuntime
                 (protectedToolIds ?? []).Concat(harvestToolId is null ? [] : new[] { harvestToolId }).ToArray()));
     }
 
+    private List<InputCollectionStep>? ToolRepairCollectionInputs(string actor, IReadOnlyList<ContentQuantity> materials,
+        GridPoint returnTo)
+    {
+        var inputs = new List<InputCollectionStep>();
+        foreach (var input in materials)
+        {
+            if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;
+            if (SharedPreparationItem(input.ResourceId, actor, returnTo) is { } stock)
+                inputs.Add(StockCollectionStep(stock, input.Amount));
+            else if (MaterialSource(input.ResourceId, actor, returnTo) is { } source &&
+                ProjectMaterialHarvest(actor, input.ResourceId, source) is { } harvest)
+                inputs.Add(new(input.ResourceId, source.Position, ResourceInteractionRange,
+                    checked(harvest.Quantity + harvest.TreeSeedQuantity), Harvest: source, HarvestToolLotId: harvest.ToolLotId));
+            else return null;
+        }
+        return inputs;
+    }
+
     private string? RepairTool(string actor, PlaytestInhabitantState state, string lotId,
         IReadOnlyList<string>? protectedToolIds = null)
     {
@@ -300,25 +318,42 @@ public sealed partial class PrivateWorldRuntime
             return null;
 
         var materialNeeds = ToolProgressionRules.RepairMaterials(tool.ItemKind);
-        foreach (var input in materialNeeds)
+        var collectionInputs = ToolRepairCollectionInputs(actor, materialNeeds, blacksmith.Position);
+        if (collectionInputs is null)
         {
-            if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;
-            if (SharedPreparationItem(input.ResourceId, actor, blacksmith.Position) is not null)
+            // A gathering tool may need collecting before the whole harvest's
+            // load can be known. Do that preparation without taking other inputs.
+            foreach (var input in materialNeeds)
             {
-                if (MakeRoomForToolRepairInput(actor, state, lotId, input.Amount, null, materialNeeds, protectedToolIds))
-                    return null;
-                CollectEquipment(actor, state, input.ResourceId, blacksmith.Position);
-                return null;
+                if (HasCarriedMaterial(actor, input.ResourceId, input.Amount) ||
+                    SharedPreparationItem(input.ResourceId, actor) is not null) continue;
+                if (MaterialSource(input.ResourceId, actor, blacksmith.Position) is { } source &&
+                    ProjectMaterialHarvest(actor, input.ResourceId, source) is null)
+                {
+                    GatherProjectMaterial(actor, state, input.ResourceId, source, returnTo: blacksmith.Position);
+                    break;
+                }
             }
-            if (MaterialSource(input.ResourceId, actor, blacksmith.Position) is { } source)
-            {
-                if (ProjectMaterialHarvest(actor, input.ResourceId, source) is { } plan &&
-                    MakeRoomForToolRepairInput(actor, state, lotId,
-                        checked(plan.Quantity + plan.TreeSeedQuantity), plan.ToolLotId, materialNeeds, protectedToolIds))
-                    return null;
-                GatherProjectMaterial(actor, state, input.ResourceId, source, returnTo: blacksmith.Position);
-                return null;
-            }
+            return null;
+        }
+        var requiredUnits = collectionInputs.Sum(input => input.CarryUnits);
+        if (requiredUnits > FreeCarryCapacity(actor))
+        {
+            var protectedIds = (protectedToolIds ?? []).Concat(collectionInputs
+                .Where(input => input.HarvestToolLotId is not null).Select(input => input.HarvestToolLotId!))
+                .Distinct(StringComparer.Ordinal).ToArray();
+            MakeRoomForToolRepairInput(actor, state, lotId, requiredUnits, null, materialNeeds, protectedIds);
+            return null;
+        }
+        var collection = PlanInputCollection(actor, collectionInputs, blacksmith.Position);
+        if (collection is null) return null;
+        if (collection.Count > 0)
+        {
+            var input = collection[0];
+            if (input.Stock is { } stock)
+                CollectEquipment(actor, state, input.Kind, blacksmith.Position, plannedLotId: stock.Id);
+            else if (input.Harvest is { } source)
+                GatherProjectMaterial(actor, state, input.Kind, source, returnTo: blacksmith.Position);
             return null;
         }
 
