@@ -24,6 +24,8 @@ records the follow-up profile, bounded filter repair and native comparisons.
 The [layout neighbor report](layout-neighbor-query-measurements.md) records
 a later pre-edit profile, fresh matched native comparisons and lower
 allocations; timing changes remain mixed.
+The [walking-route neighbor report](route-neighbor-query-measurements.md)
+records the later shared-route allocation reduction and mixed timings.
 
 ## Run a comparison
 

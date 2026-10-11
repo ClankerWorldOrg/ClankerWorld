@@ -18,6 +18,7 @@ For the game itself, start with [playing](../playing.md),
 | Read the scoped automated results for build `31aae869` | [Automated verification — 2026-10-10](verification-2026-10-10.md) |
 | Compare construction query costs and native state equivalence | [Construction query measurements](construction-query-measurements.md) |
 | Compare repeated route-step checks and native replay | [Route step cost measurements](route-step-cost-measurements.md) |
+| Compare walking-route neighbor allocations and native replay | [Walking-route neighbor measurements](route-neighbor-query-measurements.md) |
 | Measure wild-animal forage searches and allocation | [Wild forage measurements](wild-forage-measurements.md) |
 | Measure cached server observations and allocation | [Cached observation measurements](cached-observation-measurements.md) |
 | Draw, review or change game art | [Pixel-art style guide](art-style.md) |
