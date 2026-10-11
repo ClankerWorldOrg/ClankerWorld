@@ -91,7 +91,13 @@ issues, its areas, a priority if it is not P2 and any status that applies;
 they become true; and `status:parked` when closing agreed work for later. The
 workflows set a pull request's priority, type, areas and `status:needs-review`,
 and move `status:has-pr`, `status:needs-pr` and `status:in-progress` on the
-issues it closes; claim, blocked and decision labels stay manual.
+issues it closes; claim and decision labels, and adding `status:blocked`, stay
+manual. A workflow removes `status:blocked`, and gives an issue nobody holds
+`status:needs-pr`, once every item its description names as `Blocked by #N`
+or `Waits on #N` has merged or closed as completed, so write each blocker that
+way. A wait on the owner always uses
+`status:needs-decision`, even when other blockers also apply, so the owner's
+searches find it.
 
 ### Priorities
 

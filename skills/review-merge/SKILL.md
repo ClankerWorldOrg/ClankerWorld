@@ -377,14 +377,15 @@ their base to main.
   (a forgotten claim), or it is `status:blocked` waiting on this pull request,
   replace that label with `status:needs-pr` and comment, or close the issue if
   nothing remains. Leave any newer claim alone.
-- Unblock what waited on this work. Search
-  `is:open label:"status:blocked" <number>` for this pull request and each
-  issue it closed. Remove `status:blocked` from pull requests that waited only
-  on it, and from issues whose named blockers have all merged or closed as
-  completed; give those issues `status:needs-pr` unless someone claims them or
-  a ready pull request closes them, and comment naming the merge commit. Read
-  the blocker lines before you edit them: an old mention is not always a
-  blocker, and other blockers or newer claims must stay.
+- Check that what waited on this work was unblocked. The
+  [Unblock waiting work](../../docs/development/labels.md#what-the-workflows-do-on-issues)
+  workflow does it within 30 minutes for `Blocked by #N` and `Waits on #N`.
+  Search `is:open label:"status:blocked" <number>` for this pull request and
+  each issue it closed, and handle what it leaves by hand: an outside event
+  this merge completed, a blocker written another way, or one that closed as
+  not planned or without merging, which it comments on. Read the blocker lines
+  before you edit them: an old mention is not always a blocker, and other
+  blockers or newer claims must stay.
 - Keep GitHub as the shared record. A small note outside the repository can
   carry the rules commit, claimed pull request and head, reviewed commit, run
   IDs, the fix check, the squash commit and what remains across a context

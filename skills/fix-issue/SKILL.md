@@ -150,8 +150,10 @@ comment keeps the issue ([Claims](../../CONTRIBUTING.md#claims)).
   blocker, add `status:blocked`, name each blocker in the issue description
   as `Blocked by #123` or describe the outside event, push what you have and
   remove `status:in-progress`. A blocked issue stays out of the queue until
-  whoever finishes the blocker, or learns that the outside event has happened,
-  removes `status:blocked` and adds `status:needs-pr` if nobody holds it.
+  `status:blocked` comes off and, if nobody holds it, `status:needs-pr` goes
+  on: a workflow does this once every `Blocked by #123` item has merged or
+  closed as completed, and whoever learns that an outside event has happened
+  does it by hand.
 - **Stopping:** push your branch, put `status:needs-pr` back in place of
   `status:in-progress` (or `status:blocked`, as above), and comment with what
   you learned and the branch name.
