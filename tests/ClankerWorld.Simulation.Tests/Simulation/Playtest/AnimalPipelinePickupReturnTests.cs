@@ -85,6 +85,9 @@ public sealed partial class AnimalPipelineTests
             state.Inhabitants.Any(active => active.InhabitantId == person.Id));
         inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryFixture.AddLot(inventory, "return-ballast", "stone", actor, stones);
+        // Keep physical ballast from becoming the Store's first sellable load.
+        inventory = InventoryFixture.Reserve(inventory, "return-ballast-held", actor, "return-ballast", stones,
+            "controlled-other-task", 1_000);
         inventory = InventoryFixture.AddLot(inventory, "return-milk", "milk", home, reserve + 2,
             groundPosition: new(source.X, source.Y));
         state = At(state, actor, source, inventory, []) with
