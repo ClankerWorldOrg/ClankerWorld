@@ -155,7 +155,8 @@ public sealed partial class PickupReturnJourneyTests
     [InlineData(2, true)]
     [InlineData(1, true)]
     [InlineData(2, false)]
-    public async Task ToolRepairAdmissionExplainsAStockReturnThatNoLongerFits(int stones, bool swim)
+    [InlineData(3, true)]
+    public async Task ToolRepairAdmissionKeepsFeasibleCollectionsAndExplainsBlockedReturns(int stones, bool swim)
     {
         var (state, actor, home) = await Generated();
         var smith = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
@@ -168,7 +169,9 @@ public sealed partial class PickupReturnJourneyTests
         state = Prepare(state, inventory, actor, smith.Position);
         using var world = Restore(state, actor, new Choices());
         var receipt = world.SubmitInstruction(new("return-axe", "owner:test", actor, OwnerInstructionKind.MustDo, "repair my iron axe"));
-        var blocked = swim && stones == 2;
+        // Two stones can now finish by collecting iron before local wood (#1716).
+        // Three stones leave no room for an iron pickup across the water.
+        var blocked = swim && stones == 3;
         await AdvanceUntil(world, () => world.Society.Inventory.GetLot("pickup-axe").ConditionBasisPoints == 10_000, blocked ? 4 : 120);
         var order = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
         Assert.Equal(blocked ? "blocked" : "finished", order.Status);

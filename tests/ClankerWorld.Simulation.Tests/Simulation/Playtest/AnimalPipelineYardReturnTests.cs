@@ -49,6 +49,22 @@ public sealed partial class AnimalPipelineTests
         }
         else
         {
+            await Until(world, () => world.ExportState().AnimalWorld!.SupplyTrips.Count > 0);
+            var active = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+            using (var resumed = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(active),
+                       id => id == actor ? new ReturnPickupChooser("animal:supply") : new AnimalChooser()))
+            {
+                Assert.Equal(active, PrivateWorldRuntimeCodec.Encode(resumed.ExportState()));
+                await Until(resumed, () => resumed.Society.Inventory.GetLot("yard-return-jug").StorageBuildingId == yard.InstanceId);
+                Assert.Equal((home, 2, "yard-return-jug", yard.InstanceId),
+                    (resumed.Society.Inventory.GetLot("yard-return-water").OwnerId,
+                        resumed.Society.Inventory.GetLot("yard-return-water").Quantity,
+                        resumed.Society.Inventory.GetLot("yard-return-water").ContainerLotId,
+                        resumed.Society.Inventory.GetLot("yard-return-water").StorageBuildingId));
+                Assert.Single(resumed.ExportState().Events, item => item.Kind == "animal_yard_supplied");
+                Assert.Empty(resumed.ExportState().AnimalWorld!.SupplyTrips);
+                resumed.Validate();
+            }
             await Until(world, () => world.Society.Inventory.GetLot("yard-return-jug").StorageBuildingId == yard.InstanceId);
             Assert.Equal(yard.InstanceId, world.Society.Inventory.GetLot("yard-return-water").StorageBuildingId);
             Assert.Single(world.ExportState().Events, item => item.Kind == "animal_yard_supplied");
