@@ -16,11 +16,13 @@ There is no new cache, saved field or schema change.
 
 This bounded repair follows a fresh measured-phase profile of current main
 `215ecf995496da8147e2583e34e1ba8f5803c5e0`, schema 110, before any production edit.
-The [raw report](route-cost-probe/samples.json) records 308 Simulation/project/toolchain
-input hashes; only the four intended production files differ. It includes every
-ordinary and repeat sample, input/probe digests, complete-capture comparison manifest
-and trace provenance. Larger native ticks remain above the rough 200 ms guidance in
-[#998](https://github.com/compoodment/ClankerWorld/issues/998).
+The raw report records 308 Simulation/project/toolchain input hashes; only the
+four intended production files differ. It includes every ordinary and repeat
+sample, input/probe digests, complete-capture comparison manifest and trace
+provenance. It is in git history at commit `4ab9401b` as
+`docs/development/route-cost-probe/samples.json`, and the sources under
+Reproduce rerun the measurement. Larger native ticks remain above the rough
+200 ms guidance in [#998](https://github.com/compoodment/ClankerWorld/issues/998).
 
 ## Workload and machine
 

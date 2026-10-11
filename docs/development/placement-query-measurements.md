@@ -90,10 +90,12 @@ No timing threshold is added to unit tests.
 Baseline is main `ab35fdcfea799aa57e65280ee2eda2bd8fd84200`, including the
 earlier [construction query repair](construction-query-measurements.md).
 Optimized production is `03fdc8dbbb27506577e7f942319920fdb9f900d3`.
-[Raw samples and digests](placement-query-probe/samples.json) retain all 768
-ordinary samples, input and production hashes, exact equivalence results and
-state-change results. Full local captures are retained in
-`.evidence/keep/layout-998`.
+Raw samples and digests retain all 768 ordinary samples, input and production
+hashes, exact equivalence results and state-change results. They are in git
+history at commit `7e885bdd` as
+`docs/development/placement-query-probe/samples.json`, and the construction
+probes and runner named below rerun the measurement. Full local captures are
+retained in `.evidence/keep/layout-998`.
 
 The unchanged committed [setup, replay and state-change probes](construction-query-measurements.md#repeat-the-comparison)
 create generated Small geography from the public `town-project-real-donation`

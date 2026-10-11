@@ -16,9 +16,12 @@ report an optimization or a completed fixture sweep.
 The unmodified [portable probe](town-tick-measurements.md) ran with
 `DOTNET_PROCESSOR_COUNT=4`, target `16:96`, start tick 256 and 64 samples.
 The actual generated fixture has 16 residents, 100 Roads, 36 Town buildings,
-14 Houses and a Council-approved, supplied and completed Market. The
-[raw report](measurements/998-2026-10-10-main.json) preserves every sample,
-probe digest, actual counts and machine information.
+14 Houses and a Council-approved, supplied and completed Market. The raw
+report preserves every sample, probe digest, actual counts and machine
+information. It is in git history at commit `ab3d1119` as
+`docs/development/measurements/998-2026-10-10-main.json`; this page gives no
+exact command, but the portable probe with the settings above reruns the
+measurement.
 
 Median native tick time was 475.4 ms; p95 was 700.4 ms. The run admitted 124
 decisions with zero fallbacks. Its 139.99-second setup is excluded. The machine
