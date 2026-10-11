@@ -1,1 +1,0 @@
-- In a world with visible mountains, plant a tree or let an agent gather a resource. The map and overview keep the same ground and mountain detail while resource quantities and tree stages update. Save and reload, then reconnect to the world and check that its terrain, wrapping and overview still match. ([#1211](https://github.com/compoodment/ClankerWorld/issues/1211))
