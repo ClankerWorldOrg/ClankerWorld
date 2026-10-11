@@ -51,7 +51,15 @@ saved, with **Repair** (checks every file against the release) and **Remove**
 (keeps your worlds), plus the versions you can install. **Settings** has
 **Developer mode**, which turns on F12 Developer tools in the game and lists
 the nightly builds of main under **Versions**, and buttons for the saves and
-logs folders. Started without the launcher, the game turns
+logs folders. With Developer mode on, **Use test data folder** is on by default:
+the game keeps its test worlds, keys and settings apart from your usual data.
+**Open test data folder** shows that folder; the saves and logs buttons follow
+the selected folder. Turn **Use test data folder** off to play your usual worlds.
+**Detailed logs** adds diagnostic detail for the next run. **Run a local build**
+lets you choose a locally built portable `ClankerWorld.exe` with its `host`
+folder. Builds too old to support these data and logging options are refused
+until you choose a newer build or turn the options off.
+Started without the launcher, the game turns
 Developer mode on with the `--developer-mode` start option
 (`ClankerWorld.exe -- --developer-mode`); runs from the Godot editor always
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,

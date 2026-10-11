@@ -29,6 +29,10 @@ public partial class Launcher : Control
     private readonly List<Button> versionActions = [];
     private readonly CheckButton developerMode = new() { Text = "Developer mode" };
     private readonly Label developerHint = new();
+    private readonly VBoxContainer developerOptions = new();
+    private readonly CheckButton testData = new() { Text = "Use test data folder" };
+    private readonly CheckButton detailedLogs = new() { Text = "Detailed logs" };
+    private readonly Button localBuild = new() { Text = "Run a local build" };
     private readonly Button playTab = new() { Text = "Play" };
     private readonly Button versionsTab = new() { Text = "Versions" };
     private readonly Button settingsTab = new() { Text = "Settings" };
@@ -60,6 +64,14 @@ public partial class Launcher : Control
         if (GameVersionName.Parse(chosen?["--choose-version=".Length..]) is { } version)
         {
             settings = settings with { LastPlayedVersion = version.ToString() };
+            var arguments = OS.GetCmdlineUserArgs();
+            if (arguments.Contains("--test-data", StringComparer.Ordinal) || arguments.Contains("--player-data", StringComparer.Ordinal))
+                settings = settings with
+                {
+                    DeveloperMode = arguments.Contains("--developer-mode", StringComparer.Ordinal),
+                    UseTestData = GameStarter.UsesTestData(arguments),
+                    DetailedLogs = GameStarter.UsesDetailedLogs(arguments),
+                };
             requestedVersion = version.ToString();
             requestedWorld = GameStarter.RequestedWorld(OS.GetCmdlineUserArgs());
         }
@@ -181,7 +193,11 @@ public partial class Launcher : Control
 
     private void BuildSettingsPage()
     {
-        ((BoxContainer)settingsPage).AddThemeConstantOverride("separation", 10);
+        var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(0, 300) };
+        settingsPage.AddChild(scroll);
+        var settingsBody = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        settingsBody.AddThemeConstantOverride("separation", 10);
+        scroll.AddChild(settingsBody);
         developerMode.ButtonPressed = settings.DeveloperMode;
         developerMode.Toggled += on =>
         {
@@ -190,42 +206,107 @@ public partial class Launcher : Control
             UpdateDeveloperHint();
             RefreshInstalled();
         };
-        settingsPage.AddChild(developerMode);
+        settingsBody.AddChild(developerMode);
         developerHint.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         developerHint.AddThemeColorOverride("font_color", UiTheme.Current.InkMuted);
-        settingsPage.AddChild(developerHint);
+        settingsBody.AddChild(developerHint);
+        testData.ButtonPressed = settings.UseTestData;
+        testData.Toggled += on =>
+        {
+            settings = settings with { UseTestData = on };
+            SaveSettings();
+            UpdateDeveloperHint();
+            RebuildVersionRows();
+        };
+        detailedLogs.ButtonPressed = settings.DetailedLogs;
+        detailedLogs.Toggled += on =>
+        {
+            settings = settings with { DetailedLogs = on };
+            SaveSettings();
+        };
+        developerOptions.AddChild(testData);
+        developerOptions.AddChild(detailedLogs);
+        StyleButton(localBuild);
+        localBuild.Pressed += ChooseLocalBuild;
+        developerOptions.AddChild(localBuild);
+        developerOptions.AddChild(FolderButton("Open test data folder", () => layout.TestDataDirectory));
+        settingsBody.AddChild(developerOptions);
         UpdateDeveloperHint();
-        settingsPage.AddChild(new HSeparator());
+        settingsBody.AddChild(new HSeparator());
         var folders = new HBoxContainer();
         folders.AddThemeConstantOverride("separation", 6);
-        folders.AddChild(FolderButton("Open saves folder", layout.SavesDirectory));
-        folders.AddChild(FolderButton("Open logs folder", layout.LogsDirectory));
-        settingsPage.AddChild(folders);
+        folders.AddChild(FolderButton("Open saves folder", () => Path.Combine(layout.GameDataDirectory(settings), "saves")));
+        folders.AddChild(FolderButton("Open logs folder", () => Path.Combine(layout.GameDataDirectory(settings), "logs")));
+        settingsBody.AddChild(folders);
         var check = new Button { Text = "Check for updates" };
         StyleButton(check);
         check.Pressed += () => _ = CheckForUpdatesAsync();
-        settingsPage.AddChild(check);
-        settingsPage.AddChild(new Label
+        settingsBody.AddChild(check);
+        settingsBody.AddChild(new Label
         {
             Text = $"Launcher {Version}",
             ThemeTypeVariation = string.Empty,
         });
     }
 
-    private void UpdateDeveloperHint() => developerHint.Text = settings.DeveloperMode
-        ? "Developer tools open with F12 in the game."
-        : "Turn on to open Developer tools with F12 in the game.";
+    private void UpdateDeveloperHint()
+    {
+        developerOptions.Visible = settings.DeveloperMode;
+        developerHint.Text = !settings.DeveloperMode
+            ? "Turn on to open Developer tools with F12 in the game."
+            : settings.UseTestData
+                ? "F12 opens Developer tools; the next game uses separate test saves, keys and settings."
+                : "F12 opens Developer tools; the next game uses your usual saves, keys and settings.";
+    }
 
-    private static Button FolderButton(string text, string path)
+    private Button FolderButton(string text, Func<string> folder)
     {
         var button = new Button { Text = text, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         StyleButton(button);
         button.Pressed += () =>
         {
-            Directory.CreateDirectory(path);
-            OS.ShellShowInFileManager(path, openFolder: true);
+            try
+            {
+                var path = folder();
+                Directory.CreateDirectory(path);
+                OS.ShellShowInFileManager(path, openFolder: true);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                SetStatus("The folder could not be opened. Check its permissions and try again.");
+            }
         };
         return button;
+    }
+
+    private void ChooseLocalBuild()
+    {
+        if (busy || !settings.DeveloperMode) return;
+        var chooser = new FileDialog
+        {
+            Title = "Choose a locally built ClankerWorld.exe",
+            Access = FileDialog.AccessEnum.Filesystem,
+            FileMode = FileDialog.FileModeEnum.OpenFile,
+            Filters = ["*.exe ; Windows game executable"],
+        };
+        chooser.FileSelected += path =>
+        {
+            if (busy || !settings.DeveloperMode) return;
+            try
+            {
+                using var game = GameStarter.StartLocal(path, OS.GetExecutablePath(), settings, layout);
+                SaveSettings();
+                GetTree().Quit();
+            }
+            catch (GameInstallException exception) { SetStatus(exception.Message); }
+            catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException)
+            {
+                SetStatus("The local build couldn't start. Check its game and host files, then try again. Your saves are safe.");
+            }
+        };
+        chooser.Canceled += () => chooser.QueueFree();
+        AddChild(chooser);
+        chooser.PopupCentered(new Vector2I(760, 480));
     }
 
     private static Label SectionLabel(string text)
@@ -349,7 +430,7 @@ public partial class Launcher : Control
                 rows.RemoveChild(child);
                 child.QueueFree();
             }
-        var worlds = SavedWorlds.Read(layout);
+        var worlds = SavedWorlds.Read(layout with { Root = layout.GameDataDirectory(settings) });
         foreach (var version in installed)
         {
             var needing = worlds.Where(world => world.SavedBy == version.Version).Select(world => world.Name).ToArray();
@@ -410,9 +491,14 @@ public partial class Launcher : Control
         }
         try
         {
-            GameStarter.Start(version, OS.GetExecutablePath(), settings.DeveloperMode, requestedWorld);
+            using var game = GameStarter.Start(version.Executable, OS.GetExecutablePath(), settings, layout, requestedWorld);
         }
-        catch (Exception exception) when (exception is GameInstallException or System.ComponentModel.Win32Exception or IOException)
+        catch (GameInstallException exception)
+        {
+            SetStatus(exception.Message);
+            return;
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException)
         {
             SetStatus($"ClankerWorld {version.Version} didn't start. Try Repair on the Versions page.");
             return;
@@ -525,6 +611,10 @@ public partial class Launcher : Control
     private void SetBusy(bool value)
     {
         busy = value;
+        localBuild.Disabled = value;
+        developerMode.Disabled = value;
+        testData.Disabled = value;
+        detailedLogs.Disabled = value;
         versionChoice.Disabled = value;
         foreach (var button in versionActions) button.Disabled = value;
         progressBar.Visible = value;
@@ -624,9 +714,22 @@ public partial class Launcher : Control
             settingsTab.EmitSignal(BaseButton.SignalName.Pressed);
             developerMode.ButtonPressed = true;
             Expect(LauncherSettings.Load(layout).DeveloperMode, "Developer mode is remembered");
+            Expect(developerOptions.Visible && testData.ButtonPressed && !detailedLogs.ButtonPressed,
+                "Developer options are visible with separate test data on and detailed logs off");
+            detailedLogs.ButtonPressed = true;
+            testData.ButtonPressed = false;
+            Expect(LauncherSettings.Load(layout) is { UseTestData: false, DetailedLogs: true }, "Developer run options are remembered");
+            testData.ButtonPressed = true;
+            ChooseLocalBuild();
+            var chooser = GetChildren().OfType<FileDialog>().Single();
+            chooser.EmitSignal(FileDialog.SignalName.FileSelected, Path.Combine(layout.Root, "missing-game.exe"));
+            Expect(status.Text.Contains("locally built portable game", StringComparison.Ordinal), "An incomplete local build is visibly refused");
+            chooser.QueueFree();
             Expect(availableRows.GetChildCount() == 3, "Developer mode lists the nightly build");
             Expect(playButton.Text == "Install and Play 0.1.0-alpha.1", "Developer mode keeps the chosen version");
             developerMode.ButtonPressed = false;
+            Expect(!developerOptions.Visible && layout.GameDataDirectory(settings) == layout.Root,
+                "Developer options and test storage stop applying when Developer mode is off");
             Expect(availableRows.GetChildCount() == 2 && playButton.Text == "Install and Play 0.1.0-alpha.1",
                 "Turning Developer mode off hides nightly offers and keeps the chosen alpha");
             requestedVersion = "0.1.0-nightly.20261011.1";

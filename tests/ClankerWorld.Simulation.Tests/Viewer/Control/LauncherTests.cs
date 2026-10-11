@@ -11,6 +11,47 @@ public sealed class LauncherTests
     private const string Download = "https://github.com/ClankerWorldOrg/ClankerWorld/releases/download/";
     private const string Page = "https://github.com/ClankerWorldOrg/ClankerWorld/releases/tag/";
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LocalBuildRunsWithSeparateArgumentBoundariesAndUnsupportedOptionsAreRefused(bool detailed)
+    {
+        var root = Directory.CreateTempSubdirectory("launcher local build ");
+        try
+        {
+            var localApplicationData = Path.Combine(root.FullName, "player data");
+            var layout = LauncherLayout.ForUser(localApplicationData);
+            var settings = new LauncherSettings(DeveloperMode: true, DetailedLogs: detailed);
+            settings.Save(layout);
+            Assert.Equal(settings, LauncherSettings.Load(layout));
+            var executable = Path.Combine(root.FullName, "local game", "ClankerWorld.exe");
+            Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(executable)!, "host"));
+            File.WriteAllText(executable, "local executable");
+            File.WriteAllText(Path.Combine(Path.GetDirectoryName(executable)!, "host", "ClankerWorld.Viewer.exe"), "host");
+            Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe", settings, layout));
+            Assert.False(Directory.Exists(layout.TestDataDirectory));
+            Assert.Throws<GameInstallException>(() => GameStarter.StartLocal(executable, "launcher.exe",
+                settings with { DeveloperMode = false }, layout));
+            File.WriteAllText(Path.Combine(Path.GetDirectoryName(executable)!, LauncherLayout.PackageManifest),
+                GameStarter.DeveloperOptionsMarker + "\n");
+            var log = Path.Combine(layout.TestDataDirectory, "logs", "game.log");
+            var arguments = GameStarter.Arguments("launcher with spaces.exe", true, useTestData: true, detailedLogs: detailed, logPath: log);
+            Assert.Equal(layout.TestDataDirectory, GameStarter.DataDirectory(localApplicationData, arguments));
+            Assert.Equal(detailed, arguments.Contains("--verbose"));
+            Assert.Equal(["--", "--launcher=launcher.exe"], GameStarter.Arguments("launcher.exe", false,
+                useTestData: true, detailedLogs: true));
+            if (OperatingSystem.IsLinux())
+            {
+                File.WriteAllText(executable, "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments.txt\"\n");
+                File.SetUnixFileMode(executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                using var process = GameStarter.StartLocal(executable, "launcher with spaces.exe", settings, layout);
+                await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.Equal(arguments, File.ReadAllLines(Path.Combine(Path.GetDirectoryName(executable)!, "arguments.txt")));
+            }
+        }
+        finally { root.Delete(recursive: true); }
+    }
+
     [Fact]
     public void VersionsSortNewestReleaseFirstAndOnlySafeNamesParse()
     {
