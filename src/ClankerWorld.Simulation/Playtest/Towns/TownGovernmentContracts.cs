@@ -97,8 +97,11 @@ public sealed record TownGovernmentState(TownArrangement Arrangement, long Seque
     [JsonRequired]
     public IReadOnlyList<TownNonLandMandateGrant> NonLandGrants { get; init; } = [];
 
-    public static TownGovernmentState Create() =>
-        new(TownArrangementRules.Initial, 0, [], [], [], [], [], [], null, [], 0, "");
+    public static TownGovernmentState Create(long foundedTick = 0) =>
+        new(TownArrangementRules.Initial, 0, [], [], [],
+            [new("land", null, null, null, foundedTick, "No mayor has been elected."),
+             new("non_land", null, null, null, foundedTick, "No mayor has been elected.")],
+            [], [], null, [], 0, "");
 }
 
 /// <summary>The supported governing arrangements and their declared authority, selection, tenure and vacancy rules.</summary>
@@ -112,7 +115,7 @@ public static class TownArrangementRules
     public const int MayorTermDays = 20;
     public const int HandoverDays = 3;
 
-    public static TownArrangement Initial { get; } = new(Council, NoOffice);
+    public static TownArrangement Initial { get; } = new(Council, Mayor, Mayor);
 
     /// <summary>Every supported arrangement. Anything else is visibly unsupported and cannot take effect.</summary>
     public static IReadOnlyList<TownArrangement> Supported { get; } = new TownArrangement[]

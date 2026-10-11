@@ -50,14 +50,11 @@ public sealed partial class TownGovernmentHandoverTests
         town.Advance(1);
         town.Yes(town.Propose(RepresentativeOnly), "a", "b", "c", "d", "e");
         town = town.RoundTrip();
-        var change = Assert.Single(town.Government.Changes);
+        var change = town.Government.Changes[^1];
         Assert.Equal("handover", change.Status);
         Assert.Null(change.ForcedCouncilElectionId);
         Assert.True(ordinary.OpenedTick < change.ApprovedTick);
-        town.Government = town.Government with
-        {
-            Changes = [change with { ForcedCouncilElectionId = ordinary.Id }],
-        };
+        town.Government = WithForcedChanges(town.Government, change with { ForcedCouncilElectionId = ordinary.Id });
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -78,17 +75,14 @@ public sealed partial class TownGovernmentHandoverTests
         town.VoteEverything(town.Tick);
         town.Advance(termEnd);
         town = town.RoundTrip();
-        var change = Assert.Single(town.Government.Changes);
+        var change = town.Government.Changes[^1];
         Assert.Equal("completed", change.Status);
         Assert.Null(change.ForcedCouncilElectionId);
         Assert.Equal(regular.OpenedTick, change.ApprovedTick);
         Assert.Equal(regular.OpenedTick, change.SettledTick);
         Assert.Contains(town.Council.ElectionHistory,
             election => election.Id == regular.Id && election.Stage == "completed");
-        town.Government = town.Government with
-        {
-            Changes = [change with { ForcedCouncilElectionId = regular.Id }],
-        };
+        town.Government = WithForcedChanges(town.Government, change with { ForcedCouncilElectionId = regular.Id });
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -97,8 +91,8 @@ public sealed partial class TownGovernmentHandoverTests
     public void TwoApprovedHandoversCannotOwnTheSameFailedElection()
     {
         var town = ConsecutiveCouncilHandovers(registerSecondCandidates: false).RoundTrip();
-        var first = town.Government.Changes[1];
-        var second = town.Government.Changes[2];
+        var first = town.Government.Changes[^2];
+        var second = town.Government.Changes[^1];
         var failed = Assert.Single(town.Council.ElectionHistory,
             election => election.Id == first.ForcedCouncilElectionId);
         Assert.Equal("failed", failed.Stage);
@@ -116,8 +110,8 @@ public sealed partial class TownGovernmentHandoverTests
     public void ACancelledHandoverCannotOwnALaterLiveElection()
     {
         var town = ConsecutiveCouncilHandovers(registerSecondCandidates: true).RoundTrip();
-        var first = town.Government.Changes[1];
-        var second = town.Government.Changes[2];
+        var first = town.Government.Changes[^2];
+        var second = town.Government.Changes[^1];
         var live = Assert.IsType<TownElection>(town.Council.Election);
         Assert.Equal(first.SettledTick, live.OpenedTick);
         Assert.Equal(live.Id, second.ForcedCouncilElectionId);
@@ -209,14 +203,14 @@ public sealed partial class TownGovernmentHandoverTests
         Assert.Equal("cancelled", town.Government.Changes[^1].Status);
         if (registerSecondCandidates) town.RegisterCouncil("a", "b", "c");
         town.Yes(town.Propose(RepresentativeOnly), "a", "b", "c");
-        Assert.Equal(3, town.Government.Changes.Count);
-        Assert.Equal("handover", town.Government.Changes[2].Status);
+        Assert.Equal(4, town.Government.Changes.Count);
+        Assert.Equal("handover", town.Government.Changes[^1].Status);
         return town;
     }
 
-    // Keep the resident-approved all-adult arrangement while damaging only the subsequent handovers.
+    // Keep both resident-approved office removal and all-adult arrangement while damaging only the subsequent handovers.
     private static TownGovernmentState WithForcedChanges(TownGovernmentState state, params TownGovernmentChange[] changes) =>
-        state with { Changes = [state.Changes[0], .. changes] };
+        state with { Changes = [.. state.Changes.Take(state.Changes.Count - changes.Length), .. changes] };
 
     private static PrivateWorldRuntimeState WithNativeGovernmentHandover(PrivateWorldRuntimeState state, TownArrangement target,
         bool initiallyAllAdult = false)

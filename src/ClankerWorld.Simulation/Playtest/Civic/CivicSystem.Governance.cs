@@ -59,7 +59,12 @@ internal sealed partial class CivicSystem
     {
         foreach (var town in world.Towns.ToArray())
         {
-            if (town.FoundingState != "founded") continue;
+            if (town.FoundingState != "founded")
+            {
+                if (town.Government is not null)
+                    SetTown(world, town with { Governance = TownGovernanceState.Create(TownAdults(world, town)) });
+                continue;
+            }
             var governance = town.Governance ?? TownGovernanceState.Create(TownAdults(world, town));
             var (council, government) = AdvanceCivic(world, town, governance, town.Government ?? TownGovernmentState.Create());
             SaveTownGovernance(world, town, council, government);

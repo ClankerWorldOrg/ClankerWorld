@@ -1095,7 +1095,12 @@ remove the protected resident vote or invent new powers.
 An unrelated government handover does not delay or cancel the Council's own
 election when an adult leaves during voting, or stop its retry after failure.
 
-Residents can create an elected land mayor without a population gate. Each
+Every new Town starts with vacant land and non-land mayoral duties. An eligible
+adult's personal agreement to both duties opens the first election without a
+government-change vote or population gate. The Council still makes ordinary
+decisions, and its elections take priority. Cases wait while the office is
+empty; the Council may mediate. Residents can still remove or narrow the
+office through their protected majority vote. Each
 mandate lasts twenty days, with renewal voting one day before expiry. Mayor
 candidacy needs separate personal agreement. Each resident chooses one willing
 candidate; tied leaders face further votes, never a draw. Scheduled Council
@@ -1156,7 +1161,8 @@ show the current recorded owner alongside the case history. Result notices
 describe the recorded property or permission case; when that case is unavailable,
 they describe a land ruling without assuming that only permission changed.
 
-Non-land cases have a separate protected mandate. Reports retain the conduct,
+Non-land cases use the separate mandate included in the founding mayor's office;
+residents can change that scope through their protected vote. Reports retain the conduct,
 applicable law version and actual evidence sources. Response windows,
 independent judges and reasoned findings lead to explanations, warnings or
 censure, with voluntary offers for named goods, repair or public service.
