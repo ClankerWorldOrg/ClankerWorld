@@ -137,7 +137,9 @@ voluntary move with care preserved provides enough room.
 To rename an agent, open their **Profile**. The first name must be unused by
 any other living or deceased agent in the world; changing the surname alone
 does not free a taken first name. You can keep the selected agent's own first
-name. A child's chosen surname must come from a biological parent. Temporary
+name. A child's chosen surname must come from a biological parent. A parent
+cannot remove the last chosen surname available to a minor child; keep a
+surname on at least one biological parent. Temporary
 names do not reserve first names, and renaming leaves past conversations as
 spoken. Changing a married agent's surname updates both spouses together,
 keeping the other spouse's first and middle names. A taken first name leaves

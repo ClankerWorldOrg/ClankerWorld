@@ -124,6 +124,48 @@ public sealed class ChildChosenNameTests
         Assert.Equal(SocietyAgeBand.Infant, child.AgeBand);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ParentCannotRemoveTheLastPermittedSurnameForAMinorChild(bool alreadyNamed)
+    {
+        var (state, childId) = RuntimeBirth(ownerWorld: true, nearChildhood: false);
+        using var world = PrivateWorldRuntime.Restore(state, _ => new QuietProvider());
+        const string first = "founder:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        const string second = "founder:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        if (alreadyNamed) Assert.True(world.RenameAgent(childId, "Nori Vale"));
+
+        Assert.True(world.RenameAgent(first, "Ansel"));
+        Assert.Equal(["Reed"], InhabitantNameRules.AllowedChildSurnames(world.Society, childId));
+        var beforeRefusal = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        Assert.Throws<ArgumentException>(() => world.RenameAgent(second, "Bela"));
+        Assert.Equal(beforeRefusal, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+
+        using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(beforeRefusal), _ => new QuietProvider());
+        Assert.Equal(beforeRefusal, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.Equal(alreadyNamed ? "Nori Vale" : "Child", restored.Society.GetInhabitant(childId).Name);
+        Assert.Throws<InhabitantNameTakenException>(() => restored.RenameAgent(childId, "Ansel Reed"));
+        Assert.Equal(beforeRefusal, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.True(restored.RenameAgent(childId, alreadyNamed ? "Dara Reed" : "Nori Reed"));
+        var named = PrivateWorldRuntimeCodec.Encode(restored.ExportState());
+        using var namedReload = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(named), _ => new QuietProvider());
+        Assert.Equal(named, PrivateWorldRuntimeCodec.Encode(namedReload.ExportState()));
+        Assert.Equal(alreadyNamed ? "Dara Reed" : "Nori Reed", namedReload.Society.GetInhabitant(childId).Name);
+        Assert.True(namedReload.Society.GetInhabitant(childId).HasChosenName);
+        Assert.False(namedReload.Society.GetInhabitant(childId).NeedsName);
+    }
+
+    [Fact]
+    public void ParentSurnameGuardDoesNotRequireASurnameBeforeAnyChildExists()
+    {
+        var checkpoint = BirthCheckpoint();
+        var renamed = SocietyFixture.RenameInhabitant(checkpoint, "first", "Ansel").Checkpoint;
+        var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(renamed));
+        Assert.Equal("Ansel", restored.GetInhabitant("first").Name);
+        Assert.True(restored.GetInhabitant("first").HasChosenName);
+        Assert.Empty(restored.Births);
+    }
+
     [Fact]
     public async Task InfantWaitsForChildhoodThenRetriesATakenFirstNameAcrossSaveAndReload()
     {
@@ -221,7 +263,8 @@ public sealed class ChildChosenNameTests
         checkpoint.WorldTick, PrimaryCaregiverId: "first");
 
     private static (PrivateWorldRuntimeState State, string ChildId) RuntimeBirth(
-        bool unnamedParents = false, string birthRequestId = "naming-birth", bool ownerWorld = false)
+        bool unnamedParents = false, string birthRequestId = "naming-birth", bool ownerWorld = false,
+        bool nearChildhood = true)
     {
         using var original = new PrivateWorldRuntime("child-naming-runtime", _ => new QuietProvider(),
             maxCognitionDispatchPerCycle: 8, startPace: ownerWorld ? WorldStartPace.FounderSetup : WorldStartPace.Legacy);
@@ -253,15 +296,18 @@ public sealed class ChildChosenNameTests
         var childId = Assert.IsType<string>(birth.CreatedId);
         checkpoint = birth.Checkpoint;
         Assert.Null(checkpoint.LifeClock);
-        // Start two real ticks before the infant/child boundary, without simulating years of unrelated work.
-        var childStartAge = checkpoint.Config.DayLifecycle?.ChildStartDay ?? checkpoint.Config.InfantYears;
-        var birthTick = checkpoint.WorldTick + 2 - childStartAge * checkpoint.Config.TicksPerLifecycleAge;
-        checkpoint = checkpoint with
+        if (nearChildhood)
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == childId
-                ? person with { BirthTick = birthTick, LastLifecycleYearChecked = childStartAge - 1 }
-                : person).ToArray(),
-        };
+            // Start two real ticks before the infant/child boundary, without simulating years of unrelated work.
+            var childStartAge = checkpoint.Config.DayLifecycle?.ChildStartDay ?? checkpoint.Config.InfantYears;
+            var birthTick = checkpoint.WorldTick + 2 - childStartAge * checkpoint.Config.TicksPerLifecycleAge;
+            checkpoint = checkpoint with
+            {
+                Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == childId
+                    ? person with { BirthTick = birthTick, LastLifecycleYearChecked = childStartAge - 1 }
+                    : person).ToArray(),
+            };
+        }
         var parent = state.Inhabitants.Single(person => person.InhabitantId == first);
         var childPosition = state.Map.Tiles.Select(tile => tile.Position)
             .Where(position => state.Map.IsBuildable(position) && !state.Inhabitants.Any(person => person.Position == position))

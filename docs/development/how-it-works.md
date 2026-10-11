@@ -1246,6 +1246,12 @@ rule includes deceased biological parents and does not substitute caregivers.
 An invalid surname follows the existing unusable-name outcome; only a taken
 first name earns the extra paid retry. Parent renames do not retroactively
 invalidate a child's name or saved state.
+`RenameInhabitant` refuses removal of a chosen parent's surname when the
+proposed checkpoint would leave any minor biological child with no allowed
+surname. The check runs before commit, so player refusal publishes no name,
+event or permanent memory. Other chosen biological parents, including deceased
+parents, can still supply a surname. Initial unchosen parents and saved child
+names keep their existing treatment; no new saved-state invariant is added.
 
 The response must select a legal candidate. Any finite confidence from 0 to 1
 is accepted; confidence does not veto the choice or a valid chosen name.
