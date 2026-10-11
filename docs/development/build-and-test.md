@@ -32,6 +32,17 @@ that historical check does not verify every later build.
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
 
+The native land-transfer fixture sends each eligible adult one suggestive
+instruction when its private provider changes from waiting to reading or
+consenting. Changing a test provider's flags does not wake an admitted idle
+intention. A controlled row reserves the actual garment stock to keep an
+unrelated clothing choice from waking the readers, then verifies their exact
+requested guidance, offered reading choice and admitted idle reply. Each phase
+keeps its forty-tick limit and waits for actual hosted tasks before admission.
+Reading and silence still give no consent; each adult must personally accept,
+including the separately held filer. Host disk writes, unchanged permissions
+before agreement, rollback, strict reload and complete-byte replay remain checked.
+
 The held quantified-harvest fixture captures the actor's exact outstanding
 hosted request and task. After one native harvest finishes, it releases the
 provider and waits for that task to complete before the admission tick. A
@@ -82,6 +93,13 @@ signal has a thirty-second diagnostic deadline. Advancing native ticks during
 this wait could store another load before cancellation, because chosen work
 continues while a model waits. The check retains one stored load, the untouched
 second load and exact checkpoint reload after releasing the cancelled reply.
+
+The long-recipe tool-request fixture admits its request through the personal
+provider and saves it through the real host. For byte-for-byte continuation,
+it pauses that world, captures one checkpoint, and restores both compared
+worlds with synchronous idle providers for every resident. The personal
+provider returns for withdrawal. Independent background reply timing is not a
+matching replay input, even when both providers choose idle.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font

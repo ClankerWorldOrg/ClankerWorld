@@ -3023,6 +3023,14 @@ units cannot supply that reserve. Artifacts and unworn ornaments retain their
 single-unit exception. Each offer still reserves one actual unit from each
 named lot, and settlement requires both parties' independent acceptance.
 
+A completed personal barter records a public relationship memory for each
+trader about the other, alongside the usual trust increase. New memory keys
+retain `settlement-trust:` and use a SHA-256 digest of the complete directional
+key when it would exceed personal recall's 128-character limit. Short keys
+remain unchanged; saved owners, subjects and summaries retain their complete
+values, so native-born traders can recall the exchange too. Later trades retain
+one memory per direction, recognizing both original and bounded saved keys.
+
 **Household shops** bind an inventory barter offer to its actual business and
 holding household in `BusinessTradeState`. Offers use unreserved goods in that
 building and payment already carried by the adult customer. The inventory
@@ -3412,7 +3420,12 @@ spaces, and refuses text over 80 UTF-16 units or containing markup characters
 before admission; a directly supplied typed reply with invalid words is refused.
 An admitted reply keeps its words even when its division falls back. At settlement
 each living person who receives goods gets the private memory
-`final-words:{estate}:{heir}` ("Name's final words were: '…'"). The owner sees
+`final-words:{estate}:{heir}` ("Name's final words were: '…'"). New keys over
+128 characters use `final-words:sha256:` followed by a hash of that complete
+key, so native-born heirs can retrieve the words in later personal decisions.
+Short keys stay unchanged. The saved owner and deceased subject keep their
+complete identities; text, privacy, kind and source tick stay unchanged.
+The owner sees
 the words on the historical profile through
 `ViewerFinalWill`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for

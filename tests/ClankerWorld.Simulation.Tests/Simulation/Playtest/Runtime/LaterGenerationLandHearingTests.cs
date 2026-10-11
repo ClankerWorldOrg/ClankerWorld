@@ -254,7 +254,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
         world.Pause();
         Assert.Equal(lastGeneration, world.Society.Births.Count);
-        Assert.True(parent.Length > 256);
+        Assert.True(parent.Length > (lastGeneration == 2 ? 128 : 256));
         world.Validate();
         return PrivateWorldRuntimeCodec.Encode(world.ExportState());
     }

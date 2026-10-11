@@ -24,7 +24,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var household = state.Society.Society.GetInhabitant(native).HouseholdId;
         if (formedHousehold)
         {
-            state = await FormNativeLandRequestHousehold(state, native);
+            state = await FormNativeLandHouseholdAsync(state, native);
             Assert.True(state.Society.Society.GetInhabitant(native).HouseholdId!.Length > (later ? 256 : 128));
         }
         var control = state.Society.Society.Inhabitants.First(person => person.Id.Length <= 128 &&
@@ -113,68 +113,6 @@ public sealed partial class GrownAgentHelperMemoryTests
             AssertPendingLandRequest(left, state, actor, plot);
         }
         finally { folder.Delete(true); }
-    }
-
-    private static async Task<PrivateWorldRuntimeState> FormNativeLandRequestHousehold(PrivateWorldRuntimeState state, string actor)
-    {
-        var choices = new NativeLandHouseholdChoices(actor);
-        using var world = PrivateWorldRuntime.Restore(state, _ => choices);
-        world.Resume();
-        world.SubmitInstruction(new("consider-native-household", "owner:test", actor, OwnerInstructionKind.Suggestive,
-            "Consider founding your own household when existing households refuse your request to join."));
-        var folder = Directory.CreateTempSubdirectory("native-land-household-");
-        try
-        {
-            var file = new PrivateWorldStateFile(Path.Combine(folder.FullName, "world.json"));
-            file.Save(world);
-            var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(10));
-            presence.RecordAuthenticatedReconnect("land-household-owner");
-            using var host = new PrivateWorldRuntimeService(world, file, presence);
-            for (var tick = 0; tick < 40 &&
-                !(world.Society.GetInhabitant(actor).HouseholdId?.StartsWith("household:solo:" + actor + ":", StringComparison.Ordinal) ?? false); tick++)
-            {
-                Assert.True(await host.TryAdvanceOnceAsync());
-                await WaitForRequests(world);
-                var saved = File.ReadAllBytes(file.Path);
-                using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(saved), _ => new QuietProvider());
-                Assert.Equal(saved, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
-            }
-            var household = world.Society.GetInhabitant(actor).HouseholdId;
-            Assert.True(choices.Founded);
-            Assert.NotNull(household);
-            Assert.StartsWith("household:solo:" + actor + ":", household);
-            Assert.True(household.Length > actor.Length);
-            Assert.Contains(actor, world.Society.GetHousehold(household).MemberIds);
-            Assert.Contains(world.ExportState().Events, item => item.Kind == "household_founded");
-            Assert.Equal(state.Society.Society.Births.Select(birth => birth.ChildId), world.Society.Births.Select(birth => birth.ChildId));
-            world.Pause();
-            return world.ExportState();
-        }
-        finally { folder.Delete(true); }
-    }
-
-    private sealed class NativeLandHouseholdChoices(string actor) : IDecisionProvider
-    {
-        public bool Founded { get; private set; }
-        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
-        public long ProviderEpoch => 0;
-        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            var observation = request.Observation;
-            var own = observation.InhabitantId == actor && !Founded;
-            var selected = observation.Candidates.FirstOrDefault(candidate => own && candidate.Id == "household_found") ??
-                observation.Candidates.FirstOrDefault(candidate => own && candidate.Id == "household_leave") ??
-                observation.Candidates.FirstOrDefault(candidate => own && candidate.Id.StartsWith("household_ask:", StringComparison.Ordinal)) ??
-                observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId != actor && candidate.Id == "household_refuse:" + actor) ??
-                observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            if (selected.Id == "household_found") Founded = true;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
-                observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
-                new Dictionary<string, double> { [selected.Id] = 1 },
-                ChosenName: observation.NeedsName ? observation.Self!.Name : null,
-                ChosenPersonality: observation.NeedsPersonality ? "patient" : null,
-                ChosenAspiration: observation.NeedsAspiration ? "build a home" : null));
-        }
     }
 
     [Theory]
