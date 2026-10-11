@@ -257,9 +257,17 @@ Linux CI export.
 Public pairing creation has a shared eight-attempt, one-minute budget, including
 invalid keys. A shared budget avoids trusting proxy-supplied source addresses; a
 429 response includes Retry-After: 60. Signed challenges, reconnect and pause do
-not consume it. All pairing route bodies are capped at 16 KiB before normal JSON
-binding on Kestrel; the general host request cap is explicitly 30,000,000 bytes.
-This is bounded ingress, not a claim that the Tailnet endpoint is DoS-proof.
+not consume it. This is bounded ingress, not a claim that the Tailnet endpoint
+is DoS-proof.
+
+Every route caps its request body before anything reads it
+(`RequestBodyLimits`): 16 KiB for pairing routes, 1 MiB for signed
+`/api/v1/owner/*` actions, whose largest normal requests are about 2 KB, and
+64 KiB for everything else, including challenge requests and the host-local
+routes. A larger declared body gets 413 before anything reads it; a body
+without a declared length stops being read at the same size. Refusals based on
+the declared length log `request_body_limit` at most once a minute, with the route
+kind and limit only.
 
 If unauthenticated requests fill the eight pending slots, the existing separate
 loopback approval listener also accepts POST /api/v1/local/pairings with the same
@@ -271,12 +279,19 @@ already active keys must not displace a pending request. Approval and signed
 activation still follow their existing checks. The ordinary forwarded listener
 returns 404 for this recovery endpoint. Never forward the approval listener.
 
+Every `/api/v1/local/*` route also needs the request's host name to be
+`127.0.0.1`, `[::1]` or `localhost`, with or without a port. Address the
+approval listener that way, as the game does; any other name gets the same 404
+and one `local_approval outcome=refused reason=host_name` line at most once a
+minute. The public listener has no such check, because Tailscale Serve reaches
+it under its own name.
+
 This is an operator recovery path, not automatic queue eviction on behalf of an
 untrusted remote client. The game's own host also uses it for the game's first
 pairing ([Host started by the game](#host-started-by-the-game)). Keep the
-returned code and proof local/private. Tests
-cover capacity recovery and signed owner availability; chunked-body enforcement
-is a Kestrel boundary, not claimed from TestServer's Content-Length test alone.
+returned code and proof local/private. Tests cover capacity recovery and signed
+owner availability. Bodies without a declared length and the host-name check are
+tested on a real Kestrel server, not only through TestServer.
 
 ## Host started by the game
 
