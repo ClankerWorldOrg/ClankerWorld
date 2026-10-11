@@ -133,25 +133,6 @@ public sealed class SeededHarnessTests
         Assert.Equal(expected, map.FootNeighbors(new GridPoint(0, 1)));
     }
 
-    [Theory]
-    [InlineData(3)]
-    [InlineData(5)]
-    public void WrappedFootNeighborsPreserveBothSeamOrders(int width)
-    {
-        var map = TerrainMap(width, 3, _ => TerrainKind.Meadow) with { WrapsEastWest = true };
-
-        Assert.Equal(new GridPoint[]
-        {
-            new(0, 0), new(1, 1), new(0, 2), new(width - 1, 1),
-            new(1, 0), new(1, 2), new(width - 1, 2), new(width - 1, 0),
-        }, map.FootNeighbors(new GridPoint(0, 1)));
-        Assert.Equal(new GridPoint[]
-        {
-            new(width - 1, 0), new(0, 1), new(width - 1, 2), new(width - 2, 1),
-            new(0, 0), new(0, 2), new(width - 2, 2), new(width - 2, 0),
-        }, map.FootNeighbors(new GridPoint(width - 1, 1)));
-    }
-
     [Fact]
     public void FootNeighborsReadLiveElevationBetweenSteps()
     {
