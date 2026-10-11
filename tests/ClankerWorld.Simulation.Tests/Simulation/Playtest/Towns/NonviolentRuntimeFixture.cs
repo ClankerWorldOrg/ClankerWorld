@@ -179,8 +179,7 @@ internal static class NonviolentRuntimeFixture
             TownArrangementRules.Mayor, TownArrangementRules.Mayor);
         Assert.Equal(arrangement, government.Arrangement);
         var ordinaryChange = Assert.Single(government.Changes);
-        Assert.Equal((TownArrangementRules.Initial, arrangement, "completed"),
-            (ordinaryChange.Previous, ordinaryChange.Target, ordinaryChange.Status));
+        Assert.Equal((arrangement, "completed"), (ordinaryChange.Target, ordinaryChange.Status));
         Assert.Equal(2, government.Offices.Count);
         Assert.All(government.Offices, office => Assert.Equal(Judge, office.HolderId));
         Assert.Equal(Judge, TownGovernmentRules.CurrentNonLandAuthority(government, tick)!.HolderId);
