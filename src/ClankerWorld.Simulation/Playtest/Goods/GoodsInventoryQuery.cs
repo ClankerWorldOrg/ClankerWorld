@@ -52,15 +52,15 @@ internal static class GoodsInventoryQuery
         ArgumentNullException.ThrowIfNull(request.Owners);
         ArgumentNullException.ThrowIfNull(request.Kinds);
         if (request.Use is not (GoodsUse.Holdings or GoodsUse.ConsumeAt or GoodsUse.Collect or GoodsUse.ReachableHoldings or
-                GoodsUse.RecoveryHoldings or GoodsUse.Recover) ||
+                GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal) ||
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
             request.Near is not null || request.Destination is not null || request.ExtraUnits != 0 ||
             request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
             request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
-            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover) &&
+            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal) &&
                 string.IsNullOrWhiteSpace(request.Actor))
-            throw new ArgumentException("This goods query supports exact owners and kinds for Holdings, ConsumeAt, and actor-bound ReachableHoldings, Collect or personal recovery; destination uses are separate steps.", nameof(request));
+            throw new ArgumentException("This goods query supports exact owners and kinds for Holdings, ConsumeAt, and actor-bound ReachableHoldings, Collect personal recovery, spending, selling or personal storage; destination uses are separate steps.", nameof(request));
     }
 
     internal static bool IsRecovery(GoodsUse use) => use is GoodsUse.RecoveryHoldings or GoodsUse.Recover;
@@ -77,7 +77,7 @@ internal static class GoodsInventoryQuery
         return Math.Min(lot.Quantity - Math.Max(0, InventoryRules.UnreservedQuantity(index, lot)), reserved);
     }
 
-    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => IsRecovery(use)
+    internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => IsRecovery(use) || use == GoodsUse.StorePersonal
         ? Math.Max(0, InventoryRules.UnreservedQuantity(index, lot))
         : use == GoodsUse.ConsumeAt ? InventoryRules.ReservableQuantity(index, lot) : InventoryRules.UsableQuantity(index, lot);
 
@@ -87,7 +87,7 @@ internal static class GoodsInventoryQuery
             IsRecovery(request.Use) && lot.OwnerId != request.Actor) return GoodsReason.Owner;
         if (!request.Kinds.Ids.Contains(lot.ItemKind, StringComparer.Ordinal)) return GoodsReason.Kind;
         if (request.AtBuilding is { } building && lot.StorageBuildingId != building) return GoodsReason.Place;
-        if (!IsRecovery(request.Use))
+        if (!IsRecovery(request.Use) && request.Use != GoodsUse.StorePersonal)
         {
             if (lot.ConditionBasisPoints <= 0) return GoodsReason.Damaged;
             if (lot.FreshnessBasisPoints <= 0) return GoodsReason.Spoiled;

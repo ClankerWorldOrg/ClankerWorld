@@ -299,6 +299,9 @@ centers the camera on them, and back (or **Escape**) returns from the Profile
 to the small card. Inspection does not pause time, and reading private thoughts
 does not tell other agents.
 
+The Profile shows condition for equipped clothing and carrying aids. A tiny
+positive condition is shown as 1%; 0% means the item is fully broken.
+
 Agents learn building, farming, crafting or smithing by completing matching
 work or a practical lesson. A learned skill makes that kind of work finish
 sooner. The current bonus is 20%, rounded to whole ticks or progress units,

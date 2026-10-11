@@ -105,6 +105,7 @@ internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     PlacedBuilding? HouseForHousehold(string householdId);
     bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident);
     List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null);
+    IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null);
     IReadOnlyList<FarmFieldState> Fields { get; }
     IReadOnlyList<BridgeState> Bridges { get; }
     IReadOnlySet<GridPoint> RoadTiles { get; set; }

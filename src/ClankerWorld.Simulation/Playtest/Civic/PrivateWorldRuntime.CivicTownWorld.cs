@@ -109,6 +109,7 @@ public sealed partial class PrivateWorldRuntime
         public PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
         public bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
         public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => runtime.GenerateRoadToBuilding(building, border);
+        public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null) => runtime.SpendingGoods(actor, use, owners, kind);
         public IReadOnlyList<FarmFieldState> Fields => runtime.fields;
         public IReadOnlyList<BridgeState> Bridges => runtime.bridges;
         public IReadOnlySet<GridPoint> RoadTiles { get => runtime.roadTiles; set => runtime.roadTiles = value.ToHashSet(); }

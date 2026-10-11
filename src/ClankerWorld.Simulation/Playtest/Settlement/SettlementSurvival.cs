@@ -153,10 +153,6 @@ public sealed partial class PrivateWorldRuntime
                 yield return match.Lot;
     }
 
-    private bool CanReachSharedItem(string actor, InventoryLot lot) =>
-        !OnBorrowedMarketStall(lot) && FindUnoccupiedRoute(actor, inhabitants[actor].Position, HouseholdStockPosition(lot),
-            HouseholdStockInteractionRange(lot)).Count > 0;
-
     private IEnumerable<PlacedBuilding> BuildingsWithTag(string tag) => worldSimulation.Buildings.Where(building =>
         worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains(tag, StringComparer.Ordinal)));
 

@@ -9,9 +9,10 @@ internal sealed partial class CivicSystem
     internal static bool LandSaleKind(string kind) => TownLandHearingRules.ValidText(kind, ContentPackageRules.MaximumContentIdLength) &&
             !kind.Any(char.IsWhiteSpace) && !InventoryContainerRules.IsContainer(kind) && kind != "handcart";
 
-    internal static InventoryLot[] LandSaleCarriedLots(ICivicTownWorld world, string actor, TownLandSalePrice price) => world.Society.Inventory.Lots
-            .Where(lot => lot.OwnerId == actor && lot.ItemKind == price.ItemKind && PersonalEquipmentRules.IsCarried(lot, actor) &&
-                lot.DeliveryBuildingId is null && !PersonalEquipmentRules.IsSelected(world.Inhabitants[actor].Equipment, lot.Id) && world.AvailableLotQuantity(lot) > 0)
+    internal static InventoryLot[] LandSaleCarriedLots(ICivicTownWorld world, string actor, TownLandSalePrice price) =>
+        world.SpendingGoods(actor, GoodsUse.Spend, [actor], price.ItemKind).Select(match => match.Lot)
+            .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) &&
+                !PersonalEquipmentRules.IsSelected(world.Inhabitants[actor].Equipment, lot.Id))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
 
     internal static int LandSaleCarriedQuantity(ICivicTownWorld world, string actor, TownLandSalePrice price)
