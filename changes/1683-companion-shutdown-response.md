@@ -1,0 +1,1 @@
+- The local host finishes its save confirmation before exiting when the game asks it to shut down.
