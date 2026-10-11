@@ -4410,7 +4410,9 @@ portion. Infant self-feeding and adult-only animal work remain age restricted.
 
 Milk uses ordinary Store stock, Market stock receipts and inventory barter.
 These paths retain ordinary food reserves, protect actively borrowed stalls
-and recheck custody, receiving space and reservations at execution. Store and
+and recheck custody, receiving space and reservations at execution. Store
+stocking includes reachable loose ground goods, so released Market stock uses
+the same selector as other household supplies. Store and
 Market purchases use the existing buyer offer and seller acceptance or refusal.
 There is no milk-specific offer ledger or exchange identity derivation.
 Whole-lot barter retains the existing lot identity; partial transfers use the

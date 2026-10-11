@@ -53,7 +53,8 @@ public sealed partial class PrivateWorldRuntimeTests
         Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
         var usableMilk = food is "ordered" or "unordered";
         Assert.Equal(usableMilk ? 1 : 2, world.Society.Inventory.GetLot("order-milk").Quantity);
-        Assert.Equal(usableMilk ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "milk_drunk"));
+        Assert.Equal(usableMilk || food == "bread" ? 1 : 0, world.ExportState().Events.Count(item =>
+            item.Kind is "milk_drunk" or "food_consumed" && item.Detail == HarvestInstructionActor));
         Assert.Equal(food == "bread" ? 5_496 : usableMilk ? 4_496 : 1_496,
             world.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor).HungerBasisPoints);
         if (food == "broken-pot")

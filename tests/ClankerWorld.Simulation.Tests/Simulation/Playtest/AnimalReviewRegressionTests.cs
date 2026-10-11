@@ -9,7 +9,7 @@ namespace ClankerWorld.Simulation.Tests;
 
 public sealed partial class AnimalPipelineTests
 {
-    
+
 
     [Theory]
     [InlineData("sheep")]
@@ -101,7 +101,7 @@ public sealed partial class AnimalPipelineTests
             Assert.Equal(actor, world.Society.Inventory.GetLot("milk-pot").OwnerId);
             Assert.Equal(0, world.Society.Inventory.GetLot("milk-pot").ConditionBasisPoints);
         }
-        else Assert.Null(world.Society.Inventory.GetLot("milk").ContainerLotId);
+        else Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "milk");
         world.Validate();
     }
 }

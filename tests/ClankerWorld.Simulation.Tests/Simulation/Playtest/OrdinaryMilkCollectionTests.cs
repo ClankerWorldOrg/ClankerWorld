@@ -50,4 +50,60 @@ public sealed partial class AnimalPipelineTests
         using var reload = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(reload.ExportState()));
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OrdinaryMilkSpoilsAtItsExistingRateAndKeepsWaterSeparateAcrossReplay(bool foodPot)
+    {
+        using var generated = NormalPathWorld.CreateGenerated("ordinary-milk-spoilage", _ => new AnimalChooser());
+        Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
+        var state = generated.ExportState();
+        var actor = state.Inhabitants[0].InhabitantId;
+        var inventory = state.Society.Society.Inventory;
+        if (foodPot) inventory = InventoryFixture.AddLot(inventory, "spoilage-pot", "storage_pot", actor, 1);
+        inventory = InventoryFixture.AddLot(inventory, "spoilage-milk", "milk", actor, 2,
+            freshnessBasisPoints: 56, containerLotId: foodPot ? "spoilage-pot" : null);
+        inventory = InventoryFixture.AddLot(inventory, "spoilage-water-jug", "water_jug", actor, 1);
+        inventory = InventoryFixture.AddLot(inventory, "spoilage-water", "fresh_water", actor, 1,
+            containerLotId: "spoilage-water-jug");
+        state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        var initialTick = state.Society.Society.WorldTick;
+        using var world = PrivateWorldRuntime.Restore(state, _ => new AnimalChooser());
+        Assert.Throws<InvalidDataException>(() => PrivateWorldRuntime.Restore(state with
+        { SchemaVersion = PrivateWorldRuntime.StateSchemaVersion - 1 }));
+        for (var step = 1; step <= 4; step++)
+        {
+            var bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+            using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), _ => new AnimalChooser());
+            Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
+            Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
+            Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
+            var cadence = foodPot ? 2 : 1;
+            var loss = ((initialTick + step) / cadence - initialTick / cadence) * 28;
+            Assert.Equal(Math.Max(0, 56 - loss), world.Society.Inventory.GetLot("spoilage-milk").FreshnessBasisPoints);
+            Assert.Equal((actor, 2), (world.Society.Inventory.GetLot("spoilage-milk").OwnerId,
+                world.Society.Inventory.GetLot("spoilage-milk").Quantity));
+            Assert.Equal((actor, 1, "spoilage-water-jug", 10_000),
+                (world.Society.Inventory.GetLot("spoilage-water").OwnerId,
+                 world.Society.Inventory.GetLot("spoilage-water").Quantity,
+                 world.Society.Inventory.GetLot("spoilage-water").ContainerLotId,
+                 world.Society.Inventory.GetLot("spoilage-water").FreshnessBasisPoints));
+            Assert.Equal((actor, 1, 10_000), (world.Society.Inventory.GetLot("spoilage-water-jug").OwnerId,
+                world.Society.Inventory.GetLot("spoilage-water-jug").Quantity,
+                world.Society.Inventory.GetLot("spoilage-water-jug").ConditionBasisPoints));
+            world.Validate();
+        }
+        Assert.Single(world.Society.Inventory.Events, item => item.Kind == "lot_spoiled" && item.Detail == "spoilage-milk");
+    }
+
+    [Fact]
+    public async Task PaidNativeMarketSellsAndRecoversOrdinaryMilkWithoutVessels()
+    {
+        await MarketAnimalMilkScenario.AssertPipelineAsync(await PaidMarketWorld.StateAsync());
+    }
+
 }

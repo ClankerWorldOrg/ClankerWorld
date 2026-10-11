@@ -33,7 +33,8 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(("milk", home, 2), (producing.Society.Inventory.GetLot(productId).ItemKind,
             producing.Society.Inventory.GetLot(productId).OwnerId, producing.Society.Inventory.GetLot(productId).Quantity));
         state = producing.ExportState();
-        inventory = InventoryFixture.AddLot(state.Society.Society.Inventory, "capacity-stone", "stone", actor, stone);
+        inventory = state.Society.Society.Inventory;
+        if (stone > 0) inventory = InventoryFixture.AddLot(inventory, "capacity-stone", "stone", actor, stone);
         state = At(state, actor, yard.Position, inventory, state.AnimalWorld.Animals.ToArray());
         var bytes = PrivateWorldRuntimeCodec.Encode(state);
         using var world = RestoreAnimalOrder(PrivateWorldRuntimeCodec.Decode(bytes), actor);
@@ -42,7 +43,7 @@ public sealed partial class AnimalPipelineTests
         for (var step = 0; step < 40 && world.Animals.Single().ReadyProductLotId is not null; step++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk").Sum(lot => lot.Quantity));
-        Assert.Equal(stone, world.Society.Inventory.GetLot("capacity-stone").Quantity);
+        Assert.Equal(stone, world.Society.Inventory.Lots.Where(lot => lot.Id == "capacity-stone").Sum(lot => lot.Quantity));
         var milk = world.Society.Inventory.GetLot(productId);
         Assert.Equal((home, "milk", 2), (milk.OwnerId, milk.ItemKind, milk.Quantity));
         Assert.Null(milk.ContainerLotId);

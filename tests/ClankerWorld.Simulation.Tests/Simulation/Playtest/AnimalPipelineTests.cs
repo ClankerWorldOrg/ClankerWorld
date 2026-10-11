@@ -467,7 +467,7 @@ public sealed partial class AnimalPipelineTests
         world.Validate();
     }
 
-    
+
 
     [Fact]
     public async Task OrdinaryPaidOrdersBuildAndExpandTheHouseholdsAnimalYard()
@@ -527,7 +527,7 @@ public sealed partial class AnimalPipelineTests
         world.Validate();
     }
 
-    
+
 
     [Fact]
     public async Task ViewerSendsProductCycleSoOnlyHouseholdSheepLookShornEarlyInTheirWoolCycle()
