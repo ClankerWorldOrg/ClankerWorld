@@ -72,6 +72,20 @@ public partial class Main
         var icon = AgentPortrait(person, living: true);
         list.AddItem("Mira", "Gathering clay", icon);
         var ordinaryHeight = RowHeight();
+        const string LongName = "Before the winter harvest with the eastern families and the river settlement";
+        const string Detail = "Saved just now · Seed willow";
+        list.AddItem(LongName, Detail, icon);
+        var longCard = (Control)list.GetChild(0).GetChild(2);
+        var title = longCard.FindChildren("*", nameof(Label), true, false).OfType<FittedLabel>().First();
+        title.Size = new Vector2(120, 20);
+        if (!title.Text.EndsWith("...", StringComparison.Ordinal) || title.Text == LongName)
+            throw new InvalidOperationException("The long-name check must exercise an actually shortened card title.");
+        if (!longCard.GetTooltip().Contains(LongName, StringComparison.Ordinal) ||
+            !longCard.GetTooltip().Contains(Detail, StringComparison.Ordinal))
+            throw new InvalidOperationException($"A shortened world or save card must expose its complete name and detail on hover: {longCard.GetTooltip()}.");
+        list.AddItem("Willowmere");
+        if (((Control)list.GetChild(0).GetChild(3)).GetTooltip() != "Willowmere")
+            throw new InvalidOperationException("A name-only card must expose its name without an empty detail line.");
         list.Clear();
         list.Compact = true;
         list.AddItem("Mira", "Gathering clay", icon);
