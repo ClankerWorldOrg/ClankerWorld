@@ -50,7 +50,7 @@ done
 setup_temp_root="$(cygpath -u "${RUNNER_TEMP:-${TMPDIR:-/tmp}}")"
 scratch_root="$(mktemp -d "${setup_temp_root}/clankerworld-setup.XXXXXX")"
 trap 'rm -rf -- "${scratch_root}"' EXIT
-python3 - "${game_package}" "${launcher_package}" "${scratch_root}" <<'PY'
+python - "${game_package}" "${launcher_package}" "${scratch_root}" <<'PY'
 import pathlib, sys, zipfile
 root = pathlib.Path(sys.argv[3])
 for kind, package in zip(("game", "launcher"), sys.argv[1:3]):
@@ -96,7 +96,7 @@ MSYS2_ARG_CONV_EXCL='*' "${compiler}" "/O$(cygpath -w "${output_dir}")" \
     "$(cygpath -w "${staged_repo_root}/scripts/windows-installer.iss")"
 setup_name="ClankerWorld-Setup-${game_version}-windows-x64.exe"
 (cd "${output_dir}" && sha256sum --binary "${setup_name}" > "${setup_name}.sha256")
-python3 - "${output_dir}" "${revision}" "${game_version}" "${launcher_version}" "${INNO_SHA256}" <<'PY'
+python - "${output_dir}" "${revision}" "${game_version}" "${launcher_version}" "${INNO_SHA256}" <<'PY'
 import json, pathlib, sys
 path = pathlib.Path(sys.argv[1]) / "build.json"
 path.write_text(json.dumps(dict(sourceRevision=sys.argv[2], gameVersion=sys.argv[3],
