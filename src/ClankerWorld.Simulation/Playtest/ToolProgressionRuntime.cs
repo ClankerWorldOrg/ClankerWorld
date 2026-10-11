@@ -377,11 +377,9 @@ public sealed partial class PrivateWorldRuntime
 
             foreach (var input in materialNeeds)
             {
-                var material = updated.Lots.Where(lot =>
-                        ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) && lot.OwnerId == actor &&
-                        lot.ItemKind == input.ResourceId &&
-                        AvailableLotQuantity(lot) >= input.Amount)
-                    .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
+                var material = SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId, inventory: updated)
+                    .FirstOrDefault(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor) &&
+                        match.Quantity >= input.Amount)?.Lot;
                 if (material is null)
                     throw new InvalidOperationException("Repair materials must be physically carried by the tool owner.");
                 var reservationId = ToolRepairReservationId(WorldTick, actor, repairId, input.ResourceId);
@@ -408,9 +406,9 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private bool HasCarriedMaterial(string actor, string itemKind, int quantity) =>
-        society.Checkpoint.Inventory.Lots.Where(lot =>
-                ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) && lot.OwnerId == actor && lot.ItemKind == itemKind)
-            .Sum(AvailableLotQuantity) >= quantity;
+        SpendingGoods(actor, GoodsUse.Spend, [actor], itemKind)
+            .Where(match => ToolProgressionRules.IsTopLevelCarriedLot(match.Lot, actor))
+            .Sum(match => (long)match.Quantity) >= quantity;
 
     private static int UnreservedQuantity(InventoryCheckpoint inventory, InventoryLot lot)
     {

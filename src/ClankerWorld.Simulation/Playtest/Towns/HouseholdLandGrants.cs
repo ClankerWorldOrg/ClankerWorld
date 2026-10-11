@@ -88,197 +88,21 @@ public static class HouseholdLandGrantRules
 public sealed partial class PrivateWorldRuntime
 {
     private TownGovernanceState OpenLandUseProposal(TownRuntimeState town, TownGovernanceState state,
-        ref HouseholdLandUseRequest request)
-    {
-        if (request.CouncilProposalId is not null || HasOpenLandHearingPlot(town.Id, request.Tiles) ||
-            !HouseholdLandGrantRules.IsAvailable(request, householdLandUseRights, householdLandUseRequests) ||
-            !TownAdults(town).Contains(request.RequestedByAgentId, StringComparer.Ordinal)) return state;
-        var text = $"Grant household use of {request.Tiles.Count} land tile(s); every current adult in the household must separately accept.";
-        state = TownGovernanceRules.SubmitProposal(state, town.Id, request.RequestedByAgentId, "land_use", request.Id,
-            text, "council:" + state.Revision, TownAdults(town), WorldTick, CivicDay, landUseRequest: request);
-        var key = HouseholdLandGrantRules.RequestKey(request);
-        request = request with { CouncilProposalId = state.Proposals.Single(p => p.RequestKey == key && p.Status == "pending").Id };
-        return state;
-    }
-
-    private TownGovernanceState ResolveHouseholdLandRequests(TownRuntimeState town, TownGovernanceState state)
-    {
-        foreach (var saved in householdLandUseRequests.Where(r => r.TownId == town.Id && r.Status == "pending").ToArray())
-        {
-            var request = saved;
-            var adults = HouseholdAdults(request.HouseholdId);
-            var proposal = state.Proposals.SingleOrDefault(p => p.Id == request.CouncilProposalId);
-            var refusal = HouseholdLandGrantRules.RefusalReason(request, adults, proposal, WorldTick);
-            if (refusal is not null)
-            {
-                request = request with { Status = "rejected", SettledTick = WorldTick };
-                if (request.CouncilProposalId is { } proposalId)
-                    state = TownGovernanceRules.CancelLandUseProposal(state, proposalId, WorldTick);
-                state = TownGovernanceRules.LandUseNotice(state, request.Id, "Household land request refused: " + refusal, WorldTick);
-            }
-            else if (!HasOpenLandHearingPlot(town.Id, request.Tiles) &&
-                HouseholdLandGrantRules.IsAvailable(request, householdLandUseRights, householdLandUseRequests) &&
-                !IncludesForeignFieldWithoutUseRight(request.HouseholdId, request.Tiles))
-            {
-                if (proposal is null)
-                {
-                    try { state = OpenLandUseProposal(town, state, ref request); }
-                    catch (InvalidOperationException) { /* Ordinary Council retry rules still apply. */ }
-                }
-                else if (proposal.Status == "passed" && adults.All(id => request.Consents.Any(c => c.AgentId == id && c.Accepted)))
-                {
-                    request = request with { Status = "granted", SettledTick = WorldTick, GrantAdults = adults };
-                    householdLandUseRights.Add(new(HouseholdLandGrantRules.RightId(request.Id), town.Id, request.HouseholdId,
-                        request.Tiles, WorldTick, HouseholdLandGrantRules.GrantSource(request.Id), request.AgreedEndTick));
-                    householdLandUseRights = householdLandUseRights.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
-                    state = TownGovernanceRules.LandUseNotice(state, request.Id,
-                        "Household land use granted for " + TownLandClaimRules.DescribeTiles(request.Tiles) + ".", WorldTick);
-                    AppendEvent("land_use_granted", $"{request.Id}:{town.Id}:{request.HouseholdId}:{request.Tiles.Count}");
-                }
-            }
-            if (request != saved)
-                householdLandUseRequests = householdLandUseRequests.Select(r => r.Id == request.Id ? request : r).ToList();
-        }
-        return state;
-    }
-
+        ref HouseholdLandUseRequest request) => civicSystem.OpenLandUseProposal(civicWorld, town, state, ref request);
+    private TownGovernanceState ResolveHouseholdLandRequests(TownRuntimeState town, TownGovernanceState state) => civicSystem.ResolveHouseholdLandRequests(civicWorld, town, state);
     /// <summary>Land other households hold or have asked for; a Town building (null household) avoids all of it.</summary>
-    private HashSet<GridPoint> HouseholdLandHeldByOthers(string? household) => householdLandUseRights
-        .Where(right => right.HouseholdId != household).SelectMany(right => right.Tiles)
-        .Concat(householdLandUseRequests.Where(request => request.Status == "pending" && request.HouseholdId != household)
-            .SelectMany(TownLandRightsRules.UnresolvedRequestTiles))
-        .ToHashSet();
-
-    private bool IncludesForeignFieldWithoutUseRight(string household, IReadOnlyList<GridPoint> tiles) =>
-        fields.Any(field => field.HouseholdId != household && tiles.Contains(field.Position) &&
-            !householdLandUseRights.Any(right => right.Tiles.Contains(field.Position)));
-
-    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include) =>
-        Ground.KnownBuildingFootprints(include).ToHashSet();
-
+    private HashSet<GridPoint> HouseholdLandHeldByOthers(string? household) => civicSystem.HouseholdLandHeldByOthers(civicWorld, household);
+    private bool IncludesForeignFieldWithoutUseRight(string household, IReadOnlyList<GridPoint> tiles) => civicSystem.IncludesForeignFieldWithoutUseRight(civicWorld, household, tiles);
+    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include) => CivicSystem.BuildingFootprintTiles(civicWorld, include);
     /// <summary>Tiles a running or paused expansion is building on, for the buildings <paramref name="include"/> selects.</summary>
-    private HashSet<GridPoint> ExpansionWorkTiles(Func<PlacedBuilding?, bool> include) =>
-        (worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused &&
-                include(worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)))
-            .SelectMany(ExpansionTiles).ToHashSet();
-
+    private HashSet<GridPoint> ExpansionWorkTiles(Func<PlacedBuilding?, bool> include) => CivicSystem.ExpansionWorkTiles(civicWorld, include);
     /// <summary>Free Town-titled land nearest first: no use right, pending request, building, expansion, road, field or Town project site.</summary>
-    private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count)
-    {
-        var taken = HouseholdLandHeldByOthers(null);
-        taken.UnionWith(BuildingFootprintTiles(_ => true));
-        taken.UnionWith(ExpansionWorkTiles(_ => true));
-        taken.UnionWith(RoadAndBridgeTiles());
-        taken.UnionWith(fields.Select(field => field.Position));
-        taken.UnionWith(TownProjectProtectedSites());
-        taken.UnionWith(PendingTownProjectSiteTiles());
-        taken.UnionWith(MarketSiteTiles());
-        return townLandTitles.Where(title => title.TownId == town.Id).SelectMany(title => title.Tiles)
-            .Where(tile => map.IsLand(tile) && !taken.Contains(tile)).Distinct()
-            .OrderBy(tile => map.FootDistance(from, tile)).ThenBy(tile => tile.Y).ThenBy(tile => tile.X)
-            .Take(count).ToArray();
-    }
-
-    private string LandUseTerms(HouseholdLandUseRequest request) =>
-        "Exact tiles: " + TownLandClaimRules.DescribeTiles(request.Tiles) + ". " +
-        (request.AgreedEndTick is { } end ? $"Agreed end: world day {CivicDayNumber(end)}. " : "No agreed end date. ");
-
-    private void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
-    {
-        if (TownAdults(town).Contains(actor, StringComparer.Ordinal))
-            foreach (var building in worldSimulation.Buildings.Where(b => b.TownId == town.Id && b.HouseholdId == HouseholdFor(actor)))
-                if (ExpansionLandRequestTiles(actor, building) is { Length: > 0 } extra)
-                    candidates.Add(new(CivicAction(town.Id, "request_expansion_land", building.InstanceId, TownLandClaimRules.DescribeTiles(extra)),
-                        "Request household use of the extra land needed to expand your House. Council approval and every current adult's acceptance are required. Exact tiles: " +
-                        TownLandClaimRules.DescribeTiles(extra) + ".", 190));
-        var history = CivicHistory(town);
-        foreach (var request in householdLandUseRequests.Where(r => r.TownId == town.Id && r.Status == "pending" && history.Knows(actor, "land_use", r.Id)))
-        {
-            var terms = request.HearingResolutions.Count == 0 ? LandUseTerms(request) :
-                "Remaining unheard requested tiles: " + TownLandClaimRules.DescribeTiles(TownLandRightsRules.UnresolvedRequestTiles(request)) +
-                ". Completed hearing decisions remain. A new ordinary grant requires a separate request for its exact plot. ";
-            if (request.RequestedByAgentId == actor)
-                candidates.Add(new(CivicAction(town.Id, "withdraw_land_use", request.Id),
-                    "Withdraw your pending household land request. " + terms, 190));
-            if (!HouseholdAdults(request.HouseholdId).Contains(actor, StringComparer.Ordinal) || request.Consents.Any(c => c.AgentId == actor)) continue;
-            if (request.HearingResolutions.Count == 0)
-                candidates.Add(new(CivicAction(town.Id, "accept_land_use", request.Id),
-                    "Personally accept the requested use right for your household. Council approval and every current adult's acceptance are also required. " + terms, 165));
-            candidates.Add(new(CivicAction(town.Id, "decline_land_use", request.Id),
-                "Personally decline the requested use right for your household. " + terms, 166));
-        }
-    }
-
-    private GridPoint[]? ExpansionLandRequestTiles(string actor, PlacedBuilding building)
-    {
-        if (building.HouseholdId is null || !MayExpandBuilding(actor, building, out _) ||
-            ExpansionShapes(building).Any(shape => CanFitExpansion(building, shape.Position, shape.Footprint, out _))) return null;
-        var definition = worldContent.Buildings.Single(d => d.CanonicalId == building.DefinitionId);
-        var pending = householdLandUseRequests.Where(r => r.Status == "pending" && r.HouseholdId == building.HouseholdId)
-            .SelectMany(TownLandRightsRules.UnresolvedRequestTiles).ToHashSet();
-        // A footprint whose extra land is free can be granted; one over land another household
-        // holds or has asked for only opens a dispute, so it is offered when no free one fits.
-        var heldByOthers = HouseholdLandHeldByOthers(building.HouseholdId);
-        var proposedHalls = PendingTownProjectSiteTiles();
-        GridPoint[]? offered = null;
-        GridPoint[]? disputed = null;
-        foreach (var shape in ExpansionShapes(building))
-        {
-            if (!CanFitExpansion(building, shape.Position, shape.Footprint, out _, requireLandRights: false)) continue;
-            var extra = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(
-                BuildingStorageRules.WithSize(definition, shape.Footprint.Width, shape.Footprint.Height), shape.Position)
-                .Except(WorldContentSimulationRules.Footprint(definition, building))
-                .Where(tile => !householdLandUseRights.Any(right => right.HouseholdId == building.HouseholdId && right.Tiles.Contains(tile))));
-            if (extra.Length == 0 || extra.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, building.TownId!, townLandTitles))) continue;
-            // One expansion asks the Council once: a pending request for any of its shapes waits to be decided.
-            if (extra.Any(pending.Contains)) return null;
-            if (extra.Any(proposedHalls.Contains)) continue;
-            if (extra.Any(heldByOthers.Contains)) disputed ??= extra;
-            else offered ??= extra;
-        }
-        return offered ?? disputed;
-    }
-
-    private TownGovernanceState SubmitExpansionLandRequest(TownRuntimeState town, TownGovernanceState state, string actor, string buildingId)
-    {
-        var building = worldSimulation.Buildings.Single(b => b.InstanceId == buildingId);
-        var tiles = ExpansionLandRequestTiles(actor, building) ?? throw new InvalidOperationException("The expansion's land need has changed.");
-        return SubmitPersonalLandUseRequest(town, state, actor, tiles.Select(t => new CognitionLandTile(t.X, t.Y)).ToArray());
-    }
-
-    private TownGovernanceState DecideHouseholdLandUse(TownGovernanceState state, string actor, string requestId, string action)
-    {
-        var request = householdLandUseRequests.Single(r => r.Id == requestId && r.Status == "pending");
-        if (action == "withdraw_land_use")
-        {
-            if (request.RequestedByAgentId != actor) throw new InvalidOperationException("Only the filer may withdraw this request.");
-            request = request with { Status = "withdrawn", SettledTick = WorldTick };
-            if (request.CouncilProposalId is { } proposalId)
-                state = TownGovernanceRules.CancelLandUseProposal(state, proposalId, WorldTick);
-            state = TownGovernanceRules.LandUseNotice(state, request.Id, "The household land request was withdrawn by its filer.", WorldTick);
-        }
-        else
-        {
-            if (!HouseholdAdults(request.HouseholdId).Contains(actor, StringComparer.Ordinal) || request.Consents.Any(c => c.AgentId == actor))
-                throw new InvalidOperationException("Land acceptance requires an explicit choice from a current adult household member.");
-            request = request with
-            {
-                Consents = request.Consents.Append(new(actor, action == "accept_land_use", WorldTick))
-                .OrderBy(c => c.AgentId, StringComparer.Ordinal).ToArray()
-            };
-        }
-        householdLandUseRequests = householdLandUseRequests.Select(r => r.Id == request.Id ? request : r).ToList();
-        return state;
-    }
-
+    private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => civicSystem.RequestableLandNear(civicWorld, town, from, count);
+    private string LandUseTerms(HouseholdLandUseRequest request) => CivicSystem.LandUseTerms(civicWorld, request);
+    private void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => civicSystem.AddHouseholdLandCandidates(civicWorld, candidates, actor, town);
+    private GridPoint[]? ExpansionLandRequestTiles(string actor, PlacedBuilding building) => civicSystem.ExpansionLandRequestTiles(civicWorld, actor, building);
+    private TownGovernanceState SubmitExpansionLandRequest(TownRuntimeState town, TownGovernanceState state, string actor, string buildingId) => civicSystem.SubmitExpansionLandRequest(civicWorld, town, state, actor, buildingId);
+    private TownGovernanceState DecideHouseholdLandUse(TownGovernanceState state, string actor, string requestId, string action) => civicSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);
     private TownGovernanceState SubmitPersonalLandUseRequest(TownRuntimeState town, TownGovernanceState state,
-        string actor, IReadOnlyList<CognitionLandTile>? landTiles)
-    {
-        if (landTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles })
-            throw new InvalidOperationException("Choose exact land tiles for the household request.");
-        var (result, updated) = FileHouseholdLandUse(TownRecordIds.LandRequest(town.Id, state.Notices.Count + 1),
-            actor, town.Id, landTiles.Select(t => new GridPoint(t.X, t.Y)).ToArray(), null, state);
-        if (!result.Applied) throw new InvalidOperationException(result.Failure);
-        return updated;
-    }
+        string actor, IReadOnlyList<CognitionLandTile>? landTiles) => civicSystem.SubmitPersonalLandUseRequest(civicWorld, town, state, actor, landTiles);
 }
