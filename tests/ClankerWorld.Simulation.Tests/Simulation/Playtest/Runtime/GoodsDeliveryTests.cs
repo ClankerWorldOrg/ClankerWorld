@@ -22,7 +22,7 @@ public sealed class GoodsDeliveryTests
                 lot.StorageBuildingId != house.InstanceId &&
                 (lot.OwnerId != household || lot.ItemKind is not ("wood" or "water_jug" or "fresh_water"))).ToArray(),
         };
-        inventory = InventoryFixture.AddLot(inventory, "delivery-carried-stone", "stone", actor, 5);
+        inventory = InventoryFixture.AddLot(inventory, "delivery-carried-stone", "stone", actor, 6);
         inventory = InventoryFixture.AddLot(inventory, "delivery-wood", "wood", household, 5,
             groundPosition: new(house.Position.X, house.Position.Y));
         inventory = InventoryFixture.Reserve(inventory, "delivery-held-wood", household, "delivery-wood", 2,
@@ -36,6 +36,7 @@ public sealed class GoodsDeliveryTests
         }
         inventory = InventoryFixture.Reserve(inventory, "delivery-held-water", household, "delivery-reserved-water", 1,
             "other-work", inventory.WorldTick + 100);
+        Assert.Equal(2, PersonalEquipmentRules.FreeCapacity(inventory, actor, null));
         state = Prepared(PaidMarketWorld.WithInventory(state, inventory), actor, house.Position);
         using var world = PrivateWorldRuntime.Restore(state, _ => new Idle());
         var request = new GoodsRequest(GoodsUse.Deliver, actor, GoodsOwners.One(household),
