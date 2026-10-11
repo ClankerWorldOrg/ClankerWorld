@@ -4147,6 +4147,12 @@ isolated teacher cannot hide another available teacher. Ordinary route checks
 include occupied tiles; they do not grant travel through disconnected land.
 Request, refusal, acceptance, cancellation and pause/reload retain their normal
 flow. A completed lesson changes neither the agent's role nor work proficiency.
+Its gratitude memory keeps the complete learner and teacher references, skill,
+text and learning time. New memory keys longer than 128 characters use a SHA-256
+digest of the complete key after the `lesson-gratitude:` prefix; shorter keys
+stay unchanged. The prefix still supplies durable trust and protects the memory
+from ordinary archival. Personal recall keeps its canonical 128-character key
+boundary and owner filter.
 Matching skills use one provisional 20% work reduction. Building speeds ordinary
 construction, paid Town projects and expansions; farming speeds field work and
 Farmhouse production; smithing speeds Blacksmith production; crafting speeds
