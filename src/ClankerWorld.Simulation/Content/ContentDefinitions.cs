@@ -17,7 +17,7 @@ public readonly record struct ContentQuantity(string ResourceId, int Amount)
 {
     public void Validate()
     {
-        ContentPackageRules.ValidateLocalId(ResourceId);
+        ContentPackageRules.ValidateContentLocalId(ResourceId);
         if (Amount is < 1 or > ContentDefinitionRules.MaxQuantity)
         {
             throw new ArgumentOutOfRangeException(
@@ -734,7 +734,7 @@ public static class ContentDefinitionRules
         ContentVersion version)
     {
         ContentPackageRules.ValidateDigest(packageDigest, nameof(packageDigest));
-        ContentPackageRules.ValidateLocalId(localId);
+        ContentPackageRules.ValidateContentLocalId(localId);
         if (version.Major < 0 || version.Minor < 0 || version.Patch < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(version), version, "Content versions cannot contain negative components.");

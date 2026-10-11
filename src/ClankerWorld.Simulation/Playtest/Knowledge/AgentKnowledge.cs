@@ -162,7 +162,7 @@ internal static partial class AgentKnowledgeRules
             map.Contains(fact.Position) && map.IsPassable(fact.Position) &&
             Enum.TryParse<TerrainKind>(fact.Terrain, ignoreCase: false, out _) &&
             fact.ResourceKinds is not null && fact.ResourceKinds.Count <= MaximumResourceKindsPerFact &&
-            fact.ResourceKinds.All(ContentPackageRules.IsValidLocalId) && fact.ResourceKinds.Distinct(StringComparer.Ordinal).Count() == fact.ResourceKinds.Count &&
+            fact.ResourceKinds.All(ContentPackageRules.IsValidContentLocalId) && fact.ResourceKinds.Distinct(StringComparer.Ordinal).Count() == fact.ResourceKinds.Count &&
             fact.LearnedTick >= 0 && fact.LearnedTick <= latestTick &&
             (fact.Acquisition == "firsthand" && fact.OwnerId == fact.DiscovererId && fact.SourceAgentId is null && fact.SourceArtifactId is null ||
              fact.Acquisition is "shared" or "read" && fact.SourceAgentId is { } source && agents.Contains(source) &&

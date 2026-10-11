@@ -545,7 +545,7 @@ public sealed record InhabitantObservation(
             ArgumentNullException.ThrowIfNull(fact);
             if (fact.X < 0 || fact.Y < 0 || string.IsNullOrWhiteSpace(fact.Terrain) || fact.Terrain.Length > 32 ||
                 fact.ResourceKinds is null || fact.ResourceKinds.Count > 4 ||
-                fact.ResourceKinds.Any(kind => !ContentPackageRules.IsValidLocalId(kind)) ||
+                fact.ResourceKinds.Any(kind => !ContentPackageRules.IsValidContentLocalId(kind)) ||
                 string.IsNullOrWhiteSpace(fact.DiscovererId) || fact.DiscovererId.Length > 128 ||
                 fact.LearnedTick < 0 || fact.LearnedTick > WorldTick ||
                 fact.Acquisition is not ("firsthand" or "shared" or "read"))

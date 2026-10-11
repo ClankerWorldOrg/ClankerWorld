@@ -92,7 +92,7 @@ public sealed record ContentDefinition(
     public void Validate()
     {
         ContentPackageRules.ValidateSchemaKind(Kind);
-        ContentPackageRules.ValidateLocalId(LocalId);
+        ContentPackageRules.ValidateContentLocalId(LocalId);
         ArgumentException.ThrowIfNullOrWhiteSpace(DisplayName);
         ContentPackageRules.ValidateDigest(PayloadDigest, nameof(PayloadDigest));
         if (PayloadJson is not null && string.IsNullOrWhiteSpace(PayloadJson))
@@ -231,7 +231,7 @@ public static class ContentPackageRules
     {
         ValidateDigest(packageDigest, nameof(packageDigest));
         ValidateSchemaKind(kind);
-        ValidateLocalId(localId);
+        ValidateContentLocalId(localId);
         var id = $"{packageDigest}/{kind}/{localId}@{version}";
         ValidateContentIdLength(id);
         return id;
@@ -263,14 +263,21 @@ public static class ContentPackageRules
     public static void ValidateLocalId(string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value);
-        ValidateContentIdLength(value);
-        if (!IsValidLocalId(value))
+        if (value != value.Trim() || value.Any(character =>
+                !(char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')))
         {
             throw new ArgumentException($"Local content ID '{value}' is not canonical.", nameof(value));
         }
     }
 
-    public static bool IsValidLocalId(string? value) => value is { Length: > 0 and <= MaximumContentIdLength } &&
+    public static void ValidateContentLocalId(string value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        ValidateContentIdLength(value);
+        ValidateLocalId(value);
+    }
+
+    public static bool IsValidContentLocalId(string? value) => value is { Length: > 0 and <= MaximumContentIdLength } &&
         value.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_');
 
     internal static void ValidateContentIdLength(string value)
