@@ -54,7 +54,7 @@ public sealed partial class PrivateWorldRuntime
             society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
                 lot.DeliveryBuildingId is null && lot.ItemKind == input.ResourceId).Sum(AvailableLotQuantity)));
 
-    private GoodsRequest PrivateEquipmentRequest(string actor, string owner) => new(
+    private static GoodsRequest PrivateEquipmentRequest(string actor, string owner) => new(
         GoodsUse.ReachableHoldings, actor, GoodsOwners.One(owner),
         new GoodsKinds(["clothing", "padded_coat", "rain_cloak", "basket", "sack", "leather_sack"]));
 
