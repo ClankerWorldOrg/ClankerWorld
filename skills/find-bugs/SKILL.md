@@ -22,7 +22,7 @@ Fix a problem only if you are asked to; filing it is the job.
   reading code is real when you can point to the input that breaks it; a
   failing test that shows it is the strongest evidence.
 - Search open and closed issues and open pull requests by topic, not only by
-  number. If a closed issue's fix did not work, reopen it with the new
+  number, and by cause: the function or code path at fault. If a closed issue's fix did not work, reopen it with the new
   evidence. If an open issue or pull request already covers it, add what you
   found there instead of filing again.
 
@@ -37,8 +37,10 @@ Fix a problem only if you are asked to; filing it is the job.
   including the P0 and P1 caps, and add `regression` to something that used
   to work.
 - Give the title in ordinary words about the effect, such as "Returning a jug
-  can halt the world". Keep one problem per issue; link related ones instead
-  of combining them.
+  can halt the world". Keep one problem per issue. When several symptoms
+  come from the same cause, so one fix covers them all, file one issue that
+  lists each symptom, or add a new symptom to the open issue for that cause.
+  Link related problems that need separate fixes instead of combining them.
 - If fixing it would settle an open game choice, it is a Decision, not a Bug:
   file a Decision issue and ask the owner
   ([how](../design-decisions/SKILL.md)).
