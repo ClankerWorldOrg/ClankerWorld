@@ -9,7 +9,7 @@ public sealed partial class PrivateWorldRuntime
 {
     private sealed record AnimalChoice(string Action, string AnimalId, string? OtherId = null)
     {
-        public string Id => "animal:" + Action + ":" + AnimalKey(AnimalId + ":" + OtherId);
+        public string Id => AnimalActionId(Action, AnimalId, OtherId);
     }
     private IEnumerable<AnimalChoice> AnimalChoices(string actor)
     {
@@ -143,7 +143,7 @@ public sealed partial class PrivateWorldRuntime
                 {
                     HouseholdId = household,
                     YardId = yard.InstanceId,
-                    HerdId = "household:" + household,
+                    HerdId = AnimalHerdId(household),
                     CareUntilTick = 0,
                     TamingWork = null,
                     LeaderId = actor,
@@ -165,9 +165,9 @@ public sealed partial class PrivateWorldRuntime
             case "collect_hide":
                 if (WildAnimalHide(animal) is not { } hide || FreeCarryCapacity(actor) < 1) break;
                 ApplyInventoryTransition(inventory => InventoryFixture.Relocate(InventoryFixture.Transfer(inventory,
-                    "collect-wild-hide-" + AnimalKey(actor + ":" + animal.Id + ":" + WorldTick), animal.Id, actor,
+                    AnimalHideTransferId(actor, animal.Id, WorldTick, false), animal.Id, actor,
                     hide.Id, 1, "wild-animal-hide", destinationGroundPosition: hide.GroundPosition),
-                    "carry-wild-hide-" + AnimalKey(actor + ":" + animal.Id + ":" + WorldTick), hide.Id, actor, 1, carrierId: actor));
+                    AnimalHideTransferId(actor, animal.Id, WorldTick, true), hide.Id, actor, 1, carrierId: actor));
                 AppendEvent("animal_hide_collected", actor + ":" + animal.Id, animal.Position);
                 break;
             case "lead_home": LeadAnimalHome(actor, animal); break;
@@ -237,9 +237,7 @@ public sealed partial class PrivateWorldRuntime
         if (quantity == 0 || household is null) return true;
         var people = society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        var ready = society.Checkpoint.Inventory.Lots.Where(item => IsEdibleFood(item.ItemKind) &&
-            InUsableVesselOrLoose(item) && !OnBorrowedMarketStall(item) &&
-            (item.OwnerId == household || people.Contains(item.OwnerId))).Sum(AvailableLotQuantity);
+        var ready = HoldingsTotal(people.Append(household), EdibleFoodGoods);
         return ready - quantity >= people.Count * 2 + (inhabitants.Values.Any(person => people.Contains(person.InhabitantId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
     }
     private void ConsumeAnimalInputs(string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)
@@ -250,7 +248,7 @@ public sealed partial class PrivateWorldRuntime
             for (var index = 0; index < inputs.Count; index++)
             {
                 var (lot, quantity) = inputs[index];
-                var id = "animal-input-" + AnimalKey(actor + ":" + WorldTick + ":" + nextEventId + ":" + purpose + ":" + index);
+                var id = AnimalInputReservationId(actor, WorldTick, nextEventId, purpose, index);
                 next = InventoryFixture.ConsumeReservation(InventoryFixture.Reserve(next, id, lot.OwnerId, lot.Id,
                     quantity, purpose, WorldTick), id);
             }
@@ -264,7 +262,7 @@ public sealed partial class PrivateWorldRuntime
         (lot.OwnerId == actor || lot.OwnerId == HouseholdFor(actor)));
 
     private InventoryLot? WildAnimalHide(AnimalState animal) => animal.DiedTick is not null && animal.HouseholdId is null ?
-        society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == "animal-hide-" + AnimalKey(animal.Id) &&
+        society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == AnimalHideId(animal.Id) &&
             lot.ItemKind == "hide" && lot.OwnerId == animal.Id && lot.Quantity == 1 && AvailableLotQuantity(lot) == 1 &&
             lot.GroundPosition == new InventoryGroundPosition(animal.Position.X, animal.Position.Y) &&
             lot.ContainerLotId is null && lot.StorageBuildingId is null && lot.CarrierId is null) : null;

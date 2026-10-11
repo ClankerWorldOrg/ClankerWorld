@@ -22,7 +22,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var state = PrivateWorldRuntimeCodec.Decode(await ConversationAdult.Value);
         var birth = Assert.Single(state.Society.Society.Births);
-        Assert.True(birth.ChildId.Length > 128);
+        Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         var actor = nativeBorn ? birth.ChildId : birth.PrimaryCaregiverId;
         var person = state.Society.Society.GetInhabitant(actor);
         Assert.Equal(SocietyAgeBand.Adult, person.AgeBand);
@@ -64,9 +64,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         var state = PrivateWorldRuntimeCodec.Decode(await (laterGeneration ? LaterHearingGovernment.Value :
             nativeJudge ? NativeJudgeGovernment.Value : NativeHearingGovernment.Value));
         var birth = state.Society.Society.Births.OrderBy(item => item.CommittedTick).Last();
-        if (laterGeneration) Assert.True(birth.ChildId.Length > 256);
+        if (laterGeneration) Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         var actor = nativeBorn ? birth.ChildId : birth.PrimaryCaregiverId;
-        Assert.True(birth.ChildId.Length > 128);
+        Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         using (var displaced = PrivateWorldRuntime.Restore(state, _ => new NativeLandHearingChoices()))
         {
             Assert.True(displaced.DisplaceAdult(actor));

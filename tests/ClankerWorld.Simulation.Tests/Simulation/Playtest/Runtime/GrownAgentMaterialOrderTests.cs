@@ -28,7 +28,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var state = PrivateWorldRuntimeCodec.Decode((await GatheringAdults.Value)[generation]);
         Assert.Equal(generation, state.Society.Society.Births.Count);
         var actor = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
-        Assert.Equal(generation == 5, actor.Length > 512);
+        Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
         var choices = new NativeGatheringChoices();
         using var world = PrivateWorldRuntime.Restore(state, _ => choices);
         // A generated checkpoint can retain requested life reviews with no live task.
@@ -67,9 +67,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(actor, harvested.OwnerId);
         Assert.EndsWith(":" + actor, harvested.Id, StringComparison.Ordinal);
         Assert.Equal(initialQuantity - 1, world.WorldSystems.Ecology.GetResource("settlement-fiber").Quantity);
-        Assert.InRange(order.LastEffectId!.Length, 1, 512);
-        if (generation == 4) Assert.Equal("gather:" + harvested.Id, order.LastEffectId);
-        else Assert.StartsWith("gather:material:sha256:", order.LastEffectId, StringComparison.Ordinal);
+        Assert.InRange(order.LastEffectId!.Length, 1, DerivedId.MaximumLength);
+        Assert.Equal(DerivedId.Create("gather:" + harvested.Id, "gather:material:sha256:"), order.LastEffectId);
         Assert.Contains(choices.Selected, item => item.Actor == actor && item.Instruction == submitted.InstructionId &&
             item.Choice is "inspect_material_site" or "gather_material");
         Assert.Contains(replayChoices.Selected, item => item.Actor == actor && item.Instruction == submitted.InstructionId &&

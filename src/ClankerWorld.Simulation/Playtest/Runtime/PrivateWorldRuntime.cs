@@ -21,7 +21,7 @@ namespace ClankerWorld.Simulation.Playtest;
 /// </summary>
 public sealed partial class PrivateWorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 122;
+    public const int StateSchemaVersion = 123;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -99,6 +99,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private List<HandcartHitch> handcartHitches = [];
     private ConversationSystem conversationSystem = new(new([], [], []));
     private readonly IConversationWorld conversationWorld;
+    private CivicSystem civicSystem = new(CivicState.Empty);
+    private readonly ICivicTownWorld civicWorld;
     private ReadOnlyCollection<AgentConversation> conversations => conversationSystem.State.Conversations;
     private ReadOnlyCollection<AgentMarriage> marriages => conversationSystem.State.Marriages;
     private IReadOnlyList<AgentConversationDailyBudget> conversationBudgets => conversationSystem.State.Budgets;
@@ -155,6 +157,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         this.worldSeed = NormalizeRequiredText(worldSeed, nameof(worldSeed));
         conversationWorld = new ConversationWorldAdapter(this);
         residentWorld = new ResidentWorldAdapter(this);
+        civicWorld = new CivicWorldAdapter(this);
         if (geographyOptions is not null &&
             (startPace != WorldStartPace.FounderSetup ||
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
@@ -198,6 +201,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
             founderSetup = new FounderSetupState([], false);
             if (geographyOptions is null)
                 towns = [TownBorderRules.CreateFirstTown(map)];
+            civicSystem.RestoreTowns(towns);
         }
         else
             CreatePhysicalState();
@@ -268,7 +272,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     public FounderSetupState? FounderSetup => founderSetup;
 
     public IReadOnlyList<TownRuntimeState> Towns => towns
-        .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+        .Select(civicSystem.CheckpointTown).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
 
     public IReadOnlyList<TownLandTitleRecord> TownLandTitles => townLandTitles
         .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
@@ -355,6 +359,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         runtime.fields = state.Fields!.OrderBy(field => field.Position.Y)
             .ThenBy(field => field.Position.X).ToList();
         runtime.towns = state.Towns!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+        runtime.civicSystem.RestoreTowns(runtime.towns);
         runtime.townLandTitles = state.TownLandTitles!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
         runtime.householdLandUseRights = state.HouseholdLandUseRights!
             .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
@@ -518,7 +523,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         assetReservations.ExportState(), eventHistoryFloor, historyArchiveHead, survivalState, council,
         deceasedInhabitants.Count == 0 ? null : deceasedInhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
         jevPolicyRevision == 0 && jevEnabled ? null : jevEnabled, jevPolicyRevision, founderSetup,
-        geographyOptions, towns.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
+        geographyOptions, towns.Select(civicSystem.CheckpointTown).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
         RoadTiles, Bridges, bridgeTraffic, fields.ToArray(),
         conversationSystem.CheckpointState.Conversations,
         conversationSystem.CheckpointState.Budgets,

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Playtest;
@@ -90,7 +91,7 @@ public sealed class MarketWritingPaperTests
             storageBuildingId: reserve == "house" ? PaidMarketWorld.HouseOf(state, household).InstanceId : null);
         if (reserve == "reserved")
             inventory = InventoryFixture.Reserve(inventory, "writer-reserve-commitment", writer, "writer-reserve-paper", 2,
-                "committed writing sheets", state.Society.Society.WorldTick + 200);
+                AgentKnowledgeRules.MaterialPurpose("writer-reserve-book", "paper"), state.Society.Society.WorldTick + 200);
         state = PaidMarketWorld.WithInventory(state, inventory);
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
         var candidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
@@ -106,6 +107,101 @@ public sealed class MarketWritingPaperTests
         if (reserve == "reserved")
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("writer-reserve-commitment").State);
         AssertReload(world);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task WritingDemandOnlyCountsCommittedSheetsInAUsableVessel(bool broken)
+    {
+        var state = PrivateWorldRuntimeCodec.Decode(await Prepared.Value);
+        var seller = state.Inhabitants[0].InhabitantId;
+        var household = PaidMarketWorld.HouseholdOf(state, seller);
+        var writer = Writer(state, seller, household);
+        var inventory = InventoryFixture.AddLot(state.Society.Society.Inventory,
+            "writer-covered-cart", "handcart", writer, 1,
+            groundPosition: new(PaidMarketWorld.HouseOf(state, household).Position.X, PaidMarketWorld.HouseOf(state, household).Position.Y));
+        inventory = InventoryFixture.AddLot(inventory, "writer-covered-sheets", "paper", writer, 2,
+            containerLotId: "writer-covered-cart");
+        inventory = InventoryFixture.Reserve(inventory, "writer-covered-book", writer, "writer-covered-sheets", 2,
+            AgentKnowledgeRules.MaterialPurpose("writer-covered-book", "paper"), long.MaxValue);
+        if (broken)
+            inventory = inventory with
+            {
+                Lots = inventory.Lots.Select(lot => lot.Id == "writer-covered-cart"
+                    ? lot with { ConditionBasisPoints = 0 } : lot).ToArray(),
+            };
+        state = FreshDecisions(PaidMarketWorld.WithInventory(state, inventory));
+        var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "house-paper");
+        var candidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
+        var choices = Policy(writer, candidate);
+        var bytes = PrivateWorldRuntimeCodec.Encode(state);
+        var replayChoices = Policy(writer, candidate);
+        using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), id =>
+            id == writer ? new WritingIdentityProvider(choices.CreateProvider(id)) : choices.CreateProvider(id));
+        using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), id =>
+            id == writer ? new WritingIdentityProvider(replayChoices.CreateProvider(id)) : replayChoices.CreateProvider(id));
+        var guidance = new OwnerInstructionRequest("writer-covered-guidance", "owner:test", writer,
+            OwnerInstructionKind.Suggestive, "Consider making paper if the household needs usable sheets for writing.");
+        Assert.Equal(world.SubmitInstruction(guidance), replay.SubmitInstruction(guidance));
+        var before = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False((await world.AdvanceOneTickNonBlockingAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+        for (var tick = 0; tick < 32; tick++)
+        {
+            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await WaitForWritingReplies(world);
+            Assert.True((await replay.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await WaitForWritingReplies(replay);
+            Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
+        }
+        Assert.NotEmpty(choices.OfferedTo(writer));
+        Assert.False(world.ExportState().Inhabitants.Single(person => person.InhabitantId == writer).IdentityChoicePending);
+        Assert.Equal(broken, choices.OfferedTo(writer).Any(item => item.Id == candidate));
+        Assert.Equal(broken, world.WorldSimulation.ProductionJobs.Any(item => item.RecipeId == recipe.CanonicalId));
+        Assert.Equal(2, world.Society.Inventory.GetLot("writer-covered-sheets").Quantity);
+        Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("writer-covered-book").State);
+        Assert.Equal(broken ? 0 : 10_000, world.Society.Inventory.GetLot("writer-covered-cart").ConditionBasisPoints);
+        Assert.Empty(world.Knowledge.Artifacts);
+        AssertReload(world);
+    }
+
+    private static async Task WaitForWritingReplies(PrivateWorldRuntime world)
+    {
+        var tasks = new List<Task>();
+        foreach (var name in new[] { "pendingHosted", "pendingIdentityMoments" })
+        {
+            var pending = (System.Collections.IDictionary)typeof(PrivateWorldRuntime)
+                .GetField(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(world)!;
+            foreach (var item in pending.Values)
+                tasks.Add((Task)item!.GetType().GetProperty("Task")!.GetValue(item)!);
+        }
+        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+    }
+
+    private sealed class WritingIdentityProvider(IDecisionProvider inner) : IDecisionProvider
+    {
+        public DecisionProviderKind Kind => inner.Kind;
+        public long ProviderEpoch => inner.ProviderEpoch;
+
+        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            if (request.Observation.IdentityMoment is not null)
+            {
+                var candidate = request.Observation.Candidates.Single(item => item.Id == "identity_optional");
+                return new(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                    request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
+                    candidate.Id, 1, new Dictionary<string, double> { [candidate.Id] = 1 });
+            }
+            var response = await inner.DecideAsync(request, cancellationToken);
+            return response with
+            {
+                ChosenName = request.Observation.NeedsName ? "Fieldwriter" : null,
+                ChosenPersonality = request.Observation.NeedsPersonality ? "Careful and curious" : null,
+                ChosenAspiration = request.Observation.NeedsAspiration ? "Write useful field notes" : null,
+            };
+        }
     }
 
     private static async Task<byte[]> PrepareAsync()
