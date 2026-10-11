@@ -2,7 +2,7 @@
 title: Footprint query measurements
 type: performance-report
 status: complete
-updated: 2026-10-08
+updated: 2026-10-11
 ---
 
 # Footprint query measurements
@@ -132,8 +132,11 @@ main: their newer minimum schemas reject schema 101. A current-main experiment
 needs freshly generated checkpoints shared by two variants of that same
 current version, and separately recorded results.
 
-The exact fresh setup source is [archived here](footprint-query-probe/setup.cs.txt); its invariant numeric
-parsing allows normal repository analyzers. Create a temporary net10.0 console
+The [fresh setup source](footprint-query-probe/setup.cs.txt) keeps invariant numeric
+parsing and now filters Road-growth sites as described in
+[Measuring Town tick time](town-tick-measurements.md#what-the-fixture-controls).
+The previous source linked there retains the setup used for this historical
+report; its recorded digests and measurements are unchanged. Create a temporary net10.0 console
 project referencing the selected checkout's Simulation project, copy the
 source to `Program.cs`, and run with these arguments:
 
