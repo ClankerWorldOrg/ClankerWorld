@@ -24,7 +24,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var actor = HearingHouseholdActor(state, later);
         var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
         var choices = new NativeLandHearingChoices { Request = true, Consent = true, Rule = true };
-        using var world = PrivateWorldRuntime.Restore(state, _ => choices);
+        using var world = RestoreHouseholdHearing(state, choices);
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
         await HouseholdHearingUntil(world, host, () => world.Towns[0].LandHearings.Cases.Any(item =>
@@ -48,7 +48,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         await AwaitConversationRequestsAsync(world);
         world.CancelPendingHostedDecisions();
         var bytes = host.Checkpoint();
-        using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), _ => new NativeLandHearingChoices
+        using var replay = RestoreHouseholdHearing(PrivateWorldRuntimeCodec.Decode(bytes), new NativeLandHearingChoices
         { Target = household, Consent = true, Rule = true });
         replay.Resume();
         using var replayHost = new NativeConversationCheckpointHost(replay);
@@ -81,7 +81,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var household = later is null ? "household:camp-alpha" : state.Society.Society.GetInhabitant(HearingHouseholdActor(state, later.Value)).HouseholdId!;
         var actor = later is null ? state.Society.Society.GetHousehold(household).MemberIds[0] : HearingHouseholdActor(state, later.Value);
         var choices = new NativeHouseholdExpiryChoices(household, outcome);
-        using var world = PrivateWorldRuntime.Restore(state, _ => choices);
+        using var world = RestoreHouseholdHearing(state, choices);
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
         var item = Assert.Single(world.Towns[0].LandHearings.Cases, item => item.Kind == "expiry");
@@ -94,13 +94,18 @@ public sealed partial class GrownAgentHelperMemoryTests
         var tiles = TownLandHearingRules.CurrentRevision(settled).Tiles;
         var rights = world.ExportState().HouseholdLandUseRights!.Where(right => right.Tiles.Any(tiles.Contains)).ToArray();
         if (outcome == "end") Assert.Empty(rights);
-        else Assert.All(rights, right => { Assert.Equal(household, right.HouseholdId); Assert.True(right.AgreedEndTick > world.WorldTick); });
+        else
+        {
+            Assert.NotEmpty(rights);
+            Assert.All(rights, right => { Assert.Equal(household, right.HouseholdId); Assert.True(right.AgreedEndTick > world.WorldTick); });
+        }
         Assert.NotEmpty(ruling.EvidenceIds);
         Assert.Contains(settled.Responses, response => response.AgentId == actor);
+        AssertInvalidHouseholdRuling(world.ExportState(), settled);
         await AwaitConversationRequestsAsync(world);
         world.CancelPendingHostedDecisions();
         var bytes = host.Checkpoint();
-        using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), _ => new NativeHouseholdExpiryChoices(household, outcome));
+        using var replay = RestoreHouseholdHearing(PrivateWorldRuntimeCodec.Decode(bytes), new NativeHouseholdExpiryChoices(household, outcome));
         replay.Resume();
         using var replayHost = new NativeConversationCheckpointHost(replay);
         await HouseholdHearingPair(world, host, replay, replayHost, () => true, 0);
@@ -109,12 +114,21 @@ public sealed partial class GrownAgentHelperMemoryTests
     private static string HearingHouseholdActor(PrivateWorldRuntimeState state, bool later) =>
         state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).ElementAt(later ? 2 : 0).ChildId;
 
+    // This fixture prompts every participant each tick. Dispatch the whole
+    // population so repeated prompts cannot starve the last queued adult.
+    private static PrivateWorldRuntime RestoreHouseholdHearing(PrivateWorldRuntimeState state, IDecisionProvider choices)
+    {
+        var budget = state.Inhabitants.Count;
+        state = state with { Society = state.Society with { Cognition = state.Society.Cognition with { MaxDispatchPerCycle = budget } } };
+        return PrivateWorldRuntime.Restore(state, _ => choices, maxCognitionDispatchPerCycle: budget);
+    }
+
     private static async Task<byte[]> CreateHearingHouseholdAsync(bool later)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await LaterHearingGovernment.Value);
         var actor = HearingHouseholdActor(state, later);
         var choices = new NativeHouseholdFormationChoices(actor);
-        using var world = PrivateWorldRuntime.Restore(state, _ => choices);
+        using var world = RestoreHouseholdHearing(state, choices);
         // Match the reported preparation: clear the two original homes through
         // actual adult departures, so another available home does not postpone founding.
         var housed = world.Society.Inhabitants.Where(person => person.HouseholdId is not null &&
@@ -140,10 +154,13 @@ public sealed partial class GrownAgentHelperMemoryTests
         var farm = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var definition = state.WorldContent!.Buildings.Single(building => building.CanonicalId == farm.DefinitionId);
         var plot = WorldContentSimulationRules.Footprint(definition, farm).ToHashSet();
-        state = state with { HouseholdLandUseRights = state.HouseholdLandUseRights!.Select(right =>
-            right.Tiles.Any(plot.Contains) ? right with { AgreedEndTick = state.Society.Society.WorldTick + 8 } : right).ToArray() };
+        state = state with
+        {
+            HouseholdLandUseRights = state.HouseholdLandUseRights!.Select(right =>
+            right.Tiles.Any(plot.Contains) ? right with { AgreedEndTick = state.Society.Society.WorldTick + 8 } : right).ToArray()
+        };
         var choices = new NativeHouseholdExpiryChoices(household, null);
-        using var world = PrivateWorldRuntime.Restore(state, _ => choices);
+        using var world = RestoreHouseholdHearing(state, choices);
         if (farm.HouseholdId != household)
         {
             var reassigned = world.ReassignBuilding(farm.InstanceId, farm.TownId, farm.HouseholdId, null, household);
@@ -180,33 +197,30 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             await HouseholdHearingStep(world, host);
             await HouseholdHearingStep(replay, replayHost);
-            AssertHouseholdHearingBytes(host, replayHost);
+            Assert.Equal(host.Saved(), replayHost.Saved());
         }
-        if (!done())
-        {
-            var evidence = Directory.CreateTempSubdirectory("household-hearing-timeout-");
-            File.WriteAllBytes(Path.Combine(evidence.FullName, "live.json"), host.Saved());
-            Assert.Fail("Actual hearing did not complete: " + evidence.FullName);
-        }
+        Assert.True(done(), "The actual property hearing did not complete.");
         for (var tick = 0; tick < 2; tick++)
         {
             await HouseholdHearingStep(world, host);
             await HouseholdHearingStep(replay, replayHost);
-            AssertHouseholdHearingBytes(host, replayHost);
+            Assert.Equal(host.Saved(), replayHost.Saved());
         }
     }
 
-    private static void AssertHouseholdHearingBytes(NativeConversationCheckpointHost host, NativeConversationCheckpointHost replayHost)
+    private static void AssertInvalidHouseholdRuling(PrivateWorldRuntimeState state, TownLandCase item)
     {
-        var expected = host.Saved(); var actual = replayHost.Saved();
-        if (!expected.SequenceEqual(actual))
+        var ruling = Assert.Single(item.Rulings);
+        foreach (var invalid in new[] { ruling.Outcome.HouseholdId + ":unknown", " " + ruling.Outcome.HouseholdId, ruling.Outcome.HouseholdId + "\0" })
         {
-            var evidence = Directory.CreateTempSubdirectory("household-hearing-mismatch-");
-            File.WriteAllBytes(Path.Combine(evidence.FullName, "live.json"), expected);
-            File.WriteAllBytes(Path.Combine(evidence.FullName, "replay.json"), actual);
-            Assert.Fail("Complete checkpoint bytes differ; generated-fixture evidence: " + evidence.FullName);
+            var damaged = item with { Rulings = [ruling with { Outcome = ruling.Outcome with { HouseholdId = invalid } }] };
+            var changed = state with
+            {
+                Towns = state.Towns!.Select(town => town with
+                { LandHearings = town.LandHearings with { Cases = town.LandHearings.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray()
+            };
+            Assert.Throws<InvalidDataException>(() => PrivateWorldRuntimeCodec.Encode(changed));
         }
-        Assert.Equal(expected, actual);
     }
 
     private static void AssertInvalidHouseholdProperty(PrivateWorldRuntimeState state, TownLandCase item)
@@ -215,8 +229,11 @@ public sealed partial class GrownAgentHelperMemoryTests
         foreach (var invalid in new[] { household + ":unknown", " " + household, household + "\0" })
         {
             var damaged = item with { Property = item.Property with { Request = item.Property.Request with { TargetHouseholdId = invalid } } };
-            var changed = state with { Towns = state.Towns!.Select(town => town with
-            { LandHearings = town.LandHearings with { Cases = town.LandHearings.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray() };
+            var changed = state with
+            {
+                Towns = state.Towns!.Select(town => town with
+                { LandHearings = town.LandHearings with { Cases = town.LandHearings.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray()
+            };
             Assert.Throws<InvalidDataException>(() => PrivateWorldRuntimeCodec.Encode(changed));
         }
     }
