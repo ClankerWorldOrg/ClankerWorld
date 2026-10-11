@@ -92,8 +92,11 @@ public sealed class GoodsVesselTests
         inventory = InventoryFixture.AddLot(inventory, "cargo-flour", "flour", actor, 2, containerLotId: "cargo-cart");
         inventory = InventoryFixture.AddLot(inventory, "cargo-wood", "wood", actor, 1, containerLotId: "cargo-cart");
         if (reserved) inventory = InventoryFixture.Reserve(inventory, "cargo-reserved", actor, "cargo-wood", 1, "repair", long.MaxValue);
-        inventory = inventory with { Lots = inventory.Lots.Select(lot => lot.Id == "cargo-cart" ? lot with { ConditionBasisPoints = 0 } :
-            lot.Id == "cargo-flour" ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray() };
+        inventory = inventory with
+        {
+            Lots = inventory.Lots.Select(lot => lot.Id == "cargo-cart" ? lot with { ConditionBasisPoints = 0 } :
+            lot.Id == "cargo-flour" ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray()
+        };
         using var world = Restore(state, inventory);
         var before = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         var request = new GoodsRequest(GoodsUse.Cargo, actor, GoodsOwners.One(actor), GoodsKinds.One("flour"), ContainerId: "cargo-cart");
