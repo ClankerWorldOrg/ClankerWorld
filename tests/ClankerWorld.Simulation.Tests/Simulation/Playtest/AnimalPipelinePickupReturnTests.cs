@@ -143,6 +143,7 @@ public sealed partial class AnimalPipelineTests
             var observation = request.Observation;
             Offered.Enqueue(observation.Candidates.Select(item => item.Id).ToArray());
             var choice = observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)) ??
+                (prefix == "business_stock_store" ? observation.Candidates.FirstOrDefault(item => item.Id == "haul_household_stock") : null) ??
                 observation.Candidates.Single(item => item.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
