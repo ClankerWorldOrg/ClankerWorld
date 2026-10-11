@@ -1,0 +1,1 @@
+- Dead household animals no longer offer gifts, sales, or new care and riding permissions. Existing permissions can still be revoked.

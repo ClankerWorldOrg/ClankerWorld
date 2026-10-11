@@ -187,7 +187,12 @@ internal static partial class OwnerEndpoints
                     title: "The world could not be saved",
                     detail: "The host is still running and the world is paused. Try again.");
             CompanionHostTelemetry.ShutdownRequested(app.Logger);
-            lifetime.StopApplication();
+            // Let Accepted finish using request services before host teardown.
+            context.Response.OnCompleted(() =>
+            {
+                lifetime.StopApplication();
+                return Task.CompletedTask;
+            });
             return Results.Accepted();
         });
 

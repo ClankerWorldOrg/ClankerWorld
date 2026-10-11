@@ -172,7 +172,7 @@ Physical movement may preserve damaged or spoiled property. Consumption still
 requires usable inputs. `InventoryFixture` remains the authority for an actual
 reservation, transfer, container operation or consumption.
 
-`Playtest/Goods/` currently supplies four query uses. `Holdings` excludes unusable
+`Playtest/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
 for sale at a borrowed Market stall. `ConsumeAt` matches the inventory
 reservation boundary, including usable contained ingredients and partially
@@ -223,8 +223,25 @@ seeds, with the existing Warehouse fallback rechecked through the same use.
 Animal-supply sources use Collect and recheck before pickup; care permission,
 feed reserves, product capacity, destination room and workstation surplus
 remain feature-specific filters. These are the first household pickup callers
-of [#1370](https://github.com/compoodment/ClankerWorld/issues/1370). Personal
-recovery and birth food still use their existing helpers.
+of [#1370](https://github.com/compoodment/ClankerWorld/issues/1370).
+
+Personal recovery uses `RecoveryHoldings` for property awaiting retrieval and
+`Recover` for a load the agent can fetch now. Both include damaged and spoiled
+belongings, while preserving personal ownership, former-household and heir
+access, Market commitments, delivery promises and family reservations.
+Recover also checks carrying room and the native route, including collection
+at an entrance. Routine recovery, collection orders and personal planting-seed
+selection share this query; collection rechecks the offered lot before moving
+it. Departure guidance retains the holdings count even when cargo is full or
+the route is blocked. A parked handcart stays outside personal carrying recovery.
+
+Birth food uses `ConsumeAt` through the same inventory-only query core for live
+selection and captured-checkpoint guidance. Household ownership, actor custody
+and borrowed Market-stall exclusions remain birth filters. Birth rechecks its
+selected food before forming the contributions. It reserves and consumes food
+where stored, including usable pots with other reserved contents; it adds no
+route or carrying-room requirement. The owner's October 11 clarification is
+recorded in [#1676](https://github.com/compoodment/ClankerWorld/pull/1676).
 
 Warehouse stock uses Holdings before route checks and ReachableHoldings
 for reachable stock, keeping the resident-Town/abandoned-Town and Warehouse
@@ -232,14 +249,17 @@ ordering. Handcart household material counts use the same reachable query.
 Preparation still permits making cargo room first; actual cart and construction
 material pickups recheck the selected lot with Collect. Town access, top-level
 stock, the intended return route and delivery quantities remain native filters.
-Other Town-stock and personal-recovery callers remain in
-[#1370](https://github.com/compoodment/ClankerWorld/issues/1370).
+Remaining Town-stock callers and the older `CanReachSharedItem` selector paths
+remain in [#1370](https://github.com/compoodment/ClankerWorld/issues/1370).
 
 With `Explain`, exclusions retain their first failure in this fixed order:
 owner, kind, building, damage, spoilage, vessel, empty stock, reservation,
 delivery and Market sale promise. Collect then checks custody/place, family
 reservations, equipped or hitched goods, carry room and finally reach.
-ReachableHoldings checks reach after the Holdings rules.
+ReachableHoldings checks reach after the Holdings rules. Recovery skips damage,
+spoilage and usable-vessel checks, then checks personal custody/place, Market
+and delivery commitments, family reservations and access. Recover adds carry
+room and reach; RecoveryHoldings leaves those checks to its eventual pickup.
 Diagnostics are derived, never saved or
 logged every tick. Normal queries use the owner/building index; explanations
 scan all lots so they can also explain an owner or place mismatch.
@@ -1438,6 +1458,13 @@ all on cooldown consumes no slot; distance and stable identity still order the
 eligible targets. The 120-tick per-action cooldown and age restrictions apply
 both when offering and when executing an action.
 
+Project assistance records gratitude with a key that fits recall's 128-character
+boundary. Oversized keys hash the complete requester/helper key with SHA-256,
+retaining the `project-gratitude:` prefix used by social standing and durable
+memory protection. Short keys, full saved owner/subject references, gratitude
+text, source time and material-help trust effects remain unchanged. Existing
+oversized records are retained without rewriting and remain excluded from recall.
+
 Exploration records personal knowledge; it does not create free inventory.
 Each completed outward or return scouting step observes its actual arrival tile;
 blocked steps do not observe the requested destination. An actual observation
@@ -2301,9 +2328,11 @@ its last valid notice and asset snapshot. It cannot transfer stale assets or
 publish a new notice without a matching snapshot; current standing and judge
 conflicts still apply. Malformed saved notice numbering is refused before
 property evidence lookups.
-Property requests and reclaim/grant outcomes retain native household references
-up to the hearing file's 256-character identity limit. Offered civic choices
-use the existing bounded household token; property records keep the full ID.
+Property requests and hearing outcomes retain complete canonical household
+references, including households founded by later-generation native adults.
+Runtime admission and saved records still require known households, affected
+parties and eligible recipients. Offered civic choices use the existing bounded
+household token; property records keep the full ID.
 Saved footprint rights and requests retain that same known household reference.
 A generated household party key longer than 256 characters uses a stable hash,
 while its separate household field keeps the complete identity.
@@ -2729,7 +2758,7 @@ action or player discard control is added.
 
 **Household departure and personal custody** (`SettlementDeparture`). Ordinary decision candidates allow an adult to leave without a vote, store or collect their own goods, return borrowed household tools, explicitly accept replacement care, and found a solo household only when no suitable existing home can currently be asked. Membership exits and admissions include the complete primary-care group. The same completed House-capacity calculation checks all incoming residents; children never apply alone. Forced displacement refuses sole caregivers, including a guardian whose dependent lives in another household. Voluntary departures keep the existing care-group rules.
 
-`InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. `InventoryFixture.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at the House's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
+`InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryFixture.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
 
 Each departure allocates at most two unreserved ready-to-eat portions once. Ownership changes at allocation while the existing storage/ground location stays fixed. Saved departure records retain the allocation and collection right; retries with no current membership cannot allocate again. Caregiver IDs and ancestry stay unchanged. Dependents follow the caregiver in physical steps, and a traveling caregiver waits when a dependent falls behind. Housing, ownership, collection and care facts use normal personal-model observations and player inspection; no extra acknowledgement request is made.
 
@@ -3118,7 +3147,10 @@ Customer access remains limited to the named transaction. See the
 saved layout, stock and offer checks.
 
 Missing-input demand checks the buyer's actual production owner, keeping each
-household's available materials separate. A nonterminal recipe plan marked
+household's available materials separate. Blacksmith iron and ornament-input
+purchasing reserves exclude household stock on an actively borrowed Market
+stall. Released household stock counts again, preventing redundant purchases.
+A nonterminal recipe plan marked
 `RequiresFreshChoice` may choose a Market purchase while remaining paused; an
 actively continuing plan keeps the adult at its work. Resuming the recipe
 still requires its ordinary choice and physical ingredient-delivery rules.
@@ -4129,6 +4161,12 @@ isolated teacher cannot hide another available teacher. Ordinary route checks
 include occupied tiles; they do not grant travel through disconnected land.
 Request, refusal, acceptance, cancellation and pause/reload retain their normal
 flow. A completed lesson changes neither the agent's role nor work proficiency.
+Its gratitude memory keeps the complete learner and teacher references, skill,
+text and learning time. New memory keys longer than 128 characters use a SHA-256
+digest of the complete key after the `lesson-gratitude:` prefix; shorter keys
+stay unchanged. The prefix still supplies durable trust and protects the memory
+from ordinary archival. Personal recall keeps its canonical 128-character key
+boundary and owner filter.
 Matching skills use one provisional 20% work reduction. Building speeds ordinary
 construction, paid Town projects and expansions; farming speeds field work and
 Farmhouse production; smithing speeds Blacksmith production; crafting speeds
@@ -4304,6 +4342,9 @@ Animal gifts, sales and named outsider permissions need fresh, admitted personal
 model choices. Built-in fallback and forced orders cannot give personal consent.
 Receiving space and the exact payment lot are checked again on acceptance;
 transfer clears old permissions and preserves position for physical leading.
+Dead animals offer no new permission, gift or sale choices. Existing care and
+riding permissions may still be revoked, including after the recipient moves
+away.
 
 Care for a different animal first ends the actor's existing ride through the
 normal dismount operation, then approaches the care target on foot. That
@@ -4352,3 +4393,10 @@ releases its exact reservation and makes any remaining usable stock available
 for another sale. Both jug owners stay the same. Expiry, refusal and changed
 custody release held milk; spoiled milk can be emptied locally without removing
 the vessel or its fresh contents.
+
+Each completed exchange derives the receiving milk lot's identity from its full
+source identity and the admitted sale. A later sale retains that complete
+inventory reference, including repeated-sale histories longer than 512
+characters. Checkpoint validation requires a unique, well-formed source reference
+and its exact known lot, ownership, vessel, physical site and held reservation;
+animal and offer identities keep their existing short-field limit.

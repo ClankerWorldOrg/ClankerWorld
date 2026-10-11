@@ -1486,7 +1486,9 @@ meals. Bread and other cooked food spoil; storage pots slow that loss.
 Before the first House, builders carry their construction materials to the camp
 pile in loads. A helper meets the adult who requested materials and transfers only
 what that adult has room to carry. Once a House exists, helpers can deliver to its
-storage. Household adults
+storage. Newly received help remains available to the requester's personal
+memory recall after saving and reopening, including for native-born descendants.
+Household adults
 can spend cloth to repair garments or sacks at their Tailor Shop, or fiber
 and rope to repair a basket at their House. Work, reservations, equipment and
 overloaded cargo survive saving and reopening. These paths have automated

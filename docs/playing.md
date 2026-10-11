@@ -49,8 +49,9 @@ opens its Main Menu; you still choose worlds in the game's **Load World**.
 **Versions** lists each installed version with its size and the worlds it last
 saved, with **Repair** (checks every file against the release) and **Remove**
 (keeps your worlds), plus the versions you can install. **Settings** has
-**Developer mode**, which turns on F12 Developer tools in the game, and buttons
-for the saves and logs folders. Started without the launcher, the game turns
+**Developer mode**, which turns on F12 Developer tools in the game and lists
+the nightly builds of main under **Versions**, and buttons for the saves and
+logs folders. Started without the launcher, the game turns
 Developer mode on with the `--developer-mode` start option
 (`ClankerWorld.exe -- --developer-mode`); runs from the Godot editor always
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
@@ -1167,7 +1168,15 @@ the next rotating save waits one configured interval from the corrected time.
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and
 **Open World**. Open
-and Delete are unavailable while another world action finishes.
+and Delete are unavailable while another world action finishes. A world that
+another game version last saved, and this one can't open, is marked
+**Saved by <version>**. In a game the launcher started, its red **Open in
+<version>** button asks first, saves and closes the game, and opens the
+launcher with that version chosen, ready to install if needed. Started without
+the launcher, the game names the version to start instead. If that version is
+neither installed nor available to download, the launcher keeps it selected and
+explains why it cannot start. Failed saving or opening the launcher keeps the
+game open, and **Try Again** keeps the chosen version.
 
 To go back to an earlier save, choose the current world in Load World and
 **Load a save...**, then pick a save and **Load**, or double-click it. Your world

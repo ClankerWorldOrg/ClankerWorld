@@ -313,7 +313,8 @@ there, never in the game folder.
 
 `POST /api/v1/local/shutdown` exists only on a private-world companion host. It
 pauses the world, cancels hosted model work and writes its checkpoint before
-returning 202 and requesting process exit. If writing fails, it returns 503 and
+returning 202. The response completion callback requests process exit, so host
+teardown follows the acknowledgement. If writing fails, it returns 503 and
 keeps the host alive and paused so the game can retry. Pending startup recovery
 returns 409 without rewriting the refused checkpoint. Whenever a private-world
 host stops, it waits for the tick loop to finish and writes a final checkpoint
