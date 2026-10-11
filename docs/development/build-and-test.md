@@ -48,6 +48,16 @@ Reading and silence still give no consent; each adult must personally accept,
 including the separately held filer. Host disk writes, unchanged permissions
 before agreement, rollback, strict reload and complete-byte replay remain checked.
 
+The Town membership deadline fixture captures the exact registered hosted
+request at the last valid acceptance tick without waiting for the provider's
+held-request startup signal. It checks that request's acceptance choice and
+remaining world time, expires the approval, then releases the actual provider.
+A private deferred-entry row gates that startup signal until expiry and checks that the late reply
+uses the same request. Reply and actual wrapper-completion waits retain their
+five-second bounds; the completion loop retains eight world ticks. The remaining
+deadline, stale-generation, thought exclusion, physical-property, later ordinary
+sponsorship, pause, replay, rollback and strict-reload checks remain.
+
 The held quantified-harvest fixture captures the actor's exact outstanding
 hosted request and task. After one native harvest finishes, it releases the
 provider and waits for that task to complete before the admission tick. A
