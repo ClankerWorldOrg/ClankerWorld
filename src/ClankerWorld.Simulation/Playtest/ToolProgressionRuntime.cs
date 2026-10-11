@@ -285,15 +285,16 @@ public sealed partial class PrivateWorldRuntime
                 (protectedToolIds ?? []).Concat(harvestToolId is null ? [] : new[] { harvestToolId }).ToArray()));
     }
 
-    private List<InputCollectionStep>? ToolRepairCollectionInputs(string actor, IReadOnlyList<ContentQuantity> materials)
+    private List<InputCollectionStep>? ToolRepairCollectionInputs(string actor, IReadOnlyList<ContentQuantity> materials,
+        GridPoint returnTo)
     {
         var inputs = new List<InputCollectionStep>();
         foreach (var input in materials)
         {
             if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;
-            if (SharedPreparationItem(input.ResourceId, actor) is { } stock)
+            if (SharedPreparationItem(input.ResourceId, actor, returnTo) is { } stock)
                 inputs.Add(StockCollectionStep(stock, input.Amount));
-            else if (MaterialSource(input.ResourceId, actor) is { } source &&
+            else if (MaterialSource(input.ResourceId, actor, returnTo) is { } source &&
                 ProjectMaterialHarvest(actor, input.ResourceId, source) is { } harvest)
                 inputs.Add(new(input.ResourceId, source.Position, ResourceInteractionRange,
                     checked(harvest.Quantity + harvest.TreeSeedQuantity), Harvest: source, HarvestToolLotId: harvest.ToolLotId));
@@ -317,7 +318,7 @@ public sealed partial class PrivateWorldRuntime
             return null;
 
         var materialNeeds = ToolProgressionRules.RepairMaterials(tool.ItemKind);
-        var collectionInputs = ToolRepairCollectionInputs(actor, materialNeeds);
+        var collectionInputs = ToolRepairCollectionInputs(actor, materialNeeds, blacksmith.Position);
         if (collectionInputs is null)
         {
             // A gathering tool may need collecting before the whole harvest's

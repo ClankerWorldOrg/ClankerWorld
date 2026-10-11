@@ -39,6 +39,7 @@ public sealed class MultiInputCollectionRouteTests
     [InlineData("tool", "impossible")]
     [InlineData("book", "split")]
     [InlineData("book", "split-reverse")]
+    [InlineData("tool", "alternate-stock")]
     public async Task PreparationKeepsACollectionSequenceThatCanReachEveryRemainingInput(string task, string scenario)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await Fixture.Value);
@@ -63,7 +64,8 @@ public sealed class MultiInputCollectionRouteTests
         var localKind = task == "book" ? "paper" : "wood";
         var remoteKind = task == "book" ? "cloth" : task == "cart" ? "iron_fittings" : "iron";
         var localQuantity = task == "book" ? 2 : 1;
-        var ballast = (task == "tool" ? 2 : 3) - (scenario == "light" ? 1 : 0) + (scenario == "impossible" ? 1 : 0);
+        var ballast = (task == "tool" ? 2 : 3) - (scenario == "light" ? 1 : 0) +
+            (scenario is "impossible" or "alternate-stock" ? 1 : 0);
         var inventory = state.Society.Society.Inventory;
         var removed = inventory.Lots.Where(lot => lot.OwnerId == actor).Select(lot => lot.Id).ToHashSet();
         inventory = inventory with
@@ -88,6 +90,9 @@ public sealed class MultiInputCollectionRouteTests
         inventory = InventoryFixture.AddLot(inventory, "plan-remote", remoteKind,
             scenario == "carried" ? actor : household, 1,
             groundPosition: scenario == "carried" ? null : new(remotePosition.X, remotePosition.Y));
+        if (scenario == "alternate-stock")
+            inventory = InventoryFixture.AddLot(inventory, "plan-remote-alternative", remoteKind, household, 1,
+                groundPosition: new(land.X, land.Y));
         if (task == "cart")
         {
             inventory = InventoryFixture.AddLot(inventory, "plan-rope", "rope", household, 1,
@@ -113,6 +118,14 @@ public sealed class MultiInputCollectionRouteTests
             } : person).ToArray(),
         };
         using var world = PrivateWorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
+        if (scenario == "alternate-stock")
+        {
+            var query = typeof(PrivateWorldRuntime).GetMethod("SharedPreparationItem",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            Assert.Equal("plan-remote", Assert.IsType<InventoryLot>(query.Invoke(world, [remoteKind, actor, null, 0])).Id);
+            Assert.Equal("plan-remote-alternative", Assert.IsType<InventoryLot>(query.Invoke(world,
+                [remoteKind, actor, building.Position, 0])).Id);
+        }
         var instruction = task == "book" ? "Write 1 book" : task == "cart" ? "Repair cart plan-cart" : "repair my iron axe";
         var receipt = world.SubmitInstruction(new("plan-order", "owner:test", actor, OwnerInstructionKind.MustDo, instruction));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -158,8 +171,14 @@ public sealed class MultiInputCollectionRouteTests
         Assert.Equal("finished", order.Status);
         Assert.Equal(1, order.CompletedUnits);
         Assert.Equal(ballast, reloaded.Society.Inventory.GetLot("plan-ballast").Quantity);
-        Assert.DoesNotContain(reloaded.Society.Inventory.Lots, lot => lot.Id == "plan-local" || lot.Id == "plan-local-extra" || lot.Id == "plan-remote" ||
+        Assert.DoesNotContain(reloaded.Society.Inventory.Lots, lot => lot.Id == "plan-local" || lot.Id == "plan-local-extra" ||
+            lot.Id == (scenario == "alternate-stock" ? "plan-remote-alternative" : "plan-remote") ||
             task == "cart" && lot.Id == "plan-rope");
+        if (scenario == "alternate-stock")
+        {
+            Assert.Equal(household, reloaded.Society.Inventory.GetLot("plan-remote").OwnerId);
+            Assert.Equal(1, reloaded.Society.Inventory.GetLot("plan-remote").Quantity);
+        }
         if (task == "book") Assert.Single(reloaded.Knowledge.Artifacts);
         else Assert.Equal(10_000, reloaded.Society.Inventory.GetLot(task == "cart" ? "plan-cart" : "plan-axe").ConditionBasisPoints);
         reloaded.Validate();
