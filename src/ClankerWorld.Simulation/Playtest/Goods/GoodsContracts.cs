@@ -5,6 +5,8 @@ namespace ClankerWorld.Simulation.Playtest;
 
 public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover }
 
+public enum GoodsDemandCoverage { None, KnowledgeWriting }
+
 public sealed record GoodsOwners(IReadOnlyList<string> Ids)
 {
     public static GoodsOwners One(string id) => new([id]);
@@ -16,7 +18,8 @@ public sealed record GoodsKinds(IReadOnlyList<string> Ids)
 }
 
 public sealed record GoodsRequest(GoodsUse Use, string? Actor, GoodsOwners Owners, GoodsKinds Kinds,
-    string? AtBuilding = null, GridPoint? Near = null, string? Destination = null, int ExtraUnits = 0, bool Explain = false);
+    string? AtBuilding = null, GridPoint? Near = null, string? Destination = null, int ExtraUnits = 0, bool Explain = false,
+    GoodsDemandCoverage DemandCoverage = GoodsDemandCoverage.None);
 
 public enum GoodsPlaceKind { Stored, Ground, Carried, Unlocated }
 public sealed record GoodsPlace(GoodsPlaceKind Kind, string? BuildingId = null,
@@ -24,8 +27,10 @@ public sealed record GoodsPlace(GoodsPlaceKind Kind, string? BuildingId = null,
 
 public enum GoodsReason { Owner, Kind, Place, Damaged, Spoiled, Vessel, Empty, Reservation, Delivery, MarketStall, Custody, CarryRoom, Route }
 public sealed record GoodsMatch(InventoryLot Lot, InventoryLot Root, GoodsPlace Place, int Quantity, int MoveUnits);
-public sealed record GoodsAnswer(IReadOnlyList<GoodsMatch> Matches, IReadOnlyList<(string LotId, GoodsReason Reason)> Excluded)
+public sealed record GoodsAnswer(IReadOnlyList<GoodsMatch> Matches, IReadOnlyList<(string LotId, GoodsReason Reason)> Excluded,
+    long CoveredReservations = 0)
 {
     public long Total => Matches.Sum(match => (long)match.Quantity);
+    public long CoveredTotal => Total + CoveredReservations;
     public GoodsMatch? First => Matches.Count > 0 ? Matches[0] : null;
 }

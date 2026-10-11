@@ -1,0 +1,1 @@
+- Households use the same usable-stock rules when deciding whether to make, grow or buy more supplies. Goods in broken containers, promised for delivery or held at a borrowed market stall do not cover those needs. Paper reserved for the household's own books still counts toward its writing supply.

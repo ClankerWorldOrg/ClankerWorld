@@ -14,12 +14,19 @@ internal static class GoodsInventoryQuery
         var index = InventoryIndex.For(inventory);
         var matches = new List<GoodsMatch>();
         var excluded = new List<(string LotId, GoodsReason Reason)>();
+        long coveredReservations = 0;
         IEnumerable<InventoryLot> candidates = request.Explain ? index.Lots : request.AtBuilding is { } building
             ? index.StoredAt(building) : request.Owners.Ids.Distinct(StringComparer.Ordinal)
                 .SelectMany(index.OwnedBy).OrderBy(lot => lot.Id, StringComparer.Ordinal);
         foreach (var lot in candidates)
         {
-            var reason = Exclusion(request, index, lot) ?? context(index, lot);
+            var reason = Exclusion(request, index, lot);
+            var contextReason = reason is null || request.DemandCoverage != GoodsDemandCoverage.None && reason == GoodsReason.Reservation
+                ? context(index, lot) : null;
+            if (request.DemandCoverage != GoodsDemandCoverage.None && (reason is null or GoodsReason.Reservation) &&
+                contextReason is null)
+                coveredReservations += CoveredReservationQuantity(request, index, lot);
+            reason ??= contextReason;
             if (reason is { } failure)
             {
                 if (request.Explain) excluded.Add((lot.Id, failure));
@@ -27,7 +34,7 @@ internal static class GoodsInventoryQuery
             }
             matches.Add(match(index, lot));
         }
-        return new(matches.AsReadOnly(), excluded.AsReadOnly());
+        return new(matches.AsReadOnly(), excluded.AsReadOnly(), coveredReservations);
     }
 
     internal static GoodsAnswer FindConsumableGoods(InventoryCheckpoint inventory, GoodsRequest request,
@@ -49,12 +56,26 @@ internal static class GoodsInventoryQuery
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
             request.Near is not null || request.Destination is not null || request.ExtraUnits != 0 ||
+            request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
+            request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
             request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover) &&
                 string.IsNullOrWhiteSpace(request.Actor))
             throw new ArgumentException("This goods query supports exact owners and kinds for Holdings, ConsumeAt, and actor-bound ReachableHoldings, Collect or personal recovery; destination uses are separate steps.", nameof(request));
     }
 
     internal static bool IsRecovery(GoodsUse use) => use is GoodsUse.RecoveryHoldings or GoodsUse.Recover;
+
+    private static int CoveredReservationQuantity(GoodsRequest request, InventoryIndex index, InventoryLot lot)
+    {
+        if (request.DemandCoverage != GoodsDemandCoverage.KnowledgeWriting || lot.ItemKind != KnowledgeContent.Paper)
+            return 0;
+        var reserved = index.ActiveReservationsFor(lot.Id).Where(reservation =>
+                request.Owners.Ids.Contains(reservation.OwnerId, StringComparer.Ordinal) &&
+                reservation.Purpose.StartsWith("knowledge_writing:", StringComparison.Ordinal) &&
+                reservation.Purpose.EndsWith(":" + lot.ItemKind, StringComparison.Ordinal))
+            .Sum(reservation => reservation.Quantity);
+        return Math.Min(lot.Quantity - Math.Max(0, InventoryRules.UnreservedQuantity(index, lot)), reserved);
+    }
 
     internal static int Quantity(InventoryIndex index, InventoryLot lot, GoodsUse use) => IsRecovery(use)
         ? Math.Max(0, InventoryRules.UnreservedQuantity(index, lot))
