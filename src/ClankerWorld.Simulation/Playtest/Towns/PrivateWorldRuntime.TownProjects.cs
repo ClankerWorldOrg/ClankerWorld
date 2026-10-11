@@ -275,9 +275,8 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private IEnumerable<InventoryLot> PersonalTownProjectDonationLots(string actor, string itemKind) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == itemKind &&
-                PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
-                lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
+        SpendingGoods(actor, GoodsUse.Spend, [actor], itemKind).Select(match => match.Lot)
+            .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
                 !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal);
 
