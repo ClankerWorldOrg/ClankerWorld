@@ -68,7 +68,7 @@ public sealed partial class PrivateWorldRuntime
                             receipt.State == InventoryReservationState.Completed))) ||
                     request.Status is ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled &&
                         job.State != WorldProductionJobState.Completed ||
-                    societyState.Inventory.Lots.Any(lot => lot.Id == jobId + ":output:00" && lot.ItemKind != request.ItemKind))
+                    societyState.Inventory.Lots.Any(lot => lot.Id == ProductionOutputLotId(jobId, 0) && lot.ItemKind != request.ItemKind))
                     throw new InvalidDataException("A tool request is not bound to its actual ordinary production job.");
             }
             else if (request.Status is ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled)
@@ -78,7 +78,7 @@ public sealed partial class PrivateWorldRuntime
                 var offer = societyState.Inventory.Offers.FirstOrDefault(offer => offer.Id == offerId);
                 var trade = trades.FirstOrDefault(trade => trade.OfferId == offerId);
                 if (request.JobId is null || offer is null || trade is null ||
-                    offer.FirstLotId != request.JobId + ":output:00" || offer.FirstQuantity != 1 ||
+                    offer.FirstLotId != ProductionOutputLotId(request.JobId, 0) || offer.FirstQuantity != 1 ||
                     offer.FirstPartyId != request.SellerHouseholdId || offer.SecondPartyId != request.RequesterId ||
                     trade.BuildingInstanceId != request.BuildingInstanceId || trade.SellerHouseholdId != request.SellerHouseholdId ||
                     trade.BuyerId != request.RequesterId || trade.GoodsKind != request.ItemKind ||
@@ -124,8 +124,8 @@ public sealed partial class PrivateWorldRuntime
         for (var index = 0; index < recipe.Inputs.Count; index++)
         {
             var input = recipe.Inputs[index];
-            var group = receipts.Where(receipt => receipt.Id == purpose + ":quantity:" +
-                index.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":lot:" + receipt.LotId).ToArray();
+            var group = receipts.Where(receipt => receipt.Id == DerivedId.Create(purpose + ":quantity:" +
+                index.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":lot:" + receipt.LotId)).ToArray();
             if (group.Sum(receipt => (long)receipt.Quantity) != input.Amount || group.Any(receipt =>
                 inventory.Lots.Any(lot => lot.Id == receipt.LotId && lot.ItemKind != input.ResourceId)))
                 return false;

@@ -2,7 +2,7 @@
 title: Developer guide
 type: development-index
 status: active
-updated: 2026-10-08
+updated: 2026-10-11
 ---
 
 # Developer guide
@@ -14,6 +14,7 @@ For the game itself, start with [playing](../playing.md),
 | I need to… | Read |
 | --- | --- |
 | Understand the components and rules to preserve | [How the game works](how-it-works.md) |
+| Add a derived ID or check its native save and recall boundary | [Derived identities](derived-identities.md) |
 | Restore dependencies, build and check a change | [Build and test](build-and-test.md) |
 | Read the scoped automated results for build `31aae869` | [Automated verification — 2026-10-10](verification-2026-10-10.md) |
 | Compare construction query costs and native state equivalence | [Construction query measurements](construction-query-measurements.md) |

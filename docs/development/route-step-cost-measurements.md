@@ -177,5 +177,5 @@ For profiling, wait for `<prefix>.ready`, attach `dotnet-trace` 10.0.750501 with
 `<prefix>.go` after the collector identifies its output file. Analyse using the
 [existing sampled-stack script](footprint-query-probe/analyze-profile.py).
 Compare full candidate/admission/final files byte for byte before interpreting
-numbers. The [paired Windows/F12 check](../../playtest/998-route-step-costs.md)
+numbers. The [paired Windows/F12 check](../../playtest/alpha-1.md)
 remains pending.

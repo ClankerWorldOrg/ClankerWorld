@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
+using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Viewer.Observation;
@@ -18,8 +19,10 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(true, true, true)]
     [InlineData(false, true, true)]
     [InlineData(false, true, false)]
+    [InlineData(false, false, true, true)]
+    [InlineData(false, false, true, false, true)]
     public async Task NativeTransferPartiesSurviveHostedConsentAndCheckpointReload(bool laterGeneration,
-        bool formedHousehold = false, bool nativeBornHousehold = true)
+        bool formedHousehold = false, bool nativeBornHousehold = true, bool quietNoticeTurn = false, bool heldIdentityReply = false)
     {
         PrivateWorldRuntimeState state;
         string? formedTarget = null;
@@ -31,9 +34,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             var birth = state.Society.Society.Births.OrderBy(item => item.CommittedTick).Last();
             var recipient = nativeBornHousehold ? birth.ChildId : birth.PrimaryCaregiverId;
             formedTarget = Assert.IsType<string>(state.Society.Society.GetInhabitant(recipient).HouseholdId);
-            Assert.Equal(nativeBornHousehold, formedTarget.Length > 128);
-            Assert.True(!laterGeneration || formedTarget.Length > 256);
-            Assert.StartsWith("household:solo:" + recipient + ":", formedTarget, StringComparison.Ordinal);
+            Assert.InRange(formedTarget.Length, 1, DerivedId.MaximumLength);
+            Assert.Equal([recipient], state.Society.Society.GetHousehold(formedTarget).MemberIds);
             Assert.Contains(state.Events, item => item.Kind == "household_founded" && item.Detail == recipient + "|" + formedTarget);
         }
         else state = PrivateWorldRuntimeCodec.Decode(await (laterGeneration ? LaterAdult : ConversationAdult).Value);
@@ -41,7 +43,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             person.HouseholdId == "household:camp-alpha" && person.Status == SocietyInhabitantStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id :
             state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
-        if (!formedHousehold) Assert.True(laterGeneration ? actor.Length > 256 : actor.Length <= 256);
+        if (!formedHousehold) Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
         var town = state.Towns![0];
         // As in the civic fixtures, arrange board proximity and comfort only.
         // Birth identities, ages, households, titles and permissions stay native.
@@ -58,7 +60,23 @@ public sealed partial class GrownAgentHelperMemoryTests
         var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
         var source = state.HouseholdLandUseRights!.First(right => right.TownId == town.Id && right.HouseholdId == household);
         var target = formedTarget ?? state.Society.Society.Households.Single(item => item.Id == "household:camp-beta").Id;
-        var policy = new NativeTransferChoices(actor, target, source.Tiles.ToArray());
+        if (quietNoticeTurn)
+        {
+            // Keep an unrelated weather-dependent clothing choice from waking
+            // residents whose actual notice-reading opportunity ended in idle.
+            var inventory = state.Society.Society.Inventory;
+            var index = 0;
+            foreach (var lot in inventory.Lots.Where(lot => PersonalEquipmentRules.IsGarment(lot.ItemKind)).ToArray())
+            {
+                var quantity = PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+                if (quantity > 0)
+                    inventory = InventoryFixture.Reserve(inventory, "quiet-transfer-clothing-" + index++,
+                        lot.OwnerId, lot.Id, quantity, "fixture-clothing-hold", inventory.WorldTick + 1_000);
+            }
+            state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        }
+        var policy = new NativeTransferChoices(actor, target, source.Tiles.ToArray())
+        { HeldIdentityId = heldIdentityReply ? "founder:00000000000000000000000000000003" : null };
         using var world = PrivateWorldRuntime.Restore(state, _ => policy);
         world.Resume();
         world.SubmitInstruction(new("native-transfer-guidance", "owner:test", actor, OwnerInstructionKind.Suggestive,
@@ -71,18 +89,42 @@ public sealed partial class GrownAgentHelperMemoryTests
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(5));
             presence.RecordAuthenticatedReconnect("test-owner");
             using var service = new PrivateWorldRuntimeService(world, file, presence);
-            async Task AdvanceUntil(Func<bool> finished)
+            async Task AdvanceTick()
+            {
+                Assert.True(await service.TryAdvanceOnceAsync());
+                await WaitForTransferChoices(world);
+                Assert.False(world.Society.IsPaused);
+                Assert.Equal(world.WorldTick, PrivateWorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
+            }
+            async Task AdvanceUntil(Func<bool> finished, string phase)
             {
                 for (var tick = 0; tick < 40 && !finished(); tick++)
+                    await AdvanceTick();
+                Assert.True(finished(), $"The native transfer did not finish {phase} at tick {world.WorldTick}; " +
+                    $"provider modes: read={policy.Read}, accept={policy.Accept}, hold={policy.Hold}. " +
+                    string.Join("; ", policy.Replies.TakeLast(6).Select(reply =>
+                        $"{reply.Request.Observation.InhabitantId}@{reply.Request.Observation.WorldTick}:{reply.Response.SelectedCandidateId}")));
+            }
+            if (heldIdentityReply)
+            {
+                // This generated family carries real midlife/parenthood work.
+                // Start it through the host, holding one actual personal reply.
+                for (var tick = 0; tick < 4 && !policy.IdentityCalled.Task.IsCompleted; tick++)
                 {
                     Assert.True(await service.TryAdvanceOnceAsync());
                     await WaitForRequests(world);
-                    Assert.False(world.Society.IsPaused);
-                    Assert.Equal(world.WorldTick, PrivateWorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
                 }
-                Assert.True(finished());
+                var request = await policy.IdentityCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                Assert.Equal(policy.HeldIdentityId, request.Observation.InhabitantId);
+                Assert.NotNull(request.Observation.IdentityMoment);
+                Assert.Contains(world.Inhabitants.Single(person => person.InhabitantId == policy.HeldIdentityId).IdentityMoments!,
+                    moment => moment.Outcome == "requested");
+                var settled = WaitForTransferChoices(world);
+                try { Assert.False(settled.IsCompleted, "The transfer fixture must not count more ticks while its reader's native identity reply is held."); }
+                finally { policy.ReleaseIdentity.TrySetResult(); }
+                await settled;
             }
-            await AdvanceUntil(() => world.Towns[0].LandHearings.Transfers.Count == 1);
+            await AdvanceUntil(() => world.Towns[0].LandHearings.Transfers.Count == 1, "proposal");
             policy.Propose = false;
             var pending = Assert.Single(world.Towns[0].LandHearings.Transfers);
             Assert.Equal(actor, pending.FilerId);
@@ -92,6 +134,12 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Empty(pending.Responses);
             Assert.Null(pending.Receipt);
             Assert.Contains(pending.Parties, party => party.AdultIds.Contains(actor));
+            if (heldIdentityReply)
+            {
+                Assert.Contains(pending.Parties, party => party.AdultIds.Contains(policy.HeldIdentityId!));
+                Assert.Contains(world.Inhabitants.Single(person => person.InhabitantId == policy.HeldIdentityId).IdentityMoments!,
+                    moment => moment.Kind == AgentIdentityMomentKind.Midlife && moment.Outcome == "kept");
+            }
             Assert.Equal(source.Tiles, pending.Tiles);
             Assert.Equal(state.HouseholdLandUseRights, world.ExportState().HouseholdLandUseRights);
             Assert.Contains(policy.Selected, choice => choice.Actor == actor && choice.Id.Contains("|land_transfer_propose|", StringComparison.Ordinal));
@@ -100,15 +148,62 @@ public sealed partial class GrownAgentHelperMemoryTests
             using (var pendingReload = file.LoadOrCreate(state.WorldSeed))
                 Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(pendingReload.ExportState()));
 
+            var adults = pending.Parties.SelectMany(party => party.AdultIds).Distinct(StringComparer.Ordinal).ToArray();
+            bool KnowsNotice(string id) => world.Towns[0].Governance!.Knowledge.Any(receipt =>
+                receipt.AgentId == id && receipt.NoticeId == pending.NoticeId);
+            Dictionary<string, string> SuggestTransfer(string phase, IEnumerable<string> recipients)
+            {
+                var instructions = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var id in recipients.Distinct(StringComparer.Ordinal))
+                {
+                    var receipt = world.SubmitInstruction(new($"native-transfer-{phase}-{world.WorldTick}-{instructions.Count}",
+                        "owner:test", id, OwnerInstructionKind.Suggestive,
+                        "Consider the published permission transfer and make your own informed choice."));
+                    instructions.Add(id, receipt.InstructionId);
+                }
+                return instructions;
+            }
+            if (quietNoticeTurn)
+            {
+                var quietReaders = adults.Where(id => !KnowsNotice(id)).ToArray();
+                Assert.NotEmpty(quietReaders);
+                var instructions = SuggestTransfer("quiet", quietReaders);
+                bool IsQuietReply((CognitionDecisionRequest Request, CognitionDecisionResponse Response) reply, string id) =>
+                    reply.Request.Observation.InhabitantId == id && reply.Response.SelectedCandidateId == "safe_idle" &&
+                    reply.Request.Observation.ObserverGuidance?.Any(message => message.InstructionId == instructions[id]) == true &&
+                    reply.Request.Observation.Candidates.Any(candidate => candidate.Id.Contains("|land_transfer_read|", StringComparison.Ordinal));
+                await AdvanceUntil(() => quietReaders.All(id => policy.Replies.Any(reply => IsQuietReply(reply, id))),
+                    "quiet notice opportunities");
+                // Provider return is not admission. Commit the actual idle
+                // responses before changing this fixture's personal policy.
+                await AdvanceTick();
+                foreach (var id in quietReaders)
+                {
+                    var reply = policy.Replies.Last(item => IsQuietReply(item, id));
+                    var intention = Assert.IsType<CognitionIntention>(world.ExportState().Society.Cognition.Runtimes
+                        .Single(runtime => runtime.InhabitantId == id).CurrentIntention);
+                    Assert.Equal("safe_idle", intention.CandidateId);
+                    Assert.Equal(id, intention.InhabitantId);
+                    Assert.Equal(reply.Request.Observation.RunEpoch, intention.RunEpoch);
+                    Assert.Equal(reply.Request.Observation.DecisionGeneration, intention.DecisionGeneration);
+                    Assert.Equal(reply.Request.Observation.ObservationDigest, intention.ObservationDigest);
+                }
+                Assert.All(quietReaders, id => Assert.False(KnowsNotice(id)));
+                Assert.Empty(world.Towns[0].LandHearings.Transfers[0].Responses);
+                Assert.Equal(state.HouseholdLandUseRights, world.ExportState().HouseholdLandUseRights);
+            }
+
             // Reading and silence supply no acceptance, even for the filer.
             policy.Read = true;
-            await AdvanceUntil(() => pending.Parties.SelectMany(party => party.AdultIds).All(id =>
-                world.Towns[0].Governance!.Knowledge.Any(receipt => receipt.AgentId == id && receipt.NoticeId == pending.NoticeId)));
+            SuggestTransfer("read", adults.Where(id => !KnowsNotice(id)));
+            await AdvanceUntil(() => adults.All(KnowsNotice), "notice reading");
             Assert.Empty(world.Towns[0].LandHearings.Transfers[0].Responses);
             Assert.Equal(state.HouseholdLandUseRights, world.ExportState().HouseholdLandUseRights);
             policy.Accept = true;
             policy.Hold = actor;
-            await AdvanceUntil(() => world.Towns[0].LandHearings.Transfers[0].Responses.Count == pending.Parties.Sum(party => party.AdultIds.Count) - 1);
+            SuggestTransfer("accept", adults.Where(id => id != actor));
+            await AdvanceUntil(() => world.Towns[0].LandHearings.Transfers[0].Responses.Count == pending.Parties.Sum(party => party.AdultIds.Count) - 1,
+                "other adults' separate consent");
             var waiting = world.Towns[0].LandHearings.Transfers[0];
             Assert.Equal("pending", waiting.Status);
             Assert.DoesNotContain(waiting.Responses, response => response.AgentId == actor);
@@ -119,7 +214,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
             Assert.Equal(beforeRollback, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
             policy.Hold = null;
-            await AdvanceUntil(() => world.Towns[0].LandHearings.Transfers[0].Status == "transferred");
+            SuggestTransfer("filer", [actor]);
+            await AdvanceUntil(() => world.Towns[0].LandHearings.Transfers[0].Status == "transferred", "the held filer's consent");
             var completed = world.Towns[0].LandHearings.Transfers[0];
             Assert.Equal(actor, completed.FilerId);
             Assert.Equal(pending.Parties.Sum(party => party.AdultIds.Count), completed.Responses.Count);
@@ -141,7 +237,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             world.Pause();
             world.Resume();
             Assert.True(await service.TryAdvanceOnceAsync());
-            await WaitForRequests(world);
+            await WaitForTransferChoices(world);
             using var reload = file.LoadOrCreate(state.WorldSeed);
             var saved = PrivateWorldRuntimeCodec.Encode(world.ExportState());
             Assert.Equal(saved, PrivateWorldRuntimeCodec.Encode(reload.ExportState()));
@@ -156,6 +252,23 @@ public sealed partial class GrownAgentHelperMemoryTests
             }
         }
         finally { directory.Delete(recursive: true); }
+    }
+
+    private static async Task WaitForTransferChoices(PrivateWorldRuntime world)
+    {
+        // A native life-moment request defers that adult's ordinary choices.
+        // Finish both local reply lanes before spending the next fixture tick.
+        var tasks = new List<Task>();
+        foreach (var name in new[] { "pendingHosted", "pendingIdentityMoments" })
+        {
+            var field = typeof(PrivateWorldRuntime).GetField(name,
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field.GetValue(world));
+            tasks.AddRange(pending.Values.Cast<object>().Select(item =>
+                Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))));
+        }
+        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     private static void AssertMalformedTransferHouseholds(PrivateWorldRuntimeState state, TownLandTransferRequest request)
@@ -250,6 +363,24 @@ public sealed partial class GrownAgentHelperMemoryTests
         public bool Accept { get; set; }
         public string? Hold { get; set; }
         public ConcurrentQueue<(string Actor, string Id)> Selected { get; } = new();
+        public ConcurrentQueue<(CognitionDecisionRequest Request, CognitionDecisionResponse Response)> Replies { get; } = new();
+        public string? HeldIdentityId { get; init; }
+        public TaskCompletionSource<CognitionDecisionRequest> IdentityCalled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource ReleaseIdentity { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private async ValueTask<CognitionDecisionResponse> KeepIdentityAsync(CognitionDecisionRequest request, CancellationToken cancellationToken)
+        {
+            var observation = request.Observation;
+            var choice = Assert.Single(observation.Candidates);
+            Assert.Equal("identity_optional", choice.Id);
+            if (observation.InhabitantId == HeldIdentityId && !IdentityCalled.Task.IsCompleted)
+            {
+                IdentityCalled.TrySetResult(request);
+                await ReleaseIdentity.Task.WaitAsync(cancellationToken);
+            }
+            return new(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+                observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
+                choice.Id, 1, new Dictionary<string, double> { [choice.Id] = 1 });
+        }
         private async ValueTask<CognitionDecisionResponse> ProposeOverHttpAsync(CognitionDecisionRequest request,
             string candidate, CancellationToken cancellationToken)
         {
@@ -262,6 +393,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
+            if (observation.IdentityMoment is not null) return KeepIdentityAsync(request, cancellationToken);
             CognitionCandidate? Pick(string action) => observation.Candidates.FirstOrDefault(item => item.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             var proposal = Propose && observation.InhabitantId == actor ? Pick("land_transfer_propose") : null;
             var choice = proposal ?? (Read ? Pick("land_transfer_read") ?? Pick("read") : null) ??
@@ -277,9 +409,11 @@ public sealed partial class GrownAgentHelperMemoryTests
             }
             Selected.Enqueue((observation.InhabitantId, choice.Id));
             if (proposing) return ProposeOverHttpAsync(request, choice.Id, cancellationToken);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            var response = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
-                observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal)));
+                observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal));
+            Replies.Enqueue((request, response));
+            return ValueTask.FromResult(response);
         }
     }
 }

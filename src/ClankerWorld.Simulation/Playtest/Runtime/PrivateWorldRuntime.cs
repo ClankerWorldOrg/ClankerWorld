@@ -21,7 +21,7 @@ namespace ClankerWorld.Simulation.Playtest;
 /// </summary>
 public sealed partial class PrivateWorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 122;
+    public const int StateSchemaVersion = 123;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -78,10 +78,12 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private Dictionary<string, OwnerOrderCancellation> orderCancellations =
         new(StringComparer.Ordinal);
     private HashSet<string> completedInstructionIds = new(StringComparer.Ordinal);
-    private List<PlaytestWorldEvent> events = [];
-    private long nextEventId = 1;
-    private long eventHistoryFloor;
-    private string? historyArchiveHead;
+    private WorldEventLog worldEventLog = new([]);
+    private readonly IResidentWorld residentWorld;
+    private ReadOnlyCollection<PlaytestWorldEvent> events => worldEventLog.Events;
+    private long nextEventId => worldEventLog.NextEventId;
+    private long eventHistoryFloor => worldEventLog.HistoryFloor;
+    private string? historyArchiveHead => worldEventLog.ArchiveHead;
     private int checkpointSchemaVersion = StateSchemaVersion;
     private bool jevEnabled = true;
     private RoutineHelperSettings routineHelper = RoutineHelperSettings.Jev;
@@ -152,6 +154,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     {
         this.worldSeed = NormalizeRequiredText(worldSeed, nameof(worldSeed));
         conversationWorld = new ConversationWorldAdapter(this);
+        residentWorld = new ResidentWorldAdapter(this);
         if (geographyOptions is not null &&
             (startPace != WorldStartPace.FounderSetup ||
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
@@ -334,9 +337,6 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         }
 
         runtime.map = state.Map;
-        runtime.eventHistoryFloor = state.EventHistoryFloor;
-        runtime.historyArchiveHead = state.HistoryArchiveHead;
-        runtime.checkpointSchemaVersion = StateSchemaVersion;
         runtime.jevEnabled = state.JevEnabled ?? true;
         runtime.routineHelper = state.RoutineHelper;
         runtime.jevPolicyRevision = state.JevPolicyRevision;
@@ -431,9 +431,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
             ? 1
             : checked(runtime.instructionsByIdempotency.Values.Max(item => item.SubmissionSequence) + 1);
 
-        runtime.events.Clear();
-        runtime.events.AddRange(state.Events);
-        runtime.nextEventId = runtime.events.Count == 0 ? checked(runtime.eventHistoryFloor + 1) : checked(runtime.events[^1].EventId + 1);
+        runtime.worldEventLog = new(state.Events, state.EventHistoryFloor, state.HistoryArchiveHead);
         if (!trustedPreparedState)
         {
             if (applyLoadTransitions)
@@ -535,24 +533,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         RoutineHelper = routineHelper,
     };
 
-    private void AppendEvent(string kind, string detail, GridPoint? eventPosition = null)
-    {
-        GridPoint? position = eventPosition;
-        for (var length = detail.Length; position is null && length > 0; length = detail.LastIndexOf(':', length - 1))
-        {
-            var prefix = detail[..length];
-            if (inhabitants.TryGetValue(prefix, out var living))
-            {
-                position = living.Position;
-                break;
-            }
-            if (deceasedInhabitants.TryGetValue(prefix, out var deceased))
-            {
-                position = deceased.LastPhysical.Position;
-                break;
-            }
-        }
-        events.Add(new PlaytestWorldEvent(nextEventId++, WorldTick, kind, detail, position));
-    }
+    private void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) =>
+        worldEventLog.AppendEvent(residentWorld, kind, detail, eventPosition);
 
 }

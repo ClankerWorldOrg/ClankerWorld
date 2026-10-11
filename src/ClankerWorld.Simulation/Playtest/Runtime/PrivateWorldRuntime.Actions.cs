@@ -185,7 +185,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) =>
-        map.FootDistance(origin, destination) <= interactionRange;
+        ResidentQueries.IsWithinInteractionRange(residentWorld, origin, destination, interactionRange);
 
     private IEnumerable<MapResource> EligibleFoodSources(string actor, GridPoint position) => map.Resources
         .Where(resource => resource.Kind is "food" or "fruit" &&
@@ -260,7 +260,7 @@ public sealed partial class PrivateWorldRuntime
             },
         };
         SyncEcologyResourceStates();
-        var harvestedLotId = $"food:harvest:{WorldTick:D10}:{inhabitantId}";
+        var harvestedLotId = FoodHarvestLotId(WorldTick, inhabitantId);
         ApplyInventoryTransition(inventory => InventoryFixture.AddLot(
             inventory, harvestedLotId,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
@@ -274,10 +274,10 @@ public sealed partial class PrivateWorldRuntime
         AppendEvent("food_harvested", $"{inhabitantId}:{harvestYield}");
         if (source.TreeKind == TreeGrowthRules.Orchard)
         {
-            var lotId = $"orchard-seed:{WorldTick:D10}:{inhabitantId}";
+            var lotId = OrchardSeedLotId(WorldTick, inhabitantId);
             ApplyInventoryTransition(inventory => InventoryFixture.Reserve(
                 InventoryFixture.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, inhabitantId,
-                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingPrefix + lotId,
+                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
                 inhabitantId, lotId, 1, "orchard_replanting", long.MaxValue));
             AppendEvent("fruit_harvested", $"{inhabitantId}:{source.Id}:{harvestYield}:picked");
         }
@@ -286,7 +286,7 @@ public sealed partial class PrivateWorldRuntime
             harvestYield, source.Id);
     }
 
-    private string HouseholdFor(string actor) => society.Checkpoint.GetInhabitant(actor).HouseholdId ?? actor;
+    private string HouseholdFor(string actor) => ResidentQueries.HouseholdFor(residentWorld, actor);
 
     private string ProductionOwnerFor(PlacedBuilding? building, string workerId) =>
         building?.HouseholdId ?? society.Checkpoint.GetInhabitant(workerId).HouseholdId ?? workerId;
@@ -304,10 +304,7 @@ public sealed partial class PrivateWorldRuntime
                 definition.Tags.Contains(tag, StringComparer.Ordinal)))
         .OrderBy(building => building.InstanceId, StringComparer.Ordinal).FirstOrDefault();
 
-    private GridPoint HouseholdStockPosition(InventoryLot lot) => lot.CarrierId is { } carrier ? inhabitants[carrier].Position : lot.GroundPosition is { } ground ? new(ground.X, ground.Y)
-        : lot.StorageBuildingId is { } buildingId
-        ? worldSimulation.Buildings.Single(building => building.InstanceId == buildingId).Position
-        : SettlementStoragePosition;
+    private GridPoint HouseholdStockPosition(InventoryLot lot) => ResidentQueries.HouseholdStockPosition(residentWorld, lot);
 
     private static int HouseholdStockInteractionRange(InventoryLot lot) =>
         lot.StorageBuildingId is null && lot.GroundPosition is null ? ResourceInteractionRange : 0;
@@ -336,6 +333,7 @@ public sealed partial class PrivateWorldRuntime
     private bool TryCollectHouseholdServing(string actor, PlaytestInhabitantState state, InventoryLot food,
         string operationId, string purpose, string movementReason)
     {
+        operationId = DerivedId.Create(operationId);
         if (FreeCarryCapacity(actor) < 1 || AvailableLotQuantity(food) < 1 || food.CarrierId is not null ||
             society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId || food.OwnerId != householdId)
             return false;

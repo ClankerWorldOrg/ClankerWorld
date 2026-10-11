@@ -419,8 +419,10 @@ public sealed partial class PrivateWorldRuntimeTests
         world.Validate();
     }
 
-    [Fact]
-    public async Task HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes(bool delayedStartup)
     {
         var provider = new HeldOrderReplyProvider();
         using var setup = CreateKnownBerryOrderWorld(_ => new DeterministicDecisionProvider());
@@ -441,53 +443,89 @@ public sealed partial class PrivateWorldRuntimeTests
         using var world = PrivateWorldRuntime.Restore(state, id => id == HarvestInstructionActor
             ? provider
             : new DeterministicDecisionProvider());
+        var preparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (delayedStartup) provider.PreparationGate = preparation.Task;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("held-urgent-harvest", "owner:test",
             HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather berries from berry-patch"));
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        var call = CaptureHeldHarvestCall(world);
+        Assert.False(call.Task.IsCompleted);
+        try
+        {
+            var afterHarvestTick = world.ExportState();
+            Assert.Equal("finished", Assert.Single(afterHarvestTick.Instructions!,
+                item => item.InstructionId == order.InstructionId).Order!.Status);
+            Assert.Single(afterHarvestTick.Events, item => item.Kind == "food_harvested" &&
+                item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
+            Assert.DoesNotContain(afterHarvestTick.Events, item => item.Kind == "food_consumed" &&
+                item.Detail == HarvestInstructionActor);
+            Assert.Null(Assert.Single(afterHarvestTick.Instructions!,
+                item => item.InstructionId == order.InstructionId).ObservedTick);
 
-        var afterHarvestTick = world.ExportState();
-        Assert.Equal("finished", Assert.Single(afterHarvestTick.Instructions!,
-            item => item.InstructionId == order.InstructionId).Order!.Status);
-        Assert.Single(afterHarvestTick.Events, item => item.Kind == "food_harvested" &&
-            item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
-        Assert.DoesNotContain(afterHarvestTick.Events, item => item.Kind == "food_consumed" &&
-            item.Detail == HarvestInstructionActor);
-        Assert.Null(Assert.Single(afterHarvestTick.Instructions!,
-            item => item.InstructionId == order.InstructionId).ObservedTick);
-        Assert.Equal(1, provider.CallCount);
-
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var afterFollowingTick = world.ExportState();
-        Assert.Single(afterFollowingTick.Events, item => item.Kind == "food_harvested" &&
-            item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
-        Assert.Single(afterFollowingTick.Events, item => item.Kind == "food_consumed" &&
-            item.Detail == HarvestInstructionActor);
-
-        provider.Release.TrySetResult(true);
-        await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        for (var tick = 0; tick < 5 && !world.ExportState().Events.Any(item =>
-                 item.Kind == "hosted_decision_completed" && item.Detail == HarvestInstructionActor); tick++)
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            var afterFollowingTick = world.ExportState();
+            Assert.Single(afterFollowingTick.Events, item => item.Kind == "food_harvested" &&
+                item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
+            Assert.Single(afterFollowingTick.Events, item => item.Kind == "food_consumed" &&
+                item.Detail == HarvestInstructionActor);
 
-        var final = world.ExportState();
-        var savedOrder = Assert.Single(final.Instructions!, item => item.InstructionId == order.InstructionId);
-        Assert.Equal("finished", savedOrder.Order!.Status);
-        Assert.NotNull(savedOrder.ObservedTick);
-        Assert.Equal("I will gather the berries.", savedOrder.ObserverReply);
-        Assert.Single(final.Events, item => item.Kind == "food_harvested" &&
-            item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
-        Assert.Contains(final.Events, item => item.Kind == "food_consumed" &&
-            item.Detail == HarvestInstructionActor);
-        Assert.Contains(final.Events, item => item.Kind == "instruction_order_stale_decision" &&
-            item.Detail == HarvestInstructionActor);
-        Assert.Single(provider.Requests, request =>
-            request.OperativeOrderInstructionId == order.InstructionId ||
-            request.ObserverGuidance?.Any(message => message.InstructionId == order.InstructionId) == true);
-        using var validated = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(
-            PrivateWorldRuntimeCodec.Encode(final)));
-        validated.Validate();
+            if (delayedStartup)
+            {
+                Assert.False(provider.Started.Task.IsCompleted);
+                Assert.Equal(0, provider.CallCount);
+            }
+            Assert.False(call.Task.IsCompleted);
+            var beforeEntry = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+            preparation.TrySetResult(true);
+            try { await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3)); }
+            catch (TimeoutException exception)
+            {
+                var frame = world.ExportState();
+                throw new TimeoutException($"Held harvest startup at tick {frame.Society.Society.WorldTick}: " +
+                    $"provider calls={provider.CallCount}, captured task completed={call.Task.IsCompleted}, " +
+                    $"order={frame.Instructions!.Single(item => item.InstructionId == order.InstructionId).Order!.Status}, " +
+                    $"harvest events={frame.Events.Count(item => item.Kind == "food_harvested" && item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal))}, " +
+                    $"food events={frame.Events.Count(item => item.Kind == "food_consumed" && item.Detail == HarvestInstructionActor)}.", exception);
+            }
+            Assert.Equal(beforeEntry, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+            Assert.Equal(1, provider.CallCount);
+            Assert.Equal(call.Request.Observation.ObservationDigest, Assert.Single(provider.Requests).ObservationDigest);
+
+            provider.Release.TrySetResult(true);
+            await call.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True(provider.Returned.Task.IsCompletedSuccessfully);
+            Assert.Equal(call.Request.RequestId, (await provider.Returned.Task).RequestId);
+            for (var tick = 0; tick < 5 && !world.ExportState().Events.Any(item =>
+                     item.Kind == "hosted_decision_completed" && item.Detail == HarvestInstructionActor); tick++)
+                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+
+            var final = world.ExportState();
+            var savedOrder = Assert.Single(final.Instructions!, item => item.InstructionId == order.InstructionId);
+            Assert.Equal("finished", savedOrder.Order!.Status);
+            Assert.NotNull(savedOrder.ObservedTick);
+            Assert.Equal("I will gather the berries.", savedOrder.ObserverReply);
+            Assert.Single(final.Events, item => item.Kind == "food_harvested" &&
+                item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
+            Assert.Contains(final.Events, item => item.Kind == "food_consumed" &&
+                item.Detail == HarvestInstructionActor);
+            Assert.Contains(final.Events, item => item.Kind == "instruction_order_stale_decision" &&
+                item.Detail == HarvestInstructionActor);
+            Assert.Single(provider.Requests, request =>
+                request.OperativeOrderInstructionId == order.InstructionId ||
+                request.ObserverGuidance?.Any(message => message.InstructionId == order.InstructionId) == true);
+            using var validated = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(
+                PrivateWorldRuntimeCodec.Encode(final)));
+            validated.Validate();
+        }
+        finally
+        {
+            preparation.TrySetResult(true);
+            provider.Release.TrySetResult(true);
+            provider.ReturnAllowed.TrySetResult(true);
+            world.CancelPendingHostedDecisions();
+            await call.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        }
     }
 
     [Fact]
@@ -630,11 +668,13 @@ public sealed partial class PrivateWorldRuntimeTests
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> ReturnAllowed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Task? PreparationGate { get; set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
+            if (PreparationGate is { } preparation) await preparation.WaitAsync(cancellationToken);
             request.Validate();
             Interlocked.Increment(ref callCount);
             Requests.Enqueue(request.Observation);

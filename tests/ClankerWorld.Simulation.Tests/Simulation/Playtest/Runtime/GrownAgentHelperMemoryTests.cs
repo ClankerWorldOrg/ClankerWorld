@@ -23,8 +23,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         var birth = Assert.Single(state.Society.Society.Births);
         var actor = nativeBorn ? birth.ChildId : birth.PrimaryCaregiverId;
         var householdId = Assert.IsType<string>(world.Society.GetInhabitant(actor).HouseholdId);
-        Assert.Equal(nativeBorn, householdId.Length > 128);
-        Assert.StartsWith("household:solo:" + actor + ":", householdId, StringComparison.Ordinal);
+        Assert.InRange(householdId.Length, 1, DerivedId.MaximumLength);
+        Assert.Equal(DerivedId.Create("household:solo:" + actor + ":" + Assert.Single(state.Events, item => item.Kind == "household_founded" && item.Detail == actor + "|" + householdId).WorldTick), householdId);
         Assert.Equal([actor], world.Society.GetHousehold(householdId).MemberIds);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "household_founded" &&
             item.Detail == actor + "|" + householdId);
@@ -45,10 +45,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             .Take(1));
         observation.Validate();
         Assert.InRange(observation.Self!.HouseholdId!.Length, 1, 128);
-        if (nativeBorn)
-            Assert.StartsWith("household-sha256:", observation.Self.HouseholdId, StringComparison.Ordinal);
-        else
-            Assert.Equal(householdId, observation.Self.HouseholdId);
+        Assert.Equal(householdId, observation.Self.HouseholdId);
         Assert.Equal(householdId, reload.Society.GetInhabitant(actor).HouseholdId);
         Assert.Equal(JsonSerializer.Serialize(world.Society.GetHousehold(householdId)),
             JsonSerializer.Serialize(reload.Society.GetHousehold(householdId)));
@@ -205,7 +202,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var state = PrivateWorldRuntimeCodec.Decode(await Born.Value);
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
-        Assert.True(childId.Length > 128, "The native opaque-world birth must exercise a long identity.");
+        Assert.InRange(childId.Length, 1, DerivedId.MaximumLength);
         if (age == 15)
         {
             var society = state.Society.Society;
@@ -300,11 +297,11 @@ public sealed partial class GrownAgentHelperMemoryTests
                      .Concat((observation.MemoryCompactionCandidates ?? []).Select(item => item.SubjectId)))
         {
             Assert.InRange(subject.Length, 1, 128);
-            Assert.StartsWith("agent-sha256:", subject, StringComparison.Ordinal);
+            Assert.Equal(childId, subject);
         }
         var recalledBelief = Assert.Single(observation.RetrievedMemories!, item => item.Id == belief.Id);
         Assert.Equal(recalledBelief.SubjectId, recalledBelief.SourceAgentId);
-        Assert.StartsWith("agent-sha256:", recalledBelief.SourceAgentId, StringComparison.Ordinal);
+        Assert.Equal(childId, recalledBelief.SourceAgentId);
         Assert.Equal(("firsthand", 8_000, belief.SourceEventId),
             (recalledBelief.Provenance,
                 recalledBelief.ConfidenceBasisPoints, recalledBelief.SourceEventId));
@@ -356,7 +353,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var state = PrivateWorldRuntimeCodec.Decode(await Born.Value);
         var birth = Assert.Single(state.Society.Society.Births);
-        Assert.True(birth.ChildId.Length > 128);
+        Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         var actor = birth.PrimaryCaregiverId;
         var reporter = nativeReporter ? birth.ChildId : state.Society.Society.Inhabitants
             .First(person => person.Id != actor && person.Id.Length <= 128).Id;
@@ -399,7 +396,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(recalled.SubjectId, recalled.SourceAgentId);
         if (nativeReporter)
         {
-            Assert.StartsWith("agent-sha256:", recalled.SourceAgentId, StringComparison.Ordinal);
+            Assert.Equal(reporter, recalled.SourceAgentId);
             Assert.InRange(recalled.SourceAgentId!.Length, 1, 128);
         }
         else Assert.Equal(reporter, recalled.SourceAgentId);

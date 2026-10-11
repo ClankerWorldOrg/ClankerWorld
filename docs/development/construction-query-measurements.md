@@ -2,7 +2,7 @@
 title: Construction query measurements
 type: performance-report
 status: complete
-updated: 2026-10-05
+updated: 2026-10-11
 ---
 
 # Construction query measurements
@@ -96,12 +96,16 @@ focused checks pass, including tool stock, expansion and retained decisions.
 
 ## Repeat the comparison
 
-The archived [setup](construction-query-probe/setup.cs.txt),
+The [setup](construction-query-probe/setup.cs.txt),
 [replay](construction-query-probe/replay.cs.txt) and
 [state-change](construction-query-probe/changes.cs.txt) sources compile against
 the selected checkout's real Simulation project. The
 [runner](construction-query-probe/run.sh) writes only disposable synthetic
 checkpoints and reports. Use the pinned SDK and fresh output paths.
+The setup now filters Road-growth sites as described in
+[Measuring Town tick time](town-tick-measurements.md#what-the-fixture-controls).
+Use the previous source linked there to reproduce this historical report's
+exact probe digest; its recorded measurements are unchanged.
 
 ```sh
 # BASE_ROOT is a clean worktree at bfef85e8; FIXED_ROOT is this PR's checkout.

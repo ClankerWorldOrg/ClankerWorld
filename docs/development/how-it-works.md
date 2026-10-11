@@ -21,6 +21,27 @@ tests without Godot, a window manager, a live model or network access after
 dependencies are restored. Godot does not reference the simulation: it uses the
 host's versioned HTTP contract. Legacy web assets are diagnostic tools.
 
+## Derived identities
+
+`DerivedId` owns the 128 UTF-16-unit limit for identities assembled from other
+identities. A short complete value keeps its spelling; a longer value uses a
+SHA-256 digest of the complete value, retaining a bounded semantic prefix.
+Inventory splits, repeated milk sales, native births and family records,
+work reservations and receipts, memories and public Town record handles use
+this boundary. Separate source, owner and recipient fields retain their exact
+references. Names remain display text and do not become identifiers.
+
+The [derived-identity inventory](derived-identities.md) lists the native
+transition and production-factory matrices and their strict reload/recall
+checks.
+
+Numbered Town records keep their sequence suffix after hashing the complete
+long value. Strict validation recomputes the full handle from its original
+scope and counter; it does not search an unbounded sequence or trust a digest
+alone. Parsed action payloads retain their fields and existing model-facing
+aliases. Content package identifiers retain their import rules.
+
+
 ## Core rules
 
 - **The server commits world state.** Client requests, model replies, mods and
@@ -81,15 +102,34 @@ Provider invocation, pending turns, request Guids and provider-route checks
 stay in the runtime. Admission checks the route at the original point before
 publishing dialogue, listener beliefs or marriage effects.
 
-Shared read services will provide the event log, resident queries, named
-ground-occupancy layers and the separately planned goods query. Snapshot-keyed
+`Runtime/WorldEventLog.cs` owns the ordered world events, next event ID, history
+floor and archive head. Its hot list is exposed read-only and every append
+replaces its `Version` token. Restore copies the saved events into a separate
+log; committing a prepared tick transfers the log with one assignment. Event
+positions still use an explicit point first, then the longest matching living
+or deceased inhabitant ID prefix. The sink receives the current world per call
+and retains no coordinator reference.
+
+`Runtime/ResidentQueries.cs` supplies resident age, household, interaction,
+stock-position and urgent-need rules. Its live adapter supplies the current
+society, positions, distance, building storage and warmth calculation. The
+adapter stays on the coordinator across tick commits; physical queries are
+never cached. Named ground-occupancy layers remain a later refactor step; the
+goods query is described below. Snapshot-keyed
 derived values must be pure, unsaved and absent from digests. Immutable
 snapshots can pass through the trusted tick copy by reference; replacing a
 snapshot invalidates its derived values without letting a discarded tick
 change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
-`Runtime/Derived.cs` weakly caches a pure value by snapshot identity. Conversation
+The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
+`SocietyInhabitantIndex` uses the immutable inhabitant-list identity for an
+ordinal ID dictionary behind the existing `SocietyCheckpoint.GetInhabitant`
+method. Inventory-only snapshot changes can reuse the index; identity, age,
+name or household writes replace its key. Missing and duplicate IDs retain
+the linear query's `Single` behavior, and malformed inputs still pass through
+the existing validation. The index changes no checkpoint fields or ordering.
+Conversation
 lookup indexes each participant's earliest open session, preserving created-tick
 and ID ordering. A separate derived checkpoint view keeps the original ID-sorted
 conversations, budgets and marriage records. Trusted tick preparation shares
@@ -220,6 +260,11 @@ guard before selecting seeds.
 `SharedItem` uses Collect for household equipment, repair inputs and planting
 seeds, with the existing Warehouse fallback rechecked through the same use.
 `CollectEquipment` rechecks the selected lot immediately before its transfer.
+Garment and carry-aid choices use ReachableHoldings with their existing
+post-equipment capacity check, so replacing a carry aid can make room for
+the current cargo. They recheck before transferring or splitting the unit.
+Ornament wearing uses Collect and rechecks before taking or splitting one
+unit; household custody, storage and free-cargo guards remain additional filters.
 Animal-supply sources use Collect and recheck before pickup; care permission,
 feed reserves, product capacity, destination room and workstation surplus
 remain feature-specific filters. These are the first household pickup callers
@@ -1443,7 +1488,7 @@ correction marker, resolved from the owner's original ledger. A later correction
 marks the source corrected without changing the saved extract. Switching the
 helper off prevents new summaries but preserves existing recall. The summary
 event contains only owner and source count. Timing and usefulness remain
-provisional; see the [memory summary playtest](../../playtest/1312-memory-summaries.md).
+provisional; see the [memory summary playtest](../../playtest/alpha-1.md).
 
 Childhood talk, play and learning record owner-private experiences whose keys
 fit the same 128-character memory boundary used by recall and Jev scoring.
@@ -2344,7 +2389,7 @@ Runtime admission and saved records still require known households, affected
 parties and eligible recipients. Offered civic choices use the existing bounded
 household token; property records keep the full ID.
 Saved footprint rights and requests retain that same known household reference.
-A generated household party key longer than 256 characters uses a stable hash,
+A generated household party key uses the shared derived-identity limit and hashes the complete key when needed,
 while its separate household field keeps the complete identity.
 
 Hearing actions enter through admitted personal-model civic choices. Public
@@ -2454,7 +2499,7 @@ Land-hearing readers, evidence sources and submitters, judges, affected parties,
 personal stakes and live or historical election rosters keep their complete known
 saved agent identities, including later-generation adults born in the world.
 Person rosters retain canonical order and uniqueness without applying the
-256-character ledger-key limit to ancestry-based identities.
+derived-identity length limit to complete person references.
 The shared civic identity check rejects blank, padded and control-character
 identities; caller-owned evidence, record and authority keys and prose keep
 their existing bounds. Current-world identity, notice and authority checks
@@ -2690,10 +2735,17 @@ before checking placed buildings for it. Each later query reads current reservat
 again. See [household plan query measurements](household-plan-query-measurements.md)
 for native candidate/state equivalence, repeated timings and allocation results.
 Layout and shared route searches reuse the step legality just established by
-`FootNeighbors` when computing Road costs. Public step costs and movement still
+foot-neighbor enumeration when computing Road costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
+Layout foot-cost searches use a value-type neighbor enumerator instead of
+allocating the public iterator for each visited tile. Both paths keep the same
+offset order and suppress repeated coordinates on one- or two-column wrapped
+maps before checking legality. Each step reads current terrain and bridge axes;
+no neighbor result is cached between steps or searches.
+See [layout neighbor measurements](layout-neighbor-query-measurements.md)
+for profiling, native state-change comparisons, lower allocations and mixed timings.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
@@ -3263,7 +3315,7 @@ live reservations while preserving completed consumption receipts. Permission,
 active progress and closed receipts survive current-format save/reload; a
 paused world advances no treatment time. See [saves and replay](saves-and-replay.md).
 Automated checks cover this path; the
-[Windows playtest](../../playtest/565-clinic-care.md) is still pending.
+[Windows playtest](../../playtest/alpha-1.md) is still pending.
 
 Death archives the last physical state, frozen age and the Town the agent lived
 in, then removes the active actor. Existing personal inventory is frozen in
@@ -4412,7 +4464,8 @@ the vessel or its fresh contents.
 
 Each completed exchange derives the receiving milk lot's identity from its full
 source identity and the admitted sale. A later sale retains that complete
-inventory reference, including repeated-sale histories longer than 512
-characters. Checkpoint validation requires a unique, well-formed source reference
+inventory reference, including each earlier sale in its provenance chain. The new lot ID itself
+stays within the shared derived-identity limit. Checkpoint validation requires a unique, well-formed source reference
 and its exact known lot, ownership, vessel, physical site and held reservation;
-animal and offer identities keep their existing short-field limit.
+animal, herd and offer identities use that same shared limit; animal names
+keep their separate display-text bound.

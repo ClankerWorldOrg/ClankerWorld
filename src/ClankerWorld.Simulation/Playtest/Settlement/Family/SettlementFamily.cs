@@ -5,8 +5,7 @@ namespace ClankerWorld.Simulation.Playtest;
 
 public sealed partial class PrivateWorldRuntime
 {
-    private bool AdultResident(string actor) => inhabitants.ContainsKey(actor) &&
-        society.Checkpoint.GetInhabitant(actor).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+    private bool AdultResident(string actor) => ResidentQueries.AdultResident(residentWorld, actor);
 
     private IEnumerable<SocietyRelationship> Partnerships(string actor) => society.Checkpoint.Relationships.Where(item =>
         item.Type == SocietyRelationshipType.Partnership && (item.ProposerId == actor || item.TargetId == actor));
@@ -110,7 +109,7 @@ public sealed partial class PrivateWorldRuntime
         {
             if (CanProposePartnership(actor, target))
             {
-                var id = $"settlement-partnership:{actor}:{target}:{WorldTick}";
+                var id = SettlementPartnershipId(actor, target, WorldTick);
                 society.Apply(checkpoint => SocietyFixture.ProposeRelationship(checkpoint,
                     new(id, 1, SocietyRelationshipType.Partnership, actor, target, WorldTick, PrivacyClass: "public")));
                 AppendEvent("partnership_proposed", actor);

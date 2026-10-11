@@ -8,14 +8,15 @@ namespace ClankerWorld.Simulation.Playtest;
 
 public sealed partial class PrivateWorldRuntime
 {
-    private static string NonviolentToken(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
+    private static string NonviolentToken(string text) => DerivedId.Hash(text);
     private static string NonviolentReportToken(TownViolationAllegation report) => NonviolentToken(report.IncidentId + "|" + report.LawId + "|" + report.LawVersion.ToString(CultureInfo.InvariantCulture));
-    private static string NonviolentOfferToken(TownRemedyOffer offer) => offer.Id + ":" + offer.Revision.ToString(CultureInfo.InvariantCulture) + ":" + offer.TermsHash;
+    private static string NonviolentOfferToken(TownRemedyOffer offer) => DerivedId.Create(offer.Id + ":" + offer.Revision.ToString(CultureInfo.InvariantCulture) + ":" + offer.TermsHash);
     private static TownCaseRevision NonviolentRevision(TownViolationCase item) => item.Revisions[^1];
-    private static string NonviolentCaseToken(TownViolationCase item) => item.Id + ":" + NonviolentRevision(item).Number.ToString(CultureInfo.InvariantCulture);
+    private static string NonviolentCaseToken(TownViolationCase item) => DerivedId.Create(item.Id + ":" + NonviolentRevision(item).Number.ToString(CultureInfo.InvariantCulture));
 
-    private static string NonviolentActionToken(TownViolationCase item) => NonviolentCaseToken(item) + ":" +
-        TownHearingProcedure.Digest(new { item.Evidence, item.Responses, item.Findings, item.Judge, item.ReopenRequests });
+    private static string NonviolentActionToken(TownViolationCase item) => DerivedId.Create(item.Id + ":" +
+        NonviolentRevision(item).Number.ToString(CultureInfo.InvariantCulture) + ":" +
+        TownHearingProcedure.Digest(new { item.Evidence, item.Responses, item.Findings, item.Judge, item.ReopenRequests }));
 
     private TownCaseParty[] NonviolentParties(TownRuntimeState town, TownViolationCase item) =>
         TownNonviolentPartyRules.CurrentParties(town, item, society.Checkpoint, WorldTick);

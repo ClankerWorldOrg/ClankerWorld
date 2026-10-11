@@ -10,8 +10,7 @@ public sealed partial class PrivateWorldRuntime
 {
     private const int ChildSocialCooldownTicks = 120;
 
-    private bool ChildResident(string actor) => inhabitants.ContainsKey(actor) &&
-        society.Checkpoint.GetInhabitant(actor).AgeBand is SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
+    private bool ChildResident(string actor) => ResidentQueries.ChildResident(residentWorld, actor);
 
     // This is the final world-side gate, in addition to the legal candidate list
     // used by cognition admission. It also protects continuing intentions after
@@ -123,11 +122,9 @@ public sealed partial class PrivateWorldRuntime
             return;
         }
 
-        var memoryKey = $"child-social:{kind}:{actor}:{target}:{WorldTick}";
         // Keep short keys and cooldown prefixes; hash the complete identity when
         // ancestry makes it exceed the cognition memory boundary.
-        var memoryId = memoryKey.Length <= 128 ? memoryKey :
-            $"child-social:{kind}:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
+        var memoryId = ChildSocialMemoryId(kind, actor, target, WorldTick);
         society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint,
             new(memoryId, actor, target,
                 kind switch
