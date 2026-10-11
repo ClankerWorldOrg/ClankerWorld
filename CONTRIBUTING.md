@@ -154,10 +154,17 @@ steps.
   after merging ends one, so don't decide on your own clock that a claim has
   lapsed. Another session's claim is taken over only when the owner asks
   ([how](AGENTS.md#take-over-work-only-when-the-owner-asks)).
-- **One claim at a time.** A fixing session holds one issue claim, except for
-  combined work covered by one pull request or stack. A reviewing session holds
-  one review claim, except for a second while the first waits on CI or in the
-  merge queue. A session's subagents share its claims.
+- **The earliest claim wins.** Two sessions can claim the same issue or pull
+  request within seconds of each other. The earlier claim comment keeps it, and
+  the later session withdraws with a comment before doing any more work. A
+  later claim takes over only after a "Claim released" comment, a hand-back or
+  an owner request.
+- **One claim at a time.** A fixing session holds one issue claim, plus a
+  second while its first pull request is finished and only waits on CI, and
+  combined work covered by one pull request or stack counts as one. A
+  reviewing session holds one review claim, except for a second while the
+  first waits on CI or in the merge queue. A session's subagents share its
+  claims. Nobody works on an issue or pull request before claiming it.
 - **Only pushes keep a claim.** Every 30 minutes a workflow releases any claim
   with nothing pushed for 1.5 hours since its label was added or its last push.
   Comments, edits and other label changes do not count. Pushes to ready pull
@@ -165,6 +172,23 @@ steps.
   re-adding the label to restart the clock is not allowed. An issue claim waiting on the owner
   (`status:needs-decision` on the issue or its draft) is kept; a review claim
   is not.
+
+## Flaky tests
+
+A test that fails and then passes on the same code is flaky. When several
+sessions retry and diagnose the same flaky test at once, they waste hours, so
+each flaky test has one Bug issue and one owner.
+
+- Search open issues for the test's name first. If one exists, add the failed
+  run's link to it and re-run the job or add the pull request to the queue
+  again. Don't investigate it unless you claim that issue.
+- If none exists, re-run the failed job once. If it passes, file a P1 Bug titled
+  `Flaky: <test name>` with both runs, so the next session finds it.
+- Whoever claims the issue owns the diagnosis and the fix, in its own pull
+  request. Never push a fix for a flaky test into an unrelated pull request,
+  including one you are reviewing.
+- When several flaky tests share one cause, fix the cause once and close their
+  issues together.
 
 ## Pull requests
 
