@@ -285,6 +285,23 @@ public sealed partial class PrivateWorldRuntime
                 (protectedToolIds ?? []).Concat(harvestToolId is null ? [] : new[] { harvestToolId }).ToArray()));
     }
 
+    private List<InputCollectionStep>? ToolRepairCollectionInputs(string actor, IReadOnlyList<ContentQuantity> materials)
+    {
+        var inputs = new List<InputCollectionStep>();
+        foreach (var input in materials)
+        {
+            if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;
+            if (SharedPreparationItem(input.ResourceId, actor) is { } stock)
+                inputs.Add(StockCollectionStep(stock, input.Amount));
+            else if (MaterialSource(input.ResourceId, actor) is { } source &&
+                ProjectMaterialHarvest(actor, input.ResourceId, source) is { } harvest)
+                inputs.Add(new(input.ResourceId, source.Position, ResourceInteractionRange,
+                    checked(harvest.Quantity + harvest.TreeSeedQuantity), Harvest: source));
+            else return null;
+        }
+        return inputs;
+    }
+
     private string? RepairTool(string actor, PlaytestInhabitantState state, string lotId,
         IReadOnlyList<string>? protectedToolIds = null)
     {
@@ -300,6 +317,23 @@ public sealed partial class PrivateWorldRuntime
             return null;
 
         var materialNeeds = ToolProgressionRules.RepairMaterials(tool.ItemKind);
+        var collectionInputs = ToolRepairCollectionInputs(actor, materialNeeds);
+        if (collectionInputs is not null && collectionInputs.Sum(input => input.CarryUnits) <= FreeCarryCapacity(actor))
+        {
+            var collection = PlanInputCollection(actor, collectionInputs, blacksmith.Position);
+            if (collection is null) return null;
+            if (collection.Count > 0)
+            {
+                var input = collection[0];
+                if (input.Stock is { } stock)
+                    CollectEquipment(actor, state, input.Kind, blacksmith.Position, plannedLotId: stock.Id);
+                else if (input.Harvest is { } source)
+                    GatherProjectMaterial(actor, state, input.Kind, source, returnTo: blacksmith.Position);
+                return null;
+            }
+        }
+        // Preserve the native cargo-storage and gathering-tool preparation path
+        // when a complete pickup plan cannot yet be formed for lack of room/tools.
         foreach (var input in materialNeeds)
         {
             if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;

@@ -331,10 +331,11 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private void CollectEquipment(string actor, PlaytestInhabitantState person, string kind,
-        GridPoint? returnTo = null, int returnRange = 0)
+        GridPoint? returnTo = null, int returnRange = 0, string? plannedLotId = null)
     {
         if (FreeCarryCapacity(actor) <= 0 || HasCarriedEquipmentAtLeast(actor, kind) ||
-            SharedItem(kind, actor, returnTo, returnRange) is not { ContainerLotId: null } item)
+            SharedItem(kind, actor, returnTo, returnRange) is not { ContainerLotId: null } item ||
+            plannedLotId is not null && item.Id != plannedLotId)
         {
             return;
         }

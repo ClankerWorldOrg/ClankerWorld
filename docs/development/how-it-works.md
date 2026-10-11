@@ -1804,6 +1804,15 @@ projected from the actual water position, and the map alternates existing approv
 **Swimming** beside the agent. No sprite atlas or saved movement-mode field
 changes.
 
+Book writing, selected-cart repair and tool repair plan their remaining
+material pickups as a sequence. A transient search tries the existing input
+order first, then the other orders, checking each actual interaction point
+with the cumulative physical load. Cart and tool repairs also check the final
+trip to the cart or Blacksmith; writing can begin at the last pickup. The next
+action resolves its source and permission again. Tool repair retains its
+ordinary spare-cargo storage and gathering-tool preparation when those are
+needed before a complete collection plan can be formed. No plan is saved.
+
 Checkpoint map acceptance keeps a weak, derived camp-reachability cache for
 each map's current starting point. Before reuse it compares actual terrain,
 water, elevation, surface, wrapping and bridge-axis data with an owned topology
