@@ -31,9 +31,28 @@ that historical check does not verify every later build.
 
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
+
+The held quantified-harvest fixture captures the actor's exact outstanding
+hosted request and task. After one native harvest finishes, it releases the
+provider and waits for that task to complete before the admission tick. A
+provider's response-construction signal can precede task completion. A private
+deferred-return row holds this boundary explicitly; complete checkpoint bytes
+stay unchanged during each wait. Thirty-second phase deadlines diagnose a
+stalled request without polling native ticks. The check retains one harvest,
+unchanged completion units, the actual late reply and strict checkpoint reload.
+
 Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
+
+The held collection-cancellation check keeps the first collected load fixed
+while waiting for actual provider invocation, the validated operative request
+and the constructed late reply. Its deferred-entry case opens a preparation
+gate only after checking that first frame. Each signal has a thirty-second
+diagnostic deadline; advancing ticks to poll it could collect another load
+before cancellation. The check retains real request and order identity,
+exact saved bytes while waiting, one collection event, the untouched second
+load and strict checkpoint reload after cancellation.
 
 The retained-guidance farming and held repair-cancellation fixtures wait for
 the provider's start signal by polling the native nonblocking tick path. A
@@ -54,6 +73,15 @@ with a kept identity in the other. The child household-change fixture awaits all
 four queues without advancing another tick, retaining complete checkpoint bytes,
 strict file reload, cargo and refused-arrival checks. Its controlled identity
 check holds a real provider request to verify that the fixture waits at this boundary.
+
+The held storage-cancellation check keeps the world at its first committed
+load while waiting for actual provider invocation, the validated operative
+request and the late reply. Its deferred-entry row holds provider preparation
+until that first frame is checked and the test opens the entry gate. Each
+signal has a thirty-second diagnostic deadline. Advancing native ticks during
+this wait could store another load before cancellation, because chosen work
+continues while a model waits. The check retains one stored load, the untouched
+second load and exact checkpoint reload after releasing the cancelled reply.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
