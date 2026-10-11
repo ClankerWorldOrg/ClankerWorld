@@ -83,6 +83,18 @@ owns conversations, daily budgets and marriages in one immutable
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
 
+`Civic/CivicSystem.cs` owns the settlement council and each Town's governance,
+government and nonviolent-law snapshots in one immutable `CivicState`. The
+coordinator keeps the full Town checkpoint views, including land and membership;
+its central Town write imports civic changes, and checkpoint capture projects
+the system's civic snapshots onto those views. A prepared tick commits the
+system with one assignment. Civic operations receive the current world through
+an adapter on each call, and the adapter stays on the committed coordinator.
+The civic-history index uses `Derived` with the immutable governance snapshot
+as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
+copies; replacing governance invalidates the lookup. Physical needs, positions,
+inventory availability and remedy admission remain current-world queries.
+
 A system owns its saved state, its rules and a small `I…World` interface for
 the services it needs from other areas. Saved state is an immutable record
 replaced on writes; a hot mutable collection instead replaces a `Version`

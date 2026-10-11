@@ -66,6 +66,7 @@ public sealed partial class PrivateWorldRuntime
             SetTown(other with { ResidentIds = other.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
         town = town with { ResidentIds = group };
         towns.Add(town);
+        civicSystem.SetTownState(town);
         checkpointSchemaVersion = StateSchemaVersion;
         townLandTitles.AddRange(TownLandRightsRules.InitialTitles(map, town, WorldTick));
         townLandTitles = townLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList();
