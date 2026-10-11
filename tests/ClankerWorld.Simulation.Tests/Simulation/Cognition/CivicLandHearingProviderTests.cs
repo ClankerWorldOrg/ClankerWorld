@@ -55,6 +55,36 @@ public sealed class CivicLandHearingProviderTests
     }
 
     [Theory]
+    [InlineData("payment_item_kind", 512, true)]
+    [InlineData("payment_item_kind", 513, false)]
+    [InlineData("evidence_ids", 257, false)]
+    [InlineData("law_ids", 257, false)]
+    public async Task ProviderJsonUsesTheContentLimitForGoodsAndRetainsTheEvidenceLimit(string field, int length, bool valid)
+    {
+        var value = new string('x', length);
+        var payload = new Dictionary<string, object> { [field] = field == "payment_item_kind" ? value : new[] { value } };
+        if (field == "payment_item_kind") payload["payment_quantity"] = 1;
+        using var handler = new ReplyHandler(JsonSerializer.Serialize(payload));
+        using var client = new HttpClient(handler);
+        var runtime = new CognitionRuntime("actor", Provider(client));
+        var admission = await runtime.RequestAndDecideAsync(Observation());
+        Assert.True(admission.Accepted);
+        Assert.Equal(!valid, admission.FellBack);
+        if (valid)
+        {
+            var price = Assert.IsType<CognitionLandHearingChoice>(admission.CivicLandHearing);
+            Assert.Equal(value, price.PaymentItemKind);
+            Assert.Equal(1, price.PaymentQuantity);
+        }
+        else
+        {
+            Assert.Equal("safe_idle", admission.Intention!.CandidateId);
+            Assert.Null(admission.CivicLandHearing);
+        }
+        Assert.Equal(1, handler.Attempts);
+    }
+
+    [Theory]
     [InlineData("{\"payment_item_kind\":\"wood\"}")]
     [InlineData("{\"payment_quantity\":2}")]
     [InlineData("{\"payment_item_kind\":\"wood\",\"payment_quantity\":0}")]
