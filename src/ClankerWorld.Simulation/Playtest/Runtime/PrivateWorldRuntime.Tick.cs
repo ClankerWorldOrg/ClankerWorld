@@ -149,7 +149,9 @@ public sealed partial class PrivateWorldRuntime
                 {
                     var result = await proposed.AdvancePreparedTickAsync(deferHosted, completed, activeHostedIds, completedWills,
                         activeWillIds, inactiveWillReasons, completedConversationTurns, cancellationToken).ConfigureAwait(false);
+                    tickTimer.Stop();
                     await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    tickTimer.Start();
                     var gateHeld = true;
                     try
                     {
@@ -168,7 +170,9 @@ public sealed partial class PrivateWorldRuntime
                                     throw new InvalidOperationException("A child model selection must belong to a child born in the committed tick.");
                                 proposed.ApplyChildModelSelection(prepared.ChildId, prepared.Selection);
                             }
+                            tickTimer.Stop();
                             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                            tickTimer.Start();
                             gateHeld = true;
                             cancellationToken.ThrowIfCancellationRequested();
                             if (Interrupted() is { } changed) return new(proposed, changed, null);
@@ -180,10 +184,14 @@ public sealed partial class PrivateWorldRuntime
                             proposed.ProcessWillDecisions(completedWills, activeWillIds, inactiveWillReasons, IsWillDecisionProviderCurrent);
                         if (refusal is not null)
                         {
-                            if (proposed.attemptedActions?.GetValueOrDefault(refusal.InhabitantId) != refusal.CandidateId)
+                            if (replayRefusal is not null &&
+                                proposed.attemptedActions?.GetValueOrDefault(refusal.InhabitantId) != refusal.CandidateId &&
+                                !proposed.IsReplayChoice(refusal.InhabitantId, refusal.CandidateId))
                                 throw new InvalidDataException("The refused choice does not match this actor's action.");
                             proposed.RecordActionRefusal(refusal);
                         }
+                        gate.Release();
+                        gateHeld = false;
                         return new(proposed, result, prepareCheckpoint?.Invoke(proposed));
                     }
                     finally { if (gateHeld) gate.Release(); }
@@ -247,7 +255,9 @@ public sealed partial class PrivateWorldRuntime
             {
                 var proposed = preparedTick.Runtime;
                 var result = preparedTick.Result;
+                tickTimer.Stop();
                 await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                tickTimer.Start();
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -262,53 +272,55 @@ public sealed partial class PrivateWorldRuntime
                         // The valid advanced world is retained for the existing paused write retry.
                         writeFailure = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception);
                     }
+                    tickTimer.Start();
                     CommitPreparedTick(proposed);
-                plannedRoutes = proposed.plannedRoutes;
-                lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
-                foreach (var item in completedIdentityMoments)
-                {
-                    pendingIdentityMoments.Remove(item.Request.Observation.InhabitantId);
-                    item.Cancellation.Dispose();
-                }
-                if (deferHosted)
-                {
-                    foreach (var id in pendingWills.Keys.Where(id =>
-                                 society.Checkpoint.Estates.All(estate => estate.Id != id || estate.WillStatus != "pending"))
-                             .ToArray())
-                        CancelPendingWill(id);
-                    foreach (var item in completed)
+                    plannedRoutes = proposed.plannedRoutes;
+                    tickTimer.Stop();
+                    lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
+                    foreach (var item in completedIdentityMoments)
                     {
-                        pendingHosted.Remove(item.Request.Observation.InhabitantId);
+                        pendingIdentityMoments.Remove(item.Request.Observation.InhabitantId);
                         item.Cancellation.Dispose();
                     }
-                    foreach (var item in completedWills)
+                    if (deferHosted)
                     {
-                        pendingWills.Remove(item.EstateId);
-                        item.Cancellation.Dispose();
+                        foreach (var id in pendingWills.Keys.Where(id =>
+                                     society.Checkpoint.Estates.All(estate => estate.Id != id || estate.WillStatus != "pending"))
+                                 .ToArray())
+                            CancelPendingWill(id);
+                        foreach (var item in completed)
+                        {
+                            pendingHosted.Remove(item.Request.Observation.InhabitantId);
+                            item.Cancellation.Dispose();
+                        }
+                        foreach (var item in completedWills)
+                        {
+                            pendingWills.Remove(item.EstateId);
+                            item.Cancellation.Dispose();
+                        }
+                        foreach (var item in completedConversationTurns)
+                        {
+                            pendingConversationTurns.Remove(item.Request.ConversationId);
+                            item.Cancellation.Dispose();
+                        }
+                        CancelNoLongerAwaitingConversationTurns();
+                        foreach (var id in inactiveWillReasons.Keys)
+                            pendingWillCancellationReasons.Remove(id);
+                        if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartWillDecisions();
+                        if (writeFailure is null && (commitPermitted is null || commitPermitted()))
+                            StartHostedDecisions(completed.Select(item => item.Request.Observation.InhabitantId));
                     }
-                    foreach (var item in completedConversationTurns)
+                    else
                     {
-                        pendingConversationTurns.Remove(item.Request.ConversationId);
-                        item.Cancellation.Dispose();
+                        foreach (var item in completedConversationTurns)
+                        {
+                            pendingConversationTurns.Remove(item.Request.ConversationId);
+                            item.Cancellation.Dispose();
+                        }
+                        CancelNoLongerAwaitingConversationTurns();
                     }
-                    CancelNoLongerAwaitingConversationTurns();
-                    foreach (var id in inactiveWillReasons.Keys)
-                        pendingWillCancellationReasons.Remove(id);
-                    if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartWillDecisions();
-                    if (writeFailure is null && (commitPermitted is null || commitPermitted()))
-                        StartHostedDecisions(completed.Select(item => item.Request.Observation.InhabitantId));
-                }
-                else
-                {
-                    foreach (var item in completedConversationTurns)
-                    {
-                        pendingConversationTurns.Remove(item.Request.ConversationId);
-                        item.Cancellation.Dispose();
-                    }
-                    CancelNoLongerAwaitingConversationTurns();
-                }
-                if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartConversationTurns();
-                if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartIdentityMoments();
+                    if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartConversationTurns();
+                    if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartIdentityMoments();
                     writeFailure?.Throw();
                     return result with { Events = events.Where(item => item.EventId >= baselineEventId).ToArray() };
                 }

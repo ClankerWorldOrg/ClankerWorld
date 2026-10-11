@@ -234,6 +234,7 @@ public sealed partial class PrivateWorldRuntime
         var order = instruction.Order!;
         SetOrderStatus(instruction, "doing", null, waitForDecision: false);
         var actor = instruction.TargetInhabitantId;
+        RecordAttemptedAction(actor, candidate.Id);
         if (candidate.Id != "explore" && person.Exploration?.Goal?.OrderInstructionId == instruction.InstructionId)
             person = CompleteExplorationGoal(actor, person);
         // An order step interrupts timed repair work, as any other chosen action does.

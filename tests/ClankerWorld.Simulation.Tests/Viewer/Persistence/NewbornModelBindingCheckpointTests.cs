@@ -17,13 +17,16 @@ public sealed class NewbornModelBindingCheckpointTests
     private static readonly ConcurrentDictionary<(int SeedSuffix, bool SeedIdentified), Lazy<Task<byte[]>>> Prepared = new();
 
     [Theory]
-    [InlineData(9, false, true)]
-    [InlineData(78, false, true)]
-    [InlineData(9, true, true)]
-    [InlineData(78, true, true)]
-    [InlineData(9, false, false)]
-    [InlineData(9, true, false)]
-    public async Task ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds(int seedSuffix, bool delayBinding, bool seedIdentified)
+    [InlineData(9, false, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(78, false, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, true, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(78, true, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, false, false, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, true, false, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, false, true, PrivateWorldTickFailurePolicy.RefuseSingleAction)]
+    [InlineData(9, true, true, PrivateWorldTickFailurePolicy.RefuseSingleAction)]
+    public async Task ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds(int seedSuffix, bool delayBinding,
+        bool seedIdentified, PrivateWorldTickFailurePolicy failurePolicy)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await Prepared.GetOrAdd((seedSuffix, seedIdentified),
             fixture => new(() => BeforeBirth(fixture.SeedSuffix, fixture.SeedIdentified))).Value);
@@ -48,7 +51,7 @@ public sealed class NewbornModelBindingCheckpointTests
                 Directory.Move(providerDirectory, providerDirectory + ".held");
                 File.WriteAllText(providerDirectory, "controlled provider storage failure");
             }
-            using (var service = new PrivateWorldRuntimeService(world, file, presence, logger, providers: providers))
+            using (var service = new PrivateWorldRuntimeService(world, file, presence, logger, providers: providers, failurePolicy: failurePolicy))
             {
                 var advanced = await service.TryAdvanceOnceAsync();
                 if (delayBinding)
@@ -85,7 +88,7 @@ public sealed class NewbornModelBindingCheckpointTests
             using var restarted = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(saved), Providers);
             Assert.Equal(saved, PrivateWorldRuntimeCodec.Encode(restarted.ExportState()));
             var reopened = new ProviderConfigurationStore(providerPath, EmptySeed());
-            using var restartedService = new PrivateWorldRuntimeService(restarted, file, presence, logger, providers: reopened);
+            using var restartedService = new PrivateWorldRuntimeService(restarted, file, presence, logger, providers: reopened, failurePolicy: failurePolicy);
             restarted.Resume();
             Assert.True(await restartedService.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
             AssertBound(reopened, childId);

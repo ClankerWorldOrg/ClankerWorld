@@ -231,6 +231,7 @@ public sealed partial class PrivateWorldRuntime
     {
         var person = inhabitants[actor];
         if (person.Equipment?.Repair is not { } repair) return null;
+        RecordAttemptedAction(actor, "repair_equipment");
         if (!CanContinueEquipmentRepair(actor) ||
             worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == repair.BuildingId) is not { } site ||
             site.HouseholdId != HouseholdFor(actor) || person.Position != site.Position ||

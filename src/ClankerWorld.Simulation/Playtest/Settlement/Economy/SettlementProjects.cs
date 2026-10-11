@@ -513,6 +513,7 @@ public sealed partial class PrivateWorldRuntime
     private void ContinueProject(string inhabitantId, PlaytestInhabitantState state)
     {
         var project = state.Project!;
+        RecordAttemptedAction(inhabitantId, project.CandidateId);
         if (project.JobId is not null)
         {
             var job = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])

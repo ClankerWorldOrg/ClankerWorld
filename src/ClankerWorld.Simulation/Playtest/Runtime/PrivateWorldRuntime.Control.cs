@@ -322,7 +322,9 @@ public sealed partial class PrivateWorldRuntime
         {
             Order = instruction.Order! with
             {
-                Status = "cancelled", BlockedReason = reason, WaitForDecisionAfterFailure = false,
+                Status = "cancelled",
+                BlockedReason = reason,
+                WaitForDecisionAfterFailure = false,
             },
         };
         completedInstructionIds.Add(instruction.InstructionId);

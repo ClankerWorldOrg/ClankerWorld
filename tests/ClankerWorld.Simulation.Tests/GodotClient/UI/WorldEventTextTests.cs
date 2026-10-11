@@ -14,7 +14,9 @@ public sealed class WorldEventTextTests
     {
         var detail = System.Text.Json.JsonSerializer.Serialize(new
         {
-            InhabitantId = ChildId, CandidateId = "milk_sale_offer:private-payload:/secret/path", Check = "HiddenDiagnostic.Check",
+            InhabitantId = ChildId,
+            CandidateId = "milk_sale_offer:private-payload:/secret/path",
+            Check = "HiddenDiagnostic.Check",
         });
         var worldEvent = new OwnerWorldEvent(1, 1, "action_refused", detail);
         Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));

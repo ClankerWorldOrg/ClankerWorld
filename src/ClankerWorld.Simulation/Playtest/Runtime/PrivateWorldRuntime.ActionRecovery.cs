@@ -17,6 +17,22 @@ public sealed partial class PrivateWorldRuntime
     private List<PrivateWorldActionRefusal> actionRefusals = [];
     private long refusedActionCount;
 
+    private void RecordAttemptedAction(string actor, string candidate)
+    {
+        if (attemptedActions is not null) attemptedActions[actor] = candidate;
+    }
+
+    private bool IsReplayChoice(string actor, string candidate)
+    {
+        var person = inhabitants[actor];
+        return CreateUnfilteredCandidates(actor, person, restrictForOrder: true).Any(choice => choice.Id == candidate) ||
+            person.Project?.CandidateId == candidate ||
+            FarmWorkFor(actor) is { Work: { } work } field && FarmCandidate(work.Kind, field.Position, work.Crop) == candidate ||
+            person.Equipment?.Repair is not null && candidate == "repair_equipment" ||
+            person.Lesson is { Stage: "accepted" or "training" } && candidate == "lesson_attend" ||
+            ActiveStudent(actor) is { } student && candidate == "lesson_teach:" + student.InhabitantId;
+    }
+
     private bool IsRefusedAction(string id, string candidate) => candidate != "safe_idle" &&
         actionRefusals.Any(refusal => refusal.InhabitantId == id && refusal.CandidateId == candidate && WorldTick < refusal.RetryAfterTick);
 
@@ -24,10 +40,12 @@ public sealed partial class PrivateWorldRuntime
     {
         if (PendingInstructionFor(refusal.InhabitantId) is { } order)
             CancelActiveOrder(order, "game_error", "Cancelled because this choice caused a game error.");
-        if (FarmWorkFor(refusal.InhabitantId) is { } field) CancelFarmWork(field);
-        if (inhabitants[refusal.InhabitantId].Equipment?.Repair is not null)
+        if (FarmWorkFor(refusal.InhabitantId) is { Work: { } work } field &&
+            FarmCandidate(work.Kind, field.Position, work.Crop) == refusal.CandidateId) CancelFarmWork(field);
+        if (inhabitants[refusal.InhabitantId].Equipment?.Repair is not null && refusal.CandidateId == "repair_equipment")
             CancelEquipmentRepair(refusal.InhabitantId);
-        if (inhabitants[refusal.InhabitantId].Project is { Stage: not ("completed" or "cancelled") } project)
+        if (inhabitants[refusal.InhabitantId].Project is { Stage: not ("completed" or "cancelled") } project &&
+            project.CandidateId == refusal.CandidateId)
         {
             CancelProductionJobs(worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
                 .Where(job => job.JobId == project.JobId && job.WorkerId == refusal.InhabitantId &&
@@ -35,11 +53,16 @@ public sealed partial class PrivateWorldRuntime
                 .ToArray(), "production_action_refused");
             SetProject(refusal.InhabitantId, project with
             {
-                Stage = "cancelled", RequiresFreshChoice = false, Blocker = "This choice caused a game error.",
+                Stage = "cancelled",
+                RequiresFreshChoice = false,
+                Blocker = "This choice caused a game error.",
             });
         }
-        if (inhabitants[refusal.InhabitantId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson)
+        if (inhabitants[refusal.InhabitantId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson &&
+            refusal.CandidateId == "lesson_attend")
             SetLesson(refusal.InhabitantId, lesson with { Stage = "cancelled" });
+        if (ActiveStudent(refusal.InhabitantId) is { } student && refusal.CandidateId == "lesson_teach:" + student.InhabitantId)
+            SetLesson(student.InhabitantId, student.Lesson! with { Stage = "cancelled" });
         society.ClearCurrentIntention(refusal.InhabitantId, WorldTick);
         actionRefusals.RemoveAll(item => item.InhabitantId == refusal.InhabitantId && item.CandidateId == refusal.CandidateId);
         actionRefusals.Add(refusal);
@@ -74,6 +97,7 @@ public sealed partial class PrivateWorldRuntime
                     item.Detail != JsonSerializer.Serialize(refusal) || !identities.Contains(refusal.InhabitantId) ||
                     string.IsNullOrWhiteSpace(refusal.CandidateId) || refusal.CandidateId == "safe_idle" ||
                     refusal.CandidateId.Any(char.IsControl) || refusal.RefusedTick < 1 ||
+                    refusal.RetryAfterTick <= refusal.RefusedTick ||
                     refusal.RetryAfterTick - refusal.RefusedTick != state.WorldSystems!.Config.TicksPerDay ||
                     string.IsNullOrEmpty(refusal.Check) || refusal.Check.Length > 96 ||
                     refusal.Check.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '.')))
@@ -83,6 +107,8 @@ public sealed partial class PrivateWorldRuntime
             catch (JsonException exception) { throw new InvalidDataException("The saved action-refusal event is invalid.", exception); }
         }).ToArray();
         if (state.RefusedActionCount < recorded.Length || state.EventHistoryFloor == 0 && state.RefusedActionCount != recorded.Length ||
+            recorded.Select(refusal => refusal.RefusedTick).Distinct().Count() != recorded.Length ||
+            recorded.Any(refusal => refusal.RetryAfterTick > state.Society.Society.WorldTick && !state.ActionRefusals.Contains(refusal)) ||
             state.ActionRefusals.Any(refusal => state.Events.Count > 0 && refusal.RefusedTick >= state.Events[0].WorldTick &&
                 !recorded.Contains(refusal)))
             throw new InvalidDataException("The saved action refusals do not match their accepted events.");
@@ -144,7 +170,7 @@ public sealed partial class PrivateWorldRuntime
             }
             return provider;
         }
-        public bool IsCurrent => providers.Values.All(provider => provider.IsCurrent);
+        public bool IsCurrent => providers.All(pair => pair.Value.IsCurrent(factory?.Invoke(pair.Key)));
         public void StopRecording()
         {
             recording = false;
@@ -157,7 +183,8 @@ public sealed partial class PrivateWorldRuntime
     {
         private readonly long epoch = inner.ProviderEpoch;
         private readonly Dictionary<string, (CognitionDecisionResponse? Response, ExceptionDispatchInfo? Failure)> replies = new(StringComparer.Ordinal);
-        public bool IsCurrent => inner.ProviderEpoch == epoch;
+        public bool IsCurrent(IDecisionProvider? current) => inner.ProviderEpoch == epoch &&
+            (current is null || current.ProviderEpoch == epoch);
         public DecisionProviderKind Kind => inner.Kind;
         public long ProviderEpoch => recording() ? epoch : inner.ProviderEpoch;
         public DecisionProviderKind KindFor(InhabitantObservation observation) => inner.KindFor(observation);
