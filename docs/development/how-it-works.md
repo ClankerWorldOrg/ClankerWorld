@@ -4220,6 +4220,11 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## World-list requests
 
+Select World refuses an empty, missing or whitespace-only catalog ID with HTTP
+400 before authorization or mutation, using the same required-payload guard as
+the manual-save endpoints. Nonempty selections still require the signed owner
+request and the existing private-world, compatibility and restore checks.
+
 The private host can retain an untouched, nongenerated bootstrap checkpoint
 before the player creates a world. Its founder observation reports
 `requiresWorldCreation`; this is derived from the saved state, independent of
