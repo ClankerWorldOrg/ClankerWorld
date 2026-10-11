@@ -19,11 +19,13 @@ route and input-query costs remain above its rough 200 ms guidance.
 
 Baseline is main `14715cc3e04ef69cf8e486e09b4df2820b78ab06`, schema 101.
 Only `TownLayoutService.cs` differs among 298 recorded runtime inputs.
-[Raw samples and metadata](footprint-query-probe/samples.json) retain the exact
-before/after source hashes, probe and checkpoint hashes, ordinary samples,
-allocation deltas, profile samples and capture comparison manifest. The measured
-optimized sources were uncommitted changes on that baseline; their hashes
-identify the actual measured code. No persistent cache or saved field is added.
+Raw samples and metadata retain the exact before/after source hashes, probe and
+checkpoint hashes, ordinary samples, allocation deltas, profile samples and
+capture comparison manifest. They are in git history at commit `0bb293ab` as
+`docs/development/footprint-query-probe/samples.json`, and the steps under
+Repeat the comparison rerun the measurement. The measured optimized sources
+were uncommitted changes on that baseline; their hashes identify the actual
+measured code. No persistent cache or saved field is added.
 
 Fresh generated Small geography uses `town-project-real-donation`. Its Market
 is Council-approved, supplied and constructed through native actions. Additional
@@ -101,8 +103,8 @@ The dense measured-phase profiles preserve their complete candidate, admission
 and final-state captures too. In total, 57 full before/after files agree; the
 manifest records each size and SHA-256. Full synthetic checkpoints, captures,
 logs, TRX and traces remain in `.evidence/keep/current-layout-998-oct8/` locally.
-The repository retains numeric data, hashes and runnable sources; the large
-checkpoint/capture files and traces are not committed.
+The repository retains runnable sources, and its git history the numeric data
+and hashes; the large checkpoint/capture files and traces are not committed.
 
 A focused public-layout case checks a custom footprint that omits the blocked
 origin, refusal when its covered tile is occupied, a permitted Road origin,
@@ -126,7 +128,7 @@ and are excluded from ordinary timing comparisons.
 For this historical comparison, use two clean worktrees at
 `14715cc3e04ef69cf8e486e09b4df2820b78ab06` (schema 101). Apply only the
 `TownLayoutService.cs` change measured here to the optimized worktree; the
-source hashes in [the manifest](footprint-query-probe/samples.json) identify
+source hashes in the manifest, kept with the raw samples named above, identify
 both versions. Do not replay these checkpoints against the full PR or current
 main: their newer minimum schemas reject schema 101. A current-main experiment
 needs freshly generated checkpoints shared by two variants of that same
