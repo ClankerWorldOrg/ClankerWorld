@@ -30,23 +30,14 @@ public sealed partial class PrivateWorldRuntime
     /// <summary>Physical occupancy that even an existing Road cannot cut diagonally past.</summary>
     private HashSet<GridPoint> RoadOccupiedTiles()
     {
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
-        return map.Resources.Select(item => item.Position)
-            .Concat(fields.Select(field => field.Position))
-            .Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(worldSimulation.Buildings.SelectMany(building =>
-                WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building)))
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused).SelectMany(ExpansionTiles))
-            .Concat(TownProjectFootprintTiles())
-            .Concat(towns.SelectMany(town => town.Markets).Where(market => market.RemovedTick is null)
-                .SelectMany(market => Enumerable.Range(0, MarketContent.MaximumStalls)
-                    .Select(slot => MarketContent.StallSite(market.Site, slot))))
-            .ToHashSet();
+        var ground = Ground;
+        return GroundOccupancy.Combine(ground.Resources, ground.Fields, ground.CampObjects,
+            ground.BuildingFootprints, ground.ExpansionSites, ground.ProjectFootprints(), ground.MarketStallSlots);
     }
 
     /// <summary>Road tiles and bridge entrances, which buildings and new resources must leave clear.</summary>
     private IEnumerable<GridPoint> RoadAndBridgeTiles() =>
-        roadTiles.Concat(bridges.SelectMany(item => item.Entrances));
+        Ground.RoadsAndBridgeEntrances;
 
     /// <summary>
     /// Saves already-validated Road bridges, together with the Road tiles the
@@ -64,7 +55,6 @@ public sealed partial class PrivateWorldRuntime
             bridgeTraffic = BridgeTrafficRules.Forget(bridgeTraffic, bridge.Id);
         }
         ApplyBridgeDecks();
-        checkpointSchemaVersion = StateSchemaVersion;
         foreach (var bridge in built)
             AppendEvent("bridge_built", $"{BridgeTriggers.Road}:{bridge.Id}:{routeId}");
     }
@@ -77,7 +67,6 @@ public sealed partial class PrivateWorldRuntime
             next.InProgress.SequenceEqual(bridgeTraffic.InProgress) && next.Completed.SequenceEqual(bridgeTraffic.Completed))
             return;
         bridgeTraffic = next;
-        checkpointSchemaVersion = StateSchemaVersion;
     }
 
     /// <summary>
@@ -94,7 +83,6 @@ public sealed partial class PrivateWorldRuntime
         if (!ReferenceEquals(pruned, bridgeTraffic))
         {
             bridgeTraffic = pruned;
-            checkpointSchemaVersion = StateSchemaVersion;
         }
         var ready = BridgeTrafficRules.ReadyCrossings(bridgeTraffic);
         if (ready.Count == 0) return;
@@ -102,7 +90,6 @@ public sealed partial class PrivateWorldRuntime
         foreach (var id in ready)
         {
             bridgeTraffic = BridgeTrafficRules.Forget(bridgeTraffic, id);
-            checkpointSchemaVersion = StateSchemaVersion;
             if (!RiverBridgeRules.TryResolve(map, id, out var crossing)) continue;
             if (crossing!.Entrances.Any(blocked.Contains))
             {
@@ -131,14 +118,8 @@ public sealed partial class PrivateWorldRuntime
         IEnumerable<PlaytestInhabitantState> inhabitants)
     {
         RiverBridgeRules.ValidateSaved(savedBridges, map, roads, society.WorldTick);
-        var definitions = content.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
-        var blocked = map.Resources.Select(item => item.Position)
-            .Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(simulation.Buildings.SelectMany(building =>
-                definitions.TryGetValue(building.DefinitionId, out var definition)
-                    ? WorldContentSimulationRules.Footprint(definition, building.Position)
-                    : throw new InvalidDataException("A placed building has no active definition.")))
-            .ToHashSet();
+        var ground = new GroundOccupancy(map, content, simulation);
+        var blocked = GroundOccupancy.Combine(ground.Resources, ground.CampObjects, ground.OriginalBuildingFootprints);
         if (savedBridges.Any(bridge => bridge.Entrances.Any(blocked.Contains)))
             throw new InvalidDataException("A saved bridge lands on a building, resource or camp object.");
         BridgeTrafficRules.Validate(traffic, map, society.WorldTick, society.Config.TicksPerWorldDay,

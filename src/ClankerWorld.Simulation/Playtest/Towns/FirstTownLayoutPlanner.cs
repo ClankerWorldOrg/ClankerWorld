@@ -45,8 +45,7 @@ public static class FirstTownLayoutPlanner
     {
         ArgumentNullException.ThrowIfNull(map);
         if (!map.IsBuildable(roughSite)) return null;
-        var blocked = map.CampObjects.Select(item => item.Position)
-            .Concat(map.Resources.Select(item => item.Position)).ToHashSet();
+        var blocked = GroundOccupancy.InitialObstacles(map);
         var random = Pcg32XshRrV1.Create(string.IsNullOrWhiteSpace(map.ManifestDigest) ? "first-town" : map.ManifestDigest,
             $"first-town-layout/{roughSite.X},{roughSite.Y}");
         foreach (var start in StartTiles(map, roughSite, blocked))

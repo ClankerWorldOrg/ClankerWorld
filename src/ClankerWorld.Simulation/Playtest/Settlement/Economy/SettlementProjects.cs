@@ -234,13 +234,9 @@ public sealed partial class PrivateWorldRuntime
 
     private void AddSettlementResources()
     {
-        var occupied = map.CampObjects.Select(item => item.Position).Concat(map.Resources.Select(item => item.Position))
-            .Concat(fields.Select(field => field.Position))
-            .Concat(RoadAndBridgeTiles())
-            .Concat(worldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
-                worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)))
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused).SelectMany(ExpansionTiles))
-            .ToHashSet();
+        var ground = Ground;
+        var occupied = GroundOccupancy.Combine(ground.CampObjects, ground.Resources, ground.Fields,
+            ground.RoadsAndBridgeEntrances, ground.BuildingFootprints, ground.ExpansionSites);
         var additions = new List<MapResource>();
         var townStorage = SettlementStoragePosition;
         var campChunk = worldSystems.Chunks.Single(chunk => chunk.Coordinate ==
@@ -293,7 +289,6 @@ public sealed partial class PrivateWorldRuntime
             .ToHashSet();
         environmentSystem.AddSettlementResources(map, additions, changedChunkCoordinates, WorldTick);
         SyncEcologyResourceStates();
-        checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("settlement_resources_added", string.Join(',', additions.Select(resource => resource.Kind)));
     }
 
@@ -392,7 +387,6 @@ public sealed partial class PrivateWorldRuntime
             Blocker = FreshChoicePauseBlocker,
             RequiresFreshChoice = true,
         });
-        checkpointSchemaVersion = StateSchemaVersion;
         return true;
     }
 
@@ -460,7 +454,6 @@ public sealed partial class PrivateWorldRuntime
                     },
                 };
                 inhabitants[inhabitantId] = state;
-                checkpointSchemaVersion = StateSchemaVersion;
                 AppendEvent("project_fresh_choice_resumed", $"{inhabitantId}:{candidateId}");
             }
             else if (existing.CandidateId != candidateId)
@@ -505,7 +498,6 @@ public sealed partial class PrivateWorldRuntime
             return;
         state = state with { Project = new SettlementProject(candidateId, label, WorldTick, "acquiring", LastTransitionTick: WorldTick, ToolMakingRequestId: toolMakingRequestId) };
         inhabitants[inhabitantId] = state;
-        checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("project_chosen", $"{inhabitantId}:{candidateId}");
         ContinueProject(inhabitantId, state);
     }

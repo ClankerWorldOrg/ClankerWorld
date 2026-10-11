@@ -203,7 +203,7 @@ public sealed partial class PrivateWorldRuntime
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var assignedResidents = new HashSet<string>(StringComparer.Ordinal);
         var byInstance = simulation.Buildings.ToDictionary(item => item.InstanceId, StringComparer.Ordinal);
-        var definitions = content.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = content.BuildingDefinitions;
         var townIds = savedTowns.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var town in savedTowns)
         {
@@ -289,7 +289,7 @@ public sealed partial class PrivateWorldRuntime
         IEnumerable<PlaytestInhabitantState> physical)
     {
         var buildings = simulation.Buildings.ToDictionary(item => item.InstanceId, StringComparer.Ordinal);
-        var definitions = content.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = content.BuildingDefinitions;
         var people = inhabitants.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var recoveredBuildings = TownPropertyValidation.RecoveredBuildings(townStates);
         var heldEstates = estates.Where(estate => !estate.Settled)

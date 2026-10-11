@@ -320,9 +320,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) =>
-        Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(dy =>
-            Enumerable.Range(0, job.TargetFootprint.Width).Select(dx =>
-                new GridPoint(job.TargetPosition.X + dx, job.TargetPosition.Y + dy)));
+        GroundOccupancy.ExpansionTiles(job);
 
     private void AddBuildingExpansionCandidates(List<CognitionCandidate> candidates, string actor,
         Dictionary<(ToolFamily Family, int Tier), ToolDefinition?> reachableToolCache,
@@ -468,7 +466,6 @@ public sealed partial class PrivateWorldRuntime
             NextProductionJobSequence = worldSimulation.NextProductionJobSequence + 1,
         };
         if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
-        checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
         return new ProductionStartResult(true, jobId, buildingId, null);
     }

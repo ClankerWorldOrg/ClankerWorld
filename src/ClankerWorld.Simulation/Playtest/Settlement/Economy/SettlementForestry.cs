@@ -162,7 +162,6 @@ public sealed partial class PrivateWorldRuntime
             item.Coordinate == ChunkRules.ToChunkCoordinate(destination, item.ChunkSize));
         environmentSystem.PlantTree(tree, day, chunk);
         SyncEcologyResourceStates();
-        checkpointSchemaVersion = StateSchemaVersion;
         RecordKnowledgeFact(planterId, destination);
         AppendEvent("tree_planted", $"{planterId}:{tree.Id}:{species}");
         return TreePlantingResult.Success(tree.Id, species);
@@ -230,19 +229,10 @@ public sealed partial class PrivateWorldRuntime
 
     private (HashSet<GridPoint> Buildings, HashSet<GridPoint> Occupied) PlantingObstacles()
     {
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
-        var buildings = worldSimulation.Buildings.SelectMany(building =>
-                definitions.TryGetValue(building.DefinitionId, out var definition)
-                    ? WorldContentSimulationRules.Footprint(definition, building)
-                    : [building.Position])
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused).SelectMany(ExpansionTiles))
-            .Concat(TownProjectProtectedSites())
-            .Concat(MarketSiteTiles())
-            .ToHashSet();
-        var occupied = map.CampObjects.Select(item => item.Position)
-            .Concat(map.Resources.Select(item => item.Position))
-            .Concat(fields.Select(field => field.Position))
-            .ToHashSet();
+        var ground = Ground;
+        var buildings = GroundOccupancy.Combine(ground.PlantingBuildingFootprints,
+            ground.ExpansionSites, ground.ProtectedProjectSites(), ground.MarketSites);
+        var occupied = GroundOccupancy.Combine(ground.CampObjects, ground.Resources, ground.Fields);
         return (buildings, occupied);
     }
 

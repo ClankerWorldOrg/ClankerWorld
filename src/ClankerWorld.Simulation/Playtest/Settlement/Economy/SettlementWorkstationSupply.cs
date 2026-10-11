@@ -94,7 +94,7 @@ public sealed partial class PrivateWorldRuntime
     {
         if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId)
             yield break;
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = worldContent.BuildingDefinitions;
         foreach (var building in worldSimulation.Buildings.Where(item => item.HouseholdId == householdId &&
                      (buildingId is null || item.InstanceId == buildingId))
                      .OrderBy(item => item.InstanceId, StringComparer.Ordinal))
