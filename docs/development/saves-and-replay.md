@@ -110,7 +110,12 @@ skill instead of a work role. Skills retain their first learning time and
 optional teacher ID, including in deceased profiles. Loading validates those
 references and times, and rejects null entries in living or deceased skill
 lists as damaged checkpoint data. Current lesson progress and skills survive pause,
-save/load and replay. Schema 32 adds saved household requests and recent refusals
+save/load and replay. Newly completed lessons bound oversized gratitude-memory
+keys with a SHA-256 digest of the complete key, retaining the `lesson-gratitude:`
+prefix and complete saved participant references, text and source tick. Short
+keys stay unchanged. This adds no field, schema or migration; existing memory
+records are not rewritten when loading.
+Schema 32 adds saved household requests and recent refusals
 for adults without an authorized home. These states are validated and survive
 save/load and replay. Older alpha lesson records need not load; no migration is
 provided. Saved skills grant no ordinary action permissions. Matching skills now shorten
