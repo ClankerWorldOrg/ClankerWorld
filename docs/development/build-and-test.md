@@ -38,7 +38,12 @@ consenting. Changing a test provider's flags does not wake an admitted idle
 intention. A controlled row reserves the actual garment stock to keep an
 unrelated clothing choice from waking the readers, then verifies their exact
 requested guidance, offered reading choice and admitted idle reply. Each phase
-keeps its forty-tick limit and waits for actual hosted tasks before admission.
+keeps its forty-tick limit and waits for ordinary and life-moment identity
+replies before admission. Parenthood and midlife requests use a separate task
+queue and defer that adult's ordinary choices until their replies are admitted.
+The fixture answers the actual optional-identity choice by keeping the person's
+identity. A controlled row holds a real midlife reply and checks that the
+fixture waits, then retains all notice, consent, checkpoint and replay checks.
 Reading and silence still give no consent; each adult must personally accept,
 including the separately held filer. Host disk writes, unchanged permissions
 before agreement, rollback, strict reload and complete-byte replay remain checked.
@@ -75,6 +80,13 @@ repair check also waits for the released reply before checking that cancellation
 prevents repairs. Use this pattern only where advancing ticks preserves the
 intended cancellation boundary; orders that can already complete physical work
 must keep the world at that boundary while waiting for provider entry.
+
+The held lesson-continuation fixture keeps its three-second startup deadline
+and permits at most six additional native ticks before awaiting actual provider
+entry. Its delayed-entry case holds preparation until two more ticks commit.
+The progress baseline is captured only after entry, with room for three further
+lesson steps. The offered partnership answer stays held throughout; denied-tick
+bytes, continued training, unanswered partnership and strict reload remain checked.
 
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment
