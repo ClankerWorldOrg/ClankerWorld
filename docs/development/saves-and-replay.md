@@ -1528,6 +1528,15 @@ migration.
 
 ## Private memory archives
 
+New personal barter cooperation memories keep the complete owner, subject,
+summary and source tick. Their `settlement-trust:` keys remain unchanged at
+128 characters or fewer; longer directional keys use a deterministic SHA-256
+digest under the same prefix. The two traders retain distinct memories through
+strict reload and paired continuation. This changes newly completed exchanges
+without a schema change or migration: existing oversized keys remain saved
+unchanged and excluded from bounded personal recall. A later exchange recognizes
+the original pair key and does not add a duplicate bounded-key memory.
+
 The once-per-world-day native rule moves eligible old, low-importance ordinary
 sources into `ArchivedMemories` and `ArchivedBeliefs`, retaining their complete
 record and `ArchivedTick`. Each live or archived source ID appears exactly once.

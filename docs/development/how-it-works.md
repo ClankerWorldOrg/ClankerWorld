@@ -3023,6 +3023,14 @@ units cannot supply that reserve. Artifacts and unworn ornaments retain their
 single-unit exception. Each offer still reserves one actual unit from each
 named lot, and settlement requires both parties' independent acceptance.
 
+A completed personal barter records a public relationship memory for each
+trader about the other, alongside the usual trust increase. New memory keys
+retain `settlement-trust:` and use a SHA-256 digest of the complete directional
+key when it would exceed personal recall's 128-character limit. Short keys
+remain unchanged; saved owners, subjects and summaries retain their complete
+values, so native-born traders can recall the exchange too. Later trades retain
+one memory per direction, recognizing both original and bounded saved keys.
+
 **Household shops** bind an inventory barter offer to its actual business and
 holding household in `BusinessTradeState`. Offers use unreserved goods in that
 building and payment already carried by the adult customer. The inventory
