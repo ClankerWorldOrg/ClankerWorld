@@ -359,6 +359,15 @@ public sealed class CognitionRuntime
         }
     }
 
+    internal void ClearCurrentIntention(long worldTick)
+    {
+        lock (sync)
+        {
+            currentIntention = null;
+            AppendEvent(worldTick, "cognition_intention_refused", "game_error");
+        }
+    }
+
     public static CognitionRuntime Restore(
         CognitionRuntimeState state,
         IDecisionProvider? provider = null)

@@ -16,10 +16,9 @@ public sealed partial class PrivateWorldRuntime
         if (fields.Any(field => field is null))
             throw new InvalidDataException("A saved field record is missing.");
         var fertility = new LandFertility(map, seed);
-        var occupied = map.Resources.Select(item => item.Position).Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(roads).Concat(simulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
-                content.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)))
-            .Concat((simulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused).SelectMany(ExpansionTiles)).ToHashSet();
+        var ground = new GroundOccupancy(map, content, simulation, roads: roads);
+        var occupied = GroundOccupancy.Combine(ground.Resources, ground.CampObjects,
+            ground.Roads, ground.BuildingFootprints, ground.ExpansionSites);
         if (fields.Select(field => field.Position).Distinct().Count() != fields.Length ||
             !fields.SequenceEqual(fields.OrderBy(field => field.Position.Y).ThenBy(field => field.Position.X)) ||
             fields.Where(field => field.Work is not null).GroupBy(field => field.Work!.WorkerId).Any(group => group.Count() > 1))

@@ -424,10 +424,13 @@ public sealed partial class PrivateWorldRuntime
                      .Where(item => item.Status == SocietyInhabitantStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
+            if (withheldActions?.Contains(inhabitant.Id) == true) continue;
             if (dispatched.Contains(inhabitant.Id) || !inhabitants.TryGetValue(inhabitant.Id, out var state))
             {
                 continue;
             }
+            if (attemptedActions is not null && runtimes[inhabitant.Id].CurrentIntention is { } attempted)
+                attemptedActions[inhabitant.Id] = attempted.CandidateId;
             if (PassengerBoat(inhabitant.Id) is not null)
             {
                 if ((!pendingHosted.Contains(inhabitant.Id) || PendingInstructionFor(inhabitant.Id) is not null) && NeedsUrgentFood(state) &&
@@ -583,6 +586,7 @@ public sealed partial class PrivateWorldRuntime
 
     private bool TryApplyWaitingRoutine(string id, PlaytestInhabitantState state)
     {
+        if (withheldActions?.Contains(id) == true) return false;
         if (NeedsUrgentFood(state) || NeedsUrgentWarmth(state))
         {
             var candidate = CreateCandidates(id, state, restrictForOrder: false)
@@ -640,6 +644,9 @@ public sealed partial class PrivateWorldRuntime
 
     private void ApplyDecision(SocietyCognitionDispatchResult decision)
     {
+        if (attemptedActions is not null && decision.Admission.Intention is { } attempted)
+            attemptedActions[decision.InhabitantId] = attempted.CandidateId;
+        if (withheldActions?.Contains(decision.InhabitantId) == true) return;
         if (decision.Admission.Accepted && !decision.Admission.FellBack &&
             decision.Admission.Intention?.Provider is DecisionProviderKind.Jev or DecisionProviderKind.OpenAiDecisions &&
             decision.Admission.MemorySummary is { } summary)
@@ -811,6 +818,8 @@ public sealed partial class PrivateWorldRuntime
         string candidateId,
         bool reportIdle)
     {
+        if (withheldActions?.Contains(inhabitantId) == true || IsRefusedAction(inhabitantId, candidateId)) return;
+        if (attemptedActions is not null) attemptedActions[inhabitantId] = candidateId;
         if (candidateId != "safe_idle") guardianPlacementActions.Add(inhabitantId);
         if (IsOrnamentCandidate(candidateId)) return;
         if (candidateId.StartsWith(ToolRequestPrefix, StringComparison.Ordinal))
@@ -1260,6 +1269,16 @@ public sealed partial class PrivateWorldRuntime
         string inhabitantId,
         PlaytestInhabitantState state,
         bool restrictForOrder = true)
+    {
+        var candidates = CreateUnfilteredCandidates(inhabitantId, state, restrictForOrder);
+        if (actionRefusals.Count > 0)
+            candidates.RemoveAll(candidate => IsRefusedAction(inhabitantId, candidate.Id));
+        if (candidates.Count == 0) candidates.Add(new("safe_idle", "Wait safely.", 100));
+        return candidates;
+    }
+
+    private List<CognitionCandidate> CreateUnfilteredCandidates(
+        string inhabitantId, PlaytestInhabitantState state, bool restrictForOrder)
     {
         if (PassengerBoat(inhabitantId) is not null)
         {

@@ -20,7 +20,7 @@ namespace ClankerWorld.Simulation.Playtest;
 /// </summary>
 public sealed partial class PrivateWorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 126;
+    public const int StateSchemaVersion = 127;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -353,6 +353,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         }
 
         runtime.map = state.Map;
+        runtime.actionRefusals = state.ActionRefusals.ToList();
+        runtime.refusedActionCount = state.RefusedActionCount;
         runtime.jevEnabled = state.JevEnabled ?? true;
         runtime.routineHelper = state.RoutineHelper;
         runtime.jevPolicyRevision = state.JevPolicyRevision;
@@ -541,6 +543,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         BoatTransport = boatTransport,
         AnimalWorld = animalWorld,
         RoutineHelper = routineHelper,
+        ActionRefusals = actionRefusals.ToArray(),
+        RefusedActionCount = refusedActionCount,
     };
 
     private void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) =>

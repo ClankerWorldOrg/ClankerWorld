@@ -136,6 +136,7 @@ printf 'Writing the package manifest\n'
     {
         printf '# %s\n' "${package_name}"
         printf '# Source commit: %s\n' "${revision}"
+        if [[ "${launcher}" == false ]]; then printf '# Launcher options: developer-data-v1\n'; fi
         while IFS= read -r -d '' artifact; do
             sha256sum --binary "${artifact}"
         done < <(find . -type f ! -name manifest.sha256 -print0 | sort -z)

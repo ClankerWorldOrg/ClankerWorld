@@ -115,7 +115,10 @@ searches find it.
   owner in chat but fixes it only if asked, and a reviewer finishes its current
   review and takes P0 pull requests next.
 - **Bugs:** a crash, data loss or unplayable game is P0; wrong in normal play
-  is P1; an edge case is P2; cosmetic is P3. A `regression`, something that
+  is P1; an edge case is P2; cosmetic is P3. A bug that only causes an action
+  to be refused during normal play is P1, including a regression; a remaining
+  live halt is P0.
+  A `regression`, something that
   used to work, goes one level higher. A bug that only a setup a normal game
   cannot produce can trigger is P3, whatever its effect: goods placed where no
   agent could put them, or a state only a test fixture can create. A long

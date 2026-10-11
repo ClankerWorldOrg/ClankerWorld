@@ -62,6 +62,7 @@ public sealed class ViewerWebApplicationFactory : WebApplicationFactory<Program>
         // All protocol tests cross the actual private-world host boundary.
         builder.UseSetting("ClankerWorld:Runtime:WorldMode", privateWorld ? "private" : "fixture");
         builder.UseSetting("ClankerWorld:Runtime:AdvanceScript", advanceScript ? "true" : "false");
+        builder.UseSetting("ClankerWorld:Runtime:StrictTickFailures", "true");
         builder.UseSetting("ClankerWorld:Pairing:StatePath", System.IO.Path.Combine(stateDirectory, "authority.json"));
         builder.UseSetting("ClankerWorld:Runtime:StatePath", System.IO.Path.Combine(stateDirectory, "runtime.json"));
         builder.UseSetting(

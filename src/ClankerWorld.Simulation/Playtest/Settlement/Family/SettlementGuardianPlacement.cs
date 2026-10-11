@@ -294,7 +294,7 @@ public sealed partial class PrivateWorldRuntime
         foreach (var child in inhabitants.Values.Where(person => person.GuardianPlacement is { Stage: "escorting" })
                      .Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray())
         {
-            if (!guardianPlacementActions.Contains(child)) FollowPlacementGuardian(child);
+            if (withheldActions?.Contains(child) != true && !guardianPlacementActions.Contains(child)) FollowPlacementGuardian(child);
             CompleteGuardianPlacement(child);
         }
     }

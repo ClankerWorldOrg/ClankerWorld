@@ -58,9 +58,8 @@ public sealed partial class PrivateWorldRuntime
     private void SeedWildAnimals()
     {
         if (animalWorld.Seeded || geographyOptions is null) return;
-        var blocked = worldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
-            worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building))
-            .Concat(map.Resources.Select(item => item.Position)).Concat(RoadAndBridgeTiles()).ToHashSet();
+        var ground = Ground;
+        var blocked = GroundOccupancy.Combine(ground.BuildingFootprints, ground.Resources, ground.RoadsAndBridgeEntrances);
         var greens = map.Resources.Where(item => item.NaturalObjectKind == "wild_greens")
             .OrderBy(item => AnimalKey(worldSeed + ":animal-herd:" + item.Id), StringComparer.Ordinal).ToArray();
         var shores = FreshWaterShorePositions();

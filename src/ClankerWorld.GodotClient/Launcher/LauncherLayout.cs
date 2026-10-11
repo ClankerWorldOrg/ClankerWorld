@@ -18,6 +18,9 @@ public sealed record LauncherLayout(string Root)
     public string LauncherDirectory => Path.Combine(Root, "launcher");
     public string DownloadsDirectory => Path.Combine(LauncherDirectory, "downloads");
     public string SettingsPath => Path.Combine(LauncherDirectory, "settings.json");
+    public string TestDataDirectory => Path.Combine(LauncherDirectory, "test-data");
+    public string GameDataDirectory(LauncherSettings settings) =>
+        settings.DeveloperMode && settings.UseTestData ? TestDataDirectory : Root;
 
     /// <summary>The game's own data folders, written by its host (#1564).</summary>
     public string SavesDirectory => Path.Combine(Root, "saves");

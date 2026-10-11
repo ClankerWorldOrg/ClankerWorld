@@ -48,19 +48,25 @@ public sealed partial class PrivateWorldRuntime
         !physical.IdentityChoicePending && (physical.IdentityMoments ?? [])
             .Any(moment => moment.Outcome is "waiting" or "requested");
 
-    private void StartIdentityMoments()
+    private sealed record PreparedIdentityMoment(AgentIdentityMomentKind Kind,
+        CognitionDecisionRequest Request, IDecisionProvider Provider);
+
+    private void StartIdentityMoments() => PrepareIdentityMoments(StartPreparedIdentityMoment);
+
+    private void PrepareIdentityMoments(Action<PreparedIdentityMoment> prepare,
+        IReadOnlySet<string>? activeHostedIds = null, IReadOnlySet<string>? activeIdentityIds = null)
     {
         // Bounded separately from ordinary decisions. The installation usage
         // store still reserves each potentially paid request before HTTP.
-        var capacity = Math.Max(0, maxCognitionDispatchPerCycle - pendingIdentityMoments.Count);
+        var capacity = Math.Max(0, maxCognitionDispatchPerCycle - (activeIdentityIds?.Count ?? pendingIdentityMoments.Count));
         foreach (var person in society.Checkpoint.Inhabitants
             .Where(item => item.Status == SocietyInhabitantStatus.Active && item.AgeBand != SocietyAgeBand.Infant)
             .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             if (capacity == 0) break;
             var physical = inhabitants[person.Id];
-            if (physical.IdentityChoicePending || pendingIdentityMoments.ContainsKey(person.Id) ||
-                pendingHosted.ContainsKey(person.Id) || IsConversationBusy(person.Id) ||
+            if (physical.IdentityChoicePending || (activeIdentityIds?.Contains(person.Id) ?? pendingIdentityMoments.ContainsKey(person.Id)) ||
+                (activeHostedIds?.Contains(person.Id) ?? pendingHosted.ContainsKey(person.Id)) || IsConversationBusy(person.Id) ||
                 NeedsUrgentFood(physical) || NeedsUrgentWarmth(physical)) continue;
             var moment = (physical.IdentityMoments ?? []).FirstOrDefault(item => item.Outcome == "waiting");
             if (moment is null) continue;
@@ -77,24 +83,8 @@ public sealed partial class PrivateWorldRuntime
                     $"identity:{Guid.NewGuid():N}", provider.ProviderEpoch, observation);
                 request.Validate();
                 SetIdentityMoment(person.Id, moment with { Outcome = "requested", RequestedTick = WorldTick });
-                var cancellation = new CancellationTokenSource(IdentityMomentTimeout);
-                var task = Task.Run(async () =>
-                {
-                    try
-                    {
-                        cancellation.Token.ThrowIfCancellationRequested();
-                        return new IdentityMomentOutcome(await provider.DecideAsync(request, cancellation.Token)
-                            .AsTask().WaitAsync(cancellation.Token).ConfigureAwait(false));
-                    }
-                    catch (Exception exception) when (exception is not OutOfMemoryException)
-                    {
-                        // Neither provider replies nor their exception messages
-                        // enter events or logs.
-                        return new IdentityMomentOutcome(null);
-                    }
-                });
-                pendingIdentityMoments.Add(person.Id, new(moment.Kind, request, task, cancellation));
                 AppendEvent("agent_identity_moment_started", $"{person.Id}:{moment.Kind}");
+                prepare(new(moment.Kind, request, provider));
                 capacity--;
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -102,6 +92,27 @@ public sealed partial class PrivateWorldRuntime
                 FinishIdentityMoment(person.Id, moment.Kind, "kept");
             }
         }
+    }
+
+    private void StartPreparedIdentityMoment(PreparedIdentityMoment prepared)
+    {
+        var cancellation = new CancellationTokenSource(IdentityMomentTimeout);
+        var task = Task.Run(async () =>
+        {
+            try
+            {
+                cancellation.Token.ThrowIfCancellationRequested();
+                return new IdentityMomentOutcome(await prepared.Provider.DecideAsync(prepared.Request, cancellation.Token)
+                    .AsTask().WaitAsync(cancellation.Token).ConfigureAwait(false));
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // Neither provider replies nor their exception messages enter events or logs.
+                return new IdentityMomentOutcome(null);
+            }
+        });
+        pendingIdentityMoments.Add(prepared.Request.Observation.InhabitantId,
+            new(prepared.Kind, prepared.Request, task, cancellation));
     }
 
     private InhabitantObservation CreateIdentityMomentObservation(

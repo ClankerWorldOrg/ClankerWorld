@@ -351,6 +351,22 @@ public partial class Main
         if (fruitSlot.TooltipText != "Fruit × 3" || fruitSlot.CustomMinimumSize.Y <= fruitSlot.CustomMinimumSize.X - 8)
             throw new InvalidOperationException("A named item slot must leave room for its name and say what it holds.");
         fruitSlot.Free();
+        foreach (var kind in new[] { "fruit", "restaurant_meal", "stew", "crude_wooden_pickaxe", "iron_fittings" })
+        {
+            var name = GameUiText.ItemName(kind);
+            var slot = new ItemSlot { IconSize = 32, Named = true };
+            try
+            {
+                slot.SetItem(kind, 3, name);
+                var lines = slot.NameLines(UiFonts.Text);
+                if (lines.Count is < 1 or > 2 || lines.Any(line =>
+                    UiFonts.Text.GetStringSize(line, HorizontalAlignment.Left, -1, UiFonts.Body).X > slot.CustomMinimumSize.X))
+                    throw new InvalidOperationException($"Storage item labels must fit both lines inside their cell: {name}.");
+                if (kind == "fruit" && lines.Single() != name || slot.TooltipText != $"{name} × 3")
+                    throw new InvalidOperationException("Storage labels must retain short names and the complete item tooltip.");
+            }
+            finally { slot.Free(); }
+        }
         await VerifyBuildingManagementRefreshAsync(baseMap);
         await VerifyMarketCardsAsync(baseMap);
         await VerifyBuildingStorageHistoryAsync(baseMap);

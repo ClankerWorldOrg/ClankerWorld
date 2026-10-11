@@ -153,12 +153,8 @@ public sealed partial class PrivateWorldRuntime
         fields.Any(field => field.HouseholdId != household && tiles.Contains(field.Position) &&
             !householdLandUseRights.Any(right => right.Tiles.Contains(field.Position)));
 
-    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include)
-    {
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
-        return worldSimulation.Buildings.Where(building => include(building) && definitions.ContainsKey(building.DefinitionId))
-            .SelectMany(building => WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building)).ToHashSet();
-    }
+    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include) =>
+        Ground.KnownBuildingFootprints(include).ToHashSet();
 
     /// <summary>Tiles a running or paused expansion is building on, for the buildings <paramref name="include"/> selects.</summary>
     private HashSet<GridPoint> ExpansionWorkTiles(Func<PlacedBuilding?, bool> include) =>

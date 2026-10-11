@@ -75,6 +75,17 @@ aliases. Content package identifiers retain their import rules.
 
 ## Runtime systems
 
+`GroundOccupancy` is a read view over the current map, content, placed buildings,
+fields, roads, bridges, Town projects, Markets and animals. Its named layers
+retain each source's enumeration order. Callers combine the layers in their
+existing order and add resident positions or ownership constraints for that
+query. Original building footprints, expanded footprints and protected Port
+tiles remain separate choices. Occupancy is recomputed from current snapshots;
+no layer cache, saved field or tick phase is added. The immutable declarative
+content snapshot supplies one read-only definition index shared by these queries.
+To add a new obstacle kind, define its layer here and explicitly select it in
+the queries whose rules need it.
+
 The approved runtime refactor is tracked in
 [#1377](https://github.com/compoodment/ClankerWorld/issues/1377). The runtime
 coordinates the simulation through a partial class. `Conversations/ConversationSystem.cs`
@@ -338,8 +349,13 @@ ordering. Handcart household material counts use the same reachable query.
 Preparation still permits making cargo room first; actual cart and construction
 material pickups recheck the selected lot with Collect. Town access, top-level
 stock, the intended return route and delivery quantities remain native filters.
-Remaining Town-stock callers and the older `CanReachSharedItem` selector paths
-remain in [#1370](https://github.com/compoodment/ClankerWorld/issues/1370).
+Expansion materials also use ReachableHoldings and recheck the offered lot
+before pickup. Expansion keeps its own household/Town authority, exclusions for
+stock already at the site or in custody, household-before-Warehouse ordering
+and loaded return capacity. Town-owned ground stock remains eligible for Town
+expansion; ordinary Collect retains its existing place permissions. The older
+`CanReachSharedItem` helper is removed. Milk-jug selectors were retired when
+milk became ordinary food.
 
 With `Explain`, exclusions retain their first failure in this fixed order:
 owner, kind, building, damage, spoilage, vessel, empty stock, reservation,
@@ -952,7 +968,19 @@ Pause, quit and loss of presence cancel external work without inventing an
 answer. Restore can retry a still-relevant saved decision. Synchronous fixture
 methods remain for isolated tests; they are not the live scheduling path.
 
-Tick-boundary faults hold the current in-memory state and pause the world.
+Tick-boundary faults in live play discard the failed proposal before publishing
+its checkpoint. The host retries isolated copies with groups of agent actions
+withheld, bisecting only after a failure. Received replies stay frozen across
+these trials, and trial worlds make no checkpoint writes. If withholding one
+actor's action alone makes the entire tick and save check succeed, the host
+refuses that action, makes the actor wait and cancels their current order. A
+saved refusal blocks the same choice for that actor for one world day. The
+Event Log explains the refusal, Developer tools show the cumulative count,
+and the server records a bounded check name without exception text or paths.
+Healthy ticks make one attempt and one checkpoint preparation and write.
+The strict setting `ClankerWorld:Runtime:StrictTickFailures` keeps test and CI
+hosts halting on the first failure. Global faults or failures that cannot be
+isolated to one action hold the last good state and pause the world.
 Active checkpoint I/O/access failures retry only the retained save while paused;
 success still requires a later explicit Resume. Other faults latch for operator
 inspection. Startup corrupt-save failures remain separate. Logs use bounded
@@ -2833,6 +2861,10 @@ for profiling, native state-change comparisons, lower allocations and mixed timi
 The later [walking-route neighbor measurements](route-neighbor-query-measurements.md)
 record the default-route follow-up; custom callbacks, including swimming,
 keep their existing neighbor path.
+Road-frontage scoring reuses the rectangular footprint and cardinal direction
+checks with direct loops, avoiding nested iterator and predicate allocations.
+The [Road-frontage measurements](road-frontage-query-measurements.md) record
+matched native captures, lower allocations and mixed timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
@@ -4342,6 +4374,29 @@ contributes to the observation digest.
 The owner observation keeps its existing JSON `role` field for the lesson's
 skill name so older clients can still display it; new code calls it `Skill`.
 This is separate from the saved lesson record, which now stores a skill.
+
+## Launcher developer runs
+
+`LauncherSettings` remembers test-data and detailed-log choices. They apply
+only with Developer mode on. Test data defaults on and lives under
+`%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; host saves, provider settings,
+usage, authority, companion secret and logs all derive from that root. Client
+preferences, registration and pending submissions use its `client/` folder,
+and the Windows signing key uses a separate `.TestData` name. Usual client
+storage and keys retain their existing locations. Folder buttons and saved-world
+version counts follow the selected data root. Quit to Launcher carries that
+choice with the world/version hint.
+
+`GameStarter` uses separate process arguments for local and installed games.
+It sends `--test-data` and `--detailed-logs` only with `--developer-mode`.
+Godot's `--log-file` points at `logs/game.log` in the selected data root;
+`--verbose` applies only to a detailed run. The bundled host receives a
+per-process `Logging:LogLevel:ClankerWorld=Debug` override and records a bounded
+launch diagnostic. Framework logging, saved settings and the prohibition on
+private model payloads in logs stay unchanged. Problem reports read these
+selected logs through the existing redactor. A build without the manifest's
+launch-option capability marker is refused when test data or detailed logs
+are selected. A local build must include its bundled host. No save schema changes.
 
 ## World-list requests
 

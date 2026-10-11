@@ -47,6 +47,13 @@ Town handles retain a counter and validate by exact recomputation against the
 original scope. Earlier alpha saves are refused and preserved; no migration
 runs.
 
+Schema 126 adds action refusals and their cumulative count. A refusal records
+the complete actor and candidate, refusal tick, one-day retry boundary and a
+bounded check name. The matching world event retains the accepted refusal for
+history and replay. Active cooldowns are authoritative saved state; they are
+not inferred from display text. Earlier alpha formats remain refused, with no
+migration. The version is provisional until merge.
+
 Strict reload and replay must preserve the bounded handle, complete source
 links, reservations, payment, ownership and personal recall. Display names,
 mod content identifiers and parsed action payloads retain their own contracts.
@@ -102,7 +109,7 @@ agent's model choice can carry a thinking level, written only when one is
 chosen. Provider files from before Anthropic was added load with an empty
 Anthropic record; the provider file's schema stays 3.
 
-Private-world schema 126 and world-systems schema 4 remove the unused prototype
+Private-world schema 127 and world-systems schema 4 remove the unused prototype
 faction/law, currency and culture collections and the culture-tag bound.
 Native legacy-map starts previously wrote world-systems schema 2, while generated
 founder starts wrote schema 3; both now write schema 4.
@@ -1187,7 +1194,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current private-world checkpoint schema, currently
-`PrivateWorldRuntime.StateSchemaVersion` 126. The minimum supported schema is
+`PrivateWorldRuntime.StateSchemaVersion` 127. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no private-world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1347,6 +1354,7 @@ current alpha cutoff.
 | Schema 124 | Milk is ordinary stored food; the milk-specific offer ledger and vessel exchange are removed. Water jugs hold fresh water only. Older alpha saves are refused and preserved without migration. |
 | Schema 122 and society/runtime v4 | Required owner-private summaries retain canonical typed sources and validated extracts alongside the experience/belief archives. Active recall can use summaries without exposing another owner’s evidence. Strict loading validates unique storage, owner/subject identities, archive times, protected kinds, salience sources, conversation evidence and corrections across both ledgers. Older alpha saves and society envelopes are refused and preserved without migration. |
 | Schema 125 | New Towns begin with vacant land and non-land mayoral duties under ordinary Council authority. Joint personal consent opens the first election without creating the office by resident vote. Vacancy timestamps, queued ballots and elected terms survive replay and reload. Earlier alpha checkpoints are refused and preserved without migration. |
+| Schema 126 | Required action-refusal records and their cumulative count preserve the actual refused choice and one-day retry boundary. Replay admits the same refusal without reproducing the defect. Earlier alpha checkpoints are refused and preserved without migration. |
 | Schema 102 | Copy orders retain the exact held source while gathering supplies and writing, alongside the native project and paid completion receipt. Strict load checks source kind, project/source/order links and copy provenance; original writing cannot credit a copy task. Source loss releases the project while retaining the source pointer for retry; completion clears both pointers. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 101 | Knowledge-writing orders bind their exact native project and credit only completed physical artifacts carrying that instruction ID. Reload checks actor, kind, current-order priority, paid artifact provenance and exact progress. Cancellation and replacement release only owned unspent reservations; ordinary writing is preserved. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 109 | Native newborns retain a pending first personality/aspiration choice through infancy and failed personal replies. Their ordinary initial-choice observation may retain at most two bounded parental identities as family background, covered by the observation digest. Accepted choices clear retained queued background and cannot apply twice after reload. Native birth, day-3 decisions, retry, and paired replay cover the marker and chosen fields. Earlier alpha checkpoints are refused and preserved; no migration is added. |

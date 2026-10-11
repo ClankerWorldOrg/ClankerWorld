@@ -385,6 +385,79 @@ public sealed class AgentLifeMomentIdentityTests
     private static Func<string, IDecisionProvider> Route(IDecisionProvider provider) =>
         id => id == ActorId ? provider : new DeterministicDecisionProvider();
 
+    [Theory]
+    [InlineData("admitted")]
+    [InlineData("cancelled")]
+    [InlineData("write_failed")]
+    public async Task PreparedIdentityOpportunityIsDurableBeforeDispatchAndNeverRepeats(string boundary)
+    {
+        var directory = Directory.CreateTempSubdirectory("prepared-identity-");
+        var provider = new HeldIdentityProvider();
+        try
+        {
+            using var world = PrivateWorldRuntime.Restore(MidlifeState(), Route(provider));
+            var file = new PrivateWorldStateFile(Path.Combine(directory.FullName, "world.json"), Route(provider));
+            file.Save(world);
+            var baseline = File.ReadAllBytes(file.Path);
+            var permitted = true;
+            var writes = 0;
+            Action Prepare(PrivateWorldRuntime proposed)
+            {
+                var write = file.PrepareSave(proposed);
+                if (boundary == "cancelled") permitted = false;
+                return () =>
+                {
+                    writes++;
+                    if (boundary == "write_failed") throw new IOException("Controlled write refusal.");
+                    write();
+                };
+            }
+            var tick = world.AdvanceOneTickWithCheckpointAsync(Prepare, () => permitted,
+                failurePolicy: PrivateWorldTickFailurePolicy.RefuseSingleAction).AsTask();
+            if (boundary == "write_failed") await Assert.ThrowsAsync<IOException>(() => tick);
+            else Assert.Equal(boundary == "admitted", (await tick).Advanced);
+            if (boundary == "cancelled")
+            {
+                Assert.Equal(0, writes);
+                Assert.Equal(baseline, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+                Assert.Equal(baseline, File.ReadAllBytes(file.Path));
+                Assert.Equal(0, provider.CallCount);
+                return;
+            }
+            Assert.Equal(1, writes);
+            if (boundary == "admitted")
+            {
+                await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                var saved = PrivateWorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path));
+                Assert.Equal("requested", Assert.Single(saved.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Single(saved.Events, item => item.Kind == "agent_identity_moment_started" && item.Detail.StartsWith(ActorId, StringComparison.Ordinal));
+                world.Pause();
+                using var restored = file.LoadOrCreate(saved.WorldSeed);
+                restored.Resume();
+                for (var step = 0; step < 3; step++) await restored.AdvanceOneTickNonBlockingAsync();
+                Assert.Equal("interrupted", Assert.Single(restored.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Equal(1, provider.CallCount);
+            }
+            else
+            {
+                Assert.Equal(baseline, File.ReadAllBytes(file.Path));
+                Assert.Equal(0, provider.CallCount);
+                Assert.Equal("requested", Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                world.Pause();
+                file.Save(world);
+                world.Resume();
+                for (var step = 0; step < 3; step++) await world.AdvanceOneTickNonBlockingAsync();
+                Assert.Equal("interrupted", Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Equal(0, provider.CallCount);
+            }
+        }
+        finally
+        {
+            provider.Release.TrySetResult(true);
+            directory.Delete(recursive: true);
+        }
+    }
+
     private static PrivateWorldRuntimeState MidlifeState()
     {
         using var world = NormalPathWorld.CreateGenerated("life-moment-identity", _ => new DeterministicDecisionProvider());

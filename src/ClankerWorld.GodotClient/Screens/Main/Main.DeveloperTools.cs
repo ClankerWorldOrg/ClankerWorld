@@ -22,6 +22,7 @@ public partial class Main
     private readonly Label developerTileLabel = new();
     private readonly Label developerFrameLabel = new();
     private readonly Label developerTickLabel = new();
+    private readonly Label developerRefusedActionLabel = new();
     private readonly Label developerAgentCountLabel = new();
     private readonly ItemList developerAgentList = new();
     private readonly CheckBox developerPathToggle = new();
@@ -48,6 +49,7 @@ public partial class Main
         readouts.AddChild(MetricRow("Frame time", developerFrameLabel));
         developerTickLabel.TooltipText = "How long the host took to work out the latest world tick, not counting saving it.";
         readouts.AddChild(MetricRow("Tick time", developerTickLabel));
+        readouts.AddChild(MetricRow("Refused actions", developerRefusedActionLabel));
         readouts.AddChild(MetricRow("Agents", developerAgentCountLabel));
         developerBody.AddChild(NewPanel("Readouts", readouts));
 
@@ -246,6 +248,7 @@ public partial class Main
     {
         if (!developerPanel.Visible) return;
         var living = snapshot.Inhabitants.Count(person => !person.IsDraft && IsLiving(person));
+        developerRefusedActionLabel.Text = snapshot.RefusedActionCount.ToString("N0", CultureInfo.InvariantCulture);
         var died = snapshot.Inhabitants.Count(person => !person.IsDraft && !IsLiving(person));
         developerAgentCountLabel.Text = died == 0 ? $"{living} living" : $"{living} living · {died} died";
         developerTickLabel.Text = snapshot.LastTickMilliseconds is { } milliseconds

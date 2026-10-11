@@ -17,16 +17,13 @@ public sealed partial class PrivateWorldRuntime
     private PortGeometry PortGeometryFor(PlacedBuilding port) => PortNavigationRules.Geometry(map,
         worldContent.Buildings.Single(definition => definition.CanonicalId == port.DefinitionId), port.Position);
 
-    private HashSet<GridPoint> PortObstacles(string? exceptProjectId = null, string? exceptPortId = null, bool protectDocks = false) =>
-        map.Resources.Select(resource => resource.Position).Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(fields.Select(field => field.Position)).Concat(RoadAndBridgeTiles())
-            .Concat(worldSimulation.Buildings.Where(building => building.InstanceId != exceptPortId)
-                .SelectMany(building => protectDocks
-                    ? PortNavigationRules.ProtectedBuildingTiles(map, worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)
-                    : WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)))
-            .Concat((worldSimulation.BuildingExpansions ?? [])
-                .Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
-                .SelectMany(ExpansionTiles)).Concat(TownProjectProtectedSites(exceptProjectId)).ToHashSet();
+    private HashSet<GridPoint> PortObstacles(string? exceptProjectId = null, string? exceptPortId = null, bool protectDocks = false)
+    {
+        var ground = Ground;
+        return GroundOccupancy.Combine(ground.Resources, ground.CampObjects, ground.Fields, ground.RoadsAndBridgeEntrances,
+            protectDocks ? ground.ProtectedBuildingTiles(exceptPortId) : ground.BuildingFootprintsExcept(exceptPortId),
+            ground.ExpansionSites, ground.ProtectedProjectSites(exceptProjectId));
+    }
 
     private sealed record PortProjectSiteWorld(HashSet<GridPoint> Common,
         IReadOnlyDictionary<string, HashSet<GridPoint>> BuildingTiles, HashSet<GridPoint> Occupied)
@@ -36,13 +33,12 @@ public sealed partial class PrivateWorldRuntime
 
     private PortProjectSiteWorld CreatePortProjectSiteWorld(string? projectId)
     {
-        var common = map.Resources.Select(resource => resource.Position).Concat(map.CampObjects.Select(item => item.Position))
-            .Concat(fields.Select(field => field.Position)).Concat(RoadAndBridgeTiles())
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
-                .SelectMany(ExpansionTiles)).Concat(TownProjectProtectedSites(projectId)).ToHashSet();
+        var ground = Ground;
+        var common = GroundOccupancy.Combine(ground.Resources, ground.CampObjects, ground.Fields,
+            ground.RoadsAndBridgeEntrances, ground.ExpansionSites, ground.ProtectedProjectSites(projectId));
         var buildings = worldSimulation.Buildings.ToDictionary(building => building.InstanceId,
             building => PortNavigationRules.ProtectedBuildingTiles(map,
-                worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building).ToHashSet(), StringComparer.Ordinal);
+                worldContent.BuildingDefinitions[building.DefinitionId], building).ToHashSet(), StringComparer.Ordinal);
         return new(common, buildings, common.Concat(buildings.Values.SelectMany(tiles => tiles)).ToHashSet());
     }
 

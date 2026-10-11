@@ -5,12 +5,60 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
 using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Launcher;
 
 namespace ClankerWorld.Simulation.Tests;
 
 /// <summary>The game starting, pairing with and stopping its bundled host (#1564).</summary>
 public sealed class LocalHostCompanionTests
 {
+    private static readonly string[] UntouchedDataFiles =
+        ["saves/private-world.json", "settings/provider-configuration.json", "client/game-display-preferences.json"];
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DeveloperRunKeepsRealDataUntouchedAndDetailedLoggingAppliesOnlyToThatRun(bool developerMode, bool detailed)
+    {
+        var directory = Directory.CreateTempSubdirectory("launcher-data-");
+        var launcher = LauncherLayout.ForUser(directory.FullName);
+        var arguments = GameStarter.Arguments("launcher.exe", developerMode, useTestData: true, detailedLogs: detailed);
+        var data = GameStarter.DataDirectory(directory.FullName, arguments);
+        var untouched = developerMode ? launcher.Root : launcher.TestDataDirectory;
+        var sentinels = UntouchedDataFiles
+            .Select(name => Path.Combine(untouched, name)).ToArray();
+        foreach (var path in sentinels)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, "keep this data unchanged");
+        }
+        var viewer = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(viewer);
+        var layout = new LocalHostLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [viewer.Location], Path.GetDirectoryName(viewer.Location)!, data);
+        using var http = new HttpClient();
+        var game = new LocalHostCompanion(layout, http, FreePort(), FreePort(),
+            detailedLogs: GameStarter.UsesDetailedLogs(arguments));
+        try
+        {
+            Assert.Equal(LocalHostOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            Assert.True(File.Exists(Path.Combine(data, "saves", "private-world.json")));
+            var preferences = new ClankerWorld.GodotClient.ClientState.GameDisplayPreferencesStore(
+                GameStarter.ClientDataPath(directory.FullName, arguments, "game-display-preferences.json"));
+            preferences.Save(new(Theme: "dark"));
+            Assert.Equal("dark", preferences.Load().Theme);
+            Assert.True(await game.StopAsync(CancellationToken.None));
+            var log = await ReadSharedAsync(layout.LogPath);
+            Assert.Equal(developerMode && detailed, log.Contains("host_launch logging=detailed", StringComparison.Ordinal));
+            Assert.DoesNotContain(File.ReadAllText(layout.SecretPath), log);
+            Assert.All(sentinels, path => Assert.Equal("keep this data unchanged", File.ReadAllText(path)));
+        }
+        finally
+        {
+            await game.StopAsync(CancellationToken.None);
+            directory.Delete(recursive: true);
+        }
+    }
     [Fact]
     public void BundledHostIsFoundBesideTheGameAndKeepsDataInTheUserFolder()
     {
@@ -148,9 +196,10 @@ public sealed class LocalHostCompanionTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task AnUnresponsiveRelaunchPreservesItsHostAndSecretOnTimeoutOrCancellation(bool cancelCaller)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task AnUnresponsiveRelaunchPreservesItsHostAndSecretOnTimeoutOrCancellation(bool cancelCaller, bool deferTimeout)
     {
         var data = Path.Combine(Path.GetTempPath(), $"clankerworld-companion-unresponsive-{Guid.NewGuid():N}");
         var viewer = typeof(Program).Assembly;
@@ -164,21 +213,43 @@ public sealed class LocalHostCompanionTests
         {
             Assert.Equal(LocalHostOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
             var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
-            using var handler = new TimeoutOnceHandler("/api/v1/handshake", holdEveryRequest: true);
+            using var handler = new TimeoutOnceHandler("/api/v1/handshake", holdEveryRequest: true, deferTimeout: deferTimeout);
             using var delayedHttp = new HttpClient(handler);
             var relaunch = new LocalHostCompanion(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100));
-            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-            if (cancelCaller)
+            using var cancellation = new CancellationTokenSource();
+            var starting = relaunch.StartAsync(version, revision, cancellation.Token);
+            try
             {
-                var starting = relaunch.StartAsync(version, revision, cancellation.Token);
-                await handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
-                cancellation.Cancel();
-                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
+                if (cancelCaller)
+                {
+                    await handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                    cancellation.Cancel();
+                    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting.WaitAsync(TimeSpan.FromSeconds(30)));
+                }
+                else
+                {
+                    if (deferTimeout)
+                    {
+                        await handler.TimedOut.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                        Assert.False(cancellation.IsCancellationRequested);
+                        // Hold the actual request-timeout continuation beyond the
+                        // old caller timer, without changing the host or response.
+                        await Task.Delay(TimeSpan.FromSeconds(6));
+                    }
+                    handler.ResumeTimeout.TrySetResult();
+                    Assert.Equal(LocalHostOutcome.TimedOut, (await starting.WaitAsync(TimeSpan.FromSeconds(30))).Outcome);
+                }
             }
-            else
-                Assert.Equal(LocalHostOutcome.TimedOut, (await relaunch.StartAsync(version, revision, cancellation.Token)).Outcome);
+            finally
+            {
+                cancellation.Cancel();
+                handler.ResumeTimeout.TrySetResult();
+                try { await starting.WaitAsync(TimeSpan.FromSeconds(30)); }
+                catch (OperationCanceledException) { }
+            }
             Assert.True(handler.TargetRequests > 0);
             Assert.False(relaunch.StartedHost);
+            Assert.True(game.StartedHost);
             Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
             Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
         }
@@ -189,12 +260,14 @@ public sealed class LocalHostCompanionTests
         }
     }
 
-    private sealed class TimeoutOnceHandler(string route, bool holdEveryRequest = false) : HttpMessageHandler
+    private sealed class TimeoutOnceHandler(string route, bool holdEveryRequest = false, bool deferTimeout = false) : HttpMessageHandler
     {
         private readonly HttpMessageInvoker inner = new(new HttpClientHandler());
         private int targetRequests;
         public int TargetRequests => Volatile.Read(ref targetRequests);
         public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource TimedOut { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource ResumeTimeout { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -203,7 +276,13 @@ public sealed class LocalHostCompanionTests
                 // Use the companion's actual request deadline, not a timer in
                 // the test or a made-up foreign-host response.
                 Entered.TrySetResult();
-                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                try { await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken); }
+                catch (OperationCanceledException) when (deferTimeout)
+                {
+                    TimedOut.TrySetResult();
+                    await ResumeTimeout.Task.WaitAsync(TimeSpan.FromSeconds(30), CancellationToken.None);
+                    throw;
+                }
             }
             return await inner.SendAsync(request, cancellationToken);
         }
