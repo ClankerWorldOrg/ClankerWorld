@@ -118,6 +118,12 @@ The progress baseline is captured only after entry, with room for three further
 lesson steps. The offered partnership answer stays held throughout; denied-tick
 bytes, continued training, unanswered partnership and strict reload remain checked.
 
+The held identity-routing fixture waits for the runtime's hosted task to finish
+before polling admission. Its deferred-return case holds the provider after
+constructing the reply and checks that the wait keeps the complete checkpoint
+unchanged. The completion wait has a five-second bound; the three-second startup,
+twenty admission ticks, retained-work checks and next-tick reload comparison remain.
+
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native

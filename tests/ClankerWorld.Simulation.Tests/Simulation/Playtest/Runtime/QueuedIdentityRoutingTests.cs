@@ -9,8 +9,10 @@ public sealed class QueuedIdentityRoutingTests
 {
     private const string Actor = "founder-scout";
 
-    [Fact]
-    public async Task CompletingHostedIdentityDefersRetainedDeterministicWorkUntilAFreshTick()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CompletingHostedIdentityDefersRetainedDeterministicWorkUntilAFreshTick(bool deferReturn)
     {
         using var initial = new PrivateWorldRuntime("queued-idle-context");
         var state = initial.ExportState();
@@ -30,7 +32,7 @@ public sealed class QueuedIdentityRoutingTests
                 },
             },
         };
-        var provider = new IdentityPlanningProvider();
+        var provider = new IdentityPlanningProvider(deferReturn);
         using var world = Restore(state, provider);
         try
         {
@@ -48,7 +50,19 @@ public sealed class QueuedIdentityRoutingTests
                 candidate => candidate.Id is "seek_food" or "harvest_food");
             Assert.Empty(provider.RoutineRequests);
 
+            var beforeCompletion = PrivateWorldRuntimeCodec.Encode(world.ExportState());
             provider.Release.TrySetResult(true);
+            var completion = WaitForHostedCompletion(world);
+            if (deferReturn)
+            {
+                await provider.Replied.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.False(completion.IsCompleted);
+                Assert.False(world.HostedDecisionsFinished(Actor));
+                Assert.Equal(beforeCompletion, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+                provider.Complete.TrySetResult(true);
+            }
+            await completion;
+            Assert.Equal(beforeCompletion, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             var admitted = false;
             for (var tick = 0; tick < 20 && !admitted; tick++)
@@ -100,7 +114,17 @@ public sealed class QueuedIdentityRoutingTests
             Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()),
                 PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
         }
-        finally { provider.Release.TrySetResult(true); }
+        finally
+        {
+            provider.Release.TrySetResult(true);
+            provider.Complete.TrySetResult(true);
+        }
+    }
+
+    private static async Task WaitForHostedCompletion(PrivateWorldRuntime world)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (!world.HostedDecisionsFinished(Actor)) await Task.Delay(1, deadline.Token);
     }
 
     private static PrivateWorldRuntime Restore(PrivateWorldRuntimeState state, IdentityPlanningProvider provider) =>
@@ -108,7 +132,7 @@ public sealed class QueuedIdentityRoutingTests
 
     // Exercise the supported per-observation routing contract: personal identity
     // needs a hosted planner, while subsequent ordinary decisions remain local.
-    private sealed class IdentityPlanningProvider : IDecisionProvider
+    private sealed class IdentityPlanningProvider(bool deferReturn = false) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -116,6 +140,8 @@ public sealed class QueuedIdentityRoutingTests
         public ConcurrentQueue<InhabitantObservation> RoutineRequests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> Complete { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public DecisionProviderKind KindFor(InhabitantObservation observation) =>
             observation.NeedsPersonality || observation.NeedsAspiration
@@ -133,11 +159,14 @@ public sealed class QueuedIdentityRoutingTests
             HostedRequests.Enqueue(request.Observation);
             Started.TrySetResult(true);
             await Release.Task.WaitAsync(cancellationToken);
-            return Reply(request, kind, ProviderEpoch) with
+            var reply = Reply(request, kind, ProviderEpoch) with
             {
                 ChosenPersonality = "Patient and curious",
                 ChosenAspiration = "Explore the riverbanks",
             };
+            Replied.TrySetResult(true);
+            if (deferReturn) await Complete.Task.WaitAsync(cancellationToken);
+            return reply;
         }
     }
 
