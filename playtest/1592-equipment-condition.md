@@ -1,0 +1,1 @@
+- On the paired world: inspect an agent's equipped worn clothing and sack in **Profile**, save and reload, and confirm they show at least 1% while any condition remains and 0% when fully broken. A working sack supplies 24 units of carrying capacity; a broken one supplies only the base 8. ([#1592](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1592))
