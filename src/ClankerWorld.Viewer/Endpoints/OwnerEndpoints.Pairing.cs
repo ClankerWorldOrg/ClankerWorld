@@ -19,22 +19,10 @@ internal static partial class OwnerEndpoints
             ["owner-device-pairing.v1"])));
 
         // Bound unauthenticated creation before JSON binding. Do not spend this budget
-        // on signed owner challenges/reconnect/pause or host-local recovery.
+        // on signed owner challenges/reconnect/pause or host-local recovery. Pairing
+        // bodies are already capped by RequestBodyLimits.
         app.Use(async (context, next) =>
         {
-            var pairingRoute = context.Request.Path.StartsWithSegments("/api/v1/pairings") ||
-                context.Request.Path.StartsWithSegments("/api/v1/local/pairings");
-            if (pairingRoute)
-            {
-                const long maximumPairingBytes = 16 * 1024;
-                if (context.Request.ContentLength > maximumPairingBytes)
-                {
-                    context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
-                    return;
-                }
-                var bodyLimit = context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>();
-                if (bodyLimit is { IsReadOnly: false }) bodyLimit.MaxRequestBodySize = maximumPairingBytes;
-            }
             if (HttpMethods.IsPost(context.Request.Method) && context.Request.Path == "/api/v1/pairings" &&
                 !context.RequestServices.GetRequiredService<PairingRequestBudget>().TryAcquire())
             {
