@@ -445,7 +445,7 @@ public sealed partial class TownMembershipTests
         Assert.Equal("passed", repeal.Status);
         Assert.Equal([actor], repeal.Voters);
         Assert.Equal([actor], town.Governance.Members);
-        Assert.Empty(town.Government.Offices);
+        Assert.All(town.Government.Offices, office => Assert.Null(office.HolderId));
         AssertRoundTrip(world);
     }
 

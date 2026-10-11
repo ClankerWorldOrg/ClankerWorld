@@ -880,6 +880,12 @@ from a completed handover and explains a failed transition.
 An election the current Council opened on its own continues independently,
 even if someone leaves the Town while the proposed change waits for a successor.
 
+Every new Town starts with an empty mayor's office for land disputes and
+non-land cases. A willing adult can stand for both duties without a vote to
+create the office; residents then elect the mayor. While it is empty, cases
+wait for a judge and the Council may mediate. Residents can remove the office
+or narrow its duties through the protected government-change vote.
+
 An elected mayor may hold the land mandate, ordinary governing authority, or
 the separate non-land hearing mandate. Candidates personally agree to those specific mandates.
 Residents choose one candidate and may revise their ballot. A tie means another

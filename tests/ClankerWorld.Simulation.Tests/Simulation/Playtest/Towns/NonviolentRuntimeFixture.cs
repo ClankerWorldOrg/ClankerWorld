@@ -155,11 +155,7 @@ internal static class NonviolentRuntimeFixture
         var town = state.Towns![0];
         var tick = state.Society.Society.WorldTick;
         var (council, government) = TownGovernmentRules.RegisterMayor(town.Governance!, town.Government!,
-            Judge, "land", town.ResidentIds, tick);
-        (council, government) = TownGovernmentRules.Propose(council, government, town.Id, Judge,
-            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, town.ResidentIds, tick, Day);
-        foreach (var voter in town.ResidentIds.Take(3))
-            government = TownGovernmentRules.Vote(government, government.Changes[^1].Id, voter, true, tick);
+            Judge, "land+non_land", town.ResidentIds, tick);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
             state.WorldSeed, town.ResidentIds, tick, Day);
         var contest = Assert.IsType<TownMayoralContest>(government.Contest);
@@ -173,18 +169,13 @@ internal static class NonviolentRuntimeFixture
         }
         town = state.Towns![0];
         tick = state.Society.Society.WorldTick;
-        (council, government) = TownGovernmentRules.Propose(town.Governance!, town.Government!, town.Id, Judge,
-            town.Government!.Arrangement with { NonLand = TownArrangementRules.Mayor }, false, town.ResidentIds, tick, Day, "land");
-        var change = government.Changes[^1];
-        council = TownGovernanceRules.LearnNotices(council, Judge,
-            council.Notices.Where(notice => notice.Kind == "government" && notice.SubjectId == change.Id).Select(notice => notice.Id), tick);
-        (council, government) = TownGovernmentRules.AcceptNonLandDuties(council, government, change.Id, Judge, town.ResidentIds, tick);
-        foreach (var voter in town.ResidentIds.Take(3))
-            government = TownGovernmentRules.Vote(government, change.Id, voter, true, tick);
-        (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
-            state.WorldSeed, town.ResidentIds, tick, Day);
+        government = town.Government!;
+        Assert.Empty(government.Changes);
+        Assert.Equal(TownArrangementRules.Initial, government.Arrangement);
+        Assert.Equal(2, government.Offices.Count);
+        Assert.All(government.Offices, office => Assert.Equal(Judge, office.HolderId));
         Assert.Equal(Judge, TownGovernmentRules.CurrentNonLandAuthority(government, tick)!.HolderId);
-        state = Strict(state with { Towns = [town with { Governance = council, Government = government }] });
+        state = Strict(state);
         var provider = new NonviolentTestProvider
         {
             Choose = observation => observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
@@ -194,6 +185,7 @@ internal static class NonviolentRuntimeFixture
                 ? new(Statement: "I answer for myself and acknowledge the reported passage, without promising goods.") : null
         };
         using var prepared = Create(state, provider);
+        foreach (var actor in town.ResidentIds) Wake(prepared, actor, "inspect-elected-mayor-case:" + actor);
         await UntilAsync(prepared, () => TownNonviolentRules.ReadCurrent(prepared.Towns[0].Nonviolent.Cases[0], Judge, prepared.WorldTick) &&
             prepared.Towns[0].Nonviolent.Cases[0].Responses.Any(response => response.AgentId == prepared.Towns[0].Nonviolent.Cases[0].Allegation.SubjectId), 16);
         Wake(prepared, Judge, "fresh-reasoned-choice");

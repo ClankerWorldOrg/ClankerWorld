@@ -16,7 +16,8 @@ public sealed class TownGovernmentTests
         public string Id { get; init; } = "town:test";
         public string[] Adults { get; set; } = adults.Length == 0 ? ["a", "b", "c", "d"] : adults;
         public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(adults.Length == 0 ? ["a", "b", "c", "d"] : adults);
-        public TownGovernmentState Government { get; set; } = TownGovernmentState.Create();
+        public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice("town:test",
+            adults.Length == 0 ? ["a", "b", "c", "d"] : adults, Day);
         public long Tick { get; private set; }
         public void Advance(long tick)
         {
@@ -263,10 +264,10 @@ public sealed class TownGovernmentTests
 
         // Recorded native main b5909c33 output after approving this proposal at tick 10.
         // It is a valid current-format save, before the retained-mandate handover fix.
-        const string contestId = "town:test:mayor:4";
+        const string contestId = "town:test:mayor:5";
         town.Government = town.Government with
         {
-            Sequence = 4,
+            Sequence = 5,
             Changes = town.Government.Changes.Select(change => change.Id == changeId
                 ? change with { Status = "handover", ApprovedTick = 10, HandoverDeadlineTick = 40 } : change).ToArray(),
             Contest = new(contestId, "handover", "land", changeId, "voting", 1, 10, 10, 20,
@@ -321,11 +322,11 @@ public sealed class TownGovernmentTests
         town.Register("a");
         var id = town.Propose(LandMayor, "d"); // any resident, with no incumbent permission
         town.Yes(id, "a", "b");
-        Assert.Equal("voting", town.Government.Changes[0].Status);
+        Assert.Equal("voting", town.Government.Changes[1].Status);
         Assert.Empty(town.Government.Offices);
         town.Yes(id, "c");
-        Assert.Equal("handover", town.Government.Changes[0].Status);
-        Assert.Equal(TownArrangementRules.Initial, town.Government.Arrangement);
+        Assert.Equal("handover", town.Government.Changes[1].Status);
+        Assert.Equal(TownGovernmentTestSetup.NoOffice, town.Government.Arrangement);
         town.Ballot("a", "a");
         town.Advance(Day);
         var office = Assert.Single(town.Government.Offices);
@@ -334,7 +335,7 @@ public sealed class TownGovernmentTests
         Assert.Equal(Day * 21, office.TermEndTick);
         Assert.Equal("all_adult", town.Council.Form);
         Assert.Equal(town.Adults, town.Council.Members);
-        Assert.Equal("completed", town.Government.Changes[0].Status);
+        Assert.Equal("completed", town.Government.Changes[1].Status);
     }
 
     [Fact]
@@ -347,13 +348,13 @@ public sealed class TownGovernmentTests
         town.Adults = ["a", "b", "c", "d", "new-adult"];
         town.Advance(1);
         Assert.Throws<InvalidOperationException>(() => TownGovernmentRules.Vote(town.Government, id, "new-adult", true, 1));
-        Assert.Equal(4, town.Government.Changes[0].Voters.Count);
+        Assert.Equal(4, town.Government.Changes[1].Voters.Count);
         town.Adults = ["b", "c", "d", "new-adult"];
         town.Advance(2);
-        Assert.Empty(town.Government.Changes[0].Votes);
+        Assert.Empty(town.Government.Changes[1].Votes);
         town.Yes(id, "b", "c");
-        Assert.Equal("handover", town.Government.Changes[0].Status);
-        Assert.Equal(["a", "b", "c", "d"], town.Government.Changes[0].OpeningVoters);
+        Assert.Equal("handover", town.Government.Changes[1].Status);
+        Assert.Equal(["a", "b", "c", "d"], town.Government.Changes[1].OpeningVoters);
     }
 
     [Fact]
@@ -364,10 +365,10 @@ public sealed class TownGovernmentTests
         var first = town.Propose(LandMayor);
         town.Advance(2);
         town.Propose(LandMayor, "b");
-        Assert.Single(town.Government.Changes);
-        Assert.Equal(Day, town.Government.Changes[0].DeadlineTick);
+        Assert.Equal(2, town.Government.Changes.Count);
+        Assert.Equal(Day, town.Government.Changes[1].DeadlineTick);
         var second = town.Propose(new(TownArrangementRules.AllAdultCouncil, TownArrangementRules.NoOffice), "d");
-        Assert.Equal("queued", town.Government.Changes[1].Status);
+        Assert.Equal("queued", town.Government.Changes[2].Status);
         town.Yes(first, "a", "b", "c");
         town.Ballot("a", "a");
         town.Adults = ["a", "b", "c", "d", "e"];
@@ -386,7 +387,7 @@ public sealed class TownGovernmentTests
         var town = new Town();
         town.Propose(LandMayor);
         town.Advance(Day);
-        Assert.Equal("rejected", town.Government.Changes[0].Status);
+        Assert.Equal("rejected", town.Government.Changes[1].Status);
         Assert.Throws<InvalidOperationException>(() => town.Propose(LandMayor));
         town.Adults = ["a", "b", "c", "d", "e"];
         var retried = town.Propose(LandMayor);
@@ -394,7 +395,7 @@ public sealed class TownGovernmentTests
         Assert.Throws<InvalidOperationException>(() => town.Propose(LandMayor));
         town.Advance(Day * 2);
         town.Propose(LandMayor);
-        Assert.Equal(3, town.Government.Changes.Count);
+        Assert.Equal(4, town.Government.Changes.Count);
     }
 
     [Fact]
@@ -406,7 +407,7 @@ public sealed class TownGovernmentTests
         town.Adults = ["a", "b", "c", "d", "e"];
         town.Advance(1);
         Assert.Equal("cancelled", town.Council.Proposals[0].Status);
-        Assert.Equal("voting", town.Government.Changes[0].Status);
+        Assert.Equal("voting", town.Government.Changes[1].Status);
     }
 
     [Fact]
@@ -415,10 +416,10 @@ public sealed class TownGovernmentTests
         var town = new Town();
         town.Yes(town.Propose(LandMayor), "a", "b", "c");
         town.Advance(Day * 3);
-        Assert.Equal("cancelled", town.Government.Changes[0].Status);
+        Assert.Equal("cancelled", town.Government.Changes[1].Status);
         Assert.Null(town.Government.Contest);
         Assert.Empty(town.Government.Offices);
-        Assert.Equal(TownArrangementRules.Initial, town.Government.Arrangement);
+        Assert.Equal(TownGovernmentTestSetup.NoOffice, town.Government.Arrangement);
         town.Register("a");
         town.Advance(Day * 4);
         Assert.Null(town.Government.Contest);
@@ -495,7 +496,7 @@ public sealed class TownGovernmentTests
         town.Ballot("b", "b"); town.Advance(21);
         Assert.Equal("leader", town.Council.Form);
         Assert.Equal(["b"], town.Council.Members);
-        Assert.Single(town.Government.Changes);
+        Assert.Equal(2, town.Government.Changes.Count);
         Assert.All(town.Government.Offices, o => Assert.Equal(221, o.TermEndTick));
     }
 
@@ -570,14 +571,14 @@ public sealed class TownGovernmentTests
         town.Advance(1);
         foreach (var actor in new[] { "a", "b", "c" })
             town.Council = TownGovernanceRules.Register(town.Council, actor, true, null, town.Adults, 1);
-        for (var tick = 2L; tick < Day * 3 && town.Government.Changes[0].Status == "handover"; tick++)
+        for (var tick = 2L; tick < Day * 3 && town.Government.Changes[1].Status == "handover"; tick++)
         {
             if (town.Council.Election is { Stage: "main" } election && election.Ballots.Count == 0)
                 town.Council = TownGovernanceRules.VoteElection(town.Council, election.Id, "a", ["a", "b", "c"], tick);
             town.Advance(tick);
         }
 
-        Assert.Equal("completed", town.Government.Changes[0].Status);
+        Assert.Equal("completed", town.Government.Changes[1].Status);
         Assert.Equal(target, town.Government.Arrangement);
         Assert.Equal("representative", town.Council.Form);
         Assert.Equal("a", Assert.Single(town.Government.Offices).HolderId);
@@ -591,8 +592,8 @@ public sealed class TownGovernmentTests
         town.Yes(town.Propose(elected), "a", "b", "c");
         // Nobody agrees to stand, so the forced first election fails and the change lapses.
         for (var tick = 1L; tick <= Day * 3; tick++) town.Advance(tick);
-        Assert.Equal("cancelled", town.Government.Changes[0].Status);
-        Assert.Equal(TownArrangementRules.Initial, town.Government.Arrangement);
+        Assert.Equal("cancelled", town.Government.Changes[1].Status);
+        Assert.Equal(TownGovernmentTestSetup.NoOffice, town.Government.Arrangement);
 
         // Willing candidates later must not be seated by a council election nobody approved.
         foreach (var actor in new[] { "a", "b", "c" })
@@ -654,7 +655,7 @@ public sealed class TownGovernmentTests
     public void ASecondTownCannotConsumeTheFirstTownsResidentVotesOrElection()
     {
         var first = new Town();
-        var second = new Town { Id = "town:other" };
+        var second = new Town { Id = "town:other", Government = TownGovernmentTestSetup.WithoutOffice("town:other", ["a", "b", "c", "d"], Day) };
         var firstVote = first.Propose(LandMayor);
         var secondVote = second.Propose(LandMayor);
         Assert.NotEqual(firstVote, secondVote);
@@ -663,7 +664,7 @@ public sealed class TownGovernmentTests
         first.Ballot("a", "a"); first.Advance(Day);
         Assert.Single(first.Government.Offices);
         Assert.Empty(second.Government.Offices);
-        Assert.Empty(second.Government.Changes[0].Votes);
+        Assert.Empty(second.Government.Changes[1].Votes);
     }
 
     [Fact]
@@ -710,6 +711,6 @@ public sealed class TownGovernmentTests
         town.Ballot("c", "a"); replay.Ballot("c", "a");
         town.Advance(20); replay.Advance(20);
         Assert.Equal(JsonSerializer.Serialize(town.Government), JsonSerializer.Serialize(replay.Government));
-        Assert.Empty(new Town().Government.Changes);
+        Assert.Equal("completed", Assert.Single(new Town().Government.Changes).Status);
     }
 }

@@ -2528,8 +2528,17 @@ telemetry records the Town, outcome, previous Town and counts only.
 
 `TownGovernmentState` stores scoped law versions, protected resident processes,
 mayoral consent and contests, and separate land, ordinary and non-land mandate terms.
-`TownGovernmentRules` coordinates them with the existing Council engine. Law
-adoption consumes passed structured Council proposals once; amendment and repeal
+`TownGovernmentRules` coordinates them with the existing Council engine.
+New Towns initialize two vacant office records, `land` and `non_land`, with
+their founding tick and no holder, term or election. The initial arrangement
+keeps ordinary Council authority. While the whole office is vacant and no
+protected change is pending, the personal registration choice covers its
+combined duties. Joint consent opens the existing vacancy election, and its
+winner receives both separate mandate records under the same election and
+twenty-day term. Empty offices supply no judge. Paused founder setup updates
+the Council roster without running elections or advancing time.
+
+Law adoption consumes passed structured Council proposals once; amendment and repeal
 bind their base version, so a stale passed proposal cannot overwrite a later law.
 Amendment and repeal labels shorten the display to 256 UTF-16 units, reserving
 one for an ellipsis and omitting a whole surrogate pair when it crosses the

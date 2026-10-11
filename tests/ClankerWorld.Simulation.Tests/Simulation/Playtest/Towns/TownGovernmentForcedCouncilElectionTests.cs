@@ -109,10 +109,10 @@ public sealed partial class TownGovernmentHandoverTests
         foreach (var run in new[] { town, restored })
         {
             run.Advance(3 * Day);
-            var change = Assert.Single(run.Government.Changes);
+            var change = run.Government.Changes[^1];
             Assert.Equal("cancelled", change.Status);
             Assert.Equal(forced.Id, change.ForcedCouncilElectionId);
-            Assert.Equal(TownArrangementRules.Initial, run.Government.Arrangement);
+            Assert.Equal(TownGovernmentTestSetup.NoOffice, run.Government.Arrangement);
             Assert.Null(run.Council.Election);
             Assert.Equal("cancelled", Assert.Single(run.Council.ElectionHistory, election => election.Id == forced.Id).Stage);
             run.Advance(3 * Day + 1);

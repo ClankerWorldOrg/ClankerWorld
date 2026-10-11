@@ -10,12 +10,12 @@ using GodotSnapshot = ClankerWorld.GodotClient.UI.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Simulation.Tests;
 
-public sealed class TownGovernmentRuntimeTests
+public sealed partial class TownGovernmentRuntimeTests
 {
     private const string Author = "founder:00000000000000000000000000000001";
     private const int Day = 40;
 
-    private static PrivateWorldRuntime NewWorld(Func<string, IDecisionProvider> providers)
+    private static PrivateWorldRuntime NewWorld(Func<string, IDecisionProvider> providers, bool removeFoundingOffice = false)
     {
         using var generated = NormalPathWorld.CreateGenerated("government-personal-path", providers);
         var state = generated.ExportState();
@@ -23,6 +23,8 @@ public sealed class TownGovernmentRuntimeTests
         var oldDay = society.Config.TicksPerWorldDay;
         return PrivateWorldRuntime.Restore(state with
         {
+            Towns = removeFoundingOffice ? state.Towns!.Select(town => town with
+            { Government = TownGovernmentTestSetup.WithoutOffice(town.Id, town.ResidentIds.ToArray(), Day) }).ToArray() : state.Towns,
             Inhabitants = state.Inhabitants.Select(p => p with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
             WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
             { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
@@ -42,11 +44,11 @@ public sealed class TownGovernmentRuntimeTests
     public async Task PersonalModelTurnsElectMayorAndPausedVotesSurviveRollbackReloadAndReplay()
     {
         var provider = new MayorProvider();
-        using var world = NewWorld(_ => provider);
+        using var world = NewWorld(_ => provider, removeFoundingOffice: true);
         var original = world.ExportState();
-        for (var step = 0; step < 20 && world.Towns[0].Government!.Changes.Count == 0; step++)
+        for (var step = 0; step < 20 && world.Towns[0].Government!.Changes.Count == 1; step++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Single(world.Towns[0].Government!.Changes);
+        Assert.Equal(2, world.Towns[0].Government!.Changes.Count);
         world.Pause();
         var paused = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);
@@ -65,7 +67,7 @@ public sealed class TownGovernmentRuntimeTests
         }
         var government = world.Towns[0].Government!;
         Assert.Equal(Author, Assert.Single(government.Offices).HolderId);
-        Assert.Equal("completed", Assert.Single(government.Changes).Status);
+        Assert.Equal("completed", government.Changes[^1].Status);
         Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.Contains(provider.Seen, id => id.Contains("|government_yes|", StringComparison.Ordinal));
         Assert.Contains(provider.Seen, id => id.Contains("|mayor_vote|", StringComparison.Ordinal));
@@ -94,7 +96,7 @@ public sealed class TownGovernmentRuntimeTests
     [InlineData("nullChanges")]
     public async Task DamagedGovernmentAuthorityIsRefused(string damage)
     {
-        using var world = NewWorld(_ => new ActionCoverageRecorder(chooseIdle: true));
+        using var world = NewWorld(_ => new ActionCoverageRecorder(chooseIdle: true), removeFoundingOffice: true);
         for (var tick = 0; tick < Day; tick++) await world.AdvanceOneTickAsync();
         var state = world.ExportState();
         var town = state.Towns![0];
@@ -102,7 +104,7 @@ public sealed class TownGovernmentRuntimeTests
         var (council, government) = TownGovernmentRules.RegisterMayor(town.Governance!, town.Government!, adults[0], "land", adults, 0);
         (council, government) = TownGovernmentRules.Propose(council, government, town.Id, adults[0],
             new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, adults, 0, Day);
-        foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, government.Changes[0].Id, voter, true, 0);
+        foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, government.Changes[1].Id, voter, true, 0);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, 0, Day);
         government = TownGovernmentRules.VoteMayor(government, TownGovernmentRules.RoundToken(government.Contest!), adults[0], adults[0], 0);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name, state.WorldSeed, adults, Day, Day);
@@ -117,8 +119,8 @@ public sealed class TownGovernmentRuntimeTests
         var saved = document["state"]!["towns"]![0]!["government"]!;
         switch (damage)
         {
-            case "majority": saved["changes"]![0]!["votes"] = new JsonArray(); break;
-            case "openingRoster": saved["changes"]![0]!["openingVoters"] = new JsonArray(); break;
+            case "majority": saved["changes"]![1]!["votes"] = new JsonArray(); break;
+            case "openingRoster": saved["changes"]![1]!["openingVoters"] = new JsonArray(); break;
             case "term": saved["offices"]![0]!["termEndTick"] = Day * 30; break;
             case "officeSource": saved["offices"]![0]!["electionId"] = "invented"; break;
             case "winnerVotes": saved["contestHistory"]![0]!["rounds"]![0]!["ballots"] = new JsonArray(); break;
@@ -134,7 +136,7 @@ public sealed class TownGovernmentRuntimeTests
     public async Task GovernmentProposalsAreOfferedAtTheNoticePlaceAndMayoralConsentOnlyWhileAnOfficeIsInPlay()
     {
         var provider = new RecordingProvider();
-        using var initial = NewWorld(_ => provider);
+        using var initial = NewWorld(_ => provider, removeFoundingOffice: true);
         var state = initial.ExportState();
         var town = state.Towns![0];
         var board = town.OriginSite!.Value;

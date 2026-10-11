@@ -106,7 +106,12 @@ public sealed partial class PrivateWorldRuntime
     {
         foreach (var town in towns.ToArray())
         {
-            if (town.FoundingState != "founded") continue;
+            if (town.FoundingState != "founded")
+            {
+                if (town.Government is not null)
+                    SetTown(town with { Governance = TownGovernanceState.Create(TownAdults(town)) });
+                continue;
+            }
             var governance = town.Governance ?? TownGovernanceState.Create(TownAdults(town));
             var (council, government) = AdvanceCivic(town, governance, town.Government ?? TownGovernmentState.Create());
             SaveTownGovernance(town, council, government);

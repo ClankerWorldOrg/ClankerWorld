@@ -51,7 +51,8 @@ public sealed partial class PrivateWorldRuntime
             worldSeed + "|" + site.X.ToString(CultureInfo.InvariantCulture) + "," + site.Y.ToString(CultureInfo.InvariantCulture))));
         if (towns.Any(town => town.Id == id)) return null;
         return new TownRuntimeState(id, $"Town at {site.X.ToString(CultureInfo.InvariantCulture)}, {site.Y.ToString(CultureInfo.InvariantCulture)}",
-            "founded", WorldTick, [], assigned.Order(StringComparer.Ordinal).ToArray(), border, site);
+            "founded", WorldTick, [], assigned.Order(StringComparer.Ordinal).ToArray(), border, site,
+            Government: TownGovernmentState.Create(WorldTick));
     }
 
     private void FoundTown(string actor, string candidate)

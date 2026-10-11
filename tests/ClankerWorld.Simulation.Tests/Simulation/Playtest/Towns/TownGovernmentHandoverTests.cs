@@ -22,7 +22,7 @@ public sealed partial class TownGovernmentHandoverTests
         public string Id { get; init; } = "town:test";
         public string[] Adults { get; set; } = adults;
         public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(adults);
-        public TownGovernmentState Government { get; set; } = TownGovernmentState.Create();
+        public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice("town:test", adults, Day);
         public long Tick { get; private set; }
         public void Advance(long tick)
         {
@@ -118,7 +118,7 @@ public sealed partial class TownGovernmentHandoverTests
             town.Advance(tick);
         }
         Assert.Equal("cancelled", town.Government.Changes[^1].Status);
-        Assert.Equal(TownArrangementRules.Initial, town.Government.Arrangement);
+        Assert.Equal(TownGovernmentTestSetup.NoOffice, town.Government.Arrangement);
         // The lapse cancels the waiting election too, so it is never seated afterwards.
         for (var tick = Day * 3 + 1; tick <= Day * 6; tick++) town.Advance(tick);
         Assert.Null(town.Council.Election);
