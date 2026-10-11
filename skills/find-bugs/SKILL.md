@@ -64,7 +64,9 @@ normal game reaches it.
 Follow CONTRIBUTING's [security rule](../../CONTRIBUTING.md#priorities): the
 repository is public, so tell the owner in chat what you found, including how
 to reproduce it ([how](../../AGENTS.md#ask-the-owner-in-chat)), and open only
-the placeholder issue it describes, with no details.
+the placeholder issue it describes, with no details. Sign the placeholder with
+your session ID and the time you told the owner, so the owner can find your
+report; a placeholder nobody can trace can't be acted on.
 
 ## Report
 

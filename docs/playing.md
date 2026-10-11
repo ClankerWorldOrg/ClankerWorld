@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-10
+updated: 2026-10-11
 ---
 
 # Playing the current game
@@ -293,6 +293,9 @@ the built-in rules made it, the Profile says so instead. Click their thought,
 or **Read all**, to read every recent thought in a larger panel beside the
 Profile. Long names use up to two lines so its buttons stay in view. Hover
 over the name or open Rename to read the whole name.
+The thoughts, orders and conversation readers also keep long headings within
+two lines; hover over a heading to read it in full. Their Close buttons stay
+in view.
 The pencil beside their name renames them, and **Speak** goes straight
 to the message box, where you choose **Suggest** or **Order**. The crosshair
 centers the camera on them, and back (or **Escape**) returns from the Profile
@@ -725,7 +728,8 @@ what is being made there or who is inside, and what it stores, shown as item
 icons with the amount in the corner. **Details** opens the rest on the left:
 who may use it, when it was built, which side its door faces, the work in
 progress, a larger storage grid with each item's name, and who is inside or
-lives there. Work lists what a batch uses and makes, separately from the
+lives there. Long item names fit within their slots; hover to read the full
+name and amount. Work lists what a batch uses and makes, separately from the
 materials currently held for that job. **Can make** lists the recipes registered
 for that exact building size and their quantities. Each still needs real
 materials and an adult allowed to work there. Reading the list teaches no
@@ -1203,7 +1207,8 @@ the next rotating save waits one configured interval from the corrected time.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and
-**Open World**. Open
+**Open World**. Long card names are shortened to fit; hover a world or save
+card to read its full name and details. Open
 and Delete are unavailable while another world action finishes. A world that
 another game version last saved, and this one can't open, is marked
 **Saved by <version>**. In a game the launcher started, its red **Open in

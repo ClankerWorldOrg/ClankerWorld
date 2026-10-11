@@ -378,18 +378,28 @@ public partial class Main
         }
     }
 
+    /// <summary>Reader headings share a bounded name and keep Close visible for every accepted name.</summary>
+    private static HBoxContainer ReaderHeading(PanelContainer panel, Label title, string closeHint)
+    {
+        title.ThemeTypeVariation = "HeadingLabel";
+        title.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        title.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        title.MaxLinesVisible = 2;
+        title.TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
+        title.MouseFilter = Control.MouseFilterEnum.Pass;
+        var heading = new HBoxContainer();
+        heading.AddChild(title);
+        var close = CloseButton(closeHint);
+        close.Pressed += () => panel.Hide();
+        heading.AddChild(close);
+        return heading;
+    }
+
     private void BuildThoughtsReader()
     {
         var body = new VBoxContainer();
         body.AddThemeConstantOverride("separation", 6);
-        var heading = new HBoxContainer();
-        thoughtsReaderTitle.ThemeTypeVariation = "HeadingLabel";
-        thoughtsReaderTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        heading.AddChild(thoughtsReaderTitle);
-        var close = CloseButton("Close thoughts (Esc)");
-        close.Pressed += () => thoughtsPanel.Hide();
-        heading.AddChild(close);
-        body.AddChild(heading);
+        body.AddChild(ReaderHeading(thoughtsPanel, thoughtsReaderTitle, "Close thoughts (Esc)"));
         body.AddChild(new Label
         {
             Text = "Only you can read these. Other agents don't know them unless they are told.",
@@ -424,7 +434,7 @@ public partial class Main
     /// <summary>Every recent private thought, newest first, under a heading for each day.</summary>
     private void RenderThoughtsReader(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant)
     {
-        thoughtsReaderTitle.Text = IsDeceased(inhabitant) ? $"{inhabitant.DisplayName} · thoughts, historical" : $"{inhabitant.DisplayName} · thoughts";
+        thoughtsReaderTitle.Text = thoughtsReaderTitle.TooltipText = IsDeceased(inhabitant) ? $"{inhabitant.DisplayName} · thoughts, historical" : $"{inhabitant.DisplayName} · thoughts";
         var thoughts = inhabitant.RecentPrivateThoughts.Reverse()
             .Select(thought => (Clock: SplitClock(DisplayWorldClock(thought.WorldTick)), thought.Text)).ToArray();
         var signature = inhabitant.Id + "|" + UiTheme.Current.Name + "\n" +

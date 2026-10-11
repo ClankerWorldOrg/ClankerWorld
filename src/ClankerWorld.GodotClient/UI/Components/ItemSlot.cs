@@ -85,8 +85,8 @@ public partial class ItemSlot : Control
         }
     }
 
-    /// <summary>The name wrapped by word into at most two lines of the cell's width.</summary>
-    private List<string> NameLines(Font font)
+    /// <summary>The name wrapped into at most two lines, each fitted to the cell's width.</summary>
+    internal List<string> NameLines(Font font)
     {
         var lines = new List<string> { string.Empty };
         foreach (var word in DisplayName.Split(' ', StringSplitOptions.RemoveEmptyEntries))
@@ -98,6 +98,7 @@ public partial class ItemSlot : Control
             else
                 lines[^1] = joined;
         }
-        return lines;
+        return lines.Select(line => FittedLabel.Shorten(line, CellWidth,
+            text => font.GetStringSize(text, HorizontalAlignment.Left, -1, BadgeFontSize).X)).ToList();
     }
 }

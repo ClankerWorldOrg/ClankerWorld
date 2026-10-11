@@ -2890,6 +2890,11 @@ Road-frontage scoring reuses the rectangular footprint and cardinal direction
 checks with direct loops, avoiding nested iterator and predicate allocations.
 The [Road-frontage measurements](road-frontage-query-measurements.md) record
 matched native captures, lower allocations and mixed timing limits.
+Site evaluation enumerates placement footprints lazily, rejecting blocked tiles
+without allocating the remaining translated points. It keeps full-footprint
+legality before limiting offered candidates. See
+[footprint evaluation measurements](footprint-evaluation-measurements.md)
+for matched native results and allocation/timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
