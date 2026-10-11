@@ -45,11 +45,18 @@ public sealed class LocalHostCompanionTests
     {
         var environment = new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["OPENAI_API_KEY"] = "one", ["ANTHROPIC_API_KEY"] = "two", ["OLLAMA_API_KEY"] = "three",
-            ["typesafe_api_key"] = "four", ["ClankerWorld__Runtime__DecisionProvider"] = "openai",
-            ["clankerworld__pairing__statepath"] = "elsewhere", ["ClankerWorld:Runtime:Model"] = "model",
-            ["DOTNET_ClankerWorld__Http__Port"] = "1", ["ASPNETCORE_CLANKERWORLD__RUNTIME__SEED"] = "seed",
-            ["PATH"] = "/usr/bin", ["DOTNET_ROOT"] = "/dotnet", ["ClankerWorld_Notes"] = "kept",
+            ["OPENAI_API_KEY"] = "one",
+            ["ANTHROPIC_API_KEY"] = "two",
+            ["OLLAMA_API_KEY"] = "three",
+            ["typesafe_api_key"] = "four",
+            ["ClankerWorld__Runtime__DecisionProvider"] = "openai",
+            ["clankerworld__pairing__statepath"] = "elsewhere",
+            ["ClankerWorld:Runtime:Model"] = "model",
+            ["DOTNET_ClankerWorld__Http__Port"] = "1",
+            ["ASPNETCORE_CLANKERWORLD__RUNTIME__SEED"] = "seed",
+            ["PATH"] = "/usr/bin",
+            ["DOTNET_ROOT"] = "/dotnet",
+            ["ClankerWorld_Notes"] = "kept",
             ["OPENAI_API_KEY_BACKUP"] = "kept",
         };
         LocalHostLayout.WithholdHostSettings(environment);
