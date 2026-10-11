@@ -57,7 +57,11 @@ public sealed class CivicLandHearingProviderTests
     [Theory]
     [InlineData("payment_item_kind", 512, true)]
     [InlineData("payment_item_kind", 513, false)]
+    [InlineData("evidence_ids", 128, true)]
+    [InlineData("evidence_ids", 129, false)]
     [InlineData("evidence_ids", 257, false)]
+    [InlineData("law_ids", 128, true)]
+    [InlineData("law_ids", 129, false)]
     [InlineData("law_ids", 257, false)]
     public async Task ProviderJsonUsesTheContentLimitForGoodsAndRetainsTheEvidenceLimit(string field, int length, bool valid)
     {
@@ -72,9 +76,18 @@ public sealed class CivicLandHearingProviderTests
         Assert.Equal(!valid, admission.FellBack);
         if (valid)
         {
-            var price = Assert.IsType<CognitionLandHearingChoice>(admission.CivicLandHearing);
-            Assert.Equal(value, price.PaymentItemKind);
-            Assert.Equal(1, price.PaymentQuantity);
+            var choice = Assert.IsType<CognitionLandHearingChoice>(admission.CivicLandHearing);
+            if (field == "payment_item_kind")
+            {
+                Assert.Equal(value, choice.PaymentItemKind);
+                Assert.Equal(1, choice.PaymentQuantity);
+            }
+            else
+            {
+                Assert.Equal(value, Assert.Single(field == "evidence_ids" ? choice.EvidenceIds! : choice.LawIds!));
+                Assert.Null(choice.PaymentItemKind);
+                Assert.Null(choice.PaymentQuantity);
+            }
         }
         else
         {
