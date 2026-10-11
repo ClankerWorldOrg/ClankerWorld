@@ -303,10 +303,14 @@ public sealed class DeclarativeWorldContentState
         ValidateUniqueIds(Buildings, "building");
         ValidateUniqueIds(Recipes, "recipe");
         ValidateRecipeReferences(Buildings, Recipes);
+        BuildingDefinitions = new ReadOnlyDictionary<string, BuildingDefinition>(
+            Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal));
         StateDigest = ContentDefinitionRules.ComputeStateDigest(Buildings, Recipes);
     }
 
     public IReadOnlyList<BuildingDefinition> Buildings { get; }
+
+    internal ReadOnlyDictionary<string, BuildingDefinition> BuildingDefinitions { get; }
 
     public IReadOnlyList<RecipeDefinition> Recipes { get; }
 

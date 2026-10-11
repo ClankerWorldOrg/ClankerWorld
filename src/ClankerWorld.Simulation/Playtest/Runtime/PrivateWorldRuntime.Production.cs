@@ -29,25 +29,13 @@ public sealed partial class PrivateWorldRuntime
     {
         var origin = inhabitants[actor].Position;
         var town = towns.SingleOrDefault(item => item.ResidentIds.Contains(actor, StringComparer.Ordinal));
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
-        var occupied = map.CampObjects.Select(item => item.Position)
-            .Concat(map.Resources.Select(item => item.Position))
-            .Concat(RoadAndBridgeTiles())
-            .Concat(fields.Select(field => field.Position))
-            .Concat(TownProjectProtectedSites(townProjectId))
-            .Concat(MarketSiteTiles())
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused).SelectMany(ExpansionTiles))
-            .Concat(worldSimulation.Buildings.SelectMany(building =>
-            {
-                if (!definitions.TryGetValue(building.DefinitionId, out var definition))
-                    throw new InvalidDataException("A placed building has no active definition.");
-                return WorldContentSimulationRules.Footprint(definition, building);
-            }))
-            .Concat(inhabitants.Values.Where(person => person.InhabitantId != actor)
-                .Select(person => person.Position))
+        var ground = Ground;
+        var occupied = GroundOccupancy.Combine(ground.CampObjects, ground.Resources,
+            ground.RoadsAndBridgeEntrances, ground.Fields, ground.ProtectedProjectSites(townProjectId),
+            ground.MarketSites, ground.ExpansionSites, ground.CheckedBuildingFootprints,
+            inhabitants.Values.Where(person => person.InhabitantId != actor).Select(person => person.Position),
             // A household builds only on land no other household holds or has asked for; Town buildings avoid it all.
-            .Concat(HouseholdLandHeldByOthers(IsHouseholdLayout(building) ? HouseholdFor(actor) : null))
-            .ToHashSet();
+            HouseholdLandHeldByOthers(IsHouseholdLayout(building) ? HouseholdFor(actor) : null));
         return new(actor, selectedSite, IsHouseholdLayout(building), townProjectId,
             occupied, FindUnoccupiedFootCosts(actor, origin, town, occupied, selectedSite));
     }
@@ -61,7 +49,7 @@ public sealed partial class PrivateWorldRuntime
             throw new InvalidOperationException("A Town layout was given a basis built for another layout.");
         basis ??= CreateTownLayoutBasis(actor, selectedSite, building, townProjectId);
         var town = towns.SingleOrDefault(item => item.ResidentIds.Contains(actor, StringComparer.Ordinal));
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = worldContent.BuildingDefinitions;
         var resourcesForLayout = map.Resources.Select(resource => new TownLayoutResource(
             resource,
             resources.GetValueOrDefault(resource.Id) == ResourceState.Available));
@@ -91,7 +79,7 @@ public sealed partial class PrivateWorldRuntime
 
     /// <summary>A Silo stands near its household's Farmhouse; no Farmhouse means no legal Silo site.</summary>
     private GridPoint[] SiloNeighborTiles(string actor,
-        Dictionary<string, BuildingDefinition> definitions) =>
+        System.Collections.ObjectModel.ReadOnlyDictionary<string, BuildingDefinition> definitions) =>
         society.Checkpoint.GetInhabitant(actor).HouseholdId is { } householdId &&
         FarmhouseForHousehold(householdId) is { } farmhouse
             ? WorldContentSimulationRules.Footprint(definitions[farmhouse.DefinitionId], farmhouse.Position).ToArray()
@@ -305,16 +293,11 @@ public sealed partial class PrivateWorldRuntime
 
     private BuildingPlacementTiles GatherBuildingPlacementTiles(string? townProjectId)
     {
-        var occupied = map.CampObjects
-            .Select(item => item.Position)
-            .Concat(map.Resources.Select(item => item.Position))
-            .Concat(RoadAndBridgeTiles())
-            .Concat(fields.Select(field => field.Position))
-            .Concat(TownProjectProtectedSites(townProjectId))
-            .Concat((worldSimulation.BuildingExpansions ?? []).Where(job => job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused).SelectMany(ExpansionTiles))
-            .ToHashSet();
-        var market = MarketSiteTiles().ToHashSet();
-        var buildingDefinitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var ground = Ground;
+        var occupied = GroundOccupancy.Combine(ground.CampObjects, ground.Resources,
+            ground.RoadsAndBridgeEntrances, ground.Fields, ground.ProtectedProjectSites(townProjectId), ground.ExpansionSites);
+        var market = ground.MarketSites.ToHashSet();
+        var buildingDefinitions = worldContent.BuildingDefinitions;
         foreach (var placed in worldSimulation.Buildings)
         {
             if (!buildingDefinitions.TryGetValue(placed.DefinitionId, out var existingDefinition))

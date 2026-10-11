@@ -111,26 +111,8 @@ public sealed partial class PrivateWorldRuntime
             var status = instruction.Order?.Status ?? "not_understood";
             if (changed)
             {
-                instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
-                {
-                    Order = instruction.Order! with
-                    {
-                        Status = "cancelled",
-                        BlockedReason = null,
-                        WaitForDecisionAfterFailure = false,
-                    },
-                };
-                completedInstructionIds.Add(instruction.InstructionId);
-                CancelRepairForOrder(instruction);
-                CancelFieldWorkForOrder(instruction);
-                CancelProductionForOrder(instruction);
-                CancelConstructionForOrder(instruction);
-                CancelExpansionForOrder(instruction);
-                CancelAnimalSupplyForOrder(instruction);
-                CancelBoatTravelForOrder(instruction);
-                CancelKnowledgeWritingForOrder(instruction);
+                CancelActiveOrder(instruction, "owner", null);
                 status = "cancelled";
-                AppendEvent("instruction_order_cancelled", $"{instruction.TargetInhabitantId}:{instruction.InstructionId}:owner");
             }
             var receipt = new OwnerOrderControlReceipt(
                 instruction.InstructionId, status, changed, WorldTick, nextEventId - 1);
@@ -329,27 +311,33 @@ public sealed partial class PrivateWorldRuntime
                          IsActiveOrder(order.Status) && !completedInstructionIds.Contains(item.InstructionId))
                      .OrderBy(item => item.SubmissionSequence).ToArray())
         {
-            instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
-            {
-                Order = instruction.Order! with
-                {
-                    Status = "cancelled",
-                    BlockedReason = "Replaced by a newer order.",
-                    WaitForDecisionAfterFailure = false,
-                },
-            };
-            completedInstructionIds.Add(instruction.InstructionId);
-            CancelRepairForOrder(instruction);
-            CancelFieldWorkForOrder(instruction);
-            CancelProductionForOrder(instruction);
-            CancelConstructionForOrder(instruction);
-            CancelExpansionForOrder(instruction);
-            CancelAnimalSupplyForOrder(instruction);
-            CancelBoatTravelForOrder(instruction);
-            CancelKnowledgeWritingForOrder(instruction);
-            AppendEvent("instruction_order_cancelled", $"{inhabitantId}:{instruction.InstructionId}:replaced");
+            CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
         }
         checkpointSchemaVersion = StateSchemaVersion;
+    }
+
+    private void CancelActiveOrder(OwnerQueuedInstruction instruction, string cause, string? reason)
+    {
+        instructionsByIdempotency[instruction.IdempotencyKey] = instruction with
+        {
+            Order = instruction.Order! with
+            {
+                Status = "cancelled",
+                BlockedReason = reason,
+                WaitForDecisionAfterFailure = false,
+            },
+        };
+        completedInstructionIds.Add(instruction.InstructionId);
+        CancelRepairForOrder(instruction);
+        CancelFieldWorkForOrder(instruction);
+        CancelProductionForOrder(instruction);
+        CancelConstructionForOrder(instruction);
+        CancelExpansionForOrder(instruction);
+        CancelAnimalSupplyForOrder(instruction);
+        CancelBoatTravelForOrder(instruction);
+        CancelKnowledgeWritingForOrder(instruction);
+        checkpointSchemaVersion = StateSchemaVersion;
+        AppendEvent("instruction_order_cancelled", $"{instruction.TargetInhabitantId}:{instruction.InstructionId}:{cause}");
     }
 
     private static bool IsActiveOrder(string status) =>

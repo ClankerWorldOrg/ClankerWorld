@@ -32,6 +32,11 @@ public partial class Main
     private bool DeveloperMode => developerMode ??=
         OS.HasFeature("editor") || OS.GetCmdlineUserArgs().Contains(DeveloperModeOption, StringComparer.Ordinal);
 
+    private static string GameUserPath(string fileName) => GameStarter.UsesTestData(OS.GetCmdlineUserArgs())
+        ? GameStarter.ClientDataPath(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+            OS.GetCmdlineUserArgs(), fileName)
+        : ProjectSettings.GlobalizePath("user://" + fileName);
+
     /// <summary>The launcher that started this game, if it still exists.</summary>
     private string? LauncherPath
     {
@@ -93,6 +98,9 @@ public partial class Main
             var start = new ProcessStartInfo(path) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(path) };
             start.ArgumentList.Add("--");
             start.ArgumentList.Add("--choose-version=" + failedLauncherVersion);
+            if (DeveloperMode) start.ArgumentList.Add("--developer-mode");
+            start.ArgumentList.Add(GameStarter.UsesTestData(OS.GetCmdlineUserArgs()) ? "--test-data" : "--player-data");
+            if (GameStarter.UsesDetailedLogs(OS.GetCmdlineUserArgs())) start.ArgumentList.Add("--detailed-logs");
             if (failedLauncherWorld is { } id) start.ArgumentList.Add(GameStarter.WorldOption + id);
             using var process = Process.Start(start);
             if (process is null) throw new IOException("The launcher did not start.");

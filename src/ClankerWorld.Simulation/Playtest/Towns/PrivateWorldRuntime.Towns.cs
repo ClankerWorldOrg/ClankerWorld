@@ -181,7 +181,7 @@ public sealed partial class PrivateWorldRuntime
             (inhabitants.Values.Any(person => person.Position == position) && !IsHouseAt(position)))
             throw new ArgumentException("Choose an empty passable tile for this agent.", nameof(position));
 
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = worldContent.BuildingDefinitions;
         var buildingOwners = worldSimulation.Buildings.Where(building => building.HouseholdId is not null &&
                 definitions.TryGetValue(building.DefinitionId, out var definition) &&
                 WorldContentSimulationRules.Footprint(definition, building).Contains(position))
@@ -238,7 +238,7 @@ public sealed partial class PrivateWorldRuntime
 
     private bool IsHouseAt(GridPoint position)
     {
-        var definitions = worldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = worldContent.BuildingDefinitions;
         return worldSimulation.Buildings.Any(building =>
             definitions.TryGetValue(building.DefinitionId, out var definition) &&
             definition.Tags.Contains("house", StringComparer.Ordinal) &&
@@ -277,7 +277,6 @@ public sealed partial class PrivateWorldRuntime
                     if (surname != marriage.CurrentSurname)
                         SetMarriageAt(marriageIndex, marriage with { LatestPlayerRename = new AgentMarriageRename(agentId, surname, WorldTick) });
                 }
-                checkpointSchemaVersion = StateSchemaVersion;
                 AppendEvent("agent_renamed", agentId);
             }
             return changed;
@@ -386,7 +385,6 @@ public sealed partial class PrivateWorldRuntime
         };
         civicSystem.SetTownState(updated);
         towns[index] = civicSystem.CheckpointTown(updated);
-        checkpointSchemaVersion = StateSchemaVersion;
         if (!previous.IsAbandoned && updated.IsAbandoned)
             AppendEvent("town_abandoned", updated.Id);
         else if (previous.IsAbandoned && !updated.IsAbandoned)

@@ -101,7 +101,7 @@ public partial class SlotList : ScrollContainer
             ThemeTypeVariation = Style(""),
             MouseFilter = MouseFilterEnum.Stop,
             MouseDefaultCursorShape = CursorShape.PointingHand,
-            TooltipText = detail,
+            TooltipText = detail.Length == 0 ? title : $"{title}\n{detail}",
         };
         var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", 10);

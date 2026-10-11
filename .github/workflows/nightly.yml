@@ -21,8 +21,10 @@ concurrency:
   group: nightly
   cancel-in-progress: false
 
+# The job's token can write releases, so only the steps that call gh get it as
+# GH_TOKEN, and checkout keeps no credentials: the steps that restore, build and
+# package the repository's code never see it.
 env:
-  GH_TOKEN: ${{ github.token }}
   GH_REPO: ${{ github.repository }}
   KEEP_NIGHTLIES: 7
 
@@ -37,8 +39,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: main
+          persist-credentials: false
       - name: Decide whether main needs a new nightly build
         id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           sha="$(git rev-parse HEAD)"
           echo "sha=${sha}" >> "${GITHUB_OUTPUT}"
@@ -77,6 +82,8 @@ jobs:
           bash scripts/package-windows.sh
       - name: Publish the nightly pre-release
         if: steps.decide.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           zip="$(find export/package -maxdepth 1 -name 'ClankerWorld-*-windows-x64.zip' -print -quit)"
           name="$(basename "${zip}" .zip)"
@@ -88,6 +95,8 @@ jobs:
             --title "Nightly ${version}" --notes "${notes}" "${zip}" "${zip}.sha256"
       - name: Remove older nightly builds
         if: steps.decide.outputs.build == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh api "repos/${GH_REPO}/releases?per_page=100" --paginate --slurp \
             --jq "[.[][] | select(.tag_name | test(\"^v[0-9.]+-nightly\\\\.\"))] | sort_by(.created_at) | reverse | .[${KEEP_NIGHTLIES}:] | .[].tag_name" |

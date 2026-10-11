@@ -48,7 +48,7 @@ public sealed record LocalHostLayout(
     /// Host settings. Only paths and ports: the secret stays in its file and
     /// keys stay in the host's protected store, never on the command line.
     /// </summary>
-    public IReadOnlyList<string> HostArguments(int port, int approvalPort) =>
+    public IReadOnlyList<string> HostArguments(int port, int approvalPort, bool detailedLogs = false) =>
     [
         .. PrefixArguments,
         $"--contentRoot={HostDirectory}",
@@ -59,6 +59,7 @@ public sealed record LocalHostLayout(
         $"--ClankerWorld:Runtime:StatePath={Path.Combine(SaveDirectory, "private-world.json")}",
         $"--ClankerWorld:Runtime:ProviderStatePath={Path.Combine(SettingsDirectory, "provider-configuration.json")}",
         $"--ClankerWorld:Runtime:ProviderUsagePath={Path.Combine(SettingsDirectory, "provider-usage.json")}",
+        .. detailedLogs ? new[] { "--Logging:LogLevel:ClankerWorld=Debug" } : [],
     ];
 }
 
@@ -112,19 +113,21 @@ public sealed class LocalHostCompanion : IAsyncDisposable
     private readonly int port;
     private readonly int approvalPort;
     private readonly TimeSpan readyTimeout;
+    private readonly bool detailedLogs;
     private Process? process;
     private StreamWriter? log;
     private string? secret;
     private readonly object logGate = new();
 
     public LocalHostCompanion(LocalHostLayout layout, HttpClient http, int port = DefaultPort,
-        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null)
+        int approvalPort = DefaultApprovalPort, TimeSpan? readyTimeout = null, bool detailedLogs = false)
     {
         this.layout = layout;
         this.http = http;
         this.port = port;
         this.approvalPort = approvalPort;
         this.readyTimeout = readyTimeout ?? TimeSpan.FromSeconds(90);
+        this.detailedLogs = detailedLogs;
     }
 
     /// <summary>
@@ -382,7 +385,8 @@ public sealed class LocalHostCompanion : IAsyncDisposable
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
-        foreach (var argument in layout.HostArguments(port, approvalPort)) start.ArgumentList.Add(argument);
+        foreach (var argument in layout.HostArguments(port, approvalPort, detailedLogs)) start.ArgumentList.Add(argument);
+        if (detailedLogs) WriteLog($"host_launch logging=detailed public_port={port} approval_port={approvalPort}");
         var started = new Process { StartInfo = start, EnableRaisingEvents = true };
         started.OutputDataReceived += (_, line) => WriteLog(line.Data);
         started.ErrorDataReceived += (_, line) => WriteLog(line.Data);

@@ -682,6 +682,7 @@ public sealed partial class OwnerWorldObservationStore
                     geography.SelectedClimate.ToString(), geography.LatitudeCooling, geography.WrapEastWest)
                 : null,
             LastTickMilliseconds = diagnostics.LastTickMilliseconds,
+            RefusedActionCount = state.RefusedActionCount,
             Inhabitants = activeInhabitants
                 .Select(inhabitant => ToPlaytestInhabitant(state, inhabitant, physicalById[inhabitant.Id], map) with
                 {
@@ -1813,7 +1814,8 @@ public sealed partial class OwnerWorldObservationStore
         return new(PersonalEquipmentRules.CarriedQuantity(inventory, person.InhabitantId, person.Equipment),
             PersonalEquipmentRules.Capacity(inventory, person.InhabitantId, person.Equipment) +
                 (state.AnimalWorld.Animals.Any(animal => animal.RiderId == person.InhabitantId && AnimalRules.HasCare(animal, state.Society.Society.WorldTick)) ? AnimalRules.RidingCargo : 0),
-            garment?.ItemKind, garment?.ConditionBasisPoints / 100, aid?.ItemKind, aid?.ConditionBasisPoints / 100,
+            garment?.ItemKind, garment is null ? null : ShownConditionPercent(garment.ConditionBasisPoints),
+            aid?.ItemKind, aid is null ? null : ShownConditionPercent(aid.ConditionBasisPoints),
             inventory.Lots.FirstOrDefault(lot => lot.Id == repair?.LotId)?.ItemKind,
             repair?.WorkDone ?? 0, PersonalEquipmentRules.RepairWorkTicks, ornament?.ItemKind);
     }

@@ -115,7 +115,10 @@ searches find it.
   owner in chat but fixes it only if asked, and a reviewer finishes its current
   review and takes P0 pull requests next.
 - **Bugs:** a crash, data loss or unplayable game is P0; wrong in normal play
-  is P1; an edge case is P2; cosmetic is P3. A `regression`, something that
+  is P1; an edge case is P2; cosmetic is P3. A bug that only causes an action
+  to be refused during normal play is P1, including a regression; a remaining
+  live halt is P0.
+  A `regression`, something that
   used to work, goes one level higher. A bug that only a setup a normal game
   cannot produce can trigger is P3, whatever its effect: goods placed where no
   agent could put them, or a state only a test fixture can create. A long
@@ -126,8 +129,10 @@ searches find it.
   The repository is public, so never describe it in an issue, pull request or
   comment. Agents tell the owner in chat ([how](AGENTS.md#ask-the-owner-in-chat))
   and open an issue titled `Security report waiting for the owner`, with only
-  `type:bug`, `owner-task`, `priority:p0` and one area, and no details. The
-  owner decides in chat how it is fixed. Hardening ideas with no working
+  `type:bug`, `owner-task`, `priority:p0` and one area, and no details. Its
+  description says only which session has the report and when it told the
+  owner, signed, so the owner can find it. The owner decides in chat how it is
+  fixed. Hardening ideas with no working
   exploit are ordinary issues.
 - **Features, experiments and decisions** start at P2. They move to P1 for a
   playtest only when the owner says in chat that the next playtest needs them.

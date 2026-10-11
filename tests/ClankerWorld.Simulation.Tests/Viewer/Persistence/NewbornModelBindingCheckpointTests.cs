@@ -17,13 +17,16 @@ public sealed class NewbornModelBindingCheckpointTests
     private static readonly ConcurrentDictionary<(int SeedSuffix, bool SeedIdentified), Lazy<Task<byte[]>>> Prepared = new();
 
     [Theory]
-    [InlineData(9, false, true)]
-    [InlineData(78, false, true)]
-    [InlineData(9, true, true)]
-    [InlineData(78, true, true)]
-    [InlineData(9, false, false)]
-    [InlineData(9, true, false)]
-    public async Task ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds(int seedSuffix, bool delayBinding, bool seedIdentified)
+    [InlineData(9, false, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(78, false, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, true, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(78, true, true, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, false, false, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, true, false, PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(9, false, true, PrivateWorldTickFailurePolicy.RefuseSingleAction)]
+    [InlineData(9, true, true, PrivateWorldTickFailurePolicy.RefuseSingleAction)]
+    public async Task ARealNewbornBindsBothRolesAndRecoversItsSavedChoiceWithLongGeneratedIds(int seedSuffix, bool delayBinding,
+        bool seedIdentified, PrivateWorldTickFailurePolicy failurePolicy)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await Prepared.GetOrAdd((seedSuffix, seedIdentified),
             fixture => new(() => BeforeBirth(fixture.SeedSuffix, fixture.SeedIdentified))).Value);
@@ -48,7 +51,7 @@ public sealed class NewbornModelBindingCheckpointTests
                 Directory.Move(providerDirectory, providerDirectory + ".held");
                 File.WriteAllText(providerDirectory, "controlled provider storage failure");
             }
-            using (var service = new PrivateWorldRuntimeService(world, file, presence, logger, providers: providers))
+            using (var service = new PrivateWorldRuntimeService(world, file, presence, logger, providers: providers, failurePolicy: failurePolicy))
             {
                 var advanced = await service.TryAdvanceOnceAsync();
                 if (delayBinding)
@@ -85,7 +88,7 @@ public sealed class NewbornModelBindingCheckpointTests
             using var restarted = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(saved), Providers);
             Assert.Equal(saved, PrivateWorldRuntimeCodec.Encode(restarted.ExportState()));
             var reopened = new ProviderConfigurationStore(providerPath, EmptySeed());
-            using var restartedService = new PrivateWorldRuntimeService(restarted, file, presence, logger, providers: reopened);
+            using var restartedService = new PrivateWorldRuntimeService(restarted, file, presence, logger, providers: reopened, failurePolicy: failurePolicy);
             restarted.Resume();
             Assert.True(await restartedService.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
             AssertBound(reopened, childId);
@@ -121,6 +124,55 @@ public sealed class NewbornModelBindingCheckpointTests
     }
 
     internal static Task<byte[]> BeforeBirth(int seedSuffix) => BeforeBirth(seedSuffix, seedIdentified: true);
+
+    [Fact]
+    public async Task FailedLiveBirthCheckpointRetainsTheFrozenDefaultCredentialUntilRecovery()
+    {
+        var state = PrivateWorldRuntimeCodec.Decode(await Prepared.GetOrAdd((9, true),
+            fixture => new(() => BeforeBirth(fixture.SeedSuffix, fixture.SeedIdentified))).Value);
+        var directory = Directory.CreateTempSubdirectory("newborn-write-recovery-");
+        try
+        {
+            var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
+                new("openai", null, null, "synthetic-model", "synthetic-original-key", null, null));
+            foreach (var parent in new[] { First, Second })
+                providers.Configure(new("personal", "openai", "synthetic-model", null, false, parent));
+            var checkpointDirectory = Directory.CreateDirectory(Path.Combine(directory.FullName, "checkpoint")).FullName;
+            var file = new PrivateWorldStateFile(Path.Combine(checkpointDirectory, "world.json"));
+            var presence = new OwnerClientPresenceLease(TimeSpan.FromHours(1));
+            presence.RecordAuthenticatedReconnect("test-owner");
+            using var world = PrivateWorldRuntime.Restore(state, Providers);
+            file.Save(world);
+            Directory.Move(checkpointDirectory, checkpointDirectory + ".held");
+            File.WriteAllText(checkpointDirectory, "Controlled checkpoint write refusal.");
+            using var service = new PrivateWorldRuntimeService(world, file, presence, providers: providers,
+                failurePolicy: PrivateWorldTickFailurePolicy.RefuseSingleAction);
+            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.True(world.Society.IsPaused);
+            var childId = Assert.Single(world.Society.Births).ChildId;
+            var selection = world.Inhabitants.Single(person => person.InhabitantId == childId).ChildModelSelection!;
+            Assert.Equal("openai", selection.Provider);
+            Assert.NotNull(selection.CredentialSlotId);
+            Assert.DoesNotContain(providers.CaptureStatus().Assignments!, row => row.InhabitantId == childId);
+            providers.Configure(new("planning", "openai", "synthetic-model", "synthetic-replacement-key", false));
+            File.Delete(checkpointDirectory);
+            Directory.Move(checkpointDirectory + ".held", checkpointDirectory);
+            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.True(world.Society.IsPaused);
+            Assert.Equal(world.WorldTick, PrivateWorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
+            world.Resume();
+            Assert.True(await service.TryAdvanceOnceAsync());
+            var configuration = providers.CaptureRuntimeConfiguration();
+            var slot = Assert.Single(configuration.CredentialSlots!, item => item.Id == selection.CredentialSlotId);
+            Assert.Equal("synthetic-original-key", slot.ApiKey);
+            var rows = configuration.Assignments!.Where(item => item.InhabitantId == childId).ToArray();
+            Assert.Equal(2, rows.Length);
+            Assert.All(rows, row => Assert.Equal(selection.CredentialSlotId, row.CredentialSlotId));
+            using var reloaded = file.LoadOrCreate(world.ExportState().WorldSeed);
+            Assert.Equal(selection, reloaded.Inhabitants.Single(person => person.InhabitantId == childId).ChildModelSelection);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
 
     private static async Task<byte[]> BeforeBirth(int seedSuffix, bool seedIdentified)
     {

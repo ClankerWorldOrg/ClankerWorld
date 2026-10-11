@@ -680,6 +680,7 @@ public sealed record OwnerWorldSnapshot(
     public IReadOnlyList<OwnerWeatherRegion> WeatherRegions { get; init; } = [];
     /// <summary>Developer tools: how long the host took to work out the latest tick; null when not reported.</summary>
     public double? LastTickMilliseconds { get; init; }
+    public long RefusedActionCount { get; init; }
     public IReadOnlyList<OwnerWorldInhabitant> Inhabitants { get; init; } = [];
 
     public IReadOnlyList<OwnerWorldConversation> Conversations { get; init; } = [];

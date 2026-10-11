@@ -119,7 +119,7 @@ public static class WorldContentSimulationRules
             throw new InvalidDataException("The next production job sequence must be positive.");
         }
 
-        var buildingDefinitions = definitions.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var buildingDefinitions = definitions.BuildingDefinitions;
         var recipeDefinitions = definitions.Recipes.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
         var buildingIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var building in state.Buildings)
@@ -218,10 +218,7 @@ public static class WorldContentSimulationRules
             return false;
         }
 
-        var occupied = map.CampObjects
-            .Select(item => item.Position)
-            .Concat(map.Resources.Select(item => item.Position))
-            .ToHashSet();
+        var occupied = GroundOccupancy.InitialObstacles(map);
         foreach (var existing in existingBuildings)
         {
             foreach (var point in Footprint(existing.Definition, existing.Placement))

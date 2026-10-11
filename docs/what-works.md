@@ -1748,9 +1748,13 @@ alpha formats remain refused, with a format explanation and no migration.
 Automated restart, file-preservation and native UI checks cover this path; the
 [Windows playtest](../playtest/alpha-1.md) remains pending.
 
-If a live world tick fails, the server holds the world paused. A failed active
-checkpoint write can retry while paused, but other live faults require operator
-inspection. Preserve unsaved in-memory progress before restarting the server.
+If a live world tick fails because of one agent's action, the server refuses
+that action and keeps time moving. The agent waits instead, their current order
+is cancelled, and the same choice stays unavailable to them for one world day.
+The Event Log explains what happened; Developer tools count refused actions.
+Faults that cannot be traced to one action still hold the world paused. A failed
+active checkpoint write can retry while paused; other remaining faults require
+operator inspection. Preserve unsaved in-memory progress before restarting.
 
 Named saves can be overwritten after choosing one and confirming. Load World
 can load an older save of the current world. Playing on from it starts a new
