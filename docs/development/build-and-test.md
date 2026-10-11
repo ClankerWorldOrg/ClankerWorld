@@ -11,6 +11,14 @@ This page is for contributors building the code. Players use the Windows
 bundle; they do not need the Godot editor or a development SDK.
 See [Playing](../playing.md).
 
+The host supports only private worlds. Protocol tests use a populated native
+private world with automatic advancement disabled; `fixture` world mode is
+rejected at actual host startup. The October 11 unused-code cleanup retires only
+checks of the scripted fixture, its authoring/persistence branches, the PNG
+normalizer and prototype world-level currency/faction records. Native pairing,
+signed controls, instruction retries, save integrity, content lifecycle,
+observation knowledge and replay checks remain.
+
 ## Toolchain
 
 The server and simulation use C# 14 on .NET 10. The exact SDK baseline is
@@ -376,7 +384,7 @@ provider, with a wrapper that records observations and returns its response
 unchanged. It makes no model-service calls.
 
 Defaults are two seeds, sixteen ticks per seed, and both generated Small worlds
-and the legacy fixture. Generated worlds use native first-Town layout,
+and the populated legacy private-map setup. Generated worlds use native first-Town layout,
 founder placement and Start World. Override seeds, tick count and modes with
 the fourth through sixth arguments, for example:
 

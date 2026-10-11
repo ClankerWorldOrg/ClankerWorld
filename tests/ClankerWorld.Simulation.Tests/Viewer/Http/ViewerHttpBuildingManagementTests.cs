@@ -18,7 +18,7 @@ public sealed partial class ViewerHttpTests
         var directory = Directory.CreateTempSubdirectory("owner-building-management-");
         try
         {
-            var (state, tailorId) = TailorTestWorld.Create(SeededWorldObservationStore.SampleSeed, 0);
+            var (state, tailorId) = TailorTestWorld.Create("camp-alpha", 0);
             File.WriteAllBytes(Path.Combine(directory.FullName, "runtime.json"), PrivateWorldRuntimeCodec.Encode(state));
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             using var host = new ViewerWebApplicationFactory(directory.FullName, privateWorld: true);

@@ -300,11 +300,17 @@ its saved world systems. It does not generate a disposable initial ecology,
 chunk set or weather state. New worlds still generate those systems normally;
 ordinary loads still validate saved data and check deterministic map identity.
 
-New worlds start with no currency definitions, accounts or transfers. The
-legacy faction-law list is empty too: genesis creates no `camp-no-theft` rule
-or money fine. Physical goods, ownership/access checks and actual Town laws
-use their existing systems. The generic currency and faction contracts remain
-available to the kernel, but native world creation supplies no money or fines.
+The host supports only the private-world runtime. Configuring the removed
+`fixture` world mode refuses startup with a clear error. The scripted one-agent
+fixture and its persistence/projection branches are gone; map generators,
+terrain codecs and routing remain shared by the native world.
+
+Saved world systems contain weather, ecology and chunks. The unused prototype
+faction/law, currency and culture records are removed. Physical goods,
+ownership/access checks and actual Town laws keep their existing systems.
+Currency and culture remain intended features to build against those systems.
+The test-only PNG asset normalizer is also removed; mod import, canonical asset
+IDs, reservation budgets and the host-owned approved-asset catalog remain.
 
 The current host aims for one tick per real second. New worlds save 360 ticks
 per day and a 40-day year with four ten-day seasons; lifecycle thresholds are
@@ -1749,7 +1755,7 @@ snowy side does not whiten a dry neighbour. At most 256 textures are cached;
 cover changes reuse them. No extra node, host field, event or saved state is added.
 
 Small and Medium generated maps are connected to the normal world path. The
-older tiny map remains a compatibility fixture/world; generation is no longer
+older tiny map remains a populated native test setup; generation is no longer
 merely a separate primitive. Large/Huge/Mega generator outputs do not imply
 playable storage, observation or performance support.
 
@@ -3806,7 +3812,7 @@ read back by the simulation, so they cannot change a tick, a save or replay.
   rounded to 0.1 ms. The timer pauses for runtime-gate reacquisition. It leaves out
   waiting for the runtime gate, hosted model calls between ticks and the
   checkpoint save. It is null until the first tick after start, load or a
-  world switch, and the legacy fixture host never reports it.
+  world switch.
 
 The client draws only the reported route; it never plans one. Frame time is
 measured in the client.

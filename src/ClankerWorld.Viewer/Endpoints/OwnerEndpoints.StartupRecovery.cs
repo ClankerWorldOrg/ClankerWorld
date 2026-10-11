@@ -5,7 +5,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapStartupRecovery(WebApplication app, bool isPrivateWorld)
+    private static void MapStartupRecovery(WebApplication app)
     {
         app.MapPost("/api/v1/owner/recovery/status", (OwnerSignedHttpRequest<OwnerControlAction> request,
             OwnerRequestAuthorizer authorizer, IServiceProvider services) =>
@@ -14,9 +14,7 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/recovery/status",
                 OwnerHttpBinding.EmptyPayload("recovery-status"));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            return isPrivateWorld
-                ? Results.Ok(services.GetRequiredService<PrivateWorldStartupRecovery>().Capture())
-                : Results.Ok(new StartupRecoveryStatus(false, null, null));
+            return Results.Ok(services.GetRequiredService<PrivateWorldStartupRecovery>().Capture());
         });
 
         app.MapPost("/api/v1/owner/recovery/restore", (OwnerSignedHttpRequest<OwnerManualSaveAction> request,
@@ -27,7 +25,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/recovery/restore",
                 OwnerHttpBinding.ManualSavePayload(action));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict();
             try
             {
                 var recovery = services.GetRequiredService<PrivateWorldStartupRecovery>();

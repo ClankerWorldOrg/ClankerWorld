@@ -51,7 +51,7 @@ public sealed class MorningWorldStartTests
         {
             WorldSystems = zeroOffsetState.WorldSystems! with
             {
-                SchemaVersion = 2,
+                SchemaVersion = WorldSystemsRules.SchemaVersion,
                 Config = zeroOffsetState.WorldSystems.Config with { ContractVersion = 2, CalendarOffsetTicks = 0 },
             },
         };

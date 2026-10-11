@@ -54,11 +54,13 @@ agent's model choice can carry a thinking level, written only when one is
 chosen. Provider files from before Anthropic was added load with an empty
 Anthropic record; the provider file's schema stays 3.
 
-New-world genesis no longer seeds Copper, a 100-unit household wallet or the
-legacy `camp-no-theft` fine. Currency and faction-law collections start empty.
-This changes initial world state without adding checkpoint fields or changing
-the schema. Restore uses saved world systems through the existing path; no
-migration or extra compatibility logic is added.
+Private-world schema 123 and world-systems schema 4 remove the unused prototype
+faction/law, currency and culture collections and the culture-tag bound.
+Current saves retain weather, ecology, chunks and the native Town law and
+ownership systems. Creation, play and replay keep their existing behavior.
+Earlier alpha checkpoints are refused and preserved through the normal
+unsupported-format path. There is no migration or additional compatibility
+implementation.
 
 The October 1 terrain tuning changes deterministic generation for new worlds.
 Loading retains the saved map and current weather episode; it does not replace

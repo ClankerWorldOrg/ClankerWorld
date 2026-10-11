@@ -9,21 +9,15 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapContent(WebApplication app, bool isPrivateWorld)
+    private static void MapContent(WebApplication app)
     {
-        app.MapBuildingDesign(isPrivateWorld);
+        app.MapBuildingDesign();
 
         app.MapPost("/api/v1/owner/content/propose", (
             OwnerSignedHttpRequest<OwnerContentPackageAction> request,
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_content_required",
-                    "Data-only content governance is available only in the integrated private world."));
-            }
 
             if (!OwnerContentBinding.TryMapManifest(request?.Action, out var manifest, out var failure))
             {
@@ -78,12 +72,6 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_content_required",
-                    "Data-only content governance is available only in the integrated private world."));
-            }
 
             if (request?.Action is null)
             {
@@ -143,12 +131,6 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_content_required",
-                    "Data-only content governance is available only in the integrated private world."));
-            }
 
             if (request?.Action is null)
             {
@@ -200,12 +182,6 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_content_required",
-                    "Data-only content governance is available only in the integrated private world."));
-            }
 
             if (request?.Action is null)
             {
@@ -258,12 +234,6 @@ internal static partial class OwnerEndpoints
             IServiceProvider services,
             ILogger<PrivateWorldRuntimeService> logger) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_content_required",
-                    "Data-only content governance is available only in the integrated private world."));
-            }
 
             if (request?.Action is null)
             {
@@ -325,12 +295,6 @@ internal static partial class OwnerEndpoints
             IServiceProvider services,
             ILoggerFactory loggerFactory) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_required",
-                    "Building placement is available only in the integrated private world."));
-            }
 
             if (request?.Action is null)
             {
@@ -394,9 +358,6 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-                return Results.Conflict(new OwnerControlFailure("private_world_required",
-                    "Building removal is available only in the integrated private world."));
             if (request?.Action is null)
                 return Results.ValidationProblem(new Dictionary<string, string[]>
                 {
@@ -427,9 +388,6 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-                return Results.Conflict(new OwnerControlFailure("private_world_required",
-                    "Building reassignment is available only in the integrated private world."));
             if (request?.Action is null)
                 return Results.ValidationProblem(new Dictionary<string, string[]>
                 {
@@ -460,12 +418,6 @@ internal static partial class OwnerEndpoints
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_required",
-                    "Recipe production is available only in the integrated private world."));
-            }
 
             if (request?.Action is null)
             {
@@ -510,9 +462,7 @@ internal static partial class OwnerEndpoints
         });
 
         app.MapPost("/api/v1/owner/authoring", (
-            OwnerSignedHttpRequest<OwnerAuthoringBatchAction> request,
-            OwnerRequestAuthorizer authorizer,
-            IServiceProvider services) =>
+            OwnerSignedHttpRequest<OwnerAuthoringBatchAction> request) =>
         {
             if (request?.Action is null)
             {
@@ -522,52 +472,9 @@ internal static partial class OwnerEndpoints
                 });
             }
 
-            if (isPrivateWorld)
-            {
-                return Results.Conflict(new OwnerControlFailure(
-                    "private_world_authoring_pending",
-                    "Private-world authoring is not migrated yet; content activation remains disabled in the alpha runtime."));
-            }
-
-            string payload;
-            try
-            {
-                payload = OwnerHttpBinding.AuthoringPayload(request.Action);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [exception.Message],
-                });
-            }
-
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/authoring", payload);
-            if (!authorization.IsSuccess)
-            {
-                return OwnerFailures.ToHttpResult(authorization.Failure);
-            }
-
-            if (!OwnerAuthoringMapper.TryMap(request.Action, out var batch, out var failure))
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["action"] = [failure],
-                });
-            }
-
-            var runtime = services.GetRequiredService<OwnerWorldRuntime>();
-            var stateFile = services.GetRequiredService<OwnerWorldStateFile>();
-            var receipt = runtime.ApplyAuthoringBatch(batch! with
-            {
-                IssuerId = $"owner-device:{authorization.Value!.DeviceId}",
-            });
-            if (receipt.Applied)
-            {
-                stateFile.Save(runtime);
-            }
-
-            return Results.Ok(receipt);
+            return Results.Conflict(new OwnerControlFailure(
+                "private_world_authoring_pending",
+                "Private-world authoring is not migrated yet; content activation remains disabled in the alpha runtime."));
         });
     }
 }

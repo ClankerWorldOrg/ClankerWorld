@@ -46,25 +46,6 @@ public sealed partial class PrivateWorldRuntime
                     0,
                     EcologyResourceState.Available))
             .ToArray();
-        var culture = new CultureState(
-            [new CultureDefinition("camp", "Camp", ["cooperation", "survival"])],
-            [
-                new CultureAssignment("founder-scout", "camp", ["mapping"]),
-                new CultureAssignment("founder-mira", "camp", ["harvest"]),
-                new CultureAssignment("founder-rowan", "camp", ["building"]),
-                new CultureAssignment("founder-ilya", "camp", ["memory"]),
-            ]);
-        var factions = new FactionState(
-            [new FactionDefinition("camp-alpha", "Camp Alpha", ["camp"])],
-            [
-                new FactionStanding("founder-scout", "camp-alpha", 0),
-                new FactionStanding("founder-mira", "camp-alpha", 0),
-                new FactionStanding("founder-rowan", "camp-alpha", 0),
-                new FactionStanding("founder-ilya", "camp-alpha", 0),
-            ],
-            [],
-            []);
-        var currency = new CurrencyState([], [], []);
         var chunkSize = map.Width > ChunkRules.DefaultChunkSize || map.Height > ChunkRules.DefaultChunkSize
             ? GeographyGenerator.ChunkSize : ChunkRules.DefaultChunkSize;
         var chunks = new List<ChunkManifest>();
@@ -95,9 +76,6 @@ public sealed partial class PrivateWorldRuntime
             worldSeed,
             config,
             resources,
-            factions,
-            currency,
-            culture,
             chunks);
         return regionalWeather ? RegionalWeatherRules.Initialize(state, map) : state;
     }

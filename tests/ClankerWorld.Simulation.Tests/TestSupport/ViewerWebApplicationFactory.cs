@@ -32,7 +32,7 @@ public sealed class ViewerWebApplicationFactory : WebApplicationFactory<Program>
     internal ViewerWebApplicationFactory(
         string? persistedStateDirectory,
         string? approvedAssetCatalogPath = null,
-        bool privateWorld = false,
+        bool privateWorld = true,
         bool legacyPrivateWorld = true,
         bool configureProviderUsagePath = true,
         bool advanceScript = false)
@@ -57,10 +57,9 @@ public sealed class ViewerWebApplicationFactory : WebApplicationFactory<Program>
         if (privateWorld && legacyPrivateWorld && !File.Exists(System.IO.Path.Combine(stateDirectory, "runtime.json")))
         {
             using var seeded = new PrivateWorldStateFile(System.IO.Path.Combine(stateDirectory, "runtime.json"),
-                newWorldPace: WorldStartPace.Legacy).LoadOrCreate(SeededWorldObservationStore.SampleSeed);
+                newWorldPace: WorldStartPace.Legacy).LoadOrCreate("camp-alpha");
         }
-        // The compatibility suite uses fixture mode; selected tests opt into
-        // the integrated private runtime through the same real host boundary.
+        // All protocol tests cross the actual private-world host boundary.
         builder.UseSetting("ClankerWorld:Runtime:WorldMode", privateWorld ? "private" : "fixture");
         builder.UseSetting("ClankerWorld:Runtime:AdvanceScript", advanceScript ? "true" : "false");
         builder.UseSetting("ClankerWorld:Pairing:StatePath", System.IO.Path.Combine(stateDirectory, "authority.json"));
