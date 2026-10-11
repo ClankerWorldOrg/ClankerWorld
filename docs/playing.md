@@ -1204,7 +1204,8 @@ the next rotating save waits one configured interval from the corrected time.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and
-**Open World**. Open
+**Open World**. Long card names are shortened to fit; hover a world or save
+card to read its full name and details. Open
 and Delete are unavailable while another world action finishes. A world that
 another game version last saved, and this one can't open, is marked
 **Saved by <version>**. In a game the launcher started, its red **Open in
