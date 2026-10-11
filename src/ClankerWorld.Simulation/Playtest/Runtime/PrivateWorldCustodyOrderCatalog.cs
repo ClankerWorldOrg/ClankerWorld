@@ -19,6 +19,7 @@ internal static class PrivateWorldCustodyOrderCatalog
     internal static IReadOnlyList<Goods> All { get; } =
     [
         new("eggs", ["egg", "eggs"]),
+        new("milk", ["milk"]),
         new("wool", ["wool"]),
         new("hide", ["hide", "hides"]),
         new("leather", ["leather"]),

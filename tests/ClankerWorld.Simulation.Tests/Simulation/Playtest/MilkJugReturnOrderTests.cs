@@ -43,20 +43,20 @@ public sealed partial class AnimalPipelineTests
         collecting.SubmitInstruction(new("collect-return-milk", "owner", actor, OwnerInstructionKind.MustDo, "collect from Moss"));
         await Until(collecting, () => collecting.Animals.Single().ReadyProductLotId is null);
         inventory = collecting.Society.Inventory;
-        Assert.Equal((home, actor, 2, "return-jug"), (inventory.GetLot(milkId).OwnerId,
+        Assert.Equal((home, actor, 2, (string?)null), (inventory.GetLot(milkId).OwnerId,
             inventory.GetLot(milkId).CarrierId, inventory.GetLot(milkId).Quantity, inventory.GetLot(milkId).ContainerLotId));
         var house = collecting.WorldSimulation.Buildings.Single(item => item.HouseholdId == home &&
             collecting.WorldContent.Buildings.Single(definition => definition.CanonicalId == item.DefinitionId).Tags.Contains("house"));
         if (boundary == "reserved")
-            inventory = InventoryFixture.Reserve(inventory, "return-held-milk", home, milkId, 1, "other_work", collecting.WorldTick + day);
+            inventory = InventoryFixture.Reserve(inventory, "return-held-milk", home, milkId, 2, "other_work", collecting.WorldTick + day);
         if (boundary == "delivery")
-            inventory = InventoryFixture.Transfer(inventory, "return-milk-promise", home, actor, "return-jug", 1,
+            inventory = InventoryFixture.Transfer(inventory, "return-milk-promise", home, actor, milkId, 2,
                 "delivery", destinationDeliveryBuildingId: "return-store");
         state = collecting.ExportState() with
         { Society = collecting.ExportState().Society with { Society = collecting.Society with { Inventory = inventory } } };
         using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(state)),
             id => id == actor ? new AnimalChooser("return_borrowed") : new AnimalChooser());
-        world.SubmitInstruction(new("return-collected-jug", "owner", actor, OwnerInstructionKind.MustDo, "return one borrowed water jug"));
+        world.SubmitInstruction(new("return-collected-milk", "owner", actor, OwnerInstructionKind.MustDo, "return two borrowed milk"));
         var bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes),
             id => id == actor ? new AnimalChooser("return_borrowed") : new AnimalChooser());
@@ -67,30 +67,28 @@ public sealed partial class AnimalPipelineTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
-            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-jug").Order!;
+            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-milk").Order!;
             if (order.Status == "finished" || boundary != "available" && tick >= 3) break;
         }
-        var result = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-jug").Order!;
+        var result = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-milk").Order!;
         var jug = world.Society.Inventory.GetLot("return-jug");
         var milk = world.Society.Inventory.GetLot(milkId);
         var owner = boundary == "delivery" ? actor : home;
-        Assert.Equal((owner, 1, owner, 2, jug.Id), (jug.OwnerId, jug.Quantity, milk.OwnerId, milk.Quantity, milk.ContainerLotId));
-        Assert.True(jug.ConditionBasisPoints > 0);
+        Assert.Equal((home, 1, yard.InstanceId, (string?)null), (jug.OwnerId, jug.Quantity, jug.StorageBuildingId, jug.CarrierId));
+        Assert.Equal((owner, 2, (string?)null), (milk.OwnerId, milk.Quantity, milk.ContainerLotId));
         Assert.True(milk.FreshnessBasisPoints > 0);
         if (boundary == "available")
         {
-            Assert.Equal(("finished", 1), (result.Status, result.CompletedUnits));
-            Assert.Equal((house.InstanceId, (string?)null, house.InstanceId, (string?)null),
-                (jug.StorageBuildingId, jug.CarrierId, milk.StorageBuildingId, milk.CarrierId));
+            Assert.Equal(("finished", 2), (result.Status, result.CompletedUnits));
+            Assert.Equal((house.InstanceId, (string?)null), (milk.StorageBuildingId, milk.CarrierId));
         }
         else
         {
             Assert.Equal(("blocked", 0), (result.Status, result.CompletedUnits));
-            Assert.Equal((inventory.GetLot("return-jug").CarrierId, inventory.GetLot(milkId).CarrierId, (string?)null, (string?)null),
-                (jug.CarrierId, milk.CarrierId, jug.StorageBuildingId, milk.StorageBuildingId));
+            Assert.Equal((inventory.GetLot(milkId).CarrierId, (string?)null), (milk.CarrierId, milk.StorageBuildingId));
             Assert.True(PersonalEquipmentRules.IsPhysicallyCarried(world.Society.Inventory, milk, actor));
             if (boundary == "reserved") Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("return-held-milk").State);
-            else Assert.Equal("return-store", jug.DeliveryBuildingId);
+            else Assert.Equal("return-store", milk.DeliveryBuildingId);
         }
         var final = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         using var reload = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(final), _ => new AnimalChooser());

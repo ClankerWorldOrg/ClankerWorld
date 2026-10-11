@@ -14,9 +14,7 @@ namespace ClankerWorld.Simulation.Playtest;
 public sealed partial class PrivateWorldRuntime
 {
     // Keep authoritative membership keys in saves; only model context needs a bounded alias.
-    private static string? CognitionHouseholdId(string? id) => id is null || id.Length <= 128
-        ? id
-        : "household-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(id)));
+    private static string? CognitionHouseholdId(string? id) => id is null ? null : DerivedId.Create(id, "household-sha256:");
 
     private void EnqueueDueCognition(IReadOnlySet<string> activeHostedIds)
     {
@@ -1269,7 +1267,7 @@ public sealed partial class PrivateWorldRuntime
             if (PreferredFood(inhabitantId, inhabitantId).Any() && state.HungerBasisPoints < ComfortableFullness)
                 aboard.Add(new("consume_food", "Eat one carried food item aboard the boat.", 0));
             if (CarriedMilk(inhabitantId) is not null && state.HungerBasisPoints < ComfortableFullness)
-                aboard.Add(new("drink_milk", "Drink one portion of carried jug milk, leaving the reusable jug intact.", 0));
+                aboard.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
             return aboard;
         }
         var currentConversation = ConversationFor(inhabitantId);
@@ -1293,7 +1291,7 @@ public sealed partial class PrivateWorldRuntime
             candidates.Add(new CognitionCandidate("consume_food", "Eat one carried food item.", 0));
         }
         if (CarriedMilk(inhabitantId) is not null && state.HungerBasisPoints < ComfortableFullness)
-            candidates.Add(new("drink_milk", "Drink one portion of carried jug milk, leaving the reusable jug intact.", 0));
+            candidates.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
 
         if (instructionCandidate == "consume_food" && hasFood &&
             state.HungerBasisPoints < ComfortableFullness &&

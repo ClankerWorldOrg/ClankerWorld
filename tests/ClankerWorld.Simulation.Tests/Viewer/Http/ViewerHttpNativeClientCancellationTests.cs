@@ -23,7 +23,7 @@ public sealed partial class ViewerHttpTests
         var state = await GrownAgentHelperMemoryTests.CancellationAdultStateAsync();
         var birth = Assert.Single(state.Society.Society.Births);
         var actor = bornAdult ? birth.ChildId : birth.PrimaryCaregiverId;
-        Assert.True(birth.ChildId.Length > 128);
+        Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         Assert.InRange(birth.PrimaryCaregiverId.Length, 1, 128);
         var directory = Directory.CreateTempSubdirectory("native-client-cancel-");
         try

@@ -152,7 +152,7 @@ public static class TownGovernanceRules
         if (actor == nominee || !Has(adults, actor) || !Has(adults, nominee))
             throw new InvalidOperationException("Only adult residents may nominate another eligible adult resident.");
         // Naming someone records a request for their agreement, never agreement on their behalf.
-        return Notice(state, "nomination", "nomination:" + actor + "->" + nominee,
+        return Notice(state, "nomination", TownRecordIds.Nomination(actor, nominee),
             $"{actor} nominated {nominee} for full council terms. The nominee must personally agree before entering the willing-candidate register.", tick);
     }
 
@@ -194,7 +194,7 @@ public static class TownGovernanceRules
         var seats = kind == "replacement" ? Seats - state.Members.Count : Seats;
         var candidates = adults.Where(id => Agreed(state, id, kind, termEnd) &&
             (kind != "replacement" || !Has(state.Members, id))).ToArray();
-        var id = townId + ":election:" + (state.Sequence + 1);
+        var id = TownRecordIds.Election(townId, checked(state.Sequence + 1));
         state = state with
         {
             Sequence = state.Sequence + 1,
@@ -353,13 +353,13 @@ public static class TownGovernanceRules
             kind == "land_hearing" ? TownLandGovernmentFilingRules.RequestKey(landHearingRequest!) :
             kind == "project" ? TownProjectRules.RequestKey(project!) :
             kind == "land_use" ? HouseholdLandGrantRules.RequestKey(landUseRequest!) :
-            kind == "land_claim" ? TownLandClaimRules.RequestKey(landClaimTiles!) : requestKey ?? (kind == "admission" ? "admission:" + subject : "law:" + string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant());
+            kind == "land_claim" ? TownLandClaimRules.RequestKey(landClaimTiles!) : requestKey ?? (kind == "admission" ? TownRecordIds.Admission(subject!) : "law:" + string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant());
         if (state.Proposals.Any(p => p.RequestKey == key && p.Status == "pending")) return state;
         var previous = state.Proposals.LastOrDefault(p => p.RequestKey == key);
         if (previous is { Status: "rejected" or "withdrawn" } && tick < previous.SettledTick + day &&
             previous.CouncilRevision == state.Revision && previous.Circumstances == circumstances)
             throw new InvalidOperationException("The same request needs one unpaused day or materially changed circumstances before retrying.");
-        var id = townId + ":proposal:" + (state.Sequence + 1);
+        var id = TownRecordIds.Proposal(townId, checked(state.Sequence + 1));
         var proposal = new TownProposal(id, key, kind, actor, subject, text.Trim(), circumstances, state.Revision,
             tick, tick + day, state.Members.ToArray(), state.Form == "representative" ? 2 : state.Members.Count / 2 + 1, [],
             LandClaimTiles: landClaimTiles is null ? null : TownLandRightsRules.OrderTiles(landClaimTiles),

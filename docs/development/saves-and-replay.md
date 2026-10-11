@@ -11,6 +11,50 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Mod content identities
+
+Content IDs use the 512-character import limit in
+`ContentPackageRules.MaximumContentIdLength`. It covers package and local IDs,
+schema kinds, complete canonical definition and asset IDs, and resource and
+workstation references in building/recipe payloads. The complete canonical ID
+must fit; its digest, separators and version count toward the limit. A package
+with a longer ID is refused before its proposal record or event is created.
+Existing typed-payload, dependency, authority and activation checks still apply.
+
+Construction candidates allow the ID plus their action prefix and optional
+site coordinates. Inventory, recipe projects, frozen estate lots, will
+bequests, land-sale prices and payment receipts retain complete identities.
+Long will goods labels are shortened to the model's display budget and include
+their offered `item:N` key; the reply maps that key to the original frozen lot.
+Resource knowledge and its model context use the import limit and local-ID
+syntax, including periods.
+
+No saved fields or schema change. Native boundary checks retain complete
+checkpoint bytes through reload and matched continuations, including completed
+inheritance and actual land-sale payment. Earlier alpha saves containing
+over-limit mod IDs may be refused under the new import validation; they are
+preserved, and no ID shortening or migration is performed.
+
+## Bounded derived identities
+
+Private-world schema 123 applies one 128 UTF-16-unit limit to generated
+identities assembled from other identities. Short values retain their spelling;
+long values hash the complete original value through `DerivedId`. This bounds
+native descendants, family relationships, inventory and ordinary barter splits,
+work reservations and receipts, memories and public Town record handles.
+The separate provenance and ownership references remain complete. Numbered
+Town handles retain a counter and validate by exact recomputation against the
+original scope. Earlier alpha saves are refused and preserved; no migration
+runs.
+
+Strict reload and replay must preserve the bounded handle, complete source
+links, reservations, payment, ownership and personal recall. Display names,
+mod content identifiers and parsed action payloads retain their own contracts.
+
+The [generator inventory](derived-identities.md#executable-generator-inventory)
+describes the native transition, factory, save and recall evidence.
+
+
 ## Save-space warning
 
 The host samples available free space on the active checkpoint, manual/autosave,
@@ -248,10 +292,10 @@ Private-world schema 65 adds material-gathering orders with a distinct
 `TargetMaterialKind`, exact optional source or position, and progress measured
 in harvest batches or material items. Saved progress and the last physical
 harvest receipt are validated together; mixed food/material targets and invalid
-material kinds are refused. A harvest receipt that would exceed 512 characters
-uses a fixed-length SHA-256 identity derived from the complete original receipt.
+material kinds are refused. A harvest receipt uses the shared derived-identity boundary and hashes
+the complete original receipt when needed.
 The actor and native inventory lot keep their full identities; shorter receipts
-remain unchanged. Current-format reload accepts both shapes without a schema change.
+remain unchanged. Current-format reload accepts the short and bounded hashed shapes.
 Queueing, cancellation, discovery and partial
 quantities retain their state across reload. Older alpha saves are refused and
 preserved unchanged; no migration is added.
@@ -333,6 +377,13 @@ land-use proposals. Closed requests remain history without competing claims.
 Prepared-tick rollback and current-format reload preserve approval progress and
 commit the final grant once. Older alpha schemas are refused without migration.
 
+Land requests retain the complete canonical identities of their known requester
+and household, including native-born adults who form their own household and
+whose family identity is longer than a request key.
+Filing still requires an active adult or elder household member who resides in
+the Town. A filed request supplies no adult consent, Council vote or land-use
+grant. Request keys keep their 128-character limit; the saved shape is unchanged.
+
 Private-world schema 72 adds field orders and their optional `TargetCropKind`;
 schema 77 adds an optional exact tile below.
 `FarmFieldWork.OrderInstructionId` binds work to its actor's active field order.
@@ -384,8 +435,7 @@ Notice party snapshots remain historical; current response standing is derived
 from the captured world, while each ruling retains its actual closure parties.
 Readers, evidence agents, judges, notice and ruling parties, personal stakes and
 live or historical case-election rosters retain complete known person identities,
-including later-generation adults whose ancestry-based identities exceed 256
-characters. Person rosters keep canonical order and uniqueness.
+including later-generation adults born in the world. Person rosters keep canonical order and uniqueness.
 Unknown or malformed person references are refused;
 caller-owned keys and prose retain their existing limits. This identity validation
 fix changes no schema or saved field.
@@ -405,14 +455,13 @@ property ownership.
 
 Voluntary-transfer filers and the person rosters in proposals, individual
 responses and completed receipts retain complete known person identities,
-including later-generation adults with ancestry-based IDs longer than 256
-characters. These rosters still require canonical order and unique, known,
+including later-generation adults born in the world. These rosters still require canonical order and unique, known,
 well-formed people. Transfer keys, permission keys and other bounded fields
 keep their limits. This validation repair changes no schema or saved field.
 
 Beneficiary household references in civic replies, transfer records and resulting
 land-use rights retain complete known household identities, including households
-founded by later-generation native-born adults with IDs longer than 256 characters.
+founded by later-generation native-born adults.
 Unknown or malformed household references are refused. Transfer keys, permission
 keys, evidence references and other bounded reply fields keep their limits, as
 does the provider response-body limit. Each affected adult still separately learns
@@ -624,6 +673,12 @@ are refused and preserved; no migration is added.
 The private catalog archives each world's checkpoint. It saves the active world
 before a paused switch and keeps world IDs, names, seed and settings separate.
 Creation/selection require signed owner requests and leave the selection paused.
+If creation fails, selection rolls back only the phases that committed, then
+removes the newly added catalog entry and its snapshot. A checkpoint replacement
+that failed does not require another write to that same blocked path, and an
+autosave change that never committed does not need rewriting. Existing worlds
+remain catalogued and the failed creation can be retried. If rollback itself
+fails, the new entry and checkpoint remain available for operator recovery.
 An interrupted catalog update is recovered against the active checkpoint before
 the server starts hosted services or accepts requests.
 A corrupt leftover checkpoint encountered during deletion keeps cleanup pending
@@ -956,8 +1011,12 @@ checkpoint and does not change saved world identity or replay. See
 [observer recovery](device-pairing.md#recovering-after-another-device-loads-a-world)
 for ordering, cache and retained-request boundaries.
 
-The internally captured proposed tick can reuse its committed map. External
-loads still validate and regenerate it; this shortcut must not weaken input
+The internally captured proposed tick reuses its committed map, declarative
+content, world systems and world-content simulation snapshots by reference.
+An environment write replaces its immutable snapshot; committing transfers the
+environment system, while discarding the proposal leaves committed state alone.
+Restore initializes saved services directly without running new-world genesis.
+External loads still fully validate state and regenerate the map; this shortcut must not weaken input
 validation. Missing/corrupt referenced history must fail closed. See Issues for
 current defects rather than treating these requirements as proof of every load path.
 
@@ -1115,7 +1174,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current private-world checkpoint schema, currently
-`PrivateWorldRuntime.StateSchemaVersion` 122. The minimum supported schema is
+`PrivateWorldRuntime.StateSchemaVersion` 124. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no private-world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1271,6 +1330,8 @@ current alpha cutoff.
 | Schema 104 | Scouting can continue beyond eight steps and explicitly return. Loop-free outward paths are bounded by map tile count; visited tiles and recent discoveries retain their 256-entry limits. Current-format saves retain longer outward and returning paths, original origins, actual knowledge and historical bridge validation. Replay includes chosen return, occupied-corner detours, interruption and refused-tick rollback. Earlier alpha saves are refused and preserved without migration. |
 | Schema 103 | Boat transport requires compact retired-request sequence ranges. Checkpoint compaction durably archives full older closed requests before retaining all active requests and the latest 40 closed requests. Ranges and live requests cover each issued sequence exactly once, including gaps around older active travelers. Loading verifies that the reachable archive contains exactly those retired closed requests. Earlier alpha saves are refused and preserved without migration. |
 | Schema 113 and society/runtime v3 | Required owner-private experience/belief archive lists and source kinds distinguish active recall from retained original evidence. Strict loading validates unique storage, owner/subject identities, archive times, protected kinds, salience sources, conversation evidence and corrections across both ledgers. Older alpha saves and society envelopes are refused and preserved without migration. |
+| Schema 123 | Generated identities assembled from other identities share a 128 UTF-16-unit boundary. Long complete inputs are hashed; provenance, ownership and source references remain complete. Older alpha saves are refused and preserved without migration. |
+| Schema 124 | Milk is ordinary stored food; the milk-specific offer ledger and vessel exchange are removed. Water jugs hold fresh water only. Older alpha saves are refused and preserved without migration. |
 | Schema 122 and society/runtime v4 | Required owner-private summaries retain canonical typed sources and validated extracts alongside the experience/belief archives. Active recall can use summaries without exposing another owner’s evidence. Strict loading validates unique storage, owner/subject identities, archive times, protected kinds, salience sources, conversation evidence and corrections across both ledgers. Older alpha saves and society envelopes are refused and preserved without migration. |
 | Schema 102 | Copy orders retain the exact held source while gathering supplies and writing, alongside the native project and paid completion receipt. Strict load checks source kind, project/source/order links and copy provenance; original writing cannot credit a copy task. Source loss releases the project while retaining the source pointer for retry; completion clears both pointers. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 101 | Knowledge-writing orders bind their exact native project and credit only completed physical artifacts carrying that instruction ID. Reload checks actor, kind, current-order priority, paid artifact provenance and exact progress. Cancellation and replacement release only owned unspent reservations; ordinary writing is preserved. Older alpha checkpoints are refused and preserved without migration. |
@@ -1951,9 +2012,8 @@ branch record with its saves.
 
 Ordinary conversation handles are generated from the proposal tick and a
 SHA-256 digest of the ordered complete participant IDs. Participant references
-remain intact and must identify known people. The handle's 512-character guard
-and turn/request binding checks remain; existing valid handles still load.
-This generation change needs no schema change.
+remain intact and must identify known people. Handles and derived turn IDs use the shared derived-identity bound;
+turn/request binding checks still reproduce the exact generated identity.
 The unsaved scheduler choice token also hashes its complete actor, handle,
 revision and status; its existing bound and stale-choice comparisons remain.
 
@@ -2094,30 +2154,26 @@ household and yard, paid care deadlines, unfinished products and pregnancies,
 reserved births, named permissions, taming work, supply trips, riders and
 leaders. Products and fitted saddles reference real inventory lots and exclusive
 reservations. Trade offers retain the exact animal, adults, receiving yard and
-payment lot; native animal orders retain the exact bound animal ID. Milk-sale
-offers retain both parties, the held milk, receiving jug, payment and physical
-Store or Market stall. Source-milk, receiving-jug and payment references preserve
-complete inventory lot identities, including IDs derived by repeated milk sales
-or partial stock moves. Source lots remain unique across pending offers. Reload
-binds these references to the exact existing lots, owners and carried custody
-and checks the held milk reservation and physical site. Whole-jug stock
-deliveries retain household ownership.
+payment lot; native animal orders retain the exact bound animal ID. Milk is
+ordinary inventory stock, and Store or Market purchases retain their normal
+inventory offers, reservations and stock receipts. There is no milk-offer
+field, vessel exchange or milk-specific lineage state in schema 124.
 
-Supply-trip actors, milk-sale parties, riders, leaders and named permissions
-retain complete known person IDs, including native descendants longer than
-512 characters. Reload checks their actual person references, unique roles and
-physical custody. Animal identities, names and other short fields keep their
-512-character limit; unknown, duplicated and malformed person references are
+Supply-trip actors, riders, leaders and named permissions
+retain complete known person IDs, including native descendants. Reload checks their actual person references, unique roles and
+physical custody. Animal and herd identities use the shared derived-identity limit; animal names
+keep their separate 512-character text limit; unknown, duplicated and malformed person references are
 refused. This changes validation, with no new field, schema or migration.
 
 Current-format replay and rollback cover arrival, paid care, collection, birth,
 production jobs and attachments. Reload validates required animal fields,
 physical saddle/product custody, household/herd limits and vessel contents.
-Repeated native milk exchanges cover source histories beyond 512 characters,
-pending and completed host-file reload, acceptance, refusal, paired exact-byte
-continuation and refused-tick rollback. Unknown or malformed source references,
-duplicate sources and inconsistent owners, vessels, sites or reservations are refused.
-Water and milk cannot share a jug, and collected milk cannot become a loose lot.
+Ordinary milk barter covers twenty consecutive whole-lot resales without ID
+growth. Pending and completed Store purchases cover host-file reload,
+acceptance, refusal, paired exact-byte continuation and refused-tick rollback.
+Ordinary offer validation rejects unknown parties and inconsistent references.
+Water jugs accept only fresh water; milk may remain loose or enter a food pot.
+
 An interrupted tick or refused durable developer edit restores both animal and
 inventory state. Older alpha checkpoints are refused and preserved; no animal
 inference or migration runs.

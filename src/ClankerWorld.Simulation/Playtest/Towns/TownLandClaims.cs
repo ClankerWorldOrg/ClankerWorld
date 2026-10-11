@@ -12,10 +12,9 @@ public static class TownLandClaimRules
         TownLandRightsRules.OrderTiles(tiles).Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")));
 
     public static string RequestKey(IEnumerable<GridPoint> tiles) => "land_claim:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(DescribeTiles(tiles))));
+        DerivedId.Hash(DescribeTiles(tiles));
 
-    public static string TitleId(string proposalId) => "town-title:claim:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(proposalId)));
+    public static string TitleId(string proposalId) => DerivedId.Hash(proposalId, "town-title:claim:");
 
     public static bool CanClaim(SeededMap map, TownRuntimeState town, IReadOnlyList<GridPoint>? tiles,
         IReadOnlyList<TownLandTitleRecord> titles)

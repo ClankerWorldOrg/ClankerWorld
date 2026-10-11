@@ -74,6 +74,24 @@ application/save rollback and the explicitly approved pre-release identifier
 reset. That exception never permits deleting saves. During alpha an older save
 may stop loading, but it is refused with a reason and kept.
 
+## Release scope and merge day
+
+The owner decides when a release is being prepared and what it needs. A
+release label in [`.github/labels.json`](../../.github/labels.json) marks its
+issues ([Release scope](../../CONTRIBUTING.md#release-scope)); `release:alpha-1`
+marks those for `v0.1.0-alpha.1`, the first playtest release.
+
+1. Fixers take labelled issues first. Only new P0 or P1 bugs and work the
+   owner adds join the release; everything else waits for the next one.
+2. When every labelled issue is closed, the owner announces a merge day in
+   chat. Fixing sessions stop opening pull requests, reviewers merge what is
+   ready, and work that needs no other pull request open, such as renaming
+   folders across the code, goes in last.
+3. The session the owner asks to prepare the release follows the
+   [release gate](#release-gate) below.
+4. After publishing, move the label to `retired` in `labels.json`, and add the
+   next release's label when the owner names it.
+
 ## Release gate
 
 Prepare a release when the owner requests it; do not tag every merged change.
@@ -87,8 +105,10 @@ Before publishing:
    categories.
 2. Run the applicable build, test and Godot-export gates. The owner also runs
    the [Windows release smoke check](#windows-release-smoke-check) below.
-   List every remaining file in `playtest/`, except its README, in the release
-   notes as "not yet checked by hand".
+   Fold every per-change file in `playtest/` into this release's checklist,
+   such as `playtest/alpha-2.md`
+   ([how](../../playtest/README.md#keeping-the-list-current)), and list its
+   remaining checks in the release notes as "not yet checked by hand".
 3. If compatibility changed, verify replay and rollback from a matching backup.
    Also verify migration and old-save handling when the release promises that
    older saves load.
@@ -128,7 +148,7 @@ test device and disposable world:
 
 Record the build and each result. A failed check gets a Bug issue and blocks
 the release unless the owner explicitly accepts it. This short release check
-does not claim that the remaining `playtest/` checks were performed.
+does not claim that the release checklist's remaining checks were performed.
 
 ## Nightly builds
 

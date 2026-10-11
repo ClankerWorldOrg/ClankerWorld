@@ -17,9 +17,12 @@ Medium p95. The repair retains every other map check and the normal durable save
 
 Baseline main is `1d8453a2ceb5400a8ab873bf202fbecdae7cf758`. Of 355 recorded
 simulation, host and build inputs, only `SeededWorldHarness.cs` changes.
-[Raw samples, source/helper/input hashes and full-byte comparisons](camp-reachability-probe/samples.json)
-and [the exact disposable probe](camp-reachability-probe/probe.cs.txt) accompany
-this report. These measurements are separate from permanent regression tests.
+[The exact disposable probe](camp-reachability-probe/probe.cs.txt) accompanies
+this report. The data file of raw samples, source/helper/input hashes and
+full-byte comparisons is in git history at commit `90954f22` as
+`docs/development/camp-reachability-probe/samples.json`, and the command under
+Repeat the comparison reruns the measurement. These measurements are separate
+from permanent regression tests.
 
 The normal generated Founder Setup path creates Small and Medium worlds with
 public seed `checkpoint-reachability-cost-audit`, a feasible first Town layout

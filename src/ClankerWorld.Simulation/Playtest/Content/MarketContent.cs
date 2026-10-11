@@ -53,7 +53,7 @@ public static class MarketContent
     public static IEnumerable<GridPoint> SiteTiles(GridPoint hallSite) =>
         WorldContentSimulationRules.Footprint(Hall2x2(), hallSite).Concat(PlazaTiles(hallSite));
 
-    public static string MarketId(string projectId) => projectId + ":market";
+    public static string MarketId(string projectId) => DerivedId.Create(projectId + ":market");
     public static string StarterStallBuildingId(string projectId, int slot) =>
         TownProjectRules.BuildingId(projectId + ":starter-stall:" + slot.ToString(System.Globalization.CultureInfo.InvariantCulture));
 

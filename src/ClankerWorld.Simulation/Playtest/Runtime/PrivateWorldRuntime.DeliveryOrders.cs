@@ -261,7 +261,7 @@ public sealed partial class PrivateWorldRuntime
             BindDeliveryOrder(instruction, plan.Destination, plan.DestinationOwnerId, plan.Route, effect.LotId, effect.Quantity);
             return;
         }
-        CreditOrderEffect(instruction, "delivery:stock:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(effect.OperationId))),
+        CreditOrderEffect(instruction, StockDeliveryReceipt(effect.OperationId),
             instruction.Order!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with

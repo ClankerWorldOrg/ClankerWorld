@@ -56,6 +56,7 @@ public sealed partial class PrivateWorldRuntime
             var firstTownWasUnplaced = towns.Count == 0;
             worldSimulation = WorldContentSimulationState.Empty with { Buildings = placed };
             towns = [town];
+            civicSystem.RestoreTowns(towns);
             townLandTitles = TownLandRightsRules.InitialTitles(map, town, WorldTick).ToList();
             householdLandUseRights = TownLandRightsRules.InitialUseRights(map, town.Id,
                 placed.Where(building => building.HouseholdId is not null)

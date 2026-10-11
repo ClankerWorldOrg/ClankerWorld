@@ -364,6 +364,7 @@ public static class GameUiText
             "ornament_worn" or "ornament_removed" or "ornament_given" or
             "inhabitant_building_proposed" or "instruction_not_understood" or "town_founding_started" or
             "town_civic_council" or "town_civic_election" or "town_civic_runoff" or "town_civic_proposal" or "town_civic_result" or "town_civic_cancelled" or
+            "town_civic_law" or "town_civic_government" or "town_civic_mayor" or
             "town_project_approved" or "town_project_blocked" or "town_project_resumed" or "town_project_cancelled" or
             "town_project_donated" or "town_project_material_delivered" or
             "town_project_material_returned" or "town_project_completed" or

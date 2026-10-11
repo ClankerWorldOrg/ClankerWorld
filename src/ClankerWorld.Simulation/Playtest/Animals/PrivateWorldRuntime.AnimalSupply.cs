@@ -10,7 +10,7 @@ public sealed partial class PrivateWorldRuntime
     private sealed record AnimalSupplyChoice(InventoryLot Lot, PlacedBuilding Yard, int Quantity,
         string? AnimalId = null, string? Action = null)
     {
-        public string Id => "animal:supply:" + AnimalKey(Lot.Id + ":" + Yard.InstanceId + ":" + AnimalId + ":" + Action);
+        public string Id => AnimalSupplyId(Lot.Id, Yard.InstanceId, AnimalId, Action);
     }
 
     private IEnumerable<AnimalSupplyChoice> AnimalSupplyChoices(string actor, bool ignoreActiveTrip = false)
@@ -45,17 +45,12 @@ public sealed partial class PrivateWorldRuntime
                 PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor)).Sum(AvailableLotQuantity);
             var actions = new List<string>();
             if (!AnimalRules.HasCare(animal, WorldTick)) actions.Add("care");
-            if (animal.ReadyProductLotId is not null && animal.Species == "cow") actions.Add("collect");
             if (animal.Species == "horse" && animal.SaddleLotId is null && AnimalHouseholdMember(actor, animal)) actions.Add("saddle");
             foreach (var action in actions)
                 foreach (var root in sources.Where(lot => !PersonalEquipmentRules.IsCarried(lot, actor)))
                 {
-                    var productQuantity = action == "collect" ? inventory.GetLot(animal.ReadyProductLotId!).Quantity : 0;
                     var wanted = action switch
                     {
-                        "collect" => root.ItemKind == InventoryContainerRules.WaterJug && root.OwnerId == household &&
-                            inventory.Lots.Where(content => content.ContainerLotId == root.Id).All(content => content.ItemKind == "milk") &&
-                            ContainerContentsQuantity(inventory, root.Id) <= InventoryContainerRules.WaterJugCapacity - productQuantity ? 1 : 0,
                         "saddle" => root.ItemKind == "saddle" && root.OwnerId == household ? 1 : 0,
                         _ => AnimalRules.IsFeed(root.ItemKind) ? Math.Max(0, definition.DailyFeed - AnimalSuppliesAtHand(actor, animal)
                             .Where(lot => AnimalRules.IsFeed(lot.ItemKind) && PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor)).Sum(AvailableLotQuantity)) :
@@ -64,7 +59,7 @@ public sealed partial class PrivateWorldRuntime
                             carriedWater < definition.DailyWater ? 1 : 0,
                     };
                     var quantity = Math.Min(wanted, Math.Min(AvailableLotQuantity(root), FreeCarryCapacity(actor)));
-                    if (quantity <= 0 || !VesselFits(root, FreeCarryCapacity(actor) - productQuantity) ||
+                    if (quantity <= 0 || !VesselFits(root, FreeCarryCapacity(actor)) ||
                         AnimalRules.IsFeed(root.ItemKind) && !AnimalFeedMayBeSpent(actor, animal, root, quantity)) continue;
                     yield return new(root, yard, quantity, animal.Id, action);
                 }
@@ -91,7 +86,7 @@ public sealed partial class PrivateWorldRuntime
     private void AddAnimalSupplyCandidates(List<CognitionCandidate> candidates, string actor)
     {
         if (animalWorld.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor) is { } trip)
-            candidates.Add(new("animal:supply_trip:" + AnimalKey(actor), trip.AnimalId is null ?
+            candidates.Add(new(AnimalSupplyTripId(actor), trip.AnimalId is null ?
                 "Carry the collected feed or jug to the household animal yard." : "Carry the collected supply to the animal and finish its care task.", 14, trip.AnimalId ?? trip.YardId));
         else foreach (var choice in AnimalSupplyChoices(actor).Take(12))
             candidates.Add(new(choice.Id, $"Collect physical {choice.Lot.ItemKind.Replace('_', ' ')} for " +
@@ -114,7 +109,6 @@ public sealed partial class PrivateWorldRuntime
                 if (animal is null || !MayCareForAnimal(actor, animal)) { FinishAnimalSupplyTrip(actor); return true; }
                 _ = ApplyAnimalCandidate(actor, new AnimalChoice(trip.Action!, animal.Id).Id);
                 if (trip.Action == "care" && AnimalRules.HasCare(Animal(animal.Id)!, WorldTick) ||
-                    trip.Action == "collect" && Animal(animal.Id)!.ReadyProductLotId is null ||
                     trip.Action == "saddle" && Animal(animal.Id)!.SaddleLotId is not null) FinishAnimalSupplyTrip(actor);
                 // A partial feed/water pickup needs the other ingredient before walking to the animal.
                 if (trip.Action == "care" && AnimalCareInputs(actor, animal, AnimalRules.Definition(animal.Species).DailyFeed,
@@ -151,10 +145,10 @@ public sealed partial class PrivateWorldRuntime
         // The trip follows the chosen physical load, including when it was already carried.
         if (!carried || choice.Quantity < source.Quantity)
         {
-            var operation = "animal-pickup-" + AnimalKey(actor + ":" + WorldTick + ":" + nextEventId);
+            var operation = AnimalPickupId(actor, WorldTick, nextEventId);
             ApplyInventoryTransition(current => InventoryFixture.Relocate(current, operation, source.Id, source.OwnerId,
                 choice.Quantity, carrierId: actor));
-            if (choice.Quantity < source.Quantity) source = society.Checkpoint.Inventory.GetLot(source.Id + "#move:" + operation);
+            if (choice.Quantity < source.Quantity) source = society.Checkpoint.Inventory.GetLot(DerivedId.Create(source.Id + "#move:" + operation));
         }
         animalWorld = animalWorld with
         {
