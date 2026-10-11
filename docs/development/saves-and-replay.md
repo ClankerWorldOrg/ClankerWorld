@@ -102,7 +102,7 @@ agent's model choice can carry a thinking level, written only when one is
 chosen. Provider files from before Anthropic was added load with an empty
 Anthropic record; the provider file's schema stays 3.
 
-Private-world schema 124 and world-systems schema 4 remove the unused prototype
+Private-world schema 126 and world-systems schema 4 remove the unused prototype
 faction/law, currency and culture collections and the culture-tag bound.
 Current saves retain weather, ecology, chunks and the native Town law and
 ownership systems. Creation, play and replay keep their existing behavior.
