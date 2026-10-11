@@ -1,0 +1,1 @@
+- Open a building's Details with Restaurant meals, Vegetable stew or crude wooden pickaxes stored there. Each item name stays inside its own slot; hover to read the full name and amount. Check in Light and Dark themes at the screen sizes you use. ([#1768](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1768))
