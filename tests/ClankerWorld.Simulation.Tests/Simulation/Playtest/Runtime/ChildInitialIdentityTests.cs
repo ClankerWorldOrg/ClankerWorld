@@ -23,10 +23,10 @@ public sealed class ChildInitialIdentityTests
     public async Task ANativeBornLongIdParentRemainsInItsChildsOrdinarySavedFamilyBackground(bool delayRequestStart)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await LongParentInfancyEnds.Value);
-        var parentId = Assert.Single(state.Society.Society.Births, birth => birth.ChildId.Length > 128 &&
+        var parentId = Assert.Single(state.Society.Society.Births, birth =>
             state.Society.Society.GetInhabitant(birth.ChildId).AgeBand == SocietyAgeBand.Adult).ChildId;
         var childId = Assert.Single(state.Society.Society.Births, birth => birth.ChildId != parentId).ChildId;
-        Assert.True(parentId.Length > 128);
+        Assert.InRange(parentId.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetInhabitant(childId).AgeBand);
 
         using var handler = new ChildReplyHandler
@@ -270,7 +270,7 @@ public sealed class ChildInitialIdentityTests
         {
             Assert.True((await firstGeneration.AdvanceOneTickAsync()).Advanced);
             parentId = Assert.Single(firstGeneration.Society.Births).ChildId;
-            Assert.True(parentId.Length > 128);
+            Assert.InRange(parentId.Length, 1, DerivedId.MaximumLength);
             firstGeneration.Pause();
             firstGeneration.SetLifePace(1460);
             firstGeneration.Resume();

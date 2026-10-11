@@ -18,7 +18,9 @@ rough guidance and needs fresh profiling after this change merges.
 
 Baseline is main `621899dcc50974c367a039f331f93dac4e1ca757`, schema 100.
 Only `SettlementHouseholdPlanning.cs` differs among the 297 runtime inputs whose
-hashes are recorded in [the raw data](household-plan-query-probe/samples.json).
+hashes are recorded in the raw data. It is in git history at commit `14715cc3`
+as `docs/development/household-plan-query-probe/samples.json`, and the steps
+under Repeat the comparison rerun the measurement.
 Every synchronous query still obtains its identity from the current actor,
 design and reservation state. Candidate eligibility, ranking and action-time
 checks use their existing native paths.
@@ -149,6 +151,6 @@ Compare ordinary capture files byte for byte before interpreting timings.
 The saved report records both the unchanged public probes' digests and the
 three exact extension sources' digests.
 
-The [paired Windows/F12 check](../../playtest/998-household-plan-query.md) remains
+The [paired Windows/F12 check](../../playtest/alpha-1.md) remains
 pending. These Linux measurements do not establish Windows frame presentation,
 a hosted-model speedup or completion of the wider performance issue.

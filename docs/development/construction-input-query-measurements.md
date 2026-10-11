@@ -27,8 +27,11 @@ Council-approved, supplied and completed through native actions. Extra
 residents, households and initial stock are controlled fixtures; Houses,
 workshops and Roads use native placement. Actual resident/Road/Town-building/
 House counts are 4/99/24/2, 16/100/36/14 and 16/194/55/14. Fixture names retain
-`4-96`, `16-96` and `16-192`. The 192-Road target avoids the separately tracked
-384-Road setup failure; it does not fix that fixture.
+`4-96`, `16-96` and `16-192`. These measurements used the 192-Road target because
+the earlier setup could not finish 384 Roads. The input-query change did not
+repair that setup. The current setup now uses the connected-ground selection
+in [Measuring Town tick time](town-tick-measurements.md#what-the-fixture-controls);
+this report retains its original 192-Road workload, source hashes and results.
 
 Each ordinary run restores the same fresh checkpoint, warms a separate world
 for four ticks, restores again and measures 64 blocking native ticks,
@@ -112,11 +115,14 @@ All sixteen repeat capture files match, with zero fallbacks across another
 ordinary baseline exactly. These repeats support the bounded improvement
 without explaining every shared-host outlier or promising Windows latency.
 
-The [raw report](construction-input-query-probe/samples.json) retains every
-ordinary/repeat sample, fresh setup counts, source/probe/checkpoint hashes,
-compiled assembly hashes and all 76 before/after or profile capture-file
-comparisons. Only SettlementProjects.cs differs among the 332 Simulation and
-project/toolchain inputs. Full native captures, checkpoints, trace, profile
+The raw report retains every ordinary/repeat sample, fresh setup counts,
+source/probe/checkpoint hashes, compiled assembly hashes and all 76
+before/after or profile capture-file comparisons. It is in git history at
+commit `ab3d1119` as
+`docs/development/construction-input-query-probe/samples.json`, and the
+commands under Repeat the native comparison rerun the measurement. Only
+SettlementProjects.cs differs among the 332 Simulation and project/toolchain
+inputs. Full native captures, checkpoints, trace, profile
 analysis and preflight-failure notes are retained in
 `.evidence/keep/998/` in the baseline and fixing worktrees of Codex session
 c57361c5.
@@ -151,6 +157,6 @@ request in its first three ticks; the controls instead use actor 10, actually
 queried at ticks 257–258 in the unchanged ordinary baseline. Neither preflight
 failure is a game failure or an excluded performance sample.
 
-The existing [Windows/F12 checks](../../playtest/944-grown-town-tick-times.md)
+The existing [Windows/F12 checks](../../playtest/alpha-1.md)
 remain pending. This report does not claim a universal speedup or completion
 of the broader latency investigation.

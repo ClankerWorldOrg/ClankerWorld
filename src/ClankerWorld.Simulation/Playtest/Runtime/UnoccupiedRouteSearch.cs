@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using ClankerWorld.Simulation.Harness;
 
 namespace ClankerWorld.Simulation.Playtest;
@@ -17,7 +18,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
     private readonly SeededMap map;
     private readonly HashSet<GridPoint> occupied;
     private readonly Func<GridPoint, GridPoint, int> stepCost;
-    private readonly Func<GridPoint, IEnumerable<GridPoint>> neighbors;
+    private readonly Func<GridPoint, IEnumerable<GridPoint>>? neighbors;
     private readonly int[] best;
     private readonly int[] predecessor;
     private readonly int[] finishedOrder;
@@ -37,7 +38,7 @@ public sealed class UnoccupiedRouteSearch : IDisposable
         this.map = map ?? throw new ArgumentNullException(nameof(map));
         this.occupied = occupied ?? throw new ArgumentNullException(nameof(occupied));
         this.stepCost = stepCost ?? throw new ArgumentNullException(nameof(stepCost));
-        this.neighbors = neighbors ?? map.FootNeighbors;
+        this.neighbors = neighbors;
         if (!map.Contains(origin))
             throw new ArgumentOutOfRangeException(nameof(origin));
         Origin = origin;
@@ -101,24 +102,35 @@ public sealed class UnoccupiedRouteSearch : IDisposable
 
     private void Expand(GridPoint current, int index, int cost)
     {
-        foreach (var next in neighbors(current))
+        if (neighbors is null)
         {
-            if (occupied.Contains(next) ||
-                map.IsDiagonalFootStep(current, next) &&
-                (occupied.Contains(new GridPoint(next.X, current.Y)) ||
-                 occupied.Contains(new GridPoint(current.X, next.Y))))
-            {
-                continue;
-            }
-
-            var nextCost = checked(cost + stepCost(current, next));
-            var nextIndex = Index(next);
-            if (best[nextIndex] <= nextCost)
-                continue;
-            best[nextIndex] = nextCost;
-            predecessor[nextIndex] = index;
-            open.Enqueue(next, (nextCost, next.Y, next.X, order++));
+            foreach (var next in map.FootNeighborsForSearch(current))
+                VisitNeighbor(current, index, cost, next);
+            return;
         }
+
+        foreach (var next in neighbors(current))
+            VisitNeighbor(current, index, cost, next);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void VisitNeighbor(GridPoint current, int index, int cost, GridPoint next)
+    {
+        if (occupied.Contains(next) ||
+            map.IsDiagonalFootStep(current, next) &&
+            (occupied.Contains(new GridPoint(next.X, current.Y)) ||
+             occupied.Contains(new GridPoint(current.X, next.Y))))
+        {
+            return;
+        }
+
+        var nextCost = checked(cost + stepCost(current, next));
+        var nextIndex = Index(next);
+        if (best[nextIndex] <= nextCost)
+            return;
+        best[nextIndex] = nextCost;
+        predecessor[nextIndex] = index;
+        open.Enqueue(next, (nextCost, next.Y, next.X, order++));
     }
 
     // The tile within range that left the queue first, if any has left it yet.
