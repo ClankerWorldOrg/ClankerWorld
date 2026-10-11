@@ -191,5 +191,5 @@ Full checkpoints, ordered captures, raw trace, Speedscope conversion, input
 manifests and logs are retained under `.evidence/keep/998-construction-profile/`
 in Codex session d9925a9c's workspace. The public dataset includes their
 comparison hashes and trace hashes, not private saves or model payloads.
-Existing [Windows/F12 checks](../../playtest/998-walking-route-neighbors.md) remain
+Existing [Windows/F12 checks](../../playtest/alpha-1.md) remain
 pending. Independent review and full green CI are required before merging.

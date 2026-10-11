@@ -1,1 +1,0 @@
-- In Load Save, use the arrow keys to choose a save whose name is displaced by several saves made at the same world time. Make the window narrower and confirm its whole displayed name stays visible. Move the timeline scrollbar yourself, then resize again and confirm it does not pull you back to that name. ([#1547](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1547))

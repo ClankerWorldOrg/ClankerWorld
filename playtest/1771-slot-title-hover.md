@@ -1,1 +1,0 @@
-- [ ] Create two worlds or saves with long names that share a prefix, then hover their cards in Load World and the save picker's List at small and large screen sizes. Check that each full name and its saved date/seed details can be read, and that selecting, opening and branch-tag hover text still work. [#1771](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1771)
