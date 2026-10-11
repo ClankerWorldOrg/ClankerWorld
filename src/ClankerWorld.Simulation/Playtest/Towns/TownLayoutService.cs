@@ -390,10 +390,16 @@ public static class TownLayoutService
         reasons.Add(new(TownConstructionSiteReasonCodes.PurposeCluster, $"Near {relationship} {role} building."));
     }
 
-    private static bool FacesRoad(TownLayoutContext context, BuildingDefinition definition, GridPoint position) =>
-        context.RoadTiles.Count > 0 && Footprint(definition, position).Any(tile => TownStreets.Directions
-            .Where(step => step.X == 0 || step.Y == 0)
-            .Any(step => context.RoadTiles.Contains(new GridPoint(tile.X + step.X, tile.Y + step.Y))));
+    private static bool FacesRoad(TownLayoutContext context, BuildingDefinition definition, GridPoint position)
+    {
+        if (context.RoadTiles.Count == 0) return false;
+        foreach (var tile in Footprint(definition, position))
+            foreach (var step in TownStreets.Directions)
+                if ((step.X == 0 || step.Y == 0) &&
+                    context.RoadTiles.Contains(new GridPoint(tile.X + step.X, tile.Y + step.Y)))
+                    return true;
+        return false;
+    }
 
     // The tiles the border would gain: those around the footprint it doesn't already hold, which is what
     // TownBorderRules.ExpandForBuilding adds, without copying and sorting the whole border for every site.
