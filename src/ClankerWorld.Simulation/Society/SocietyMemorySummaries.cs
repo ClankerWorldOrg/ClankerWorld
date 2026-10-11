@@ -41,7 +41,7 @@ public static class SocietyMemorySummaryRules
     }
 
     internal static string Id(string owner, IReadOnlyList<SocietyMemorySummarySource> sources) =>
-        "memory-summary:" + DerivedId.Hash(JsonSerializer.Serialize(new { owner, sources }));
+        DerivedId.Hash(JsonSerializer.Serialize(new { owner, sources }), "memory-summary:");
 
     internal static string Key(SocietyMemorySummarySource source) => $"{source.Kind}:{source.Id}";
 

@@ -89,19 +89,18 @@ public static class TownProjectRules
             plan.Entrance.X.ToString(CultureInfo.InvariantCulture), plan.Entrance.Y.ToString(CultureInfo.InvariantCulture),
             string.Join('|', plan.Budget.Select(q => q.ResourceId + ":" + q.Amount.ToString(CultureInfo.InvariantCulture))));
         if (plan.BoatPortId is not null) binding += "\nboat:" + plan.BoatPortId;
-        return "project:" + DerivedId.Hash(binding);
+        return DerivedId.Hash(binding, "project:");
     }
 
     public static string ProjectId(TownProposal proposal) => DerivedId.Create(proposal.Id + ":construction");
 
-    public static string BuildingId(string projectId) => "town-build-" +
-        DerivedId.Hash(projectId);
+    public static string BuildingId(string projectId) => DerivedId.Hash(projectId, "town-build-");
 
     public static string ReservationPurpose(string projectId) => "town-project:" + projectId;
 
     public static string DeliveryId(string projectId, string actor, string sourceLotId, long tick, int ordinal) =>
-        "town-project-load:" + DerivedId.Hash(JsonSerializer.Serialize(
-            new[] { projectId, actor, sourceLotId, tick.ToString(CultureInfo.InvariantCulture), ordinal.ToString(CultureInfo.InvariantCulture) }));
+        DerivedId.Hash(JsonSerializer.Serialize(
+            new[] { projectId, actor, sourceLotId, tick.ToString(CultureInfo.InvariantCulture), ordinal.ToString(CultureInfo.InvariantCulture) }), "town-project-load:");
 
     public static string ProposalText(TownProjectPayload plan)
     {

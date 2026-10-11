@@ -235,7 +235,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string ExpansionOrderReceipt(string jobId) =>
-        "expand:job:" + DerivedId.Hash(jobId);
+        DerivedId.Hash(jobId, "expand:job:");
 
     private string ExpansionOrderBlockedReason(OwnerQueuedInstruction instruction)
     {

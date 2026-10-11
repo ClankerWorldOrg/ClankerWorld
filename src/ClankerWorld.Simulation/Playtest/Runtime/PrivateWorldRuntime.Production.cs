@@ -283,15 +283,12 @@ public sealed partial class PrivateWorldRuntime
     {
         // Preserve valid legacy IDs; descendant identities contain separators
         // that are legal society IDs but invalid content instance IDs.
-        var original = inhabitantId.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
-            ? DerivedId.Create($"build-{inhabitantId}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")
-            : "build-v2-" + DerivedId.Hash(inhabitantId + "\n" + definition.CanonicalId);
+        var original = AutomaticBuildingId(inhabitantId, definition);
         var candidate = original;
         // Historical order bindings keep their identity. Ordinary paid rebuilding
         // selects a stable replacement without changing those bindings or payments.
         for (var replacement = 1; BuildingIdentityIsReserved(candidate); replacement++)
-            candidate = "build-replacement-" + DerivedId.Hash(
-                original + "\n" + replacement.ToString(CultureInfo.InvariantCulture));
+            candidate = ReplacementBuildingId(original, replacement);
         return candidate;
     }
 

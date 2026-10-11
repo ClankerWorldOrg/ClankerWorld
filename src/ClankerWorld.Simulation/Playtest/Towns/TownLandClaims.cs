@@ -14,8 +14,7 @@ public static class TownLandClaimRules
     public static string RequestKey(IEnumerable<GridPoint> tiles) => "land_claim:" +
         DerivedId.Hash(DescribeTiles(tiles));
 
-    public static string TitleId(string proposalId) => "town-title:claim:" +
-        DerivedId.Hash(proposalId);
+    public static string TitleId(string proposalId) => DerivedId.Hash(proposalId, "town-title:claim:");
 
     public static bool CanClaim(SeededMap map, TownRuntimeState town, IReadOnlyList<GridPoint>? tiles,
         IReadOnlyList<TownLandTitleRecord> titles)

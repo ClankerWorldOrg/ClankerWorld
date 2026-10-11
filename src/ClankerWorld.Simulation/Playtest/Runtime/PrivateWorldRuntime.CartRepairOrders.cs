@@ -58,9 +58,9 @@ public sealed partial class PrivateWorldRuntime
     private const string CartRepairOrderReceiptPrefix = "cart-repair-order:";
 
     private static string CartRepairOrderReceipt(OwnerQueuedInstruction instruction, long tick) =>
-        CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":" +
         DerivedId.Hash(
-            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetInhabitantId}:{instruction.Order!.TargetCartLotId}");
+            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetInhabitantId}:{instruction.Order!.TargetCartLotId}",
+            CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":");
 
     private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
     {

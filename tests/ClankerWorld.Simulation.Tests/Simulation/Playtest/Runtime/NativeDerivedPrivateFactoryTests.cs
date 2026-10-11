@@ -149,6 +149,10 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("AnimalCargoDismountId")]
     [InlineData("AnimalOfferId")]
     [InlineData("MilkOfferId")]
+    [InlineData("AutomaticBuildingId")]
+    [InlineData("AutomaticBuildingId-legacy")]
+    [InlineData("ReplacementBuildingId")]
+    [InlineData("TownSalvageOperationId")]
     public async Task NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload(string factory)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await NativeFiftyMilkTrace.Value);
@@ -188,6 +192,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var sourceLot = Assert.Single(society.Inventory.Lots, lot => lot.ItemKind == "milk").Id;
         var animalId = "animal:" + new string('a', 121);
         var building = state.WorldSimulation!.Buildings.OrderBy(record => record.InstanceId, StringComparer.Ordinal).Last().InstanceId;
+        var buildingDefinition = state.WorldContent!.Buildings.OrderBy(record => record.CanonicalId, StringComparer.Ordinal).Last();
         var recipe = state.WorldContent!.Recipes.OrderBy(record => record.CanonicalId, StringComparer.Ordinal).Last().CanonicalId;
         // Pure factory inputs: the world/people/stock are native; the owner-task
         // record is a controlled supported shape, not an admitted model reply.
@@ -359,6 +364,12 @@ public sealed partial class GrownAgentHelperMemoryTests
             "AnimalCargoDismountId" => [actor, society.WorldTick, long.MaxValue, sourceLot],
             "AnimalOfferId" => [actor, animalId, society.WorldTick, long.MaxValue],
             "MilkOfferId" => [sourceLot, society.WorldTick, long.MaxValue],
+            "AutomaticBuildingId" => [actor, buildingDefinition],
+            "AutomaticBuildingId-legacy" => [new string('b', DerivedId.MaximumLength), buildingDefinition],
+            "ReplacementBuildingId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("AutomaticBuildingId",
+                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [actor, buildingDefinition])), int.MaxValue],
+            "TownSalvageOperationId" => [society.WorldTick, actor, Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("TownSalvageId",
+                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [townId, sourceLot]))],
             _ => throw new ArgumentOutOfRangeException(nameof(factory)),
         };
         var methodName = factory.Contains('-', StringComparison.Ordinal) ? factory[..factory.IndexOf('-', StringComparison.Ordinal)] : factory;
@@ -374,15 +385,16 @@ public sealed partial class GrownAgentHelperMemoryTests
                 id, actor, seedId, 1, "orchard_replanting", long.MaxValue)
             };
         var summary = "I remember factory" + factory + " work.";
-        var checkpoint = SocietyFixture.RecordSocialMemory(society, new(id, actor, relative, summary,
-            "private", society.WorldTick)).Checkpoint;
+        var subject = factory == "RenameMemoryId" ? actor : relative;
+        var checkpoint = SocietyFixture.RecordSocialMemory(society, new(id, actor, subject, summary,
+            "private", society.WorldTick, Permanent: factory == "RenameMemoryId")).Checkpoint;
         var bytes = PrivateWorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
         using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
         var recalled = PrivateWorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
             null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
         var memory = Assert.Single(recalled, memory => memory.Id == id);
-        Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
+        Assert.Equal((actor, subject, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
         new InhabitantObservation(actor, restored.WorldTick, 0, 1, "sha256:factory-inventory", 0,
             [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
     }

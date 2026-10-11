@@ -122,9 +122,9 @@ public sealed partial class PrivateWorldRuntime
             CreditOrderEffect(instruction, CartOrderEffectId(instruction), 1);
     }
 
-    private static string CartOrderEffectId(OwnerQueuedInstruction instruction) => "cart-order:" +
+    private static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
         DerivedId.Hash(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}");
+            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}", "cart-order:");
 
     private static void ValidateCartOrderBindings(InventoryCheckpoint inventory, IEnumerable<OwnerQueuedInstruction> instructions)
     {

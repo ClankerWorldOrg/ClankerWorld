@@ -48,7 +48,7 @@ factory-input records do not represent model-admitted civic or owner orders.
 | `NativeDerivedSocietyIdTests` | Native child and request IDs, protected parentage/care/membership records, birth food holds, domestic-person and frozen birth-family handles, household creation/join/rejoin, consumption holds and memory summaries |
 | `NativeDerivedWorkIdTests` | Native personal and borrowed tool repair, partial tool/material splits, gifts to the household, completed material reservations and owner-order completion receipts; actual paid placement of a 128-character building instance |
 | `NativeDerivedCivicIdTests` | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |
-| `NativeDerivedPrivateFactoryTests` | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices and faction violations |
+| `NativeDerivedPrivateFactoryTests` | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, automatic buildings and replacements, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage choices/operations; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices and faction violations |
 
 The civic matrix preserves a named saved Town with a 128-character ID and a
 120-character name, a 128-character household name and an 80-character project
@@ -58,6 +58,11 @@ controlled 128-character animal reference; they do not add a live animal or
 claim an admitted animal workflow. Numbered rows also exercise
 the maximum supported counter. Long complete source-reference regressions
 remain separate from the generated-ID boundary.
+
+The legacy automatic-building row supplies a controlled identifier in the old
+content-instance grammar. Its native-descendant row retains the actual native
+person. Rename handles use the production memory contract: private permanent
+contents, current source tick and the owner as subject.
 
 ## Matching generated IDs
 

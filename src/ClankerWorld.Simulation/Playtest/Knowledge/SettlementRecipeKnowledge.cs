@@ -11,7 +11,7 @@ public sealed partial class PrivateWorldRuntime
         knowledge.Recipes.Any(item => item.OwnerId == actor && item.RecipeId == recipeId);
 
     private static string RecipeKnowledgeId(string actor, string recipeId) =>
-        "recipe-knowledge:" + DerivedId.Hash($"{actor}|{recipeId}");
+        DerivedId.Hash($"{actor}|{recipeId}", "recipe-knowledge:");
 
     private void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick)
     {

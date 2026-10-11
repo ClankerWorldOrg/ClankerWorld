@@ -110,10 +110,10 @@ public sealed partial class PrivateWorldRuntime
     private static string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction)
     {
         var completion = instruction.Order!.KnowledgeReadCompletion!;
-        return "read-order:" + DerivedId.Hash(
+        return DerivedId.Hash(
             $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order.TargetKnowledgeArtifactId}|{completion.WorldTick}|" +
             string.Join(';', completion.LearnedSites.Select(point => $"{point.X},{point.Y}")) + "|" +
-            string.Join(';', completion.LearnedRecipes));
+            string.Join(';', completion.LearnedRecipes), "read-order:");
     }
 
     private static bool IsValidKnowledgeReadOrderShape(OwnerInstructionOrder order, OwnerQueuedInstruction instruction, long worldTick) =>

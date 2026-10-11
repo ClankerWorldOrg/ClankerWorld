@@ -123,9 +123,9 @@ public sealed partial class PrivateWorldRuntime
             instructionsByIdempotency[instruction.IdempotencyKey] = updated with { Order = updated.Order with { TargetLotId = null } };
     }
 
-    private static string CartCargoOrderEffectId(OwnerQueuedInstruction instruction, int completed) => "cart-cargo-order:" +
+    private static string CartCargoOrderEffectId(OwnerQueuedInstruction instruction, int completed) =>
         DerivedId.Hash(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}|{instruction.Order.TargetItemKind}|{completed}");
+            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}|{instruction.Order.TargetItemKind}|{completed}", "cart-cargo-order:");
 
     private static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
     {
