@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export ClankerWorld__Runtime__StrictTickFailures=true
 
 # Keep the Godot editor out of the repository and verify the exact archived
 # .NET-capable engine in CI. The project itself remains a normal C# project,

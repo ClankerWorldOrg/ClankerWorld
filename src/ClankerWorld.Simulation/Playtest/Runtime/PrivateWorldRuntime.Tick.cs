@@ -35,7 +35,10 @@ public sealed partial class PrivateWorldRuntime
     private async ValueTask<PrivateWorldStepResult> AdvanceOneTickCoreAsync(
         bool deferHosted, Func<bool>? commitPermitted,
         Func<PrivateWorldRuntime, IReadOnlyList<PlaytestWorldEvent>, IReadOnlyList<PreparedChildModelSelection>>? prepareChildModelSelections,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Func<PrivateWorldRuntime, Action>? prepareCheckpoint = null,
+        PrivateWorldTickFailurePolicy failurePolicy = PrivateWorldTickFailurePolicy.Strict,
+        PrivateWorldActionRefusal? replayRefusal = null)
     {
         await tickGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -50,6 +53,8 @@ public sealed partial class PrivateWorldRuntime
             PendingWillDecision[] completedWills = [];
             PendingConversationTurn[] completedConversationTurns = [];
             PendingIdentityMoment[] completedIdentityMoments = [];
+            IReadOnlySet<string> retainedIdentityIds = new HashSet<string>(StringComparer.Ordinal);
+            IReadOnlySet<string> retainedHostedIds = new HashSet<string>(StringComparer.Ordinal);
             string[] activeWillIds = [];
             IReadOnlyDictionary<string, string> inactiveWillReasons = new Dictionary<string, string>();
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -104,6 +109,10 @@ public sealed partial class PrivateWorldRuntime
                 ReconcilePendingConversationTurns();
                 ReconcileIdentityMoments();
                 completedIdentityMoments = pendingIdentityMoments.Values.Where(item => item.Task.IsCompleted).ToArray();
+                retainedIdentityIds = pendingIdentityMoments.Keys.Except(completedIdentityMoments.Select(item => item.Request.Observation.InhabitantId),
+                    StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
+                retainedHostedIds = pendingHosted.Keys.Except(completed.Select(item => item.Request.Observation.InhabitantId),
+                    StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
                 completedConversationTurns = pendingConversationTurns.Values
                     .Where(item => item.Task.IsCompleted).ToArray();
                 baseline = CaptureState();
@@ -117,137 +126,225 @@ public sealed partial class PrivateWorldRuntime
                 gate.Release();
             }
 
-            // World mutations operate on an isolated proposed tick. In the
-            // playable path, external cognition itself runs between ticks.
-            // Readers and owner controls use the last committed world.
-            // The baseline was captured from this committed runtime under the
-            // gate. Clone its mutable systems without regenerating or
-            // revalidating millions of immutable terrain tiles each tick.
-            // The timing is a Developer tools readout only, never world state.
             var tickTimer = System.Diagnostics.Stopwatch.StartNew();
-            using var proposed = RestoreCore(baseline, providerFactory,
-                maxCognitionDispatchPerCycle,
-                trustedPreparedState: true, preparedConversations: baselineConversations);
-            proposed.previousPlannedRoutes = routesBefore;
-            var result = await proposed.AdvancePreparedTickAsync(deferHosted, completed, activeHostedIds, completedWills,
-                activeWillIds, inactiveWillReasons, completedConversationTurns, cancellationToken).ConfigureAwait(false);
-            tickTimer.Stop();
-            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-            tickTimer.Start();
-            var gateHeld = true;
-            try
+            if (replayRefusal is not null && (replayRefusal.RefusedTick != checked(baseline.Society.Society.WorldTick + 1) ||
+                replayRefusal.RetryAfterTick - replayRefusal.RefusedTick != baseline.WorldSystems!.Config.TicksPerDay ||
+                !baseline.Society.Society.Inhabitants.Any(person => person.Id == replayRefusal.InhabitantId &&
+                    person.Status == SocietyInhabitantStatus.Active)))
+                throw new InvalidDataException("The replayed refusal does not belong to this tick.");
+            var recorder = failurePolicy == PrivateWorldTickFailurePolicy.RefuseSingleAction
+                ? new TickInputRecorder(providerFactory) : null;
+            Func<string, IDecisionProvider>? attemptProviders = recorder is null ? providerFactory : recorder.ProviderFor;
+            Dictionary<string, string>? originalActions = null;
+            bool BaselineIsCurrent() => nextEventId == baselineEventId && WorldTick == baseline.Society.Society.WorldTick &&
+                historyArchiveHead == baseline.HistoryArchiveHead && orderCancellations.Count == baselineOrderCancellationCount &&
+                (recorder is null || recorder.IsCurrent);
+            PrivateWorldStepResult? Interrupted() => commitPermitted is not null && !commitPermitted()
+                ? new(false, "waiting_for_client", WorldTick, [], [])
+                : !BaselineIsCurrent() ? new(false, "tick_superseded_by_owner_change", WorldTick, [], []) : null;
+
+            async Task<PreparedTick> PrepareAttemptAsync(IReadOnlySet<string>? withheld, PrivateWorldActionRefusal? refusal = null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (commitPermitted is not null && !commitPermitted())
+                var proposed = RestoreCore(baseline, attemptProviders, maxCognitionDispatchPerCycle,
+                    trustedPreparedState: true, preparedConversations: baselineConversations);
+                proposed.previousPlannedRoutes = routesBefore;
+                proposed.withheldActions = withheld;
+                proposed.attemptedActions = recorder is null && replayRefusal is null ? null : new(StringComparer.Ordinal);
+                if (withheld is null) originalActions = proposed.attemptedActions;
+                try
                 {
-                    return new PrivateWorldStepResult(false, "waiting_for_client", WorldTick, [], []);
-                }
-                if (nextEventId != baselineEventId || WorldTick != baseline.Society.Society.WorldTick ||
-                    historyArchiveHead != baseline.HistoryArchiveHead || orderCancellations.Count != baselineOrderCancellationCount)
-                {
-                    return new PrivateWorldStepResult(false, "tick_superseded_by_owner_change", WorldTick, [], []);
-                }
-                if (!result.Advanced)
-                {
-                    return result;
-                }
-                if (prepareChildModelSelections is not null)
-                {
-                    // Provider preparation can read another store whose owner
-                    // transactions may call back into this runtime. Do it outside
-                    // the runtime gate, then revalidate before committing.
-                    gate.Release();
-                    gateHeld = false;
-                    var births = result.Events.Where(item => item.Kind == "child_born")
-                        .Select(item => item.Detail).ToHashSet(StringComparer.Ordinal);
-                    foreach (var prepared in prepareChildModelSelections(proposed, result.Events))
-                    {
-                        if (!births.Contains(prepared.ChildId))
-                            throw new InvalidOperationException("A child model selection must belong to a child born in the committed tick.");
-                        proposed.ApplyChildModelSelection(prepared.ChildId, prepared.Selection);
-                    }
+                    var result = await proposed.AdvancePreparedTickAsync(deferHosted, completed, activeHostedIds, completedWills,
+                        activeWillIds, inactiveWillReasons, completedConversationTurns, cancellationToken).ConfigureAwait(false);
                     tickTimer.Stop();
                     await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                     tickTimer.Start();
-                    gateHeld = true;
-                    cancellationToken.ThrowIfCancellationRequested();
-                    if (commitPermitted is not null && !commitPermitted())
-                        return new PrivateWorldStepResult(false, "waiting_for_client", WorldTick, [], []);
-                    if (nextEventId != baselineEventId || WorldTick != baseline.Society.Society.WorldTick ||
-                        historyArchiveHead != baseline.HistoryArchiveHead || orderCancellations.Count != baselineOrderCancellationCount)
-                        return new PrivateWorldStepResult(false, "tick_superseded_by_owner_change", WorldTick, [], []);
-                }
-                // A provider assignment can change without advancing a world
-                // event or tick. Admit its completed turn only now, while
-                // the live-state gate protects the commit boundary.
-                proposed.CompleteConversationTurns(
-                    completedConversationTurns,
-                    proposed.WorldTick,
-                    IsConversationTurnProviderCurrent);
-                proposed.CompleteClosedTalkOrders();
-                proposed.CompleteIdentityMoments(completedIdentityMoments, IsIdentityMomentProviderCurrent);
-                if (deferHosted)
-                    proposed.ProcessWillDecisions(completedWills, activeWillIds, inactiveWillReasons,
-                        IsWillDecisionProviderCurrent);
-                CommitPreparedTick(proposed);
-                plannedRoutes = proposed.plannedRoutes;
-                tickTimer.Stop();
-                lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
-                foreach (var item in completedIdentityMoments)
-                {
-                    pendingIdentityMoments.Remove(item.Request.Observation.InhabitantId);
-                    item.Cancellation.Dispose();
-                }
-                if (deferHosted)
-                {
-                    foreach (var id in pendingWills.Keys.Where(id =>
-                                 society.Checkpoint.Estates.All(estate => estate.Id != id || estate.WillStatus != "pending"))
-                             .ToArray())
-                        CancelPendingWill(id);
-                    foreach (var item in completed)
+                    var gateHeld = true;
+                    try
                     {
-                        pendingHosted.Remove(item.Request.Observation.InhabitantId);
-                        item.Cancellation.Dispose();
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (Interrupted() is { } interrupted) return new(proposed, interrupted, null);
+                        if (!result.Advanced) return new(proposed, result, null);
+                        if (prepareChildModelSelections is not null)
+                        {
+                            gate.Release();
+                            gateHeld = false;
+                            var births = result.Events.Where(item => item.Kind == "child_born")
+                                .Select(item => item.Detail).ToHashSet(StringComparer.Ordinal);
+                            foreach (var prepared in prepareChildModelSelections(proposed, result.Events))
+                            {
+                                if (!births.Contains(prepared.ChildId))
+                                    throw new InvalidOperationException("A child model selection must belong to a child born in the committed tick.");
+                                proposed.ApplyChildModelSelection(prepared.ChildId, prepared.Selection);
+                            }
+                            tickTimer.Stop();
+                            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                            tickTimer.Start();
+                            gateHeld = true;
+                            cancellationToken.ThrowIfCancellationRequested();
+                            if (Interrupted() is { } changed) return new(proposed, changed, null);
+                        }
+                        proposed.CompleteConversationTurns(completedConversationTurns, proposed.WorldTick, IsConversationTurnProviderCurrent);
+                        proposed.CompleteClosedTalkOrders();
+                        proposed.CompleteIdentityMoments(completedIdentityMoments, IsIdentityMomentProviderCurrent);
+                        if (deferHosted)
+                            proposed.ProcessWillDecisions(completedWills, activeWillIds, inactiveWillReasons, IsWillDecisionProviderCurrent);
+                        if (refusal is not null)
+                        {
+                            if (replayRefusal is not null &&
+                                proposed.attemptedActions?.GetValueOrDefault(refusal.InhabitantId) != refusal.CandidateId &&
+                                !proposed.IsReplayChoice(refusal.InhabitantId, refusal.CandidateId))
+                                throw new InvalidDataException("The refused choice does not match this actor's action.");
+                            proposed.RecordActionRefusal(refusal);
+                        }
+                        List<PreparedIdentityMoment>? identityMoments = null;
+                        if (prepareCheckpoint is not null)
+                        {
+                            // Consume each opportunity in the durable proposal before any
+                            // potentially paid request starts. Trials only stage requests.
+                            identityMoments = [];
+                            proposed.PrepareIdentityMoments(identityMoments.Add, retainedHostedIds, retainedIdentityIds);
+                        }
+                        gate.Release();
+                        gateHeld = false;
+                        return new(proposed, result, prepareCheckpoint?.Invoke(proposed), identityMoments);
                     }
-                    foreach (var item in completedWills)
-                    {
-                        pendingWills.Remove(item.EstateId);
-                        item.Cancellation.Dispose();
-                    }
-                    foreach (var item in completedConversationTurns)
-                    {
-                        pendingConversationTurns.Remove(item.Request.ConversationId);
-                        item.Cancellation.Dispose();
-                    }
-                    CancelNoLongerAwaitingConversationTurns();
-                    foreach (var id in inactiveWillReasons.Keys)
-                        pendingWillCancellationReasons.Remove(id);
-                    if (commitPermitted is null || commitPermitted()) StartWillDecisions();
-                    if (commitPermitted is null || commitPermitted())
-                        StartHostedDecisions(completed.Select(item => item.Request.Observation.InhabitantId));
+                    finally { if (gateHeld) gate.Release(); }
                 }
-                else
-                {
-                    foreach (var item in completedConversationTurns)
-                    {
-                        pendingConversationTurns.Remove(item.Request.ConversationId);
-                        item.Cancellation.Dispose();
-                    }
-                    CancelNoLongerAwaitingConversationTurns();
-                }
-                if (commitPermitted is null || commitPermitted()) StartConversationTurns();
-                if (commitPermitted is null || commitPermitted()) StartIdentityMoments();
-                return result with { Events = events.Where(item => item.EventId >= baselineEventId).ToArray() };
+                catch { proposed.Dispose(); throw; }
             }
-            finally
+
+            PreparedTick preparedTick;
+            try
             {
-                if (gateHeld) gate.Release();
+                preparedTick = await PrepareAttemptAsync(replayRefusal is null ? null :
+                    new HashSet<string>([replayRefusal.InhabitantId], StringComparer.Ordinal), replayRefusal).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (recorder is not null && exception is not (OutOfMemoryException or OperationCanceledException))
+            {
+                var check = ActionFailureCheck(exception);
+                var actors = baseline.Society.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active)
+                    .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
+                PrivateWorldStepResult? interruption = null;
+                var differentFault = false;
+                async Task<bool> SucceedsWithoutAsync(IEnumerable<string> withheld)
+                {
+                    try
+                    {
+                        using var trial = await PrepareAttemptAsync(withheld.ToHashSet(StringComparer.Ordinal)).ConfigureAwait(false);
+                        if (!trial.Result.Advanced) interruption = trial.Result;
+                        return trial.Result.Advanced;
+                    }
+                    catch (Exception trialFault) when (trialFault is not (OutOfMemoryException or OperationCanceledException))
+                    {
+                        differentFault |= ActionFailureCheck(trialFault) != check;
+                        return false;
+                    }
+                }
+                if (!await SucceedsWithoutAsync(actors).ConfigureAwait(false))
+                {
+                    if (interruption is not null) return interruption;
+                    throw;
+                }
+                var candidates = actors;
+                while (candidates.Length > 1)
+                {
+                    var half = candidates.Take(candidates.Length / 2).ToArray();
+                    candidates = await SucceedsWithoutAsync(half).ConfigureAwait(false)
+                        ? half : candidates.Skip(half.Length).ToArray();
+                    if (interruption is not null) return interruption;
+                    if (differentFault) throw;
+                }
+                if (candidates.Length == 0 || !await SucceedsWithoutAsync(candidates).ConfigureAwait(false) ||
+                    originalActions is null || !originalActions.TryGetValue(candidates[0], out var candidate) || candidate == "safe_idle")
+                {
+                    if (interruption is not null) return interruption;
+                    throw;
+                }
+                var refusedTick = checked(baseline.Society.Society.WorldTick + 1);
+                var refusal = new PrivateWorldActionRefusal(candidates[0], candidate, refusedTick,
+                    checked(refusedTick + baseline.WorldSystems!.Config.TicksPerDay), check);
+                preparedTick = await PrepareAttemptAsync(candidates.ToHashSet(StringComparer.Ordinal), refusal).ConfigureAwait(false);
+            }
+            using (preparedTick)
+            {
+                var proposed = preparedTick.Runtime;
+                var result = preparedTick.Result;
+                tickTimer.Stop();
+                await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                tickTimer.Start();
+                try
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (Interrupted() is { } interrupted) return interrupted;
+                    if (!result.Advanced) return result;
+                    recorder?.StopRecording();
+                    tickTimer.Stop();
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo? writeFailure = null;
+                    try { preparedTick.WriteCheckpoint?.Invoke(); }
+                    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                    {
+                        // The valid advanced world is retained for the existing paused write retry.
+                        writeFailure = System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception);
+                    }
+                    tickTimer.Start();
+                    CommitPreparedTick(proposed);
+                    plannedRoutes = proposed.plannedRoutes;
+                    tickTimer.Stop();
+                    lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
+                    foreach (var item in completedIdentityMoments)
+                    {
+                        pendingIdentityMoments.Remove(item.Request.Observation.InhabitantId);
+                        item.Cancellation.Dispose();
+                    }
+                    if (writeFailure is null && (commitPermitted is null || commitPermitted()))
+                        foreach (var identityMoment in preparedTick.IdentityMoments ?? [])
+                            StartPreparedIdentityMoment(identityMoment);
+                    if (deferHosted)
+                    {
+                        foreach (var id in pendingWills.Keys.Where(id =>
+                                     society.Checkpoint.Estates.All(estate => estate.Id != id || estate.WillStatus != "pending"))
+                                 .ToArray())
+                            CancelPendingWill(id);
+                        foreach (var item in completed)
+                        {
+                            pendingHosted.Remove(item.Request.Observation.InhabitantId);
+                            item.Cancellation.Dispose();
+                        }
+                        foreach (var item in completedWills)
+                        {
+                            pendingWills.Remove(item.EstateId);
+                            item.Cancellation.Dispose();
+                        }
+                        foreach (var item in completedConversationTurns)
+                        {
+                            pendingConversationTurns.Remove(item.Request.ConversationId);
+                            item.Cancellation.Dispose();
+                        }
+                        CancelNoLongerAwaitingConversationTurns();
+                        foreach (var id in inactiveWillReasons.Keys)
+                            pendingWillCancellationReasons.Remove(id);
+                        if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartWillDecisions();
+                        if (writeFailure is null && (commitPermitted is null || commitPermitted()))
+                            StartHostedDecisions(completed.Select(item => item.Request.Observation.InhabitantId));
+                    }
+                    else
+                    {
+                        foreach (var item in completedConversationTurns)
+                        {
+                            pendingConversationTurns.Remove(item.Request.ConversationId);
+                            item.Cancellation.Dispose();
+                        }
+                        CancelNoLongerAwaitingConversationTurns();
+                    }
+                    if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartConversationTurns();
+                    if (prepareCheckpoint is null && writeFailure is null && (commitPermitted is null || commitPermitted())) StartIdentityMoments();
+                    writeFailure?.Throw();
+                    return result with { Events = events.Where(item => item.EventId >= baselineEventId).ToArray() };
+                }
+                finally { gate.Release(); }
             }
         }
-        finally
-        {
-            tickGate.Release();
-        }
+        finally { tickGate.Release(); }
     }
 
     private void StartHostedDecisions(IEnumerable<string> completedIds)
@@ -373,6 +470,8 @@ public sealed partial class PrivateWorldRuntime
         toolMakingRequests = proposed.toolMakingRequests;
         roadBridgeDecks = proposed.roadBridgeDecks;
         nextInstructionSequence = proposed.nextInstructionSequence;
+        actionRefusals = proposed.actionRefusals;
+        refusedActionCount = proposed.refusedActionCount;
     }
 
     /// <summary>Rewind this paused world to a validated checkpoint of the same world.</summary>
@@ -462,6 +561,7 @@ public sealed partial class PrivateWorldRuntime
             guardianPlacementActions.Clear();
             var startingEvent = events.Count;
             var targetTick = checked(WorldTick + 1);
+            actionRefusals.RemoveAll(refusal => refusal.RetryAfterTick <= targetTick);
             StageSettlementContent();
             StageHouseContent();
             StageBuiltInContent(HouseToolsContent.PackageId, HouseContent.PackageId, HouseToolsContent.Create, "house_tools_content_staged");

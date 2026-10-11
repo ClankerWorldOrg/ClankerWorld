@@ -222,7 +222,9 @@ builder.Services.AddSingleton<OwnerRequestAuthorizer>();
 builder.Services.AddSingleton(new OwnerClientPresenceLease(
     TimeSpan.FromSeconds(clientPresenceTimeoutSeconds)));
 if (isPrivateWorld)
-    builder.Services.AddSingleton<PrivateWorldRuntimeService>();
+    builder.Services.AddSingleton(services => ActivatorUtilities.CreateInstance<PrivateWorldRuntimeService>(services,
+        builder.Configuration.GetValue<bool>("ClankerWorld:Runtime:StrictTickFailures")
+            ? PrivateWorldTickFailurePolicy.Strict : PrivateWorldTickFailurePolicy.RefuseSingleAction));
 if (advanceRuntime)
 {
     if (isPrivateWorld)

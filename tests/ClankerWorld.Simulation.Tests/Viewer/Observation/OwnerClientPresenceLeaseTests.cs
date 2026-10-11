@@ -236,8 +236,10 @@ public sealed class OwnerClientPresenceLeaseTests
         }
     }
 
-    [Fact]
-    public async Task FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing()
+    [Theory]
+    [InlineData(PrivateWorldTickFailurePolicy.Strict)]
+    [InlineData(PrivateWorldTickFailurePolicy.RefuseSingleAction)]
+    public async Task FailedRecoveryWriteRetainsTickPausesAndRetriesWithoutAdvancing(PrivateWorldTickFailurePolicy failurePolicy)
     {
         var directory = Path.Combine(Path.GetTempPath(), "recovery-secret-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
@@ -250,7 +252,7 @@ public sealed class OwnerClientPresenceLeaseTests
             presence.RecordAuthenticatedReconnect("owner");
             var logger = new RecordingLogger<PrivateWorldRuntimeService>();
             var file = new PrivateWorldStateFile(Path.Combine(blocker, "world.json"));
-            using var service = new PrivateWorldRuntimeService(runtime, file, presence, logger);
+            using var service = new PrivateWorldRuntimeService(runtime, file, presence, logger, failurePolicy: failurePolicy);
             Assert.False(await service.TryAdvanceOnceAsync());
             Assert.Equal(1, runtime.WorldTick);
             Assert.True(runtime.Society.IsPaused);

@@ -42,7 +42,9 @@
     "worldEventLog",
     "worldSeed",
     "worldSimulation",
-    "environmentSystem"
+    "environmentSystem",
+    "actionRefusals",
+    "refusedActionCount"
   ],
   "live": [
     "AgentBeliefChanged",
@@ -70,6 +72,8 @@
     "plannedRoutes",
     "previousPlannedRoutes",
     "routeSearches",
-    "settlingTownAdmissions"
+    "settlingTownAdmissions",
+    "attemptedActions",
+    "withheldActions"
   ]
 }

@@ -185,6 +185,7 @@ public sealed partial class PrivateWorldRuntime
     {
         completed = null;
         if (FarmWorkFor(workerId) is not { Work: { } work } field) return false;
+        RecordAttemptedAction(workerId, FarmCandidate(work.Kind, field.Position, work.Crop));
         if (work.LastWorkedTick == WorldTick) return true;
         if (!inhabitants.TryGetValue(workerId, out var worker) || !AdultResident(workerId) || HouseholdFor(workerId) != field.HouseholdId ||
             FarmhouseForHousehold(field.HouseholdId) is null || worker.Position != field.Position ||

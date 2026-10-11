@@ -21,6 +21,8 @@ public sealed class PrivateWorldStateFile
     private readonly GeographyOptions? newWorldGeography;
     private readonly bool allowDifferentSavedSeed;
     private bool buildRecorded;
+    private sealed record PreparedCheckpoint(PrivateWorldRuntimeState State, byte[] Bytes,
+        string? HistoryDigest, byte[]? HistoryBytes);
 
     public PrivateWorldStateFile(string path, Func<string, IDecisionProvider>? providerFactory = null,
         WorldStartPace newWorldPace = WorldStartPace.Legacy, GeographyOptions? newWorldGeography = null,
@@ -65,47 +67,78 @@ public sealed class PrivateWorldStateFile
     public bool Save(PrivateWorldRuntime runtime, bool resumeOnSuccess = false)
     {
         ArgumentNullException.ThrowIfNull(runtime);
-        lock (gate)
+        var compacted = false;
+        runtime.PersistCheckpoint(state =>
         {
-            var compacted = false;
-            runtime.PersistCheckpoint(state =>
+            lock (gate)
             {
                 var saved = SaveUnsafe(state, compactHistory: true);
                 compacted = saved.HistoryArchiveHead != state.HistoryArchiveHead;
                 return saved;
-            }, resumeOnSuccess);
-            return compacted;
-        }
+            }
+        }, resumeOnSuccess);
+        return compacted;
     }
 
     public PrivateWorldDeveloperEditResult ApplyDeveloperEdit(PrivateWorldRuntime runtime, PrivateWorldDeveloperEdit edit)
     {
-        lock (gate)
-            return runtime.ApplyDeveloperEdit(edit, state => SaveUnsafe(state));
+        return runtime.ApplyDeveloperEdit(edit, state =>
+        {
+            lock (gate) _ = SaveUnsafe(state);
+        });
     }
 
-    private PrivateWorldRuntimeState SaveUnsafe(PrivateWorldRuntimeState state, bool compactHistory = false)
+    /// <summary>Validate an isolated proposal without writing; publish its exact bytes only after admission.</summary>
+    public Action PrepareSave(PrivateWorldRuntime runtime)
+        => PrepareSave(runtime, out _);
+
+    public Action PrepareSave(PrivateWorldRuntime runtime, out bool compacted)
     {
+        ArgumentNullException.ThrowIfNull(runtime);
+        var state = runtime.ExportState();
+        var prepared = PrepareCheckpoint(state, compactHistory: true);
+        compacted = prepared.State.HistoryArchiveHead != state.HistoryArchiveHead;
+        return () =>
+        {
+            lock (gate) _ = WritePreparedCheckpoint(prepared);
+            if (prepared.State.HistoryArchiveHead != state.HistoryArchiveHead)
+                runtime.PersistCheckpoint(_ => prepared.State);
+        };
+    }
+
+    private static PreparedCheckpoint PrepareCheckpoint(PrivateWorldRuntimeState state, bool compactHistory)
+    {
+        byte[]? historyBytes = null;
+        string? historyDigest = null;
         if (compactHistory)
         {
             var plan = PrivateWorldHistory.Prepare(state);
             if (plan.Segment.Streams.Count > 0 || plan.Segment.ClosedBoatRequests is { Count: > 0 })
             {
-                var bytes = JsonSerializer.SerializeToUtf8Bytes(plan.Segment);
-                var digest = Convert.ToHexStringLower(SHA256.HashData(bytes));
-                WriteHistorySegment(digest, bytes);
-                state = plan.State with { HistoryArchiveHead = digest };
+                historyBytes = JsonSerializer.SerializeToUtf8Bytes(plan.Segment);
+                historyDigest = Convert.ToHexStringLower(SHA256.HashData(historyBytes));
+                state = plan.State with { HistoryArchiveHead = historyDigest };
             }
         }
         var checkpointBytes = PrivateWorldRuntimeCodec.Encode(state);
         // A valid in-memory checkpoint can still serialize into invalid source
         // evidence. Check the exact bytes before replacing the last good file.
         _ = PrivateWorldRuntimeCodec.Decode(checkpointBytes);
-        WriteCheckpointBytes(Path, checkpointBytes);
+        return new(state, checkpointBytes, historyDigest, historyBytes);
+    }
+
+    private PrivateWorldRuntimeState WritePreparedCheckpoint(PreparedCheckpoint prepared)
+    {
+        if (prepared.HistoryDigest is { } digest)
+            WriteHistorySegment(digest, prepared.HistoryBytes!);
+        WriteCheckpointBytes(Path, prepared.Bytes);
         // Once per host run: every later checkpoint comes from the same build.
         if (!buildRecorded) buildRecorded = SavedBuild.TryWrite(Path);
-        return state;
+        return prepared.State;
     }
+
+    private PrivateWorldRuntimeState SaveUnsafe(PrivateWorldRuntimeState state, bool compactHistory = false) =>
+        WritePreparedCheckpoint(PrepareCheckpoint(state, compactHistory));
 
     internal CheckpointRestorePoint PreserveDamagedCheckpoint(byte[] expectedBytes)
     {

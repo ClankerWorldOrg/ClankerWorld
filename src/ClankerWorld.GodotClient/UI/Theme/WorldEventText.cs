@@ -8,6 +8,30 @@ public static class WorldEventText
 {
     public const string ContinuityRisk = "The world is at risk of dying out.";
 
+    private sealed record ActionRefusal(string InhabitantId, string CandidateId);
+
+    private static string DescribeActionRefusal(string detail, OwnerWorldSnapshot? snapshot)
+    {
+        try
+        {
+            var refusal = JsonSerializer.Deserialize<ActionRefusal>(detail);
+            if (refusal is null) return "An agent waited because a choice caused a game error.";
+            var action = refusal.CandidateId.Split(':', 2)[0] switch
+            {
+                "explore" or "explore_for" => "explore",
+                "consume_food" => "eat",
+                "drink_milk" => "drink milk",
+                "milk_sell" or "milk_sale_offer" => "sell milk",
+                "produce_item" => "make goods",
+                "repair_equipment" => "repair equipment",
+                "gather_food" => "gather food",
+                _ => "carry out this choice",
+            };
+            return $"{Name(snapshot, refusal.InhabitantId)} couldn't {action} because of a game error. They waited instead.";
+        }
+        catch (JsonException) { return "An agent waited because a choice caused a game error."; }
+    }
+
     private static string DescribeContinuity(bool active, string detail)
     {
         var fields = detail.Split('|');
@@ -131,6 +155,7 @@ public static class WorldEventText
 
         return worldEvent.Kind switch
         {
+            "action_refused" => DescribeActionRefusal(worldEvent.Detail, snapshot),
             "developer_edit" => DescribeDeveloperEdit(worldEvent.Detail, snapshot),
             "animals_arrived" => "Wild animals have appeared in the area.",
             "animal_tamed" => $"{animalName} was tamed and joined {LeadingName(snapshot, worldEvent.Detail)}'s household.",

@@ -192,6 +192,8 @@ public sealed partial class PrivateWorldRuntime
         }
         var person = inhabitants[actor];
         var camp = SettlementStoragePosition;
+        RecordAttemptedAction(actor, person.Lesson is { Stage: "accepted" or "training" }
+            ? "lesson_attend" : "lesson_teach:" + ActiveStudent(actor)!.InhabitantId);
         if (!IsWithinInteractionRange(person.Position, camp, ResourceInteractionRange))
         {
             MoveToward(actor, person, camp, "lesson", ResourceInteractionRange);

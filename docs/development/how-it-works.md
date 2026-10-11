@@ -957,7 +957,19 @@ Pause, quit and loss of presence cancel external work without inventing an
 answer. Restore can retry a still-relevant saved decision. Synchronous fixture
 methods remain for isolated tests; they are not the live scheduling path.
 
-Tick-boundary faults hold the current in-memory state and pause the world.
+Tick-boundary faults in live play discard the failed proposal before publishing
+its checkpoint. The host retries isolated copies with groups of agent actions
+withheld, bisecting only after a failure. Received replies stay frozen across
+these trials, and trial worlds make no checkpoint writes. If withholding one
+actor's action alone makes the entire tick and save check succeed, the host
+refuses that action, makes the actor wait and cancels their current order. A
+saved refusal blocks the same choice for that actor for one world day. The
+Event Log explains the refusal, Developer tools show the cumulative count,
+and the server records a bounded check name without exception text or paths.
+Healthy ticks make one attempt and one checkpoint preparation and write.
+The strict setting `ClankerWorld:Runtime:StrictTickFailures` keeps test and CI
+hosts halting on the first failure. Global faults or failures that cannot be
+isolated to one action hold the last good state and pause the world.
 Active checkpoint I/O/access failures retry only the retained save while paused;
 success still requires a later explicit Resume. Other faults latch for operator
 inspection. Startup corrupt-save failures remain separate. Logs use bounded
