@@ -645,6 +645,12 @@ are refused and preserved; no migration is added.
 The private catalog archives each world's checkpoint. It saves the active world
 before a paused switch and keeps world IDs, names, seed and settings separate.
 Creation/selection require signed owner requests and leave the selection paused.
+If creation fails, selection rolls back only the phases that committed, then
+removes the newly added catalog entry and its snapshot. A checkpoint replacement
+that failed does not require another write to that same blocked path, and an
+autosave change that never committed does not need rewriting. Existing worlds
+remain catalogued and the failed creation can be retried. If rollback itself
+fails, the new entry and checkpoint remain available for operator recovery.
 An interrupted catalog update is recovered against the active checkpoint before
 the server starts hosted services or accepts requests.
 A corrupt leftover checkpoint encountered during deletion keeps cleanup pending
