@@ -139,8 +139,24 @@ a candidate. These cases are not performance samples.
 Quick route checks compare every destination on one- and two-column wrapped
 maps with the original fresh-search algorithm. A separate custom callback
 crosses a Lake ordinary walking cannot cross. Existing route, terrain,
-occupied-corner and swimming checks retain their assertions. Final local and
-hosted check results are recorded on the pull request.
+occupied-corner and swimming checks retain their assertions. The published
+measurement revision, `92a9ab55`, builds in normal Release with zero warnings
+or errors and passes all 65 focused route, terrain, swimming, layout, input
+and documentation checks without skips (53 seconds). Whole-solution
+formatting and whitespace checks pass. These checks validate the published
+source; they do not replace the timed runs or their separately recorded
+assembly hashes.
+
+The first hosted run remains red because the existing
+[Town membership fixture](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1589)
+times out before provider entry in both the initial complete shard and its
+one unchanged retry. The separate
+[transfer-notice fixture](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1695)
+passes its one unchanged complete-shard retry. Both retries preserve the
+actual checkout and entire shard filter; failed and passing logs are retained.
+A passing retry does not diagnose either failure or make the full run green.
+Current hosted check results are recorded on
+[the pull request](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1731).
 
 ## Pre-edit profile and reproduction
 
