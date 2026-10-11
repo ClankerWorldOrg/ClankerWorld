@@ -155,6 +155,22 @@ public sealed class LauncherTests
         finally { root.Delete(recursive: true); }
     }
 
+    [Fact]
+    public void SelectedWorldStartOptionsPreserveTheCatalogIdAndRejectPathsOrOtherValues()
+    {
+        const string id = "0123456789abcdef0123456789abcdef";
+        var arguments = GameStarter.Arguments("launcher with spaces.exe", developerMode: true, id);
+        Assert.Equal(["--", "--launcher=launcher with spaces.exe", "--developer-mode", "--choose-world=" + id], arguments);
+        Assert.Equal(id, GameStarter.RequestedWorld(arguments));
+        Assert.Equal(id.ToUpperInvariant(), GameStarter.RequestedWorld(["--choose-world=" + id.ToUpperInvariant()]));
+        foreach (var invalid in new[] { "", "../world", id + "0", id[..31], new string('g', 32), id + "\n--developer-mode" })
+        {
+            Assert.Null(GameStarter.RequestedWorld(["--choose-world=" + invalid]));
+            Assert.Equal(["--", "--launcher=L.exe"], GameStarter.Arguments("L.exe", false, invalid));
+        }
+        Assert.Null(GameStarter.RequestedWorld(["--choose-version=0.1.0", "--choose-world"]));
+    }
+
     [Theory]
     [InlineData("empty")]
     [InlineData("headers")]
