@@ -77,14 +77,14 @@ internal sealed partial class CivicSystem
         town = town with { LandHearings = latest.LandHearings, Nonviolent = latest.Nonviolent };
         government ??= town.Government;
         var priorNotices = town.Governance?.Notices.Count ?? 0;
-        (town, updated) = world.ApplyApprovedTownLandClaims(town, updated);
-        updated = world.ResolveHouseholdLandRequests(town, updated);
+        (town, updated) = ApplyApprovedTownLandClaims(world, town, updated);
+        updated = ResolveHouseholdLandRequests(world, town, updated);
         var priorHearings = town.LandHearings;
         var priorNonviolent = town.Nonviolent;
-        var transferUpdate = world.AdvanceTownLandTransfers(town with { Governance = updated, Government = government }, updated);
+        var transferUpdate = AdvanceTownLandTransfers(world, town with { Governance = updated, Government = government }, updated);
         updated = transferUpdate.Council;
         town = town with { LandHearings = transferUpdate.LandHearings };
-        var hearingUpdate = world.AdvanceTownLandHearings(town with { Governance = updated, Government = government },
+        var hearingUpdate = AdvanceTownLandHearings(world, town with { Governance = updated, Government = government },
             updated, government ?? TownGovernmentState.Create());
         updated = hearingUpdate.Council;
         town = town with { LandHearings = hearingUpdate.LandHearings };
@@ -109,7 +109,7 @@ internal sealed partial class CivicSystem
         $"civic|{town}|{kind}|{(world.Society.Inhabitants.Any(p => p.Id == subject) ? CivicAgentToken(subject) : subject)}|{CivicAgentToken(choice)}";
     internal static string CivicRoundToken(TownElection election) =>
         DerivedId.Create($"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}");
-    internal static void AddTownCivicCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor,
+    internal void AddTownCivicCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor,
         IReadOnlyList<string>? buildingsWithoutSites = null)
     {
         // Civic agreement and votes are explicit personal choices, never a built-in idle alternative.
@@ -117,13 +117,13 @@ internal sealed partial class CivicSystem
         var siteRecovery = buildingsWithoutSites is { Count: > 0 }
             ? $"No legal building site is available for {string.Join(", ", buildingsWithoutSites)}. "
             : string.Empty;
-        if (world.TownFoundingLayout(actor) is { } founding)
+        if (TownFoundingLayout(world, actor) is { } founding)
             candidates.Add(new(CivicAction(world, founding.Id, "found"),
                 "Explicitly found a new Town here on unclaimed land. You leave your previous Town and your dependent children join without moving or changing care. The new council begins with its adult residents. Existing household property stays owned; no House, goods or household membership are supplied.", 170));
         foreach (var town in world.Towns.Where(t => t.Governance is not null))
         {
-            if (world.MayResettleTown(actor, town))
-                candidates.Add(new(CivicAction(world, town.Id, "resettle"), world.ResettlementText(actor, town), 170));
+            if (MayResettleTown(world, actor, town))
+                candidates.Add(new(CivicAction(world, town.Id, "resettle"), ResettlementText(world, actor, town), 170));
             var state = town.Governance!;
             var history = CivicHistory(town);
             var known = history.Known(actor);
@@ -151,7 +151,7 @@ internal sealed partial class CivicSystem
                         !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == TownRecordIds.Nomination(actor, nominee)))
                         candidates.Add(new(CivicAction(world, town.Id, "nominate", nominee),
                             $"Nominate {world.Society.GetInhabitant(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188));
-                    if (world.MayBeSponsoredForAdmission(nominee, town))
+                    if (MayBeSponsoredForAdmission(world, nominee, town))
                         candidates.Add(new(CivicAction(world, town.Id, "request_admission", nominee),
                             $"Ask {town.Name}'s council to approve admission of {world.Society.GetInhabitant(nominee).Name}, the adult nearby. A request grants no membership or Warehouse access.", 188));
                 }
@@ -165,24 +165,24 @@ internal sealed partial class CivicSystem
                     candidates.Add(new(CivicAction(world, town.Id, "claim_land"), siteRecovery + $"Ask {town.Name}'s council to claim a connected plot of adjoining unclaimed land; include its exact coordinates in civic_land_tiles. " +
                         FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); unclaimed tiles beside the Town's land nearest you: {string.Join("; ", nearest.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
                         "Existing titles, household rights, buildings and goods stay with their holders.", 190));
-                if (world.Society.GetInhabitant(actor).HouseholdId is not null && world.RequestableLandNear(town, here, 6) is { Length: > 0 } free)
+                if (world.Society.GetInhabitant(actor).HouseholdId is not null && RequestableLandNear(world, town, here, 6) is { Length: > 0 } free)
                     candidates.Add(new(CivicAction(world, town.Id, "request_land_use"), siteRecovery + $"Ask {town.Name}'s council for household use of a connected plot of Town-titled land; include exact coordinates in civic_land_tiles. " +
                         FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); free Town land nearest you: {string.Join("; ", free.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
                         "Filing grants nothing and supplies no household acceptance.", 190));
             }
             else if (NearCivicBoard(world, actor, town))
             {
-                if (world.MayRequestOwnAdmission(actor, town))
-                    candidates.Add(new(CivicAction(world, town.Id, "admission"), world.AdmissionRequestText(actor, town), 170));
+                if (MayRequestOwnAdmission(world, actor, town))
+                    candidates.Add(new(CivicAction(world, town.Id, "admission"), AdmissionRequestText(world, actor, town), 170));
             }
-            else if (CivicBoard(world, town) is not null && world.MayVisitAsNewcomer(actor, town))
+            else if (CivicBoard(world, town) is not null && MayVisitAsNewcomer(world, actor, town))
                 candidates.Add(new(CivicAction(world, town.Id, "visit"), $"Walk to {town.Name}'s public notice place to read what is posted. Visiting grants no membership.", 175));
-            world.AddTownAdmissionCandidates(candidates, actor, town);
-            world.AddHouseholdLandCandidates(candidates, actor, town);
-            world.AddTownLandHearingCandidates(candidates, actor, town);
+            AddTownAdmissionCandidates(world, candidates, actor, town);
+            AddHouseholdLandCandidates(world, candidates, actor, town);
+            AddTownLandHearingCandidates(world, candidates, actor, town);
             AddTownNonviolentCandidates(world, candidates, actor, town);
             AddNonviolentRemedyCandidates(world, candidates, actor, town);
-            world.AddTownLandTransferCandidates(candidates, actor, town);
+            AddTownLandTransferCandidates(world, candidates, actor, town);
             foreach (var proposal in state.Proposals.Where(p => p.Status == "pending" && history.Knows(actor, p.Id)))
             {
                 var draft = town.Government?.LawDrafts.SingleOrDefault(d => d.ProposalId == proposal.Id);
@@ -193,7 +193,7 @@ internal sealed partial class CivicSystem
                     proposal.Kind == "admission" && proposal.SubjectId == actor) continue;
                 var plot = proposal.LandClaimTiles is { } tiles ? " Exact tiles: " + TownLandClaimRules.DescribeTiles(tiles) + "." :
                     proposal.Kind == "land_use" && world.HouseholdLandUseRequests.SingleOrDefault(r => r.Id == proposal.SubjectId) is { } request
-                        ? " " + world.LandUseTerms(request) : proposal.LandHearingRequest is { } hearingRequest
+                        ? " " + LandUseTerms(world, request) : proposal.LandHearingRequest is { } hearingRequest
                             ? " " + TownLandGovernmentFilingRules.Describe(hearingRequest) : proposal.NonviolentRequest is { } nonviolentRequest
                                 ? " " + TownNonviolentGovernmentFilingRules.Describe(nonviolentRequest) : "";
                 candidates.Add(new(CivicAction(world, town.Id, "yes", proposal.Id), $"Cast your final yes vote on {voteText} in {town.Name}. {proposal.RequiredYes} yes votes required.{plot}", 165));
@@ -217,12 +217,12 @@ internal sealed partial class CivicSystem
         }
     }
 
-    internal static void ContinueTownCivicVisit(ICivicTownWorld world, string actor, string candidate)
+    internal void ContinueTownCivicVisit(ICivicTownWorld world, string actor, string candidate)
     {
         var parts = candidate.Split('|');
         if (parts.Length != 5 || parts[2] != "visit" || world.NeedsUrgentWarmth(world.Inhabitants[actor])) return;
         var town = world.Towns.SingleOrDefault(t => t.Id == parts[1]);
-        if (town?.Governance is null || !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && !world.MayVisitAsNewcomer(actor, town) && !world.MayVisitLandHearing(actor, town) && !world.MayVisitLandTransfer(actor, town) && !MayVisitNonviolentCase(world, actor, town) ||
+        if (town?.Governance is null || !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && !MayVisitAsNewcomer(world, actor, town) && !MayVisitLandHearing(world, actor, town) && !MayVisitLandTransfer(world, actor, town) && !MayVisitNonviolentCase(world, actor, town) ||
             CivicBoard(world, town) is not { } destination || world.IsWithinInteractionRange(world.Inhabitants[actor].Position, destination, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange)) return;
         world.MoveToward(actor, world.Inhabitants[actor], destination, "town_notices", PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange);
     }
@@ -234,7 +234,7 @@ internal sealed partial class CivicSystem
         if (parts.Length != 5) return;
         if (parts[2] == "found")
         {
-            world.FoundTown(actor, candidate);
+            FoundTown(world, actor, candidate);
             return;
         }
         var selectedId = candidate;
@@ -250,12 +250,12 @@ internal sealed partial class CivicSystem
         if (!current.Any(c => c.Id == selectedId)) return;
         if (parts[2] == "resettle")
         {
-            world.ResettleTown(actor, town);
+            ResettleTown(world, actor, town);
             return;
         }
         if (parts[2] == "accept_admission")
         {
-            world.AcceptTownAdmission(actor, town.Id, parts[3]);
+            AcceptTownAdmission(world, actor, town.Id, parts[3]);
             return;
         }
         try
@@ -270,7 +270,7 @@ internal sealed partial class CivicSystem
             }
             else if (parts[2].StartsWith("hearing_", StringComparison.Ordinal))
             {
-                var hearingUpdate = world.ApplyTownLandHearingAction(town with { Governance = state, Government = government },
+                var hearingUpdate = ApplyTownLandHearingAction(world, town with { Governance = state, Government = government },
                     actor, parts[2], parts[3], parts[4],
                     proposalText, landTiles, hearingChoice, state, government);
                 state = hearingUpdate.Council;
@@ -279,7 +279,7 @@ internal sealed partial class CivicSystem
             }
             else if (parts[2].StartsWith("land_transfer_", StringComparison.Ordinal))
             {
-                var transferUpdate = world.ApplyTownLandTransferAction(town with { Governance = state, Government = government },
+                var transferUpdate = ApplyTownLandTransferAction(world, town with { Governance = state, Government = government },
                     actor, parts[2], parts[3], parts[4], landTiles, hearingChoice, state);
                 state = transferUpdate.Council;
                 town = town with { LandHearings = transferUpdate.LandHearings };
@@ -341,13 +341,13 @@ internal sealed partial class CivicSystem
                         TownProjectRules.ProposalText(plan), "council:" + state.Revision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world), project: plan);
                     break;
-                case "claim_land": state = world.SubmitTownLandClaim(town, state, actor, landTiles); break;
-                case "request_land_use": state = world.SubmitPersonalLandUseRequest(town, state, actor, landTiles); break;
-                case "request_expansion_land": state = world.SubmitExpansionLandRequest(town, state, actor, parts[3]); break;
+                case "claim_land": state = SubmitTownLandClaim(world, town, state, actor, landTiles); break;
+                case "request_land_use": state = SubmitPersonalLandUseRequest(world, town, state, actor, landTiles); break;
+                case "request_expansion_land": state = SubmitExpansionLandRequest(world, town, state, actor, parts[3]); break;
                 case "accept_land_use":
                 case "decline_land_use":
                 case "withdraw_land_use":
-                    state = world.DecideHouseholdLandUse(state, actor, parts[3], parts[2]); break;
+                    state = DecideHouseholdLandUse(world, state, actor, parts[3], parts[2]); break;
                 case "admission":
                     state = TownGovernanceRules.SubmitProposal(state, town.Id, actor, "admission", actor,
                         $"Admit {world.Society.GetInhabitant(actor).Name} as a Town resident.", "council:" + state.Revision,
@@ -371,7 +371,7 @@ internal sealed partial class CivicSystem
             SaveTownGovernance(world, town, state, government);
             world.MaintainTownProjects();
             world.AppendEvent("town_civic_action", $"{town.Id}|{actor}|{parts[2]}", world.Inhabitants[actor].Position);
-            world.SettleTownAdmissions();
+            SettleTownAdmissions(world);
         }
         catch (InvalidOperationException)
         {
