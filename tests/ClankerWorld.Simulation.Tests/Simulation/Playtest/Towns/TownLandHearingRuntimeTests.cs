@@ -152,7 +152,7 @@ public sealed partial class TownLandHearingRuntimeTests
     [Fact]
     public async Task OtherPersonalProviderCannotFileTheOfferedHouseholdCase()
     {
-        var provider = new HearingProvider(DecisionProviderKind.Jev) { HearingsEnabled = true };
+        var provider = new HearingProvider(DecisionProviderKind.Jev) { HearingsEnabled = true, SkipNoticeReads = true };
         using var world = NewWorld(provider);
         var original = world.ExportState();
         var household = original.Society.Society.GetInhabitant(Filer).HouseholdId;
@@ -438,27 +438,14 @@ public sealed partial class TownLandHearingRuntimeTests
 
     private static PrivateWorldRuntime NewWorld(HearingProvider provider)
     {
-        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => provider);
+        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => provider, ticksPerDay: Day);
         var state = generated.ExportState();
-        var society = state.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
         // Only time scale, comfort and proximity to the actual public board are arranged;
         // generated Town title, household allocations, buildings, goods and founder identities remain actual.
         return PrivateWorldRuntime.Restore(state with
         {
             Inhabitants = state.Inhabitants.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
-            Society = state.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
-                    { BirthTick = person.BirthTick / oldDay * Day, BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
-                }
-            }
         }, _ => provider);
     }
 
@@ -582,6 +569,7 @@ public sealed partial class TownLandHearingRuntimeTests
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
         public bool HearingsEnabled { get; set; }
+        public bool SkipNoticeReads { get; set; }
         public GridPoint[] Plot { get; set; } = [];
         /// <summary>The choices each adult was last offered, so a test can see what a case still asks of them.</summary>
         public ConcurrentDictionary<string, string[]> Offered { get; } = new(StringComparer.Ordinal);
@@ -600,7 +588,7 @@ public sealed partial class TownLandHearingRuntimeTests
             var observation = request.Observation;
             var choices = observation.Candidates;
             Offered[observation.InhabitantId] = choices.Select(candidate => candidate.Id).ToArray();
-            var choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
+            var choice = SkipNoticeReads ? null : choices.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
             CognitionLandHearingChoice? hearing = null;
             IReadOnlyList<CognitionLandTile>? tiles = null;
             if (AcceptRehearings && observation.InhabitantId == Judge)

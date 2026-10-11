@@ -42,7 +42,7 @@
     "worldEventLog",
     "worldSeed",
     "worldSimulation",
-    "worldSystems",
+    "environmentSystem",
     "actionRefusals",
     "refusedActionCount"
   ],
@@ -51,6 +51,7 @@
     "conversationWorld",
     "civicWorld",
     "gate",
+    "environmentWorld",
     "maxCognitionDispatchPerCycle",
     "memoryCompactionTransitions",
     "observerGeneration",

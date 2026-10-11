@@ -109,26 +109,12 @@ public sealed partial class PrivateWorldRuntime
             : worldContent.Recipes.Any(recipe => selection.DefinitionId == recipe.CanonicalId &&
                 recipe.Outputs.Any(output => PersonalEquipmentRules.IsGarment(output.ResourceId))));
 
-    private WeatherKind WeatherAt(GridPoint position) => WeatherRules.At(worldSystems, position, map.Height,
-        WeatherRules.RegionClimate(map, position));
+    private WeatherKind WeatherAt(GridPoint position) => environmentSystem.WeatherAt(map, position);
 
     /// <summary>The cold of being outdoors here now: weather, climate and season, plus night.</summary>
-    private int OutdoorExposure(GridPoint position) => WeatherExposure(position) +
-        NightChillAtFullDarkness * DaylightRules.DarknessBasisPoints(worldSystems) / DaylightRules.FullDarkness;
+    private int OutdoorExposure(GridPoint position) => environmentSystem.OutdoorExposure(map, position, NightChillAtFullDarkness);
 
-    private int WeatherExposure(GridPoint position) => WeatherAt(position) switch
-    {
-        WeatherKind.Snow => 60,
-        WeatherKind.Storm => 55,
-        WeatherKind.Rain => 25,
-        _ => map.ClimateAt(position) switch
-        {
-            ClimateZone.Tropical => 0,
-            ClimateZone.Polar => 55,
-            ClimateZone.Cold => worldSystems.Climate.Season == SeasonKind.Winter ? 45 : 15,
-            _ => worldSystems.Climate.Season == SeasonKind.Winter ? 40 : 0,
-        },
-    };
+    private int WeatherExposure(GridPoint position) => environmentSystem.WeatherExposure(map, position);
 
     private bool HasCarriedItem(string actor, string kind) => society.Checkpoint.Inventory.Lots.Any(lot =>
         PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
@@ -456,15 +442,12 @@ public sealed partial class PrivateWorldRuntime
             return NeedsKnowledgePaper(ownerId);
         if (survivalState is null)
             return true;
-        var available = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == output.ResourceId &&
-                (!IsPreparedMeal(lot.ItemKind) || InUsableVesselOrLoose(lot)) &&
-                (ownerId is null || lot.OwnerId == ownerId))
-            .Sum(AvailableLotQuantity);
+        IEnumerable<string> owners = ownerId is null ? society.Checkpoint.Inventory.Lots.Select(lot => lot.OwnerId) : [ownerId];
+        var kinds = IsPreparedMeal(output.ResourceId) && !recipe.Inputs.Any(input => IsPreparedMeal(input.ResourceId))
+            ? PreparedMealGoods : GoodsKinds.One(output.ResourceId);
+        var available = HoldingsTotal(owners, kinds);
         var residentCount = ownerId is null ? inhabitants.Count :
             inhabitants.Values.Count(person => society.Checkpoint.GetInhabitant(person.InhabitantId).HouseholdId == ownerId);
-        if (IsPreparedMeal(output.ResourceId) && !recipe.Inputs.Any(input => IsPreparedMeal(input.ResourceId)))
-            available = society.Checkpoint.Inventory.Lots.Where(lot => IsPreparedMeal(lot.ItemKind) && InUsableVesselOrLoose(lot) &&
-                    (ownerId is null || lot.OwnerId == ownerId)).Sum(AvailableLotQuantity);
         var target = IsPreparedMeal(output.ResourceId) ? Math.Max(2, residentCount * 2)
             : output.ResourceId == "food" ? inhabitants.Count * 4 : Math.Max(1, inhabitants.Count);
         return available < target;
@@ -544,11 +527,9 @@ public sealed partial class PrivateWorldRuntime
         return originId.StartsWith("food:harvest:", StringComparison.Ordinal) ? "foraged" : "camp_rations";
     }
 
-    private static bool IsPreparedMeal(string kind) => kind is "simple_meal" or "porridge" or
-        "berry_porridge" or "fruit_porridge" or "bread" or "stew" or "restaurant_meal" or "cooked_eggs" or "milk_porridge" or "rich_meal";
+    private static bool IsPreparedMeal(string kind) => PreparedMealGoods.Ids.Contains(kind, StringComparer.Ordinal);
 
-    private static bool IsEdibleFood(string kind) => IsPreparedMeal(kind) ||
-        kind is "food" or "fruit" or "berries" or "wild_greens" or "cultivated_greens";
+    private static bool IsEdibleFood(string kind) => EdibleFoodGoods.Ids.Contains(kind, StringComparer.Ordinal);
 
     private static int FoodNourishment(string kind) => kind switch
     {

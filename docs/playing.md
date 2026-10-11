@@ -55,7 +55,9 @@ logs folders. Started without the launcher, the game turns
 Developer mode on with the `--developer-mode` start option
 (`ClankerWorld.exe -- --developer-mode`); runs from the Godot editor always
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
-which saves, closes the game and reopens the launcher with that version chosen. The launcher checks each download against the
+which saves, closes the game and reopens the launcher with that version chosen.
+After **Play**, choose **Load World** on the Main Menu: the previous world is
+already selected. It opens only when you choose **Open World**. The launcher checks each download against the
 release's published SHA-256 before unpacking it, never installs anything
 without your click, and never updates itself: it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
@@ -137,7 +139,9 @@ voluntary move with care preserved provides enough room.
 To rename an agent, open their **Profile**. The first name must be unused by
 any other living or deceased agent in the world; changing the surname alone
 does not free a taken first name. You can keep the selected agent's own first
-name. A child's chosen surname must come from a biological parent. Temporary
+name. A child's chosen surname must come from a biological parent. A parent
+cannot remove the last chosen surname available to a minor child; keep a
+surname on at least one biological parent. Temporary
 names do not reserve first names, and renaming leaves past conversations as
 spoken. Changing a married agent's surname updates both spouses together,
 keeping the other spouse's first and middle names. A taken first name leaves
@@ -341,9 +345,8 @@ arrival waits one world day before returning to a usable departure Port.
 The Towns trip row follows the boat’s current arrival Port during recovery and
 shows when it is returning or waiting for a safe arrival. A queued request
 still names its requested destination.
-Passengers can eat their carried food or drink fresh milk from a usable carried
-jug during travel and while waiting to land. Drinking uses one portion and
-leaves the jug intact.
+Passengers can eat their carried food or drink fresh carried milk during travel
+and while waiting to land. Drinking uses one portion.
 
 When agents talk, a chat bubble appears above each participant and nearby
 listeners. Click a bubble to see who spoke and whether the conversation is
@@ -830,6 +833,13 @@ household heirs share the rest. Whole vessels stay together. With no living
 household heir, goods belong to the deceased resident's Town; non-food goods
 in an abandoned Town's Warehouse can be salvaged through the usual choice.
 
+All adult residents govern a new Town initially. At four living adult residents,
+the Town opens an election for a three-seat council, including on day 1 in an
+ordinary four-founder world. An elected council returns to all-adult government
+at three or fewer adults and elects again at four. Without three willing
+candidates, the all-adult council continues; a failed election may retry after
+one unpaused world day or sooner when adult or candidate availability improves.
+
 Town residents make civic choices through their normal personal-model turns.
 Adults can agree to stand for election, visit their Town's public notice place
 near its founding site, read notices, relay what they learned to someone nearby,
@@ -1181,11 +1191,14 @@ and Delete are unavailable while another world action finishes. A world that
 another game version last saved, and this one can't open, is marked
 **Saved by <version>**. In a game the launcher started, its red **Open in
 <version>** button asks first, saves and closes the game, and opens the
-launcher with that version chosen, ready to install if needed. Started without
+launcher with that version chosen, ready to install if needed. After **Play**,
+open **Load World** on the Main Menu: the same world is selected, ready for
+**Open World**. If it is no longer in the saves folder, the game explains that
+and lets you choose another world. Started without
 the launcher, the game names the version to start instead. If that version is
 neither installed nor available to download, the launcher keeps it selected and
 explains why it cannot start. Failed saving or opening the launcher keeps the
-game open, and **Try Again** keeps the chosen version.
+game open, and **Try Again** keeps the chosen version and world.
 
 To go back to an earlier save, choose the current world in Load World and
 **Load a save...**, then pick a save and **Load**, or double-click it. Your world
@@ -1304,18 +1317,15 @@ Taming needs two grain/greens and one jug water. Chickens need one feed and one
 water daily; sheep, cows and horses need two each. Jugs remain reusable.
 
 Products belong to the animal's household. Eggs and milk spoil; collect them
-promptly. Milk needs an empty household jug or one already holding milk, with
-room for two portions. **Return borrowed water jug** carries a collected jug
-back to its owning household's House. Adults can haul the products into their
-workstations through ordinary supply choices and orders. House/Restaurant
-recipes cook eggs or milk porridge; Restaurants prepare rich meals. Tailors
-make wool padded coats, process hides into leather, and make leather sacks or
-saddles. A leather sack carries 32 units. Adults can haul household milk jugs
-to their Store or borrowed Market stall. A seller offers one portion for an
-exact personal payment; the buyer accepts with a carried empty or milk jug.
-Each milk lot can have only one pending offer. Remaining portions can be
-offered after that sale ends.
-Both vessels keep their owners. Pouring away spoiled milk frees its jug for reuse.
+promptly. Milk needs room for two portions in the adult's carried goods, with
+no vessel. **Return borrowed milk** takes collected milk back to its owning
+household's House. Adults can haul products into workstations through ordinary
+supply choices and orders. House/Restaurant recipes cook eggs or milk porridge;
+Restaurants prepare rich meals. Tailors make wool padded coats, process hides
+into leather, and make leather sacks or saddles. A leather sack carries 32 units.
+Milk can be stored, gifted, bartered and stocked at Stores or borrowed Market
+stalls like other food. Buyers make an ordinary offer and the seller may refuse.
+Water jugs hold fresh water only, including the water used for animal care.
 
 For a cared adult horse, use **Saddle Moss**, **Mount Moss** and **Dismount Moss**.
 A mount needs a real household saddle and gives twice walking speed plus eight

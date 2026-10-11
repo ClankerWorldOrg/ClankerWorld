@@ -110,13 +110,13 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(AnimalRules.Definition(species).Product, collected.ItemKind);
         Assert.True(PersonalEquipmentRules.IsPhysicallyCarried(world.Society.Inventory, collected, actor));
         Assert.NotEqual(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(productHeld).State);
+        Assert.Null(collected.ContainerLotId);
         if (species == "cow")
         {
-            Assert.Equal("mounted-collect-jug", collected.ContainerLotId);
-            Assert.Equal((home, actor), (world.Society.Inventory.GetLot("mounted-collect-jug").OwnerId,
-                world.Society.Inventory.GetLot("mounted-collect-jug").CarrierId));
+            Assert.Equal(home, world.Society.Inventory.GetLot("mounted-collect-jug").OwnerId);
+            Assert.Equal(actor, world.Society.Inventory.GetLot("mounted-collect-jug").CarrierId);
+            Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.ContainerLotId == "mounted-collect-jug");
         }
-        else Assert.Null(collected.ContainerLotId);
         Assert.Null(world.Animals.Single(animal => animal.Id == sheep.Id).ReadyProductLotId);
         Assert.Equal(sheepPosition, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
         using var loaded = RestoreMountedCollection(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(world.ExportState())), actor);

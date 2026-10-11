@@ -282,6 +282,7 @@ public sealed class FieldReturnsToGrassTests
     /// <summary>The same world with shorter days, as TownMembershipTests does, so a season takes a few hundred ticks.</summary>
     private static PrivateWorldRuntimeState ShortDays(PrivateWorldRuntimeState state, int day)
     {
+        state = NormalPathWorld.ReclockCandidateLessCouncilAttempts(state, day);
         var society = state.Society.Society;
         var old = society.Config.TicksPerWorldDay;
         return state with

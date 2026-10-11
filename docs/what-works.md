@@ -34,7 +34,7 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own host is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
+| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own host is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Player-chosen supplies are unfinished. |
 | Move around and inspect the map | Available in the game | Zoom, overview, wrapped east/west movement, tile facts, building cards with stored items as icons, and separate filters for Town title, household use, disputes, building property and Town borders. The disputes filter shows contested tiles in pending household land requests. Building Details lists the workstation’s registered recipes with input/output quantities, and running work shows its recipe and the materials held for it. Details also lists recent recorded storage additions and removals. |
@@ -191,7 +191,10 @@ A newborn starts with a temporary name. A chosen child's name must use one
 biological parent's surname and an unused first name. The player can name the
 child in Profile; automatic naming waits until the child is old enough for
 ordinary personal-model calls. Later parent renames do not change a child's
-existing name.
+existing name. Removing the last chosen biological-parent surname available
+to a minor child is refused before the parent's name, events or rename memory
+change. Removing one parent's surname still works when another biological
+parent supplies a chosen surname.
 
 A child's personal model is recorded at birth from the parents' explicit
 personal assignments. When those differ, the parent who began the family plan
@@ -476,9 +479,8 @@ are not available to personal collection or storage.
 
 Borrowed-return orders such as "return two borrowed cloth" and "return one
 borrowed water jug" put carried household goods back in their owner's House.
-This includes a collected milk jug even when a Store or market stall could
-stock it instead. The whole jug and its milk return together; reservations and
-committed deliveries remain protected.
+This includes collected milk even when a Store or Market stall could stock it
+instead. Reservations and committed deliveries remain protected.
 They preserve ownership and pin the selected House and source lot while work
 is pending. A default task returns one available load; an explicit quantity
 caps the last move. Only a physical return earns progress. Unavailable goods,
@@ -789,17 +791,15 @@ active. They resume when physical supplies become available. Building Details li
 with their names, care, ready products and permissions; animals on open ground
 remain available in tile inspection. Cared adult hens
 supply eggs daily, cows two milk daily,
-and sheep two wool every three days. One batch waits for local collection. Milk needs a
-household jug that contains milk or is empty; water and milk never mix.
-Adults haul milk jugs to their Store or borrowed Market stall. An agreed sale
-pours one portion into the buyer's jug and takes the named personal payment;
-both vessels retain their owners. Only one pending sale may use each milk lot;
-closing the offer frees any remaining usable milk for another sale. Spoiled
-milk can be poured away for jug reuse.
+and sheep two wool every three days. One batch waits for local collection.
+An adult needs room for the whole batch; milk needs no vessel. Collected milk
+belongs to the household and follows the ordinary food paths for carrying,
+House storage, cooking, gifts, barter, Store sales and borrowed Market stalls.
+Water jugs hold fresh water only. Milk keeps its existing spoilage schedule.
 
-Hungry children and adults can drink fresh, unreserved milk from a usable
-carried jug they or their household own. Each drink spends one portion and
-keeps the jug intact. Animal care, collection and trade remain adult actions.
+Hungry children and adults can drink fresh, unreserved carried milk they or
+their household own. Each drink spends one portion. Animal care, collection
+and animal trade remain adult actions.
 
 Replacing or cancelling an animal task releases its unfinished supply trip.
 The adult keeps already collected goods under their existing ownership and
@@ -1010,10 +1010,13 @@ An adult on buildable unclaimed land away from other Towns can deliberately foun
 
 Each founded Town has its own council. Its recorded living adult residents
 include travelers and adults without a home; visitors gain no vote. All adults
-govern initially. At eight adults the Town opens elections for three willing
+govern initially. At four adults the Town opens elections for three willing
 representatives, with ten-day terms, vacancy contests and one cutoff runoff
 followed by a saved draw when needed. A Town with an elected council keeps
-representation at seven adults and returns to all adults at three or fewer.
+representation at four adults and returns to all adults at three or fewer,
+until it has four adults again. The ordinary four-founder Town opens its first
+election on day 1. Without three willing candidates, the attempt fails and the
+all-adult council continues under the usual retry rules.
 
 Agents personally register willingness, visit the public notice place near the
 Town's founding site, read actual notices and relay learned information nearby.
@@ -1270,7 +1273,7 @@ six spaces. Waiting travelers may cancel. A blocked arrival waits one unpaused
 world day before returning to a usable origin, keeping passenger and goods
 aboard. If neither landing is usable, it continues waiting. Ordinary survival
 still applies aboard; passengers may eat carried food or drink fresh, available
-milk from a usable carried jug. Drinking spends one portion and keeps the jug.
+carried milk. Drinking spends one portion.
 
 Boat positions, passengers, cargo and active requests appear on the map and
 Towns page. Port inspection shows moored boats and incoming reservations.
@@ -1774,6 +1777,11 @@ data-only building proposals and host approval rules remain, but agents no
 longer create the retired shelter, storehouse or hearth proposals, and they do
 not build approved designs, because households plan only their own buildings. General invention,
 player review controls, personal libraries and mod import/export are unfinished.
+The existing data-only package API checks one 512-character limit for content
+IDs, including full definition IDs and resource kinds. Longer IDs are refused
+before a package is recorded. Accepted IDs work in crafting, wills, land-sale
+prices and resource knowledge. A will shows a short goods label while keeping
+the full identity for inheritance.
 Asset-validation and rights tools are built but not connected to a complete
 creator experience. Arbitrary generated scripts are disabled. The agreed
 [invention sandbox](game-design/inventions-and-mods.md#inventions-mods-and-technology)

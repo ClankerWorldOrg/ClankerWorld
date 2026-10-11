@@ -17,24 +17,11 @@ public sealed class TownGovernmentRuntimeTests
 
     private static PrivateWorldRuntime NewWorld(Func<string, IDecisionProvider> providers)
     {
-        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", providers);
+        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", providers, ticksPerDay: Day);
         var state = generated.ExportState();
-        var society = state.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
         return PrivateWorldRuntime.Restore(state with
         {
             Inhabitants = state.Inhabitants.Select(p => p with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
-            Society = state.Society with
-            {
-                Society = society with
-                {
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(p => p with
-                    { BirthTick = p.BirthTick / oldDay * Day, BirthLifeTick = p.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
-                }
-            }
         }, providers);
     }
 

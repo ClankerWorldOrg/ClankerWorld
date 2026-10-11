@@ -15,14 +15,10 @@ public sealed partial class PrivateWorldRuntime
         if (writers.Count == 0)
             return false;
 
-        // A provisional reserve of two sheets per eligible writer permits a
-        // book. Count collected and reserved sheets too, so starting to write
-        // does not prompt the household to manufacture another batch.
-        var available = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == KnowledgeContent.Paper &&
-                lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0 &&
-                !OnBorrowedMarketStall(lot) &&
-                (lot.OwnerId == householdId || writers.Contains(lot.OwnerId)))
-            .Sum(lot => lot.Quantity);
+        // Two sheets per eligible writer permit a book. The shared same-job
+        // rule counts writing commitments without making them available to pickups.
+        var available = FindGoods(new(GoodsUse.Holdings, null, new(writers.Append(householdId).ToArray()),
+            GoodsKinds.One(KnowledgeContent.Paper), DemandCoverage: GoodsDemandCoverage.KnowledgeWriting)).CoveredTotal;
         return available < writers.Count * 2;
     }
 }

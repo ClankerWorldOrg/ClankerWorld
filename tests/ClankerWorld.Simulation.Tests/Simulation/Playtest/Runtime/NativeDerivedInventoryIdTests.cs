@@ -37,21 +37,18 @@ public sealed partial class GrownAgentHelperMemoryTests
         var sourceId = "bounded-stock:" + owner;
         var paymentId = "bounded-payment:" + recipient;
         var vesselId = "bounded-vessel:" + owner;
-        var receivingId = "bounded-vessel:" + recipient;
         var operation = DerivedId.Create("bounded-operation:" + owner + ":" + recipient + ":" + generator);
         var inventory = society.Inventory;
         inventory = InventoryFixture.AddLot(inventory, paymentId, "wood", recipient, 3);
         var cart = generator.StartsWith("cart-", StringComparison.Ordinal);
-        var container = generator is "contain" or "take" or "milk" || cart;
+        var container = generator is "contain" or "take" || cart;
         if (container)
             inventory = InventoryFixture.AddLot(inventory, vesselId,
-                cart ? "handcart" : generator == "milk" ? "water_jug" : InventoryContainerRules.StoragePot, owner, 1,
+                cart ? "handcart" : InventoryContainerRules.StoragePot, owner, 1,
                 groundPosition: cart ? ground : null);
-        if (generator == "milk")
-            inventory = InventoryFixture.AddLot(inventory, receivingId, "water_jug", recipient, 1);
         inventory = InventoryFixture.AddLot(inventory, sourceId,
             generator == "milk" ? "milk" : generator is "contain" or "take" ? "bread" : "wood", owner, 3,
-            containerLotId: generator is "take" or "milk" ? vesselId : null,
+            containerLotId: generator == "take" ? vesselId : null,
             groundPosition: cart ? ground : null);
         var initialLotIds = inventory.Lots.Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         var initialReservationIds = inventory.Reservations.Select(held => held.Id).ToHashSet(StringComparer.Ordinal);
@@ -79,20 +76,12 @@ public sealed partial class GrownAgentHelperMemoryTests
                 inventory = InventoryFixture.UnloadHandcart(inventory, operation, owner, vesselId, loaded.Id, 1, ontoGround: true);
                 break;
             case "barter":
+            case "milk":
                 inventory = InventoryFixture.CreateDirectBarterOffer(inventory,
                     new(operation, 1, owner, recipient, sourceId, 1, paymentId, 1, inventory.WorldTick + 30));
                 inventory = InventoryFixture.AcceptDirectBarterOffer(inventory, operation, 1, owner);
                 inventory = InventoryFixture.AcceptDirectBarterOffer(inventory, operation, 1, recipient);
                 Assert.Equal(DirectBarterState.Settled, inventory.GetOffer(operation).State);
-                break;
-            case "milk":
-                var held = DerivedId.Create(operation + ":milk");
-                inventory = InventoryFixture.Reserve(inventory, held, owner, sourceId, 1,
-                    "milk-sale:" + operation, inventory.WorldTick + 30);
-                inventory = InventoryFixture.ExchangeMilk(inventory, operation, held, receivingId, recipient, paymentId, ground);
-                Assert.Equal(InventoryReservationState.Released, inventory.GetReservation(held).State);
-                Assert.Equal(owner, inventory.GetLot(vesselId).OwnerId);
-                Assert.Equal(recipient, inventory.GetLot(receivingId).OwnerId);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(generator));

@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.Playtest;
 /// <summary>
 /// A Town's declared governing arrangement. <see cref="Ordinary"/> says who
 /// makes ordinary decisions (laws and admissions): <c>council</c> (the agreed
-/// council, all adults until eight adults elect three representatives),
+/// council, all adults until four adults elect three representatives),
 /// <c>all_adult_council</c> (every adult resident at any population) or
 /// <c>mayor</c> (one elected leader). <see cref="Land"/> says whether the
 /// elected mayor holds the land mandate (<c>mayor</c>) or no office does
@@ -167,7 +167,7 @@ public static class TownArrangementRules
 
     public static string OrdinaryLabel(string ordinary) => ordinary switch
     {
-        Council => "the Town council (every adult resident; three elected representatives from eight adults, for ten-day terms)",
+        Council => "the Town council (every adult resident; three elected representatives from four adults, for ten-day terms)",
         AllAdultCouncil => "every adult resident, at any population",
         ElectedCouncil => "three elected representatives for ten-day terms (every adult resident when there are three or fewer)",
         Mayor => "one elected leader, the mayor",

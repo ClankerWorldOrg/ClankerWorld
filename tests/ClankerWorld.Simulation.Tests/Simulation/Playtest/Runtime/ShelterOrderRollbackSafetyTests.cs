@@ -25,7 +25,7 @@ public sealed class ShelterOrderRollbackSafetyTests
         var state = PrivateWorldRuntimeCodec.Decode(await Baseline.Value);
         var actor = Actor(state);
         var building = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == RefugeId);
-        Assert.True(building.DefinitionId.Length > 512);
+        Assert.Equal(ContentPackageRules.MaximumContentIdLength, building.DefinitionId.Length);
         if (command == "light a fire")
             state = WithInventory(state, InventoryFixture.AddLot(state.Society.Society.Inventory,
                 "rollback-firewood", "wood", actor, 1));
@@ -184,7 +184,9 @@ public sealed class ShelterOrderRollbackSafetyTests
     {
         var version = ContentVersion.Parse("1.0.0");
         var digest = "sha256:" + new string('b', 64);
-        var definition = new BuildingDefinition(digest, new string('r', 500), version, "Test refuge", 1, 1, 1, [], ["shelter", "warmth"]);
+        var overhead = ContentPackageRules.CanonicalDefinitionId(digest, BuildingDefinition.SchemaKind, "r", version).Length - 1;
+        var definition = new BuildingDefinition(digest, new string('r', ContentPackageRules.MaximumContentIdLength - overhead),
+            version, "Test refuge", 1, 1, 1, [], ["shelter", "warmth"]);
         var manifest = new ContentPackageManifest("shelter-rollback-test", version, digest, [],
         [
             new ContentDefinition(BuildingDefinition.SchemaKind, definition.LocalId, version, definition.DisplayName,

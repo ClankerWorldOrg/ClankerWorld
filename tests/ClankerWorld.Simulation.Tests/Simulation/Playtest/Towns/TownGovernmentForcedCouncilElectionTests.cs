@@ -6,6 +6,17 @@ public sealed partial class TownGovernmentHandoverTests
 {
     private static readonly string[] FirstCouncil = ["a", "b", "c"];
 
+    // Controlled explicit authority keeps forced handovers distinct from ordinary four-adult elections.
+    private static Town AllAdultTown(string id = "town:test")
+    {
+        var town = new Town("a", "b", "c", "d") { Id = id };
+        town.Yes(town.Propose(AllAdult), "a", "b", "c");
+        Assert.Equal(AllAdult, town.Government.Arrangement);
+        // A fifth adult is a real improvement over the earlier ordinary attempt's four-adult roster.
+        town.Adults = ["a", "b", "c", "d", "e"];
+        return town;
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -25,7 +36,7 @@ public sealed partial class TownGovernmentHandoverTests
             Assert.Null(town.Government.Changes[^1].ForcedCouncilElectionId);
             Assert.Equal(initial.Id, town.Council.Election!.Id);
         }
-        town.Adults = ["a", "b", "c", "d", "e", "f", "g"];
+        town.Adults = ["a", "b", "c", "d"];
         town.Advance(1);
         town.Council = TownGovernanceRules.VoteElection(town.Council, initial.Id, "a", FirstCouncil, 1);
         var restored = town.RoundTrip();
@@ -60,7 +71,7 @@ public sealed partial class TownGovernmentHandoverTests
         town.Advance(0);
         var initial = Assert.IsType<TownElection>(town.Council.Election);
         town.Yes(town.Propose(ElectedMayor), "a", "b", "c", "d", "e");
-        town.Adults = ["a", "b", "c", "d", "e", "f", "g"];
+        town.Adults = ["a", "b", "c", "d"];
         town.Advance(1);
         town.Advance(Day);
         Assert.Equal("failed", Assert.Single(town.Council.ElectionHistory, election => election.Id == initial.Id).Stage);
@@ -91,7 +102,7 @@ public sealed partial class TownGovernmentHandoverTests
     [Fact]
     public void ForcedCouncilWaitsAcrossReloadAndOnlyItsCreatingHandoverCancelsIt()
     {
-        var town = new Town("a", "b", "c", "d", "e");
+        var town = AllAdultTown();
         town.RegisterCouncil("a", "b", "c");
         town.Advance(0);
         Assert.Null(town.Council.Election);
@@ -109,10 +120,10 @@ public sealed partial class TownGovernmentHandoverTests
         foreach (var run in new[] { town, restored })
         {
             run.Advance(3 * Day);
-            var change = Assert.Single(run.Government.Changes);
+            var change = run.Government.Changes[^1];
             Assert.Equal("cancelled", change.Status);
             Assert.Equal(forced.Id, change.ForcedCouncilElectionId);
-            Assert.Equal(TownArrangementRules.Initial, run.Government.Arrangement);
+            Assert.Equal(AllAdult, run.Government.Arrangement);
             Assert.Null(run.Council.Election);
             Assert.Equal("cancelled", Assert.Single(run.Council.ElectionHistory, election => election.Id == forced.Id).Stage);
             run.Advance(3 * Day + 1);
@@ -123,46 +134,44 @@ public sealed partial class TownGovernmentHandoverTests
         Assert.Equal(town.Save(), restored.Save());
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ImmediatelyFailedForcedAttemptTracksOnlyANewActuallyForcedRetry(bool ordinaryPopulationNow)
+    [Fact]
+    public void ImmediatelyFailedForcedAttemptRetriesAfterConsentImprovesAndWaitsForItsHandover()
     {
-        var town = new Town("a", "b", "c", "d", "e");
+        var town = AllAdultTown();
         town.Yes(town.Propose(ElectedMayor), "a", "b", "c");
-        var failed = Assert.Single(town.Council.ElectionHistory);
+        var failed = Assert.Single(town.Council.ElectionHistory,
+            election => election.Id == town.Government.Changes[^1].ForcedCouncilElectionId);
         Assert.Equal("failed", failed.Stage);
         Assert.Equal("initial", failed.Kind);
         Assert.Equal(failed.Id, town.Government.Changes[^1].ForcedCouncilElectionId);
         Assert.Null(town.Council.Election);
-        Assert.Equal("initial", town.Council.Fallback);
+        Assert.Equal("arrangement", town.Council.Fallback);
         Assert.Equal(Day, town.Council.RetryTick);
         Assert.NotEmpty(town.Council.RetryCircumstances);
         var retryCircumstances = town.Council.RetryCircumstances;
         town.Advance(1);
-        Assert.Single(town.Council.ElectionHistory);
+        Assert.Equal(2, town.Council.ElectionHistory.Count);
         Assert.Equal(retryCircumstances, town.Council.RetryCircumstances);
         var restored = town.RoundTrip();
 
         foreach (var run in new[] { town, restored })
         {
             run.RegisterCouncil("a", "b", "c");
-            if (ordinaryPopulationNow) run.Adults = ["a", "b", "c", "d", "e", "f", "g", "h"];
             run.Advance(2);
             var retry = Assert.IsType<TownElection>(run.Council.Election);
             Assert.NotEqual(failed.Id, retry.Id);
             Assert.Equal(2, retry.OpenedTick);
             Assert.Empty(retry.Ballots);
-            Assert.Equal(ordinaryPopulationNow ? failed.Id : retry.Id, run.Government.Changes[^1].ForcedCouncilElectionId);
+            Assert.Equal(retry.Id, run.Government.Changes[^1].ForcedCouncilElectionId);
             // Consent improved before the retry deadline; the recorded old attempt stays failed.
             Assert.True(run.Tick < run.Council.RetryTick);
             Assert.Equal("failed", Assert.Single(run.Council.ElectionHistory, election => election.Id == failed.Id).Stage);
             run.Council = TownGovernanceRules.VoteElection(run.Council, retry.Id, "a", FirstCouncil, run.Tick);
             run.Advance(retry.DeadlineTick);
-            Assert.Equal(ordinaryPopulationNow ? "representative" : "all_adult", run.Council.Form);
+            Assert.Equal("all_adult", run.Council.Form);
             run.Advance(3 * Day);
             Assert.Equal("cancelled", run.Government.Changes[^1].Status);
-            Assert.Equal(ordinaryPopulationNow ? "completed" : "cancelled",
+            Assert.Equal("cancelled",
                 Assert.Single(run.Council.ElectionHistory, election => election.Id == retry.Id).Stage);
             run.RoundTrip();
         }
@@ -199,7 +208,7 @@ public sealed partial class TownGovernmentHandoverTests
     [Fact]
     public void ForcedElectionKeepsItsIdentityThroughALaterRunoffAndSuccessfulHandover()
     {
-        var town = new Town("a", "b", "c", "d", "e");
+        var town = AllAdultTown();
         town.RegisterCouncil("a", "b", "c", "d", "e");
         town.Yes(town.Propose(ElectedMayor), "a", "b", "c");
         town.RegisterMayor("a", "land");

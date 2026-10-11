@@ -26,8 +26,7 @@ public sealed partial class PortBoatRuntimeTests
                 !(lot.OwnerId == actor && lot.ItemKind == "food" && PersonalEquipmentRules.IsCarried(lot, actor))).ToArray()
         };
         var kind = food == "meal" ? "food" : "milk";
-        inventory = InventoryFixture.AddLot(inventory, "passenger-food", kind, actor, 2,
-            containerLotId: kind == "milk" ? "travel-jug" : null);
+        inventory = InventoryFixture.AddLot(inventory, "passenger-food", kind, actor, 2);
         if (food == "reserved")
             inventory = InventoryFixture.Reserve(inventory, "passenger-food-held", actor, "passenger-food", 2,
                 "other-personal-work", long.MaxValue);
