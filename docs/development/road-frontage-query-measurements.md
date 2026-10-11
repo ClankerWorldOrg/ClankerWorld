@@ -56,10 +56,42 @@ native-thread time to site evaluation. Inclusive samples overlap and do not
 isolate the CPU cost of FacesRoad. The rejected adjacent-wrapping experiment was
 reverted; its samples and traces remain separate from these results.
 
+## Fresh-process repeats and state changes
+
+The baseline repeat process ran on unchanged c134b83f before final frontage;
+the fresh candidate process ran on 335f4fb6 with all 1,607 tracked source and
+configuration files unchanged from fecd1bf1. All four allocation totals fell,
+but small built-in p95 increased and dense personal median rose slightly.
+
+| Fixture label | Provider | Baseline ms | Direct loops ms | Allocation change |
+| --- | --- | --- | --- | --- |
+| 4-96 | Built-in | 116.7 / 355.3 | 108.1 / 402.5 | -0.988% |
+| 4-96 | Personal | 95.6 / 121.0 | 91.5 / 112.6 | -0.285% |
+| 16-192 | Built-in | 497.7 / 717.6 | 480.4 / 643.7 | -0.252% |
+| 16-192 | Personal | 517.2 / 694.4 | 517.6 / 691.3 | -0.252% |
+
+All 16 complete repeated capture files match exactly, with zero fallbacks and
+exact final strict reload. This and the ordinary comparison cover 1,280 measured
+native ticks across both source versions, with lower allocations in all ten pairs.
+
+The unchanged mutation probe covers control, resident movement, shared and
+reserved stock, depleted resources, household land, a removed Road and native
+workshop removal through both provider paths. All 16 scenario/provider pairs
+match complete request/candidate and final checkpoint bytes: 32 full files.
+Each source version also passes 16 refused-tick state-preservation checks and
+16 paired save/reload continuations, with the affected resident actually queried.
+These controlled mutations do not imply that every scenario changes a candidate.
+
+The standard native comparison also matches all 68 generated/legacy frames
+across two seeds: full checkpoints, events and observation digests, with no
+normalization. The normal Release solution build has zero warnings/errors and
+54 focused checks pass, including ten new frontage rows and every original case.
+
 ## Reproduce and retained evidence
 
 The [Draft and immutable sample publication](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1758)
-tracks verification and the complete dataset. Raw samples, full captures, traces,
+contains every ordinary, repeated and rejected measurement sample, profile
+samples, provenance and complete capture comparison manifests. Raw samples, full captures, traces,
 probe sources and hash manifests are retained outside Git under
 `.evidence/keep/998-9b395a8e/`. Broader construction/layout/route costs remain in
 [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
@@ -78,5 +110,4 @@ DOTNET_PROCESSOR_COUNT=4 bash docs/development/construction-input-query-probe/ru
 
 Use separate directories or specific prefixes when comparing captures: the
 published comparator selects every matching capture prefix, including repeats.
-Repeat, mutation/reload, standard parity and final hosted CI verification are
-pending in this Draft. Existing Windows/F12 hands-on checks remain pending.
+Existing Windows/F12 hands-on checks remain pending.
