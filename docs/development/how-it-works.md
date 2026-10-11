@@ -324,6 +324,12 @@ authority. Admission checks the request ID, provider/run epochs and current
 candidate legality. An epoch is a generation marker that makes replies from
 an earlier configuration or run obsolete. Other agents continue while one waits.
 
+Cognition rejection and ignored-failure events use the current request's world
+tick, or the matching retired request's observation tick when none is active.
+After restore, where request records are absent, they use the last retained
+event's world tick, then the saved intention's tick if the event window is
+empty, or zero when neither exists. Run epochs are never used as timestamps.
+
 The OpenAI-compatible adapter can complete one omitted empty final field of a
 five-field civic candidate ID when the completed ID exactly matches a uniquely
 offered choice, with no other offered ID sharing that prefix. An already exact
