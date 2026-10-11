@@ -164,6 +164,10 @@ In Claude Code, `/loop` keeps a session going, for example
   where each contract is written. Check the rules every change follows
   ([Every change](../../CONTRIBUTING.md#every-change)), issue scope and the
   changelog entry.
+- **Check it fixes by simplifying.** A fix that adds a one-off check where a
+  shared one exists, or another special case where removing a rule would do,
+  is a finding. So is a description without its lines added and removed
+  ([Every change](../../CONTRIBUTING.md#every-change)).
 - **Check that no doc still contradicts the change.** Run
   `node scripts/find-stale-docs.js` with the names of what changed and read
   every place it lists. A sentence elsewhere that the change made false, such

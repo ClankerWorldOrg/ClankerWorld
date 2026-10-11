@@ -14,6 +14,17 @@ Your job ends when each problem you found has its own Bug issue, or, for a
 security problem, the owner has it in chat and its placeholder issue is open.
 Fix a problem only if you are asked to; filing it is the job.
 
+## Hunt in normal play
+
+Look for problems a player would meet. Play ordinary new worlds from the menu,
+or run seeded worlds through the normal private-world path, and watch what the
+agents actually do. A hand-built setup is fine for confirming and repeating a
+problem you saw, but not for inventing one. A problem that only a setup a
+normal game cannot produce can trigger, such as goods placed where no agent
+could put them or a state only a test fixture can create, is P3
+([Priorities](../../CONTRIBUTING.md#priorities)). In the issue, say how a
+normal game reaches it.
+
 ## Confirm it on current main
 
 - Fetch main and reproduce the problem there first, in the game or with a test.

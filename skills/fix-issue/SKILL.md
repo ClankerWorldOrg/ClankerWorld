@@ -195,7 +195,9 @@ next person will look.
    - **If your pull request needs another one's code or approved design** but
      is not stacked on it, write `Waits on #A` on the overlap line.
 4. Keep to one concern, with the docs and tests it needs
-   ([Every change](../../CONTRIBUTING.md#every-change)). Before marking ready,
+   ([Every change](../../CONTRIBUTING.md#every-change)). Fix by simplifying:
+   reuse a shared check or remove a rule before you add a special case, and
+   put the lines added and removed in the description. Before marking ready,
    run `node scripts/find-stale-docs.js <names>` and fix each sentence your
    change made false
    ([how](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful)).
