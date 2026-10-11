@@ -81,15 +81,34 @@ Provider invocation, pending turns, request Guids and provider-route checks
 stay in the runtime. Admission checks the route at the original point before
 publishing dialogue, listener beliefs or marriage effects.
 
-Shared read services will provide the event log, resident queries, named
-ground-occupancy layers and the separately planned goods query. Snapshot-keyed
+`Runtime/WorldEventLog.cs` owns the ordered world events, next event ID, history
+floor and archive head. Its hot list is exposed read-only and every append
+replaces its `Version` token. Restore copies the saved events into a separate
+log; committing a prepared tick transfers the log with one assignment. Event
+positions still use an explicit point first, then the longest matching living
+or deceased inhabitant ID prefix. The sink receives the current world per call
+and retains no coordinator reference.
+
+`Runtime/ResidentQueries.cs` supplies resident age, household, interaction,
+stock-position and urgent-need rules. Its live adapter supplies the current
+society, positions, distance, building storage and warmth calculation. The
+adapter stays on the coordinator across tick commits; physical queries are
+never cached. Named ground-occupancy layers remain a later refactor step; the
+goods query is described below. Snapshot-keyed
 derived values must be pure, unsaved and absent from digests. Immutable
 snapshots can pass through the trusted tick copy by reference; replacing a
 snapshot invalidates its derived values without letting a discarded tick
 change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
-`Runtime/Derived.cs` weakly caches a pure value by snapshot identity. Conversation
+The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
+`SocietyInhabitantIndex` uses the immutable inhabitant-list identity for an
+ordinal ID dictionary behind the existing `SocietyCheckpoint.GetInhabitant`
+method. Inventory-only snapshot changes can reuse the index; identity, age,
+name or household writes replace its key. Missing and duplicate IDs retain
+the linear query's `Single` behavior, and malformed inputs still pass through
+the existing validation. The index changes no checkpoint fields or ordering.
+Conversation
 lookup indexes each participant's earliest open session, preserving created-tick
 and ID ordering. A separate derived checkpoint view keeps the original ID-sorted
 conversations, budgets and marriage records. Trusted tick preparation shares
@@ -1463,6 +1482,13 @@ all on cooldown consumes no slot; distance and stable identity still order the
 eligible targets. The 120-tick per-action cooldown and age restrictions apply
 both when offering and when executing an action.
 
+Project assistance records gratitude with a key that fits recall's 128-character
+boundary. Oversized keys hash the complete requester/helper key with SHA-256,
+retaining the `project-gratitude:` prefix used by social standing and durable
+memory protection. Short keys, full saved owner/subject references, gratitude
+text, source time and material-help trust effects remain unchanged. Existing
+oversized records are retained without rewriting and remain excluded from recall.
+
 Exploration records personal knowledge; it does not create free inventory.
 Each completed outward or return scouting step observes its actual arrival tile;
 blocked steps do not observe the requested destination. An actual observation
@@ -2678,10 +2704,17 @@ before checking placed buildings for it. Each later query reads current reservat
 again. See [household plan query measurements](household-plan-query-measurements.md)
 for native candidate/state equivalence, repeated timings and allocation results.
 Layout and shared route searches reuse the step legality just established by
-`FootNeighbors` when computing Road costs. Public step costs and movement still
+foot-neighbor enumeration when computing Road costs. Public step costs and movement still
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
+Layout foot-cost searches use a value-type neighbor enumerator instead of
+allocating the public iterator for each visited tile. Both paths keep the same
+offset order and suppress repeated coordinates on one- or two-column wrapped
+maps before checking legality. Each step reads current terrain and bridge axes;
+no neighbor result is cached between steps or searches.
+See [layout neighbor measurements](layout-neighbor-query-measurements.md)
+for profiling, native state-change comparisons, lower allocations and mixed timings.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
@@ -3020,6 +3053,14 @@ the chosen lot. Reserved, worn, contained, delivered, stored or uncarried
 units cannot supply that reserve. Artifacts and unworn ornaments retain their
 single-unit exception. Each offer still reserves one actual unit from each
 named lot, and settlement requires both parties' independent acceptance.
+
+A completed personal barter records a public relationship memory for each
+trader about the other, alongside the usual trust increase. New memory keys
+retain `settlement-trust:` and use a SHA-256 digest of the complete directional
+key when it would exceed personal recall's 128-character limit. Short keys
+remain unchanged; saved owners, subjects and summaries retain their complete
+values, so native-born traders can recall the exchange too. Later trades retain
+one memory per direction, recognizing both original and bounded saved keys.
 
 **Household shops** bind an inventory barter offer to its actual business and
 holding household in `BusinessTradeState`. Offers use unreserved goods in that
@@ -3410,7 +3451,12 @@ spaces, and refuses text over 80 UTF-16 units or containing markup characters
 before admission; a directly supplied typed reply with invalid words is refused.
 An admitted reply keeps its words even when its division falls back. At settlement
 each living person who receives goods gets the private memory
-`final-words:{estate}:{heir}` ("Name's final words were: '…'"). The owner sees
+`final-words:{estate}:{heir}` ("Name's final words were: '…'"). New keys over
+128 characters use `final-words:sha256:` followed by a hash of that complete
+key, so native-born heirs can retrieve the words in later personal decisions.
+Short keys stay unchanged. The saved owner and deceased subject keep their
+complete identities; text, privacy, kind and source tick stay unchanged.
+The owner sees
 the words on the historical profile through
 `ViewerFinalWill`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for
@@ -4333,6 +4379,9 @@ Animal gifts, sales and named outsider permissions need fresh, admitted personal
 model choices. Built-in fallback and forced orders cannot give personal consent.
 Receiving space and the exact payment lot are checked again on acceptance;
 transfer clears old permissions and preserves position for physical leading.
+Dead animals offer no new permission, gift or sale choices. Existing care and
+riding permissions may still be revoked, including after the recipient moves
+away.
 
 Care for a different animal first ends the actor's existing ride through the
 normal dismount operation, then approaches the care target on foot. That

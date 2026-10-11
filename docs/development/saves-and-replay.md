@@ -1504,6 +1504,15 @@ migration.
 
 ## Private memory archives
 
+New personal barter cooperation memories keep the complete owner, subject,
+summary and source tick. Their `settlement-trust:` keys remain unchanged at
+128 characters or fewer; longer directional keys use a deterministic SHA-256
+digest under the same prefix. The two traders retain distinct memories through
+strict reload and paired continuation. This changes newly completed exchanges
+without a schema change or migration: existing oversized keys remain saved
+unchanged and excluded from bounded personal recall. A later exchange recognizes
+the original pair key and does not add a duplicate bounded-key memory.
+
 The once-per-world-day native rule moves eligible old, low-importance ordinary
 sources into `ArchivedMemories` and `ArchivedBeliefs`, retaining their complete
 record and `ArchivedTick`. Each live or archived source ID appears exactly once.
@@ -1525,6 +1534,14 @@ living agents' recent-memory lists use active records. Deceased historical
 profiles inspect retained records from both ledgers, filtered to their original
 owner. Earlier formats are refused and
 preserved; no archive migration or automatic deletion is added.
+
+New project-help gratitude keys longer than recall's 128-character boundary use
+a SHA-256 digest of the complete requester/helper key, preserving their
+`project-gratitude:` cooperation prefix. Short keys and full saved participant
+references are unchanged. No field, schema or migration changes: existing
+records load without rewriting, and previously oversized keys retain their
+recall exclusion. Native assistance, physical delivery, strict hosted reload,
+later personal recall, complete-byte continuation and refused ticks are checked.
 
 ## Private memory summaries
 
@@ -1667,6 +1684,12 @@ supported Town inheritance law effective at the death can change this default.
 Estate settlement waits for the pending will and commits once. An accepted will
 may divide lots between up to three heirs, including children or the deceased
 person's Town. Positive personal recipients alone receive its final words.
+New final-words memory keys retain `final-words:{estate}:{heir}` when it fits
+the 128-character recall boundary; longer keys use a stable SHA-256 key with
+the `final-words:` prefix. Saved owner and deceased-person references remain
+complete. Settlement replay produces the same key and private text once.
+No schema or record shape changes. Existing saved keys stay unchanged, and
+oversized or malformed existing keys remain excluded from recall.
 Personal inheritance changes ownership while retaining ground, House storage,
 a recorded departure allowance's Store location or a living carrier's custody;
 goods carried by the deceased are dropped at their last tile. Eligible Town shares move into the Town's current Warehouse, clearing
@@ -1806,8 +1829,13 @@ Manual overwrite first writes an immutable checkpoint generation, then
 atomically publishes its metadata pointer with the matching model assignments
 and autosave settings. Failure before publication leaves the previous selected
 pair intact. Legacy saves without a generation pointer remain readable.
-Unpublished generations are retained; no cleanup policy is implied. Older
-binaries do not understand this pointer and must not load newly overwritten
+After publication, the previously selected checkpoint file is removed; the
+separate **Before overwriting** recovery copy keeps its original bytes,
+assignments and autosave settings. A locked or unwritable old file stays on
+disk with a structured cleanup-pending warning, while the published overwrite
+remains successful. Unpublished generations are retained; this retirement does
+not sweep unrelated files. Older binaries do not understand this pointer and
+must not load newly overwritten
 saves. Use a matching pre-upgrade backup for rollback.
 
 The world catalog keeps a small terrain thumbnail for each world, packed like

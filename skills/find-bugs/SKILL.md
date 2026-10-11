@@ -14,6 +14,17 @@ Your job ends when each problem you found has its own Bug issue, or, for a
 security problem, the owner has it in chat and its placeholder issue is open.
 Fix a problem only if you are asked to; filing it is the job.
 
+## Hunt in normal play
+
+Look for problems a player would meet. Play ordinary new worlds from the menu,
+or run seeded worlds through the normal private-world path, and watch what the
+agents actually do. A hand-built setup is fine for confirming and repeating a
+problem you saw, but not for inventing one. A problem that only a setup a
+normal game cannot produce can trigger, such as goods placed where no agent
+could put them or a state only a test fixture can create, is P3
+([Priorities](../../CONTRIBUTING.md#priorities)). In the issue, say how a
+normal game reaches it.
+
 ## Confirm it on current main
 
 - Fetch main and reproduce the problem there first, in the game or with a test.
@@ -22,7 +33,7 @@ Fix a problem only if you are asked to; filing it is the job.
   reading code is real when you can point to the input that breaks it; a
   failing test that shows it is the strongest evidence.
 - Search open and closed issues and open pull requests by topic, not only by
-  number. If a closed issue's fix did not work, reopen it with the new
+  number, and by cause: the function or code path at fault. If a closed issue's fix did not work, reopen it with the new
   evidence. If an open issue or pull request already covers it, add what you
   found there instead of filing again.
 
@@ -36,9 +47,13 @@ Fix a problem only if you are asked to; filing it is the job.
 - Set the priority by the [bug rules](../../CONTRIBUTING.md#priorities),
   including the P0 and P1 caps, and add `regression` to something that used
   to work.
+- While a release is being prepared, give a new P0 or P1 bug its label, now
+  `release:alpha-1` ([Release scope](../../CONTRIBUTING.md#release-scope)).
 - Give the title in ordinary words about the effect, such as "Returning a jug
-  can halt the world". Keep one problem per issue; link related ones instead
-  of combining them.
+  can halt the world". Keep one problem per issue. When several symptoms
+  come from the same cause, so one fix covers them all, file one issue that
+  lists each symptom, or add a new symptom to the open issue for that cause.
+  Link related problems that need separate fixes instead of combining them.
 - If fixing it would settle an open game choice, it is a Decision, not a Bug:
   file a Decision issue and ask the owner
   ([how](../design-decisions/SKILL.md)).

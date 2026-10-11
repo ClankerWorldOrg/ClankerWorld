@@ -776,7 +776,9 @@ when they overlap the pointer. **Event Log** shows important events under a
 heading for each day, each with an icon for its kind. Lines name who was
 involved: births, deaths, partnerships, marriages, skills learned, animals and
 scouting trips all appear. Building and crafting entries name the building or
-recipe, including older recorded work. Routine steps such as meals, forage
+recipe, including older recorded work. Town law decisions, government votes
+and handovers, and mayoral elections or office changes also appear; open the
+Towns page for their wording and results. Routine steps such as meals, forage
 trips, cart loading and each Town project work shift are left out, because a
 later line already reports what came of them. An event with a known
 location has a **Find** button that moves the camera there. The log grows to

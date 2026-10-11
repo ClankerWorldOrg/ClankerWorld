@@ -24,9 +24,14 @@ Ready work is agreed, unblocked, unclaimed and not waiting on the owner:
 is:issue is:open label:"status:needs-pr" -label:"type:decision" -label:owner-task -label:"status:in-progress" -label:"status:blocked" -label:"status:needs-decision" sort:created-asc
 ```
 
-Take the highest priority first: add `label:"priority:p0"` to the search, then
-p1, p2 and p3, and take the first result, which is the oldest issue at that
-level. Before you claim, check whether an owner decision outranks it: search
+While a release is being prepared
+([Release scope](../../CONTRIBUTING.md#release-scope)), first add its label,
+now `label:"release:alpha-1"`, and take issues without it only when none with
+it is ready. Take the highest priority first: add `label:"priority:p0"` to the
+search, then p1, p2 and p3. At that level, pick one of the five oldest results
+at random, so sessions that search at the same moment don't all land on the
+same issue.
+Before you claim, check whether an owner decision outranks it: search
 `is:open label:"status:needs-decision"` and
 `is:issue is:open label:"type:decision"` for the same or a higher priority,
 skipping Decision issues whose comments already record the owner's answer. If
@@ -54,16 +59,27 @@ the new one ([what closing needs](../review-merge/SKILL.md#hand-back-or-close)).
 ## Check for duplicates and stale work
 
 Many sessions file and fix issues at once, so by the time you reach an issue it
-may already be done, filed twice or out of date. Before you claim it:
+may already be claimed, done, filed twice or out of date. Check in two steps,
+so that what you do before claiming takes seconds, not minutes.
 
-- **Read its comments and the pull requests that name it**, open or merged
-  (search `is:pr <number>`).
+**Before you claim, take a quick look and nothing more.** Read its comments and
+the pull requests that name it, open or merged (search `is:pr <number>`). If
+another session has claimed it, or a pull request already does it, pick other
+work. Otherwise [claim it](#claim-an-issue) now. Don't reproduce a bug, run
+tests or write code for an issue you haven't claimed, not even while you wait
+on CI for another one: two sessions doing that on the same issue is how work
+gets thrown away.
+
+**After you claim, check before you build anything:**
+
 - **Check it against current main.** Reproduce a bug on current main, in the
   game or with a test. For a feature, read the code and docs it names to see
   whether it is already there: a pull request may have done it without naming
   the issue.
 - **Search open issues and pull requests by topic**, with a few words from its
-  title and the features or files it names, not only by its number.
+  title and the features or files it names, not only by its number. Look for
+  issues with the same cause too: if one fix covers several open issues that
+  nobody holds, claim them together as combined work.
 
 Then act on what you find:
 
@@ -75,25 +91,39 @@ Then act on what you find:
 | An open pull request already does the work | Comment on the issue and the pull request, linking them, and pick other work. If that pull request should close the issue, ask its author or reviewer in a comment to add `Closes #<number>`. |
 | The description no longer matches main | Update it to current main before you start, with a comment saying what changed. If the design itself is in question, ask the owner ([how](../../AGENTS.md#ask-the-owner-in-chat)) and add `status:needs-decision`. |
 
-Record what you checked in your claim comment, in a line such as "Checked
-against main 1a2b3c4: still broken; no other issue or pull request covers it."
+If what you find means you won't do the work, end your claim in the same step:
+remove `status:in-progress`, put `status:needs-pr` back if the issue still
+needs a pull request, and say why in a comment. Otherwise record what you
+checked in a comment, in a line such as "Checked against main 1a2b3c4: still
+broken; no other issue or pull request covers it."
 
 ## Claim an issue
 
-Before you start, replace `status:needs-pr` with `status:in-progress` and
-comment with who is working on it and your branch name in backticks, with a
-prefix such as `codex/123-fix`; the release workflow finds your pushes through
-that name, and only names with a slash. Agents sign the comment with their
-session ID ([how](../../AGENTS.md#sign-your-comments)).
+Claim an issue as soon as your quick look finds it free: replace
+`status:needs-pr` with `status:in-progress` and comment with who is working on
+it and your branch name in backticks. Agents sign the comment with their
+session ID ([how](../../AGENTS.md#sign-your-comments)) and put it at the end of
+the branch name, such as `codex/123-fix-1a2b3c4d`, so two sessions never pick
+the same name. The release workflow finds your pushes through that name, and
+only names with a slash.
 
-- **One claim at a time.** Claim an issue when you start on it, not to line up
-  your next job. The exception is combined work: when one pull request, or one
-  stack of pull requests built on each other, will cover several related
-  issues, claim them together, and in each claim comment name every branch of
-  the stack in backticks, starting with the one you push first, so a push to
-  any of them keeps all the claims. Each issue's claim ends when the pull
-  request that closes it is marked ready, and you are free to claim the next
-  issue once all of yours are ready.
+About a minute after you claim, read the issue's comments again. Two sessions
+can claim within seconds of each other. If another session's claim comment
+came before yours, withdraw at once: comment that you are withdrawing because
+it claimed first, leave the label alone and pick other work. The earliest claim
+comment keeps the issue ([Claims](../../CONTRIBUTING.md#claims)).
+
+- **One claim at a time, plus one while CI runs.** Claim an issue when you
+  start on it, not to line up your next job. Once your draft is finished and
+  only waits on CI, you may claim one more issue. Mark the first ready as soon
+  as its CI passes, and go back to it first if CI fails. Don't end the claim on
+  an unfinished draft to free yourself for new work. The other exception is
+  combined work: when one pull request, or one stack of pull requests built on
+  each other, will cover several related issues, claim them together, and in
+  each claim comment name every branch of the stack in backticks, starting
+  with the one you push first, so a push to any of them keeps all the claims.
+  Each issue's claim ends when the pull request that closes it is marked
+  ready, and you are free to claim the next issue once all of yours are ready.
 - **Only pushes keep a claim.** Push your branch and open a draft pull request
   within the first hour, even before the work builds, then push at least every
   hour. A draft is where unfinished work belongs. Work that exists only on your
@@ -119,12 +149,15 @@ session ID ([how](../../AGENTS.md#sign-your-comments)).
 - **Waiting on the owner:** add `status:needs-decision` to the issue, or to
   your own draft, and ask in chat. That keeps the claim, and the 1.5 hours
   start again when the label comes off the issue or the draft.
-- **Waiting on anything else:** if you can keep working, keep pushing.
-  Otherwise add `status:blocked`, name each blocker in the issue description
+- **Waiting on anything else:** if you can keep working, keep pushing. Your
+  own draft's CI or test runs are never a blocker: keep the claim. For a real
+  blocker, add `status:blocked`, name each blocker in the issue description
   as `Blocked by #123` or describe the outside event, push what you have and
   remove `status:in-progress`. A blocked issue stays out of the queue until
-  whoever finishes the blocker, or learns that the outside event has happened,
-  removes `status:blocked` and adds `status:needs-pr` if nobody holds it.
+  `status:blocked` comes off and, if nobody holds it, `status:needs-pr` goes
+  on: a workflow does this once every `Blocked by #123` item has merged or
+  closed as completed, and whoever learns that an outside event has happened
+  does it by hand.
 - **Stopping:** push your branch, put `status:needs-pr` back in place of
   `status:in-progress` (or `status:blocked`, as above), and comment with what
   you learned and the branch name.
@@ -168,7 +201,9 @@ next person will look.
    - **If your pull request needs another one's code or approved design** but
      is not stacked on it, write `Waits on #A` on the overlap line.
 4. Keep to one concern, with the docs and tests it needs
-   ([Every change](../../CONTRIBUTING.md#every-change)). Before marking ready,
+   ([Every change](../../CONTRIBUTING.md#every-change)). Fix by simplifying:
+   reuse a shared check or remove a rule before you add a special case, and
+   put the lines added and removed in the description. Before marking ready,
    run `node scripts/find-stale-docs.js <names>` and fix each sentence your
    change made false
    ([how](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful)).

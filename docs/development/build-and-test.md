@@ -32,6 +32,22 @@ that historical check does not verify every later build.
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
 
+The native land-transfer fixture sends each eligible adult one suggestive
+instruction when its private provider changes from waiting to reading or
+consenting. Changing a test provider's flags does not wake an admitted idle
+intention. A controlled row reserves the actual garment stock to keep an
+unrelated clothing choice from waking the readers, then verifies their exact
+requested guidance, offered reading choice and admitted idle reply. Each phase
+keeps its forty-tick limit and waits for ordinary and life-moment identity
+replies before admission. Parenthood and midlife requests use a separate task
+queue and defer that adult's ordinary choices until their replies are admitted.
+The fixture answers the actual optional-identity choice by keeping the person's
+identity. A controlled row holds a real midlife reply and checks that the
+fixture waits, then retains all notice, consent, checkpoint and replay checks.
+Reading and silence still give no consent; each adult must personally accept,
+including the separately held filer. Host disk writes, unchanged permissions
+before agreement, rollback, strict reload and complete-byte replay remain checked.
+
 The held quantified-harvest fixture captures the actor's exact outstanding
 hosted request and task. After one native harvest finishes, it releases the
 provider and waits for that task to complete before the admission tick. A
@@ -65,6 +81,22 @@ prevents repairs. Use this pattern only where advancing ticks preserves the
 intended cancellation boundary; orders that can already complete physical work
 must keep the world at that boundary while waiting for provider entry.
 
+The held lesson-continuation fixture keeps its three-second startup deadline
+and permits at most six additional native ticks before awaiting actual provider
+entry. Its delayed-entry case holds preparation until two more ticks commit.
+The progress baseline is captured only after entry, with room for three further
+lesson steps. The offered partnership answer stays held throughout; denied-tick
+bytes, continued training, unanswered partnership and strict reload remain checked.
+
+Paired native host checkpoint fixtures must finish matching external inputs
+before advancing either continuation. Ordinary hosted decisions, life-moment
+identity replies, wills and conversation turns use separate task queues. Waiting
+only for ordinary decisions can compare a requested identity in one checkpoint
+with a kept identity in the other. The child household-change fixture awaits all
+four queues without advancing another tick, retaining complete checkpoint bytes,
+strict file reload, cargo and refused-arrival checks. Its controlled identity
+check holds a real provider request to verify that the fixture waits at this boundary.
+
 The held storage-cancellation check keeps the world at its first committed
 load while waiting for actual provider invocation, the validated operative
 request and the late reply. Its deferred-entry row holds provider preparation
@@ -73,6 +105,13 @@ signal has a thirty-second diagnostic deadline. Advancing native ticks during
 this wait could store another load before cancellation, because chosen work
 continues while a model waits. The check retains one stored load, the untouched
 second load and exact checkpoint reload after releasing the cancelled reply.
+
+The long-recipe tool-request fixture admits its request through the personal
+provider and saves it through the real host. For byte-for-byte continuation,
+it pauses that world, captures one checkpoint, and restores both compared
+worlds with synchronous idle providers for every resident. The personal
+provider returns for withdrawal. Independent background reply timing is not a
+matching replay input, even when both providers choose idle.
 
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
