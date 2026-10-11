@@ -126,8 +126,10 @@ searches find it.
   The repository is public, so never describe it in an issue, pull request or
   comment. Agents tell the owner in chat ([how](AGENTS.md#ask-the-owner-in-chat))
   and open an issue titled `Security report waiting for the owner`, with only
-  `type:bug`, `owner-task`, `priority:p0` and one area, and no details. The
-  owner decides in chat how it is fixed. Hardening ideas with no working
+  `type:bug`, `owner-task`, `priority:p0` and one area, and no details. Its
+  description says only which session has the report and when it told the
+  owner, signed, so the owner can find it. The owner decides in chat how it is
+  fixed. Hardening ideas with no working
   exploit are ordinary issues.
 - **Features, experiments and decisions** start at P2. They move to P1 for a
   playtest only when the owner says in chat that the next playtest needs them.
