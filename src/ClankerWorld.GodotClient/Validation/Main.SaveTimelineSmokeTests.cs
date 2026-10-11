@@ -286,6 +286,56 @@ public partial class Main
             if (lastTag.Position.X < rows.ViewLeft - 1 || lastTag.End.X > rows.ViewLeft + rows.ViewWidth + 1)
                 throw new InvalidOperationException($"Choosing a crowded save must scroll its complete name tag into view: tag={lastTag}, left={rows.ViewLeft}, width={rows.ViewWidth}, focus={GetViewport().GuiGetFocusOwner()?.GetPath()}, keyboard={keyboardNavigation}.");
 
+            // The container can narrow after a reveal has already been clamped
+            // to its old range. A real window resize must reveal the same tag again.
+            var timelineWindow = GetWindow();
+            var timelineWindowSize = timelineWindow.Size;
+            var timelineUiFactor = uiLayer.Factor;
+            try
+            {
+                // Earlier UI checks resize and scale the whole client. Arrange a
+                // known wide native view before testing its later narrowing.
+                timelineWindow.Size = new Vector2I(1024, 768);
+                SetUiFactor(1);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                rows.GrabFocus();
+                await KeyboardKeyAsync(Key.Left);
+                await KeyboardKeyAsync(Key.Right);
+                if (manualSaveTimeline.SelectedId != "paused-8" || Chosen() != "paused-8")
+                    throw new InvalidOperationException("Keyboard browsing must retain the actual crowded save selection.");
+                var timelineViewWidth = rows.ViewWidth;
+                timelineWindow.Size = new Vector2I(800, 600);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                lastTag = rows.TagArea("paused-8") ?? throw new InvalidOperationException("Resizing must retain the selected save's tag.");
+                if (rows.ViewWidth >= timelineViewWidth || manualSaveTimeline.SelectedId != "paused-8" ||
+                    lastTag.Position.X < rows.ViewLeft - 1 || lastTag.End.X > rows.ViewLeft + rows.ViewWidth + 1)
+                    throw new InvalidOperationException($"A narrower window must keep the complete selected save tag in view: tag={lastTag}, left={rows.ViewLeft}, width={rows.ViewWidth}.");
+
+                // Native scrollbar input gives the view back to the player.
+                // A later vertical scrollbar changes the horizontal range too,
+                // but must not drag the view back to the selected name.
+                var timelineScroll = manualSaveTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
+                    .OfType<ScrollContainer>().Single();
+                var revealedLeft = rows.ViewLeft;
+                timelineScroll.GetHScrollBar().GrabFocus();
+                await KeyboardKeyAsync(Key.Left);
+                var playerLeft = rows.ViewLeft;
+                if (playerLeft >= revealedLeft || manualSaveTimeline.SelectedId != "paused-8")
+                    throw new InvalidOperationException("The timeline scrollbar must let the player scroll away without changing the selected save.");
+                var playerViewWidth = rows.ViewWidth;
+                manualSaveTimeline.SetMaximumHeight(120);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (rows.ViewWidth >= playerViewWidth || Math.Abs(rows.ViewLeft - playerLeft) > 1 ||
+                    manualSaveTimeline.SelectedId != "paused-8")
+                    throw new InvalidOperationException($"Layout must preserve player scrolling after selection: left={rows.ViewLeft}, expected={playerLeft}, width={rows.ViewWidth}, previous={playerViewWidth}.");
+            }
+            finally
+            {
+                timelineWindow.Size = timelineWindowSize;
+                SetUiFactor(timelineUiFactor);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            }
+
             Click("anchor");
             var hiddenPoint = rows.PointPosition("paused-8") ?? throw new InvalidOperationException("The first branch must retain its save points.");
             var previousViewTop = rows.ViewTop;

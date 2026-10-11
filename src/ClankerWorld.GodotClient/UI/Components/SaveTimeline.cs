@@ -232,6 +232,10 @@ public partial class SaveTimeline : PanelContainer
     // Until the player scrolls or chooses a save, this point stays in view as the layout settles:
     // You are here when the host said where the world is, otherwise the newest end.
     private Vector2? opening;
+    // Keep the chosen name visible while deferred container sizes and ranges settle.
+    // Player scrolling ends this just as it ends the opening position.
+    private string? revealing;
+    private bool revealQueued;
 
     public event Action<string>? SaveChosen;
     public event Action<string>? SaveActivated;
@@ -261,11 +265,16 @@ public partial class SaveTimeline : PanelContainer
         }
         scroll.GetHScrollBar().ValueChanged += _ => Follow();
         scroll.GetVScrollBar().ValueChanged += _ => Follow();
-        scroll.GetHScrollBar().Changed += ShowOpening;
-        scroll.GetVScrollBar().Changed += ShowOpening;
+        scroll.GetHScrollBar().Changed += FollowLayout;
+        scroll.GetVScrollBar().Changed += FollowLayout;
         void Scrolled(InputEvent input)
         {
-            if (input is InputEventMouseButton { Pressed: true }) opening = null;
+            if (input is InputEventMouseButton { Pressed: true } or InputEventKey { Pressed: true }
+                or InputEventAction { Pressed: true } or InputEventScreenTouch { Pressed: true })
+            {
+                opening = null;
+                revealing = null;
+            }
         }
         scroll.GuiInput += Scrolled;
         scroll.GetHScrollBar().GuiInput += Scrolled;
@@ -273,12 +282,13 @@ public partial class SaveTimeline : PanelContainer
         rows.Chosen += (id, activate, fromKeyboard) =>
         {
             opening = null;
+            revealing = null;
             if (fromKeyboard) Reveal(id);
             SaveChosen?.Invoke(id);
             if (activate) SaveActivated?.Invoke(id);
         };
-        rows.Resized += () => rows.ViewWidth = ViewSize().X;
-        scroll.Resized += () => rows.ViewWidth = ViewSize().X;
+        rows.Resized += FollowLayout;
+        scroll.Resized += FollowLayout;
     }
 
     /// <summary>The drawn rows, for the smoke checks to click on.</summary>
@@ -305,6 +315,7 @@ public partial class SaveTimeline : PanelContainer
         rows.NowTick = nowTick;
         rows.CanChoose = canChoose;
         rows.SelectedId = null;
+        revealing = null;
         // Fit the whole history when it is short; a long one scrolls, newest in view.
         var days = saves.Select(save => calendar.Day(save.WorldTick))
             .Concat(lanes.Where(lane => lane.OriginTick is not null).Select(lane => calendar.Day(lane.OriginTick!.Value)))
@@ -318,13 +329,14 @@ public partial class SaveTimeline : PanelContainer
         names.QueueRedraw();
         SetMaximumHeight(maximumHeight);
         opening = rows.NowPosition() ?? new Vector2(rows.CustomMinimumSize.X, 0);
-        Callable.From(ShowOpening).CallDeferred();
+        Callable.From(FollowLayout).CallDeferred();
     }
 
-    private void ShowOpening()
+    private void FollowLayout()
     {
         var view = ViewSize();
         rows.ViewWidth = view.X;
+        if (revealing is not null) QueueReveal();
         if (opening is not { } point) return;
         scroll.ScrollHorizontal = (int)Math.Max(0, point.X - view.X * 0.6f);
         scroll.ScrollVertical = (int)Math.Max(0, point.Y - (view.Y + SaveTimelineRows.Ruler + 3) / 2);
@@ -350,6 +362,7 @@ public partial class SaveTimeline : PanelContainer
     public void Select(string? id)
     {
         rows.SelectedId = id;
+        revealing = null;
         rows.QueueRedraw();
         if (id is null) return;
         opening = null;
@@ -358,9 +371,18 @@ public partial class SaveTimeline : PanelContainer
 
     private void Reveal(string id)
     {
-        if (rows.PointPosition(id) is not { } point) return;
+        revealing = id;
+        QueueReveal();
+    }
+
+    private void QueueReveal()
+    {
+        if (revealQueued) return;
+        revealQueued = true;
         Callable.From(() =>
         {
+            revealQueued = false;
+            if (revealing is not { } id || rows.SelectedId != id || rows.PointPosition(id) is not { } point) return;
             var view = ViewSize();
             var left = point.X - 40;
             var right = point.X + 40;

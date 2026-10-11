@@ -1191,7 +1191,9 @@ small banner, older saves are open circles and autosaves are small diamonds;
 the key above the timeline shows which is which. **You are here** marks the
 world as it is now, at the end of its branch, or on a dotted **New branch** row
 when your next save will start one. Click a save to see it described
-underneath; the arrow keys also move between saves. **List** shows the saves as
+underneath; the arrow keys also move between saves and keep the selected name
+in view when the window changes size, until you scroll the timeline yourself.
+**List** shows the saves as
 cards instead, grouped by branch, with tags such as **From Before the flood**
 and **Latest**. A branch keeps the name of the save it started from, even if
 that save's name changes later. Long labels are shortened to fit; hover the
