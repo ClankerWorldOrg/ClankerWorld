@@ -73,7 +73,7 @@ public sealed partial class PrivateWorldRuntime
         if (action is "care" or "collect" or "saddle")
         {
             if (animalWorld.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor && trip.AnimalId == animal.Id) is not null)
-                _ = ApplyAnimalSupplyCandidate(actor, "animal:supply_trip:" + AnimalKey(actor));
+                _ = ApplyAnimalSupplyCandidate(actor, AnimalSupplyTripId(actor));
             else if (AnimalSupplyChoices(actor).FirstOrDefault(supply => supply.AnimalId == animal.Id && supply.Action == action) is { } supply)
                 _ = ApplyAnimalSupplyCandidate(actor, supply.Id);
         }
@@ -96,7 +96,7 @@ public sealed partial class PrivateWorldRuntime
                 _ => animal.RiderId is null,
             };
             if (!finished) return false;
-            CreditOrderEffect(instruction, "animal-order:" + AnimalKey(instruction.InstructionId + ":" + animal.Id + ":" +
+            CreditOrderEffect(instruction, AnimalOrderReceiptId(instruction.InstructionId, animal.Id,
                 (action == "care" ? animal.CareUntilTick.ToString(System.Globalization.CultureInfo.InvariantCulture) :
                  action == "collect" ? oldProduct : WorldTick.ToString(System.Globalization.CultureInfo.InvariantCulture))), 1);
             return true;

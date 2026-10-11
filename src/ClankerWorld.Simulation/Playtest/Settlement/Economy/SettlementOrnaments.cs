@@ -21,8 +21,7 @@ public sealed partial class PrivateWorldRuntime
         candidate.StartsWith(GiftOrnamentPrefix, StringComparison.Ordinal);
 
     // Preserve complete lot/agent identities without delimiter ambiguity or unbounded action IDs.
-    private static string OrnamentChoiceId(string prefix, params string[] identity) => prefix +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(identity))));
+    private static string OrnamentChoiceId(string prefix, params string[] identity) => DerivedId.Hash(JsonSerializer.Serialize(identity), prefix);
 
     private bool LivingOrnamentAdult(string actor) => inhabitants.ContainsKey(actor) && AdultResident(actor);
 
@@ -164,11 +163,11 @@ public sealed partial class PrivateWorldRuntime
                 {
                     var operation = $"ornament-wear:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
                     inventory = InventoryFixture.Transfer(inventory, operation, lot.OwnerId, actor, lot.Id, 1, "ornament_collected");
-                    equippedId = lot.Quantity == 1 ? lot.Id : lot.Id + "#transfer:" + operation;
+                    equippedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
                 }
                 else if (lot.Quantity > 1)
                 {
-                    equippedId = $"ornament-unit:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
+                    equippedId = OrnamentUnitId(WorldTick, nextEventId, actor, lot.Id);
                     inventory = InventoryFixture.SplitLot(inventory, lot.Id, 1, equippedId);
                 }
                 inhabitants[actor] = person with
@@ -220,7 +219,7 @@ public sealed partial class PrivateWorldRuntime
         if (FreeCarryCapacity(recipientId) < 1) return new(false, Failure: "The recipient has no room to carry the gift.");
         var person = inhabitants[actor];
         var operation = $"ornament-gift:{WorldTick}:{nextEventId}:{actor}:{recipientId}:{lot.Id}";
-        var receivedId = lot.Quantity == 1 ? lot.Id : lot.Id + "#transfer:" + operation;
+        var receivedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
         try
         {
             ApplyInventoryTransition(inventory =>

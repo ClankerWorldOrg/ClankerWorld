@@ -192,7 +192,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 var quantity = Math.Min(remaining, AvailableLotQuantity(lot));
                 if (quantity <= 0) continue;
-                var id = $"{jobId}:material:{ids.Count}";
+                var id = ExpansionMaterialReservationId(jobId, ids.Count);
                 inventory = InventoryFixture.Reserve(inventory, id, lot.OwnerId, lot.Id, quantity, jobId, completion);
                 ids.Add(id);
                 remaining -= quantity;

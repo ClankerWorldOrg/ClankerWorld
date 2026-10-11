@@ -157,7 +157,7 @@ public static class TownLawRules
         if (current.Subject == subject && current.Rule == rule)
             throw new InvalidOperationException("An amendment must change the law's wording.");
         var label = Bounded($"Amend law {Number(law.Id).ToString(CultureInfo.InvariantCulture)} to read: {Text(subject, rule)}");
-        var key = $"law_amend:{law.Id}:{current.Version.ToString(CultureInfo.InvariantCulture)}:{Normalize(Text(subject, rule))}";
+        var key = DerivedId.Create($"law_amend:{law.Id}:{current.Version.ToString(CultureInfo.InvariantCulture)}:{Normalize(Text(subject, rule))}");
         return Submit(council, government, townId, actor, label, key, adults, tick, day,
             proposalId => new TownLawDraft(proposalId, "amend", law.Id, current.Version, subject, rule, current.Scope, current.SiteTiles));
     }
@@ -173,7 +173,7 @@ public static class TownLawRules
         if (expectedVersion is { } expected && current.Version != expected)
             throw new InvalidOperationException("The law changed after this repeal was chosen.");
         var label = Bounded($"Repeal law {Number(law.Id).ToString(CultureInfo.InvariantCulture)}: {Text(current.Subject, current.Rule)}");
-        var key = $"law_repeal:{law.Id}:{current.Version.ToString(CultureInfo.InvariantCulture)}";
+        var key = DerivedId.Create($"law_repeal:{law.Id}:{current.Version.ToString(CultureInfo.InvariantCulture)}");
         return Submit(council, government, townId, actor, label, key, adults, tick, day,
             proposalId => new TownLawDraft(proposalId, "repeal", law.Id, current.Version, current.Subject, current.Rule,
                 current.Scope, current.SiteTiles)
@@ -248,7 +248,7 @@ public static class TownLawRules
             var at = proposal.SettledTick!.Value;
             if (draft.Action == "adopt")
             {
-                var id = townId + ":law:" + (government.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+                var id = TownRecordIds.Law(townId, checked(government.Sequence + 1));
                 var version = new TownLawVersion(1, draft.Subject, draft.Rule, draft.Scope, draft.SiteTiles, draft.ProposalId, at)
                 { BoatAccess = draft.BoatAccess, EstateDefault = draft.EstateDefault };
                 government = Replace(government with { Sequence = government.Sequence + 1, Laws = government.Laws.Append(new TownLaw(id, [version])).ToArray() },
@@ -310,9 +310,9 @@ public static class TownLawRules
         "adopt" => draft.EstateDefault is { } estate ? TownEstateDefaultRules.RequestKey(estate)
             : draft.BoatAccess is { } grant ? TownBoatAccessRules.RequestKey(grant)
             : $"law:{draft.Scope}:{SiteKey(draft.SiteTiles.ToArray())}:{Normalize(Text(draft.Subject, draft.Rule))}",
-        "amend" => draft.EstateDefault is { } estate ? $"estate-default-amend:{draft.LawId}:{draft.BaseVersion?.ToString(CultureInfo.InvariantCulture)}:{estate.TownSharePercent.ToString(CultureInfo.InvariantCulture)}"
-            : $"law_amend:{draft.LawId}:{draft.BaseVersion?.ToString(CultureInfo.InvariantCulture)}:{Normalize(Text(draft.Subject, draft.Rule))}",
-        _ => $"law_repeal:{draft.LawId}:{draft.BaseVersion?.ToString(CultureInfo.InvariantCulture)}",
+        "amend" => draft.EstateDefault is { } estate ? DerivedId.Create($"estate-default-amend:{draft.LawId}:{draft.BaseVersion?.ToString(CultureInfo.InvariantCulture)}:{estate.TownSharePercent.ToString(CultureInfo.InvariantCulture)}")
+            : DerivedId.Create($"law_amend:{draft.LawId}:{draft.BaseVersion?.ToString(CultureInfo.InvariantCulture)}:{Normalize(Text(draft.Subject, draft.Rule))}"),
+        _ => DerivedId.Create($"law_repeal:{draft.LawId}:{draft.BaseVersion?.ToString(CultureInfo.InvariantCulture)}"),
     };
     internal static bool IsStructuredRequest(string key) =>
         key.StartsWith("law_amend:", StringComparison.Ordinal) || key.StartsWith("law_repeal:", StringComparison.Ordinal) ||

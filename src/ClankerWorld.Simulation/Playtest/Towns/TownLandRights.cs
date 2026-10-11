@@ -267,9 +267,9 @@ public static class TownLandRightsRules
     }
 
     private static string StableId(string prefix, string scope, int index) =>
-        $"{prefix}:{scope}:{index.ToString(CultureInfo.InvariantCulture)}";
+        DerivedId.Create($"{prefix}:{scope}:{index.ToString(CultureInfo.InvariantCulture)}", prefix == "household-use" ? "household-use:" : null);
 
-    private static bool ValidId(string? value) => ValidText(value, 128);
+    private static bool ValidId(string? value) => ValidText(value, DerivedId.MaximumLength);
 
     private static bool ValidText(string? value, int maximumLength) =>
         !string.IsNullOrWhiteSpace(value) && value == value.Trim() && value.Length <= maximumLength &&

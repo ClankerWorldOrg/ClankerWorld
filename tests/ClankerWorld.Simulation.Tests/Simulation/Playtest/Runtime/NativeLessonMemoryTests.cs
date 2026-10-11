@@ -21,7 +21,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var student = nativeBorn ? state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId :
             state.Inhabitants.First(person => person.InhabitantId != teacher && (person.Skills ?? []).Count == 0 &&
                 person.InhabitantId.StartsWith("founder:", StringComparison.Ordinal)).InhabitantId;
-        Assert.Equal(nativeBorn, student.Length > 128);
+        Assert.InRange(student.Length, 1, DerivedId.MaximumLength);
         var beforeTrust = state.Inhabitants.Single(person => person.InhabitantId == student)
             .SocialStanding?.SingleOrDefault(item => item.SubjectId == teacher)?.Trust ?? 0;
         state = state with { RoutineHelper = RoutineHelperSettings.Off };

@@ -91,7 +91,7 @@ public static partial class TownGovernmentRules
         TownGovernmentState state, TownGovernmentChange change, long tick)
     {
         var extension = change.NonLandExtension!;
-        var grant = new TownNonLandMandateGrant(change.Id + ":non-land", change.Id, extension.HolderId,
+        var grant = new TownNonLandMandateGrant(NonLandGrantId(change.Id), change.Id, extension.HolderId,
             extension.BaseMandate, extension.BaseElectionId, extension.ConsentTick!.Value, tick,
             extension.TermStartTick, extension.TermEndTick);
         var office = new TownOffice("non_land", extension.HolderId, extension.TermStartTick, extension.TermEndTick,

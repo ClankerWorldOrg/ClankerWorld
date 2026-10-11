@@ -13,7 +13,7 @@ public sealed partial class PrivateWorldRuntime
                 if (ReferenceEquals(plan.Market, market)) continue;
                 SetMarket(town.Id, plan.Market);
                 if (plan.RetiredOfferIds.Count == 0) continue;
-                var claims = plan.RetiredOfferIds.SelectMany(id => new[] { id + ":first", id + ":second" })
+                var claims = plan.RetiredOfferIds.SelectMany(id => new[] { DerivedId.Create(id + ":first"), DerivedId.Create(id + ":second") })
                     .ToHashSet(StringComparer.Ordinal);
                 ApplyInventoryTransition(inventory => inventory with
                 {

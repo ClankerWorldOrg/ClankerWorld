@@ -15,7 +15,9 @@ public static class TownPropertyRules
     public static TownLandRequestedOutcome Outcome(TownPropertyRequest request) =>
         request.SourceHouseholdId is { } source ? new("reclaim", source) : new("grant", request.TargetHouseholdId);
 
-    public static string RecordId(TownLandCase item, int revision) => item.Id + ":property:" + revision.ToString(CultureInfo.InvariantCulture);
+    public static string RecordId(TownLandCase item, int revision) => DerivedId.Create(item.Id + ":property:" + revision.ToString(CultureInfo.InvariantCulture));
+    internal static string HearingPropertyRightId(string ruling, int sequence) =>
+        DerivedId.Hash(ruling + ":property:" + sequence.ToString(CultureInfo.InvariantCulture), "household-use:hearing:", 24);
 
     // Freshness and condition age naturally while a hearing is pending. Changes to stock quantity,
     // custody, the actual building or the people whose consent is needed require a fresh notice.
@@ -117,12 +119,12 @@ public static class TownPropertyRules
             throw new InvalidOperationException("A property transfer cannot take another household's use permission.");
         var result = new List<HouseholdLandUseRight>();
         var sequence = 0;
-        string NextId() => "household-use:hearing:" + TownLandHearingRules.Digest(rulingId + ":property:" + sequence++)[..24];
+        string NextId() => HearingPropertyRightId(rulingId, sequence++);
         foreach (var right in prior.OrderBy(right => right.Id, StringComparer.Ordinal))
             foreach (var piece in TownLandRightsRules.ConnectedPlots(map, right.Tiles.Where(tile => !tiles.Contains(tile))))
                 result.Add(right with { Id = NextId(), Tiles = piece });
         if (request.TargetHouseholdId is { } target)
-            result.Add(new(NextId(), townId, target, tiles, tick, "hearing:" + TownLandHearingRules.Digest(rulingId)[..32]));
+            result.Add(new(NextId(), townId, target, tiles, tick, TownLandHearingRules.HearingSourceId(rulingId)));
         return result.OrderBy(right => right.Id, StringComparer.Ordinal).ToArray();
     }
 
