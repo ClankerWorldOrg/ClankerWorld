@@ -235,6 +235,12 @@ slowest tests in the run summary and warns about any test over five minutes.
 Aim for under a minute per test: start a test close to the moment it checks,
 in the smallest world that shows the behavior.
 
+Committed-tick timing checks measure a bounded synchronous delay inside the
+real commit and child-selection callbacks. Each callback finishes its own delay,
+so measurement does not depend on another test continuation releasing it.
+The paired native world and checkpoint checks still prove that the measured
+work changes no saved state; runtime-gate exclusion is checked separately.
+
 To time tests locally, or list what a job would run under the fixed split:
 
 ```bash
