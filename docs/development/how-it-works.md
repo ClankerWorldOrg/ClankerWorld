@@ -232,6 +232,21 @@ unreserved quantities; reusable vessels themselves are not consumable inputs.
 Requests name exact owners and item kinds, and can restrict a building. The
 answer's `Total` and `First` read the same stable matches. It includes each lot's
 root vessel, physical place, available quantity and whole-vessel movement size.
+Production, farm-food, animal-food, writing-paper, ornament-input and iron-reserve
+demand use `Holdings`, keeping their existing owner groups and thresholds. These
+counts did not require a route before this migration and still do not. Food kinds
+remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules.
+
+`GoodsDemandCoverage.KnowledgeWriting` adds the named same-job coverage rule for
+writing demand. `CoveredTotal` includes available sheets plus active paper
+reservations with the native `knowledge_writing:<project>:paper` purpose owned
+by the queried household or its eligible writers. Other jobs' reservations do
+not cover writing demand. Covered sheets must still have a usable parent vessel
+and cannot be promised for delivery or held at a borrowed stall. `Total`, `First`,
+matches and rechecks remain unreserved; `Collect` refuses a coverage request and
+still cannot pick up a reserved vessel family. Coverage and reservation indices
+are derived from the current checkpoint and are never saved.
+
 Delivery selection and remaining uses belong to the later steps of
 [#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
 origin/destination fields and extra-unit requests are refused rather than silently ignored.
@@ -2751,13 +2766,16 @@ foot-neighbor enumeration when computing Road costs. Public step costs and movem
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
-Layout foot-cost searches use a value-type neighbor enumerator instead of
+Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths keep the same
 offset order and suppress repeated coordinates on one- or two-column wrapped
 maps before checking legality. Each step reads current terrain and bridge axes;
 no neighbor result is cached between steps or searches.
 See [layout neighbor measurements](layout-neighbor-query-measurements.md)
 for profiling, native state-change comparisons, lower allocations and mixed timings.
+The later [walking-route neighbor measurements](route-neighbor-query-measurements.md)
+record the default-route follow-up; custom callbacks, including swimming,
+keep their existing neighbor path.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household

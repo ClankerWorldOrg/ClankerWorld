@@ -230,9 +230,7 @@ public sealed partial class PrivateWorldRuntime
         if (quantity == 0 || household is null) return true;
         var people = society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        var ready = society.Checkpoint.Inventory.Lots.Where(item => IsEdibleFood(item.ItemKind) &&
-            InUsableVesselOrLoose(item) && !OnBorrowedMarketStall(item) &&
-            (item.OwnerId == household || people.Contains(item.OwnerId))).Sum(AvailableLotQuantity);
+        var ready = HoldingsTotal(people.Append(household), EdibleFoodGoods);
         return ready - quantity >= people.Count * 2 + (inhabitants.Values.Any(person => people.Contains(person.InhabitantId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
     }
     private void ConsumeAnimalInputs(string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)

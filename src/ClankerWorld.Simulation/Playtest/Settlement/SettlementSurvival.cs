@@ -456,15 +456,12 @@ public sealed partial class PrivateWorldRuntime
             return NeedsKnowledgePaper(ownerId);
         if (survivalState is null)
             return true;
-        var available = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == output.ResourceId &&
-                (!IsPreparedMeal(lot.ItemKind) || InUsableVesselOrLoose(lot)) &&
-                (ownerId is null || lot.OwnerId == ownerId))
-            .Sum(AvailableLotQuantity);
+        IEnumerable<string> owners = ownerId is null ? society.Checkpoint.Inventory.Lots.Select(lot => lot.OwnerId) : [ownerId];
+        var kinds = IsPreparedMeal(output.ResourceId) && !recipe.Inputs.Any(input => IsPreparedMeal(input.ResourceId))
+            ? PreparedMealGoods : GoodsKinds.One(output.ResourceId);
+        var available = HoldingsTotal(owners, kinds);
         var residentCount = ownerId is null ? inhabitants.Count :
             inhabitants.Values.Count(person => society.Checkpoint.GetInhabitant(person.InhabitantId).HouseholdId == ownerId);
-        if (IsPreparedMeal(output.ResourceId) && !recipe.Inputs.Any(input => IsPreparedMeal(input.ResourceId)))
-            available = society.Checkpoint.Inventory.Lots.Where(lot => IsPreparedMeal(lot.ItemKind) && InUsableVesselOrLoose(lot) &&
-                    (ownerId is null || lot.OwnerId == ownerId)).Sum(AvailableLotQuantity);
         var target = IsPreparedMeal(output.ResourceId) ? Math.Max(2, residentCount * 2)
             : output.ResourceId == "food" ? inhabitants.Count * 4 : Math.Max(1, inhabitants.Count);
         return available < target;
@@ -544,11 +541,9 @@ public sealed partial class PrivateWorldRuntime
         return originId.StartsWith("food:harvest:", StringComparison.Ordinal) ? "foraged" : "camp_rations";
     }
 
-    private static bool IsPreparedMeal(string kind) => kind is "simple_meal" or "porridge" or
-        "berry_porridge" or "fruit_porridge" or "bread" or "stew" or "restaurant_meal" or "cooked_eggs" or "milk_porridge" or "rich_meal";
+    private static bool IsPreparedMeal(string kind) => PreparedMealGoods.Ids.Contains(kind, StringComparer.Ordinal);
 
-    private static bool IsEdibleFood(string kind) => IsPreparedMeal(kind) ||
-        kind is "food" or "fruit" or "berries" or "wild_greens" or "cultivated_greens" or "milk";
+    private static bool IsEdibleFood(string kind) => EdibleFoodGoods.Ids.Contains(kind, StringComparer.Ordinal);
 
     private static int FoodNourishment(string kind) => kind switch
     {
