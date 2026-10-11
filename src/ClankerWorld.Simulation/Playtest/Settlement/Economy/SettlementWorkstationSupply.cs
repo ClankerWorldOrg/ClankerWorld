@@ -139,6 +139,7 @@ public sealed partial class PrivateWorldRuntime
                 var stock = carried is not null ? null : SpareHouseholdStock(actor, householdId, input.Key, building,
                     maximumResourceQuantity, sourceLotId) ??
                     AvailableWarehouseStock(actor, input.Key).FirstOrDefault(lot =>
+                        RecheckGoods(DeliveryGoodsRequest(actor, lot.OwnerId, lot.ItemKind, building.InstanceId), lot.Id) is not null &&
                         (sourceLotId is null || lot.Id == sourceLotId) &&
                         WorkstationPickupQuantity(actor, inventory, lot, building.InstanceId, int.MaxValue) > 0 &&
                         (!InventoryContainerRules.IsContainer(lot.ItemKind) ||
@@ -176,28 +177,17 @@ public sealed partial class PrivateWorldRuntime
         PlacedBuilding destination, int maximumResourceQuantity = int.MaxValue, string? sourceLotId = null)
     {
         var inventory = society.Checkpoint.Inventory;
-        return inventory.Lots
-            .Where(lot => lot.OwnerId == householdId && lot.ItemKind == itemKind &&
-                AvailableLotQuantity(lot) > 0)
-            .Select(lot => lot.ContainerLotId is { } containerId
-                ? inventory.GetLot(containerId) : lot)
-            .Where(lot => lot.OwnerId == householdId && lot.CarrierId is null && !OnBorrowedMarketStall(lot) && lot.StorageBuildingId != destination.InstanceId &&
+        return FindGoods(DeliveryGoodsRequest(actor, householdId, itemKind, destination.InstanceId)).Matches
+            .Select(match => match.Root)
+            .Where(lot => lot.CarrierId is null &&
                 (sourceLotId is null || lot.Id == sourceLotId) &&
-                lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
-                (!InventoryContainerRules.IsContainer(lot.ItemKind) ||
-                 !HasActiveContainerReservation(inventory, lot.Id)) &&
                 (!InventoryContainerRules.IsContainer(lot.ItemKind) ||
                  DeliveryResourceQuantity(lot, itemKind) <= maximumResourceQuantity) &&
                 (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
                     building.InstanceId == lot.StorageBuildingId && worldContent.Buildings.Any(definition =>
                         definition.CanonicalId == building.DefinitionId &&
                         definition.Tags.Any(tag => tag is "house" or "silo" or "farmhouse" or "restaurant" or "animal-yard")))))
-            .Where(lot => WorkstationPickupQuantity(actor, inventory, lot, destination.InstanceId,
-                int.MaxValue) > 0)
-            .Where(lot => IsWithinInteractionRange(inhabitants[actor].Position, HouseholdStockPosition(lot),
-                    HouseholdStockInteractionRange(lot)) ||
-                FindUnoccupiedRoute(actor, inhabitants[actor].Position, HouseholdStockPosition(lot),
-                    HouseholdStockInteractionRange(lot)).Count > 0)
+            .Where(lot => WorkstationPickupQuantity(actor, inventory, lot, destination.InstanceId, int.MaxValue) > 0)
             .DistinctBy(lot => lot.Id)
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }

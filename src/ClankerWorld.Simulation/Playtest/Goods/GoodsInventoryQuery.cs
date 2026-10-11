@@ -52,15 +52,21 @@ internal static class GoodsInventoryQuery
         ArgumentNullException.ThrowIfNull(request.Owners);
         ArgumentNullException.ThrowIfNull(request.Kinds);
         if (request.Use is not (GoodsUse.Holdings or GoodsUse.ConsumeAt or GoodsUse.Collect or GoodsUse.ReachableHoldings or
-                GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal) ||
+                GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver) ||
             request.Owners.Ids is not { Count: > 0 } || request.Kinds.Ids is not { Count: > 0 } ||
             request.Owners.Ids.Any(string.IsNullOrWhiteSpace) || request.Kinds.Ids.Any(string.IsNullOrWhiteSpace) ||
-            request.Near is not null || request.Destination is not null || request.ExtraUnits != 0 ||
+            request.ExtraUnits != 0 ||
+            (request.Use == GoodsUse.Deliver
+                ? request.DeliveryPurpose == GoodsDeliveryPurpose.TownProject
+                    ? request.Near is null || request.Destination is not null
+                    : string.IsNullOrWhiteSpace(request.Destination) || request.Near is not null
+                : request.Near is not null || request.Destination is not null || request.DeliveryPurpose != GoodsDeliveryPurpose.Stock) ||
+            !Enum.IsDefined(request.DeliveryPurpose) ||
             request.DemandCoverage is not (GoodsDemandCoverage.None or GoodsDemandCoverage.KnowledgeWriting) ||
             request.DemandCoverage != GoodsDemandCoverage.None && request.Use is not (GoodsUse.Holdings or GoodsUse.ReachableHoldings) ||
-            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal) &&
+            request.Use is (GoodsUse.Collect or GoodsUse.ReachableHoldings or GoodsUse.RecoveryHoldings or GoodsUse.Recover or GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal or GoodsUse.Deliver) &&
                 string.IsNullOrWhiteSpace(request.Actor))
-            throw new ArgumentException("This goods query supports exact owners and kinds for Holdings, ConsumeAt, and actor-bound ReachableHoldings, Collect personal recovery, spending, selling or personal storage; destination uses are separate steps.", nameof(request));
+            throw new ArgumentException("This goods query supports exact owners and kinds for Holdings, ConsumeAt, and actor-bound ReachableHoldings, Collect, personal recovery, spending, selling, personal storage, or Deliver with an exact destination and native delivery purpose.", nameof(request));
     }
 
     internal static bool IsRecovery(GoodsUse use) => use is GoodsUse.RecoveryHoldings or GoodsUse.Recover;

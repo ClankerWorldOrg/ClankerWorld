@@ -183,35 +183,22 @@ public sealed partial class PrivateWorldRuntime
             var incoming = inventory.Lots.Where(lot => lot.DeliveryBuildingId == blacksmithId &&
                     lot.ItemKind == kind).Sum(AvailableLotQuantity);
             if (stocked + incoming >= target) continue;
-            var personal = inventory.Lots
-                .Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
-                    (sourceLotId is null || lot.Id == sourceLotId) &&
-                    lot.ContainerLotId is null && lot.ItemKind == kind && SpareCarriedQuantity(actor, lot) > 0 &&
-                    !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id))
-                .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
+            var personal = FindGoods(DeliveryGoodsRequest(actor, actor, kind, blacksmithId)).Matches
+                .Select(match => match.Lot)
+                .FirstOrDefault(lot => PersonalEquipmentRules.IsCarried(lot, actor) &&
+                    (sourceLotId is null || lot.Id == sourceLotId) && lot.ContainerLotId is null &&
+                    SpareCarriedQuantity(actor, lot) > 0);
             if (personal is not null) return personal;
-            var source = inventory.Lots
-                .Where(lot => lot.OwnerId == householdId && lot.CarrierId is null && !OnBorrowedMarketStall(lot) && lot.StorageBuildingId != blacksmithId &&
-                    (sourceLotId is null || lot.Id == sourceLotId) &&
-                    lot.DeliveryBuildingId != blacksmithId && lot.ContainerLotId is null && lot.ItemKind == kind &&
-                    AvailableLotQuantity(lot) > 0)
-                .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault(CanHaulSharedInput);
-            source ??= AvailableWarehouseStock(actor, kind)
-                .FirstOrDefault(lot => (sourceLotId is null || lot.Id == sourceLotId) && CanHaulSharedInput(lot));
+            var source = FindGoods(DeliveryGoodsRequest(actor, householdId, kind, blacksmithId)).Matches
+                .Select(match => match.Lot)
+                .FirstOrDefault(lot => lot.CarrierId is null && lot.ContainerLotId is null &&
+                    (sourceLotId is null || lot.Id == sourceLotId));
+            source ??= AvailableWarehouseStock(actor, kind).FirstOrDefault(lot =>
+                (sourceLotId is null || lot.Id == sourceLotId) &&
+                RecheckGoods(DeliveryGoodsRequest(actor, lot.OwnerId, kind, blacksmithId), lot.Id) is not null);
             if (source is not null) return source;
         }
         return null;
-
-        // A blocked earlier lot must not hide stock the actor can actually deliver.
-        bool CanHaulSharedInput(InventoryLot lot)
-        {
-            var position = inhabitants[actor].Position;
-            var source = HouseholdStockPosition(lot);
-            var range = HouseholdStockInteractionRange(lot);
-            return (IsWithinInteractionRange(position, source, range) ||
-                    FindUnoccupiedRoute(actor, position, source, range).Count > 0) &&
-                PickupCarryCapacity(actor, lot, blacksmith.Position) > 0;
-        }
     }
 
     private bool BlacksmithHasDeliverableInput(string householdId, PlacedBuilding blacksmith, string actor, string itemKind)

@@ -306,9 +306,28 @@ Physical Market stock counts also remain physical, including damaged contents,
 so usable sale selection cannot undercount occupied space. These queries add no
 route, saved state or persistent world cache.
 
-Delivery selection and remaining uses belong to the later steps of
-[#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
-origin/destination fields and extra-unit requests are refused rather than silently ignored.
+`Deliver` extends usable holdings with custody, free vessel families, carrying
+room, the native pickup and loaded return routes, and receiving space from
+`DestinationRoom`. Requests name a destination building. Matches and action
+rechecks share these checks; inbound promises cannot leave a stale load eligible.
+A query reuses each root's loaded-route capacity across its matching contents.
+
+Delivery purposes preserve the existing physical operations. Ordinary stock
+moves whole vessel families. Farm stock permits the established grain/flour
+partial-vessel haul, while its planner retains source deficits, load limits and
+whole-family preference. Expansion materials go to a building's outdoor site,
+and Town-project materials go to the approved work site named by `Near`;
+neither occupies indoor storage. These outdoor uses retain Town material access
+and active-project custody. Source ordering and workstation surplus remain caller
+filters. House, Farmhouse, Silo, Blacksmith, workstation, expansion and Town-project
+selectors share these queries. Restaurant household supply uses the same eligible
+matches before applying each source's reserve once. Gathering falls back only
+when no stock can supply the destination.
+
+The remaining uses belong to later steps of
+[#1366](https://github.com/compoodment/ClankerWorld/issues/1366). Unsupported
+origin/destination combinations and extra-unit requests are refused rather than
+silently ignored.
 
 `DestinationRoom(buildingId, movingRoot)` is the shared read-only calculation
 for space at a building. It subtracts all stored physical units, positive net
