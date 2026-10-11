@@ -36,6 +36,8 @@ Fix a problem only if you are asked to; filing it is the job.
 - Set the priority by the [bug rules](../../CONTRIBUTING.md#priorities),
   including the P0 and P1 caps, and add `regression` to something that used
   to work.
+- While a release is being prepared, give a new P0 or P1 bug its label, now
+  `release:alpha-1` ([Release scope](../../CONTRIBUTING.md#release-scope)).
 - Give the title in ordinary words about the effect, such as "Returning a jug
   can halt the world". Keep one problem per issue. When several symptoms
   come from the same cause, so one fix covers them all, file one issue that
