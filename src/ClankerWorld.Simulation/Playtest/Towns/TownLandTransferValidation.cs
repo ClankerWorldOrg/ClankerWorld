@@ -124,7 +124,7 @@ public static class TownLandTransferValidation
                     retained.Kind == "inventory_transferred" && retained.WorldTick == receipt.Tick &&
                     retained.Detail == $"{transferId}:{payment.BuyerAgentId}:{price.SellerHouseholdId}:{lot.SourceLotId}:{lot.Quantity}:land_use_right_payment",
                     "A sale payment receipt must match its actual committed inventory transfer.");
-                var destinationId = lot.SourceLotId + "#transfer:" + transferId;
+                var destinationId = DerivedId.Create(lot.SourceLotId + "#transfer:" + transferId);
                 Check(inventory.Lots.Where(item => item.Id == destinationId || item.Id == lot.SourceLotId)
                     .All(item => item.ItemKind == price.ItemKind), "A retained paid lot must have the agreed goods kind.");
             }
@@ -152,7 +152,7 @@ public static class TownLandTransferValidation
             "A transfer must retain precisely its source and beneficiary households and actual adult signatories.");
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(right => right.Tiles.Select(tile =>
         JsonSerializer.Serialize(new { tile.X, tile.Y, right.TownId, right.HouseholdId, right.GrantedTick, right.GrantSource, right.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? value) => TownLandHearingRules.ValidText(value, 256);
+    private static bool Id(string? value) => TownLandHearingRules.ValidText(value, DerivedId.MaximumLength);
     private static bool CanonicalPeople(IReadOnlyList<string>? values) => values is not null && values.All(TownHearingProcedure.Id) && values.SequenceEqual(TownLandHearingRules.Ordered(values));
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

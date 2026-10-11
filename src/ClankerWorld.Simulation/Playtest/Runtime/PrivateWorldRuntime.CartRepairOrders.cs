@@ -58,14 +58,14 @@ public sealed partial class PrivateWorldRuntime
     private const string CartRepairOrderReceiptPrefix = "cart-repair-order:";
 
     private static string CartRepairOrderReceipt(OwnerQueuedInstruction instruction, long tick) =>
-        CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetInhabitantId}:{instruction.Order!.TargetCartLotId}")));
+        DerivedId.Hash(
+            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetInhabitantId}:{instruction.Order!.TargetCartLotId}",
+            CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":");
 
     private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
     {
         var receipt = instruction.Order!.LastEffectId;
-        if (receipt is null || receipt.Length > CartRepairOrderReceiptPrefix.Length + 20 + 1 + 64 ||
+        if (receipt is null || receipt.Length > DerivedId.MaximumLength ||
             !receipt.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
         var separator = receipt.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
         return separator > CartRepairOrderReceiptPrefix.Length &&

@@ -19,7 +19,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         var births = state.Society.Society.Births.OrderBy(item => item.CommittedTick).ToArray();
         var actor = births[^1].ChildId;
         var other = births[^2].ChildId;
-        Assert.True(actor.Length > 256);
+        Assert.Equal(3, births.Length);
+        Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
         var actorName = state.Society.Society.GetInhabitant(actor).Name;
         var otherName = state.Society.Society.GetInhabitant(other).Name;
         var candidates = new HashSet<string>([actor, other], StringComparer.Ordinal);
@@ -254,7 +255,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
         world.Pause();
         Assert.Equal(lastGeneration, world.Society.Births.Count);
-        Assert.True(parent.Length > (lastGeneration == 2 ? 128 : 256));
+        Assert.InRange(parent.Length, 1, DerivedId.MaximumLength);
         world.Validate();
         return PrivateWorldRuntimeCodec.Encode(world.ExportState());
     }

@@ -2,7 +2,7 @@
 title: Labels
 type: development-reference
 status: active
-updated: 2026-10-08
+updated: 2026-10-11
 ---
 
 # Labels
@@ -22,6 +22,11 @@ label by hand. To rename one, change its name and add the old name to its
 forms, `.github/scripts/` and the searches in CONTRIBUTING, AGENTS.md and the
 skills that name it. The workflow-script tests check that every label the
 forms, scripts and documented searches use is active.
+
+A release label, such as `release:alpha-1`, marks the issues the release being
+prepared needs ([Release scope](../../CONTRIBUTING.md#release-scope)). It is
+added by hand and retired after the release is published
+([Releasing](releasing.md#release-scope-and-merge-day)).
 
 ## What the workflows do on issues
 
@@ -43,6 +48,20 @@ forms, scripts and documented searches use is active.
 - `Refs` changes no issue labels.
 - Quiet claims are released by **Release stale claims**
   ([what counts](../../skills/fix-issue/SKILL.md#claim-an-issue)).
+- **Unblock waiting work** removes `status:blocked` from an open issue or pull
+  request once every item its description names as `Blocked by #N` or
+  `Waits on #N` (also `#N, #M and #K`) has merged or closed as completed, and
+  comments with how each one finished. An issue also gets `status:needs-pr`,
+  unless it is claimed, parked, a decision or an owner task, or a ready pull
+  request closes it. It leaves alone an item waiting on the owner
+  (`status:needs-decision`), one that names no blocker by number or has a
+  `Blocked by` line naming an outside event, and one with a blocker still
+  open. If a blocker closed as not planned, or a pull request closed without
+  merging, the item stays blocked and gets one comment asking it to name what
+  it waits on now. If someone adds `status:blocked` back for the same
+  blockers, it stays. The workflow runs when an issue or pull request closes
+  and every 30 minutes; to preview it, run it from Actions on `main` with its
+  dry-run option.
 
 ## What the workflows do on pull requests
 
@@ -61,6 +80,7 @@ forms, scripts and documented searches use is active.
   on main.
 
 The scripts are [`pr-labels.js`](../../.github/scripts/pr-labels.js),
-[`stale-claims.js`](../../.github/scripts/stale-claims.js) and
+[`stale-claims.js`](../../.github/scripts/stale-claims.js),
+[`unblock.js`](../../.github/scripts/unblock.js) and
 [`sync-labels.js`](../../.github/scripts/sync-labels.js), each with its tests
 beside it.

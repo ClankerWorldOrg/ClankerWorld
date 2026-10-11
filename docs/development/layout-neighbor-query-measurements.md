@@ -157,6 +157,6 @@ for the fresh-process repeat and preserve all samples, including regressions.
 Full checkpoints, captures, trace, Speedscope conversion, input manifests and
 logs are retained under `.evidence/keep/998-current/effee-matched/` in Codex
 session e0f464b8's workspace. Earlier records remain under the parent evidence
-directory. Existing [Windows/F12 checks](../../playtest/998-route-step-costs.md)
+directory. Existing [Windows/F12 checks](../../playtest/alpha-1.md)
 remain pending. These Linux records establish no Windows frame-performance
 or hosted-model speedup; broader construction/layout work stays open in #998.

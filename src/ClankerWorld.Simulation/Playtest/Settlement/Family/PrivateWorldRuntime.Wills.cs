@@ -192,11 +192,11 @@ public sealed partial class PrivateWorldRuntime
     private static string BoundedWillHeirKey(string prefix, string id, HashSet<string> occupiedKeys)
     {
         var raw = prefix + id;
-        if (raw.Length <= CognitionWillContext.MaximumHeirKeyLength) return raw;
-        var hashed = prefix + "sha256:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id))).ToLowerInvariant();
+        if (raw.Length <= DerivedId.MaximumLength) return raw;
+        var hashed = DerivedId.Create(raw, prefix + "sha256:");
         var key = hashed;
         for (var collision = 1; !occupiedKeys.Add(key); collision++)
-            key = hashed + ":" + collision.ToString(CultureInfo.InvariantCulture);
+            key = DerivedId.Create(raw + ":" + collision.ToString(CultureInfo.InvariantCulture), prefix + "sha256:");
         return key;
     }
 

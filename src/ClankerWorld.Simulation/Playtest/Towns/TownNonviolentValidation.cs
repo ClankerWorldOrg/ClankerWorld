@@ -20,13 +20,13 @@ public static class TownNonviolentValidation
         // Establish the shape of every file before any cross-case reference lookup.
         foreach (var item in state.Cases) Shape(item);
         foreach (var offer in state.Offers)
-            Check(Id(offer.Id) && Id(offer.CaseId) && Id(offer.FindingId) && TownRemedyRules.ValidTerms(offer.Terms) &&
+            Check(TownHearingProcedure.DerivedIdentity(offer.Id) && TownHearingProcedure.DerivedIdentity(offer.CaseId) && TownHearingProcedure.DerivedIdentity(offer.FindingId) && TownRemedyRules.ValidTerms(offer.Terms) &&
                 offer.Responses is not null && offer.Responses.All(r => r is not null), "A remedy offer must retain its typed terms and responses.");
         foreach (var agreement in state.Agreements)
-            Check(Id(agreement.Id) && Id(agreement.OfferId) && TownRemedyRules.ValidTerms(agreement.Terms) &&
+            Check(TownHearingProcedure.DerivedIdentity(agreement.Id) && TownHearingProcedure.DerivedIdentity(agreement.OfferId) && TownRemedyRules.ValidTerms(agreement.Terms) &&
                 agreement.Consents is not null && agreement.Consents.All(r => r is not null), "An agreement must retain its terms and personal consents.");
         foreach (var effect in state.Effects)
-            Check(Id(effect.Id) && Id(effect.AgreementId) && Id(effect.TermId) && Id(effect.ActorId) &&
+            Check(TownHearingProcedure.DerivedIdentity(effect.Id) && TownHearingProcedure.DerivedIdentity(effect.AgreementId) && Id(effect.TermId) && Id(effect.ActorId) &&
                 Id(effect.NativeReceiptId) && Id(effect.NativeReceiptVersion), "A remedy effect needs actual named physical provenance.");
         Unique(state.Cases.Select(c => c.Key));
         Unique(state.Cases.Select(c => c.Id).Concat(state.Cases.SelectMany(c => c.Findings.Select(f => f.Id)))
@@ -54,17 +54,17 @@ public static class TownNonviolentValidation
 
     private static void Shape(TownViolationCase item)
     {
-        Check(Id(item.Id) && Id(item.Key) && Id(item.TownId) && TownNonviolentRules.ValidAllegation(item.Allegation) &&
+        Check(TownHearingProcedure.DerivedIdentity(item.Id) && Id(item.Key) && Id(item.TownId) && TownNonviolentRules.ValidAllegation(item.Allegation) &&
             item.Revisions is { Count: > 0 } && item.Filings is { Count: > 0 } && item.Evidence is not null && item.Reads is not null &&
             item.Responses is not null && item.Findings is not null && item.JudgeHistory is not null && item.JudgeConsents is not null &&
             item.ContestHistory is not null && item.ReopenRequests is not null && Canonical(item.DirectStakeIds), "A case must retain its complete file.");
         Check(item.Revisions.All(r => r is not null && TownNonviolentRules.ValidParties(r.Parties)) &&
             item.Filings.All(f => f is not null && f.EvidenceIds is not null) &&
             item.Evidence.All(e => e is not null) && item.Reads.All(r => r is not null && r.EvidenceIds is not null && r.ReopenRequestIds is not null && r.ResponseIds is not null && r.FindingIds is not null) &&
-            item.Responses.All(r => r is not null) && item.Findings.All(f => f is not null && Id(f.Id) && f.Judge is not null &&
+            item.Responses.All(r => r is not null) && item.Findings.All(f => f is not null && TownHearingProcedure.DerivedIdentity(f.Id) && f.Judge is not null &&
                 f.EvidenceIds is not null && TownNonviolentRules.ValidParties(f.Parties)) &&
             item.JudgeHistory.All(h => h is not null && h.Judge is not null) && item.JudgeConsents.All(c => c is not null) &&
-            item.ContestHistory.All(c => c is not null) && item.ReopenRequests.All(r => r is not null && Id(r.Id) && r.EvidenceIds is not null),
+            item.ContestHistory.All(c => c is not null) && item.ReopenRequests.All(r => r is not null && TownHearingProcedure.DerivedIdentity(r.Id) && r.EvidenceIds is not null),
             "A nonviolent case cannot contain incomplete file entries.");
     }
 
@@ -96,7 +96,7 @@ public static class TownNonviolentValidation
             Check(revision.PublishedTick >= item.FiledTick && revision.PublishedTick <= tick &&
                 revision.DeadlineTick >= revision.PublishedTick && revision.DeadlineTick - revision.PublishedTick == day && Id(revision.NoticeId) &&
                 town.Governance?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "law_case" &&
-                    n.SubjectId == item.Id + ":" + revision.Number.ToString(CultureInfo.InvariantCulture) && n.PostedTick == revision.PublishedTick) == true,
+                    n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A hearing needs its actual published notice and a complete response day.");
             ValidateParties(revision.Parties, people, households, society);
             ValidateTownParty(town, item, revision.Parties, revision.PublishedTick);
@@ -216,7 +216,7 @@ public static class TownNonviolentValidation
     private static void ValidateTownParty(TownRuntimeState town, TownViolationCase item, IReadOnlyList<TownCaseParty> parties, long tick)
     {
         foreach (var party in parties.Where(p => p.Role == "town"))
-            Check(party.Id == "town:" + town.Id && party.CareRelationshipId is null &&
+            Check(party.Id == TownRecordIds.TownParty(town.Id) && party.CareRelationshipId is null &&
                 item.Filings.Any(f => f.Kind == "town" && f.AgentId == party.SubjectId && f.Tick <= tick) &&
                 (party.RespondingAdultId is null || OrdinaryMayorAt(town, party.RespondingAdultId, null, tick) ||
                     item.Filings.Any(f => f.Kind == "town" && f.AgentId == party.RespondingAdultId && f.Tick <= tick &&
@@ -267,7 +267,7 @@ public static class TownNonviolentValidation
     private static void ValidateContest(TownCaseJudgeContest contest, TownViolationCase item,
         Dictionary<string, SocietyInhabitant> people, long tick, int day, bool live)
     {
-        Check(Id(contest.Id) && contest.Stage is "waiting" or "voting" or "completed" or "failed" or "cancelled" &&
+        Check(TownHearingProcedure.DerivedIdentity(contest.Id) && contest.Stage is "waiting" or "voting" or "completed" or "failed" or "cancelled" &&
             live == (contest.Stage is "waiting" or "voting") && contest.OpenedTick >= item.FiledTick && contest.OpenedTick <= tick &&
             contest.Voters is not null && contest.Candidates is not null && contest.Ballots is not null && contest.TiedCandidates is not null &&
             contest.Rounds is not null && contest.Rounds.All(r => r is not null), "A case election must retain its real rounds and status.");

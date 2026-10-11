@@ -169,15 +169,13 @@ public sealed partial class PrivateWorldRuntime
         var legacyId = $"knowledge-fact:{ownerId}:{position.X}:{position.Y}";
         // Existing short IDs stay unchanged. Descendant IDs contain ancestry and
         // can exceed the ledger's limit; hash the complete key, never truncate it.
-        return legacyId.Length <= 160 ? legacyId :
-            "knowledge-fact-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(legacyId)));
+        return DerivedId.Create(legacyId, "knowledge-fact-sha256:");
     }
 
     private static string CognitionDiscovererId(string discovererId) =>
         // The saved ledger retains the actual identity and provenance. Only the
         // bounded model-facing reference needs a stable alias for long IDs.
-        discovererId.Length <= 128 ? discovererId :
-            "agent-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(discovererId)));
+        DerivedId.Create(discovererId, "agent-sha256:");
 
     private static string FoodKnowledgeKind(MapResource resource) => resource.Kind switch
     {

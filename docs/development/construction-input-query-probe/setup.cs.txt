@@ -173,7 +173,11 @@ static void PlaceAtFirstLegal(PrivateWorldRuntime world, string id, BuildingDefi
     var state = world.ExportState();
     var sites = Sites(state, definition);
     if (growRoads)
-        sites = sites.OrderByDescending(point => state.RoadTiles!.Min(road => Math.Abs(road.X - point.X) + Math.Abs(road.Y - point.Y)));
+    {
+        var connected = RoadConnectedGround(state);
+        sites = sites.Where(connected.Contains)
+            .OrderByDescending(point => state.RoadTiles!.Min(road => Math.Abs(road.X - point.X) + Math.Abs(road.Y - point.Y)));
+    }
     foreach (var site in sites.Take(2048))
     {
         var placed = world.PlaceBuilding(id, definition.CanonicalId, site, household);
@@ -184,6 +188,23 @@ static void PlaceAtFirstLegal(PrivateWorldRuntime world, string id, BuildingDefi
             throw new InvalidOperationException(placed.Failure);
     }
     throw new InvalidOperationException("No lawful Town placement site was found.");
+}
+// Farthest geometric sites can be on disconnected land. Choose growth sites
+// on buildable ground connected to the current Roads; native placement and
+// Road validation still decide whether the chosen building and street are legal.
+static HashSet<GridPoint> RoadConnectedGround(PrivateWorldRuntimeState state)
+{
+    var occupied = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+        state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
+        .Concat(state.Map.Resources.Select(resource => resource.Position))
+        .Concat(state.Map.CampObjects.Select(item => item.Position)).ToHashSet();
+    var connected = state.RoadTiles!.ToHashSet();
+    var pending = new Queue<GridPoint>(connected);
+    while (pending.TryDequeue(out var point))
+        foreach (var next in state.Map.FootNeighbors(point))
+            if (state.Map.IsBuildable(next) && !occupied.Contains(next) && connected.Add(next))
+                pending.Enqueue(next);
+    return connected;
 }
 static IEnumerable<GridPoint> Sites(PrivateWorldRuntimeState state, BuildingDefinition definition)
 {

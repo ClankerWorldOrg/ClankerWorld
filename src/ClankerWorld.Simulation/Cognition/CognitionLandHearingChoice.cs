@@ -35,7 +35,7 @@ public sealed record CognitionLandHearingChoice(
     private static bool ValidHouseholdReference(string? value) => value is { Length: > 0 } &&
         !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
 
-    private static bool ValidReference(string? value, int maximumLength = 256) => value is { } &&
+    private static bool ValidReference(string? value, int maximumLength = DerivedId.MaximumLength) => value is { } &&
         value.Length <= maximumLength && ValidHouseholdReference(value);
 
     private static bool ValidReferences(IReadOnlyList<string>? values) => values is null ||
@@ -74,7 +74,7 @@ public sealed record CognitionLandHearingChoice(
         return choice;
     }
 
-    private static string? Reference(JsonElement payload, string name, bool household = false, int maximumLength = 256)
+    private static string? Reference(JsonElement payload, string name, bool household = false, int maximumLength = DerivedId.MaximumLength)
     {
         if (!payload.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null) return null;
         if (value.ValueKind != JsonValueKind.String ||

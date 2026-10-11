@@ -63,8 +63,8 @@ test('issue forms use only active configured labels', () => {
   }
 });
 
-test('pull request and stale-claim scripts use only active configured labels', () => {
-  for (const file of ['pr-labels.js', 'stale-claims.js']) {
+test('pull request, stale-claim and unblock scripts use only active configured labels', () => {
+  for (const file of ['pr-labels.js', 'stale-claims.js', 'unblock.js']) {
     const names = scriptLabels(fs.readFileSync(path.join(__dirname, file), 'utf8'));
     assert.ok(names.length > 0, `${file} has no concrete label literals`);
     checkLabels(names, file);

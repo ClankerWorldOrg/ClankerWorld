@@ -149,6 +149,6 @@ Compare ordinary capture files byte for byte before interpreting timings.
 The saved report records both the unchanged public probes' digests and the
 three exact extension sources' digests.
 
-The [paired Windows/F12 check](../../playtest/998-household-plan-query.md) remains
+The [paired Windows/F12 check](../../playtest/alpha-1.md) remains
 pending. These Linux measurements do not establish Windows frame presentation,
 a hosted-model speedup or completion of the wider performance issue.
