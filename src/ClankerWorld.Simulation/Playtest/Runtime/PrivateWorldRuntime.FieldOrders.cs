@@ -74,8 +74,7 @@ public sealed partial class PrivateWorldRuntime
                 ContinueFarmWork(actor, out var completed);
                 if (completed is not null)
                 {
-                    var identity = $"{actor}:{WorldTick}:{FarmFieldRules.FieldId(completed.Position)}:{work.Kind}:{completed.Cycle}";
-                    var receipt = "field:work:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+                    var receipt = FieldWorkOrderReceipt(actor, WorldTick, completed.Position, work.Kind, completed.Cycle);
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 return;

@@ -79,7 +79,7 @@ public sealed partial class PrivateWorldRuntime
             return;
         }
         var result = PlantTreeCore(actor, plan.Species, plan.Seed.Id, plan.Site);
-        if (result.Planted) CreditOrderEffect(instruction, "tree:plant:" + result.TreeId, 1);
+        if (result.Planted) CreditOrderEffect(instruction, TreePlantingReceipt(result.TreeId!), 1);
         else SetOrderStatus(instruction, "blocked", "The planting site or seed is no longer available; the seed was kept.");
     }
 

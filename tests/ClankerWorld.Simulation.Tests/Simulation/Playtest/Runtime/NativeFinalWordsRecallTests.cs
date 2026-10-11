@@ -19,9 +19,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         var heir = checkpoint.Births.OrderBy(item => item.CommittedTick).Last().ChildId;
         var parent = Assert.Single(checkpoint.Relationships, item =>
             item.Type == SocietyRelationshipType.BiologicalParentage && item.TargetId == heir &&
-            item.ProposerId.Length > 128).ProposerId;
+            checkpoint.Births.Any(birth => birth.ChildId == item.ProposerId)).ProposerId;
         Assert.Equal(2, checkpoint.Births.Count);
-        Assert.True(heir.Length > 128);
+        Assert.InRange(heir.Length, 1, DerivedId.MaximumLength);
         var physical = Assert.Single(state.Inhabitants, item => item.InhabitantId == parent);
         checkpoint = checkpoint with
         {
@@ -111,7 +111,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.InRange(memory.Id.Length, 1, 128);
         Assert.Equal((heir, memory.Summary, memory.SourceTick, "private"),
             (excerpt.OwnerId, excerpt.Summary, excerpt.SourceTick, excerpt.Visibility));
-        Assert.StartsWith("agent-sha256:", excerpt.SubjectId);
+        Assert.Equal(parent, excerpt.SubjectId);
         Assert.Equal(memory, Assert.Single(restored.Society.Memories, item => item.Id == memory.Id));
         Assert.DoesNotContain(recall.Observations, item => item.Will is not null);
         Assert.Single(restored.Society.Events, item => item.Kind == "estate_settled" && item.Detail == estateId);

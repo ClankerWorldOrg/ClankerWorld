@@ -127,6 +127,14 @@ public sealed partial class PrivateWorldRuntime
     }
     internal static class CivicSharedRules
     {
+        internal static string ConductSeenId(string conduct, string observer) => PrivateWorldRuntime.ConductSeenId(conduct, observer);
+        internal static string ConductInspectionId(string conduct, string file, string actor) => PrivateWorldRuntime.ConductInspectionId(conduct, file, actor);
+        internal static string ConductRelayId(string conduct, long tick, string source, string recipient) => PrivateWorldRuntime.ConductRelayId(conduct, tick, source, recipient);
+        internal static string NativeReturnId(long tick, string actor, long eventId) => PrivateWorldRuntime.NativeReturnId(tick, actor, eventId);
+        internal static string WarehouseStockId(long tick, string actor) => PrivateWorldRuntime.WarehouseStockId(tick, actor);
+        internal static string RemedyEffectId(string receipt) => PrivateWorldRuntime.RemedyEffectId(receipt);
+        internal static string NonviolentRemedyChoiceId(string town, string agreement, string term) => PrivateWorldRuntime.NonviolentRemedyChoiceId(town, agreement, term);
+        internal static string NonviolentRelayChoiceId(string town, string act, string listener) => PrivateWorldRuntime.NonviolentRelayChoiceId(town, act, listener);
         internal static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) => PrivateWorldRuntime.BoatProjectPlan(port, name);
         internal static bool IsEdibleFood(string kind) => PrivateWorldRuntime.IsEdibleFood(kind);
         internal static string LandHearingLawToken(TownLaw law, TownLawVersion version) => PrivateWorldRuntime.LandHearingLawToken(law, version);

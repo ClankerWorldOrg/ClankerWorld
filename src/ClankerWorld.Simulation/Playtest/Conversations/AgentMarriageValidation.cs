@@ -31,7 +31,7 @@ internal static class AgentMarriageValidation
             var partnership = marriage.PartnershipReceipt;
             var parties = new[] { consent.InitiatorId, consent.InviteeId }.Order(StringComparer.Ordinal).ToArray();
             var recordedPartnership = society.Relationships.SingleOrDefault(item => item.Id == partnership.Id);
-            if (marriage.Id != AgentMarriageRules.Id(consent.Id) || marriage.SurnameConversationId != marriage.Id + ":surname" ||
+            if (marriage.Id != AgentMarriageRules.Id(consent.Id) || marriage.SurnameConversationId != AgentMarriageRules.SurnameConversationId(marriage.Id) ||
                 marriage.AcceptedTick != consent.LastUpdatedTick || consent.Kind != AgentConversationKind.Ordinary ||
                 consent.Status != AgentConversationStatus.Closed || consent.Outcome != "agreed" || consent.WrapUpEffect != AgentConversationEffect.Marriage ||
                 !society.Inhabitants.Any(item => item.Id == consent.InitiatorId) || !society.Inhabitants.Any(item => item.Id == consent.InviteeId) ||

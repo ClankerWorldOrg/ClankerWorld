@@ -114,7 +114,7 @@ internal sealed partial class CivicSystem
                 var version = law.Versions.Single(version => version.Version == item.Allegation.LawVersion);
                 var lawText = ("Applicable law at the alleged act: " + TownLawRules.Text(version.Subject, version.Rule));
                 state = AddNonviolentEvidence(world, state, state.Cases.Single(current => current.Id == item.Id),
-                    new("law:" + law.Id + ":" + version.Version, revision.Number, "record", "record_inspection", actor, PrivateWorldRuntime.CivicSharedRules.LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick,
+                    new(TownRecordIds.LawEvidence(law.Id, version.Version), revision.Number, "record", "record_inspection", actor, PrivateWorldRuntime.CivicSharedRules.LandHearingLawToken(law, version), TownLandHearingRules.LawVersion(version), item.Allegation.ConductTick,
                         actor, world.WorldTick, NonviolentExcerpt(lawText, 256)), actor, council);
                 state = TownNonviolentRules.Inspect(state, item.Id, revision.Number, actor, world.WorldTick);
                 state = AcquireNonviolentInspectedSources(world, town with { Nonviolent = state, Governance = council },

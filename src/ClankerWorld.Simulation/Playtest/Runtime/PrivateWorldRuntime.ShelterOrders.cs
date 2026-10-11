@@ -225,9 +225,9 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string ShelterOrderReceipt(string instructionId, OwnerInstructionOrder order) =>
-        (order.Action == "tend_fire" ? "shelter:fire:" : "shelter:arrival:") +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(
-            new { instructionId, order.Action, order.ShelterBinding, order.ShelterCompletion }))));
+        DerivedId.Hash(JsonSerializer.Serialize(
+            new { instructionId, order.Action, order.ShelterBinding, order.ShelterCompletion }),
+            order.Action == "tend_fire" ? "shelter:fire:" : "shelter:arrival:");
 
     private static void ValidateShelterOrderBindings(
         WorldContentSimulationState? simulation, DeclarativeWorldContentState content, SocietyCheckpoint society,

@@ -79,6 +79,8 @@ internal static partial class AgentKnowledgeRules
     public static IReadOnlyList<(string Kind, int Quantity)> WritingMaterials(string kind) => kind == "book"
         ? [("paper", 2), ("cloth", 1)] : [("paper", 1)];
     public static string MaterialPurpose(string projectId, string kind) => $"knowledge_writing:{projectId}:{kind}";
+    internal static string WritingReceiptId(string artifactId) =>
+        DerivedId.Create("writing:artifact:" + artifactId, "writing:artifact:sha256:");
 
     public static void Validate(PrivateWorldKnowledgeState knowledge, SeededMap map,
         SocietyCheckpoint society, long worldTick)
@@ -87,7 +89,7 @@ internal static partial class AgentKnowledgeRules
             knowledge.Facts.Any(item => item is null) || knowledge.Artifacts.Any(item => item is null) ||
             knowledge.EarlierFacts.Any(item => item is null) ||
             knowledge.WritingProjects.Any(item => item is null || item.Recipes is null || item.Recipes.Any(recipe => recipe is null)) ||
-            knowledge.Artifacts.Any(item => !ValidText(item.Id, 128) || item.Facts is null || item.Facts.Any(fact => fact is null) || item.Recipes is null || item.Recipes.Any(recipe => recipe is null)))
+            knowledge.Artifacts.Any(item => !ValidText(item.Id, DerivedId.MaximumLength) || item.Facts is null || item.Facts.Any(fact => fact is null) || item.Recipes is null || item.Recipes.Any(recipe => recipe is null)))
             throw new InvalidDataException("The agent knowledge collections are missing or contain null records.");
         var agents = society.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (knowledge.Facts.Count > checked(agents.Count * MaximumFactsPerAgent) ||
@@ -126,7 +128,7 @@ internal static partial class AgentKnowledgeRules
         foreach (var artifact in knowledge.Artifacts)
         {
             var lot = society.Inventory.Lots.FirstOrDefault(item => item.Id == artifact.LotId);
-            if (!ValidText(artifact.Id, 128) || !ValidText(artifact.LotId, 128) || !agents.Contains(artifact.CreatorId) ||
+            if (!ValidText(artifact.Id, DerivedId.MaximumLength) || !ValidText(artifact.LotId, DerivedId.MaximumLength) || !agents.Contains(artifact.CreatorId) ||
                 !IsArtifactKind(artifact.Kind) || !ValidText(artifact.Title, 64) ||
                 artifact.CreatedTick < 0 || artifact.CreatedTick > worldTick ||
                 lot is null || lot.ItemKind != artifact.Kind || lot.Quantity != 1 ||
@@ -139,7 +141,7 @@ internal static partial class AgentKnowledgeRules
         }
         foreach (var project in knowledge.WritingProjects)
         {
-            if (!ValidText(project.Id, 128) || !agents.Contains(project.ActorId) ||
+            if (!ValidText(project.Id, DerivedId.MaximumLength) || !agents.Contains(project.ActorId) ||
                 society.GetInhabitant(project.ActorId).Status != SocietyInhabitantStatus.Active || !IsArtifactKind(project.Kind) ||
                 project.StartedTick < 0 || project.StartedTick > project.LastWorkedTick || project.LastWorkedTick > worldTick ||
                 project.WorkDone < 0 || project.WorkDone >= WritingWork(project.Kind) ||
@@ -156,7 +158,7 @@ internal static partial class AgentKnowledgeRules
         foreach (var artifact in knowledge.Artifacts)
             CheckAncestry(artifact, new HashSet<string>(StringComparer.Ordinal));
 
-        bool ValidFact(AgentKnowledgeFact fact, long latestTick) => fact is not null && ValidText(fact.Id, 160) &&
+        bool ValidFact(AgentKnowledgeFact fact, long latestTick) => fact is not null && ValidText(fact.Id, DerivedId.MaximumLength) &&
             agents.Contains(fact.OwnerId) && agents.Contains(fact.DiscovererId) &&
             map.Contains(fact.Position) && map.IsPassable(fact.Position) &&
             Enum.TryParse<TerrainKind>(fact.Terrain, ignoreCase: false, out _) &&
@@ -187,8 +189,8 @@ internal static partial class AgentKnowledgeRules
 
         bool ValidateMaterials(string? projectId, string actor, string kind, IReadOnlyList<AgentKnowledgeMaterial>? materials, bool completed)
         {
-            if (!ValidText(projectId, 128) || !usedProjects.Add(projectId!) || materials is not { Count: >= 1 and <= 3 } ||
-                materials.Any(item => item is null || !ValidText(item.ReservationId, 256) || !ValidText(item.LotId, int.MaxValue) ||
+            if (!ValidText(projectId, DerivedId.MaximumLength) || !usedProjects.Add(projectId!) || materials is not { Count: >= 1 and <= 3 } ||
+                materials.Any(item => item is null || !ValidText(item.ReservationId, DerivedId.MaximumLength) || !ValidText(item.LotId, int.MaxValue) ||
                     item.Quantity <= 0 || !usedReservations.Add(item.ReservationId))) return false;
             var expected = WritingMaterials(kind);
             if (materials.Any(item => !expected.Any(input => input.Kind == item.ItemKind)) ||

@@ -38,10 +38,25 @@ consenting. Changing a test provider's flags does not wake an admitted idle
 intention. A controlled row reserves the actual garment stock to keep an
 unrelated clothing choice from waking the readers, then verifies their exact
 requested guidance, offered reading choice and admitted idle reply. Each phase
-keeps its forty-tick limit and waits for actual hosted tasks before admission.
+keeps its forty-tick limit and waits for ordinary and life-moment identity
+replies before admission. Parenthood and midlife requests use a separate task
+queue and defer that adult's ordinary choices until their replies are admitted.
+The fixture answers the actual optional-identity choice by keeping the person's
+identity. A controlled row holds a real midlife reply and checks that the
+fixture waits, then retains all notice, consent, checkpoint and replay checks.
 Reading and silence still give no consent; each adult must personally accept,
 including the separately held filer. Host disk writes, unchanged permissions
 before agreement, rollback, strict reload and complete-byte replay remain checked.
+
+The Town membership deadline fixture captures the exact registered hosted
+request at the last valid acceptance tick without waiting for the provider's
+held-request startup signal. It checks that request's acceptance choice and
+remaining world time, expires the approval, then releases the actual provider.
+A private deferred-entry row gates that startup signal until expiry and checks that the late reply
+uses the same request. Reply and actual wrapper-completion waits retain their
+five-second bounds; the completion loop retains eight world ticks. The remaining
+deadline, stale-generation, thought exclusion, physical-property, later ordinary
+sponsorship, pause, replay, rollback and strict-reload checks remain.
 
 The held quantified-harvest fixture captures the actor's exact outstanding
 hosted request and task. After one native harvest finishes, it releases the
@@ -51,6 +66,16 @@ deferred-return row holds this boundary explicitly; complete checkpoint bytes
 stay unchanged during each wait. Thirty-second phase deadlines diagnose a
 stalled request without polling native ticks. The check retains one harvest,
 unchanged completion units, the actual late reply and strict checkpoint reload.
+
+The held harvest/eating check keeps its two adjacent physical frames: one
+harvest without consumption, then consumption on the following tick. Its
+deferred-entry row holds a private preparation gate until both frames are
+checked. It then waits for validated provider entry with the world frozen,
+preserving checkpoint bytes and the three-second startup bound. After releasing
+the reply, it waits for the captured hosted task rather than only the provider's
+response-construction signal. The original five admission ticks and finished-order,
+single-harvest, stale-response, observer-reply and reload checks remain. Its
+finally block opens held gates, cancels pending calls and awaits the captured task.
 
 Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
@@ -75,6 +100,13 @@ repair check also waits for the released reply before checking that cancellation
 prevents repairs. Use this pattern only where advancing ticks preserves the
 intended cancellation boundary; orders that can already complete physical work
 must keep the world at that boundary while waiting for provider entry.
+
+The held lesson-continuation fixture keeps its three-second startup deadline
+and permits at most six additional native ticks before awaiting actual provider
+entry. Its delayed-entry case holds preparation until two more ticks commit.
+The progress baseline is captured only after entry, with room for three further
+lesson steps. The offered partnership answer stays held throughout; denied-tick
+bytes, continued training, unanswered partnership and strict reload remain checked.
 
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment

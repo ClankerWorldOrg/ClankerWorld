@@ -158,8 +158,8 @@ public sealed partial class PrivateWorldRuntime
 
     private static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
         (instruction.Order!.Action == "propose_marriage" ? "marriage-order:" : "talk-order:") +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.TargetAgentId}|{instruction.Order.TalkConversationId}|{instruction.Order.TalkOutcome}")));
+        DerivedId.Hash(
+            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.TargetAgentId}|{instruction.Order.TalkConversationId}|{instruction.Order.TalkOutcome}");
 
     private static bool IsTalkOutcome(string? outcome) => outcome is "agreed" or "refused" or "deadline" or "daily_limit" or
         "disagreed" or "withdrawn" or "participant_unavailable";

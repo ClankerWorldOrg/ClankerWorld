@@ -97,14 +97,13 @@ internal sealed partial class CivicSystem
             .Select(b => (GridPoint?)(b.Entrance ?? TownHallContent.Entrance(b.Position))).FirstOrDefault() ?? town.OriginSite ?? world.WorldSimulation.Buildings.FirstOrDefault(b => b.TownId == town.Id && b.HouseholdId is null)?.Position ?? world.Map.CampObjects.FirstOrDefault(p => p.Kind == "storage" && town.BorderTiles.Contains(p.Position))?.Position ??
         town.BorderTiles.Where(world.Map.IsBuildable).OrderBy(p => p.Y).ThenBy(p => p.X).Select(p => (GridPoint?)p).FirstOrDefault();
     internal static bool NearCivicBoard(ICivicTownWorld world, string actor, TownRuntimeState town) => CivicBoard(world, town) is { } board && world.IsWithinInteractionRange(world.Inhabitants[actor].Position, board, PrivateWorldRuntime.CivicSharedRules.ResourceInteractionRange);
-    internal static string CivicAgentToken(string id) => id.Length <= 128 ? id :
-        "agent-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(id)));
+    internal static string CivicAgentToken(string id) => id.Length == 0 ? id : DerivedId.Create(id, "agent-sha256:");
     internal static string ResolveCivicAgentToken(ICivicHistoryWorld world, string token) => world.Society.Inhabitants.FirstOrDefault(p =>
         p.Id == token || CivicAgentToken(p.Id) == token)?.Id ?? token;
     internal static string CivicAction(ICivicHistoryWorld world, string town, string kind, string subject = "", string choice = "") =>
         $"civic|{town}|{kind}|{(world.Society.Inhabitants.Any(p => p.Id == subject) ? CivicAgentToken(subject) : subject)}|{CivicAgentToken(choice)}";
     internal static string CivicRoundToken(TownElection election) =>
-        $"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}";
+        DerivedId.Create($"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}");
     internal static void AddTownCivicCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor,
         IReadOnlyList<string>? buildingsWithoutSites = null)
     {
@@ -144,7 +143,7 @@ internal sealed partial class CivicSystem
                     var nominee = nearby.InhabitantId;
                     if (resident && adults.Contains(nominee, StringComparer.Ordinal) &&
                         !state.Candidates.Any(c => c.AgentId == nominee && c.FullTerm) &&
-                        !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == "nomination:" + actor + "->" + nominee))
+                        !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == TownRecordIds.Nomination(actor, nominee)))
                         candidates.Add(new(CivicAction(world, town.Id, "nominate", nominee),
                             $"Nominate {world.Society.GetInhabitant(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188));
                     if (world.MayBeSponsoredForAdmission(nominee, town))

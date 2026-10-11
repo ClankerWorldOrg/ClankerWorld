@@ -14,7 +14,7 @@ internal sealed partial class CivicSystem
     internal const string NonviolentRelayPrefix = "nonviolent_relay:";
     internal const int UnfiledConductLimit = 256;
     internal static string NonviolentDigest<T>(T value) =>
-        Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(value))).ToLowerInvariant();
+        DerivedId.Hash(JsonSerializer.Serialize(value));
     internal static string ConductLawDigest(TownLawVersion version) => NonviolentDigest(new
     {
         version.Version,
@@ -29,6 +29,7 @@ internal sealed partial class CivicSystem
         string? itemKind, int quantity, string nativeActId)
     {
         if (!world.Inhabitants.ContainsKey(actor)) return;
+        nativeActId = DerivedId.Create(nativeActId);
         var actorTownId = world.TownForResident(actor);
         foreach (var town in world.Towns.ToArray())
         {
@@ -51,7 +52,7 @@ internal sealed partial class CivicSystem
             var observations = world.Inhabitants.Values.Where(person => person.InhabitantId == actor ||
                     CanObserveNonviolentAct(world, person.InhabitantId, actor, position))
                 .OrderBy(person => person.InhabitantId, StringComparer.Ordinal)
-                .Select(person => new TownConductAcquisition(nativeActId + ":seen:" + person.InhabitantId,
+                .Select(person => new TownConductAcquisition(PrivateWorldRuntime.CivicSharedRules.ConductSeenId(nativeActId, person.InhabitantId),
                     nativeActId, person.InhabitantId, "firsthand", world.WorldTick, person.Position,
                     DescribeNonviolentConduct(record), ObserverHouseholdId: world.HouseholdFor(person.InhabitantId),
                     PrivateSiteHouseholdId: NonviolentPrivateSite(world, position)?.HouseholdId)).ToArray();
@@ -153,7 +154,7 @@ internal sealed partial class CivicSystem
             var original = state.Acquisitions.FirstOrDefault(item => item.Id == evidence.Id);
             if (original is null || state.Acquisitions.Any(item => item.AgentId == actor && item.ConductId == original.ConductId &&
                     item.Kind == "record_inspection" && item.PublicCaseId == file.Id)) continue;
-            var acquired = new TownConductAcquisition(original.ConductId + ":inspect:" + file.Id + ":" + actor,
+            var acquired = new TownConductAcquisition(PrivateWorldRuntime.CivicSharedRules.ConductInspectionId(original.ConductId, file.Id, actor),
                 original.ConductId, actor, "record_inspection", world.WorldTick, reader.Position, evidence.Text,
                 actor, original.Id, ObserverHouseholdId: world.HouseholdFor(actor), PublicCaseId: file.Id);
             state = state with { Acquisitions = state.Acquisitions.Append(acquired).ToArray() };
@@ -172,7 +173,7 @@ internal sealed partial class CivicSystem
         var original = town.Nonviolent.Acquisitions.Where(item => item.AgentId == source && item.ConductId == incidentId)
             .OrderBy(item => item.Tick).ThenBy(item => item.Id, StringComparer.Ordinal).FirstOrDefault();
         if (original is null) return false;
-        var id = $"{incidentId}:relay:{world.WorldTick}:{source}:{recipient}";
+        var id = PrivateWorldRuntime.CivicSharedRules.ConductRelayId(incidentId, world.WorldTick, source, recipient);
         if (town.Nonviolent.Acquisitions.Any(item => item.Id == id)) return true;
         var acquired = new TownConductAcquisition(id, incidentId, recipient, "relay", world.WorldTick,
             listener.Position, statement.Trim(), source, original.Id, speaker.Position, world.HouseholdFor(recipient));
@@ -345,7 +346,7 @@ internal sealed partial class CivicSystem
     }
 
     internal static string NonviolentRemedyCandidateId(TownRuntimeState town, TownRestorativeAgreement agreement, TownRemedyTerm term) =>
-        NonviolentRemedyPrefix + NonviolentDigest(new { Town = town.Id, Agreement = agreement.Id, Term = term.Id });
+        PrivateWorldRuntime.CivicSharedRules.NonviolentRemedyChoiceId(town.Id, agreement.Id, term.Id);
     internal static int NonviolentRemaining(TownNonviolentState state, TownRestorativeAgreement agreement, TownRemedyTerm term) =>
         term.Quantity - state.Effects.Where(effect => effect.AgreementId == agreement.Id && effect.TermId == term.Id).Sum(effect => effect.Quantity);
     internal static void AddNonviolentRemedyCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
@@ -401,7 +402,7 @@ internal sealed partial class CivicSystem
                     if (term.Kind == "return_goods")
                     {
                         var lot = NonviolentReturnLot(world, term with { Quantity = remaining })!;
-                        var operation = $"remedy-return:{world.WorldTick}:{actor}:{world.NextEventId}";
+                        var operation = PrivateWorldRuntime.CivicSharedRules.NativeReturnId(world.WorldTick, actor, world.NextEventId);
                         world.ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, operation, actor,
                             term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution"));
                         RecordNonviolentGoodsCompletion(world, actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
@@ -433,7 +434,7 @@ internal sealed partial class CivicSystem
     }
 
     internal static string NonviolentRelayCandidateId(TownRuntimeState town, TownConductRecord record, string listener) =>
-        NonviolentRelayPrefix + NonviolentDigest(new { Town = town.Id, Act = record.Id, Listener = listener });
+        PrivateWorldRuntime.CivicSharedRules.NonviolentRelayChoiceId(town.Id, record.Id, listener);
     internal void DeliverNonviolentTownGoods(ICivicTownWorld world, string actor, TownRemedyTerm term, int remaining)
     {
         var warehouse = world.WarehouseForResident(actor)!;
@@ -448,7 +449,7 @@ internal sealed partial class CivicSystem
             Math.Min(world.DestinationRoom(warehouse.InstanceId), surplus.Quantity)));
         if (quantity <= 0) return;
         var availableBefore = world.PersonalWarehouseAvailableQuantity(actor, lot.ItemKind);
-        var operation = $"warehouse-stock:{world.WorldTick}:{actor}";
+        var operation = PrivateWorldRuntime.CivicSharedRules.WarehouseStockId(world.WorldTick, actor);
         world.ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, operation, actor, warehouse.TownId!,
             lot.Id, quantity, "town_resources_stored", warehouse.InstanceId));
         RecordNonviolentGoodsCompletion(world, actor, lot, warehouse.TownId!, quantity, warehouse.InstanceId, operation, "public_service_goods", availableBefore);
@@ -460,6 +461,7 @@ internal sealed partial class CivicSystem
     {
         var result = world.Society.Inventory.GetLot(repairedLotId);
         if (result.ConditionBasisPoints <= originalTarget.ConditionBasisPoints) return;
+        nativeReceiptId = DerivedId.Create(nativeReceiptId);
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, "repair_equipment", actor, world.WorldTick,
             originalTarget.OwnerId, originalTarget.ItemKind, 1, originalTarget.Id, originalTarget.Id,
             repairedLotId, originalTarget.OwnerId, result.OwnerId, position,
@@ -473,7 +475,7 @@ internal sealed partial class CivicSystem
     internal void RecordNonviolentGoodsCompletion(ICivicTownWorld world, string actor, InventoryLot sourceLot, string recipientId,
         int quantity, string? storageBuildingId, string nativeReceiptId, string kind, long? carriedAvailableBefore = null)
     {
-        var resultId = quantity == sourceLot.Quantity ? sourceLot.Id : sourceLot.Id + "#transfer:" + nativeReceiptId;
+        var resultId = quantity == sourceLot.Quantity ? sourceLot.Id : DerivedId.Create(sourceLot.Id + "#transfer:" + nativeReceiptId);
         var result = world.Society.Inventory.GetLot(resultId);
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, kind, actor, world.WorldTick, recipientId,
             sourceLot.ItemKind, quantity, storageBuildingId ?? sourceLot.Id, sourceLot.Id, resultId,
@@ -502,7 +504,7 @@ internal sealed partial class CivicSystem
                     var remaining = NonviolentRemaining(town.Nonviolent, agreement, term);
                     if (remaining <= 0) continue;
                     receipt = receipt with { Version = NonviolentDigest(receipt) };
-                    var effect = new TownRemedyEffect("effect:" + receipt.Id, agreement.Id, term.Id, receipt.ActorId,
+                    var effect = new TownRemedyEffect(PrivateWorldRuntime.CivicSharedRules.RemedyEffectId(receipt.Id), agreement.Id, term.Id, receipt.ActorId,
                         receipt.Tick, receipt.Kind, receipt.BeneficiaryId, receipt.ItemKind, Math.Min(remaining, receipt.Quantity),
                         term.TargetId, receipt.Id, receipt.Version);
                     var state = town.Nonviolent with { NativeReceipts = town.Nonviolent.NativeReceipts.Append(receipt).ToArray() };

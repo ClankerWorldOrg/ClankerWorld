@@ -8,13 +8,14 @@ namespace ClankerWorld.Simulation.Playtest;
 
 internal sealed partial class CivicSystem
 {
-    internal static string NonviolentToken(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
+    internal static string NonviolentToken(string text) => DerivedId.Hash(text);
     internal static string NonviolentReportToken(TownViolationAllegation report) => NonviolentToken(report.IncidentId + "|" + report.LawId + "|" + report.LawVersion.ToString(CultureInfo.InvariantCulture));
-    internal static string NonviolentOfferToken(TownRemedyOffer offer) => offer.Id + ":" + offer.Revision.ToString(CultureInfo.InvariantCulture) + ":" + offer.TermsHash;
+    internal static string NonviolentOfferToken(TownRemedyOffer offer) => DerivedId.Create(offer.Id + ":" + offer.Revision.ToString(CultureInfo.InvariantCulture) + ":" + offer.TermsHash);
     internal static TownCaseRevision NonviolentRevision(TownViolationCase item) => item.Revisions[^1];
-    internal static string NonviolentCaseToken(TownViolationCase item) => item.Id + ":" + NonviolentRevision(item).Number.ToString(CultureInfo.InvariantCulture);
-    internal static string NonviolentActionToken(TownViolationCase item) => NonviolentCaseToken(item) + ":" +
-        TownHearingProcedure.Digest(new { item.Evidence, item.Responses, item.Findings, item.Judge, item.ReopenRequests });
+    internal static string NonviolentCaseToken(TownViolationCase item) => DerivedId.Create(item.Id + ":" + NonviolentRevision(item).Number.ToString(CultureInfo.InvariantCulture));
+    internal static string NonviolentActionToken(TownViolationCase item) => DerivedId.Create(item.Id + ":" +
+        NonviolentRevision(item).Number.ToString(CultureInfo.InvariantCulture) + ":" +
+        TownHearingProcedure.Digest(new { item.Evidence, item.Responses, item.Findings, item.Judge, item.ReopenRequests }));
     internal static TownCaseParty[] NonviolentParties(ICivicTownWorld world, TownRuntimeState town, TownViolationCase item) =>
         TownNonviolentPartyRules.CurrentParties(town, item, world.Society, world.WorldTick);
     internal static bool NonviolentMayInspect(ICivicTownWorld world, TownRuntimeState town, TownViolationCase item, string actor) => world.Inhabitants.ContainsKey(actor) && world.Society.GetInhabitant(actor).AgeBand != SocietyAgeBand.Infant &&
