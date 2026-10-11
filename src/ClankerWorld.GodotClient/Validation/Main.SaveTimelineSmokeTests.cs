@@ -286,54 +286,52 @@ public partial class Main
             if (lastTag.Position.X < rows.ViewLeft - 1 || lastTag.End.X > rows.ViewLeft + rows.ViewWidth + 1)
                 throw new InvalidOperationException($"Choosing a crowded save must scroll its complete name tag into view: tag={lastTag}, left={rows.ViewLeft}, width={rows.ViewWidth}, focus={GetViewport().GuiGetFocusOwner()?.GetPath()}, keyboard={keyboardNavigation}.");
 
-            // The container can narrow after a reveal has already been clamped
-            // to its old range. A real window resize must reveal the same tag again.
-            var timelineWindow = GetWindow();
-            var timelineWindowSize = timelineWindow.Size;
-            var timelineUiFactor = uiLayer.Factor;
+            // Use the real timeline controls in a fixed-size native host, so
+            // previous menu/window layout cannot mask the range-change defect.
+            var resizingTimeline = new SaveTimeline { Theme = UiTheme.Theme, Size = new Vector2(900, 240) };
+            AddChild(resizingTimeline);
             try
             {
-                // Earlier UI checks resize and scale the whole client. Arrange a
-                // known wide native view before testing its later narrowing.
-                timelineWindow.Size = new Vector2I(1024, 768);
-                SetUiFactor(1);
+                resizingTimeline.Show([.. crowded, anchor], null, calendar, 6 * Day, 900);
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                rows.GrabFocus();
-                await KeyboardKeyAsync(Key.Left);
-                await KeyboardKeyAsync(Key.Right);
-                if (manualSaveTimeline.SelectedId != "paused-8" || Chosen() != "paused-8")
-                    throw new InvalidOperationException("Keyboard browsing must retain the actual crowded save selection.");
-                var timelineViewWidth = rows.ViewWidth;
-                timelineWindow.Size = new Vector2I(800, 600);
+                resizingTimeline.Select("paused-8");
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                lastTag = rows.TagArea("paused-8") ?? throw new InvalidOperationException("Resizing must retain the selected save's tag.");
-                if (rows.ViewWidth >= timelineViewWidth || manualSaveTimeline.SelectedId != "paused-8" ||
-                    lastTag.Position.X < rows.ViewLeft - 1 || lastTag.End.X > rows.ViewLeft + rows.ViewWidth + 1)
-                    throw new InvalidOperationException($"A narrower window must keep the complete selected save tag in view: tag={lastTag}, left={rows.ViewLeft}, width={rows.ViewWidth}.");
+                var resizingRows = resizingTimeline.Rows;
+                var initialWidth = resizingRows.ViewWidth;
+                var resizedTag = resizingRows.TagArea("paused-8") ?? throw new InvalidOperationException("The selected name must be drawn before resizing.");
+                if (resizedTag.Position.X < resizingRows.ViewLeft - 1 || resizedTag.End.X > resizingRows.ViewLeft + initialWidth + 1)
+                    throw new InvalidOperationException("The resize fixture must start with the selected name visible.");
+                resizingTimeline.Size = new Vector2(650, 240);
+                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                resizedTag = resizingRows.TagArea("paused-8") ?? throw new InvalidOperationException("Resizing must retain the selected name.");
+                if (resizingRows.ViewWidth >= initialWidth)
+                    throw new InvalidOperationException("The native resize fixture must narrow the actual timeline view.");
+                if (resizingTimeline.SelectedId != "paused-8" || resizedTag.Position.X < resizingRows.ViewLeft - 1 ||
+                    resizedTag.End.X > resizingRows.ViewLeft + resizingRows.ViewWidth + 1)
+                    throw new InvalidOperationException($"A narrower timeline must keep the complete selected save tag in view: tag={resizedTag}, left={resizingRows.ViewLeft}, width={resizingRows.ViewWidth}.");
 
-                // Native scrollbar input gives the view back to the player.
-                // A later vertical scrollbar changes the horizontal range too,
-                // but must not drag the view back to the selected name.
-                var timelineScroll = manualSaveTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
+                var resizingScroll = resizingTimeline.FindChildren("*", nameof(ScrollContainer), true, false)
                     .OfType<ScrollContainer>().Single();
-                var revealedLeft = rows.ViewLeft;
-                timelineScroll.GetHScrollBar().GrabFocus();
+                ConfigureKeyboardScrollBar(resizingScroll.GetHScrollBar());
+                var revealedLeft = resizingRows.ViewLeft;
+                resizingScroll.GetHScrollBar().GrabFocus();
                 await KeyboardKeyAsync(Key.Left);
-                var playerLeft = rows.ViewLeft;
-                if (playerLeft >= revealedLeft || manualSaveTimeline.SelectedId != "paused-8")
+                var playerLeft = resizingRows.ViewLeft;
+                if (playerLeft >= revealedLeft || resizingTimeline.SelectedId != "paused-8")
                     throw new InvalidOperationException("The timeline scrollbar must let the player scroll away without changing the selected save.");
-                var playerViewWidth = rows.ViewWidth;
-                manualSaveTimeline.SetMaximumHeight(120);
+                var playerWidth = resizingRows.ViewWidth;
+                resizingTimeline.SetMaximumHeight(120);
+                resizingTimeline.Size = new Vector2(650, 140);
                 for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                if (rows.ViewWidth >= playerViewWidth || Math.Abs(rows.ViewLeft - playerLeft) > 1 ||
-                    manualSaveTimeline.SelectedId != "paused-8")
-                    throw new InvalidOperationException($"Layout must preserve player scrolling after selection: left={rows.ViewLeft}, expected={playerLeft}, width={rows.ViewWidth}, previous={playerViewWidth}.");
+                if (resizingRows.ViewWidth >= playerWidth)
+                    throw new InvalidOperationException("The constrained native height must add a vertical scrollbar and narrow the view.");
+                if (Math.Abs(resizingRows.ViewLeft - playerLeft) > 1 || resizingTimeline.SelectedId != "paused-8")
+                    throw new InvalidOperationException($"Layout must preserve player scrolling after selection: left={resizingRows.ViewLeft}, expected={playerLeft}.");
             }
             finally
             {
-                timelineWindow.Size = timelineWindowSize;
-                SetUiFactor(timelineUiFactor);
-                for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                resizingTimeline.QueueFree();
+                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             }
 
             Click("anchor");

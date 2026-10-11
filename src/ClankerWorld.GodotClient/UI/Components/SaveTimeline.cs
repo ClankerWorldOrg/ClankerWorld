@@ -270,7 +270,8 @@ public partial class SaveTimeline : PanelContainer
         void Scrolled(InputEvent input)
         {
             if (input is InputEventMouseButton { Pressed: true } or InputEventKey { Pressed: true }
-                or InputEventAction { Pressed: true } or InputEventScreenTouch { Pressed: true })
+                or InputEventAction { Pressed: true } or InputEventScreenTouch { Pressed: true }
+                or InputEventScreenDrag or InputEventPanGesture)
             {
                 opening = null;
                 revealing = null;
