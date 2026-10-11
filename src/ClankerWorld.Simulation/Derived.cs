@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace ClankerWorld.Simulation.Playtest;
+namespace ClankerWorld.Simulation;
 
 /// <summary>Optional checks for pure snapshot-derived values; never saved.</summary>
 public static class DerivedVerification

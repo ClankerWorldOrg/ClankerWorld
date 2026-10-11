@@ -185,7 +185,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) =>
-        map.FootDistance(origin, destination) <= interactionRange;
+        ResidentQueries.IsWithinInteractionRange(residentWorld, origin, destination, interactionRange);
 
     private IEnumerable<MapResource> EligibleFoodSources(string actor, GridPoint position) => map.Resources
         .Where(resource => resource.Kind is "food" or "fruit" &&
@@ -286,7 +286,7 @@ public sealed partial class PrivateWorldRuntime
             harvestYield, source.Id);
     }
 
-    private string HouseholdFor(string actor) => society.Checkpoint.GetInhabitant(actor).HouseholdId ?? actor;
+    private string HouseholdFor(string actor) => ResidentQueries.HouseholdFor(residentWorld, actor);
 
     private string ProductionOwnerFor(PlacedBuilding? building, string workerId) =>
         building?.HouseholdId ?? society.Checkpoint.GetInhabitant(workerId).HouseholdId ?? workerId;
@@ -304,10 +304,7 @@ public sealed partial class PrivateWorldRuntime
                 definition.Tags.Contains(tag, StringComparer.Ordinal)))
         .OrderBy(building => building.InstanceId, StringComparer.Ordinal).FirstOrDefault();
 
-    private GridPoint HouseholdStockPosition(InventoryLot lot) => lot.CarrierId is { } carrier ? inhabitants[carrier].Position : lot.GroundPosition is { } ground ? new(ground.X, ground.Y)
-        : lot.StorageBuildingId is { } buildingId
-        ? worldSimulation.Buildings.Single(building => building.InstanceId == buildingId).Position
-        : SettlementStoragePosition;
+    private GridPoint HouseholdStockPosition(InventoryLot lot) => ResidentQueries.HouseholdStockPosition(residentWorld, lot);
 
     private static int HouseholdStockInteractionRange(InventoryLot lot) =>
         lot.StorageBuildingId is null && lot.GroundPosition is null ? ResourceInteractionRange : 0;

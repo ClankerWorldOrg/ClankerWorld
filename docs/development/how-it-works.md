@@ -81,15 +81,34 @@ Provider invocation, pending turns, request Guids and provider-route checks
 stay in the runtime. Admission checks the route at the original point before
 publishing dialogue, listener beliefs or marriage effects.
 
-Shared read services will provide the event log, resident queries, named
-ground-occupancy layers and the separately planned goods query. Snapshot-keyed
+`Runtime/WorldEventLog.cs` owns the ordered world events, next event ID, history
+floor and archive head. Its hot list is exposed read-only and every append
+replaces its `Version` token. Restore copies the saved events into a separate
+log; committing a prepared tick transfers the log with one assignment. Event
+positions still use an explicit point first, then the longest matching living
+or deceased inhabitant ID prefix. The sink receives the current world per call
+and retains no coordinator reference.
+
+`Runtime/ResidentQueries.cs` supplies resident age, household, interaction,
+stock-position and urgent-need rules. Its live adapter supplies the current
+society, positions, distance, building storage and warmth calculation. The
+adapter stays on the coordinator across tick commits; physical queries are
+never cached. Named ground-occupancy layers remain a later refactor step; the
+goods query is described below. Snapshot-keyed
 derived values must be pure, unsaved and absent from digests. Immutable
 snapshots can pass through the trusted tick copy by reference; replacing a
 snapshot invalidates its derived values without letting a discarded tick
 change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
-`Runtime/Derived.cs` weakly caches a pure value by snapshot identity. Conversation
+The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
+`SocietyInhabitantIndex` uses the immutable inhabitant-list identity for an
+ordinal ID dictionary behind the existing `SocietyCheckpoint.GetInhabitant`
+method. Inventory-only snapshot changes can reuse the index; identity, age,
+name or household writes replace its key. Missing and duplicate IDs retain
+the linear query's `Single` behavior, and malformed inputs still pass through
+the existing validation. The index changes no checkpoint fields or ordering.
+Conversation
 lookup indexes each participant's earliest open session, preserving created-tick
 and ID ordering. A separate derived checkpoint view keeps the original ID-sorted
 conversations, budgets and marriage records. Trusted tick preparation shares

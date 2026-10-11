@@ -355,10 +355,7 @@ public sealed partial class PrivateWorldRuntime
         instructionReceipts = proposed.instructionReceipts;
         orderCancellations = proposed.orderCancellations;
         completedInstructionIds = proposed.completedInstructionIds;
-        events = proposed.events;
-        nextEventId = proposed.nextEventId;
-        eventHistoryFloor = proposed.eventHistoryFloor;
-        historyArchiveHead = proposed.historyArchiveHead;
+        worldEventLog = proposed.worldEventLog;
         checkpointSchemaVersion = proposed.checkpointSchemaVersion;
         jevEnabled = proposed.jevEnabled;
         routineHelper = proposed.routineHelper;

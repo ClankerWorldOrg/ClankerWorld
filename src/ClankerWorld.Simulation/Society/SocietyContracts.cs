@@ -455,7 +455,7 @@ public sealed record SocietyCheckpoint(
         Config.AgeAt(inhabitant.BirthLifeTick ?? inhabitant.BirthTick, LifeTickAt(worldTick));
 
     public SocietyInhabitant GetInhabitant(string id) =>
-        Inhabitants.Single(item => string.Equals(item.Id, id, StringComparison.Ordinal));
+        SocietyInhabitantIndex.Get(Inhabitants, id);
 
     public SocietyHousehold GetHousehold(string id) =>
         Households.Single(item => string.Equals(item.Id, id, StringComparison.Ordinal));
