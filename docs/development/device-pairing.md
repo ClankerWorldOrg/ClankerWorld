@@ -260,8 +260,8 @@ invalid keys. A shared budget avoids trusting proxy-supplied source addresses; a
 not consume it. This is bounded ingress, not a claim that the Tailnet endpoint
 is DoS-proof.
 
-Signatures are checked only after a request's JSON is read, so every route caps
-its body first (`RequestBodyLimits`): 16 KiB for pairing routes, 1 MiB for signed
+Every route caps its request body before anything reads it
+(`RequestBodyLimits`): 16 KiB for pairing routes, 1 MiB for signed
 `/api/v1/owner/*` actions, whose largest normal requests are about 2 KB, and
 64 KiB for everything else, including challenge requests and the host-local
 routes. A larger declared body gets 413 before anything reads it; a body
