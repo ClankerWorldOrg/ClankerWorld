@@ -1,3 +1,10 @@
+---
+title: Equipment and ornament query comparison
+type: developer-guide
+status: active
+updated: 2026-10-11
+---
+
 # Equipment and ornament query comparison
 
 Compile the unchanged [Probe.cs](Probe.cs) in an external .NET 10 console
