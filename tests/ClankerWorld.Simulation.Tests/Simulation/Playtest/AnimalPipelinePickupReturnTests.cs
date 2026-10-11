@@ -12,7 +12,7 @@ public sealed partial class AnimalPipelineTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task MilkStockRequiresAReachableSource(bool disconnected)
+    public async Task OrdinaryMilkStoreStockRequiresAReachableSource(bool disconnected)
     {
         var (state, actor, home, yard) = CreateYard("animal-milk-sale");
         var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "store-1x1");
@@ -29,23 +29,29 @@ public sealed partial class AnimalPipelineTests
         var source = disconnected ? new GridPoint(213, 2) : yard.Position;
         Assert.True(state.Map.IsBuildable(source));
         Assert.Equal(!disconnected, SwimmingRules.IsReachable(state.Map, yard.Position, source));
-        inventory = InventoryFixture.AddLot(state.Society.Society.Inventory, "source-milk-jug", "water_jug", home, 1,
+        var reserve = 2 * state.Society.Society.Inhabitants.Count(person => person.HouseholdId == home &&
+            state.Inhabitants.Any(active => active.InhabitantId == person.Id));
+        inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
+        inventory = InventoryFixture.AddLot(inventory, "source-milk", "milk", home, reserve + 2,
             groundPosition: new(source.X, source.Y));
-        inventory = InventoryFixture.AddLot(inventory, "source-milk", "milk", home, 2, containerLotId: "source-milk-jug");
-        state = At(state, actor, yard.Position, inventory, []) with { JevEnabled = false, RoutineHelper = RoutineHelperSettings.Off };
-        var chooser = new ReturnPickupChooser("animal:milk_stock:");
+        state = At(state, actor, yard.Position, inventory, []) with
+        { JevEnabled = false, RoutineHelper = RoutineHelperSettings.Off };
+        var chooser = new ReturnPickupChooser("business_stock_store");
         using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(state)),
             id => id == actor ? chooser : new AnimalChooser());
         if (disconnected)
         {
             for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.DoesNotContain(chooser.Offered.SelectMany(items => items), id => id.StartsWith("animal:milk_stock:", StringComparison.Ordinal));
-            Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot("source-milk-jug").GroundPosition);
-            Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "milk_stock_picked_up");
+            Assert.DoesNotContain(chooser.Offered.SelectMany(items => items), id => id == "business_stock_store");
+            Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot("source-milk").GroundPosition);
+            Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "store_stock_collected");
         }
-        else await Until(world, () => world.Society.Inventory.GetLot("source-milk-jug").StorageBuildingId == store.InstanceId);
-        Assert.Equal((home, 2, "source-milk-jug"), (world.Society.Inventory.GetLot("source-milk").OwnerId,
-            world.Society.Inventory.GetLot("source-milk").Quantity, world.Society.Inventory.GetLot("source-milk").ContainerLotId));
+        else await Until(world, () => world.Society.Inventory.Lots.Any(lot => lot.ItemKind == "milk" && lot.StorageBuildingId == store.InstanceId));
+        Assert.Equal(reserve + 2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk").Sum(lot => lot.Quantity));
+        Assert.All(world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk"), lot =>
+        { Assert.Equal(home, lot.OwnerId); Assert.Null(lot.ContainerLotId); });
+        Assert.Equal(disconnected ? 0 : 2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk" &&
+            lot.StorageBuildingId == store.InstanceId).Sum(lot => lot.Quantity));
         var bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), _ => new AnimalChooser());
         Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
@@ -53,10 +59,10 @@ public sealed partial class AnimalPipelineTests
     }
 
     [Theory]
-    [InlineData(2, true)]
-    [InlineData(1, true)]
-    [InlineData(2, false)]
-    public async Task MilkStockPickupPreservesTheWholeJugsLoadedRoute(int stones, bool swimOnly)
+    [InlineData(4, true)]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
+    public async Task OrdinaryMilkStorePickupKeepsTheLoadedReturnWithinCapacity(int stones, bool swimOnly)
     {
         var (state, actor, home, yard) = CreateYard("cart-set-unfinished");
         var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "store-1x1");
@@ -75,23 +81,23 @@ public sealed partial class AnimalPipelineTests
         Assert.True(state.Map.IsBuildable(source));
         Assert.Equal(!swimOnly, state.Map.IsReachableOnFoot(source, store.Position));
         Assert.True(SwimmingRules.IsReachable(state.Map, source, store.Position));
-        inventory = state.Society.Society.Inventory with
-        {
-            Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != actor).ToArray(),
-        };
+        var reserve = 2 * state.Society.Society.Inhabitants.Count(person => person.HouseholdId == home &&
+            state.Inhabitants.Any(active => active.InhabitantId == person.Id));
+        inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryFixture.AddLot(inventory, "return-ballast", "stone", actor, stones);
-        inventory = InventoryFixture.AddLot(inventory, "return-milk-jug", InventoryContainerRules.WaterJug,
-            home, 1, groundPosition: new(source.X, source.Y));
-        inventory = InventoryFixture.AddLot(inventory, "return-milk", "milk", home, 2, containerLotId: "return-milk-jug");
+        inventory = InventoryFixture.AddLot(inventory, "return-milk", "milk", home, reserve + 2,
+            groundPosition: new(source.X, source.Y));
         state = At(state, actor, source, inventory, []) with
         {
+            JevEnabled = false,
+            RoutineHelper = RoutineHelperSettings.Off,
             Inhabitants = At(state, actor, source, inventory, []).Inhabitants.Select(person => person with
             {
                 Equipment = person.InhabitantId == actor ? null : person.Equipment,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 10_000),
             }).ToArray(),
         };
-        var choices = new ReturnPickupChooser("animal:milk_stock:");
+        var choices = new ReturnPickupChooser("business_stock_store");
         var initial = PrivateWorldRuntimeCodec.Encode(state);
         using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(initial),
             id => id == actor ? choices : new AnimalChooser());
@@ -99,28 +105,28 @@ public sealed partial class AnimalPipelineTests
         world.Pause();
         world.SetRoutineHelper(RoutineHelperSettings.Off);
         world.Resume();
-        if (swimOnly && stones == 2)
+        if (swimOnly && stones == 4)
         {
             for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.DoesNotContain(choices.Offered.SelectMany(items => items), id => id.StartsWith("animal:milk_stock:", StringComparison.Ordinal));
-            Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "milk_stock_picked_up");
-            Assert.Null(world.Society.Inventory.GetLot("return-milk-jug").CarrierId);
-            Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot("return-milk-jug").GroundPosition);
+            Assert.DoesNotContain(choices.Offered.SelectMany(items => items), id => id == "business_stock_store");
+            Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "store_stock_collected");
+            Assert.Null(world.Society.Inventory.GetLot("return-milk").CarrierId);
+            Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot("return-milk").GroundPosition);
         }
         else
         {
-            await Until(world, () => world.Society.Inventory.GetLot("return-milk-jug").StorageBuildingId == store.InstanceId);
-            Assert.Contains(world.ExportState().Events, item => item.Kind == "milk_stock_picked_up");
-            Assert.Equal(store.InstanceId, world.Society.Inventory.GetLot("return-milk").StorageBuildingId);
+            await Until(world, () => world.Society.Inventory.Lots.Any(lot => lot.ItemKind == "milk" && lot.StorageBuildingId == store.InstanceId));
+            Assert.Contains(world.ExportState().Events, item => item.Kind == "store_stock_collected");
         }
-        Assert.Equal((home, 2, "return-milk-jug"),
-            (world.Society.Inventory.GetLot("return-milk").OwnerId,
-                world.Society.Inventory.GetLot("return-milk").Quantity,
-                world.Society.Inventory.GetLot("return-milk").ContainerLotId));
+        Assert.Equal(reserve + 2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk").Sum(lot => lot.Quantity));
+        Assert.All(world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk"), lot =>
+        { Assert.Equal(home, lot.OwnerId); Assert.Null(lot.ContainerLotId); });
+        Assert.Equal(swimOnly ? 4 - stones : 2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk" &&
+            lot.StorageBuildingId == store.InstanceId).Sum(lot => lot.Quantity));
         Assert.Equal(stones, world.Society.Inventory.GetLot("return-ballast").Quantity);
         var saved = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(saved),
-            id => id == actor ? new ReturnPickupChooser("animal:milk_stock:") : new AnimalChooser());
+            id => id == actor ? new ReturnPickupChooser("business_stock_store") : new AnimalChooser());
         Assert.Equal(saved, PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
         world.Validate();
         replay.Validate();

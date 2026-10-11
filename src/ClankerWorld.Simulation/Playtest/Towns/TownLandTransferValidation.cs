@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Playtest;
 
@@ -47,7 +48,7 @@ public static class TownLandTransferValidation
             Check(request.Tiles.All(tile => request.RightVersions.Count(version => version.Right.Tiles.Contains(tile)) == 1),
                 "A transfer plot must consist entirely of unambiguous existing permissions.");
             if (request.Price is { } price)
-                Check(price.Quantity > 0 && Id(price.ItemKind) && price.ItemKind.Length <= 128 && !price.ItemKind.Any(char.IsWhiteSpace) &&
+                Check(price.Quantity > 0 && TownLandHearingRules.ValidText(price.ItemKind, ContentPackageRules.MaximumContentIdLength) && !price.ItemKind.Any(char.IsWhiteSpace) &&
                     !InventoryContainerRules.IsContainer(price.ItemKind) && price.ItemKind != "handcart" &&
                     request.RightVersions.All(version => version.Right.HouseholdId == price.SellerHouseholdId) &&
                     request.Parties.Any(party => party.HouseholdId == price.SellerHouseholdId && party.AdultIds.Contains(request.FilerId)),

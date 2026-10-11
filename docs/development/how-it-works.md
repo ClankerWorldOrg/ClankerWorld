@@ -441,9 +441,9 @@ or coordinate targets still apply; distant sites require that agent's own
 knowledge. Observation does not bypass availability, reachability or the
 whole-load carrying checks.
 
-Urgent food interruptions admit drinking usable milk from a carried jug,
-leaving the jug intact and retaining the pending order. Milk's ordinary
-freshness, reservation, ownership and jug-condition checks still apply.
+Urgent food interruptions admit drinking usable carried milk while retaining
+the pending order. Milk's ordinary freshness, reservation, ownership and
+physical custody checks still apply.
 They also admit the buyer's legal ready-food shop quote,
 Restaurant meal visit and continuation of an open food purchase. The same
 check is used for selecting the interruption and filtering model choices.
@@ -551,7 +551,7 @@ House before travel. The shared borrowed-return helper rechecks custody,
 ownership, reservations, whole-vessel space and the destination at execution.
 Explicit returns select carried borrowed goods independently of ordinary milk
 stocking alternatives. A possible Store or market destination does not exclude
-a milk jug; committed deliveries and active animal-supply trips still do.
+carried milk; committed deliveries and active animal-supply trips still do.
 Only a committed relocation receipt earns `goods_items` or `return_loads`.
 Cancellation never undoes completed movement or changes goods ownership.
 When an explicit storage or return moves the exact hoe or sickle used by that
@@ -1316,6 +1316,12 @@ rule includes deceased biological parents and does not substitute caregivers.
 An invalid surname follows the existing unusable-name outcome; only a taken
 first name earns the extra paid retry. Parent renames do not retroactively
 invalidate a child's name or saved state.
+`RenameInhabitant` refuses removal of a chosen parent's surname when the
+proposed checkpoint would leave any minor biological child with no allowed
+surname. The check runs before commit, so player refusal publishes no name,
+event or permanent memory. Other chosen biological parents, including deceased
+parents, can still supply a surname. Initial unchosen parents and saved child
+names keep their existing treatment; no new saved-state invariant is added.
 
 The response must select a legal candidate. Any finite confidence from 0 to 1
 is accepted; confidence does not veto the choice or a valid chosen name.
@@ -1879,8 +1885,8 @@ carry aids follow the usual cargo exemptions. Pickups and whole harvests with
 a known delivery destination check the load after collection against the
 return route. A foot or cart return keeps its usual capacity; a freshwater-only
 return limits loose pickups to the remaining swimming capacity and keeps an
-oversized vessel family intact. Milk stock selection checks both the source and
-Store or stall, counting the complete jug family. Yard supplies, personal and
+oversized vessel family intact. Ordinary milk uses the shared Store stocking
+checks for the source, destination and loaded return. Yard supplies, personal and
 household planting seeds, autonomous replanting, repair cloth, cart-building
 materials and child-care food pass their actual destination through selection
 and pickup checks. Medicine uses the consenting patient's last observed position,
@@ -4022,9 +4028,8 @@ claims exhaust a Port. All free docks are tried for a connected route.
 Transport follows saved cardinal water steps while avoiding other boats and
 reservations. Passenger cognition permits waiting, eating carried food and
 drinking available carried milk while traveling or waiting for landing. Milk
-uses the same ownership, freshness, reservation and usable-jug checks as on
-land; drinking consumes one portion, restores 3,000 fullness points and keeps
-the jug. Candidate construction and action admission both permit that action;
+uses the same ownership, freshness, reservation and physical custody checks as
+on land; drinking consumes one portion and restores 3,000 fullness points. Candidate construction and action admission both permit that action;
 foot work and conversations cannot move the passenger away from the boat.
 A blocked arrival retains its reservation for one world day, then reserves a
 usable origin for return. When neither landing works, it keeps waiting. Native
@@ -4433,14 +4438,13 @@ A trip isolates its selected feed quantity from
 the source, including an already carried stack, so delivery cannot donate the
 unselected remainder. Reusable jugs travel whole with their contents. One held
 product batch waits for local collection;
-milk enters a reusable household jug. Jug pickup and collection require cargo
-space for the jug's existing contents and the pending milk batch; an unsuitable
-first jug does not hide a fitting alternative. Products then use ordinary stock hauling,
-recipes and trade.
+milk is relocated as ordinary household goods carried by the collecting adult.
+Collection needs space for the complete batch and does not fetch a vessel.
+Products then use ordinary stock hauling, recipes and trade.
 `drink_milk` uses the same carried-milk selector for its offered choice and
-execution. It excludes milk or a jug assigned to a building delivery, keeping
-the promised contents available for their destination. Unassigned carried
-milk remains drinkable and leaves its reusable jug intact.
+execution. It excludes milk assigned to a building delivery, keeping promised
+goods available for their destination. Optional food-pot contents require a
+usable container; milk cannot enter a water jug.
 
 When care is due, its native order candidate requires complete safe inputs, a current care
 supply trip or an obtainable supply. Missing inputs use the existing blocked
@@ -4496,30 +4500,16 @@ capacity; existing product and fitted-saddle reservations remain held during
 preparation, and existing dismount rules preserve excess cargo.
 
 Carried milk drinking is offered with ordinary survival choices, including
-for children, and passes the final child age gate. The existing selector still
-checks ownership, physical custody, jug condition, freshness and reservations;
-drinking consumes one portion and preserves the jug. Infant self-feeding and
-adult-only animal work remain age restricted.
+for children, and passes the final child age gate. The selector checks
+ownership, physical custody, freshness and reservations; drinking consumes one
+portion. Infant self-feeding and adult-only animal work remain age restricted.
 
-Milk stock travels as an actual household jug to a held Store or borrowed Market
-stall, with a stock receipt at a stall. Restocking leaves household jugs on
-actively borrowed Market stalls in place; after the seller leaves, the same
-jug and milk can be collected for a normal Store delivery. Offers and execution
-recheck current borrowing, including during an already accepted restocking walk.
-Fresh seller and buyer personal choices
-exchange one held portion into the buyer's real carried jug for the named
-personal payment. Each pending offer has a distinct milk source lot, even
-when the lot contains several available portions. Candidate generation and
-native admission both enforce this existing save invariant. Closing an offer
-releases its exact reservation and makes any remaining usable stock available
-for another sale. Both jug owners stay the same. Expiry, refusal and changed
-custody release held milk; spoiled milk can be emptied locally without removing
-the vessel or its fresh contents.
-
-Each completed exchange derives the receiving milk lot's identity from its full
-source identity and the admitted sale. A later sale retains that complete
-inventory reference, including each earlier sale in its provenance chain. The new lot ID itself
-stays within the shared derived-identity limit. Checkpoint validation requires a unique, well-formed source reference
-and its exact known lot, ownership, vessel, physical site and held reservation;
-animal, herd and offer identities use that same shared limit; animal names
-keep their separate display-text bound.
+Milk uses ordinary Store stock, Market stock receipts and inventory barter.
+These paths retain ordinary food reserves, protect actively borrowed stalls
+and recheck custody, receiving space and reservations at execution. Store
+stocking includes reachable loose ground goods, so released Market stock uses
+the same selector as other household supplies. Store and
+Market purchases use the existing buyer offer and seller acceptance or refusal.
+There is no milk-specific offer ledger or exchange identity derivation.
+Whole-lot barter retains the existing lot identity; partial transfers use the
+shared inventory transfer rules. Spoilage retains milk's existing rate.

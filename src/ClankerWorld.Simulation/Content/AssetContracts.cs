@@ -299,7 +299,7 @@ public static class AssetRules
         var localId = value[(markerIndex + assetMarker.Length)..versionMarker];
         var versionText = value[(versionMarker + 1)..];
         ContentPackageRules.ValidateDigest(packageDigest, nameof(value));
-        ContentPackageRules.ValidateLocalId(localId);
+        ContentPackageRules.ValidateContentLocalId(localId);
         var version = ContentVersion.Parse(versionText);
         ValidateVersion(version);
         if (!string.Equals(value, CanonicalAssetId(packageDigest, localId, version), StringComparison.Ordinal))

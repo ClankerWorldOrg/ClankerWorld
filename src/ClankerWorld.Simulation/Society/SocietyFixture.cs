@@ -334,6 +334,16 @@ public static partial class SocietyFixture
             Inhabitants = checkpoint.Inhabitants.Select(person =>
                 person.Id == id ? person with { Name = chosen, NeedsName = false, HasChosenName = true } : person).ToArray(),
         };
+        if (existing.HasChosenName && InhabitantNameRules.SurnameKey(existing.Name) is not null &&
+            InhabitantNameRules.SurnameKey(chosen) is null &&
+            next.Relationships.Any(relationship => relationship.ProposerId == id &&
+                relationship.Type == SocietyRelationshipType.BiologicalParentage &&
+                relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.EndedByDeath &&
+                InhabitantNameRules.RequiresParentSurname(next, relationship.TargetId) &&
+                InhabitantNameRules.AllowedChildSurnames(next, relationship.TargetId).Count == 0))
+        {
+            throw new ArgumentException("Keep a biological parent's surname available for each minor child.", nameof(name));
+        }
         return Commit(next, "inhabitant_renamed", id, id);
     }
 

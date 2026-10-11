@@ -1,0 +1,1 @@
+- Milk needs no jug and can be carried, stored, cooked, gifted and traded like other food. Water jugs hold fresh water only. This changes the save format; older alpha saves will not load.
