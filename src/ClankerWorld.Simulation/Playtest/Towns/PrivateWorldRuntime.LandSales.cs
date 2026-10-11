@@ -9,9 +9,10 @@ public sealed partial class PrivateWorldRuntime
     private static bool LandSaleKind(string kind) => TownLandHearingRules.ValidText(kind, ContentPackageRules.MaximumContentIdLength) &&
         !kind.Any(char.IsWhiteSpace) && !InventoryContainerRules.IsContainer(kind) && kind != "handcart";
 
-    private InventoryLot[] LandSaleCarriedLots(string actor, TownLandSalePrice price) => society.Checkpoint.Inventory.Lots
-        .Where(lot => lot.OwnerId == actor && lot.ItemKind == price.ItemKind && PersonalEquipmentRules.IsCarried(lot, actor) &&
-            lot.DeliveryBuildingId is null && !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id) && AvailableLotQuantity(lot) > 0)
+    private InventoryLot[] LandSaleCarriedLots(string actor, TownLandSalePrice price) =>
+        SpendingGoods(actor, GoodsUse.Spend, [actor], price.ItemKind).Select(match => match.Lot)
+        .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) &&
+            !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id))
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
 
     private int LandSaleCarriedQuantity(string actor, TownLandSalePrice price)

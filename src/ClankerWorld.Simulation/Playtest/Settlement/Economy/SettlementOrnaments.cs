@@ -34,6 +34,10 @@ public sealed partial class PrivateWorldRuntime
         PersonalEquipmentRules.IsOrnament(lot.ItemKind) && lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
         lot.ContainerLotId is null && lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0;
 
+    private IEnumerable<InventoryLot> PersonalOrnamentsToGive(string actor) =>
+        SpendingGoods(actor, GoodsUse.Spend, [actor]).Select(match => match.Lot)
+            .Where(lot => IsPersonallyCarriedOrnament(lot, actor));
+
     private static GoodsRequest OrnamentCollectionRequest(string actor, string owner) => new(
         GoodsUse.Collect, actor, GoodsOwners.One(owner), new GoodsKinds(["gold_ornament", "diamond_ornament"]));
 
@@ -67,7 +71,7 @@ public sealed partial class PrivateWorldRuntime
         if (inhabitants[actor].Equipment?.OrnamentLotId is not null)
             candidates.Add(new(RemoveOrnamentCandidate, "Remove your worn ornament and keep it among your carried goods.", 181));
         var gifts = 0;
-        foreach (var lot in society.Checkpoint.Inventory.Lots.Where(lot => IsPersonallyCarriedOrnament(lot, actor))
+        foreach (var lot in PersonalOrnamentsToGive(actor)
                      .OrderBy(lot => lot.Id, StringComparer.Ordinal).Take(4))
             foreach (var recipient in LocalOrnamentRecipients(actor))
             {
@@ -107,7 +111,7 @@ public sealed partial class PrivateWorldRuntime
             else _ = WearOrnamentCore(actor, source.Id);
             return true;
         }
-        foreach (var lot in society.Checkpoint.Inventory.Lots.Where(lot => IsPersonallyCarriedOrnament(lot, actor)))
+        foreach (var lot in PersonalOrnamentsToGive(actor))
             foreach (var recipient in LocalOrnamentRecipients(actor))
                 if (OrnamentChoiceId(GiftOrnamentPrefix, lot.Id, recipient.InhabitantId) == selected.CandidateId)
                 {
@@ -214,7 +218,9 @@ public sealed partial class PrivateWorldRuntime
     {
         if (!LivingOrnamentAdult(actor) || !LocalOrnamentRecipients(actor).Any(person => person.InhabitantId == recipientId))
             return new(false, Failure: "Choose a nearby living adult with room to carry the gift.");
-        var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(item => item.Id == lotId && IsPersonallyCarriedOrnament(item, actor));
+        var lot = RecheckGoods(new(GoodsUse.Spend, actor, GoodsOwners.One(actor),
+            new GoodsKinds(["gold_ornament", "diamond_ornament"])), lotId)?.Lot;
+        if (lot is not null && !IsPersonallyCarriedOrnament(lot, actor)) lot = null;
         if (lot is null) return new(false, Failure: "The giver must personally carry one usable, unreserved ornament.");
         if (FreeCarryCapacity(recipientId) < 1) return new(false, Failure: "The recipient has no room to carry the gift.");
         var person = inhabitants[actor];
