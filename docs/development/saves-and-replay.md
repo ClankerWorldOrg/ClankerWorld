@@ -1526,6 +1526,14 @@ profiles inspect retained records from both ledgers, filtered to their original
 owner. Earlier formats are refused and
 preserved; no archive migration or automatic deletion is added.
 
+New project-help gratitude keys longer than recall's 128-character boundary use
+a SHA-256 digest of the complete requester/helper key, preserving their
+`project-gratitude:` cooperation prefix. Short keys and full saved participant
+references are unchanged. No field, schema or migration changes: existing
+records load without rewriting, and previously oversized keys retain their
+recall exclusion. Native assistance, physical delivery, strict hosted reload,
+later personal recall, complete-byte continuation and refused ticks are checked.
+
 ## Private memory summaries
 
 Private-world schema 122 and society/runtime v4 require a non-null

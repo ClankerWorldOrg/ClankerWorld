@@ -1,0 +1,1 @@
+- Native-born residents can recall newly received help with project materials after saving and reopening, while retaining the helper's identity and the original gratitude and trust effects.

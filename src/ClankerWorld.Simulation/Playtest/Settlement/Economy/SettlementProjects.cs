@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Cognition;
@@ -1133,7 +1135,11 @@ public sealed partial class PrivateWorldRuntime
             helperId, recipient, carried.Id, quantity, "project_request_fulfilled",
             house?.InstanceId));
         IncreaseTrust(request.Requester, helperId, 2, "material_help");
-        var memoryId = $"project-gratitude:{request.Requester}:{helperId}";
+        var memoryKey = $"project-gratitude:{request.Requester}:{helperId}";
+        // Preserve short keys and the cooperation prefix, while keeping native
+        // descendants' complete identities within the memory recall boundary.
+        var memoryId = memoryKey.Length <= 128 ? memoryKey :
+            $"project-gratitude:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new SocietySocialMemory(
