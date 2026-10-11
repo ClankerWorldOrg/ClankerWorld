@@ -51,8 +51,8 @@ public sealed partial class PrivateWorldRuntime
 
     private int MissingRepairInputUnits(string actor, InventoryLot item) =>
         PersonalEquipmentRules.RepairMaterials(item.ItemKind).Sum(input => Math.Max(0, input.Amount -
-            society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
-                lot.DeliveryBuildingId is null && lot.ItemKind == input.ResourceId).Sum(AvailableLotQuantity)));
+            (int)Math.Min(int.MaxValue, SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId)
+                .Where(match => PersonalEquipmentRules.IsCarried(match.Lot, actor)).Sum(match => (long)match.Quantity))));
 
     private static GoodsRequest PrivateEquipmentRequest(string actor, string owner) => new(
         GoodsUse.ReachableHoldings, actor, GoodsOwners.One(owner),
@@ -208,9 +208,8 @@ public sealed partial class PrivateWorldRuntime
         {
             foreach (var input in PersonalEquipmentRules.RepairMaterials(target.ItemKind))
             {
-                var material = inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).First(lot =>
-                    lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
-                    lot.ItemKind == input.ResourceId && PersonalEquipmentRules.AvailableQuantity(inventory, lot) >= input.Amount);
+                var material = SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId, inventory: inventory)
+                    .First(match => PersonalEquipmentRules.IsCarried(match.Lot, actor) && match.Quantity >= input.Amount).Lot;
                 var id = EquipmentRepairReservationId(WorldTick, actor, input.ResourceId);
                 inventory = InventoryFixture.Reserve(inventory, id, actor, material.Id, input.Amount,
                     "equipment_repair", WorldTick + 120);

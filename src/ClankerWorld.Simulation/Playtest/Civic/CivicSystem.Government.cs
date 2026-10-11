@@ -10,7 +10,7 @@ internal sealed partial class CivicSystem
         TownGovernanceState council, TownGovernmentState government)
     {
         var adults = TownAdults(world, town);
-        return TownGovernmentRules.Advance(council, government, town.Id, town.Name, world.WorldSeed, adults, world.WorldTick, CivicDay(world), PrivateWorldRuntime.CivicSharedRules.TownLandHearingElectionBusy(town) || TownNonviolentElectionBusy(town));
+        return TownGovernmentRules.Advance(council, government, town.Id, town.Name, world.WorldSeed, adults, world.WorldTick, CivicDay(world), TownLandHearingElectionBusy(town) || TownNonviolentElectionBusy(town));
     }
 
     internal static void AddTownLawCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)

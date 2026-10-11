@@ -81,7 +81,7 @@ public sealed partial class PrivateWorldRuntime
     private int MarketStockQuantity(TownMarketState market, MarketStallState stall, InventoryCheckpoint? inventory = null) =>
         MarketTradeRules.StockAt(market, stall.BuildingId, MarketContent.StallSite(market.Site, stall.SlotIndex),
             inventory ?? society.Checkpoint.Inventory).Sum(lot => lot.Quantity +
-                (inventory ?? society.Checkpoint.Inventory).Lots.Where(content => content.ContainerLotId == lot.Id).Sum(content => content.Quantity));
+                InventoryIndex.For(inventory ?? society.Checkpoint.Inventory).ContentsQuantity(lot.Id));
 
     private int MarketIncomingPayment(TownMarketState market, MarketStallState stall,
         InventoryCheckpoint? inventory = null) => market.Trades
@@ -93,19 +93,37 @@ public sealed partial class PrivateWorldRuntime
     private bool OwnMarketGoods(string actor, InventoryLot lot) =>
         lot.OwnerId == actor || society.Checkpoint.GetInhabitant(actor).HouseholdId is { } household && lot.OwnerId == household;
 
-    private int MarketSurplus(string actor, InventoryLot lot)
+    private sealed record MarketGoodsBasis(IReadOnlyList<GoodsMatch> Matches,
+        IReadOnlyDictionary<string, int> Quantities, IReadOnlyDictionary<(string Owner, string Kind), long> KeptFood);
+
+    private MarketGoodsBasis MarketGoodsFor(string actor)
     {
-        if (!IsEdibleFood(lot.ItemKind)) return AvailableLotQuantity(lot);
+        var owners = HouseholdFor(actor) is { } household ? new[] { actor, household } : [actor];
+        var matches = SpendingGoods(actor, GoodsUse.Sell, owners).ToArray();
+        var quantities = matches.ToDictionary(match => match.Lot.Id, match => match.Quantity, StringComparer.Ordinal);
+        var kept = matches.Where(match => IsEdibleFood(match.Lot.ItemKind) && MarketReserveStock(actor, match.Lot))
+            .GroupBy(match => (match.Lot.OwnerId, match.Lot.ItemKind))
+            .ToDictionary(group => group.Key, group => group.Sum(match => (long)match.Quantity));
+        return new(matches, quantities, kept);
+    }
+
+    private bool MarketReserveStock(string actor, InventoryLot lot) => lot.ContainerLotId is null &&
+        (lot.OwnerId == actor ? PersonalEquipmentRules.IsCarried(lot, actor) : lot.CarrierId is null) &&
+        !OnMarketStall(lot);
+
+    private int MarketSurplus(string actor, InventoryLot lot, MarketGoodsBasis? goods = null)
+    {
+        goods ??= MarketGoodsFor(actor);
+        var available = goods.Quantities.GetValueOrDefault(lot.Id);
+        if (!IsEdibleFood(lot.ItemKind)) return available;
         var reserve = lot.OwnerId == actor
             ? Math.Max(2, CaregiverFoodCarryRequirement(actor, inhabitants[actor]))
             : 2 * society.Checkpoint.GetHousehold(lot.OwnerId).MemberIds.Count(id => inhabitants.ContainsKey(id));
-        // The owner's other usable food of this kind covers the reserve first, so a load taken from real surplus stays surplus.
-        var kept = society.Checkpoint.Inventory.Lots.Where(other => other.Id != lot.Id && other.OwnerId == lot.OwnerId &&
-                other.ItemKind == lot.ItemKind && other.ContainerLotId is null && other.DeliveryBuildingId is null &&
-                (lot.OwnerId == actor ? PersonalEquipmentRules.IsCarried(other, actor) : other.CarrierId is null) &&
-                !OnMarketStall(other))
-            .Sum(AvailableLotQuantity);
-        return Math.Max(0, AvailableLotQuantity(lot) - Math.Max(0, reserve - kept));
+        // Sum each owner's usable food once per synchronous query, across split
+        // lots. A bound source limits the load, not which lots cover its reserve.
+        var kept = goods.KeptFood.GetValueOrDefault((lot.OwnerId, lot.ItemKind)) -
+            (MarketReserveStock(actor, lot) ? available : 0);
+        return (int)Math.Max(0L, available - Math.Max(0L, reserve - kept));
     }
 
     private bool OnMarketStall(InventoryLot lot) => towns.Any(town => town.Markets.Any(market => market.Stalls.Any(stall =>
@@ -120,11 +138,11 @@ public sealed partial class PrivateWorldRuntime
         PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id) ||
         BestUsableToolIds(society.Checkpoint.Inventory, actor).Contains(lot.Id);
 
-    private IEnumerable<InventoryLot> MarketLoadSources(string actor)
+    private IEnumerable<InventoryLot> MarketLoadSources(string actor, MarketGoodsBasis goods)
     {
-        var inventory = society.Checkpoint.Inventory;
-        return inventory.Lots.Where(lot => MarketTradeRules.IsLoose(lot) && OwnMarketGoods(actor, lot) &&
-            !ProtectedMarketItem(actor, lot) && MarketSurplus(actor, lot) > 0 &&
+        return goods.Matches.Select(match => match.Lot)
+            .Where(lot => MarketTradeRules.IsLoose(lot) &&
+            !ProtectedMarketItem(actor, lot) && MarketSurplus(actor, lot, goods) > 0 &&
             (PersonalEquipmentRules.IsCarried(lot, actor) ||
              lot.OwnerId != actor && lot.CarrierId is null &&
              (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
@@ -136,7 +154,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private (InventoryLot Goods, InventoryLot Payment)? MarketQuote(string buyer, TownMarketState market,
-        MarketStallState stall, MarketStallOccupancy occupancy)
+        MarketStallState stall, MarketStallOccupancy occupancy, MarketGoodsBasis? buyerGoods = null)
     {
         var inventory = society.Checkpoint.Inventory;
         var position = MarketContent.StallSite(market.Site, stall.SlotIndex);
@@ -149,14 +167,16 @@ public sealed partial class PrivateWorldRuntime
                 (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer)) ||
             MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) > MarketTradeRules.StallCapacity)
             return null;
-        foreach (var goods in MarketTradeRules.StockAt(market, stall.BuildingId, position, inventory)
-                     .Where(lot => MarketTradeRules.MaySell(market, occupancy, lot, society.Checkpoint, occupancy.SellerAgentId) &&
-                         AvailableLotQuantity(lot) > 0 && BusinessBuyerWants(buyer, lot)))
+        buyerGoods ??= MarketGoodsFor(buyer);
+        foreach (var goods in SpendingGoods(occupancy.SellerAgentId, GoodsUse.Sell,
+                     [occupancy.SellerAgentId, occupancy.SellerHouseholdId], inventory: inventory).Select(match => match.Lot)
+                     .Where(lot => MarketTradeRules.IsAt(lot, position) && MarketTradeRules.MaySell(market, occupancy, lot, society.Checkpoint, occupancy.SellerAgentId) &&
+                         BusinessBuyerWants(buyer, lot)))
         {
-            foreach (var payment in inventory.Lots.Where(lot => lot.OwnerId == buyer &&
-                         PersonalEquipmentRules.IsCarried(lot, buyer) && MarketTradeRules.IsLoose(lot) &&
+            foreach (var payment in buyerGoods.Matches.Select(match => match.Lot)
+                         .Where(lot => lot.OwnerId == buyer && PersonalEquipmentRules.IsCarried(lot, buyer) && MarketTradeRules.IsLoose(lot) &&
                          lot.StorageBuildingId is null && lot.GroundPosition is null && lot.ItemKind != goods.ItemKind &&
-                         !ProtectedMarketItem(buyer, lot) && !BusinessBuyerWants(buyer, lot) && MarketSurplus(buyer, lot) > 0)
+                         !ProtectedMarketItem(buyer, lot) && !BusinessBuyerWants(buyer, lot) && MarketSurplus(buyer, lot, buyerGoods) > 0)
                          .OrderBy(lot => lot.Id, StringComparer.Ordinal))
                 // Trial exact barter gives and receives one physical unit, so neither receiving load grows.
                 if (PersonalEquipmentRules.CarriedQuantity(inventory, buyer, inhabitants[buyer].Equipment) +
@@ -171,6 +191,7 @@ public sealed partial class PrivateWorldRuntime
         if (!MarketAdult(actor)) yield break;
         var inventory = society.Checkpoint.Inventory;
         var ready = ReadyForMarket(actor);
+        MarketGoodsBasis? goods = null;
         var offeredLoad = false;
         foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
             foreach (var market in town.Markets.OrderBy(item => item.Id, StringComparer.Ordinal))
@@ -193,6 +214,7 @@ public sealed partial class PrivateWorldRuntime
                                 "collect", town, market, stall, occupancy, lot, quantity);
                     }
                     if (!LiveMarketStall(town, market, stall)) continue;
+                    goods ??= MarketGoodsFor(actor);
                     foreach (var trade in market.Trades.Where(item => IsOpenMarketTrade(item) && item.StallBuildingId == stall.BuildingId &&
                                  (item.SellerAgentId == actor || item.BuyerId == actor)).OrderBy(item => item.OfferId, StringComparer.Ordinal))
                     {
@@ -208,18 +230,18 @@ public sealed partial class PrivateWorldRuntime
                         if (!ready || society.Checkpoint.GetInhabitant(actor).HouseholdId != occupancy.SellerHouseholdId ||
                             !CanReachMarketPoint(actor, position, ResourceInteractionRange)) continue;
                         var room = MarketTradeRules.StallCapacity - MarketStockQuantity(market, stall) - MarketIncomingPayment(market, stall);
-                        foreach (var lot in inventory.Lots.Where(lot => MarketTradeRules.IsLoose(lot) && OwnMarketGoods(actor, lot) &&
-                                     PersonalEquipmentRules.IsCarried(lot, actor) && !ProtectedMarketItem(actor, lot) && MarketSurplus(actor, lot) > 0)
+                        foreach (var lot in goods.Matches.Select(match => match.Lot).Where(lot => MarketTradeRules.IsLoose(lot) &&
+                                     PersonalEquipmentRules.IsCarried(lot, actor) && !ProtectedMarketItem(actor, lot) && MarketSurplus(actor, lot, goods) > 0)
                                      .OrderBy(lot => lot.Id, StringComparer.Ordinal))
                         {
-                            var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(room, MarketSurplus(actor, lot)));
+                            var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(room, MarketSurplus(actor, lot, goods)));
                             if (quantity > 0)
                                 yield return new(MarketChoiceId("deposit", occupancy.Id, lot.Id,
                                     quantity.ToString(CultureInfo.InvariantCulture), MarketPlaceMode(actor, position, ResourceInteractionRange)),
                                     "deposit", town, market, stall, occupancy, lot, quantity);
                         }
                     }
-                    else if (occupancy is not null && MarketQuote(actor, market, stall, occupancy) is { } quote)
+                    else if (occupancy is not null && MarketQuote(actor, market, stall, occupancy, goods) is { } quote)
                         yield return new(MarketChoiceId("buy", occupancy.Id, actor, quote.Goods.Id, quote.Payment.Id,
                             MarketPlaceMode(actor, position, ResourceInteractionRange)),
                             "buy", town, market, stall, occupancy, quote.Goods, 1, Payment: quote.Payment);
@@ -229,7 +251,7 @@ public sealed partial class PrivateWorldRuntime
                         MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) >= MarketTradeRules.StallCapacity)
                         continue;
                     var offeredBorrow = false;
-                    foreach (var lot in MarketLoadSources(actor))
+                    foreach (var lot in MarketLoadSources(actor, goods))
                     {
                         if (PersonalEquipmentRules.IsCarried(lot, actor))
                         {
@@ -244,7 +266,7 @@ public sealed partial class PrivateWorldRuntime
                         }
                         // One empty stall is enough to plan a load; the stall itself is borrowed on arrival.
                         if (offeredLoad) continue;
-                        var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(MarketSurplus(actor, lot), FreeCarryCapacity(actor)));
+                        var quantity = Math.Min(MarketTradeRules.LoadQuantity, Math.Min(MarketSurplus(actor, lot, goods), FreeCarryCapacity(actor)));
                         if (quantity > 0 && CanReachMarketPoint(actor, HouseholdStockPosition(lot), HouseholdStockInteractionRange(lot)))
                             yield return new(MarketChoiceId("load", market.Id, stall.BuildingId, lot.Id,
                                 quantity.ToString(CultureInfo.InvariantCulture), MarketPlaceMode(actor, HouseholdStockPosition(lot),

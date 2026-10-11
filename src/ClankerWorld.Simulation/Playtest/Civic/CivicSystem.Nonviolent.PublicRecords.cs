@@ -22,16 +22,16 @@ internal sealed partial class CivicSystem
                     string? text = null;
                     var right = rights.FirstOrDefault(right => right.Id == evidence.SourceRecordId &&
                         TownLandHearingRules.Version(right) == evidence.SourceVersion && right.GrantedTick <= evidence.ObservedTick);
-                    if (right is not null) text = PrivateWorldRuntime.CivicSharedRules.LandHearingRightText(right);
+                    if (right is not null) text = LandHearingRightText(right);
                     var title = titles.FirstOrDefault(title => title.TownId == town.Id && title.Tiles.Contains(position) &&
                         title.Id == evidence.SourceRecordId && TownLandHearingRules.RecordVersion(title) == evidence.SourceVersion &&
                         title.RecordedTick <= evidence.ObservedTick);
-                    if (title is not null) text = PrivateWorldRuntime.CivicSharedRules.LandHearingTitleText(title);
+                    if (title is not null) text = LandHearingTitleText(title);
                     var ruling = hearings.Cases.SelectMany(file => file.Rulings.Where(ruling =>
                         file.Revisions.Any(notice => notice.Number == ruling.Revision && notice.Tiles.Contains(position))))
                         .FirstOrDefault(ruling => ruling.Id == evidence.SourceRecordId &&
                             TownLandHearingRules.RecordVersion(ruling) == evidence.SourceVersion && ruling.Tick <= evidence.ObservedTick);
-                    if (ruling is not null) text = PrivateWorldRuntime.CivicSharedRules.LandHearingRulingText(ruling);
+                    if (ruling is not null) text = LandHearingRulingText(ruling);
                     // The land ledger also validates the original inspection/read chain. Matching its
                     // canonical wording prevents a submitted account from becoming a verified record.
                     if (text is null || evidence.Text != text || evidence.ObservedTick > read.ReadTick) continue;

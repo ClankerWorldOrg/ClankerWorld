@@ -173,8 +173,8 @@ public sealed partial class PrivateWorldRuntime
     {
         var inventory = society.Checkpoint.Inventory;
         var protectedToolIds = BestUsableToolIds(inventory, buyer);
-        return inventory.Lots.Where(lot => lot.OwnerId == buyer && PersonalEquipmentRules.IsCarried(lot, buyer) &&
-                IsLooseBusinessLot(lot) && AvailableLotQuantity(lot) > 0 &&
+        return SpendingGoods(buyer, GoodsUse.Spend, [buyer], inventory: inventory).Select(match => match.Lot)
+            .Where(lot => PersonalEquipmentRules.IsCarried(lot, buyer) && IsLooseBusinessLot(lot) &&
                 !protectedToolIds.Contains(lot.Id) && !BusinessBuyerWants(buyer, lot) &&
                 BusinessPaymentUseful(building, lot) &&
                 !PersonalEquipmentRules.IsSelected(inhabitants[buyer].Equipment, lot.Id) &&
@@ -239,9 +239,9 @@ public sealed partial class PrivateWorldRuntime
             return null;
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         if (BusinessRules.KindOf(definition) is not { } kind) return null;
-        foreach (var goods in inventory.Lots.Where(lot => lot.OwnerId == seller &&
-                     lot.StorageBuildingId == building.InstanceId && IsLooseBusinessLot(lot) &&
-                     AvailableLotQuantity(lot) > 0 && BusinessRules.MaySell(kind, lot.ItemKind) &&
+        foreach (var goods in SpendingGoods(buyer, GoodsUse.Sell, [seller], building: building.InstanceId,
+                     inventory: inventory).Select(match => match.Lot)
+                     .Where(lot => IsLooseBusinessLot(lot) && BusinessRules.MaySell(kind, lot.ItemKind) &&
                      (exactGoodsLotId is null || lot.Id == exactGoodsLotId) && (requestedGoods || BusinessBuyerWants(buyer, lot))).OrderBy(lot => lot.Id, StringComparer.Ordinal))
         {
             // Payment comes from the buyer's own goods, never borrowed household ones.
