@@ -342,7 +342,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 continue;
             }
-            var requestId = $"family:{person.InhabitantId}:{plan.RequestedTick}";
+            var requestId = ParenthoodRequestId(person.InhabitantId, plan.RequestedTick);
             var householdCaregivers = new[] { person.InhabitantId, plan.PartnerId }
                 .Where(parent => HouseholdFor(parent) == birthHouseholdId)
                 .Append(caregiverId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
@@ -455,12 +455,12 @@ public sealed partial class PrivateWorldRuntime
                 plan.Stage == "completed" && (plan.ChildId is null || !known.Contains(plan.ChildId) ||
                     plan.BirthHouseholdId is not { } birthHomeId ||
                     !state.Society.Society.Births.Any(birth => birth.ChildId == plan.ChildId &&
-                        birth.RequestId == $"family:{person.InhabitantId}:{plan.RequestedTick}" &&
+                        birth.RequestId == ParenthoodRequestId(person.InhabitantId, plan.RequestedTick) &&
                         birth.PrimaryCaregiverId == plan.PrimaryCaregiverId &&
                         birth.HouseholdId == birthHomeId)) ||
                 plan.Stage != "completed" && (plan.ChildId is not null || plan.BirthHouseholdId is not null) ||
                 (ActiveParenthood(plan) || plan.Stage == "postponed") && state.Society.Society.Births.Any(birth =>
-                    birth.RequestId == $"family:{person.InhabitantId}:{plan.RequestedTick}") ||
+                    birth.RequestId == ParenthoodRequestId(person.InhabitantId, plan.RequestedTick)) ||
                 ActiveParenthood(plan) && (!participants.Add(person.InhabitantId) || !participants.Add(plan.PartnerId)))
             {
                 throw new InvalidDataException("The saved parenthood plan is invalid.");

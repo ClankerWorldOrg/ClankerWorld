@@ -15,7 +15,7 @@ public sealed partial class PrivateWorldRuntime
         (goal.Kind == "resource" && (PrivateWorldInstructionOrderParser.IsMaterialKind(goal.Target) ||
             goal.Target is "food" or "berries" or "wild_greens" or "fruit") ||
          goal.Kind == "terrain" && goal.Target is "Forest" or "Mountain") &&
-        (goal.OrderInstructionId is null || goal.OrderInstructionId.Length is > 0 and <= 160 &&
+        (goal.OrderInstructionId is null || goal.OrderInstructionId.Length is > 0 and <= DerivedId.MaximumLength &&
             !goal.OrderInstructionId.Any(char.IsControl));
 
     private static SettlementExplorationGoal? ExplorationGoalForOrder(OwnerQueuedInstruction instruction) =>

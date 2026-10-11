@@ -96,7 +96,7 @@ public sealed partial class PrivateWorldRuntime
                     lot.StorageBuildingId == pair.Trade.BuildingInstanceId &&
                     lot.ConditionBasisPoints > 0 && lot.FreshnessBasisPoints > 0 &&
                     lot.Quantity >= pair.Offer.FirstQuantity) &&
-                inventory.Reservations.Any(reservation => reservation.Id == pair.Offer.Id + ":first" &&
+                inventory.Reservations.Any(reservation => reservation.Id == DerivedId.Create(pair.Offer.Id + ":first") &&
                     reservation.State == InventoryReservationState.Reserved &&
                     reservation.Quantity >= pair.Offer.FirstQuantity))
             .Sum(pair => pair.Offer.FirstQuantity);
@@ -130,9 +130,7 @@ public sealed partial class PrivateWorldRuntime
             var household = HouseholdFor(actor);
             // Trial reserve for real iron-tool work, not a tool to equip.
             return HouseholdBuildingWithTag(household, "blacksmith") is not null &&
-                society.Checkpoint.Inventory.Lots.Where(item => item.ItemKind == "iron" &&
-                    !OnBorrowedMarketStall(item) &&
-                    (item.OwnerId == actor || item.OwnerId == household)).Sum(AvailableLotQuantity) < 2;
+                HoldingsTotal(new[] { actor, household }.OfType<string>(), GoodsKinds.One("iron")) < 2;
         }
         if (PersonalEquipmentRules.IsCarryAid(lot.ItemKind))
             return PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) <
@@ -368,7 +366,7 @@ public sealed partial class PrivateWorldRuntime
         ApplyInventoryTransition(inventory =>
         {
             var payment = inventory.GetLot(offer.SecondLotId);
-            var paymentId = payment.Quantity == offer.SecondQuantity ? payment.Id : $"{payment.Id}#barter:{offer.Id}";
+            var paymentId = payment.Quantity == offer.SecondQuantity ? payment.Id : DerivedId.Create($"{payment.Id}#barter:{offer.Id}");
             var settled = InventoryFixture.AcceptDirectBarterOffer(inventory, offer.Id, offer.Revision, trade.SellerHouseholdId);
             return settled with
             {
@@ -382,7 +380,7 @@ public sealed partial class PrivateWorldRuntime
 
     private string OpenBusinessQuote(string actor, PlacedBuilding building, BusinessQuote choice)
     {
-        var id = $"{BusinessTradePrefix}{WorldTick}:{actor}:{building.InstanceId}";
+        var id = BusinessTradeOfferId(WorldTick, actor, building.InstanceId);
         // Quotes name exact actual quantities; future goods are never reserved.
         ApplyInventoryTransition(inventory => InventoryFixture.AcceptDirectBarterOffer(
             InventoryFixture.CreateDirectBarterOffer(inventory, new(id, 1,
@@ -411,7 +409,7 @@ public sealed partial class PrivateWorldRuntime
             goods.OwnerId != trade.SellerHouseholdId || goods.StorageBuildingId != trade.BuildingInstanceId ||
             goods.GroundPosition is not null || !PersonalEquipmentRules.IsCarried(payment, trade.BuyerId) ||
             goods.Quantity < offer.FirstQuantity || payment.Quantity < offer.SecondQuantity ||
-            new[] { offer.Id + ":first", offer.Id + ":second" }.Any(id => !inventory.Reservations.Any(reservation =>
+            new[] { DerivedId.Create(offer.Id + ":first"), DerivedId.Create(offer.Id + ":second") }.Any(id => !inventory.Reservations.Any(reservation =>
                 reservation.Id == id && reservation.State == InventoryReservationState.Reserved)))
             return "The reserved goods are no longer available at the agreed location.";
         var kind = BusinessRules.KindOf(worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId));
@@ -465,7 +463,7 @@ public sealed partial class PrivateWorldRuntime
         {
             Offers = inventory.Offers.Where(offer => !retired.Contains(offer.Id)).ToArray(),
             Reservations = inventory.Reservations.Where(reservation => !retired.Any(id =>
-                reservation.Id == id + ":first" || reservation.Id == id + ":second")).ToArray(),
+                reservation.Id == DerivedId.Create(id + ":first") || reservation.Id == DerivedId.Create(id + ":second"))).ToArray(),
         });
     }
 
@@ -480,7 +478,7 @@ public sealed partial class PrivateWorldRuntime
         {
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
             if (offer is null || !offer.Id.StartsWith(BusinessTradePrefix, StringComparison.Ordinal) ||
-                offer.Id != $"{BusinessTradePrefix}{trade.ProposedTick}:{trade.BuyerId}:{trade.BuildingInstanceId}" ||
+                offer.Id != BusinessTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
                 trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
                 !BoundedBusinessText(trade.BuildingInstanceId, 256) ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||

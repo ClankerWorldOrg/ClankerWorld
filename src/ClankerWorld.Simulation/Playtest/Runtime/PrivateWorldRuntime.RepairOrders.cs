@@ -30,8 +30,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 if (ContinueEquipmentRepair(actor) is { } effect)
                 {
-                    var identity = $"{actor}:{effect.StartedTick}:{effect.LotId}";
-                    var receipt = "repair:equipment:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+                    var receipt = EquipmentRepairReceipt(actor, effect.StartedTick, effect.LotId);
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 return;

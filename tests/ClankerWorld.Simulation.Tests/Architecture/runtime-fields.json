@@ -11,7 +11,7 @@
     "contentRegistry",
     "continuity",
     "conversationSystem",
-    "council",
+    "civicSystem",
     "deceasedInhabitants",
     "fertility",
     "fields",
@@ -42,12 +42,14 @@
     "worldEventLog",
     "worldSeed",
     "worldSimulation",
-    "worldSystems"
+    "environmentSystem"
   ],
   "live": [
     "AgentBeliefChanged",
     "conversationWorld",
+    "civicWorld",
     "gate",
+    "environmentWorld",
     "maxCognitionDispatchPerCycle",
     "memoryCompactionTransitions",
     "observerGeneration",
@@ -62,7 +64,6 @@
     "tickGate"
   ],
   "scratch": [
-    "civicHistoryIndexes",
     "guardianPlacementActions",
     "lastTickMilliseconds",
     "nonviolentRemedySelection",

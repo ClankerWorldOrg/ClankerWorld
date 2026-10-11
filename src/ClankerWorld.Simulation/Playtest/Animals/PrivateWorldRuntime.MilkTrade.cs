@@ -10,12 +10,12 @@ public sealed partial class PrivateWorldRuntime
     private sealed record MilkStockChoice(InventoryLot Jug, string BuildingId, GridPoint Position,
         TownRuntimeState? Town = null, TownMarketState? Market = null, MarketStallOccupancy? Occupancy = null)
     {
-        public string Id => "animal:milk_stock:" + AnimalKey(System.Text.Json.JsonSerializer.Serialize(new[] { Jug.Id, BuildingId }));
+        public string Id => MilkStockId(Jug.Id, BuildingId);
     }
     private sealed record MilkSaleChoice(string Seller, string Buyer, string Milk, string Jug, string Payment,
         string Building, GridPoint Position)
     {
-        public string Id => "animal:milk_offer:" + AnimalKey(System.Text.Json.JsonSerializer.Serialize(new[] { Seller, Buyer, Milk, Jug, Payment, Building }));
+        public string Id => MilkSaleId(Seller, Buyer, Milk, Jug, Payment, Building);
     }
     private bool IsMilkJug(InventoryLot jug) => jug.ItemKind == InventoryContainerRules.WaterJug && jug.ConditionBasisPoints > 0 &&
         society.Checkpoint.Inventory.Lots.Any(lot => lot.ContainerLotId == jug.Id && lot.ItemKind == "milk" && AvailableLotQuantity(lot) > 0);
@@ -32,7 +32,7 @@ public sealed partial class PrivateWorldRuntime
     private bool ApplySpoiledMilkChoice(string actor, string id)
     {
         if (!id.StartsWith("animal:empty_milk:", StringComparison.Ordinal)) return false;
-        var jug = SpoiledMilkJugs(actor).FirstOrDefault(jug => id == "animal:empty_milk:" + AnimalKey(jug.Id));
+        var jug = SpoiledMilkJugs(actor).FirstOrDefault(jug => id == SpoiledMilkChoiceId(jug.Id));
         if (jug is null) return true;
         var position = HouseholdStockPosition(jug);
         if (!PersonalEquipmentRules.IsCarried(jug, actor) && !IsWithinInteractionRange(inhabitants[actor].Position, position, HouseholdStockInteractionRange(jug)))
@@ -95,7 +95,7 @@ public sealed partial class PrivateWorldRuntime
         { MoveToward(actor, inhabitants[actor], choice.Position, "milk_stock_delivery"); return true; }
         var receiptId = choice.Market is null ? null : MarketTradeRules.ReceiptId(choice.Occupancy!.Id, jug.Id, jug.OwnerId, 1,
             WorldTick, choice.Market.NextStockReceiptSequence);
-        ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory, receiptId is null ? "milk-deposit-" + WorldTick + "-" + nextEventId : receiptId + ":deposit",
+        ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory, receiptId is null ? "milk-deposit-" + WorldTick + "-" + nextEventId : TownRecordIds.DepositOperation(receiptId),
             jug.Id, jug.OwnerId, 1, storageBuildingId: choice.Market is null ? choice.BuildingId : null,
             groundPosition: choice.Market is null ? null : new(choice.Position.X, choice.Position.Y)));
         if (choice.Market is { } market)
@@ -177,7 +177,7 @@ public sealed partial class PrivateWorldRuntime
             inventory.Lots.Any(lot => lot.Id == offer.PaymentLotId && lot.OwnerId == offer.BuyerId && PersonalEquipmentRules.IsCarried(lot, offer.BuyerId) &&
                 lot.ContainerLotId is null && !InventoryContainerRules.IsContainer(lot.ItemKind) && lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
                 !PersonalEquipmentRules.IsSelected(inhabitants[offer.BuyerId].Equipment, lot.Id)) &&
-            inventory.Reservations.Any(held => held.Id == offer.Id + "-milk" && held.LotId == milk.Id && held.OwnerId == milk.OwnerId &&
+            inventory.Reservations.Any(held => held.Id == MilkSaleReservationId(offer.Id) && held.LotId == milk.Id && held.OwnerId == milk.OwnerId &&
                 held.Quantity == 1 && held.IsExclusive && held.State == InventoryReservationState.Reserved && held.Purpose == "milk-sale:" + offer.Id);
     }
     private void ReconcileMilkOffers()
@@ -186,14 +186,14 @@ public sealed partial class PrivateWorldRuntime
     }
     private void CloseMilkOffer(MilkSaleOffer offer, string reason)
     {
-        if (society.Checkpoint.Inventory.Reservations.Any(held => held.Id == offer.Id + "-milk" && held.State == InventoryReservationState.Reserved))
-            ApplyInventoryTransition(inventory => InventoryFixture.ReleaseReservation(inventory, offer.Id + "-milk", reason));
+        if (society.Checkpoint.Inventory.Reservations.Any(held => held.Id == MilkSaleReservationId(offer.Id) && held.State == InventoryReservationState.Reserved))
+            ApplyInventoryTransition(inventory => InventoryFixture.ReleaseReservation(inventory, MilkSaleReservationId(offer.Id), reason));
         animalWorld = animalWorld with { MilkOffers = animalWorld.MilkOffers.Where(item => item.Id != offer.Id).ToArray() };
         AppendEvent("milk_sale_" + reason, offer.Id);
     }
     private void AddMilkCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        foreach (var jug in SpoiledMilkJugs(actor).Take(4)) candidates.Add(new("animal:empty_milk:" + AnimalKey(jug.Id),
+        foreach (var jug in SpoiledMilkJugs(actor).Take(4)) candidates.Add(new(SpoiledMilkChoiceId(jug.Id),
             "Pour away spoiled milk at its actual jug; keep the reusable jug and any fresh milk.", 21));
         foreach (var stock in MilkStockChoices(actor).Take(8)) candidates.Add(new(stock.Id,
             "Carry the actual household milk jug to the Store or borrowed Market stall; its owner stays the same.", 36, stock.BuildingId));
@@ -215,10 +215,10 @@ public sealed partial class PrivateWorldRuntime
         var actor = decision.InhabitantId;
         if (MilkSaleChoices(actor).FirstOrDefault(choice => choice.Id == selected.CandidateId) is { } sale)
         {
-            var offer = new MilkSaleOffer("milk-sale-" + AnimalKey(sale.Id + ":" + WorldTick + ":" + nextEventId), actor, sale.Buyer,
+            var offer = new MilkSaleOffer(MilkOfferId(sale.Id, WorldTick, nextEventId), actor, sale.Buyer,
                 sale.Milk, sale.Jug, sale.Payment, sale.Building, sale.Position, WorldTick);
             var milk = society.Checkpoint.Inventory.GetLot(sale.Milk);
-            ApplyInventoryTransition(inventory => InventoryFixture.Reserve(inventory, offer.Id + "-milk", milk.OwnerId,
+            ApplyInventoryTransition(inventory => InventoryFixture.Reserve(inventory, MilkSaleReservationId(offer.Id), milk.OwnerId,
                 milk.Id, 1, "milk-sale:" + offer.Id, WorldTick + 120));
             animalWorld = animalWorld with { MilkOffers = animalWorld.MilkOffers.Append(offer).OrderBy(offer => offer.Id, StringComparer.Ordinal).ToArray() };
             AppendEvent("milk_sale_offered", offer.Id, offer.Position);
@@ -229,9 +229,9 @@ public sealed partial class PrivateWorldRuntime
             if (selected.CandidateId.StartsWith("animal:milk_accept:", StringComparison.Ordinal))
             {
                 var payment = society.Checkpoint.Inventory.GetLot(offer.PaymentLotId);
-                var paymentId = payment.Quantity == 1 ? payment.Id : payment.Id + "#transfer:" + offer.Id + "-payment";
+                var paymentId = payment.Quantity == 1 ? payment.Id : DerivedId.Create(payment.Id + "#transfer:" + DerivedId.Create(offer.Id + "-payment"));
                 ApplyInventoryTransition(inventory => InventoryFixture.ExchangeMilk(inventory, offer.Id,
-                    offer.Id + "-milk", offer.ReceivingJugId, actor, offer.PaymentLotId, new(offer.Position.X, offer.Position.Y)));
+                    MilkSaleReservationId(offer.Id), offer.ReceivingJugId, actor, offer.PaymentLotId, new(offer.Position.X, offer.Position.Y)));
                 RecordMilkMarketPayment(offer, paymentId);
                 CloseMilkOffer(offer, "completed");
             }
@@ -250,7 +250,7 @@ public sealed partial class PrivateWorldRuntime
                 if (occupancy is null) continue;
                 var payment = society.Checkpoint.Inventory.GetLot(paymentId);
                 var receiptId = MarketTradeRules.ReceiptId(occupancy.Id, payment.Id, payment.OwnerId, 1, WorldTick, market.NextStockReceiptSequence);
-                ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory, receiptId + ":deposit", payment.Id,
+                ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory, TownRecordIds.DepositOperation(receiptId), payment.Id,
                     payment.OwnerId, 1, groundPosition: new(offer.Position.X, offer.Position.Y)));
                 var receipt = new MarketStockReceipt(receiptId, occupancy.Id, offer.SellerId, payment.OwnerId, payment.Id,
                     payment.Id, payment.ItemKind, 1, WorldTick, society.Checkpoint.Inventory.Events[^1].EventId)

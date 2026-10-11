@@ -54,12 +54,18 @@ public sealed partial class PrivateWorldRuntime
             society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
                 lot.DeliveryBuildingId is null && lot.ItemKind == input.ResourceId).Sum(AvailableLotQuantity)));
 
-    private IEnumerable<InventoryLot> PrivateEquipmentSources(string actor) => society.Checkpoint.Inventory.Lots
+    private static GoodsRequest PrivateEquipmentRequest(string actor, string owner) => new(
+        GoodsUse.ReachableHoldings, actor, GoodsOwners.One(owner),
+        new GoodsKinds(["clothing", "padded_coat", "rain_cloak", "basket", "sack", "leather_sack"]));
+
+    private IEnumerable<InventoryLot> PrivateEquipmentSources(string actor) =>
+        FindGoods(PrivateEquipmentRequest(actor, actor)).Matches.Select(match => match.Lot)
         // Borrowed goods, carried by this agent or by another member, are not theirs to take.
-        .Where(lot => AvailableLotQuantity(lot) > 0 && lot.DeliveryBuildingId is null &&
-            (lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) ||
-                lot.OwnerId == society.Checkpoint.GetInhabitant(actor).HouseholdId &&
-                lot.CarrierId is null && CanReachSharedItem(actor, lot)))
+        .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor))
+        .Concat(society.Checkpoint.GetInhabitant(actor).HouseholdId is { } household
+            ? FindGoods(PrivateEquipmentRequest(actor, household)).Matches.Select(match => match.Lot)
+                .Where(lot => lot.CarrierId is null)
+            : [])
         .Concat(AvailableWarehouseStock(actor)).DistinctBy(lot => lot.Id);
 
     private InventoryLot? BetterGarment(string actor)
@@ -132,6 +138,11 @@ public sealed partial class PrivateWorldRuntime
                 return;
             }
         }
+        // Equipping can make room by replacing the carrying aid, so the existing
+        // post-equipment capacity rule applies rather than Collect's current free room.
+        if (RecheckGoods(PrivateEquipmentRequest(actor, item.OwnerId), item.Id) is not { } match ||
+            !CanEquipPrivateItem(actor, match.Lot, carryAid)) return;
+        item = match.Lot;
         var equippedId = item.Id;
         var previous = inhabitants[actor].Equipment;
         var equipment = previous ?? new PersonalEquipment();
@@ -139,13 +150,13 @@ public sealed partial class PrivateWorldRuntime
         {
             if (item.OwnerId != actor)
             {
-                var transferId = $"equipment:{WorldTick}:{actor}:{item.Id}";
+                var transferId = EquipmentTransferId(WorldTick, actor, item.Id);
                 inventory = InventoryFixture.Transfer(inventory, transferId, item.OwnerId, actor, item.Id, 1, "equipment_collected");
-                equippedId = item.Quantity == 1 ? item.Id : item.Id + "#transfer:" + transferId;
+                equippedId = item.Quantity == 1 ? item.Id : DerivedId.Create(item.Id + "#transfer:" + transferId);
             }
             else if (item.Quantity > 1)
             {
-                equippedId = $"equipped:{WorldTick}:{actor}:{item.Id}";
+                equippedId = EquippedUnitId(WorldTick, actor, item.Id);
                 inventory = InventoryFixture.SplitLot(inventory, item.Id, 1, equippedId);
             }
             inhabitants[actor] = inhabitants[actor] with
@@ -200,7 +211,7 @@ public sealed partial class PrivateWorldRuntime
                 var material = inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).First(lot =>
                     lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
                     lot.ItemKind == input.ResourceId && PersonalEquipmentRules.AvailableQuantity(inventory, lot) >= input.Amount);
-                var id = $"repair:{WorldTick}:{actor}:{input.ResourceId}";
+                var id = EquipmentRepairReservationId(WorldTick, actor, input.ResourceId);
                 inventory = InventoryFixture.Reserve(inventory, id, actor, material.Id, input.Amount,
                     "equipment_repair", WorldTick + 120);
                 ids.Add(id);

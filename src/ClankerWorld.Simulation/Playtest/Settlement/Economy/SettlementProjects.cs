@@ -291,33 +291,7 @@ public sealed partial class PrivateWorldRuntime
         var changedChunkCoordinates = additions.Select(resource =>
                 ChunkRules.ToChunkCoordinate(resource.Position, campChunk.ChunkSize))
             .ToHashSet();
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources.Concat(additions.Select(resource => new EcologyResource(
-                    resource.Id, resource.Kind, resource.Position, resource.IsRenewable, 16, 16,
-                    resource.IsRenewable ? 4 : 0, resource.IsRenewable ? 1 : 0, SeasonKind.Spring,
-                    WorldCalendarRules.FromTick(WorldTick, worldSystems.Config).DayIndex + 1, EcologyResourceState.Available)))
-                    .OrderBy(resource => resource.Id, StringComparer.Ordinal).ToArray(),
-            },
-            Chunks = worldSystems.Chunks.Select(chunk =>
-            {
-                if (!changedChunkCoordinates.Contains(chunk.Coordinate))
-                    return chunk;
-                var origin = chunk.Coordinate.Origin(chunk.ChunkSize);
-                return ChunkManifestCodec.WithDigest(chunk with
-                {
-                    Resources = map.Resources.Where(resource =>
-                            resource.Position.X >= origin.X && resource.Position.X < origin.X + chunk.Width &&
-                            resource.Position.Y >= origin.Y && resource.Position.Y < origin.Y + chunk.Height)
-                        .Select(resource => new ChunkResourceMetadata(
-                            resource.Id, resource.Kind,
-                            new GridPoint(resource.Position.X - origin.X, resource.Position.Y - origin.Y),
-                            resource.IsRenewable)).ToArray(),
-                });
-            }).ToArray(),
-        };
+        environmentSystem.AddSettlementResources(map, additions, changedChunkCoordinates, WorldTick);
         SyncEcologyResourceStates();
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("settlement_resources_added", string.Join(',', additions.Select(resource => resource.Kind)));
@@ -920,13 +894,7 @@ public sealed partial class PrivateWorldRuntime
         // A failed inventory/capacity transition therefore leaves the source
         // untouched and does not wear a tool.
         ApplyGatheringInventory(inhabitantId, itemKind, plan, deliveryBuildingId);
-        worldSystems = worldSystems with
-        {
-            Ecology = worldSystems.Ecology with
-            {
-                Resources = worldSystems.Ecology.Resources.Select(resource => resource.Id == source.Id ? harvested : resource).ToArray(),
-            },
-        };
+        environmentSystem.ReplaceEcologyResource(source.Id, harvested);
         SyncEcologyResourceStates();
         RecordNonviolentConduct(inhabitantId, plan.FellTree ? "fell_tree" : "gather_material", source.Position,
             source.Id, itemKind, plan.Quantity, $"gather-material:{WorldTick}:{inhabitantId}:{nextEventId}");
@@ -939,7 +907,7 @@ public sealed partial class PrivateWorldRuntime
             // start a new tree elsewhere.
             AppendEvent("tree_seed_collected", $"{inhabitantId}:{source.Id}:{plan.TreeSeedQuantity}");
         }
-        return new MaterialGatherEffect($"material:{WorldTick}:{inhabitantId}", itemKind, plan.Quantity, source.Id);
+        return new MaterialGatherEffect(MaterialLotId(WorldTick, inhabitantId), itemKind, plan.Quantity, source.Id);
     }
 
     private static InventoryCheckpoint MarkBuildingMaterialDelivery(InventoryCheckpoint inventory, string lotId,
@@ -1135,11 +1103,9 @@ public sealed partial class PrivateWorldRuntime
             helperId, recipient, carried.Id, quantity, "project_request_fulfilled",
             house?.InstanceId));
         IncreaseTrust(request.Requester, helperId, 2, "material_help");
-        var memoryKey = $"project-gratitude:{request.Requester}:{helperId}";
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.
-        var memoryId = memoryKey.Length <= 128 ? memoryKey :
-            $"project-gratitude:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
+        var memoryId = ProjectGratitudeMemoryId(request.Requester, helperId);
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new SocietySocialMemory(

@@ -21,7 +21,7 @@ namespace ClankerWorld.Simulation.Playtest;
 /// </summary>
 public sealed partial class PrivateWorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 122;
+    public const int StateSchemaVersion = 123;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -63,7 +63,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private List<FarmFieldState> fields = [];
     private SocietyWorldRuntime society;
     private ContentPackageRegistry contentRegistry;
-    private WorldSystemsState worldSystems;
+    private EnvironmentSystem environmentSystem;
+    private WorldSystemsState worldSystems => environmentSystem.State;
     private DeclarativeWorldContentState worldContent;
     private WorldContentSimulationState worldSimulation;
     private WorldAssetReservationLedger assetReservations;
@@ -80,6 +81,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private HashSet<string> completedInstructionIds = new(StringComparer.Ordinal);
     private WorldEventLog worldEventLog = new([]);
     private readonly IResidentWorld residentWorld;
+    private readonly IEnvironmentResidentWorld environmentWorld;
     private ReadOnlyCollection<PlaytestWorldEvent> events => worldEventLog.Events;
     private long nextEventId => worldEventLog.NextEventId;
     private long eventHistoryFloor => worldEventLog.HistoryFloor;
@@ -99,6 +101,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private List<HandcartHitch> handcartHitches = [];
     private ConversationSystem conversationSystem = new(new([], [], []));
     private readonly IConversationWorld conversationWorld;
+    private CivicSystem civicSystem = new(CivicState.Empty);
+    private readonly ICivicTownWorld civicWorld;
     private ReadOnlyCollection<AgentConversation> conversations => conversationSystem.State.Conversations;
     private ReadOnlyCollection<AgentMarriage> marriages => conversationSystem.State.Marriages;
     private IReadOnlyList<AgentConversationDailyBudget> conversationBudgets => conversationSystem.State.Budgets;
@@ -149,12 +153,14 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         GeographyOptions? geographyOptions,
         SeededMap? preparedMap,
         bool includeLegacyBedroll = false,
-        WorldSystemsState? restoredWorldSystems = null,
-        string? savedWorldId = null)
+        PrivateWorldRuntimeState? restoringState = null,
+        bool trustedPreparedState = false)
     {
         this.worldSeed = NormalizeRequiredText(worldSeed, nameof(worldSeed));
         conversationWorld = new ConversationWorldAdapter(this);
         residentWorld = new ResidentWorldAdapter(this);
+        environmentWorld = new EnvironmentWorldAdapter(this);
+        civicWorld = new CivicWorldAdapter(this);
         if (geographyOptions is not null &&
             (startPace != WorldStartPace.FounderSetup ||
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
@@ -167,9 +173,12 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         }
 
         this.maxCognitionDispatchPerCycle = maxCognitionDispatchPerCycle;
-        contentRegistry = new ContentPackageRegistry();
-        worldContent = new DeclarativeWorldContentState([], []);
-        worldSimulation = WorldContentSimulationState.Empty;
+        contentRegistry = restoringState is null ? new ContentPackageRegistry() :
+            ContentPackageRegistry.Restore(restoringState.Content);
+        worldContent = restoringState?.WorldContent ?? new DeclarativeWorldContentState([], []);
+        worldSimulation = restoringState is null ? WorldContentSimulationState.Empty :
+            trustedPreparedState ? restoringState.WorldSimulation! :
+            restoringState.WorldSimulation! with { CropBuilds = restoringState.WorldSimulation.CropBuilds ?? [] };
         assetReservations = new WorldAssetReservationLedger();
         map = preparedMap ?? (startPace == WorldStartPace.FounderSetup
             ? geographyOptions is null
@@ -179,12 +188,19 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         fertility = new LandFertility(map, this.worldSeed);
         // Restore supplies an already validated saved state or a trusted tick
         // snapshot. Only a new world needs genesis ecology, chunks and weather.
-        worldSystems = restoredWorldSystems ?? CreateWorldSystems(this.worldSeed, map, startPace);
-        // Restore and tick preparation reuse the stored ID, avoiding map hashing
-        // after creation and preserving existing seed-identified worlds.
+        environmentSystem = new(restoringState?.WorldSystems ?? CreateWorldSystems(this.worldSeed, map, startPace));
+        if (restoringState is not null)
+        {
+            // Restore never creates founders, physical state or genesis events.
+            // Trusted tick snapshots retain their immutable prepared objects.
+            society = SocietyWorldRuntime.Restore(restoringState.Society, providerFactory);
+            return;
+        }
+
+        // New-world genesis begins only after common runtime services exist.
         society = CreateSociety(
             this.worldSeed,
-            savedWorldId ?? (geographyOptions is null ? this.worldSeed : GeneratedWorldId(this.worldSeed, geographyOptions, map)),
+            geographyOptions is null ? this.worldSeed : GeneratedWorldId(this.worldSeed, geographyOptions, map),
             providerFactory,
             maxCognitionQueueLength,
             maxCognitionDispatchPerCycle,
@@ -198,6 +214,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
             founderSetup = new FounderSetupState([], false);
             if (geographyOptions is null)
                 towns = [TownBorderRules.CreateFirstTown(map)];
+            civicSystem.RestoreTowns(towns);
         }
         else
             CreatePhysicalState();
@@ -268,7 +285,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     public FounderSetupState? FounderSetup => founderSetup;
 
     public IReadOnlyList<TownRuntimeState> Towns => towns
-        .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+        .Select(civicSystem.CheckpointTown).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
 
     public IReadOnlyList<TownLandTitleRecord> TownLandTitles => townLandTitles
         .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
@@ -328,8 +345,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
             state.Geography,
             trustedPreparedState ? state.Map : null,
             includeLegacyBedroll: state.Map.CampObjects.Any(item => item.Id == "bedroll" && item.Kind == "bedroll"),
-            restoredWorldSystems: state.WorldSystems!,
-            savedWorldId: state.Society.Society.WorldId);
+            restoringState: state,
+            trustedPreparedState: trustedPreparedState);
         if (!trustedPreparedState && !IsCompatibleSavedMap(runtime.map, state))
         {
             runtime.Dispose();
@@ -341,13 +358,6 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         runtime.routineHelper = state.RoutineHelper;
         runtime.jevPolicyRevision = state.JevPolicyRevision;
         runtime.founderSetup = state.FounderSetup;
-        runtime.society.Dispose();
-        runtime.society = SocietyWorldRuntime.Restore(
-            state.Society,
-            providerFactory);
-        runtime.contentRegistry = ContentPackageRegistry.Restore(state.Content);
-        runtime.worldContent = state.WorldContent!;
-        runtime.worldSimulation = state.WorldSimulation! with { CropBuilds = state.WorldSimulation.CropBuilds ?? [] };
         runtime.fertility = new LandFertility(runtime.map, state.WorldSeed);
         runtime.handcartHitches = state.HandcartHitches!.ToList();
         runtime.boatTransport = state.BoatTransport;
@@ -355,6 +365,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         runtime.fields = state.Fields!.OrderBy(field => field.Position.Y)
             .ThenBy(field => field.Position.X).ToList();
         runtime.towns = state.Towns!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+        runtime.civicSystem.RestoreTowns(runtime.towns);
         runtime.townLandTitles = state.TownLandTitles!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
         runtime.householdLandUseRights = state.HouseholdLandUseRights!
             .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
@@ -518,7 +529,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         assetReservations.ExportState(), eventHistoryFloor, historyArchiveHead, survivalState, council,
         deceasedInhabitants.Count == 0 ? null : deceasedInhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
         jevPolicyRevision == 0 && jevEnabled ? null : jevEnabled, jevPolicyRevision, founderSetup,
-        geographyOptions, towns.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
+        geographyOptions, towns.Select(civicSystem.CheckpointTown).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
         RoadTiles, Bridges, bridgeTraffic, fields.ToArray(),
         conversationSystem.CheckpointState.Conversations,
         conversationSystem.CheckpointState.Budgets,

@@ -122,9 +122,9 @@ public sealed partial class PrivateWorldRuntime
             CreditOrderEffect(instruction, CartOrderEffectId(instruction), 1);
     }
 
-    private static string CartOrderEffectId(OwnerQueuedInstruction instruction) => "cart-order:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}")));
+    private static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
+        DerivedId.Hash(
+            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}", "cart-order:");
 
     private static void ValidateCartOrderBindings(InventoryCheckpoint inventory, IEnumerable<OwnerQueuedInstruction> instructions)
     {
@@ -138,7 +138,7 @@ public sealed partial class PrivateWorldRuntime
             if (order.Action != "repair_handcart" || order.CompletedUnits == 0) continue;
             repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id, StringComparer.Ordinal);
             if (CartRepairOrderReceiptTick(instruction, inventory.WorldTick) is not { } tick ||
-                !CartRepairKinds.All(kind => repairReservations.TryGetValue($"cart-repair:{tick}:{instruction.TargetInhabitantId}:{kind}", out var input) &&
+                !CartRepairKinds.All(kind => repairReservations.TryGetValue(CartRepairReservationId(tick, instruction.TargetInhabitantId, kind), out var input) &&
                     input.OwnerId == instruction.TargetInhabitantId && input.Quantity == 1 && input.Purpose == "equipment_repair" &&
                     input.ExpiryTick == tick + 1 && input.State == InventoryReservationState.Completed))
                 throw new InvalidDataException("A cart repair order lacks its actual consumed repair inputs.");

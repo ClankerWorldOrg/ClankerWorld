@@ -773,6 +773,7 @@ public sealed record FactionState(
 /// </summary>
 public static class FactionRules
 {
+    internal static string ViolationId(string action, string law) => DerivedId.Create($"violation:{action}:{law}");
     public const int MinimumStandingBasisPoints = -10_000;
     public const int MaximumStandingBasisPoints = 10_000;
     public const int MaximumFactionCount = 256;
@@ -863,7 +864,7 @@ public static class FactionRules
             .Where(law => !law.RequiresPermit || !action.HasPermit)
             .OrderBy(law => law.Id, StringComparer.Ordinal)
             .Select(law => new LawViolation(
-                $"violation:{action.ActionId}:{law.Id}",
+                ViolationId(action.ActionId, law.Id),
                 law.Id,
                 action.ActionId,
                 action.ActorId,
@@ -976,6 +977,8 @@ public static class FactionRules
     {
         ArgumentNullException.ThrowIfNull(violation);
         WorldSystemsRules.RequireIdentifier(violation.ViolationId, nameof(violation.ViolationId));
+        if (violation.ViolationId.Length > DerivedId.MaximumLength)
+            throw new ArgumentException("A violation identity exceeds the shared derived-identity limit.", nameof(violation));
         WorldSystemsRules.RequireIdentifier(violation.LawId, nameof(violation.LawId));
         WorldSystemsRules.RequireIdentifier(violation.ActionId, nameof(violation.ActionId));
         WorldSystemsRules.RequireIdentifier(violation.ActorId, nameof(violation.ActorId));

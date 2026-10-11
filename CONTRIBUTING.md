@@ -84,6 +84,7 @@ one and what the label workflows do on their own. Never create a label by hand.
 | Pull request status | `status:needs-review` (ready for review), `status:reviewing` ([claimed by a reviewer](#claims)) |
 | Either | `status:needs-decision` (waiting on the owner), `status:blocked` (waiting on something its description names, such as `Blocked by #123`) |
 | Other | `owner-task` (only computment can do it), `owner-priority` (the owner chose this priority), `regression`, `from:playtest`, `accessibility` |
+| Release | `release:alpha-1` (needed for the release being prepared; see [Release scope](#release-scope)) |
 
 Add by hand: every label on an issue created without a form; on other new
 issues, its areas, a priority if it is not P2 and any status that applies;
@@ -91,7 +92,13 @@ issues, its areas, a priority if it is not P2 and any status that applies;
 they become true; and `status:parked` when closing agreed work for later. The
 workflows set a pull request's priority, type, areas and `status:needs-review`,
 and move `status:has-pr`, `status:needs-pr` and `status:in-progress` on the
-issues it closes; claim, blocked and decision labels stay manual.
+issues it closes; claim and decision labels, and adding `status:blocked`, stay
+manual. A workflow removes `status:blocked`, and gives an issue nobody holds
+`status:needs-pr`, once every item its description names as `Blocked by #N`
+or `Waits on #N` has merged or closed as completed, so write each blocker that
+way. A wait on the owner always uses
+`status:needs-decision`, even when other blockers also apply, so the owner's
+searches find it.
 
 ### Priorities
 
@@ -102,13 +109,18 @@ issues it closes; claim, blocked and decision labels stay manual.
 | `priority:p2` | Normal: agreed features and ordinary bugs. The default | In order, oldest first |
 | `priority:p3` | Polish: cosmetic issues, edge cases, nice-to-haves | Only when no higher issue is waiting |
 
+- **Release scope comes before priority.** See [Release scope](#release-scope).
 - **Priorities decide what to pick up next.** They never hold back finished
   work, and other jobs don't switch: a bug finder files a P0 and tells the
   owner in chat but fixes it only if asked, and a reviewer finishes its current
   review and takes P0 pull requests next.
 - **Bugs:** a crash, data loss or unplayable game is P0; wrong in normal play
   is P1; an edge case is P2; cosmetic is P3. A `regression`, something that
-  used to work, goes one level higher.
+  used to work, goes one level higher. A bug that only a setup a normal game
+  cannot produce can trigger is P3, whatever its effect: goods placed where no
+  agent could put them, or a state only a test fixture can create. A long
+  normal game that could reach it counts as normal. Security problems keep
+  their own rule.
 - **Security problems:** a problem someone could exploit now, such as reading
   keys or private saves, getting past pairing or controlling a host, is P0.
   The repository is public, so never describe it in an issue, pull request or
@@ -137,6 +149,16 @@ issues it closes; claim, blocked and decision labels stay manual.
   comment saying why. When the owner picks a priority, add `owner-priority`
   and say so in that comment. Nobody else moves an owner-picked priority,
   even to make room.
+
+### Release scope
+
+While the owner prepares a release, a release label marks the issues it
+needs; it is `release:alpha-1` now, for `v0.1.0-alpha.1`. Fixers take labelled
+issues first, highest priority first, and other issues only when no labelled
+one is ready. A new P0 or P1 bug, or work the owner asks to include, gets the
+label; other new issues wait for the next release. When every labelled issue
+is closed, the owner announces a merge day
+([Releasing](docs/development/releasing.md#release-scope-and-merge-day)).
 
 ## Claims
 
@@ -300,6 +322,12 @@ them.
 - **Plan and leave a trail.** For work with several steps, keep a short plan
   and update it as you learn more. If you cannot finish, push your branch and
   say what remains where the next person will look.
+- **Fix by simplifying.** Prefer a fix that removes, merges or reuses a rule
+  over one that adds a special case. If a shared check exists, such as the
+  shared goods query, call it rather than writing another. The pull request
+  says how many lines it adds and removes in source, tests and docs, and why
+  a fix that only adds could not remove something instead. Reviewers push
+  back on a new one-off check where a shared one would do.
 - **Fill in the [pull request template](.github/pull_request_template.md)** for
   someone who has not read the conversation, with a short title about the
   effect, such as `Show fullness instead of hunger on the agent panel`.
@@ -358,6 +386,13 @@ for what you changed, such as the feature, building, item, order, setting or
 class, and read every place it lists. Fix each sentence your change made
 false, on any page, in the same pull request, and write the names you
 searched in the pull request.
+
+**Developer pages explain how the code works, not every rule.** Describe each
+system's purpose, its main rules and where its code lives; the tests hold the
+edge cases, so don't add a paragraph for each one. Don't commit raw
+measurement data, such as probe samples, under `docs/`: keep a short summary
+with the command that reproduces it, and leave the data in the pull request or
+an issue.
 
 **Game-design pages describe the design.** A game-design chapter says what the
 game is meant to do. What the build does today belongs in
