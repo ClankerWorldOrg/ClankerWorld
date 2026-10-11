@@ -32,7 +32,7 @@ public sealed class GoodsDeliveryTests
             inventory = InventoryFixture.AddLot(inventory, "delivery-" + id + "-jug", "water_jug", household, 1,
                 groundPosition: new(house.Position.X, house.Position.Y));
             inventory = InventoryFixture.AddLot(inventory, "delivery-" + id + "-water", "fresh_water", household, quantity,
-                containerLotId: "delivery-" + id + "-jug", groundPosition: new(house.Position.X, house.Position.Y));
+                containerLotId: "delivery-" + id + "-jug");
         }
         inventory = InventoryFixture.Reserve(inventory, "delivery-held-water", household, "delivery-reserved-water", 1,
             "other-work", inventory.WorldTick + 100);
