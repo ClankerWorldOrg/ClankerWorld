@@ -14,9 +14,7 @@ namespace ClankerWorld.Simulation.Playtest;
 public sealed partial class PrivateWorldRuntime
 {
     // Keep authoritative membership keys in saves; only model context needs a bounded alias.
-    private static string? CognitionHouseholdId(string? id) => id is null || id.Length <= 128
-        ? id
-        : "household-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(id)));
+    private static string? CognitionHouseholdId(string? id) => id is null ? null : DerivedId.Create(id, "household-sha256:");
 
     private void EnqueueDueCognition(IReadOnlySet<string> activeHostedIds)
     {

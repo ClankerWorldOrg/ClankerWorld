@@ -21,6 +21,27 @@ tests without Godot, a window manager, a live model or network access after
 dependencies are restored. Godot does not reference the simulation: it uses the
 host's versioned HTTP contract. Legacy web assets are diagnostic tools.
 
+## Derived identities
+
+`DerivedId` owns the 128 UTF-16-unit limit for identities assembled from other
+identities. A short complete value keeps its spelling; a longer value uses a
+SHA-256 digest of the complete value, retaining a bounded semantic prefix.
+Inventory splits, repeated milk sales, native births and family records,
+work reservations and receipts, memories and public Town record handles use
+this boundary. Separate source, owner and recipient fields retain their exact
+references. Names remain display text and do not become identifiers.
+
+The [derived-identity inventory](derived-identities.md) lists the native
+transition and production-factory matrices and their strict reload/recall
+checks.
+
+Numbered Town records keep their sequence suffix after hashing the complete
+long value. Strict validation recomputes the full handle from its original
+scope and counter; it does not search an unbounded sequence or trust a digest
+alone. Parsed action payloads retain their fields and existing model-facing
+aliases. Content package identifiers retain their import rules.
+
+
 ## Core rules
 
 - **The server commits world state.** Client requests, model replies, mods and
@@ -61,6 +82,18 @@ owns conversations, daily budgets and marriages in one immutable
 `ConversationState`. Every write replaces the affected read-only collection
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
+
+`Civic/CivicSystem.cs` owns the settlement council and each Town's governance,
+government and nonviolent-law snapshots in one immutable `CivicState`. The
+coordinator keeps the full Town checkpoint views, including land and membership;
+its central Town write imports civic changes, and checkpoint capture projects
+the system's civic snapshots onto those views. A prepared tick commits the
+system with one assignment. Civic operations receive the current world through
+an adapter on each call, and the adapter stays on the committed coordinator.
+The civic-history index uses `Derived` with the immutable governance snapshot
+as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
+copies; replacing governance invalidates the lookup. Physical needs, positions,
+inventory availability and remedy admission remain current-world queries.
 
 A system owns its saved state, its rules and a small `I…World` interface for
 the services it needs from other areas. Saved state is an immutable record
@@ -239,6 +272,11 @@ guard before selecting seeds.
 `SharedItem` uses Collect for household equipment, repair inputs and planting
 seeds, with the existing Warehouse fallback rechecked through the same use.
 `CollectEquipment` rechecks the selected lot immediately before its transfer.
+Garment and carry-aid choices use ReachableHoldings with their existing
+post-equipment capacity check, so replacing a carry aid can make room for
+the current cargo. They recheck before transferring or splitting the unit.
+Ornament wearing uses Collect and rechecks before taking or splitting one
+unit; household custody, storage and free-cargo guards remain additional filters.
 Animal-supply sources use Collect and recheck before pickup; care permission,
 feed reserves, product capacity, destination room and workstation surplus
 remain feature-specific filters. These are the first household pickup callers
@@ -1829,6 +1867,16 @@ projected from the actual water position, and the map alternates existing approv
 **Swimming** beside the agent. No sprite atlas or saved movement-mode field
 changes.
 
+Book writing, selected-cart repair and tool repair plan their remaining
+material pickups as a sequence. A transient search tries the existing input
+order first, then the other orders, checking each actual interaction point
+with the cumulative physical load. Separate paper lots count as separate
+pickups. Cart and tool repairs also check the final
+trip to the cart or Blacksmith; writing can begin at the last pickup. The next
+action resolves its source and permission again. Tool repair retains its
+ordinary spare-cargo storage and gathering-tool preparation when those are
+needed before a complete collection plan can be formed. No plan is saved.
+
 Checkpoint map acceptance keeps a weak, derived camp-reachability cache for
 each map's current starting point. Before reuse it compares actual terrain,
 water, elevation, surface, wrapping and bridge-axis data with an owned topology
@@ -2359,7 +2407,7 @@ Runtime admission and saved records still require known households, affected
 parties and eligible recipients. Offered civic choices use the existing bounded
 household token; property records keep the full ID.
 Saved footprint rights and requests retain that same known household reference.
-A generated household party key longer than 256 characters uses a stable hash,
+A generated household party key uses the shared derived-identity limit and hashes the complete key when needed,
 while its separate household field keeps the complete identity.
 
 Hearing actions enter through admitted personal-model civic choices. Public
@@ -2469,7 +2517,7 @@ Land-hearing readers, evidence sources and submitters, judges, affected parties,
 personal stakes and live or historical election rosters keep their complete known
 saved agent identities, including later-generation adults born in the world.
 Person rosters retain canonical order and uniqueness without applying the
-256-character ledger-key limit to ancestry-based identities.
+derived-identity length limit to complete person references.
 The shared civic identity check rejects blank, padded and control-character
 identities; caller-owned evidence, record and authority keys and prose keep
 their existing bounds. Current-world identity, notice and authority checks
@@ -4437,7 +4485,8 @@ the vessel or its fresh contents.
 
 Each completed exchange derives the receiving milk lot's identity from its full
 source identity and the admitted sale. A later sale retains that complete
-inventory reference, including repeated-sale histories longer than 512
-characters. Checkpoint validation requires a unique, well-formed source reference
+inventory reference, including each earlier sale in its provenance chain. The new lot ID itself
+stays within the shared derived-identity limit. Checkpoint validation requires a unique, well-formed source reference
 and its exact known lot, ownership, vessel, physical site and held reservation;
-animal and offer identities keep their existing short-field limit.
+animal, herd and offer identities use that same shared limit; animal names
+keep their separate display-text bound.

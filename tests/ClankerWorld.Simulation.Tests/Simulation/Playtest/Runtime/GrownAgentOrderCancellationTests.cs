@@ -20,7 +20,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var birth = Assert.Single(state.Society.Society.Births);
         var actor = bornAdult ? birth.ChildId : birth.PrimaryCaregiverId;
         var other = state.Society.Society.Inhabitants.First(person => person.Id != actor && person.Id.Length <= 128).Id;
-        Assert.True(birth.ChildId.Length > 128);
+        Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         Assert.InRange(birth.PrimaryCaregiverId.Length, 1, 128);
         using var world = PrivateWorldRuntime.Restore(state, _ => new QuietProvider());
         using var replay = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(state)),

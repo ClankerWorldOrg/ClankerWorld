@@ -77,8 +77,17 @@ creation and starting material lots let the owner-placement path add their
 Houses. Paid construction, eligibility, routing and placement validation
 remain native. Extra household Blacksmiths grow the Road network through
 normal placement and Road generation; reserved Market and project tiles
-remain protected. Starting food is controlled so setup does not depend on
-whether a particular agent first gathers berries.
+remain protected. Growth sites are limited to buildable ground connected to the
+existing Roads, excluding building footprints, resources and camp objects.
+This avoids spending the fixture budget on distant disconnected land. Native
+placement and Road validation remain authoritative; the connectivity filter
+does not promise that every selected site will create a street.
+
+The setup still stops after 256 workshop placements and considers at most
+2,048 sites per placement. If it cannot reach the requested Road count, it
+fails before the sampling gate instead of reporting a smaller completed case.
+Starting food is controlled so setup does not depend on whether a particular
+agent first gathers berries.
 
 The Road count is a target: a generated street can overshoot it. The report
 includes actual Roads, Houses, Town buildings, residents, map digest and
@@ -93,10 +102,21 @@ fallbacks so a change in decision workload is visible. Fixture construction
 and setup ticks are excluded from the timing samples. The script validates
 the prepared world before advancing it.
 
+The portable probe and the three setup copies under
+`construction-query-probe`, `footprint-query-probe` and
+`construction-input-query-probe` use this connected-ground filter. Historical
+reports retain their original source hashes, counts and samples. Their
+[previous setup sources](https://github.com/ClankerWorldOrg/ClankerWorld/tree/bc343b79b6c77207a5cad0a189967693d06e57b9/docs/development)
+remain available for exact historical reproduction. Generate fresh checkpoints
+for a current-main experiment and compare actual fixture counts; a repaired
+setup is not a runtime speed improvement.
+
 ## Recorded comparison
 
-The [raw dataset](measurements/944-town-ticks.json) preserves every ordinary
-timing sample, actual world counts and admitted actions. The comparison uses
+The raw dataset preserves every ordinary timing sample, actual world counts
+and admitted actions. It is in git history at commit `e49bf25a` as
+`docs/development/measurements/944-town-ticks.json`, and the commands under
+Run a comparison rerun the measurement. The comparison uses
 ticks 257–320 on Debian 13, SDK 10.0.401, .NET 10.0.12 and an AMD EPYC 9V74
 shared host with a four-core CPU quota and `DOTNET_PROCESSOR_COUNT=4`. Runs
 are sequential. Founder-start clock settings match across all seven runtimes

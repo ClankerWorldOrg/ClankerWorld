@@ -384,7 +384,8 @@ public sealed partial class PrivateWorldRuntime
                 ? previous.IsAbandoned ? previous.AbandonedSinceTick : WorldTick
                 : null,
         };
-        towns[index] = updated;
+        civicSystem.SetTownState(updated);
+        towns[index] = civicSystem.CheckpointTown(updated);
         checkpointSchemaVersion = StateSchemaVersion;
         if (!previous.IsAbandoned && updated.IsAbandoned)
             AppendEvent("town_abandoned", updated.Id);

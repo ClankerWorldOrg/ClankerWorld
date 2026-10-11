@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.Playtest;
 public static class TownCaseJudgeRules
 {
     public static string RoundToken(TownCaseJudgeContest contest) =>
-        contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture);
+        DerivedId.Create(contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture));
     public static bool IsBusy(TownNonviolentState state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
     private static TownNonviolentState Replace(TownNonviolentState state, TownViolationCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
@@ -101,7 +101,7 @@ public static class TownCaseJudgeRules
                 var last = item.ContestHistory.Count == 0 ? null : item.ContestHistory[^1];
                 if (last is { Stage: "failed", SettledTick: { } failed } &&
                     (tick < failed + day || candidates.Length == 0) && last.Candidates.SequenceEqual(candidates)) continue;
-                contest = new(item.Id + ":judge:" + (item.ContestHistory.Count + 1).ToString(CultureInfo.InvariantCulture), "waiting", 0,
+                contest = new(TownHearingProcedure.JudgeContestId(item.Id, item.ContestHistory.Count + 1), "waiting", 0,
                     tick, null, null, [], [], [], [], 0, []);
             }
             var previousRound = contest.Round;

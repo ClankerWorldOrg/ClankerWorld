@@ -27,8 +27,10 @@ public sealed partial class GrownAgentHelperMemoryTests
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(10));
             presence.RecordAuthenticatedReconnect("land-household-owner");
             using var host = new PrivateWorldRuntimeService(world, file, presence);
-            for (var tick = 0; tick < 40 &&
-                !(world.Society.GetInhabitant(actor).HouseholdId?.StartsWith("household:solo:" + actor + ":", StringComparison.Ordinal) ?? false); tick++)
+            bool HasFoundedHousehold() => choices.Founded &&
+                world.ExportState().Events.Any(item => item.Kind == "household_founded" &&
+                    item.Detail == actor + "|" + world.Society.GetInhabitant(actor).HouseholdId);
+            for (var tick = 0; tick < 40 && !HasFoundedHousehold(); tick++)
             {
                 var before = world.ExportState();
                 var housingBefore = before.Inhabitants.Single(person => person.InhabitantId == actor).Housing;
@@ -77,10 +79,11 @@ public sealed partial class GrownAgentHelperMemoryTests
             var household = world.Society.GetInhabitant(actor).HouseholdId;
             Assert.True(choices.Founded, string.Join("\n", trace) + "\n" + string.Join("\n", choices.Selected));
             Assert.NotNull(household);
-            Assert.StartsWith("household:solo:" + actor + ":", household);
-            Assert.True(household.Length > actor.Length);
+            var founded = Assert.Single(world.ExportState().Events,
+                item => item.Kind == "household_founded" && item.Detail == actor + "|" + household);
+            Assert.Equal(DerivedId.Create("household:solo:" + actor + ":" + founded.WorldTick), household);
+            Assert.InRange(household.Length, 1, DerivedId.MaximumLength);
             Assert.Contains(actor, world.Society.GetHousehold(household).MemberIds);
-            Assert.Contains(world.ExportState().Events, item => item.Kind == "household_founded");
             Assert.Equal(state.Society.Society.Births.Select(birth => birth.ChildId), world.Society.Births.Select(birth => birth.ChildId));
             world.Pause();
             return world.ExportState();

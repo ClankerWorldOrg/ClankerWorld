@@ -17,7 +17,7 @@ public sealed record WorldConstructionReceipt(
 public sealed partial class PrivateWorldRuntime
 {
     private static string ConstructionInstanceId(string instructionId) =>
-        "ordered-building-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(instructionId))).ToLowerInvariant();
+        DerivedId.Hash(instructionId, "ordered-building-");
 
     private bool BuildingIdentityIsReserved(string instanceId, string? constructionInstructionId = null) =>
         instanceId.StartsWith("ordered-building-", StringComparison.Ordinal) &&
@@ -30,7 +30,7 @@ public sealed partial class PrivateWorldRuntime
              order.ConstructionInstanceId == instanceId && instruction.InstructionId != constructionInstructionId));
 
     private static string ConstructionOrderReceipt(string instanceId) =>
-        "construction:building:" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(instanceId))).ToLowerInvariant();
+        DerivedId.Hash(instanceId, "construction:building:");
 
     private static bool IsConstructionOrderProject(OwnerQueuedInstruction instruction, SettlementProject? project) =>
         instruction.Order is
@@ -247,10 +247,10 @@ public sealed partial class PrivateWorldRuntime
                 paid.Any(item => item.State != InventoryReservationState.Completed || item.OwnerId != receipt.MaterialOwnerId ||
                     item.ExpiryTick != receipt.CompletedTick) ||
                 definition.BuildCosts.Select((cost, index) => (cost, index)).Any(entry =>
-                    paid.Where(item => item.Id.StartsWith($"{purpose}:quantity:{entry.index}:lot:", StringComparison.Ordinal))
+                    paid.Where(item => item.Id == ProductionInputReservationId(purpose, entry.index, item.LotId))
                         .Sum(item => (long)item.Quantity) != entry.cost.Amount) ||
                 paid.Any(item => !definition.BuildCosts.Select((_, index) => index).Any(index =>
-                    item.Id == $"{purpose}:quantity:{index}:lot:{item.LotId}")))
+                    item.Id == ProductionInputReservationId(purpose, index, item.LotId))))
                 throw new InvalidDataException("A construction receipt lacks its actual completed material payments.");
             if (simulation!.Buildings.FirstOrDefault(item => item.InstanceId == receipt.BuildingInstanceId) is { } placed &&
                 (placed.DefinitionId != receipt.DefinitionId || placed.PlacedTick != receipt.CompletedTick))

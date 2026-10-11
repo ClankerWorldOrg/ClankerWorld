@@ -327,7 +327,7 @@ public sealed partial class PrivateWorldRuntime
             else
             {
                 society.Apply(checkpoint => SocietyFixture.ProposeRelationship(checkpoint,
-                    new($"settlement-care:{actor}:{target}:{WorldTick}", 1, SocietyRelationshipType.Caregiver,
+                    new(SettlementCareId(actor, target, WorldTick), 1, SocietyRelationshipType.Caregiver,
                         actor, target, WorldTick, PrivacyClass: "public", HouseholdId: HouseholdFor(actor))));
                 AppendEvent("caregiver_proposed", target);
             }

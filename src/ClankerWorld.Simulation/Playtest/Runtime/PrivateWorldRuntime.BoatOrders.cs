@@ -117,12 +117,12 @@ public sealed partial class PrivateWorldRuntime
             CreditOrderEffect(instruction, BoatOrderArrivalEffectId(request.Id), 1);
     }
 
-    private static string BoatOrderArrivalEffectId(string requestId) => "boat-arrival:" + requestId;
+    private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);
 
     private static bool IsValidBoatOrderShape(OwnerInstructionOrder order) =>
-        order.BoatTravel is { DestinationPortId.Length: > 0 and <= 128 } binding &&
+        order.BoatTravel is { DestinationPortId.Length: > 0 and <= DerivedId.MaximumLength } binding &&
         !binding.DestinationPortId.Any(char.IsControl) &&
-        (binding.RequestId is null || binding.RequestId.Length is > 0 and <= 128 && !binding.RequestId.Any(char.IsControl)) &&
+        (binding.RequestId is null || binding.RequestId.Length is > 0 and <= DerivedId.MaximumLength && !binding.RequestId.Any(char.IsControl)) &&
         order.TargetPosition is not null && order.TargetResourceId is null && order.TargetAgentId is null && order.TargetFoodKind is null &&
         order.RequestedUnits == 1 && order.CompletedUnits is 0 or 1 && order.ProgressUnit == "arrivals" &&
         !order.RepeatUntilCancelled && !order.QuantityIsExplicit && order.Status != "not_understood" &&
