@@ -88,6 +88,10 @@ checkpoints, replay events or save metadata. The world schema is unchanged.
 
 World state includes its seed and generation options, clock, agents, accepted
 events, Towns, content locks, model/slot assignments and autosave choices.
+Cognition diagnostics retain their world ticks through export and restore.
+Late replies and ignored failures use known observation or saved world time;
+run epochs are generation markers, not timestamps. This changes new diagnostic
+events without changing the schema or rewriting events already saved.
 New generated worlds have a deterministic identity derived from their seed,
 selected generation options and accepted map digests. Different maps can reuse
 a seed while keeping separate checkpoints, save timelines and owner-action
@@ -741,6 +745,15 @@ choices and distinct mandates. Paused and rejected ticks do not advance or
 partly apply civic work; replay does not reroll ties or duplicate authority.
 Older alpha checkpoints are refused and preserved; no migration is added.
 
+Private-world schema 125 starts every new Town with vacant land and non-land
+mayoral duties under ordinary Council authority. Each vacancy records the
+Town's founding tick and has no holder, term or election. The first election
+needs personal consent to both duties, rather than a government-change vote.
+Current-format saves retain an empty office, joint consent, queued elections,
+ballots and the separate terms after election. Pause, rejected-tick rollback
+and paired native replay cover founding, election and case-only succession.
+Earlier alpha checkpoints are refused and preserved without migration.
+
 Private-world schema 81 records the exact initial Council election forced by a
 protected government change, or an explicit null when it forced none. The field
 is required in the current format. Loading rejects missing or cross-Town
@@ -1177,7 +1190,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current private-world checkpoint schema, currently
-`PrivateWorldRuntime.StateSchemaVersion` 124. The minimum supported schema is
+`PrivateWorldRuntime.StateSchemaVersion` 125. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no private-world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1336,6 +1349,7 @@ current alpha cutoff.
 | Schema 123 | Generated identities assembled from other identities share a 128 UTF-16-unit boundary. Long complete inputs are hashed; provenance, ownership and source references remain complete. Older alpha saves are refused and preserved without migration. |
 | Schema 124 | Milk is ordinary stored food; the milk-specific offer ledger and vessel exchange are removed. Water jugs hold fresh water only. Older alpha saves are refused and preserved without migration. |
 | Schema 122 and society/runtime v4 | Required owner-private summaries retain canonical typed sources and validated extracts alongside the experience/belief archives. Active recall can use summaries without exposing another owner’s evidence. Strict loading validates unique storage, owner/subject identities, archive times, protected kinds, salience sources, conversation evidence and corrections across both ledgers. Older alpha saves and society envelopes are refused and preserved without migration. |
+| Schema 125 | New Towns begin with vacant land and non-land mayoral duties under ordinary Council authority. Joint personal consent opens the first election without creating the office by resident vote. Vacancy timestamps, queued ballots and elected terms survive replay and reload. Earlier alpha checkpoints are refused and preserved without migration. |
 | Schema 102 | Copy orders retain the exact held source while gathering supplies and writing, alongside the native project and paid completion receipt. Strict load checks source kind, project/source/order links and copy provenance; original writing cannot credit a copy task. Source loss releases the project while retaining the source pointer for retry; completion clears both pointers. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 101 | Knowledge-writing orders bind their exact native project and credit only completed physical artifacts carrying that instruction ID. Reload checks actor, kind, current-order priority, paid artifact provenance and exact progress. Cancellation and replacement release only owned unspent reservations; ordinary writing is preserved. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 109 | Native newborns retain a pending first personality/aspiration choice through infancy and failed personal replies. Their ordinary initial-choice observation may retain at most two bounded parental identities as family background, covered by the observation digest. Accepted choices clear retained queued background and cannot apply twice after reload. Native birth, day-3 decisions, retry, and paired replay cover the marker and chosen fields. Earlier alpha checkpoints are refused and preserved; no migration is added. |
@@ -1613,7 +1627,7 @@ later personal recall, complete-byte continuation and refused ticks are checked.
 
 ## Private memory summaries
 
-Private-world schema 122 and society/runtime v4 require a non-null
+The current private-world schema and society/runtime v4 require a non-null
 `MemorySummaries` list, empty until a routine helper selects an extract. Each
 summary saves its owner, creation tick, choice, source-derived text and four to
 twelve exact typed source IDs and ticks. Its stable ID hashes the owner and

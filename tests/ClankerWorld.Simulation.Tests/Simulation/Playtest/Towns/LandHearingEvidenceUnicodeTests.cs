@@ -83,11 +83,7 @@ public sealed class LandHearingEvidenceUnicodeTests
         var state = NonviolentRuntimeFixture.Prepared();
         var town = state.Towns![0];
         var tick = state.Society.Society.WorldTick;
-        var (council, government) = TownGovernmentRules.RegisterMayor(town.Governance!, town.Government!, Judge, "land", town.ResidentIds, tick);
-        (council, government) = TownGovernmentRules.Propose(council, government, town.Id, Judge,
-            new(TownArrangementRules.Council, TownArrangementRules.Mayor), false, town.ResidentIds, tick, NonviolentRuntimeFixture.Day);
-        foreach (var voter in town.ResidentIds.Take(3))
-            government = TownGovernmentRules.Vote(government, government.Changes[^1].Id, voter, true, tick);
+        var (council, government) = TownGovernmentRules.RegisterMayor(town.Governance!, town.Government!, Judge, "land+non_land", town.ResidentIds, tick);
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
             state.WorldSeed, town.ResidentIds, tick, NonviolentRuntimeFixture.Day);
         var contest = Assert.IsType<TownMayoralContest>(government.Contest);

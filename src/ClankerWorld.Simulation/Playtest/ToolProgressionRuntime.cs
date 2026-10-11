@@ -195,7 +195,7 @@ public sealed partial class PrivateWorldRuntime
                 lot.ConditionBasisPoints is > 0 and < 10_000 && UnreservedQuantity(inventory, lot) > 0)
             .OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Where(tool => ToolProgressionRules.RepairMaterials(tool.ItemKind) is { Count: > 0 } materials &&
-                CanPrepareRepairInputs(actor, tool.Id, materials, protectedToolIds)).ToArray();
+                CanPrepareRepairInputs(actor, tool.Id, materials, blacksmith.Position, protectedToolIds)).ToArray();
         if (tools.Length == 0 || !IsWithinInteractionRange(state.Position, blacksmith.Position, 0) &&
             FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0).Count == 0)
             return [];
@@ -203,7 +203,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private bool CanPrepareRepairInputs(string actor, string repairToolId,
-        IReadOnlyList<ContentQuantity> repairMaterials, IReadOnlyList<string>? protectedToolIds = null)
+        IReadOnlyList<ContentQuantity> repairMaterials, GridPoint destination, IReadOnlyList<string>? protectedToolIds = null)
     {
         if (!inhabitants.TryGetValue(actor, out var state)) return false;
 
@@ -218,7 +218,7 @@ public sealed partial class PrivateWorldRuntime
             var missing = Math.Max(0, input.Amount - carried);
             if (missing == 0) continue;
 
-            if (SharedPreparationItem(input.ResourceId, actor) is { } shared)
+            if (SharedPreparationItem(input.ResourceId, actor, destination) is { } shared)
             {
                 if (AvailableLotQuantity(shared) < missing)
                     return false;
@@ -226,7 +226,7 @@ public sealed partial class PrivateWorldRuntime
                 continue;
             }
 
-            if (MaterialSource(input.ResourceId, actor) is not { } source ||
+            if (MaterialSource(input.ResourceId, actor, destination) is not { } source ||
                 ProjectMaterialHarvest(actor, input.ResourceId, source) is not { } plan)
                 return false;
             if (plan.ToolLotId is { } harvestToolId && protectedToolIds?.Contains(harvestToolId, StringComparer.Ordinal) == true &&

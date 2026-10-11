@@ -394,6 +394,12 @@ authority. Admission checks the request ID, provider/run epochs and current
 candidate legality. An epoch is a generation marker that makes replies from
 an earlier configuration or run obsolete. Other agents continue while one waits.
 
+Cognition rejection and ignored-failure events use the current request's world
+tick, or the matching retired request's observation tick when none is active.
+After restore, where request records are absent, they use the last retained
+event's world tick, then the saved intention's tick if the event window is
+empty, or zero when neither exists. Run epochs are never used as timestamps.
+
 The OpenAI-compatible adapter can complete one omitted empty final field of a
 five-field civic candidate ID when the completed ID exactly matches a uniquely
 offered choice, with no other offered ID sharing that prefix. An already exact
@@ -1897,7 +1903,14 @@ carry aids follow the usual cargo exemptions. Pickups and whole harvests with
 a known delivery destination check the load after collection against the
 return route. A foot or cart return keeps its usual capacity; a freshwater-only
 return limits loose pickups to the remaining swimming capacity and keeps an
-oversized vessel family intact. Water collection also keeps room to return
+oversized vessel family intact. Ordinary milk uses the shared Store stocking
+checks for the source, destination and loaded return. Yard supplies, personal and
+household planting seeds, autonomous replanting, repair cloth, cart-building
+materials and child-care food pass their actual destination through selection
+and pickup checks. Medicine uses the consenting patient's last observed position,
+without discovering a moved patient remotely. Tool-repair preparation uses the
+same Blacksmith destination as collection, so unavailable return routes produce
+a blocker rather than leaving the order doing. Water collection also keeps room to return
 with the jug and its contents. A rider, an animal
 leader or a cart puller cannot start swimming, and moving dependants must also
 meet the starting conditions. Infants and adults carrying guardian-placement
@@ -2522,8 +2535,9 @@ description; event prose does not establish ownership or case kind.
 `TownRuntimeState.Nonviolent` records non-land allegations, notice revisions,
 sources, responses and civil findings separately from permission adjustments.
 `TownHearingProcedure` supplies shared response, conflict and case-election
-rules. The non-land mandate needs protected resident approval and personal
-agreement. An extension names its existing office and retains that office's
+rules. Founding supplies the vacant non-land mandate; standing for election
+requires personal agreement. Later scope changes need protected resident
+approval. An extension names its existing office and retains that office's
 original term; its added authority begins only at the actual handover.
 
 Native completed actions capture applicable law wording, title and membership
@@ -2631,8 +2645,17 @@ telemetry records the Town, outcome, previous Town and counts only.
 
 `TownGovernmentState` stores scoped law versions, protected resident processes,
 mayoral consent and contests, and separate land, ordinary and non-land mandate terms.
-`TownGovernmentRules` coordinates them with the existing Council engine. Law
-adoption consumes passed structured Council proposals once; amendment and repeal
+`TownGovernmentRules` coordinates them with the existing Council engine.
+New Towns initialize two vacant office records, `land` and `non_land`, with
+their founding tick and no holder, term or election. The initial arrangement
+keeps ordinary Council authority. While the whole office is vacant and no
+protected change is pending, the personal registration choice covers its
+combined duties. Joint consent opens the existing vacancy election, and its
+winner receives both separate mandate records under the same election and
+twenty-day term. Empty offices supply no judge. Paused founder setup updates
+the Council roster without running elections or advancing time.
+
+Law adoption consumes passed structured Council proposals once; amendment and repeal
 bind their base version, so a stale passed proposal cannot overwrite a later law.
 Amendment and repeal labels shorten the display to 256 UTF-16 units, reserving
 one for an ellipsis and omitting a whole surrogate pair when it crosses the
@@ -4324,6 +4347,11 @@ skill name so older clients can still display it; new code calls it `Skill`.
 This is separate from the saved lesson record, which now stores a skill.
 
 ## World-list requests
+
+Select World refuses an empty, missing or whitespace-only catalog ID with HTTP
+400 before authorization or mutation, using the same required-payload guard as
+the manual-save endpoints. Nonempty selections still require the signed owner
+request and the existing private-world, compatibility and restore checks.
 
 Launcher handoffs carry the catalog entry ID with the requested game version.
 Both process boundaries use separate arguments; `--choose-world` accepts only

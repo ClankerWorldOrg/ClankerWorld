@@ -98,7 +98,7 @@ public sealed partial class PrivateWorldRuntime
         EquipmentRepairSite(actor, lot) is { } site &&
         (person.Position == site.Position || FindUnoccupiedRoute(actor, person.Position, site.Position, 0).Count > 0) &&
         PersonalEquipmentRules.RepairMaterials(lot.ItemKind).All(input => HasCarriedOwnItem(actor, input.ResourceId) ||
-            SharedItem(input.ResourceId, actor) is not null);
+            SharedItem(input.ResourceId, actor, site.Position) is not null);
 
     private IEnumerable<InventoryLot> WornEquipmentItems(string actor) => society.Checkpoint.Inventory.Lots
         .Where(lot => lot.Quantity == 1 && lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
@@ -194,7 +194,7 @@ public sealed partial class PrivateWorldRuntime
         {
             if (!HasCarriedOwnItem(actor, input.ResourceId))
             {
-                CollectEquipment(actor, person, input.ResourceId);
+                CollectEquipment(actor, person, input.ResourceId, site.Position);
                 return;
             }
         }

@@ -892,6 +892,12 @@ from a completed handover and explains a failed transition.
 An election the current Council opened on its own continues independently,
 even if someone leaves the Town while the proposed change waits for a successor.
 
+Every new Town starts with an empty mayor's office for land disputes and
+non-land cases. A willing adult can stand for both duties without a vote to
+create the office; residents then elect the mayor. While it is empty, cases
+wait for a judge and the Council may mediate. Residents can remove the office
+or narrow its duties through the protected government-change vote.
+
 An elected mayor may hold the land mandate, ordinary governing authority, or
 the separate non-land hearing mandate. Candidates personally agree to those specific mandates.
 Residents choose one candidate and may revise their ballot. A tie means another
@@ -1283,7 +1289,9 @@ losing warmth as they move. The map shows the agent swimming with a
 **Swimming** label; their tooltip says the same. Cold or ill agents, loads above
 four carried units, carts and accompanying animals prevent a new swim.
 When supplies must return across freshwater, agents collect only what they can
-carry back; vessels count together with their contents. The sea still needs a boat.
+carry back; vessels count together with their contents. This also applies to milk
+restocking, yard water, planting seeds, medicine, repair supplies, cart materials
+and food carried back to a child. The sea still needs a boat.
 An agent already swimming can reach shore if their condition changes, and an
 unfinished crossing survives saving and loading. Swimming speed, warmth loss
 and the load limit are provisional for playtesting.
