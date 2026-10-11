@@ -2356,7 +2356,7 @@ recorded, living or dead, not from the client's agent ID. The saved birth tick
 holds the result, so loading never draws again. Year-based development worlds
 keep the 18-year adult age.
 
-`PrivateWorldRuntime.TownFounding` offers an explicit personal `found` civic
+`CivicSystem.TownFounding` offers an explicit personal `found` civic
 choice to a living adult on buildable unclaimed land. The stable candidate ID
 binds the world seed and current site. Execution rechecks the adult, location,
 other Town borders and titles, and private property after earlier choices.
@@ -2645,7 +2645,7 @@ powers. Bounded civic lifecycle telemetry records Town identity and
 council/vote/status counts without proposal text, notices, names or per-read
 polling noise.
 
-**Town admission** (`PrivateWorldRuntime.TownMembership`). `TownRuntimeState.ResidentIds`
+**Town admission** (`CivicSystem.TownMembership`). `TownRuntimeState.ResidentIds`
 is the only record of Town membership; household, House and position alone never
 change it. After every saved council decision, every Town roster change and on
 every tick, `SettleTownAdmissions` reads each Town's passed admission proposals
