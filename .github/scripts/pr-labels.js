@@ -26,10 +26,9 @@
 //   it names with "Refs" ("Refs #N", or a list such as "Refs #N, #M and #K");
 //   otherwise priority:p2. It is priority:p0 instead when the PR changes how
 //   everyone works on the repository (.github/, .claude/, CONTRIBUTING.md,
-//   AGENTS.md or CLAUDE.md). Other priority labels that github-actions[bot]
-//   added are removed. A priority anyone else added is never removed: a
-//   higher one takes the worked-out priority's place, and a lower one stays
-//   next to it.
+//   AGENTS.md or CLAUDE.md). A PR shows one priority: a priority someone
+//   added by hand takes the worked-out one's place when it is higher, and
+//   every other priority label comes off, including a lower one set by hand.
 // - status:has-pr on open issues the PR closes ("Closes #N", "Fixes #N" or
 //   "Resolves #N", one keyword directly before each number, exactly as GitHub
 //   and close-fixed-issues.yml read them), replacing status:needs-pr. "Refs #N"
@@ -270,7 +269,7 @@ function areasSetByHand(events) {
 }
 
 // True when this workflow added the label most recently. A label with no
-// recorded event counts as set by hand, so it is never removed by mistake.
+// recorded event counts as set by hand, so a higher one is never removed by mistake.
 function addedByBot(events, name) {
   const added = events.filter(event => event.event === 'labeled' && event.label?.name === name).pop();
   return added?.actor?.login === LabelBot;
@@ -341,8 +340,8 @@ async function filesChangedOnMain({ github, core, repo, pr, files, defaultBranch
   }
 }
 
-// Sets the worked-out priority. A priority set by anyone else stays, and wins
-// when it is higher; every other priority label this workflow added is removed.
+// Leaves the PR one priority: the worked-out one, or a priority set by hand
+// when that is higher. Every other priority label is removed.
 // addedThisRun holds the priorities an earlier pass of this run added, which
 // the PR's event history may not show yet.
 async function setPriority({ github, core, repo, pr, current, priority, events, addedThisRun }) {
@@ -353,9 +352,11 @@ async function setPriority({ github, core, repo, pr, current, priority, events, 
   const byHand = present.filter(name => !addedThisRun.has(name) && !addedByBot(history, name));
   const winner = higherPriority(byHand[0] ?? null, priority);
   for (const name of present) {
-    if (name === winner || byHand.includes(name)) continue;
+    if (name === winner) continue;
     await removeLabel(github, repo, pr.number, name);
-    core.info(`Removed ${name}, which this workflow had set earlier.`);
+    core.info(byHand.includes(name)
+      ? `Removed ${name}, which was set by hand and is lower than ${winner}.`
+      : `Removed ${name}, which this workflow had set earlier.`);
   }
   if (winner !== priority) {
     core.info(`Kept ${winner}, which was set by hand and is higher than ${priority}.`);

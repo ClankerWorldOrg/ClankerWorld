@@ -635,13 +635,20 @@ test('a PR with no issue and no workflow files has its stale bot priority reset 
   assert.deepEqual(priorities(state.pr.labels), ['priority:p2']);
 });
 
-test('a priority set by hand is never removed, and wins only when it is higher', async () => {
+test('a priority set by hand wins when it is higher and gives way when it is lower', async () => {
   const higher = scenario({ live: { labels: ['priority:p1'] }, events: [labeled('priority:p1', Person)] });
   await higher.run();
   assert.deepEqual(priorities(higher.pr.labels), ['priority:p1']);
   const lower = scenario({ live: { labels: ['priority:p3'] }, events: [labeled('priority:p3', Person)] });
   await lower.run();
-  assert.deepEqual(priorities(lower.pr.labels), ['priority:p2', 'priority:p3']);
+  assert.deepEqual(priorities(lower.pr.labels), ['priority:p2']);
+  // Two set by hand: only the higher one stays.
+  const twoByHand = scenario({
+    live: { labels: ['priority:p1', 'priority:p3'] },
+    events: [labeled('priority:p3', Person), labeled('priority:p1', Person)],
+  });
+  await twoByHand.run();
+  assert.deepEqual(priorities(twoByHand.pr.labels), ['priority:p1']);
   const relabeled = scenario({
     live: { labels: ['priority:p0'] },
     events: [labeled('priority:p0'), unlabeled('priority:p0', Person), labeled('priority:p0', Person)],

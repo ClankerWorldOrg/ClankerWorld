@@ -67,8 +67,9 @@ added by hand and retired after the release is published
 
 - **Priority:** the highest of the open issues it closes; if none has one, of
   the open issues it refers to; otherwise P2; and P0 if it changes
-  [how we work](../../CONTRIBUTING.md#priorities). A priority added by hand is
-  never removed, and wins when it is higher.
+  [how we work](../../CONTRIBUTING.md#priorities). A pull request shows one
+  priority: one added by hand takes its place when it is higher, and a lower
+  one added by hand comes off.
 - **Type:** one, from the first ticked **Type of change** box, or `type:docs`
   when none is ticked and only documentation changes.
 - **Areas:** at most two, from the files it changes, set when it opens,
