@@ -424,13 +424,13 @@ public sealed partial class PrivateWorldRuntime
                      .Where(item => item.Status == SocietyInhabitantStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (attemptedActions is not null && runtimes[inhabitant.Id].CurrentIntention is { } attempted)
-                attemptedActions[inhabitant.Id] = attempted.CandidateId;
             if (withheldActions?.Contains(inhabitant.Id) == true) continue;
             if (dispatched.Contains(inhabitant.Id) || !inhabitants.TryGetValue(inhabitant.Id, out var state))
             {
                 continue;
             }
+            if (attemptedActions is not null && runtimes[inhabitant.Id].CurrentIntention is { } attempted)
+                attemptedActions[inhabitant.Id] = attempted.CandidateId;
             if (PassengerBoat(inhabitant.Id) is not null)
             {
                 if ((!pendingHosted.Contains(inhabitant.Id) || PendingInstructionFor(inhabitant.Id) is not null) && NeedsUrgentFood(state) &&

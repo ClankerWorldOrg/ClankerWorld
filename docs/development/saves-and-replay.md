@@ -47,7 +47,7 @@ Town handles retain a counter and validate by exact recomputation against the
 original scope. Earlier alpha saves are refused and preserved; no migration
 runs.
 
-Schema 125 adds action refusals and their cumulative count. A refusal records
+Schema 126 adds action refusals and their cumulative count. A refusal records
 the complete actor and candidate, refusal tick, one-day retry boundary and a
 bounded check name. The matching world event retains the accepted refusal for
 history and replay. Active cooldowns are authoritative saved state; they are
@@ -1190,7 +1190,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current private-world checkpoint schema, currently
-`PrivateWorldRuntime.StateSchemaVersion` 125. The minimum supported schema is
+`PrivateWorldRuntime.StateSchemaVersion` 126. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no private-world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus

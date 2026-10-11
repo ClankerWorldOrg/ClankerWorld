@@ -9,17 +9,18 @@ namespace ClankerWorld.Simulation.Tests;
 public sealed class NativeActionRefusalTests
 {
     [Theory]
-    [InlineData(false, false, false, false)]
-    [InlineData(true, false, false, false)]
-    [InlineData(true, true, false, false)]
-    [InlineData(true, false, true, false)]
-    [InlineData(true, false, false, true)]
-    public async Task ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(bool live, bool globalFault, bool multipleFaults, bool ordered)
+    [InlineData(false, false, false, false, false)]
+    [InlineData(true, false, false, false, false)]
+    [InlineData(true, true, false, false, false)]
+    [InlineData(true, false, true, false, false)]
+    [InlineData(true, false, false, true, false)]
+    [InlineData(true, false, false, true, true)]
+    public async Task ActualNativeActionsAreRefusedOnlyInLiveSingleActorRecovery(bool live, bool globalFault, bool multipleFaults, bool ordered, bool idleForOrder)
     {
         var directory = Directory.CreateTempSubdirectory("native-action-refusal-");
         try
         {
-            var provider = new ExploringProvider();
+            var provider = new ExploringProvider(idleForOrder: idleForOrder);
             using var world = NormalPathWorld.CreateGenerated("native-action-refusal", _ => provider, ticksPerDay: 8);
             var file = new PrivateWorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             var actorId = world.Inhabitants.OrderBy(person => person.InhabitantId, StringComparer.Ordinal).First().InhabitantId;
@@ -102,7 +103,7 @@ public sealed class NativeActionRefusalTests
             var name = snapshot.Inhabitants.Single(person => person.Id == actorId).DisplayName;
             Assert.StartsWith(name + " couldn't ", ClankerWorld.GodotClient.UI.WorldEventText.Describe(
                 new(refusalEvent.EventId, refusalEvent.WorldTick, refusalEvent.Kind, refusalEvent.Detail), snapshot));
-            using var replay = PrivateWorldRuntime.Restore(baseline, _ => new ExploringProvider());
+            using var replay = PrivateWorldRuntime.Restore(baseline, _ => new ExploringProvider(idleForOrder: idleForOrder));
             Assert.True((await replay.AdvanceOneTickReplayingActionRefusalAsync(refusalEvent, _ => () => { })).Advanced);
             Assert.Equal(PrivateWorldRuntimeCodec.Encode(state), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
             using var reloaded = file.LoadOrCreate(state.WorldSeed);
@@ -235,7 +236,7 @@ public sealed class NativeActionRefusalTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private sealed class ExploringProvider(long epoch = 0, bool hosted = false) : IDecisionProvider
+    private sealed class ExploringProvider(long epoch = 0, bool hosted = false, bool idleForOrder = false) : IDecisionProvider
     {
         public int Calls { get; private set; }
         public List<string[]> Offered { get; } = [];
@@ -250,7 +251,9 @@ public sealed class NativeActionRefusalTests
                 Observations.Add(request.Observation);
                 Offered.Add(request.Observation.Candidates.Select(candidate => candidate.Id).ToArray());
             }
-            var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "explore")
+            var selected = idleForOrder && request.Observation.OperativeOrderInstructionId is not null
+                ? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle")
+                : request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "explore")
                 ?? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id is "seek_food" or "harvest_food")
                 ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
