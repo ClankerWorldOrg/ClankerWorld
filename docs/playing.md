@@ -7,15 +7,32 @@ updated: 2026-10-11
 
 # Playing the current game
 
-This guide covers the private alpha. You need the Windows 11 x64 portable game
-bundle and access to the private world server. There is no public server,
-finished installer or multiplayer mode. [What works today](what-works.md)
+This guide covers the private alpha. You need Windows 11 x64 and the setup file
+or portable game bundle. The bundled game runs a private world server on your
+PC; you can also connect to an approved private server. There is no public
+server or multiplayer mode. [What works today](what-works.md)
 explains the current limits.
+
+## Install or remove the launcher
+
+Run `ClankerWorld-Setup-<version>-windows-x64.exe`. It installs the launcher
+and includes that game version without an administrator prompt. Start
+**ClankerWorld** from the Start menu; setup can also add a desktop shortcut.
+Until a release is published, the unsigned setup is a
+[CI build artifact](development/build-and-test.md#windows-installer).
+Windows may warn about an unknown publisher because the alpha is not signed.
+
+To remove the launcher, open **Settings → Apps → Installed apps** in Windows,
+choose **ClankerWorld Launcher**, then **Uninstall**. This keeps your installed
+game versions, worlds, keys and model-call count. Running setup again, or a
+newer setup, keeps those files too. An existing copy of the bundled game
+version is reused.
 
 ## Connect your device
 
-Start `ClankerWorld.exe` from the extracted bundle. Use the connection and
-pairing screen to connect to the private server you have been given. Your device
+Start the game through the launcher, or start `ClankerWorld.exe` from the
+extracted portable bundle. For an approved remote server, use the connection
+and pairing screen to connect to the private server you have been given. Your device
 must be able to reach it through its private network.
 
 A new device needs approval. Compare the game's code with the person approving

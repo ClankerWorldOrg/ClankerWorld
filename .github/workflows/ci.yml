@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # The Protect main ruleset requires verify, windows-documentation and windows-provider-storage.
-# verify passes only when scope, checks and every test shard pass. A pull request that changes
+# verify passes only when scope, checks, native installer checks and every test shard pass. A pull request that changes
 # only documentation (Markdown files and docs/) runs the documentation tests and skips the rest.
 # One that also changes only Godot client files the test project does not compile runs the code
 # checks too, but skips the test suite, which those files cannot affect. Only an explicit
@@ -160,6 +160,52 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
+  windows-installer:
+    needs: [scope, checks]
+    if: needs.scope.outputs.code == 'true' && needs.scope.outputs.queue-run == ''
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: clankerworld-windows-11-x64-portable
+          path: ${{ runner.temp }}/installer-game
+      - uses: actions/download-artifact@v4
+        with:
+          name: clankerworld-launcher-windows-11-x64
+          path: ${{ runner.temp }}/installer-launcher
+      - name: Build the unsigned per-user setup with pinned Inno Setup
+        id: setup
+        shell: bash
+        run: |
+          stage_root="$(cygpath -u "$RUNNER_TEMP")"
+          game_zip="$(find "$stage_root/installer-game" -maxdepth 1 -name 'ClankerWorld-*-windows-x64.zip' -print -quit)"
+          launcher_zip="$(find "$stage_root/installer-launcher" -maxdepth 1 -name 'ClankerWorld-Launcher-*-windows-x64.zip' -print -quit)"
+          bash scripts/package-windows-installer.sh "$game_zip" "$launcher_zip" "$stage_root/installer-setup"
+      - name: Upload the Windows setup and its SHA-256
+        uses: actions/upload-artifact@v4
+        with:
+          name: clankerworld-windows-11-x64-setup
+          path: ${{ runner.temp }}/installer-setup
+          compression-level: 0
+          if-no-files-found: error
+      - name: Verify actual setup and removal as a standard Windows user
+        shell: pwsh
+        run: |
+          $game = (Get-ChildItem '${{ runner.temp }}/installer-game' -Filter '*.zip').FullName
+          $launcher = (Get-ChildItem '${{ runner.temp }}/installer-launcher' -Filter '*.zip').FullName
+          ./scripts/verify-windows-installer.ps1 -SetupDirectory '${{ runner.temp }}/installer-setup' -Compiler '${{ steps.setup.outputs.compiler }}' -GamePackage $game -LauncherPackage $launcher -OutputDirectory '${{ runner.temp }}/installer-evidence'
+      - name: Upload native installer evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-evidence
+          path: |
+            ${{ runner.temp }}/installer-evidence/standard-user*.log
+            ${{ runner.temp }}/installer-evidence/evidence
+          retention-days: 14
+          if-no-files-found: warn
+
   # The test suite split across parallel jobs by scope's plan (.github/scripts/ci-plan.js);
   # every test runs in exactly one of them.
   tests:
@@ -222,7 +268,7 @@ jobs:
         run: node .github/scripts/ci-plan.js compare "$RUNNER_TEMP/main" "$RUNNER_TEMP/this-run"
 
   verify:
-    needs: [scope, checks, tests]
+    needs: [scope, checks, tests, windows-installer]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
@@ -233,12 +279,14 @@ jobs:
           SCOPE: ${{ needs.scope.result }}
           CHECKS: ${{ needs.checks.result }}
           TESTS: ${{ needs.tests.result }}
+          INSTALLER: ${{ needs.windows-installer.result }}
           QUEUE_RUN: ${{ needs.scope.outputs.queue-run }}
         run: |
           echo "scope: $SCOPE, checks: $CHECKS, tests: $TESTS, code changed: $CODE, tests needed: $TESTS_NEEDED"
           test "$SCOPE" = success
           if [ -n "$QUEUE_RUN" ]; then echo "Verified by the merge queue's run $QUEUE_RUN."; exit 0; fi
           test "$CHECKS" = success
+          if [ "$CODE" = true ]; then test "$INSTALLER" = success; else test "$INSTALLER" = skipped; fi
           if [ "$TESTS_NEEDED" = false ]; then test "$TESTS" = skipped; else test "$TESTS" = success; fi
 
   windows-documentation:

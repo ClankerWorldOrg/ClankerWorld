@@ -25,7 +25,8 @@ connection once dependencies are restored. See [How it works](how-it-works.md).
 
 The first export target is Windows 11 x64. The current export is an unsigned
 portable bundle, and [the portable package](#portable-windows-package) adds the
-game's own host to it. It does not establish an installer, signing provider or public
+game's own host to it. The [Windows installer](#windows-installer) combines the
+launcher and game packages. These checks do not establish code signing or public
 release. A Windows smoke test and paired reconnect were recorded on 2026-09-21;
 that historical check does not verify every later build.
 
@@ -430,6 +431,40 @@ the logo art in `UI/MenuLogo.cs` and embedded in the exported `.exe`. After
 changing that art, rebuild the icon with
 `godot --headless --path src/ClankerWorld.GodotClient -- --write-app-icon`.
 The UI smoke test fails if the committed icon no longer matches the art.
+
+### Windows installer
+
+The `windows-installer` CI job builds the unsigned per-user setup from the
+verified game and launcher zips, then runs it under a fresh standard Windows
+user. In Windows Git Bash, run:
+
+```bash
+bash scripts/package-windows-installer.sh <game.zip> <launcher.zip> export/setup
+```
+
+The script verifies both zip checksums, their internal manifests and their
+matching source commit. It compiles the committed installer script and icon
+with Inno Setup 6.5.4, downloaded through the shared tool cache and checked
+against its pinned SHA-256. The official compiler runs in portable mode.
+CI uploads `ClankerWorld-Setup-<game version>-windows-x64.exe`, its `.sha256`
+and `build.json` as `clankerworld-windows-11-x64-setup`.
+
+Setup installs the launcher in `%LOCALAPPDATA%\Programs\ClankerWorld` with
+Start-menu and optional desktop shortcuts and a per-user uninstaller. It
+stages a bundled game on the destination volume and publishes its complete
+folder under `%LOCALAPPDATA%\ClankerWorld\versions` only if that version is
+absent. Existing version folders remain intact, even if the same version name
+came from a different development build. Uninstall removes launcher program
+files and shortcuts and keeps game versions, saves, keys, settings and usage.
+
+`scripts/verify-windows-installer.ps1` checks actual setup, upgrade, reinstall,
+uninstall and install after removal, including native launcher startup,
+shortcuts, HKCU registration and preserved file hashes. Its older setup is a
+synthetic metadata/README fixture; it is not a published launcher release.
+The required `verify` job waits for this check whenever code checks run.
+Native logs and results are in `windows-installer-evidence`; the owner's
+Windows 11 install/play/uninstall/reinstall check remains in
+[`playtest/1567-windows-installer.md`](../../playtest/1567-windows-installer.md).
 
 ## Compare tick equivalence
 
