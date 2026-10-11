@@ -701,7 +701,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Zoom out to overview with Filters on. → The border line becomes thin and solid.
   - Keep watching through a world switch, a reconnect and save and load. → The overlays keep following border and ownership changes.
   - In a grown Town, move residents, change Warehouse and shared-tool stock, grant household land, and add or remove buildings, Roads or a public Workshop. → The overlays follow the border and ownership changes.
-  - Try building, crafting and work proposals in the grown Town, before and after a save and reload. → They follow the Town as it is now, still offer legal sites with reasons, and refuse occupied sites, blocked doors and impossible routes.
+  - Move a resident, change shared stock and household land, and remove a Road or public Workshop in the grown Town, then save and reload. → Building, crafting and work choices follow the current Town, still offer legal sites with reasons, and refuse occupied sites, blocked doors, impossible routes and unavailable inputs.
   - Try proposals using goods that are unavailable or someone else's. → They are refused.
   - Watch a household that lacks a workshop, then remove the workshop once built. → It plans one once it owns the materials, and can rebuild after removal.
   - Look at a Market with Roads through its aisles. → It keeps its project.
