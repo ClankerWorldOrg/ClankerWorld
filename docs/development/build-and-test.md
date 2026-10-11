@@ -21,6 +21,12 @@ controls, instruction retries, save integrity, content lifecycle, observation
 knowledge and replay checks remain. Mod import and approved-asset catalog
 validation keep their existing paths.
 
+Protocol checks obtain world and resident identities from the authenticated
+baseline. Native before/after checks encode `PrivateWorldRuntime.ExportState()`
+with `PrivateWorldRuntimeCodec`; instruction IDs and issuer IDs come from the
+host's receipt and saved native instruction. These checks exercise the
+private-world authorization and persistence boundary used by the game.
+
 ## Toolchain
 
 The server and simulation use C# 14 on .NET 10. The exact SDK baseline is
