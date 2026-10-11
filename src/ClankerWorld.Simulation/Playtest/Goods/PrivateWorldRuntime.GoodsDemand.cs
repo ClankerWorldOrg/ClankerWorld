@@ -1,14 +1,11 @@
+using ClankerWorld.Simulation.Kernel;
+
 namespace ClankerWorld.Simulation.Playtest;
 
 public sealed partial class PrivateWorldRuntime
 {
-    private static readonly GoodsKinds PreparedMealGoods = new([
-        "simple_meal", "porridge", "berry_porridge", "fruit_porridge", "bread", "stew",
-        "restaurant_meal", "cooked_eggs", "milk_porridge", "rich_meal",
-    ]);
-    private static readonly GoodsKinds EdibleFoodGoods = new([
-        .. PreparedMealGoods.Ids, "food", "fruit", "berries", "wild_greens", "cultivated_greens", "milk",
-    ]);
+    private static readonly GoodsKinds PreparedMealGoods = new(FoodRules.PreparedKinds);
+    private static readonly GoodsKinds EdibleFoodGoods = new(FoodRules.EdibleKinds);
 
     private long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds)
     {

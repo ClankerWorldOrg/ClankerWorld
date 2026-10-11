@@ -277,7 +277,26 @@ are derived from the current checkpoint and are never saved.
 
 Delivery selection and remaining uses belong to the later steps of
 [#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
-origin/destination fields and extra-unit requests are refused rather than silently ignored.
+origin/destination fields are refused rather than silently ignored. Extra units
+and a contents kind apply only to `VesselFor`.
+
+`VesselFor` selects usable, unreserved vessel families and checks room for the
+requested additional contents. Jug refill, stored-jug pickup, empty-vessel return
+and food-pot selection retain their own ownership, place, route and destination
+rules. `ReturnVessel` preserves physical returns of damaged carried jugs;
+damage does not repair or discard property. A reserved or damaged jug still
+counts as physically present even when it cannot be refilled.
+
+`Eat` uses the inventory consumption boundary and requires the actor to carry
+the food or its usable vessel, with no delivery assignment. Personal meals keep
+their storage-pot and free-family requirement; milk drinking retains partial
+unreserved portions across carried lots. Animal care and water supply use
+`ConsumeAt`, with their existing yard access, feed reserve and whole-jug checks.
+`Cargo` selects physical contents of the named owned handcart, including spoiled
+goods and broken carts, but excludes a family reserved for another job. Actions
+recheck the same query before unloading; load selection uses `ConsumeAt` and
+retains its native custody and food-policy rules. `Kernel/FoodRules.cs` is the
+single food catalog: ingredients can be stored without becoming edible servings.
 
 `DestinationRoom(buildingId, movingRoot)` is the shared read-only calculation
 for space at a building. It subtracts all stored physical units, positive net

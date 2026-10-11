@@ -49,6 +49,18 @@ public sealed partial class PrivateWorldRuntime
         Dictionary<(GridPoint Position, int Range), bool>? routes = null)
     {
         if (GoodsInventoryQuery.IsRecovery(request.Use)) return RecoveryGoodsExclusion(request, index, lot, routes);
+        if (request.Use == GoodsUse.Cargo)
+            return lot.OwnerId == request.Actor && index.Root(lot).ItemKind == InventoryContainerRules.Handcart
+                ? null : GoodsReason.Custody;
+        if (request.Use == GoodsUse.Eat)
+        {
+            var root = index.Root(lot);
+            if (!FoodRules.IsEdible(lot.ItemKind)) return GoodsReason.Kind;
+            if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
+            return PersonalEquipmentRules.IsCarried(root, request.Actor!) ? null : GoodsReason.Custody;
+        }
+        if (request.Use is GoodsUse.VesselFor or GoodsUse.ReturnVessel && index.Root(lot).DeliveryBuildingId is not null)
+            return GoodsReason.Delivery;
         if (request.Use is GoodsUse.Holdings or GoodsUse.Collect or GoodsUse.ReachableHoldings)
         {
             var root = index.Root(lot);

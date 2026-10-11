@@ -3,7 +3,7 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.Playtest;
 
-public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover }
+public enum GoodsUse { Holdings, ConsumeAt, Collect, ReachableHoldings, RecoveryHoldings, Recover, Eat, VesselFor, ReturnVessel, Cargo }
 
 public enum GoodsDemandCoverage { None, KnowledgeWriting }
 
@@ -19,7 +19,7 @@ public sealed record GoodsKinds(IReadOnlyList<string> Ids)
 
 public sealed record GoodsRequest(GoodsUse Use, string? Actor, GoodsOwners Owners, GoodsKinds Kinds,
     string? AtBuilding = null, GridPoint? Near = null, string? Destination = null, int ExtraUnits = 0, bool Explain = false,
-    GoodsDemandCoverage DemandCoverage = GoodsDemandCoverage.None);
+    GoodsDemandCoverage DemandCoverage = GoodsDemandCoverage.None, string? ContentsKind = null, string? ContainerId = null);
 
 public enum GoodsPlaceKind { Stored, Ground, Carried, Unlocated }
 public sealed record GoodsPlace(GoodsPlaceKind Kind, string? BuildingId = null,
