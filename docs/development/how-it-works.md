@@ -239,6 +239,11 @@ guard before selecting seeds.
 `SharedItem` uses Collect for household equipment, repair inputs and planting
 seeds, with the existing Warehouse fallback rechecked through the same use.
 `CollectEquipment` rechecks the selected lot immediately before its transfer.
+Garment and carry-aid choices use ReachableHoldings with their existing
+post-equipment capacity check, so replacing a carry aid can make room for
+the current cargo. They recheck before transferring or splitting the unit.
+Ornament wearing uses Collect and rechecks before taking or splitting one
+unit; household custody, storage and free-cargo guards remain additional filters.
 Animal-supply sources use Collect and recheck before pickup; care permission,
 feed reserves, product capacity, destination room and workstation surplus
 remain feature-specific filters. These are the first household pickup callers
