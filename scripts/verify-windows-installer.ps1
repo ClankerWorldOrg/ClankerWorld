@@ -16,6 +16,7 @@ function Assert-Condition([bool]$Condition, [string]$Message) {
 
 function Invoke-Program([string]$Executable, [string[]]$Arguments, [string]$Name) {
     $process = Start-Process -FilePath $Executable -ArgumentList $Arguments -PassThru
+    [void]$process.Handle
     if (-not $process.WaitForExit(120000)) {
         Stop-Process -Id $process.Id -Force
         throw "$Name did not finish within two minutes."
@@ -105,6 +106,9 @@ if ($StandardUser) {
     Invoke-Program $setup @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/TASKS=desktopicon', "/LOG=`"$(Join-Path $OutputDirectory 'reinstall.log')`"") 'Reinstall'
     Assert-Preserved $installed
     $launcherProcess = Start-Process -FilePath $launcher -ArgumentList @('--headless', '--', '--launcher-smoke-test') -PassThru -RedirectStandardOutput (Join-Path $OutputDirectory 'launcher.log') -RedirectStandardError (Join-Path $OutputDirectory 'launcher-errors.log')
+    # Windows PowerShell can lose ExitCode after a redirected process exits
+    # unless its handle was acquired while it was still running.
+    [void]$launcherProcess.Handle
     if (-not $launcherProcess.WaitForExit(60000)) { Stop-Process -Id $launcherProcess.Id -Force; throw 'Installed launcher timed out.' }
     Get-Content (Join-Path $OutputDirectory 'launcher.log')
     Get-Content (Join-Path $OutputDirectory 'launcher-errors.log')
@@ -174,6 +178,7 @@ try {
     $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ('"' + (Join-Path $shared 'verify.ps1') + '"'), '-StandardUser', '-SetupDirectory', ('"' + (Join-Path $shared 'setup') + '"'), '-OutputDirectory', ('"' + (Join-Path $shared 'evidence') + '"'))
     $credential = New-Object Management.Automation.PSCredential("$env:COMPUTERNAME\$nativeUserName", $password)
     $process = Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -ArgumentList $arguments -Credential $credential -LoadUserProfile -UseNewEnvironment -PassThru -RedirectStandardOutput (Join-Path $OutputDirectory 'standard-user.log') -RedirectStandardError (Join-Path $OutputDirectory 'standard-user-errors.log')
+    [void]$process.Handle
     if (-not $process.WaitForExit(600000)) { Stop-Process -Id $process.Id -Force; throw 'Standard-user installer checks timed out.' }
     if (Test-Path (Join-Path $shared 'evidence')) { Copy-Item (Join-Path $shared 'evidence') $OutputDirectory -Recurse }
     Get-Content (Join-Path $OutputDirectory 'standard-user.log')
