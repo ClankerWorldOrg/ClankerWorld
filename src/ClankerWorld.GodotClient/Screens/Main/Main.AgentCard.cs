@@ -152,6 +152,7 @@ public partial class Main
         selectedActorNameLabel.MaxLinesVisible = 2;
         selectedActorNameLabel.TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
         selectedActorNameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        selectedActorNameLabel.MouseFilter = Control.MouseFilterEnum.Pass;
         nameRow.AddChild(selectedActorNameLabel);
         // A small pencil beside the name renames; it opens a field only when wanted.
         StyleIconButton(renameToggleButton, PixelGlyph.Pencil);
