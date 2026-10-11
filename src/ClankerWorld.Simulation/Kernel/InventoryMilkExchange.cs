@@ -43,7 +43,7 @@ public static partial class InventoryFixture
             destinationGroundPosition: position);
         var moved = milk with
         {
-            Id = milk.Id + "#milk:" + operationId,
+            Id = DerivedId.Create(milk.Id + "#milk:" + operationId),
             Quantity = 1,
             OwnerId = jug.OwnerId,
             ContainerLotId = jug.Id,

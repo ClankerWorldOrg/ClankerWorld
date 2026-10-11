@@ -116,7 +116,7 @@ public sealed class ConversationSystem(ConversationState state)
         if (conversation is null || !ShouldDispatchConversationChoice(agentId)) return null;
         var context = JsonSerializer.Serialize(new object[]
             { agentId, conversation.Id, conversation.Revision, conversation.Status });
-        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(context)));
+        return DerivedId.Hash(context);
     }
 
     public bool HasConversationAllowance(IConversationWorld world, string agentId) =>
@@ -234,7 +234,7 @@ public sealed class ConversationSystem(ConversationState state)
         if (conversations.Count >= AgentConversationRules.MaximumSavedConversations) return false;
         ReserveConversationAllowance(world, initiatorId);
         var participants = JsonSerializer.Serialize(new[] { initiatorId, inviteeId });
-        var digest = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(participants)));
+        var digest = DerivedId.Hash(participants);
         var id = $"conversation:{world.WorldTick}:{digest}";
         var conversation = AgentConversationRules.Propose(
             id, initiatorId, inviteeId, world.WorldTick, world.Society.RunEpoch);

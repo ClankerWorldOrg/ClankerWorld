@@ -248,7 +248,7 @@ public static class TownLawRules
             var at = proposal.SettledTick!.Value;
             if (draft.Action == "adopt")
             {
-                var id = townId + ":law:" + (government.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+                var id = DerivedId.Numbered(townId + ":law:", checked(government.Sequence + 1));
                 var version = new TownLawVersion(1, draft.Subject, draft.Rule, draft.Scope, draft.SiteTiles, draft.ProposalId, at)
                 { BoatAccess = draft.BoatAccess, EstateDefault = draft.EstateDefault };
                 government = Replace(government with { Sequence = government.Sequence + 1, Laws = government.Laws.Append(new TownLaw(id, [version])).ToArray() },

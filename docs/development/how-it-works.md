@@ -21,6 +21,23 @@ tests without Godot, a window manager, a live model or network access after
 dependencies are restored. Godot does not reference the simulation: it uses the
 host's versioned HTTP contract. Legacy web assets are diagnostic tools.
 
+## Derived identities
+
+`DerivedId` owns the 128 UTF-16-unit limit for identities assembled from other
+identities. A short complete value keeps its spelling; a longer value uses a
+SHA-256 digest of the complete value, retaining a bounded semantic prefix.
+Inventory splits, repeated milk sales, native births and family records,
+work reservations and receipts, memories and public Town record handles use
+this boundary. Separate source, owner and recipient fields retain their exact
+references. Names remain display text and do not become identifiers.
+
+Numbered Town records keep their sequence suffix after hashing the complete
+long value. Strict validation recomputes the full handle from its original
+scope and counter; it does not search an unbounded sequence or trust a digest
+alone. Parsed action payloads retain their fields and existing model-facing
+aliases. Content package identifiers retain their import rules.
+
+
 ## Core rules
 
 - **The server commits world state.** Client requests, model replies, mods and
@@ -2334,7 +2351,7 @@ Runtime admission and saved records still require known households, affected
 parties and eligible recipients. Offered civic choices use the existing bounded
 household token; property records keep the full ID.
 Saved footprint rights and requests retain that same known household reference.
-A generated household party key longer than 256 characters uses a stable hash,
+A generated household party key uses the shared derived-identity limit and hashes the complete key when needed,
 while its separate household field keeps the complete identity.
 
 Hearing actions enter through admitted personal-model civic choices. Public
@@ -2444,7 +2461,7 @@ Land-hearing readers, evidence sources and submitters, judges, affected parties,
 personal stakes and live or historical election rosters keep their complete known
 saved agent identities, including later-generation adults born in the world.
 Person rosters retain canonical order and uniqueness without applying the
-256-character ledger-key limit to ancestry-based identities.
+derived-identity length limit to complete person references.
 The shared civic identity check rejects blank, padded and control-character
 identities; caller-owned evidence, record and authority keys and prose keep
 their existing bounds. Current-world identity, notice and authority checks
@@ -4402,7 +4419,8 @@ the vessel or its fresh contents.
 
 Each completed exchange derives the receiving milk lot's identity from its full
 source identity and the admitted sale. A later sale retains that complete
-inventory reference, including repeated-sale histories longer than 512
-characters. Checkpoint validation requires a unique, well-formed source reference
+inventory reference, including each earlier sale in its provenance chain. The new lot ID itself
+stays within the shared derived-identity limit. Checkpoint validation requires a unique, well-formed source reference
 and its exact known lot, ownership, vessel, physical site and held reservation;
-animal and offer identities keep their existing short-field limit.
+animal, herd and offer identities use that same shared limit; animal names
+keep their separate display-text bound.

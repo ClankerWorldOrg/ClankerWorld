@@ -15,7 +15,7 @@ public static class TownLandHearingRules
     public static string LawVersion(TownLawVersion version) => RecordVersion(version with { EndedTick = null, EndedByProposalId = null });
     public static TownLandRightVersion Snapshot(HouseholdLandUseRight right) => new(right.Id, Version(right), right);
     public static TownLandCaseRevision CurrentRevision(TownLandCase item) => item.Revisions[^1];
-    public static string RevisionToken(TownLandCase item) => item.Id + ":" + CurrentRevision(item).Number.ToString(CultureInfo.InvariantCulture);
+    public static string RevisionToken(TownLandCase item) => DerivedId.Create(item.Id + ":" + CurrentRevision(item).Number.ToString(CultureInfo.InvariantCulture));
     public static string CaseKey(string townId, string kind, IEnumerable<GridPoint> tiles) =>
         Digest(townId + "|" + kind + "|" + TownLandClaimRules.DescribeTiles(TownLandRightsRules.OrderTiles(tiles)));
     internal static string Digest(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
@@ -58,7 +58,7 @@ public static class TownLandHearingRules
                 throw new InvalidOperationException("A property hearing cannot silently join a different permission request.");
             return Replace(state, existing with { Filings = existing.Filings.Contains(filing) ? existing.Filings : existing.Filings.Append(filing).ToArray() });
         }
-        var id = "land-case:" + townId + ":" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+        var id = DerivedId.Numbered("land-case:" + townId + ":", checked(state.Sequence + 1));
         var revision = Revision(1, tiles, currentRights, parties, noticeId, tick, day, filing.RequestedOutcome);
         var item = new TownLandCase(id, key, kind, tick, "pending", [revision], [filing], [], [], [], null, [], [], null, [], []) { TownId = townId, Property = property };
         return state with { Sequence = state.Sequence + 1, Cases = state.Cases.Append(item).ToArray() };
@@ -253,7 +253,7 @@ public static class TownLandHearingRules
         var changesRights = outcome.Kind is "renew" or "amend" or "end" || transfersProperty;
         if (changesRights && (evidenceIds.Count == 0 || evidenceIds.All(id => item.Evidence.Single(e => e.Id == id).Kind == "allegation")))
             throw new InvalidOperationException("Unsupported evidence cannot change formal use permissions.");
-        var rulingId = "land-ruling:" + item.TownId + ":" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+        var rulingId = DerivedId.Numbered("land-ruling:" + item.TownId + ":", checked(state.Sequence + 1));
         var prior = currentRights.Where(r => r.Tiles.Any(notice.Tiles.Contains)).ToArray();
         // Free tiles join a ruling only where a noticed household's pending request for them is being heard.
         var requested = pendingRequests?.Where(r => r.TownId == item.TownId && r.Status == "pending" && r.RequestedTick <= tick &&
@@ -265,7 +265,7 @@ public static class TownLandHearingRules
             throw new InvalidOperationException("A permission past its agreed end stays provisional until the ruling renews, amends or ends it.");
         if (!transfersProperty && currentParties.Any(p => p.Kind == "household" && p.AdultIds.Count == 0 && IsAdverseChange(prior, result, p.HouseholdId!)))
             throw new InvalidOperationException("An unrepresented household cannot lose its current or provisional permission.");
-        var adjustmentIds = changesRights ? new[] { "land-adjustment:" + item.TownId + ":" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture) } : [];
+        var adjustmentIds = changesRights ? new[] { DerivedId.Numbered("land-adjustment:" + item.TownId + ":", checked(state.Sequence + 1)) } : [];
         if (changesRights)
             state = RecordAdjustment(state, new(adjustmentIds[0], transfersProperty ? "property_ruling" : "ruling", tick, prior.Select(Snapshot).ToArray(), result,
                 notice.Tiles, item.Id, rulingId));
@@ -353,7 +353,7 @@ public static class TownLandHearingRules
         var expected = TownLandRightsRules.ReassignFootprintRights(map, beforeRights, footprint.ToHashSet(), targetHouseholdId, tick);
         if (!SameRights(expected, afterRights)) throw new InvalidOperationException("A recorded transfer must reproduce the actual authorized footprint reassignment.");
         if (SameRights(prior, result)) return state;
-        var adjustment = new TownLandRightAdjustment("land-adjustment:" + prior[0].TownId + ":" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture),
+        var adjustment = new TownLandRightAdjustment(DerivedId.Numbered("land-adjustment:" + prior[0].TownId + ":", checked(state.Sequence + 1)),
             "building_transfer", tick, prior.Select(Snapshot).ToArray(), result, TownLandRightsRules.OrderTiles(footprint),
             BuildingId: buildingId, TargetHouseholdId: targetHouseholdId);
         return RecordAdjustment(state, adjustment) with { Sequence = state.Sequence + 1 };
@@ -415,7 +415,7 @@ public static class TownLandHearingRules
         if (kind is not ("material_evidence" or "procedural_error") || !ValidText(reasons) ||
             evidenceIds.Count == 0 || evidenceIds.Any(id => !item.Evidence.Any(e => e.Id == id)))
             throw new InvalidOperationException("Reopening requires identified material evidence or proof of a procedural error.");
-        var request = new TownLandReopenRequest("land-reopen:" + item.TownId + ":" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture), actor, tick, kind, Ordered(evidenceIds), reasons);
+        var request = new TownLandReopenRequest(DerivedId.Numbered("land-reopen:" + item.TownId + ":", checked(state.Sequence + 1)), actor, tick, kind, Ordered(evidenceIds), reasons);
         return Replace(state with { Sequence = state.Sequence + 1 }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
     }
 

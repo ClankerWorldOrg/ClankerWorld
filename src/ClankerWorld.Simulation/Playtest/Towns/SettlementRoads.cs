@@ -85,7 +85,7 @@ public sealed partial class PrivateWorldRuntime
             return laid;
         }
         var route = result.Proposal!;
-        var routeId = $"road:{building.TownId}:{building.InstanceId}";
+        var routeId = DerivedId.Create($"road:{building.TownId}:{building.InstanceId}");
         foreach (var tile in route.RoadTiles)
             if (roadTiles.Add(tile)) laid.Add(tile);
         // The route starts at the entrance it was laid from, so the door faces this Road.

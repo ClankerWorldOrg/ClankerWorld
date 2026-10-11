@@ -126,8 +126,7 @@ public sealed partial class PrivateWorldRuntime
         var memoryKey = $"child-social:{kind}:{actor}:{target}:{WorldTick}";
         // Keep short keys and cooldown prefixes; hash the complete identity when
         // ancestry makes it exceed the cognition memory boundary.
-        var memoryId = memoryKey.Length <= 128 ? memoryKey :
-            $"child-social:{kind}:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
+        var memoryId = DerivedId.Create(memoryKey, $"child-social:{kind}:sha256:");
         society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint,
             new(memoryId, actor, target,
                 kind switch

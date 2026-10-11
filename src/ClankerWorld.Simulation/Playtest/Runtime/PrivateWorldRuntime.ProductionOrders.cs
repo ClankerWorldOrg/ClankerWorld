@@ -222,7 +222,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string ProductionOrderReceipt(string jobId) =>
-        "produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(jobId)));
+        "produce:job:" + DerivedId.Hash(jobId);
 
     private static void ValidateProductionOrderBindings(WorldContentSimulationState simulation,
         DeclarativeWorldContentState content, IEnumerable<PlaytestInhabitantState> physical,

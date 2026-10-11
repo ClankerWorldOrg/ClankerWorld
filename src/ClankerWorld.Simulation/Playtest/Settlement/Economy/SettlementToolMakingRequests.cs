@@ -30,11 +30,11 @@ public sealed partial class PrivateWorldRuntime
         ? ToolMakingRequestRules.Note(toolMakingRequests, actor, HouseholdFor(actor)) : null;
 
     private static string ToolRequestChoice(string verb, params string[] identity) => ToolRequestPrefix + verb + ":" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(identity))));
+        DerivedId.Hash(JsonSerializer.Serialize(identity));
 
     private static string ToolMakingRequestId(string actor, string building, string recipe, long tick) =>
-        "tool-making-request:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(
-            new[] { actor, building, recipe, tick.ToString(System.Globalization.CultureInfo.InvariantCulture) }))));
+        "tool-making-request:" + DerivedId.Hash(JsonSerializer.Serialize(
+            new[] { actor, building, recipe, tick.ToString(System.Globalization.CultureInfo.InvariantCulture) }));
 
     private bool IsToolRequestSeller(string actor, ToolMakingRequestState request) =>
         inhabitants.ContainsKey(actor) && AdultResident(actor) && HouseholdFor(actor) == request.SellerHouseholdId &&

@@ -28,7 +28,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var state = PrivateWorldRuntimeCodec.Decode((await GatheringAdults.Value)[generation]);
         Assert.Equal(generation, state.Society.Society.Births.Count);
         var actor = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
-        Assert.Equal(generation == 5, actor.Length > 512);
+        Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
         var choices = new NativeGatheringChoices();
         using var world = PrivateWorldRuntime.Restore(state, _ => choices);
         // A generated checkpoint can retain requested life reviews with no live task.

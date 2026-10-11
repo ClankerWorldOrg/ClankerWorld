@@ -27,7 +27,9 @@ public static class TownHearingProcedure
         .Split(' ', StringSplitOptions.RemoveEmptyEntries));
     public static string Digest<T>(T value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value))));
     internal static bool Id(string? value) => !string.IsNullOrWhiteSpace(value) && value == value.Trim() && !value.Any(char.IsControl);
-    internal static bool Text(string? value) => Id(value) && value!.Length <= 1024;
+    internal static bool DerivedIdentity(string? value) => Id(value) && value!.Length <= DerivedId.MaximumLength;
+    internal static bool Text(string? value) => !string.IsNullOrWhiteSpace(value) && value == value.Trim() &&
+        value.Length <= 1024 && !value.Any(char.IsControl);
     internal static string[] Ordered(IEnumerable<string> values) => values.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
     /// <summary>One case-election step, shared by land and non-land adapters.</summary>

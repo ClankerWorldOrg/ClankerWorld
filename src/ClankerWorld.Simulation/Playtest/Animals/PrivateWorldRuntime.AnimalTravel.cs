@@ -17,7 +17,7 @@ public sealed partial class PrivateWorldRuntime
             lot.OwnerId == animal.HouseholdId && lot.ContainerLotId is null);
         if (saddle is null) return;
         var operation = "fit-saddle-" + AnimalKey(animal.Id + ":" + WorldTick + ":" + nextEventId);
-        var unitId = saddle.Quantity == 1 ? saddle.Id : saddle.Id + "#move:" + operation;
+        var unitId = saddle.Quantity == 1 ? saddle.Id : DerivedId.Create(saddle.Id + "#move:" + operation);
         var reservationId = operation + "-held";
         ApplyInventoryTransition(inventory => InventoryFixture.Reserve(InventoryFixture.Relocate(inventory, operation,
             saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,

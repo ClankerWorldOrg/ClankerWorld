@@ -41,7 +41,7 @@ public static class SocietyMemorySummaryRules
     }
 
     internal static string Id(string owner, IReadOnlyList<SocietyMemorySummarySource> sources) =>
-        "memory-summary:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { owner, sources }))));
+        "memory-summary:" + DerivedId.Hash(JsonSerializer.Serialize(new { owner, sources }));
 
     internal static string Key(SocietyMemorySummarySource source) => $"{source.Kind}:{source.Id}";
 
@@ -72,11 +72,11 @@ public static class SocietyMemorySummaryRules
 
     internal static IEnumerable<SourceRecord> Records(SocietyCheckpoint checkpoint, string owner) =>
         checkpoint.AllMemories().Where(memory => memory.OwnerId == owner && !SocietyMemoryArchiveRules.IsPermanent(memory) &&
-                memory.Id.Length <= 128 && !string.IsNullOrWhiteSpace(memory.Summary))
+                memory.Id.Length <= DerivedId.MaximumLength && !string.IsNullOrWhiteSpace(memory.Summary))
             .Select(memory => new SourceRecord(new(memory.Id, SocietyMemorySourceKind.Experience, memory.SourceTick), memory.Summary,
                 "Memory", memory.TombstonedTick is not null))
             .Concat(checkpoint.AllBeliefs().Where(belief => belief.OwnerId == owner && belief.Kind == SocietyMemoryKind.Experience &&
-                    belief.SourceEventId is null && belief.Id.Length <= 128 && !string.IsNullOrWhiteSpace(belief.Statement))
+                    belief.SourceEventId is null && belief.Id.Length <= DerivedId.MaximumLength && !string.IsNullOrWhiteSpace(belief.Statement))
                 .Select(belief => new SourceRecord(new(belief.Id, SocietyMemorySourceKind.Belief, belief.FormedTick), belief.Statement,
                     belief.Provenance switch { SocietyBeliefProvenance.Hearsay => "Hearsay", SocietyBeliefProvenance.Inference => "Inference", _ => "Firsthand belief" },
                     belief.SupersededByBeliefId is not null)));

@@ -321,7 +321,7 @@ public sealed partial class PrivateWorldRuntime
                 if (ConsumeFood(actor, person, order.TargetFoodKind) is { } consumedLotId)
                 {
                     var identity = $"consume:{WorldTick:D10}:{actor}:{consumedLotId}";
-                    var receipt = "consume:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+                    var receipt = "consume:" + DerivedId.Hash(identity);
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 else

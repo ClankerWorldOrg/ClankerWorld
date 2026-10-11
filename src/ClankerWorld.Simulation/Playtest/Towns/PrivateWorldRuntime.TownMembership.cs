@@ -55,7 +55,7 @@ public sealed partial class PrivateWorldRuntime
     /// </summary>
     private bool AdmissionRetryWaits(TownRuntimeState town, string subject) =>
         town.Governance is { } state &&
-        state.Proposals.LastOrDefault(proposal => proposal.RequestKey == "admission:" + subject) is
+        state.Proposals.LastOrDefault(proposal => proposal.RequestKey == DerivedId.Create("admission:" + subject)) is
         { Status: "rejected" or "withdrawn", SettledTick: { } settled } previous &&
         WorldTick < settled + CivicDay && previous.CouncilRevision == state.Revision &&
         previous.Circumstances == "council:" + state.Revision;

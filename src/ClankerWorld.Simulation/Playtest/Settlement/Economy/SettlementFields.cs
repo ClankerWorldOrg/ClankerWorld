@@ -65,7 +65,7 @@ public sealed partial class PrivateWorldRuntime
                 seed.StorageBuildingId is not null || seed.DeliveryBuildingId is not null ||
                 seed.ItemKind != FarmFieldRules.PlantingItem(crop!) || AvailableLotQuantity(seed) < 1)
                 return new(false, "Carry one of your own usable planting items to the field.");
-            reservationId = $"{FarmFieldRules.FieldId(position)}:plant:{field.Cycle}:{WorldTick}:{workerId}";
+            reservationId = DerivedId.Create($"{FarmFieldRules.FieldId(position)}:plant:{field.Cycle}:{WorldTick}:{workerId}");
             // This seed belongs to active work, including illness and conversation
             // pauses. Completion consumes it; every work cancellation releases it.
             ApplyInventoryTransition(inventory => InventoryFixture.Reserve(inventory, reservationId,
@@ -91,7 +91,7 @@ public sealed partial class PrivateWorldRuntime
         var inventory = society.Checkpoint.Inventory;
         var lot = inventory.GetLot(lotId);
         if (lot.Quantity == 1) return lot.Id;
-        var isolatedId = $"{lot.Id}:field:{FarmFieldRules.FieldId(position)}:{WorldTick}:{workerId}";
+        var isolatedId = DerivedId.Create($"{lot.Id}:field:{FarmFieldRules.FieldId(position)}:{WorldTick}:{workerId}");
         ApplyInventoryTransition(current => InventoryFixture.SplitLot(current, lot.Id, 1, isolatedId));
         return isolatedId;
     }

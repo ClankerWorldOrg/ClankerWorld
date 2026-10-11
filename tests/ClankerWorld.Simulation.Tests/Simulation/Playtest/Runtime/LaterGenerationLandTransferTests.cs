@@ -33,9 +33,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             var birth = state.Society.Society.Births.OrderBy(item => item.CommittedTick).Last();
             var recipient = nativeBornHousehold ? birth.ChildId : birth.PrimaryCaregiverId;
             formedTarget = Assert.IsType<string>(state.Society.Society.GetInhabitant(recipient).HouseholdId);
-            Assert.Equal(nativeBornHousehold, formedTarget.Length > 128);
-            Assert.True(!laterGeneration || formedTarget.Length > 256);
-            Assert.StartsWith("household:solo:" + recipient + ":", formedTarget, StringComparison.Ordinal);
+            Assert.InRange(formedTarget.Length, 1, DerivedId.MaximumLength);
+            Assert.Equal([recipient], state.Society.Society.GetHousehold(formedTarget).MemberIds);
             Assert.Contains(state.Events, item => item.Kind == "household_founded" && item.Detail == recipient + "|" + formedTarget);
         }
         else state = PrivateWorldRuntimeCodec.Decode(await (laterGeneration ? LaterAdult : ConversationAdult).Value);
@@ -43,7 +42,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             person.HouseholdId == "household:camp-alpha" && person.Status == SocietyInhabitantStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id :
             state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
-        if (!formedHousehold) Assert.True(laterGeneration ? actor.Length > 256 : actor.Length <= 256);
+        if (!formedHousehold) Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
         var town = state.Towns![0];
         // As in the civic fixtures, arrange board proximity and comfort only.
         // Birth identities, ages, households, titles and permissions stay native.

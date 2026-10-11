@@ -124,8 +124,8 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string CartCargoOrderEffectId(OwnerQueuedInstruction instruction, int completed) => "cart-cargo-order:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}|{instruction.Order.TargetItemKind}|{completed}")));
+        DerivedId.Hash(
+            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}|{instruction.Order.TargetItemKind}|{completed}");
 
     private static bool IsValidCartCargoOrder(OwnerQueuedInstruction instruction)
     {

@@ -14,7 +14,7 @@ public static class TownBoatAccessRules
         : "Allow visitor " + grant.VisitorId[..Math.Min(grant.VisitorId.Length, 120)] + " to use this Town's communal boats.");
 
     public static string RequestKey(TownBoatAccessGrant grant) => "boat-access:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(grant.VisitorId is null ? "all" : "visitor:" + grant.VisitorId)));
+        DerivedId.Hash(grant.VisitorId is null ? "all" : "visitor:" + grant.VisitorId);
 
     public static bool Allows(TownRuntimeState town, string actor, long tick) =>
         town.Government?.Laws.Any(law => TownLawRules.InForceAt(law, tick)?.BoatAccess is { } grant &&

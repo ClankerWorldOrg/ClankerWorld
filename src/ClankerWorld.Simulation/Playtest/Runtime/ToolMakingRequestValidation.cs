@@ -124,8 +124,8 @@ public sealed partial class PrivateWorldRuntime
         for (var index = 0; index < recipe.Inputs.Count; index++)
         {
             var input = recipe.Inputs[index];
-            var group = receipts.Where(receipt => receipt.Id == purpose + ":quantity:" +
-                index.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":lot:" + receipt.LotId).ToArray();
+            var group = receipts.Where(receipt => receipt.Id == DerivedId.Create(purpose + ":quantity:" +
+                index.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":lot:" + receipt.LotId)).ToArray();
             if (group.Sum(receipt => (long)receipt.Quantity) != input.Amount || group.Any(receipt =>
                 inventory.Lots.Any(lot => lot.Id == receipt.LotId && lot.ItemKind != input.ResourceId)))
                 return false;

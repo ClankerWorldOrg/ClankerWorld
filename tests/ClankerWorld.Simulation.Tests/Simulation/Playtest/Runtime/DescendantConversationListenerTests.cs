@@ -28,7 +28,7 @@ public sealed class DescendantConversationListenerTests
             Speaker, Partner, household, caregivers, [Speaker, Partner], "food:camp-alpha", 2, society.WorldTick,
             ChildName: ChosenBirthNameTestFixture.ChildName(society, Speaker, "Listener"), PrimaryCaregiverId: Speaker));
         var child = Assert.IsType<string>(birth.CreatedId);
-        Assert.True(child.Length > 128);
+        Assert.InRange(child.Length, 1, DerivedId.MaximumLength);
         society = birth.Checkpoint;
         // Accelerate age only; retain the actual birth identity, ancestry and family records.
         var adultBirth = society.LifeTickAt(society.WorldTick) - 20 * society.Config.TicksPerLifecycleAge;

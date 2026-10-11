@@ -208,7 +208,7 @@ public sealed partial class PrivateWorldRuntime
         foreach (var town in savedTowns)
         {
             var isFirstTown = town.Id == TownBorderRules.FirstTownId;
-            if (string.IsNullOrWhiteSpace(town.Id) || town.Id != town.Id.Trim() || town.Id.Length > 128 ||
+            if (string.IsNullOrWhiteSpace(town.Id) || town.Id != town.Id.Trim() || town.Id.Length > DerivedId.MaximumLength ||
                 town.Id.Any(char.IsControl) || string.IsNullOrWhiteSpace(town.Name) || town.Name != town.Name.Trim() ||
                 town.Name.Length > 120 || town.FoundedTick < 0 || town.FoundedTick > society.WorldTick ||
                 town.FirstBuildingCompletedTick is { } completed && (completed < town.FoundedTick || completed > society.WorldTick) ||
@@ -351,7 +351,8 @@ public sealed partial class PrivateWorldRuntime
                                         (estate.WillBequests ?? []).Any(bequest => bequest.HeirId == owner &&
                                             bequest.LotId == frozen.LotId && bequest.Quantity >= quantity))) continue;
                                     var inheritedId = $"{frozen.LotId}#estate:{estate.Id}:{owner}";
-                                    if (lotId != inheritedId && lotId != inheritedId + ":storage:" + storage.InstanceId &&
+                                    if (lotId != DerivedId.Create(inheritedId) &&
+                                        lotId != DerivedId.Create(inheritedId + ":storage:" + storage.InstanceId) &&
                                         !(fallback && lotId == frozen.LotId && quantity == frozen.Quantity)) continue;
                                 }
                                 // Frozen IDs retain exact settlement links through
@@ -699,10 +700,10 @@ public sealed partial class PrivateWorldRuntime
             var instruction = cancellation is null ? null : instructions.SingleOrDefault(item =>
                 item.InstructionId == cancellation.OrderId);
             if (cancellation is null || string.IsNullOrWhiteSpace(cancellation.IdempotencyKey) ||
-                cancellation.IdempotencyKey.Length > 128 || cancellation.IdempotencyKey.Any(char.IsControl) ||
+                cancellation.IdempotencyKey.Length > DerivedId.MaximumLength || cancellation.IdempotencyKey.Any(char.IsControl) ||
                 cancellation.IdempotencyKey != cancellation.IdempotencyKey.Trim() ||
                 !cancellationKeys.Add(cancellation.IdempotencyKey) ||
-                string.IsNullOrWhiteSpace(cancellation.IssuerId) || cancellation.IssuerId.Length > 128 ||
+                string.IsNullOrWhiteSpace(cancellation.IssuerId) || cancellation.IssuerId.Length > DerivedId.MaximumLength ||
                 cancellation.IssuerId.Any(char.IsControl) || cancellation.IssuerId != cancellation.IssuerId.Trim() ||
                 cancellation.WorldId != worldId ||
                 cancellation.TargetInhabitantId != instruction?.TargetInhabitantId ||
@@ -739,7 +740,7 @@ public sealed partial class PrivateWorldRuntime
             return false;
         if (!knownStatus || (order.Status == "queued" && !instruction.Queue) ||
             order.BlockedReason is { Length: > 256 } || order.BlockedReason?.Any(char.IsControl) == true ||
-            order.LastEffectId is { Length: > 512 } || order.LastEffectId?.Any(char.IsControl) == true ||
+            order.LastEffectId is { Length: > DerivedId.MaximumLength } || order.LastEffectId?.Any(char.IsControl) == true ||
             order.TargetResourceId is { Length: > 128 } || order.TargetResourceId?.Any(char.IsControl) == true ||
             order.Action != "produce_item" && (order.TargetRecipeId is not null || order.TargetOutputKind is not null ||
                 order.ProductionBuildingId is not null || order.ProductionJobId is not null || order.ProductionProjectStartedTick is not null) ||
@@ -771,7 +772,7 @@ public sealed partial class PrivateWorldRuntime
                 order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
                 order.ProgressUnit == "conversations" && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
                 order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
-                (order.TalkConversationId is null || !string.IsNullOrWhiteSpace(order.TalkConversationId) && order.TalkConversationId.Length <= 512 &&
+                (order.TalkConversationId is null || !string.IsNullOrWhiteSpace(order.TalkConversationId) && order.TalkConversationId.Length <= DerivedId.MaximumLength &&
                     order.TalkConversationId == order.TalkConversationId.Trim() && !order.TalkConversationId.Any(char.IsControl)) &&
                 (order.CompletedUnits == 0 ? order.TalkOutcome is null && order.LastEffectId is null :
                     order.TalkConversationId is not null && IsTalkOutcome(order.TalkOutcome) && order.LastEffectId == TalkOrderEffectId(instruction));
@@ -780,7 +781,7 @@ public sealed partial class PrivateWorldRuntime
                 order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
                 order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits is >= 0 and <= 1_000_000 &&
                 (order.QuantityIsExplicit || order.RequestedUnits == 1) && order.ProgressUnit == (order.Action == "copy_knowledge" ? "copies" : "artifacts") &&
-                (order.KnowledgeCopySourceArtifactId is null || order.KnowledgeCopySourceArtifactId.Length <= 128 &&
+                (order.KnowledgeCopySourceArtifactId is null || order.KnowledgeCopySourceArtifactId.Length <= DerivedId.MaximumLength &&
                     IsValidProductionBindingId(order.KnowledgeCopySourceArtifactId)) &&
                 (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
                 order.Status != "not_understood" &&
@@ -801,7 +802,7 @@ public sealed partial class PrivateWorldRuntime
                     (order.Action == "repair_handcart" ? CartRepairOrderReceiptTick(instruction, worldTick) is not null :
                         order.LastEffectId == CartOrderEffectId(instruction)));
         if (IsAnimalOrder(order.Action))
-            return !string.IsNullOrWhiteSpace(order.TargetAnimalId) && order.TargetAnimalId.Length <= 128 &&
+            return !string.IsNullOrWhiteSpace(order.TargetAnimalId) && order.TargetAnimalId.Length <= DerivedId.MaximumLength &&
                 !order.TargetAnimalId.Any(char.IsControl) && order.RequestedUnits == 1 && order.CompletedUnits >= 0 &&
                 (order.RepeatUntilCancelled || order.CompletedUnits <= 1) && order.ProgressUnit == "animal_tasks" &&
                 order.TargetResourceId is null && order.TargetAgentId is null && order.TargetPosition is null &&

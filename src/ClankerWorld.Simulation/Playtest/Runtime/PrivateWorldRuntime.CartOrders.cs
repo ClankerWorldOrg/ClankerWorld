@@ -123,8 +123,8 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string CartOrderEffectId(OwnerQueuedInstruction instruction) => "cart-order:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}")));
+        DerivedId.Hash(
+            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}");
 
     private static void ValidateCartOrderBindings(InventoryCheckpoint inventory, IEnumerable<OwnerQueuedInstruction> instructions)
     {

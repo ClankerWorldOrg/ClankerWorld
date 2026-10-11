@@ -39,7 +39,7 @@ public static class TownLandCasePartyRules
     internal static string HouseholdPartyId(string household)
     {
         var id = "household:" + household;
-        return id.Length <= 256 ? id : "household-sha256:" + TownLandHearingRules.Digest(household);
+        return DerivedId.Create(id, "household-sha256:");
     }
 
     public static bool TownFilingAuthority(TownRuntimeState town, string actor, string? authorityId,

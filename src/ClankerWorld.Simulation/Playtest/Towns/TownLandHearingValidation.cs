@@ -127,7 +127,7 @@ public static class TownLandHearingValidation
                 revision.DeadlineTick == checked(revision.PublishedTick + day) && revision.Parties is { Count: > 0 } && revision.RightVersions is not null &&
                 TownLandHearingRules.IsValidOutcome(revision.RequestedOutcome, item.FiledTick) &&
                 revision.Tiles.All(t => TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A saved land notice needs its complete titled plot and full response day.");
-            Check(council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "land_hearing" && n.SubjectId == item.Id + ":" + revision.Number.ToString(System.Globalization.CultureInfo.InvariantCulture) && n.PostedTick == revision.PublishedTick) == true,
+            Check(council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "land_hearing" && n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(System.Globalization.CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A saved land case needs its actual formal notice publication.");
             Check(revision.Parties.All(p => p is not null) && revision.RightVersions.All(r => r is not null), "A saved notice cannot contain null parties or rights.");
             Unique(revision.Parties.Select(p => p.Id));
@@ -373,7 +373,7 @@ public static class TownLandHearingValidation
         TileTerms(a).SequenceEqual(TileTerms(b));
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
         System.Text.Json.JsonSerializer.Serialize(new { t.X, t.Y, r.TownId, r.HouseholdId, r.GrantedTick, r.GrantSource, r.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? id) => TownLandHearingRules.ValidText(id, 256);
+    private static bool Id(string? id) => TownLandHearingRules.ValidText(id, DerivedId.MaximumLength);
     /// <summary>A ledger identity must be one its own sequence has already issued, or the next record would reuse it.</summary>
     private static bool Generated(string? id, string prefix, string townId, long sequence) =>
         TownGovernmentValidation.ValidId(id, prefix + townId + ":", sequence);

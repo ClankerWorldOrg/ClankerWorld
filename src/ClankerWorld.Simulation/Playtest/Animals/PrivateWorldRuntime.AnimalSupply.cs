@@ -154,7 +154,7 @@ public sealed partial class PrivateWorldRuntime
             var operation = "animal-pickup-" + AnimalKey(actor + ":" + WorldTick + ":" + nextEventId);
             ApplyInventoryTransition(current => InventoryFixture.Relocate(current, operation, source.Id, source.OwnerId,
                 choice.Quantity, carrierId: actor));
-            if (choice.Quantity < source.Quantity) source = society.Checkpoint.Inventory.GetLot(source.Id + "#move:" + operation);
+            if (choice.Quantity < source.Quantity) source = society.Checkpoint.Inventory.GetLot(DerivedId.Create(source.Id + "#move:" + operation));
         }
         animalWorld = animalWorld with
         {

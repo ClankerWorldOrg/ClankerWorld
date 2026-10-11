@@ -334,7 +334,7 @@ public sealed partial class PrivateWorldRuntime
         if (quantity <= 0)
             return;
 
-        var operationId = $"food-pot:{WorldTick}:{actor}";
+        var operationId = DerivedId.Create($"food-pot:{WorldTick}:{actor}");
         ApplyInventoryTransition(current =>
         {
             var sourceId = choice.Food.Id;
@@ -343,7 +343,7 @@ public sealed partial class PrivateWorldRuntime
                 current = InventoryFixture.Transfer(current, operationId, actor, householdId, choice.Food.Id,
                     quantity, "food_stored_in_pot", destinationStorageBuildingId: house.InstanceId);
                 if (quantity != choice.Food.Quantity)
-                    sourceId = $"{choice.Food.Id}#transfer:{operationId}";
+                    sourceId = DerivedId.Create($"{choice.Food.Id}#transfer:{operationId}");
             }
             return InventoryFixture.PutIntoContainer(current, operationId, householdId, choice.Pot.Id, sourceId, quantity);
         });

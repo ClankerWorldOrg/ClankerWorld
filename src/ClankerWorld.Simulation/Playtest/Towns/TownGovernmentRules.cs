@@ -14,9 +14,9 @@ public static partial class TownGovernmentRules
     public static string[] Mandates(TownArrangement arrangement) =>
         TownArrangementRules.Mandates(arrangement)?.Split('+') ?? [];
     public static string VoteNoticeToken(TownGovernmentChange change) =>
-        change.Id + ":vote:" + change.OpenedTick?.ToString(CultureInfo.InvariantCulture);
+        DerivedId.Create(change.Id + ":vote:" + change.OpenedTick?.ToString(CultureInfo.InvariantCulture));
     public static string RoundToken(TownMayoralContest contest) =>
-        $"{contest.Id}:{contest.Round.ToString(CultureInfo.InvariantCulture)}:{contest.RoundOpenedTick?.ToString(CultureInfo.InvariantCulture)}";
+        DerivedId.Create($"{contest.Id}:{contest.Round.ToString(CultureInfo.InvariantCulture)}:{contest.RoundOpenedTick?.ToString(CultureInfo.InvariantCulture)}");
     public static TownOffice? GoverningOffice(TownGovernmentState state) =>
         state.Offices.SingleOrDefault(o => o.Mandates == "ordinary");
     private static string Fingerprint(IEnumerable<string> fields) =>
@@ -68,7 +68,7 @@ public static partial class TownGovernmentRules
         if (state.Changes.LastOrDefault(c => c.RequestKey == key) is { Status: "rejected" or "withdrawn" } prior &&
             tick < prior.SettledTick + day && prior.Circumstances == circumstances)
             throw new InvalidOperationException("This resident proposal must wait one unpaused day or a material change before retrying.");
-        var id = townId + ":government:" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+        var id = DerivedId.Numbered(townId + ":government:", checked(state.Sequence + 1));
         var change = new TownGovernmentChange(id, key, kind, target, actor, circumstances, tick, "queued", null, null, [], [])
         { NonLandExtension = extension };
         state = state with { Sequence = state.Sequence + 1, Changes = state.Changes.Append(change).ToArray() };

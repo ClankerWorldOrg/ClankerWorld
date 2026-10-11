@@ -99,9 +99,7 @@ public sealed partial class PrivateWorldRuntime
         var effect = GatherProjectMaterial(actor, person, instruction.Order!.TargetMaterialKind!, source);
         if (effect is not null)
         {
-            var receipt = $"gather:{effect.LotId}";
-            if (receipt.Length > 512)
-                receipt = "gather:material:sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(receipt)));
+            var receipt = DerivedId.Create($"gather:{effect.LotId}", "gather:material:sha256:");
             CreditOrderEffect(instruction, receipt,
                 instruction.Order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
         }

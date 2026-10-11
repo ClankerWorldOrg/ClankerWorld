@@ -145,7 +145,7 @@ public sealed partial class PrivateWorldRuntime
                 {
                     HouseholdId = offer.ReceivingHouseholdId,
                     YardId = offer.ReceivingYardId,
-                    HerdId = "household:" + offer.ReceivingHouseholdId,
+                    HerdId = DerivedId.Create("household:" + offer.ReceivingHouseholdId),
                     CarePermissions = [],
                     RidingPermissions = [],
                     SaddleLotId = null,

@@ -187,7 +187,7 @@ public sealed partial class PrivateWorldRuntime
                         receipt.ResultOwnerId != receipt.BeneficiaryId || receipt.BeforeCondition != receipt.AfterCondition ||
                         receipt.Quantity > receipt.AvailableQuantityBefore || receipt.RepairInputs.Count != 0 ||
                         receipt.ResultLotId != (receipt.Quantity == receipt.SourceQuantityBefore ? receipt.SourceLotId :
-                            receipt.SourceLotId + "#transfer:" + receipt.Id)) ||
+                            DerivedId.Create(receipt.SourceLotId + "#transfer:" + receipt.Id))) ||
                     receipt.Kind == "return_goods" && (!agents.Contains(receipt.BeneficiaryId ?? "") ||
                         receipt.BeneficiaryId == receipt.ActorId || receipt.TargetId != receipt.SourceLotId) ||
                     receipt.Kind == "public_service_goods" && (receipt.BeneficiaryId != town.Id || receipt.ActorTownId != town.Id ||

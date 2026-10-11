@@ -209,8 +209,7 @@ public sealed partial class PrivateWorldRuntime
             GainSkill(student.InhabitantId, lesson.Skill, actor);
             IncreaseTrust(student.InhabitantId, actor, 2, "teaching_completed");
             var memoryKey = $"lesson-gratitude:{student.InhabitantId}:{actor}:{lesson.Skill}";
-            var memoryId = memoryKey.Length <= 128 ? memoryKey :
-                $"lesson-gratitude:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
+            var memoryId = DerivedId.Create(memoryKey, "lesson-gratitude:sha256:");
             if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
             {
                 society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new(memoryId, student.InhabitantId, actor,

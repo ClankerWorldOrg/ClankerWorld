@@ -1138,8 +1138,7 @@ public sealed partial class PrivateWorldRuntime
         var memoryKey = $"project-gratitude:{request.Requester}:{helperId}";
         // Preserve short keys and the cooperation prefix, while keeping native
         // descendants' complete identities within the memory recall boundary.
-        var memoryId = memoryKey.Length <= 128 ? memoryKey :
-            $"project-gratitude:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
+        var memoryId = DerivedId.Create(memoryKey, "project-gratitude:sha256:");
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new SocietySocialMemory(

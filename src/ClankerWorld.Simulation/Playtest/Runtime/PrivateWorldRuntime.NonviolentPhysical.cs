@@ -57,7 +57,7 @@ public sealed partial class PrivateWorldRuntime
             var observations = inhabitants.Values.Where(person => person.InhabitantId == actor ||
                     CanObserveNonviolentAct(person.InhabitantId, actor, position))
                 .OrderBy(person => person.InhabitantId, StringComparer.Ordinal)
-                .Select(person => new TownConductAcquisition(nativeActId + ":seen:" + person.InhabitantId,
+                .Select(person => new TownConductAcquisition(DerivedId.Create(nativeActId + ":seen:" + person.InhabitantId),
                     nativeActId, person.InhabitantId, "firsthand", WorldTick, person.Position,
                     DescribeNonviolentConduct(record), ObserverHouseholdId: HouseholdFor(person.InhabitantId),
                     PrivateSiteHouseholdId: NonviolentPrivateSite(position)?.HouseholdId)).ToArray();
@@ -495,7 +495,7 @@ public sealed partial class PrivateWorldRuntime
     private void RecordNonviolentGoodsCompletion(string actor, InventoryLot sourceLot, string recipientId,
         int quantity, string? storageBuildingId, string nativeReceiptId, string kind, long? carriedAvailableBefore = null)
     {
-        var resultId = quantity == sourceLot.Quantity ? sourceLot.Id : sourceLot.Id + "#transfer:" + nativeReceiptId;
+        var resultId = quantity == sourceLot.Quantity ? sourceLot.Id : DerivedId.Create(sourceLot.Id + "#transfer:" + nativeReceiptId);
         var result = society.Checkpoint.Inventory.GetLot(resultId);
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, kind, actor, WorldTick, recipientId,
             sourceLot.ItemKind, quantity, storageBuildingId ?? sourceLot.Id, sourceLot.Id, resultId,

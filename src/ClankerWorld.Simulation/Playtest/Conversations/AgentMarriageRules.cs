@@ -83,7 +83,7 @@ public static class AgentMarriageRules
     }
 
     public static string Id(string consentId) => "marriage:" +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(consentId)));
+        DerivedId.Hash(consentId);
 
     public static IReadOnlyList<string> AllowedSurnames(AgentMarriage marriage) =>
         new[] { InhabitantNameRules.SurnameKey(marriage.InitiatorNameAtAcceptance)!,

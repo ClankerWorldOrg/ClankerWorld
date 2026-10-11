@@ -23,7 +23,7 @@ public sealed record CognitionNonviolentChoice(string? Statement = null, string?
     }
 
     private static bool ValidText(string? value) => value is null || CognitionDecisionResponse.NormalizeIdentityText(value) == value;
-    private static bool Reference(string? value) => value is { Length: > 0 and <= 256 } && !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
+    private static bool Reference(string? value) => value is { Length: > 0 and <= DerivedId.MaximumLength } && !value.Any(char.IsWhiteSpace) && !value.Any(char.IsControl);
     private static bool OptionalReference(string? value) => value is null || Reference(value);
 
     internal static CognitionNonviolentChoice? Parse(JsonElement answer)

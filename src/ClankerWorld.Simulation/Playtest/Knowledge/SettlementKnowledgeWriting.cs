@@ -135,8 +135,7 @@ public sealed partial class PrivateWorldRuntime
             CollectKnowledgeMaterial(actor, person, input.Kind, missing);
             return;
         }
-        var id = "knowledge-work-" + Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(
-            System.Text.Encoding.UTF8.GetBytes($"{actor}|{WorldTick}|{society.Checkpoint.Inventory.Reservations.Count}")));
+        var id = DerivedId.Hash($"{actor}|{WorldTick}|{society.Checkpoint.Inventory.Reservations.Count}", "knowledge-work-");
         var materials = new List<AgentKnowledgeMaterial>();
         var inventory = society.Checkpoint.Inventory;
         foreach (var input in AgentKnowledgeRules.WritingMaterials(kind))
@@ -146,7 +145,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 var quantity = Math.Min(remaining, PersonalEquipmentRules.AvailableQuantity(inventory, lot));
                 if (quantity <= 0) continue;
-                var reservationId = $"{id}:{materials.Count}";
+                var reservationId = DerivedId.Create($"{id}:{materials.Count}");
                 inventory = InventoryFixture.Reserve(inventory, reservationId, actor, lot.Id, quantity,
                     AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue);
                 materials.Add(new(reservationId, lot.Id, input.Kind, quantity));

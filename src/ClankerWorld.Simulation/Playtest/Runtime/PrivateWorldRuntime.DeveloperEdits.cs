@@ -80,7 +80,7 @@ public sealed partial class PrivateWorldRuntime
                 SeedWildAnimals();
                 SetAnimal(new("animal-" + id, animalParts[0] + " " + (animalWorld.Animals.Count + 1), animalParts[0], animalParts[1],
                     WorldTick - (long)AnimalRules.Definition(animalParts[0]).AdultDays * AnimalDayTicks, animalPosition,
-                    "household:" + animalHousehold, animalHousehold, animalYard.InstanceId));
+                    DerivedId.Create("household:" + animalHousehold), animalHousehold, animalYard.InstanceId));
                 AppendEvent("animal_added", actor + ":animal-" + id, animalPosition);
                 break;
             case "set_need":

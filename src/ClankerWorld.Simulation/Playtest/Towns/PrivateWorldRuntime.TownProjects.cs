@@ -435,7 +435,7 @@ public sealed partial class PrivateWorldRuntime
         }
         var deliveryId = NextTownProjectDeliveryId(choice.Project, actor, choice.Lot!.Id);
         var operation = deliveryId + ":donation";
-        var lotId = choice.Quantity == choice.Lot.Quantity ? choice.Lot.Id : choice.Lot.Id + "#transfer:" + operation;
+        var lotId = choice.Quantity == choice.Lot.Quantity ? choice.Lot.Id : DerivedId.Create(choice.Lot.Id + "#transfer:" + operation);
         var delivery = new TownProjectDelivery(deliveryId, actor, choice.Lot.Id, lotId, choice.ItemKind,
             choice.Quantity, WorldTick, WorldTick, deliveryId + ":input");
         ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryFixture.Transfer(inventory,
@@ -478,7 +478,7 @@ public sealed partial class PrivateWorldRuntime
         }
         var id = NextTownProjectDeliveryId(choice.Project, actor, lot.Id);
         var operation = id + ":pickup";
-        var movedId = choice.Quantity == lot.Quantity ? lot.Id : lot.Id + "#move:" + operation;
+        var movedId = choice.Quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
         ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory, operation, lot.Id,
             choice.Town.Id, choice.Quantity, carrierId: actor));
         var delivery = new TownProjectDelivery(id, actor, lot.Id, movedId, lot.ItemKind, choice.Quantity, WorldTick);
@@ -520,7 +520,7 @@ public sealed partial class PrivateWorldRuntime
         }
         var id = NextTownProjectDeliveryId(choice.Project, actor, lot.Id);
         var operation = id + ":recovery";
-        var movedId = choice.Quantity == lot.Quantity ? lot.Id : lot.Id + "#move:" + operation;
+        var movedId = choice.Quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
         ApplyInventoryTransition(inventory => InventoryFixture.Relocate(inventory, operation, lot.Id,
             choice.Town.Id, choice.Quantity, carrierId: actor));
         // Retain custody of a split load without reviving its cancelled construction commitment.
@@ -547,7 +547,7 @@ public sealed partial class PrivateWorldRuntime
                 // An unrelated claim can keep part of the original load in custody.
                 // Retain the new ground lot so its unclaimed portion can be recovered later.
                 var delivery = new TownProjectDelivery(NextTownProjectDeliveryId(choice.Project, actor, lot.Id),
-                    actor, lot.Id, lot.Id + "#move:" + operation, lot.ItemKind, choice.Quantity, WorldTick,
+                    actor, lot.Id, DerivedId.Create(lot.Id + "#move:" + operation), lot.ItemKind, choice.Quantity, WorldTick,
                     ReleasedTick: WorldTick, ReleaseReason: "Unused construction materials were set down.");
                 SetTownProject(choice.Town.Id, choice.Project with
                 {

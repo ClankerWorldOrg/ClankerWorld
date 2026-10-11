@@ -57,5 +57,5 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string GuardianOrderEffectId(string adult, string child) =>
-        "guardianship:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{adult}|{child}")));
+        "guardianship:" + DerivedId.Hash($"{adult}|{child}");
 }

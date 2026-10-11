@@ -26,7 +26,7 @@ public sealed partial class PrivateWorldRuntime
         var actor = instruction.TargetInhabitantId;
         if (RepairTool(actor, person, lotId, ToolRepairOrderTargets(instruction)) is not { } repairedLotId) return;
         var identity = $"{actor}:{WorldTick}:{repairedLotId}";
-        var receipt = "repair:tool:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+        var receipt = "repair:tool:" + DerivedId.Hash(identity);
         CreditOrderEffect(instruction, receipt, 1);
     }
 

@@ -143,7 +143,7 @@ public sealed partial class PrivateWorldRuntime
                 {
                     HouseholdId = household,
                     YardId = yard.InstanceId,
-                    HerdId = "household:" + household,
+                    HerdId = DerivedId.Create("household:" + household),
                     CareUntilTick = 0,
                     TamingWork = null,
                     LeaderId = actor,

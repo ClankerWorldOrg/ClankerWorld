@@ -336,7 +336,7 @@ public sealed partial class PrivateWorldRuntime
                     var operation = $"cart-pickup:{WorldTick}:{actor}";
                     updated = InventoryFixture.Transfer(updated, operation, lot.OwnerId, actor, lot.Id, quantity,
                         "handcart_pickup", destinationGroundPosition: cartHere.GroundPosition);
-                    cargoId = quantity == lot.Quantity ? lot.Id : $"{lot.Id}#transfer:{operation}";
+                    cargoId = quantity == lot.Quantity ? lot.Id : DerivedId.Create($"{lot.Id}#transfer:{operation}");
                 }
                 return InventoryFixture.LoadHandcart(updated, $"load:{WorldTick}:{actor}", actor, cartHere.Id, cargoId, quantity);
             });

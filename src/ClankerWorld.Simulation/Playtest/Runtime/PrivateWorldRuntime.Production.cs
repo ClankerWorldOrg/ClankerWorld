@@ -284,14 +284,14 @@ public sealed partial class PrivateWorldRuntime
         // Preserve valid legacy IDs; descendant identities contain separators
         // that are legal society IDs but invalid content instance IDs.
         var original = inhabitantId.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
-            ? $"build-{inhabitantId}-{definition.PackageDigest[7..15]}-{definition.LocalId}"
-            : "build-v2-" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(inhabitantId + "\n" + definition.CanonicalId)));
+            ? DerivedId.Create($"build-{inhabitantId}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")
+            : "build-v2-" + DerivedId.Hash(inhabitantId + "\n" + definition.CanonicalId);
         var candidate = original;
         // Historical order bindings keep their identity. Ordinary paid rebuilding
         // selects a stable replacement without changing those bindings or payments.
         for (var replacement = 1; BuildingIdentityIsReserved(candidate); replacement++)
-            candidate = "build-replacement-" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-                original + "\n" + replacement.ToString(CultureInfo.InvariantCulture))));
+            candidate = "build-replacement-" + DerivedId.Hash(
+                original + "\n" + replacement.ToString(CultureInfo.InvariantCulture));
         return candidate;
     }
 
@@ -437,7 +437,7 @@ public sealed partial class PrivateWorldRuntime
                 }
 
                 var amount = Math.Min(remaining, available);
-                var reservationId = $"{purpose}:quantity:{quantityIndex}:lot:{lot.Id}";
+                var reservationId = DerivedId.Create($"{purpose}:quantity:{quantityIndex}:lot:{lot.Id}");
                 current = InventoryFixture.Reserve(
                     current,
                     reservationId,
@@ -520,7 +520,7 @@ public sealed partial class PrivateWorldRuntime
                 }
 
                 var amount = Math.Min(remaining, available);
-                var reservationId = $"{purpose}:quantity:{quantityIndex}:lot:{lot.Id}";
+                var reservationId = DerivedId.Create($"{purpose}:quantity:{quantityIndex}:lot:{lot.Id}");
                 current = InventoryFixture.Reserve(
                     current,
                     reservationId,
@@ -627,7 +627,7 @@ public sealed partial class PrivateWorldRuntime
             for (var outputIndex = 0; outputIndex < recipe.Outputs.Count; outputIndex++)
             {
                 var output = recipe.Outputs[outputIndex];
-                var outputLotId = $"{job.JobId}:output:{outputIndex.ToString("D2", CultureInfo.InvariantCulture)}";
+                var outputLotId = DerivedId.Create($"{job.JobId}:output:{outputIndex.ToString("D2", CultureInfo.InvariantCulture)}");
                 var vessel = InventoryContainerRules.IsContainer(output.ResourceId);
                 for (var unitIndex = 0; unitIndex < (vessel ? output.Amount : 1); unitIndex++)
                 {

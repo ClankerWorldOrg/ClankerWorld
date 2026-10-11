@@ -160,11 +160,11 @@ public sealed partial class PrivateWorldRuntime
                 {
                     var operation = $"ornament-wear:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
                     inventory = InventoryFixture.Transfer(inventory, operation, lot.OwnerId, actor, lot.Id, 1, "ornament_collected");
-                    equippedId = lot.Quantity == 1 ? lot.Id : lot.Id + "#transfer:" + operation;
+                    equippedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
                 }
                 else if (lot.Quantity > 1)
                 {
-                    equippedId = $"ornament-unit:{WorldTick}:{nextEventId}:{actor}:{lot.Id}";
+                    equippedId = DerivedId.Create($"ornament-unit:{WorldTick}:{nextEventId}:{actor}:{lot.Id}");
                     inventory = InventoryFixture.SplitLot(inventory, lot.Id, 1, equippedId);
                 }
                 inhabitants[actor] = person with
@@ -216,7 +216,7 @@ public sealed partial class PrivateWorldRuntime
         if (FreeCarryCapacity(recipientId) < 1) return new(false, Failure: "The recipient has no room to carry the gift.");
         var person = inhabitants[actor];
         var operation = $"ornament-gift:{WorldTick}:{nextEventId}:{actor}:{recipientId}:{lot.Id}";
-        var receivedId = lot.Quantity == 1 ? lot.Id : lot.Id + "#transfer:" + operation;
+        var receivedId = lot.Quantity == 1 ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + operation);
         try
         {
             ApplyInventoryTransition(inventory =>

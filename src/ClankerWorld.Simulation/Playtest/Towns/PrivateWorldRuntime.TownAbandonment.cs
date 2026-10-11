@@ -39,7 +39,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static string TownSalvageId(string townId, string lotId) => TownSalvagePrefix +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(townId + "|" + lotId)));
+        DerivedId.Hash(townId + "|" + lotId);
 
     private IEnumerable<(TownRuntimeState Town, InventoryLot Lot, int Quantity)> AbandonedStockForPickup(string actor)
     {
@@ -83,7 +83,7 @@ public sealed partial class PrivateWorldRuntime
         {
             if (TownSalvageId(town.Id, lot.Id) != candidate) continue;
             ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
-                $"salvage:{WorldTick}:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(actor + "|" + candidate))),
+                $"salvage:{WorldTick}:" + DerivedId.Hash(actor + "|" + candidate),
                 town.Id, actor, lot.Id, quantity,
                 "town_stock_salvaged"));
             AppendEvent("town_stock_salvaged", $"{town.Id}|{actor}|{lot.ItemKind}|{quantity}", inhabitants[actor].Position);

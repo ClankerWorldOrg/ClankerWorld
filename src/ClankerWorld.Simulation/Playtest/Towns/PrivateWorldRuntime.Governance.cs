@@ -149,8 +149,7 @@ public sealed partial class PrivateWorldRuntime
         town.BorderTiles.Where(map.IsBuildable).OrderBy(p => p.Y).ThenBy(p => p.X).Select(p => (GridPoint?)p).FirstOrDefault();
     private bool NearCivicBoard(string actor, TownRuntimeState town) => CivicBoard(town) is { } board &&
         IsWithinInteractionRange(inhabitants[actor].Position, board, ResourceInteractionRange);
-    private static string CivicAgentToken(string id) => id.Length <= 128 ? id :
-        "agent-sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(id)));
+    private static string CivicAgentToken(string id) => id.Length == 0 ? id : DerivedId.Create(id, "agent-sha256:");
     private string ResolveCivicAgentToken(string token) => society.Checkpoint.Inhabitants.FirstOrDefault(p =>
         p.Id == token || CivicAgentToken(p.Id) == token)?.Id ?? token;
     private string CivicAction(string town, string kind, string subject = "", string choice = "") =>
@@ -198,7 +197,7 @@ public sealed partial class PrivateWorldRuntime
                     var nominee = nearby.InhabitantId;
                     if (resident && adults.Contains(nominee, StringComparer.Ordinal) &&
                         !state.Candidates.Any(c => c.AgentId == nominee && c.FullTerm) &&
-                        !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == "nomination:" + actor + "->" + nominee))
+                        !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == DerivedId.Create("nomination:" + actor + "->" + nominee)))
                         candidates.Add(new(CivicAction(town.Id, "nominate", nominee),
                             $"Nominate {society.Checkpoint.GetInhabitant(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188));
                     if (MayBeSponsoredForAdmission(nominee, town))

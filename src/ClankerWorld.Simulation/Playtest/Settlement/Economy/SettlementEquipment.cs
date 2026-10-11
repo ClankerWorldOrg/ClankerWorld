@@ -139,13 +139,13 @@ public sealed partial class PrivateWorldRuntime
         {
             if (item.OwnerId != actor)
             {
-                var transferId = $"equipment:{WorldTick}:{actor}:{item.Id}";
+                var transferId = DerivedId.Create($"equipment:{WorldTick}:{actor}:{item.Id}");
                 inventory = InventoryFixture.Transfer(inventory, transferId, item.OwnerId, actor, item.Id, 1, "equipment_collected");
-                equippedId = item.Quantity == 1 ? item.Id : item.Id + "#transfer:" + transferId;
+                equippedId = item.Quantity == 1 ? item.Id : DerivedId.Create(item.Id + "#transfer:" + transferId);
             }
             else if (item.Quantity > 1)
             {
-                equippedId = $"equipped:{WorldTick}:{actor}:{item.Id}";
+                equippedId = DerivedId.Create($"equipped:{WorldTick}:{actor}:{item.Id}");
                 inventory = InventoryFixture.SplitLot(inventory, item.Id, 1, equippedId);
             }
             inhabitants[actor] = inhabitants[actor] with

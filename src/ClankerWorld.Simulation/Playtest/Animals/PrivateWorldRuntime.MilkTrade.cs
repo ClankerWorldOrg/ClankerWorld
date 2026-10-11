@@ -224,7 +224,7 @@ public sealed partial class PrivateWorldRuntime
             if (selected.CandidateId.StartsWith("animal:milk_accept:", StringComparison.Ordinal))
             {
                 var payment = society.Checkpoint.Inventory.GetLot(offer.PaymentLotId);
-                var paymentId = payment.Quantity == 1 ? payment.Id : payment.Id + "#transfer:" + offer.Id + "-payment";
+                var paymentId = payment.Quantity == 1 ? payment.Id : DerivedId.Create(payment.Id + "#transfer:" + offer.Id + "-payment");
                 ApplyInventoryTransition(inventory => InventoryFixture.ExchangeMilk(inventory, offer.Id,
                     offer.Id + "-milk", offer.ReceivingJugId, actor, offer.PaymentLotId, new(offer.Position.X, offer.Position.Y)));
                 RecordMilkMarketPayment(offer, paymentId);

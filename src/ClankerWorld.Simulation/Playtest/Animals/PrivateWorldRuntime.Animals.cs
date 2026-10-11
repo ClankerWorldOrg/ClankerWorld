@@ -18,7 +18,7 @@ public sealed partial class PrivateWorldRuntime
                 !packages.Any(package => package.Manifest.PackageId == id && package.Lifecycle == ContentPackageLifecycle.Active))) return;
         StageBuiltInContent(AnimalContent.PackageId, RestaurantContent.PackageId, AnimalContent.Create, "animal_content_staged");
     }
-    private static string AnimalKey(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)))[..24];
+    private static string AnimalKey(string value) => DerivedId.Hash(value, hexadecimalCharacters: 24);
     private AnimalState? Animal(string id) => animalWorld.Animals.FirstOrDefault(item => item.Id == id);
     private void SetAnimal(AnimalState animal) => animalWorld = animalWorld with
     {

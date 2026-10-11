@@ -15,7 +15,7 @@ public static class TownPropertyRules
     public static TownLandRequestedOutcome Outcome(TownPropertyRequest request) =>
         request.SourceHouseholdId is { } source ? new("reclaim", source) : new("grant", request.TargetHouseholdId);
 
-    public static string RecordId(TownLandCase item, int revision) => item.Id + ":property:" + revision.ToString(CultureInfo.InvariantCulture);
+    public static string RecordId(TownLandCase item, int revision) => DerivedId.Create(item.Id + ":property:" + revision.ToString(CultureInfo.InvariantCulture));
 
     // Freshness and condition age naturally while a hearing is pending. Changes to stock quantity,
     // custody, the actual building or the people whose consent is needed require a fresh notice.

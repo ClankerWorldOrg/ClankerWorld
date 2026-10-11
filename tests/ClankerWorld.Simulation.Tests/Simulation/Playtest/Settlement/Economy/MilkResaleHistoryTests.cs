@@ -82,7 +82,7 @@ public sealed partial class BusinessTradeTests
             var offer = Assert.Single(pendingState.AnimalWorld.MilkOffers);
             Assert.Equal((milk.Id, people[source], people[destination], receiving.Id, stores[source]),
                 (offer.MilkLotId, offer.SellerId, offer.BuyerId, offer.ReceivingJugId, offer.BuildingId));
-            Assert.Equal(round >= 14, offer.MilkLotId.Length > 512);
+            Assert.InRange(offer.MilkLotId.Length, 1, DerivedId.MaximumLength);
             var pending = host.Saved();
             if (round == 14)
             {
@@ -142,7 +142,7 @@ public sealed partial class BusinessTradeTests
             Assert.Single(state.Events, item => item.Kind == "milk_sale_completed" && item.Detail == offer.Id);
             Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation(offer.Id + "-milk").State);
             var transferred = Assert.Single(world.Society.Inventory.Lots, lot => lot.ItemKind == "milk");
-            Assert.Equal((milk.Id + "#milk:" + offer.Id, milk.Id, 1, receiving.Id, receiving.OwnerId),
+            Assert.Equal((DerivedId.Create(milk.Id + "#milk:" + offer.Id), milk.Id, 1, receiving.Id, receiving.OwnerId),
                 (transferred.Id, transferred.ProvenanceLotId, transferred.Quantity, transferred.ContainerLotId, transferred.OwnerId));
             Assert.Equal(inventory.GetLot(offer.PaymentLotId).Quantity - 1, world.Society.Inventory.GetLot(offer.PaymentLotId).Quantity);
             Assert.Equal((jug.OwnerId, receiving.OwnerId),

@@ -223,8 +223,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 IncreaseTrust(owner, subject, 1, "barter_completed");
                 var memoryKey = "settlement-trust:" + owner + ":" + subject;
-                var memoryId = memoryKey.Length <= 128 ? memoryKey :
-                    "settlement-trust:sha256:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)));
+                var memoryId = DerivedId.Create(memoryKey, "settlement-trust:sha256:");
                 if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId || memory.Id == memoryKey))
                 {
                     society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new(memoryId, owner, subject,
@@ -257,8 +256,8 @@ public sealed partial class PrivateWorldRuntime
             var currentInventory = society.Checkpoint.Inventory;
             var parties = new[]
             {
-                (Owner: offer.FirstPartyId, Lot: offer.FirstLotId, Quantity: offer.FirstQuantity, Reservation: offer.Id + ":first"),
-                (Owner: offer.SecondPartyId, Lot: offer.SecondLotId, Quantity: offer.SecondQuantity, Reservation: offer.Id + ":second"),
+                (Owner: offer.FirstPartyId, Lot: offer.FirstLotId, Quantity: offer.FirstQuantity, Reservation: DerivedId.Create(offer.Id + ":first")),
+                (Owner: offer.SecondPartyId, Lot: offer.SecondLotId, Quantity: offer.SecondQuantity, Reservation: DerivedId.Create(offer.Id + ":second")),
             };
             if (parties.Any(party => !society.Checkpoint.Inhabitants.Any(person => person.Id == party.Owner && person.Status == SocietyInhabitantStatus.Active) ||
                     !currentInventory.Lots.Any(lot => lot.Id == party.Lot && PersonalEquipmentRules.IsCarried(lot, party.Owner) &&
@@ -281,7 +280,7 @@ public sealed partial class PrivateWorldRuntime
             ApplyInventoryTransition(inventory => inventory with
             {
                 Offers = inventory.Offers.Where(offer => !stale.Contains(offer.Id)).ToArray(),
-                Reservations = inventory.Reservations.Where(reservation => !stale.Any(id => reservation.Id == id + ":first" || reservation.Id == id + ":second")).ToArray(),
+                Reservations = inventory.Reservations.Where(reservation => !stale.Any(id => reservation.Id == DerivedId.Create(id + ":first") || reservation.Id == DerivedId.Create(id + ":second"))).ToArray(),
             });
         }
     }

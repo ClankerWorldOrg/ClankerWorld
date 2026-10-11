@@ -25,7 +25,7 @@ public static class AgentConversationRules
         long worldTick,
         long runEpoch)
     {
-        ValidateIdentifier(id, nameof(id), 512);
+        ValidateIdentifier(id, nameof(id), DerivedId.MaximumLength);
         ValidateAgentIdentifier(initiatorId, nameof(initiatorId));
         ValidateAgentIdentifier(inviteeId, nameof(inviteeId));
         if (initiatorId == inviteeId)
@@ -207,8 +207,8 @@ public static class AgentConversationRules
             return false;
 
         var turnId = conversation.AwaitingWrapUp
-            ? $"{conversation.Id}:wrapup"
-            : $"{conversation.Id}:turn:{PublicTurnCount(conversation) + 1}";
+            ? DerivedId.Create($"{conversation.Id}:wrapup")
+            : DerivedId.Create($"{conversation.Id}:turn:{PublicTurnCount(conversation) + 1}");
         var turn = new AgentConversationTurn(
             turnId,
             response.SpeakerId,
@@ -447,7 +447,7 @@ public static class AgentConversationRules
             throw new InvalidDataException("The saved conversation state is incomplete.");
         if (conversation.Turns.Any(turn => turn is null))
             throw new InvalidDataException("A saved conversation turn is missing.");
-        ValidateIdentifier(conversation.Id, nameof(conversation.Id), 512);
+        ValidateIdentifier(conversation.Id, nameof(conversation.Id), DerivedId.MaximumLength);
         ValidateAgentIdentifier(conversation.InitiatorId, nameof(conversation.InitiatorId));
         ValidateAgentIdentifier(conversation.InviteeId, nameof(conversation.InviteeId));
         if (conversation.InitiatorId == conversation.InviteeId || conversation.CreatedTick < 0 ||
@@ -482,7 +482,7 @@ public static class AgentConversationRules
         {
             if (turn is null || turn.ListenerIds is null)
                 throw new InvalidDataException("A saved conversation turn is incomplete.");
-            ValidateIdentifier(turn.Id, nameof(turn.Id), 600);
+            ValidateIdentifier(turn.Id, nameof(turn.Id), DerivedId.MaximumLength);
             ValidateAgentIdentifier(turn.SpeakerId, nameof(turn.SpeakerId));
             if (!IsParticipant(conversation, turn.SpeakerId) || turn.WorldTick < conversation.CreatedTick ||
                 turn.WorldTick < previousTurnTick || turn.WorldTick > worldTick || !IsValidUtterance(turn.Text) ||
@@ -494,7 +494,7 @@ public static class AgentConversationRules
             previousTurnTick = turn.WorldTick;
             if (turn.IsWrapUp)
             {
-                if (turn.Id != $"{conversation.Id}:wrapup" || turn.SpeakerId != conversation.InitiatorId ||
+                if (turn.Id != DerivedId.Create($"{conversation.Id}:wrapup") || turn.SpeakerId != conversation.InitiatorId ||
                     turn != conversation.Turns[^1])
                     throw new InvalidDataException("The saved wrap-up turn is not canonical.");
             }
@@ -502,7 +502,7 @@ public static class AgentConversationRules
             {
                 expectedPublicTurn++;
                 var expectedSpeaker = expectedPublicTurn % 2 == 1 ? conversation.InitiatorId : conversation.InviteeId;
-                if (turn.Id != $"{conversation.Id}:turn:{expectedPublicTurn}" || turn.SpeakerId != expectedSpeaker)
+                if (turn.Id != DerivedId.Create($"{conversation.Id}:turn:{expectedPublicTurn}") || turn.SpeakerId != expectedSpeaker)
                     throw new InvalidDataException("The saved public turn sequence is not canonical.");
             }
         }
@@ -601,7 +601,7 @@ public static class AgentConversationRules
             response.SurnameChoice is null || !request.AllowedSurnames.Contains(response.SurnameChoice, StringComparer.Ordinal) ||
             listenerIds.Count != 1)
             return false;
-        var turn = new AgentConversationTurn($"{conversation.Id}:turn:{conversation.Turns.Count + 1}",
+        var turn = new AgentConversationTurn(DerivedId.Create($"{conversation.Id}:turn:{conversation.Turns.Count + 1}"),
             response.SpeakerId, response.Text, worldTick, listenerIds.ToArray(), response.Disposition,
             SurnameChoice: response.SurnameChoice);
         var turns = conversation.Turns.Append(turn).ToArray();
