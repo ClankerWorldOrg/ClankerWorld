@@ -51,9 +51,13 @@ before agreement, rollback, strict reload and complete-byte replay remain checke
 The Town membership deadline fixture captures the exact registered hosted
 request at the last valid acceptance tick without waiting for the provider's
 held-request startup signal. It checks that request's acceptance choice and
-remaining world time, expires the approval, then releases the actual provider.
+remaining world time, then observes entry of that same provider callback before
+advancing to expiry. The entry wait has a separate thirty-second diagnostic
+bound and preserves complete checkpoint bytes. Private release gates complete
+inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
-uses the same request. Reply and actual wrapper-completion waits retain their
+uses the same request; another row delays real provider entry for six seconds.
+Reply and actual wrapper-completion waits retain their
 five-second bounds; the completion loop retains eight world ticks. The remaining
 deadline, stale-generation, thought exclusion, physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
