@@ -265,8 +265,9 @@ Every route caps its request body before anything reads it
 `/api/v1/owner/*` actions, whose largest normal requests are about 2 KB, and
 64 KiB for everything else, including challenge requests and the host-local
 routes. A larger declared body gets 413 before anything reads it; a body
-without a declared length stops being read at the same size. Refusals log
-`request_body_limit` at most once a minute, with the route kind and limit only.
+without a declared length stops being read at the same size. Refusals based on
+the declared length log `request_body_limit` at most once a minute, with the route
+kind and limit only.
 
 If unauthenticated requests fill the eight pending slots, the existing separate
 loopback approval listener also accepts POST /api/v1/local/pairings with the same
