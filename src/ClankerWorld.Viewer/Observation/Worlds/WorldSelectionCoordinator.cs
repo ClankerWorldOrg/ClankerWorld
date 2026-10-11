@@ -316,7 +316,7 @@ public sealed class WorldSelectionCoordinator(
                 chosenOptions, selection.Map, providerFactory);
             created.InitializeFirstTownContent();
             var entry = catalog.Add(name, created.ExportState());
-            SelectCore(entry, created.ExportState());
+            SelectCore(entry, created.ExportState(), discardFailedCreation: true);
             if (logger.IsEnabled(LogLevel.Information))
             {
                 var sizeName = geography.Size.ToString().ToLowerInvariant();
@@ -346,32 +346,45 @@ public sealed class WorldSelectionCoordinator(
         }
     }
 
-    private void SelectCore(CatalogWorld entry, PrivateWorldRuntimeState target)
+    private void SelectCore(CatalogWorld entry, PrivateWorldRuntimeState target, bool discardFailedCreation = false)
     {
-        stateFile.VerifyRequiredHistory(target);
         var old = runtime.ExportState();
         var oldEntry = catalog.Active();
         var oldAssignments = providers.CaptureRuntimeConfiguration().Assignments ?? [];
         var oldAutosave = autosave.Capture();
-        catalog.ArchiveActive(old, oldAssignments, oldAutosave);
+        var switched = false;
+        var checkpointSaved = false;
+        var assignmentsChanged = false;
+        var autosaveChanged = false;
+        var policyChanged = false;
         try
         {
+            stateFile.VerifyRequiredHistory(target);
+            catalog.ArchiveActive(old, oldAssignments, oldAutosave);
             runtime.SwitchPausedWorld(target);
+            switched = true;
             stateFile.Save(runtime);
+            checkpointSaved = true;
             providers.RestoreWorldAssignments(entry.Assignments);
+            assignmentsChanged = true;
             autosave.SelectWorld(entry.WorldId, entry.AutosaveSettings);
+            autosaveChanged = true;
             jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
+            policyChanged = true;
             catalog.Select(entry.Id);
         }
         catch
         {
             WorldSelectionTelemetry.Failed(logger, entry.Id, "commit_failed");
-            runtime.SwitchPausedWorld(old);
-            stateFile.Save(runtime);
-            providers.RestoreWorldAssignments(oldAssignments);
-            autosave.SelectWorld(oldEntry.WorldId, oldAutosave);
-            jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
+            if (switched) runtime.SwitchPausedWorld(old);
+            if (checkpointSaved) stateFile.Save(runtime);
+            if (assignmentsChanged) providers.RestoreWorldAssignments(oldAssignments);
+            if (autosaveChanged) autosave.SelectWorld(oldEntry.WorldId, oldAutosave);
+            if (policyChanged) jevPolicy.Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
             catalog.Select(oldEntry.Id);
+            // Only discard the new entry after rollback succeeds. A second
+            // failure must retain its checkpoint and catalog recovery evidence.
+            if (discardFailedCreation) catalog.Delete(entry.Id, entry.WorldId, _ => { });
             throw;
         }
     }
