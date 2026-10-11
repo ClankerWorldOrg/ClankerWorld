@@ -43,7 +43,7 @@ public sealed class TownNonviolentProjectionTests
         Assert.Empty(hearing.Offers);
         Assert.Empty(hearing.Agreements);
         Assert.Null(hearing.Judge);
-        Assert.False(town.Government!.NonLandAuthorized);
+        Assert.True(town.Government!.NonLandAuthorized);
         Assert.Null(town.Government.NonLandAuthority);
         Assert.Equal(actual.Evidence.Select(evidence => (evidence.Kind, evidence.Acquisition, evidence.SourceRecordId, evidence.SourceVersion)),
             hearing.Evidence.Select(evidence => (evidence.Kind, evidence.Acquisition, evidence.SourceRecordId, evidence.SourceVersion)));

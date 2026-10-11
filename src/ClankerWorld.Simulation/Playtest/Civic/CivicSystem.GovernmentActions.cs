@@ -41,10 +41,14 @@ internal sealed partial class CivicSystem
         }
         var officeInPlay = TownArrangementRules.HasOffice(government.Arrangement) || government.Contest is not null ||
             government.Changes.Any(c => c.Status is "queued" or "voting" or "handover" && TownArrangementRules.HasOffice(c.Target));
+        var firstVacancy = government.Offices.Count > 0 && government.Offices.All(office => office.HolderId is null) &&
+            !government.Changes.Any(change => change.Status is "queued" or "voting" or "handover");
+        var vacantMandates = TownArrangementRules.Mandates(government.Arrangement);
         foreach (var mandates in TownArrangementRules.SupportedMandates)
         {
             var willing = government.Consents.Any(c => c.AgentId == actor && c.Mandates == mandates);
             if (!officeInPlay && !willing) continue;
+            if (firstVacancy && !willing && mandates != vacantMandates) continue;
             candidates.Add(new(CivicAction(world, town.Id, willing ? "mayor_withdraw" : "mayor_register", mandates),
                 willing ? $"Withdraw willingness to seek election for {TownArrangementRules.MandateLabel(mandates)} in {town.Name}; this does not resign a held office."
                     : $"Personally agree to seek election for {TownArrangementRules.MandateLabel(mandates)} in {town.Name}, if residents authorize that office. This grants no authority or Council candidacy. To add duties to a current office, use its protected extension; this registration cannot restart that term.", 190));

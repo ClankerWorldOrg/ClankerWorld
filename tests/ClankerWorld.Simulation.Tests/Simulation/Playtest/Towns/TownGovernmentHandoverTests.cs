@@ -22,7 +22,7 @@ public sealed partial class TownGovernmentHandoverTests
         public string Id { get; init; } = "town:test";
         public string[] Adults { get; set; } = adults;
         public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(adults);
-        public TownGovernmentState Government { get; set; } = TownGovernmentState.Create();
+        public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice("town:test", adults, Day);
         public long Tick { get; private set; }
         public void Advance(long tick)
         {

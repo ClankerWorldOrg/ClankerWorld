@@ -92,15 +92,16 @@ public static class TownBorderRules
             .Select(item => item.Position).ToArray();
         if (anchors.Length == 0)
             throw new ArgumentException("Choose a Town origin before establishing a Town on a map without camp objects.", nameof(originSite));
+        var residentIds = (residents ?? []).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         return new TownRuntimeState(
             FirstTownId,
             FirstTownName,
             founded ? "founded" : "founding",
             0,
-            (residents ?? []).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
+            residentIds,
             [],
             Around(map, anchors),
-            originSite);
+            originSite, Governance: TownGovernanceState.Create(residentIds), Government: TownGovernmentState.Create());
     }
 
     /// <summary>
