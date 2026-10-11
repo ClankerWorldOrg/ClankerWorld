@@ -78,16 +78,22 @@ public sealed class RuntimeStateBoundaryTests
         using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed.ExportState(), null, 4, true, false, null, original])!;
         var proposed = (CivicSystem)civicField.GetValue(prepared)!;
         Assert.Same(original, proposed.State);
-        var town = Assert.Single(prepared.Towns);
-        var setTown = typeof(PrivateWorldRuntime).GetMethod("SetTown", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var snapshot = prepared.ExportState();
+        var town = Assert.Single(snapshot.Towns!);
+        var occupied = snapshot.Inhabitants.Select(person => person.Position)
+            .Concat(snapshot.Map.Resources.Select(resource => resource.Position))
+            .Concat(snapshot.Map.CampObjects.Select(item => item.Position))
+            .Concat(snapshot.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                snapshot.WorldContent!.BuildingDefinitions[building.DefinitionId], building))).ToHashSet();
+        var position = town.BorderTiles.First(point => snapshot.Map.IsBuildable(point) && !occupied.Contains(point));
+        const string newcomer = "agent:fffffffffffffffffffffffffffffffe";
 
-        setTown.Invoke(prepared, [town with { Name = "Prepared Town" }]);
+        prepared.AddAgent(newcomer, position);
 
         Assert.NotSame(original, proposed.State);
         Assert.Same(original.TownLandTitles, proposed.State.TownLandTitles);
-        Assert.Same(original.HouseholdLandUseRights, proposed.State.HouseholdLandUseRights);
-        Assert.Same(original.HouseholdLandUseRequests, proposed.State.HouseholdLandUseRequests);
-        Assert.Equal("Prepared Town", Assert.Single(prepared.Towns).Name);
+        Assert.Contains(newcomer, Assert.Single(prepared.Towns).ResidentIds);
+        Assert.DoesNotContain(newcomer, Assert.Single(committed.Towns).ResidentIds);
         Assert.Same(original, ((CivicSystem)civicField.GetValue(committed)!).State);
         Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(committed.ExportState()));
         prepared.Validate();
