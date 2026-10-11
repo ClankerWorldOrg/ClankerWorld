@@ -110,7 +110,12 @@ skill instead of a work role. Skills retain their first learning time and
 optional teacher ID, including in deceased profiles. Loading validates those
 references and times, and rejects null entries in living or deceased skill
 lists as damaged checkpoint data. Current lesson progress and skills survive pause,
-save/load and replay. Schema 32 adds saved household requests and recent refusals
+save/load and replay. Newly completed lessons bound oversized gratitude-memory
+keys with a SHA-256 digest of the complete key, retaining the `lesson-gratitude:`
+prefix and complete saved participant references, text and source tick. Short
+keys stay unchanged. This adds no field, schema or migration; existing memory
+records are not rewritten when loading.
+Schema 32 adds saved household requests and recent refusals
 for adults without an authorized home. These states are validated and survive
 save/load and replay. Older alpha lesson records need not load; no migration is
 provided. Saved skills grant no ordinary action permissions. Matching skills now shorten
@@ -416,6 +421,13 @@ keys, evidence references and other bounded reply fields keep their limits, as
 does the provider response-body limit. Each affected adult still separately learns
 and accepts the exact current terms before permissions change. No schema or saved
 field changes.
+
+Property requests and end, renew, amend, reclaim and grant hearing outcomes also
+retain complete canonical household references. Known-household and affected-party
+checks, personal agreements, inspected evidence and independent judge authority
+still apply. Household references are not limited by caller-owned key lengths;
+unknown, whitespace-padded or control-character references are refused. This
+validation repair changes no schema or saved field.
 
 These records share prepared-tick rollback with permissions, requests, civic
 receipts and events. Current-format reload and continuation retain pending
@@ -848,7 +860,7 @@ Store delivery lots survive save/reload without granting customer access to
 private stock. Earlier alpha saves need not load; no shop-state migration is
 provided.
 
-Private-world schema 47 records household departures, their original household, care group and once-only food allocation, plus optional physical inventory custody separate from ownership. Personal House storage retains the personal owner even after membership ends. Every departing care-group member's unfinished House delivery restores household ownership and clears the former destination while preserving its quantity and physical carrier; leaving earns no delivery credit. Reload preserves collection rights, borrowed carried goods, the care group and unfinished housing task without awarding another allowance. Paused private jobs retain the original owners, exact input reservations and pause time; a leaver's own cart build is cancelled instead, releasing its carried materials. Their reserved workstation or expansion footprint stays occupied; a remaining authorized member can resume at the physical site with the same materials and remaining duration. Unavailable materials cancel the preserved job and release its remaining commitments. Invalid custody, departure records and unavailable carriers are refused. Older alpha checkpoints are refused and preserved; no migration is added.
+Private-world schema 47 records household departures, their original household, care group and once-only food allocation, plus optional physical inventory custody separate from ownership. Personal House storage retains the personal owner even after membership ends. A recorded departure allowance may also remain in a Store belonging to the former household until physical collection. Validation binds its lot, owner, edible kind and quantity to the departure; unrelated personal Store stock remains invalid. Death and successive settlements preserve that allowance through the archived departure, exact frozen lot and settlement IDs and matching Store location. Accepted wills may use the saved household fallback when a named heir is unavailable. Validation caps the combined Store portions at the original departure allocation. The same Store’s validated prior-household transfer history preserves the binding after Town reclamation and an onward grant, without authorizing unrelated personal stock. Every departing care-group member's unfinished House delivery restores household ownership and clears the former destination while preserving its quantity and physical carrier; leaving earns no delivery credit. Reload preserves collection rights, borrowed carried goods, the care group and unfinished housing task without awarding another allowance. Paused private jobs retain the original owners, exact input reservations and pause time; a leaver's own cart build is cancelled instead, releasing its carried materials. Their reserved workstation or expansion footprint stays occupied; a remaining authorized member can resume at the physical site with the same materials and remaining duration. Unavailable materials cancel the preserved job and release its remaining commitments. Invalid custody, departure records and unavailable carriers are refused. Older alpha checkpoints are refused and preserved; no migration is added.
 
 Private-world schema 51 lets each living inhabitant record named adult medical
 permissions and an active medicine course. The course binds its patient and
@@ -1521,6 +1533,14 @@ profiles inspect retained records from both ledgers, filtered to their original
 owner. Earlier formats are refused and
 preserved; no archive migration or automatic deletion is added.
 
+New project-help gratitude keys longer than recall's 128-character boundary use
+a SHA-256 digest of the complete requester/helper key, preserving their
+`project-gratitude:` cooperation prefix. Short keys and full saved participant
+references are unchanged. No field, schema or migration changes: existing
+records load without rewriting, and previously oversized keys retain their
+recall exclusion. Native assistance, physical delivery, strict hosted reload,
+later personal recall, complete-byte continuation and refused ticks are checked.
+
 ## Private memory summaries
 
 Private-world schema 122 and society/runtime v4 require a non-null
@@ -1662,9 +1682,9 @@ supported Town inheritance law effective at the death can change this default.
 Estate settlement waits for the pending will and commits once. An accepted will
 may divide lots between up to three heirs, including children or the deceased
 person's Town. Positive personal recipients alone receive its final words.
-Personal inheritance changes ownership while retaining ground, House storage or
-a living carrier's custody; goods carried by the deceased are dropped at their
-last tile. Eligible Town shares move into the Town's current Warehouse, clearing
+Personal inheritance changes ownership while retaining ground, House storage,
+a recorded departure allowance's Store location or a living carrier's custody;
+goods carried by the deceased are dropped at their last tile. Eligible Town shares move into the Town's current Warehouse, clearing
 their earlier location and carrier, while it can accept them.
 Warehouse validation and estate refusal share the inventory food classifier:
 eggs, milk and their meals follow the household default, with vessels and
@@ -1801,8 +1821,13 @@ Manual overwrite first writes an immutable checkpoint generation, then
 atomically publishes its metadata pointer with the matching model assignments
 and autosave settings. Failure before publication leaves the previous selected
 pair intact. Legacy saves without a generation pointer remain readable.
-Unpublished generations are retained; no cleanup policy is implied. Older
-binaries do not understand this pointer and must not load newly overwritten
+After publication, the previously selected checkpoint file is removed; the
+separate **Before overwriting** recovery copy keeps its original bytes,
+assignments and autosave settings. A locked or unwritable old file stays on
+disk with a structured cleanup-pending warning, while the published overwrite
+remains successful. Unpublished generations are retained; this retirement does
+not sweep unrelated files. Older binaries do not understand this pointer and
+must not load newly overwritten
 saves. Use a matching pre-upgrade backup for rollback.
 
 The world catalog keeps a small terrain thumbnail for each world, packed like
@@ -1846,13 +1871,17 @@ its "different save format" message. Each world catalog entry in
 `catalog.json` records the build that last wrote or opened that world in the
 same two fields, so any version can list who saved a world without restoring
 it; the host stamps an entry when it creates, archives, selects or starts with
-that world. These records are diagnostic only: they
+that world. When a listed world can't be restored and its entry names another
+version, its compatibility is `other_version` instead of `incompatible`, and
+Load World offers to open it in that version through the launcher. A damaged
+save from this build, a world from before versions were recorded, or a missing
+model setup stays `incompatible`. These records are diagnostic only: they
 never change world state, replay digests or whether a save loads. Unusable
 optional build fields read as unknown. Recovery rollback restores the refused
 checkpoint's prior build record (or its absence), and a successful retry stamps
 the recovering build again
 ([releasing](releasing.md#save-and-content-compatibility)). They let the
-planned launcher offer the version that last saved a world
+launcher offer the version that last saved a world
 ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)).
 
 ### Save branches
@@ -1969,6 +1998,12 @@ instead of preventing the healthy host from starting. These checks do not
 require playable model settings or a valid display name just to remove an
 otherwise identifiable checkpoint.
 
+Whole-world cleanup preserves save IDs recorded in metadata as belonging to
+another world, including their unreadable checkpoint generations. It does not
+decode those files just to delete the requested world. Leftover files without
+such metadata still need a decoded world identity before removal; an
+unreadable unidentified file keeps cleanup pending.
+
 Snapshot metadata is renamed to a deletion intent before owned generations
 are removed. World removal first moves its catalog entry into pending deletion,
 then removes its snapshots and archived checkpoint. Pending targets are not
@@ -2049,9 +2084,10 @@ leaders. Products and fitted saddles reference real inventory lots and exclusive
 reservations. Trade offers retain the exact animal, adults, receiving yard and
 payment lot; native animal orders retain the exact bound animal ID. Milk-sale
 offers retain both parties, the held milk, receiving jug, payment and physical
-Store or Market stall. Receiving-jug and payment references preserve complete
-inventory lot identities, including IDs derived by repeated partial stock
-moves. Reload binds them to the exact existing lots, owners and carried custody
+Store or Market stall. Source-milk, receiving-jug and payment references preserve
+complete inventory lot identities, including IDs derived by repeated milk sales
+or partial stock moves. Source lots remain unique across pending offers. Reload
+binds these references to the exact existing lots, owners and carried custody
 and checks the held milk reservation and physical site. Whole-jug stock
 deliveries retain household ownership.
 
@@ -2065,6 +2101,10 @@ refused. This changes validation, with no new field, schema or migration.
 Current-format replay and rollback cover arrival, paid care, collection, birth,
 production jobs and attachments. Reload validates required animal fields,
 physical saddle/product custody, household/herd limits and vessel contents.
+Repeated native milk exchanges cover source histories beyond 512 characters,
+pending and completed host-file reload, acceptance, refusal, paired exact-byte
+continuation and refused-tick rollback. Unknown or malformed source references,
+duplicate sources and inconsistent owners, vessels, sites or reservations are refused.
 Water and milk cannot share a jug, and collected milk cannot become a loose lot.
 An interrupted tick or refused durable developer edit restores both animal and
 inventory state. Older alpha checkpoints are refused and preserved; no animal

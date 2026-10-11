@@ -35,9 +35,10 @@ instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
 it without a code and opens the Main Menu. Quitting saves the world and stops
 the server. Your saves, keys and model-call count are kept in
 `%LOCALAPPDATA%\ClankerWorld`, outside the game folder, and the server's log is
-`logs\host.log` there. If the server cannot start, the game says why and offers
-**Try Again**. If saving fails while quitting, the game stays open and offers
-**Try Again** after you fix the save problem; it keeps the host running.
+`logs\host.log` there, with the launch before it in `logs\host.previous.log`.
+If the server cannot start, the game says why and offers **Try Again** and
+**Report a problem**. If saving fails while quitting, the game stays open and
+offers **Try Again** after you fix the save problem; it keeps the host running.
 Until the first alpha release, this portable package is the
 `clankerworld-windows-11-x64-portable` build from CI
 ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)).
@@ -48,14 +49,30 @@ opens its Main Menu; you still choose worlds in the game's **Load World**.
 **Versions** lists each installed version with its size and the worlds it last
 saved, with **Repair** (checks every file against the release) and **Remove**
 (keeps your worlds), plus the versions you can install. **Settings** has
-**Developer mode** and buttons for the saves and logs folders. The game does
-not read Developer mode yet, so F12 Developer tools still open in every build. The launcher checks each download against the
+**Developer mode**, which turns on F12 Developer tools in the game and lists
+the nightly builds of main under **Versions**, and buttons for the saves and
+logs folders. Started without the launcher, the game turns
+Developer mode on with the `--developer-mode` start option
+(`ClankerWorld.exe -- --developer-mode`); runs from the Godot editor always
+have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
+which saves, closes the game and reopens the launcher with that version chosen. The launcher checks each download against the
 release's published SHA-256 before unpacking it, never installs anything
 without your click, and never updates itself: it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
 installed version. Until the first alpha release, it is the
 `clankerworld-launcher-windows-11-x64` build from CI
 ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)).
+
+### Report a problem
+
+**Settings > Build > Report a problem** saves a zip to send with a bug report
+and shows it in your file manager. It holds the game's latest logs, the world
+server's logs when the server runs on your PC, and a summary of the game
+version, Windows version, graphics card, screen and open world. It never
+includes keys, pairing codes, saves, prompts or model replies, and anything in
+a log that looks like a key is blanked. Reports go in a `reports` folder (in
+`%LOCALAPPDATA%\ClankerWorld` when the game runs its own server), and only the
+five newest are kept. Nothing is uploaded; you choose where to send the file.
 
 If the server changes, forget the old registration and pair again.
 [Device pairing](development/device-pairing.md) has the operator instructions.
@@ -1079,8 +1096,8 @@ placement, Enter uses the same placement action as clicking that tile. Move
 the pointer to return to mouse browsing. In **World Map**, Tab to the atlas and
 use arrows to move the camera. Key remapping is not available.
 
-Press **F12** in a world to open **Developer tools** at the right edge of the
-screen, and again to close them; **Escape** closes them once nothing newer is
+With Developer mode on, press **F12** in a world to open **Developer tools** at
+the right edge of the screen, and again to close them; **Escape** closes them once nothing newer is
 open. Time keeps running. The panel shows the coordinates and facts of the last
 tile under the pointer, the frame time, the tick time (how long the server took
 to work out the latest step of world time) and how many agents are living.
@@ -1151,7 +1168,15 @@ the next rotating save waits one configured interval from the corrected time.
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and
 **Open World**. Open
-and Delete are unavailable while another world action finishes.
+and Delete are unavailable while another world action finishes. A world that
+another game version last saved, and this one can't open, is marked
+**Saved by <version>**. In a game the launcher started, its red **Open in
+<version>** button asks first, saves and closes the game, and opens the
+launcher with that version chosen, ready to install if needed. Started without
+the launcher, the game names the version to start instead. If that version is
+neither installed nor available to download, the launcher keeps it selected and
+explains why it cannot start. Failed saving or opening the launcher keeps the
+game open, and **Try Again** keeps the chosen version.
 
 To go back to an earlier save, choose the current world in Load World and
 **Load a save...**, then pick a save and **Load**, or double-click it. Your world

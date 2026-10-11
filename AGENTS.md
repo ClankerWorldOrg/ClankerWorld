@@ -100,8 +100,10 @@ line.
   [review-merge skill](skills/review-merge/SKILL.md#fix-what-you-find) asks
   for.
 - A comment with your ID is yours, even after a pause or a context reset. Your
-  claim is still yours only while its label is on and no newer claim or
-  "Claim released" comment follows yours. Check both when you resume, before
+  claim is still yours only while its label is on and no "Claim released"
+  comment, hand-back or owner takeover follows yours. If another session
+  claimed within seconds of you, the earlier claim comment wins
+  ([Claims](CONTRIBUTING.md#claims)). Check all of this when you resume, before
   you push. If someone else has claimed it since, don't push there: comment
   with anything useful and leave it to them. If nobody has, claim it again,
   provided you hold no other claim. The branch alone doesn't prove the claim is

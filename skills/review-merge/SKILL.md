@@ -317,7 +317,9 @@ Check that:
    The one exception is a pure revert of a commit that broke main.
 4. The description links its issues correctly
    ([Link issues](../../CONTRIBUTING.md#link-issues-from-the-pull-request));
-   fix it first if not.
+   fix it first if not. That includes any bug you filed for a problem you
+   found and fixed in this pull request: add `Closes #<number>` for each, or it
+   stays in the ready queue after the merge.
 5. If the description says this pull request must follow another, that one has
    merged. Code dependencies and the
    [design-before-implementation rule](../../CONTRIBUTING.md#close-issues-when-the-work-merges)
@@ -352,7 +354,10 @@ their base to main.
     for intermittent failures, add the run link to that issue and carry on. If
     you think a test is flaky but it has no such issue, re-run the failed job
     if you can and open a P1 Bug with both runs; if you can't re-run it, treat
-    it as a real break.
+    it as a real break. Leave the diagnosis and fix to whoever claims that
+    issue ([Flaky tests](../../CONTRIBUTING.md#flaky-tests)); never push a fix
+    for it into the pull request you are reviewing unless that pull request
+    caused it.
   - **Real break:** whoever merged the first failing commit owns it as a P0,
     even if others have merged since. Add nothing else to the queue until the
     revert or fix has merged, so it goes first. Comment on that pull

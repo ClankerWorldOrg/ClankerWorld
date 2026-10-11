@@ -15,6 +15,8 @@ public partial class Main
     private readonly ConfirmationDialog localHostFailure = new();
     private readonly ConfirmationDialog localHostStopFailure = new();
     private bool isQuittingGame;
+    private string? retryLauncherVersion;
+    private static readonly StringName ReportProblemAction = "report_problem";
 
     private LocalHostCompanion? FindBundledLocalHost()
     {
@@ -35,6 +37,12 @@ public partial class Main
             localHostFailure.CancelButtonText = "Quit Game";
             localHostFailure.Confirmed += () => _ = StartLocalHostAsync();
             localHostFailure.Canceled += QuitGame;
+            // A start that keeps failing is exactly when a report helps most.
+            localHostFailure.AddButton("Report a problem", right: false, action: ReportProblemAction);
+            localHostFailure.CustomAction += action =>
+            {
+                if (action == ReportProblemAction) ReportProblem();
+            };
             AddChild(localHostFailure);
         }
         SetStatus("Starting your world server…", good: true);
@@ -78,28 +86,32 @@ public partial class Main
     }
 
     /// <summary>Saves and stops the game's own host before the window closes.</summary>
-    private async void QuitGame()
+    private async void QuitGame() => await QuitGameAsync(openLauncher: false);
+
+    private async void QuitToLauncher() => await QuitGameAsync(openLauncher: true);
+
+    private async Task QuitGameAsync(bool openLauncher, string? launcherVersion = null)
     {
-        if (localHost is null)
-        {
-            GetTree().Quit();
-            return;
-        }
         if (isQuittingGame) return;
         isQuittingGame = true;
-        SetStatus("Saving your world…", good: true);
+        var requestedVersion = openLauncher ? launcherVersion ?? BuildInformation.Version : null;
         try
         {
-            if (!await localHost.StopAsync(CancellationToken.None))
+            if (localHost is not null)
             {
-                ShowLocalHostStopFailure();
-                return;
+                SetStatus("Saving your world…", good: true);
+                if (!await localHost.StopAsync(CancellationToken.None))
+                {
+                    ShowLocalHostStopFailure(requestedVersion);
+                    return;
+                }
             }
+            if (openLauncher && !TryOpenLauncher(requestedVersion)) return;
             GetTree().Quit();
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            ShowLocalHostStopFailure();
+            ShowLocalHostStopFailure(requestedVersion);
         }
         finally
         {
@@ -107,13 +119,17 @@ public partial class Main
         }
     }
 
-    private void ShowLocalHostStopFailure()
+    private void ShowLocalHostStopFailure(string? launcherVersion)
     {
+        retryLauncherVersion = launcherVersion;
         if (localHostStopFailure.GetParent() is null)
         {
             StyleConfirmation(localHostStopFailure, "Couldn't save and close your world", "Try Again");
             localHostStopFailure.CancelButtonText = "Keep Game Open";
-            localHostStopFailure.Confirmed += QuitGame;
+            localHostStopFailure.Confirmed += () =>
+            {
+                _ = QuitGameAsync(retryLauncherVersion is not null, retryLauncherVersion);
+            };
             AddChild(localHostStopFailure);
         }
         SetStatus("Your world server is still running. Try closing again after fixing the save problem.", good: false);
