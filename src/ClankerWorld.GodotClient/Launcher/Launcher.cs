@@ -43,6 +43,7 @@ public partial class Launcher : Control
     private ReleaseFeedResult releases = new([], null);
     private bool releasesReached;
     private string? requestedVersion;
+    private string? requestedWorld;
     private bool busy;
 
     public override void _Ready()
@@ -60,6 +61,7 @@ public partial class Launcher : Control
         {
             settings = settings with { LastPlayedVersion = version.ToString() };
             requestedVersion = version.ToString();
+            requestedWorld = GameStarter.RequestedWorld(OS.GetCmdlineUserArgs());
         }
         if (DisplayServer.GetName() != "headless") DisplayServer.SetIcon(MenuLogo.Icon(64));
         TextureFilter = TextureFilterEnum.Nearest;
@@ -408,7 +410,7 @@ public partial class Launcher : Control
         }
         try
         {
-            GameStarter.Start(version, OS.GetExecutablePath(), settings.DeveloperMode);
+            GameStarter.Start(version, OS.GetExecutablePath(), settings.DeveloperMode, requestedWorld);
         }
         catch (Exception exception) when (exception is GameInstallException or System.ComponentModel.Win32Exception or IOException)
         {
@@ -592,6 +594,20 @@ public partial class Launcher : Control
             File.WriteAllText(Path.Combine(testDirectory, LauncherLayout.PackageManifest), "# smoke manifest");
             RefreshInstalled();
             var testInstalled = installed.Single(version => version.Version == testVersion);
+            if (OperatingSystem.IsLinux())
+            {
+                const string worldId = "0123456789abcdef0123456789abcdef";
+                var argumentsFile = Path.Combine(testDirectory, "arguments.txt");
+                File.WriteAllText(testInstalled.Executable,
+                    "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$(dirname \"$0\")/arguments.txt\"\n");
+                File.SetUnixFileMode(testInstalled.Executable, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                using var game = GameStarter.Start(testInstalled, OS.GetExecutablePath(), developerMode: true, worldId);
+                await game.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                Expect(File.ReadAllLines(argumentsFile).SequenceEqual(new[]
+                {
+                    "--", "--launcher=" + OS.GetExecutablePath(), "--developer-mode", "--choose-world=" + worldId,
+                }), "The real game process receives the complete world selection alongside launcher and Developer mode");
+            }
             Remove(testInstalled, 0);
             var confirmation = GetChildren().OfType<ConfirmationDialog>().Single();
             SetBusy(true);

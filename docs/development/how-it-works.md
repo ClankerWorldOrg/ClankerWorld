@@ -4308,6 +4308,22 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## World-list requests
 
+Launcher handoffs carry the catalog entry ID with the requested game version.
+Both process boundaries use separate arguments; `--choose-world` accepts only
+the catalog's 32-character hexadecimal ID, never a path or a display name.
+Quit to Launcher obtains the active ID through the existing signed, read-only
+catalog request before stopping the host. A failed read keeps the game open;
+retry repeats the read. Failed stopping or launcher startup retains the
+resolved version and ID together.
+
+The game still starts at Main Menu. On the first successful visible Load World
+listing, it selects the matching ID and consumes the hint. Failed listings
+retain it for retry; later refreshes do not reapply it over a player's choice.
+Successfully entering a world also discards the startup hint.
+A missing ID leaves every row unselected with an explanation. Existing
+compatibility and action-availability checks apply. Selection sends no pause,
+select-world, load, save or delete request, and never enters a world.
+
 The private host can retain an untouched, nongenerated bootstrap checkpoint
 before the player creates a world. Its founder observation reports
 `requiresWorldCreation`; this is derived from the saved state, independent of

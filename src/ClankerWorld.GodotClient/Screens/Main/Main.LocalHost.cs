@@ -1,4 +1,5 @@
 using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
 using Godot;
 
@@ -16,6 +17,8 @@ public partial class Main
     private readonly ConfirmationDialog localHostStopFailure = new();
     private bool isQuittingGame;
     private string? retryLauncherVersion;
+    private string? retryLauncherWorld;
+    private bool retryChooseCurrentWorld;
     private static readonly StringName ReportProblemAction = "report_problem";
 
     private LocalHostCompanion? FindBundledLocalHost()
@@ -88,30 +91,43 @@ public partial class Main
     /// <summary>Saves and stops the game's own host before the window closes.</summary>
     private async void QuitGame() => await QuitGameAsync(openLauncher: false);
 
-    private async void QuitToLauncher() => await QuitGameAsync(openLauncher: true);
+    private async void QuitToLauncher() => await QuitGameAsync(openLauncher: true, chooseCurrentWorld: true);
 
-    private async Task QuitGameAsync(bool openLauncher, string? launcherVersion = null)
+    private async Task<string?> ReadCurrentWorldForLauncherAsync()
+    {
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer)) return null;
+        var catalog = await ownerApi.ListWorldsAsync(ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None);
+        return GameStarter.WorldId(catalog.ActiveId);
+    }
+
+    private async Task QuitGameAsync(bool openLauncher, string? launcherVersion = null, string? launcherWorld = null,
+        bool chooseCurrentWorld = false)
     {
         if (isQuittingGame) return;
         isQuittingGame = true;
         var requestedVersion = openLauncher ? launcherVersion ?? BuildInformation.Version : null;
         try
         {
+            if (openLauncher && chooseCurrentWorld)
+            {
+                launcherWorld = await ReadCurrentWorldForLauncherAsync();
+                chooseCurrentWorld = false;
+            }
             if (localHost is not null)
             {
                 SetStatus("Saving your world…", good: true);
                 if (!await localHost.StopAsync(CancellationToken.None))
                 {
-                    ShowLocalHostStopFailure(requestedVersion);
+                    ShowLocalHostStopFailure(requestedVersion, launcherWorld);
                     return;
                 }
             }
-            if (openLauncher && !TryOpenLauncher(requestedVersion)) return;
+            if (openLauncher && !TryOpenLauncher(requestedVersion, launcherWorld)) return;
             GetTree().Quit();
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
-            ShowLocalHostStopFailure(requestedVersion);
+            ShowLocalHostStopFailure(requestedVersion, launcherWorld, chooseCurrentWorld);
         }
         finally
         {
@@ -119,21 +135,28 @@ public partial class Main
         }
     }
 
-    private void ShowLocalHostStopFailure(string? launcherVersion)
+    private void ShowLocalHostStopFailure(string? launcherVersion, string? launcherWorld, bool chooseCurrentWorld = false)
     {
         retryLauncherVersion = launcherVersion;
+        retryLauncherWorld = launcherVersion is null ? null : GameStarter.WorldId(launcherWorld);
+        retryChooseCurrentWorld = chooseCurrentWorld;
         if (localHostStopFailure.GetParent() is null)
         {
             StyleConfirmation(localHostStopFailure, "Couldn't save and close your world", "Try Again");
             localHostStopFailure.CancelButtonText = "Keep Game Open";
             localHostStopFailure.Confirmed += () =>
             {
-                _ = QuitGameAsync(retryLauncherVersion is not null, retryLauncherVersion);
+                _ = QuitGameAsync(retryLauncherVersion is not null, retryLauncherVersion, retryLauncherWorld,
+                    retryChooseCurrentWorld);
             };
             AddChild(localHostStopFailure);
         }
-        SetStatus("Your world server is still running. Try closing again after fixing the save problem.", good: false);
-        localHostStopFailure.DialogText = "Your world server couldn't finish saving or stopping. The game will stay open so you can try again. Check your save folder and free disk space; if startup recovery is waiting, finish it first.";
+        localHostStopFailure.Title = chooseCurrentWorld ? "Couldn't choose your world" : "Couldn't save and close your world";
+        SetStatus(chooseCurrentWorld ? "Could not check your current world. The game will stay open; try again."
+            : "Your world server is still running. Try closing again after fixing the save problem.", good: false);
+        localHostStopFailure.DialogText = chooseCurrentWorld
+            ? "Your world server couldn't report the current world for the launcher. The game will stay open so you can try again."
+            : "Your world server couldn't finish saving or stopping. The game will stay open so you can try again. Check your save folder and free disk space; if startup recovery is waiting, finish it first.";
         PopupDialog(localHostStopFailure);
     }
 }
