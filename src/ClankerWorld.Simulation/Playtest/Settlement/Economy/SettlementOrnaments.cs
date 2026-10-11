@@ -163,7 +163,7 @@ public sealed partial class PrivateWorldRuntime
                 }
                 else if (lot.Quantity > 1)
                 {
-                    equippedId = DerivedId.Create($"ornament-unit:{WorldTick}:{nextEventId}:{actor}:{lot.Id}");
+                    equippedId = OrnamentUnitId(WorldTick, nextEventId, actor, lot.Id);
                     inventory = InventoryFixture.SplitLot(inventory, lot.Id, 1, equippedId);
                 }
                 inhabitants[actor] = person with

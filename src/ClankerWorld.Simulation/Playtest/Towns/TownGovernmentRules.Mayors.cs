@@ -173,7 +173,7 @@ public static partial class TownGovernmentRules
             if (needed.Length > 0 && Willing(state, adults, mandates, purpose == "handover" ? handover?.Id : null).Length > 0 && (tick >= state.MayoralRetryTick ||
                 ElectionCircumstances(state, adults, mandates, purpose == "handover" ? handover?.Id : null) != state.MayoralRetryCircumstances))
             {
-                var id = DerivedId.Numbered(townId + ":mayor:", checked(state.Sequence + 1));
+                var id = TownRecordIds.MayoralContest(townId, checked(state.Sequence + 1));
                 state = state with
                 {
                     Sequence = state.Sequence + 1,

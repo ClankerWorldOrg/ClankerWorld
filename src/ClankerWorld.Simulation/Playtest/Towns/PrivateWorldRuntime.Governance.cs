@@ -197,7 +197,7 @@ public sealed partial class PrivateWorldRuntime
                     var nominee = nearby.InhabitantId;
                     if (resident && adults.Contains(nominee, StringComparer.Ordinal) &&
                         !state.Candidates.Any(c => c.AgentId == nominee && c.FullTerm) &&
-                        !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == DerivedId.Create("nomination:" + actor + "->" + nominee)))
+                        !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == TownRecordIds.Nomination(actor, nominee)))
                         candidates.Add(new(CivicAction(town.Id, "nominate", nominee),
                             $"Nominate {society.Checkpoint.GetInhabitant(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188));
                     if (MayBeSponsoredForAdmission(nominee, town))

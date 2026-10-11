@@ -773,6 +773,7 @@ public sealed record FactionState(
 /// </summary>
 public static class FactionRules
 {
+    internal static string ViolationId(string action, string law) => DerivedId.Create($"violation:{action}:{law}");
     public const int MinimumStandingBasisPoints = -10_000;
     public const int MaximumStandingBasisPoints = 10_000;
     public const int MaximumFactionCount = 256;
@@ -863,7 +864,7 @@ public static class FactionRules
             .Where(law => !law.RequiresPermit || !action.HasPermit)
             .OrderBy(law => law.Id, StringComparer.Ordinal)
             .Select(law => new LawViolation(
-                DerivedId.Create($"violation:{action.ActionId}:{law.Id}"),
+                ViolationId(action.ActionId, law.Id),
                 law.Id,
                 action.ActionId,
                 action.ActorId,

@@ -68,7 +68,7 @@ public sealed partial class PrivateWorldRuntime
                             receipt.State == InventoryReservationState.Completed))) ||
                     request.Status is ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled &&
                         job.State != WorldProductionJobState.Completed ||
-                    societyState.Inventory.Lots.Any(lot => lot.Id == DerivedId.Create(jobId + ":output:00") && lot.ItemKind != request.ItemKind))
+                    societyState.Inventory.Lots.Any(lot => lot.Id == ProductionOutputLotId(jobId, 0) && lot.ItemKind != request.ItemKind))
                     throw new InvalidDataException("A tool request is not bound to its actual ordinary production job.");
             }
             else if (request.Status is ToolMakingRequestStatus.Ready or ToolMakingRequestStatus.Offered or ToolMakingRequestStatus.Fulfilled)
@@ -78,7 +78,7 @@ public sealed partial class PrivateWorldRuntime
                 var offer = societyState.Inventory.Offers.FirstOrDefault(offer => offer.Id == offerId);
                 var trade = trades.FirstOrDefault(trade => trade.OfferId == offerId);
                 if (request.JobId is null || offer is null || trade is null ||
-                    offer.FirstLotId != DerivedId.Create(request.JobId + ":output:00") || offer.FirstQuantity != 1 ||
+                    offer.FirstLotId != ProductionOutputLotId(request.JobId, 0) || offer.FirstQuantity != 1 ||
                     offer.FirstPartyId != request.SellerHouseholdId || offer.SecondPartyId != request.RequesterId ||
                     trade.BuildingInstanceId != request.BuildingInstanceId || trade.SellerHouseholdId != request.SellerHouseholdId ||
                     trade.BuyerId != request.RequesterId || trade.GoodsKind != request.ItemKind ||

@@ -49,7 +49,7 @@ public static class TownLandTransferRules
             throw new InvalidOperationException("A goods sale needs one actual source household and an exact positive goods price.");
         if (state.Transfers.Any(existing => existing.Status == "pending" && existing.TownId == townId && existing.TargetHouseholdId == targetHouseholdId &&
                 existing.Tiles.SequenceEqual(tiles) && SameSources(existing.RightVersions, rights) && existing.Price == price)) return state;
-        var request = new TownLandTransferRequest(DerivedId.Numbered("land-transfer:" + townId + ":", checked(state.Sequence + 1)),
+        var request = new TownLandTransferRequest(TownRecordIds.LandTransfer(townId, checked(state.Sequence + 1)),
             townId, filer, targetHouseholdId, tiles.ToArray(), rights, CopyParties(currentParties), noticeId, tick, [])
         { Price = price };
         return state with { Sequence = state.Sequence + 1, Transfers = state.Transfers.Append(request).ToArray() };
@@ -113,7 +113,7 @@ public static class TownLandTransferRules
             var prior = CurrentSources(request.TownId, request.Tiles, rights);
             var affectedTiles = prior.SelectMany(right => right.Tiles).ToHashSet();
             var result = after.Where(right => right.Tiles.Any(affectedTiles.Contains)).OrderBy(right => right.Id, StringComparer.Ordinal).ToArray();
-            var adjustment = new TownLandRightAdjustment(DerivedId.Numbered("land-adjustment:" + request.TownId + ":", checked(state.Sequence + 1)),
+            var adjustment = new TownLandRightAdjustment(TownRecordIds.LandAdjustment(request.TownId, checked(state.Sequence + 1)),
                 "voluntary_transfer", tick, prior.Select(TownLandHearingRules.Snapshot).ToArray(), result, request.Tiles,
                 TargetHouseholdId: request.TargetHouseholdId, TransferId: request.Id);
             var produced = state.Adjustments.SelectMany(item => item.ResultRights).Select(right => right.Id).ToHashSet(StringComparer.Ordinal);

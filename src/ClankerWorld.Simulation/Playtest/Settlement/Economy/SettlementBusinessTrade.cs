@@ -382,7 +382,7 @@ public sealed partial class PrivateWorldRuntime
 
     private string OpenBusinessQuote(string actor, PlacedBuilding building, BusinessQuote choice)
     {
-        var id = DerivedId.Create($"{BusinessTradePrefix}{WorldTick}:{actor}:{building.InstanceId}");
+        var id = BusinessTradeOfferId(WorldTick, actor, building.InstanceId);
         // Quotes name exact actual quantities; future goods are never reserved.
         ApplyInventoryTransition(inventory => InventoryFixture.AcceptDirectBarterOffer(
             InventoryFixture.CreateDirectBarterOffer(inventory, new(id, 1,
@@ -480,7 +480,7 @@ public sealed partial class PrivateWorldRuntime
         {
             var offer = inventory.Offers.SingleOrDefault(item => item.Id == trade.OfferId);
             if (offer is null || !offer.Id.StartsWith(BusinessTradePrefix, StringComparison.Ordinal) ||
-                offer.Id != DerivedId.Create($"{BusinessTradePrefix}{trade.ProposedTick}:{trade.BuyerId}:{trade.BuildingInstanceId}") ||
+                offer.Id != BusinessTradeOfferId(trade.ProposedTick, trade.BuyerId, trade.BuildingInstanceId) ||
                 trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
                 !BoundedBusinessText(trade.BuildingInstanceId, 256) ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||

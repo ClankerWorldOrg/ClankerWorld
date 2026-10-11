@@ -365,14 +365,14 @@ public sealed partial class PrivateWorldRuntime
                 {
                     var material = updated.Lots.Where(lot => lot.ItemKind == kind && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) &&
                         lot.OwnerId == actor && PersonalEquipmentRules.AvailableQuantity(updated, lot) > 0).OrderBy(lot => lot.Id, StringComparer.Ordinal).First();
-                    var id = DerivedId.Create($"cart-repair:{WorldTick}:{actor}:{kind}");
+                    var id = CartRepairReservationId(WorldTick, actor, kind);
                     updated = InventoryFixture.Reserve(updated, id, actor, material.Id, 1, "equipment_repair", WorldTick + 1);
                     reservations.Add(id);
                 }
                 return InventoryFixture.RepairSingleUnit(updated, cartHere.Id, 10_000, reservations);
             });
             RecordNonviolentRepairCompletion(actor, cartHere, cartHere.Id,
-                DerivedId.Create($"repair-handcart:{WorldTick}:{actor}:{cartHere.Id}"), person.Position, reservations);
+                NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations);
             AppendEvent("handcart_repaired", $"{actor}:{cartHere.Id}");
         }
         else if (isTransfer && AttachedHandcart(actor) is null)

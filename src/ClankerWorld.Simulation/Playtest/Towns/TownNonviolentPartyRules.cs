@@ -23,7 +23,7 @@ public static class TownNonviolentPartyRules
             var care = !adult && person.PrimaryCaregiverId is { } caregiver && Adult(caregiver)
                 ? society.Relationships.FirstOrDefault(edge => edge.Type == SocietyRelationshipType.Caregiver &&
                     edge.State == SocietyRelationshipState.Accepted && edge.TargetId == person.Id && edge.ProposerId == caregiver) : null;
-            return new TownCaseParty(DerivedId.Create(entry.Role + ":" + person.Id), entry.Role, person.Id,
+            return new TownCaseParty(TownRecordIds.PersonParty(entry.Role, person.Id), entry.Role, person.Id,
                 adult ? person.Id : care?.ProposerId, care?.Id, care?.Revision, person.HouseholdId);
         }).ToList();
         if (recorded.FirstOrDefault(filing => filing.Kind == "town") is { } townFiling)
@@ -41,7 +41,7 @@ public static class TownNonviolentPartyRules
                             proposal.Status == "passed" && proposal.AuthorId == filing.AgentId))
                     .OrderByDescending(filing => filing.Tick).ThenBy(filing => filing.AgentId, StringComparer.Ordinal)
                     .Select(filing => filing.AgentId).FirstOrDefault();
-            parties.Add(new(DerivedId.Create("town:" + town.Id), "town", townFiling.AgentId, representative, null, null,
+            parties.Add(new(TownRecordIds.TownParty(town.Id), "town", townFiling.AgentId, representative, null, null,
                 representative is null ? null : society.GetInhabitant(representative).HouseholdId));
         }
         return parties.OrderBy(party => party.Id, StringComparer.Ordinal).ToArray();

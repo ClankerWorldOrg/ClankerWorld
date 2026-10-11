@@ -436,7 +436,7 @@ public sealed partial class PrivateWorldRuntime
         var operation = deliveryId + ":donation";
         var lotId = choice.Quantity == choice.Lot.Quantity ? choice.Lot.Id : DerivedId.Create(choice.Lot.Id + "#transfer:" + operation);
         var delivery = new TownProjectDelivery(deliveryId, actor, choice.Lot.Id, lotId, choice.ItemKind,
-            choice.Quantity, WorldTick, WorldTick, DerivedId.Create(deliveryId + ":input"));
+            choice.Quantity, WorldTick, WorldTick, TownRecordIds.DeliveryInput(deliveryId));
         ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryFixture.Transfer(inventory,
             operation, actor, choice.Town.Id, choice.Lot.Id, choice.Quantity, "town_project_donated",
             destinationGroundPosition: new(TownProjectRules.WorkSite(choice.Project.Plan).X, TownProjectRules.WorkSite(choice.Project.Plan).Y)), choice.Town.Id, choice.Project, delivery));
@@ -496,9 +496,9 @@ public sealed partial class PrivateWorldRuntime
             MoveToward(actor, state, TownProjectRules.WorkSite(choice.Project.Plan), "town_project_materials", 0);
             return;
         }
-        var delivery = choice.Delivery! with { DeliveredTick = WorldTick, ReservationId = DerivedId.Create(choice.Delivery.Id + ":input") };
+        var delivery = choice.Delivery! with { DeliveredTick = WorldTick, ReservationId = TownRecordIds.DeliveryInput(choice.Delivery.Id) };
         ApplyInventoryTransition(inventory => ReserveTownProjectDelivery(InventoryFixture.Relocate(inventory,
-            DerivedId.Create(delivery.Id + ":deliver"), delivery.LotId, choice.Town.Id, delivery.Quantity,
+            TownRecordIds.DeliveryFinal(delivery.Id), delivery.LotId, choice.Town.Id, delivery.Quantity,
             groundPosition: new(TownProjectRules.WorkSite(choice.Project.Plan).X, TownProjectRules.WorkSite(choice.Project.Plan).Y)), choice.Town.Id, choice.Project, delivery));
         SetTownProject(choice.Town.Id, choice.Project with
         {

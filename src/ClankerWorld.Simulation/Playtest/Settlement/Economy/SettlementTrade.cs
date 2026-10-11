@@ -171,7 +171,7 @@ public sealed partial class PrivateWorldRuntime
                 MoveToward(actor, state, SettlementStoragePosition, "trade", ResourceInteractionRange);
                 return;
             }
-            var id = DerivedId.Create($"{SettlementTradePrefix}{WorldTick}:{actor}:{other}");
+            var id = SettlementTradeOfferId(WorldTick, actor, other);
             society.Apply(checkpoint => SocietyFixture.CreateBarterOffer(checkpoint,
                 new DirectBarterProposal(id, 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, WorldTick + 120)));
             society.Apply(checkpoint => SocietyFixture.AcceptBarterOffer(checkpoint, id, 1, actor));
@@ -223,7 +223,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 IncreaseTrust(owner, subject, 1, "barter_completed");
                 var memoryKey = "settlement-trust:" + owner + ":" + subject;
-                var memoryId = DerivedId.Create(memoryKey, "settlement-trust:sha256:");
+                var memoryId = SettlementTrustMemoryId(owner, subject);
                 if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId || memory.Id == memoryKey))
                 {
                     society.Apply(checkpoint => SocietyFixture.RecordSocialMemory(checkpoint, new(memoryId, owner, subject,

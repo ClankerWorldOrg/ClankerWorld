@@ -69,7 +69,7 @@ public static partial class TownGovernmentRules
         if (state.Changes.LastOrDefault(c => c.RequestKey == key) is { Status: "rejected" or "withdrawn" } prior &&
             tick < prior.SettledTick + day && prior.Circumstances == circumstances)
             throw new InvalidOperationException("This resident proposal must wait one unpaused day or a material change before retrying.");
-        var id = DerivedId.Numbered(townId + ":government:", checked(state.Sequence + 1));
+        var id = TownRecordIds.Government(townId, checked(state.Sequence + 1));
         var change = new TownGovernmentChange(id, key, kind, target, actor, circumstances, tick, "queued", null, null, [], [])
         { NonLandExtension = extension };
         state = state with { Sequence = state.Sequence + 1, Changes = state.Changes.Append(change).ToArray() };

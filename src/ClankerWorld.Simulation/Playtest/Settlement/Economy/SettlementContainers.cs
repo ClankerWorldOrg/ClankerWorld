@@ -334,7 +334,7 @@ public sealed partial class PrivateWorldRuntime
         if (quantity <= 0)
             return;
 
-        var operationId = DerivedId.Create($"food-pot:{WorldTick}:{actor}");
+        var operationId = FoodPotTransferId(WorldTick, actor);
         ApplyInventoryTransition(current =>
         {
             var sourceId = choice.Food.Id;

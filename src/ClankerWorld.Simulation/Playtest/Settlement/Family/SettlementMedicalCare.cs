@@ -118,7 +118,7 @@ public sealed partial class PrivateWorldRuntime
         if ((person.Survival?.IllnessBasisPoints ?? 0) == 0) return new(false, "This patient does not need medicine.");
         if (MedicalSupplyAtHand(caregiver) is not { } supply)
             return new(false, "Bring usable, unreserved medicine; another household's stock requires an agreed purchase.");
-        var id = DerivedId.Create($"medical-dose:{WorldTick}:{nextEventId}:{caregiver}:{patient}");
+        var id = MedicalDoseId(WorldTick, nextEventId, caregiver, patient);
         ApplyInventoryTransition(inventory => InventoryFixture.ConsumeReservation(InventoryFixture.Reserve(inventory,
             id, supply.OwnerId, supply.Id, 1,
             MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick), id));

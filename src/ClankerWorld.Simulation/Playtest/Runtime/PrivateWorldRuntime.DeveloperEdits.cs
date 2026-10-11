@@ -80,7 +80,7 @@ public sealed partial class PrivateWorldRuntime
                 SeedWildAnimals();
                 SetAnimal(new("animal-" + id, animalParts[0] + " " + (animalWorld.Animals.Count + 1), animalParts[0], animalParts[1],
                     WorldTick - (long)AnimalRules.Definition(animalParts[0]).AdultDays * AnimalDayTicks, animalPosition,
-                    DerivedId.Create("household:" + animalHousehold), animalHousehold, animalYard.InstanceId));
+                    AnimalHerdId(animalHousehold), animalHousehold, animalYard.InstanceId));
                 AppendEvent("animal_added", actor + ":animal-" + id, animalPosition);
                 break;
             case "set_need":
@@ -106,7 +106,7 @@ public sealed partial class PrivateWorldRuntime
                 var lotsToAdd = individualVessels ? edit.Amount : 1;
                 for (var index = 0; index < lotsToAdd; index++)
                 {
-                    var lotId = lotsToAdd == 1 ? id : DerivedId.Create(id + ":" + index);
+                    var lotId = lotsToAdd == 1 ? id : DeveloperVesselUnitId(id, index);
                     ApplyInventoryTransition(inventory => InventoryFixture.AddLot(inventory, lotId, edit.Value, actor,
                         individualVessels ? 1 : edit.Amount));
                 }

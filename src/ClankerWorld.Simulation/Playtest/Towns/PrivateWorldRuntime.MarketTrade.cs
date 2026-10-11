@@ -369,7 +369,7 @@ public sealed partial class PrivateWorldRuntime
         var lot = choice.Lot!;
         var receiptId = MarketTradeRules.ReceiptId(choice.Occupancy!.Id, lot.Id, lot.OwnerId, choice.Quantity,
             WorldTick, choice.Market.NextStockReceiptSequence);
-        var operation = DerivedId.Create(receiptId + ":deposit");
+        var operation = TownRecordIds.DepositOperation(receiptId);
         var movedId = lot.Quantity == choice.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#move:" + operation);
         long eventId = 0;
         ApplyInventoryTransition(inventory =>
@@ -483,7 +483,7 @@ public sealed partial class PrivateWorldRuntime
             if (trade.GoodsOwnerId != trade.PaymentOwnerId)
                 settled = InventoryFixture.Transfer(settled, offer.Id + ":household-payment", trade.GoodsOwnerId,
                     trade.PaymentOwnerId, paymentId, offer.SecondQuantity, "market_household_payment");
-            settled = InventoryFixture.Relocate(settled, DerivedId.Create(receiptId + ":deposit"), paymentId, trade.PaymentOwnerId,
+            settled = InventoryFixture.Relocate(settled, TownRecordIds.DepositOperation(receiptId), paymentId, trade.PaymentOwnerId,
                 offer.SecondQuantity, groundPosition: new(trade.Position.X, trade.Position.Y));
             eventId = settled.Events[^1].EventId;
             return settled;

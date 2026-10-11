@@ -46,7 +46,7 @@ public sealed partial class PrivateWorldRuntime
             ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
         if (CollectPersonalGoods(instruction.TargetInhabitantId, lotId, remaining) is { } effect)
         {
-            var receipt = "collect:personal:" + DerivedId.Hash(effect.MoveId);
+            var receipt = PersonalCollectionReceipt(effect.MoveId);
             CreditOrderEffect(instruction, receipt,
                 order.ProgressUnit == "collection_loads" ? 1 : effect.Quantity);
         }

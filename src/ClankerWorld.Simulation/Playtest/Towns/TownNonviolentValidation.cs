@@ -216,7 +216,7 @@ public static class TownNonviolentValidation
     private static void ValidateTownParty(TownRuntimeState town, TownViolationCase item, IReadOnlyList<TownCaseParty> parties, long tick)
     {
         foreach (var party in parties.Where(p => p.Role == "town"))
-            Check(party.Id == DerivedId.Create("town:" + town.Id) && party.CareRelationshipId is null &&
+            Check(party.Id == TownRecordIds.TownParty(town.Id) && party.CareRelationshipId is null &&
                 item.Filings.Any(f => f.Kind == "town" && f.AgentId == party.SubjectId && f.Tick <= tick) &&
                 (party.RespondingAdultId is null || OrdinaryMayorAt(town, party.RespondingAdultId, null, tick) ||
                     item.Filings.Any(f => f.Kind == "town" && f.AgentId == party.RespondingAdultId && f.Tick <= tick &&

@@ -1087,11 +1087,11 @@ public sealed partial class PrivateWorldRuntime
         const string prefix = "tree:plant:" + TreeGrowthRules.PlantedTreeIdPrefix;
         if (receipt?.StartsWith(prefix, StringComparison.Ordinal) != true) return false;
         if (target is { } position) return position.X >= 0 && position.Y >= 0 &&
-            receipt == "tree:plant:" + TreeGrowthRules.PlantedTreeId(position);
+            receipt == TreePlantingReceipt(TreeGrowthRules.PlantedTreeId(position));
         var coordinates = receipt[prefix.Length..].Split('-');
         return coordinates.Length == 2 && int.TryParse(coordinates[0], out var x) && x >= 0 &&
             int.TryParse(coordinates[1], out var y) && y >= 0 &&
-            receipt == "tree:plant:" + TreeGrowthRules.PlantedTreeId(new(x, y));
+            receipt == TreePlantingReceipt(TreeGrowthRules.PlantedTreeId(new(x, y)));
     }
 
     private static bool IsValidCustodyReceipt(string? receipt, string prefix) =>

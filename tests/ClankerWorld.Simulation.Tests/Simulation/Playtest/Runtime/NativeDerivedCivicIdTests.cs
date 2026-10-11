@@ -45,6 +45,37 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("writing-receipt")]
     [InlineData("marriage")]
     [InlineData("surname-conversation")]
+    [InlineData("numbered-election")]
+    [InlineData("numbered-proposal")]
+    [InlineData("numbered-government")]
+    [InlineData("numbered-mayor")]
+    [InlineData("numbered-law")]
+    [InlineData("numbered-land-transfer")]
+    [InlineData("numbered-land-case")]
+    [InlineData("numbered-land-ruling")]
+    [InlineData("numbered-land-adjustment")]
+    [InlineData("numbered-land-reopen")]
+    [InlineData("nonviolent-id-case")]
+    [InlineData("nonviolent-id-finding")]
+    [InlineData("nonviolent-id-reopen")]
+    [InlineData("nonviolent-id-offer")]
+    [InlineData("nonviolent-id-agreement")]
+    [InlineData("nomination")]
+    [InlineData("admission")]
+    [InlineData("personal-land-request")]
+    [InlineData("unopened-hearing")]
+    [InlineData("law-evidence")]
+    [InlineData("subject-party")]
+    [InlineData("affected-party")]
+    [InlineData("town-party")]
+    [InlineData("household-party")]
+    [InlineData("delivery-input")]
+    [InlineData("delivery-final")]
+    [InlineData("deposit-operation")]
+    [InlineData("estate-amend-request")]
+    [InlineData("hearing-use-right")]
+    [InlineData("hearing-source")]
+    [InlineData("hearing-property-right")]
     public async Task NativeDescendantCivicGeneratorInventoryKeepsBoundedRecallKeysAfterStrictReload(string generator)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await NativeFiftyMilkTrace.Value);
@@ -170,6 +201,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             "land-case-key" => [TownLandHearingRules.CaseKey(town.Id, "request", town.BorderTiles)],
             "land-revision" => [TownLandHearingRules.RevisionToken(landCase)],
             "property-record" => [TownPropertyRules.RecordId(landCase, int.MaxValue)],
+            "hearing-use-right" => [TownLandHearingRules.HearingUseRightId(proposal.Id, int.MaxValue)],
+            "hearing-source" => [TownLandHearingRules.HearingSourceId(proposal.Id)],
+            "hearing-property-right" => [TownPropertyRules.HearingPropertyRightId(proposal.Id, int.MaxValue)],
             "transfer-terms" => [TownLandTransferRules.TermsToken(transfer)],
             "transfer-payment" => [TownLandTransferRules.PaymentTransferId(transfer, actor, int.MaxValue)],
             "government-vote" => [TownGovernmentRules.VoteNoticeToken(change)],
@@ -185,6 +219,31 @@ public sealed partial class GrownAgentHelperMemoryTests
             "writing-receipt" => [AgentKnowledgeRules.WritingReceiptId("knowledge-artifact-000512")],
             "marriage" => [AgentMarriageRules.Id(proposal.Id)],
             "surname-conversation" => [AgentMarriageRules.SurnameConversationId(AgentMarriageRules.Id(proposal.Id))],
+            "numbered-election" => [TownRecordIds.Election(town.Id, long.MaxValue)],
+            "numbered-proposal" => [TownRecordIds.Proposal(town.Id, long.MaxValue)],
+            "numbered-government" => [TownRecordIds.Government(town.Id, long.MaxValue)],
+            "numbered-mayor" => [TownRecordIds.MayoralContest(town.Id, long.MaxValue)],
+            "numbered-law" => [TownRecordIds.Law(town.Id, long.MaxValue)],
+            "numbered-land-transfer" => [TownRecordIds.LandTransfer(town.Id, long.MaxValue)],
+            "numbered-land-case" => [TownRecordIds.LandCase(town.Id, long.MaxValue)],
+            "numbered-land-ruling" => [TownRecordIds.LandRuling(town.Id, long.MaxValue)],
+            "numbered-land-adjustment" => [TownRecordIds.LandAdjustment(town.Id, long.MaxValue)],
+            "numbered-land-reopen" => [TownRecordIds.LandReopen(town.Id, long.MaxValue)],
+            "nonviolent-id-case" or "nonviolent-id-finding" or "nonviolent-id-reopen" or "nonviolent-id-offer" or "nonviolent-id-agreement" =>
+                [TownNonviolentRules.NextId(TownNonviolentState.Create() with { Sequence = long.MaxValue - 1 }, generator["nonviolent-id-".Length..], town.Id)],
+            "nomination" => [TownRecordIds.Nomination(actor, relative)],
+            "admission" => [TownRecordIds.Admission(actor)],
+            "personal-land-request" => [TownRecordIds.LandRequest(town.Id, int.MaxValue)],
+            "unopened-hearing" => [TownRecordIds.UnopenedHearing(proposal.Id)],
+            "law-evidence" => [TownRecordIds.LawEvidence(TownRecordIds.Law(town.Id, long.MaxValue), int.MaxValue)],
+            "subject-party" or "affected-party" => [TownRecordIds.PersonParty(generator == "subject-party" ? "subject" : "affected", actor)],
+            "town-party" => [TownRecordIds.TownParty(town.Id)],
+            "household-party" => [TownLandCasePartyRules.HouseholdPartyId(home)],
+            "delivery-input" => [TownRecordIds.DeliveryInput(TownProjectRules.DeliveryId(project, actor, sourceLot, society.WorldTick, int.MaxValue))],
+            "delivery-final" => [TownRecordIds.DeliveryFinal(TownProjectRules.DeliveryId(project, actor, sourceLot, society.WorldTick, int.MaxValue))],
+            "deposit-operation" => [TownRecordIds.DepositOperation(MarketTradeRules.ReceiptId(project, sourceLot, actor, int.MaxValue, society.WorldTick, long.MaxValue, proposal.Id))],
+            "estate-amend-request" => [TownLawRules.RequestKey(new(proposal.Id, "amend", TownRecordIds.Law(town.Id, long.MaxValue), int.MaxValue,
+                "default estates", "The Town receives a default share.", TownLawRules.Jurisdiction, []) { EstateDefault = new(50) })],
             _ => throw new ArgumentOutOfRangeException(nameof(generator)),
         };
         Assert.NotEmpty(ids);

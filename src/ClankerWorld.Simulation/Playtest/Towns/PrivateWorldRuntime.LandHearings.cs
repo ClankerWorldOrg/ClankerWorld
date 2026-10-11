@@ -20,7 +20,7 @@ public sealed partial class PrivateWorldRuntime
         }
         foreach (var proposal in council.Proposals.Where(proposal => proposal.Kind == "land_hearing" && proposal.Status == "passed"))
         {
-            var unopened = DerivedId.Create(proposal.Id + ":unopened");
+            var unopened = TownRecordIds.UnopenedHearing(proposal.Id);
             if (proposal.LandHearingRequest is not { } request ||
                 hearings.Cases.Any(item => item.Filings.Any(filing => filing.AuthorityId == proposal.Id)) ||
                 council.Notices.Any(notice => notice.Kind == "result" && notice.SubjectId == unopened) ||

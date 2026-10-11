@@ -23,6 +23,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var smith = state.WorldSimulation!.Buildings.SingleOrDefault(building => building.HouseholdId == home &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("blacksmith"));
         var society = state.Society.Society;
+        var smithId = "native-smith-" + new string('s', 115);
         if (smith is null)
         {
             var definition = state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == BlacksmithContent.Blacksmith1x2().CanonicalId);
@@ -38,8 +39,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             { Society = state.Society with { Society = society with { Inventory = supplied } } });
             var origin = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
             foreach (var tile in state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, origin)))
-                if (setup.PlaceBuilding("native-inventory-smith", definition.CanonicalId, tile.Position, home).Applied) break;
-            smith = Assert.Single(setup.WorldSimulation.Buildings, building => building.InstanceId == "native-inventory-smith");
+                if (setup.PlaceBuilding(smithId, definition.CanonicalId, tile.Position, home).Applied) break;
+            smith = Assert.Single(setup.WorldSimulation.Buildings, building => building.InstanceId == smithId);
+            Assert.Equal(DerivedId.MaximumLength, smith.InstanceId.Length);
             state = setup.ExportState();
             society = state.Society.Society;
             foreach (var cost in definition.BuildCosts)

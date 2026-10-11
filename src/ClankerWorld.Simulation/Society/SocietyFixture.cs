@@ -1528,7 +1528,7 @@ public static partial class SocietyFixture
         long deathTick)
     {
         var inhabitant = checkpoint.GetInhabitant(inhabitantId);
-        var estateId = DerivedId.Create($"estate:{inhabitant.Id}:{deathTick.ToString(CultureInfo.InvariantCulture)}");
+        var estateId = EstateId(inhabitant.Id, deathTick);
         var householdBeneficiaries = checkpoint.Households
             .Where(household => household.MemberIds.Contains(inhabitant.Id, StringComparer.Ordinal))
             .SelectMany(household => household.MemberIds.Concat(household.CaregiverIds))
@@ -1752,8 +1752,8 @@ public static partial class SocietyFixture
                     var preserveIdentity = lot.Quantity == 1 && lot.ItemKind is "field_map" or "field_record" or "book";
                     nextLots.Add(lot with
                     {
-                        Id = preserveIdentity ? lot.Id : DerivedId.Create($"{lot.Id}#estate:{estate.Id}:{part.OwnerId}" +
-                            (merged.Count(candidate => candidate.OwnerId == part.OwnerId) > 1 ? ":storage:" + (part.StorageId ?? "ground") : "")),
+                        Id = preserveIdentity ? lot.Id : EstateSplitLotId(lot.Id, estate.Id, part.OwnerId,
+                            merged.Count(candidate => candidate.OwnerId == part.OwnerId) > 1 ? part.StorageId ?? "ground" : null),
                         OwnerId = part.OwnerId,
                         CarrierId = part.StorageId is null && lot.CarrierId != part.OwnerId ? lot.CarrierId : null,
                         Quantity = part.Quantity,
@@ -1792,8 +1792,7 @@ public static partial class SocietyFixture
             var speaker = current.GetInhabitant(estate.DeceasedId).Name;
             foreach (var listener in listeners)
             {
-                var memoryKey = $"final-words:{estate.Id}:{listener}";
-                var memoryId = DerivedId.Create(memoryKey, "final-words:sha256:");
+                var memoryId = FinalWordsMemoryId(estate.Id, listener);
                 current = RecordSocialMemory(current, new SocietySocialMemory(
                     memoryId, listener, estate.DeceasedId,
                     $"{speaker}'s final words were: '{words}'", "private", targetTick)
@@ -1999,7 +1998,7 @@ public static partial class SocietyFixture
         SocietyRelationship relationship)
     {
         var participants = new HashSet<string>([relationship.ProposerId, relationship.TargetId], StringComparer.Ordinal);
-        var unitId = DerivedId.Create($"domestic:partnership:{relationship.Id}");
+        var unitId = DomesticPartnershipId(relationship.Id);
         return checkpoint with
         {
             Inhabitants = checkpoint.Inhabitants.Select(person =>
@@ -2017,7 +2016,7 @@ public static partial class SocietyFixture
         var participants = new HashSet<string>([relationship.ProposerId, relationship.TargetId], StringComparer.Ordinal);
         var unitByCaregiver = participants.ToDictionary(
             id => id,
-            id => DerivedId.Create($"domestic:separate:{relationship.Id}:{id}"),
+            id => DomesticSeparatedId(relationship.Id, id),
             StringComparer.Ordinal);
         return checkpoint with
         {

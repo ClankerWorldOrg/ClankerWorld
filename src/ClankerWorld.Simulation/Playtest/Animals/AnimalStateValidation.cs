@@ -60,7 +60,7 @@ public sealed partial class PrivateWorldRuntime
                 !inventory.Lots.Any(jug => jug.Id == offer.ReceivingJugId && jug.ItemKind == InventoryContainerRules.WaterJug &&
                     (jug.OwnerId == buyer.Id || jug.OwnerId == buyer.HouseholdId) && PersonalEquipmentRules.IsCarried(jug, buyer.Id)) ||
                 !inventory.Lots.Any(payment => payment.Id == offer.PaymentLotId && payment.OwnerId == buyer.Id && PersonalEquipmentRules.IsCarried(payment, buyer.Id)) ||
-                !inventory.Reservations.Any(held => held.Id == DerivedId.Create(offer.Id + "-milk") && held.LotId == milk.Id && held.OwnerId == milk.OwnerId &&
+                !inventory.Reservations.Any(held => held.Id == MilkSaleReservationId(offer.Id) && held.LotId == milk.Id && held.OwnerId == milk.OwnerId &&
                     held.Quantity == 1 && held.IsExclusive && held.State == InventoryReservationState.Reserved && held.Purpose == "milk-sale:" + offer.Id))
                 throw new InvalidDataException("A milk exchange requires its exact held product, parties, payment, receiving jug and physical shop or stall.");
         }

@@ -31,6 +31,10 @@ work reservations and receipts, memories and public Town record handles use
 this boundary. Separate source, owner and recipient fields retain their exact
 references. Names remain display text and do not become identifiers.
 
+The [derived-identity inventory](derived-identities.md) lists the native
+transition and production-factory matrices and their strict reload/recall
+checks.
+
 Numbered Town records keep their sequence suffix after hashing the complete
 long value. Strict validation recomputes the full handle from its original
 scope and counter; it does not search an unbounded sequence or trust a digest

@@ -120,17 +120,17 @@ public sealed partial class PrivateWorldRuntime
                 var tool = updated.GetLot(wornToolLotId);
                 if (tool.Quantity > 1)
                 {
-                    wornToolLotId = DerivedId.Create($"{tool.Id}:use:{WorldTick}:{actor}");
+                    wornToolLotId = UsedToolLotId(tool.Id, WorldTick, actor);
                     updated = InventoryFixture.SplitLot(updated, tool.Id, 1, wornToolLotId);
                 }
             }
 
-            var materialLotId = DerivedId.Create($"material:{WorldTick}:{actor}");
+            var materialLotId = MaterialLotId(WorldTick, actor);
             updated = MarkBuildingMaterialDelivery(InventoryFixture.AddLot(updated, materialLotId,
                 itemKind, actor, plan.Quantity, WorldTick), materialLotId, deliveryBuildingId);
             if (plan.TreeSeedQuantity > 0)
             {
-                var seedLotId = DerivedId.Create($"tree-seed:{WorldTick}:{actor}");
+                var seedLotId = TreeSeedLotId(WorldTick, actor);
                 updated = MarkBuildingMaterialDelivery(InventoryFixture.AddLot(updated, seedLotId,
                     TreeGrowthRules.TreeSeedItem, actor, plan.TreeSeedQuantity, WorldTick), seedLotId,
                     deliveryBuildingId);
@@ -160,7 +160,7 @@ public sealed partial class PrivateWorldRuntime
             var usedLotId = lot.Id;
             if (lot.Quantity > 1)
             {
-                usedLotId = DerivedId.Create($"{lot.Id}:use:{tick}:{actor}");
+                usedLotId = UsedToolLotId(lot.Id, tick, actor);
                 updated = InventoryFixture.SplitLot(updated, lot.Id, 1, usedLotId);
             }
             updated = InventoryFixture.WearSingleUnit(updated, usedLotId, plan.WearLossBasisPoints);
@@ -336,7 +336,7 @@ public sealed partial class PrivateWorldRuntime
             var currentTool = updated.GetLot(repairId);
             if (currentTool.Quantity > 1)
             {
-                repairId = DerivedId.Create($"{currentTool.Id}:repair:{WorldTick}:{actor}");
+                repairId = RepairedToolLotId(currentTool.Id, WorldTick, actor);
                 updated = InventoryFixture.SplitLot(updated, currentTool.Id, 1, repairId);
             }
 
@@ -349,12 +349,12 @@ public sealed partial class PrivateWorldRuntime
                     .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (material is null)
                     throw new InvalidOperationException("Repair materials must be physically carried by the tool owner.");
-                var reservationId = DerivedId.Create($"equipment-repair:{WorldTick}:{actor}:{repairId}:{input.ResourceId}");
+                var reservationId = ToolRepairReservationId(WorldTick, actor, repairId, input.ResourceId);
                 var materialId = material.Id;
                 if (currentTool.OwnerId != actor)
                 {
                     // Repairing a borrowed household tool, the member gives their materials to the household.
-                    var giftId = DerivedId.Create($"equipment-repair-gift:{WorldTick}:{actor}:{repairId}:{input.ResourceId}");
+                    var giftId = ToolRepairGiftId(WorldTick, actor, repairId, input.ResourceId);
                     updated = InventoryFixture.Transfer(updated, giftId, actor, currentTool.OwnerId, material.Id,
                         input.Amount, "equipment_repair_materials");
                     if (input.Amount < material.Quantity) materialId = DerivedId.Create($"{material.Id}#transfer:{giftId}");

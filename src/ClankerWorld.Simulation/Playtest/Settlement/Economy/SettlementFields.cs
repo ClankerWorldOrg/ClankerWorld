@@ -65,7 +65,7 @@ public sealed partial class PrivateWorldRuntime
                 seed.StorageBuildingId is not null || seed.DeliveryBuildingId is not null ||
                 seed.ItemKind != FarmFieldRules.PlantingItem(crop!) || AvailableLotQuantity(seed) < 1)
                 return new(false, "Carry one of your own usable planting items to the field.");
-            reservationId = DerivedId.Create($"{FarmFieldRules.FieldId(position)}:plant:{field.Cycle}:{WorldTick}:{workerId}");
+            reservationId = FieldPlantingReservationId(position, field.Cycle, WorldTick, workerId);
             // This seed belongs to active work, including illness and conversation
             // pauses. Completion consumes it; every work cancellation releases it.
             ApplyInventoryTransition(inventory => InventoryFixture.Reserve(inventory, reservationId,
@@ -91,7 +91,7 @@ public sealed partial class PrivateWorldRuntime
         var inventory = society.Checkpoint.Inventory;
         var lot = inventory.GetLot(lotId);
         if (lot.Quantity == 1) return lot.Id;
-        var isolatedId = DerivedId.Create($"{lot.Id}:field:{FarmFieldRules.FieldId(position)}:{WorldTick}:{workerId}");
+        var isolatedId = FieldToolLotId(lot.Id, position, WorldTick, workerId);
         ApplyInventoryTransition(current => InventoryFixture.SplitLot(current, lot.Id, 1, isolatedId));
         return isolatedId;
     }
@@ -285,20 +285,19 @@ public sealed partial class PrivateWorldRuntime
     private void CompleteFieldHarvest(FarmFieldState field, IReadOnlyList<ToolWorkPlan> toolPlans)
     {
         var cycle = checked(field.Cycle + 1);
-        var prefix = $"{FarmFieldRules.FieldId(field.Position)}:harvest:{cycle}";
         // Retilling starts a new field, but goods and released reservations
         // from the old field remain. Never reuse one of their identities.
         var previousInventory = society.Checkpoint.Inventory;
-        while (previousInventory.Lots.Any(lot => lot.Id == DerivedId.Create(prefix + ":crop") || lot.Id == DerivedId.Create(prefix + ":seed")) ||
-            previousInventory.Reservations.Any(reservation => reservation.Id == DerivedId.Create(prefix + ":replant")))
+        while (previousInventory.Lots.Any(lot => lot.Id == FieldHarvestId(field.Position, cycle, "crop") || lot.Id == FieldHarvestId(field.Position, cycle, "seed")) ||
+            previousInventory.Reservations.Any(reservation => reservation.Id == FieldHarvestId(field.Position, cycle, "replant")))
         {
             cycle = checked(cycle + 1);
-            prefix = $"{FarmFieldRules.FieldId(field.Position)}:harvest:{cycle}";
         }
         var crop = field.Crop!;
+        var prefix = $"{FarmFieldRules.FieldId(field.Position)}:harvest:{cycle}";
         var plantingItem = FarmFieldRules.PlantingItem(crop);
-        var plantingLotId = plantingItem == crop ? DerivedId.Create(prefix + ":crop") : DerivedId.Create(prefix + ":seed");
-        var replantId = DerivedId.Create(prefix + ":replant");
+        var plantingLotId = FieldHarvestId(field.Position, cycle, plantingItem == crop ? "crop" : "seed");
+        var replantId = FieldHarvestId(field.Position, cycle, "replant");
         var quantity = FarmFieldRules.HarvestQuantity(crop, fertility.At(field.Position));
         var weather = WeatherAt(field.Position);
         var moisture = WeatherRules.SoilMoistureAt(worldSystems, field.Position, map.Height,
@@ -308,7 +307,7 @@ public sealed partial class PrivateWorldRuntime
         else if (moisture >= 50) quantity += Math.Max(1, quantity / 4);
         ApplyInventoryTransition(inventory =>
         {
-            var next = InventoryFixture.AddLot(inventory, DerivedId.Create(prefix + ":crop"), crop, field.HouseholdId,
+            var next = InventoryFixture.AddLot(inventory, FieldHarvestId(field.Position, cycle, "crop"), crop, field.HouseholdId,
                 quantity, WorldTick,
                 groundPosition: new(field.Position.X, field.Position.Y));
             if (plantingItem != crop)

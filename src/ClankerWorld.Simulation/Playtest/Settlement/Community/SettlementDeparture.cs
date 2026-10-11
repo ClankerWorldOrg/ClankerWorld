@@ -55,7 +55,7 @@ public sealed partial class PrivateWorldRuntime
             var available = PersonalEquipmentRules.AvailableQuantity(nextInventory, lot);
             var quantity = Math.Min(2 - allowance, available);
             if (quantity <= 0) continue;
-            var transferId = DerivedId.Create($"departure:{actor}:{WorldTick}:{inhabitants[actor].Departures?.Count ?? 0}:{lot.Id}");
+            var transferId = DepartureTransferId(actor, WorldTick, inhabitants[actor].Departures?.Count ?? 0, lot.Id);
             InventoryGroundPosition? ground = lot.StorageBuildingId is null
                 ? lot.GroundPosition ?? new InventoryGroundPosition(SettlementStoragePosition.X, SettlementStoragePosition.Y)
                 : null;
@@ -425,7 +425,7 @@ public sealed partial class PrivateWorldRuntime
             // Splitting from an overcrowded House is an ordinary departure first.
             if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
                 !DepartHousehold(actor, MayRelocateFromHousehold(actor) ? "displaced" : "voluntary")) return;
-            var householdId = DerivedId.Create($"household:solo:{actor}:{WorldTick}");
+            var householdId = SoloHouseholdId(actor, WorldTick);
             var group = MovingCareGroup(actor);
             society.Apply(checkpoint => SocietyFixture.CreateHousehold(checkpoint, householdId,
                 society.Checkpoint.GetInhabitant(actor).Name + "'s household", group));

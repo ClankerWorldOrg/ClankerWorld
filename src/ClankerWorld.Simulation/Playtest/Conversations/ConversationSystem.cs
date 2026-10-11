@@ -10,6 +10,11 @@ namespace ClankerWorld.Simulation.Playtest;
 /// <summary>Owns saved dialogue and marriage rules; live provider work stays in the coordinator.</summary>
 public sealed class ConversationSystem(ConversationState state)
 {
+    internal static string ConversationId(long tick, string initiator, string invitee) =>
+        DerivedId.Hash(JsonSerializer.Serialize(new[] { initiator, invitee }), $"conversation:{tick}:");
+    internal static string ConversationMemoryClaimId(string turn, string owner) => DerivedId.Hash($"{turn}|{owner}", "conversation-memory:");
+    internal static string ConversationChoiceContextId(string agent, string conversation, long revision, AgentConversationStatus status) =>
+        DerivedId.Hash(JsonSerializer.Serialize(new object[] { agent, conversation, revision, status }));
     private const int ConversationHearingRange = 3;
     private const int ResourceInteractionRange = 1;
     public ConversationState State { get; private set; } = state;
@@ -114,9 +119,7 @@ public sealed class ConversationSystem(ConversationState state)
     {
         var conversation = ConversationFor(agentId);
         if (conversation is null || !ShouldDispatchConversationChoice(agentId)) return null;
-        var context = JsonSerializer.Serialize(new object[]
-            { agentId, conversation.Id, conversation.Revision, conversation.Status });
-        return DerivedId.Hash(context);
+        return ConversationChoiceContextId(agentId, conversation.Id, conversation.Revision, conversation.Status);
     }
 
     public bool HasConversationAllowance(IConversationWorld world, string agentId) =>
@@ -233,9 +236,7 @@ public sealed class ConversationSystem(ConversationState state)
         TrimConversationHistory(world);
         if (conversations.Count >= AgentConversationRules.MaximumSavedConversations) return false;
         ReserveConversationAllowance(world, initiatorId);
-        var participants = JsonSerializer.Serialize(new[] { initiatorId, inviteeId });
-        var digest = DerivedId.Hash(participants);
-        var id = DerivedId.Create($"conversation:{world.WorldTick}:{digest}");
+        var id = ConversationId(world.WorldTick, initiatorId, inviteeId);
         var conversation = AgentConversationRules.Propose(
             id, initiatorId, inviteeId, world.WorldTick, world.Society.RunEpoch);
         AddConversation(conversation);
@@ -551,9 +552,8 @@ public sealed class ConversationSystem(ConversationState state)
                 world.Society.GetInhabitant(ownerId).Status != SocietyInhabitantStatus.Active ||
                 world.Society.AllBeliefs().Any(item => item.OwnerId == ownerId && item.SourceTurnId == turn.Id))
                 continue;
-            var digest = DerivedId.Hash($"{turn.Id}|{ownerId}");
             var belief = new SocietyAgentBelief(
-                $"conversation-memory:{digest}",
+                ConversationMemoryClaimId(turn.Id, ownerId),
                 ownerId,
                 turn.Text,
                 SocietyBeliefProvenance.Hearsay,

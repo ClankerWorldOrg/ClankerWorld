@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Simulation.Society;
+using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Simulation.Tests;
 
@@ -43,6 +44,111 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("NonviolentActionToken")]
     [InlineData("LandHearingEvidenceId")]
     [InlineData("OrchardReplantingReservationId")]
+    [InlineData("MedicalDoseId")]
+    [InlineData("FoodHarvestLotId")]
+    [InlineData("OrchardSeedLotId")]
+    [InlineData("MaterialLotId")]
+    [InlineData("TreeSeedLotId")]
+    [InlineData("UsedToolLotId")]
+    [InlineData("RepairedToolLotId")]
+    [InlineData("ToolRepairReservationId")]
+    [InlineData("ToolRepairGiftId")]
+    [InlineData("FieldPlantingReservationId")]
+    [InlineData("FieldToolLotId")]
+    [InlineData("FieldHarvestId-crop")]
+    [InlineData("FieldHarvestId-seed")]
+    [InlineData("FieldHarvestId-replant")]
+    [InlineData("EquipmentTransferId")]
+    [InlineData("EquippedUnitId")]
+    [InlineData("EquipmentRepairReservationId")]
+    [InlineData("OrnamentUnitId")]
+    [InlineData("ProductionInputReservationId")]
+    [InlineData("ProductionOutputLotId")]
+    [InlineData("ProductionVesselUnitId")]
+    [InlineData("ExpansionMaterialReservationId")]
+    [InlineData("TreePlantingReceipt")]
+    [InlineData("GuardianCareId")]
+    [InlineData("GuardianMembershipId")]
+    [InlineData("GuardianMembershipId-collision")]
+    [InlineData("DependentCareId")]
+    [InlineData("ReplacementCareId")]
+    [InlineData("DomesticPartnershipId")]
+    [InlineData("DomesticSeparatedId")]
+    [InlineData("EstateId")]
+    [InlineData("EstateSplitLotId")]
+    [InlineData("EstateSplitLotId-storage")]
+    [InlineData("FinalWordsMemoryId")]
+    [InlineData("ParenthoodRequestId")]
+    [InlineData("SettlementPartnershipId")]
+    [InlineData("SettlementCareId")]
+    [InlineData("SoloHouseholdId")]
+    [InlineData("DepartureTransferId")]
+    [InlineData("PersonalMoveId")]
+    [InlineData("ChildSocialMemoryId-converse")]
+    [InlineData("ChildSocialMemoryId-play")]
+    [InlineData("ChildSocialMemoryId-learn")]
+    [InlineData("LessonGratitudeMemoryId")]
+    [InlineData("ProjectGratitudeMemoryId")]
+    [InlineData("SettlementTrustMemoryId")]
+    [InlineData("CartRepairReservationId")]
+    [InlineData("NativeCartRepairId")]
+    [InlineData("FoodPotTransferId")]
+    [InlineData("RoadRouteId")]
+    [InlineData("SettlementTradeOfferId")]
+    [InlineData("BusinessTradeOfferId")]
+    [InlineData("WritingProjectId")]
+    [InlineData("WritingMaterialReservationId")]
+    [InlineData("WritingMaterialTransferId")]
+    [InlineData("ConductSeenId")]
+    [InlineData("ConductInspectionId")]
+    [InlineData("ConductRelayId")]
+    [InlineData("NativeReturnId")]
+    [InlineData("WarehouseStockId")]
+    [InlineData("RemedyEffectId")]
+    [InlineData("MaterialGatherReceipt")]
+    [InlineData("FoodHarvestReceipt")]
+    [InlineData("ConsumptionOrderReceipt")]
+    [InlineData("FieldWorkOrderReceipt")]
+    [InlineData("ToolRepairReceipt")]
+    [InlineData("EquipmentRepairReceipt")]
+    [InlineData("PersonalCollectionReceipt")]
+    [InlineData("PersonalStorageReceipt")]
+    [InlineData("BorrowedReturnReceipt")]
+    [InlineData("StockDeliveryReceipt")]
+    [InlineData("RenameMemoryId")]
+    [InlineData("ConversationId")]
+    [InlineData("ConversationMemoryClaimId")]
+    [InlineData("ConversationChoiceContextId")]
+    [InlineData("ConversationTurnId")]
+    [InlineData("ConversationWrapUpId")]
+    [InlineData("AnimalSupplyId")]
+    [InlineData("MilkStockId")]
+    [InlineData("MilkSaleId")]
+    [InlineData("AnimalActionId")]
+    [InlineData("AnimalAgreementId")]
+    [InlineData("AnimalHideId")]
+    [InlineData("AnimalProductId")]
+    [InlineData("AnimalBornId")]
+    [InlineData("AnimalHerdId")]
+    [InlineData("AnimalProductReservationId")]
+    [InlineData("AnimalSaddleOperationId")]
+    [InlineData("AnimalSaddleReservationId")]
+    [InlineData("MilkSaleReservationId")]
+    [InlineData("DeveloperVesselUnitId")]
+    [InlineData("BoatTripId")]
+    [InlineData("NonviolentRemedyChoiceId")]
+    [InlineData("NonviolentRelayChoiceId")]
+    [InlineData("ViolationId")]
+    [InlineData("AnimalSupplyTripId")]
+    [InlineData("SpoiledMilkChoiceId")]
+    [InlineData("AnimalPickupId")]
+    [InlineData("AnimalOrderReceiptId")]
+    [InlineData("AnimalHideTransferId-collect")]
+    [InlineData("AnimalHideTransferId-carry")]
+    [InlineData("AnimalInputReservationId")]
+    [InlineData("AnimalCargoDismountId")]
+    [InlineData("AnimalOfferId")]
+    [InlineData("MilkOfferId")]
     public async Task NativeDescendantPrivateFactoryInventoryKeepsBoundedRecallKeysAfterStrictReload(string factory)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await NativeFiftyMilkTrace.Value);
@@ -60,6 +166,12 @@ public sealed partial class GrownAgentHelperMemoryTests
             Inventory = ClankerWorld.Simulation.Kernel.InventoryFixture.AddLot(society.Inventory,
             cartId, "handcart", actor, 1, groundPosition: new(position.X, position.Y))
         };
+        var toolId = "knife:" + new string('k', 122);
+        society = society with
+        {
+            Inventory = ClankerWorld.Simulation.Kernel.InventoryFixture.AddLot(society.Inventory,
+            toolId, "iron_knife", actor, 2, conditionBasisPoints: 3_000)
+        };
         var seedId = "orchard-seed:" + new string('s', 115);
         if (factory == "OrchardReplantingReservationId")
             society = society with
@@ -74,6 +186,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             household.Id == home ? household with { Name = "Household " + new string('h', 118) } : household).ToArray()
         };
         var sourceLot = Assert.Single(society.Inventory.Lots, lot => lot.ItemKind == "milk").Id;
+        var animalId = "animal:" + new string('a', 121);
         var building = state.WorldSimulation!.Buildings.OrderBy(record => record.InstanceId, StringComparer.Ordinal).Last().InstanceId;
         var recipe = state.WorldContent!.Recipes.OrderBy(record => record.CanonicalId, StringComparer.Ordinal).Last().CanonicalId;
         // Pure factory inputs: the world/people/stock are native; the owner-task
@@ -96,7 +209,17 @@ public sealed partial class GrownAgentHelperMemoryTests
         var instruction = new OwnerQueuedInstruction("instruction:" + new string('i', 116), "inventory-task", "owner:test",
             actor, OwnerInstructionKind.MustDo, "Remember this completed work.", society.WorldTick,
             society.RunEpoch, 1, OwnerInstructionState.Queued, Order: order);
-        var owner = factory == "CognitionAgentId" ? typeof(PrivateWorldMemoryRetrieval) : typeof(PrivateWorldRuntime);
+        var owner = factory switch
+        {
+            "CognitionAgentId" => typeof(PrivateWorldMemoryRetrieval),
+            "ViolationId" => typeof(FactionRules),
+            "ConversationId" or "ConversationMemoryClaimId" or "ConversationChoiceContextId" => typeof(ConversationSystem),
+            "ConversationTurnId" or "ConversationWrapUpId" => typeof(AgentConversationRules),
+            "GuardianCareId" or "GuardianMembershipId" or "GuardianMembershipId-collision" or "DependentCareId" or
+                "ReplacementCareId" or "DomesticPartnershipId" or "DomesticSeparatedId" or "EstateId" or
+                "EstateSplitLotId" or "EstateSplitLotId-storage" or "FinalWordsMemoryId" => typeof(SocietyFixture),
+            _ => typeof(PrivateWorldRuntime),
+        };
         var townId = state.Towns![0].Id;
         var allegation = new TownViolationAllegation(sourceLot, actor, "taking", position, society.WorldTick,
             instruction.InstructionId, int.MaxValue, "The stock was moved.", [sourceLot]);
@@ -109,6 +232,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             [new(int.MaxValue, [position], [], [], "notice", society.WorldTick, society.WorldTick + 1, new("grant", home))],
             [], [], [], [], null, [], [], null, [], [])
         { TownId = townId };
+        var estateId = factory is "EstateSplitLotId" or "EstateSplitLotId-storage" or "FinalWordsMemoryId"
+            ? Assert.IsType<string>(typeof(SocietyFixture).GetMethod("EstateId", BindingFlags.Static | BindingFlags.NonPublic)!
+                .Invoke(null, [actor, society.WorldTick])) : null;
         object?[] arguments = factory switch
         {
             "KnowledgeFactId" => [actor, position],
@@ -138,9 +264,106 @@ public sealed partial class GrownAgentHelperMemoryTests
             "NonviolentCaseToken" or "NonviolentActionToken" => [file],
             "LandHearingEvidenceId" => [landFile, actor, "record", sourceLot],
             "OrchardReplantingReservationId" => [seedId],
+            "MedicalDoseId" => [society.WorldTick, society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1, actor, relative],
+            "FoodHarvestLotId" or "OrchardSeedLotId" or "MaterialLotId" or "TreeSeedLotId" => [society.WorldTick, actor],
+            "UsedToolLotId" or "RepairedToolLotId" => [toolId, society.WorldTick, actor],
+            "ToolRepairReservationId" or "ToolRepairGiftId" => [society.WorldTick, actor, toolId, "iron"],
+            "FieldPlantingReservationId" => [position, int.MaxValue, society.WorldTick, actor],
+            "FieldToolLotId" => [toolId, position, society.WorldTick, actor],
+            "FieldHarvestId-crop" or "FieldHarvestId-seed" or "FieldHarvestId-replant" => [position, int.MaxValue, factory["FieldHarvestId-".Length..]],
+            "EquipmentTransferId" or "EquippedUnitId" => [society.WorldTick, actor, toolId],
+            "EquipmentRepairReservationId" => [society.WorldTick, actor, "iron"],
+            "OrnamentUnitId" => [society.WorldTick, society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1, actor, sourceLot],
+            "ProductionInputReservationId" => ["production:inputs:" + building, 1, sourceLot],
+            "ProductionOutputLotId" => ["production-" + long.MaxValue, 0],
+            "ProductionVesselUnitId" => ["production-" + long.MaxValue + ":output:00", 1],
+            "ExpansionMaterialReservationId" => ["expansion-" + long.MaxValue, 1],
+            "TreePlantingReceipt" => [TreeGrowthRules.PlantedTreeId(position)],
+            "GuardianCareId" => [actor, relative, society.WorldTick],
+            "GuardianMembershipId" or "GuardianMembershipId-collision" => [home, actor, society.WorldTick,
+                factory == "GuardianMembershipId" ? 0 : 1],
+            "DependentCareId" or "ReplacementCareId" => [relative, actor, society.WorldTick],
+            "DomesticPartnershipId" => [society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.Partnership)
+                .MaxBy(edge => edge.Id.Length)!.Id],
+            "DomesticSeparatedId" => [society.Relationships.Where(edge => edge.Type == SocietyRelationshipType.Partnership)
+                .MaxBy(edge => edge.Id.Length)!.Id, actor],
+            "EstateId" => [actor, society.WorldTick],
+            "EstateSplitLotId" or "EstateSplitLotId-storage" => [sourceLot, estateId, relative,
+                factory == "EstateSplitLotId-storage" ? building : null],
+            "FinalWordsMemoryId" => [estateId, relative],
+            "ParenthoodRequestId" or "SoloHouseholdId" => [actor, society.WorldTick],
+            "SettlementPartnershipId" or "SettlementCareId" => [actor, relative, society.WorldTick],
+            "DepartureTransferId" => [actor, society.WorldTick, 1, sourceLot],
+            "PersonalMoveId" => [actor, society.WorldTick, sourceLot],
+            "ChildSocialMemoryId-converse" or "ChildSocialMemoryId-play" or "ChildSocialMemoryId-learn" =>
+                [factory["ChildSocialMemoryId-".Length..], actor, relative, society.WorldTick],
+            "LessonGratitudeMemoryId" => [actor, relative, SettlementSkillKind.Farming],
+            "ProjectGratitudeMemoryId" or "SettlementTrustMemoryId" => [actor, relative],
+            "CartRepairReservationId" => [society.WorldTick, actor, "wood"],
+            "NativeCartRepairId" => [society.WorldTick, actor, cartId],
+            "FoodPotTransferId" => [society.WorldTick, actor],
+            "RoadRouteId" => [townId, building],
+            "SettlementTradeOfferId" => [society.WorldTick, actor, relative],
+            "BusinessTradeOfferId" => [society.WorldTick, actor, building],
+            "WritingProjectId" => [actor, society.WorldTick, society.Inventory.Reservations.Count],
+            "WritingMaterialReservationId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("WritingProjectId",
+                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [actor, society.WorldTick, society.Inventory.Reservations.Count])), 1],
+            "WritingMaterialTransferId" => [society.WorldTick, actor, "paper"],
+            "ConductSeenId" => [sourceLot, actor],
+            "ConductInspectionId" => [sourceLot, file.Id, actor],
+            "ConductRelayId" => [sourceLot, society.WorldTick, actor, relative],
+            "NativeReturnId" => [society.WorldTick, actor, society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1],
+            "WarehouseStockId" => [society.WorldTick, actor],
+            "RemedyEffectId" or "MaterialGatherReceipt" or "FoodHarvestReceipt" or "PersonalCollectionReceipt" or
+                "PersonalStorageReceipt" or "BorrowedReturnReceipt" or "StockDeliveryReceipt" => [sourceLot],
+            "ConsumptionOrderReceipt" => [society.WorldTick, actor, sourceLot],
+            "FieldWorkOrderReceipt" => [actor, society.WorldTick, position, FarmWorkKind.Harvest, int.MaxValue],
+            "ToolRepairReceipt" or "EquipmentRepairReceipt" => [actor, society.WorldTick, toolId],
+            "RenameMemoryId" => [actor, society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1],
+            "ConversationId" => [society.WorldTick, actor, relative],
+            "ConversationMemoryClaimId" => [AgentConversationRules.ConversationTurnId(ConversationSystem.ConversationId(society.WorldTick, actor, relative),
+                AgentConversationRules.MaximumPublicTurns), actor],
+            "ConversationChoiceContextId" => [actor, ConversationSystem.ConversationId(society.WorldTick, actor, relative), long.MaxValue, AgentConversationStatus.WrapUp],
+            "ConversationTurnId" => [ConversationSystem.ConversationId(society.WorldTick, actor, relative), AgentConversationRules.MaximumPublicTurns],
+            "ConversationWrapUpId" => [ConversationSystem.ConversationId(society.WorldTick, actor, relative)],
+            "AnimalSupplyId" => [sourceLot, building, animalId, "feed"],
+            "MilkStockId" => [society.Inventory.GetLot(sourceLot).ContainerLotId, building],
+            "MilkSaleId" => [actor, relative, sourceLot, society.Inventory.GetLot(sourceLot).ContainerLotId,
+                society.Inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.OwnerId == relative).Id, building],
+            "AnimalActionId" => ["guide", animalId, actor],
+            "AnimalAgreementId" => ["buy", animalId, actor, sourceLot],
+            "AnimalHideId" => [animalId],
+            "AnimalProductId" or "AnimalBornId" => [animalId, society.WorldTick],
+            "AnimalHerdId" => [home],
+            "AnimalProductReservationId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("AnimalProductId",
+                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [animalId, society.WorldTick]))],
+            "AnimalSaddleOperationId" => [animalId, society.WorldTick, society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1],
+            "AnimalSaddleReservationId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("AnimalSaddleOperationId",
+                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [animalId, society.WorldTick,
+                    society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1]))],
+            "MilkSaleReservationId" => [Assert.IsType<string>(typeof(PrivateWorldRuntime).GetMethod("MilkSaleId",
+                BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [actor, relative, sourceLot,
+                    society.Inventory.GetLot(sourceLot).ContainerLotId,
+                    society.Inventory.Lots.First(lot => lot.ItemKind == "wood" && lot.OwnerId == relative).Id, building]))],
+            "DeveloperVesselUnitId" => [cartId, int.MaxValue],
+            "BoatTripId" => [townId, building, cartId],
+            "NonviolentRemedyChoiceId" => [townId, sourceLot, cartId],
+            "NonviolentRelayChoiceId" => [townId, sourceLot, relative],
+            "ViolationId" => [sourceLot, cartId],
+            "AnimalSupplyTripId" => [actor],
+            "SpoiledMilkChoiceId" => [society.Inventory.GetLot(sourceLot).ContainerLotId],
+            "AnimalPickupId" => [actor, society.WorldTick, long.MaxValue],
+            "AnimalOrderReceiptId" => [instruction.InstructionId, animalId, sourceLot],
+            "AnimalHideTransferId-collect" or "AnimalHideTransferId-carry" => [actor, animalId, society.WorldTick, factory.EndsWith("-carry", StringComparison.Ordinal)],
+            "AnimalInputReservationId" => [actor, society.WorldTick, long.MaxValue, "feed", int.MaxValue],
+            "AnimalCargoDismountId" => [actor, society.WorldTick, long.MaxValue, sourceLot],
+            "AnimalOfferId" => [actor, animalId, society.WorldTick, long.MaxValue],
+            "MilkOfferId" => [sourceLot, society.WorldTick, long.MaxValue],
             _ => throw new ArgumentOutOfRangeException(nameof(factory)),
         };
-        var method = owner.GetMethod(factory, BindingFlags.Static | BindingFlags.NonPublic)!;
+        var methodName = factory.Contains('-', StringComparison.Ordinal) ? factory[..factory.IndexOf('-', StringComparison.Ordinal)] : factory;
+        var method = owner.GetMethod(methodName,
+            BindingFlags.Static | BindingFlags.NonPublic)!;
         Assert.NotNull(method);
         var id = Assert.IsType<string>(method.Invoke(null, arguments));
         Assert.InRange(id.Length, 1, DerivedId.MaximumLength);

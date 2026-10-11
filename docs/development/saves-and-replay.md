@@ -27,6 +27,9 @@ Strict reload and replay must preserve the bounded handle, complete source
 links, reservations, payment, ownership and personal recall. Display names,
 mod content identifiers and parsed action payloads retain their own contracts.
 
+The [generator inventory](derived-identities.md#executable-generator-inventory)
+describes the native transition, factory, save and recall evidence.
+
 
 ## Save-space warning
 

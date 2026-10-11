@@ -247,10 +247,10 @@ public sealed partial class PrivateWorldRuntime
                 paid.Any(item => item.State != InventoryReservationState.Completed || item.OwnerId != receipt.MaterialOwnerId ||
                     item.ExpiryTick != receipt.CompletedTick) ||
                 definition.BuildCosts.Select((cost, index) => (cost, index)).Any(entry =>
-                    paid.Where(item => item.Id == DerivedId.Create($"{purpose}:quantity:{entry.index}:lot:{item.LotId}"))
+                    paid.Where(item => item.Id == ProductionInputReservationId(purpose, entry.index, item.LotId))
                         .Sum(item => (long)item.Quantity) != entry.cost.Amount) ||
                 paid.Any(item => !definition.BuildCosts.Select((_, index) => index).Any(index =>
-                    item.Id == DerivedId.Create($"{purpose}:quantity:{index}:lot:{item.LotId}"))))
+                    item.Id == ProductionInputReservationId(purpose, index, item.LotId))))
                 throw new InvalidDataException("A construction receipt lacks its actual completed material payments.");
             if (simulation!.Buildings.FirstOrDefault(item => item.InstanceId == receipt.BuildingInstanceId) is { } placed &&
                 (placed.DefinitionId != receipt.DefinitionId || placed.PlacedTick != receipt.CompletedTick))

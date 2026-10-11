@@ -338,8 +338,7 @@ public sealed partial class PrivateWorldRuntime
             case "consume_food":
                 if (ConsumeFood(actor, person, order.TargetFoodKind) is { } consumedLotId)
                 {
-                    var identity = $"consume:{WorldTick:D10}:{actor}:{consumedLotId}";
-                    var receipt = "consume:" + DerivedId.Hash(identity);
+                    var receipt = ConsumptionOrderReceipt(WorldTick, actor, consumedLotId);
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 else
@@ -391,7 +390,7 @@ public sealed partial class PrivateWorldRuntime
                     }
                     if (HarvestFood(actor, inhabitants[actor], source) is { } effect &&
                         (order.TargetFoodKind is null || effect.ItemKind == order.TargetFoodKind))
-                        CreditOrderEffect(instruction, DerivedId.Create($"harvest:{effect.LotId}"),
+                        CreditOrderEffect(instruction, FoodHarvestReceipt(effect.LotId),
                             order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
                     else
                         SetOrderStatus(instruction, "blocked", "The requested food site did not yield the requested food.");

@@ -16,9 +16,9 @@ public sealed partial class PrivateWorldRuntime
         var saddle = AnimalSuppliesAtHand(actor, animal).FirstOrDefault(lot => lot.ItemKind == "saddle" &&
             lot.OwnerId == animal.HouseholdId && lot.ContainerLotId is null);
         if (saddle is null) return;
-        var operation = "fit-saddle-" + AnimalKey(animal.Id + ":" + WorldTick + ":" + nextEventId);
+        var operation = AnimalSaddleOperationId(animal.Id, WorldTick, nextEventId);
         var unitId = saddle.Quantity == 1 ? saddle.Id : DerivedId.Create(saddle.Id + "#move:" + operation);
-        var reservationId = DerivedId.Create(operation + "-held");
+        var reservationId = AnimalSaddleReservationId(operation);
         ApplyInventoryTransition(inventory => InventoryFixture.Reserve(InventoryFixture.Relocate(inventory, operation,
             saddle.Id, saddle.OwnerId, 1, groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,
             saddle.OwnerId, unitId, 1, "animal-saddle:" + animal.Id, long.MaxValue));
@@ -47,7 +47,7 @@ public sealed partial class PrivateWorldRuntime
                 var quantity = InventoryContainerRules.IsContainer(lot.ItemKind) ? 1 : Math.Min(excess, PhysicalUnreservedQuantity(lot));
                 if (quantity <= 0) continue;
                 ApplyInventoryTransition(current => InventoryFixture.Relocate(current,
-                    "dismount-cargo-" + AnimalKey(rider + ":" + WorldTick + ":" + nextEventId + ":" + lot.Id),
+                    AnimalCargoDismountId(rider, WorldTick, nextEventId, lot.Id),
                     lot.Id, lot.OwnerId, quantity, groundPosition: new(person.Position.X, person.Position.Y)));
             }
         }

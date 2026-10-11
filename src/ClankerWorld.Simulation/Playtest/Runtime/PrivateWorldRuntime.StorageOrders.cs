@@ -39,7 +39,7 @@ public sealed partial class PrivateWorldRuntime
                 order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is { } effect)
         {
             // Split inventory identities can grow; keep the saved receipt bounded.
-            var receipt = "store:personal:" + DerivedId.Hash(effect.MoveId);
+            var receipt = PersonalStorageReceipt(effect.MoveId);
             CreditOrderEffect(instruction, receipt,
                 order.ProgressUnit == "storage_loads" ? 1 : effect.Quantity);
         }

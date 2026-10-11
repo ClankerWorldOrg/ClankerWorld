@@ -135,7 +135,7 @@ public sealed partial class PrivateWorldRuntime
             CollectKnowledgeMaterial(actor, person, input.Kind, missing);
             return;
         }
-        var id = DerivedId.Hash($"{actor}|{WorldTick}|{society.Checkpoint.Inventory.Reservations.Count}", "knowledge-work-");
+        var id = WritingProjectId(actor, WorldTick, society.Checkpoint.Inventory.Reservations.Count);
         var materials = new List<AgentKnowledgeMaterial>();
         var inventory = society.Checkpoint.Inventory;
         foreach (var input in AgentKnowledgeRules.WritingMaterials(kind))
@@ -145,7 +145,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 var quantity = Math.Min(remaining, PersonalEquipmentRules.AvailableQuantity(inventory, lot));
                 if (quantity <= 0) continue;
-                var reservationId = DerivedId.Create($"{id}:{materials.Count}");
+                var reservationId = WritingMaterialReservationId(id, materials.Count);
                 inventory = InventoryFixture.Reserve(inventory, reservationId, actor, lot.Id, quantity,
                     AgentKnowledgeRules.MaterialPurpose(id, input.Kind), long.MaxValue);
                 materials.Add(new(reservationId, lot.Id, input.Kind, quantity));
@@ -180,7 +180,7 @@ public sealed partial class PrivateWorldRuntime
         }
         // SharedItem resolves household/Town permission at pickup time; physical possession alone grants none.
         ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
-            DerivedId.Create($"knowledge-material:{WorldTick}:{CognitionDiscovererId(actor)}:{kind}"), item.OwnerId, actor, item.Id, quantity,
+            WritingMaterialTransferId(WorldTick, actor, kind), item.OwnerId, actor, item.Id, quantity,
             "knowledge_material_collected"));
         AppendEvent("agent_knowledge_material_collected", $"{actor}|{kind}|{quantity}");
     }

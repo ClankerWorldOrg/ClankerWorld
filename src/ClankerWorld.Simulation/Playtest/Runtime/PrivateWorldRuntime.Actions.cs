@@ -260,7 +260,7 @@ public sealed partial class PrivateWorldRuntime
             },
         };
         SyncEcologyResourceStates();
-        var harvestedLotId = DerivedId.Create($"food:harvest:{WorldTick:D10}:{inhabitantId}");
+        var harvestedLotId = FoodHarvestLotId(WorldTick, inhabitantId);
         ApplyInventoryTransition(inventory => InventoryFixture.AddLot(
             inventory, harvestedLotId,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
@@ -274,7 +274,7 @@ public sealed partial class PrivateWorldRuntime
         AppendEvent("food_harvested", $"{inhabitantId}:{harvestYield}");
         if (source.TreeKind == TreeGrowthRules.Orchard)
         {
-            var lotId = DerivedId.Create($"orchard-seed:{WorldTick:D10}:{inhabitantId}");
+            var lotId = OrchardSeedLotId(WorldTick, inhabitantId);
             ApplyInventoryTransition(inventory => InventoryFixture.Reserve(
                 InventoryFixture.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, inhabitantId,
                     TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),

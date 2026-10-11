@@ -139,13 +139,13 @@ public sealed partial class PrivateWorldRuntime
         {
             if (item.OwnerId != actor)
             {
-                var transferId = DerivedId.Create($"equipment:{WorldTick}:{actor}:{item.Id}");
+                var transferId = EquipmentTransferId(WorldTick, actor, item.Id);
                 inventory = InventoryFixture.Transfer(inventory, transferId, item.OwnerId, actor, item.Id, 1, "equipment_collected");
                 equippedId = item.Quantity == 1 ? item.Id : DerivedId.Create(item.Id + "#transfer:" + transferId);
             }
             else if (item.Quantity > 1)
             {
-                equippedId = DerivedId.Create($"equipped:{WorldTick}:{actor}:{item.Id}");
+                equippedId = EquippedUnitId(WorldTick, actor, item.Id);
                 inventory = InventoryFixture.SplitLot(inventory, item.Id, 1, equippedId);
             }
             inhabitants[actor] = inhabitants[actor] with
@@ -200,7 +200,7 @@ public sealed partial class PrivateWorldRuntime
                 var material = inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).First(lot =>
                     lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
                     lot.ItemKind == input.ResourceId && PersonalEquipmentRules.AvailableQuantity(inventory, lot) >= input.Amount);
-                var id = DerivedId.Create($"repair:{WorldTick}:{actor}:{input.ResourceId}");
+                var id = EquipmentRepairReservationId(WorldTick, actor, input.ResourceId);
                 inventory = InventoryFixture.Reserve(inventory, id, actor, material.Id, input.Amount,
                     "equipment_repair", WorldTick + 120);
                 ids.Add(id);
