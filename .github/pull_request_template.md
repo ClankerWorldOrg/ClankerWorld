@@ -24,6 +24,7 @@ https://github.com/compoodment/ClankerWorld/blob/main/CONTRIBUTING.md#link-issue
 - Agreed design or existing behavior this follows:
 - Other open PRs that overlap:
 - Stacked on (the pull request this is based on, if any; merge after it):
+- Lines added and removed (source / tests / docs), and what this could remove instead if it only adds:
 - Work left for later, and where it is tracked:
 - Needs a hands-on check after merge (file added in `playtest/`):
 - If draft, unfinished work or decision needed before marking ready:

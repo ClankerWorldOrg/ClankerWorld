@@ -13,14 +13,11 @@
     "conversationSystem",
     "council",
     "deceasedInhabitants",
-    "eventHistoryFloor",
-    "events",
     "fertility",
     "fields",
     "founderSetup",
     "geographyOptions",
     "handcartHitches",
-    "historyArchiveHead",
     "householdLandUseRequests",
     "householdLandUseRights",
     "inhabitants",
@@ -30,7 +27,6 @@
     "jevPolicyRevision",
     "knowledge",
     "map",
-    "nextEventId",
     "nextInstructionSequence",
     "orderCancellations",
     "resources",
@@ -43,6 +39,7 @@
     "townLandTitles",
     "towns",
     "worldContent",
+    "worldEventLog",
     "worldSeed",
     "worldSimulation",
     "worldSystems"
@@ -61,6 +58,7 @@
     "pendingWillCancellationReasons",
     "pendingWills",
     "providerFactory",
+    "residentWorld",
     "tickGate"
   ],
   "scratch": [

@@ -4207,7 +4207,7 @@ public partial class Main
             new(id, name, lifecycle, position, 8_000, [], [],
                 new("idle", null, null, [], ""), new(position, [], []), false);
         var snapshot = new OwnerWorldSnapshot("event-name-smoke", 1, "event-name-map",
-            [new(0, 0, "meadow")], [], [], null, 6)
+            [new(0, 0, "meadow")], [], [], null, 9)
         {
             Inhabitants = [Person(founderId, "Rowan"), Person(agentId, "Aster", "dead"),
                 Person(childId, "Mira"), Person("founder-scout", "Scout")],
@@ -4221,6 +4221,9 @@ public partial class Main
             new(4, 1, "inhabitant_removed", agentId),
             new(5, 1, "town_resident_joined", "town:first:" + founderId + ":founder_joined:residents:4"),
             new(6, 1, "town_resident_left", "town:first:" + agentId + ":residents:3"),
+            new(7, 1, "town_civic_law", "town:first|record-ui|actor-ui"),
+            new(8, 1, "town_civic_government", "town:first|record-ui|actor-ui"),
+            new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui"),
         ];
         var handshake = new OwnerWorldHandshake(new(1, 1),
             ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
@@ -4236,6 +4239,17 @@ public partial class Main
                 "Rowan joined First Town.", "Aster left First Town."];
             if (expected.Any(text => !eventLog.GetParsedText().Contains(text, StringComparison.Ordinal)))
                 throw new InvalidOperationException("The Event Log must show full living, deceased and descendant names for normal IDs.");
+            string[] civicDecisions =
+            [
+                "First Town recorded a law decision. See the Towns page for its wording and scope.",
+                "First Town recorded a resident government decision. See the Towns page for the vote or handover.",
+                "First Town recorded a mayoral election or office change. See the Towns page for its result.",
+            ];
+            var visibleRows = eventRows.GetChildren().OfType<HBoxContainer>()
+                .SelectMany(row => row.GetChildren().OfType<Label>()).Select(label => label.Text).ToArray();
+            var missingDecisions = civicDecisions.Where(text => !visibleRows.Contains(text, StringComparer.Ordinal)).ToArray();
+            if (missingDecisions.Length > 0)
+                throw new InvalidOperationException("The Event Log omitted civic decisions: " + string.Join("; ", missingDecisions));
             snapshot = snapshot with
             {
                 Inhabitants = snapshot.Inhabitants.Select(person => person.Id == founderId
