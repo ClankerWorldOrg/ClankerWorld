@@ -24,7 +24,8 @@ what you found; you don't need to edit anything yourself.
   `scripts/collect-changes.sh` gathers changelog entries. It merges checks
   that overlap into one "do this, you should see that" step, drops checks a
   later change made false, marks the few that matter most under
-  **Start here**, keeps every source link, and deletes the per-change files.
+  **Start here**, keeps the retained checks' source links, records any omitted
+  checks in the pull request description, and deletes the per-change files.
   Checks nobody tried in the previous release's checklist carry over, and that
   checklist is deleted once it is empty.
 - **After a playtest:** the agent the owner gives the results to opens one pull

@@ -1,6 +1,8 @@
 # Alpha 1 playtest checklist
 
-Everything merged before alpha 1 that still needs trying in the game by hand, in 98 checks. Nothing here has been checked by hand yet.
+Pending hands-on checks for alpha 1, in 98 checks. Nothing here has been checked by hand yet.
+
+This checklist targets the planned alpha 1 build. Milk without jugs ([#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706)), council elections at four adults ([#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713)), an empty mayor's office from the start ([#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714)), and one mod ID limit ([#1606](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1606)) are agreed changes still awaiting implementation. Use a build that includes them for those checks; earlier builds keep the previous rules.
 
 Each check is one short play session. Its steps say what to do, then, after the arrow, what you should see. Do the **Start here** checks first: they cover what has to work in your first hour. Try the rest as you reach that part of the game, and tell any agent what you found ([how results are recorded](README.md#keeping-the-list-current)).
 
@@ -46,7 +48,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - When no map meets the balance, read the text. → It says how, and creation waits until you turn on **Keep this map anyway** or pick another seed.
   - Then change a setting. → **Keep this map anyway** clears.
   - Press Reroll once. → The old map and tooltip vanish at once, and the new seed gets its own preview without pressing Preview.
-  - Press Reroll twice quickly, and once with the name cleared. → The newest seed gets its own preview; Create World becomes available by itself only once a matching preview arrives.
+  - Press Reroll twice quickly. → The newest seed gets its own preview; Create World becomes available only once a matching preview arrives.
+  - Clear the name and press Reroll. → The old map and tooltip vanish, and Create World stays unavailable. Enter a name and press Preview again for a matching preview.
   - Create from a preview whose tooltip lists a failed attempt (now rare). → It still shows a playable map, and Create uses that map.
   - Place the Town and four agents, then save, quit and load. → The same map and settlement return.
   - Try a map with no room for a first Town. → Creation stops with a useful message.
@@ -226,9 +229,10 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Let the change pass. → It completes with the mayor's office empty.
   - Let days pass with no candidate. → No repeated empty elections are added.
   - Have an eligible adult stand and win, then reload. → They get a fresh term, also after reload.
-  - During the government-change vote, have an adult leave mid-vote. → Councillors still take office after voting, and wait for any handover.
-  - Let a handover expire without a willing mayor. → The councillors stand down.
-  - Let an election run with empty ballots. → It retries on its own.
+  - During a normal population-triggered council election, approve a government change with nobody willing to stand for mayor, and have an adult leave mid-vote. → The elected councillors take office after voting and stay when the government change expires.
+  - Before the normal election threshold, propose a government change that itself creates a council election. → Its elected councillors wait for handover, and that election ends if handover expires without a willing mayor.
+  - Pause and reload during voting and while councillors wait. → Each election keeps its own outcome.
+  - Let a normal election run with empty ballots. → It retries independently of the government change.
 - [ ] **Save and reopen a running world.** ([#591](https://github.com/compoodment/ClankerWorld/pull/591), [#764](https://github.com/compoodment/ClankerWorld/issues/764), [#787](https://github.com/compoodment/ClankerWorld/pull/787), [#891](https://github.com/compoodment/ClankerWorld/issues/891), [#1195](https://github.com/compoodment/ClankerWorld/issues/1195), [#1200](https://github.com/compoodment/ClankerWorld/issues/1200), [#1203](https://github.com/compoodment/ClankerWorld/issues/1203), [#1205](https://github.com/compoodment/ClankerWorld/issues/1205), [#1211](https://github.com/compoodment/ClankerWorld/issues/1211))
   - Create a Small and a Medium world with four founders, and let time run while agents gather and the weather changes. → Resources, fields, tree growth and the Event Log keep updating.
   - Compare the map and the overview while time runs. → Ground and mountain detail stay the same on both.
@@ -247,7 +251,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Confirm a fresh preview. → Only the copies it listed are removed, and the named save and latest recovery copy still load.
   - Repeat the preview at the smallest window size and with larger text. → The lists and the Cancel and Delete buttons stay usable at every size.
 - [ ] **Recovering after a crash or a damaged save.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1319](https://github.com/compoodment/ClankerWorld/issues/1319), [#1321](https://github.com/compoodment/ClankerWorld/issues/1321))
-  - Using a backup copy of an install with a rotating autosave, stop the host, damage the current save and restart. → Recover world appears before you enter the world.
+  - Back up the save folder, then use a disposable test world with a rotating autosave. Stop the host, damage only that test world's current save and restart. → Recover world appears before you enter the world.
   - Read the Recover world screen. → It explains what is kept and lost, and offers the last good autosave.
   - Choose to recover. → The world opens paused, with the other saves and a copy of the damaged file kept.
   - Repeat with no usable autosave. → Recovery is unavailable, Check again and Quit Game still work, and no new world is made.
@@ -437,7 +441,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Queueing, replacing and cancelling orders.** ([#586](https://github.com/compoodment/ClankerWorld/issues/586), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#1220](https://github.com/compoodment/ClankerWorld/issues/1220), [#1221](https://github.com/compoodment/ClankerWorld/issues/1221), [#1222](https://github.com/compoodment/ClankerWorld/issues/1222), [#1223](https://github.com/compoodment/ClankerWorld/issues/1223), [#1225](https://github.com/compoodment/ClankerWorld/issues/1225), [#1227](https://github.com/compoodment/ClankerWorld/issues/1227), [#1228](https://github.com/compoodment/ClankerWorld/issues/1228), [#1229](https://github.com/compoodment/ClankerWorld/issues/1229), [#1230](https://github.com/compoodment/ClankerWorld/issues/1230); `1516-client-native-cancellation.md`, no link)
   - Order **Move to tile (X, Y)** to a reachable tile. → The card shows it; the move stays active while walking and finishes only on that tile.
   - Queue a return trip. → The return starts after arrival.
-  - Try an occupied tile. → The blocked trip shows its reason and doesn't restart when the tile frees.
+  - Order a trip to an occupied tile, then cancel it. → The blocked reason is visible, and freeing the tile doesn't restart the cancelled trip.
   - Queue more orders and replace one. → The card shows each change, and queued orders keep their place and remaining amount.
   - Cancel a waiting and an active order, for a world-born adult and for a founder. → Each ends without an error and has no further effect.
   - Check for side effects. → No invitation is sent, and nothing is attached, repaired or learned.
@@ -698,8 +702,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Order **Make two sacks**. → Two sacks land in household storage at **2/2 items made**.
   - Order **Make two batches of house bandages**. → They make four bandages.
   - Give a production order **at (X, Y)**. → The pinned site waits with a reason rather than moving.
-  - At the Blacksmith, order a batch of two water jugs or storage pots. → Two separate vessels appear, with inputs spent once and nothing duplicated.
-  - At the Blacksmith, order two handcarts. → Two separate carts appear on the ground, owned by the worker, with inputs spent once and nothing duplicated.
+  - Activate a recipe that makes two water jugs or storage pots in one batch, provide its inputs at the household workstation and run one batch. → Two separate vessels appear, with inputs spent once and nothing duplicated.
+  - Repeat with a two-handcart recipe and carried inputs at the Blacksmith. → Two separate carts appear on the ground, owned by the worker, with inputs spent once and nothing duplicated.
   - Let a workshop recipe run out of ingredients. → It pauses so the adult can do other work, then resumes when supplies return.
   - Let a Clinic jug or workstation pot empty. → An adult of the owning household carries the empty vessel home, leaving other households' or reserved vessels alone.
   - Save and reopen mid-job and while waiting. → Each result above still holds, with inputs spent once and nothing duplicated.
@@ -955,7 +959,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Reload while they are on the way to the yard. → The delivery doesn't repeat.
   - Order care with no safe feed or water. → The order says they are missing, and spends nothing until they arrive.
   - Order care when the only other food is berries in a broken pot. → Those berries don't count, so care waits rather than use the greens and jug water a caregiver carries.
-  - Put food in a healthy pot, or give the caregiver grain. → Care uses that food, or the grain and water.
+  - Put the berries in a healthy pot. → Care spends the caregiver's greens and water while keeping the berries and both vessels.
+  - With the broken pot, give the caregiver grain instead. → Care spends grain and water while keeping the greens, berries and reusable jug, also after saving and reloading during the order.
   - Order care for an adult with little carrying room. → Fetching feed and a water jug waits until the whole jug fits.
   - Make room for the jug. → The same jug reaches the animal with all its water, and keeps its owner.
   - Give a male and a female care, delivered supplies and free yard space, then break the only feed pot or water jug. → They won't start a pregnancy while it is broken.
@@ -1114,7 +1119,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Amend it, adding an emoji near the end of a long law, then repeal it. → Each decision appears in the Event Log and Towns with the law's scope, dates and full wording.
   - Let residents die before and after the amendment or repeal. → Earlier deaths keep the old rule; later deaths use the new one.
   - While laws are in force, watch buildings and gathering. → Laws never quietly move a building or stop gathering.
-  - With a mayor in office, have an agent report witnessed conduct under a law. → The case goes to the mayor without any extra vote to give them that duty.
+  - With a mayor in office, have residents approve the separate non-land hearing mandate and report witnessed conduct under a law. → The case stays pending until the mayor accepts the added duty.
+  - Have the mayor accept. → Towns shows the added mandate with the original term's end date.
   - Leave the case for a while. → It waits until the mayor takes it up.
   - Inspect the case. → It shows its place, the law as it was, evidence, sources, inspection receipts, who knew, response window and reasons.
   - Look at what the case offers visitors and children. → Visitors get the same chance, and children get caregiver support.

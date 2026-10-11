@@ -185,7 +185,7 @@ agents are not told. Memories marks it Permanent. The model and Memories list
 keep the latest permanent records as ordinary experiences accumulate, and earlier
 rename history remains saved. Refusal and an unchanged-name retry add nothing.
 This has automated runtime, signed HTTP, save/replay and native UI checks;
-three [Windows checks](../playtest/alpha-1.md) remain pending.
+[Windows checks](../playtest/alpha-1.md) remain pending.
 
 A newborn starts with a temporary name. A chosen child's name must use one
 biological parent's surname and an unused first name. The player can name the
@@ -1326,7 +1326,7 @@ Hall and stall cards show built stalls, borrowers, goods and owners, and exact
 exchange progress. Only paid stalls appear on the map, and the Event Log reports
 Market and Town project events. Automated checks cover
 paid construction, another paid stall, real barter, ingredient and seed buying,
-actual planting, visitors and current-format saves. The nine checks in the
+actual planting, visitors and current-format saves. The checks in the
 [Windows checklist](../playtest/alpha-1.md) are pending.
 
 Street lanterns use the same Council-approved supply and construction path.
