@@ -53,6 +53,8 @@ public sealed partial class PrivateWorldRuntime
             PendingWillDecision[] completedWills = [];
             PendingConversationTurn[] completedConversationTurns = [];
             PendingIdentityMoment[] completedIdentityMoments = [];
+            IReadOnlySet<string> retainedIdentityIds = new HashSet<string>(StringComparer.Ordinal);
+            IReadOnlySet<string> retainedHostedIds = new HashSet<string>(StringComparer.Ordinal);
             string[] activeWillIds = [];
             IReadOnlyDictionary<string, string> inactiveWillReasons = new Dictionary<string, string>();
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -107,6 +109,10 @@ public sealed partial class PrivateWorldRuntime
                 ReconcilePendingConversationTurns();
                 ReconcileIdentityMoments();
                 completedIdentityMoments = pendingIdentityMoments.Values.Where(item => item.Task.IsCompleted).ToArray();
+                retainedIdentityIds = pendingIdentityMoments.Keys.Except(completedIdentityMoments.Select(item => item.Request.Observation.InhabitantId),
+                    StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
+                retainedHostedIds = pendingHosted.Keys.Except(completed.Select(item => item.Request.Observation.InhabitantId),
+                    StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
                 completedConversationTurns = pendingConversationTurns.Values
                     .Where(item => item.Task.IsCompleted).ToArray();
                 baseline = CaptureState();
@@ -190,9 +196,17 @@ public sealed partial class PrivateWorldRuntime
                                 throw new InvalidDataException("The refused choice does not match this actor's action.");
                             proposed.RecordActionRefusal(refusal);
                         }
+                        List<PreparedIdentityMoment>? identityMoments = null;
+                        if (prepareCheckpoint is not null)
+                        {
+                            // Consume each opportunity in the durable proposal before any
+                            // potentially paid request starts. Trials only stage requests.
+                            identityMoments = [];
+                            proposed.PrepareIdentityMoments(identityMoments.Add, retainedHostedIds, retainedIdentityIds);
+                        }
                         gate.Release();
                         gateHeld = false;
-                        return new(proposed, result, prepareCheckpoint?.Invoke(proposed));
+                        return new(proposed, result, prepareCheckpoint?.Invoke(proposed), identityMoments);
                     }
                     finally { if (gateHeld) gate.Release(); }
                 }
@@ -282,6 +296,9 @@ public sealed partial class PrivateWorldRuntime
                         pendingIdentityMoments.Remove(item.Request.Observation.InhabitantId);
                         item.Cancellation.Dispose();
                     }
+                    if (writeFailure is null && (commitPermitted is null || commitPermitted()))
+                        foreach (var identityMoment in preparedTick.IdentityMoments ?? [])
+                            StartPreparedIdentityMoment(identityMoment);
                     if (deferHosted)
                     {
                         foreach (var id in pendingWills.Keys.Where(id =>
@@ -320,7 +337,7 @@ public sealed partial class PrivateWorldRuntime
                         CancelNoLongerAwaitingConversationTurns();
                     }
                     if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartConversationTurns();
-                    if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartIdentityMoments();
+                    if (prepareCheckpoint is null && writeFailure is null && (commitPermitted is null || commitPermitted())) StartIdentityMoments();
                     writeFailure?.Throw();
                     return result with { Events = events.Where(item => item.EventId >= baselineEventId).ToArray() };
                 }

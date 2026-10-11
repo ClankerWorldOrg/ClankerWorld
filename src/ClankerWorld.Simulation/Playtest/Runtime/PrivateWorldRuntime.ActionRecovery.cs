@@ -148,7 +148,8 @@ public sealed partial class PrivateWorldRuntime
             PrivateWorldTickFailurePolicy.Strict, refusal);
     }
 
-    private sealed record PreparedTick(PrivateWorldRuntime Runtime, PrivateWorldStepResult Result, Action? WriteCheckpoint) : IDisposable
+    private sealed record PreparedTick(PrivateWorldRuntime Runtime, PrivateWorldStepResult Result, Action? WriteCheckpoint,
+        IReadOnlyList<PreparedIdentityMoment>? IdentityMoments = null) : IDisposable
     {
         public void Dispose() => Runtime.Dispose();
     }

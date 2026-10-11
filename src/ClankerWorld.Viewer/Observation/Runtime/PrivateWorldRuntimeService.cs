@@ -254,7 +254,15 @@ public sealed partial class PrivateWorldRuntimeService(
             return () =>
             {
                 writingCheckpoint = true;
-                write();
+                try { write(); }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    // This admitted birth remains in memory for the paused write
+                    // retry. Its copied default key cannot be rebuilt from its slot ID.
+                    foreach (var (childId, binding) in preparedChildBindings)
+                        pendingChildModelBindings[childId] = binding;
+                    throw;
+                }
                 writingCheckpoint = false;
                 checkpointCompacted = compacted;
             };
