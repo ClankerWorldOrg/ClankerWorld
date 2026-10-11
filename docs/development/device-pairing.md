@@ -165,8 +165,8 @@ still lose the response after the server commits one. The Godot client's retry
 protocol also retains authoring batches, which the native host currently refuses
 with `private_world_authoring_pending` without applying them. Before sending
 any of these requests, the client may atomically retain one non-secret pending
-record. It is bound to the
-authority identity, device ID, public-key fingerprint, and canonical server
+record. It is bound to the authority identity, device ID, public-key fingerprint,
+and canonical server
 origin, and preserves the exact instruction or cancellation idempotency key, or
 authoring batch ID.
 
@@ -206,9 +206,10 @@ bounds for the caller's idempotency key, order ID and world ID, and refuses
 blank or control-character identities. Persistence, reload and retry keep the
 same target; they never shorten or replace it.
 
-The user can explicitly retry that one record. The retry obtains a new one-use
-challenge and signature, then submits the same logical request so the server
-returns the original receipt rather than creating a duplicate. Private-world
+The user can explicitly retry that one record. For an instruction or order
+cancellation, the retry obtains a new one-use challenge and signature, then
+submits the same logical request so the server returns the original receipt
+rather than creating a duplicate. Private-world
 instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the host still returns its accepted receipt after the recipient dies,
 including after saving and restarting the host. The client's stricter timeline
