@@ -1,0 +1,1 @@
+- Hover over an agent's name on their quick card to read the full current name when it is clipped.

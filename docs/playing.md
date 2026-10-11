@@ -285,7 +285,8 @@ quick card follow the drawing. This does not change how fast anyone travels
 in the world.
 
 Click an agent to open a small card beside them: what they are doing and bars
-for fullness, warmth and illness. **Profile** opens everything else on the left
+for fullness, warmth and illness. Hover over a clipped name to read it in full.
+**Profile** opens everything else on the left
 of the screen: diet, belongings, work, their newest private thought, the people
 in their life and the Memories, Family and Model buttons. The Model line names
 the provider whose model made their latest choice, such as OpenAI; when Jev or
