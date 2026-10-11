@@ -249,8 +249,10 @@ cap. An animal retains at most one ready product batch before production pauses.
 Collection requires reaching it and having receiving space. Eggs and milk
 spoil; wool, hides and leather do not. Collected products belong to the
 household and move physically into House, Restaurant, Tailor Shop, Store or
-Market stock. A reusable jug may hold water or milk, without mixing them;
-drinking milk or using it in cooking leaves the jug intact.
+Market stock. **Agreed by the owner in chat on October 11, 2026:** milk is an
+ordinary stored good, like eggs. Collecting it needs receiving space but no
+jug, and it is carried, stored, sold and cooked like other goods, with no
+record of the jugs or sales it has passed through. Jugs hold water only.
 
 | Pipeline | Trial recipe and destination |
 | --- | --- |
