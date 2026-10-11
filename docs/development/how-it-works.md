@@ -2212,7 +2212,12 @@ visitors use ordinary admission. A built House alone never founds a Town.
 
 Each `TownRuntimeState` carries its own `TownGovernanceState`. `TownGovernanceRules`
 implements all-adult and representative councils from recorded living adult
-residents, independently of geometry and household affiliation. A separate
+residents, independently of geometry and household affiliation. Automatic
+representation starts at four adults, so the ordinary four-founder Town opens
+its first election on day 1. At three or fewer adults, representation and an
+initial all-adult election end; the all-adult council governs until it has four
+adults again. Candidate-failure retries use the same four-adult minimum and the
+ordinary day-or-material-improvement wait. A separate
 `SettlementCouncil` remains the household-food steward prototype.
 
 Household food-policy ballots last 120 ticks and can pass through their saved
@@ -2551,7 +2556,7 @@ mandates added by the target arrangement; explicit replacement requires every
 targeted mandate. A retained vacancy follows its existing succession rules.
 Explicit all-adult government disables automatic representation, and explicit
 elected government seeks three representatives above three adults. The initial
-arrangement retains the eight-adult threshold.
+arrangement uses the four-adult threshold.
 Each transition records the exact Council election it caused to open, including
 an attempt that fails immediately. Only that election waits for the transition
 or is cancelled when it lapses. An ordinary election keeps its own result and

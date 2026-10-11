@@ -91,7 +91,7 @@ public sealed class TownCivicVisitContinuationTests
         Assert.Empty(current.Knowledge);
         Assert.Empty(current.Candidates);
         Assert.Null(current.Election);
-        Assert.Empty(current.ElectionHistory);
+        Assert.Equal(original.ElectionHistory, current.ElectionHistory);
         Assert.Equal(original.Notices, current.Notices);
         var proposal = Assert.Single(current.Proposals);
         Assert.Equal(original.Proposals[0], proposal);

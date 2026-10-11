@@ -336,7 +336,7 @@ public sealed partial class TownLandTransferRuntimeTests
 
     private static PrivateWorldRuntime NewWorld(TransferProvider provider, bool generatedClock = false, string seed = "government-personal-path")
     {
-        using var generated = NormalPathWorld.CreateGenerated(seed, _ => provider);
+        using var generated = NormalPathWorld.CreateGenerated(seed, _ => provider, ticksPerDay: generatedClock ? null : Day);
         var state = generated.ExportState();
         var society = state.Society.Society;
         var oldDay = society.Config.TicksPerWorldDay;

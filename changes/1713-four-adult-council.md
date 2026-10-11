@@ -1,0 +1,1 @@
+- Towns now start council elections at four living adult residents, so an ordinary new Town opens its first election on day 1. At three or fewer adults, all adults govern until the Town has four again; elections still require willing candidates and actual votes.

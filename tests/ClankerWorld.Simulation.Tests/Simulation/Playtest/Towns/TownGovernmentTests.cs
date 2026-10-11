@@ -106,18 +106,18 @@ public sealed class TownGovernmentTests
         (town.Council, town.Government) = TownGovernmentRules.WithdrawMayor(
             town.Council, town.Government, "a", "land", town.Tick);
         var before = town.Government;
-        var noticesBefore = town.Council.Notices.ToArray();
+        var noticesBefore = town.Council.Notices.Where(notice => notice.Kind == "mayor").ToArray();
         Assert.Empty(before.Consents);
         Assert.Null(Assert.Single(before.Offices).HolderId);
 
-        // Advancing days must not announce or archive elections nobody agreed to enter.
+        // Advancing days must not announce or archive mayoral elections nobody agreed to enter.
         for (var day = 2; day <= 11; day++)
         {
             town.Advance(day * Day);
             Assert.Null(town.Government.Contest);
         }
         var afterQuietDays = town.Government;
-        var noticesAfterQuietDays = town.Council.Notices.ToArray();
+        var noticesAfterQuietDays = town.Council.Notices.Where(notice => notice.Kind == "mayor").ToArray();
 
         // Personal consent later still starts a fresh term backed by an actual ballot.
         town.Register("b");
@@ -586,13 +586,15 @@ public sealed class TownGovernmentTests
     [Fact]
     public void ACancelledChangeLeavesNoElectedCouncilBehind()
     {
+        // This explicit all-adult arrangement would not independently elect representatives.
         var town = new Town("a", "b", "c", "d", "e");
+        town.Yes(town.Propose(new(TownArrangementRules.AllAdultCouncil, TownArrangementRules.NoOffice)), "a", "b", "c");
         var elected = new TownArrangement(TownArrangementRules.ElectedCouncil, TownArrangementRules.NoOffice);
         town.Yes(town.Propose(elected), "a", "b", "c");
         // Nobody agrees to stand, so the forced first election fails and the change lapses.
         for (var tick = 1L; tick <= Day * 3; tick++) town.Advance(tick);
-        Assert.Equal("cancelled", town.Government.Changes[0].Status);
-        Assert.Equal(TownArrangementRules.Initial, town.Government.Arrangement);
+        Assert.Equal("cancelled", town.Government.Changes[^1].Status);
+        Assert.Equal(TownArrangementRules.AllAdultCouncil, town.Government.Arrangement.Ordinary);
 
         // Willing candidates later must not be seated by a council election nobody approved.
         foreach (var actor in new[] { "a", "b", "c" })

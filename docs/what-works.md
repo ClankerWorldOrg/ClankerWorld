@@ -1005,10 +1005,13 @@ An adult on buildable unclaimed land away from other Towns can deliberately foun
 
 Each founded Town has its own council. Its recorded living adult residents
 include travelers and adults without a home; visitors gain no vote. All adults
-govern initially. At eight adults the Town opens elections for three willing
+govern initially. At four adults the Town opens elections for three willing
 representatives, with ten-day terms, vacancy contests and one cutoff runoff
 followed by a saved draw when needed. A Town with an elected council keeps
-representation at seven adults and returns to all adults at three or fewer.
+representation at four adults and returns to all adults at three or fewer,
+until it has four adults again. The ordinary four-founder Town opens its first
+election on day 1. Without three willing candidates, the attempt fails and the
+all-adult council continues under the usual retry rules.
 
 Agents personally register willingness, visit the public notice place near the
 Town's founding site, read actual notices and relay learned information nearby.

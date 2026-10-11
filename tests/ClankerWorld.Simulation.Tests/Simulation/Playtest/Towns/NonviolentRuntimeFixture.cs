@@ -227,7 +227,7 @@ internal static class NonviolentRuntimeFixture
 
     private static byte[] CreateBaseline()
     {
-        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new NonviolentTestProvider());
+        using var generated = NormalPathWorld.CreateGenerated("government-personal-path", _ => new NonviolentTestProvider(), ticksPerDay: Day);
         var state = generated.ExportState();
         var town = state.Towns![0];
         var board = town.OriginSite!.Value;
@@ -247,7 +247,6 @@ internal static class NonviolentRuntimeFixture
         foreach (var actor in new[] { Subject, Witness, Judge })
             council = TownGovernanceRules.LearnNotices(council, actor, council.Notices.Select(notice => notice.Id), 0);
         var society = state.Society.Society;
-        var oldDay = society.Config.TicksPerWorldDay;
         var inventory = InventoryFixture.AddLot(society.Inventory, ReturnLot, "wood", Subject, 2);
         state = state with
         {
@@ -258,19 +257,11 @@ internal static class NonviolentRuntimeFixture
                 HungerBasisPoints = 9_000,
                 LastDecisionContext = null
             }).ToArray(),
-            WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
-            { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, map),
             Society = state.Society with
             {
                 Society = society with
                 {
                     Inventory = inventory,
-                    Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
-                    {
-                        BirthTick = person.BirthTick / oldDay * Day,
-                        BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null
-                    }).ToArray()
                 }
             }
         };
