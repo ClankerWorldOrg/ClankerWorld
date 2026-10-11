@@ -56,10 +56,24 @@ public sealed partial class ViewerHttpTests
             Assert.True((await runtime.AdvanceOneTickAsync()).Advanced);
             var tick = runtime.WorldTick;
             var exitObservedSavedPause = false;
+            var exitObservedAcceptedResponse = false;
+            var exitObserved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var shutdownScope = host.Services.CreateScope();
+            HttpContext? shutdownContext = null;
             using var onExit = lifetime.ApplicationStopping.Register(() =>
             {
-                using var saved = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)));
-                exitObservedSavedPause = saved.Society.IsPaused && saved.WorldTick == tick;
+                try
+                {
+                    using var saved = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)));
+                    exitObservedSavedPause = saved.Society.IsPaused && saved.WorldTick == tick;
+                    exitObservedAcceptedResponse = shutdownContext?.Response.HasStarted == true &&
+                        shutdownContext.Response.StatusCode == StatusCodes.Status202Accepted;
+                    // Force request-service teardown at exit rather than relying on
+                    // the host's nondeterministic disposal to expose a late result.
+                    shutdownScope.Dispose();
+                    exitObserved.TrySetResult();
+                }
+                catch (Exception exception) { exitObserved.TrySetException(exception); }
             });
             using var locked = failWrite && OperatingSystem.IsWindows()
                 ? new FileStream(file.Path, FileMode.Open, FileAccess.Read, FileShare.Read) : null;
@@ -85,10 +99,25 @@ public sealed partial class ViewerHttpTests
                 }
             }
 
-            var stopped = await host.Server.SendAsync(CompanionShutdownRequest);
+            var stopped = await host.Server.SendAsync(context =>
+            {
+                CompanionShutdownRequest(context);
+                context.RequestServices = shutdownScope.ServiceProvider;
+                shutdownContext = context;
+            });
+            if (stopped.Response.StatusCode != StatusCodes.Status202Accepted)
+            {
+                if (stopped.Response.Body.CanSeek) stopped.Response.Body.Position = 0;
+                using var response = new StreamReader(stopped.Response.Body, leaveOpen: true);
+                output.WriteLine($"shutdown retry status={stopped.Response.StatusCode} tick={runtime.WorldTick} " +
+                    $"paused={runtime.Society.IsPaused} stopping={lifetime.ApplicationStopping.IsCancellationRequested}");
+                output.WriteLine(await response.ReadToEndAsync());
+            }
             Assert.Equal(StatusCodes.Status202Accepted, stopped.Response.StatusCode);
+            await exitObserved.Task.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.True(lifetime.ApplicationStopping.IsCancellationRequested);
             Assert.True(exitObservedSavedPause);
+            Assert.True(exitObservedAcceptedResponse);
         }
         finally { directory.Delete(recursive: true); }
     }

@@ -1,0 +1,1 @@
+- Overwriting a named save removes the replaced checkpoint file after the new version is saved, while keeping the intended recovery copy.
