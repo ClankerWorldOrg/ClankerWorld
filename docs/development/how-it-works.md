@@ -349,8 +349,13 @@ ordering. Handcart household material counts use the same reachable query.
 Preparation still permits making cargo room first; actual cart and construction
 material pickups recheck the selected lot with Collect. Town access, top-level
 stock, the intended return route and delivery quantities remain native filters.
-Remaining Town-stock callers and the older `CanReachSharedItem` selector paths
-remain in [#1370](https://github.com/compoodment/ClankerWorld/issues/1370).
+Expansion materials also use ReachableHoldings and recheck the offered lot
+before pickup. Expansion keeps its own household/Town authority, exclusions for
+stock already at the site or in custody, household-before-Warehouse ordering
+and loaded return capacity. Town-owned ground stock remains eligible for Town
+expansion; ordinary Collect retains its existing place permissions. The older
+`CanReachSharedItem` helper is removed. Milk-jug selectors were retired when
+milk became ordinary food.
 
 With `Explain`, exclusions retain their first failure in this fixed order:
 owner, kind, building, damage, spoilage, vessel, empty stock, reservation,
