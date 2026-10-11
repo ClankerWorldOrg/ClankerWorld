@@ -307,7 +307,10 @@ public sealed record SeededMap(
         {
             var (dx, dy) = FootNeighborOffsets[index];
             var x = origin.X + dx;
-            if (map.WrapsEastWest) x = (x % map.Width + map.Width) % map.Width;
+            // The origin is inside the map and adjacent offsets cross at most
+            // one column boundary, so no remainder calculation is needed.
+            if (map.WrapsEastWest)
+                x = x < 0 ? map.Width - 1 : x == map.Width ? 0 : x;
             return new GridPoint(x, origin.Y + dy);
         }
     }
