@@ -31,7 +31,10 @@ establish Windows presentation or hosted-model latency.
 
 The unchanged [fresh-checkpoint setup](footprint-query-probe/setup.cs.txt) then
 completed the `4:96` and `16:96` fixtures. Its `16:384` fixture stopped at the
-256-workshop guard with 310 Roads and 276 buildings. No dense checkpoint or
+256-workshop guard with 310 Roads and 276 buildings. This is a historical
+failure. The current setup uses the connected-ground selection documented in
+[Measuring Town tick time](town-tick-measurements.md#what-the-fixture-controls);
+the original failed run and its evidence remain unchanged. No dense checkpoint or
 measured-phase trace was produced. The one-tick setup samples are not ordinary
 timing comparisons.
 
