@@ -97,7 +97,9 @@ public sealed partial class OwnerWorldObservationStore
                     .Select(TownLandHearingRules.Snapshot))
                 .FirstOrDefault(version => version.Id == evidence.SourceRecordId && version.Version == evidence.SourceVersion)?.Right;
             var title = (state.TownLandTitles ?? []).FirstOrDefault(record => record.Id == evidence.SourceRecordId);
-            var lawToken = evidence.SourceRecordId?.Split('@', 2);
+            var lawVersion = town.Government?.Laws.SelectMany(law => law.Versions.Where(version =>
+                TownLandHearingRules.LawRecordId(law.Id, version.Version) == evidence.SourceRecordId &&
+                TownLandHearingRules.LawVersion(version) == evidence.SourceVersion)).FirstOrDefault();
             return new(evidence.Id, evidence.Revision, evidence.Kind, evidence.Acquisition,
                 evidence.SourceAgentId, AgentName(evidence.SourceAgentId), evidence.SourceRecordId,
                 evidence.SourceVersion, evidence.ObservedTick, evidence.SubmittedByAgentId,
@@ -108,7 +110,7 @@ public sealed partial class OwnerWorldObservationStore
                 TitleRecord = title is not null ? new(title.Id, title.TownId, title.Tiles.Select(ToPosition).ToArray(), title.RecordedTick) : null,
                 RecordPartyName = right is not null ? HouseholdName(right.HouseholdId) : title is not null
                     ? (state.Towns ?? []).FirstOrDefault(other => other.Id == title.TownId)?.Name : null,
-                LawVersion = lawToken is { Length: 2 } && int.TryParse(lawToken[1], out var versionNumber) ? versionNumber : null,
+                LawVersion = lawVersion?.Version,
             };
         }
         static bool Active(TownLandCase item) => item.SettledTick is null || item.ReopenRequests.Any(request => request.Status == "pending");

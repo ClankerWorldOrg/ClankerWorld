@@ -55,13 +55,13 @@ public sealed partial class PrivateWorldRuntime
             var available = PersonalEquipmentRules.AvailableQuantity(nextInventory, lot);
             var quantity = Math.Min(2 - allowance, available);
             if (quantity <= 0) continue;
-            var transferId = $"departure:{actor}:{WorldTick}:{inhabitants[actor].Departures?.Count ?? 0}:{lot.Id}";
+            var transferId = DepartureTransferId(actor, WorldTick, inhabitants[actor].Departures?.Count ?? 0, lot.Id);
             InventoryGroundPosition? ground = lot.StorageBuildingId is null
                 ? lot.GroundPosition ?? new InventoryGroundPosition(SettlementStoragePosition.X, SettlementStoragePosition.Y)
                 : null;
             nextInventory = InventoryFixture.Transfer(nextInventory, transferId, householdId, actor,
                 lot.Id, quantity, "departure_allowance", lot.StorageBuildingId, destinationGroundPosition: ground);
-            allowanceIds.Add(quantity == lot.Quantity ? lot.Id : lot.Id + "#transfer:" + transferId);
+            allowanceIds.Add(quantity == lot.Quantity ? lot.Id : DerivedId.Create(lot.Id + "#transfer:" + transferId));
             allowance += quantity;
             if (allowance == 2) break;
         }
@@ -189,8 +189,7 @@ public sealed partial class PrivateWorldRuntime
         lot.OwnerId != actor && lot.CarrierId == actor && lot.ContainerLotId is null && lot.Quantity > 0 &&
         !animalWorld.SupplyTrips.Any(trip => trip.ActorId == actor && trip.LotId == lot.Id));
 
-    private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor).Where(lot =>
-        !(lot.ItemKind == InventoryContainerRules.WaterJug && IsMilkJug(lot) && MilkStockChoices(actor).Any(choice => choice.Jug.Id == lot.Id)));
+    private IEnumerable<InventoryLot> BorrowedGoods(string actor) => CarriedBorrowedGoods(actor);
 
     private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor)
     {
@@ -425,7 +424,7 @@ public sealed partial class PrivateWorldRuntime
             // Splitting from an overcrowded House is an ordinary departure first.
             if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
                 !DepartHousehold(actor, MayRelocateFromHousehold(actor) ? "displaced" : "voluntary")) return;
-            var householdId = $"household:solo:{actor}:{WorldTick}";
+            var householdId = SoloHouseholdId(actor, WorldTick);
             var group = MovingCareGroup(actor);
             society.Apply(checkpoint => SocietyFixture.CreateHousehold(checkpoint, householdId,
                 society.Checkpoint.GetInhabitant(actor).Name + "'s household", group));

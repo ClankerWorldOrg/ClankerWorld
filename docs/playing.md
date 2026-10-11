@@ -55,7 +55,9 @@ logs folders. Started without the launcher, the game turns
 Developer mode on with the `--developer-mode` start option
 (`ClankerWorld.exe -- --developer-mode`); runs from the Godot editor always
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
-which saves, closes the game and reopens the launcher with that version chosen. The launcher checks each download against the
+which saves, closes the game and reopens the launcher with that version chosen.
+After **Play**, choose **Load World** on the Main Menu: the previous world is
+already selected. It opens only when you choose **Open World**. The launcher checks each download against the
 release's published SHA-256 before unpacking it, never installs anything
 without your click, and never updates itself: it tells you when a newer
 launcher is published. If it can't reach GitHub, you can still play an
@@ -137,7 +139,9 @@ voluntary move with care preserved provides enough room.
 To rename an agent, open their **Profile**. The first name must be unused by
 any other living or deceased agent in the world; changing the surname alone
 does not free a taken first name. You can keep the selected agent's own first
-name. A child's chosen surname must come from a biological parent. Temporary
+name. A child's chosen surname must come from a biological parent. A parent
+cannot remove the last chosen surname available to a minor child; keep a
+surname on at least one biological parent. Temporary
 names do not reserve first names, and renaming leaves past conversations as
 spoken. Changing a married agent's surname updates both spouses together,
 keeping the other spouse's first and middle names. A taken first name leaves
@@ -344,9 +348,8 @@ arrival waits one world day before returning to a usable departure Port.
 The Towns trip row follows the boat’s current arrival Port during recovery and
 shows when it is returning or waiting for a safe arrival. A queued request
 still names its requested destination.
-Passengers can eat their carried food or drink fresh milk from a usable carried
-jug during travel and while waiting to land. Drinking uses one portion and
-leaves the jug intact.
+Passengers can eat their carried food or drink fresh carried milk during travel
+and while waiting to land. Drinking uses one portion.
 
 When agents talk, a chat bubble appears above each participant and nearby
 listeners. Click a bubble to see who spoke and whether the conversation is
@@ -779,7 +782,9 @@ when they overlap the pointer. **Event Log** shows important events under a
 heading for each day, each with an icon for its kind. Lines name who was
 involved: births, deaths, partnerships, marriages, skills learned, animals and
 scouting trips all appear. Building and crafting entries name the building or
-recipe, including older recorded work. Routine steps such as meals, forage
+recipe, including older recorded work. Town law decisions, government votes
+and handovers, and mayoral elections or office changes also appear; open the
+Towns page for their wording and results. Routine steps such as meals, forage
 trips, cart loading and each Town project work shift are left out, because a
 later line already reports what came of them. An event with a known
 location has a **Find** button that moves the camera there. The log grows to
@@ -830,6 +835,13 @@ The Town keeps eligible goods in its Warehouse while there is room, and living
 household heirs share the rest. Whole vessels stay together. With no living
 household heir, goods belong to the deceased resident's Town; non-food goods
 in an abandoned Town's Warehouse can be salvaged through the usual choice.
+
+All adult residents govern a new Town initially. At four living adult residents,
+the Town opens an election for a three-seat council, including on day 1 in an
+ordinary four-founder world. An elected council returns to all-adult government
+at three or fewer adults and elects again at four. Without three willing
+candidates, the all-adult council continues; a failed election may retry after
+one unpaused world day or sooner when adult or candidate availability improves.
 
 Town residents make civic choices through their normal personal-model turns.
 Adults can agree to stand for election, visit their Town's public notice place
@@ -882,6 +894,12 @@ handover of at most three days. The Towns page distinguishes an approved proposa
 from a completed handover and explains a failed transition.
 An election the current Council opened on its own continues independently,
 even if someone leaves the Town while the proposed change waits for a successor.
+
+Every new Town starts with an empty mayor's office for land disputes and
+non-land cases. A willing adult can stand for both duties without a vote to
+create the office; residents then elect the mayor. While it is empty, cases
+wait for a judge and the Council may mediate. Residents can remove the office
+or narrow its duties through the protected government-change vote.
 
 An elected mayor may hold the land mandate, ordinary governing authority, or
 the separate non-land hearing mandate. Candidates personally agree to those specific mandates.
@@ -990,7 +1008,7 @@ If its site can no longer be used, the Town stops the
 project and the Towns page says why; its leftover materials stay Town
 property where they are. See [What works today](what-works.md#life-work-and-society)
 for this first version's limits and provisional amounts. Its
-[hands-on checklist](../playtest/767-town-projects.md) remains pending.
+[hands-on checklist](../playtest/alpha-1.md) remains pending.
 
 To begin a Market, use **Speak → Suggest** to ask an adult resident to consider a
 named Market proposal. **World Info → Towns** shows its site, exact budget,
@@ -1012,7 +1030,7 @@ a sale or give away goods. An urgently hungry owner can still retrieve their
 available food from a stall and eat it, including during an unrelated active
 Order. That survival interruption keeps the task and its progress. Other
 Market work waits until urgent hunger passes. The
-[Market hands-on checklist](../playtest/564-market-stalls.md) remains pending.
+[Market hands-on checklist](../playtest/alpha-1.md) remains pending.
 
 A preparing birth cannot count or spend household food on a stall while borrowing
 is active. Its food shortage is shown in the parents' cards and caregiver's
@@ -1030,7 +1048,7 @@ and keeps the edge that was approved. The Road itself stays open.
 
 Completed lanterns show by day, light at dusk and go out at dawn. They need no
 fuel and do not change what agents can see or do. Select the visible fitting for
-its project and payment details. The [street-lantern checklist](../playtest/892-street-lanterns.md)
+its project and payment details. The [street-lantern checklist](../playtest/alpha-1.md)
 still needs a hands-on check.
 
 ## Pause, settings and controls
@@ -1175,11 +1193,14 @@ and Delete are unavailable while another world action finishes. A world that
 another game version last saved, and this one can't open, is marked
 **Saved by <version>**. In a game the launcher started, its red **Open in
 <version>** button asks first, saves and closes the game, and opens the
-launcher with that version chosen, ready to install if needed. Started without
+launcher with that version chosen, ready to install if needed. After **Play**,
+open **Load World** on the Main Menu: the same world is selected, ready for
+**Open World**. If it is no longer in the saves folder, the game explains that
+and lets you choose another world. Started without
 the launcher, the game names the version to start instead. If that version is
 neither installed nor available to download, the launcher keeps it selected and
 explains why it cannot start. Failed saving or opening the launcher keeps the
-game open, and **Try Again** keeps the chosen version.
+game open, and **Try Again** keeps the chosen version and world.
 
 To go back to an earlier save, choose the current world in Load World and
 **Load a save...**, then pick a save and **Load**, or double-click it. Your world
@@ -1194,7 +1215,9 @@ small banner, older saves are open circles and autosaves are small diamonds;
 the key above the timeline shows which is which. **You are here** marks the
 world as it is now, at the end of its branch, or on a dotted **New branch** row
 when your next save will start one. Click a save to see it described
-underneath; the arrow keys also move between saves. **List** shows the saves as
+underneath; the arrow keys also move between saves and keep the selected name
+in view when the window changes size, until you scroll the timeline yourself.
+**List** shows the saves as
 cards instead, grouped by branch, with tags such as **From Before the flood**
 and **Latest**. A branch keeps the name of the save it started from, even if
 that save's name changes later. Long labels are shortened to fit; hover the
@@ -1262,7 +1285,9 @@ losing warmth as they move. The map shows the agent swimming with a
 **Swimming** label; their tooltip says the same. Cold or ill agents, loads above
 four carried units, carts and accompanying animals prevent a new swim.
 When supplies must return across freshwater, agents collect only what they can
-carry back; vessels count together with their contents. The sea still needs a boat.
+carry back; vessels count together with their contents. This also applies to milk
+restocking, yard water, planting seeds, medicine, repair supplies, cart materials
+and food carried back to a child. The sea still needs a boat.
 An agent already swimming can reach shore if their condition changes, and an
 unfinished crossing survives saving and loading. Swimming speed, warmth loss
 and the load limit are provisional for playtesting.
@@ -1296,18 +1321,15 @@ Taming needs two grain/greens and one jug water. Chickens need one feed and one
 water daily; sheep, cows and horses need two each. Jugs remain reusable.
 
 Products belong to the animal's household. Eggs and milk spoil; collect them
-promptly. Milk needs an empty household jug or one already holding milk, with
-room for two portions. **Return borrowed water jug** carries a collected jug
-back to its owning household's House. Adults can haul the products into their
-workstations through ordinary supply choices and orders. House/Restaurant
-recipes cook eggs or milk porridge; Restaurants prepare rich meals. Tailors
-make wool padded coats, process hides into leather, and make leather sacks or
-saddles. A leather sack carries 32 units. Adults can haul household milk jugs
-to their Store or borrowed Market stall. A seller offers one portion for an
-exact personal payment; the buyer accepts with a carried empty or milk jug.
-Each milk lot can have only one pending offer. Remaining portions can be
-offered after that sale ends.
-Both vessels keep their owners. Pouring away spoiled milk frees its jug for reuse.
+promptly. Milk needs room for two portions in the adult's carried goods, with
+no vessel. **Return borrowed milk** takes collected milk back to its owning
+household's House. Adults can haul products into workstations through ordinary
+supply choices and orders. House/Restaurant recipes cook eggs or milk porridge;
+Restaurants prepare rich meals. Tailors make wool padded coats, process hides
+into leather, and make leather sacks or saddles. A leather sack carries 32 units.
+Milk can be stored, gifted, bartered and stocked at Stores or borrowed Market
+stalls like other food. Buyers make an ordinary offer and the seller may refuse.
+Water jugs hold fresh water only, including the water used for animal care.
 
 For a cared adult horse, use **Saddle Moss**, **Mount Moss** and **Dismount Moss**.
 A mount needs a real household saddle and gives twice walking speed plus eight
@@ -1327,4 +1349,4 @@ Household hides remain private; nearby adults may collect untamed animals'
 old-age hides from their actual death tile.
 For a quick trial, pause and open **Developer tools (F12)**, choose an adult
 with yard space, and use **Add household animal**. The Event Log records it.
-The [animal playtest list](../playtest/433-animals.md) remains untried on Windows.
+The [animal playtest list](../playtest/alpha-1.md) remains untried on Windows.

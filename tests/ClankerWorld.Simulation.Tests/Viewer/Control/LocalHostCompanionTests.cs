@@ -51,9 +51,9 @@ public sealed class LocalHostCompanionTests
             Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
             [viewer.Location], Path.GetDirectoryName(viewer.Location)!, data);
         using var http = new HttpClient();
+        var game = new LocalHostCompanion(layout, http, port, approvalPort);
         try
         {
-            var game = new LocalHostCompanion(layout, http, port, approvalPort);
             Assert.Equal(LocalHostOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
             Assert.True(File.Exists(Path.Combine(data, "saves", "private-world.json")));
             Assert.DoesNotContain(File.ReadAllText(layout.SecretPath), await ReadSharedAsync(layout.LogPath));
@@ -83,6 +83,7 @@ public sealed class LocalHostCompanionTests
         }
         finally
         {
+            await game.StopAsync(CancellationToken.None);
             if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
         }
     }
@@ -108,6 +109,106 @@ public sealed class LocalHostCompanionTests
         {
             if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
         }
+    }
+
+    [Theory]
+    [InlineData("/api/v1/handshake")]
+    [InlineData("/api/v1/status")]
+    [InlineData("/api/v1/local/companion")]
+    public async Task RelaunchRetriesOneTimedOutProbeAndReusesItsActualCompanion(string route)
+    {
+        var data = Path.Combine(Path.GetTempPath(), $"clankerworld-companion-timeout-{Guid.NewGuid():N}");
+        var viewer = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(viewer);
+        var layout = new LocalHostLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [viewer.Location], Path.GetDirectoryName(viewer.Location)!, data);
+        using var http = new HttpClient();
+        var (port, approval) = (FreePort(), FreePort());
+        var game = new LocalHostCompanion(layout, http, port, approval);
+        try
+        {
+            Assert.Equal(LocalHostOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
+            using var handler = new TimeoutOnceHandler(route);
+            using var delayedHttp = new HttpClient(handler);
+            var relaunch = new LocalHostCompanion(layout, delayedHttp, port, approval);
+
+            Assert.Equal(LocalHostOutcome.Reused, (await relaunch.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            Assert.True(handler.TargetRequests >= 2);
+            Assert.False(relaunch.StartedHost);
+            Assert.True(game.StartedHost);
+            Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
+            Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
+        }
+        finally
+        {
+            await game.StopAsync(CancellationToken.None);
+            if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AnUnresponsiveRelaunchPreservesItsHostAndSecretOnTimeoutOrCancellation(bool cancelCaller)
+    {
+        var data = Path.Combine(Path.GetTempPath(), $"clankerworld-companion-unresponsive-{Guid.NewGuid():N}");
+        var viewer = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(viewer);
+        var layout = new LocalHostLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [viewer.Location], Path.GetDirectoryName(viewer.Location)!, data);
+        using var http = new HttpClient();
+        var (port, approval) = (FreePort(), FreePort());
+        var game = new LocalHostCompanion(layout, http, port, approval);
+        try
+        {
+            Assert.Equal(LocalHostOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            var secretDigest = SHA256.HashData(File.ReadAllBytes(layout.SecretPath));
+            using var handler = new TimeoutOnceHandler("/api/v1/handshake", holdEveryRequest: true);
+            using var delayedHttp = new HttpClient(handler);
+            var relaunch = new LocalHostCompanion(layout, delayedHttp, port, approval, TimeSpan.FromMilliseconds(100));
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            if (cancelCaller)
+            {
+                var starting = relaunch.StartAsync(version, revision, cancellation.Token);
+                await handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                cancellation.Cancel();
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => starting);
+            }
+            else
+                Assert.Equal(LocalHostOutcome.TimedOut, (await relaunch.StartAsync(version, revision, cancellation.Token)).Outcome);
+            Assert.True(handler.TargetRequests > 0);
+            Assert.False(relaunch.StartedHost);
+            Assert.Equal(secretDigest, SHA256.HashData(File.ReadAllBytes(layout.SecretPath)));
+            Assert.True((await http.GetAsync(new Uri(game.Origin, "api/v1/handshake"))).IsSuccessStatusCode);
+        }
+        finally
+        {
+            await game.StopAsync(CancellationToken.None);
+            if (Directory.Exists(data)) Directory.Delete(data, recursive: true);
+        }
+    }
+
+    private sealed class TimeoutOnceHandler(string route, bool holdEveryRequest = false) : HttpMessageHandler
+    {
+        private readonly HttpMessageInvoker inner = new(new HttpClientHandler());
+        private int targetRequests;
+        public int TargetRequests => Volatile.Read(ref targetRequests);
+        public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.RequestUri!.AbsolutePath == route && (Interlocked.Increment(ref targetRequests) == 1 || holdEveryRequest))
+            {
+                // Use the companion's actual request deadline, not a timer in
+                // the test or a made-up foreign-host response.
+                Entered.TrySetResult();
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+            return await inner.SendAsync(request, cancellationToken);
+        }
+
+        protected override void Dispose(bool disposing) { if (disposing) inner.Dispose(); base.Dispose(disposing); }
     }
 
     [Theory]

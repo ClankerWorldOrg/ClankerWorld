@@ -14,7 +14,7 @@ namespace ClankerWorld.Simulation.Tests;
 internal static class NormalPathWorld
 {
     public static PrivateWorldRuntime CreateGenerated(string seed, Func<string, IDecisionProvider> providerFactory,
-        GridPoint? roughTownSite = null, WorldSizePreset size = WorldSizePreset.Small)
+        GridPoint? roughTownSite = null, WorldSizePreset size = WorldSizePreset.Small, int? ticksPerDay = null, int calendarOffsetTicks = 0)
     {
         var options = new GeographyOptions(seed, size);
         var world = new PrivateWorldRuntime(options.Seed, providerFactory,
@@ -35,8 +35,66 @@ internal static class NormalPathWorld
             .Take(PrivateWorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
         for (var index = 0; index < placements.Length; index++)
             world.PlaceFounder($"founder:{index + 1:D32}", placements[index]);
+        if (ticksPerDay is { } day)
+        {
+            // Controlled short-day fixtures choose their clock before Start World opens its first election.
+            var state = world.ExportState();
+            var society = state.Society.Society;
+            var oldDay = society.Config.TicksPerWorldDay;
+            var prepared = PrivateWorldRuntime.Restore(state with
+            {
+                WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
+                { Config = state.WorldSystems.Config with { TicksPerDay = day, CalendarOffsetTicks = calendarOffsetTicks }, RegionalWeather = null }, state.Map),
+                Society = state.Society with
+                {
+                    Society = society with
+                    {
+                        Config = society.Config with { TicksPerWorldDay = day },
+                        Inhabitants = society.Inhabitants.Select(person => person with
+                        {
+                            BirthTick = person.BirthTick / oldDay * day,
+                            BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * day : null,
+                        }).ToArray(),
+                    },
+                },
+            }, providerFactory);
+            world.Dispose();
+            world = prepared;
+        }
         world.StartWorld();
         return world;
+    }
+
+    /// <summary>Keep candidate-less failed election windows consistent with a fixture's new day length.</summary>
+    internal static PrivateWorldRuntimeState ReclockCandidateLessCouncilAttempts(PrivateWorldRuntimeState state, int day)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(day);
+        return state with
+        {
+            Towns = state.Towns?.Select(town =>
+            {
+                if (town.Governance is not { } council) return town;
+                Assert.Null(council.Election);
+                Assert.Empty(council.Candidates);
+                Assert.All(council.ElectionHistory, election =>
+                {
+                    Assert.Equal("failed", election.Stage);
+                    Assert.Empty(election.Candidates);
+                    Assert.Empty(election.Ballots);
+                    Assert.Empty(election.SettledSeats);
+                    Assert.Empty(election.DrawOrder);
+                });
+                // Keep the actual IDs, opening ticks and resident rosters when a fixture changes day length.
+                return town with
+                {
+                    Governance = council with
+                    {
+                        ElectionHistory = council.ElectionHistory.Select(election => election with
+                        { DeadlineTick = election.OpenedTick + day }).ToArray(),
+                    },
+                };
+            }).ToArray(),
+        };
     }
 
     /// <summary>Choose a feasible site near the camp without changing generated terrain or resources.</summary>

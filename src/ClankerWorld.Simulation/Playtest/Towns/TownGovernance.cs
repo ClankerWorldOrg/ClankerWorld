@@ -34,7 +34,7 @@ public sealed record TownGovernanceState(string Form, string Fallback, long Revi
 /// <summary>One Town's ordinary civic rules. The world validates and executes approved land claims separately.</summary>
 public static class TownGovernanceRules
 {
-    public const int RepresentationThreshold = 8;
+    public const int RepresentationThreshold = 4;
     public const int Seats = 3;
     public const int TermDays = 10;
     public const int MaximumProposalText = 256;
@@ -60,7 +60,8 @@ public static class TownGovernanceRules
         var adults = Ordered(adultResidents);
         var candidates = state.Candidates.Where(c => Has(adults, c.AgentId)).ToArray();
         state = state with { Candidates = candidates };
-        if ((state.Form == "representative" || state.Fallback == "candidates") && adults.Length <= Seats)
+        if ((state.Form == "representative" || state.Fallback == "candidates" ||
+            state.Form == "all_adult" && state.Election is not null) && adults.Length <= Seats)
         {
             state = CancelElection(state, tick, "Population fell to three or fewer adults.");
             state = ChangeCouncil(state, adults, "all_adult", "demographic", null, tick);
@@ -116,7 +117,7 @@ public static class TownGovernanceRules
             else if (allowNewElections && state.Form == "representative" && state.Members.Count < Seats && state.TermEndTick is { } remainder)
                 state = OpenElection(state, townId, adults, tick, ticksPerDay, "replacement", remainder);
             else if (allowNewElections && (forceRepresentation && state.Form != "representative" && adults.Length > Seats ||
-                state.Form == "all_adult" && (adults.Length >= RepresentationThreshold || state.Fallback == "candidates" && adults.Length > Seats)))
+                state.Form == "all_adult" && adults.Length >= RepresentationThreshold))
                 state = OpenElection(state, townId, adults, tick, ticksPerDay, "initial", tick + (long)(TermDays + 1) * ticksPerDay);
         }
         foreach (var proposal in state.Proposals.Where(p => p.Status == "pending").ToArray())
@@ -152,7 +153,7 @@ public static class TownGovernanceRules
         if (actor == nominee || !Has(adults, actor) || !Has(adults, nominee))
             throw new InvalidOperationException("Only adult residents may nominate another eligible adult resident.");
         // Naming someone records a request for their agreement, never agreement on their behalf.
-        return Notice(state, "nomination", "nomination:" + actor + "->" + nominee,
+        return Notice(state, "nomination", TownRecordIds.Nomination(actor, nominee),
             $"{actor} nominated {nominee} for full council terms. The nominee must personally agree before entering the willing-candidate register.", tick);
     }
 
@@ -194,7 +195,7 @@ public static class TownGovernanceRules
         var seats = kind == "replacement" ? Seats - state.Members.Count : Seats;
         var candidates = adults.Where(id => Agreed(state, id, kind, termEnd) &&
             (kind != "replacement" || !Has(state.Members, id))).ToArray();
-        var id = townId + ":election:" + (state.Sequence + 1);
+        var id = TownRecordIds.Election(townId, checked(state.Sequence + 1));
         state = state with
         {
             Sequence = state.Sequence + 1,
@@ -353,13 +354,13 @@ public static class TownGovernanceRules
             kind == "land_hearing" ? TownLandGovernmentFilingRules.RequestKey(landHearingRequest!) :
             kind == "project" ? TownProjectRules.RequestKey(project!) :
             kind == "land_use" ? HouseholdLandGrantRules.RequestKey(landUseRequest!) :
-            kind == "land_claim" ? TownLandClaimRules.RequestKey(landClaimTiles!) : requestKey ?? (kind == "admission" ? "admission:" + subject : "law:" + string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant());
+            kind == "land_claim" ? TownLandClaimRules.RequestKey(landClaimTiles!) : requestKey ?? (kind == "admission" ? TownRecordIds.Admission(subject!) : "law:" + string.Join(' ', text.Split(' ', StringSplitOptions.RemoveEmptyEntries)).ToUpperInvariant());
         if (state.Proposals.Any(p => p.RequestKey == key && p.Status == "pending")) return state;
         var previous = state.Proposals.LastOrDefault(p => p.RequestKey == key);
         if (previous is { Status: "rejected" or "withdrawn" } && tick < previous.SettledTick + day &&
             previous.CouncilRevision == state.Revision && previous.Circumstances == circumstances)
             throw new InvalidOperationException("The same request needs one unpaused day or materially changed circumstances before retrying.");
-        var id = townId + ":proposal:" + (state.Sequence + 1);
+        var id = TownRecordIds.Proposal(townId, checked(state.Sequence + 1));
         var proposal = new TownProposal(id, key, kind, actor, subject, text.Trim(), circumstances, state.Revision,
             tick, tick + day, state.Members.ToArray(), state.Form == "representative" ? 2 : state.Members.Count / 2 + 1, [],
             LandClaimTiles: landClaimTiles is null ? null : TownLandRightsRules.OrderTiles(landClaimTiles),

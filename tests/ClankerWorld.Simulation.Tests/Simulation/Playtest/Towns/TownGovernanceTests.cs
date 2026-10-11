@@ -143,15 +143,62 @@ public sealed class TownGovernanceTests
     }
 
     [Fact]
-    public void SevenAdultsRetainRepresentationThreeAdultsTriggerDemographicFallbackUntilEightAgain()
+    public void FourAdultsRetainRepresentationThreeAdultsTriggerDemographicFallbackUntilFourAgain()
     {
-        var state = Advance(Elected(), 11, Adults.Take(7).ToArray());
+        var state = Advance(Elected(), 11, Adults.Take(4).ToArray());
         Assert.Equal("representative", state.Form);
         state = Advance(state, 12, Adults.Take(3).ToArray());
         Assert.Equal("demographic", state.Fallback);
         Assert.Equal("all_adult", state.Form);
-        Assert.Null(Advance(state, 13, Adults.Take(7).ToArray()).Election);
-        Assert.NotNull(Advance(state, 14, Adults).Election);
+        Assert.Null(Advance(state, 13, Adults.Take(3).ToArray()).Election);
+        Assert.NotNull(Advance(state, 14, Adults.Take(4).ToArray()).Election);
+    }
+
+    [Theory]
+    [InlineData(4, true)]
+    [InlineData(3, false)]
+    public void FourAdultsOpenThreeSeatElectionAndThreeAdultsRemainAllAdult(int count, bool opens)
+    {
+        var adults = Adults.Take(count).ToArray();
+        var state = TownGovernanceState.Create(adults);
+        foreach (var actor in adults.Take(3))
+            state = TownGovernanceRules.Register(state, actor, true, null, adults, 0);
+        state = Advance(state, 0, adults);
+        Assert.Equal("all_adult", state.Form);
+        Assert.Equal(adults, state.Members);
+        Assert.Empty(state.ElectionHistory);
+        if (opens)
+        {
+            Assert.NotNull(state.Election);
+            Assert.Equal("initial", state.Election.Kind);
+            Assert.Equal(3, state.Election.Seats);
+            Assert.Equal(adults, state.Election.Voters);
+            Assert.Equal(adults.Take(3), state.Election.Candidates);
+        }
+        else Assert.Null(state.Election);
+    }
+
+    [Fact]
+    public void InitialFourAdultElectionCancelsAtThreeAndReopensAtFour()
+    {
+        var adults = Adults.Take(4).ToArray();
+        var state = TownGovernanceState.Create(adults);
+        foreach (var actor in adults.Take(3))
+            state = TownGovernanceRules.Register(state, actor, true, null, adults, 0);
+        state = Advance(state, 0, adults);
+        Assert.NotNull(state.Election);
+        var firstId = state.Election.Id;
+        state = Advance(state, 1, adults.Take(3).ToArray());
+        Assert.Equal("all_adult", state.Form);
+        Assert.Equal("demographic", state.Fallback);
+        Assert.Equal(adults.Take(3), state.Members);
+        Assert.Null(state.Election);
+        Assert.Equal("cancelled", Assert.Single(state.ElectionHistory).Stage);
+        state = Advance(state, 2, adults);
+        Assert.NotNull(state.Election);
+        Assert.NotEqual(firstId, state.Election.Id);
+        Assert.Equal(adults, state.Election.Voters);
+        Assert.Equal(2 + Day, state.Election.DeadlineTick);
     }
 
     [Fact]

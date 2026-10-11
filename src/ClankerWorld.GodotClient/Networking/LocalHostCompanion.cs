@@ -146,14 +146,31 @@ public sealed class LocalHostCompanion : IAsyncDisposable
         CancellationToken cancellationToken)
     {
         if (process is { HasExited: false }) return new LocalHostStart(LocalHostOutcome.Started);
-        var existing = await ProbeAsync(expectedVersion, expectedRevision, cancellationToken);
-        if (existing == Probe.SameBuild && TryReadSecret(out var running) &&
-            await IsCompanionAsync(running, cancellationToken))
+        var deadline = DateTimeOffset.UtcNow + readyTimeout;
+        while (true)
         {
-            secret = running;
-            return new LocalHostStart(LocalHostOutcome.Reused);
+            var existing = await ProbeAsync(expectedVersion, expectedRevision, cancellationToken);
+            if (existing == Probe.Nothing) break;
+            if (existing == Probe.SameBuild && TryReadSecret(out var running))
+            {
+                var proof = await IsCompanionAsync(running, cancellationToken);
+                if (proof == CompanionProof.Confirmed)
+                {
+                    secret = running;
+                    return new LocalHostStart(LocalHostOutcome.Reused);
+                }
+                if (proof == CompanionProof.Refused)
+                    return new LocalHostStart(LocalHostOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
+            }
+            else if (existing != Probe.Unresponsive)
+                return new LocalHostStart(LocalHostOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
+
+            // A request deadline supplies no evidence of another build or an
+            // invalid secret. Retry within the existing startup window before
+            // reporting an unresponsive server, without starting a second host.
+            if (DateTimeOffset.UtcNow >= deadline) return new LocalHostStart(LocalHostOutcome.TimedOut);
+            await Task.Delay(250, cancellationToken);
         }
-        if (existing != Probe.Nothing) return new LocalHostStart(LocalHostOutcome.PortInUse, port.ToString(CultureInfo.InvariantCulture));
 
         try
         {
@@ -168,7 +185,6 @@ public sealed class LocalHostCompanion : IAsyncDisposable
             return new LocalHostStart(LocalHostOutcome.CouldNotStart, exception.GetType().Name);
         }
 
-        var deadline = DateTimeOffset.UtcNow + readyTimeout;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -181,7 +197,7 @@ public sealed class LocalHostCompanion : IAsyncDisposable
             switch (await ProbeAsync(expectedVersion, expectedRevision, cancellationToken))
             {
                 case Probe.SameBuild:
-                    if (await IsCompanionAsync(secret!, cancellationToken))
+                    if (await IsCompanionAsync(secret!, cancellationToken) == CompanionProof.Confirmed)
                         return new LocalHostStart(LocalHostOutcome.Started);
                     break;
                 case Probe.OtherBuild or Probe.NotClankerWorld:
@@ -258,7 +274,9 @@ public sealed class LocalHostCompanion : IAsyncDisposable
 
     public async ValueTask DisposeAsync() { await StopAsync(CancellationToken.None); }
 
-    private async Task<bool> IsCompanionAsync(string value, CancellationToken cancellationToken)
+    private enum CompanionProof { Confirmed, Refused, Unresponsive }
+
+    private async Task<CompanionProof> IsCompanionAsync(string value, CancellationToken cancellationToken)
     {
         try
         {
@@ -267,16 +285,16 @@ public sealed class LocalHostCompanion : IAsyncDisposable
             using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(ApprovalOrigin, "api/v1/local/companion"));
             request.Headers.Add(SecretHeader, value);
             using var response = await http.SendAsync(request, deadline.Token);
-            return response.IsSuccessStatusCode;
+            return response.IsSuccessStatusCode ? CompanionProof.Confirmed : CompanionProof.Refused;
         }
-        catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException &&
-            !cancellationToken.IsCancellationRequested)
+        catch (Exception exception) when (!cancellationToken.IsCancellationRequested &&
+            exception is HttpRequestException or OperationCanceledException)
         {
-            return false;
+            return CompanionProof.Unresponsive;
         }
     }
 
-    private enum Probe { Nothing, SameBuild, OtherBuild, NotClankerWorld }
+    private enum Probe { Nothing, SameBuild, OtherBuild, NotClankerWorld, Unresponsive }
 
     private async Task<Probe> ProbeAsync(string expectedVersion, string expectedRevision, CancellationToken cancellationToken)
     {
@@ -297,8 +315,12 @@ public sealed class LocalHostCompanion : IAsyncDisposable
         {
             return Probe.Nothing;
         }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return Probe.Unresponsive;
+        }
         catch (Exception exception) when (exception is HttpRequestException or System.Text.Json.JsonException or
-            NotSupportedException or OperationCanceledException && !cancellationToken.IsCancellationRequested)
+            NotSupportedException)
         {
             return Probe.NotClankerWorld;
         }

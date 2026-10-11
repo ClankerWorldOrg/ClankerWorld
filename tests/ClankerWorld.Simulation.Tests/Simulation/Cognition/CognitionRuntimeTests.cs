@@ -183,6 +183,100 @@ public sealed class CognitionRuntimeTests
         Assert.Equal("safe_idle", runtime.Capture().CurrentIntention?.CandidateId);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void LateDiagnosticsKeepTheRetiredRequestsWorldTime(bool failure)
+    {
+        var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
+        var request = runtime.IssueRequest(CreateObservation(runEpoch: 2) with { WorldTick = 5_040 });
+        var response = ResponseFor(request, DecisionProviderKind.Jev, 0, "seek_food", 0.9);
+        Assert.True(runtime.ApplyResponse(response).Accepted);
+        var before = runtime.Capture();
+
+        var rejected = failure
+            ? runtime.FailRequest(request.RequestId, "provider_failure")
+            : runtime.ApplyResponse(response with { RunEpoch = 999 });
+
+        Assert.False(rejected.Accepted);
+        Assert.False(rejected.FellBack);
+        Assert.Equal(failure ? "no_in_flight_request" : "superseded_request", rejected.Outcome);
+        var after = runtime.Capture();
+        Assert.Equal(before.CurrentIntention, after.CurrentIntention);
+        Assert.Equal(before.Requests, after.Requests);
+        Assert.Null(after.InFlightRequestId);
+        var diagnostic = after.Events[^1];
+        Assert.Equal(failure ? "cognition_failure_ignored" : "cognition_response_rejected", diagnostic.Kind);
+        Assert.Equal(5_040, diagnostic.WorldTick);
+        Assert.Equal(before.Events[^1].EventId + 1, diagnostic.EventId);
+        Assert.Equal(after.Events, CognitionRuntime.Restore(runtime.ExportState()).Capture().Events);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DiagnosticsAfterRestoreUseTheRetainedWorldTime(bool failure)
+    {
+        var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
+        var request = runtime.IssueRequest(CreateObservation(runEpoch: 2) with { WorldTick = 5_040 });
+        Assert.True(runtime.Pause(worldTick: 5_050));
+        var restored = CognitionRuntime.Restore(runtime.ExportState());
+        var before = restored.Capture();
+
+        var rejected = failure
+            ? restored.FailRequest(request.RequestId, "provider_failure")
+            : restored.ApplyResponse(ResponseFor(request, DecisionProviderKind.Jev, 0, "seek_food", 0.9));
+
+        Assert.False(rejected.Accepted);
+        Assert.Equal("no_in_flight_request", rejected.Outcome);
+        var after = restored.Capture();
+        Assert.Equal(5_050, after.Events[^1].WorldTick);
+        Assert.Equal(before.CurrentIntention, after.CurrentIntention);
+        Assert.Equal(before.Requests, after.Requests);
+        Assert.True(after.IsPaused);
+        Assert.Equal(after.Events, CognitionRuntime.Restore(restored.ExportState()).Capture().Events);
+    }
+
+    [Fact]
+    public void AnIgnoredFailureUsesTheCurrentObservationWithoutRetiringIt()
+    {
+        var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
+        var request = runtime.IssueRequest(CreateObservation(runEpoch: 2) with { WorldTick = 5_040 });
+        var before = runtime.Capture();
+
+        var rejected = runtime.FailRequest("cognition-unknown", "provider_failure");
+
+        Assert.False(rejected.Accepted);
+        var after = runtime.Capture();
+        Assert.Equal(5_040, after.Events[^1].WorldTick);
+        Assert.Equal(request.RequestId, after.InFlightRequestId);
+        Assert.Equal(before.Requests, after.Requests);
+        Assert.True(runtime.ApplyResponse(ResponseFor(request, DecisionProviderKind.Jev, 0, "seek_food", 0.9)).Accepted);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("cognition-unknown")]
+    public void AnUnknownReplyBeforeTheFirstRequestUsesZeroWorldTime(string? requestId)
+    {
+        var runtime = new CognitionRuntime("actor-scout", new FixedProvider(DecisionProviderKind.Jev, 0));
+        var preview = runtime.PreviewRequest(CreateObservation());
+
+        var rejected = runtime.ApplyResponse(ResponseFor(preview, DecisionProviderKind.Jev, 0, "seek_food", 0.9) with
+        {
+            RequestId = requestId!,
+            RunEpoch = 999,
+        });
+
+        Assert.False(rejected.Accepted);
+        Assert.Equal("no_in_flight_request", rejected.Outcome);
+        var after = runtime.Capture();
+        Assert.Equal(0, Assert.Single(after.Events).WorldTick);
+        Assert.Empty(after.Requests);
+        Assert.Null(after.CurrentIntention);
+        Assert.Equal(after.Events, CognitionRuntime.Restore(runtime.ExportState()).Capture().Events);
+    }
+
     private static InhabitantObservation CreateObservation(
         long runEpoch = 0,
         long decisionGeneration = 0) => new(

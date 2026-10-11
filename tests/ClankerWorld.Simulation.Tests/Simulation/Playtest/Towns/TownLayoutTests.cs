@@ -47,6 +47,16 @@ public sealed class TownLayoutTests
         Assert.Equal(building.CanonicalId, selected.DefinitionId);
         Assert.Equal(meadow.Position, selected.SitePosition);
         Assert.False(TownConstructionCandidateIds.TryParse(selectedId + ",invalid", out _));
+
+        var overhead = building.CanonicalId.Length - building.LocalId.Length;
+        var longest = ContentPackageRules.CanonicalDefinitionId(building.PackageDigest, BuildingDefinition.SchemaKind,
+            new string('a', ContentPackageRules.MaximumContentIdLength - overhead), building.Version);
+        var distantSite = new GridPoint(int.MaxValue, int.MaxValue);
+        Assert.True(TownConstructionCandidateIds.TryParse(TownConstructionCandidateIds.Building(longest, distantSite), out var bounded));
+        Assert.Equal(longest, bounded.DefinitionId);
+        Assert.Equal(distantSite, bounded.SitePosition);
+        var oversized = longest.Insert(longest.LastIndexOf('@'), "a");
+        Assert.False(TownConstructionCandidateIds.TryParse(TownConstructionCandidateIds.Building(oversized, distantSite), out _));
     }
 
     [Fact]

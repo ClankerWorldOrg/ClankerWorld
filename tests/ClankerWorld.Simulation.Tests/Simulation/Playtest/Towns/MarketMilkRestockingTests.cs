@@ -7,15 +7,14 @@ namespace ClankerWorld.Simulation.Tests;
 public sealed class MarketMilkRestockingTests
 {
     private const string Store = "market-milk-stock-store";
-    private const string Jug = "market-milk-stock-jug";
     private const string Milk = "market-milk-stock-milk";
     private static readonly Lazy<Task<byte[]>> Prepared = new(PrepareAsync);
 
     [Theory]
     [InlineData("active", false)]
     [InlineData("left", true)]
-    [InlineData("house", false)]
-    [InlineData("carried", true)]
+    [InlineData("house", true)]
+    [InlineData("carried", false)]
     public async Task MilkRestockingProtectsActiveSaleButPermitsReleasedAndHomeStock(string boundary, bool expected)
     {
         var state = PrivateWorldRuntimeCodec.Decode(await Prepared.Value);
@@ -27,7 +26,7 @@ public sealed class MarketMilkRestockingTests
         {
             var house = PaidMarketWorld.HouseOf(state, household);
             state = PaidMarketWorld.WithInventory(state, InventoryFixture.Relocate(state.Society.Society.Inventory,
-                "milk-stock-control-" + boundary, Jug, household, 1,
+                "milk-stock-control-" + boundary, Milk, household, 2,
                 storageBuildingId: boundary == "house" ? house.InstanceId : null,
                 carrierId: boundary == "carried" ? collector : null));
             source = house.Position;
@@ -47,22 +46,17 @@ public sealed class MarketMilkRestockingTests
             Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(replay.ExportState()));
         }
         var final = world.ExportState();
-        Assert.Equal(expected, choices.OfferedTo(collector).Any(item => item.Id.StartsWith("animal:milk_stock:", StringComparison.Ordinal) && item.DestinationId == Store));
-        var jug = final.Society.Society.Inventory.GetLot(Jug);
+        Assert.Equal(expected, choices.OfferedTo(collector).Any(item => item.Id.StartsWith("business_stock_store", StringComparison.Ordinal) && item.DestinationId == Store));
         var milk = final.Society.Society.Inventory.GetLot(Milk);
-        var expectedStorage = expected ? Store : boundary == "house" ? PaidMarketWorld.HouseOf(state, household).InstanceId : null;
-        Assert.Equal((household, 1, expectedStorage), (jug.OwnerId, jug.Quantity, jug.StorageBuildingId));
-        Assert.Null(jug.CarrierId);
-        Assert.Equal(expected || boundary == "house" ? null : new InventoryGroundPosition(source.X, source.Y), jug.GroundPosition);
-        Assert.Equal((household, Jug, 2), (milk.OwnerId, milk.ContainerLotId, milk.Quantity));
-        Assert.Equal(jug.StorageBuildingId, milk.StorageBuildingId);
-        // Contained milk inherits the root jug's ground position; contents never record their own.
-        Assert.Null(milk.GroundPosition);
-        Assert.Equal(1, final.Society.Society.Inventory.Lots.Count(item => item.Id == Jug));
-        Assert.Equal(2, final.Society.Society.Inventory.Lots.Where(item => item.ItemKind == "milk").Sum(item => item.Quantity));
+        var expectedStorage = expected ? Store : null;
+        Assert.Equal((household, 2, expectedStorage), (milk.OwnerId, milk.Quantity, milk.StorageBuildingId));
+        Assert.Null(milk.ContainerLotId);
+        Assert.Equal(boundary == "carried" ? collector : null, milk.CarrierId);
+        Assert.Equal(expected || boundary == "carried" ? null : new InventoryGroundPosition(source.X, source.Y), milk.GroundPosition);
+        Assert.Equal(2, final.Society.Society.Inventory.Lots.Where(item => item.Id == Milk).Sum(item => item.Quantity));
         Assert.Equal(Assert.Single(market.StockReceipts), Assert.Single(PaidMarketWorld.Market(final).StockReceipts));
         Assert.Equal(boundary == "left" ? 0 : 1, PaidMarketWorld.Market(final).Occupancies.Count(item => item.EndedTick is null));
-        Assert.Equal(expected, final.Events.Any(item => item.Kind == "milk_stock_delivered" && item.Detail == collector + ":" + Store));
+        Assert.Equal(expected, final.Events.Any(item => item.Kind is "store_stock_delivered" or "household_stock_delivered" && item.Detail.StartsWith(collector + ":" + Milk + ":", StringComparison.Ordinal)));
         AssertReload(world);
     }
 
@@ -73,8 +67,12 @@ public sealed class MarketMilkRestockingTests
         var (seller, collector, _) = Actors(state);
         state = await LeaveAsync(state, seller);
         var source = MarketContent.StallSite(PaidMarketWorld.Market(state).Site, 0);
+        // Leaving the stall releases the goods but does not vacate their pickup tile.
+        state = PaidMarketWorld.At(state, seller, MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0));
+        Assert.DoesNotContain(state.Inhabitants, person => person.Position == source);
         var away = state.Map.Tiles.Select(item => item.Position).First(point => state.Map.IsBuildable(point) &&
             state.Map.FootDistance(point, source) is >= 6 and <= 8 &&
+            state.Map.IsReachableOnFoot(point, source) &&
             state.Inhabitants.All(person => person.Position != point));
         state = PaidMarketWorld.At(state, collector, away);
         var borrowing = false;
@@ -87,8 +85,8 @@ public sealed class MarketMilkRestockingTests
         using var world = PrivateWorldRuntime.Restore(state, choices.CreateProvider);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var walking = world.ExportState();
-        Assert.StartsWith("animal:milk_stock:", walking.Society.Cognition.Runtimes.Single(item => item.InhabitantId == collector).CurrentIntention!.CandidateId);
-        Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot(Jug).GroundPosition);
+        Assert.StartsWith("business_stock_store", walking.Society.Cognition.Runtimes.Single(item => item.InhabitantId == collector).CurrentIntention!.CandidateId);
+        Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot(Milk).GroundPosition);
         borrowing = true;
         _ = world.SubmitInstruction(new("milk-stall-reborrow", "owner:test", seller,
             OwnerInstructionKind.Suggestive, "Borrow the Market stall again with your spare goods."));
@@ -96,10 +94,10 @@ public sealed class MarketMilkRestockingTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Single(PaidMarketWorld.Market(world).Occupancies, item => item.EndedTick is null && item.SellerAgentId == seller);
         for (var tick = 0; tick < 40; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot(Jug).GroundPosition);
-        Assert.Null(world.Society.Inventory.GetLot(Jug).CarrierId);
-        Assert.Equal((Jug, 2), (world.Society.Inventory.GetLot(Milk).ContainerLotId, world.Society.Inventory.GetLot(Milk).Quantity));
-        Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "milk_stock_picked_up" && item.Detail == collector + ":" + Jug);
+        Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot(Milk).GroundPosition);
+        Assert.Null(world.Society.Inventory.GetLot(Milk).CarrierId);
+        Assert.Equal(((string?)null, 2), (world.Society.Inventory.GetLot(Milk).ContainerLotId, world.Society.Inventory.GetLot(Milk).Quantity));
+        Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "store_stock_collected" && item.Detail.StartsWith(collector + ":" + Milk + ":", StringComparison.Ordinal));
         Assert.Single(PaidMarketWorld.Market(world).StockReceipts);
         AssertReload(world);
     }
@@ -119,10 +117,11 @@ public sealed class MarketMilkRestockingTests
             Assert.Contains(builder.WorldSimulation.Buildings, item => item.InstanceId == Store && item.HouseholdId == household);
             state = builder.ExportState();
         }
-        inventory = InventoryFixture.AddLot(state.Society.Society.Inventory, Jug, "water_jug", household, 1);
-        inventory = InventoryFixture.AddLot(inventory, Milk, "milk", household, 2, containerLotId: Jug);
-        inventory = InventoryFixture.Relocate(inventory, "milk-stock-seller-cargo", Jug, household, 1, carrierId: seller);
-        // Ordinary borrowing needs a loose spare good; milk itself travels only in its whole jug.
+        inventory = InventoryFixture.AddLot(state.Society.Society.Inventory, Milk, "milk", household, 2);
+        inventory = InventoryFixture.Relocate(inventory, "milk-stock-seller-cargo", Milk, household, 2, carrierId: seller);
+        var house = PaidMarketWorld.HouseOf(state, household);
+        inventory = InventoryFixture.AddLot(inventory, "zzz-milk-stock-household-reserve", "milk", household,
+            2 * state.Society.Society.GetHousehold(household).MemberIds.Count, storageBuildingId: house.InstanceId);
         inventory = InventoryFixture.AddLot(inventory, "milk-stock-borrow-stone", "stone", seller, 1);
         state = PaidMarketWorld.At(Fresh(PaidMarketWorld.WithInventory(state, inventory)), seller,
             MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0)) with
@@ -132,19 +131,34 @@ public sealed class MarketMilkRestockingTests
         {
             Choose = (actor, candidates) => actor == seller
                 ? candidates.FirstOrDefault(item => item.Id.StartsWith("market_borrow:", StringComparison.Ordinal)) ??
-                    candidates.FirstOrDefault(item => item.Id.StartsWith("animal:milk_stock:", StringComparison.Ordinal) && item.DestinationId == stallId) ??
+                    candidates.FirstOrDefault(item => item.Id.StartsWith("market_deposit:", StringComparison.Ordinal) && item.DestinationId == stallId && item.Description.Contains(" milk at your borrowed stall;", StringComparison.Ordinal)) ??
                     candidates.Single(item => item.Id == "safe_idle")
                 : candidates.Single(item => item.Id == "safe_idle"),
         };
         using var stocking = PrivateWorldRuntime.Restore(state, depositing.CreateProvider);
-        for (var tick = 0; tick < 40 && !PaidMarketWorld.Market(stocking).StockReceipts.Any(item => item.LotId == Jug); tick++)
+        for (var tick = 0; tick < 40 && !PaidMarketWorld.Market(stocking).StockReceipts.Any(item => item.LotId == Milk); tick++)
             Assert.True((await stocking.AdvanceOneTickAsync()).Advanced);
         var receipt = Assert.Single(PaidMarketWorld.Market(stocking).StockReceipts);
-        Assert.Equal((seller, household, Jug, 1), (receipt.SellerAgentId, receipt.OwnerId, receipt.LotId, receipt.Quantity));
+        Assert.Equal((seller, household, Milk, 2), (receipt.SellerAgentId, receipt.OwnerId, receipt.LotId, receipt.Quantity));
         Assert.Equal(new InventoryGroundPosition(MarketContent.StallSite(PaidMarketWorld.Market(stocking).Site, 0).X,
-            MarketContent.StallSite(PaidMarketWorld.Market(stocking).Site, 0).Y), stocking.Society.Inventory.GetLot(Jug).GroundPosition);
+            MarketContent.StallSite(PaidMarketWorld.Market(stocking).Site, 0).Y), stocking.Society.Inventory.GetLot(Milk).GroundPosition);
         stocking.Validate();
-        return PrivateWorldRuntimeCodec.Encode(stocking.ExportState());
+        state = stocking.ExportState();
+        var collector = Actors(state).Collector;
+        inventory = state.Society.Society.Inventory;
+        // Keep this fixture focused on milk: otherwise ordinary Store stocking
+        // correctly chooses unrelated founder clothing before the tested milk.
+        inventory = inventory with
+        {
+            Lots = inventory.Lots.Where(lot =>
+            lot.OwnerId != household && lot.OwnerId != collector || lot.ItemKind == "milk").ToArray()
+        };
+        state = PaidMarketWorld.WithInventory(state, inventory) with
+        {
+            Inhabitants = state.Inhabitants.Select(person => state.Society.Society.GetInhabitant(person.InhabitantId).HouseholdId == household
+                ? person with { Equipment = null } : person).ToArray(),
+        };
+        return PrivateWorldRuntimeCodec.Encode(state);
     }
 
     private static async Task<PrivateWorldRuntimeState> LeaveAsync(PrivateWorldRuntimeState state, string seller)
@@ -159,7 +173,10 @@ public sealed class MarketMilkRestockingTests
         for (var tick = 0; tick < 12 && PaidMarketWorld.Market(world).Occupancies.Any(item => item.EndedTick is null); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(PaidMarketWorld.Market(world).Occupancies, item => item.EndedTick is null);
-        return Fresh(world.ExportState());
+        // The seller has relinquished the stall. Keep its exact ground-stock
+        // tile free for ordinary pickups, which require standing at the lot.
+        return PaidMarketWorld.At(Fresh(world.ExportState()), seller,
+            MarketContent.StallEntrance(PaidMarketWorld.Market(world).Site, 0));
     }
 
     private static (string Seller, string Collector, string Household) Actors(PrivateWorldRuntimeState state)
@@ -178,7 +195,8 @@ public sealed class MarketMilkRestockingTests
     private static MarketRulesPolicy MilkPolicy(string actor, string destination) => new()
     {
         Choose = (person, candidates) => person == actor
-            ? candidates.FirstOrDefault(item => item.Id.StartsWith("animal:milk_stock:", StringComparison.Ordinal) && item.DestinationId == destination) ??
+            ? candidates.FirstOrDefault(item => item.Id == "haul_household_stock" && item.DestinationId == destination) ??
+                candidates.FirstOrDefault(item => item.Id == "business_stock_store" && item.DestinationId == destination) ??
                 candidates.Single(item => item.Id == "safe_idle")
             : candidates.Single(item => item.Id == "safe_idle"),
     };

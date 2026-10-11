@@ -120,17 +120,17 @@ public sealed partial class PrivateWorldRuntime
                 var tool = updated.GetLot(wornToolLotId);
                 if (tool.Quantity > 1)
                 {
-                    wornToolLotId = $"{tool.Id}:use:{WorldTick}:{actor}";
+                    wornToolLotId = UsedToolLotId(tool.Id, WorldTick, actor);
                     updated = InventoryFixture.SplitLot(updated, tool.Id, 1, wornToolLotId);
                 }
             }
 
-            var materialLotId = $"material:{WorldTick}:{actor}";
+            var materialLotId = MaterialLotId(WorldTick, actor);
             updated = MarkBuildingMaterialDelivery(InventoryFixture.AddLot(updated, materialLotId,
                 itemKind, actor, plan.Quantity, WorldTick), materialLotId, deliveryBuildingId);
             if (plan.TreeSeedQuantity > 0)
             {
-                var seedLotId = $"tree-seed:{WorldTick}:{actor}";
+                var seedLotId = TreeSeedLotId(WorldTick, actor);
                 updated = MarkBuildingMaterialDelivery(InventoryFixture.AddLot(updated, seedLotId,
                     TreeGrowthRules.TreeSeedItem, actor, plan.TreeSeedQuantity, WorldTick), seedLotId,
                     deliveryBuildingId);
@@ -160,7 +160,7 @@ public sealed partial class PrivateWorldRuntime
             var usedLotId = lot.Id;
             if (lot.Quantity > 1)
             {
-                usedLotId = $"{lot.Id}:use:{tick}:{actor}";
+                usedLotId = UsedToolLotId(lot.Id, tick, actor);
                 updated = InventoryFixture.SplitLot(updated, lot.Id, 1, usedLotId);
             }
             updated = InventoryFixture.WearSingleUnit(updated, usedLotId, plan.WearLossBasisPoints);
@@ -195,7 +195,7 @@ public sealed partial class PrivateWorldRuntime
                 lot.ConditionBasisPoints is > 0 and < 10_000 && UnreservedQuantity(inventory, lot) > 0)
             .OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Where(tool => ToolProgressionRules.RepairMaterials(tool.ItemKind) is { Count: > 0 } materials &&
-                CanPrepareRepairInputs(actor, tool.Id, materials, protectedToolIds)).ToArray();
+                CanPrepareRepairInputs(actor, tool.Id, materials, blacksmith.Position, protectedToolIds)).ToArray();
         if (tools.Length == 0 || !IsWithinInteractionRange(state.Position, blacksmith.Position, 0) &&
             FindUnoccupiedRoute(actor, state.Position, blacksmith.Position, 0).Count == 0)
             return [];
@@ -203,7 +203,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private bool CanPrepareRepairInputs(string actor, string repairToolId,
-        IReadOnlyList<ContentQuantity> repairMaterials, IReadOnlyList<string>? protectedToolIds = null)
+        IReadOnlyList<ContentQuantity> repairMaterials, GridPoint destination, IReadOnlyList<string>? protectedToolIds = null)
     {
         if (!inhabitants.TryGetValue(actor, out var state)) return false;
 
@@ -218,7 +218,7 @@ public sealed partial class PrivateWorldRuntime
             var missing = Math.Max(0, input.Amount - carried);
             if (missing == 0) continue;
 
-            if (SharedPreparationItem(input.ResourceId, actor) is { } shared)
+            if (SharedPreparationItem(input.ResourceId, actor, destination) is { } shared)
             {
                 if (AvailableLotQuantity(shared) < missing)
                     return false;
@@ -226,7 +226,7 @@ public sealed partial class PrivateWorldRuntime
                 continue;
             }
 
-            if (MaterialSource(input.ResourceId, actor) is not { } source ||
+            if (MaterialSource(input.ResourceId, actor, destination) is not { } source ||
                 ProjectMaterialHarvest(actor, input.ResourceId, source) is not { } plan)
                 return false;
             if (plan.ToolLotId is { } harvestToolId && protectedToolIds?.Contains(harvestToolId, StringComparer.Ordinal) == true &&
@@ -285,6 +285,24 @@ public sealed partial class PrivateWorldRuntime
                 (protectedToolIds ?? []).Concat(harvestToolId is null ? [] : new[] { harvestToolId }).ToArray()));
     }
 
+    private List<InputCollectionStep>? ToolRepairCollectionInputs(string actor, IReadOnlyList<ContentQuantity> materials,
+        GridPoint returnTo)
+    {
+        var inputs = new List<InputCollectionStep>();
+        foreach (var input in materials)
+        {
+            if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;
+            if (SharedPreparationItem(input.ResourceId, actor, returnTo) is { } stock)
+                inputs.Add(StockCollectionStep(stock, input.Amount));
+            else if (MaterialSource(input.ResourceId, actor, returnTo) is { } source &&
+                ProjectMaterialHarvest(actor, input.ResourceId, source) is { } harvest)
+                inputs.Add(new(input.ResourceId, source.Position, ResourceInteractionRange,
+                    checked(harvest.Quantity + harvest.TreeSeedQuantity), Harvest: source, HarvestToolLotId: harvest.ToolLotId));
+            else return null;
+        }
+        return inputs;
+    }
+
     private string? RepairTool(string actor, PlaytestInhabitantState state, string lotId,
         IReadOnlyList<string>? protectedToolIds = null)
     {
@@ -300,25 +318,42 @@ public sealed partial class PrivateWorldRuntime
             return null;
 
         var materialNeeds = ToolProgressionRules.RepairMaterials(tool.ItemKind);
-        foreach (var input in materialNeeds)
+        var collectionInputs = ToolRepairCollectionInputs(actor, materialNeeds, blacksmith.Position);
+        if (collectionInputs is null)
         {
-            if (HasCarriedMaterial(actor, input.ResourceId, input.Amount)) continue;
-            if (SharedPreparationItem(input.ResourceId, actor, blacksmith.Position) is not null)
+            // A gathering tool may need collecting before the whole harvest's
+            // load can be known. Do that preparation without taking other inputs.
+            foreach (var input in materialNeeds)
             {
-                if (MakeRoomForToolRepairInput(actor, state, lotId, input.Amount, null, materialNeeds, protectedToolIds))
-                    return null;
-                CollectEquipment(actor, state, input.ResourceId, blacksmith.Position);
-                return null;
+                if (HasCarriedMaterial(actor, input.ResourceId, input.Amount) ||
+                    SharedPreparationItem(input.ResourceId, actor) is not null) continue;
+                if (MaterialSource(input.ResourceId, actor, blacksmith.Position) is { } source &&
+                    ProjectMaterialHarvest(actor, input.ResourceId, source) is null)
+                {
+                    GatherProjectMaterial(actor, state, input.ResourceId, source, returnTo: blacksmith.Position);
+                    break;
+                }
             }
-            if (MaterialSource(input.ResourceId, actor, blacksmith.Position) is { } source)
-            {
-                if (ProjectMaterialHarvest(actor, input.ResourceId, source) is { } plan &&
-                    MakeRoomForToolRepairInput(actor, state, lotId,
-                        checked(plan.Quantity + plan.TreeSeedQuantity), plan.ToolLotId, materialNeeds, protectedToolIds))
-                    return null;
-                GatherProjectMaterial(actor, state, input.ResourceId, source, returnTo: blacksmith.Position);
-                return null;
-            }
+            return null;
+        }
+        var requiredUnits = collectionInputs.Sum(input => input.CarryUnits);
+        if (requiredUnits > FreeCarryCapacity(actor))
+        {
+            var protectedIds = (protectedToolIds ?? []).Concat(collectionInputs
+                .Where(input => input.HarvestToolLotId is not null).Select(input => input.HarvestToolLotId!))
+                .Distinct(StringComparer.Ordinal).ToArray();
+            MakeRoomForToolRepairInput(actor, state, lotId, requiredUnits, null, materialNeeds, protectedIds);
+            return null;
+        }
+        var collection = PlanInputCollection(actor, collectionInputs, blacksmith.Position);
+        if (collection is null) return null;
+        if (collection.Count > 0)
+        {
+            var input = collection[0];
+            if (input.Stock is { } stock)
+                CollectEquipment(actor, state, input.Kind, blacksmith.Position, plannedLotId: stock.Id);
+            else if (input.Harvest is { } source)
+                GatherProjectMaterial(actor, state, input.Kind, source, returnTo: blacksmith.Position);
             return null;
         }
 
@@ -336,7 +371,7 @@ public sealed partial class PrivateWorldRuntime
             var currentTool = updated.GetLot(repairId);
             if (currentTool.Quantity > 1)
             {
-                repairId = $"{currentTool.Id}:repair:{WorldTick}:{actor}";
+                repairId = RepairedToolLotId(currentTool.Id, WorldTick, actor);
                 updated = InventoryFixture.SplitLot(updated, currentTool.Id, 1, repairId);
             }
 
@@ -349,15 +384,15 @@ public sealed partial class PrivateWorldRuntime
                     .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (material is null)
                     throw new InvalidOperationException("Repair materials must be physically carried by the tool owner.");
-                var reservationId = $"equipment-repair:{WorldTick}:{actor}:{repairId}:{input.ResourceId}";
+                var reservationId = ToolRepairReservationId(WorldTick, actor, repairId, input.ResourceId);
                 var materialId = material.Id;
                 if (currentTool.OwnerId != actor)
                 {
                     // Repairing a borrowed household tool, the member gives their materials to the household.
-                    var giftId = $"equipment-repair-gift:{WorldTick}:{actor}:{repairId}:{input.ResourceId}";
+                    var giftId = ToolRepairGiftId(WorldTick, actor, repairId, input.ResourceId);
                     updated = InventoryFixture.Transfer(updated, giftId, actor, currentTool.OwnerId, material.Id,
                         input.Amount, "equipment_repair_materials");
-                    if (input.Amount < material.Quantity) materialId = $"{material.Id}#transfer:{giftId}";
+                    if (input.Amount < material.Quantity) materialId = DerivedId.Create($"{material.Id}#transfer:{giftId}");
                 }
                 updated = InventoryFixture.Reserve(updated, reservationId, currentTool.OwnerId, materialId,
                     input.Amount, "equipment_repair", checked(WorldTick + 1));

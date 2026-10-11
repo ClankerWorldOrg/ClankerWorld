@@ -14,13 +14,14 @@ public static partial class TownGovernmentRules
     public static string[] Mandates(TownArrangement arrangement) =>
         TownArrangementRules.Mandates(arrangement)?.Split('+') ?? [];
     public static string VoteNoticeToken(TownGovernmentChange change) =>
-        change.Id + ":vote:" + change.OpenedTick?.ToString(CultureInfo.InvariantCulture);
+        DerivedId.Create(change.Id + ":vote:" + change.OpenedTick?.ToString(CultureInfo.InvariantCulture));
+    internal static string NonLandGrantId(string changeId) => DerivedId.Create(changeId + ":non-land");
     public static string RoundToken(TownMayoralContest contest) =>
-        $"{contest.Id}:{contest.Round.ToString(CultureInfo.InvariantCulture)}:{contest.RoundOpenedTick?.ToString(CultureInfo.InvariantCulture)}";
+        DerivedId.Create($"{contest.Id}:{contest.Round.ToString(CultureInfo.InvariantCulture)}:{contest.RoundOpenedTick?.ToString(CultureInfo.InvariantCulture)}");
     public static TownOffice? GoverningOffice(TownGovernmentState state) =>
         state.Offices.SingleOrDefault(o => o.Mandates == "ordinary");
     private static string Fingerprint(IEnumerable<string> fields) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', fields))));
+        DerivedId.Hash(string.Join('\n', fields));
     private static string Circumstances(TownGovernmentState state, string[] adults) =>
         Fingerprint(adults.Prepend(TownArrangementRules.Key(state.Arrangement))
             .Concat(state.Offices.OrderBy(o => o.Mandates, StringComparer.Ordinal).Select(o => o.Mandates + ":" + o.HolderId)));
@@ -68,7 +69,7 @@ public static partial class TownGovernmentRules
         if (state.Changes.LastOrDefault(c => c.RequestKey == key) is { Status: "rejected" or "withdrawn" } prior &&
             tick < prior.SettledTick + day && prior.Circumstances == circumstances)
             throw new InvalidOperationException("This resident proposal must wait one unpaused day or a material change before retrying.");
-        var id = townId + ":government:" + (state.Sequence + 1).ToString(CultureInfo.InvariantCulture);
+        var id = TownRecordIds.Government(townId, checked(state.Sequence + 1));
         var change = new TownGovernmentChange(id, key, kind, target, actor, circumstances, tick, "queued", null, null, [], [])
         { NonLandExtension = extension };
         state = state with { Sequence = state.Sequence + 1, Changes = state.Changes.Append(change).ToArray() };
@@ -166,10 +167,8 @@ public static partial class TownGovernmentRules
         var changesOrdinaryAuthority = handover is not null && handover.Target.Ordinary != state.Arrangement.Ordinary;
         var targetNeedsCouncil = changesOrdinaryAuthority && NeedsElectedCouncil(handover!.Target, adults.Length);
         var currentNeedsCouncil = state.Arrangement.Ordinary is TownArrangementRules.Council or TownArrangementRules.ElectedCouncil;
-        // Whether the current arrangement elects or keeps representatives without this change: its own
-        // threshold, a seated representative council kept above three adults, or one retrying for candidates.
-        var currentElectsCouncil = currentNeedsCouncil && (NeedsElectedCouncil(state.Arrangement, adults.Length) ||
-            adults.Length > TownGovernanceRules.Seats && (council.Form == "representative" || council.Fallback == "candidates"));
+        // Both automatic and explicit representation now start and resume at four adults.
+        var currentElectsCouncil = currentNeedsCouncil && NeedsElectedCouncil(state.Arrangement, adults.Length);
         var leader = GoverningOffice(state);
         if (state.Arrangement.Ordinary == TownArrangementRules.Mayor)
             council = TownGovernanceRules.ChangeCouncil(council, leader?.HolderId is { } holder ? [holder] : adults,

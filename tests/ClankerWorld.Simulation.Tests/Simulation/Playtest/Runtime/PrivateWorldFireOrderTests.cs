@@ -24,7 +24,7 @@ public sealed partial class PrivateWorldFireOrderTests
         await Tick(world);
         AssertPaidFire(world, receipt, actor, House(state), lotId);
         var completion = Order(world, receipt).ShelterCompletion!;
-        Assert.True(completion.FuelReservationId!.Length > 512);
+        Assert.InRange(completion.FuelReservationId!.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(0, Wood(world, lotId));
         using var replay = Reload(world);
         Assert.Equal(completion, Order(replay, receipt).ShelterCompletion);

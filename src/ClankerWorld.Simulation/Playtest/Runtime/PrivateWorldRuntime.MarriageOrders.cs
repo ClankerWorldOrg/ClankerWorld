@@ -96,7 +96,7 @@ public sealed partial class PrivateWorldRuntime
             order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
             order.ProgressUnit == "marriage_attempts" && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
             order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&
-            (order.TalkConversationId is null || order.TalkConversationId.Length <= 512 && IsValidProductionBindingId(order.TalkConversationId)) &&
+            (order.TalkConversationId is null || order.TalkConversationId.Length <= DerivedId.MaximumLength && IsValidProductionBindingId(order.TalkConversationId)) &&
             (order.CompletedUnits == 0 ? order.TalkOutcome is null && order.LastEffectId is null :
                 order.TalkConversationId is not null && order.TalkOutcome is ("married" or "proposal_declined" or "not_proposed" or
                     "refused" or "deadline" or "daily_limit" or "withdrawn" or "participant_unavailable") && order.LastEffectId == TalkOrderEffectId(instruction));

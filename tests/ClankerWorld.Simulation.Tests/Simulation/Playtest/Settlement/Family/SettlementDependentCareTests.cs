@@ -129,12 +129,13 @@ public sealed partial class SettlementParenthoodTests
     {
         const string relativeId = "founder:00000000000000000000000000000003";
         const string householdAdultId = "founder:00000000000000000000000000000004";
+        const int testDay = 120;
         var buildProvider = new ParentProvider("build:building:");
-        using var generated = NormalPathWorld.CreateGenerated("guardian-relative-priority-project", _ => new ParentProvider("safe_idle"));
+        using var generated = NormalPathWorld.CreateGenerated("guardian-relative-priority-project", _ => new ParentProvider("safe_idle"),
+            ticksPerDay: testDay, calendarOffsetTicks: 90);
         generated.Pause();
         var state = generated.ExportState();
         Assert.Equal(0, state.Society.Society.WorldTick);
-        const int testDay = 120;
         var originalDay = state.Society.Society.Config.TicksPerWorldDay;
         // Keep both complete guardian-search windows and their reloads, using a shorter
         // test day. Preserve founder ages and initialize weather for the matching calendar.

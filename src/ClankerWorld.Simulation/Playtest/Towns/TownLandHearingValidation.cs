@@ -127,7 +127,7 @@ public static class TownLandHearingValidation
                 revision.DeadlineTick == checked(revision.PublishedTick + day) && revision.Parties is { Count: > 0 } && revision.RightVersions is not null &&
                 TownLandHearingRules.IsValidOutcome(revision.RequestedOutcome, item.FiledTick) &&
                 revision.Tiles.All(t => TownLandRightsRules.IsCoveredByTownTitle(t, townId, titles)), "A saved land notice needs its complete titled plot and full response day.");
-            Check(council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "land_hearing" && n.SubjectId == item.Id + ":" + revision.Number.ToString(System.Globalization.CultureInfo.InvariantCulture) && n.PostedTick == revision.PublishedTick) == true,
+            Check(council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "land_hearing" && n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(System.Globalization.CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A saved land case needs its actual formal notice publication.");
             Check(revision.Parties.All(p => p is not null) && revision.RightVersions.All(r => r is not null), "A saved notice cannot contain null parties or rights.");
             Unique(revision.Parties.Select(p => p.Id));
@@ -161,7 +161,7 @@ public static class TownLandHearingValidation
                     .Concat(state.Cases.SelectMany(c => c.Revisions.SelectMany(r => r.RightVersions).Select(r => r.Right)));
                 Check(rights.Any(r => r.Id == evidence.SourceRecordId && TownLandHearingRules.Version(r) == evidence.SourceVersion) ||
                     titles.Any(t => t.Id == evidence.SourceRecordId && TownLandHearingRules.RecordVersion(t) == evidence.SourceVersion) ||
-                    government?.Laws.Any(l => l.Versions.Any(v => l.Id + "@" + v.Version.ToString(System.Globalization.CultureInfo.InvariantCulture) == evidence.SourceRecordId &&
+                    government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == evidence.SourceRecordId &&
                         TownLandHearingRules.LawVersion(v) == evidence.SourceVersion && v.AdoptedTick <= evidence.ObservedTick)) == true ||
                     state.Cases.SelectMany(c => c.Rulings).Any(r => r.Id == evidence.SourceRecordId && TownLandHearingRules.RecordVersion(r) == evidence.SourceVersion && r.Tick <= evidence.ObservedTick) ||
                     state.Cases.Any(c => c.Property?.Snapshots.Any(snapshot => TownPropertyRules.RecordId(c, snapshot.Revision) == evidence.SourceRecordId &&
@@ -223,7 +223,7 @@ public static class TownLandHearingValidation
                 !TownLandHearingRules.RequiresNewNotice(revision, revision.Tiles, revision.RightVersions.Select(r => r.Right), ruling.Parties) &&
                 ruling.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= ruling.Tick)) &&
                 ruling.LawIds.All(id => item.Evidence.Any(e => e.Kind == "record" && e.SourceRecordId == id && e.SubmittedTick <= ruling.Tick) &&
-                    government?.Laws.Any(l => l.Versions.Any(v => l.Id + "@" + v.Version.ToString(System.Globalization.CultureInfo.InvariantCulture) == id)) == true) &&
+                    government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == id)) == true) &&
                 item.Reads.Any(r => r.AgentId == ruling.Judge.AgentId && r.Revision == ruling.Revision && r.ReadTick <= ruling.Tick &&
                     ruling.EvidenceIds.All(r.EvidenceIds.Contains)) &&
                 !TownLandHearingRules.JudgeConflict(ruling.Judge.AgentId, null, ruling.Parties), "A saved ruling requires a reasoned, read and independent adjudication.");
@@ -373,7 +373,7 @@ public static class TownLandHearingValidation
         TileTerms(a).SequenceEqual(TileTerms(b));
     private static IEnumerable<string> TileTerms(IEnumerable<HouseholdLandUseRight> rights) => rights.SelectMany(r => r.Tiles.Select(t =>
         System.Text.Json.JsonSerializer.Serialize(new { t.X, t.Y, r.TownId, r.HouseholdId, r.GrantedTick, r.GrantSource, r.AgreedEndTick }))).Order(StringComparer.Ordinal);
-    private static bool Id(string? id) => TownLandHearingRules.ValidText(id, 256);
+    private static bool Id(string? id) => TownLandHearingRules.ValidText(id, DerivedId.MaximumLength);
     /// <summary>A ledger identity must be one its own sequence has already issued, or the next record would reuse it.</summary>
     private static bool Generated(string? id, string prefix, string townId, long sequence) =>
         TownGovernmentValidation.ValidId(id, prefix + townId + ":", sequence);

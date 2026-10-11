@@ -15,17 +15,14 @@ public sealed partial class TownGovernmentHandoverTests
     public void AForcedElectionReferenceCannotOutliveItsElectionRecord()
     {
         var town = ForcedCouncilHandover().RoundTrip();
-        var change = Assert.Single(town.Government.Changes);
+        var change = town.Government.Changes[^1];
         var election = Assert.IsType<TownElection>(town.Council.Election);
         Assert.Equal(election.Id, change.ForcedCouncilElectionId);
 
         town.Council = town.Council with { Election = null };
-        town.Government = town.Government with
-        {
-            Changes = [change with { ForcedCouncilElectionId = null }],
-        };
+        town.Government = WithForcedChanges(town.Government, change with { ForcedCouncilElectionId = null });
         town.Validate(); // The missing election alone is legal; claiming it is not.
-        town.Government = town.Government with { Changes = [change] };
+        town.Government = WithForcedChanges(town.Government, change);
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -36,12 +33,9 @@ public sealed partial class TownGovernmentHandoverTests
         var town = ForcedCouncilHandover().RoundTrip();
         var other = ForcedCouncilHandover("town:other").RoundTrip();
         var foreignElection = Assert.IsType<TownElection>(other.Council.Election);
-        var change = Assert.Single(town.Government.Changes);
+        var change = town.Government.Changes[^1];
         Assert.NotEqual(change.ForcedCouncilElectionId, foreignElection.Id);
-        town.Government = town.Government with
-        {
-            Changes = [change with { ForcedCouncilElectionId = foreignElection.Id }],
-        };
+        town.Government = WithForcedChanges(town.Government, change with { ForcedCouncilElectionId = foreignElection.Id });
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -56,14 +50,11 @@ public sealed partial class TownGovernmentHandoverTests
         town.Advance(1);
         town.Yes(town.Propose(RepresentativeOnly), "a", "b", "c", "d", "e");
         town = town.RoundTrip();
-        var change = Assert.Single(town.Government.Changes);
+        var change = town.Government.Changes[^1];
         Assert.Equal("handover", change.Status);
         Assert.Null(change.ForcedCouncilElectionId);
         Assert.True(ordinary.OpenedTick < change.ApprovedTick);
-        town.Government = town.Government with
-        {
-            Changes = [change with { ForcedCouncilElectionId = ordinary.Id }],
-        };
+        town.Government = WithForcedChanges(town.Government, change with { ForcedCouncilElectionId = ordinary.Id });
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -84,17 +75,14 @@ public sealed partial class TownGovernmentHandoverTests
         town.VoteEverything(town.Tick);
         town.Advance(termEnd);
         town = town.RoundTrip();
-        var change = Assert.Single(town.Government.Changes);
+        var change = town.Government.Changes[^1];
         Assert.Equal("completed", change.Status);
         Assert.Null(change.ForcedCouncilElectionId);
         Assert.Equal(regular.OpenedTick, change.ApprovedTick);
         Assert.Equal(regular.OpenedTick, change.SettledTick);
         Assert.Contains(town.Council.ElectionHistory,
             election => election.Id == regular.Id && election.Stage == "completed");
-        town.Government = town.Government with
-        {
-            Changes = [change with { ForcedCouncilElectionId = regular.Id }],
-        };
+        town.Government = WithForcedChanges(town.Government, change with { ForcedCouncilElectionId = regular.Id });
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -103,20 +91,17 @@ public sealed partial class TownGovernmentHandoverTests
     public void TwoApprovedHandoversCannotOwnTheSameFailedElection()
     {
         var town = ConsecutiveCouncilHandovers(registerSecondCandidates: false).RoundTrip();
-        var first = town.Government.Changes[0];
-        var second = town.Government.Changes[1];
+        var first = town.Government.Changes[^2];
+        var second = town.Government.Changes[^1];
         var failed = Assert.Single(town.Council.ElectionHistory,
             election => election.Id == first.ForcedCouncilElectionId);
         Assert.Equal("failed", failed.Stage);
         Assert.Equal(second.ApprovedTick, failed.OpenedTick);
         Assert.Null(second.ForcedCouncilElectionId);
         var claimingSecond = second with { ForcedCouncilElectionId = failed.Id };
-        town.Government = town.Government with
-        {
-            Changes = [first with { ForcedCouncilElectionId = null }, claimingSecond],
-        };
+        town.Government = WithForcedChanges(town.Government, first with { ForcedCouncilElectionId = null }, claimingSecond);
         town.Validate(); // Each reference is otherwise valid on its own.
-        town.Government = town.Government with { Changes = [first, claimingSecond] };
+        town.Government = WithForcedChanges(town.Government, first, claimingSecond);
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -125,20 +110,16 @@ public sealed partial class TownGovernmentHandoverTests
     public void ACancelledHandoverCannotOwnALaterLiveElection()
     {
         var town = ConsecutiveCouncilHandovers(registerSecondCandidates: true).RoundTrip();
-        var first = town.Government.Changes[0];
-        var second = town.Government.Changes[1];
+        var first = town.Government.Changes[^2];
+        var second = town.Government.Changes[^1];
         var live = Assert.IsType<TownElection>(town.Council.Election);
         Assert.Equal(first.SettledTick, live.OpenedTick);
         Assert.Equal(live.Id, second.ForcedCouncilElectionId);
-        town.Government = town.Government with
-        {
-            Changes = [first with { ForcedCouncilElectionId = null }, second with { ForcedCouncilElectionId = null }],
-        };
+        town.Government = WithForcedChanges(town.Government,
+            first with { ForcedCouncilElectionId = null }, second with { ForcedCouncilElectionId = null });
         town.Validate(); // The live election and both native changes remain structurally valid.
-        town.Government = town.Government with
-        {
-            Changes = [first with { ForcedCouncilElectionId = live.Id }, second with { ForcedCouncilElectionId = null }],
-        };
+        town.Government = WithForcedChanges(town.Government,
+            first with { ForcedCouncilElectionId = live.Id }, second with { ForcedCouncilElectionId = null });
 
         Assert.Throws<InvalidDataException>(() => town.RoundTrip());
     }
@@ -155,7 +136,7 @@ public sealed partial class TownGovernmentHandoverTests
         var initial = world.ExportState();
         Assert.Equal(0, initial.Society.Society.WorldTick);
         Assert.Equal(4, Assert.Single(initial.Towns!).ResidentIds.Count);
-        var forced = WithNativeGovernmentHandover(initial, ElectedMayor);
+        var forced = WithNativeGovernmentHandover(initial, ElectedMayor, initiallyAllAdult: true);
         var ordinary = WithNativeGovernmentHandover(initial,
             new(TownArrangementRules.Council, TownArrangementRules.Mayor));
         var directory = Directory.CreateTempSubdirectory("forced-council-provenance-");
@@ -165,7 +146,7 @@ public sealed partial class TownGovernmentHandoverTests
             var file = new PrivateWorldStateFile(path);
             foreach (var state in new[] { ordinary, forced })
             {
-                var expected = Assert.Single(Assert.Single(state.Towns!).Government!.Changes).ForcedCouncilElectionId;
+                var expected = Assert.Single(state.Towns!).Government!.Changes[^1].ForcedCouncilElectionId;
                 using var current = PrivateWorldRuntime.Restore(state);
                 file.Save(current);
                 var bytes = File.ReadAllBytes(path);
@@ -173,14 +154,14 @@ public sealed partial class TownGovernmentHandoverTests
                 Assert.True(change.TryGetPropertyValue("forcedCouncilElectionId", out var marker));
                 Assert.Equal(expected, marker?.GetValue<string>());
                 using var restored = file.LoadOrCreate(state.WorldSeed);
-                Assert.Equal(expected, Assert.Single(Assert.Single(restored.Towns).Government!.Changes).ForcedCouncilElectionId);
+                Assert.Equal(expected, Assert.Single(restored.Towns).Government!.Changes[^1].ForcedCouncilElectionId);
                 Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
                 Assert.Equal(bytes, File.ReadAllBytes(path));
             }
-            Assert.Null(Assert.Single(Assert.Single(ordinary.Towns!).Government!.Changes).ForcedCouncilElectionId);
+            Assert.Null(Assert.Single(ordinary.Towns!).Government!.Changes[^1].ForcedCouncilElectionId);
             var forcedTown = Assert.Single(forced.Towns!);
             Assert.Equal(Assert.IsType<TownElection>(forcedTown.Governance!.Election).Id,
-                Assert.Single(forcedTown.Government!.Changes).ForcedCouncilElectionId);
+                forcedTown.Government!.Changes[^1].ForcedCouncilElectionId);
 
             var currentBytes = PrivateWorldRuntimeCodec.Encode(forced);
             var missing = JsonNode.Parse(currentBytes)!;
@@ -208,10 +189,10 @@ public sealed partial class TownGovernmentHandoverTests
 
     private static Town ForcedCouncilHandover(string id = "town:test", bool registerCandidates = true)
     {
-        var town = new Town("a", "b", "c", "d", "e") { Id = id };
+        var town = AllAdultTown(id);
         if (registerCandidates) town.RegisterCouncil("a", "b", "c");
         town.Yes(town.Propose(RepresentativeOnly), "a", "b", "c");
-        Assert.Equal("handover", Assert.Single(town.Government.Changes).Status);
+        Assert.Equal("handover", town.Government.Changes[^1].Status);
         return town;
     }
 
@@ -219,25 +200,41 @@ public sealed partial class TownGovernmentHandoverTests
     {
         var town = ForcedCouncilHandover(registerCandidates: false);
         town.Advance(TownArrangementRules.HandoverDays * Day);
-        Assert.Equal("cancelled", Assert.Single(town.Government.Changes).Status);
+        Assert.Equal("cancelled", town.Government.Changes[^1].Status);
         if (registerSecondCandidates) town.RegisterCouncil("a", "b", "c");
         town.Yes(town.Propose(RepresentativeOnly), "a", "b", "c");
-        Assert.Equal(2, town.Government.Changes.Count);
-        Assert.Equal("handover", town.Government.Changes[1].Status);
+        Assert.Equal(4, town.Government.Changes.Count);
+        Assert.Equal("handover", town.Government.Changes[^1].Status);
         return town;
     }
 
-    private static PrivateWorldRuntimeState WithNativeGovernmentHandover(PrivateWorldRuntimeState state, TownArrangement target)
+    // Keep both resident-approved office removal and all-adult arrangement while damaging only the subsequent handovers.
+    private static TownGovernmentState WithForcedChanges(TownGovernmentState state, params TownGovernmentChange[] changes) =>
+        state with { Changes = [.. state.Changes.Take(state.Changes.Count - changes.Length), .. changes] };
+
+    private static PrivateWorldRuntimeState WithNativeGovernmentHandover(PrivateWorldRuntimeState state, TownArrangement target,
+        bool initiallyAllAdult = false)
     {
         var town = Assert.Single(state.Towns!);
         var adults = town.ResidentIds;
         var day = state.WorldSystems!.Config.TicksPerDay;
         var council = town.Governance!;
+        var startingGovernment = town.Government!;
+        if (initiallyAllAdult)
+        {
+            (council, startingGovernment) = TownGovernmentRules.Propose(council, startingGovernment, town.Id,
+                adults[0], AllAdult, false, adults, 0, day);
+            foreach (var voter in adults.Take(3))
+                startingGovernment = TownGovernmentRules.Vote(startingGovernment, startingGovernment.Changes[^1].Id, voter, true, 0);
+            (council, startingGovernment) = TownGovernmentRules.Advance(council, startingGovernment, town.Id, town.Name,
+                state.WorldSeed, adults, 0, day);
+            Assert.Equal(AllAdult, startingGovernment.Arrangement);
+        }
         foreach (var actor in adults.Take(3))
             council = TownGovernanceRules.Register(council, actor, true, null, adults, 0);
-        var (proposedCouncil, government) = TownGovernmentRules.Propose(council, town.Government!, town.Id,
+        var (proposedCouncil, government) = TownGovernmentRules.Propose(council, startingGovernment, town.Id,
             adults[0], target, false, adults, 0, day);
-        var change = Assert.Single(government.Changes);
+        var change = government.Changes[^1];
         foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, change.Id, voter, true, 0);
         (council, government) = TownGovernmentRules.Advance(proposedCouncil, government, town.Id, town.Name,
             state.WorldSeed, adults, 0, day);
@@ -245,5 +242,5 @@ public sealed partial class TownGovernmentHandoverTests
     }
 
     private static JsonObject SavedGovernmentChange(JsonNode document) =>
-        document["state"]!["towns"]![0]!["government"]!["changes"]![0]!.AsObject();
+        document["state"]!["towns"]![0]!["government"]!["changes"]!.AsArray()[^1]!.AsObject();
 }

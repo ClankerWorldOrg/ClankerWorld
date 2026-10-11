@@ -21,6 +21,27 @@ tests without Godot, a window manager, a live model or network access after
 dependencies are restored. Godot does not reference the simulation: it uses the
 host's versioned HTTP contract. Legacy web assets are diagnostic tools.
 
+## Derived identities
+
+`DerivedId` owns the 128 UTF-16-unit limit for identities assembled from other
+identities. A short complete value keeps its spelling; a longer value uses a
+SHA-256 digest of the complete value, retaining a bounded semantic prefix.
+Inventory splits, repeated milk sales, native births and family records,
+work reservations and receipts, memories and public Town record handles use
+this boundary. Separate source, owner and recipient fields retain their exact
+references. Names remain display text and do not become identifiers.
+
+The [derived-identity inventory](derived-identities.md) lists the native
+transition and production-factory matrices and their strict reload/recall
+checks.
+
+Numbered Town records keep their sequence suffix after hashing the complete
+long value. Strict validation recomputes the full handle from its original
+scope and counter; it does not search an unbounded sequence or trust a digest
+alone. Parsed action payloads retain their fields and existing model-facing
+aliases. Content package identifiers retain their import rules.
+
+
 ## Core rules
 
 - **The server commits world state.** Client requests, model replies, mods and
@@ -61,6 +82,35 @@ owns conversations, daily budgets and marriages in one immutable
 `ConversationState`. Every write replaces the affected read-only collection
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
+
+`Environment/EnvironmentSystem.cs` owns the immutable `WorldSystemsState`
+snapshot, including ecology, chunks and weather. Named writes handle harvesting,
+animal forage, tree planting and settlement resources. Weather advances at its
+existing tick phase, and the runtime commits the system with one assignment.
+Map, declarative content and world-content simulation snapshots remain owned by
+the coordinator. Trusted tick preparation shares all four snapshots by reference
+until a write replaces one; external loads retain full validation and map
+regeneration checks. Restore initializes saved services directly instead of
+creating founders, physical state or genesis events first.
+
+Environment operations receive `IEnvironmentWorld` or
+`IEnvironmentResidentWorld` per call. A live coordinator adapter supplies the
+current map, weather anchor, resource availability, resident state, inventory,
+order cancellation, death recording and event sink. The system retains no
+runtime reference, and its adapter stays on the committed coordinator. Existing
+private environment and exposure methods remain forwarders.
+
+`Civic/CivicSystem.cs` owns the settlement council and each Town's governance,
+government and nonviolent-law snapshots in one immutable `CivicState`. The
+coordinator keeps the full Town checkpoint views, including land and membership;
+its central Town write imports civic changes, and checkpoint capture projects
+the system's civic snapshots onto those views. A prepared tick commits the
+system with one assignment. Civic operations receive the current world through
+an adapter on each call, and the adapter stays on the committed coordinator.
+The civic-history index uses `Derived` with the immutable governance snapshot
+as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
+copies; replacing governance invalidates the lookup. Physical needs, positions,
+inventory availability and remedy admission remain current-world queries.
 
 A system owns its saved state, its rules and a small `I…World` interface for
 the services it needs from other areas. Saved state is an immutable record
@@ -199,6 +249,21 @@ unreserved quantities; reusable vessels themselves are not consumable inputs.
 Requests name exact owners and item kinds, and can restrict a building. The
 answer's `Total` and `First` read the same stable matches. It includes each lot's
 root vessel, physical place, available quantity and whole-vessel movement size.
+Production, farm-food, animal-food, writing-paper, ornament-input and iron-reserve
+demand use `Holdings`, keeping their existing owner groups and thresholds. These
+counts did not require a route before this migration and still do not. Food kinds
+remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules.
+
+`GoodsDemandCoverage.KnowledgeWriting` adds the named same-job coverage rule for
+writing demand. `CoveredTotal` includes available sheets plus active paper
+reservations with the native `knowledge_writing:<project>:paper` purpose owned
+by the queried household or its eligible writers. Other jobs' reservations do
+not cover writing demand. Covered sheets must still have a usable parent vessel
+and cannot be promised for delivery or held at a borrowed stall. `Total`, `First`,
+matches and rechecks remain unreserved; `Collect` refuses a coverage request and
+still cannot pick up a reserved vessel family. Coverage and reservation indices
+are derived from the current checkpoint and are never saved.
+
 Delivery selection and remaining uses belong to the later steps of
 [#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
 origin/destination fields and extra-unit requests are refused rather than silently ignored.
@@ -239,6 +304,11 @@ guard before selecting seeds.
 `SharedItem` uses Collect for household equipment, repair inputs and planting
 seeds, with the existing Warehouse fallback rechecked through the same use.
 `CollectEquipment` rechecks the selected lot immediately before its transfer.
+Garment and carry-aid choices use ReachableHoldings with their existing
+post-equipment capacity check, so replacing a carry aid can make room for
+the current cargo. They recheck before transferring or splitting the unit.
+Ornament wearing uses Collect and rechecks before taking or splitting one
+unit; household custody, storage and free-cargo guards remain additional filters.
 Animal-supply sources use Collect and recheck before pickup; care permission,
 feed reserves, product capacity, destination room and workstation surplus
 remain feature-specific filters. These are the first household pickup callers
@@ -324,6 +394,12 @@ authority. Admission checks the request ID, provider/run epochs and current
 candidate legality. An epoch is a generation marker that makes replies from
 an earlier configuration or run obsolete. Other agents continue while one waits.
 
+Cognition rejection and ignored-failure events use the current request's world
+tick, or the matching retired request's observation tick when none is active.
+After restore, where request records are absent, they use the last retained
+event's world tick, then the saved intention's tick if the event window is
+empty, or zero when neither exists. Run epochs are never used as timestamps.
+
 The OpenAI-compatible adapter can complete one omitted empty final field of a
 five-field civic candidate ID when the completed ID exactly matches a uniquely
 offered choice, with no other offered ID sharing that prefix. An already exact
@@ -371,9 +447,9 @@ or coordinate targets still apply; distant sites require that agent's own
 knowledge. Observation does not bypass availability, reachability or the
 whole-load carrying checks.
 
-Urgent food interruptions admit drinking usable milk from a carried jug,
-leaving the jug intact and retaining the pending order. Milk's ordinary
-freshness, reservation, ownership and jug-condition checks still apply.
+Urgent food interruptions admit drinking usable carried milk while retaining
+the pending order. Milk's ordinary freshness, reservation, ownership and
+physical custody checks still apply.
 They also admit the buyer's legal ready-food shop quote,
 Restaurant meal visit and continuation of an open food purchase. The same
 check is used for selecting the interruption and filtering model choices.
@@ -481,7 +557,7 @@ House before travel. The shared borrowed-return helper rechecks custody,
 ownership, reservations, whole-vessel space and the destination at execution.
 Explicit returns select carried borrowed goods independently of ordinary milk
 stocking alternatives. A possible Store or market destination does not exclude
-a milk jug; committed deliveries and active animal-supply trips still do.
+carried milk; committed deliveries and active animal-supply trips still do.
 Only a committed relocation receipt earns `goods_items` or `return_loads`.
 Cancellation never undoes completed movement or changes goods ownership.
 When an explicit storage or return moves the exact hoe or sickle used by that
@@ -1246,6 +1322,12 @@ rule includes deceased biological parents and does not substitute caregivers.
 An invalid surname follows the existing unusable-name outcome; only a taken
 first name earns the extra paid retry. Parent renames do not retroactively
 invalidate a child's name or saved state.
+`RenameInhabitant` refuses removal of a chosen parent's surname when the
+proposed checkpoint would leave any minor biological child with no allowed
+surname. The check runs before commit, so player refusal publishes no name,
+event or permanent memory. Other chosen biological parents, including deceased
+parents, can still supply a surname. Initial unchosen parents and saved child
+names keep their existing treatment; no new saved-state invariant is added.
 
 The response must select a legal candidate. Any finite confidence from 0 to 1
 is accepted; confidence does not veto the choice or a valid chosen name.
@@ -1462,7 +1544,7 @@ correction marker, resolved from the owner's original ledger. A later correction
 marks the source corrected without changing the saved extract. Switching the
 helper off prevents new summaries but preserves existing recall. The summary
 event contains only owner and source count. Timing and usefulness remain
-provisional; see the [memory summary playtest](../../playtest/1312-memory-summaries.md).
+provisional; see the [memory summary playtest](../../playtest/alpha-1.md).
 
 Childhood talk, play and learning record owner-private experiences whose keys
 fit the same 128-character memory boundary used by recall and Jev scoring.
@@ -1809,7 +1891,14 @@ carry aids follow the usual cargo exemptions. Pickups and whole harvests with
 a known delivery destination check the load after collection against the
 return route. A foot or cart return keeps its usual capacity; a freshwater-only
 return limits loose pickups to the remaining swimming capacity and keeps an
-oversized vessel family intact. Water collection also keeps room to return
+oversized vessel family intact. Ordinary milk uses the shared Store stocking
+checks for the source, destination and loaded return. Yard supplies, personal and
+household planting seeds, autonomous replanting, repair cloth, cart-building
+materials and child-care food pass their actual destination through selection
+and pickup checks. Medicine uses the consenting patient's last observed position,
+without discovering a moved patient remotely. Tool-repair preparation uses the
+same Blacksmith destination as collection, so unavailable return routes produce
+a blocker rather than leaving the order doing. Water collection also keeps room to return
 with the jug and its contents. A rider, an animal
 leader or a cart puller cannot start swimming, and moving dependants must also
 meet the starting conditions. Infants and adults carrying guardian-placement
@@ -1822,6 +1911,16 @@ swimming eligibility alongside terrain, Roads and occupancy. Swimming is
 projected from the actual water position, and the map alternates existing approved poses and displays
 **Swimming** beside the agent. No sprite atlas or saved movement-mode field
 changes.
+
+Book writing, selected-cart repair and tool repair plan their remaining
+material pickups as a sequence. A transient search tries the existing input
+order first, then the other orders, checking each actual interaction point
+with the cumulative physical load. Separate paper lots count as separate
+pickups. Cart and tool repairs also check the final
+trip to the cart or Blacksmith; writing can begin at the last pickup. The next
+action resolves its source and permission again. Tool repair retains its
+ordinary spare-cargo storage and gathering-tool preparation when those are
+needed before a complete collection plan can be formed. No plan is saved.
 
 Checkpoint map acceptance keeps a weak, derived camp-reachability cache for
 each map's current starting point. Before reuse it compares actual terrain,
@@ -2212,7 +2311,12 @@ visitors use ordinary admission. A built House alone never founds a Town.
 
 Each `TownRuntimeState` carries its own `TownGovernanceState`. `TownGovernanceRules`
 implements all-adult and representative councils from recorded living adult
-residents, independently of geometry and household affiliation. A separate
+residents, independently of geometry and household affiliation. Automatic
+representation starts at four adults, so the ordinary four-founder Town opens
+its first election on day 1. At three or fewer adults, representation and an
+initial all-adult election end; the all-adult council governs until it has four
+adults again. Candidate-failure retries use the same four-adult minimum and the
+ordinary day-or-material-improvement wait. A separate
 `SettlementCouncil` remains the household-food steward prototype.
 
 Household food-policy ballots last 120 ticks and can pass through their saved
@@ -2353,7 +2457,7 @@ Runtime admission and saved records still require known households, affected
 parties and eligible recipients. Offered civic choices use the existing bounded
 household token; property records keep the full ID.
 Saved footprint rights and requests retain that same known household reference.
-A generated household party key longer than 256 characters uses a stable hash,
+A generated household party key uses the shared derived-identity limit and hashes the complete key when needed,
 while its separate household field keeps the complete identity.
 
 Hearing actions enter through admitted personal-model civic choices. Public
@@ -2419,8 +2523,9 @@ description; event prose does not establish ownership or case kind.
 `TownRuntimeState.Nonviolent` records non-land allegations, notice revisions,
 sources, responses and civil findings separately from permission adjustments.
 `TownHearingProcedure` supplies shared response, conflict and case-election
-rules. The non-land mandate needs protected resident approval and personal
-agreement. An extension names its existing office and retains that office's
+rules. Founding supplies the vacant non-land mandate; standing for election
+requires personal agreement. Later scope changes need protected resident
+approval. An extension names its existing office and retains that office's
 original term; its added authority begins only at the actual handover.
 
 Native completed actions capture applicable law wording, title and membership
@@ -2463,7 +2568,7 @@ Land-hearing readers, evidence sources and submitters, judges, affected parties,
 personal stakes and live or historical election rosters keep their complete known
 saved agent identities, including later-generation adults born in the world.
 Person rosters retain canonical order and uniqueness without applying the
-256-character ledger-key limit to ancestry-based identities.
+derived-identity length limit to complete person references.
 The shared civic identity check rejects blank, padded and control-character
 identities; caller-owned evidence, record and authority keys and prose keep
 their existing bounds. Current-world identity, notice and authority checks
@@ -2528,8 +2633,17 @@ telemetry records the Town, outcome, previous Town and counts only.
 
 `TownGovernmentState` stores scoped law versions, protected resident processes,
 mayoral consent and contests, and separate land, ordinary and non-land mandate terms.
-`TownGovernmentRules` coordinates them with the existing Council engine. Law
-adoption consumes passed structured Council proposals once; amendment and repeal
+`TownGovernmentRules` coordinates them with the existing Council engine.
+New Towns initialize two vacant office records, `land` and `non_land`, with
+their founding tick and no holder, term or election. The initial arrangement
+keeps ordinary Council authority. While the whole office is vacant and no
+protected change is pending, the personal registration choice covers its
+combined duties. Joint consent opens the existing vacancy election, and its
+winner receives both separate mandate records under the same election and
+twenty-day term. Empty offices supply no judge. Paused founder setup updates
+the Council roster without running elections or advancing time.
+
+Law adoption consumes passed structured Council proposals once; amendment and repeal
 bind their base version, so a stale passed proposal cannot overwrite a later law.
 Amendment and repeal labels shorten the display to 256 UTF-16 units, reserving
 one for an ellipsis and omitting a whole surrogate pair when it crosses the
@@ -2551,7 +2665,7 @@ mandates added by the target arrangement; explicit replacement requires every
 targeted mandate. A retained vacancy follows its existing succession rules.
 Explicit all-adult government disables automatic representation, and explicit
 elected government seeks three representatives above three adults. The initial
-arrangement retains the eight-adult threshold.
+arrangement uses the four-adult threshold.
 Each transition records the exact Council election it caused to open, including
 an attempt that fails immediately. Only that election waits for the transition
 or is cancelled when it lapses. An ordinary election keeps its own result and
@@ -2703,13 +2817,16 @@ foot-neighbor enumeration when computing Road costs. Public step costs and movem
 validate the complete step; terrain, Road discounts, occupied corners and queue
 order retain their existing rules. See [route step cost measurements](route-step-cost-measurements.md)
 for matched native captures and timing limits.
-Layout foot-cost searches use a value-type neighbor enumerator instead of
+Layout foot-cost and default shared walking-route searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths keep the same
 offset order and suppress repeated coordinates on one- or two-column wrapped
 maps before checking legality. Each step reads current terrain and bridge axes;
 no neighbor result is cached between steps or searches.
 See [layout neighbor measurements](layout-neighbor-query-measurements.md)
 for profiling, native state-change comparisons, lower allocations and mixed timings.
+The later [walking-route neighbor measurements](route-neighbor-query-measurements.md)
+record the default-route follow-up; custom callbacks, including swimming,
+keep their existing neighbor path.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
@@ -3279,7 +3396,7 @@ live reservations while preserving completed consumption receipts. Permission,
 active progress and closed receipts survive current-format save/reload; a
 paused world advances no treatment time. See [saves and replay](saves-and-replay.md).
 Automated checks cover this path; the
-[Windows playtest](../../playtest/565-clinic-care.md) is still pending.
+[Windows playtest](../../playtest/alpha-1.md) is still pending.
 
 Death archives the last physical state, frozen age and the Town the agent lived
 in, then removes the active actor. Existing personal inventory is frozen in
@@ -3932,9 +4049,8 @@ claims exhaust a Port. All free docks are tried for a connected route.
 Transport follows saved cardinal water steps while avoiding other boats and
 reservations. Passenger cognition permits waiting, eating carried food and
 drinking available carried milk while traveling or waiting for landing. Milk
-uses the same ownership, freshness, reservation and usable-jug checks as on
-land; drinking consumes one portion, restores 3,000 fullness points and keeps
-the jug. Candidate construction and action admission both permit that action;
+uses the same ownership, freshness, reservation and physical custody checks as
+on land; drinking consumes one portion and restores 3,000 fullness points. Candidate construction and action admission both permit that action;
 foot work and conversations cannot move the passenger away from the boat.
 A blocked arrival retains its reservation for one world day, then reserves a
 usable origin for return. When neither landing works, it keeps waiting. Native
@@ -4220,6 +4336,27 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## World-list requests
 
+Select World refuses an empty, missing or whitespace-only catalog ID with HTTP
+400 before authorization or mutation, using the same required-payload guard as
+the manual-save endpoints. Nonempty selections still require the signed owner
+request and the existing private-world, compatibility and restore checks.
+
+Launcher handoffs carry the catalog entry ID with the requested game version.
+Both process boundaries use separate arguments; `--choose-world` accepts only
+the catalog's 32-character hexadecimal ID, never a path or a display name.
+Quit to Launcher obtains the active ID through the existing signed, read-only
+catalog request before stopping the host. A failed read keeps the game open;
+retry repeats the read. Failed stopping or launcher startup retains the
+resolved version and ID together.
+
+The game still starts at Main Menu. On the first successful visible Load World
+listing, it selects the matching ID and consumes the hint. Failed listings
+retain it for retry; later refreshes do not reapply it over a player's choice.
+Successfully entering a world also discards the startup hint.
+A missing ID leaves every row unselected with an explanation. Existing
+compatibility and action-availability checks apply. Selection sends no pause,
+select-world, load, save or delete request, and never enters a world.
+
 The private host can retain an untouched, nongenerated bootstrap checkpoint
 before the player creates a world. Its founder observation reports
 `requiresWorldCreation`; this is derived from the saved state, independent of
@@ -4343,14 +4480,13 @@ A trip isolates its selected feed quantity from
 the source, including an already carried stack, so delivery cannot donate the
 unselected remainder. Reusable jugs travel whole with their contents. One held
 product batch waits for local collection;
-milk enters a reusable household jug. Jug pickup and collection require cargo
-space for the jug's existing contents and the pending milk batch; an unsuitable
-first jug does not hide a fitting alternative. Products then use ordinary stock hauling,
-recipes and trade.
+milk is relocated as ordinary household goods carried by the collecting adult.
+Collection needs space for the complete batch and does not fetch a vessel.
+Products then use ordinary stock hauling, recipes and trade.
 `drink_milk` uses the same carried-milk selector for its offered choice and
-execution. It excludes milk or a jug assigned to a building delivery, keeping
-the promised contents available for their destination. Unassigned carried
-milk remains drinkable and leaves its reusable jug intact.
+execution. It excludes milk assigned to a building delivery, keeping promised
+goods available for their destination. Optional food-pot contents require a
+usable container; milk cannot enter a water jug.
 
 When care is due, its native order candidate requires complete safe inputs, a current care
 supply trip or an obtainable supply. Missing inputs use the existing blocked
@@ -4406,29 +4542,16 @@ capacity; existing product and fitted-saddle reservations remain held during
 preparation, and existing dismount rules preserve excess cargo.
 
 Carried milk drinking is offered with ordinary survival choices, including
-for children, and passes the final child age gate. The existing selector still
-checks ownership, physical custody, jug condition, freshness and reservations;
-drinking consumes one portion and preserves the jug. Infant self-feeding and
-adult-only animal work remain age restricted.
+for children, and passes the final child age gate. The selector checks
+ownership, physical custody, freshness and reservations; drinking consumes one
+portion. Infant self-feeding and adult-only animal work remain age restricted.
 
-Milk stock travels as an actual household jug to a held Store or borrowed Market
-stall, with a stock receipt at a stall. Restocking leaves household jugs on
-actively borrowed Market stalls in place; after the seller leaves, the same
-jug and milk can be collected for a normal Store delivery. Offers and execution
-recheck current borrowing, including during an already accepted restocking walk.
-Fresh seller and buyer personal choices
-exchange one held portion into the buyer's real carried jug for the named
-personal payment. Each pending offer has a distinct milk source lot, even
-when the lot contains several available portions. Candidate generation and
-native admission both enforce this existing save invariant. Closing an offer
-releases its exact reservation and makes any remaining usable stock available
-for another sale. Both jug owners stay the same. Expiry, refusal and changed
-custody release held milk; spoiled milk can be emptied locally without removing
-the vessel or its fresh contents.
-
-Each completed exchange derives the receiving milk lot's identity from its full
-source identity and the admitted sale. A later sale retains that complete
-inventory reference, including repeated-sale histories longer than 512
-characters. Checkpoint validation requires a unique, well-formed source reference
-and its exact known lot, ownership, vessel, physical site and held reservation;
-animal and offer identities keep their existing short-field limit.
+Milk uses ordinary Store stock, Market stock receipts and inventory barter.
+These paths retain ordinary food reserves, protect actively borrowed stalls
+and recheck custody, receiving space and reservations at execution. Store
+stocking includes reachable loose ground goods, so released Market stock uses
+the same selector as other household supplies. Store and
+Market purchases use the existing buyer offer and seller acceptance or refusal.
+There is no milk-specific offer ledger or exchange identity derivation.
+Whole-lot barter retains the existing lot identity; partial transfers use the
+shared inventory transfer rules. Spoilage retains milk's existing rate.

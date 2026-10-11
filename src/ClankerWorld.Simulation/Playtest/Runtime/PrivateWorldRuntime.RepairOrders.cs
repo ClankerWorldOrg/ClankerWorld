@@ -30,8 +30,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 if (ContinueEquipmentRepair(actor) is { } effect)
                 {
-                    var identity = $"{actor}:{effect.StartedTick}:{effect.LotId}";
-                    var receipt = "repair:equipment:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(identity)));
+                    var receipt = EquipmentRepairReceipt(actor, effect.StartedTick, effect.LotId);
                     CreditOrderEffect(instruction, receipt, 1);
                 }
                 return;
@@ -64,7 +63,7 @@ public sealed partial class PrivateWorldRuntime
         if (targets.All(lot => PersonalEquipmentRules.RepairMaterials(lot.ItemKind).Any(input =>
                 !HasCarriedOwnItem(actor, input.ResourceId) && SharedItem(input.ResourceId, actor) is null)))
             return "The repair needs available materials in the agent's hands or household stock.";
-        return "No open walking route reaches the repair site right now.";
+        return "The agent and repair materials need an open route to the work site; make carrying space if the trip needs swimming.";
     }
 
     private void CancelRepairForOrder(OwnerQueuedInstruction instruction)

@@ -13,7 +13,7 @@ public sealed partial class TownLandHearingRuntimeTests
         // only normal Store costs and its three-portion source stock are fixtures.
         var election = new HearingProvider();
         using var elected = NewWorld(election);
-        await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(), Day * 3, election);
+        await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, election);
         var state = elected.ExportState();
         var household = elected.Society.GetInhabitant(Filer).HouseholdId!;
         var definition = elected.WorldContent.Buildings.Single(item => item.LocalId == "store-1x1");

@@ -47,11 +47,12 @@ public sealed partial class PrivateWorldRuntime
         if (worldSimulation.Buildings.Count(building => assigned.Contains(building.InstanceId) &&
             worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("warehouse", StringComparer.Ordinal)) > 1)
             return null;
-        var id = "town:site:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            worldSeed + "|" + site.X.ToString(CultureInfo.InvariantCulture) + "," + site.Y.ToString(CultureInfo.InvariantCulture))));
+        var id = "town:site:" + DerivedId.Hash(
+            worldSeed + "|" + site.X.ToString(CultureInfo.InvariantCulture) + "," + site.Y.ToString(CultureInfo.InvariantCulture));
         if (towns.Any(town => town.Id == id)) return null;
         return new TownRuntimeState(id, $"Town at {site.X.ToString(CultureInfo.InvariantCulture)}, {site.Y.ToString(CultureInfo.InvariantCulture)}",
-            "founded", WorldTick, [], assigned.Order(StringComparer.Ordinal).ToArray(), border, site);
+            "founded", WorldTick, [], assigned.Order(StringComparer.Ordinal).ToArray(), border, site,
+            Government: TownGovernmentState.Create(WorldTick));
     }
 
     private void FoundTown(string actor, string candidate)
@@ -66,6 +67,7 @@ public sealed partial class PrivateWorldRuntime
             SetTown(other with { ResidentIds = other.ResidentIds.Where(id => !moving.Contains(id)).ToArray() });
         town = town with { ResidentIds = group };
         towns.Add(town);
+        civicSystem.SetTownState(town);
         checkpointSchemaVersion = StateSchemaVersion;
         townLandTitles.AddRange(TownLandRightsRules.InitialTitles(map, town, WorldTick));
         townLandTitles = townLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList();
@@ -76,10 +78,7 @@ public sealed partial class PrivateWorldRuntime
             var used = worldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId)).SelectMany(TownFoundingBuildingTiles)
                 .Concat(fields.Where(field => field.HouseholdId == household && town.BorderTiles.Contains(field.Position)).Select(field => field.Position));
             var rights = TownLandRightsRules.InitialUseRights(map, town.Id, [(household, used)], WorldTick);
-            householdLandUseRights.AddRange(rights.Select(right => right.Id.Length <= 128 ? right : right with
-            {
-                Id = "household-use:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(right.Id)))
-            }));
+            householdLandUseRights.AddRange(rights.Select(right => right with { Id = DerivedId.Create(right.Id, "household-use:") }));
             householdLandUseRights = householdLandUseRights.OrderBy(right => right.Id, StringComparer.Ordinal).ToList();
         }
         worldSimulation = worldSimulation with

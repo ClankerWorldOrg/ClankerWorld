@@ -17,7 +17,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var state = PrivateWorldRuntimeCodec.Decode((await GatheringAdults.Value)[generation]);
         var actor = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
         Assert.Equal(generation, state.Society.Society.Births.Count);
-        Assert.Equal(generation == 5, actor.Length > 512);
+        Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
         var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
         var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == home &&

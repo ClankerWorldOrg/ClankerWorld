@@ -21,11 +21,83 @@ public partial class Main
         var originalLauncherRead = launcherPathRead;
         var originalPendingVersion = pendingOpenVersion;
         var originalFailedVersion = failedLauncherVersion;
+        var originalPendingWorld = pendingOpenWorld;
+        var originalFailedWorld = failedLauncherWorld;
+        var originalRequestedWorld = requestedWorldToSelect;
+        var originalRetryVersion = retryLauncherVersion;
+        var originalRetryWorld = retryLauncherWorld;
+        var originalRetryChoice = retryChooseCurrentWorld;
         Environment.SetEnvironmentVariable("CI", "true");
         using var key = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
         try
         {
             deviceKey = key;
+            const string handoffId = "0123456789abcdef0123456789abcdef";
+            using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
+            {
+                registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
+                worldUrlInput.Text = host.Address;
+                host.Catalog = WorldActionSmokeCatalog([handoffId]) with { ActiveId = handoffId };
+                if (await ReadCurrentWorldForLauncherAsync() != handoffId || host.PauseCount != 0 ||
+                    host.SelectReceived.Task.IsCompleted || host.DeleteCount != 0 || host.SaveCreateCount != 0)
+                    throw new InvalidOperationException("Quit to Launcher must read the actual active catalog ID without changing the world.");
+                host.RejectCatalogRead = true;
+                await QuitGameAsync(openLauncher: true, chooseCurrentWorld: true);
+                if (!localHostStopFailure.Visible || !retryChooseCurrentWorld || isQuittingGame || host.PauseCount != 0)
+                    throw new InvalidOperationException("An unsuccessful current-world read must keep the game open with its read retry.");
+                host.RejectCatalogRead = false;
+                launcherPathRead = true;
+                launcherPath = Path.Combine(Path.GetTempPath(), "missing-launcher-" + Guid.NewGuid().ToString("N"));
+                localHostStopFailure.Hide();
+                localHostStopFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
+                var deadline = System.Diagnostics.Stopwatch.StartNew();
+                while (isQuittingGame && deadline.Elapsed < TimeSpan.FromSeconds(5))
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (!launcherStartFailure.Visible || failedLauncherWorld != handoffId || isQuittingGame ||
+                    host.CatalogReadCount != 3 || host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("Retry must read the active world again and retain it through a launcher-start failure.");
+                launcherStartFailure.Hide();
+                launcherPath = originalLauncher;
+                launcherPathRead = originalLauncherRead;
+            }
+            foreach (var compatibility in new[] { "compatible", "incompatible", OtherVersion })
+            {
+                using var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64);
+                registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
+                worldUrlInput.Text = host.Address;
+                ShowWorldActionSmokeMenu();
+                var catalog = WorldActionSmokeCatalog(["A", "B", handoffId]);
+                host.Catalog = catalog with
+                {
+                    Worlds = catalog.Worlds.Select(world => world with
+                    {
+                        Name = "Same name",
+                        Compatibility = world.Id == handoffId ? compatibility : "compatible",
+                        GameVersion = "0.0.1-older",
+                    }).ToArray(),
+                };
+                var wasInWorld = isInWorld;
+                requestedWorldToSelect = handoffId;
+                await worldListRequest.RefreshAsync(_ => Task.FromException<WorldCatalogSnapshot>(new IOException("held catalog")));
+                if (requestedWorldToSelect != handoffId)
+                    throw new InvalidOperationException("A failed listing must retain the startup world for a retry.");
+                await RefreshWorldListAsync();
+                if (SelectedListedWorld()?.Id != handoffId || requestedWorldToSelect is not null ||
+                    host.PauseCount != 0 || host.SelectReceived.Task.IsCompleted || host.DeleteCount != 0 ||
+                    host.SaveCreateCount != 0 || isInWorld != wasInWorld || host.Catalog.ActiveId != "A")
+                    throw new InvalidOperationException("A startup hint must select the exact catalog row without entering or changing a world.");
+                if (compatibility == "incompatible" && !worldSelectButton.Disabled)
+                    throw new InvalidOperationException("A selected incompatible world must remain refused.");
+                ChooseWorldActionSmokeRow(0);
+                await RefreshWorldListAsync();
+                if (SelectedListedWorld()?.Id == handoffId)
+                    throw new InvalidOperationException("A later catalog refresh must not reapply the startup choice.");
+                requestedWorldToSelect = "fedcba9876543210fedcba9876543210";
+                await RefreshWorldListAsync();
+                if (SelectedListedWorld() is not null || !worldSelectButton.Disabled ||
+                    !worldMenuStatus.Text.Contains("no longer", StringComparison.Ordinal) || host.SelectReceived.Task.IsCompleted)
+                    throw new InvalidOperationException("A missing startup world must explain the absence without choosing another world.");
+            }
             // Test both reply orders, including the case where the old last row vanishes.
             foreach (var (refreshFirst, removeChosen) in new[] { (true, false), (false, false), (true, true) })
             {
@@ -111,7 +183,7 @@ public partial class Main
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
                 worldUrlInput.Text = host.Address;
                 ShowWorldActionSmokeMenu();
-                var older = WorldActionSmokeCatalog(["A", "B"]);
+                var older = WorldActionSmokeCatalog(["A", handoffId]);
                 host.Catalog = older with
                 {
                     Worlds = [older.Worlds[0], older.Worlds[1] with { Compatibility = OtherVersion, GameVersion = "0.0.1-older" }],
@@ -133,12 +205,13 @@ public partial class Main
                     throw new InvalidOperationException("The actual version button must confirm its selected target.");
                 openInVersionConfirmation.Hide();
                 openInVersionConfirmation.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
-                if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || host.PauseCount != 0)
+                if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || failedLauncherWorld != handoffId || host.PauseCount != 0)
                     throw new InvalidOperationException("Failed version hand-off must keep the game open without selecting the world here.");
                 pendingOpenVersion = "9.9.9";
+                pendingOpenWorld = "fedcba9876543210fedcba9876543210";
                 launcherStartFailure.Hide();
                 launcherStartFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
-                if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || isQuittingGame || host.PauseCount != 0)
+                if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" || failedLauncherWorld != handoffId || isQuittingGame || host.PauseCount != 0)
                     throw new InvalidOperationException("Retry must retain the failed hand-off version after another selection.");
                 launcherStartFailure.Hide();
                 ChooseWorldActionSmokeRow(0);
@@ -165,6 +238,13 @@ public partial class Main
             launcherPathRead = originalLauncherRead;
             pendingOpenVersion = originalPendingVersion;
             failedLauncherVersion = originalFailedVersion;
+            pendingOpenWorld = originalPendingWorld;
+            failedLauncherWorld = originalFailedWorld;
+            requestedWorldToSelect = originalRequestedWorld;
+            retryLauncherVersion = originalRetryVersion;
+            retryLauncherWorld = originalRetryWorld;
+            retryChooseCurrentWorld = originalRetryChoice;
+            localHostStopFailure.Hide();
             openInVersionConfirmation.Hide();
             launcherStartFailure.Hide();
         }
@@ -197,6 +277,9 @@ public partial class Main
         private int pauseCount;
         private int deleteCount;
         private int saveCreateCount;
+        private int catalogReadCount;
+        public int CatalogReadCount => Volatile.Read(ref catalogReadCount);
+        public bool RejectCatalogRead { get; set; }
         public OwnerAuthorityIdentity Authority { get; } = new("smoke-server", "smoke-authority");
         public string Address { get; }
         public WorldCatalogSnapshot Catalog { get; set; } = WorldActionSmokeCatalog([]);
@@ -393,7 +476,13 @@ public partial class Main
                     response = await PreviewHandler(envelope.GetProperty("action").Deserialize<OwnerWorldCreationAction>(JsonOptions)!).ConfigureAwait(false);
                     break;
                 case OwnerPairingEndpoints.OwnerWorldList:
-                    response = Catalog;
+                    Interlocked.Increment(ref catalogReadCount);
+                    if (RejectCatalogRead)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                        response = new { error = "Controlled catalog failure." };
+                    }
+                    else response = Catalog;
                     break;
                 case OwnerPairingEndpoints.OwnerSaveList when ManualSaves is { } saves:
                     response = saves;

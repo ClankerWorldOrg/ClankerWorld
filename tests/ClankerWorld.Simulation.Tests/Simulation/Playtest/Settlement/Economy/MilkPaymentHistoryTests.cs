@@ -1,4 +1,5 @@
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Viewer.Observation;
@@ -12,99 +13,72 @@ public sealed partial class BusinessTradeTests
     [InlineData(2, true)]
     [InlineData(4, false)]
     [InlineData(4, true)]
-    public async Task MilkOffersRetainMovedPaymentIdentityThroughHostReloadAndResolution(int partialMoves, bool accept)
+    public async Task OrdinaryMilkTradesRetainMovedPaymentThroughHostReloadAndResolution(int partialMoves, bool accept)
     {
         var (state, buyer, seller, shop) = CreateShopState("store");
-        var inventory = state.Society.Society.Inventory;
         var home = state.Society.Society.GetInhabitant(seller).HouseholdId!;
-        inventory = InventoryFixture.AddLot(inventory, "history-milk-jug", "water_jug", home, 1, storageBuildingId: shop);
-        inventory = InventoryFixture.AddLot(inventory, "history-milk", "milk", home, 2,
-            storageBuildingId: shop, containerLotId: "history-milk-jug");
-        inventory = InventoryFixture.AddLot(inventory, "history-buyer-jug", "water_jug", buyer, 1);
+        var inventory = InventoryFixture.AddLot(state.Society.Society.Inventory,
+            "history-milk", "milk", home, 2, storageBuildingId: shop);
         var buyerHome = state.Society.Society.GetInhabitant(buyer).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == buyerHome &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var paymentId = "buyer-payment";
         inventory = InventoryFixture.Relocate(inventory, "history-start", paymentId, buyer, 6, storageBuildingId: house.InstanceId);
-        // Controlled earlier stock transactions; the native offer and resolution below run through the host.
         for (var index = 1; index <= partialMoves; index++)
         {
             var quantity = inventory.GetLot(paymentId).Quantity - 1;
             var moveId = $"personal:{buyer}:{index}:{paymentId}";
             inventory = InventoryFixture.Relocate(inventory, moveId, paymentId, buyer, quantity, carrierId: buyer);
-            paymentId += "#move:" + moveId;
+            paymentId = DerivedId.Create(paymentId + "#move:" + moveId);
             if (index < partialMoves)
                 inventory = InventoryFixture.Relocate(inventory, "history-return-" + index, paymentId, buyer, quantity,
                     storageBuildingId: house.InstanceId);
         }
-        Assert.Equal(partialMoves == 4, paymentId.Length > 512);
-        state = WithInventory(state, inventory) with { RoutineHelper = RoutineHelperSettings.Off, JevEnabled = false };
-        var initial = PrivateWorldRuntimeCodec.Encode(state);
+        Assert.InRange(paymentId.Length, 1, DerivedId.MaximumLength);
+        var paymentBefore = inventory.GetLot(paymentId).Quantity;
+        state = state with
+        {
+            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == buyer
+                ? person with { HungerBasisPoints = 5000, LastDecisionContext = null }
+                : person).ToArray(),
+        };
         var choices = new MilkHistoryChoices(seller, buyer);
-        using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(initial), _ => choices);
-        Assert.Equal(initial, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+        using var world = PrivateWorldRuntime.Restore(state, _ => choices);
         using var host = new MilkHistoryHost(world);
-        world.Resume();
-        for (var step = 0; step < 20 && world.ExportState().AnimalWorld.MilkOffers.Count == 0; step++)
+        if (world.Society.IsPaused) world.Resume();
+        for (var step = 0; step < 20 && !world.Society.Inventory.Offers.Any(offer => offer.State == DirectBarterState.Open); step++)
             await host.Advance();
         state = world.ExportState();
-        var offer = Assert.Single(state.AnimalWorld.MilkOffers);
-        Assert.Equal((buyer, seller, "history-milk", "history-buyer-jug", paymentId, shop),
-            (offer.BuyerId, offer.SellerId, offer.MilkLotId, offer.ReceivingJugId, offer.PaymentLotId, offer.BuildingId));
-        var held = world.Society.Inventory.GetReservation(offer.Id + "-milk");
-        Assert.Equal((offer.MilkLotId, home, 1, true, InventoryReservationState.Reserved),
-            (held.LotId, held.OwnerId, held.Quantity, held.IsExclusive, held.State));
+        var trade = Assert.Single(state.BusinessTrades!);
+        var offer = world.Society.Inventory.GetOffer(trade.OfferId);
+        Assert.Equal(("history-milk", paymentId, buyer, shop),
+            (offer.FirstLotId, offer.SecondLotId, trade.BuyerId, trade.BuildingInstanceId));
+        Assert.Equal(1, offer.FirstQuantity);
+        Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(offer.Id + ":first").State);
         var pending = host.Saved();
         using var reload = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(pending), _ => choices);
         Assert.Equal(pending, PrivateWorldRuntimeCodec.Encode(reload.ExportState()));
         using var reloadHost = new MilkHistoryHost(reload);
-        AssertInvalidOffer(offer with { PaymentLotId = paymentId + "-missing" });
-        AssertInvalidOffer(offer with { PaymentLotId = "buyer-payment" });
-        AssertInvalidOffer(offer with { ReceivingJugId = "history-milk-jug" });
-        AssertInvalidOffer(offer with { BuyerId = seller });
-        var forgedReservation = WithInventory(state, state.Society.Society.Inventory with
-        {
-            Reservations = state.Society.Society.Inventory.Reservations.Select(item => item.Id == held.Id
-                ? item with { Purpose = "unrelated-reservation" } : item).ToArray(),
-        });
-        Assert.Throws<InvalidDataException>(() => PrivateWorldRuntimeCodec.Encode(forgedReservation));
+        Assert.Throws<InvalidDataException>(() => PrivateWorldRuntimeCodec.Encode(state with
+        { BusinessTrades = state.BusinessTrades!.Select(item => item with { BuyerId = seller }).ToArray() }));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(pending, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         choices.Mode = accept ? "accept" : "decline";
-        world.Pause();
-        reload.Pause();
-        world.Resume();
-        reload.Resume();
-        for (var step = 0; step < 20 && world.ExportState().AnimalWorld.MilkOffers.Count > 0; step++)
+        world.SubmitInstruction(new("ordinary-milk-response", "owner", seller, OwnerInstructionKind.Suggestive, "Consider the shop offer."));
+        reload.SubmitInstruction(new("ordinary-milk-response", "owner", seller, OwnerInstructionKind.Suggestive, "Consider the shop offer."));
+        for (var step = 0; step < 20 && world.Society.Inventory.GetOffer(offer.Id).State == DirectBarterState.Open; step++)
         {
             await host.Advance();
             await reloadHost.Advance();
-            Assert.Equal(host.Saved(), reloadHost.Saved());
+            Assert.Equal(PrivateWorldRuntimeCodec.Encode(world.ExportState()), PrivateWorldRuntimeCodec.Encode(reload.ExportState()));
         }
-        Assert.Empty(world.ExportState().AnimalWorld.MilkOffers);
-        Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation(held.Id).State);
-        Assert.Equal(6 - partialMoves - (accept ? 1 : 0), world.Society.Inventory.GetLot(paymentId).Quantity);
+        Assert.Equal(accept ? DirectBarterState.Settled : DirectBarterState.Cancelled,
+            world.Society.Inventory.GetOffer(offer.Id).State);
         Assert.Equal(accept ? 1 : 2, world.Society.Inventory.GetLot("history-milk").Quantity);
-        Assert.Equal(accept ? 1 : 0, world.Society.Inventory.Lots.Where(lot => lot.ContainerLotId == "history-buyer-jug")
-            .Sum(lot => lot.Quantity));
-        if (accept)
-        {
-            var payment = Assert.Single(world.Society.Inventory.Lots, lot => lot.ProvenanceLotId == paymentId);
-            Assert.Equal((home, "wood", 1, new InventoryGroundPosition(offer.Position.X, offer.Position.Y)),
-                (payment.OwnerId, payment.ItemKind, payment.Quantity, payment.GroundPosition));
-        }
-        else Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.ProvenanceLotId == paymentId);
-        Assert.Equal((home, buyer), (world.Society.Inventory.GetLot("history-milk-jug").OwnerId,
-            world.Society.Inventory.GetLot("history-buyer-jug").OwnerId));
-        choices.Mode = "idle";
-        await host.Advance();
-        await reloadHost.Advance();
-        Assert.Equal(host.Saved(), reloadHost.Saved());
-        using var finished = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(host.Saved()), _ => choices);
-        Assert.Equal(host.Saved(), PrivateWorldRuntimeCodec.Encode(finished.ExportState()));
-
-        void AssertInvalidOffer(MilkSaleOffer forged) => Assert.Throws<InvalidDataException>(() =>
-            PrivateWorldRuntimeCodec.Encode(state with { AnimalWorld = state.AnimalWorld with { MilkOffers = [forged] } }));
+        Assert.Equal(paymentBefore - (accept ? offer.SecondQuantity : 0), world.Society.Inventory.GetLot(paymentId).Quantity);
+        Assert.All(world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk"), lot => Assert.Null(lot.ContainerLotId));
+        world.Validate();
     }
 
     private sealed class MilkHistoryChoices(string seller, string buyer) : IDecisionProvider
@@ -116,8 +90,9 @@ public sealed partial class BusinessTradeTests
         {
             request.Validate();
             var observation = request.Observation;
-            var prefix = Mode == "offer" && observation.InhabitantId == seller ? "animal:milk_offer:"
-                : observation.InhabitantId == buyer && Mode is "accept" or "decline" ? "animal:milk_" + Mode + ":" : "safe_idle";
+            var prefix = Mode == "offer" && observation.InhabitantId == buyer ? "business_shop:"
+                : observation.InhabitantId == seller && Mode is "accept" or "decline"
+                    ? Mode == "accept" ? "business_continue:" : "business_cancel:" : "safe_idle";
             var choice = observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal))
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,

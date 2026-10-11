@@ -132,7 +132,7 @@ public sealed partial class PrivateWorldRuntime
                 Order = current.Order! with { KnowledgeCopySourceArtifactId = null },
             };
         }
-        CreditOrderEffect(instruction, "writing:artifact:" + artifactId, 1);
+        CreditOrderEffect(instruction, AgentKnowledgeRules.WritingReceiptId(artifactId), 1);
     }
 
     private void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction)
@@ -179,7 +179,7 @@ public sealed partial class PrivateWorldRuntime
             var completed = knowledge.Artifacts.Where(item => item.OrderInstructionId == instruction.InstructionId)
                 .OrderBy(item => item.CreatedTick).ThenBy(item => item.Id, StringComparer.Ordinal).ToArray();
             if (order.CompletedUnits != completed.Length || completed.Length > 0 &&
-                order.LastEffectId != "writing:artifact:" + completed[^1].Id)
+                order.LastEffectId != AgentKnowledgeRules.WritingReceiptId(completed[^1].Id))
                 throw new InvalidDataException("Writing order progress has no matching completed physical artifacts.");
         }
     }

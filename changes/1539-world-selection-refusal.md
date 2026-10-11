@@ -1,0 +1,1 @@
+- Malformed Select World requests now receive a clear refusal instead of a server error, leaving the saved world unchanged.

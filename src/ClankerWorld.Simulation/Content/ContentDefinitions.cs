@@ -17,7 +17,7 @@ public readonly record struct ContentQuantity(string ResourceId, int Amount)
 {
     public void Validate()
     {
-        ContentPackageRules.ValidateLocalId(ResourceId);
+        ContentPackageRules.ValidateContentLocalId(ResourceId);
         if (Amount is < 1 or > ContentDefinitionRules.MaxQuantity)
         {
             throw new ArgumentOutOfRangeException(
@@ -559,6 +559,32 @@ public static class DeclarativeWorldContentCodec
 /// </summary>
 public static class ContentDefinitionPayloadCodec
 {
+    // Import checks identity bounds even before the existing typed-payload
+    // governance checks. Malformed payloads still fail at their usual validation boundary.
+    internal static void ValidateContentIdLengths(ContentDefinition definition)
+    {
+        if (definition.PayloadJson is null || definition.Kind is not (BuildingDefinition.SchemaKind or RecipeDefinition.SchemaKind))
+            return;
+        JsonDocument document;
+        try { document = JsonDocument.Parse(definition.PayloadJson); }
+        catch (JsonException) { return; }
+        using (document)
+        {
+            if (document.RootElement.ValueKind != JsonValueKind.Object) return;
+            foreach (var property in document.RootElement.EnumerateObject())
+            {
+                if (property.Name == "workstationBuildingId" && property.Value.ValueKind == JsonValueKind.String)
+                    ContentPackageRules.ValidateContentIdLength(property.Value.GetString()!);
+                if (property.Name is not ("buildCosts" or "inputs" or "outputs") || property.Value.ValueKind != JsonValueKind.Array)
+                    continue;
+                foreach (var quantity in property.Value.EnumerateArray())
+                    if (quantity.ValueKind == JsonValueKind.Object && quantity.TryGetProperty("resourceId", out var resource) &&
+                        resource.ValueKind == JsonValueKind.String)
+                        ContentPackageRules.ValidateContentIdLength(resource.GetString()!);
+            }
+        }
+    }
+
     private static readonly JsonSerializerOptions PayloadJsonOptions = new()
     {
         PropertyNameCaseInsensitive = false,
@@ -708,7 +734,7 @@ public static class ContentDefinitionRules
         ContentVersion version)
     {
         ContentPackageRules.ValidateDigest(packageDigest, nameof(packageDigest));
-        ContentPackageRules.ValidateLocalId(localId);
+        ContentPackageRules.ValidateContentLocalId(localId);
         if (version.Major < 0 || version.Minor < 0 || version.Patch < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(version), version, "Content versions cannot contain negative components.");

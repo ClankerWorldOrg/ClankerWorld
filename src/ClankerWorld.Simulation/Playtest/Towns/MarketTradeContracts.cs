@@ -31,8 +31,8 @@ public sealed record TownMarketState(string Id, string ProjectId, string HallBui
 public static class MarketTradeValidation
 {
     internal static bool HasExactOpenClaim(InventoryCheckpoint inventory, DirectBarterOffer offer, bool first) =>
-        inventory.Reservations.FirstOrDefault(claim => claim.Id == offer.Id + (first ? ":first" : ":second")) ==
-        new InventoryReservation(offer.Id + (first ? ":first" : ":second"),
+        inventory.Reservations.FirstOrDefault(claim => claim.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second"))) ==
+        new InventoryReservation(DerivedId.Create(offer.Id + (first ? ":first" : ":second")),
             first ? offer.FirstPartyId : offer.SecondPartyId, first ? offer.FirstLotId : offer.SecondLotId,
             first ? offer.FirstQuantity : offer.SecondQuantity, "barter:" + offer.Id, offer.ExpiryTick,
             true, InventoryReservationState.Reserved);
@@ -141,7 +141,7 @@ public static class MarketTradeValidation
                         receipt.DepositedTick < occupancy.StartedTick || receipt.DepositedTick > worldTick ||
                         occupancy.EndedTick is { } endedAt && receipt.DepositedTick > endedAt ||
                         receipt.InventoryEventId <= 0 || receipt.InventoryEventId > inventory.EventHistoryFloor + inventory.Events.Count ||
-                        receipt.LotId != receipt.SourceLotId && receipt.LotId != receipt.SourceLotId + "#move:" + receipt.Id + ":deposit")
+                        receipt.LotId != receipt.SourceLotId && receipt.LotId != DerivedId.Create(receipt.SourceLotId + "#move:" + TownRecordIds.DepositOperation(receipt.Id)))
                         throw Invalid("A Market stock receipt has forged or inconsistent deposit authority.");
                     var retainedEvent = inventory.Events.FirstOrDefault(item => item.EventId == receipt.InventoryEventId);
                     if (receipt.InventoryEventId > inventory.EventHistoryFloor && (retainedEvent is null ||
@@ -161,7 +161,7 @@ public static class MarketTradeValidation
                             trade.OccupancyId != receipt.OccupancyId || trade.SellerAgentId != receipt.SellerAgentId ||
                             trade.PaymentOwnerId != receipt.OwnerId || trade.PaymentKind != receipt.ItemKind ||
                             trade.SettledTick != receipt.DepositedTick || offer.SecondQuantity != receipt.Quantity ||
-                            receipt.SourceLotId != offer.SecondLotId && receipt.SourceLotId != offer.SecondLotId + "#barter:" + offerId)
+                            receipt.SourceLotId != offer.SecondLotId && receipt.SourceLotId != DerivedId.Create(offer.SecondLotId + "#barter:" + offerId))
                             throw Invalid("A Market payment deposit needs its actual exact settled exchange.");
                     }
                 }
@@ -198,7 +198,7 @@ public static class MarketTradeValidation
                     {
                         foreach (var first in new[] { true, false })
                         {
-                            var claim = inventory.Reservations.FirstOrDefault(item => item.Id == offer.Id + (first ? ":first" : ":second"));
+                            var claim = inventory.Reservations.FirstOrDefault(item => item.Id == DerivedId.Create(offer.Id + (first ? ":first" : ":second")));
                             // Missing or released claims are cancelled by runtime maintenance; retained live claims must be exact.
                             if (claim is not null && claim.State != InventoryReservationState.Released &&
                                 !HasExactOpenClaim(inventory, offer, first))
@@ -286,8 +286,8 @@ public static class MarketTradeRules
     public const int OfferLifetimeTicks = 120;
     public const string OfferPrefix = "market-trade:";
 
-    public static string Identity(string prefix, params string[] parts) => prefix +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(parts))));
+    public static string Identity(string prefix, params string[] parts) =>
+        DerivedId.Hash(JsonSerializer.Serialize(parts), prefix);
 
     public static string ReceiptId(string occupancyId, string sourceLotId, string ownerId,
         int quantity, long depositedTick, long ordinal, string? tradeOfferId = null) => Identity("market-stock:",

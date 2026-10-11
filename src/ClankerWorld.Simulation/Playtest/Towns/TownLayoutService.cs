@@ -436,6 +436,8 @@ public static class TownConstructionCandidateIds
     private const string BuildingPrefix = "build:building:";
     private const string RecipePrefix = "build:recipe:";
     private const string SiteMarker = ":site:";
+    private static readonly int MaximumCandidateIdLength = ContentPackageRules.MaximumContentIdLength +
+        BuildingPrefix.Length + SiteMarker.Length + 2 * 10 + 1; // Two nonnegative Int32 coordinates and their comma.
 
     public static string Building(string definitionId, GridPoint position) =>
         BuildingPrefix + definitionId + SiteMarker + position.X + "," + position.Y;
@@ -445,7 +447,7 @@ public static class TownConstructionCandidateIds
     public static bool TryParse(string candidateId, out TownConstructionCandidateSelection selection)
     {
         selection = default;
-        if (string.IsNullOrWhiteSpace(candidateId))
+        if (string.IsNullOrWhiteSpace(candidateId) || candidateId.Length > MaximumCandidateIdLength)
             return false;
 
         var isBuilding = candidateId.StartsWith(BuildingPrefix, StringComparison.Ordinal);
@@ -472,7 +474,7 @@ public static class TownConstructionCandidateIds
             value = value[..marker];
         }
 
-        if (string.IsNullOrWhiteSpace(value) || value.Length > 480)
+        if (string.IsNullOrWhiteSpace(value) || value.Length > ContentPackageRules.MaximumContentIdLength)
             return false;
         selection = new TownConstructionCandidateSelection(isBuilding, value, site);
         return true;

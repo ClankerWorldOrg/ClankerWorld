@@ -126,7 +126,7 @@ public static partial class SocietyFixture
         foreach (var memberId in members)
         {
             relationships.Add(new SocietyRelationship(
-                $"{id}:membership:{memberId}",
+                DerivedId.Create($"{id}:membership:{memberId}"),
                 1,
                 SocietyRelationshipType.HouseholdMembership,
                 id,
@@ -164,7 +164,7 @@ public static partial class SocietyFixture
         var household = checkpoint.GetHousehold(householdId);
         var memberIds = household.MemberIds.Append(founder.Id).Order(StringComparer.Ordinal).ToArray();
         var membership = new SocietyRelationship(
-            $"{householdId}:membership:{founder.Id}", 1,
+            DerivedId.Create($"{householdId}:membership:{founder.Id}"), 1,
             SocietyRelationshipType.HouseholdMembership,
             householdId, founder.Id, SocietyRelationshipState.Accepted,
             SocietyConsentState.ProtectedLifecycle, 0, 0,
@@ -252,7 +252,7 @@ public static partial class SocietyFixture
                 ? checkpoint.Households.Append(household).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray()
                 : checkpoint.Households.Select(item => item.Id == home ? household : item).ToArray();
             var membership = new SocietyRelationship(
-                $"{home}:membership:{id}", 1, SocietyRelationshipType.HouseholdMembership,
+                DerivedId.Create($"{home}:membership:{id}"), 1, SocietyRelationshipType.HouseholdMembership,
                 home, id, SocietyRelationshipState.Accepted,
                 SocietyConsentState.ProtectedLifecycle, checkpoint.WorldTick, checkpoint.WorldTick,
                 "household", home, new[] { home, id }.Order(StringComparer.Ordinal).ToArray());
@@ -286,9 +286,10 @@ public static partial class SocietyFixture
         if (household is null)
             return Reject(checkpoint, "household_join_rejected", $"{id}:missing_household");
 
-        var membershipId = $"{home}:membership:{id}";
+        var membershipKey = $"{home}:membership:{id}";
+        var membershipId = DerivedId.Create(membershipKey);
         if (checkpoint.Relationships.Any(item => item.Id == membershipId))
-            membershipId = $"{membershipId}:{checkpoint.WorldTick}";
+            membershipId = DerivedId.Create($"{membershipKey}:{checkpoint.WorldTick}");
         var membership = new SocietyRelationship(
             membershipId, 1, SocietyRelationshipType.HouseholdMembership,
             home, id, SocietyRelationshipState.Accepted,
@@ -333,6 +334,16 @@ public static partial class SocietyFixture
             Inhabitants = checkpoint.Inhabitants.Select(person =>
                 person.Id == id ? person with { Name = chosen, NeedsName = false, HasChosenName = true } : person).ToArray(),
         };
+        if (existing.HasChosenName && InhabitantNameRules.SurnameKey(existing.Name) is not null &&
+            InhabitantNameRules.SurnameKey(chosen) is null &&
+            next.Relationships.Any(relationship => relationship.ProposerId == id &&
+                relationship.Type == SocietyRelationshipType.BiologicalParentage &&
+                relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.EndedByDeath &&
+                InhabitantNameRules.RequiresParentSurname(next, relationship.TargetId) &&
+                InhabitantNameRules.AllowedChildSurnames(next, relationship.TargetId).Count == 0))
+        {
+            throw new ArgumentException("Keep a biological parent's surname available for each minor child.", nameof(name));
+        }
         return Commit(next, "inhabitant_renamed", id, id);
     }
 
@@ -775,7 +786,7 @@ public static partial class SocietyFixture
             throw new InvalidOperationException("Consumption requires an owned lot with sufficient quantity.");
         }
 
-        var reservationId = $"consume:{owner}:{lotId}:{checkpoint.Inventory.EventHistoryFloor + checkpoint.Inventory.Events.Count + 1}";
+        var reservationId = DerivedId.Create($"consume:{owner}:{lotId}:{checkpoint.Inventory.EventHistoryFloor + checkpoint.Inventory.Events.Count + 1}");
         var reserved = InventoryFixture.Reserve(
             checkpoint.Inventory,
             reservationId,
@@ -856,7 +867,7 @@ public static partial class SocietyFixture
             return Reject(checkpoint, "birth_rejected", $"{request.Id}:readiness_or_consent");
         }
 
-        var childId = $"{checkpoint.WorldId}:inhabitant:{request.Id}";
+        var childId = DerivedId.Create($"{checkpoint.WorldId}:inhabitant:{request.Id}");
         if (request.ChildName is { } childName)
         {
             if (InhabitantNameRules.CanonicalKey(childName) is null)
@@ -880,9 +891,9 @@ public static partial class SocietyFixture
             var reservationIds = new string[food.Count];
             for (var index = 0; index < food.Count; index++)
             {
-                var reservationId = request.FoodContributions is null
+                var reservationId = DerivedId.Create(request.FoodContributions is null
                     ? $"birth:{request.Id}:food"
-                    : $"birth:{request.Id}:food:{index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture)}";
+                    : $"birth:{request.Id}:food:{index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture)}");
                 reservationIds[index] = reservationId;
                 inventory = InventoryFixture.Reserve(inventory, reservationId, sources[index].OwnerId,
                     food[index].LotId, food[index].Quantity, $"birth:{request.Id}", checkpoint.WorldTick);
@@ -1456,7 +1467,7 @@ public static partial class SocietyFixture
     // Belief IDs appear in operational telemetry. Keep caller-provided prose
     // and other private content out of this identifier channel.
     private static bool IsSafeBeliefId(string? value) =>
-        IsCanonicalBoundedText(value, 128) &&
+        IsCanonicalBoundedText(value, DerivedId.MaximumLength) &&
         value!.All(character => char.IsAsciiLetterOrDigit(character) || character is ':' or '-' or '_');
 
     /// <summary>
@@ -1527,7 +1538,7 @@ public static partial class SocietyFixture
         long deathTick)
     {
         var inhabitant = checkpoint.GetInhabitant(inhabitantId);
-        var estateId = $"estate:{inhabitant.Id}:{deathTick.ToString(CultureInfo.InvariantCulture)}";
+        var estateId = EstateId(inhabitant.Id, deathTick);
         var householdBeneficiaries = checkpoint.Households
             .Where(household => household.MemberIds.Contains(inhabitant.Id, StringComparer.Ordinal))
             .SelectMany(household => household.MemberIds.Concat(household.CaregiverIds))
@@ -1751,8 +1762,8 @@ public static partial class SocietyFixture
                     var preserveIdentity = lot.Quantity == 1 && lot.ItemKind is "field_map" or "field_record" or "book";
                     nextLots.Add(lot with
                     {
-                        Id = preserveIdentity ? lot.Id : $"{lot.Id}#estate:{estate.Id}:{part.OwnerId}" +
-                            (merged.Count(candidate => candidate.OwnerId == part.OwnerId) > 1 ? ":storage:" + (part.StorageId ?? "ground") : ""),
+                        Id = preserveIdentity ? lot.Id : EstateSplitLotId(lot.Id, estate.Id, part.OwnerId,
+                            merged.Count(candidate => candidate.OwnerId == part.OwnerId) > 1 ? part.StorageId ?? "ground" : null),
                         OwnerId = part.OwnerId,
                         CarrierId = part.StorageId is null && lot.CarrierId != part.OwnerId ? lot.CarrierId : null,
                         Quantity = part.Quantity,
@@ -1791,9 +1802,7 @@ public static partial class SocietyFixture
             var speaker = current.GetInhabitant(estate.DeceasedId).Name;
             foreach (var listener in listeners)
             {
-                var memoryKey = $"final-words:{estate.Id}:{listener}";
-                var memoryId = memoryKey.Length <= 128 ? memoryKey :
-                    $"final-words:sha256:{Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(memoryKey)))}";
+                var memoryId = FinalWordsMemoryId(estate.Id, listener);
                 current = RecordSocialMemory(current, new SocietySocialMemory(
                     memoryId, listener, estate.DeceasedId,
                     $"{speaker}'s final words were: '{words}'", "private", targetTick)
@@ -1856,7 +1865,7 @@ public static partial class SocietyFixture
         string sourceId)
     {
         return new SocietyRelationship(
-            $"birth:{request.Id}:{type}:{sourceId}",
+            DerivedId.Create($"birth:{request.Id}:{type}:{sourceId}"),
             1,
             type,
             sourceId,
@@ -1999,7 +2008,7 @@ public static partial class SocietyFixture
         SocietyRelationship relationship)
     {
         var participants = new HashSet<string>([relationship.ProposerId, relationship.TargetId], StringComparer.Ordinal);
-        var unitId = $"domestic:partnership:{relationship.Id}";
+        var unitId = DomesticPartnershipId(relationship.Id);
         return checkpoint with
         {
             Inhabitants = checkpoint.Inhabitants.Select(person =>
@@ -2017,7 +2026,7 @@ public static partial class SocietyFixture
         var participants = new HashSet<string>([relationship.ProposerId, relationship.TargetId], StringComparer.Ordinal);
         var unitByCaregiver = participants.ToDictionary(
             id => id,
-            id => $"domestic:separate:{relationship.Id}:{id}",
+            id => DomesticSeparatedId(relationship.Id, id),
             StringComparer.Ordinal);
         return checkpoint with
         {
@@ -2035,7 +2044,7 @@ public static partial class SocietyFixture
         person.Status == SocietyInhabitantStatus.Active &&
         person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
 
-    private static string DomesticPersonUnit(string inhabitantId) => $"domestic:person:{inhabitantId}";
+    private static string DomesticPersonUnit(string inhabitantId) => DerivedId.Create($"domestic:person:{inhabitantId}");
 
     private static SocietyOperationResult Commit(
         SocietyCheckpoint checkpoint,
@@ -2168,20 +2177,21 @@ public static partial class SocietyFixture
 
     private static bool BirthFoodRequestMatches(InventoryCheckpoint inventory, SocietyBirthRequest request)
     {
-        var prefix = $"birth:{request.Id}:food:";
-        var receipts = inventory.Reservations.Where(item => item.Purpose == $"birth:{request.Id}" &&
-                item.Id.StartsWith(prefix, StringComparison.Ordinal))
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+        var purpose = $"birth:{request.Id}";
+        var legacyId = DerivedId.Create(purpose + ":food");
+        var receipts = inventory.Reservations.Where(item => item.Purpose == purpose).ToArray();
         if (request.FoodContributions is not { } food)
-            return receipts.Length == 0;
-        if (inventory.Reservations.Any(item => item.Id == $"birth:{request.Id}:food") || receipts.Length != food.Count)
+            return receipts.All(receipt => receipt.Id == legacyId);
+        if (receipts.Any(item => item.Id == legacyId) || receipts.Length != food.Count)
             return false;
         for (var index = 0; index < food.Count; index++)
-            if (receipts[index].Id != prefix + index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture) ||
-                receipts[index].State != InventoryReservationState.Completed ||
-                receipts[index].Purpose != $"birth:{request.Id}" ||
-                receipts[index].LotId != food[index].LotId || receipts[index].Quantity != food[index].Quantity)
+        {
+            var id = DerivedId.Create(purpose + ":food:" + index.ToString("D2", CultureInfo.InvariantCulture));
+            var receipt = receipts.SingleOrDefault(item => item.Id == id);
+            if (receipt is null || receipt.State != InventoryReservationState.Completed ||
+                receipt.LotId != food[index].LotId || receipt.Quantity != food[index].Quantity)
                 return false;
+        }
         return true;
     }
 
