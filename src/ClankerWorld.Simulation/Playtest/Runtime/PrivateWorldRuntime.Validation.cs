@@ -504,6 +504,7 @@ public sealed partial class PrivateWorldRuntime
         var travelMap = TravelMap(state);
 
         using var society = SocietyWorldRuntime.Restore(state.Society);
+        ValidateActionRefusals(state);
         if (state.SchemaVersion >= ObserverGuidanceSchemaVersion &&
             (state.Instructions is null || state.CompletedInstructionIds is null))
             throw new InvalidDataException($"Private-world schema {ObserverGuidanceSchemaVersion} requires authoritative instruction state.");

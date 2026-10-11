@@ -17,7 +17,8 @@ public sealed partial class PrivateWorldRuntimeService(
     ILogger<PrivateWorldRuntimeService>? logger = null,
     WorldAutosaveStore? autosave = null,
     ManualWorldSaveStore? manualSaves = null,
-    ProviderConfigurationStore? providers = null) : BackgroundService
+    ProviderConfigurationStore? providers = null,
+    PrivateWorldTickFailurePolicy failurePolicy = PrivateWorldTickFailurePolicy.Strict) : BackgroundService
 {
     private string? lastGateState;
     private bool recoveryWritePending;
@@ -227,12 +228,31 @@ public sealed partial class PrivateWorldRuntimeService(
         using var tickCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var monitor = MonitorTickGateAsync(tickCancellation, monitorLifetime.Token);
         var preparedChildBindings = new Dictionary<string, FrozenChildModelBinding>(StringComparer.Ordinal);
+        var checkpointCompacted = false;
+        IReadOnlyList<PreparedChildModelSelection> PrepareModels(PrivateWorldRuntime proposed, IReadOnlyList<PlaytestWorldEvent> worldEvents)
+        {
+            preparedChildBindings.Clear();
+            return PrepareChildModelSelections(proposed, worldEvents, preparedChildBindings);
+        }
+        Action PrepareCheckpoint(PrivateWorldRuntime proposed)
+        {
+            var write = stateFile.PrepareSave(proposed, out var compacted);
+            return () =>
+            {
+                writingCheckpoint = true;
+                write();
+                writingCheckpoint = false;
+                checkpointCompacted = compacted;
+            };
+        }
         PrivateWorldStepResult result;
         try
         {
-            result = await runtime.AdvanceOneTickNonBlockingAsync(() => clientPresence.HasActiveClient,
-                (proposed, events) => PrepareChildModelSelections(proposed, events, preparedChildBindings),
-                tickCancellation.Token);
+            result = failurePolicy == PrivateWorldTickFailurePolicy.Strict
+                ? await runtime.AdvanceOneTickNonBlockingAsync(() => clientPresence.HasActiveClient,
+                    PrepareModels, tickCancellation.Token)
+                : await runtime.AdvanceOneTickWithCheckpointAsync(PrepareCheckpoint,
+                    () => clientPresence.HasActiveClient, PrepareModels, failurePolicy, tickCancellation.Token);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && tickCancellation.IsCancellationRequested)
         {
@@ -256,26 +276,27 @@ public sealed partial class PrivateWorldRuntimeService(
                 // The birth descriptor is part of the runtime tick commit. Persist it
                 // before touching provider storage, so manual saves, world switches,
                 // and shutdown cannot publish an unbound newborn.
-                writingCheckpoint = true;
-                if (providers is null)
+                if (failurePolicy == PrivateWorldTickFailurePolicy.Strict)
                 {
-                    _ = stateFile.Save(runtime);
-                }
-                else
-                {
-                    lock (providers.WorldMutationGate)
+                    writingCheckpoint = true;
+                    if (providers is null) _ = stateFile.Save(runtime);
+                    else lock (providers.WorldMutationGate)
                         _ = stateFile.Save(runtime);
+                    writingCheckpoint = false;
                 }
-                writingCheckpoint = false;
                 if (!TryBindPendingChildModels(out _))
                 {
                     LogGateTransition("waiting_for_child_model_binding", runtime.WorldTick);
                     return false;
                 }
             }
-            writingCheckpoint = true;
-            var compacted = stateFile.Save(runtime);
-            writingCheckpoint = false;
+            var compacted = checkpointCompacted;
+            if (failurePolicy == PrivateWorldTickFailurePolicy.Strict)
+            {
+                writingCheckpoint = true;
+                compacted = stateFile.Save(runtime);
+                writingCheckpoint = false;
+            }
             if (compacted && logger is not null)
             {
                 var checkpoint = runtime.ExportState();
