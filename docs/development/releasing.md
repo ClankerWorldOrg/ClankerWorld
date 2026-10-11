@@ -130,6 +130,26 @@ Record the build and each result. A failed check gets a Bug issue and blocks
 the release unless the owner explicitly accepts it. This short release check
 does not claim that the remaining `playtest/` checks were performed.
 
+## Nightly builds
+
+The [Nightly workflow](../../.github/workflows/nightly.yml) publishes a build of
+main every night as a GitHub pre-release, so Developer mode can try main
+without a release (the owner's choice, October 10). It is not a release and
+needs no release gate:
+
+- It is tagged `v<version>-nightly.<date>.<run>`, such as
+  `v0.1.0-nightly.20261011.12`, and the game reports that version. It carries
+  the same two assets as an alpha, so the launcher installs and checks it the
+  same way. New nightly installs are offered in Developer mode. Installed
+  versions and a version explicitly requested by a saved world remain
+  available when Developer mode is off.
+- It runs only when main has a commit the newest nightly doesn't have and
+  main's CI passed on that commit. Run it by hand from Actions to publish one
+  sooner.
+- It keeps the seven newest nightly builds and deletes older ones with their
+  tags, the one exception to never deleting a pushed tag. Never use a nightly
+  tag for anything else.
+
 Add a changelog entry in `changes/` in the same commit as player-visible
 gameplay/UI, world-runtime, save-compatibility, deployment, packaging or
 security changes; see [the contribution rules](../../CONTRIBUTING.md#keep-documentation-and-the-changelog-useful).
