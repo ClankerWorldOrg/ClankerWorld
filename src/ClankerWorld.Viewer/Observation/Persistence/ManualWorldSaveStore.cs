@@ -105,7 +105,8 @@ public sealed partial class ManualWorldSaveStore
             if (previousMetadata.Save.Id != id || previousMetadata.Save.IsAutosave ||
                 previousMetadata.WorldId != state.Society.Society.WorldId)
                 throw new InvalidOperationException("Only a named save from this world can be overwritten.");
-            var previousBytes = File.ReadAllBytes(CommittedStatePath(id, previousMetadata));
+            var previousPath = CommittedStatePath(id, previousMetadata);
+            var previousBytes = File.ReadAllBytes(previousPath);
             var oldCheckpoint = PrivateWorldRuntimeCodec.Decode(previousBytes);
             if (oldCheckpoint.Society.Society.WorldId != previousMetadata.WorldId)
                 throw new InvalidDataException("The selected checkpoint does not match its metadata.");
@@ -159,6 +160,14 @@ public sealed partial class ManualWorldSaveStore
             AdvanceTimeline(worldId, timeline, saved, bytes);
             WriteAtomic(MetadataPath(id), JsonSerializer.SerializeToUtf8Bytes(new Metadata(
                 saved, assignments, autosaveSettings, worldId, generation)), overwrite: true);
+            // Publication has committed. The independent recovery copy preserves
+            // these old bytes; cleanup failure must not fail the new save.
+            try { File.Delete(previousPath); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                if (logger is not null)
+                    ManualWorldSaveTelemetry.SupersededCheckpointRetained(logger, id, exception.GetType().Name);
+            }
             return new ManualSaveOverwriteReceipt(saved, backup.Id);
         }
     }
