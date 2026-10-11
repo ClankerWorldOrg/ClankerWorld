@@ -21,7 +21,7 @@ work reservations and receipts, memories and public Town record handles.
 The separate provenance and ownership references remain complete. Numbered
 Town handles retain a counter and validate by exact recomputation against the
 original scope. Earlier alpha saves are refused and preserved; no migration
-runs. The version is provisional until merge.
+runs.
 
 Strict reload and replay must preserve the bounded handle, complete source
 links, reservations, payment, ownership and personal recall. Display names,
@@ -74,7 +74,7 @@ agent's model choice can carry a thinking level, written only when one is
 chosen. Provider files from before Anthropic was added load with an empty
 Anthropic record; the provider file's schema stays 3.
 
-Private-world schema 123 and world-systems schema 4 remove the unused prototype
+Private-world schema 124 and world-systems schema 4 remove the unused prototype
 faction/law, currency and culture collections and the culture-tag bound.
 Current saves retain weather, ecology, chunks and the native Town law and
 ownership systems. Creation, play and replay keep their existing behavior.
@@ -1144,7 +1144,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current private-world checkpoint schema, currently
-`PrivateWorldRuntime.StateSchemaVersion` 122. The minimum supported schema is
+`PrivateWorldRuntime.StateSchemaVersion` 124. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no private-world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
