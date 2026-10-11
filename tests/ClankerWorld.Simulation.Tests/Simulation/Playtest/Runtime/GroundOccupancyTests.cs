@@ -33,7 +33,7 @@ public sealed class GroundOccupancyTests
         var content = state.WorldContent!;
         var simulation = state.WorldSimulation!;
         var towns = ReadField<CivicSystem>(world, "civicSystem").State.Towns;
-        var liveFields = ReadField<List<FarmFieldState>>(world, "fields");
+        var liveFields = ReadField<FarmingSystem>(world, "farmingSystem").State.Fields;
         var liveRoads = ReadField<HashSet<GridPoint>>(world, "roadTiles");
         var liveBridges = ReadField<List<BridgeState>>(world, "bridges");
         var ground = new GroundOccupancy(map, content, simulation, liveFields,

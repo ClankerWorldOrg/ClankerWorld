@@ -1,0 +1,1 @@
+- In a disposable world with a Farmhouse, give an adult the tools and seeds to prepare, plant, tend and harvest a household field. Save and reload while work is in progress, then plant a tree outside the Town. Work should continue with the same stock and tools, and each completed planting should use one seed. ([#1384](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1384))

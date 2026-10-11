@@ -33,11 +33,13 @@ public sealed partial class PrivateWorldRuntime
             ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hoe) is null) return null;
         if (kind == FarmWorkKind.Till)
         {
+            var queryFertility = fertility;
             var heldByOthers = HouseholdLandHeldByOthers(household);
-            return NearbyFarmTiles(farmhouse.Position).Where(point => !heldByOthers.Contains(point) && FarmableFreeTile(point))
+            return NearbyFarmTiles(farmhouse.Position).Where(point => !heldByOthers.Contains(point) &&
+                    farmingSystem.FarmableFreeTile(farmingWorld, point, queryFertility))
                 .Where(point => order.TargetPosition is null || point == order.TargetPosition)
                 .OrderBy(point => map.FootDistance(person.Position, point))
-                .ThenByDescending(point => fertility.At(point))
+                .ThenByDescending(point => queryFertility.At(point))
                 .ThenBy(point => point.Y).ThenBy(point => point.X)
                 .Cast<GridPoint?>().FirstOrDefault(point => CanWalkToFieldOrderSite(actor, person.Position, point!.Value));
         }
