@@ -102,13 +102,12 @@ public sealed partial class PrivateWorldRuntime
         var foodOwners = town is null ? new HashSet<string>(StringComparer.Ordinal) { householdId }
             : residents.Select(person => person.Id).Concat(residents.Select(person => person.HouseholdId)
                 .OfType<string>()).ToHashSet(StringComparer.Ordinal);
-        var stock = checkpoint.Inventory.Lots.Where(lot => foodOwners.Contains(lot.OwnerId) &&
-            IsEdibleFood(lot.ItemKind) && InUsableVesselOrLoose(lot)).Sum(AvailableLotQuantity);
+        var stock = HoldingsTotal(foodOwners, EdibleFoodGoods);
         // The budget changes no ownership or access: each household still works
         // its own fields and must physically carry its own planting supplies.
         var farmingHouseholds = town is null ? 1 : residents.Select(person => person.HouseholdId).OfType<string>()
             .Distinct(StringComparer.Ordinal).Count(owner => FarmhouseForHousehold(owner)?.TownId == town.Id);
-        return (Math.Max(0, residents.Length * FarmFieldRules.MealsPerPersonPerDay * 2 - stock),
+        return ((int)Math.Max(0, residents.Length * FarmFieldRules.MealsPerPersonPerDay * 2 - stock),
             Math.Max(1, farmingHouseholds));
     }
 

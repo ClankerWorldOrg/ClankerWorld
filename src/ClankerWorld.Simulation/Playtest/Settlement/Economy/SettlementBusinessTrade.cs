@@ -130,9 +130,7 @@ public sealed partial class PrivateWorldRuntime
             var household = HouseholdFor(actor);
             // Trial reserve for real iron-tool work, not a tool to equip.
             return HouseholdBuildingWithTag(household, "blacksmith") is not null &&
-                society.Checkpoint.Inventory.Lots.Where(item => item.ItemKind == "iron" &&
-                    !OnBorrowedMarketStall(item) &&
-                    (item.OwnerId == actor || item.OwnerId == household)).Sum(AvailableLotQuantity) < 2;
+                HoldingsTotal(new[] { actor, household }.OfType<string>(), GoodsKinds.One("iron")) < 2;
         }
         if (PersonalEquipmentRules.IsCarryAid(lot.ItemKind))
             return PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) <

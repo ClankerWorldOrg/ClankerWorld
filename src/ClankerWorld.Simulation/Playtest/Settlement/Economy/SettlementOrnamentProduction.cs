@@ -14,8 +14,6 @@ public sealed partial class PrivateWorldRuntime
                 recipe.Tags.Contains("ornament", StringComparer.Ordinal) && NeedsRecipeOutput(recipe, household))
             .SelectMany(recipe => recipe.Inputs).Where(input => input.ResourceId == kind)
             .Select(input => input.Amount * SupplyBatches).DefaultIfEmpty(0).Max();
-        return target > 0 && society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == kind &&
-                !OnBorrowedMarketStall(lot) &&
-                (lot.OwnerId == household || lot.OwnerId == actor)).Sum(AvailableLotQuantity) < target;
+        return target > 0 && HoldingsTotal([household, actor], GoodsKinds.One(kind)) < target;
     }
 }
