@@ -21,8 +21,7 @@ public sealed partial class PrivateWorldRuntime
         trade.SettledTick is null && trade.CancellationReason is null;
 
     /// <summary>The Hall, stall slots and aisles of every standing Market, which other building and planting leave clear.</summary>
-    private IEnumerable<GridPoint> MarketSiteTiles() => towns.SelectMany(town => town.Markets)
-        .Where(market => market.RemovedTick is null).SelectMany(market => MarketContent.SiteTiles(market.Site));
+    private IEnumerable<GridPoint> MarketSiteTiles() => Ground.MarketSites;
 
     /// <summary>Household goods stay on sale while one of the household's members borrows the stall they lie on.</summary>
     private bool OnBorrowedMarketStall(InventoryLot lot) => OnBorrowedMarketStall(lot, towns);

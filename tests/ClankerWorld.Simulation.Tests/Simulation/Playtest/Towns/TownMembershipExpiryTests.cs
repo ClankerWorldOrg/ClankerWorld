@@ -120,9 +120,10 @@ public sealed partial class TownMembershipTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan(bool deferEntry)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan(bool deferEntry, bool delayEntry)
     {
         var newcomer = NewAgentId();
         var approved = await OneSponsoredApprovalAsync("membership-held-acceptance", newcomer);
@@ -130,13 +131,15 @@ public sealed partial class TownMembershipTests
         var deadline = proposal.SettledTick!.Value + AcceptanceDay;
         using var waiting = Reopen(approved, new ScriptedModel());
         await AdvanceUntil(waiting, () => waiting.WorldTick == deadline - 2, AcceptanceDay);
-        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry);
+        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry, delayEntry);
         using var world = Reopen(Paused(waiting), holding);
+        Task? capturedHeldTask = null;
         try
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             // The committed request exists before the provider's background preparation enters.
             var (heldRequest, heldTask) = CaptureHeldAdmissionCall(world, newcomer);
+            capturedHeldTask = heldTask;
             Assert.False(heldTask.IsCompleted);
             if (deferEntry) Assert.False(holding.Started.Task.IsCompleted);
             var offered = heldRequest.Observation;
@@ -145,6 +148,13 @@ public sealed partial class TownMembershipTests
             AssertOfferedApprovalClock(offered, proposal, "about 36 world minutes left");
             Assert.Equal("approved", Assert.Single(world.Towns[0].Admissions!).Status);
             var property = AdmissionPhysicalProperty(world);
+            // Dispatch registration is not provider entry. Observe the real callback
+            // before spending the last acceptance tick or opening its reply gates.
+            var beforeEntry = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+            Assert.Same(heldRequest, await holding.Arrived.Task.WaitAsync(TimeSpan.FromSeconds(30)));
+            Assert.Equal(beforeEntry, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+            Assert.False(heldTask.IsCompleted);
+            if (deferEntry) Assert.False(holding.Started.Task.IsCompleted);
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             Assert.Equal(deadline, world.WorldTick);
             Assert.Equal("acceptance_expired", Assert.Single(world.Towns[0].Admissions!).Reason);
@@ -218,6 +228,7 @@ public sealed partial class TownMembershipTests
         {
             holding.Enter.TrySetResult(true);
             holding.Release.TrySetResult(true);
+            if (capturedHeldTask is not null) await capturedHeldTask.WaitAsync(TimeSpan.FromSeconds(30));
         }
     }
 
@@ -344,19 +355,24 @@ public sealed partial class TownMembershipTests
     private sealed class HeldAdmissionModel : IDecisionProvider
     {
         private readonly string newcomer;
+        private readonly bool delayEntry;
 
-        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry)
+        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry, bool delayEntry)
         {
             this.newcomer = newcomer;
+            this.delayEntry = delayEntry;
             Choice = choice;
             if (!deferEntry) Enter.TrySetResult(true);
         }
 
         public const string StaleThought = "This held admission reply must not commit after expiry.";
         public string Choice { get; }
-        public TaskCompletionSource<bool> Enter { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<CognitionDecisionRequest> Arrived { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        // Release the private provider inline, without queuing another worker
+        // between opening a gate and producing the held response.
+        public TaskCompletionSource<bool> Enter { get; } = new();
         public TaskCompletionSource<CognitionDecisionRequest> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> Release { get; } = new();
         public TaskCompletionSource<CognitionDecisionResponse> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -372,6 +388,8 @@ public sealed partial class TownMembershipTests
             if (held)
             {
                 selected = Choice;
+                if (delayEntry) await Task.Delay(TimeSpan.FromSeconds(6), CancellationToken.None);
+                Arrived.TrySetResult(request);
                 await Enter.Task;
                 Started.TrySetResult(request);
                 // Deliberately return despite cancellation: the actual deadline must defeat a previously valid personal reply.

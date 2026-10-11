@@ -57,9 +57,13 @@ before agreement, rollback, strict reload and complete-byte replay remain checke
 The Town membership deadline fixture captures the exact registered hosted
 request at the last valid acceptance tick without waiting for the provider's
 held-request startup signal. It checks that request's acceptance choice and
-remaining world time, expires the approval, then releases the actual provider.
+remaining world time, then observes entry of that same provider callback before
+advancing to expiry. The entry wait has a separate thirty-second diagnostic
+bound and preserves complete checkpoint bytes. Private release gates complete
+inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
-uses the same request. Reply and actual wrapper-completion waits retain their
+uses the same request; another row delays real provider entry for six seconds.
+Reply and actual wrapper-completion waits retain their
 five-second bounds; the completion loop retains eight world ticks. The remaining
 deadline, stale-generation, thought exclusion, physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
@@ -401,6 +405,18 @@ version. CI uploads it as the `clankerworld-launcher-windows-11-x64` artifact.
 `bash scripts/verify-godot-client.sh` also opens the launcher scene headlessly
 with `--launcher-smoke-test`. Its install, hash-check, repair and remove logic
 lives in plain C# under `Launcher/` and is tested in `LauncherTests`.
+
+Developer mode offers separate test data, per-run detailed logs and a local
+portable build picker. Build a local portable game with the game export and
+package commands above, unpack its zip, then choose its `ClankerWorld.exe`.
+The game and package manifests carry `# Launcher options: developer-data-v1`;
+the launcher refuses the new run options on a build without that marker so an
+older game cannot silently ignore test isolation. Local builds need their
+bundled `host/ClankerWorld.Viewer.exe` too. Normal installs retain the existing
+download and manifest checks; local builds are files the developer chooses.
+See [Launcher developer runs](how-it-works.md#launcher-developer-runs) for the
+data paths and logging switches. These controls still need the listed Windows
+playtest.
 
 The program icon, `src/ClankerWorld.GodotClient/icon.ico`, is generated from
 the logo art in `UI/MenuLogo.cs` and embedded in the exported `.exe`. After

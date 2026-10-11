@@ -14,7 +14,7 @@ public sealed partial class PrivateWorldRuntime
                 simulation.BuildingExpansions is { Count: > 0 } || simulation.GuestInvitations is { Count: > 0 }))
             throw new InvalidDataException("Building expansions and guest invitations require private-world schema 30.");
         var buildings = simulation.Buildings.ToDictionary(item => item.InstanceId, StringComparer.Ordinal);
-        var definitions = content.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
+        var definitions = content.BuildingDefinitions;
         var people = society.Inhabitants.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var allJobIds = simulation.ProductionJobs.Concat(simulation.CropBuilds ?? []).Select(item => item.JobId)
             .ToHashSet(StringComparer.Ordinal);

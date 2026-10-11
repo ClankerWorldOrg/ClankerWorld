@@ -17,13 +17,28 @@ public sealed partial class PrivateWorldRuntimeService(
     ILogger<PrivateWorldRuntimeService>? logger = null,
     WorldAutosaveStore? autosave = null,
     ManualWorldSaveStore? manualSaves = null,
-    ProviderConfigurationStore? providers = null) : BackgroundService
+    ProviderConfigurationStore? providers = null,
+    PrivateWorldTickFailurePolicy failurePolicy = PrivateWorldTickFailurePolicy.Strict) : BackgroundService
 {
     private string? lastGateState;
     private bool recoveryWritePending;
     private bool invalidStateHalt;
     private bool writingCheckpoint;
     private readonly Dictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
+
+    [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
+        Message = "world_action_refused tick={WorldTick} inhabitant={InhabitantId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
+    private static partial void LogActionRefused(ILogger logger, long worldTick, string inhabitantId, string choiceKind, string check);
+
+    private static string RefusedChoiceKind(string candidate) => candidate.Split(':', 2)[0] switch
+    {
+        "explore" or "explore_for" => "exploration",
+        "consume_food" or "drink_milk" => "food",
+        "produce_item" => "production",
+        "repair_equipment" => "repair",
+        "gather_food" => "gathering",
+        _ => "other",
+    };
 
     [LoggerMessage(EventId = 2287, Level = LogLevel.Error,
         Message = "world_recovery outcome={Outcome} tick={WorldTick} reason={Reason}")]
@@ -227,12 +242,39 @@ public sealed partial class PrivateWorldRuntimeService(
         using var tickCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var monitor = MonitorTickGateAsync(tickCancellation, monitorLifetime.Token);
         var preparedChildBindings = new Dictionary<string, FrozenChildModelBinding>(StringComparer.Ordinal);
+        var checkpointCompacted = false;
+        IReadOnlyList<PreparedChildModelSelection> PrepareModels(PrivateWorldRuntime proposed, IReadOnlyList<PlaytestWorldEvent> worldEvents)
+        {
+            preparedChildBindings.Clear();
+            return PrepareChildModelSelections(proposed, worldEvents, preparedChildBindings);
+        }
+        Action PrepareCheckpoint(PrivateWorldRuntime proposed)
+        {
+            var write = stateFile.PrepareSave(proposed, out var compacted);
+            return () =>
+            {
+                writingCheckpoint = true;
+                try { write(); }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    // This admitted birth remains in memory for the paused write
+                    // retry. Its copied default key cannot be rebuilt from its slot ID.
+                    foreach (var (childId, binding) in preparedChildBindings)
+                        pendingChildModelBindings[childId] = binding;
+                    throw;
+                }
+                writingCheckpoint = false;
+                checkpointCompacted = compacted;
+            };
+        }
         PrivateWorldStepResult result;
         try
         {
-            result = await runtime.AdvanceOneTickNonBlockingAsync(() => clientPresence.HasActiveClient,
-                (proposed, events) => PrepareChildModelSelections(proposed, events, preparedChildBindings),
-                tickCancellation.Token);
+            result = failurePolicy == PrivateWorldTickFailurePolicy.Strict
+                ? await runtime.AdvanceOneTickNonBlockingAsync(() => clientPresence.HasActiveClient,
+                    PrepareModels, tickCancellation.Token)
+                : await runtime.AdvanceOneTickWithCheckpointAsync(PrepareCheckpoint,
+                    () => clientPresence.HasActiveClient, PrepareModels, failurePolicy, tickCancellation.Token);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && tickCancellation.IsCancellationRequested)
         {
@@ -247,6 +289,13 @@ public sealed partial class PrivateWorldRuntimeService(
         LogGateTransition(result.Advanced ? "advancing" : result.Outcome, result.WorldTick);
         if (result.Advanced)
         {
+            if (logger is not null)
+                foreach (var worldEvent in result.Events.Where(item => item.Kind == "action_refused"))
+                {
+                    var refusal = System.Text.Json.JsonSerializer.Deserialize<PrivateWorldActionRefusal>(worldEvent.Detail)!;
+                    LogActionRefused(logger, worldEvent.WorldTick, refusal.InhabitantId,
+                        RefusedChoiceKind(refusal.CandidateId), refusal.Check);
+                }
             foreach (var (childId, binding) in preparedChildBindings)
                 pendingChildModelBindings[childId] = binding;
             var bornChildren = result.Events.Where(item => item.Kind == "child_born").Select(item => item.Detail)
@@ -256,26 +305,27 @@ public sealed partial class PrivateWorldRuntimeService(
                 // The birth descriptor is part of the runtime tick commit. Persist it
                 // before touching provider storage, so manual saves, world switches,
                 // and shutdown cannot publish an unbound newborn.
-                writingCheckpoint = true;
-                if (providers is null)
+                if (failurePolicy == PrivateWorldTickFailurePolicy.Strict)
                 {
-                    _ = stateFile.Save(runtime);
-                }
-                else
-                {
-                    lock (providers.WorldMutationGate)
+                    writingCheckpoint = true;
+                    if (providers is null) _ = stateFile.Save(runtime);
+                    else lock (providers.WorldMutationGate)
                         _ = stateFile.Save(runtime);
+                    writingCheckpoint = false;
                 }
-                writingCheckpoint = false;
                 if (!TryBindPendingChildModels(out _))
                 {
                     LogGateTransition("waiting_for_child_model_binding", runtime.WorldTick);
                     return false;
                 }
             }
-            writingCheckpoint = true;
-            var compacted = stateFile.Save(runtime);
-            writingCheckpoint = false;
+            var compacted = checkpointCompacted;
+            if (failurePolicy == PrivateWorldTickFailurePolicy.Strict)
+            {
+                writingCheckpoint = true;
+                compacted = stateFile.Save(runtime);
+                writingCheckpoint = false;
+            }
             if (compacted && logger is not null)
             {
                 var checkpoint = runtime.ExportState();

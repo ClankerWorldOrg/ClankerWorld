@@ -8,11 +8,7 @@ public sealed partial class PrivateWorldRuntime
 {
     private void RepairSavedRoadFootprints()
     {
-        var occupied = worldSimulation.Buildings.SelectMany(building =>
-        {
-            var design = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
-            return WorldContentSimulationRules.Footprint(design, building);
-        }).ToHashSet();
+        var occupied = Ground.BuildingFootprints.ToHashSet();
         var removed = roadTiles.RemoveWhere(occupied.Contains);
         if (removed > 0) AppendEvent("saved_road_footprints_repaired", $"removed:{removed}");
     }

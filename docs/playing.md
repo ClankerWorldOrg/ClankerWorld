@@ -51,7 +51,15 @@ saved, with **Repair** (checks every file against the release) and **Remove**
 (keeps your worlds), plus the versions you can install. **Settings** has
 **Developer mode**, which turns on F12 Developer tools in the game and lists
 the nightly builds of main under **Versions**, and buttons for the saves and
-logs folders. Started without the launcher, the game turns
+logs folders. With Developer mode on, **Use test data folder** is on by default:
+the game keeps its test worlds, keys and settings apart from your usual data.
+**Open test data folder** shows that folder; the saves and logs buttons follow
+the selected folder. Turn **Use test data folder** off to play your usual worlds.
+**Detailed logs** adds diagnostic detail for the next run. **Run a local build**
+lets you choose a locally built portable `ClankerWorld.exe` with its `host`
+folder. Builds too old to support these data and logging options are refused
+until you choose a newer build or turn the options off.
+Started without the launcher, the game turns
 Developer mode on with the `--developer-mode` start option
 (`ClankerWorld.exe -- --developer-mode`); runs from the Godot editor always
 have it. A game the launcher started has **Quit to Launcher** on its Main Menu,
@@ -290,6 +298,9 @@ to the message box, where you choose **Suggest** or **Order**. The crosshair
 centers the camera on them, and back (or **Escape**) returns from the Profile
 to the small card. Inspection does not pause time, and reading private thoughts
 does not tell other agents.
+
+The Profile shows condition for equipped clothing and carrying aids. A tiny
+positive condition is shown as 1%; 0% means the item is fully broken.
 
 Agents learn building, farming, crafting or smithing by completing matching
 work or a practical lesson. A learned skill makes that kind of work finish
@@ -714,7 +725,8 @@ what is being made there or who is inside, and what it stores, shown as item
 icons with the amount in the corner. **Details** opens the rest on the left:
 who may use it, when it was built, which side its door faces, the work in
 progress, a larger storage grid with each item's name, and who is inside or
-lives there. Work lists what a batch uses and makes, separately from the
+lives there. Long item names fit within their slots; hover to read the full
+name and amount. Work lists what a batch uses and makes, separately from the
 materials currently held for that job. **Can make** lists the recipes registered
 for that exact building size and their quantities. Each still needs real
 materials and an adult allowed to work there. Reading the list teaches no
@@ -1118,7 +1130,8 @@ With Developer mode on, press **F12** in a world to open **Developer tools** at
 the right edge of the screen, and again to close them; **Escape** closes them once nothing newer is
 open. Time keeps running. The panel shows the coordinates and facts of the last
 tile under the pointer, the frame time, the tick time (how long the server took
-to work out the latest step of world time) and how many agents are living.
+to work out the latest step of world time), how many agents are living and
+how many actions have been refused because of a game error.
 Choose an agent in its list to select them and move the camera to them, and
 turn on **Show planned path** to draw the route they are walking, as the server
 planned it. The panel also holds the aging override, recovery for a request
@@ -1166,6 +1179,12 @@ that world's current history and says when it was saved. Choose **Recover
 autosave** to open it paused. Progress since that autosave will be absent from
 the recovered world; your other saves stay unchanged and the refused file is
 kept. There is no automatic replacement.
+
+If one agent's action causes a game error during play, the agent waits instead
+and their current order is cancelled. The Event Log explains the refusal. Time
+keeps moving, and that agent cannot choose the same action for one world day.
+Developer tools show the total number of refusals in this world. A fault that
+cannot be traced to one action still leaves the world paused.
 
 If no usable autosave is available, recovery stays blocked. **Check again**
 checks for a usable autosave without changing your world. You can quit and keep

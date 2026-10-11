@@ -201,6 +201,7 @@ printf 'Writing export manifest\n'
     printf '# ClankerWorld %s release export\n' "${EXPORT_PRESET}"
     printf '# %s\n' "${build_line}"
     printf '# Source commit: %s\n' "${build_revision}"
+    if [[ "${EXPORT_EXE}" == "ClankerWorld.exe" ]]; then printf '# Launcher options: developer-data-v1\n'; fi
     printf '# Windows file/product version: %s\n' "${file_version}"
     printf '# Godot editor: %s (%s)\n' "${GODOT_ARCHIVE}" "${GODOT_ARCHIVE_SHA256}"
     printf '# Godot .NET templates: %s (%s)\n' "${GODOT_TEMPLATES_ARCHIVE}" "${GODOT_TEMPLATES_SHA256}"

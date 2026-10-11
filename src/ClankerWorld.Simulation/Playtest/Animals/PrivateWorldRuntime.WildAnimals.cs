@@ -61,6 +61,5 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private HashSet<GridPoint> WildAnimalRouteOccupants(AnimalState animal) =>
-        inhabitants.Values.Select(person => person.Position).Concat(animalWorld.Animals
-            .Where(other => other.DiedTick is null && other.Id != animal.Id).Select(other => other.Position)).ToHashSet();
+        GroundOccupancy.Combine(inhabitants.Values.Select(person => person.Position), Ground.AnimalPositions(animal.Id));
 }

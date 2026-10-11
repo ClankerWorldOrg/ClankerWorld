@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  ClankerWorld__Runtime__StrictTickFailures: 'true'
+
 # A newer push to a pull request stops its older run, so runners go to the current head.
 concurrency:
   group: verify-${{ github.event.pull_request.number || github.sha }}

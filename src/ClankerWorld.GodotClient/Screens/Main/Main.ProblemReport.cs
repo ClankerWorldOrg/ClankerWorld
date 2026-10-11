@@ -1,5 +1,6 @@
 using System.Globalization;
 using ClankerWorld.GodotClient.Diagnostics;
+using ClankerWorld.GodotClient.Launcher;
 using Godot;
 
 namespace ClankerWorld.GodotClient;
@@ -50,8 +51,10 @@ public partial class Main
     private List<ProblemReportLog> ProblemReportLogs()
     {
         var logs = new List<ProblemReportLog>();
-        var gameLog = ProjectSettings.GlobalizePath(
-            ProjectSettings.GetSetting("debug/file_logging/log_path", "user://logs/godot.log").AsString());
+        var gameLog = LauncherPath is not null
+            ? Path.Combine(GameStarter.DataDirectory(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                OS.GetCmdlineUserArgs()), "logs", "game.log")
+            : ProjectSettings.GlobalizePath(ProjectSettings.GetSetting("debug/file_logging/log_path", "user://logs/godot.log").AsString());
         logs.Add(new("game.log", gameLog));
         // Godot renames the last run's log when the game starts again, so a
         // crash is in the newest older log.

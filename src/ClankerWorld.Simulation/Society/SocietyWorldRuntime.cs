@@ -214,6 +214,13 @@ public sealed class SocietyWorldRuntime : IDisposable
         finally { gate.Release(); }
     }
 
+    internal void ClearCurrentIntention(string inhabitantId, long worldTick)
+    {
+        gate.Wait();
+        try { cognition.ClearCurrentIntention(inhabitantId, worldTick); }
+        finally { gate.Release(); }
+    }
+
     public SocietyCognitionDispatchResult? CompleteDeferredCognition(
         CognitionDecisionRequest request, CognitionDecisionResponse? response, string? failure,
         IReadOnlySet<string> legalCandidateIds, bool? decisionContextChanged = null)

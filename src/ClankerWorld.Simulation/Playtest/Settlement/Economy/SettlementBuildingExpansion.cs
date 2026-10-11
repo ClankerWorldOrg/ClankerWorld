@@ -115,6 +115,9 @@ public sealed partial class PrivateWorldRuntime
             .Where(lot => lot.ItemKind == itemKind && lot.DeliveryBuildingId == building.InstanceId)
             .Sum(AvailableLotQuantity);
 
+    private static GoodsRequest ExpansionMaterialRequest(string actor, string owner, string itemKind) =>
+        new(GoodsUse.ReachableHoldings, actor, GoodsOwners.One(owner), GoodsKinds.One(itemKind));
+
     private InventoryLot? ExpansionSharedMaterialSource(string actor, PlacedBuilding building, string itemKind)
     {
         var owner = ExpansionOwner(building);
@@ -123,12 +126,9 @@ public sealed partial class PrivateWorldRuntime
         // actor's own Town, or an empty Town's Warehouse anyone may recover.
         var warehouseStock = building.HouseholdId is not null
             ? AvailableWarehouseStock(actor, itemKind) : Enumerable.Empty<InventoryLot>();
-        return society.Checkpoint.Inventory.Lots
-            .Where(lot => lot.OwnerId == owner && lot.ItemKind == itemKind &&
-                lot.StorageBuildingId != building.InstanceId && lot.DeliveryBuildingId is null && lot.CarrierId is null &&
-                lot.GroundPosition != site && lot.ContainerLotId is null && AvailableLotQuantity(lot) > 0)
-            .OrderBy(lot => lot.Id, StringComparer.Ordinal)
-            .Where(lot => CanReachSharedItem(actor, lot))
+        return FindGoods(ExpansionMaterialRequest(actor, owner, itemKind)).Matches.Select(match => match.Lot)
+            .Where(lot => lot.StorageBuildingId != building.InstanceId && lot.CarrierId is null &&
+                lot.GroundPosition != site && lot.ContainerLotId is null)
             .Concat(warehouseStock)
             .Where(lot => !IsActiveTownProjectDelivery(lot.Id) && PickupCarryCapacity(actor, lot, building.Position) > 0)
             .FirstOrDefault();
@@ -320,9 +320,7 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private static IEnumerable<GridPoint> ExpansionTiles(BuildingExpansionJob job) =>
-        Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(dy =>
-            Enumerable.Range(0, job.TargetFootprint.Width).Select(dx =>
-                new GridPoint(job.TargetPosition.X + dx, job.TargetPosition.Y + dy)));
+        GroundOccupancy.ExpansionTiles(job);
 
     private void AddBuildingExpansionCandidates(List<CognitionCandidate> candidates, string actor,
         Dictionary<(ToolFamily Family, int Tier), ToolDefinition?> reachableToolCache,
@@ -408,7 +406,9 @@ public sealed partial class PrivateWorldRuntime
                     return;
                 }
 
-                var quantity = sharedPickup.Quantity;
+                if (RecheckGoods(ExpansionMaterialRequest(actor, shared.OwnerId, missing.ResourceId), shared.Id) is not { } available)
+                    return;
+                var quantity = Math.Min(sharedPickup.Quantity, available.Quantity);
                 if (quantity > 0)
                 {
                     ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
@@ -468,7 +468,6 @@ public sealed partial class PrivateWorldRuntime
             NextProductionJobSequence = worldSimulation.NextProductionJobSequence + 1,
         };
         if (orderInstruction is not null) BindStartedExpansionOrder(orderInstruction, job);
-        checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("building_expansion_started", $"{buildingId}:{jobId}");
         return new ProductionStartResult(true, jobId, buildingId, null);
     }

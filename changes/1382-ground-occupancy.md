@@ -1,0 +1,1 @@
+- World placement and route checks share named occupancy layers while retaining their existing obstacle sets, order, saved state and replay behavior.

@@ -254,6 +254,9 @@ public sealed class SocietyCognitionScheduler
 
     public long CurrentProviderEpoch(string inhabitantId) => GetRuntime(inhabitantId).ProviderEpoch;
 
+    internal void ClearCurrentIntention(string inhabitantId, long worldTick) =>
+        GetRuntime(inhabitantId).ClearCurrentIntention(worldTick);
+
     internal void CompleteQueuedIdentityChoice(string inhabitantId, string name, string personality, string aspiration)
     {
         var index = queue.FindIndex(entry => entry.InhabitantId == inhabitantId);

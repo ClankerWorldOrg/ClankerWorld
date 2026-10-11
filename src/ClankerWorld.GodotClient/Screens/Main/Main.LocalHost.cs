@@ -27,7 +27,13 @@ public partial class Main
         if (TryGetCommandLineWorldUrl(out _) || OS.HasFeature("editor")) return null;
         var layout = LocalHostLayout.FindBundled(OS.GetExecutablePath(),
             System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData));
-        return layout is null ? null : new LocalHostCompanion(layout, httpClient);
+        if (layout is null) return null;
+        layout = layout with
+        {
+            DataDirectory = GameStarter.DataDirectory(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), OS.GetCmdlineUserArgs())
+        };
+        return new LocalHostCompanion(layout, httpClient, detailedLogs: GameStarter.UsesDetailedLogs(OS.GetCmdlineUserArgs()));
     }
 
     private async Task StartLocalHostAsync()

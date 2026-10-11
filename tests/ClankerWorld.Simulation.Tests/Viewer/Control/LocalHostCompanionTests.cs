@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Security.Cryptography;
 using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
 
 namespace ClankerWorld.Simulation.Tests;
@@ -11,6 +12,53 @@ namespace ClankerWorld.Simulation.Tests;
 /// <summary>The game starting, pairing with and stopping its bundled host (#1564).</summary>
 public sealed class LocalHostCompanionTests
 {
+    private static readonly string[] UntouchedDataFiles =
+        ["saves/private-world.json", "settings/provider-configuration.json", "client/game-display-preferences.json"];
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DeveloperRunKeepsRealDataUntouchedAndDetailedLoggingAppliesOnlyToThatRun(bool developerMode, bool detailed)
+    {
+        var directory = Directory.CreateTempSubdirectory("launcher-data-");
+        var launcher = LauncherLayout.ForUser(directory.FullName);
+        var arguments = GameStarter.Arguments("launcher.exe", developerMode, useTestData: true, detailedLogs: detailed);
+        var data = GameStarter.DataDirectory(directory.FullName, arguments);
+        var untouched = developerMode ? launcher.Root : launcher.TestDataDirectory;
+        var sentinels = UntouchedDataFiles
+            .Select(name => Path.Combine(untouched, name)).ToArray();
+        foreach (var path in sentinels)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, "keep this data unchanged");
+        }
+        var viewer = typeof(Program).Assembly;
+        var (version, revision) = BuildOf(viewer);
+        var layout = new LocalHostLayout(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") ?? "dotnet",
+            [viewer.Location], Path.GetDirectoryName(viewer.Location)!, data);
+        using var http = new HttpClient();
+        var game = new LocalHostCompanion(layout, http, FreePort(), FreePort(),
+            detailedLogs: GameStarter.UsesDetailedLogs(arguments));
+        try
+        {
+            Assert.Equal(LocalHostOutcome.Started, (await game.StartAsync(version, revision, CancellationToken.None)).Outcome);
+            Assert.True(File.Exists(Path.Combine(data, "saves", "private-world.json")));
+            var preferences = new ClankerWorld.GodotClient.ClientState.GameDisplayPreferencesStore(
+                GameStarter.ClientDataPath(directory.FullName, arguments, "game-display-preferences.json"));
+            preferences.Save(new(Theme: "dark"));
+            Assert.Equal("dark", preferences.Load().Theme);
+            Assert.True(await game.StopAsync(CancellationToken.None));
+            var log = await ReadSharedAsync(layout.LogPath);
+            Assert.Equal(developerMode && detailed, log.Contains("host_launch logging=detailed", StringComparison.Ordinal));
+            Assert.DoesNotContain(File.ReadAllText(layout.SecretPath), log);
+            Assert.All(sentinels, path => Assert.Equal("keep this data unchanged", File.ReadAllText(path)));
+        }
+        finally
+        {
+            await game.StopAsync(CancellationToken.None);
+            directory.Delete(recursive: true);
+        }
+    }
     [Fact]
     public void BundledHostIsFoundBesideTheGameAndKeepsDataInTheUserFolder()
     {
@@ -75,6 +123,8 @@ public sealed class LocalHostCompanionTests
                 LocalHostLayout.ProviderKeyVariables.Contains(name, StringComparer.OrdinalIgnoreCase));
             Assert.Equal(Environment.GetEnvironmentVariable("PATH"), start.Environment["PATH"]);
             Assert.Equal(layout.HostArguments(5188, 5189), start.ArgumentList);
+            Assert.Equal(layout.HostArguments(5188, 5189, detailedLogs: true),
+                layout.StartInfo(5188, 5189, detailedLogs: true).ArgumentList);
             Assert.Equal("host-folder", start.WorkingDirectory);
         }
         finally

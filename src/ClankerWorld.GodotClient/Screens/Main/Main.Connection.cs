@@ -1,4 +1,5 @@
 using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.UI;
 using Godot;
@@ -14,7 +15,8 @@ public partial class Main
     {
         try
         {
-            deviceKey = OwnerDeviceKey.OpenOrCreate();
+            deviceKey = OwnerDeviceKey.OpenOrCreate(GameStarter.UsesTestData(OS.GetCmdlineUserArgs())
+                ? new OwnerDeviceKeyOptions(OwnerDeviceKey.DefaultKeyName + ".TestData") : null);
             registration = registrationStore.TryLoad(deviceKey.PublicKeyFingerprint);
             if (registration is null)
             {

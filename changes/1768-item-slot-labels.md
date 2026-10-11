@@ -1,0 +1,1 @@
+- Long item names in building storage fit inside their slots. Hovering still shows the full name and amount.
