@@ -4174,6 +4174,7 @@ public partial class Main
                 longDialog.Y <= shortDialog.Y)
                 throw new InvalidOperationException($"Confirmations must fit their message: short {shortDialog}, long {longDialog}.");
             await VerifyLongProfileNamesAsync();
+            await VerifyLongReaderNamesAsync();
             await VerifyRefusedAgentRenameAsync();
             VerifyAgentTextEllipses();
             VerifyPlainEllipses("after every panel has been shown");

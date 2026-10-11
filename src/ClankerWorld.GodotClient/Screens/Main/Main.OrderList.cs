@@ -82,14 +82,7 @@ public partial class Main
     {
         var body = new VBoxContainer();
         body.AddThemeConstantOverride("separation", 6);
-        var heading = new HBoxContainer();
-        ordersReaderTitle.ThemeTypeVariation = "HeadingLabel";
-        ordersReaderTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        heading.AddChild(ordersReaderTitle);
-        var close = CloseButton("Close orders (Esc)");
-        close.Pressed += () => ordersPanel.Hide();
-        heading.AddChild(close);
-        body.AddChild(heading);
+        body.AddChild(ReaderHeading(ordersPanel, ordersReaderTitle, "Close orders (Esc)"));
         body.AddChild(new Label
         {
             Text = "What the world reports for each order. Their replies are their own words.",
@@ -143,7 +136,7 @@ public partial class Main
             .Prepend($"{inhabitant.Id}|{inhabitant.DisplayName}|{UiTheme.Current.Name}"));
         if (renderedOrdersReader == signature) return;
         renderedOrdersReader = signature;
-        ordersReaderTitle.Text = $"{inhabitant.DisplayName} · orders";
+        ordersReaderTitle.Text = ordersReaderTitle.TooltipText = $"{inhabitant.DisplayName} · orders";
         ordersReaderText.Clear();
         if (groups.All(group => group.Orders.Length == 0))
         {

@@ -1,0 +1,1 @@
+- Long agent names no longer push the Close buttons in thoughts, orders and conversation readers off screen. Hover over a shortened heading to read it in full.

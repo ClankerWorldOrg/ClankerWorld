@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-10
+updated: 2026-10-11
 ---
 
 # Playing the current game
@@ -285,6 +285,9 @@ the built-in rules made it, the Profile says so instead. Click their thought,
 or **Read all**, to read every recent thought in a larger panel beside the
 Profile. Long names use up to two lines so its buttons stay in view. Hover
 over the name or open Rename to read the whole name.
+The thoughts, orders and conversation readers also keep long headings within
+two lines; hover over a heading to read it in full. Their Close buttons stay
+in view.
 The pencil beside their name renames them, and **Speak** goes straight
 to the message box, where you choose **Suggest** or **Order**. The crosshair
 centers the camera on them, and back (or **Escape**) returns from the Profile
