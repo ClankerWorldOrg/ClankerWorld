@@ -191,7 +191,10 @@ A newborn starts with a temporary name. A chosen child's name must use one
 biological parent's surname and an unused first name. The player can name the
 child in Profile; automatic naming waits until the child is old enough for
 ordinary personal-model calls. Later parent renames do not change a child's
-existing name.
+existing name. Removing the last chosen biological-parent surname available
+to a minor child is refused before the parent's name, events or rename memory
+change. Removing one parent's surname still works when another biological
+parent supplies a chosen surname.
 
 A child's personal model is recorded at birth from the parents' explicit
 personal assignments. When those differ, the parent who began the family plan
