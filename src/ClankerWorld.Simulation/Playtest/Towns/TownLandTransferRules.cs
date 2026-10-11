@@ -1,6 +1,7 @@
 using System.Globalization;
 using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Playtest;
 
@@ -42,7 +43,7 @@ public static class TownLandTransferRules
             !TownLandHearingRules.ValidText(noticeId, 128))
             throw new InvalidOperationException("A voluntary transfer needs one undisputed, unexpired existing plot, affected adults and a known beneficiary household.");
         var rights = CurrentSources(townId, tiles, currentRights).Select(TownLandHearingRules.Snapshot).ToArray();
-        if (price is not null && (price.Quantity <= 0 || !TownLandHearingRules.ValidText(price.ItemKind, 128) ||
+        if (price is not null && (price.Quantity <= 0 || !TownLandHearingRules.ValidText(price.ItemKind, ContentPackageRules.MaximumContentIdLength) ||
             price.ItemKind.Any(char.IsWhiteSpace) || InventoryContainerRules.IsContainer(price.ItemKind) || price.ItemKind == "handcart" ||
             rights.Any(version => version.Right.HouseholdId != price.SellerHouseholdId) ||
             !currentParties.Any(party => party.HouseholdId == price.SellerHouseholdId && party.AdultIds.Contains(filer))))

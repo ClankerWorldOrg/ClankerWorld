@@ -24,7 +24,7 @@ public sealed partial class PrivateWorldRuntime
         var room = DestinationRoom(inventory, store.InstanceId);
         if (room == 0) return null;
         var protectedToolIds = BestUsableToolIds(inventory, actor);
-        var sources = inventory.Lots.Where(lot => IsLooseBusinessLot(lot) && !OnBorrowedMarketStall(lot) &&
+        var sources = inventory.Lots.Where(lot => IsLooseBusinessLot(lot, includeGround: true) && !OnBorrowedMarketStall(lot) &&
                      (itemKind is null || lot.ItemKind == itemKind) &&
                      BusinessRules.MaySell("store", lot.ItemKind) && lot.StorageBuildingId != store.InstanceId &&
                      // Own carried goods, or household stock nobody is carrying.

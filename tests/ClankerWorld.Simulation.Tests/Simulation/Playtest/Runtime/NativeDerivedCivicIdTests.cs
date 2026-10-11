@@ -192,7 +192,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             // Validate the actual hearing before its key is also used as a memory ID.
             PrivateWorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = society } });
         var project = TownProjectRules.ProjectId(proposal);
-        var sourceLot = Assert.Single(society.Inventory.Lots, lot => lot.ItemKind == "milk").Id;
+        var sourceLot = society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" && lot.ProvenanceLotId is not null)
+            .OrderBy(lot => lot.Id, StringComparer.Ordinal).Last().Id;
+        Assert.Equal(DerivedId.MaximumLength, sourceLot.Length);
         var request = new HouseholdLandUseRequest(proposal.Id, town.Id, home, actor, [town.OriginSite.Value], society.WorldTick);
         var contest = new TownLandCaseJudgeContest(proposal.Id, "voting", int.MaxValue, society.WorldTick,
             society.WorldTick, society.WorldTick + 1, [actor, relative], [actor, relative], [], [], int.MaxValue, []);

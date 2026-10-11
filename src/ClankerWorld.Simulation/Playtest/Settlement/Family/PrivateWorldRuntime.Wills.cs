@@ -113,9 +113,9 @@ public sealed partial class PrivateWorldRuntime
         {
             var key = "item:" + (items.Count + 1).ToString(CultureInfo.InvariantCulture);
             var contents = string.Join(", ", snapshot.Where(item => containedIn.GetValueOrDefault(item.LotId) == lot.LotId)
-                .Select(item => $"{item.Quantity} {item.ItemKind}"));
+                .Select(item => $"{item.Quantity} {WillDisplayKind(item.ItemKind, key)}"));
             itemKeys.Add(key, lot.LotId);
-            items.Add(new CognitionWillItem(key, lot.ItemKind, lot.Quantity,
+            items.Add(new CognitionWillItem(key, WillDisplayKind(lot.ItemKind, key), lot.Quantity,
                 contents.Length is > 0 and <= 128 ? contents : null));
         }
 
@@ -185,6 +185,9 @@ public sealed partial class PrivateWorldRuntime
             RetrievedMemories: memories, Self: self, Will: new CognitionWillContext(items, heirs));
         return new WillRequestContext(observation, heirKeys, itemKeys);
     }
+
+    private static string WillDisplayKind(string kind, string itemKey) => kind.Length <= CognitionWillContext.MaximumItemKindLength
+        ? kind : kind[..(CognitionWillContext.MaximumItemKindLength - itemKey.Length - 4)] + "… (" + itemKey + ")";
 
     private static string BoundedWillHeirKey(string prefix, string id, HashSet<string> occupiedKeys)
     {

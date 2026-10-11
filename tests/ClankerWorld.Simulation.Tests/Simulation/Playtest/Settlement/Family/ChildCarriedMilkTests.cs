@@ -15,7 +15,7 @@ public sealed class ChildCarriedMilkTests
     [InlineData("child-milk")]
     [InlineData("adult-milk")]
     [InlineData("child-bread")]
-    [InlineData("broken-jug")]
+    [InlineData("broken-pot")]
     [InlineData("reserved-milk")]
     [InlineData("spoiled-milk")]
     public async Task HungryResidentCanConsumeTheirOwnCarriedFood(string scenario)
@@ -32,14 +32,14 @@ public sealed class ChildCarriedMilkTests
         {
             Lots = inventory.Lots.Where(lot => lot.OwnerId != home && !members.Contains(lot.OwnerId)).ToArray(),
         };
-        if (milk) inventory = InventoryFixture.AddLot(inventory, "child-milk-jug", "water_jug", actor, 1);
+        if (scenario == "broken-pot") inventory = InventoryFixture.AddLot(inventory, "child-milk-pot", "storage_pot", actor, 1);
         inventory = InventoryFixture.AddLot(inventory, "child-carried-food", milk ? "milk" : "bread", actor, 2,
-            containerLotId: milk ? "child-milk-jug" : null);
+            containerLotId: scenario == "broken-pot" ? "child-milk-pot" : null);
         if (scenario == "reserved-milk")
             inventory = InventoryFixture.Reserve(inventory, "child-milk-held", actor, "child-carried-food", 2,
                 "other-personal-work", long.MaxValue);
-        if (scenario == "broken-jug") inventory = inventory with
-        { Lots = inventory.Lots.Select(lot => lot.Id == "child-milk-jug" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray() };
+        if (scenario == "broken-pot") inventory = inventory with
+        { Lots = inventory.Lots.Select(lot => lot.Id == "child-milk-pot" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray() };
         if (scenario == "spoiled-milk") inventory = inventory with
         { Lots = inventory.Lots.Select(lot => lot.Id == "child-carried-food" ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray() };
         state = state with
@@ -77,8 +77,11 @@ public sealed class ChildCarriedMilkTests
         if (milk)
         {
             Assert.Equal(usable ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "milk_drunk" && item.Detail == actor));
-            var jug = world.Society.Inventory.GetLot("child-milk-jug");
-            Assert.Equal((actor, 1, scenario == "broken-jug" ? 0 : 10_000), (jug.OwnerId, jug.Quantity, jug.ConditionBasisPoints));
+            if (scenario == "broken-pot")
+                Assert.Equal((actor, 1, 0), (world.Society.Inventory.GetLot("child-milk-pot").OwnerId,
+                    world.Society.Inventory.GetLot("child-milk-pot").Quantity,
+                    world.Society.Inventory.GetLot("child-milk-pot").ConditionBasisPoints));
+            else Assert.Null(world.Society.Inventory.GetLot("child-carried-food").ContainerLotId);
         }
         if (actor == child)
             Assert.DoesNotContain(choices.Seen, id => id.StartsWith("animal:", StringComparison.Ordinal));

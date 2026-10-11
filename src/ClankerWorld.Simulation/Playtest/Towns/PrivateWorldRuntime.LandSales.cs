@@ -1,11 +1,12 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Playtest;
 
 public sealed partial class PrivateWorldRuntime
 {
-    private static bool LandSaleKind(string kind) => TownLandHearingRules.ValidText(kind, 128) &&
+    private static bool LandSaleKind(string kind) => TownLandHearingRules.ValidText(kind, ContentPackageRules.MaximumContentIdLength) &&
         !kind.Any(char.IsWhiteSpace) && !InventoryContainerRules.IsContainer(kind) && kind != "handcart";
 
     private InventoryLot[] LandSaleCarriedLots(string actor, TownLandSalePrice price) => society.Checkpoint.Inventory.Lots

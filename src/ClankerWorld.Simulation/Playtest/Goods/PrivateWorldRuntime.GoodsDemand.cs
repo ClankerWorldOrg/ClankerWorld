@@ -7,7 +7,7 @@ public sealed partial class PrivateWorldRuntime
         "restaurant_meal", "cooked_eggs", "milk_porridge", "rich_meal",
     ]);
     private static readonly GoodsKinds EdibleFoodGoods = new([
-        .. PreparedMealGoods.Ids, "food", "fruit", "berries", "wild_greens", "cultivated_greens",
+        .. PreparedMealGoods.Ids, "food", "fruit", "berries", "wild_greens", "cultivated_greens", "milk",
     ]);
 
     private long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds)
