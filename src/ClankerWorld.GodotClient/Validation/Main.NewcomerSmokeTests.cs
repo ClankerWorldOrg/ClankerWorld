@@ -2,6 +2,8 @@ using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.UI;
 using Godot;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 
@@ -71,13 +73,17 @@ public partial class Main
             if (offerScrolls)
                 throw new InvalidOperationException("The newcomer offer and a short Event Log must fit without scrolling: " + offerLayout);
             var requests = new List<string>();
+            var requestTrace = new ConcurrentQueue<string>();
+            var requestClock = Stopwatch.StartNew();
             var responses = Task.Run(async () =>
             {
                 for (var index = 0; index < 4; index++)
                 {
+                    requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms waiting for request {index + 1}/4");
                     var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromSeconds(5));
                     var path = context.Request.Url!.AbsolutePath;
                     requests.Add(path);
+                    requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms received {path}");
                     object response = path switch
                     {
                         OwnerPairingEndpoints.ChallengeIssue => new OwnerChallenge(authority, registration.DeviceId,
@@ -92,10 +98,22 @@ public partial class Main
                     await JsonSerializer.SerializeAsync(context.Response.OutputStream, response, response.GetType(),
                         CompatibilitySmokeJsonOptions);
                     context.Response.Close();
+                    requestTrace.Enqueue($"{requestClock.ElapsedMilliseconds}ms responded to {path}");
                 }
             });
             NewcomerOfferButton()!.EmitSignal(BaseButton.SignalName.Pressed);
-            await responses;
+            try
+            {
+                await responses;
+            }
+            catch (TimeoutException exception)
+            {
+                throw new InvalidOperationException(
+                    $"Newcomer setup reads timed out: ownerAction={isOwnerAction}, " +
+                    $"panelVisible={founderSetupPanel.Visible}, placingAddedAgent={placingAddedAgent}, " +
+                    $"trace=[{string.Join("; ", requestTrace)}]", exception);
+            }
+            GD.Print("Newcomer setup reads: " + string.Join("; ", requestTrace));
             for (var frame = 0; frame < 10 && isOwnerAction; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!founderSetupPanel.Visible || !placingAddedAgent || requests.Count != 4 ||
