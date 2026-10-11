@@ -25,30 +25,23 @@ public sealed class CommittedTickTimingTests
         Assert.True((await measured.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.True((await control.AdvanceOneTickNonBlockingAsync()).Advanced);
         var previous = measured.ExportStateWithDiagnostics().Diagnostics.LastTickMilliseconds!.Value;
-        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        using var release = new ManualResetEventSlim();
+        var callbackDelay = TimeSpan.FromMilliseconds(Math.Clamp(previous + 200, 250, 1_500));
         var callbackMilliseconds = 0d;
         var calls = 0;
         void Prepare()
         {
             if (Interlocked.Increment(ref calls) != 1) return;
             var started = Stopwatch.GetTimestamp();
-            entered.TrySetResult();
-            Assert.True(release.Wait(TimeSpan.FromSeconds(10)));
+            Thread.Sleep(callbackDelay);
             callbackMilliseconds = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
         }
-        // A controlled hold at the real public commit boundary establishes a
-        // measured component; this is a telemetry check, not a speed benchmark.
-        var step = Task.Run(async () => await measured.AdvanceOneTickNonBlockingAsync(
+        // Measure bounded synchronous work at the real public commit boundary
+        // without depending on another continuation to release the callback.
+        var step = measured.AdvanceOneTickNonBlockingAsync(
             commitPermitted: () => { if (!childPreparation) Prepare(); return true; },
-            prepareChildModelSelections: (_, _) => { if (childPreparation) Prepare(); return []; }));
-        try
-        {
-            await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
-            await Task.Delay(TimeSpan.FromMilliseconds(Math.Clamp(previous + 200, 250, 1_500)));
-        }
-        finally { release.Set(); }
-        Assert.True((await step.WaitAsync(TimeSpan.FromSeconds(10))).Advanced);
+            prepareChildModelSelections: (_, _) => { if (childPreparation) Prepare(); return []; });
+        Assert.True((await step.AsTask().WaitAsync(TimeSpan.FromSeconds(30))).Advanced);
+        Assert.True(calls > 0);
         Assert.True((await control.AdvanceOneTickNonBlockingAsync()).Advanced);
         var reported = measured.ExportStateWithDiagnostics().Diagnostics.LastTickMilliseconds!.Value;
         Assert.True(reported >= callbackMilliseconds - 0.1,
