@@ -118,7 +118,7 @@ public sealed partial class PrivateWorldRuntime
         if ((person.Survival?.IllnessBasisPoints ?? 0) == 0) return new(false, "This patient does not need medicine.");
         if (MedicalSupplyAtHand(caregiver) is not { } supply)
             return new(false, "Bring usable, unreserved medicine; another household's stock requires an agreed purchase.");
-        var id = $"medical-dose:{WorldTick}:{nextEventId}:{caregiver}:{patient}";
+        var id = DerivedId.Create($"medical-dose:{WorldTick}:{nextEventId}:{caregiver}:{patient}");
         ApplyInventoryTransition(inventory => InventoryFixture.ConsumeReservation(InventoryFixture.Reserve(inventory,
             id, supply.OwnerId, supply.Id, 1,
             MedicalDosePurpose(caregiver, patient, kind, supply.OwnerId, WorldTick), WorldTick), id));
@@ -317,7 +317,8 @@ public sealed partial class PrivateWorldRuntime
                 treatment.RemainingTicks is < 1 or > MedicalCareRules.TreatmentTicks ||
                 treatment.RemainingTicks != MedicalCareRules.TreatmentTicks - (treatment.LastProcessedTick - treatment.StartedTick) ||
                 string.IsNullOrWhiteSpace(treatment.SupplyLotId) || string.IsNullOrWhiteSpace(treatment.SupplyOwnerId) ||
-                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || !doses.Add(treatment.DoseReservationId) ||
+                string.IsNullOrWhiteSpace(treatment.DoseReservationId) || treatment.DoseReservationId.Length > DerivedId.MaximumLength ||
+                !doses.Add(treatment.DoseReservationId) ||
                 checkpoint.Inventory.Lots.Any(lot => lot.Id == treatment.SupplyLotId && lot.ItemKind != "medicine") ||
                 !checkpoint.Inventory.Reservations.Any(reservation => reservation.Id == treatment.DoseReservationId &&
                     reservation.OwnerId == treatment.SupplyOwnerId && reservation.LotId == treatment.SupplyLotId &&

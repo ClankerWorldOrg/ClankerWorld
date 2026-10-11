@@ -141,7 +141,7 @@ public static class MarketTradeValidation
                         receipt.DepositedTick < occupancy.StartedTick || receipt.DepositedTick > worldTick ||
                         occupancy.EndedTick is { } endedAt && receipt.DepositedTick > endedAt ||
                         receipt.InventoryEventId <= 0 || receipt.InventoryEventId > inventory.EventHistoryFloor + inventory.Events.Count ||
-                        receipt.LotId != receipt.SourceLotId && receipt.LotId != DerivedId.Create(receipt.SourceLotId + "#move:" + receipt.Id + ":deposit"))
+                        receipt.LotId != receipt.SourceLotId && receipt.LotId != DerivedId.Create(receipt.SourceLotId + "#move:" + DerivedId.Create(receipt.Id + ":deposit")))
                         throw Invalid("A Market stock receipt has forged or inconsistent deposit authority.");
                     var retainedEvent = inventory.Events.FirstOrDefault(item => item.EventId == receipt.InventoryEventId);
                     if (receipt.InventoryEventId > inventory.EventHistoryFloor && (retainedEvent is null ||

@@ -110,7 +110,7 @@ public sealed partial class PrivateWorldRuntime
         {
             if (CanProposePartnership(actor, target))
             {
-                var id = $"settlement-partnership:{actor}:{target}:{WorldTick}";
+                var id = DerivedId.Create($"settlement-partnership:{actor}:{target}:{WorldTick}");
                 society.Apply(checkpoint => SocietyFixture.ProposeRelationship(checkpoint,
                     new(id, 1, SocietyRelationshipType.Partnership, actor, target, WorldTick, PrivacyClass: "public")));
                 AppendEvent("partnership_proposed", actor);

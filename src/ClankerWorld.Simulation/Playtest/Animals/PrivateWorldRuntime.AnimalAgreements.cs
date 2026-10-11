@@ -136,7 +136,7 @@ public sealed partial class PrivateWorldRuntime
             if (agreement.Action == "accept")
             {
                 if (offer.PaymentLotId is { } payment)
-                    ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, offer.Id + "-payment", actor,
+                    ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, DerivedId.Create(offer.Id + "-payment"), actor,
                         animal.HouseholdId!, payment, offer.PaymentQuantity, "animal_sale_payment",
                         destinationGroundPosition: new(animal.Position.X, animal.Position.Y)));
                 if (animal.SaddleReservationId is { } saddleHeld)

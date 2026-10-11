@@ -289,16 +289,16 @@ public sealed partial class PrivateWorldRuntime
         // Retilling starts a new field, but goods and released reservations
         // from the old field remain. Never reuse one of their identities.
         var previousInventory = society.Checkpoint.Inventory;
-        while (previousInventory.Lots.Any(lot => lot.Id == prefix + ":crop" || lot.Id == prefix + ":seed") ||
-            previousInventory.Reservations.Any(reservation => reservation.Id == prefix + ":replant"))
+        while (previousInventory.Lots.Any(lot => lot.Id == DerivedId.Create(prefix + ":crop") || lot.Id == DerivedId.Create(prefix + ":seed")) ||
+            previousInventory.Reservations.Any(reservation => reservation.Id == DerivedId.Create(prefix + ":replant")))
         {
             cycle = checked(cycle + 1);
             prefix = $"{FarmFieldRules.FieldId(field.Position)}:harvest:{cycle}";
         }
         var crop = field.Crop!;
         var plantingItem = FarmFieldRules.PlantingItem(crop);
-        var plantingLotId = plantingItem == crop ? prefix + ":crop" : prefix + ":seed";
-        var replantId = prefix + ":replant";
+        var plantingLotId = plantingItem == crop ? DerivedId.Create(prefix + ":crop") : DerivedId.Create(prefix + ":seed");
+        var replantId = DerivedId.Create(prefix + ":replant");
         var quantity = FarmFieldRules.HarvestQuantity(crop, fertility.At(field.Position));
         var weather = WeatherAt(field.Position);
         var moisture = WeatherRules.SoilMoistureAt(worldSystems, field.Position, map.Height,
@@ -308,7 +308,7 @@ public sealed partial class PrivateWorldRuntime
         else if (moisture >= 50) quantity += Math.Max(1, quantity / 4);
         ApplyInventoryTransition(inventory =>
         {
-            var next = InventoryFixture.AddLot(inventory, prefix + ":crop", crop, field.HouseholdId,
+            var next = InventoryFixture.AddLot(inventory, DerivedId.Create(prefix + ":crop"), crop, field.HouseholdId,
                 quantity, WorldTick,
                 groundPosition: new(field.Position.X, field.Position.Y));
             if (plantingItem != crop)

@@ -336,6 +336,7 @@ public sealed partial class PrivateWorldRuntime
     private bool TryCollectHouseholdServing(string actor, PlaytestInhabitantState state, InventoryLot food,
         string operationId, string purpose, string movementReason)
     {
+        operationId = DerivedId.Create(operationId);
         if (FreeCarryCapacity(actor) < 1 || AvailableLotQuantity(food) < 1 || food.CarrierId is not null ||
             society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId || food.OwnerId != householdId)
             return false;

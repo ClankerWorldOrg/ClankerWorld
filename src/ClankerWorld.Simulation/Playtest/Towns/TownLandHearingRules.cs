@@ -18,7 +18,7 @@ public static class TownLandHearingRules
     public static string RevisionToken(TownLandCase item) => DerivedId.Create(item.Id + ":" + CurrentRevision(item).Number.ToString(CultureInfo.InvariantCulture));
     public static string CaseKey(string townId, string kind, IEnumerable<GridPoint> tiles) =>
         Digest(townId + "|" + kind + "|" + TownLandClaimRules.DescribeTiles(TownLandRightsRules.OrderTiles(tiles)));
-    internal static string Digest(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+    internal static string Digest(string value) => DerivedId.Hash(value);
     internal static bool ValidText(string? text, int max = MaximumTextLength) =>
         !string.IsNullOrWhiteSpace(text) && text.Length <= max && !text.Any(char.IsControl);
     internal static string[] Ordered(IEnumerable<string> ids) => ids.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();

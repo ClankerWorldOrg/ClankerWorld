@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.Playtest;
 public static class TownLandCaseJudgeRules
 {
     public static string RoundToken(TownLandCaseJudgeContest contest) =>
-        contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture);
+        DerivedId.Create(contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture));
     public static bool IsBusy(TownLandHearingState state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
     private static TownLandHearingState Replace(TownLandHearingState state, TownLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };

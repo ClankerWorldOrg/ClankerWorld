@@ -21,8 +21,7 @@ public sealed partial class PrivateWorldRuntime
         candidate.StartsWith(GiftOrnamentPrefix, StringComparison.Ordinal);
 
     // Preserve complete lot/agent identities without delimiter ambiguity or unbounded action IDs.
-    private static string OrnamentChoiceId(string prefix, params string[] identity) => prefix +
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(identity))));
+    private static string OrnamentChoiceId(string prefix, params string[] identity) => DerivedId.Hash(JsonSerializer.Serialize(identity), prefix);
 
     private bool LivingOrnamentAdult(string actor) => inhabitants.ContainsKey(actor) && AdultResident(actor);
 

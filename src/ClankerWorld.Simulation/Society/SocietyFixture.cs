@@ -286,9 +286,10 @@ public static partial class SocietyFixture
         if (household is null)
             return Reject(checkpoint, "household_join_rejected", $"{id}:missing_household");
 
-        var membershipId = DerivedId.Create($"{home}:membership:{id}");
+        var membershipKey = $"{home}:membership:{id}";
+        var membershipId = DerivedId.Create(membershipKey);
         if (checkpoint.Relationships.Any(item => item.Id == membershipId))
-            membershipId = DerivedId.Create($"{membershipId}:{checkpoint.WorldTick}");
+            membershipId = DerivedId.Create($"{membershipKey}:{checkpoint.WorldTick}");
         var membership = new SocietyRelationship(
             membershipId, 1, SocietyRelationshipType.HouseholdMembership,
             home, id, SocietyRelationshipState.Accepted,

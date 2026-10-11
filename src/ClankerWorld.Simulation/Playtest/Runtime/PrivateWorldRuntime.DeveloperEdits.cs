@@ -106,7 +106,7 @@ public sealed partial class PrivateWorldRuntime
                 var lotsToAdd = individualVessels ? edit.Amount : 1;
                 for (var index = 0; index < lotsToAdd; index++)
                 {
-                    var lotId = lotsToAdd == 1 ? id : id + ":" + index;
+                    var lotId = lotsToAdd == 1 ? id : DerivedId.Create(id + ":" + index);
                     ApplyInventoryTransition(inventory => InventoryFixture.AddLot(inventory, lotId, edit.Value, actor,
                         individualVessels ? 1 : edit.Amount));
                 }

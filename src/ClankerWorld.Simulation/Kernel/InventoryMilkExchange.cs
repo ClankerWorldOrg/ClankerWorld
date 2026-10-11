@@ -39,7 +39,7 @@ public static partial class InventoryFixture
             throw new InvalidOperationException("A milk exchange needs the exact held milk, carried receiving jug and personal payment.");
         EnsureOwnerAndAvailableQuantity(checkpoint, payment, buyerId, 1);
         var next = ReleaseReservation(checkpoint, held.Id, "milk_sale_completed");
-        next = Transfer(next, operationId + "-payment", buyerId, milk.OwnerId, payment.Id, 1, "milk_sale_payment",
+        next = Transfer(next, DerivedId.Create(operationId + "-payment"), buyerId, milk.OwnerId, payment.Id, 1, "milk_sale_payment",
             destinationGroundPosition: position);
         var moved = milk with
         {

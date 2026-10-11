@@ -22,7 +22,7 @@ public sealed partial class PrivateWorldRuntime
         {
             var state = town.Nonviolent;
             if (state is null || state.ConductRecords is null || state.Acquisitions is null || state.NativeReceipts is null ||
-                state.ConductRecords.Any(record => record is null || !TownHearingProcedure.Id(record.Id) ||
+                state.ConductRecords.Any(record => record is null || !TownHearingProcedure.DerivedIdentity(record.Id) ||
                     !agents.Contains(record.ActorId) || record.ActorTownId is not null && !townIds.Contains(record.ActorTownId) ||
                     record.ConductKind is not ("travel" or "gather_food" or "gather_material" or "fell_tree" or
                         "repair_equipment" or "return_goods" or "public_service_goods") ||
@@ -34,7 +34,7 @@ public sealed partial class PrivateWorldRuntime
                         !law.TitleIds.All(TownHearingProcedure.Id) || !law.PriorNoticeIds.All(TownHearingProcedure.Id)) ||
                     record.Version != NonviolentDigest(record with { Version = "" })) ||
                 state.ConductRecords.Select(record => record.Id).Distinct(StringComparer.Ordinal).Count() != state.ConductRecords.Count ||
-                state.Acquisitions.Any(item => item is null || !TownHearingProcedure.Id(item.Id) || !TownHearingProcedure.Id(item.ConductId) ||
+                state.Acquisitions.Any(item => item is null || !TownHearingProcedure.DerivedIdentity(item.Id) || !TownHearingProcedure.Id(item.ConductId) ||
                     !agents.Contains(item.AgentId) || item.Kind is not ("firsthand" or "relay" or "record_inspection") ||
                     item.Tick < 0 || item.Tick > tick || !map.Contains(item.Position) ||
                     item.ObserverHouseholdId is not null && !households.Contains(item.ObserverHouseholdId) ||
@@ -168,7 +168,7 @@ public sealed partial class PrivateWorldRuntime
             }
             foreach (var receipt in state.NativeReceipts)
             {
-                if (receipt is null || !TownHearingProcedure.Id(receipt.Id) || !nativeReceipts.Add(receipt.Id) ||
+                if (receipt is null || !TownHearingProcedure.DerivedIdentity(receipt.Id) || !nativeReceipts.Add(receipt.Id) ||
                     receipt.Kind is not ("return_goods" or "repair_equipment" or "public_service_goods") ||
                     !agents.Contains(receipt.ActorId) || receipt.Tick < 0 || receipt.Tick > tick || receipt.Quantity <= 0 ||
                     !TownHearingProcedure.Id(receipt.ItemKind) || !TownHearingProcedure.Id(receipt.SourceLotId) ||

@@ -128,7 +128,7 @@ public sealed class ChildChosenNameTests
     public async Task InfantWaitsForChildhoodThenRetriesATakenFirstNameAcrossSaveAndReload()
     {
         var (state, childId) = RuntimeBirth(birthRequestId: "naming-birth:" + new string('x', 160));
-        Assert.True(childId.Length > 128);
+        Assert.InRange(childId.Length, 1, DerivedId.MaximumLength);
         var provider = new ChildNameProvider("e\u0301LODIE Vale");
         using var world = PrivateWorldRuntime.Restore(state, id => id == childId ? provider : new QuietProvider());
         world.Resume();

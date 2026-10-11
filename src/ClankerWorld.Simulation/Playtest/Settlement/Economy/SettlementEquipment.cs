@@ -200,7 +200,7 @@ public sealed partial class PrivateWorldRuntime
                 var material = inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).First(lot =>
                     lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
                     lot.ItemKind == input.ResourceId && PersonalEquipmentRules.AvailableQuantity(inventory, lot) >= input.Amount);
-                var id = $"repair:{WorldTick}:{actor}:{input.ResourceId}";
+                var id = DerivedId.Create($"repair:{WorldTick}:{actor}:{input.ResourceId}");
                 inventory = InventoryFixture.Reserve(inventory, id, actor, material.Id, input.Amount,
                     "equipment_repair", WorldTick + 120);
                 ids.Add(id);

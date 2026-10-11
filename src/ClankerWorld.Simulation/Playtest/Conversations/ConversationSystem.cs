@@ -235,7 +235,7 @@ public sealed class ConversationSystem(ConversationState state)
         ReserveConversationAllowance(world, initiatorId);
         var participants = JsonSerializer.Serialize(new[] { initiatorId, inviteeId });
         var digest = DerivedId.Hash(participants);
-        var id = $"conversation:{world.WorldTick}:{digest}";
+        var id = DerivedId.Create($"conversation:{world.WorldTick}:{digest}");
         var conversation = AgentConversationRules.Propose(
             id, initiatorId, inviteeId, world.WorldTick, world.Society.RunEpoch);
         AddConversation(conversation);
@@ -551,8 +551,7 @@ public sealed class ConversationSystem(ConversationState state)
                 world.Society.GetInhabitant(ownerId).Status != SocietyInhabitantStatus.Active ||
                 world.Society.AllBeliefs().Any(item => item.OwnerId == ownerId && item.SourceTurnId == turn.Id))
                 continue;
-            var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes($"{turn.Id}|{ownerId}")))
-                .ToLowerInvariant();
+            var digest = DerivedId.Hash($"{turn.Id}|{ownerId}");
             var belief = new SocietyAgentBelief(
                 $"conversation-memory:{digest}",
                 ownerId,

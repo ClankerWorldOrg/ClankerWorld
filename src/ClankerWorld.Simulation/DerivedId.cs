@@ -67,4 +67,16 @@ public static class DerivedId
             throw new ArgumentException("The complete identity must fit the shared limit.", nameof(prefix));
         return prefix + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)))[..hexadecimalCharacters];
     }
+
+    /// <summary>Preserves the existing unpadded URL-safe digest spelling of land-grant identities.</summary>
+    public static string HashBase64Url(string value, string prefix = "")
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(prefix);
+        if (prefix.Length + 43 > MaximumLength || prefix.Any(char.IsControl))
+            throw new ArgumentException("The complete identity must fit the shared limit.", nameof(prefix));
+        return prefix + Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(value)))
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    }
+
 }

@@ -172,7 +172,7 @@ public sealed class DescendantConversationListenerTests
                 Assert.Equal(child, memory.OwnerId);
                 Assert.Equal(turn.SpeakerId, memory.SourceAgentId);
                 Assert.InRange(memory.SubjectId.Length, 1, 128);
-                Assert.StartsWith("agent-sha256:", memory.SubjectId, StringComparison.Ordinal);
+                Assert.Equal(child, memory.SubjectId);
             });
             Assert.Single(recalled.Select(memory => memory.SubjectId).Distinct(StringComparer.Ordinal));
         }

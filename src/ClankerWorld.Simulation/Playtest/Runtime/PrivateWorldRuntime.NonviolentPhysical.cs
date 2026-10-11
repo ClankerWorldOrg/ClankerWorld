@@ -16,7 +16,7 @@ public sealed partial class PrivateWorldRuntime
     private (string TownId, string AgreementId, string TermId)? nonviolentRemedySelection;
 
     private static string NonviolentDigest<T>(T value) =>
-        Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(value))).ToLowerInvariant();
+        DerivedId.Hash(JsonSerializer.Serialize(value));
 
     private static string ConductLawDigest(TownLawVersion version) => NonviolentDigest(new
     {
@@ -35,6 +35,7 @@ public sealed partial class PrivateWorldRuntime
         string? itemKind, int quantity, string nativeActId)
     {
         if (!inhabitants.ContainsKey(actor)) return;
+        nativeActId = DerivedId.Create(nativeActId);
         var actorTownId = TownForResident(actor);
         foreach (var town in towns.ToArray())
         {
@@ -165,7 +166,7 @@ public sealed partial class PrivateWorldRuntime
             var original = state.Acquisitions.FirstOrDefault(item => item.Id == evidence.Id);
             if (original is null || state.Acquisitions.Any(item => item.AgentId == actor && item.ConductId == original.ConductId &&
                     item.Kind == "record_inspection" && item.PublicCaseId == file.Id)) continue;
-            var acquired = new TownConductAcquisition(original.ConductId + ":inspect:" + file.Id + ":" + actor,
+            var acquired = new TownConductAcquisition(DerivedId.Create(original.ConductId + ":inspect:" + file.Id + ":" + actor),
                 original.ConductId, actor, "record_inspection", WorldTick, reader.Position, evidence.Text,
                 actor, original.Id, ObserverHouseholdId: HouseholdFor(actor), PublicCaseId: file.Id);
             state = state with { Acquisitions = state.Acquisitions.Append(acquired).ToArray() };
@@ -184,7 +185,7 @@ public sealed partial class PrivateWorldRuntime
         var original = town.Nonviolent.Acquisitions.Where(item => item.AgentId == source && item.ConductId == incidentId)
             .OrderBy(item => item.Tick).ThenBy(item => item.Id, StringComparer.Ordinal).FirstOrDefault();
         if (original is null) return false;
-        var id = $"{incidentId}:relay:{WorldTick}:{source}:{recipient}";
+        var id = DerivedId.Create($"{incidentId}:relay:{WorldTick}:{source}:{recipient}");
         if (town.Nonviolent.Acquisitions.Any(item => item.Id == id)) return true;
         var acquired = new TownConductAcquisition(id, incidentId, recipient, "relay", WorldTick,
             listener.Position, statement.Trim(), source, original.Id, speaker.Position, HouseholdFor(recipient));
@@ -428,7 +429,7 @@ public sealed partial class PrivateWorldRuntime
                     if (term.Kind == "return_goods")
                     {
                         var lot = NonviolentReturnLot(term with { Quantity = remaining })!;
-                        var operation = $"remedy-return:{WorldTick}:{actor}:{nextEventId}";
+                        var operation = DerivedId.Create($"remedy-return:{WorldTick}:{actor}:{nextEventId}");
                         ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, operation, actor,
                             term.BeneficiaryId!, lot.Id, remaining, "voluntary_restitution"));
                         RecordNonviolentGoodsCompletion(actor, lot, term.BeneficiaryId!, remaining, null, operation, "return_goods");
@@ -470,7 +471,7 @@ public sealed partial class PrivateWorldRuntime
             Math.Min(DestinationRoom(warehouse.InstanceId), surplus.Quantity)));
         if (quantity <= 0) return;
         var availableBefore = PersonalWarehouseAvailableQuantity(actor, lot.ItemKind);
-        var operation = $"warehouse-stock:{WorldTick}:{actor}";
+        var operation = DerivedId.Create($"warehouse-stock:{WorldTick}:{actor}");
         ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory, operation, actor, warehouse.TownId!,
             lot.Id, quantity, "town_resources_stored", warehouse.InstanceId));
         RecordNonviolentGoodsCompletion(actor, lot, warehouse.TownId!, quantity, warehouse.InstanceId, operation, "public_service_goods", availableBefore);
@@ -482,6 +483,7 @@ public sealed partial class PrivateWorldRuntime
     {
         var result = society.Checkpoint.Inventory.GetLot(repairedLotId);
         if (result.ConditionBasisPoints <= originalTarget.ConditionBasisPoints) return;
+        nativeReceiptId = DerivedId.Create(nativeReceiptId);
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, "repair_equipment", actor, WorldTick,
             originalTarget.OwnerId, originalTarget.ItemKind, 1, originalTarget.Id, originalTarget.Id,
             repairedLotId, originalTarget.OwnerId, result.OwnerId, position,
@@ -524,7 +526,7 @@ public sealed partial class PrivateWorldRuntime
                     var remaining = NonviolentRemaining(town.Nonviolent, agreement, term);
                     if (remaining <= 0) continue;
                     receipt = receipt with { Version = NonviolentDigest(receipt) };
-                    var effect = new TownRemedyEffect("effect:" + receipt.Id, agreement.Id, term.Id, receipt.ActorId,
+                    var effect = new TownRemedyEffect(DerivedId.Create("effect:" + receipt.Id), agreement.Id, term.Id, receipt.ActorId,
                         receipt.Tick, receipt.Kind, receipt.BeneficiaryId, receipt.ItemKind, Math.Min(remaining, receipt.Quantity),
                         term.TargetId, receipt.Id, receipt.Version);
                     var state = town.Nonviolent with { NativeReceipts = town.Nonviolent.NativeReceipts.Append(receipt).ToArray() };

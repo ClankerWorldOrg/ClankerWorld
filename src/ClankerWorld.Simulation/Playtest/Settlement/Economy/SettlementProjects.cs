@@ -939,7 +939,7 @@ public sealed partial class PrivateWorldRuntime
             // start a new tree elsewhere.
             AppendEvent("tree_seed_collected", $"{inhabitantId}:{source.Id}:{plan.TreeSeedQuantity}");
         }
-        return new MaterialGatherEffect($"material:{WorldTick}:{inhabitantId}", itemKind, plan.Quantity, source.Id);
+        return new MaterialGatherEffect(DerivedId.Create($"material:{WorldTick}:{inhabitantId}"), itemKind, plan.Quantity, source.Id);
     }
 
     private static InventoryCheckpoint MarkBuildingMaterialDelivery(InventoryCheckpoint inventory, string lotId,

@@ -80,7 +80,7 @@ public static class TownProjectValidation
                         var receipt = inventory.Reservations.SingleOrDefault(item => item.Id == receiptId);
                         var expected = delivery.ReleasedTick is not null ? InventoryReservationState.Released :
                             project.Stage == "completed" ? InventoryReservationState.Completed : InventoryReservationState.Reserved;
-                        if (receiptId != delivery.Id + ":input" || !reservations.Add(receiptId) ||
+                        if (receiptId != DerivedId.Create(delivery.Id + ":input") || !reservations.Add(receiptId) ||
                             receipt is null || receipt.OwnerId != town.Id ||
                             receipt.LotId != delivery.LotId || receipt.Quantity != delivery.Quantity ||
                             receipt.Purpose != TownProjectRules.ReservationPurpose(project.Id) ||

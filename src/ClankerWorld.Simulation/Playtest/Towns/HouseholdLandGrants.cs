@@ -10,8 +10,7 @@ namespace ClankerWorld.Simulation.Playtest;
 public static class HouseholdLandGrantRules
 {
     private const string GrantPrefix = "council:";
-    private static string Digest(string text) => Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(text)))
-        .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    private static string Digest(string text) => DerivedId.HashBase64Url(text);
     public static string GrantSource(string requestId) => GrantPrefix + Digest(requestId);
     public static string RightId(string requestId) => "household-use:grant:" + Digest(requestId);
     public static string RequestKey(HouseholdLandUseRequest request) => "land_use:" + Digest(
@@ -281,7 +280,7 @@ public sealed partial class PrivateWorldRuntime
     {
         if (landTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles })
             throw new InvalidOperationException("Choose exact land tiles for the household request.");
-        var (result, updated) = FileHouseholdLandUse("land-request:" + town.Id + ":" + (state.Notices.Count + 1),
+        var (result, updated) = FileHouseholdLandUse(DerivedId.Create("land-request:" + town.Id + ":" + (state.Notices.Count + 1)),
             actor, town.Id, landTiles.Select(t => new GridPoint(t.X, t.Y)).ToArray(), null, state);
         if (!result.Applied) throw new InvalidOperationException(result.Failure);
         return updated;

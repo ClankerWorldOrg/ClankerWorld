@@ -171,7 +171,7 @@ public sealed partial class PrivateWorldRuntime
                 MoveToward(actor, state, SettlementStoragePosition, "trade", ResourceInteractionRange);
                 return;
             }
-            var id = $"{SettlementTradePrefix}{WorldTick}:{actor}:{other}";
+            var id = DerivedId.Create($"{SettlementTradePrefix}{WorldTick}:{actor}:{other}");
             society.Apply(checkpoint => SocietyFixture.CreateBarterOffer(checkpoint,
                 new DirectBarterProposal(id, 1, actor, other, trade.Give.Id, 1, trade.Take.Id, 1, WorldTick + 120)));
             society.Apply(checkpoint => SocietyFixture.AcceptBarterOffer(checkpoint, id, 1, actor));

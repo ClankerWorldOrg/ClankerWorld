@@ -13,6 +13,13 @@ public sealed class DerivedIdTests
     }
 
     [Fact]
+    public void ExistingLandGrantDigestsKeepTheirUrlSafeShortSpelling()
+    {
+        Assert.Equal("council:ungWv48Bz-pBQUDeXa4iI7ADYaOWF3qctBD_YfIAFa0", DerivedId.HashBase64Url("abc", "council:"));
+        Assert.Throws<ArgumentException>(() => DerivedId.HashBase64Url("abc", new string('p', DerivedId.MaximumLength)));
+    }
+
+    [Fact]
     public void LongPrefixesAndUnicodeRemainDistinctAndWithinTheSharedBoundary()
     {
         var first = new string('界', 128) + ":child:" + "é";

@@ -20,7 +20,7 @@ public static partial class TownGovernmentRules
     public static TownOffice? GoverningOffice(TownGovernmentState state) =>
         state.Offices.SingleOrDefault(o => o.Mandates == "ordinary");
     private static string Fingerprint(IEnumerable<string> fields) =>
-        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join('\n', fields))));
+        DerivedId.Hash(string.Join('\n', fields));
     private static string Circumstances(TownGovernmentState state, string[] adults) =>
         Fingerprint(adults.Prepend(TownArrangementRules.Key(state.Arrangement))
             .Concat(state.Offices.OrderBy(o => o.Mandates, StringComparer.Ordinal).Select(o => o.Mandates + ":" + o.HolderId)));

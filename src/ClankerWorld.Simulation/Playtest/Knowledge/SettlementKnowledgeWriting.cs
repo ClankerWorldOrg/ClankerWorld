@@ -180,7 +180,7 @@ public sealed partial class PrivateWorldRuntime
         }
         // SharedItem resolves household/Town permission at pickup time; physical possession alone grants none.
         ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
-            $"knowledge-material:{WorldTick}:{CognitionDiscovererId(actor)}:{kind}", item.OwnerId, actor, item.Id, quantity,
+            DerivedId.Create($"knowledge-material:{WorldTick}:{CognitionDiscovererId(actor)}:{kind}"), item.OwnerId, actor, item.Id, quantity,
             "knowledge_material_collected"));
         AppendEvent("agent_knowledge_material_collected", $"{actor}|{kind}|{quantity}");
     }

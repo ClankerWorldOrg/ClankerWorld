@@ -65,7 +65,7 @@ public sealed partial class PrivateWorldRuntime
     private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
     {
         var receipt = instruction.Order!.LastEffectId;
-        if (receipt is null || receipt.Length > CartRepairOrderReceiptPrefix.Length + 20 + 1 + 64 ||
+        if (receipt is null || receipt.Length > DerivedId.MaximumLength ||
             !receipt.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
         var separator = receipt.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
         return separator > CartRepairOrderReceiptPrefix.Length &&

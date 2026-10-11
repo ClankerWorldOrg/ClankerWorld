@@ -144,7 +144,7 @@ public sealed partial class PrivateWorldRuntime
                 if (progress >= definition.ProductDays * AnimalDayTicks)
                 {
                     var productId = "animal-product-" + AnimalKey(animal.Id + ":" + tick);
-                    var reservationId = productId + "-held";
+                    var reservationId = DerivedId.Create(productId + "-held");
                     ApplyInventoryTransition(inventory => InventoryFixture.Reserve(InventoryFixture.AddLot(inventory,
                         productId, definition.Product!, animal.HouseholdId, definition.ProductQuantity, tick,
                         groundPosition: new(animal.Position.X, animal.Position.Y)), reservationId,

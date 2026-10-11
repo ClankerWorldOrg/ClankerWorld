@@ -96,7 +96,7 @@ public static class TownNonviolentValidation
             Check(revision.PublishedTick >= item.FiledTick && revision.PublishedTick <= tick &&
                 revision.DeadlineTick >= revision.PublishedTick && revision.DeadlineTick - revision.PublishedTick == day && Id(revision.NoticeId) &&
                 town.Governance?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "law_case" &&
-                    n.SubjectId == item.Id + ":" + revision.Number.ToString(CultureInfo.InvariantCulture) && n.PostedTick == revision.PublishedTick) == true,
+                    n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A hearing needs its actual published notice and a complete response day.");
             ValidateParties(revision.Parties, people, households, society);
             ValidateTownParty(town, item, revision.Parties, revision.PublishedTick);
@@ -216,7 +216,7 @@ public static class TownNonviolentValidation
     private static void ValidateTownParty(TownRuntimeState town, TownViolationCase item, IReadOnlyList<TownCaseParty> parties, long tick)
     {
         foreach (var party in parties.Where(p => p.Role == "town"))
-            Check(party.Id == "town:" + town.Id && party.CareRelationshipId is null &&
+            Check(party.Id == DerivedId.Create("town:" + town.Id) && party.CareRelationshipId is null &&
                 item.Filings.Any(f => f.Kind == "town" && f.AgentId == party.SubjectId && f.Tick <= tick) &&
                 (party.RespondingAdultId is null || OrdinaryMayorAt(town, party.RespondingAdultId, null, tick) ||
                     item.Filings.Any(f => f.Kind == "town" && f.AgentId == party.RespondingAdultId && f.Tick <= tick &&
