@@ -304,6 +304,11 @@ paper and cloth. Finished items count toward the order; identical accounts
 are not written again. More writing waits for new learning, supplies and room
 to carry them. Cancelled or replaced orders release their unused reservations.
 
+Book writing, cart repair and tool repair choose an order for their material
+pickups that keeps the remaining trips reachable with the added load. They
+can fetch a distant ingredient first when collecting nearby supplies would
+prevent a river crossing.
+
 Adults can also be ordered to copy a held record, map or book, with a count or
 until cancelled. The source must be owned and carried, with every recorded site and recipe
 already known. A copy preserves its frozen contents and costs fresh native

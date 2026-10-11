@@ -56,13 +56,27 @@ public sealed partial class PrivateWorldRuntime
             lot.FreshnessBasisPoints > 0 && AvailableLotQuantity(lot) > 0)
         .OrderBy(lot => lot.Id, StringComparer.Ordinal);
 
-    private bool CanSupplyWriting(string actor, string kind)
+    private List<InputCollectionStep>? WritingCollectionPlan(string actor, string kind)
     {
-        var missing = AgentKnowledgeRules.WritingMaterials(kind).Select(input =>
-            (input.Kind, Quantity: Math.Max(0, input.Quantity - CarriedWritingMaterials(actor, input.Kind).Sum(AvailableLotQuantity)))).ToArray();
-        return missing.Sum(input => input.Quantity) <= FreeCarryCapacity(actor) &&
-            missing.All(input => input.Quantity == 0 || SharedItem(input.Kind, actor) is not null);
+        var inputs = new List<InputCollectionStep>();
+        foreach (var input in AgentKnowledgeRules.WritingMaterials(kind))
+        {
+            var missing = Math.Max(0, input.Quantity - CarriedWritingMaterials(actor, input.Kind).Sum(AvailableLotQuantity));
+            if (missing == 0) continue;
+            foreach (var stock in SharedStockItems(input.Kind, actor, GoodsUse.Collect))
+            {
+                var quantity = Math.Min(missing, AvailableLotQuantity(stock));
+                if (quantity <= 0) continue;
+                inputs.Add(StockCollectionStep(stock, quantity));
+                missing -= quantity;
+                if (missing == 0) break;
+            }
+            if (missing > 0) return null;
+        }
+        return PlanInputCollection(actor, inputs);
     }
+
+    private bool CanSupplyWriting(string actor, string kind) => WritingCollectionPlan(actor, kind) is not null;
 
     private void AddKnowledgeWritingCandidates(List<CognitionCandidate> candidates, string actor, PlaytestInhabitantState person)
     {
@@ -127,12 +141,13 @@ public sealed partial class PrivateWorldRuntime
         var facts = FactsToWrite(actor, kind, source);
         var recipes = RecipesToWrite(actor, kind, source);
         if (facts.Length + recipes.Length == 0 || source is not null && !HasCompleteCopyContents(actor, source, facts, recipes) ||
-            AlreadyWrote(actor, kind, facts, recipes) || !CanSupplyWriting(actor, kind)) return;
-        foreach (var input in AgentKnowledgeRules.WritingMaterials(kind))
+            AlreadyWrote(actor, kind, facts, recipes)) return;
+        var collection = WritingCollectionPlan(actor, kind);
+        if (collection is null) return;
+        if (collection.Count > 0)
         {
-            var missing = input.Quantity - CarriedWritingMaterials(actor, input.Kind).Sum(AvailableLotQuantity);
-            if (missing <= 0) continue;
-            CollectKnowledgeMaterial(actor, person, input.Kind, missing);
+            var input = collection[0];
+            CollectKnowledgeMaterial(actor, person, input.Kind, input.CarryUnits, input.Stock!.Id);
             return;
         }
         var id = WritingProjectId(actor, WorldTick, society.Checkpoint.Inventory.Reservations.Count);
@@ -165,9 +180,9 @@ public sealed partial class PrivateWorldRuntime
         AppendEvent("agent_knowledge_writing_started", $"{actor}|{kind}|{id}");
     }
 
-    private void CollectKnowledgeMaterial(string actor, PlaytestInhabitantState person, string kind, int missing)
+    private void CollectKnowledgeMaterial(string actor, PlaytestInhabitantState person, string kind, int missing, string plannedLotId)
     {
-        var item = SharedItem(kind, actor);
+        var item = SharedStockItems(kind, actor, GoodsUse.Collect).FirstOrDefault(lot => lot.Id == plannedLotId);
         if (item is null || item.DeliveryBuildingId is not null || item.ConditionBasisPoints <= 0 || item.FreshnessBasisPoints <= 0) return;
         var quantity = Math.Min(missing, Math.Min(FreeCarryCapacity(actor), AvailableLotQuantity(item)));
         if (quantity <= 0) return;
@@ -178,7 +193,7 @@ public sealed partial class PrivateWorldRuntime
             MoveToward(actor, person, position, "knowledge_materials", range);
             return;
         }
-        // SharedItem resolves household/Town permission at pickup time; physical possession alone grants none.
+        // Resolve household/Town permission for the planned lot again at pickup time.
         ApplyInventoryTransition(inventory => InventoryFixture.Transfer(inventory,
             WritingMaterialTransferId(WorldTick, actor, kind), item.OwnerId, actor, item.Id, quantity,
             "knowledge_material_collected"));
