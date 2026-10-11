@@ -114,7 +114,11 @@ searches find it.
   review and takes P0 pull requests next.
 - **Bugs:** a crash, data loss or unplayable game is P0; wrong in normal play
   is P1; an edge case is P2; cosmetic is P3. A `regression`, something that
-  used to work, goes one level higher.
+  used to work, goes one level higher. A bug that only a setup a normal game
+  cannot produce can trigger is P3, whatever its effect: goods placed where no
+  agent could put them, or a state only a test fixture can create. A long
+  normal game that could reach it counts as normal. Security problems keep
+  their own rule.
 - **Security problems:** a problem someone could exploit now, such as reading
   keys or private saves, getting past pairing or controlling a host, is P0.
   The repository is public, so never describe it in an issue, pull request or
@@ -306,6 +310,12 @@ them.
 - **Plan and leave a trail.** For work with several steps, keep a short plan
   and update it as you learn more. If you cannot finish, push your branch and
   say what remains where the next person will look.
+- **Fix by simplifying.** Prefer a fix that removes, merges or reuses a rule
+  over one that adds a special case. If a shared check exists, such as the
+  shared goods query, call it rather than writing another. The pull request
+  says how many lines it adds and removes in source, tests and docs, and why
+  a fix that only adds could not remove something instead. Reviewers push
+  back on a new one-off check where a shared one would do.
 - **Fill in the [pull request template](.github/pull_request_template.md)** for
   someone who has not read the conversation, with a short title about the
   effect, such as `Show fullness instead of hunger on the agent panel`.
@@ -364,6 +374,13 @@ for what you changed, such as the feature, building, item, order, setting or
 class, and read every place it lists. Fix each sentence your change made
 false, on any page, in the same pull request, and write the names you
 searched in the pull request.
+
+**Developer pages explain how the code works, not every rule.** Describe each
+system's purpose, its main rules and where its code lives; the tests hold the
+edge cases, so don't add a paragraph for each one. Don't commit raw
+measurement data, such as probe samples, under `docs/`: keep a short summary
+with the command that reproduces it, and leave the data in the pull request or
+an issue.
 
 **Game-design pages describe the design.** A game-design chapter says what the
 game is meant to do. What the build does today belongs in
