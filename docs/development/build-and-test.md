@@ -52,6 +52,16 @@ stay unchanged during each wait. Thirty-second phase deadlines diagnose a
 stalled request without polling native ticks. The check retains one harvest,
 unchanged completion units, the actual late reply and strict checkpoint reload.
 
+The held harvest/eating check keeps its two adjacent physical frames: one
+harvest without consumption, then consumption on the following tick. Its
+deferred-entry row holds a private preparation gate until both frames are
+checked. It then waits for validated provider entry with the world frozen,
+preserving checkpoint bytes and the three-second startup bound. After releasing
+the reply, it waits for the captured hosted task rather than only the provider's
+response-construction signal. The original five admission ticks and finished-order,
+single-harvest, stale-response, observer-reply and reload checks remain. Its
+finally block opens held gates, cancels pending calls and awaits the captured task.
+
 Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
