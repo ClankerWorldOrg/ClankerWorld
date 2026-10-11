@@ -19,13 +19,16 @@ public sealed partial class BusinessTradeTests
         foreach (var cost in store.BuildCosts)
             inventory = InventoryFixture.AddLot(inventory, "resale-store-cost-" + cost.ResourceId, cost.ResourceId,
                 homes[1], cost.Amount, storageBuildingId: buyerHouse.InstanceId);
+        // Standalone building references retain their complete publicly placed identity.
+        var secondStoreId = new string('s', 200);
         using (var placing = PrivateWorldRuntime.Restore(WithInventory(state, inventory), _ => new ShopProvider("safe_idle")))
         {
             _ = state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, buyerHouse.Position))
-                .First(tile => placing.PlaceBuilding("resale-second-store", store.CanonicalId, tile.Position, homes[1]).Applied);
+                .First(tile => placing.PlaceBuilding(secondStoreId, store.CanonicalId, tile.Position, homes[1]).Applied);
             state = placing.ExportState();
         }
-        var stores = new[] { shop, "resale-second-store" };
+        Assert.Equal(200, Assert.Single(state.WorldSimulation!.Buildings, building => building.InstanceId == secondStoreId).InstanceId.Length);
+        var stores = new[] { shop, secondStoreId };
         var jugs = new[] { "resale-first-jug", "resale-second-jug" };
         inventory = state.Society.Society.Inventory;
         inventory = inventory with
@@ -82,6 +85,7 @@ public sealed partial class BusinessTradeTests
             var offer = Assert.Single(pendingState.AnimalWorld.MilkOffers);
             Assert.Equal((milk.Id, people[source], people[destination], receiving.Id, stores[source]),
                 (offer.MilkLotId, offer.SellerId, offer.BuyerId, offer.ReceivingJugId, offer.BuildingId));
+            if (source == 1) Assert.Equal(200, offer.BuildingId.Length);
             Assert.InRange(offer.MilkLotId.Length, 1, DerivedId.MaximumLength);
             var pending = host.Saved();
             if (round == 14)

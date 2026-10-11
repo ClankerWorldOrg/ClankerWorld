@@ -11,7 +11,7 @@ public sealed partial class PrivateWorldRuntime
     // generators. DerivedId alone owns their bound and hashing policy.
     private static string MedicalDoseId(long tick, long eventId, string caregiver, string patient) =>
         DerivedId.Create($"medical-dose:{tick}:{eventId}:{caregiver}:{patient}");
-    private static string FoodHarvestLotId(long tick, string actor) => DerivedId.Create($"food:harvest:{tick:D10}:{actor}");
+    private static string FoodHarvestLotId(long tick, string actor) => DerivedId.Create($"food:harvest:{tick:D10}:{actor}", "food:harvest:sha256:");
     private static string OrchardSeedLotId(long tick, string actor) => DerivedId.Create($"orchard-seed:{tick:D10}:{actor}");
     private static string MaterialLotId(long tick, string actor) => DerivedId.Create($"material:{tick}:{actor}");
     private static string TreeSeedLotId(long tick, string actor) => DerivedId.Create($"tree-seed:{tick}:{actor}");

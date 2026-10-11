@@ -55,7 +55,7 @@ public sealed partial class PrivateWorldRuntime
             var buyer = society.Inhabitants.FirstOrDefault(person => person.Id == offer.BuyerId);
             if (seller is null || buyer is null || seller.HouseholdId == buyer.HouseholdId || milk is null || milk.ItemKind != "milk" ||
                 milk.ContainerLotId is null || !(milk.OwnerId == seller.Id || milk.OwnerId == seller.HouseholdId) || !InventoryReference(offer.ReceivingJugId) || !InventoryReference(offer.PaymentLotId) ||
-                !Identifier(offer.BuildingId) || !map.IsPassable(offer.Position) || offer.OfferedTick < 0 || offer.OfferedTick > society.WorldTick ||
+                !InventoryReference(offer.BuildingId) || !map.IsPassable(offer.Position) || offer.OfferedTick < 0 || offer.OfferedTick > society.WorldTick ||
                 !state.WorldSimulation!.Buildings.Any(building => building.InstanceId == offer.BuildingId && building.Position == offer.Position) ||
                 !inventory.Lots.Any(jug => jug.Id == offer.ReceivingJugId && jug.ItemKind == InventoryContainerRules.WaterJug &&
                     (jug.OwnerId == buyer.Id || jug.OwnerId == buyer.HouseholdId) && PersonalEquipmentRules.IsCarried(jug, buyer.Id)) ||

@@ -147,6 +147,36 @@ public sealed partial class GrownAgentHelperMemoryTests
             town = town with { Government = government };
         }
         town = town with { Governance = council };
+        string? townPartyHandle = null;
+        if (generator == "town-party")
+        {
+            var day = state.WorldSystems!.Config.TicksPerDay;
+            var hearingRequest = new TownLandFilingRequest(town.BorderTiles, new("confirm"),
+                "Confirm the Town's recorded land title.");
+            council = TownGovernanceRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,
+                "Authorize this exact land hearing.", "The recorded title needs review.", [actor, relative],
+                society.WorldTick, day, landHearingRequest: hearingRequest);
+            var authority = council.Proposals[^1];
+            council = TownGovernanceRules.VoteProposal(council, authority.Id, actor, true, society.WorldTick);
+            council = TownGovernanceRules.VoteProposal(council, authority.Id, relative, true, society.WorldTick);
+            town = town with { Governance = council };
+            Assert.True(TownLandCasePartyRules.TownFilingAuthority(town, actor, authority.Id,
+                society.Inhabitants, society.WorldTick));
+            var parties = TownLandCasePartyRules.CurrentParties(town, town.BorderTiles,
+                state.HouseholdLandUseRights!, [], society.Inhabitants, society.WorldTick, townRepresentative: actor);
+            var party = Assert.Single(parties, party => party.Kind == "town");
+            townPartyHandle = party.Id;
+            Assert.Equal((town.Id, actor), (party.TownId, party.RepresentativeId));
+            var noticeId = "notice:" + (council.Notices.Count + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var hearings = TownLandHearingRules.File(town.LandHearings, town.Id,
+                new(actor, "town", hearingRequest.Statement, hearingRequest.RequestedOutcome,
+                    society.WorldTick, authority.Id), town.BorderTiles, state.HouseholdLandUseRights!, parties,
+                society.WorldTick, day, noticeId);
+            var hearing = Assert.Single(hearings.Cases);
+            council = TownGovernanceRules.PostNotice(council, "land_hearing", TownLandHearingRules.RevisionToken(hearing),
+                "Affected adults may respond to this formal land hearing.", society.WorldTick);
+            town = town with { Governance = council, LandHearings = hearings };
+        }
         state = state with
         {
             Towns = state.Towns.Select(record =>
@@ -158,6 +188,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             TownLandTitles = (state.TownLandTitles ?? []).Concat(TownLandRightsRules.InitialTitles(state.Map, town, society.WorldTick))
                 .OrderBy(title => title.Id, StringComparer.Ordinal).ToArray(),
         };
+        if (generator == "town-party")
+            // Validate the actual hearing before its key is also used as a memory ID.
+            PrivateWorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = society } });
         var project = TownProjectRules.ProjectId(proposal);
         var sourceLot = Assert.Single(society.Inventory.Lots, lot => lot.ItemKind == "milk").Id;
         var request = new HouseholdLandUseRequest(proposal.Id, town.Id, home, actor, [town.OriginSite.Value], society.WorldTick);
@@ -237,7 +270,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             "unopened-hearing" => [TownRecordIds.UnopenedHearing(proposal.Id)],
             "law-evidence" => [TownRecordIds.LawEvidence(TownRecordIds.Law(town.Id, long.MaxValue), int.MaxValue)],
             "subject-party" or "affected-party" => [TownRecordIds.PersonParty(generator == "subject-party" ? "subject" : "affected", actor)],
-            "town-party" => [TownRecordIds.TownParty(town.Id)],
+            "town-party" => [townPartyHandle!],
             "household-party" => [TownLandCasePartyRules.HouseholdPartyId(home)],
             "delivery-input" => [TownRecordIds.DeliveryInput(TownProjectRules.DeliveryId(project, actor, sourceLot, society.WorldTick, int.MaxValue))],
             "delivery-final" => [TownRecordIds.DeliveryFinal(TownProjectRules.DeliveryId(project, actor, sourceLot, society.WorldTick, int.MaxValue))],
@@ -256,6 +289,18 @@ public sealed partial class GrownAgentHelperMemoryTests
             var bytes = PrivateWorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = checkpoint } });
             using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes));
             Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
+            if (generator == "town-party")
+            {
+                var savedTown = restored.Towns.Single(record => record.Id == town.Id);
+                var hearing = Assert.Single(savedTown.LandHearings.Cases);
+                var party = Assert.Single(hearing.Revisions[0].Parties, party => party.Kind == "town");
+                Assert.Equal((id, town.Id, actor), (party.Id, party.TownId, party.RepresentativeId));
+                var filing = Assert.Single(hearing.Filings);
+                Assert.True(TownLandCasePartyRules.TownFilingAuthority(savedTown, actor, filing.AuthorityId,
+                    restored.Society.Inhabitants, restored.WorldTick));
+                Assert.Contains(savedTown.Governance!.Notices, notice => notice.Id == hearing.Revisions[0].NoticeId &&
+                    notice.SubjectId == TownLandHearingRules.RevisionToken(hearing));
+            }
             var candidates = new CognitionCandidate[] { new("safe_idle", summary, 0) };
             var recalled = PrivateWorldMemoryRetrieval.Retrieve(restored.Society.Memories, restored.Society.Beliefs ?? [],
                 null, actor, restored.WorldTick, candidates, restored.Society);
