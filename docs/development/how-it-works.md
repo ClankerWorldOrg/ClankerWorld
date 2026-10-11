@@ -4326,6 +4326,11 @@ This is separate from the saved lesson record, which now stores a skill.
 
 ## World-list requests
 
+Select World refuses an empty, missing or whitespace-only catalog ID with HTTP
+400 before authorization or mutation, using the same required-payload guard as
+the manual-save endpoints. Nonempty selections still require the signed owner
+request and the existing private-world, compatibility and restore checks.
+
 Launcher handoffs carry the catalog entry ID with the requested game version.
 Both process boundaries use separate arguments; `--choose-world` accepts only
 the catalog's 32-character hexadecimal ID, never a path or a display name.

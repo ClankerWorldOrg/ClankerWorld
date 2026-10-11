@@ -102,8 +102,11 @@ internal static partial class OwnerEndpoints
         {
             if (request?.Action is not { Operation: "select-world" } action)
                 return Results.BadRequest(new { error = "A world selection is required." });
+            string payload;
+            try { payload = OwnerHttpBinding.ManualSavePayload(action); }
+            catch (ArgumentException) { return Results.BadRequest(new { error = "A world ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/select",
-                OwnerHttpBinding.ManualSavePayload(action));
+                payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
             if (!isPrivateWorld) return Results.Conflict(new { error = "World selection requires a private world." });
             try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().Select(action.Value)); }
