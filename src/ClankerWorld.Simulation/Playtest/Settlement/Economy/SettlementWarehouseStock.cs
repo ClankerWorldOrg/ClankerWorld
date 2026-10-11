@@ -76,10 +76,8 @@ public sealed partial class PrivateWorldRuntime
     }
 
     private IEnumerable<InventoryLot> PersonalWarehouseLots(string actor, string? itemKind = null) =>
-        society.Checkpoint.Inventory.Lots
-            .Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
-                lot.DeliveryBuildingId is null && WarehouseResourceKinds.Contains(lot.ItemKind) &&
-                (itemKind is null || lot.ItemKind == itemKind) && AvailableLotQuantity(lot) > 0)
+        SpendingGoods(actor, GoodsUse.Spend, [actor], itemKind).Select(match => match.Lot)
+            .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) && WarehouseResourceKinds.Contains(lot.ItemKind))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal);
 
     private long PersonalWarehouseAvailableQuantity(string actor, string itemKind) =>

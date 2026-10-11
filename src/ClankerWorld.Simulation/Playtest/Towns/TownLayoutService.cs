@@ -253,8 +253,8 @@ public static class TownLayoutService
             !IsClearFootprintTile(context, position, position))
             return false;
         var footprint = context.RequiredFootprintOffsets is { } offsets
-            ? offsets.Select(offset => new GridPoint(position.X + offset.X, position.Y + offset.Y)).ToArray()
-            : Footprint(definition, position).ToArray();
+            ? offsets.Select(offset => new GridPoint(position.X + offset.X, position.Y + offset.Y))
+            : Footprint(definition, position);
         if (footprint.Any(point => !IsClearFootprintTile(context, point, position)))
             return false;
         if (context.RequiredLandTiles is { } titled && footprint.Any(point => !titled.Contains(point)))
@@ -281,7 +281,7 @@ public static class TownLayoutService
 
         var reasons = new List<TownConstructionSiteReason>
         {
-            new(TownConstructionSiteReasonCodes.BuildableGround, $"All {footprint.Length} footprint tiles are clear, buildable ground."),
+            new(TownConstructionSiteReasonCodes.BuildableGround, $"All {context.RequiredFootprintOffsets?.Count ?? definition.Width * definition.Height} footprint tiles are clear, buildable ground."),
             new(TownConstructionSiteReasonCodes.FootAccess, "A legal unoccupied foot route reaches this site."),
         };
         var score = Math.Max(0, 24 - routeCost / 100);

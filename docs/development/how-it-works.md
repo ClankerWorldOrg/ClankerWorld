@@ -275,6 +275,24 @@ matches and rechecks remain unreserved; `Collect` refuses a coverage request and
 still cannot pick up a reserved vessel family. Coverage and reservation indices
 are derived from the current checkpoint and are never saved.
 
+`Spend` and `Sell` share usable, unreserved quantities and delivery exclusions.
+Spend excludes stock committed to a borrowed Market stall; Sell lets the Market
+check its seller, live occupancy and stock receipt. Warehouse contributions,
+Town donations, barter, business payments, ornament gifts, repair inputs and
+land payments use these answers with their existing purpose and place filters.
+Market selection computes food reserves across split lots once per query;
+binding a source lot does not narrow the stock that covers its owner's reserve.
+Actions query the current checkpoint again before reserving or transferring.
+Already-reserved barter offers retain their exact-claim checks rather than
+looking for their committed goods in an unreserved answer.
+
+`StorePersonal` selects carried, unworn personal property for storage, including
+damaged or spoiled goods, and refuses delivery promises and reserved vessel
+families. Storage still checks destination room and the transfer authority.
+Physical Market stock counts also remain physical, including damaged contents,
+so usable sale selection cannot undercount occupied space. These queries add no
+route, saved state or persistent world cache.
+
 Delivery selection and remaining uses belong to the later steps of
 [#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
 origin/destination fields and extra-unit requests are refused rather than silently ignored.
@@ -2859,6 +2877,11 @@ Road-frontage scoring reuses the rectangular footprint and cardinal direction
 checks with direct loops, avoiding nested iterator and predicate allocations.
 The [Road-frontage measurements](road-frontage-query-measurements.md) record
 matched native captures, lower allocations and mixed timing limits.
+Site evaluation enumerates placement footprints lazily, rejecting blocked tiles
+without allocating the remaining translated points. It keeps full-footprint
+legality before limiting offered candidates. See
+[footprint evaluation measurements](footprint-evaluation-measurements.md)
+for matched native results and allocation/timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household

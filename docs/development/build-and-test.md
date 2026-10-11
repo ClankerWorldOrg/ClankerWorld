@@ -77,6 +77,13 @@ stay unchanged during each wait. Thirty-second phase deadlines diagnose a
 stalled request without polling native ticks. The check retains one harvest,
 unchanged completion units, the actual late reply and strict checkpoint reload.
 
+The held housing-reply fixture captures the registered request before waiting
+for provider startup. Its deferred-start rows keep that same request pending
+through lesson progress, then observe entry with the world frozen. It retains
+the unapproved housing request, no admission or completed reply, refused-tick
+preservation and strict reload. The thirty-second entry bound is diagnostic;
+waiting for it spends no native ticks.
+
 The held harvest/eating check keeps its two adjacent physical frames: one
 harvest without consumption, then consumption on the following tick. Its
 deferred-entry row holds a private preparation gate until both frames are

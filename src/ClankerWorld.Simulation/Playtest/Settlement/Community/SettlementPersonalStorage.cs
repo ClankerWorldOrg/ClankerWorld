@@ -8,11 +8,8 @@ public sealed partial class PrivateWorldRuntime
     private sealed record PersonalStorageEffect(string MoveId, string ItemKind, int Quantity);
 
     private IEnumerable<InventoryLot> PersonalStorageLots(string actor, string houseId) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == actor &&
-            PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null && lot.ContainerLotId is null &&
-            // Keep worn equipment and tools under repair with their wearer.
-            !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id) &&
-            !IsEdibleFood(lot.ItemKind) && PhysicalUnreservedQuantity(lot) > 0 &&
+        SpendingGoods(actor, GoodsUse.StorePersonal, [actor]).Select(match => match.Lot)
+            .Where(lot => !IsEdibleFood(lot.ItemKind) &&
             VesselFits(lot, DestinationRoom(houseId))).OrderBy(lot => lot.Id, StringComparer.Ordinal);
 
     private PersonalStorageEffect? StorePersonalGoods(string actor, string lotId, int maximumQuantity = int.MaxValue,

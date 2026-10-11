@@ -286,10 +286,11 @@ minute. The public listener has no such check, because Tailscale Serve reaches
 it under its own name.
 
 This is an operator recovery path, not automatic queue eviction on behalf of an
-untrusted remote client. Keep the returned code and proof local/private. Tests
-cover capacity recovery and signed owner availability. Bodies without a declared
-length and the host-name check are tested on a real Kestrel server, not only
-through TestServer.
+untrusted remote client. The game's own host also uses it for the game's first
+pairing ([Host started by the game](#host-started-by-the-game)). Keep the
+returned code and proof local/private. Tests cover capacity recovery and signed
+owner availability. Bodies without a declared length and the host-name check are
+tested on a real Kestrel server, not only through TestServer.
 
 ## Host started by the game
 
@@ -306,11 +307,20 @@ host with:
   host. A missing, short or unreadable file stops startup, and the setting is
   refused without an approval port.
 
+The game passes on the player's environment without the provider key variables
+a standalone host saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`OLLAMA_API_KEY`, `TYPESAFE_API_KEY`) or any `ClankerWorld__` setting override,
+so its host takes keys only from **Settings → Game → API keys**. A server host
+started on its own still reads both.
+
 On such a companion host, every `/api/v1/local/*` request must also carry the
 value in the `X-ClankerWorld-Companion-Secret` header, compared in constant
 time. Without it the routes return 404, exactly as on the forwarded listener.
-The game uses it to approve its own pending pairing with the comparison code,
-so the player sees no code to copy.
+The game uses it to start its own pairing with `POST /api/v1/local/pairings` and
+approve it with the comparison code, so the player sees no code to copy and the
+public route's shared budget and pending slots do not hold it up. Status and
+activation stay on the pinned public origin. Pairing with any other server uses
+the public route.
 
 The game does this itself when its folder has `host/ClankerWorld.Viewer.exe`
 and no `--world-url` argument (`LocalHostCompanion`). It uses the fixed origin
