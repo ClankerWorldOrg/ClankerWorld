@@ -229,6 +229,7 @@ public partial class Main
         // Title-screen notices such as "continue from Main Menu" are stale here.
         statusToast.Hide();
         isInWorld = true;
+        requestedWorldToSelect = null;
         if (resumeWorldOnContinue)
         {
             resumeWorldOnContinue = false;

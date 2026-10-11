@@ -4231,6 +4231,7 @@ resolved version and ID together.
 The game still starts at Main Menu. On the first successful visible Load World
 listing, it selects the matching ID and consumes the hint. Failed listings
 retain it for retry; later refreshes do not reapply it over a player's choice.
+Successfully entering a world also discards the startup hint.
 A missing ID leaves every row unselected with an explanation. Existing
 compatibility and action-availability checks apply. Selection sends no pause,
 select-world, load, save or delete request, and never enters a world.

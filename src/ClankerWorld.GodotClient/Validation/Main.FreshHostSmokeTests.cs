@@ -9,6 +9,7 @@ public partial class Main
 {
     private async Task VerifyPairingRecoveryMenuAsync()
     {
+        var previousRequestedWorld = requestedWorldToSelect;
         var previousRegistration = registration;
         var previousKey = deviceKey;
         var previousUrl = worldUrlInput.Text;
@@ -74,8 +75,9 @@ public partial class Main
                 menuCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
                 AssertMenu();
                 // The same entry method used by Continue must perform a signed refresh and enter the world.
+                requestedWorldToSelect = "0123456789abcdef0123456789abcdef";
                 await EnterWorldAsync();
-                if (!isInWorld || mainMenuOverlay.Visible ||
+                if (!isInWorld || mainMenuOverlay.Visible || requestedWorldToSelect is not null ||
                     observationSession.Current?.Baseline.Snapshot.WorldId != "paired-world" ||
                     Requests(OwnerPairingEndpoints.OwnerReconnect) != reconnects + 1)
                     throw new InvalidOperationException("Continue after pairing must enter the recovered world through signed HTTP.");
@@ -121,6 +123,7 @@ public partial class Main
             CloseGameMenu();
             ShowMainMenu();
             isInWorld = previousInWorld;
+            requestedWorldToSelect = previousRequestedWorld;
             resumeWorldOnContinue = previousResume;
             System.Environment.SetEnvironmentVariable("CI", previousCi);
             RefreshControlAvailability();
