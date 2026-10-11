@@ -642,7 +642,7 @@ public sealed class ConversationSystem(ConversationState state)
         var marriage = new AgentMarriage(id, partnership, consent,
             world.Society.GetInhabitant(consent.InitiatorId).Name,
             world.Society.GetInhabitant(consent.InviteeId).Name,
-            id + ":surname", world.WorldTick);
+            AgentMarriageRules.SurnameConversationId(id), world.WorldTick);
         // Consent is retained in the marriage receipt even when ordinary dialogue is compacted.
         AddMarriage(marriage);
         TrimConversationHistory(world);

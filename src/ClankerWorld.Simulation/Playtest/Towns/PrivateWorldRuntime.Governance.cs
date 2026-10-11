@@ -155,7 +155,7 @@ public sealed partial class PrivateWorldRuntime
     private string CivicAction(string town, string kind, string subject = "", string choice = "") =>
         $"civic|{town}|{kind}|{(society.Checkpoint.Inhabitants.Any(p => p.Id == subject) ? CivicAgentToken(subject) : subject)}|{CivicAgentToken(choice)}";
     private static string CivicRoundToken(TownElection election) =>
-        $"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}";
+        DerivedId.Create($"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}");
 
     private void AddTownCivicCandidates(List<CognitionCandidate> candidates, string actor,
         IReadOnlyList<string>? buildingsWithoutSites = null)

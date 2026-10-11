@@ -84,6 +84,7 @@ public static class AgentMarriageRules
 
     public static string Id(string consentId) => "marriage:" +
         DerivedId.Hash(consentId);
+    internal static string SurnameConversationId(string marriageId) => DerivedId.Create(marriageId + ":surname");
 
     public static IReadOnlyList<string> AllowedSurnames(AgentMarriage marriage) =>
         new[] { InhabitantNameRules.SurnameKey(marriage.InitiatorNameAtAcceptance)!,

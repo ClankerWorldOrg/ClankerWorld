@@ -13,6 +13,7 @@ public static class TownLandHearingRules
     public static string Version(HouseholdLandUseRight right) => Digest(JsonSerializer.Serialize(right));
     public static string RecordVersion<T>(T record) => Digest(JsonSerializer.Serialize(record));
     public static string LawVersion(TownLawVersion version) => RecordVersion(version with { EndedTick = null, EndedByProposalId = null });
+    public static string LawRecordId(string lawId, int version) => DerivedId.Create(lawId + "@" + version.ToString(CultureInfo.InvariantCulture));
     public static TownLandRightVersion Snapshot(HouseholdLandUseRight right) => new(right.Id, Version(right), right);
     public static TownLandCaseRevision CurrentRevision(TownLandCase item) => item.Revisions[^1];
     public static string RevisionToken(TownLandCase item) => DerivedId.Create(item.Id + ":" + CurrentRevision(item).Number.ToString(CultureInfo.InvariantCulture));

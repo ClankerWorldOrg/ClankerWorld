@@ -79,6 +79,8 @@ internal static partial class AgentKnowledgeRules
     public static IReadOnlyList<(string Kind, int Quantity)> WritingMaterials(string kind) => kind == "book"
         ? [("paper", 2), ("cloth", 1)] : [("paper", 1)];
     public static string MaterialPurpose(string projectId, string kind) => $"knowledge_writing:{projectId}:{kind}";
+    internal static string WritingReceiptId(string artifactId) =>
+        DerivedId.Create("writing:artifact:" + artifactId, "writing:artifact:sha256:");
 
     public static void Validate(PrivateWorldKnowledgeState knowledge, SeededMap map,
         SocietyCheckpoint society, long worldTick)

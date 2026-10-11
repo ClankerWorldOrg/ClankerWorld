@@ -213,7 +213,7 @@ public sealed partial class PrivateWorldRuntime
 
     private BusinessQuote? ToolRequestQuote(string actor, ToolMakingRequestState request, PlacedBuilding shop) =>
         request.JobId is { } jobId && worldSimulation.ProductionJobs.Any(job => job.JobId == jobId && job.State == WorldProductionJobState.Completed)
-            ? BusinessOpportunity(actor, shop, jobId + ":output:00", requestedGoods: true) : null;
+            ? BusinessOpportunity(actor, shop, DerivedId.Create(jobId + ":output:00"), requestedGoods: true) : null;
 
     private bool HasToolMakingDemand(RecipeDefinition recipe, string? owner, string? worker) => toolMakingRequests.Any(request =>
         request.SellerHouseholdId == owner && request.RecipeId == recipe.CanonicalId &&
@@ -331,7 +331,7 @@ public sealed partial class PrivateWorldRuntime
             {
                 var linkedTrade = businessTrades.FirstOrDefault(trade => trade.BuyerId == request.RequesterId &&
                     trade.BuildingInstanceId == request.BuildingInstanceId && society.Checkpoint.Inventory.Offers.Any(offer =>
-                        offer.Id == trade.OfferId && offer.FirstLotId == request.JobId + ":output:00" &&
+                        offer.Id == trade.OfferId && offer.FirstLotId == DerivedId.Create(request.JobId + ":output:00") &&
                         offer.State is DirectBarterState.Open or DirectBarterState.Settled));
                 if (linkedTrade is not null)
                 {
@@ -345,7 +345,7 @@ public sealed partial class PrivateWorldRuntime
                         offer.State == DirectBarterState.Settled ? "tool_request_completed" : null);
                     continue;
                 }
-                var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == request.JobId + ":output:00");
+                var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == DerivedId.Create(request.JobId + ":output:00"));
                 if (lot is null || lot.OwnerId != request.SellerHouseholdId || lot.StorageBuildingId != request.BuildingInstanceId ||
                     !IsLooseBusinessLot(lot) || AvailableLotQuantity(lot) < 1)
                     SetToolRequest(request with { Status = ToolMakingRequestStatus.Interrupted, Blocker = "The household's finished tool is no longer available." }, "tool_request_interrupted");

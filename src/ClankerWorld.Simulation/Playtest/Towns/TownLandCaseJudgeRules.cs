@@ -102,7 +102,7 @@ public static class TownLandCaseJudgeRules
                 var last = item.ContestHistory.Count == 0 ? null : item.ContestHistory[^1];
                 // A failed vote retries after a day. With nobody willing and eligible there is nothing to retry until someone is.
                 if (last is { Stage: "failed", SettledTick: { } failed } && (tick < failed + day || candidates.Length == 0) && last.Candidates.SequenceEqual(candidates)) continue;
-                contest = new(item.Id + ":judge:" + (item.ContestHistory.Count + 1).ToString(CultureInfo.InvariantCulture), "waiting", 0,
+                contest = new(TownHearingProcedure.JudgeContestId(item.Id, item.ContestHistory.Count + 1), "waiting", 0,
                     tick, null, null, [], [], [], [], 0, []);
             }
             var previousRound = contest.Round;

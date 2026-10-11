@@ -790,7 +790,7 @@ public sealed partial class PrivateWorldRuntime
                     IsValidProductionBindingId(order.KnowledgeWritingProjectId)) &&
                 (order.CompletedUnits == 0 ? order.LastEffectId is null :
                     order.LastEffectId is { } receipt && receipt.StartsWith("writing:artifact:", StringComparison.Ordinal) &&
-                    receipt.Length <= "writing:artifact:".Length + 128 && IsValidProductionBindingId(receipt["writing:artifact:".Length..]));
+                    receipt.Length <= DerivedId.MaximumLength && IsValidProductionBindingId(receipt["writing:artifact:".Length..]));
 
         if (IsCartCargoOrder(order.Action)) return IsValidCartCargoOrder(instruction);
         if (IsCartOrder(order.Action))

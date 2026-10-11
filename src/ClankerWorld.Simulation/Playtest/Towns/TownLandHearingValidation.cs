@@ -161,7 +161,7 @@ public static class TownLandHearingValidation
                     .Concat(state.Cases.SelectMany(c => c.Revisions.SelectMany(r => r.RightVersions).Select(r => r.Right)));
                 Check(rights.Any(r => r.Id == evidence.SourceRecordId && TownLandHearingRules.Version(r) == evidence.SourceVersion) ||
                     titles.Any(t => t.Id == evidence.SourceRecordId && TownLandHearingRules.RecordVersion(t) == evidence.SourceVersion) ||
-                    government?.Laws.Any(l => l.Versions.Any(v => l.Id + "@" + v.Version.ToString(System.Globalization.CultureInfo.InvariantCulture) == evidence.SourceRecordId &&
+                    government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == evidence.SourceRecordId &&
                         TownLandHearingRules.LawVersion(v) == evidence.SourceVersion && v.AdoptedTick <= evidence.ObservedTick)) == true ||
                     state.Cases.SelectMany(c => c.Rulings).Any(r => r.Id == evidence.SourceRecordId && TownLandHearingRules.RecordVersion(r) == evidence.SourceVersion && r.Tick <= evidence.ObservedTick) ||
                     state.Cases.Any(c => c.Property?.Snapshots.Any(snapshot => TownPropertyRules.RecordId(c, snapshot.Revision) == evidence.SourceRecordId &&
@@ -223,7 +223,7 @@ public static class TownLandHearingValidation
                 !TownLandHearingRules.RequiresNewNotice(revision, revision.Tiles, revision.RightVersions.Select(r => r.Right), ruling.Parties) &&
                 ruling.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= ruling.Tick)) &&
                 ruling.LawIds.All(id => item.Evidence.Any(e => e.Kind == "record" && e.SourceRecordId == id && e.SubmittedTick <= ruling.Tick) &&
-                    government?.Laws.Any(l => l.Versions.Any(v => l.Id + "@" + v.Version.ToString(System.Globalization.CultureInfo.InvariantCulture) == id)) == true) &&
+                    government?.Laws.Any(l => l.Versions.Any(v => TownLandHearingRules.LawRecordId(l.Id, v.Version) == id)) == true) &&
                 item.Reads.Any(r => r.AgentId == ruling.Judge.AgentId && r.Revision == ruling.Revision && r.ReadTick <= ruling.Tick &&
                     ruling.EvidenceIds.All(r.EvidenceIds.Contains)) &&
                 !TownLandHearingRules.JudgeConflict(ruling.Judge.AgentId, null, ruling.Parties), "A saved ruling requires a reasoned, read and independent adjudication.");

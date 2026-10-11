@@ -15,6 +15,7 @@ public static partial class TownGovernmentRules
         TownArrangementRules.Mandates(arrangement)?.Split('+') ?? [];
     public static string VoteNoticeToken(TownGovernmentChange change) =>
         DerivedId.Create(change.Id + ":vote:" + change.OpenedTick?.ToString(CultureInfo.InvariantCulture));
+    internal static string NonLandGrantId(string changeId) => DerivedId.Create(changeId + ":non-land");
     public static string RoundToken(TownMayoralContest contest) =>
         DerivedId.Create($"{contest.Id}:{contest.Round.ToString(CultureInfo.InvariantCulture)}:{contest.RoundOpenedTick?.ToString(CultureInfo.InvariantCulture)}");
     public static TownOffice? GoverningOffice(TownGovernmentState state) =>

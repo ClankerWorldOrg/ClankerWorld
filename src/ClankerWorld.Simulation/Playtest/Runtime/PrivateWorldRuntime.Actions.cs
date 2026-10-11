@@ -277,7 +277,7 @@ public sealed partial class PrivateWorldRuntime
             var lotId = DerivedId.Create($"orchard-seed:{WorldTick:D10}:{inhabitantId}");
             ApplyInventoryTransition(inventory => InventoryFixture.Reserve(
                 InventoryFixture.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, inhabitantId,
-                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingPrefix + lotId,
+                    TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
                 inhabitantId, lotId, 1, "orchard_replanting", long.MaxValue));
             AppendEvent("fruit_harvested", $"{inhabitantId}:{source.Id}:{harvestYield}:picked");
         }
