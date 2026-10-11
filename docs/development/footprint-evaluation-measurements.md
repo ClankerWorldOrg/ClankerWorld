@@ -15,7 +15,7 @@ change is introduced. Every tile still must pass before a site can be offered.
 
 ## Native workload and profile
 
-The frozen baseline is integrated main 725991ba, schema 124. The unchanged
+The frozen baseline is integrated main 725991ba, schema 125. The unchanged
 [construction input query probe](construction-input-query-measurements.md)
 authors fresh checkpoints at tick 256 on a 256-by-128 east-west wrapped Small map.
 Actual resident/Road/Town-building/House counts are 4/99/24/2, 16/100/36/14 and
@@ -108,6 +108,8 @@ python docs/development/construction-input-query-probe/compare-captures.py OUTPU
 
 [Immutable original samples and provenance](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777#issuecomment-6113547223)
 retain every ordinary/repeat timing and allocation total, including regressions.
+The original provenance comment's `schema: 124` is a metadata typo: the pinned
+baseline and candidate source both define `StateSchemaVersion = 125`.
 [Complete native capture comparison manifests](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777#issuecomment-6113571608)
 record ordinary, repeat and state-change equivalence.
 Original samples, complete captures, traces, probe sources and source/configuration
