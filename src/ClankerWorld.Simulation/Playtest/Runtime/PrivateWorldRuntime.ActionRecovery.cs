@@ -24,6 +24,22 @@ public sealed partial class PrivateWorldRuntime
     {
         if (PendingInstructionFor(refusal.InhabitantId) is { } order)
             CancelActiveOrder(order, "game_error", "Cancelled because this choice caused a game error.");
+        if (FarmWorkFor(refusal.InhabitantId) is { } field) CancelFarmWork(field);
+        if (inhabitants[refusal.InhabitantId].Equipment?.Repair is not null)
+            CancelEquipmentRepair(refusal.InhabitantId);
+        if (inhabitants[refusal.InhabitantId].Project is { Stage: not ("completed" or "cancelled") } project)
+        {
+            CancelProductionJobs(worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
+                .Where(job => job.JobId == project.JobId && job.WorkerId == refusal.InhabitantId &&
+                    job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
+                .ToArray(), "production_action_refused");
+            SetProject(refusal.InhabitantId, project with
+            {
+                Stage = "cancelled", RequiresFreshChoice = false, Blocker = "This choice caused a game error.",
+            });
+        }
+        if (inhabitants[refusal.InhabitantId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson)
+            SetLesson(refusal.InhabitantId, lesson with { Stage = "cancelled" });
         society.ClearCurrentIntention(refusal.InhabitantId, WorldTick);
         actionRefusals.RemoveAll(item => item.InhabitantId == refusal.InhabitantId && item.CandidateId == refusal.CandidateId);
         actionRefusals.Add(refusal);
@@ -49,6 +65,27 @@ public sealed partial class PrivateWorldRuntime
                 refusal.Check.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '.')) ||
                 !seen.Add((refusal.InhabitantId, refusal.CandidateId)))
                 throw new InvalidDataException("The saved action-refusal boundary is invalid.");
+        var recorded = state.Events.Where(item => item.Kind == "action_refused").Select(item =>
+        {
+            try
+            {
+                var refusal = JsonSerializer.Deserialize<PrivateWorldActionRefusal>(item.Detail);
+                if (refusal is null || refusal.RefusedTick != item.WorldTick ||
+                    item.Detail != JsonSerializer.Serialize(refusal) || !identities.Contains(refusal.InhabitantId) ||
+                    string.IsNullOrWhiteSpace(refusal.CandidateId) || refusal.CandidateId == "safe_idle" ||
+                    refusal.CandidateId.Any(char.IsControl) || refusal.RefusedTick < 1 ||
+                    refusal.RetryAfterTick - refusal.RefusedTick != state.WorldSystems!.Config.TicksPerDay ||
+                    string.IsNullOrEmpty(refusal.Check) || refusal.Check.Length > 96 ||
+                    refusal.Check.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '.')))
+                    throw new InvalidDataException("The saved action-refusal event is invalid.");
+                return refusal;
+            }
+            catch (JsonException exception) { throw new InvalidDataException("The saved action-refusal event is invalid.", exception); }
+        }).ToArray();
+        if (state.RefusedActionCount < recorded.Length || state.EventHistoryFloor == 0 && state.RefusedActionCount != recorded.Length ||
+            state.ActionRefusals.Any(refusal => state.Events.Count > 0 && refusal.RefusedTick >= state.Events[0].WorldTick &&
+                !recorded.Contains(refusal)))
+            throw new InvalidDataException("The saved action refusals do not match their accepted events.");
     }
 
     /// <summary>The host prepares exact checkpoint bytes before publishing a tick; fixtures default to strict failure.</summary>
@@ -62,6 +99,27 @@ public sealed partial class PrivateWorldRuntime
         ArgumentNullException.ThrowIfNull(prepareCheckpoint);
         return AdvanceOneTickCoreAsync(true, commitPermitted, prepareChildModels, cancellationToken,
             prepareCheckpoint, failurePolicy);
+    }
+
+    /// <summary>Replay an accepted refusal alongside the same recorded decision inputs, without reproducing the defect.</summary>
+    public ValueTask<PrivateWorldStepResult> AdvanceOneTickReplayingActionRefusalAsync(
+        PlaytestWorldEvent recordedRefusal, Func<PrivateWorldRuntime, Action> prepareCheckpoint,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(recordedRefusal);
+        ArgumentNullException.ThrowIfNull(prepareCheckpoint);
+        PrivateWorldActionRefusal refusal;
+        try
+        {
+            refusal = JsonSerializer.Deserialize<PrivateWorldActionRefusal>(recordedRefusal.Detail)
+                ?? throw new InvalidDataException("The replayed action refusal is missing.");
+        }
+        catch (JsonException exception) { throw new InvalidDataException("The replayed action refusal is invalid.", exception); }
+        if (recordedRefusal.Kind != "action_refused" || recordedRefusal.WorldTick != refusal.RefusedTick ||
+            recordedRefusal.Detail != JsonSerializer.Serialize(refusal))
+            throw new InvalidDataException("The replayed action refusal is invalid.");
+        return AdvanceOneTickCoreAsync(true, null, null, cancellationToken, prepareCheckpoint,
+            PrivateWorldTickFailurePolicy.Strict, refusal);
     }
 
     private sealed record PreparedTick(PrivateWorldRuntime Runtime, PrivateWorldStepResult Result, Action? WriteCheckpoint) : IDisposable

@@ -682,6 +682,7 @@ public sealed partial class OwnerWorldObservationStore
                     geography.SelectedClimate.ToString(), geography.LatitudeCooling, geography.WrapEastWest)
                 : null,
             LastTickMilliseconds = diagnostics.LastTickMilliseconds,
+            RefusedActionCount = state.RefusedActionCount,
             Inhabitants = activeInhabitants
                 .Select(inhabitant => ToPlaytestInhabitant(state, inhabitant, physicalById[inhabitant.Id], map) with
                 {

@@ -23,6 +23,13 @@ Town handles retain a counter and validate by exact recomputation against the
 original scope. Earlier alpha saves are refused and preserved; no migration
 runs. The version is provisional until merge.
 
+Schema 124 adds action refusals and their cumulative count. A refusal records
+the complete actor and candidate, refusal tick, one-day retry boundary and a
+bounded check name. The matching world event retains the accepted refusal for
+history and replay. Active cooldowns are authoritative saved state; they are
+not inferred from display text. Earlier alpha formats remain refused, with no
+migration. The version is provisional until merge.
+
 Strict reload and replay must preserve the bounded handle, complete source
 links, reservations, payment, ownership and personal recall. Display names,
 mod content identifiers and parsed action payloads retain their own contracts.

@@ -9,6 +9,21 @@ public sealed class WorldEventTextTests
     private const string ChildId = "world:inhabitant:birth:" + FounderId + ":" + AgentId + ":1";
     private const string Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
+    [Fact]
+    public void ActionRefusalNamesTheCompleteActorWithoutShowingDiagnosticPayload()
+    {
+        var detail = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            InhabitantId = ChildId, CandidateId = "milk_sale_offer:private-payload:/secret/path", Check = "HiddenDiagnostic.Check",
+        });
+        var worldEvent = new OwnerWorldEvent(1, 1, "action_refused", detail);
+        Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
+        Assert.Equal("Aster couldn't sell milk because of a game error. They waited instead.",
+            WorldEventText.Describe(worldEvent, Snapshot(Person(ChildId, "Aster"))));
+        Assert.Single(GameUiText.PlayerEvents([worldEvent]));
+        Assert.Equal(detail, worldEvent.Detail);
+    }
+
     [Theory]
     [InlineData("building_placed", "building/clinic-1x2@1.0.0", "A new Clinic was built.")]
     [InlineData("build_started", "building/house-2x2@1.0.0", "Work began on a new House.")]

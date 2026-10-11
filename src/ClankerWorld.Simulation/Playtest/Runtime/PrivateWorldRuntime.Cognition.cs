@@ -424,9 +424,9 @@ public sealed partial class PrivateWorldRuntime
                      .Where(item => item.Status == SocietyInhabitantStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (withheldActions?.Contains(inhabitant.Id) == true) continue;
             if (attemptedActions is not null && runtimes[inhabitant.Id].CurrentIntention is { } attempted)
                 attemptedActions[inhabitant.Id] = attempted.CandidateId;
+            if (withheldActions?.Contains(inhabitant.Id) == true) continue;
             if (dispatched.Contains(inhabitant.Id) || !inhabitants.TryGetValue(inhabitant.Id, out var state))
             {
                 continue;

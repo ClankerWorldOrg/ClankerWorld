@@ -695,6 +695,7 @@ public sealed record ViewerWorldSnapshot(
     public IReadOnlyList<ViewerWeatherRegion> WeatherRegions { get; init; } = [];
     /// <summary>Developer tools: how long the host took to work out the latest tick; null before one runs.</summary>
     public double? LastTickMilliseconds { get; init; }
+    public long RefusedActionCount { get; init; }
     /// <summary>
     /// The inspectable population projection. <see cref="Actor"/> remains for
     /// backwards-compatible Phase 2 diagnostic clients.

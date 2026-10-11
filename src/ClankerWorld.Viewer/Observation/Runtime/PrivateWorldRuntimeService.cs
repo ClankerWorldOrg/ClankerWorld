@@ -26,6 +26,20 @@ public sealed partial class PrivateWorldRuntimeService(
     private bool writingCheckpoint;
     private readonly Dictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
 
+    [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
+        Message = "world_action_refused tick={WorldTick} inhabitant={InhabitantId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
+    private static partial void LogActionRefused(ILogger logger, long worldTick, string inhabitantId, string choiceKind, string check);
+
+    private static string RefusedChoiceKind(string candidate) => candidate.Split(':', 2)[0] switch
+    {
+        "explore" or "explore_for" => "exploration",
+        "consume_food" or "drink_milk" => "food",
+        "produce_item" => "production",
+        "repair_equipment" => "repair",
+        "gather_food" => "gathering",
+        _ => "other",
+    };
+
     [LoggerMessage(EventId = 2287, Level = LogLevel.Error,
         Message = "world_recovery outcome={Outcome} tick={WorldTick} reason={Reason}")]
     private static partial void LogRecovery(ILogger logger, string outcome, long worldTick, string reason);
@@ -267,6 +281,13 @@ public sealed partial class PrivateWorldRuntimeService(
         LogGateTransition(result.Advanced ? "advancing" : result.Outcome, result.WorldTick);
         if (result.Advanced)
         {
+            if (logger is not null)
+                foreach (var worldEvent in result.Events.Where(item => item.Kind == "action_refused"))
+                {
+                    var refusal = System.Text.Json.JsonSerializer.Deserialize<PrivateWorldActionRefusal>(worldEvent.Detail)!;
+                    LogActionRefused(logger, worldEvent.WorldTick, refusal.InhabitantId,
+                        RefusedChoiceKind(refusal.CandidateId), refusal.Check);
+                }
             foreach (var (childId, binding) in preparedChildBindings)
                 pendingChildModelBindings[childId] = binding;
             var bornChildren = result.Events.Where(item => item.Kind == "child_born").Select(item => item.Detail)

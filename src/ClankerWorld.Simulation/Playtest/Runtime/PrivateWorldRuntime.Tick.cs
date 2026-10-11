@@ -37,7 +37,8 @@ public sealed partial class PrivateWorldRuntime
         Func<PrivateWorldRuntime, IReadOnlyList<PlaytestWorldEvent>, IReadOnlyList<PreparedChildModelSelection>>? prepareChildModelSelections,
         CancellationToken cancellationToken,
         Func<PrivateWorldRuntime, Action>? prepareCheckpoint = null,
-        PrivateWorldTickFailurePolicy failurePolicy = PrivateWorldTickFailurePolicy.Strict)
+        PrivateWorldTickFailurePolicy failurePolicy = PrivateWorldTickFailurePolicy.Strict,
+        PrivateWorldActionRefusal? replayRefusal = null)
     {
         await tickGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -120,6 +121,11 @@ public sealed partial class PrivateWorldRuntime
             }
 
             var tickTimer = System.Diagnostics.Stopwatch.StartNew();
+            if (replayRefusal is not null && (replayRefusal.RefusedTick != checked(baseline.Society.Society.WorldTick + 1) ||
+                replayRefusal.RetryAfterTick - replayRefusal.RefusedTick != baseline.WorldSystems!.Config.TicksPerDay ||
+                !baseline.Society.Society.Inhabitants.Any(person => person.Id == replayRefusal.InhabitantId &&
+                    person.Status == SocietyInhabitantStatus.Active)))
+                throw new InvalidDataException("The replayed refusal does not belong to this tick.");
             var recorder = failurePolicy == PrivateWorldTickFailurePolicy.RefuseSingleAction
                 ? new TickInputRecorder(providerFactory) : null;
             Func<string, IDecisionProvider>? attemptProviders = recorder is null ? providerFactory : recorder.ProviderFor;
@@ -137,7 +143,7 @@ public sealed partial class PrivateWorldRuntime
                     trustedPreparedState: true, preparedConversations: baselineConversations);
                 proposed.previousPlannedRoutes = routesBefore;
                 proposed.withheldActions = withheld;
-                proposed.attemptedActions = recorder is null ? null : new(StringComparer.Ordinal);
+                proposed.attemptedActions = recorder is null && replayRefusal is null ? null : new(StringComparer.Ordinal);
                 if (withheld is null) originalActions = proposed.attemptedActions;
                 try
                 {
@@ -172,7 +178,12 @@ public sealed partial class PrivateWorldRuntime
                         proposed.CompleteIdentityMoments(completedIdentityMoments, IsIdentityMomentProviderCurrent);
                         if (deferHosted)
                             proposed.ProcessWillDecisions(completedWills, activeWillIds, inactiveWillReasons, IsWillDecisionProviderCurrent);
-                        if (refusal is not null) proposed.RecordActionRefusal(refusal);
+                        if (refusal is not null)
+                        {
+                            if (proposed.attemptedActions?.GetValueOrDefault(refusal.InhabitantId) != refusal.CandidateId)
+                                throw new InvalidDataException("The refused choice does not match this actor's action.");
+                            proposed.RecordActionRefusal(refusal);
+                        }
                         return new(proposed, result, prepareCheckpoint?.Invoke(proposed));
                     }
                     finally { if (gateHeld) gate.Release(); }
@@ -181,7 +192,11 @@ public sealed partial class PrivateWorldRuntime
             }
 
             PreparedTick preparedTick;
-            try { preparedTick = await PrepareAttemptAsync(null).ConfigureAwait(false); }
+            try
+            {
+                preparedTick = await PrepareAttemptAsync(replayRefusal is null ? null :
+                    new HashSet<string>([replayRefusal.InhabitantId], StringComparer.Ordinal), replayRefusal).ConfigureAwait(false);
+            }
             catch (Exception exception) when (recorder is not null && exception is not (OutOfMemoryException or OperationCanceledException))
             {
                 var check = ActionFailureCheck(exception);
@@ -239,6 +254,7 @@ public sealed partial class PrivateWorldRuntime
                     if (Interrupted() is { } interrupted) return interrupted;
                     if (!result.Advanced) return result;
                     recorder?.StopRecording();
+                    tickTimer.Stop();
                     System.Runtime.ExceptionServices.ExceptionDispatchInfo? writeFailure = null;
                     try { preparedTick.WriteCheckpoint?.Invoke(); }
                     catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -248,7 +264,6 @@ public sealed partial class PrivateWorldRuntime
                     }
                     CommitPreparedTick(proposed);
                 plannedRoutes = proposed.plannedRoutes;
-                tickTimer.Stop();
                 lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
                 foreach (var item in completedIdentityMoments)
                 {

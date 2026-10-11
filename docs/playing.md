@@ -1102,7 +1102,8 @@ With Developer mode on, press **F12** in a world to open **Developer tools** at
 the right edge of the screen, and again to close them; **Escape** closes them once nothing newer is
 open. Time keeps running. The panel shows the coordinates and facts of the last
 tile under the pointer, the frame time, the tick time (how long the server took
-to work out the latest step of world time) and how many agents are living.
+to work out the latest step of world time), how many agents are living and
+how many actions have been refused because of a game error.
 Choose an agent in its list to select them and move the camera to them, and
 turn on **Show planned path** to draw the route they are walking, as the server
 planned it. The panel also holds the aging override, recovery for a request
@@ -1150,6 +1151,12 @@ that world's current history and says when it was saved. Choose **Recover
 autosave** to open it paused. Progress since that autosave will be absent from
 the recovered world; your other saves stay unchanged and the refused file is
 kept. There is no automatic replacement.
+
+If one agent's action causes a game error during play, the agent waits instead
+and their current order is cancelled. The Event Log explains the refusal. Time
+keeps moving, and that agent cannot choose the same action for one world day.
+Developer tools show the total number of refusals in this world. A fault that
+cannot be traced to one action still leaves the world paused.
 
 If no usable autosave is available, recovery stays blocked. **Check again**
 checks for a usable autosave without changing your world. You can quit and keep
