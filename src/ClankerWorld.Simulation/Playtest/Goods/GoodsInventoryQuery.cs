@@ -15,7 +15,8 @@ internal static class GoodsInventoryQuery
         var matches = new List<GoodsMatch>();
         var excluded = new List<(string LotId, GoodsReason Reason)>();
         long coveredReservations = 0;
-        IEnumerable<InventoryLot> candidates = request.Explain ? index.Lots : request.AtBuilding is { } building
+        IEnumerable<InventoryLot> candidates = request.Explain ? index.Lots : request.ContainerId is { } container
+            ? index.ContentsOf(container) : request.AtBuilding is { } building
             ? index.StoredAt(building) : request.Owners.Ids.Distinct(StringComparer.Ordinal)
                 .SelectMany(index.OwnedBy).OrderBy(lot => lot.Id, StringComparer.Ordinal);
         foreach (var lot in candidates)

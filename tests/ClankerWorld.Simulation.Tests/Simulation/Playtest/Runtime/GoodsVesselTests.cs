@@ -11,7 +11,7 @@ public sealed class GoodsVesselTests
     {
         using var generated = NormalPathWorld.CreateGenerated("query-vessel-refill", _ => new Idle());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First().Id;
+        var actor = state.Society.Society.Inhabitants[0].Id;
         var inventory = state.Society.Society.Inventory;
         foreach (var (id, water) in new[] { ("vessel-a-broken", 0), ("vessel-b-reserved", 1), ("vessel-c-full", 4), ("vessel-d-ready", 1) })
         {
@@ -25,7 +25,7 @@ public sealed class GoodsVesselTests
         var request = new GoodsRequest(GoodsUse.VesselFor, actor, GoodsOwners.One(actor), GoodsKinds.One("water_jug"),
             ExtraUnits: 1, Explain: true, ContentsKind: "fresh_water");
         var answer = world.FindGoods(request);
-        var ready = Assert.Single(answer.Matches.Where(match => match.Lot.Id.StartsWith("vessel-", StringComparison.Ordinal)));
+        var ready = Assert.Single(answer.Matches, match => match.Lot.Id.StartsWith("vessel-", StringComparison.Ordinal));
         Assert.Equal(("vessel-d-ready", 2), (ready.Lot.Id, ready.MoveUnits));
         Assert.Equal(ready, world.RecheckGoods(request, ready.Lot.Id));
         Assert.Contains(("vessel-a-broken", GoodsReason.Damaged), answer.Excluded);
@@ -44,7 +44,7 @@ public sealed class GoodsVesselTests
     {
         using var generated = NormalPathWorld.CreateGenerated("query-eating", _ => new Idle());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First().Id;
+        var actor = state.Society.Society.Inhabitants[0].Id;
         var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == home &&
             state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house")));
@@ -85,7 +85,7 @@ public sealed class GoodsVesselTests
     {
         using var generated = NormalPathWorld.CreateGenerated("query-physical-cargo", _ => new Idle());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First().Id;
+        var actor = state.Society.Society.Inhabitants[0].Id;
         var point = state.Inhabitants.First(person => person.InhabitantId == actor).Position;
         var inventory = InventoryFixture.AddLot(state.Society.Society.Inventory, "cargo-cart", "handcart", actor, 1,
             groundPosition: new(point.X, point.Y));

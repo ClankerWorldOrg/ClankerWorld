@@ -173,7 +173,7 @@ public sealed partial class PrivateWorldRuntime
     {
         var inventory = society.Checkpoint.Inventory;
         var owners = new GoodsOwners(animal.HouseholdId is { } home ? [actor, home] : [actor]);
-        var kinds = new GoodsKinds(["grain", "wild_greens", "cultivated_greens", InventoryContainerRules.FreshWater]);
+        var kinds = new GoodsKinds(["grain", "wild_greens", "cultivated_greens", "saddle", InventoryContainerRules.FreshWater]);
         return FindGoods(new(GoodsUse.ConsumeAt, actor, owners, kinds)).Matches.Select(match => match.Lot)
             .Where(lot => lot.DeliveryBuildingId is null &&
             (lot.OwnerId == actor && PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor) ||
