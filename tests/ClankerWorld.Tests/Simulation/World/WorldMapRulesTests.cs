@@ -9,12 +9,12 @@ public sealed class WorldMapRulesTests
     [
         // Digests include the named grain-seed and wild-greens starter roster;
         // the earlier fertile-land resource was intentionally removed.
-        ["camp-alpha", "38e6b29b7ffb88a05f5ad02b85a886870c02310aaf524bb0df9d8ac3970f39ab",
-            "832fd6fd13ec067e8dd701202404386f3cf5578b7ee6f2a7ea096f02d7cd8f91"],
-        ["camp-beta", "ec4a4154ae52135d75578abd5f8f73c91485d419095696f2baa8e5cee85ec756",
-            "5d092afce379cf930bbc32da7b36813a0276625c7e9873b1079dcd9f26ea2fec"],
-        ["camp-gamma", "b986e0278085a50956090a3f67fcfc5c11ee1ee199d4d3e12759289501002c67",
-            "9c57833d83b33bdc7a689384123c6a3eefe4a45c6e4d26a09a475aae2c5c0c50"],
+        ["world-a", "8a9376ad91f76c0ceddee21a88c82eddf124b27cf57c1cc1fc8d2c82f019ae55",
+            "5f5601189bb96d1c76071bfd3120d8d82866438f4b804cc1d76424e9a0e3e2cd"],
+        ["world-b", "4e6c8f314e306a844539ad71c58a1e972aa07eb25c7436418c5d9218f27c4f44",
+            "54f6c5c60722ebfc1a509d332e2de66ac34b97639b3793b57d71dba4c95b2efb"],
+        ["world-c", "141e7f970d2615b801a2af5134328fc9268aff0213e14742ffbb3550d04d8412",
+            "c14aee9c51d505461a41b1b5ff354009f372759a2faf62b8b0cc4f67ec7e1565"],
     ];
 
     [Theory]

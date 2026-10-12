@@ -13,7 +13,7 @@ public sealed class YardHousePrerequisiteTests
     {
         var choices = new YardChoices();
         using var forming = NormalPathWorld.CreateGenerated("yard-house-prerequisite-audit", _ => choices);
-        var actor = forming.Society.GetHousehold("household:camp-alpha").MemberIds[0];
+        var actor = forming.Society.GetHousehold("household:first").MemberIds[0];
         choices.Actor = actor;
         choices.Leave = true;
         await Until(forming, () => forming.Society.GetAgent(actor).HouseholdId is null);
@@ -22,7 +22,7 @@ public sealed class YardHousePrerequisiteTests
         await Until(forming, () => forming.Society.GetAgent(actor).HouseholdId is not null);
         choices.Form = false;
         var home = forming.Society.GetAgent(actor).HouseholdId!;
-        Assert.NotEqual("household:camp-alpha", home);
+        Assert.NotEqual("household:first", home);
         Assert.DoesNotContain(forming.WorldSimulation.Buildings, building => building.HouseholdId == home);
         Assert.Contains(forming.ExportState().Events, item => item.Kind == "household_founded" && item.Detail.StartsWith(actor + "|", StringComparison.Ordinal));
         var state = forming.ExportState();

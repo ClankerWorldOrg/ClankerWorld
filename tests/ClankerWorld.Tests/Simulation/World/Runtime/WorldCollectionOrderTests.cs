@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldCollectionOrderTests
 {
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
     private const string House = "first-town-house-a";
     private static readonly Lazy<byte[]> Generated = new(() =>
     {

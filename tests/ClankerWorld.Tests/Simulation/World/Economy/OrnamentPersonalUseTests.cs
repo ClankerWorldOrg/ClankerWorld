@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class OrnamentPersonalUseTests
 {
-    private const string Alpha = "household:camp-alpha";
+    private const string Alpha = "household:first";
     private const string House = "first-town-house-a";
     private const string Ornament = "personal-use-ornament";
     private static readonly Lazy<byte[]> Generated = new(() =>
@@ -133,7 +133,7 @@ public sealed class OrnamentPersonalUseTests
         var actor = Actor(state);
         var foreign = boundary == "foreign-household";
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, Ornament, "gold_ornament",
-            foreign ? "household:camp-beta" : Alpha, 1,
+            foreign ? "household:second" : Alpha, 1,
             storageBuildingId: foreign ? "first-town-house-b" : House);
         if (boundary == "full-hands")
         {

@@ -19,8 +19,8 @@ public sealed class FarmFlourSourceTests
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new Choices("safe_idle"));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
-        const string household = "household:camp-alpha";
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
+        const string household = "household:first";
         var farmhouse = generated.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&
             generated.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
         var house = generated.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&

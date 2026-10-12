@@ -79,35 +79,6 @@ public sealed class GameUiTextTests
         Assert.Contains("storage", GameUiText.FriendlyFailure(failures[1]), StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void HouseholdDisplayCleanupPreservesSavedMembershipAndCustomNames()
-    {
-        using var world = new WorldRuntime("household-display");
-        var state = world.ExportState();
-        Assert.Equal("First household", Assert.Single(state.Society.Society.Households).Name);
-        foreach (var name in new[] { "Camp Alpha", "River family" })
-        {
-            var legacy = state with
-            {
-                Society = state.Society with
-                {
-                    Society = state.Society.Society with
-                    {
-                        Households = state.Society.Society.Households.Select(home => home with { Name = name }).ToArray(),
-                    },
-                },
-            };
-            using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(legacy)));
-            var before = WorldRuntimeCodec.Encode(restored.ExportState());
-            var stockpile = Assert.Single(new OwnerWorldObservationStore(restored).GetSnapshot().Stockpiles);
-            Assert.Equal(name == "Camp Alpha" ? "First household" : name, stockpile.Name);
-            Assert.Equal("household:camp-alpha", stockpile.OwnerId);
-            Assert.Equal(before, WorldRuntimeCodec.Encode(restored.ExportState()));
-            Assert.Equal(state.Society.Society.Households[0].MemberIds,
-                restored.ExportState().Society.Society.Households[0].MemberIds);
-        }
-    }
-
     [Theory]
     [InlineData(WorldStartPace.Legacy)]
     [InlineData(WorldStartPace.PlacedFounders)]
@@ -278,13 +249,13 @@ public sealed class GameUiTextTests
         var snapshot = new OwnerWorldSnapshot("names", 0, "names-map", [], [], [], null, 0)
         {
             Agents = [agent],
-            Stockpiles = [new OwnerWorldStockpile("household:camp-alpha", "Camp Alpha", [])],
+            Stockpiles = [new OwnerWorldStockpile("household:first", "First household", [])],
             Towns = [new OwnerWorldTown("town:first", "First Town", "founding", 0, [], [], [])],
         };
         Assert.Equal("Rowan", GameUiText.PartyName(snapshot, "founder:1"));
-        Assert.Equal("Camp Alpha", GameUiText.PartyName(snapshot, "household:camp-alpha"));
+        Assert.Equal("First household", GameUiText.PartyName(snapshot, "household:first"));
         Assert.Equal("First Town", GameUiText.PartyName(snapshot, "town:first"));
         Assert.Equal("a household", GameUiText.PartyName(snapshot, "household:agent:123"));
-        Assert.DoesNotContain("household:", GameUiText.PartyName(null, "household:camp-beta"), StringComparison.Ordinal);
+        Assert.DoesNotContain("household:", GameUiText.PartyName(null, "household:second"), StringComparison.Ordinal);
     }
 }

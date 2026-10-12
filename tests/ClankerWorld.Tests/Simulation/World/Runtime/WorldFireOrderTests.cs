@@ -8,8 +8,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldFireOrderTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
 
     [Fact]
     public async Task ALegalLongWoodLotIdKeepsItsFullNativePaymentIdentityAcrossReload()

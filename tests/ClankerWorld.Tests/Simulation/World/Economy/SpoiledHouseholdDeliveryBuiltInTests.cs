@@ -25,7 +25,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
 
         // Keep the actual fresh pickup intention and context. Ordinary spoilage
         // must trigger a new unfiltered built-in decision, followed by a real
-        // route to camp within the same bounded recovery trip as the directed tests.
+        // route to the storage pile within the same bounded recovery trip as the directed tests.
         for (var tick = 0; tick < 96 && world.Society.Inventory.GetLot(Pot).OwnerId == actor; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -45,7 +45,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         }
 
         Assert.True(admitted, "Actual spoilage must admit a fresh recovery choice from the unfiltered built-in provider.");
-        Assert.True(walked, "The already collected pot must be carried along actual foot steps to camp.");
+        Assert.True(walked, "The already collected pot must be carried along actual foot steps to the storage pile.");
         Assert.Equal((Household, 1, new InventoryGroundPosition(startingSite.X, startingSite.Y)),
             (world.Society.Inventory.GetLot(Pot).OwnerId, world.Society.Inventory.GetLot(Pot).Quantity,
                 world.Society.Inventory.GetLot(Pot).GroundPosition));
@@ -63,7 +63,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         }
         Assert.Contains(world.Society.Inventory.Events, item => item.Kind == "lot_spoiled" && item.Detail == PotGreens);
         Assert.Single(world.ExportState().Events, item => item.Kind == "household_delivery_recovered" &&
-            item.Detail == $"{actor}:{Pot}:4:camp");
+            item.Detail == $"{actor}:{Pot}:4:pile");
         var finalBytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var finalReload = RestoreWithBuiltIn(WorldRuntimeCodec.Decode(finalBytes), actor);
         Assert.Equal(finalBytes, WorldRuntimeCodec.Encode(finalReload.ExportState()));

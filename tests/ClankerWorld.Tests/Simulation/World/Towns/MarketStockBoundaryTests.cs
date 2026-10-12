@@ -8,7 +8,7 @@ public sealed class MarketStockBoundaryTests
 {
     private const string Seller = "founder:00000000000000000000000000000001";
     private const string Housemate = "founder:00000000000000000000000000000002";
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
 
     [Theory]
     [InlineData("wooden_axe", HouseToolsContent.CrudeWoodenAxe)]

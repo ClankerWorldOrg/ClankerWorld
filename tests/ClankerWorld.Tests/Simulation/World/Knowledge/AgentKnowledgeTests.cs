@@ -73,7 +73,7 @@ public sealed class AgentKnowledgeTests
                 .Append(parent).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
             var birth = SocietyRules.CommitBirth(society, new($"family:{parent}:{society.WorldTick}", 1,
                 parent, partner, caregiverHousehold, caregivers, [parent, partner],
-                "food:camp-alpha", 2, society.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(society, parent, $"Explorer{generation}"),
+                "food:first", 2, society.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(society, parent, $"Explorer{generation}"),
                 PrimaryCaregiverId: parent));
             parent = Assert.IsType<string>(birth.CreatedId);
             society = birth.Checkpoint;

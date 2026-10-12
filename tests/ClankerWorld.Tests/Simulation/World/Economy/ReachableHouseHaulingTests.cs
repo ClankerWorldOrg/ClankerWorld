@@ -15,7 +15,7 @@ public sealed class ReachableHouseHaulingTests
         using var setup = NormalPathWorld.CreateGenerated("house-haul-route-audit", _ => new HaulChooser());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string home = "household:camp-alpha";
+        const string home = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == home && person.AgeBand == SocietyAgeBand.Adult).Id;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var blocked = new GridPoint(house.Position.X, house.Position.Y - 1);

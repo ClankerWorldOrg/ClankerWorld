@@ -7,8 +7,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class RestaurantMarketDemandTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
     private const string SaleFlour = "restaurant-market-sale-flour";
 
     [Theory]

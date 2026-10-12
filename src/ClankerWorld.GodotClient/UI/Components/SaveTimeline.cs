@@ -823,7 +823,7 @@ public partial class SaveTimelineRows : Control
         ? new Vector2(Math.Max(X(Calendar.Day(NowTick)), fromX + 22), LaneY(lane.Index))
         : null;
 
-    /// <summary>An orange camp marker at the end of a dotted line from where the world continues.</summary>
+    /// <summary>An orange marker with a person at the end of a dotted line from where the world continues.</summary>
     private void DrawNow(UiPalette p, Font font, int size)
     {
         if (NowLane is not { } lane || NowLineStart() is not { } fromX || NowPosition() is not { } now) return;

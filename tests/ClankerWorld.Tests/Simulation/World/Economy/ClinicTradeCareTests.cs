@@ -6,7 +6,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ClinicTradeCareTests
 {
-    private const string Alpha = "household:camp-alpha";
+    private const string Alpha = "household:first";
     private const string House = "first-town-house-a";
     private const string Clinic = "clinic-purchase-site";
 

@@ -128,7 +128,7 @@ public static partial class NatureSprites
 
     /// <summary>
     /// Resources that record only a resource kind, not a natural site, such as
-    /// older camp resources and a Town's starting supplies, borrow the matching
+    /// a Town's starting supplies, borrow the matching
     /// site's look: gathered wood is a log pile, the starting clay deposit by
     /// fresh water is a clay bank and grain seed grows like a wild seed patch.
     /// </summary>

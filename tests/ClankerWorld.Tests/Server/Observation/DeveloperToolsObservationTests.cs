@@ -16,7 +16,7 @@ public sealed class DeveloperToolsObservationTests
     [Fact]
     public async Task PlannedRoutesFollowTheServersOwnStepsAndReachTheClient()
     {
-        using var runtime = new WorldRuntime("playtest-alpha");
+        using var runtime = new WorldRuntime("test-alpha");
         Assert.Empty(runtime.ExportStateWithDiagnostics().Diagnostics.PlannedRoutes);
         Assert.Null(runtime.ExportStateWithDiagnostics().Diagnostics.LastTickMilliseconds);
 
@@ -60,8 +60,8 @@ public sealed class DeveloperToolsObservationTests
     [Fact]
     public async Task ReadoutsAreNeverSavedAndDoNotChangeTheWorld()
     {
-        using var observed = new WorldRuntime("playtest-alpha");
-        using var unobserved = new WorldRuntime("playtest-alpha");
+        using var observed = new WorldRuntime("test-alpha");
+        using var unobserved = new WorldRuntime("test-alpha");
         var (walking, _) = await AdvanceUntilSomeoneWalksAsync(observed);
         while (unobserved.WorldTick < observed.WorldTick)
             _ = await unobserved.AdvanceOneTickAsync();

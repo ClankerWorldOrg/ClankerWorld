@@ -8,8 +8,8 @@ namespace ClankerWorld.Tests;
 public sealed class AbandonedWarehouseConsumerTests
 {
     private const string QuietTown = "town:quiet-yard";
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
 
     [Theory]
     [InlineData("sack", "equip_carry_aid")]

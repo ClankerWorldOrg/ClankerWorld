@@ -6,7 +6,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class HouseholdBuildingPreparationDeliveryTests
 {
-    private const string Household = "household:camp-beta";
+    private const string Household = "household:second";
 
     [Fact]
     public async Task BuildingPreparationLoadIsMarkedHauledAndFreesCapacityAcrossReload()

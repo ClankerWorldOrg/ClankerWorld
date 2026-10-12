@@ -7,7 +7,7 @@ internal static class TailorTestWorld
 {
     public static (WorldRuntimeState State, string ShopId) Create(string seed, int fiberInHouse)
     {
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         using var generated = NormalPathWorld.CreateGenerated(seed, _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True(generated.AdvanceOneTickAsync().AsTask().GetAwaiter().GetResult().Advanced);
         var initial = generated.ExportState();

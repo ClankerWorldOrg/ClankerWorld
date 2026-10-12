@@ -63,17 +63,17 @@ public sealed class ChildSocialCooldownTargetsTests
         using var initial = NormalPathWorld.CreateGenerated("child-cooldown-targets", _ => new SocialChoices());
         var state = initial.ExportState();
         var society = state.Society.Society;
-        var parents = society.GetHousehold("household:camp-alpha").MemberIds.Order(StringComparer.Ordinal).ToArray();
+        var parents = society.GetHousehold("household:first").MemberIds.Order(StringComparer.Ordinal).ToArray();
         var partnership = "child-cooldown-partnership";
         society = SocietyRules.ProposeRelationship(society,
             new(partnership, 1, SocietyRelationshipType.Partnership, parents[0], parents[1], society.WorldTick)).Checkpoint;
         society = SocietyRules.AcceptRelationship(society, partnership, 1, parents[1]).Checkpoint;
         society = ChosenBirthNameTestFixture.NameParent(society, parents[0]);
-        var food = InventoryAuthority.AddLot(society.Inventory, "child-cooldown-birth-food", "food", "household:camp-alpha", 4,
+        var food = InventoryAuthority.AddLot(society.Inventory, "child-cooldown-birth-food", "food", "household:first", 4,
             storageBuildingId: "first-town-house-a");
         society = society with { Inventory = food };
         var birth = SocietyRules.CommitBirth(society, new SocietyBirthRequest("child-cooldown-birth", 1, parents[0], parents[1],
-            "household:camp-alpha", parents, parents, "child-cooldown-birth-food", 4, society.WorldTick,
+            "household:first", parents, parents, "child-cooldown-birth-food", 4, society.WorldTick,
             ChildName: ChosenBirthNameTestFixture.ChildName(society, parents[0], "Robin"), PrimaryCaregiverId: parents[0]));
         society = birth.Checkpoint;
         var child = Assert.IsType<string>(birth.CreatedId);

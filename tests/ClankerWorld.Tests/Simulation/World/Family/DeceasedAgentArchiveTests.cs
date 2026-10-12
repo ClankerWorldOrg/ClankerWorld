@@ -27,9 +27,9 @@ public sealed class DeceasedAgentArchiveTests
             Config = config,
             Memories = society.Agents.Select(person => new SocietySocialMemory(
                 $"last-memory:{person.Id}", person.Id, "founder-scout",
-                "I remember the first campfire.", "private", 0)).ToArray(),
+                "I remember the first harvest.", "private", 0)).ToArray(),
             Beliefs = society.Agents.Select(person => new SocietyAgentBelief(
-                $"last-belief:{person.Id}", person.Id, person.Id + " saw the first campfire.",
+                $"last-belief:{person.Id}", person.Id, person.Id + " saw the first harvest.",
                 SocietyBeliefProvenance.Firsthand, 7_000, 0)).ToArray(),
             Agents = society.Agents.Select(person => person with
             {
@@ -58,7 +58,7 @@ public sealed class DeceasedAgentArchiveTests
             },
             Agents = state.Agents.Select(person => person with
             {
-                RecentThoughts = [new RecentThought(0, "I hope the camp lasts.")],
+                RecentThoughts = [new RecentThought(0, "I hope the farm lasts.")],
                 Skills = [new(SkillKind.Building, 0,
                     person.AgentId == "founder-ilya" ? "founder-scout" : "founder-ilya")],
             }).ToArray(),
@@ -86,10 +86,10 @@ public sealed class DeceasedAgentArchiveTests
         Assert.Equal(deceased.DeathTick.ToString(System.Globalization.CultureInfo.InvariantCulture),
             historical.DecisionFactors.Single(factor => factor.Key == "death-tick").Detail);
         Assert.Null(historical.PublicIntention);
-        Assert.Equal("I hope the camp lasts.", Assert.Single(historical.RecentPrivateThoughts).Text);
-        Assert.Equal("I remember the first campfire.", Assert.Single(historical.RecentMemories).Summary);
+        Assert.Equal("I hope the farm lasts.", Assert.Single(historical.RecentPrivateThoughts).Text);
+        Assert.Equal("I remember the first harvest.", Assert.Single(historical.RecentMemories).Summary);
         var belief = Assert.Single(historical.RecentBeliefs);
-        Assert.Equal(deceased.AgentId + " saw the first campfire.", belief.Statement);
+        Assert.Equal(deceased.AgentId + " saw the first harvest.", belief.Statement);
         Assert.Equal(("firsthand", 7_000), (belief.Provenance, belief.ConfidenceBasisPoints));
         var remembered = Assert.Single(historical.Skills);
         var savedSkill = Assert.Single(deceased.LastPhysical.Skills!);

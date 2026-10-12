@@ -23,7 +23,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             ? society.Births.OrderBy(birth => birth.CommittedTick).Select(birth => birth.ChildId)
                 .Where(id => society.GetAgent(id).Status == SocietyAgentStatus.Active &&
                     society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).TakeLast(2).ToArray()
-            : society.Agents.Where(person => person.HouseholdId == "household:camp-alpha" &&
+            : society.Agents.Where(person => person.HouseholdId == "household:first" &&
                     person.Status == SocietyAgentStatus.Active && !society.Births.Any(birth => birth.ChildId == person.Id))
                 .Take(2).Select(person => person.Id).ToArray();
         Assert.Equal(2, participants.Length);

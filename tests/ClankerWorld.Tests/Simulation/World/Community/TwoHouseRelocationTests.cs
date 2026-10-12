@@ -9,7 +9,7 @@ public sealed class TwoHouseRelocationTests
     [Fact]
     public async Task ResolvingOneOvercrowdedHouseKeepsTheOtherHousesSavedNoticeAndDeadline()
     {
-        const string secondHousehold = "household:camp-beta";
+        const string secondHousehold = "household:second";
         var state = Crowded(residents: 8);
         var society = state.Society.Society;
         var secondResidents = society.GetHousehold(Household).MemberIds.Order(StringComparer.Ordinal).TakeLast(4).ToArray();

@@ -11,8 +11,8 @@ internal sealed record GuardianPlacementScenario(WorldRuntimeState State, string
 
 internal static class GuardianPlacementTestFixture
 {
-    internal const string SourceHousehold = "household:camp-alpha";
-    internal const string DestinationHousehold = "household:camp-beta";
+    internal const string SourceHousehold = "household:first";
+    internal const string DestinationHousehold = "household:second";
     internal const string DestinationTown = "town:guardian-placement";
     private static readonly Lazy<byte[]> Generated = new(CreateGenerated);
     private static readonly ConcurrentDictionary<(int Orphans, int Residents), Lazy<byte[]>> Baselines = new();

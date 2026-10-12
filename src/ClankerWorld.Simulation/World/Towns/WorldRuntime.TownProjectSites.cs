@@ -85,7 +85,7 @@ public sealed partial class WorldRuntime
         if (definition.Tags.Contains(MarketContent.HallTag, StringComparer.Ordinal) &&
             Enumerable.Range(0, MarketContent.MaximumStalls).Any(slot => RoadTiles.Contains(MarketContent.StallSite(plan.Site, slot))))
             return "The Market's stall layout crosses an existing Road.";
-        // The occupied tiles are exactly the resources, camp objects, fields, buildings, running or paused
+        // The occupied tiles are exactly the resources, map objects, fields, buildings, running or paused
         // expansions and protected project sites that can block a doorway.
         if (!map.IsBuildable(plan.Entrance) || occupied.Contains(plan.Entrance))
             return "The approved building's doorway is blocked.";

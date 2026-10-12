@@ -152,7 +152,7 @@ public sealed class ServerObservationTests
     [Fact]
     public void EmptyPopulationRemainsObservableAfterRestore()
     {
-        using var genesis = new WorldRuntime("playtest-alpha");
+        using var genesis = new WorldRuntime("test-alpha");
         var state = genesis.ExportState();
         var society = state.Society.Society;
         foreach (var agent in society.Agents)
@@ -171,7 +171,7 @@ public sealed class ServerObservationTests
     [Fact]
     public void OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute()
     {
-        using var runtime = new WorldRuntime("camp-alpha");
+        using var runtime = new WorldRuntime("world-a");
         var store = new OwnerWorldObservationStore(runtime);
 
         var snapshot = store.GetSnapshot();
@@ -200,12 +200,12 @@ public sealed class ServerObservationTests
     [Fact]
     public void WorldObservationProjectsTheActiveTownAndNeeds()
     {
-        using var runtime = new WorldRuntime("playtest-alpha");
+        using var runtime = new WorldRuntime("test-alpha");
         var store = new OwnerWorldObservationStore(runtime);
 
         var snapshot = store.GetSnapshot();
 
-        Assert.Equal("playtest-alpha", snapshot.WorldId);
+        Assert.Equal("test-alpha", snapshot.WorldId);
         Assert.Equal(4, snapshot.Agents.Count);
         Assert.All(snapshot.Agents, agent =>
         {
@@ -218,7 +218,7 @@ public sealed class ServerObservationTests
                 agent.Relationships,
                 relationship => relationship.Type == "household_membership" &&
                     relationship.State == "accepted" &&
-                    relationship.OtherPartyId == "household:camp-alpha");
+                    relationship.OtherPartyId == "household:first");
         });
         Assert.NotNull(snapshot.Cognition);
         Assert.NotNull(snapshot.WorldSystems);
@@ -230,7 +230,7 @@ public sealed class ServerObservationTests
     [Fact]
     public async Task WorldObservationExposesPublicIntentionsWithoutModelTrace()
     {
-        using var runtime = new WorldRuntime("playtest-alpha");
+        using var runtime = new WorldRuntime("test-alpha");
         _ = await runtime.AdvanceOneTickAsync();
 
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();

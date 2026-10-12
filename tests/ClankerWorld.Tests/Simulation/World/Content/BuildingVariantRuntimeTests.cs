@@ -193,18 +193,18 @@ public sealed class BuildingVariantRuntimeTests
         // A pending request (not a grant) must exclude the other household just as a right does.
         if (pending)
         {
-            var requester = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+            var requester = state.Society.Society.Agents.First(person => person.HouseholdId == "household:second").Id;
             state = state with
             {
                 HouseholdLandUseRequests = state.HouseholdLandUseRequests!.Append(new HouseholdLandUseRequest(
-                "variant-rival-request", town.Id, "household:camp-beta", requester, [tile], state.Society.Society.WorldTick)).ToArray()
+                "variant-rival-request", town.Id, "household:second", requester, [tile], state.Society.Society.WorldTick)).ToArray()
             };
         }
         else
             state = state with
             {
                 HouseholdLandUseRights = state.HouseholdLandUseRights!.Append(new HouseholdLandUseRight(
-                "variant-rival-right", town.Id, "household:camp-beta", [tile], state.Society.Society.WorldTick,
+                "variant-rival-right", town.Id, "household:second", [tile], state.Society.Society.WorldTick,
                 "variant_test_fixture")).ToArray()
             };
         using var blocked = BuildingVariantTestWorld.Restore(fixture with { State = BuildingVariantTestWorld.Strict(state) },

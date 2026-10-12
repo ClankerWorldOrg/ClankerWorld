@@ -77,8 +77,8 @@ public sealed class WarehouseContentTests
         Assert.Contains("already", duplicate.Failure, StringComparison.OrdinalIgnoreCase);
 
         var state = seed.ExportState();
-        var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
-        var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-beta").Id;
+        var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
+        var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:second").Id;
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == alpha
@@ -176,7 +176,7 @@ public sealed class WarehouseContentTests
                     Inventory = reloaded.Society.Society.Inventory with
                     {
                         Lots = reloaded.Society.Society.Inventory.Lots.Where(lot =>
-                            lot.OwnerId != "household:camp-beta" || lot.ItemKind != "wood").ToArray(),
+                            lot.OwnerId != "household:second" || lot.ItemKind != "wood").ToArray(),
                     },
                 },
             },

@@ -13,7 +13,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
     [Fact]
     public async Task BuiltInChoicesGatherAndDeliverPaperInputsForRequestedWriting()
     {
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         const string houseId = "first-town-house-a";
         using var setup = NormalPathWorld.CreateGenerated("physical-paper-house", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
@@ -184,8 +184,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
     [Fact]
     public async Task PaperProductionRefusesForeignWorkersAndWaterInAnotherPrivateHouse()
     {
-        const string household = "household:camp-alpha";
-        const string otherHousehold = "household:camp-beta";
+        const string household = "household:first";
+        const string otherHousehold = "household:second";
         const string houseId = "first-town-house-a";
         const string otherHouseId = "first-town-house-b";
         using var setup = NormalPathWorld.CreateGenerated("physical-paper-private-stock", _ => new ActionCoverageRecorder(chooseIdle: true));

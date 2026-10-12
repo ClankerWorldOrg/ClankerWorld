@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed class GeographyClearingUnavailableException : InvalidOperationException
 {
     public GeographyClearingUnavailableException()
-        : base("The generated geography has no suitable base-camp clearing.") { }
+        : base("The generated geography has no suitable starting clearing.") { }
 }
 
 /// <summary>An attempted map that could not provide a playable clearing.</summary>

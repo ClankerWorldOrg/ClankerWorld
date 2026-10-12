@@ -102,7 +102,7 @@ public sealed class ContentDefinitionTests
         2,
         4,
         costs ?? [new ContentQuantity("wood", 1)],
-        tags ?? ["camp"],
+        tags ?? ["kitchen"],
         payloadDigest);
 
     private static RecipeDefinition Recipe(

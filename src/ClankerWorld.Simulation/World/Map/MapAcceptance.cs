@@ -115,7 +115,7 @@ public static class MapAcceptance
         if ((!allowEmptyStartingSite || map.MapObjects.Count > 0) && requiredKinds.Any(kind => !map.MapObjects.Any(mapObject =>
                 string.Equals(mapObject.Kind, kind, StringComparison.Ordinal))))
         {
-            return MapValidationResult.Invalid("A required camp-start placement is missing.");
+            return MapValidationResult.Invalid("A required starting-site placement is missing.");
         }
 
         if (map.MapObjects.Select(mapObject => mapObject.Id).Distinct(StringComparer.Ordinal).Count() != map.MapObjects.Count ||
@@ -172,7 +172,7 @@ public static class MapAcceptance
         if (map.MapObjects.Any(mapObject => !reachable.Contains(mapObject.Position)) ||
             starterResources.Any(resource => !reachable.Contains(resource.Position)))
         {
-            return MapValidationResult.Invalid("A required camp-start route crosses an impassable boundary.");
+            return MapValidationResult.Invalid("A required starting-site route crosses an impassable boundary.");
         }
 
         if (!string.Equals(MapManifestCodec.Digest(map), map.ManifestDigest, StringComparison.Ordinal))

@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class CareProductionTests(ITestOutputHelper output)
 {
-    private const string Alpha = "household:camp-alpha";
+    private const string Alpha = "household:first";
     private const string House = "first-town-house-a";
     private const string Clinic = "care-production-clinic";
 

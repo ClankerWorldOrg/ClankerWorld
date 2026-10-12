@@ -202,9 +202,9 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             inventory = InventoryAuthority.AddLot(inventory, $"retry-silo-{cost.ResourceId}", cost.ResourceId,
                 household, cost.Amount * 2);
         }
-        if (household != "household:camp-alpha")
+        if (household != "household:first")
         {
-            inventory = InventoryAuthority.AddLot(inventory, "retry-blocker-wood", "wood", "household:camp-alpha", 4);
+            inventory = InventoryAuthority.AddLot(inventory, "retry-blocker-wood", "wood", "household:first", 4);
         }
         var provider = new RetryChoiceProvider();
         provider.ChooseInitialBuild(actor, silo.CanonicalId);

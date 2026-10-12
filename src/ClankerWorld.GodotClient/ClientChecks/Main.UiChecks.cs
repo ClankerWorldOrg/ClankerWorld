@@ -2493,7 +2493,6 @@ public partial class Main
                 BuildingSprites.KindFor(["clinic", "care", "storage"]) != BuildingKind.Clinic ||
                 BuildingSprites.KindFor(["restaurant", "food-stock"]) != BuildingKind.Restaurant ||
                 BuildingSprites.KindFor(null) != BuildingKind.Generic ||
-                BuildingSprites.KindForObject("campfire") != BuildingKind.Hearth ||
                 BuildingSprites.KindForObject("cooking") != BuildingKind.Hearth ||
                 BuildingSprites.KindForObject("path") != BuildingKind.Path ||
                 NatureSprites.ForResourceKind("construction") != NatureSprite.WoodPile ||
@@ -2505,7 +2504,7 @@ public partial class Main
                 NatureSprites.ForResourceKind("grain_seed") != NatureSprite.WildSeedPatch ||
                 NatureSprites.ForResourceKind("iron_ore") is not null ||
                 BuildingSprites.KindForObject("resource") is not null)
-                throw new InvalidOperationException("Buildings and camp objects must pick their art family from their recorded tags and kinds.");
+                throw new InvalidOperationException("Buildings and map objects must pick their art family from their recorded tags and kinds.");
             var agentData = new HashSet<string>(StringComparer.Ordinal);
             foreach (var agentSize in new[] { 16, 32 })
                 for (var stage = 0; stage < 4; stage++)
@@ -2725,7 +2724,7 @@ public partial class Main
             if (nameplateFailures.Count > 0)
                 throw new InvalidOperationException("Map nameplates must draw the bounded whole given name or initial: " + string.Join("; ", nameplateFailures));
             if (terrainLayer.ResourceKindSpriteCount == 0 || mapObjectVisuals["resource:wood"].Text.Contains('▰'))
-                throw new InvalidOperationException("Older camp resources such as the wood store must draw as sprites instead of glyphs.");
+                throw new InvalidOperationException("Resources with only a resource kind, such as the wood store, must draw as sprites instead of glyphs.");
             if (terrainLayer.BuildingSpriteCount != occupied.PlacedBuildings.Count ||
                 mapObjectVisuals.TryGetValue("building:test-hall", out var hallMarker) && hallMarker.Text.Contains('⌂'))
                 throw new InvalidOperationException("Placed buildings must be drawn as roof art rather than text glyphs.");

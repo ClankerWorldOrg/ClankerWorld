@@ -252,7 +252,7 @@ public sealed class MultiHeirWillAdmissionTests
                     .Order(StringComparer.Ordinal).ToArray();
                 var birth = SocietyRules.CommitBirth(checkpoint, new($"family:{parentId}:{checkpoint.WorldTick}", 1,
                     parentId, partnerId, householdId, caregivers, [parentId, partnerId],
-                    "food:camp-alpha", 2, checkpoint.WorldTick,
+                    "food:first", 2, checkpoint.WorldTick,
                     ChildName: ChosenBirthNameTestFixture.ChildName(checkpoint, parentId, generation == 0 ? "Intermediate" : "Long"), PrimaryCaregiverId: parentId));
                 var childId = Assert.IsType<string>(birth.CreatedId);
                 checkpoint = birth.Checkpoint;

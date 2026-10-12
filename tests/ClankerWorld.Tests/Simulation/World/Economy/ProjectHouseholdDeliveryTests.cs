@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ProjectHouseholdDeliveryTests
 {
-    private const string Household = "household:camp-beta";
+    private const string Household = "household:second";
     private const string SourceWood = "project-delivery-source-wood";
     private const string Ballast = "project-delivery-protected-stone";
     private const string Workshop = "project-delivery-paid-workshop";
@@ -233,7 +233,7 @@ public sealed class ProjectHouseholdDeliveryTests
         Assert.Equal(3, Assert.Single(recipe.Inputs).Amount);
         Assert.Equal("wood", Assert.Single(recipe.Inputs).ResourceId);
         var inventory = InventoryAuthority.AddLot(initial.Society.Society.Inventory, "00-project-workshop-payment",
-            "wood", "household:camp-alpha", 10, storageBuildingId: "first-town-house-a");
+            "wood", "household:first", 10, storageBuildingId: "first-town-house-a");
         using var placing = Restore(FoodCapacityTestFixture.WithInventory(initial, inventory));
         var town = initial.Towns!.Single(item => item.ResidentIds.Contains(actor, StringComparer.Ordinal));
         BuildingPlacementResult? placed = null;

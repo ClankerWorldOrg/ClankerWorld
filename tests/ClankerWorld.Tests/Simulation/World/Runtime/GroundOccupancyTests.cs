@@ -44,7 +44,7 @@ public sealed class GroundOccupancyTests
         var old = new Dictionary<string, IEnumerable<GridPoint>>(StringComparer.Ordinal)
         {
             ["resources"] = map.Resources.Select(item => item.Position),
-            ["camp"] = map.MapObjects.Select(item => item.Position),
+            ["objects"] = map.MapObjects.Select(item => item.Position),
             ["fields"] = liveFields.Select(item => item.Position),
             ["roads"] = liveRoads,
             ["bridges"] = liveBridges.Select(bridge => bridge.Entrances).SelectMany(entrances => entrances),
@@ -76,7 +76,7 @@ public sealed class GroundOccupancyTests
         var current = new Dictionary<string, IEnumerable<GridPoint>>(StringComparer.Ordinal)
         {
             ["resources"] = ground.Resources,
-            ["camp"] = ground.MapObjects,
+            ["objects"] = ground.MapObjects,
             ["fields"] = ground.Fields,
             ["roads"] = ground.Roads,
             ["bridges"] = ground.BridgeEntrances,
@@ -101,30 +101,30 @@ public sealed class GroundOccupancyTests
             Assert.Equal(expected.ToArray(), actual.ToArray());
         }
         HashSet<GridPoint> Expected(string recipe) => recipe.Split(' ').SelectMany(name => old[name]).ToHashSet();
-        Assert.Equal(Expected("resources fields camp buildings expansions projects slots").ToArray(),
+        Assert.Equal(Expected("resources fields objects buildings expansions projects slots").ToArray(),
             Invoke<HashSet<GridPoint>>(world, "RoadOccupiedTiles").ToArray());
         Assert.Equal(old["roads"].Concat(old["bridges"]).ToArray(),
             Invoke<IEnumerable<GridPoint>>(world, "RoadAndBridgeTiles").ToArray());
         var planting = Invoke<(HashSet<GridPoint> Buildings, HashSet<GridPoint> Occupied)>(world, "PlantingObstacles");
         Assert.Equal(Expected("buildings expansions sites markets").ToArray(), planting.Buildings.ToArray());
-        Assert.Equal(Expected("camp resources fields").ToArray(), planting.Occupied.ToArray());
-        Assert.Equal(Expected("resources camp fields roads bridges buildings expansions sites").ToArray(),
+        Assert.Equal(Expected("objects resources fields").ToArray(), planting.Occupied.ToArray());
+        Assert.Equal(Expected("resources objects fields roads bridges buildings expansions sites").ToArray(),
             Invoke<HashSet<GridPoint>>(world, "PortObstacles", null, null, false).ToArray());
-        Assert.Equal(Expected("resources camp fields roads bridges protected expansions sites").ToArray(),
+        Assert.Equal(Expected("resources objects fields roads bridges protected expansions sites").ToArray(),
             Invoke<HashSet<GridPoint>>(world, "PortObstacles", null, null, true).ToArray());
         Assert.Equal(old["sites"].ToArray(), Invoke<IEnumerable<GridPoint>>(world, "TownProjectProtectedSites", (object?)null).ToArray());
         Assert.Equal(old["markets"].ToArray(), Invoke<IEnumerable<GridPoint>>(world, "MarketSiteTiles").ToArray());
         var placement = Invoke<object>(world, "GatherBuildingPlacementTiles", (object?)null);
-        var expectedPlacement = Expected("camp resources roads bridges fields sites expansions buildings");
+        var expectedPlacement = Expected("objects resources roads bridges fields sites expansions buildings");
         expectedPlacement.UnionWith(simulation.Buildings.Where(building => PortNavigationRules.IsPort(definitions[building.DefinitionId]))
             .SelectMany(building => PortNavigationRules.Geometry(map, definitions[building.DefinitionId], building.Position).DockingTiles));
         Assert.Equal(expectedPlacement.ToArray(), ReadProperty<HashSet<GridPoint>>(placement, "Occupied").ToArray());
         Assert.Equal(old["markets"].ToHashSet().ToArray(), ReadProperty<HashSet<GridPoint>>(placement, "Market").ToArray());
         var siteWorld = Invoke<object>(world, "CreateTownProjectSiteWorld", towns[0], null, false);
-        Assert.Equal(Expected("resources camp fields buildings expansions sites").ToArray(),
+        Assert.Equal(Expected("resources objects fields buildings expansions sites").ToArray(),
             ReadProperty<Lazy<HashSet<GridPoint>>>(siteWorld, "Occupied").Value.ToArray());
         var ports = Invoke<object>(world, "CreatePortProjectSiteWorld", (object?)null);
-        Assert.Equal(Expected("resources camp fields roads bridges expansions sites").ToArray(),
+        Assert.Equal(Expected("resources objects fields roads bridges expansions sites").ToArray(),
             ReadProperty<HashSet<GridPoint>>(ports, "Common").ToArray());
         foreach (var animal in state.AnimalWorld.Animals)
             Assert.Equal(state.AnimalWorld.Animals.Where(other => other.DiedTick is null && other.Id != animal.Id)
@@ -163,22 +163,22 @@ public sealed class GroundOccupancyTests
 
     private static readonly string[] Recipes =
     [
-        "camp resources", // Initial Town layout and declarative placement.
-        "camp resources roads bridges fields sites markets expansions buildings", // Town layout basis, before its live overlays.
-        "camp resources roads bridges fields sites expansions buildings", // Building placement.
-        "camp resources fields roads bridges buildings expansions", // Settlement resources.
+        "objects resources", // Initial Town layout and declarative placement.
+        "objects resources roads bridges fields sites markets expansions buildings", // Town layout basis, before its live overlays.
+        "objects resources roads bridges fields sites expansions buildings", // Building placement.
+        "objects resources fields roads bridges buildings expansions", // Settlement resources.
         "buildings expansions sites markets", // Planting's building obstacles.
-        "camp resources fields", // Planting's other obstacles.
-        "resources camp roads buildings expansions", // Saved fields.
-        "resources fields camp buildings expansions projects slots", // Roads and traffic bridge banks.
-        "resources camp original", // Saved bridge banks retain original footprints.
+        "objects resources fields", // Planting's other obstacles.
+        "resources objects roads buildings expansions", // Saved fields.
+        "resources fields objects buildings expansions projects slots", // Roads and traffic bridge banks.
+        "resources objects original", // Saved bridge banks retain original footprints.
         "buildings resources roads bridges", // Wild animal seeding.
         "buildings", // Saved road repair.
-        "resources camp fields buildings expansions sites", // Town project sites.
-        "resources camp fields protected expansions", // Saved Town projects, before other-project overlay.
-        "resources camp fields roads bridges buildings expansions sites", // Port obstacles.
-        "resources camp fields roads bridges protected expansions sites", // Port obstacles with protected docking tiles.
-        "resources camp fields roads bridges expansions sites", // Port construction's common obstacles.
+        "resources objects fields buildings expansions sites", // Town project sites.
+        "resources objects fields protected expansions", // Saved Town projects, before other-project overlay.
+        "resources objects fields roads bridges buildings expansions sites", // Port obstacles.
+        "resources objects fields roads bridges protected expansions sites", // Port obstacles with protected docking tiles.
+        "resources objects fields roads bridges expansions sites", // Port construction's common obstacles.
     ];
 
     private static T Invoke<T>(WorldRuntime world, string method, params object?[] arguments) =>

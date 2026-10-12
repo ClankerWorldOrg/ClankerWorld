@@ -9,8 +9,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class RestaurantShopPipelineTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
     private const string JugId = "restaurant-pipeline-jug";
 
     [Fact]

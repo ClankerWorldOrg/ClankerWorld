@@ -93,7 +93,7 @@ public sealed class ChildCarriedMilkTests
         Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
         var state = initial.ExportState();
         var checkpoint = state.Society.Society;
-        var home = checkpoint.GetHousehold("household:camp-alpha");
+        var home = checkpoint.GetHousehold("household:first");
         var parent = home.MemberIds[0];
         var partner = home.MemberIds[1];
         checkpoint = SocietyRules.ProposeRelationship(checkpoint, new("milk-parents", 1,

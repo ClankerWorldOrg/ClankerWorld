@@ -344,7 +344,7 @@ public sealed class ToolProgressionRuntimeTests
             var outside = state.Map.Tiles.Select(tile => tile.Position)
                 .First(point => state.Map.IsLand(point) && !firstTown.BorderTiles.Contains(point));
             var otherResidents = scenario == "inhabited"
-                ? state.Society.Society.Agents.Where(person => person.HouseholdId == "household:camp-beta")
+                ? state.Society.Society.Agents.Where(person => person.HouseholdId == "household:second")
                     .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray()
                 : [];
             var firstTownResidents = firstTown.ResidentIds.Except(otherResidents).ToArray();

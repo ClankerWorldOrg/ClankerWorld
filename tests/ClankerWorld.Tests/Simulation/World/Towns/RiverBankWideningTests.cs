@@ -50,14 +50,14 @@ public sealed class RiverBankWideningTests
         Assert.True(RiverBridgeRules.SharesBanks(map, upper, lower));
         Assert.True(RiverBridgeRules.SharesBanks(map, lower, upper));
         var blocked = map.Resources.Select(resource => resource.Position).Concat(map.MapObjects.Select(item => item.Position)).ToHashSet();
-        // Every generated resource and camp blocker stays in place; their number changes
+        // Every generated resource and map-object blocker stays in place; their number changes
         // whenever world generation does, so only the two on the approach are named below.
         Assert.Contains(new GridPoint(178, 94), blocked);
         Assert.Contains(new GridPoint(178, 92), blocked);
         if (clearApproach)
         {
             // Separate cleared-ground control: the primary row retains every
-            // generated resource and camp blocker. Other obstructions stay put.
+            // generated resource and map-object blocker. Other obstructions stay put.
             Assert.True(blocked.Remove(new(178, 94)));
             Assert.True(blocked.Remove(new(178, 92)));
             var proposal = AssertReused(map, upper, lower, blocked);

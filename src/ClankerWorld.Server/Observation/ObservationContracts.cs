@@ -410,7 +410,7 @@ public sealed record EventView(long EventId, long WorldTick, string Kind, string
 
 public sealed record FounderSetupView(int Required, int Placed, bool Started)
 {
-    /// <summary>An untouched bootstrap world should open New World instead of the retired camp.</summary>
+    /// <summary>An untouched bootstrap world should open New World instead of being shown.</summary>
     public bool RequiresWorldCreation { get; init; }
     public bool CanChooseTownSite { get; init; }
     public bool HasAcceptedTownSite { get; init; }

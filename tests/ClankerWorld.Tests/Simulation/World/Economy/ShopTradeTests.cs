@@ -306,7 +306,7 @@ public sealed partial class ShopTradeTests
                 : lot).ToArray(),
         };
         if (refusal == "reserved")
-            inventory = InventoryAuthority.Reserve(inventory, "iron-reserved-for-work", "household:camp-beta",
+            inventory = InventoryAuthority.Reserve(inventory, "iron-reserved-for-work", "household:second",
                 "shop-axe", 2, "pending_trade", state.Society.Society.WorldTick + 120);
         state = WithInventory(state, inventory);
         var provider = new ShopProvider("shop_buy:");

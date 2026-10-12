@@ -555,7 +555,7 @@ public sealed class BuildingExpansionTests
             new BuildingFootprintRevision(2, 2, 2)).Single(cost => cost.ResourceId == "wood").Amount);
         var houseStock = inventory.Lots.Where(lot => lot.StorageBuildingId == building.InstanceId).Sum(lot => lot.Quantity);
         Assert.InRange(houseStock, 0, capacity - 1);
-        inventory = InventoryAuthority.AddLot(inventory, "expansion-camp-wood", "wood", householdId, 2,
+        inventory = InventoryAuthority.AddLot(inventory, "expansion-heap-wood", "wood", householdId, 2,
             groundPosition: new InventoryGroundPosition(startingSite.X, startingSite.Y));
         inventory = InventoryAuthority.AddLot(inventory, "expansion-house-capacity-fill", "stone", householdId,
             capacity - houseStock, storageBuildingId: building.InstanceId);

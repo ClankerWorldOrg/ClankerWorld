@@ -18,7 +18,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             _ = await seed.AdvanceOneTickAsync();
         var initial = seed.ExportState();
         var actor = initial.Agents.First(person => initial.Society.Society.GetAgent(person.AgentId)
-            .HouseholdId == "household:camp-alpha").AgentId;
+            .HouseholdId == "household:first").AgentId;
         var house = seed.WorldContent.Buildings.Single(item => item.LocalId == "house-1x1");
         var site = initial.Map.Tiles.Select(tile => tile.Position).First(point => initial.Map.IsBuildable(point) &&
             !initial.Map.MapObjects.Any(item => item.Position == point) &&
@@ -45,7 +45,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         try
         {
             var restartedAfterDelivery = false;
-            for (var tick = 0; tick < 200 && !world.WorldSimulation.Buildings.Any(item => item.HouseholdId == "household:camp-alpha"); tick++)
+            for (var tick = 0; tick < 200 && !world.WorldSimulation.Buildings.Any(item => item.HouseholdId == "household:first"); tick++)
             {
                 _ = await world.AdvanceOneTickAsync();
                 var state = world.ExportState();
@@ -55,7 +55,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
                 {
                     var staged = state.Society.Society.Inventory.GetLot("first-house-load");
                     var startingSite = state.Map.GetObject("storage").Position;
-                    Assert.Equal("household:camp-alpha", staged.OwnerId);
+                    Assert.Equal("household:first", staged.OwnerId);
                     Assert.Equal(new InventoryGroundPosition(startingSite.X, startingSite.Y), staged.GroundPosition);
                     Assert.Equal(4, staged.Quantity);
                     world.Dispose();
@@ -66,13 +66,13 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             }
             Assert.True(restartedAfterDelivery);
             Assert.Single(world.WorldSimulation.Buildings, item => item.DefinitionId == house.CanonicalId &&
-                item.HouseholdId == "household:camp-alpha");
+                item.HouseholdId == "household:first");
             var paid = world.Society.Inventory.Reservations.Where(item => item.Purpose.StartsWith("building:", StringComparison.Ordinal)).ToArray();
             Assert.Equal(8, paid.Sum(item => item.Quantity));
             Assert.Contains(paid, item => item.LotId == "first-house-load" && item.Quantity == 4);
             Assert.All(paid, item =>
             {
-                Assert.Equal("household:camp-alpha", item.OwnerId);
+                Assert.Equal("household:first", item.OwnerId);
                 Assert.Equal(InventoryReservationState.Completed, item.State);
             });
             Assert.Equal(1, world.Society.Inventory.GetLot("first-house-axe").Quantity);
@@ -94,7 +94,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
         var state = seed.ExportState();
         var actor = state.Society.Society.Agents.First(person =>
-            person.HouseholdId == "household:camp-alpha").Id;
+            person.HouseholdId == "household:first").Id;
         var sites = state.Map.Tiles.Select(tile => tile.Position).Where(point =>
             state.Map.IsBuildable(point) &&
             !state.Map.MapObjects.Any(item => item.Position == point) &&
@@ -103,10 +103,10 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         Assert.Equal(2, sites.Length);
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
         Assert.True(seed.PlaceBuilding("existing-alpha-house", house.CanonicalId, sites[0],
-            "household:camp-alpha").Applied);
+            "household:first").Applied);
         state = seed.ExportState();
         var woodBefore = seed.Society.Inventory.Lots.Where(lot =>
-            lot.OwnerId == "household:camp-alpha" && lot.ItemKind == "wood").Sum(lot => lot.Quantity);
+            lot.OwnerId == "household:first" && lot.ItemKind == "wood").Sum(lot => lot.Quantity);
         state = state with
         {
             Agents = state.Agents.Select(person => person.AgentId == actor
@@ -123,9 +123,9 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var project = world.Agents.Single(person => person.AgentId == actor).Project!;
         Assert.Equal("cancelled", project.Stage);
         Assert.Equal("This household already has a House.", project.Blocker);
-        Assert.Single(world.WorldSimulation.Buildings, building => building.HouseholdId == "household:camp-alpha");
+        Assert.Single(world.WorldSimulation.Buildings, building => building.HouseholdId == "household:first");
         Assert.Equal(woodBefore, world.Society.Inventory.Lots.Where(lot =>
-            lot.OwnerId == "household:camp-alpha" && lot.ItemKind == "wood").Sum(lot => lot.Quantity));
+            lot.OwnerId == "household:first" && lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "project_progress" &&
             item.Detail.Contains("already has a House", StringComparison.Ordinal));
     }
@@ -146,7 +146,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             !state.Map.Resources.Any(item => item.Position == point) &&
             !state.Agents.Any(person => person.Position == point));
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        var placed = seed.PlaceBuilding("project-home", house.CanonicalId, homeSite, "household:camp-alpha");
+        var placed = seed.PlaceBuilding("project-home", house.CanonicalId, homeSite, "household:first");
         Assert.True(placed.Applied, placed.Failure);
         state = seed.ExportState();
         var buildSite = state.Map.Tiles.Select(tile => tile.Position).First(point =>
@@ -158,7 +158,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot =>
-                lot.OwnerId != "household:camp-alpha" || lot.ItemKind != "wood").ToArray(),
+                lot.OwnerId != "household:first" || lot.ItemKind != "wood").ToArray(),
         };
         state = state with
         {
@@ -187,7 +187,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         var delivery = world.ExportState().Events.Single(item =>
             item.Kind == "project_material_delivered" && item.Detail == actor + ":wood");
         Assert.Equal(homeSite, delivery.Position);
-        Assert.Contains(world.Society.Inventory.Lots, lot => lot.OwnerId == "household:camp-alpha" &&
+        Assert.Contains(world.Society.Inventory.Lots, lot => lot.OwnerId == "household:first" &&
             lot.ItemKind == "wood" && lot.Quantity == 4 && lot.StorageBuildingId == "project-home");
         Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().PlacedBuildings
             .Single(building => building.InstanceId == "project-home").StoredItems!,
@@ -195,7 +195,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
 
         using var restored = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.Contains(restored.Society.Inventory.Lots, lot => lot.OwnerId == "household:camp-alpha" &&
+        Assert.Contains(restored.Society.Inventory.Lots, lot => lot.OwnerId == "household:first" &&
             lot.ItemKind == "wood" && lot.Quantity == 4 && lot.StorageBuildingId == "project-home");
 
         var helper = state.Society.Society.Agents.First(person => person.Id != actor).Id;
@@ -221,13 +221,13 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
             item.Detail == $"{helper}:{actor}:wood:4");
         Assert.Equal(homeSite, contribution.Position);
         Assert.Contains(helped.Society.Inventory.Lots, lot => lot.Id == "helper-project-wood" &&
-            lot.OwnerId == "household:camp-alpha" &&
+            lot.OwnerId == "household:first" &&
             lot.ItemKind == "wood" && lot.Quantity == 4 && lot.StorageBuildingId == "project-home" &&
             lot.DeliveryBuildingId is null);
         using var resumed = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(helped.ExportState())));
         Assert.Contains(resumed.Society.Inventory.Lots, lot => lot.Id == "helper-project-wood" &&
-            lot.OwnerId == "household:camp-alpha" &&
+            lot.OwnerId == "household:first" &&
             lot.ItemKind == "wood" && lot.StorageBuildingId == "project-home" &&
             lot.DeliveryBuildingId is null);
     }
@@ -241,7 +241,7 @@ public sealed class AgentProjectTests(Xunit.Abstractions.ITestOutputHelper outpu
         _ = seed.StageStarterContent();
         var initial = seed.ExportState();
         var startingSiteResidents = initial.Society.Society.Agents
-            .Where(item => item.HouseholdId == "household:camp-alpha").OrderBy(item => item.Id, StringComparer.Ordinal).Take(2).ToArray();
+            .Where(item => item.HouseholdId == "household:first").OrderBy(item => item.Id, StringComparer.Ordinal).Take(2).ToArray();
         Assert.Equal(2, startingSiteResidents.Length);
         var requester = startingSiteResidents[0];
         var helper = startingSiteResidents[1];

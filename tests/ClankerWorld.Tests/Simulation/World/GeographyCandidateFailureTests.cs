@@ -28,7 +28,7 @@ public sealed class GeographyCandidateFailureTests
         }
         var failure = Assert.Throws<GeographyClearingUnavailableException>(() =>
             GenerateWithUnavailableClearing(options with { CandidateAttempt = unavailableAttempt }));
-        Assert.Equal("The generated geography has no suitable base-camp clearing.", failure.Message);
+        Assert.Equal("The generated geography has no suitable starting clearing.", failure.Message);
         var direct = GeographyCandidateSelector.GenerateCandidate(options with { CandidateAttempt = selectedAttempt });
         Assert.True(MapAcceptance.Validate(direct, allowEmptyStartingSite: true).IsValid);
 
@@ -99,7 +99,7 @@ public sealed class GeographyCandidateFailureTests
         }
         var direct = Assert.Throws<GeographyClearingUnavailableException>(() =>
             GenerateWithUnavailableClearing(options));
-        Assert.Equal("The generated geography has no suitable base-camp clearing.", direct.Message);
+        Assert.Equal("The generated geography has no suitable starting clearing.", direct.Message);
 
         attempted.Clear();
         var selected = Assert.Throws<GeographyClearingUnavailableException>(() =>

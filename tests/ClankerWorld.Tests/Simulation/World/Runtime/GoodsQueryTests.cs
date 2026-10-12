@@ -52,7 +52,7 @@ public sealed class GoodsQueryTests
     {
         using var generated = NormalPathWorld.CreateGenerated("goods-query-boundaries", _ => new Idle());
         var state = generated.ExportState();
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         const string house = "first-town-house-a";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
@@ -99,7 +99,7 @@ public sealed class GoodsQueryTests
     {
         var state = await PaidMarketWorld.StateAsync();
         var stall = PaidMarketWorld.StallTile(state, 0);
-        const string owner = "household:camp-alpha";
+        const string owner = "household:first";
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "query-sale-pot", "storage_pot", owner, 1,
             groundPosition: new(stall.X, stall.Y));
         inventory = InventoryAuthority.AddLot(inventory, "query-sale-flour", "flour", owner, 2, containerLotId: "query-sale-pot");
@@ -128,7 +128,7 @@ public sealed class GoodsQueryTests
         string boundary, int available, int covered)
     {
         var state = await PaidMarketWorld.StateAsync();
-        const string owner = "household:camp-alpha";
+        const string owner = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var house = PaidMarketWorld.HouseOf(state, owner);
         var stall = PaidMarketWorld.StallTile(state, 0);

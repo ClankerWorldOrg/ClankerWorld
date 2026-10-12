@@ -55,7 +55,7 @@ public sealed class ServerWebApplicationFactory : WebApplicationFactory<Program>
         if (gameWorld && legacyPace && !File.Exists(System.IO.Path.Combine(stateDirectory, "runtime.json")))
         {
             using var seeded = new WorldStateFile(System.IO.Path.Combine(stateDirectory, "runtime.json"),
-                newWorldPace: WorldStartPace.Legacy).LoadOrCreate("camp-alpha");
+                newWorldPace: WorldStartPace.Legacy).LoadOrCreate("world-a");
         }
         // All protocol tests cross the actual world host boundary.
         builder.UseSetting("ClankerWorld:World:Mode", gameWorld ? "game" : "fixture");

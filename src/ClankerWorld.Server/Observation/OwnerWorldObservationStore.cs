@@ -658,12 +658,7 @@ public sealed partial class OwnerWorldObservationStore
                 })
                 .ToArray(),
             Stockpiles = state.Society.Society.Households.Select(household =>
-                new StockpileView(household.Id, (household.Id, household.Name) switch
-                {
-                    ("household:camp-alpha", "Camp Alpha") => "First household",
-                    ("household:camp-beta", "Camp Beta") => "Second household",
-                    _ => household.Name,
-                }, InventoryFor(state, household.Id))).ToArray(),
+                new StockpileView(household.Id, household.Name, InventoryFor(state, household.Id))).ToArray(),
             FoodStewardship = state.FoodStewardship is { } stewardship ? new FoodStewardshipView(
                 state.Society.Society.Agents.FirstOrDefault(person => person.Id == stewardship.StewardId)?.Name,
                 stewardship.FoodPolicy, stewardship.Ballot?.Policy, stewardship.Ballot?.Approvals.Count ?? 0,

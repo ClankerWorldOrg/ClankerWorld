@@ -296,8 +296,8 @@ public sealed partial class ParenthoodTests
     {
         using var initial = NormalPathWorld.CreateGenerated(seed, _ => new ParentProvider("safe_idle"));
         var state = initial.ExportState();
-        var alpha = state.Society.Society.GetHousehold("household:camp-alpha");
-        var beta = state.Society.Society.GetHousehold("household:camp-beta");
+        var alpha = state.Society.Society.GetHousehold("household:first");
+        var beta = state.Society.Society.GetHousehold("household:second");
         // A cross-household initiator comes later by ID, so resumption must preserve the
         // initiating parent instead of substituting the automatic ordinal tie-break.
         var initiator = separateHouseholds ? beta.MemberIds.Order(StringComparer.Ordinal).First()

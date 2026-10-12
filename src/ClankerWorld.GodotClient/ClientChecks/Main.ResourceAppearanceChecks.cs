@@ -16,7 +16,7 @@ public partial class Main
         [
             new("reuse-tree", "wood", new(1, 1), true, "available", 3, 3, TreeKind: "broadleaf", TreeStage: "sapling"),
             new("reuse-site", "food", new(2, 1), true, "available", 3, 3, NaturalObjectKind: "berry_bush"),
-            new("reuse-camp", "construction", new(3, 1), false, "available", 3, 3),
+            new("reuse-kind", "construction", new(3, 1), false, "available", 3, 3),
         ];
         var snapshot = original with { WorldId = "resource-reuse-smoke", Resources = resources };
         byte[] Index(string field) => (byte[])typeof(WorldTerrainLayer)
@@ -108,7 +108,7 @@ public partial class Main
             snapshot = snapshot with { Resources = resources[..2] };
             Show();
             if (terrainLayer.ResourceKindSpriteCount != 0)
-                throw new InvalidOperationException("Removing a camp resource must remove its retained sprite.");
+                throw new InvalidOperationException("Removing a resource-kind-only resource must remove its retained sprite.");
 
             // An unchanged natural-site key must still reject a newly overlapping tree.
             resources[0] = resources[0] with { Position = resources[1].Position, TreeStage = "mature" };

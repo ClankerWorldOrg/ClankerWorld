@@ -22,9 +22,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         var checkpoint = state.Society.Society;
         var births = checkpoint.Births.OrderBy(birth => birth.CommittedTick).ToArray();
         var first = nativeBorn ? births[2].ChildId : checkpoint.Agents.First(person =>
-            person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:camp-beta").Id;
+            person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:second").Id;
         var second = nativeBorn ? births[1].ChildId : checkpoint.Agents.First(person => person.Id != first &&
-            person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:camp-beta").Id;
+            person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:second").Id;
         Assert.InRange(first.Length, 1, DerivedId.MaximumLength);
         Assert.InRange(second.Length, 1, DerivedId.MaximumLength);
         var beforeTrust = new[] { (Owner: first, Subject: second), (Owner: second, Subject: first) }

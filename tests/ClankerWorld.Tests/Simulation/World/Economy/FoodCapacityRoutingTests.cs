@@ -307,7 +307,7 @@ public sealed class FoodCapacityRoutingTests
         var house = FoodCapacityTestFixture.House;
         if (obstruction == "foreign")
         {
-            owner = "household:camp-beta";
+            owner = "household:second";
             house = "first-town-house-b";
             inventory = InventoryAuthority.Transfer(inventory, "foreign-pot-food-setup", FoodCapacityTestFixture.Household,
                 owner, food.Id, 2, "test_setup", destinationStorageBuildingId: house);

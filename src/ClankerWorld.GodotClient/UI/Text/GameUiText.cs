@@ -395,7 +395,7 @@ public static class GameUiText
     /// <summary>
     /// Names another party the way the player sees it: an agent, a household
     /// by its stores name, or a Town, instead of a raw ID such as
-    /// <c>household:camp-alpha</c>.
+    /// <c>household:first</c>.
     /// </summary>
     public static string PartyName(OwnerWorldSnapshot? snapshot, string id)
     {
@@ -655,7 +655,7 @@ public static class GameUiText
             "boat_order" => "travel to the requested Port by boat",
             "eat_food" => "eat",
             "consume_food" => "eat",
-            "collect_shared_food" => "collect food from camp",
+            "collect_shared_food" => "collect household food",
             "harvest_food" => "gather food",
             "gather_material" => "gather materials",
             "till_field" => "till a household field",

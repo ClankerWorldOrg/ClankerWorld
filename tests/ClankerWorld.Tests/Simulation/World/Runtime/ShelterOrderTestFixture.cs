@@ -7,8 +7,8 @@ namespace ClankerWorld.Tests;
 
 internal static class ShelterOrderTestFixture
 {
-    internal const string Alpha = "household:camp-alpha";
-    internal const string Beta = "household:camp-beta";
+    internal const string Alpha = "household:first";
+    internal const string Beta = "household:second";
     private static readonly Lazy<byte[]> Baseline = new(CreateBaseline);
 
     internal static WorldRuntimeState Prepared() => WorldRuntimeCodec.Decode(Baseline.Value);

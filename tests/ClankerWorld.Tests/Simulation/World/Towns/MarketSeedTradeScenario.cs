@@ -12,7 +12,7 @@ internal static class MarketSeedTradeScenario
 {
     internal static async Task AssertOneMissingSeedIsBoughtAndPlantedWithoutOverbuyAsync(WorldRuntimeState paidBoundary)
     {
-        const string alpha = "household:camp-alpha";
+        const string alpha = "household:first";
         var society = paidBoundary.Society.Society;
         var buyer = society.Agents.First(person => person.HouseholdId == alpha && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand == SocietyAgeBand.Adult).Id;

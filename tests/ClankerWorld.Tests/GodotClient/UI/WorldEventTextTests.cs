@@ -36,7 +36,7 @@ public sealed class WorldEventTextTests
     [InlineData("recipe_completed", "recipe/wooden-axe@1.2.0", "A batch of wooden axe was made.")]
     public void HistoricalContentEventsKeepDigestAndColonContainingPrefixTogether(string kind, string content, string expected)
     {
-        var detail = $"{ChildId}:{Digest}/{content}:first-town-blacksmith:household=household:camp-alpha";
+        var detail = $"{ChildId}:{Digest}/{content}:first-town-blacksmith:household=household:first";
         var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
         Assert.Equal(expected, WorldEventText.Describe(worldEvent, null));
         Assert.Equal(expected, WorldEventText.Describe(worldEvent, Snapshot()));
@@ -124,11 +124,11 @@ public sealed class WorldEventTextTests
         var snapshot = Snapshot() with
         {
             Animals = [new("animal-7", "Bess", "cow", "female", 300, "adult", new(0, 0),
-                "household:camp-alpha", "Mira's household", "cared", null, 0, null, null, null, null, false, [], [])],
-            Stockpiles = [new("household:camp-alpha", "Mira's household", [])],
+                "household:first", "Mira's household", "cared", null, 0, null, null, null, null, false, [], [])],
+            Stockpiles = [new("household:first", "Mira's household", [])],
         };
         Assert.Equal("Bess now belongs to Mira's household.", WorldEventText.Describe(
-            new(1, 1, "animal_transferred", "animal-offer-abc:animal-7:household:camp-alpha"), snapshot));
+            new(1, 1, "animal_transferred", "animal-offer-abc:animal-7:household:first"), snapshot));
     }
 
     [Theory]
@@ -254,7 +254,7 @@ public sealed class WorldEventTextTests
             ("child_born", id, "was born"),
             ("agent_removed", id, "died"),
             ("agent_building_proposed", id + ":house", "suggested a new building design"),
-            ("household_delivery_recovered", id + ":spoiled-greens:4:camp-alpha",
+            ("household_delivery_recovered", id + ":spoiled-greens:4:pile",
                 "brought back supplies they couldn't deliver and left them at their household's pile"),
             ("instruction_not_understood", id + ":private-instruction-0000000001",
                 "didn't understand your order. Try one of the listed tasks, or use Suggest instead"),
@@ -362,16 +362,16 @@ public sealed class WorldEventTextTests
     {
         var snapshot = Snapshot(Person(AgentId, "Aster")) with
         {
-            Stockpiles = [new("household:camp-alpha", "Alpha stores", [])],
+            Stockpiles = [new("household:first", "Alpha stores", [])],
         };
         Assert.Equal("Aster asked Alpha stores for a place to live in their House.", WorldEventText.Describe(
-            new(1, 0, "housing_request_made", AgentId + ":household:camp-alpha"), snapshot));
+            new(1, 0, "housing_request_made", AgentId + ":household:first"), snapshot));
         Assert.Equal("Aster now lives with Alpha stores.", WorldEventText.Describe(
-            new(2, 0, "household_joined", AgentId + ":household:camp-alpha"), snapshot));
+            new(2, 0, "household_joined", AgentId + ":household:first"), snapshot));
         Assert.Equal("Alpha stores did not agree to let Aster move in.", WorldEventText.Describe(
-            new(3, 0, "housing_request_refused", AgentId + ":household:camp-alpha"), snapshot));
+            new(3, 0, "housing_request_refused", AgentId + ":household:first"), snapshot));
         Assert.Equal("a household did not answer Aster's request to move in.", WorldEventText.Describe(
-            new(4, 0, "housing_request_expired", AgentId + ":household:camp-beta"), snapshot));
+            new(4, 0, "housing_request_expired", AgentId + ":household:second"), snapshot));
         Assert.Equal("Aster has no home: they belong to no household, so no House can be planned for them.",
             WorldEventText.Describe(new(5, 0, "housing_blocked", AgentId + ":no_household"), snapshot));
         Assert.Equal("Aster has no home: their household has no legal site for a House.",
@@ -389,10 +389,10 @@ public sealed class WorldEventTextTests
     public void RelocationNoticeExplainsTheSelectionWithoutSplittingAnAgentIdentity(string reason, string expected)
     {
         var snapshot = Snapshot(Person(FounderId, "Wrong parent"), Person(ChildId, "Aster"));
-        var worldEvent = new OwnerWorldEvent(1, 4, "relocation_notice", $"{ChildId}|household:camp-alpha|{reason}|100");
+        var worldEvent = new OwnerWorldEvent(1, 4, "relocation_notice", $"{ChildId}|household:first|{reason}|100");
         Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
         Assert.Equal(expected, WorldEventText.Describe(worldEvent, snapshot));
-        Assert.Equal($"{ChildId}|household:camp-alpha|{reason}|100", worldEvent.Detail);
+        Assert.Equal($"{ChildId}|household:first|{reason}|100", worldEvent.Detail);
     }
 
     [Theory]
@@ -407,7 +407,7 @@ public sealed class WorldEventTextTests
         var snapshot = Snapshot(Person(AgentId, "Aster"));
         Assert.True(GameUiText.IsPlayerFacingEvent("relocation_cancelled"));
         Assert.Equal($"Aster's move-out notice was cancelled: {expected}.", WorldEventText.Describe(
-            new(1, 4, "relocation_cancelled", $"{AgentId}|household:camp-alpha|{reason}"), snapshot));
+            new(1, 4, "relocation_cancelled", $"{AgentId}|household:first|{reason}"), snapshot));
     }
 
     [Theory]
@@ -432,7 +432,7 @@ public sealed class WorldEventTextTests
     public void DepartureDistinguishesDisplacementFromAnOrdinaryMove(string reason, string expected)
     {
         Assert.Equal(expected, WorldEventText.Describe(
-            new(1, 4, "household_left", $"{AgentId}|household:camp-alpha|{reason}|2"), Snapshot(Person(AgentId, "Aster"))));
+            new(1, 4, "household_left", $"{AgentId}|household:first|{reason}|2"), Snapshot(Person(AgentId, "Aster"))));
     }
 
     [Fact]

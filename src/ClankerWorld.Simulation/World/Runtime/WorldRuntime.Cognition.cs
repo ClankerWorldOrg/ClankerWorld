@@ -1120,7 +1120,7 @@ public sealed partial class WorldRuntime
         IReadOnlyList<CognitionMemorySummaryOption>? summaryOptions = null)
     {
         var text = new StringBuilder()
-            .Append("clankerworld.private-world-observation/v2|")
+            .Append("clankerworld.world-observation/v2|")
             .Append(agentId).Append('|')
             .Append(worldId.Length).Append(':').Append(worldId).Append('|')
             .Append(state.Position.X).Append(',').Append(state.Position.Y).Append('|')

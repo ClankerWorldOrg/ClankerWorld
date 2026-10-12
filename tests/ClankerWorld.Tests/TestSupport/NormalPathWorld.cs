@@ -95,7 +95,7 @@ internal static class NormalPathWorld
         };
     }
 
-    /// <summary>Choose a feasible site near the camp without changing generated terrain or resources.</summary>
+    /// <summary>Choose a feasible site near the starting site without changing generated terrain or resources.</summary>
     internal static GridPoint FindStartingTownSite(WorldMap map)
     {
         var startingSite = map.Resources.Single(item => item.Id == "berry-patch").Position;

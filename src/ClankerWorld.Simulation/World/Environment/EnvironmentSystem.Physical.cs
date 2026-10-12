@@ -23,7 +23,7 @@ internal sealed partial class EnvironmentSystem
         var profiles = new (string Id, string Personality, string Aspiration)[]
         {
             ("founder-scout", "curious", "map the nearby world"),
-            ("founder-mira", "practical", "make the camp self-sufficient"),
+            ("founder-mira", "practical", "make the household self-sufficient"),
             ("founder-rowan", "patient", "build something lasting"),
             ("founder-ilya", "observant", "teach and preserve memory"),
         };

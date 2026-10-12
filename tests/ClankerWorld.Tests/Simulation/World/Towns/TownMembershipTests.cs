@@ -22,7 +22,7 @@ public sealed partial class TownMembershipTests
 {
     private const string First = "town:first";
     private const string Second = "town:second";
-    private const string Alpha = "household:camp-alpha";
+    private const string Alpha = "household:first";
     private const string NewcomerName = "Rowan";
     private static readonly string[] Founders = [Founder(1), Founder(2), Founder(3), Founder(4)];
 
@@ -908,7 +908,7 @@ public sealed partial class TownMembershipTests
             Enumerable.Range(-2, 5).SelectMany(dy => Enumerable.Range(-2, 5).Select(dx => new GridPoint(center.X + dx, center.Y + dy)));
     }
 
-    /// <summary>Tiles a newcomer cannot be placed on: resources, camp objects, buildings, Roads, fields and household land.</summary>
+    /// <summary>Tiles a newcomer cannot be placed on: resources, map objects, buildings, Roads, fields and household land.</summary>
     private static HashSet<GridPoint> Taken(WorldRuntimeState state)
     {
         var definitions = state.WorldContent!.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);

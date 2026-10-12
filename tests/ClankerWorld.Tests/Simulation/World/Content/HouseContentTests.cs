@@ -27,7 +27,7 @@ public sealed class HouseContentTests
 
         var state = seed.ExportState();
         var actor = state.Society.Society.Agents.First(person =>
-            person.HouseholdId == "household:camp-alpha").Id;
+            person.HouseholdId == "household:first").Id;
         var startingSite = state.Map.GetObject("storage").Position;
         var occupied = state.Agents.Where(person => person.AgentId != actor)
             .Select(person => person.Position).ToHashSet();
@@ -53,9 +53,9 @@ public sealed class HouseContentTests
             !state.Map.Resources.Any(item => item.Position == point) &&
             !state.Agents.Any(person => person.Position == point));
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        var placed = seed.PlaceBuilding("food-home-alpha", house.CanonicalId, site, "household:camp-alpha");
+        var placed = seed.PlaceBuilding("food-home-alpha", house.CanonicalId, site, "household:first");
         Assert.True(placed.Applied, placed.Failure);
-        var foodBefore = HouseholdQuantity(seed, "household:camp-alpha", "food");
+        var foodBefore = HouseholdQuantity(seed, "household:first", "food");
         state = seed.ExportState();
         state = state with
         {
@@ -80,7 +80,7 @@ public sealed class HouseContentTests
             item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
         Assert.Equal(site, delivery.Position);
         Assert.Equal(1, world.Society.Inventory.GetLot("food:personal-surplus").Quantity);
-        Assert.Equal(foodBefore + 3, HouseholdQuantity(world, "household:camp-alpha", "food"));
+        Assert.Equal(foodBefore + 3, HouseholdQuantity(world, "household:first", "food"));
         var stored = new OwnerWorldObservationStore(world).GetSnapshot().PlacedBuildings
             .Single(building => building.InstanceId == "food-home-alpha").StoredItems!;
         Assert.Contains(stored, item => item.Kind == "food" && item.Quantity == 3);
@@ -109,8 +109,8 @@ public sealed class HouseContentTests
             Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
 
         var state = seed.ExportState();
-        var alpha = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
-        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var alpha = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
+        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:second").Id;
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             state.Map.IsBuildable(point) &&
             state.Map.FootDistance(point, state.Map.GetObject("storage").Position) >= 3 &&
@@ -119,7 +119,7 @@ public sealed class HouseContentTests
             !state.Agents.Any(person => person.AgentId != beta && person.Position == point));
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
         var recipe = seed.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
-        Assert.True(seed.PlaceBuilding("meal-home-beta", house.CanonicalId, site, "household:camp-beta").Applied);
+        Assert.True(seed.PlaceBuilding("meal-home-beta", house.CanonicalId, site, "household:second").Applied);
         state = seed.ExportState() with
         {
             Agents = seed.ExportState().Agents.Select(person => person.AgentId == beta
@@ -140,7 +140,7 @@ public sealed class HouseContentTests
                     Inventory = state.Society.Society.Inventory with
                     {
                         Lots = state.Society.Society.Inventory.Lots.Select(lot =>
-                            lot.OwnerId == "household:camp-beta" && (lot.ItemKind is "potatoes" or "wood")
+                            lot.OwnerId == "household:second" && (lot.ItemKind is "potatoes" or "wood")
                                 ? lot with { StorageBuildingId = "meal-home-beta" } : lot).ToArray(),
                     },
                 },
@@ -158,9 +158,9 @@ public sealed class HouseContentTests
             },
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
-        var alphaFood = HouseholdQuantity(world, "household:camp-alpha", "potatoes");
-        var betaFood = HouseholdQuantity(world, "household:camp-beta", "potatoes");
-        var betaWood = HouseholdQuantity(world, "household:camp-beta", "wood");
+        var alphaFood = HouseholdQuantity(world, "household:first", "potatoes");
+        var betaFood = HouseholdQuantity(world, "household:second", "potatoes");
+        var betaWood = HouseholdQuantity(world, "household:second", "wood");
         var rejected = world.StartProduction(recipe.CanonicalId, "meal-home-beta", alpha);
         Assert.False(rejected.Applied);
         Assert.Contains("Only a member", rejected.Failure, StringComparison.Ordinal);
@@ -170,7 +170,7 @@ public sealed class HouseContentTests
         Assert.Equal("beta-iron-knife", activeJob.ToolLotId);
         Assert.Equal(recipe.DurationTicks / 2, activeJob.CompletionTick - activeJob.StartedTick);
         Assert.All(activeJob.InputReservationIds, reservationId =>
-                Assert.Equal("household:camp-beta", world.Society.Inventory.GetReservation(reservationId).OwnerId));
+                Assert.Equal("household:second", world.Society.Inventory.GetReservation(reservationId).OwnerId));
 
         var activeWithKnife = world.ExportState();
         Assert.Equal(WorldRuntime.StateSchemaVersion, activeWithKnife.SchemaVersion);
@@ -185,10 +185,10 @@ public sealed class HouseContentTests
             resumed.WorldSimulation.ProductionJobs.Single(job => job.JobId == started.JobId).State);
         Assert.Equal(10_000, resumed.Society.Inventory.GetLot("beta-iron-knife").ConditionBasisPoints);
         Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(alphaFood, HouseholdQuantity(resumed, "household:camp-alpha", "potatoes"));
-        Assert.Equal(betaFood - 2, HouseholdQuantity(resumed, "household:camp-beta", "potatoes"));
-        Assert.Equal(betaWood - 1, HouseholdQuantity(resumed, "household:camp-beta", "wood"));
-        Assert.Equal(2, HouseholdQuantity(resumed, "household:camp-beta", "simple_meal"));
+        Assert.Equal(alphaFood, HouseholdQuantity(resumed, "household:first", "potatoes"));
+        Assert.Equal(betaFood - 2, HouseholdQuantity(resumed, "household:second", "potatoes"));
+        Assert.Equal(betaWood - 1, HouseholdQuantity(resumed, "household:second", "wood"));
+        Assert.Equal(2, HouseholdQuantity(resumed, "household:second", "simple_meal"));
         Assert.Equal(9_000, resumed.Society.Inventory.GetLot("beta-iron-knife").ConditionBasisPoints);
         Assert.Equal(WorldProductionJobState.Completed,
             resumed.WorldSimulation.ProductionJobs.Single(job => job.JobId == started.JobId).State);
@@ -220,11 +220,11 @@ public sealed class HouseContentTests
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalid));
 
         var otherBeta = finished.Society.Society.Agents.First(person =>
-            person.HouseholdId == "household:camp-beta" && person.Id != beta).Id;
+            person.HouseholdId == "household:second" && person.Id != beta).Id;
         var houseApproach = finished.Map.FootNeighbors(site).First(point =>
             finished.Agents.All(person => person.AgentId == beta || person.Position != point));
         var pickupInventory = finished.Society.Society.Inventory;
-        foreach (var ration in pickupInventory.Lots.Where(lot => lot.OwnerId == "household:camp-beta" && lot.ItemKind == "food").ToArray())
+        foreach (var ration in pickupInventory.Lots.Where(lot => lot.OwnerId == "household:second" && lot.ItemKind == "food").ToArray())
         {
             var reservationId = "pickup-fixture:" + ration.Id;
             pickupInventory = InventoryAuthority.ConsumeReservation(InventoryAuthority.Reserve(pickupInventory,
@@ -272,7 +272,7 @@ public sealed class HouseContentTests
 
         var initial = seed.ExportState();
         var actor = initial.Society.Society.Agents.First(person =>
-            person.HouseholdId == "household:camp-alpha").Id;
+            person.HouseholdId == "household:first").Id;
         var startingSite = initial.Map.GetObject("storage").Position;
         var occupied = initial.Agents.Where(person => person.AgentId != actor)
             .Select(person => person.Position).ToHashSet();
@@ -298,10 +298,10 @@ public sealed class HouseContentTests
             !initial.Map.Resources.Any(item => item.Position == point) &&
             !initial.Agents.Any(person => person.Position == point));
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        Assert.True(seed.PlaceBuilding("haul-home-alpha", house.CanonicalId, site, "household:camp-alpha").Applied);
+        Assert.True(seed.PlaceBuilding("haul-home-alpha", house.CanonicalId, site, "household:first").Applied);
         var staged = seed.ExportState();
         var foodBefore = staged.Society.Society.Inventory.Lots
-            .Where(lot => lot.OwnerId == "household:camp-alpha" && lot.ItemKind == "food")
+            .Where(lot => lot.OwnerId == "household:first" && lot.ItemKind == "food")
             .Sum(lot => lot.Quantity);
         staged = staged with
         {
@@ -349,7 +349,7 @@ public sealed class HouseContentTests
         Assert.Equal("haul-home-alpha", resumed.Society.Inventory.GetLot(carried.Id).StorageBuildingId);
         Assert.Null(resumed.Society.Inventory.GetLot(carried.Id).DeliveryBuildingId);
         Assert.Equal(foodBefore, resumed.Society.Inventory.Lots
-            .Where(lot => lot.OwnerId == "household:camp-alpha" && lot.ItemKind == "food")
+            .Where(lot => lot.OwnerId == "household:first" && lot.ItemKind == "food")
             .Sum(lot => lot.Quantity));
         Assert.Contains(new OwnerWorldObservationStore(resumed).GetSnapshot().PlacedBuildings
             .Single(building => building.InstanceId == "haul-home-alpha").StoredItems!,
@@ -373,8 +373,8 @@ public sealed class HouseContentTests
             Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
 
         var state = seed.ExportState();
-        var alpha = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
-        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var alpha = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
+        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:second").Id;
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point =>
         {
             var neighbor = point with { X = point.X + 1 };
@@ -385,7 +385,7 @@ public sealed class HouseContentTests
                     (person.Position == point || person.Position == neighbor));
         });
         var house = seed.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        Assert.True(seed.PlaceBuilding("refuge-alpha", house.CanonicalId, site, "household:camp-alpha").Applied);
+        Assert.True(seed.PlaceBuilding("refuge-alpha", house.CanonicalId, site, "household:first").Applied);
         state = seed.ExportState();
         var snowy = state.WorldSystems!;
         var profiles = Enum.GetValues<SeasonKind>().Select(season =>
@@ -416,8 +416,8 @@ public sealed class HouseContentTests
         Assert.True(protectedWarmth > outsiderWarmth,
             $"The owner's refuge should protect only its household: {protectedWarmth} vs {outsiderWarmth}.");
 
-        var beforeAlphaWood = HouseholdWood(world, "household:camp-alpha");
-        var beforeBetaWood = HouseholdWood(world, "household:camp-beta");
+        var beforeAlphaWood = HouseholdWood(world, "household:first");
+        var beforeBetaWood = HouseholdWood(world, "household:second");
         var secondState = world.ExportState();
         var map = secondState.Map;
         var definitions = world.WorldContent.Buildings.ToDictionary(item => item.CanonicalId, StringComparer.Ordinal);
@@ -438,10 +438,10 @@ public sealed class HouseContentTests
         var secondSite = map.Tiles.Select(tile => tile.Position).First(point =>
             map.IsBuildable(point) && !occupied.Contains(point));
         var betaPlacement = world.PlaceBuilding("refuge-beta", house.CanonicalId, secondSite,
-            "household:camp-beta");
+            "household:second");
         Assert.True(betaPlacement.Applied, betaPlacement.Failure);
-        Assert.Equal(beforeAlphaWood, HouseholdWood(world, "household:camp-alpha"));
-        Assert.Equal(beforeBetaWood - 8, HouseholdWood(world, "household:camp-beta"));
+        Assert.Equal(beforeAlphaWood, HouseholdWood(world, "household:first"));
+        Assert.Equal(beforeBetaWood - 8, HouseholdWood(world, "household:second"));
     }
 
     [Fact]
@@ -461,14 +461,14 @@ public sealed class HouseContentTests
             !state.WorldSimulation!.Buildings.Any(item => item.Position == point));
         Assert.False(world.PlaceBuilding("home-alpha", house.CanonicalId, site).Applied);
         Assert.False(world.PlaceBuilding("home-alpha", house.CanonicalId, site, "household:unknown").Applied);
-        var placement = world.PlaceBuilding("home-alpha", house.CanonicalId, site, "household:camp-alpha");
+        var placement = world.PlaceBuilding("home-alpha", house.CanonicalId, site, "household:first");
         Assert.True(placement.Applied, placement.Failure);
 
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(saved);
         var projected = new OwnerWorldObservationStore(restored).GetSnapshot().PlacedBuildings
             .Single(building => building.InstanceId == "home-alpha");
-        Assert.Equal("household:camp-alpha", projected.HouseholdId);
+        Assert.Equal("household:first", projected.HouseholdId);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPlacedBuilding>(
             JsonSerializer.Serialize(projected, options), options)!;

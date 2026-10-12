@@ -29,7 +29,7 @@ public sealed class ProductionAgeTests
 
     internal static async Task<PreparedProduction> PrepareAsync(SocietyAgeBand age)
     {
-        using var seed = new WorldRuntime("camp-alpha", _ => new IdleProvider());
+        using var seed = new WorldRuntime("world-a", _ => new IdleProvider());
         seed.StageStarterContent();
         for (var tick = 0; tick < 5; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();

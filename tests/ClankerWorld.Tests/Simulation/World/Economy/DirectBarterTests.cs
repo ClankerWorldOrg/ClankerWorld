@@ -380,7 +380,7 @@ public sealed class DirectBarterTests
                         Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id != "trade-food" ? lot : fault switch
                         {
                             "spoiled" => lot with { FreshnessBasisPoints = 0 },
-                            "ownership_changed" => lot with { OwnerId = "household:camp-alpha" },
+                            "ownership_changed" => lot with { OwnerId = "household:first" },
                             _ => lot,
                         }).ToArray(),
                         Reservations = state.Society.Society.Inventory.Reservations.Select(reservation =>

@@ -1417,7 +1417,7 @@ The offline bounded test reaches all five moments, observes exactly five
 requests, and confirms that more ticks and a reload add none.
 
 Request text uses the game's own words (*agent*, *Town*, *House*), not the older
-*inhabitant*, *settlement* and *camp*, including plurals. Both adapters omit the
+*inhabitant* and *settlement*, including plurals. Both adapters omit the
 clock and run/decision counters; admission uses them on the server. Households
 and Towns use their recorded names. Candidate destinations use a readable name
 where one is available, while the legal option IDs remain unchanged. Jev stays
@@ -2097,7 +2097,7 @@ snapshot. A changed origin or borrowed collection invalidates that result; a
 fresh traversal uses owned data so an old terrain index cannot hide tile edits.
 Placement, layer and manifest checks still run on every acceptance. No route
 rules change. See [Saves and replay](saves-and-replay.md) for the load boundary
-and [Camp reachability measurements](camp-reachability-measurements.md) for native
+and [Starting-site reachability measurements](starting-site-reachability-measurements.md) for native
 save, allocation and exact continuation evidence.
 
 Resources are placed in bounded 16×16 cells with climate and cover biases, then
@@ -3062,7 +3062,7 @@ An unusable carried
 delivery leaves ordinary hauling and can offer `recover_household_delivery`.
 Candidate and action both check the current household-owned destination,
 physical load, selected or repaired gear, active family reservations and a
-route to camp. Recovery moves the same stock through the inventory authority,
+route to the shared storage spot. Recovery moves the same stock through the inventory authority,
 clears its delivery pointers and records `household_delivery_recovered`.
 Spoiled contents may be physically withdrawn from an owned usable pot, with
 the existing family, quantity, destination and reservation guards. They
@@ -3861,7 +3861,7 @@ equipment, knowledge goods and delivery loads. If that cannot free enough room,
 urgent adult food recovery may also select the actor's own orchard propagation
 seeds. Their selected planting reservations are released in the same inventory
 transition that stores the seeds with the household, after reaching the House
-or camp pile. Walking, an unavailable destination or a refused transfer does
+or storage pile. Walking, an unavailable destination or a refused transfer does
 not release them. Other reservations, delivery loads and borrowed goods remain
 protected; crafting does not use this exception.
 

@@ -198,7 +198,7 @@ docking water. Requests wait at the legal land approach; boats reserve a free
 destination space before boarding under the [agreed procedure](world.md#first-boat-and-port-travel).
 
 **Do not include as base buildings:** Shelter, Storehouse, separate Cooking
-fire/Campfire, Stone hearth, Weaving frame, bed/bedroll, or the player-facing
+fire, Stone hearth, Weaving frame, bed/bedroll, or the player-facing
 Create workbench. No village/city visual tiers are implied; all places are
 **Towns**. Building costs, storage capacities, some footprints and material
 alternatives are not fixed by this roster.

@@ -291,7 +291,7 @@ public sealed class ChildChosenNameTests
         checkpoint = Partner(checkpoint, first, second);
         var household = checkpoint.GetAgent(first).HouseholdId!;
         var birth = SocietyRules.CommitBirth(checkpoint, new SocietyBirthRequest(birthRequestId, 1, first, second,
-            household, [first, second], [first, second], "food:camp-alpha", 2, checkpoint.WorldTick,
+            household, [first, second], [first, second], "food:first", 2, checkpoint.WorldTick,
             PrimaryCaregiverId: first));
         var childId = Assert.IsType<string>(birth.CreatedId);
         checkpoint = birth.Checkpoint;

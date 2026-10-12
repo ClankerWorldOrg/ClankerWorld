@@ -31,7 +31,7 @@ public sealed class CognitionTests
                 new CognitionCandidate("safe_idle", "Continue safely.", 0),
                 new CognitionCandidate("seek_food", "Travel to food.", 10, "berry-patch"),
             ], RetrievedMemories: [new CognitionMemoryExcerpt("m1", "actor-scout", "friend",
-                "Private campfire promise.", 3)]);
+                "Private riverside promise.", 3)]);
         var request = new CognitionDecisionRequest("cognition-test", 1, observation);
 
         var response = await provider.DecideAsync(request);
@@ -40,7 +40,7 @@ public sealed class CognitionTests
         Assert.Equal(HttpMethod.Post, handler.Method);
         Assert.Equal("Bearer test-secret", handler.Authorization);
         Assert.DoesNotContain("energy_basis_points", handler.Body, StringComparison.Ordinal);
-        Assert.DoesNotContain("Private campfire promise", handler.Body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Private riverside promise", handler.Body, StringComparison.Ordinal);
         Assert.Equal("jev-1.13.0", body.RootElement.GetProperty("model").GetString());
         var question = body.RootElement.GetProperty("questions").GetProperty("selected_candidate");
         Assert.Equal("choice", question.GetProperty("type").GetString());
@@ -128,7 +128,7 @@ public sealed class CognitionTests
                 new CognitionCandidate("safe_idle", "Continue safely.", 0),
                 new CognitionCandidate("seek_food", "Travel to food.", 10, "berry-patch"),
             ], NeedsName: true, RetrievedMemories: [new CognitionMemoryExcerpt(
-                "m1", "actor-scout", "friend", "Mira told me about the private campfire promise.", 8,
+                "m1", "actor-scout", "friend", "Mira told me about the private riverside promise.", 8,
                 Kind: "belief", Provenance: "hearsay", ConfidenceBasisPoints: 4_200,
                 SourceAgentId: "friend", SourceEventId: 9, IsCorrected: true,
                 ImportanceBasisPoints: 7_500, ImportanceConfidenceBasisPoints: 8_200)],
@@ -172,7 +172,7 @@ public sealed class CognitionTests
         Assert.Contains("0 is starving", systemPrompt, StringComparison.Ordinal);
         Assert.Contains("Null condition fields mean unknown", systemPrompt, StringComparison.Ordinal);
         var memory = Assert.Single(question.RootElement.GetProperty("retrieved_memories").EnumerateArray());
-        Assert.Equal("Mira told me about the private campfire promise.", memory.GetProperty("summary").GetString());
+        Assert.Equal("Mira told me about the private riverside promise.", memory.GetProperty("summary").GetString());
         Assert.Equal("friend", memory.GetProperty("subject_id").GetString());
         Assert.Equal("belief", memory.GetProperty("kind").GetString());
         Assert.Equal("hearsay", memory.GetProperty("provenance").GetString());

@@ -144,7 +144,7 @@ public sealed partial class WorldRuntimeTests
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             !state.Map.Resources.Any(resource => resource.Position == point) && !state.Map.MapObjects.Any(item => item.Position == point) &&
             !state.Agents.Any(person => person.Position == point));
-        var placement = setup.PlaceBuilding("waiting-warm-home", house.CanonicalId, site, "household:camp-alpha");
+        var placement = setup.PlaceBuilding("waiting-warm-home", house.CanonicalId, site, "household:first");
         Assert.True(placement.Applied, placement.Failure);
         state = setup.ExportState();
         var start = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&

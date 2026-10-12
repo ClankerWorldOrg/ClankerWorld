@@ -260,7 +260,7 @@ public sealed partial class WorldRuntime
             HasCarriedUnreservedQuantities(actor, definition.BuildCosts))
             return actor;
 
-        // The household stages a multi-load first House at camp. When its
+        // The household stages a multi-load first House at the shared storage spot. When its
         // complete cost is already on the builder, preserve direct delivery.
         return household;
     }

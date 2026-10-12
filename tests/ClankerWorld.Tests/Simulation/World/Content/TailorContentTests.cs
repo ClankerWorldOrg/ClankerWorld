@@ -6,8 +6,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class TailorContentTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
 
     [Fact]
     public async Task HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload()

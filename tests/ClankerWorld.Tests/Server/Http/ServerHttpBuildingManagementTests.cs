@@ -18,7 +18,7 @@ public sealed partial class ServerHttpTests
         var directory = Directory.CreateTempSubdirectory("owner-building-management-");
         try
         {
-            var (state, tailorId) = TailorTestWorld.Create("camp-alpha", 0);
+            var (state, tailorId) = TailorTestWorld.Create("world-a", 0);
             File.WriteAllBytes(Path.Combine(directory.FullName, "runtime.json"), WorldRuntimeCodec.Encode(state));
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             using var host = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
@@ -29,13 +29,13 @@ public sealed partial class ServerHttpTests
 
             const string reassignPath = "/api/v1/owner/buildings/reassign";
             var reassignment = new ServerBuildingReassignmentAction(tailorId, tailor.TownId, tailor.HouseholdId,
-                TargetTownId: null, TargetHouseholdId: "household:camp-beta", WorldId: runtime.Society.WorldId);
+                TargetTownId: null, TargetHouseholdId: "household:second", WorldId: runtime.Society.WorldId);
             var beforeTampering = WorldRuntimeCodec.Encode(runtime.ExportState());
             var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId, reassignPath,
                 reassignment, OwnerContentBinding.BuildingReassignmentPayload(reassignment));
             using (var tampered = await client.PostAsJsonAsync(reassignPath, signed with
             {
-                Action = reassignment with { TargetHouseholdId = "household:camp-alpha" },
+                Action = reassignment with { TargetHouseholdId = "household:first" },
             }))
             {
                 Assert.False(tampered.IsSuccessStatusCode);
@@ -49,9 +49,9 @@ public sealed partial class ServerHttpTests
             Assert.NotNull(reassignedResult);
             Assert.True(reassignedResult.Applied, reassignedResult.Failure);
             var current = runtime.WorldSimulation.Buildings.Single(item => item.InstanceId == tailorId);
-            Assert.Equal("household:camp-beta", current.HouseholdId);
+            Assert.Equal("household:second", current.HouseholdId);
             var stateFile = host.Services.GetRequiredService<WorldStateFile>();
-            Assert.Equal("household:camp-beta", WorldRuntimeCodec.Decode(File.ReadAllBytes(stateFile.Path))
+            Assert.Equal("household:second", WorldRuntimeCodec.Decode(File.ReadAllBytes(stateFile.Path))
                 .WorldSimulation!.Buildings.Single(item => item.InstanceId == tailorId).HouseholdId);
 
             const string removePath = "/api/v1/owner/buildings/remove";

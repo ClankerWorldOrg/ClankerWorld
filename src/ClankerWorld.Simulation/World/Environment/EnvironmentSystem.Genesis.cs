@@ -59,7 +59,7 @@ internal sealed partial class EnvironmentSystem
                     chunkWidth,
                     chunkHeight,
                     map.Width > ChunkRules.DefaultChunkSize || map.Height > ChunkRules.DefaultChunkSize
-                        ? "noise-drainage-camp" : SmallTemperateMapGenerator.GeneratorId,
+                        ? "noise-drainage" : SmallTemperateMapGenerator.GeneratorId,
                     map.Width > ChunkRules.DefaultChunkSize || map.Height > ChunkRules.DefaultChunkSize
                         ? "v2" : SmallTemperateMapGenerator.GeneratorVersion,
                     map.Resources.Where(resource => resource.Position.X >= left &&
@@ -111,26 +111,26 @@ internal sealed partial class EnvironmentSystem
             initialFounders,
             [
                 new InventoryLot(foodLotId, "food", householdId, 32, 10_000, 10_000, 0),
-                new InventoryLot("wood:camp-alpha", "wood", householdId, 48, 10_000, 10_000, 0),
-                new InventoryLot("tools:camp-alpha", "tool", householdId, 4, 10_000, 10_000, 0),
+                new InventoryLot("wood:first", "wood", householdId, 48, 10_000, 10_000, 0),
+                new InventoryLot("tools:first", "tool", householdId, 4, 10_000, 10_000, 0),
                 ..(startPace == WorldStartPace.Legacy ? new InventoryLot[]
                 {
-                    new("legacy-wooden-axe:camp-alpha", "wooden_axe", householdId, 1, 10_000, 10_000, 0),
-                    new("legacy-wooden-pickaxe:camp-alpha", "wooden_pickaxe", householdId, 1, 10_000, 10_000, 0),
+                    new("legacy-wooden-axe:first", "wooden_axe", householdId, 1, 10_000, 10_000, 0),
+                    new("legacy-wooden-pickaxe:first", "wooden_pickaxe", householdId, 1, 10_000, 10_000, 0),
                 } : []),
                 ..(startPace == WorldStartPace.FounderSetup ? new InventoryLot[]
                 {
-                    new("food:camp-beta", "food", secondHouseholdId, 16, 10_000, 10_000, 0),
-                    new("wood:camp-beta", "wood", secondHouseholdId, 24, 10_000, 10_000, 0),
-                    new("tools:camp-beta", "tool", secondHouseholdId, 2, 10_000, 10_000, 0),
-                    new("seeds:camp-alpha", "grain_seed", householdId, 8, 10_000, 10_000, 0),
-                    new("green-seeds:camp-alpha", "cultivated_green_seed", householdId, 4, 10_000, 10_000, 0),
-                    new("potatoes:camp-alpha", "potatoes", householdId, 4, 10_000, 10_000, 0),
-                    new("clothing:camp-alpha", "clothing", householdId, 2, 10_000, 10_000, 0),
-                    new("seeds:camp-beta", "grain_seed", secondHouseholdId, 8, 10_000, 10_000, 0),
-                    new("green-seeds:camp-beta", "cultivated_green_seed", secondHouseholdId, 4, 10_000, 10_000, 0),
-                    new("potatoes:camp-beta", "potatoes", secondHouseholdId, 4, 10_000, 10_000, 0),
-                    new("clothing:camp-beta", "clothing", secondHouseholdId, 2, 10_000, 10_000, 0),
+                    new("food:second", "food", secondHouseholdId, 16, 10_000, 10_000, 0),
+                    new("wood:second", "wood", secondHouseholdId, 24, 10_000, 10_000, 0),
+                    new("tools:second", "tool", secondHouseholdId, 2, 10_000, 10_000, 0),
+                    new("seeds:first", "grain_seed", householdId, 8, 10_000, 10_000, 0),
+                    new("green-seeds:first", "cultivated_green_seed", householdId, 4, 10_000, 10_000, 0),
+                    new("potatoes:first", "potatoes", householdId, 4, 10_000, 10_000, 0),
+                    new("clothing:first", "clothing", householdId, 2, 10_000, 10_000, 0),
+                    new("seeds:second", "grain_seed", secondHouseholdId, 8, 10_000, 10_000, 0),
+                    new("green-seeds:second", "cultivated_green_seed", secondHouseholdId, 4, 10_000, 10_000, 0),
+                    new("potatoes:second", "potatoes", secondHouseholdId, 4, 10_000, 10_000, 0),
+                    new("clothing:second", "clothing", secondHouseholdId, 2, 10_000, 10_000, 0),
                 } : []),
             ],
             config,

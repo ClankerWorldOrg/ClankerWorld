@@ -11,7 +11,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
 {
     private const string Adult = "founder:00000000000000000000000000000001";
     private const string Child = "founder:00000000000000000000000000000002";
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
     private const string House = "first-town-house-a";
     private const string Food = "child-spare-food";
     private static readonly Lazy<byte[]> Generated = new(() =>

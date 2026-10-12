@@ -21,7 +21,7 @@ public sealed partial class ToolMakingRequestTests
         using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new RequestChoices());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
         var inventory = state.Society.Society.Inventory with { Lots = [] };
         inventory = InventoryAuthority.AddLot(inventory, "full-personal-load", "iron", buyer, 8);
         state = state with
@@ -37,10 +37,10 @@ public sealed partial class ToolMakingRequestTests
         };
         var chooser = new RecordingBuiltInChoices();
         using var world = WorldRuntime.Restore(state, actor => actor == buyer ? chooser : new RequestChoices());
-        var farmhouse = world.WorldSimulation.Buildings.Single(building => building.HouseholdId == "household:camp-alpha" &&
+        var farmhouse = world.WorldSimulation.Buildings.Single(building => building.HouseholdId == "household:first" &&
             world.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
         Assert.True(world.ReassignBuilding(farmhouse.InstanceId, farmhouse.TownId, farmhouse.HouseholdId,
-            targetTownId: null, targetHouseholdId: "household:camp-beta").Applied);
+            targetTownId: null, targetHouseholdId: "household:second").Applied);
         for (var tick = 0; tick < 40; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         using var reloaded = WorldRuntime.Restore(Roundtrip(world), actor => actor == buyer ? chooser : new RequestChoices());
         for (var tick = 0; tick < 40; tick++) Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);

@@ -264,7 +264,7 @@ public sealed class OwnerWorldObservationSessionTests
     {
         var clientAction = new OwnerInstructionAction(
             IdempotencyKey: "instruction-01",
-            TargetAgentId: "camp-alpha",
+            TargetAgentId: "agent-a",
             Kind: "must-do",
             Text: "Gather wood before dusk.",
             WorldId: "world-A",
@@ -284,7 +284,7 @@ public sealed class OwnerWorldObservationSessionTests
             queue ? "clankerworld.owner-instruction.v3" : "clankerworld.owner-instruction.v2",
             "world-id=d29ybGQtQQ",
             "idempotency-key=aW5zdHJ1Y3Rpb24tMDE",
-            "target-agent-id=Y2FtcC1hbHBoYQ",
+            "target-agent-id=YWdlbnQtYQ",
             "kind=bXVzdC1kbw",
             "text=R2F0aGVyIHdvb2QgYmVmb3JlIGR1c2su" + (queue ? "\nqueue=true" : string.Empty));
         Assert.Equal(expected, clientPayload);
@@ -295,7 +295,7 @@ public sealed class OwnerWorldObservationSessionTests
     public void OrderCancellationPayloadMatchesServerOwnerProtocolByteForByte()
     {
         var clientAction = new OwnerOrderCancelAction(
-            "cancel-01", "camp-alpha", "private-instruction-0000000042", "world-A");
+            "cancel-01", "agent-a", "private-instruction-0000000042", "world-A");
         var serverAction = new ServerOrderCancelAction(
             clientAction.IdempotencyKey,
             clientAction.TargetAgentId,
@@ -309,7 +309,7 @@ public sealed class OwnerWorldObservationSessionTests
             "clankerworld.owner-order-cancel.v1",
             "world-id=d29ybGQtQQ",
             "idempotency-key=Y2FuY2VsLTAx",
-            "target-agent-id=Y2FtcC1hbHBoYQ",
+            "target-agent-id=YWdlbnQtYQ",
             "order-id=cHJpdmF0ZS1pbnN0cnVjdGlvbi0wMDAwMDAwMDQy");
         Assert.Equal(expected, clientPayload);
         Assert.Equal(serverPayload, clientPayload);
@@ -432,7 +432,7 @@ public sealed class OwnerWorldObservationSessionTests
             Tiles: [new OwnerWorldTile(0, 0, "meadow")],
             Objects: [],
             Resources: [],
-            Actor: new OwnerWorldActor("camp-alpha", new OwnerWorldPosition(0, 0), 5000, 1, 0),
+            Actor: new OwnerWorldActor("agent-a", new OwnerWorldPosition(0, 0), 5000, 1, 0),
             LatestEventId: 5);
         var events = new OwnerWorldEventSlice(
             SnapshotTick: 5,

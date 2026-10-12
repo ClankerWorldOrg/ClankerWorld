@@ -700,7 +700,7 @@ public sealed class PotteryContentTests
     public async Task WorkstationWaterSupplyMovesOnlyWholeContainerFamiliesWithinActualCarryCapacity(int waterQuantity,
         bool familyFits)
     {
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         const string sourceHouseId = "first-town-house-a";
         const string jugId = "supply-test-jug";
         const string waterId = "supply-test-water";
@@ -850,7 +850,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("container-inbound-room", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var adults = state.Society.Society.Agents.Where(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).ToArray();
@@ -938,7 +938,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("pot-storage-unreachable", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
@@ -965,7 +965,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("jug-leaves-water-room", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         const string jugId = "last-slot-jug";
         const string backupJugId = "zz-house-reserve-jug";
         const string backupWaterId = "zz-house-reserve-water";
@@ -1068,7 +1068,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("jug-leaves-water-room", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         const string jugId = "needed-house-jug";
         const string waterId = "needed-house-water";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
@@ -1133,7 +1133,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("pot-serving-rules", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         const string potId = "serving-rules-pot";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
@@ -1182,7 +1182,7 @@ public sealed class PotteryContentTests
         for (var tick = 0; tick < 8; tick++)
             Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         const string potId = "urgent-owner-order-pot";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
@@ -1233,7 +1233,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("oversized-loose-jug", _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         const string jugId = "0-oversized-loose-jug";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&

@@ -41,7 +41,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
         else state = WorldRuntimeCodec.Decode(await (laterGeneration ? LaterAdult : ConversationAdult).Value);
         var actor = formedHousehold ? state.Society.Society.Agents.First(person =>
-            person.HouseholdId == "household:camp-alpha" && person.Status == SocietyAgentStatus.Active &&
+            person.HouseholdId == "household:first" && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id :
             state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
         if (!formedHousehold) Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
@@ -60,7 +60,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         };
         var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var source = state.HouseholdLandUseRights!.First(right => right.TownId == town.Id && right.HouseholdId == household);
-        var target = formedTarget ?? state.Society.Society.Households.Single(item => item.Id == "household:camp-beta").Id;
+        var target = formedTarget ?? state.Society.Society.Households.Single(item => item.Id == "household:second").Id;
         if (quietNoticeTurn)
         {
             // Keep an unrelated weather-dependent clothing choice from waking

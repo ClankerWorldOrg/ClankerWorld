@@ -25,7 +25,7 @@ public sealed class DescendantConversationListenerTests
         var caregivers = new[] { Speaker, Partner }.Where(id => society.GetAgent(id).HouseholdId == household)
             .Append(Speaker).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         var birth = SocietyRules.CommitBirth(society, new($"family:{Speaker}:{society.WorldTick}", 1,
-            Speaker, Partner, household, caregivers, [Speaker, Partner], "food:camp-alpha", 2, society.WorldTick,
+            Speaker, Partner, household, caregivers, [Speaker, Partner], "food:first", 2, society.WorldTick,
             ChildName: ChosenBirthNameTestFixture.ChildName(society, Speaker, "Listener"), PrimaryCaregiverId: Speaker));
         var child = Assert.IsType<string>(birth.CreatedId);
         Assert.InRange(child.Length, 1, DerivedId.MaximumLength);

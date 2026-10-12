@@ -35,16 +35,16 @@ public sealed partial class ServerHttpTests
             var packageVersion = ContentVersion.Parse("1.0.0");
             var building = new BuildingDefinition(
                 packageDigest,
-                "camp-kitchen",
+                "test-kitchen",
                 packageVersion,
-                "Camp kitchen",
+                "Test kitchen",
                 1,
                 1,
                 2,
                 [new ContentQuantity("wood", 2)],
-                ["camp"]);
+                ["kitchen"]);
             var package = new OwnerContentPackageAction(
-                "camp-recipes",
+                "test-recipes",
                 "1.0.0",
                 packageDigest,
                 [],
@@ -54,7 +54,7 @@ public sealed partial class ServerHttpTests
                     building.Version.ToString(),
                     building.DisplayName,
                     building.PayloadDigest,
-                    """{"schema":"building/v1","width":1,"height":1,"capacity":2,"buildCosts":[{"resourceId":"wood","amount":2}],"tags":["camp"]}""")],
+                    """{"schema":"building/v1","width":1,"height":1,"capacity":2,"buildCosts":[{"resourceId":"wood","amount":2}],"tags":["kitchen"]}""")],
                 []);
 
             using var proposed = await SendSignedAsync(
@@ -121,7 +121,7 @@ public sealed partial class ServerHttpTests
                 .ToHashSet();
             var worker = runtime.Agents.First(item => !occupiedMapPositions.Contains(item.Position));
             var placementAction = new OwnerBuildingPlacementAction(
-                "camp-kitchen-one",
+                "test-kitchen-one",
                 building.CanonicalId,
                 worker.Position.X,
                 worker.Position.Y);
@@ -157,7 +157,7 @@ public sealed partial class ServerHttpTests
             Assert.Single(runtime.WorldContent.Buildings);
             Assert.Single(runtime.WorldSimulation.Buildings);
             Assert.Contains(rollbackLogger.Messages, message => message.Contains("content_rollback", StringComparison.Ordinal) &&
-                message.Contains("package=camp-recipes outcome=rejected", StringComparison.Ordinal));
+                message.Contains("package=test-recipes outcome=rejected", StringComparison.Ordinal));
             Assert.DoesNotContain(rollbackLogger.Messages, message => message.Contains(rollback.Reason, StringComparison.Ordinal));
         }
         finally

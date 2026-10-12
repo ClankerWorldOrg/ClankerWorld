@@ -189,7 +189,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
     [Fact]
     public async Task ReadOrderHonorsKnowledgeCapacityWithoutInventingOrReplacingFacts()
     {
-        // The retired camp has only thirty tiles. Use a normal generated world
+        // The small test map has only thirty tiles. Use a normal generated world
         // for the boundary, with a real explored and written source.
         using var generated = NormalPathWorld.CreateGenerated("read-order-knowledge-cap", _ => new ActionCoverageRecorder(chooseIdle: true));
         var initial = generated.ExportState();

@@ -1,14 +1,17 @@
 ---
-title: Camp reachability measurements
+title: Starting-site reachability measurements
 type: performance-report
 status: complete
 updated: 2026-10-08
 ---
 
-# Camp reachability measurements
+# Starting-site reachability measurements
+
+When this was measured, the code called the starting site the camp, so the probe
+and the commands below still use camp names.
 
 [#1205](https://github.com/compoodment/ClankerWorld/issues/1205) removes the repeated
-camp flood-fill from checkpoint map acceptance when actual topology and origin
+starting-site flood-fill from checkpoint map acceptance when actual topology and origin
 are unchanged. Both runs reduce map-acceptance allocation by about 24% on the
 supported sizes. Durable-save timings remain variable, including a worse first
 Medium p95. The repair retains every other map check and the normal durable save.
@@ -17,7 +20,7 @@ Medium p95. The repair retains every other map check and the normal durable save
 
 Baseline main is `1d8453a2ceb5400a8ab873bf202fbecdae7cf758`. Of 355 recorded
 simulation, host and build inputs, only `SeededWorldHarness.cs` changes.
-[The exact disposable probe](camp-reachability-probe/probe.cs.txt) accompanies
+[The exact disposable probe](starting-site-reachability-probe/probe.cs.txt) accompanies
 this report. The data file of raw samples, source/helper/input hashes and
 full-byte comparisons is in git history at commit `90954f22` as
 `docs/development/camp-reachability-probe/samples.json`, and the command under
@@ -31,7 +34,7 @@ ticks, then pause. Fixtures were created on `a4afb62f`; baseline and repair both
 strictly load the same paused tick-5 checkpoint on the source above. The generator
 and fixture helpers are unchanged. No player save or hosted provider is used.
 
-Small has 32,768 tiles, 1,550 resources and 15,230 camp-reachable positions;
+Small has 32,768 tiles, 1,550 resources and 15,230 positions reachable from the starting site;
 Medium has 131,072 tiles, 7,490 resources and 65,717 reachable positions. Each
 requires five starting-resource positions. Paused inputs are 1,196,957 and
 4,718,165 bytes; their hashes are in the data file.
@@ -42,7 +45,7 @@ Each phase warms five calls. Map acceptance measures 20 complete
 `MapAcceptance.Validate(map, true)` calls, including normal layer, placement,
 route and manifest checks. A separate control measures 20 explicit
 `ReachableFrom` traversals and their count assertion. Twenty warmed cached
-required-position checks exercise the existing camp query separately. Ten
+required-position checks exercise the existing starting-site query separately. Ten
 measured `PrivateWorldStateFile.Save` calls include normal encoding and durable
 publication; file-byte/map-identity assertions run after the measured boundary
 on every warm and measured save. Creation, strict load, continuation, replay and
@@ -101,7 +104,7 @@ elevation and surface bytes, dimensions, wrapping, and every bridge key/axis.
 This also checks borrowed arrays and read-only collection views by content.
 Changed topology or origin triggers a fresh snapshot and traversal. The snapshot
 gets its own terrain index, so a stale index on a caller-mutated source cannot
-hide a new barrier. Resource targets and camp placements are checked each time;
+hide a new barrier. Resource targets and starting-site placements are checked each time;
 climate/vegetation validation and canonical manifest hashing remain unchanged.
 
 Cold or changed maps pay for the snapshot copies and full traversal. The snapshot

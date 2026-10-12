@@ -131,8 +131,8 @@ public sealed partial class HouseToolsBehaviorTests
     {
         using var setup = await StartingSiteAsync();
         var state = setup.ExportState();
-        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
-        var outsider = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
+        var outsider = state.Society.Society.Agents.First(person => person.HouseholdId == "household:second").Id;
         var owner = state.Society.Society.GetAgent(actor).HouseholdId!;
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             !state.Map.MapObjects.Any(item => item.Position == point) &&
@@ -196,7 +196,7 @@ public sealed partial class HouseToolsBehaviorTests
     {
         using var setup = await StartingSiteAsync();
         var state = setup.ExportState();
-        const string owner = "household:camp-alpha";
+        const string owner = "household:first";
         var members = state.Society.Society.Agents.Where(person => person.HouseholdId == owner).ToArray();
         Assert.Equal(2, members.Length);
         var actor = members[0].Id;

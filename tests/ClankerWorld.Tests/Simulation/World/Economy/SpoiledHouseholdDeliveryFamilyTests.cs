@@ -62,7 +62,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             }
         }
         Assert.Contains(choices.Offers, offer => offer.Contains("recover_household_delivery", StringComparer.Ordinal));
-        Assert.True(discarded, "The prepared recovery must be discarded at the actual camp before the next ordinary tick commits it.");
+        Assert.True(discarded, "The prepared recovery must be discarded at the actual storage pile before the next ordinary tick commits it.");
         Assert.Equal((Household, 1, new InventoryGroundPosition(startingSite.X, startingSite.Y)),
             (recovered.Society.Inventory.GetLot(Pot).OwnerId, recovered.Society.Inventory.GetLot(Pot).Quantity,
                 recovered.Society.Inventory.GetLot(Pot).GroundPosition));
@@ -79,7 +79,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         });
         Assert.Equal(4, recovered.Society.Inventory.Lots.Where(lot => lot.Id == Pot || lot.ContainerLotId == Pot).Sum(lot => lot.Quantity));
         Assert.Single(recovered.ExportState().Events, item => item.Kind == "household_delivery_recovered" &&
-            item.Detail == $"{actor}:{Pot}:4:camp");
+            item.Detail == $"{actor}:{Pot}:4:pile");
         Assert.Equal(2, recovered.Society.Inventory.Events.Count(item => item.Kind == "container_transferred" &&
             item.Detail.Contains(Pot, StringComparison.Ordinal)));
         Assert.Equal(state.Society.Society.Inventory.Reservations, recovered.Society.Inventory.Reservations);

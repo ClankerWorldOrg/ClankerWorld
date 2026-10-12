@@ -40,13 +40,13 @@ public sealed class ProjectInputBoundaryTests
     {
         using var seed = await Prepared();
         var state = seed.ExportState();
-        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:second").Id;
         var house = seed.WorldContent.Buildings.Single(item => item.LocalId == "house-1x1");
         var recipe = seed.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         BuildingPlacementResult? placement = null;
         foreach (var point in state.Map.Tiles.Select(tile => tile.Position))
         {
-            var candidate = seed.PlaceBuilding("cook-home", house.CanonicalId, point, "household:camp-beta");
+            var candidate = seed.PlaceBuilding("cook-home", house.CanonicalId, point, "household:second");
             if (!candidate.Applied) continue;
             placement = candidate;
             break;
@@ -78,7 +78,7 @@ public sealed class ProjectInputBoundaryTests
                     Inventory = state.Society.Society.Inventory with
                     {
                         Lots = state.Society.Society.Inventory.Lots.Select(lot =>
-                        lot.OwnerId == "household:camp-beta" && lot.ItemKind is "potatoes" or "wood"
+                        lot.OwnerId == "household:second" && lot.ItemKind is "potatoes" or "wood"
                             ? lot with { StorageBuildingId = "cook-home" } : lot).ToArray()
                     },
                 }
@@ -99,7 +99,7 @@ public sealed class ProjectInputBoundaryTests
         var workshop = seed.WorldContent.Buildings.Single(item => item.LocalId == "workshop");
         var recipe = seed.WorldContent.Recipes.Single(item => item.LocalId == "tools");
         var initial = seed.ExportState();
-        var adults = initial.Society.Society.Agents.Where(person => person.HouseholdId == "household:camp-alpha").ToArray();
+        var adults = initial.Society.Society.Agents.Where(person => person.HouseholdId == "household:first").ToArray();
         var actor = adults[0].Id;
         var blocker = adults[1].Id;
         var actorPosition = initial.Agents.Single(person => person.AgentId == actor).Position;
@@ -186,7 +186,7 @@ public sealed class ProjectInputBoundaryTests
             job.BuildingInstanceId == "z-workshop" && job.State == WorldProductionJobState.Completed);
         Assert.Equal(firstWorkshopPosition.Value, continuing.Agents.Single(person => person.AgentId == blocker).Position);
         Assert.DoesNotContain(continuing.WorldSimulation.ProductionJobs, job => job.WorkerId == actor && job.BuildingInstanceId == "a-workshop");
-        Assert.Contains(continuing.Society.Inventory.Lots, lot => lot.OwnerId == "household:camp-alpha" && lot.ItemKind == "tool" && lot.Quantity > 0);
+        Assert.Contains(continuing.Society.Inventory.Lots, lot => lot.OwnerId == "household:first" && lot.ItemKind == "tool" && lot.Quantity > 0);
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(continuing.ExportState()));
     }
 

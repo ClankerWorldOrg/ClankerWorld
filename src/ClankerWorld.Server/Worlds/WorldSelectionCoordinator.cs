@@ -277,7 +277,7 @@ public sealed class WorldSelectionCoordinator(
             var selection = selectGeographyCandidates(geography);
             var map = selection.Map;
             // The preview contract retains a suggested passable area for older
-            // clients, but fresh maps have no placed camp or Town at this site.
+            // clients, but fresh maps have no placed objects or Town at this site.
             var startingSite = map.Resources.First(item => item.Id == "berry-patch").Position;
             WorldSelectionTelemetry.Previewed(logger, map.Width, map.Height);
             return new WorldPreviewView(OwnerWorldObservationStore.PackTerrain(map),

@@ -79,7 +79,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     public async Task NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(bool? later, string outcome)
     {
         var state = WorldRuntimeCodec.Decode(await (later is null ? ShortExpiryHearing : later.Value ? ThirdExpiryHearing : FirstExpiryHearing).Value);
-        var household = later is null ? "household:camp-alpha" : state.Society.Society.GetAgent(HearingHouseholdActor(state, later.Value)).HouseholdId!;
+        var household = later is null ? "household:first" : state.Society.Society.GetAgent(HearingHouseholdActor(state, later.Value)).HouseholdId!;
         var actor = later is null ? state.Society.Society.GetHousehold(household).MemberIds[0] : HearingHouseholdActor(state, later.Value);
         var choices = new NativeHouseholdExpiryChoices(household, outcome);
         using var world = RestoreHouseholdHearing(state, choices);
@@ -151,7 +151,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     private static async Task<byte[]> CreateHouseholdExpiryAsync(bool? later)
     {
         var state = WorldRuntimeCodec.Decode(await (later is null ? LaterHearingGovernment : later.Value ? ThirdHearingHousehold : FirstHearingHousehold).Value);
-        var household = later is null ? "household:camp-alpha" : state.Society.Society.GetAgent(HearingHouseholdActor(state, later.Value)).HouseholdId!;
+        var household = later is null ? "household:first" : state.Society.Society.GetAgent(HearingHouseholdActor(state, later.Value)).HouseholdId!;
         var farm = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var definition = state.WorldContent!.Buildings.Single(building => building.CanonicalId == farm.DefinitionId);
         var plot = WorldContentSimulationRules.Footprint(definition, farm).ToHashSet();

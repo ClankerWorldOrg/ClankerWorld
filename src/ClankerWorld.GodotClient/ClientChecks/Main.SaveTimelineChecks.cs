@@ -19,9 +19,9 @@ public partial class Main
         var start = DateTimeOffset.UnixEpoch;
         var first = new SaveBranch("a", 1);
         var second = new SaveBranch("b", 2, "flood", "Before the flood", 2 * Day);
-        var third = new SaveBranch("c", 3, "camp", "First camp", Day);
+        var third = new SaveBranch("c", 3, "farm", "First farm", Day);
         ManualWorldSave old = new("old", "Old save", start, Day / 2);
-        ManualWorldSave firstSave = new("camp", "First camp", start.AddMinutes(1), Day, false, first, BranchPosition: 1);
+        ManualWorldSave firstSave = new("farm", "First farm", start.AddMinutes(1), Day, false, first, BranchPosition: 1);
         ManualWorldSave flood = new("flood", "Before the flood", start.AddMinutes(2), 2 * Day, false, first, BranchPosition: 2);
         ManualWorldSave harvest = new("harvest", "Big harvest", start.AddMinutes(3), 9 * Day, false, first, BranchPosition: 3);
         ManualWorldSave winter = new("winter", "Hungry winter", start.AddMinutes(4), 6 * Day, false, second,
@@ -36,7 +36,7 @@ public partial class Main
         var lanes = SaveTimelineLayout.Lanes(saves, forking);
         var keys = string.Join(",", lanes.Select(lane => lane.Key));
         if (keys != ",a,unsaved,b,c" || lanes[2].ForkSave?.Id != "flood" || lanes[2].Parent?.Key != "a" ||
-            lanes[2].ColorNumber != 4 || lanes[4].ForkSave?.Id != "camp")
+            lanes[2].ColorNumber != 4 || lanes[4].ForkSave?.Id != "farm")
             throw new InvalidOperationException($"Branches must sit under the save they grew from, latest fork closest: {keys}.");
         if (SaveTimelineLayout.NowLane(lanes, forking) != lanes[2] ||
             SaveTimelineLayout.NowLane(lanes, new("harvest", "a", false)) != lanes[1] ||
@@ -46,7 +46,7 @@ public partial class Main
         if (!lanes[1].IsLatest(harvest) || lanes[1].IsLatest(flood) || lanes[0].IsLatest(old) ||
             SaveTimelineLayout.BranchesFrom(lanes, flood) != 1)
             throw new InvalidOperationException("Only a branch's newest save may carry its banner, and only real branches count as grown from a save.");
-        if (lanes[3].Title != "From Before the flood" || lanes[4].Title != "From First camp")
+        if (lanes[3].Title != "From Before the flood" || lanes[4].Title != "From First farm")
             throw new InvalidOperationException("Timeline rows must name the recorded save each branch started from.");
         var renamedOrigin = SaveTimelineLayout.Lanes(saves.Select(save => save.Id == flood.Id
             ? save with { Name = "After the flood" } : save).ToArray(), null).Single(lane => lane.Key == "b");
@@ -207,7 +207,7 @@ public partial class Main
             for (var frame = 0; frame < 4; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!manualSaveTimeline.Visible || !manualSaveViewRow.Visible || manualSaveList.Visible ||
                 rows.PointPosition("auto") is null || manualSaveTimeline.NowLane?.Key != "c" ||
-                !Details().Contains("Your new save continues From First camp.", StringComparison.Ordinal) ||
+                !Details().Contains("Your new save continues From First farm.", StringComparison.Ordinal) ||
                 Chosen() is not null || !manualSaveOverwriteButton.Disabled || !manualSaveDeleteButton.Disabled ||
                 manualSaveCreateButton.Disabled)
                 throw new InvalidOperationException("Save World must draw autosave-only history and offer a new named save.");

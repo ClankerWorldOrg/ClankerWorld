@@ -167,9 +167,9 @@ public sealed class FirstTownLayoutPlannerTests
         world.AcceptFirstTownLayout(site);
         var blacksmith = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
         var reassigned = world.ReassignBuilding(blacksmith.InstanceId, blacksmith.TownId, blacksmith.HouseholdId,
-            targetTownId: null, targetHouseholdId: "household:camp-alpha");
+            targetTownId: null, targetHouseholdId: "household:first");
         Assert.True(reassigned.Applied, reassigned.Failure);
-        Assert.Equal("household:camp-alpha", world.WorldSimulation.Buildings.Single(item => item.InstanceId == blacksmith.InstanceId).HouseholdId);
+        Assert.Equal("household:first", world.WorldSimulation.Buildings.Single(item => item.InstanceId == blacksmith.InstanceId).HouseholdId);
         var stock = InventoryCheckpointCodec.Encode(world.Society.Inventory);
 
         world.AcceptFirstTownLayout(site);
@@ -231,10 +231,10 @@ public sealed class FirstTownLayoutPlannerTests
     private static void AssertStarterStock(WorldRuntime world)
     {
         var stock = world.Society.Inventory;
-        Assert.Equal("first-town-house-a", stock.GetLot("food:camp-alpha").StorageBuildingId);
-        Assert.Equal("first-town-house-b", stock.GetLot("food:camp-beta").StorageBuildingId);
-        Assert.True(stock.GetLot("food:camp-alpha").Quantity > 0);
-        Assert.True(stock.GetLot("food:camp-beta").Quantity > 0);
+        Assert.Equal("first-town-house-a", stock.GetLot("food:first").StorageBuildingId);
+        Assert.Equal("first-town-house-b", stock.GetLot("food:second").StorageBuildingId);
+        Assert.True(stock.GetLot("food:first").Quantity > 0);
+        Assert.True(stock.GetLot("food:second").Quantity > 0);
         Assert.Equal("first-town-warehouse", stock.GetLot("first-town-wooden-axe").StorageBuildingId);
         Assert.Equal("first-town-warehouse", stock.GetLot("first-town-wooden-pickaxe").StorageBuildingId);
         Assert.Equal("town:first", stock.GetLot("first-town-wooden-axe").OwnerId);

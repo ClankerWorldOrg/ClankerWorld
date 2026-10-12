@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.World;
 /// One new-street question: join any of <see cref="Starts"/> (a building's
 /// entrance tiles) to the <see cref="Network"/>. <see cref="Map"/> must already
 /// carry the built bridge decks. Blocked tiles are building footprints,
-/// resources and camp objects; a street never passes through them unless they
+/// resources and map objects; a street never passes through them unless they
 /// are already part of the network. <see cref="Roads"/> are the existing Road
 /// tiles a new street should meet rather than run beside, and a non-null
 /// <see cref="Border"/> keeps the street inside the Town border.

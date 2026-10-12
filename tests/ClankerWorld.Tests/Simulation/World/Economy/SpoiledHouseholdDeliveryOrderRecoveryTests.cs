@@ -53,12 +53,12 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         }
 
         Assert.True(admittedRecovery, "The active food order must admit actual spoiled-delivery recovery for the urgent full carrier.");
-        Assert.True(walked, "Recovery must carry the pot along legal foot steps to the household camp.");
+        Assert.True(walked, "Recovery must carry the pot along legal foot steps to the household's storage pile.");
         AssertUrgentRecoveredPot(world, state, actor, startingSite);
         Assert.Equal(4, PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, actor, null));
         AssertRecoveryStockConserved(world, state, mealConsumed: false);
         Assert.Single(world.ExportState().Events, item => item.Kind == "household_delivery_recovered" &&
-            item.Detail == $"{actor}:{Pot}:4:camp");
+            item.Detail == $"{actor}:{Pot}:4:pile");
 
         for (var tick = 0; tick < 12 && RecoveryFoodOrder(world.ExportState(), receipt.InstructionId).Status != "finished"; tick++)
         {
@@ -118,7 +118,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
                 Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, null), 4, 8);
             }
 
-            Assert.True(walked, "Urgent local recovery must walk to camp while the single personal response remains held.");
+            Assert.True(walked, "Urgent local recovery must walk to the storage pile while the single personal response remains held.");
             AssertUrgentRecoveredPot(world, state, actor, startingSite);
             Assert.Equal(4, PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, actor, null));
             AssertRecoveryStockConserved(world, state, mealConsumed: false);
@@ -130,7 +130,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             Assert.DoesNotContain(current.Society.Cognition.Runtimes, item => item.AgentId == actor &&
                 item.CurrentIntention is { CandidateId: "recover_household_delivery", Provider: DecisionProviderKind.LargeLanguageModel });
             Assert.Single(current.Events, item => item.Kind == "household_delivery_recovered" &&
-                item.Detail == $"{actor}:{Pot}:4:camp");
+                item.Detail == $"{actor}:{Pot}:4:pile");
             var bytes = WorldRuntimeCodec.Encode(current);
             using var reloaded = RestoreWithBuiltIn(WorldRuntimeCodec.Decode(bytes), actor);
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));

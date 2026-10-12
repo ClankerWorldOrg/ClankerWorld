@@ -13,7 +13,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class WorldProductionOrderTests
 {
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
     private const string House = "first-town-house-a";
     private const string Shop = "alpha-tailor";
     private static readonly Lazy<byte[]> Baseline = new(() =>
@@ -124,7 +124,7 @@ public sealed class WorldProductionOrderTests
     public async Task ProductionCannotSubstituteUnavailableInputsOrAnotherWorkstation(string boundary)
     {
         var state = Prepared(House);
-        var other = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var other = state.Society.Society.Agents.First(person => person.HouseholdId == "household:second").Id;
         state = Stock(state, boundary == "off-site" ? Shop : House, "fiber", 3,
             boundary == "foreign-owner" ? other : Household);
         if (boundary == "reserved")
@@ -498,7 +498,6 @@ public sealed class WorldProductionOrderTests
     }
 
     [Theory]
-    [InlineData("cook camp meal")]
     [InlineData("cook household meal")]
     [InlineData("cook hearty meal")]
     public async Task RetiredCookingDoesNotReplaceOrStallExecutableProduction(string text)

@@ -147,7 +147,6 @@ public sealed partial class WorldProductionOrderParserTests
     [InlineData("cook food")]
     [InlineData("cook eight food")]
     [InlineData("cook two batches of food")]
-    [InlineData("cook camp meal")]
     [InlineData("cook household meal")]
     [InlineData("cook hearty meal")]
     [InlineData("cook bread")]

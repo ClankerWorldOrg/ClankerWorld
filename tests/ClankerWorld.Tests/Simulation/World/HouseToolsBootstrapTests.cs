@@ -79,8 +79,8 @@ public sealed class HouseToolsBootstrapTests
         }
         Assert.True(world.WorldTick > paidHouseTick);
         Assert.Equal(2, world.WorldSimulation.ProductionJobs.Count);
-        Assert.Equal(48, world.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
-        Assert.Equal(4, world.Society.Inventory.GetLot("tools:camp-alpha").Quantity);
+        Assert.Equal(48, world.Society.Inventory.GetLot("wood:first").Quantity);
+        Assert.Equal(4, world.Society.Inventory.GetLot("tools:first").Quantity);
         Assert.Empty(world.Towns);
         Assert.Single(world.WorldSimulation.Buildings);
         Assert.Contains(chooser.Choices, choice => choice == "supply_workstation:wood");
@@ -122,7 +122,7 @@ public sealed class HouseToolsBootstrapTests
         }
         Assert.Contains(world.ExportState().Events, item => item.Kind == "material_gathered" && item.Detail == Actor + ":wood:4");
         Assert.Contains(world.ExportState().Events, item => item.Kind == "material_gathered" && item.Detail == Actor + ":stone:4");
-        Assert.Equal(48, world.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
+        Assert.Equal(48, world.Society.Inventory.GetLot("wood:first").Quantity);
         Assert.Empty(world.Towns);
         Assert.DoesNotContain(world.WorldSimulation.Buildings, building =>
             world.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("blacksmith"));
@@ -162,7 +162,7 @@ public sealed class HouseToolsBootstrapTests
             Assert.Equal(InventoryReservationState.Completed, payment.State);
         });
         Assert.Equal(8, world.WorldSystems.Ecology.GetResource("settlement-wood").Quantity);
-        Assert.Equal(48, world.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
+        Assert.Equal(48, world.Society.Inventory.GetLot("wood:first").Quantity);
         Assert.Contains(chooser.Choices, choice => choice == "household_found");
         Assert.Contains(chooser.Choices, choice => choice == "gather_building_material:wood");
         return world;

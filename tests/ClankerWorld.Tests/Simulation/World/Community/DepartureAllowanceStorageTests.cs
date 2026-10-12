@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class DepartureAllowanceStorageTests
 {
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
     private const string Food = "000-departure-food";
     private const string Store = "departure-store";
     private static readonly Lazy<byte[]> Prepared = new(() =>
@@ -130,7 +130,7 @@ public sealed class DepartureAllowanceStorageTests
         if (corruption == "unrecorded")
             state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Departures = null } : person).ToArray() };
         else if (corruption == "wrong-household")
-            state = state with { WorldSimulation = state.WorldSimulation! with { Buildings = state.WorldSimulation.Buildings.Select(building => building.InstanceId == Store ? building with { HouseholdId = "household:camp-beta" } : building).ToArray() } };
+            state = state with { WorldSimulation = state.WorldSimulation! with { Buildings = state.WorldSimulation.Buildings.Select(building => building.InstanceId == Store ? building with { HouseholdId = "household:second" } : building).ToArray() } };
         else
             state = WithInventory(state, inventory with
             {
@@ -245,7 +245,7 @@ public sealed class DepartureAllowanceStorageTests
         var members = state.Society.Society.GetHousehold(Household).MemberIds;
         var actor = members[0];
         var beneficiary = members[1];
-        var otherHeir = state.Society.Society.GetHousehold("household:camp-beta").MemberIds[0];
+        var otherHeir = state.Society.Society.GetHousehold("household:second").MemberIds[0];
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, Food, "food", Household, 2,
             storageBuildingId: Store);
         using var leaving = WorldRuntime.Restore(WithInventory(state, inventory), _ => new Choices());

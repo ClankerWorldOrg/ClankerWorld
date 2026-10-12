@@ -73,10 +73,10 @@ foreach (var size in cases)
             var stock = state.Society.Society.Inventory;
             foreach (var cost in workshop.BuildCosts)
                 stock = InventoryAuthority.AddLot(stock, $"probe-workshop-{ordinal}-{cost.ResourceId}", cost.ResourceId,
-                    "household:camp-alpha", cost.Amount);
+                    "household:first", cost.Amount);
             world.Dispose();
             world = WorldRuntime.Restore(WithInventory(state, stock), _ => builder);
-            PlaceAtFirstLegal(world, "probe-workshop-" + ordinal, workshop, "household:camp-alpha", growRoads: true);
+            PlaceAtFirstLegal(world, "probe-workshop-" + ordinal, workshop, "household:first", growRoads: true);
         }
         state = world.ExportState();
         var food = state.Society.Society.Inventory;

@@ -57,8 +57,8 @@ public readonly record struct LightPlan(LitDesign Design, Rect2 Roof, Rect2? Yar
 /// <summary>
 /// The shapes of light at night, shared by the map and the art preview so
 /// both draw exactly the same thing. Light comes out of windows on a
-/// building's front and sides, out of its open door, from a forge or a
-/// campfire, or from a lantern; it never lights a roof. Each pool has a
+/// building's front and sides, out of its open door, from a forge or
+/// from a lantern; it never lights a roof. Each pool has a
 /// ragged edge that drifts slowly, and fire flickers faster, so the light
 /// looks alive without moving more than an art pixel or two. Everything is
 /// stepped on the art's pixel grid.

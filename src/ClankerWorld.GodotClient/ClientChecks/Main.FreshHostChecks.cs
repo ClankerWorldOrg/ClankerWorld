@@ -131,7 +131,7 @@ public partial class Main
         }
     }
 
-    /// <summary>Entering an untouched host starts the normal creation flow without exposing or resuming its old camp.</summary>
+    /// <summary>Entering an untouched host starts the normal creation flow without exposing or resuming its bootstrap world.</summary>
     private async Task VerifyFreshHostEntryAsync()
     {
         var previousRegistration = registration;
@@ -149,7 +149,7 @@ public partial class Main
             ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         var bootstrap = new OwnerWorldSnapshot("bootstrap", 0, "entry-map", [new(0, 0, "meadow")],
-            [new("campfire", "cooking", new(0, 0))], [], null, 0)
+            [new("cooking", "cooking", new(0, 0))], [], null, 0)
         {
             FounderSetup = new(4, 0, false) { RequiresWorldCreation = true },
             Authoring = new(true, 0, 0, 0, "entry-map", "entry-map", "clear", "spring", []),
@@ -197,7 +197,7 @@ public partial class Main
                 worldMenuHeading.Text != "New World" || !worldMenuColumns.Visible || !worldPreview.Visible ||
                 worldCreateButton.Disabled || mainMenuContinueButton.Disabled || mainMenuNewButton.Disabled ||
                 mainMenuLoadButton.Disabled || Requests(OwnerPairingEndpoints.OwnerResume) != 0)
-                throw new InvalidOperationException("Continue on an untouched host must keep the camp behind the menus and offer New World without resuming.");
+                throw new InvalidOperationException("Continue on an untouched host must keep the bootstrap world behind the menus and offer New World without resuming.");
 
             // Creation still submits the candidate the player actually previewed, then enters founder setup.
             host.CreatedWorld = new("created-entry", "New World", generated.WorldId, worldSeedInput.Text,

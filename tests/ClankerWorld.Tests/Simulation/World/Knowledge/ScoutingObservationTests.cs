@@ -133,7 +133,7 @@ public sealed partial class OrchardObservationTests
         }
     }
 
-    /// <summary>The tiles ObserveEmptyTile treats as blocked: buildings, Roads, resources and camp objects.</summary>
+    /// <summary>The tiles ObserveEmptyTile treats as blocked: buildings, Roads, resources and map objects.</summary>
     private static HashSet<GridPoint> BlockedTiles(WorldRuntimeState state) => state.WorldSimulation!.Buildings
         .SelectMany(building => WorldContentSimulationRules.Footprint(
             state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))

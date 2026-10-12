@@ -13,11 +13,11 @@ public sealed class FarmContentTests
     {
         using var seed = await PreparedWorldAsync("farmhouse-stock");
         var original = seed.ExportState();
-        var alpha = original.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
-        var beta = original.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-beta").Id;
+        var alpha = original.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
+        var beta = original.Society.Society.Agents.First(item => item.HouseholdId == "household:second").Id;
         var inventory = InventoryAuthority.AddLot(original.Society.Society.Inventory,
-            "farmhouse-stone", "stone", "household:camp-alpha", 2);
-        inventory = InventoryAuthority.AddLot(inventory, "field-grain", "grain", "household:camp-alpha", 8);
+            "farmhouse-stone", "stone", "household:first", 2);
+        inventory = InventoryAuthority.AddLot(inventory, "field-grain", "grain", "household:first", 8);
         var state = original with
         {
             Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
@@ -30,13 +30,13 @@ public sealed class FarmContentTests
                      .Where(point => TownBorderRules.IsWithinOrAdjacent(town, point, 1, 1)))
         {
             var attempt = placing.PlaceBuilding("farmhouse-alpha", farmhouse.CanonicalId, point,
-                "household:camp-alpha");
+                "household:first");
             if (!attempt.Applied) continue;
             placed = attempt;
             break;
         }
         Assert.NotNull(placed);
-        Assert.Equal("household:camp-alpha", placing.WorldSimulation.Buildings
+        Assert.Equal("household:first", placing.WorldSimulation.Buildings
             .Single(item => item.InstanceId == placed.InstanceId).HouseholdId);
         var mill = placing.WorldContent.Recipes.Single(item => item.LocalId == "mill-grain");
         var unstocked = placing.StartProduction(mill.CanonicalId, placed.InstanceId, alpha);
@@ -81,7 +81,7 @@ public sealed class FarmContentTests
             Assert.True((await delivering.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(delivering.Agents.Single(person => person.AgentId == alpha).Skills!,
             skill => skill.Kind == SkillKind.Farming && skill.TeacherId is null);
-        var flour = delivering.Society.Inventory.Lots.Single(lot => lot.OwnerId == "household:camp-alpha" &&
+        var flour = delivering.Society.Inventory.Lots.Single(lot => lot.OwnerId == "household:first" &&
             lot.ItemKind == "flour" && lot.StorageBuildingId == placed.InstanceId);
         Assert.Equal(1, flour.Quantity);
         using var reloaded = WorldRuntime.Restore(
@@ -94,7 +94,7 @@ public sealed class FarmContentTests
         var housePlaced = state.Map.Tiles.Select(tile => tile.Position)
             .Where(point => TownBorderRules.IsWithinOrAdjacent(Assert.Single(reloaded.Towns), point, 1, 1))
             .Select(point => reloaded.PlaceBuilding("flour-home-alpha", house.CanonicalId, point,
-                "household:camp-alpha"))
+                "household:first"))
             .First(result => result.Applied);
         using var collecting = WorldRuntime.Restore(reloaded.ExportState(),
             id => new CandidateProvider(id == alpha ? "haul_farm_flour" : "safe_idle"));
@@ -125,7 +125,7 @@ public sealed class FarmContentTests
         var settledState = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(delivered.ExportState()));
         var settledInventory = settledState.Society.Society.Inventory with
         {
-            Lots = settledState.Society.Society.Inventory.Lots.Where(lot => !(lot.OwnerId == "household:camp-alpha" &&
+            Lots = settledState.Society.Society.Inventory.Lots.Where(lot => !(lot.OwnerId == "household:first" &&
                 lot.StorageBuildingId is null && lot.DeliveryBuildingId is null && lot.ContainerLotId is null &&
                 FarmFieldRules.IsFarmStock(lot.ItemKind))).ToArray(),
         };
@@ -223,7 +223,7 @@ public sealed class FarmContentTests
     {
         using var prepared = await PreparedWorldAsync(seed);
         var initial = prepared.ExportState();
-        const string householdId = "household:camp-alpha";
+        const string householdId = "household:first";
         var actor = initial.Society.Society.Agents.First(item => item.HouseholdId == householdId).Id;
         const string potId = "farmhouse-test-pot";
         const string grainId = "farmhouse-test-grain";

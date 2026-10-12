@@ -12,7 +12,7 @@ public sealed class TownBuildingManagementTests
     {
         var state = StartedState("town-building-history");
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "historic-tailor-fiber",
-            "fiber", "household:camp-alpha", 2, storageBuildingId: "first-town-house-a");
+            "fiber", "household:first", 2, storageBuildingId: "first-town-house-a");
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
@@ -27,7 +27,7 @@ public sealed class TownBuildingManagementTests
                     item.CanonicalId == placed.DefinitionId), placed)).ToHashSet();
             var site = setupTown.BorderTiles.First(point => setupState.Map.IsBuildable(point) &&
                 !occupied.Contains(point) && !setupState.Map.Resources.Any(item => item.Position == point));
-            var placed = setup.PlaceBuilding("historic-tailor", buildingDefinition.CanonicalId, site, "household:camp-alpha");
+            var placed = setup.PlaceBuilding("historic-tailor", buildingDefinition.CanonicalId, site, "household:first");
             Assert.True(placed.Applied, placed.Failure);
             state = setup.ExportState();
         }
@@ -48,20 +48,20 @@ public sealed class TownBuildingManagementTests
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var originalBorder = town.BorderTiles.ToArray();
         var reassigned = world.ReassignBuilding(building.InstanceId, building.TownId, building.HouseholdId,
-            targetTownId: null, targetHouseholdId: "household:camp-beta");
+            targetTownId: null, targetHouseholdId: "household:second");
         Assert.True(reassigned.Applied, reassigned.Failure);
         var movedOwner = Assert.Single(world.WorldSimulation.Buildings, item => item.InstanceId == building.InstanceId);
         Assert.Equal(building.TownId, movedOwner.TownId);
-        Assert.Equal("household:camp-beta", movedOwner.HouseholdId);
+        Assert.Equal("household:second", movedOwner.HouseholdId);
         Assert.Equal(originalBorder, Assert.Single(world.Towns, item => item.Id == building.TownId).BorderTiles);
         Assert.Contains(building.InstanceId, Assert.Single(world.Towns, item => item.Id == building.TownId).AssignedBuildingIds);
 
         var stale = world.ReassignBuilding(building.InstanceId, building.TownId, building.HouseholdId,
-            targetTownId: null, targetHouseholdId: "household:camp-alpha");
+            targetTownId: null, targetHouseholdId: "household:first");
         Assert.False(stale.Applied);
         Assert.Contains("owner changed", stale.Failure, StringComparison.OrdinalIgnoreCase);
 
-        var removed = world.RemoveBuilding(building.InstanceId, building.TownId, "household:camp-beta");
+        var removed = world.RemoveBuilding(building.InstanceId, building.TownId, "household:second");
         Assert.True(removed.Applied, removed.Failure);
         var saved = world.ExportState();
         Assert.DoesNotContain(saved.WorldSimulation!.Buildings, item => item.InstanceId == building.InstanceId);
@@ -86,8 +86,8 @@ public sealed class TownBuildingManagementTests
             HouseholdBuildingKinds.KindOf(definitions[item.DefinitionId]) == "house").ToArray();
         Assert.Equal(2, houses.Length);
         Assert.Equal(2, houses.Select(item => item.HouseholdId).Distinct(StringComparer.Ordinal).Count());
-        var source = houses.Single(item => item.HouseholdId == "household:camp-beta");
-        var targetHouseholdId = "household:camp-alpha";
+        var source = houses.Single(item => item.HouseholdId == "household:second");
+        var targetHouseholdId = "household:first";
         var sourceLotIds = state.Society.Society.Inventory.Lots
             .Where(lot => lot.StorageBuildingId == source.InstanceId || lot.DeliveryBuildingId == source.InstanceId)
             .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
@@ -131,7 +131,7 @@ public sealed class TownBuildingManagementTests
         Assert.False(removal.Applied);
         Assert.Contains("field work", removal.Failure, StringComparison.OrdinalIgnoreCase);
         var reassignment = world.ReassignBuilding(farmhouse.InstanceId, farmhouse.TownId, farmhouse.HouseholdId,
-            targetTownId: null, targetHouseholdId: "household:camp-beta");
+            targetTownId: null, targetHouseholdId: "household:second");
         Assert.False(reassignment.Applied);
         Assert.Contains("field work", reassignment.Failure, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -144,7 +144,7 @@ public sealed class TownBuildingManagementTests
         var (state, tailorId) = TailorTestWorld.Create("town-building-repair-work", 0);
         var tick = state.Society.Society.WorldTick;
         var tailor = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == tailorId);
-        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "repair-site-coat", "padded_coat", actor, 1);
         inventory = InventoryAuthority.WearSingleUnit(inventory, "repair-site-coat", 8_000);
         inventory = InventoryAuthority.AddLot(inventory, "repair-site-cloth", "cloth", actor, 1);
@@ -167,7 +167,7 @@ public sealed class TownBuildingManagementTests
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var reassignment = world.ReassignBuilding(tailor.InstanceId, tailor.TownId, tailor.HouseholdId,
-            targetTownId: null, targetHouseholdId: "household:camp-beta");
+            targetTownId: null, targetHouseholdId: "household:second");
         Assert.False(reassignment.Applied);
         Assert.Contains("active equipment repair", reassignment.Failure, StringComparison.OrdinalIgnoreCase);
         var removal = world.RemoveBuilding(tailor.InstanceId, tailor.TownId, tailor.HouseholdId);
@@ -227,7 +227,7 @@ public sealed class TownBuildingManagementTests
         var workshop = world.WorldContent.Buildings.Single(item => item.LocalId == "workshop");
         var costs = workshop.BuildCosts;
         var costKinds = costs.Select(item => item.ResourceId).ToHashSet(StringComparer.Ordinal);
-        var removedCostLots = stockInventory.Lots.Where(lot => lot.OwnerId == "household:camp-alpha" &&
+        var removedCostLots = stockInventory.Lots.Where(lot => lot.OwnerId == "household:first" &&
             costKinds.Contains(lot.ItemKind)).Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         stockInventory = stockInventory with
         {
@@ -246,7 +246,7 @@ public sealed class TownBuildingManagementTests
         };
 
         var workerId = reassignedState.Society.Society.Agents.First(item =>
-            item.HouseholdId == "household:camp-alpha").Id;
+            item.HouseholdId == "household:first").Id;
         var occupied = reassignedState.WorldSimulation!.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(reassignedState.WorldContent!.Buildings.Single(definition =>
                 definition.CanonicalId == building.DefinitionId), building)).ToHashSet();

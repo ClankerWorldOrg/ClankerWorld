@@ -14,7 +14,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             Assert.True((await recovering.AdvanceOneTickAsync()).Advanced);
         AssertReturnedSpoiledPot(recovering, startingSite);
         Assert.Single(recovering.ExportState().Events, item => item.Kind == "household_delivery_recovered" &&
-            item.Detail == $"{actor}:{Pot}:4:camp");
+            item.Detail == $"{actor}:{Pot}:4:pile");
 
         const string useful = "zz-recovery-useful-stone";
         var returned = recovering.ExportState();
@@ -49,7 +49,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         Assert.Equal(pickups, world.ExportState().Events.Count(item => item.Kind == "household_stock_picked_up" &&
             item.Detail.StartsWith($"{actor}:{Pot}:", StringComparison.Ordinal)));
         Assert.Single(world.ExportState().Events, item => item.Kind == "household_delivery_recovered" &&
-            item.Detail == $"{actor}:{Pot}:4:camp");
+            item.Detail == $"{actor}:{Pot}:4:pile");
         Assert.Contains(world.ExportState().Events, item => item.Kind == "household_stock_delivered" &&
             item.Detail == $"{actor}:{useful}:2:{House}");
         Assert.Equal(quantities, world.Society.Inventory.Lots.Select(lot => (lot.Id, lot.Quantity)).ToArray());
@@ -114,7 +114,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             if (spoiledSibling)
             {
                 // One real grain serving can leave a usable pot. Its spoiled
-                // sibling and the pot must stay physically at camp, instead
+                // sibling and the pot must stay physically at the storage pile, instead
                 // of travelling in a delivery that can only be recovered.
                 Assert.Equal((Household, new InventoryGroundPosition(startingSite.X, startingSite.Y)),
                     (world.Society.Inventory.GetLot(potId).OwnerId, world.Society.Inventory.GetLot(potId).GroundPosition));

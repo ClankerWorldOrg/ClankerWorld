@@ -109,7 +109,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.Conflict, previewFailure.StatusCode);
             Assert.Equal(Client.GameUiText.FriendlyFailure(previewFailure), Client.GameUiText.FriendlyFailure(createFailure));
             Assert.Contains("Choose another seed", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
-            Assert.DoesNotContain("base-camp", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
+            Assert.DoesNotContain("starting clearing", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
             Assert.Equal(oldCatalog, JsonSerializer.SerializeToUtf8Bytes(catalog.Capture(), WebJsonOptions));
             Assert.Equal(oldBytes, WorldRuntimeCodec.Encode(oldWorld.ExportState()));
             Assert.Equal(authorityIdentity, host.Services.GetRequiredService<OwnerAuthorityStore>().Identity);

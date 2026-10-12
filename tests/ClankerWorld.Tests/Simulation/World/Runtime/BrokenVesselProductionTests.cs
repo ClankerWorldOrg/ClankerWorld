@@ -6,7 +6,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class BrokenVesselProductionTests
 {
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
     private const string House = "first-town-house-a";
     private static readonly Lazy<Task<byte[]>> Generated = new(async () =>
     {

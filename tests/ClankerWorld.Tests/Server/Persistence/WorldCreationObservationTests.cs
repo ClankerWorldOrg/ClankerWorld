@@ -11,7 +11,7 @@ public sealed class WorldCreationObservationTests
     {
         using var checkpoint = new TemporaryCheckpoint();
         var file = ProductionFile(checkpoint.Path);
-        using var world = file.LoadOrCreate("camp-alpha");
+        using var world = file.LoadOrCreate("world-a");
         var originalBytes = File.ReadAllBytes(checkpoint.Path);
         var state = world.ExportState();
         Assert.Null(state.Geography);
@@ -39,12 +39,12 @@ public sealed class WorldCreationObservationTests
     [Fact]
     public void CreatedGeographyRemainsARealWorldWhenCachedTerrainIsOmitted()
     {
-        // Follow Preview/Create's real candidate selection, not the retired
-        // base-camp generator or a hand-authored geography flag in a save.
-        var options = new GeographyOptions("camp-alpha", WorldSizePreset.Small,
+        // Follow Preview/Create's real candidate selection, not the small
+        // starting-site generator or a hand-authored geography flag in a save.
+        var options = new GeographyOptions("world-a", WorldSizePreset.Small,
             HydrologyVersion: GeographyGenerator.CurrentHydrologyVersion);
         var selected = GeographyCandidateSelector.Select(options);
-        using var world = WorldRuntime.CreateFromGeneratedGeography("camp-alpha",
+        using var world = WorldRuntime.CreateFromGeneratedGeography("world-a",
             selected.Options, selected.Map);
         world.InitializeFirstTownContent();
         var state = world.ExportState();

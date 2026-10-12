@@ -18,7 +18,7 @@ public sealed partial class PlayerRenameTests
         Assert.Equal(names.Length, history.Length);
         Assert.Equal(names.Length, history.Select(item => item.Id).Distinct().Count());
         var ordinary = Enumerable.Range(0, 300).Select(index => new SocietySocialMemory(
-            $"a-new-experience-{index:D3}", First, Second, "Gather food and build shelter near camp.", "private", 0)).ToArray();
+            $"a-new-experience-{index:D3}", First, Second, "Gather food and build shelter near home.", "private", 0)).ToArray();
         // A saved zero assessment cannot make the permanent rename fade; recent ordinary sources can be highly ranked.
         var assessments = ordinary.Take(255).Select(item => new SocietyAgentMemoryImportance(
             item.Id, SocietyMemorySourceKind.Experience, 0, 10_000, 10_000, 0)).Append(new(

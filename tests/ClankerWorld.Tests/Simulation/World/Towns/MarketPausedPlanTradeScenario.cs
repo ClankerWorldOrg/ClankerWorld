@@ -12,8 +12,8 @@ internal static class MarketPausedPlanTradeScenario
 {
     internal static async Task AssertPausedBandageBuyerTradesWithoutBorrowingAlphaStockAsync(WorldRuntimeState paidBoundary)
     {
-        const string alpha = "household:camp-alpha";
-        const string beta = "household:camp-beta";
+        const string alpha = "household:first";
+        const string beta = "household:second";
         var society = paidBoundary.Society.Society;
         var seller = society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId == alpha && person.AgeBand == SocietyAgeBand.Adult).Id;

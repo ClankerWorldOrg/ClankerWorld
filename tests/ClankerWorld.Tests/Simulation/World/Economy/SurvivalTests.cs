@@ -53,14 +53,14 @@ public sealed class SurvivalTests
             {
                 Society = state.Society.Society with
                 {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "death-seeds", "seed", "household:camp-alpha", 2),
+                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "death-seeds", "seed", "household:first", 2),
                 },
             },
         };
         using var preparing = WorldRuntime.Restore(state, _ => new IdleProvider());
         var recipe = preparing.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         var fire = preparing.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        var placement = preparing.PlaceBuilding("death-test-fire", fire.CanonicalId, site, "household:camp-alpha");
+        var placement = preparing.PlaceBuilding("death-test-fire", fire.CanonicalId, site, "household:first");
         Assert.True(placement.Applied, placement.Failure);
         var workstation = placement.InstanceId;
         using var cooking = StockPotatoMeal(preparing, placement.InstanceId);
@@ -178,7 +178,7 @@ public sealed class SurvivalTests
         };
         using var preparing = WorldRuntime.Restore(state, _ => new IdleProvider());
         var fire = preparing.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
-        var placed = preparing.PlaceBuilding("spoilage-test-fire", fire.CanonicalId, position, "household:camp-alpha");
+        var placed = preparing.PlaceBuilding("spoilage-test-fire", fire.CanonicalId, position, "household:first");
         Assert.True(placed.Applied, placed.Failure);
         var recipe = preparing.WorldContent.Recipes.Single(recipe => recipe.LocalId == "house-meal");
         using var cooking = StockPotatoMeal(preparing, placed.InstanceId);
@@ -319,7 +319,7 @@ public sealed class SurvivalTests
                 }
                 : (person.Position == heater.Position ? person with { Position = recoveringPosition } : person) with
                 {
-                    // Nor may a lesson they are teaching call them to the camp.
+                    // Nor may a lesson they are teaching call them to the shared storage spot.
                     Lesson = person.Lesson?.TeacherId == recoveringId ? null : person.Lesson,
                 }).ToArray(),
             Society = state.Society with
@@ -637,9 +637,9 @@ public sealed class SurvivalTests
     {
         var state = preparing.ExportState();
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cooking-test-potatoes", "potatoes",
-            "household:camp-alpha", 2, storageBuildingId: houseId);
+            "household:first", 2, storageBuildingId: houseId);
         inventory = InventoryAuthority.AddLot(inventory, "cooking-test-wood", "wood",
-            "household:camp-alpha", 1, storageBuildingId: houseId);
+            "household:first", 1, storageBuildingId: houseId);
         return WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },

@@ -9,8 +9,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldDeliveryOrderTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
     private const string House = "first-town-house-a";
     private const string Farmhouse = "first-town-farmhouse";
     private const string Smith = "first-town-blacksmith";

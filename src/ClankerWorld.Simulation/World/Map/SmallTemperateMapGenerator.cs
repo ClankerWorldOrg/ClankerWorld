@@ -74,7 +74,7 @@ public static class SmallTemperateMapGenerator
 
         var mapObjects = new[]
         {
-            new MapObject("campfire", "cooking", new GridPoint(2, 0)),
+            new MapObject("cooking", "cooking", new GridPoint(2, 0)),
             new MapObject("founder-scout", "founder", new GridPoint(0, 0)),
             new MapObject("shelter", "shelter", new GridPoint(0, 1)),
             new MapObject("storage", "storage", new GridPoint(1, 1)),
@@ -104,7 +104,7 @@ public static class StartingSiteMapGenerator
             .Concat([
                 new MapObject("second-shelter", "shelter", new GridPoint(3, 0)),
                 new MapObject("workshop", "workshop", new GridPoint(0, 2)),
-                new MapObject("camp-path", "path", new GridPoint(2, 1)),
+                new MapObject("path", "path", new GridPoint(2, 1)),
             ]).ToArray();
         var candidate = fixture with
         {

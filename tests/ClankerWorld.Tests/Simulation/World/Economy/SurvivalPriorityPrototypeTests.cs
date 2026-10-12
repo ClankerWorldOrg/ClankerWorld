@@ -62,7 +62,7 @@ public sealed class SurvivalPriorityPrototypeTests
             !initial.Map.Resources.Any(item => item.Position == point) && !initial.Map.MapObjects.Any(item => item.Position == point) &&
             !initial.Agents.Any(item => item.Position == point));
         var house = setup.WorldContent.Buildings.Single(item => item.LocalId == "house-1x1");
-        var placement = setup.PlaceBuilding("warm-home", house.CanonicalId, site, "household:camp-alpha");
+        var placement = setup.PlaceBuilding("warm-home", house.CanonicalId, site, "household:first");
         Assert.True(placement.Applied, placement.Failure);
         initial = setup.ExportState();
         if (sheltered) initial = initial with

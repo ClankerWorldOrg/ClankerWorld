@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
     {
         if (RecoverableHouseholdDelivery(actor, state) is not null)
             candidates.Add(new("recover_household_delivery",
-                "Return unusable delivery supplies to your household's pile at camp.", 18));
+                "Return unusable delivery supplies to your household's storage pile.", 18));
     }
 
     private void RecoverHouseholdDelivery(string actor, AgentState state)
@@ -65,7 +65,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"house-delivery-recovery:{WorldTick}:{actor}:{stock.Id}", actor, householdId, stock.Id, quantity,
             "household_delivery_recovered", destinationGroundPosition: new InventoryGroundPosition(storagePosition.X, storagePosition.Y)));
-        AppendEvent("household_delivery_recovered", $"{actor}:{stock.Id}:{physicalQuantity}:camp");
+        AppendEvent("household_delivery_recovered", $"{actor}:{stock.Id}:{physicalQuantity}:pile");
     }
 
     private static int HouseDeliveryPhysicalQuantity(InventoryCheckpoint inventory, InventoryLot carried) =>
@@ -372,7 +372,7 @@ public sealed partial class WorldRuntime
             claim.Quantity > 0 && claim.Quantity <= lot.Quantity ? claim : null;
     }
 
-    /// <summary>The household House when it has room, otherwise the household's pile at camp.</summary>
+    /// <summary>The household House when it has room, otherwise the household's storage pile.</summary>
     private (GridPoint Position, int Range, string? StorageBuildingId)? SpareCargoDestination(string actor,
         AgentState state, int quantity)
     {
@@ -431,7 +431,7 @@ public sealed partial class WorldRuntime
                         "spare_cargo_stored", destination.StorageBuildingId, destinationGroundPosition: destination.StorageBuildingId is null
                             ? new InventoryGroundPosition(destination.Position.X, destination.Position.Y) : null);
             });
-            AppendEvent("spare_cargo_stored", $"{actor}:{lot.ItemKind}:{quantity}:{destination.StorageBuildingId ?? "camp"}");
+            AppendEvent("spare_cargo_stored", $"{actor}:{lot.ItemKind}:{quantity}:{destination.StorageBuildingId ?? "pile"}");
         }
         return true;
     }

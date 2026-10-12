@@ -23,7 +23,7 @@ public sealed class TownStreets
     private readonly List<GridPoint> order = [];
     private readonly HashSet<GridPoint> roads = [];
 
-    /// <param name="blocked">Tiles a street may not use: trees, resources, camp objects and footprints.</param>
+    /// <param name="blocked">Tiles a street may not use: trees, resources, map objects and footprints.</param>
     public TownStreets(WorldMap map, IEnumerable<GridPoint> blocked, IEnumerable<GridPoint>? existing = null)
     {
         this.map = map ?? throw new ArgumentNullException(nameof(map));

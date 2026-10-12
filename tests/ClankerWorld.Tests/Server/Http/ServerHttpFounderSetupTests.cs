@@ -92,7 +92,7 @@ public sealed partial class ServerHttpTests
             }
 
             Assert.True(runtime.Society.IsPaused);
-            Assert.Equal(2, runtime.Society.Households.Single(item => item.Id == "household:camp-beta").MemberIds.Count);
+            Assert.Equal(2, runtime.Society.Households.Single(item => item.Id == "household:second").MemberIds.Count);
             var lastFounder = runtime.FounderSetup!.FounderIds[^1];
             var undo = new OwnerFounderUndoAction(lastFounder);
             const string undoPath = "/api/v1/owner/founders/undo";

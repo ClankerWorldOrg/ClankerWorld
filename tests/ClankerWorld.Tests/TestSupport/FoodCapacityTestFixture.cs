@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 internal static class FoodCapacityTestFixture
 {
-    internal const string Household = "household:camp-alpha";
+    internal const string Household = "household:first";
     internal const string House = "first-town-house-a";
 
     internal static async Task<(WorldRuntimeState State, string Actor, GridPoint HousePosition)> Generated(string seed)

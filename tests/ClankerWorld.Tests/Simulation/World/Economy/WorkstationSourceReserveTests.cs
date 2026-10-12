@@ -61,12 +61,12 @@ public sealed class WorkstationSourceReserveTests
     {
         var fixture = Prepared("wood", 2);
         var inventory = InventoryAuthority.AddLot(fixture.State.Society.Society.Inventory,
-            "zz-spare-camp-wood", "wood", fixture.Household, 1);
+            "zz-spare-wood", "wood", fixture.Household, 1);
         var choices = new Choices("supply_workstation:wood", "haul_household_stock");
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor, choices);
-        await AdvanceUntil(world, () => world.Society.Inventory.GetLot("zz-spare-camp-wood").StorageBuildingId ==
+        await AdvanceUntil(world, () => world.Society.Inventory.GetLot("zz-spare-wood").StorageBuildingId ==
             fixture.Restaurant.InstanceId, 96);
-        var supplied = world.Society.Inventory.GetLot("zz-spare-camp-wood");
+        var supplied = world.Society.Inventory.GetLot("zz-spare-wood");
         Assert.Equal((fixture.Household, 1), (supplied.OwnerId, supplied.Quantity));
         Assert.Equal(2, world.Society.Inventory.GetLot("reserve-source-wood").Quantity);
         Assert.Equal(fixture.House.InstanceId, world.Society.Inventory.GetLot("reserve-source-wood").StorageBuildingId);
@@ -414,7 +414,7 @@ public sealed class WorkstationSourceReserveTests
     {
         using var generated = NormalPathWorld.CreateGenerated("concrete-meal-porridge", _ => new Choices());
         var state = generated.ExportState();
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var house = generated.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var definition = generated.WorldContent.Buildings.Single(building => building.LocalId == "restaurant-1x2");

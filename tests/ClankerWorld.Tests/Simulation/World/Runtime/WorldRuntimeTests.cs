@@ -11,20 +11,20 @@ public sealed partial class WorldRuntimeTests
     public async Task WorldActivatesStagedContentOnTheNextTickAndCanQuarantineIt()
     {
         // Test unused-content rollback independently of the default gameplay policy.
-        using var runtime = new WorldRuntime("playtest-alpha",
+        using var runtime = new WorldRuntime("test-alpha",
             _ => new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         var packageDigest = "sha256:" + new string('d', 64);
         var version = ContentVersion.Parse("1.0.0");
         var building = new BuildingDefinition(
             packageDigest,
-            "camp-kitchen",
+            "test-kitchen",
             version,
-            "Camp kitchen",
+            "Test kitchen",
             1,
             1,
             2,
             [new ContentQuantity("wood", 2)],
-            ["camp"]);
+            ["kitchen"]);
         var recipe = new RecipeDefinition(
             packageDigest,
             "berry-stew",
@@ -36,7 +36,7 @@ public sealed partial class WorldRuntimeTests
             building.CanonicalId,
             ["food"]);
         var package = new ContentPackageManifest(
-            "camp-recipes",
+            "test-recipes",
             version,
             packageDigest,
             [],
@@ -47,7 +47,7 @@ public sealed partial class WorldRuntimeTests
                     building.Version,
                     building.DisplayName,
                     building.PayloadDigest,
-                    """{"schema":"building/v1","width":1,"height":1,"capacity":2,"buildCosts":[{"resourceId":"wood","amount":2}],"tags":["camp"]}"""),
+                    """{"schema":"building/v1","width":1,"height":1,"capacity":2,"buildCosts":[{"resourceId":"wood","amount":2}],"tags":["kitchen"]}"""),
                 new ContentDefinition(
                     RecipeDefinition.SchemaKind,
                     recipe.LocalId,
@@ -92,7 +92,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task WorldPlacesAContentBuildingConsumesCostsAndProducesRecipeOutputs()
     {
-        using var runtime = new WorldRuntime("playtest-alpha");
+        using var runtime = new WorldRuntime("test-alpha");
         var (package, building, recipe) = MaterialPackage(durationTicks: 2);
         Activate(runtime, package);
         _ = await runtime.AdvanceOneTickAsync();
@@ -103,18 +103,18 @@ public sealed partial class WorldRuntimeTests
         var worker = runtime.Agents.First(item => !occupiedMapPositions.Contains(item.Position));
         var rejected = runtime.PlaceBuilding("blocked-kitchen", building.CanonicalId, new GridPoint(0, 0));
         Assert.False(rejected.Applied);
-        Assert.Equal(48, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:camp-alpha").Quantity);
+        Assert.Equal(48, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:first").Quantity);
 
         var mountain = runtime.ExportState().Map.Tiles.Single(tile => tile.Terrain == TerrainKind.Mountain).Position;
         var mountainPlacement = runtime.PlaceBuilding("mountain-kitchen", building.CanonicalId, mountain);
         Assert.False(mountainPlacement.Applied);
         Assert.Contains("buildable ground", mountainPlacement.Failure, StringComparison.Ordinal);
-        Assert.Equal(48, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:camp-alpha").Quantity);
+        Assert.Equal(48, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:first").Quantity);
 
-        var placement = runtime.PlaceBuilding("camp-kitchen-one", building.CanonicalId, worker.Position);
+        var placement = runtime.PlaceBuilding("test-kitchen-one", building.CanonicalId, worker.Position);
         Assert.True(placement.Applied, placement.Failure);
         Assert.Single(runtime.WorldSimulation.Buildings);
-        Assert.Equal(46, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:camp-alpha").Quantity);
+        Assert.Equal(46, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:first").Quantity);
 
         var started = runtime.StartProduction(recipe.CanonicalId, placement.InstanceId, worker.AgentId);
         Assert.True(started.Applied, started.Failure);
@@ -153,7 +153,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task CropRecipeCannotBypassPhysicalFieldsAndSeeds()
     {
-        using var runtime = new WorldRuntime("playtest-alpha", _ => new BuildSelectingProvider());
+        using var runtime = new WorldRuntime("test-alpha", _ => new BuildSelectingProvider());
         var (package, _, recipe) = CropPackage();
         Activate(runtime, package);
         await runtime.AdvanceOneTickAsync();
@@ -169,7 +169,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task WorldRecoversFromTheLiveOccupiedTileStarvationDeadlock()
     {
-        using var genesis = new WorldRuntime("playtest-alpha");
+        using var genesis = new WorldRuntime("test-alpha");
         var state = genesis.ExportState();
         var stuckPositions = new Dictionary<string, GridPoint>(StringComparer.Ordinal)
         {
@@ -195,7 +195,7 @@ public sealed partial class WorldRuntimeTests
                     Inventory = state.Society.Society.Inventory with
                     {
                         Lots = state.Society.Society.Inventory.Lots
-                            .Where(lot => lot.Id != "food:camp-alpha")
+                            .Where(lot => lot.Id != "food:first")
                             .ToArray(),
                     },
                 },
@@ -240,15 +240,15 @@ public sealed partial class WorldRuntimeTests
         []);
 
     private static (ContentPackageManifest Package, BuildingDefinition Building, RecipeDefinition Recipe) MaterialPackage(
-        int durationTicks, string buildingTag = "camp")
+        int durationTicks, string buildingTag = "kitchen")
     {
         var packageDigest = "sha256:" + new string('e', 64);
         var version = ContentVersion.Parse("1.0.0");
         var building = new BuildingDefinition(
             packageDigest,
-            "camp-kitchen",
+            "test-kitchen",
             version,
-            "Camp kitchen",
+            "Test kitchen",
             1,
             1,
             2,
@@ -377,7 +377,7 @@ public sealed partial class WorldRuntimeTests
     public async Task UnchangedIdleDecisionsAreNotRepurchasedEveryThirtyTicksOrOnReload()
     {
         var provider = new CountingSelectingProvider(DecisionProviderKind.Jev, chooseIdle: true);
-        using var runtime = new WorldRuntime("playtest-alpha", _ => provider);
+        using var runtime = new WorldRuntime("test-alpha", _ => provider);
         _ = await runtime.AdvanceOneTickAsync();
         Assert.Equal(4, provider.CallCount);
         Assert.All(runtime.ExportState().Society.Cognition.Runtimes, state =>

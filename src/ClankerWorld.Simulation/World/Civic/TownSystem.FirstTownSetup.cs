@@ -75,7 +75,7 @@ internal sealed partial class TownSystem
         var foodLocations = new Dictionary<string, (string OwnerId, string BuildingId)>(StringComparer.Ordinal)
         {
             [WorldRuntime.CivicSharedRules.FoodLotId] = (WorldRuntime.CivicSharedRules.HouseholdId, firstHouse),
-            ["food:camp-beta"] = (WorldRuntime.CivicSharedRules.SecondHouseholdId, secondHouse),
+            ["food:second"] = (WorldRuntime.CivicSharedRules.SecondHouseholdId, secondHouse),
         };
         foreach (var (lotId, location) in foodLocations)
         {
@@ -89,8 +89,8 @@ internal sealed partial class TownSystem
         // so nobody is cold while the first Tailor Shop is built.
         var garmentLocations = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["clothing:camp-alpha"] = firstHouse,
-            ["clothing:camp-beta"] = secondHouse,
+            ["clothing:first"] = firstHouse,
+            ["clothing:second"] = secondHouse,
         };
         var stock = source with
         {

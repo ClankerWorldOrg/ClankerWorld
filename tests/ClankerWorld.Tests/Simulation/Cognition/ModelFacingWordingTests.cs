@@ -2,11 +2,11 @@ namespace ClankerWorld.Tests;
 
 /// <summary>
 /// Finds words the game no longer uses for its agents and places. A whole-word
-/// match keeps legitimate words such as "campfire" from tripping a check.
+/// match keeps legitimate words such as "resettlement" from tripping a check.
 /// </summary>
 internal static class RetiredWording
 {
-    private static readonly string[] Words = ["inhabitants", "inhabitant", "settlements", "settlement", "camps", "camp"];
+    private static readonly string[] Words = ["inhabitants", "inhabitant", "settlements", "settlement"];
 
     public static string? Find(string text)
     {

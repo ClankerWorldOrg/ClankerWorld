@@ -16,7 +16,7 @@ public sealed class ExpansionGoodsQueryTests
         using var generated = NormalPathWorld.CreateGenerated("expansion-goods-query", _ => new Idle());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:first").Id;
         var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             building.InstanceId == "first-town-house-a");

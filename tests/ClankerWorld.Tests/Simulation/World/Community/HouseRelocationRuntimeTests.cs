@@ -306,7 +306,7 @@ public sealed class HouseRelocationRuntimeTests
         Assert.False(world.DisplaceAdult(caregiver));
         await AdvanceTo(world, Day + 2);
         Assert.Equal(Household, world.Society.GetAgent(caregiver).HouseholdId);
-        Assert.Equal("household:camp-beta", world.Society.GetAgent(child).HouseholdId);
+        Assert.Equal("household:second", world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(caregiver, world.Society.GetAgent(child).PrimaryCaregiverId);
         Assert.Null(world.Agents.Single(person => person.AgentId == caregiver).Departures);
     }
@@ -346,7 +346,7 @@ public sealed class HouseRelocationRuntimeTests
         Assert.Null(changed.Agents.Single(person => person.AgentId == actor).Departures);
         Assert.Null(changed.Agents.Single(person => person.AgentId == actor).Housing?.Request);
         Assert.DoesNotContain(changed.ExportState().Events, item => item.Kind == "household_joined" &&
-            item.Detail == $"{actor}:household:camp-beta");
+            item.Detail == $"{actor}:household:second");
         if (newCare)
         {
             Assert.Equal(Household, changed.Society.GetAgent(otherResidents[0]).HouseholdId);
@@ -365,7 +365,7 @@ public sealed class HouseRelocationRuntimeTests
         var position = noticed.Position;
         using var accepted = Restore(WithApprovedRequest(world.ExportState(), noticed.AgentId, destinationResident));
         await AdvanceTo(accepted, 2);
-        Assert.Equal("household:camp-beta", accepted.Society.GetAgent(noticed.AgentId).HouseholdId);
+        Assert.Equal("household:second", accepted.Society.GetAgent(noticed.AgentId).HouseholdId);
         var person = accepted.Agents.Single(person => person.AgentId == noticed.AgentId);
         Assert.Equal(position, person.Position);
         var departure = Assert.Single(person.Departures!);
@@ -377,7 +377,7 @@ public sealed class HouseRelocationRuntimeTests
         using var replay = Restore(accepted.ExportState());
         await AdvanceTo(replay, deadline + 1);
         Assert.Single(replay.Agents.Single(item => item.AgentId == noticed.AgentId).Departures!);
-        Assert.Equal("household:camp-beta", replay.Society.GetAgent(noticed.AgentId).HouseholdId);
+        Assert.Equal("household:second", replay.Society.GetAgent(noticed.AgentId).HouseholdId);
     }
 
     [Fact]
@@ -439,7 +439,7 @@ public sealed class HouseRelocationRuntimeTests
         var society = state.Society.Society;
         var destinationResident = society.Agents.Select(person => person.Id).Order(StringComparer.Ordinal).Last();
         society = SocietyRules.LeaveHousehold(society, destinationResident).Checkpoint;
-        society = SocietyRules.JoinHouseholdCareGroup(society, destinationResident, "household:camp-beta").Checkpoint;
+        society = SocietyRules.JoinHouseholdCareGroup(society, destinationResident, "household:second").Checkpoint;
         return (state with { Society = state.Society with { Society = society } }, destinationResident);
     }
 
@@ -450,7 +450,7 @@ public sealed class HouseRelocationRuntimeTests
             {
                 Housing = person.Housing! with
                 {
-                    Request = new("household:camp-beta", state.Society.Society.WorldTick,
+                    Request = new("household:second", state.Society.Society.WorldTick,
                         state.Society.Society.WorldTick + WorldRuntime.HousingRequestTicks,
                         [destinationResident], [destinationResident], []),
                 },
@@ -480,7 +480,7 @@ public sealed class HouseRelocationRuntimeTests
         var enclosed = unpermitted with
         {
             HouseholdLandUseRights = unpermitted.HouseholdLandUseRights!.Concat(around.Select((tile, index) =>
-                    new HouseholdLandUseRight("use:relocation-neighbour:" + index, house.TownId!, "household:camp-beta",
+                    new HouseholdLandUseRight("use:relocation-neighbour:" + index, house.TownId!, "household:second",
                         [tile], unpermitted.Society.Society.WorldTick, "test_grant")))
                 .OrderBy(right => right.Id, StringComparer.Ordinal).ToArray(),
         };
@@ -641,7 +641,7 @@ public sealed class HouseRelocationRuntimeTests
             "deadline" => notice with { DeadlineTick = notice.NoticeTick },
             "duration" => notice with { DeadlineTick = notice.DeadlineTick + 1 },
             "future_notice" => notice with { NoticeTick = world.WorldTick + 1, DeadlineTick = world.WorldTick + 1 + Day },
-            "household" => notice with { HouseholdId = "household:camp-beta" },
+            "household" => notice with { HouseholdId = "household:second" },
             _ => notice with { Reason = "not-a-relocation-reason" },
         };
         var state = world.ExportState();

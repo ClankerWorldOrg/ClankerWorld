@@ -12,7 +12,7 @@ using ClankerWorld.Server.Saves;
 using ClankerWorld.Server.Worlds;
 
 var builder = WebApplication.CreateBuilder(args);
-var runtimeSeed = builder.Configuration["ClankerWorld:World:Seed"] ?? "camp-alpha";
+var runtimeSeed = builder.Configuration["ClankerWorld:World:Seed"] ?? "world-a";
 var configuredWorldMode = builder.Configuration["ClankerWorld:World:Mode"] ?? "game";
 if (!string.Equals(configuredWorldMode, "game", StringComparison.OrdinalIgnoreCase))
 {

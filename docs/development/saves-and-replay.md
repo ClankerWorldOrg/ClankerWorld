@@ -134,7 +134,7 @@ borrowed-data edits require a fresh traversal. Placement, layers, canonical
 digests, generated-map checks and atomic checkpoint publication remain required.
 No cache state or new fields are saved; the checkpoint schema and canonical
 bytes are unchanged. [How it works](how-it-works.md) owns the runtime cache boundary, and
-[Camp reachability measurements](camp-reachability-measurements.md) records the
+[Starting-site reachability measurements](starting-site-reachability-measurements.md) records the
 matched native save/reload, rollback and continuation comparisons.
 
 Society validation builds temporary indexes over the complete retained belief
@@ -1048,7 +1048,7 @@ establish that the checkpoint can load.
 
 Schema 128 removes prototype names from the save
 ([#1364](https://github.com/compoodment/ClankerWorld/issues/1364)): map objects are
-saved as `mapObjects` instead of `campObjects`, the checkpoint header is
+saved as `mapObjects`, the checkpoint header is
 `clankerworld.world-runtime/v2`, and the active save is `saves/world.json`
 instead of `saves/private-world.json`. A save under the old file name is
 not found, so the game starts without it and leaves it on disk. An older
@@ -1073,6 +1073,14 @@ of `{world}:inhabitant:`, and `direct-barter:`, `shop-trade:`, `partnership:`,
 provider-configuration file, which keeps model keys outside the world, moves
 to its own schema 4 for the `AgentId` of each model assignment; an older file
 is upgraded in place, so saved keys keep working.
+The starting households are saved as `household:first` and
+`household:second`, and their starting goods are named after them, such as
+`food:first` and `wood:second`. A meal from stored food is recorded as
+`rations`, spare supplies set down outside a House are recorded as `pile` in
+`spare_cargo_stored` and `household_delivery_recovered` events, the chunks of
+generated maps name the generator `noise-drainage`, and the small test map's
+cooking fire and path are saved as `cooking` and `path`. Decision intentions
+check observations against a `clankerworld.world-observation/v2` digest.
 
 World schema 98 adds optional structured storage changes to committed
 inventory events: a building ID, item kind and nonzero signed quantity.
@@ -1308,7 +1316,7 @@ current alpha cutoff.
 | Schema 22 | Optional agent-owned Jev memory-ranking indexes. Older saves do not invent indexes. |
 | Schema 23 | Personal map facts and physical map/record artifacts. Earlier compatible saves start with empty personal knowledge. |
 | Schema 24 | World-owned Roads. |
-| Schema 25 | Optional selected first-Town origin; older Towns keep their camp-derived border. |
+| Schema 25 | Optional selected first-Town origin; older Towns keep the border derived from their starting site. |
 | Schema 26 | Optional regional weather episodes (world-systems schema 2). An older save imports its current weather on its first resumed tick. |
 | Schema 27 | Optional building entrances and trees planted on new tiles. An entrance must lie directly beside a footprint edge. Planted trees are saved as `planted-tree-{x}-{y}` map resources with their growth record and must be legal plantings (see [Trees and planting](how-it-works.md#trees-and-planting)). Invalid state is refused and the file is kept. Older builds refuse schema 27 saves. |
 | Schema 28 | Saved bridges and bounded bridge-traffic evidence, plus an optional pending first personality/aspiration choice for newly placed adults. An older save has no bridges; an older schema that carries bridges or pending identity choices is refused. Accepted personal replies consume the identity opportunity; missing or invalid fields keep the placeholders. The marker, selected text and ID-only choice event survive current-format save/reload. |
@@ -1383,7 +1391,7 @@ current alpha cutoff.
 | Schema 122 and society/runtime v4 | Required owner-private summaries retain canonical typed sources and validated extracts alongside the experience/belief archives. Active recall can use summaries without exposing another owner’s evidence. Strict loading validates unique storage, owner/subject identities, archive times, protected kinds, salience sources, conversation evidence and corrections across both ledgers. Older alpha saves and society envelopes are refused and preserved without migration. |
 | Schema 125 | New Towns begin with vacant land and non-land mayoral duties under ordinary Council authority. Joint personal consent opens the first election without creating the office by resident vote. Vacancy timestamps, queued ballots and elected terms survive replay and reload. Earlier alpha checkpoints are refused and preserved without migration. |
 | Schema 126 | Required action-refusal records and their cumulative count preserve the actual refused choice and one-day retry boundary. Replay admits the same refusal without reproducing the defect. Earlier alpha checkpoints are refused and preserved without migration. |
-| Schema 128 | Prototype names leave the save: map objects are saved as `mapObjects` instead of `campObjects`, the checkpoint header is `clankerworld.world-runtime/v2` and the file is `world.json` instead of `private-world.json`. Earlier alpha checkpoints are refused by schema and preserved without migration. This version is provisional until merge. |
+| Schema 128 | Prototype names leave the save: map objects are saved as `mapObjects`, the checkpoint header is `clankerworld.world-runtime/v2` and the file is `world.json` instead of `private-world.json`. Earlier alpha checkpoints are refused by schema and preserved without migration. This version is provisional until merge. |
 | Schema 102 | Copy orders retain the exact held source while gathering supplies and writing, alongside the native project and paid completion receipt. Strict load checks source kind, project/source/order links and copy provenance; original writing cannot credit a copy task. Source loss releases the project while retaining the source pointer for retry; completion clears both pointers. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 101 | Knowledge-writing orders bind their exact native project and credit only completed physical artifacts carrying that instruction ID. Reload checks actor, kind, current-order priority, paid artifact provenance and exact progress. Cancellation and replacement release only owned unspent reservations; ordinary writing is preserved. Older alpha checkpoints are refused and preserved without migration. |
 | Schema 109 | Native newborns retain a pending first personality/aspiration choice through infancy and failed personal replies. Their ordinary initial-choice observation may retain at most two bounded parental identities as family background, covered by the observation digest. Accepted choices clear retained queued background and cannot apply twice after reload. Native birth, day-3 decisions, retry, and paired replay cover the marker and chosen fields. Earlier alpha checkpoints are refused and preserved; no migration is added. |
@@ -1854,7 +1862,7 @@ move to the new lot; rejected splits leave state and event history unchanged.
 The active recovery checkpoint is encoded and fsync-written after every advanced
 one-second tick. Older history is compacted into digest-addressed segments.
 Hot event lists are bounded, but long-term segment retention is not yet measured.
-[Camp reachability measurements](camp-reachability-measurements.md) records native
+[Starting-site reachability measurements](starting-site-reachability-measurements.md) records native
 checkpoint write costs for both supported world sizes; it does not measure
 long-term history growth.
 

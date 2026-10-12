@@ -67,8 +67,8 @@ public sealed class TownProjectRuntimeTests
             delivery.ContributorId == traveler.Actor && delivery.DeliveredTick is not null);
         Assert.Contains(scenario.Policy.Choices, choice => choice.Id.StartsWith("town_project_gather:", StringComparison.Ordinal));
         Assert.Contains(scenario.Policy.Choices, choice => choice.Id.StartsWith("town_project_donate:", StringComparison.Ordinal));
-        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
-        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:camp-beta").Quantity);
+        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:first").Quantity);
+        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:second").Quantity);
         Assert.Equal(scenario.InitialLayerDigest,
             MapLayerManifestCodec.Digest(scenario.World.ExportState().Map));
 
@@ -157,8 +157,8 @@ public sealed class TownProjectRuntimeTests
         Assert.Equal(4, scenario.World.Society.Inventory.GetLot(TownProjectScenario.StoneStock).Quantity);
         Assert.All(scenario.World.Society.Inventory.Reservations.Where(r => r.Purpose == "unrelated-town-work"),
             reservation => Assert.Equal(InventoryReservationState.Reserved, reservation.State));
-        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
-        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:camp-beta").Quantity);
+        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:first").Quantity);
+        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:second").Quantity);
         scenario.World.Validate();
 
         var hall = scenario.World.WorldSimulation.Buildings.Single(building => building.InstanceId == scenario.Project.CompletedBuildingId);
@@ -321,8 +321,8 @@ public sealed class TownProjectRuntimeTests
         Assert.Equal("law", law.Kind);
         Assert.Null(law.Project);
         Assert.Empty(scenario.World.Towns[0].Projects);
-        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
-        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:camp-beta").Quantity);
+        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:first").Quantity);
+        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:second").Quantity);
         Assert.DoesNotContain(scenario.World.WorldSimulation.Buildings, building => building.DefinitionId == TownHallContent.Hall3x4().CanonicalId);
     }
 
@@ -412,8 +412,8 @@ public sealed class TownProjectRuntimeTests
             observation.Candidates.Any(candidate => candidate.Id.Contains("|project|" + TownHallContent.Hall3x4().LocalId + "|", StringComparison.Ordinal)));
         Assert.Empty(scenario.World.Towns[0].Council!.Proposals);
         Assert.Empty(scenario.World.Towns[0].Projects);
-        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:camp-alpha").Quantity);
-        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:camp-beta").Quantity);
+        Assert.Equal(48, scenario.World.Society.Inventory.GetLot("wood:first").Quantity);
+        Assert.Equal(24, scenario.World.Society.Inventory.GetLot("wood:second").Quantity);
         scenario.World.Validate();
     }
 
@@ -451,7 +451,7 @@ public sealed class TownProjectRuntimeTests
 
     [Theory]
     [InlineData("town:first", false, 4)]
-    [InlineData("household:camp-alpha", false, 0)]
+    [InlineData("household:first", false, 0)]
     [InlineData("town:other", false, 0)]
     [InlineData("town:first", true, 0)]
     public void OnlyReservedDeliveredStockAtTheExactSiteCountsTowardTheTownBudget(string owner, bool remote, int expected)

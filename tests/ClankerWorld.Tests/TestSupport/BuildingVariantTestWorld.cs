@@ -33,7 +33,7 @@ internal static class BuildingVariantTestWorld
         };
         var definition = state.WorldContent!.Buildings.Single(item => item.Tags.Contains(family, StringComparer.Ordinal) &&
             item.Width == width && item.Height == height);
-        var household = family == "farmhouse" ? "household:camp-beta" : "household:camp-alpha";
+        var household = family == "farmhouse" ? "household:second" : "household:first";
         var actor = state.Society.Society.Agents.First(item => item.HouseholdId == household).Id;
         var house = state.WorldSimulation!.Buildings.Single(item => item.HouseholdId == household &&
             state.WorldContent.Buildings.Single(building => building.CanonicalId == item.DefinitionId)

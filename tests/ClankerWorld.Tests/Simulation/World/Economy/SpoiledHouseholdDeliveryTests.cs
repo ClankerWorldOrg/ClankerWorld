@@ -7,11 +7,11 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class SpoiledHouseholdDeliveryTests
 {
-    private const string Household = "household:camp-alpha";
+    private const string Household = "household:first";
     private const string House = "first-town-house-a";
     private const string FirstGreens = "00-inflight-greens";
     private const string SecondGreens = "01-inflight-greens";
-    private const string UnrelatedReservation = "retained-camp-wood";
+    private const string UnrelatedReservation = "retained-wood";
 
     [Theory]
     [InlineData(false)]
@@ -84,8 +84,8 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         }
 
         Assert.Contains(recoveryChoices.Offers, offer => offer.Contains("recover_household_delivery", StringComparer.Ordinal));
-        Assert.True(walked, "The carrier must actually walk to camp before setting the spoiled stock down.");
-        Assert.True(BothAtStartingSite(recovered, startingSite), "Spoiled deliveries stayed aboard instead of becoming real household camp stock.");
+        Assert.True(walked, "The carrier must actually walk to the storage pile before setting the spoiled stock down.");
+        Assert.True(BothAtStartingSite(recovered, startingSite), "Spoiled deliveries stayed aboard instead of becoming real household stock at the storage pile.");
         var finalInventory = recovered.Society.Inventory;
         Assert.Equal(quantities.OrderBy(pair => pair.Key, StringComparer.Ordinal),
             finalInventory.Lots.ToDictionary(lot => lot.Id, lot => lot.Quantity, StringComparer.Ordinal)
@@ -106,7 +106,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         Assert.DoesNotContain(recovered.WorldSimulation.ProductionJobs,
             job => job.BuildingInstanceId == House && job.State == WorldProductionJobState.Running);
         var changed = reassign
-            ? recovered.ReassignBuilding(House, house.TownId, Household, null, "household:camp-beta")
+            ? recovered.ReassignBuilding(House, house.TownId, Household, null, "household:second")
             : recovered.RemoveBuilding(House, house.TownId, Household);
         Assert.True(changed.Applied, changed.Failure);
         Assert.Equal(finalInventory, recovered.Society.Inventory);
@@ -150,7 +150,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var wood = inventory.Lots.First(lot => lot.OwnerId == Household && lot.ItemKind == "wood" && lot.Quantity > 0);
         inventory = InventoryAuthority.Reserve(inventory, UnrelatedReservation, Household, wood.Id, 1,
             "retained_recovery_control", long.MaxValue);
-        // Hold unrelated loose camp supplies with real claims before the
+        // Hold unrelated loose household supplies with real claims before the
         // action phase. They remain physical stock; freeing a recovery load
         // must not start a new unrelated delivery into the empty target House.
         foreach (var stock in inventory.Lots.Where(lot => lot.OwnerId == Household &&
@@ -210,7 +210,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
     {
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         var changed = reassign
-            ? world.ReassignBuilding(House, house.TownId, Household, null, "household:camp-beta")
+            ? world.ReassignBuilding(House, house.TownId, Household, null, "household:second")
             : world.RemoveBuilding(House, house.TownId, Household);
         Assert.False(changed.Applied);
         Assert.Contains("Empty this building", changed.Failure, StringComparison.Ordinal);

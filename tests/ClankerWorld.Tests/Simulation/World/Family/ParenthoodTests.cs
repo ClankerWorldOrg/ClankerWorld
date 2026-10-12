@@ -180,8 +180,8 @@ public sealed partial class ParenthoodTests
     {
         using var seed = NormalPathWorld.CreateGenerated("parenthood-stale-intended-home", _ => new ParentProvider("safe_idle"));
         var state = seed.ExportState();
-        var oldHome = state.Society.Society.Households.Single(item => item.Id == "household:camp-alpha");
-        var newHome = state.Society.Society.Households.Single(item => item.Id == "household:camp-beta");
+        var oldHome = state.Society.Society.Households.Single(item => item.Id == "household:first");
+        var newHome = state.Society.Society.Households.Single(item => item.Id == "household:second");
         var caregiver = oldHome.MemberIds[0];
         var otherParent = oldHome.MemberIds[1];
         var agreedHome = oldHome.Id;

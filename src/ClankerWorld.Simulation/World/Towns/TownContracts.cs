@@ -90,7 +90,7 @@ public static class TownBorderRules
             .Where(item => item.Kind is not ("founder" or "bedroll"))
             .Select(item => item.Position).ToArray();
         if (anchors.Length == 0)
-            throw new ArgumentException("Choose a Town origin before establishing a Town on a map without camp objects.", nameof(originSite));
+            throw new ArgumentException("Choose a Town origin before establishing a Town on a map without placed objects.", nameof(originSite));
         var residentIds = (residents ?? []).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         return new TownRuntimeState(
             FirstTownId,

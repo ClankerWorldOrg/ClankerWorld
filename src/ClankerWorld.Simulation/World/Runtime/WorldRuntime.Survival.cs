@@ -518,7 +518,7 @@ public sealed partial class WorldRuntime
         }
         if (lot.ItemKind == "fruit") return "orchard";
         if (FarmFieldRules.IsCrop(lot.ItemKind)) return "crops";
-        return originId.StartsWith("food:harvest:", StringComparison.Ordinal) ? "foraged" : "camp_rations";
+        return originId.StartsWith("food:harvest:", StringComparison.Ordinal) ? "foraged" : "rations";
     }
 
     private static bool IsPreparedMeal(string kind) => PreparedMealGoods.Ids.Contains(kind, StringComparer.Ordinal);
@@ -583,7 +583,7 @@ public sealed partial class WorldRuntime
         {
             if (person.Survival is { } condition && (state.Survival is null ||
                 condition.WarmthBasisPoints is < 0 or > 10_000 || condition.IllnessBasisPoints is < 0 or > 10_000 ||
-                condition.NutritionBasisPoints is < 0 or > 10_000 || condition.LastMealKind is not (null or "crops" or "cooked" or "foraged" or "camp_rations" or "orchard") &&
+                condition.NutritionBasisPoints is < 0 or > 10_000 || condition.LastMealKind is not (null or "crops" or "cooked" or "foraged" or "rations" or "orchard") &&
                 !IsPreparedMeal(condition.LastMealKind!)))
             {
                 throw new InvalidDataException("The saved agent survival condition is invalid.");

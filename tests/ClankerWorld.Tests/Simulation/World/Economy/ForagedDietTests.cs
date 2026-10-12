@@ -26,7 +26,7 @@ public sealed class ForagedDietTests
             checkpoint = SocietyRules.AcceptRelationship(checkpoint, partnership, 1, partner).Checkpoint;
             var household = checkpoint.GetAgent(actor).HouseholdId!;
             var birth = SocietyRules.CommitBirth(checkpoint, new($"family:{actor}:{checkpoint.WorldTick}", 1,
-                actor, partner, household, [actor, partner], [actor, partner], "food:camp-alpha", 2,
+                actor, partner, household, [actor, partner], [actor, partner], "food:first", 2,
                 checkpoint.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(checkpoint, actor, "Forager" + generation),
                 PrimaryCaregiverId: actor));
             actor = Assert.IsType<string>(birth.CreatedId);
@@ -69,7 +69,7 @@ public sealed class ForagedDietTests
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
-                Survival = new SurvivalCondition(NutritionBasisPoints: 5_000, LastMealKind: "camp_rations"),
+                Survival = new SurvivalCondition(NutritionBasisPoints: 5_000, LastMealKind: "rations"),
             } : person).ToArray(),
             Knowledge = state.Knowledge! with
             {

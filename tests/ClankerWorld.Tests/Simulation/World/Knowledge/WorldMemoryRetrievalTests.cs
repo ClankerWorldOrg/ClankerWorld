@@ -53,7 +53,7 @@ public sealed class WorldMemoryRetrievalTests
             new SocietySocialMemory("food", "founder-scout", "founder-mira",
                 longSummary, "private", 0),
             new SocietySocialMemory("recent", "founder-scout", "founder-rowan",
-                "Rowan repaired the old camp roof.", "private", 0),
+                "Rowan repaired the old shed roof.", "private", 0),
             new SocietySocialMemory("extra-1", "founder-scout", "founder-rowan", "A quiet evening.", "private", 0),
             new SocietySocialMemory("extra-2", "founder-scout", "founder-rowan", "A cloudy day.", "private", 0),
             new SocietySocialMemory("extra-3", "founder-scout", "founder-rowan", "A small song.", "private", 0),

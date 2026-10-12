@@ -203,7 +203,7 @@ public sealed class FarmhouseSiloReplenishmentTests
     [Fact]
     public async Task StoredSiloPotReplenishesOnlyTheNeededGrainWithoutMovingOrCloningTheVessel()
     {
-        // Keep unrelated camp deliveries claimed, as in the loose-grain case,
+        // Keep unrelated household deliveries claimed, as in the loose-grain case,
         // so this directed check reaches the stored pot within its tick bound.
         var setup = await Prepare("silo-pot-replenishment", growField: false, isolateStoredGrain: true);
         var inventory = InventoryAuthority.AddLot(setup.State.Society.Society.Inventory,
@@ -323,7 +323,7 @@ public sealed class FarmhouseSiloReplenishmentTests
         if (growField || isolateStoredGrain)
         {
             // Silo construction has actually spent its costs. Keep unrelated
-            // camp supplies claimed for this directed delivery proof. The raw
+            // household supplies claimed for this directed delivery proof. The raw
             // Silo case also preserves its starter planting stock here: new
             // seed/produce hauls and a continuing House haul are separate work.
             foreach (var stock in inventory.Lots.Where(lot => lot.OwnerId == household &&
@@ -466,7 +466,7 @@ public sealed class FarmhouseSiloReplenishmentTests
                 (right.Tiles.Contains(silo.Position) || right.Tiles.Contains(farmhouse.Position)))
             .Select(right => $"{right.Id}:{right.GrantSource}:end={right.AgreedEndTick}");
         return $"tick={world.WorldTick}, actor={setup.Actor}@{person.Position}, age={social.AgeBand}, " +
-            $"HH={social.HouseholdId}/{household.Name}, free-carry={freeCarry}, camp={startingSite}, " +
+            $"HH={social.HouseholdId}/{household.Name}, free-carry={freeCarry}, site={startingSite}, " +
             $"FH={farmhouse.Position}/owner={farmhouse.HouseholdId}/capacity={FarmFieldRules.FarmStorageCapacity}/room={Room(setup.Farmhouse)}, " +
             $"Silo={silo.Position}/owner={silo.HouseholdId}/capacity=64/room={Room(setup.Silo)}, trades={world.ShopTrades.Count}, " +
             $"Silo-pickup-route={HasUnoccupiedRoute(state, setup.Actor, person.Position, silo.Position)}, " +

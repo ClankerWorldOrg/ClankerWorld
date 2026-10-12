@@ -16,8 +16,8 @@ namespace ClankerWorld.Tests;
 /// </summary>
 public sealed class HouseholdJoinRequestTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
 
     [Theory]
     [InlineData(true, false)]
@@ -893,7 +893,7 @@ public sealed class HouseholdJoinRequestTests
             .First(point => free.Contains(point) && town.BorderTiles.Contains(point));
     }
 
-    /// <summary>Buildable tiles with no camp object, resource, building, Road or agent, in a stable order.</summary>
+    /// <summary>Buildable tiles with no map object, resource, building, Road or agent, in a stable order.</summary>
     private static GridPoint[] FreeTiles(WorldRuntime world)
     {
         var state = world.ExportState();

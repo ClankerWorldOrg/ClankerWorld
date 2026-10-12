@@ -474,7 +474,7 @@ public partial class WorldTerrainLayer : Control
     }
 
     /// <summary>
-    /// Placed buildings and legacy camp objects that have a building look.
+    /// Placed buildings and map objects that have a building look.
     /// Buildings in an abandoned Town look neglected, and falling apart once
     /// it has stood empty for a full season.
     /// </summary>
@@ -719,7 +719,7 @@ public partial class WorldTerrainLayer : Control
             if (changed) QueueRedraw();
             return;
         }
-        // Older camp resources carry only a resource kind; draw them with the
+        // Resources that carry only a resource kind draw with the
         // matching site's sprite where no generated site already stands.
         resourceKindSprites.Clear();
         foreach (var resource in resources)

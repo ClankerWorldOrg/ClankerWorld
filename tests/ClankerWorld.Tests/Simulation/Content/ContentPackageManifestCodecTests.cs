@@ -96,9 +96,9 @@ public sealed class ContentPackageManifestCodecTests
                 "{\"schema\":\"recipe/v1\"}"),
             new ContentDefinition(
                 "building",
-                "camp-kitchen",
+                "test-kitchen",
                 ContentVersion.Parse("1.0.0"),
-                "Camp kitchen",
+                "Test kitchen",
                 PackageDigest,
                 "{\"schema\":\"building/v1\"}"),
         ],

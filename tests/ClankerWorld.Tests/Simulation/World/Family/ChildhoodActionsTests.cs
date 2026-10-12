@@ -102,12 +102,12 @@ public sealed class ChildhoodActionsTests
 
         var helpProvider = new SelectProvider("child_help_food");
         using var helping = WorldRuntime.Restore(state, id => id == Child ? helpProvider : new SelectProvider("safe_idle"));
-        var householdBefore = helping.Society.Inventory.Lots.Where(item => item.OwnerId == "household:camp-alpha" && item.ItemKind == "food").Sum(item => item.Quantity);
+        var householdBefore = helping.Society.Inventory.Lots.Where(item => item.OwnerId == "household:first" && item.ItemKind == "food").Sum(item => item.Quantity);
         for (var tick = 0; tick < 45 && !helping.ExportState().Events.Any(item => item.Kind == "child_helped_household"); tick++)
             await helping.AdvanceOneTickAsync();
         Assert.Contains(helpProvider.SeenCandidates, id => id == "child_help_food");
         Assert.Contains(helping.ExportState().Events, item => item.Kind == "child_helped_household");
-        Assert.Equal(householdBefore + 1, helping.Society.Inventory.Lots.Where(item => item.OwnerId == "household:camp-alpha" && item.ItemKind == "food").Sum(item => item.Quantity));
+        Assert.Equal(householdBefore + 1, helping.Society.Inventory.Lots.Where(item => item.OwnerId == "household:first" && item.ItemKind == "food").Sum(item => item.Quantity));
         Assert.Null(helping.Agents.Single(item => item.AgentId == Child).Project);
         var saved = WorldRuntimeCodec.Encode(helping.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
@@ -123,8 +123,8 @@ public sealed class ChildhoodActionsTests
         var society = state.Society.Society;
         var birth = society.LifeTickAt(society.WorldTick) - 4 * society.Config.TicksPerLifecycleAge;
         var inventory = withCarriedFood
-            ? InventoryAuthority.Transfer(society.Inventory, "child-food-setup", "household:camp-alpha", Child,
-                "food:camp-alpha", 2, "test_setup")
+            ? InventoryAuthority.Transfer(society.Inventory, "child-food-setup", "household:first", Child,
+                "food:first", 2, "test_setup")
             : society.Inventory;
         return state with
         {

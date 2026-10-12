@@ -57,10 +57,10 @@ public sealed class BlacksmithContentTests
             Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
 
         var state = seed.ExportState();
-        var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
-        var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-beta").Id;
+        var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
+        var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:second").Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
-            "smith-stone", "stone", "household:camp-alpha", 4);
+            "smith-stone", "stone", "household:first", 4);
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
@@ -73,13 +73,13 @@ public sealed class BlacksmithContentTests
                      .Where(point => TownBorderRules.IsWithinOrAdjacent(town, point, 1, 2)))
         {
             var attempt = placing.PlaceBuilding("blacksmith-alpha", blacksmith.CanonicalId, point,
-                "household:camp-alpha");
+                "household:first");
             if (!attempt.Applied) continue;
             placed = attempt;
             break;
         }
         Assert.NotNull(placed);
-        Assert.Equal("household:camp-alpha", placing.WorldSimulation.Buildings
+        Assert.Equal("household:first", placing.WorldSimulation.Buildings
             .Single(item => item.InstanceId == placed.InstanceId).HouseholdId);
         var axeRecipe = placing.WorldContent.Recipes.Single(item => item.LocalId == "wooden-axe");
         var unstocked = placing.StartProduction(axeRecipe.CanonicalId, placed.InstanceId, alpha);
@@ -186,7 +186,7 @@ public sealed class BlacksmithContentTests
         for (var tick = 0; tick < 30 && directReloaded.Society.Inventory.GetLot("personal-blacksmith-wood").StorageBuildingId != placed.InstanceId; tick++)
             Assert.True((await directReloaded.AdvanceOneTickAsync()).Advanced);
         var directlyStoredWood = directReloaded.Society.Inventory.GetLot("personal-blacksmith-wood");
-        Assert.Equal(("household:camp-alpha", placed.InstanceId, (string?)null, 2),
+        Assert.Equal(("household:first", placed.InstanceId, (string?)null, 2),
             (directlyStoredWood.OwnerId, directlyStoredWood.StorageBuildingId,
                 directlyStoredWood.DeliveryBuildingId, directlyStoredWood.Quantity));
         Assert.Equal(woodBeforeDirectDelivery + 2,
@@ -220,7 +220,7 @@ public sealed class BlacksmithContentTests
             Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(collecting.Society.Inventory.Lots, lot => lot.Id == "owner-broken-axe" &&
             lot.ConditionBasisPoints == 0);
-        Assert.Contains(collecting.Society.Inventory.Lots, lot => lot.OwnerId == "household:camp-alpha" &&
+        Assert.Contains(collecting.Society.Inventory.Lots, lot => lot.OwnerId == "household:first" &&
             lot.CarrierId == alpha && lot.ItemKind == "wooden_axe" && lot.ConditionBasisPoints > 0 &&
             lot.StorageBuildingId is null);
 
@@ -255,7 +255,7 @@ public sealed class BlacksmithContentTests
         for (var tick = 0; tick < 20 && deliveringOre.Society.Inventory.Lots.All(lot =>
                  lot.ItemKind != "iron_ore" || lot.StorageBuildingId != placed.InstanceId); tick++)
             Assert.True((await deliveringOre.AdvanceOneTickAsync()).Advanced);
-        Assert.True(deliveringOre.Society.Inventory.Lots.Any(lot => lot.OwnerId == "household:camp-alpha" &&
+        Assert.True(deliveringOre.Society.Inventory.Lots.Any(lot => lot.OwnerId == "household:first" &&
             lot.ItemKind == "iron_ore" && lot.StorageBuildingId == placed.InstanceId && lot.Quantity == 2),
             $"position={deliveringOre.Agents.Single(person => person.AgentId == alpha).Position}; " +
             $"selected={string.Join(',', oreProvider.SelectedCandidates)}; " +
@@ -287,7 +287,7 @@ public sealed class BlacksmithContentTests
             Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
 
         var state = seed.ExportState();
-        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
         var householdId = state.Society.Society.GetAgent(actor).HouseholdId!;
         var source = Assert.Single(state.Map.Resources, resource => resource.NaturalObjectKind == "fallen_wood");
         Assert.True(state.Map.IsReachableFromStartingSiteOnFoot(source.Position));
@@ -345,7 +345,7 @@ public sealed class BlacksmithContentTests
             Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
 
         var state = seed.ExportState();
-        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:first").Id;
         var householdId = state.Society.Society.GetAgent(actor).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "smith-wood", "wood", householdId, 12);

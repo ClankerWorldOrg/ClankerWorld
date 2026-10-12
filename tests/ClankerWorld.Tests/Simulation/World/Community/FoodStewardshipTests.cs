@@ -144,7 +144,7 @@ public sealed class FoodStewardshipTests
             await seed.AdvanceOneTickAsync();
         }
         var state = seed.ExportState();
-        var food = state.Society.Society.Inventory.Lots.First(lot => lot.ItemKind == "food" && lot.OwnerId == "household:camp-alpha");
+        var food = state.Society.Society.Inventory.Lots.First(lot => lot.ItemKind == "food" && lot.OwnerId == "household:first");
         return state with
         {
             FoodStewardship = new(state.Agents[0].AgentId, "open", 0),

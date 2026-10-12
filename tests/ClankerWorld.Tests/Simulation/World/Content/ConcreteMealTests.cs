@@ -514,7 +514,7 @@ public sealed partial class ConcreteMealTests
     {
         using var setup = NormalPathWorld.CreateGenerated("concrete-meal-" + localId, _ => new Chooser());
         var state = setup.ExportState();
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var site = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         if (restaurant)

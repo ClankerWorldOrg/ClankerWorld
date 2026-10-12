@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class ContainerReturnTests
 {
-    private const string Alpha = "household:camp-alpha";
+    private const string Alpha = "household:first";
     private const string House = "first-town-house-a";
     private const string Clinic = "container-return-clinic";
     private const string Vessel = "container-return-vessel";

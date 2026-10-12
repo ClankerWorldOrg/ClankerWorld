@@ -9,7 +9,7 @@ public sealed partial class WorldCollectionOrderTests
     public async Task SpendingExcludesPaidStallStockWhileSellingKeepsItsUnreservedQuantity()
     {
         var state = await PaidMarketWorld.StateAsync();
-        const string owner = "household:camp-alpha";
+        const string owner = "household:first";
         var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var stall = PaidMarketWorld.StallTile(state, 0);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "spend-stall-stock", "flour", owner, 3,

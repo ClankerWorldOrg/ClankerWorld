@@ -8,7 +8,7 @@ public sealed class StarterContentTests
     [Fact]
     public async Task StarterPackActivatesOnTheNextTickAndSurvivesRestoreWithoutDuplication()
     {
-        using var runtime = new WorldRuntime("playtest-alpha");
+        using var runtime = new WorldRuntime("test-alpha");
         for (var tick = 0; tick < 5; tick++)
         {
             _ = await runtime.AdvanceOneTickAsync();

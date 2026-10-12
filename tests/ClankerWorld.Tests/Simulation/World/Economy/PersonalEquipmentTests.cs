@@ -6,7 +6,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class PersonalEquipmentTests
 {
-    private const string Alpha = "household:camp-alpha";
+    private const string Alpha = "household:first";
 
     [Fact]
     public void CapacityCountsDeliveredCargoOnceAndDoesNotUseAStoredOrBrokenSack()
@@ -1003,7 +1003,7 @@ public sealed class PersonalEquipmentTests
         Assert.Equal(3, helperRemainder.Quantity);
         var delivered = Assert.Single(restored.Society.Inventory.Lots,
             lot => lot.ProvenanceLotId == "helper-house-wood");
-        // The requester receives the helper's single unit, then stages it at camp
+        // The requester receives the helper's single unit, then stages it at the storage pile
         // for the active project during the same tick; prove both transfers above.
         Assert.Equal(household, delivered.OwnerId);
         Assert.Equal(new InventoryGroundPosition(startingSite.X, startingSite.Y), delivered.GroundPosition);

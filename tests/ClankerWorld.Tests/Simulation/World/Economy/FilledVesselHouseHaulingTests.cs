@@ -50,7 +50,7 @@ public sealed class FilledVesselHouseHaulingTests
         }
 
         Assert.True(pickedUp, "The legal five-unit vessel family was never picked up.");
-        Assert.True(leftHouse, "The carrier must actually leave the House to collect the camp vessel.");
+        Assert.True(leftHouse, "The carrier must actually leave the House to collect the vessel from the storage pile.");
         Assert.Equal(housePosition, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.InRange(world.WorldTick - started, 1, 40);
         Assert.Contains(choices.Offers, offer => offer.Contains("haul_household_stock", StringComparer.Ordinal));
@@ -111,7 +111,7 @@ public sealed class FilledVesselHouseHaulingTests
             inventory = inventory with
             {
                 Lots = inventory.Lots.Select(lot => lot.Id == Jug || lot.ContainerLotId == Jug
-                    ? lot with { OwnerId = "household:camp-beta" } : lot).ToArray(),
+                    ? lot with { OwnerId = "household:second" } : lot).ToArray(),
             };
         state = FoodCapacityTestFixture.WithInventory(state, inventory);
         var before = inventory.Lots.Where(lot => lot.Id == Jug || lot.ContainerLotId == Jug)

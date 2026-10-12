@@ -64,15 +64,15 @@ with how many people are inside; hovering it names them, and the building's
 card lists them. People in an open yard, on a pier or at a Market stall stay
 on the map.
 
-On a fresh server, Continue opens New World instead of entering the retired
-test camp. The normal map preview and acceptance steps still apply, and saved
+On a fresh server, Continue opens New World instead of entering the
+empty world the server starts with. The normal map preview and acceptance steps still apply, and saved
 worlds with founders or other progress keep opening normally.
 
 Generated maps always end in polar sea at the north and south edges, two rows
 deep, whatever the climate settings, so agents never walk into the map's edge.
 Earlier worlds whose maps differ from regeneration no longer load; their saves are kept.
 
-New worlds open paused with no old camp. Choosing the first Town lays a winding
+New worlds open paused with nothing built. Choosing the first Town lays a winding
 main road with side streets, then places two Houses, a Warehouse, Farmhouse and
 Blacksmith along them, each with its door facing its packed-dirt Road and a short
 doorstep path joining it. Streets run on a few tiles past the last building,
@@ -1472,7 +1472,7 @@ room for the whole yield, including orchard seeds. A hungry adult can make room
 for one permitted household serving when spare supplies can be set down. An
 accepted caregiver can also make room to feed a hungry infant, even when
 already well fed. The spare supplies go to the House if it has room or to the
-camp pile otherwise, with tools set down after other ordinary supplies. Maps,
+household's storage pile at the first Town's Warehouse otherwise, with tools set down after other ordinary supplies. Maps,
 field records, books, worn gear, gear being repaired and reserved goods stay
 carried. If urgent hunger leaves no other way to make enough room, an adult may
 set down some of their own reserved orchard seeds too. Only the seeds actually
@@ -1485,12 +1485,12 @@ Broken or spoiled spare cargo can also be set down without losing it.
 A filled jug moves home as one load when the adult has room for the jug and
 all its contents and the House has space. Loose household deliveries keep
 their four-unit batches. If a delivery spoils while carried, an adult can
-walk it back to camp and set down the same goods for the household. This
+walk it back to the storage pile and set down the same goods for the household. This
 frees carrying space and clears the old delivery promise. Other stock, work
 or deliveries can still prevent removing or reassigning its destination.
 
 Hungry children can free carrying room for household food by putting aside only
-spare unreserved supplies, using the same physical House or camp storage as
+spare unreserved supplies, using the same physical House or storage pile as
 adults. Worn equipment, maps, work reservations and delivery loads stay protected.
 The adult emergency exception for reserved orchard seeds does not apply to
 children. Infants do not perform this recovery action.
@@ -1500,8 +1500,8 @@ pots automatically, and there is no discard control. Raw grain, potatoes and
 flour keep their freshness and need separate cooking work before they become
 meals. Bread and other cooked food spoil; storage pots slow that loss.
 
-Before the first House, builders carry their construction materials to the camp
-pile in loads. A helper meets the adult who requested materials and transfers only
+Before the first House, builders carry their construction materials to the
+household's storage pile in loads. A helper meets the adult who requested materials and transfers only
 what that adult has room to carry. Once a House exists, helpers can deliver to its
 storage. Newly received help remains available to the requester's personal
 memory recall after saving and reopening, including for native-born descendants.

@@ -8,7 +8,7 @@ namespace ClankerWorld.Tests;
 
 internal static class HouseRelocationTestWorld
 {
-    public const string Household = "household:camp-alpha";
+    public const string Household = "household:first";
     public const string HouseId = "first-town-house-a";
     public const int Day = 12;
 

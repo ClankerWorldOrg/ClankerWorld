@@ -49,7 +49,7 @@ public sealed class MarketRulesTests
         var house = HouseContent.House1x1().CanonicalId;
         foreach (var tile in new[] { freeSlot, aisle })
         {
-            var placed = world.PlaceBuilding("market-rules-house-" + tile.X + "-" + tile.Y, house, tile, "household:camp-alpha");
+            var placed = world.PlaceBuilding("market-rules-house-" + tile.X + "-" + tile.Y, house, tile, "household:first");
             Assert.False(placed.Applied);
             Assert.Contains("overlaps", placed.Failure, StringComparison.Ordinal);
             var requested = world.RequestHouseholdLandUse("request:plaza-" + tile.X + "-" + tile.Y, Founder1, "town:first", [tile]);
@@ -96,9 +96,9 @@ public sealed class MarketRulesTests
     {
         var state = await PaidMarketWorld.StateAsync();
         var stall = PaidMarketWorld.StallTile(state, 0);
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "a-stall-food", "food", "household:camp-alpha", 4,
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "a-stall-food", "food", "household:first", 4,
             groundPosition: new(stall.X, stall.Y));
-        inventory = InventoryAuthority.AddLot(inventory, "a-stall-grain", FarmFieldRules.Grain, "household:camp-alpha", 4,
+        inventory = InventoryAuthority.AddLot(inventory, "a-stall-grain", FarmFieldRules.Grain, "household:first", 4,
             groundPosition: new(stall.X, stall.Y));
         state = PaidMarketWorld.WithInventory(state, inventory);
         var policy = new MarketRulesPolicy(DecisionProviderKind.Deterministic)
@@ -116,7 +116,7 @@ public sealed class MarketRulesTests
                 foreach (var id in new[] { "a-stall-food", "a-stall-grain" })
                 {
                     var lot = borrowed.Society.Inventory.GetLot(id);
-                    Assert.Equal((4, "household:camp-alpha", (string?)null, new InventoryGroundPosition(stall.X, stall.Y)),
+                    Assert.Equal((4, "household:first", (string?)null, new InventoryGroundPosition(stall.X, stall.Y)),
                         (lot.Quantity, lot.OwnerId, lot.CarrierId, lot.GroundPosition));
                 }
             }
@@ -125,9 +125,9 @@ public sealed class MarketRulesTests
 
         using var free = WorldRuntime.Restore(state, policy.CreateProvider);
         bool Recovered() => free.Society.Inventory.Lots.All(lot => lot.GroundPosition != new InventoryGroundPosition(stall.X, stall.Y)) &&
-            free.Society.Inventory.Lots.Where(lot => lot.ItemKind == "food" && lot.OwnerId == "household:camp-alpha" &&
+            free.Society.Inventory.Lots.Where(lot => lot.ItemKind == "food" && lot.OwnerId == "household:first" &&
                 lot.StorageBuildingId == "first-town-house-a").Sum(lot => lot.Quantity) == 36 &&
-            free.Society.Inventory.Lots.Where(lot => lot.ItemKind == FarmFieldRules.Grain && lot.OwnerId == "household:camp-alpha" &&
+            free.Society.Inventory.Lots.Where(lot => lot.ItemKind == FarmFieldRules.Grain && lot.OwnerId == "household:first" &&
                 lot.StorageBuildingId is "first-town-farmhouse").Sum(lot => lot.Quantity) == 4;
         for (var tick = 0; tick < 160 && !Recovered(); tick++) Assert.True((await free.AdvanceOneTickAsync()).Advanced);
         Assert.True(Recovered(), "Household stock left on a free stall must be hauled home by the ordinary routines.");
@@ -175,8 +175,8 @@ public sealed class MarketRulesTests
         for (var tick = 0; tick < 240 && !Deposited(); tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(Deposited(), "Chosen: " + string.Join(", ", policy.Chosen.Where(item => item.Actor == Founder1).Select(item => item.Id)));
         var receipt = Assert.Single(PaidMarketWorld.Market(world).StockReceipts);
-        Assert.Equal(("household:camp-alpha", 4), (receipt.OwnerId, receipt.Quantity));
-        Assert.Equal(28, world.Society.Inventory.GetLot("food:camp-alpha").Quantity);
+        Assert.Equal(("household:first", 4), (receipt.OwnerId, receipt.Quantity));
+        Assert.Equal(28, world.Society.Inventory.GetLot("food:first").Quantity);
         var events = world.ExportState().Events;
         Assert.Single(events, item => item.Kind == "market_stock_loaded");
         Assert.DoesNotContain(events, item => item.Kind == "market_stock_collected");
@@ -189,7 +189,7 @@ public sealed class MarketRulesTests
         var state = await PaidMarketWorld.StateAsync();
         var stall = PaidMarketWorld.StallTile(state, 0);
         state = PaidMarketWorld.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "a-stall-food", "food",
-            "household:camp-alpha", 4, groundPosition: new(stall.X, stall.Y)));
+            "household:first", 4, groundPosition: new(stall.X, stall.Y)));
         var policy = new MarketRulesPolicy
         {
             Choose = (actor, candidates) => actor != Founder1 ? null :
@@ -198,7 +198,7 @@ public sealed class MarketRulesTests
                     candidate.Description.Contains(" food ", StringComparison.Ordinal)),
         };
         using var world = WorldRuntime.Restore(PaidMarketWorld.Borrowing(state, Founder1, 0), policy.CreateProvider);
-        bool Stored() => world.Society.Inventory.GetLot("a-stall-food") is { StorageBuildingId: "first-town-house-a", CarrierId: null, OwnerId: "household:camp-alpha", Quantity: 4 };
+        bool Stored() => world.Society.Inventory.GetLot("a-stall-food") is { StorageBuildingId: "first-town-house-a", CarrierId: null, OwnerId: "household:first", Quantity: 4 };
         for (var tick = 0; tick < 120 && !Stored(); tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(Stored(), "Chosen: " + string.Join(", ", policy.Chosen.Where(item => item.Actor == Founder1).Select(item => item.Id)));
         var events = world.ExportState().Events;
@@ -222,7 +222,7 @@ public sealed class MarketRulesTests
         var state = await PaidMarketWorld.StateAsync();
         var stall = PaidMarketWorld.StallTile(state, 0);
         state = PaidMarketWorld.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "dropped-estate", "cloth",
-            "household:camp-beta", MarketTradeRules.StallCapacity + 4, groundPosition: new(stall.X, stall.Y)));
+            "household:second", MarketTradeRules.StallCapacity + 4, groundPosition: new(stall.X, stall.Y)));
         using var world = WorldRuntime.Restore(state);
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -241,22 +241,22 @@ public sealed class MarketRulesTests
         var occupancy = Assert.Single(market.Occupancies);
         var worldTick = state.Society.Society.WorldTick;
         var proposedTick = damage == "far-future-offer" ? long.MaxValue - 5 : worldTick;
-        var trade = new MarketTradeState("market-trade:forged", occupancy.Id, stall.BuildingId, Founder3, "household:camp-beta",
-            "household:camp-beta", Founder1, PaidMarketWorld.StallTile(state, 0), proposedTick, "cloth", "wood");
-        var offer = new DirectBarterOffer(trade.OfferId, 1, "household:camp-beta", Founder1, "goods-lot", 1, "payment-lot", 1,
+        var trade = new MarketTradeState("market-trade:forged", occupancy.Id, stall.BuildingId, Founder3, "household:second",
+            "household:second", Founder1, PaidMarketWorld.StallTile(state, 0), proposedTick, "cloth", "wood");
+        var offer = new DirectBarterOffer(trade.OfferId, 1, "household:second", Founder1, "goods-lot", 1, "payment-lot", 1,
             proposedTick + 1, DirectBarterState.Open, [Founder1]);
         var inventory = state.Society.Society.Inventory;
         var receipts = market.StockReceipts;
         if (damage == "duplicate-trade")
         {
-            var receiptId = MarketTradeRules.ReceiptId(occupancy.Id, "stall-source", "household:camp-beta", 2, worldTick, 0, trade.OfferId);
+            var receiptId = MarketTradeRules.ReceiptId(occupancy.Id, "stall-source", "household:second", 2, worldTick, 0, trade.OfferId);
             var eventId = inventory.EventHistoryFloor + inventory.Events.Count + 1;
             inventory = inventory with
             {
                 Events = inventory.Events.Append(new InventoryEvent(eventId, worldTick, "inventory_relocated",
-                    receiptId + ":deposit:household:camp-beta:stall-source:2")).ToArray(),
+                    receiptId + ":deposit:household:second:stall-source:2")).ToArray(),
             };
-            receipts = [new MarketStockReceipt(receiptId, occupancy.Id, Founder3, "household:camp-beta", "stall-source", "stall-source",
+            receipts = [new MarketStockReceipt(receiptId, occupancy.Id, Founder3, "household:second", "stall-source", "stall-source",
                 "wood", 2, worldTick, eventId, trade.OfferId)];
         }
         inventory = inventory with { Offers = damage == "duplicate-offer" ? [offer, offer] : [offer] };

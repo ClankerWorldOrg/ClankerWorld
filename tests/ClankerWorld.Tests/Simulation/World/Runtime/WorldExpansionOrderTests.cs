@@ -7,8 +7,8 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldExpansionOrderTests
 {
-    private const string Household = "household:camp-alpha";
-    private const string OtherHousehold = "household:camp-beta";
+    private const string Household = "household:first";
+    private const string OtherHousehold = "household:second";
     private const string House = "first-town-house-a";
     private const string OtherHouse = "first-town-house-b";
     private const string Warehouse = "first-town-warehouse";

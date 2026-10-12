@@ -158,5 +158,5 @@ public sealed class DeterministicMovementTests
         Assert.Equal(3, cache.ComputationCount);
     }
 
-    private static WorldMap Map() => SmallTemperateMapGenerator.Generate("camp-alpha");
+    private static WorldMap Map() => SmallTemperateMapGenerator.Generate("world-a");
 }

@@ -120,11 +120,11 @@ public partial class Main
         _ => "◆",
     };
 
-    // Objects drawn as camp art are named like buildings; the rest keep a
+    // Objects drawn with building art are named like buildings; the rest keep a
     // short uppercase marker beside their symbol.
     private static string ObjectMarker(string kind) => kind switch
     {
-        "campfire" or "cooking" => "Campfire",
+        "cooking" => "Cooking fire",
         "bedroll" => "Bedroll",
         "shelter" => "Shelter",
         "storage" => "Storage",
@@ -136,7 +136,6 @@ public partial class Main
 
     private static string ObjectGlyph(string kind) => kind switch
     {
-        "campfire" => "✦",
         "shelter" => "⌂",
         "tree" => "♣",
         _ => "■",

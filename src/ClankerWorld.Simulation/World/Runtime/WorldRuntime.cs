@@ -40,10 +40,10 @@ public sealed partial class WorldRuntime : IDisposable
     // Trees planted on new tiles are saved as map resources from this schema.
     private const int PlantedTreeSchemaVersion = 27;
     private const int MaximumRecentThoughts = 8;
-    private const string HouseholdId = "household:camp-alpha";
-    private const string SecondHouseholdId = "household:camp-beta";
+    private const string HouseholdId = "household:first";
+    private const string SecondHouseholdId = "household:second";
     public const int RequiredFounders = 4;
-    private const string FoodLotId = "food:camp-alpha";
+    private const string FoodLotId = "food:first";
     private const long CognitionReevaluationIntervalTicks = 30;
     private const int ResourceInteractionRange = 1;
     private const int HarvestFoodYield = 4;

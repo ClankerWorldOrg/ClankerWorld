@@ -465,7 +465,7 @@ the pot and remaining food together. Eating a serving needs no extra carrying
 space; food reserved for other work or being delivered is unavailable.
 
 A hungry child whose load is full can put spare unreserved supplies at their
-household House or camp to make room for food. Worn equipment, maps, held work
+household House or storage pile at the first Town's Warehouse to make room for food. Worn equipment, maps, held work
 supplies and delivery loads stay with them. Infants still need their caregivers.
 
 Material orders can gather wood, stone, plant fiber, clay, iron ore, gold ore

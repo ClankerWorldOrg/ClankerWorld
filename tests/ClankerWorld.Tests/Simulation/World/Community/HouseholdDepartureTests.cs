@@ -11,8 +11,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class HouseholdDepartureTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
 
     [Theory]
     [InlineData("padded_coat", false)]

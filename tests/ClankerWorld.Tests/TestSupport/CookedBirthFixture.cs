@@ -22,7 +22,7 @@ internal static class CookedBirthFixture
     public static async Task<CookedBirthState> PrepareAsync(bool inPot = false)
     {
         var state = WorldRuntimeCodec.Decode(await Cooked.Value);
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         var parents = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
             .OrderBy(person => person.Id, StringComparer.Ordinal).ToArray();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
@@ -49,7 +49,7 @@ internal static class CookedBirthFixture
     {
         using var initial = NormalPathWorld.CreateGenerated("cooked-child-birth", _ => new BirthChooser("", "", ""));
         var state = initial.ExportState();
-        const string household = "household:camp-alpha";
+        const string household = "household:first";
         var parents = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
             .OrderBy(person => person.Id, StringComparer.Ordinal).ToArray();
         Assert.Equal(2, parents.Length);

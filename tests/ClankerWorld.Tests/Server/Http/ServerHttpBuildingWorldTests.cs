@@ -33,7 +33,7 @@ public sealed partial class ServerHttpTests
             var removalA = new OwnerBuildingRemovalAction(farmhouseA.InstanceId, farmhouseA.TownId,
                 farmhouseA.HouseholdId, worldA);
             var reassignmentA = new OwnerBuildingReassignmentAction(farmhouseA.InstanceId, farmhouseA.TownId,
-                farmhouseA.HouseholdId, null, "household:camp-beta", worldA);
+                farmhouseA.HouseholdId, null, "household:second", worldA);
             const string removalEndpoint = "/api/v1/owner/buildings/remove";
             const string reassignmentEndpoint = "/api/v1/owner/buildings/reassign";
             // Retain a signed, unused action, as if another paired device switches worlds before it arrives.
@@ -110,8 +110,8 @@ public sealed partial class ServerHttpTests
             }
             else
             {
-                Assert.Equal("household:camp-beta", runtime.WorldSimulation.Buildings.Single(item => item.InstanceId == farmhouseB.InstanceId).HouseholdId);
-                Assert.Equal("household:camp-beta", saved.WorldSimulation!.Buildings.Single(item => item.InstanceId == farmhouseB.InstanceId).HouseholdId);
+                Assert.Equal("household:second", runtime.WorldSimulation.Buildings.Single(item => item.InstanceId == farmhouseB.InstanceId).HouseholdId);
+                Assert.Equal("household:second", saved.WorldSimulation!.Buildings.Single(item => item.InstanceId == farmhouseB.InstanceId).HouseholdId);
             }
             runtime.Validate();
             using var restored = WorldRuntime.Restore(saved);

@@ -6,8 +6,8 @@ namespace ClankerWorld.Tests;
 /// <summary>A household plans only buildings it needs for itself, once it has the materials in hand.</summary>
 public sealed class HouseholdBuildingPlanTests
 {
-    private const string Alpha = "household:camp-alpha";
-    private const string Beta = "household:camp-beta";
+    private const string Alpha = "household:first";
+    private const string Beta = "household:second";
 
     [Theory]
     [InlineData(Alpha, "blacksmith-1x2", "farmhouse-1x1", "first-town-house-a")]
