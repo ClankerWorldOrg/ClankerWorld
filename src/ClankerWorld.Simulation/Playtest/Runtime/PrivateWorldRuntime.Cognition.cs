@@ -812,37 +812,15 @@ public sealed partial class PrivateWorldRuntime
         return completedSuggestions;
     }
 
-    private void ApplyCandidate(
-        string inhabitantId,
-        PlaytestInhabitantState state,
-        string candidateId,
-        bool reportIdle)
+    private void ApplyCandidate(string inhabitantId, PlaytestInhabitantState state, string candidateId, bool reportIdle) =>
+        ApplyRegisteredCandidate(inhabitantId, state, candidateId, reportIdle);
+
+    private void ApplyRegisteredCandidate(string inhabitantId, PlaytestInhabitantState state, string candidateId, bool reportIdle)
     {
         if (withheldActions?.Contains(inhabitantId) == true || IsRefusedAction(inhabitantId, candidateId)) return;
         if (attemptedActions is not null) attemptedActions[inhabitantId] = candidateId;
         if (candidateId != "safe_idle") guardianPlacementActions.Add(inhabitantId);
-        if (IsOrnamentCandidate(candidateId)) return;
-        if (candidateId.StartsWith(ToolRequestPrefix, StringComparison.Ordinal))
-        {
-            ApplyToolMakingRequestCandidate(inhabitantId, state, candidateId, reportIdle);
-            return;
-        }
-        if (candidateId.StartsWith("talk:", StringComparison.Ordinal) ||
-            candidateId.StartsWith("conversation_", StringComparison.Ordinal))
-        {
-            if (!ApplyConversationCandidate(inhabitantId, candidateId))
-                AppendEvent("conversation_action_rejected", $"{inhabitantId}:{candidateId.Split(':')[0]}");
-            else if (inhabitants[inhabitantId].Equipment?.Repair is not null)
-                CancelEquipmentRepair(inhabitantId);
-            return;
-        }
-        if (TryApplyGuardianPlacementCandidate(inhabitantId, candidateId)) return;
-        // An explicit withdrawal of care must not turn into continued field work.
-        if (candidateId.StartsWith("guardian_end:", StringComparison.Ordinal) && HasGuardianPlacementTask(inhabitantId))
-        {
-            ApplyDependentCareCandidate(inhabitantId, candidateId);
-            return;
-        }
+        if (TryRegisteredAction(ActionPhase.BeforeAge, new(inhabitantId, state, candidateId, reportIdle))) return;
         if (!AgePermitsCandidate(inhabitantId, candidateId))
         {
             AppendEvent("age_action_rejected", $"{inhabitantId}:{candidateId}");
@@ -854,300 +832,8 @@ public sealed partial class PrivateWorldRuntime
             state = inhabitants[inhabitantId];
         }
         if (PendingInstructionFor(inhabitantId) is null && ContinueFarmWork(inhabitantId)) return;
-        if (candidateId.StartsWith("medical_", StringComparison.Ordinal))
-        {
-            ApplyMedicalCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("farm:", StringComparison.Ordinal))
-        {
-            ApplyFieldCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("child_", StringComparison.Ordinal))
-        {
-            ApplyChildCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("guardian_", StringComparison.Ordinal))
-        {
-            ApplyDependentCareCandidate(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("parent_", StringComparison.Ordinal) || candidateId.StartsWith("care:", StringComparison.Ordinal))
-        {
-            ApplyParenthoodCandidate(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("partner_", StringComparison.Ordinal))
-        {
-            ApplyFamilyCandidate(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("household_", StringComparison.Ordinal))
-        {
-            ApplyHousingCandidate(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("learn:", StringComparison.Ordinal) || candidateId.StartsWith("lesson_", StringComparison.Ordinal))
-        {
-            ApplyLearningCandidate(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("civic|", StringComparison.Ordinal))
-        {
-            // Civic choices execute only through the personal admission path above.
-            return;
-        }
-        if (IsTownProjectDonationCandidate(candidateId)) return;
-        if (IsTownProjectCandidate(candidateId))
-        {
-            ApplyTownProjectCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (IsMarketCandidate(candidateId)) return;
-        if (candidateId.StartsWith("council_", StringComparison.Ordinal))
-        {
-            ApplyCouncilCandidate(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("trade_", StringComparison.Ordinal))
-        {
-            ApplyTradeCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("business_", StringComparison.Ordinal))
-        {
-            ApplyBusinessCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId == "haul_household_stock")
-        {
-            HaulHouseholdStock(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "recover_household_delivery")
-        {
-            RecoverHouseholdDelivery(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "store_household_food")
-        {
-            StoreHouseholdFood(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "make_room_for_food")
-        {
-            MakeRoomForFood(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "store_town_resources")
-        {
-            StoreTownResources(inhabitantId, state);
-            return;
-        }
-        if (candidateId.StartsWith(TownSalvagePrefix, StringComparison.Ordinal))
-        {
-            SalvageTownStock(inhabitantId, candidateId);
-            return;
-        }
-        if (candidateId == "haul_farm_grain")
-        {
-            HaulFarmGrain(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "haul_farm_flour")
-        {
-            HaulFarmFlour(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "haul_smith_input")
-        {
-            HaulBlacksmithInput(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "gather_smith_ore")
-        {
-            GatherBlacksmithOre(inhabitantId, state);
-            return;
-        }
-        if (candidateId.StartsWith(GatherBlacksmithInputPrefix, StringComparison.Ordinal))
-        {
-            GatherBlacksmithInput(inhabitantId, state, candidateId[GatherBlacksmithInputPrefix.Length..]);
-            return;
-        }
-        if (candidateId == "deliver_smith_ore")
-        {
-            DeliverBlacksmithOre(inhabitantId, state);
-            return;
-        }
-        if (candidateId is "collect_wooden_axe" or "collect_wooden_pickaxe" or "collect_wooden_hoe")
-        {
-            var kind = candidateId == "collect_wooden_axe" ? "wooden_axe" :
-                candidateId == "collect_wooden_hoe" ? FarmFieldRules.Hoe : "wooden_pickaxe";
-            if (MayCollectToolFamily(inhabitantId, ToolProgressionRules.Find(kind)!.Family))
-                CollectEquipment(inhabitantId, state, kind);
-            return;
-        }
-        if (candidateId.StartsWith(CollectToolPrefix, StringComparison.Ordinal))
-        {
-            var kind = candidateId[CollectToolPrefix.Length..];
-            if (ToolProgressionRules.Find(kind) is { } tool && MayCollectToolFamily(inhabitantId, tool.Family))
-                CollectEquipment(inhabitantId, state, kind);
-            return;
-        }
-        if (ApplyBoatCandidate(inhabitantId, candidateId)) return;
-        if (ApplyAnimalCandidate(inhabitantId, candidateId)) return;
-        if (ApplyHandcartCandidate(inhabitantId, state, candidateId)) return;
-        if (candidateId.StartsWith(RepairToolPrefix, StringComparison.Ordinal))
-        {
-            RepairTool(inhabitantId, state, candidateId[RepairToolPrefix.Length..]);
-            return;
-        }
-        if (candidateId.StartsWith(RareMiningPrefix, StringComparison.Ordinal))
-        {
-            GatherRareMaterial(inhabitantId, state, candidateId[RareMiningPrefix.Length..]);
-            return;
-        }
-        if (candidateId == "knowledge_continue" || candidateId.StartsWith(KnowledgeWritePrefix, StringComparison.Ordinal) ||
-            candidateId.StartsWith(KnowledgeCopyPrefix, StringComparison.Ordinal) || candidateId.StartsWith(KnowledgeReadPrefix, StringComparison.Ordinal))
-        {
-            ApplyKnowledgeWritingCandidate(inhabitantId, state, candidateId);
-            return;
-        }
-        if (ApplyKnowledgeStorageCandidate(inhabitantId, state, candidateId)) return;
-        if (candidateId.StartsWith(KnowledgeSharePrefix, StringComparison.Ordinal))
-        {
-            ApplyKnowledgeShare(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith(SupplyWorkstationPrefix, StringComparison.Ordinal))
-        {
-            SupplyWorkstation(inhabitantId, state, candidateId[SupplyWorkstationPrefix.Length..]);
-            return;
-        }
-        if (candidateId.StartsWith(ReturnEmptyVesselPrefix, StringComparison.Ordinal))
-        {
-            ReturnEmptyVessel(inhabitantId, state, candidateId[ReturnEmptyVesselPrefix.Length..]);
-            return;
-        }
-        if (candidateId == "collect_water_jug")
-        {
-            CollectWaterJug(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "return_water_jug")
-        {
-            ReturnWaterJug(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "store_food_in_pot")
-        {
-            StoreFoodInPot(inhabitantId, state);
-            return;
-        }
-        if (candidateId == "take_food_from_pot")
-        {
-            TakeFoodFromPot(inhabitantId, state);
-            return;
-        }
-        if (candidateId.StartsWith(FillWaterJugPrefix, StringComparison.Ordinal))
-        {
-            FillWaterJug(inhabitantId, state, candidateId[FillWaterJugPrefix.Length..]);
-            return;
-        }
-        if (candidateId.StartsWith(GatherBuildingMaterialPrefix, StringComparison.Ordinal))
-        {
-            GatherBuildingMaterial(inhabitantId, state, candidateId[GatherBuildingMaterialPrefix.Length..]);
-            return;
-        }
-        if (candidateId.StartsWith(ExpandBuildingPrefix, StringComparison.Ordinal))
-        {
-            ApplyBuildingExpansionCandidate(inhabitantId, state, candidateId[ExpandBuildingPrefix.Length..]);
-            return;
-        }
-        if (candidateId.StartsWith(InviteHouseGuestPrefix, StringComparison.Ordinal) ||
-            candidateId.StartsWith(RevokeHouseGuestPrefix, StringComparison.Ordinal))
-        {
-            var invited = candidateId.StartsWith(InviteHouseGuestPrefix, StringComparison.Ordinal);
-            var household = society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId;
-            if (household is not null && HouseForHousehold(household) is { } house)
-                SetHouseGuestInvitationCore(inhabitantId, house.InstanceId,
-                    candidateId[(invited ? InviteHouseGuestPrefix.Length : RevokeHouseGuestPrefix.Length)..], invited);
-            return;
-        }
-        if (candidateId.StartsWith("build:", StringComparison.Ordinal))
-        {
-            BeginProject(inhabitantId, state, candidateId);
-            return;
-        }
-        if (candidateId.StartsWith("assist:", StringComparison.Ordinal))
-        {
-            AssistProject(inhabitantId, state, candidateId[7..]);
-            return;
-        }
-        if (candidateId == "replant_tree")
-        {
-            ReplantTree(inhabitantId, state);
-            return;
-        }
-        if (candidateId is "plant_tree" or "plant_orchard")
-        {
-            PlantTreeNearby(inhabitantId, state, candidateId == "plant_orchard");
-            return;
-        }
-
-        if (candidateId.StartsWith(ExplorationGoalPrefix, StringComparison.Ordinal))
-        {
-            var parts = candidateId[ExplorationGoalPrefix.Length..].Split(':');
-            if (parts.Length == 2 && ValidExplorationGoal(new(parts[0], parts[1])))
-                Explore(inhabitantId, state, new(parts[0], parts[1]));
-            return;
-        }
-
-        switch (candidateId)
-        {
-            case "explore":
-                Explore(inhabitantId, state);
-                break;
-            case "explore_return":
-                ChooseExplorationReturn(inhabitantId, state);
-                break;
-            case "wear_clothing":
-                EquipPrivateItem(inhabitantId, state, carryAid: false);
-                break;
-            case "equip_carry_aid":
-                EquipPrivateItem(inhabitantId, state, carryAid: true);
-                break;
-            case "repair_equipment":
-                RepairEquipment(inhabitantId, state);
-                break;
-            case "tend_fire":
-                TendFire(inhabitantId, state);
-                break;
-            case "seek_warmth":
-                SeekWarmth(inhabitantId, state);
-                break;
-            case "seek_food":
-                if (AvailableFoodSource(inhabitantId, state.Position) is { } foodSource)
-                    MoveToward(inhabitantId, state, foodSource.Position, "food", ResourceInteractionRange);
-                break;
-            case "harvest_food":
-                HarvestFood(inhabitantId, state);
-                break;
-            case "consume_food":
-                ConsumeFood(inhabitantId, state);
-                break;
-            case "collect_shared_food":
-                CollectSharedFood(inhabitantId, state);
-                break;
-            default:
-                if (reportIdle)
-                {
-                    AppendEvent("inhabitant_idle", inhabitantId);
-                }
-                break;
-        }
+        if (TryRegisteredAction(ActionPhase.Ordinary, new(inhabitantId, state, candidateId, reportIdle))) return;
+        if (reportIdle) AppendEvent("inhabitant_idle", inhabitantId);
     }
 
     private void ApplyBuildDecision(
@@ -1269,6 +955,9 @@ public sealed partial class PrivateWorldRuntime
         string inhabitantId,
         PlaytestInhabitantState state,
         bool restrictForOrder = true)
+        => CreateRegisteredCandidates(inhabitantId, state, restrictForOrder);
+
+    private List<CognitionCandidate> CreateRegisteredCandidates(string inhabitantId, PlaytestInhabitantState state, bool restrictForOrder)
     {
         var candidates = CreateUnfilteredCandidates(inhabitantId, state, restrictForOrder);
         if (actionRefusals.Count > 0)
@@ -1301,97 +990,10 @@ public sealed partial class PrivateWorldRuntime
                 candidates.Add(new CognitionCandidate("safe_idle", "Continue safely without starting a new task.", 100));
             return candidates;
         }
-        var instruction = PendingInstructionFor(inhabitantId);
-        var instructionCandidate = instruction?.Order?.Action;
-
-        var hasFood = PreferredFood(inhabitantId, inhabitantId).Any();
-        if (hasFood && state.HungerBasisPoints < ComfortableFullness)
-        {
-            candidates.Add(new CognitionCandidate("consume_food", "Eat one carried food item.", 0));
-        }
-        if (CarriedMilk(inhabitantId) is not null && state.HungerBasisPoints < ComfortableFullness)
-            candidates.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
-
-        if (instructionCandidate == "consume_food" && hasFood &&
-            state.HungerBasisPoints < ComfortableFullness &&
-            !candidates.Any(item => item.Id == "consume_food"))
-        {
-            candidates.Add(new CognitionCandidate("consume_food", "Follow the owner's food instruction.", 0));
-        }
-
-        var foodPriority = NeedsUrgentFood(state) ? 2 : state.HungerBasisPoints < RoutineFoodSeekFullness ? 5 : 90;
-        // An optional reserve remains selectable without outranking ordinary activities.
-        var wantsFood = !hasFood && state.HungerBasisPoints < 7_000;
-        var shouldGatherFood = wantsFood && FreeCarryCapacity(inhabitantId) > 0;
-        var foodSource = shouldGatherFood || instructionCandidate is "seek_food" or "harvest_food"
-            ? AvailableFoodSource(inhabitantId, state.Position) : null;
-        var sharedFood = shouldGatherFood ? AvailableSharedFood(inhabitantId) : null;
-        if (sharedFood is not null && contentRegistry.ExportState().Packages.Any(package =>
-                package.Manifest.PackageId == StarterContent.PackageId && package.Lifecycle == ContentPackageLifecycle.Active))
-        {
-            candidates.Add(new CognitionCandidate("collect_shared_food",
-                "Collect one available household food serving from its store, then eat it.",
-                foodPriority - 1, HouseholdId));
-        }
-        if (shouldGatherFood && foodSource is not null &&
-            IsWithinInteractionRange(state.Position, foodSource.Position, ResourceInteractionRange))
-        {
-            candidates.Add(new CognitionCandidate(
-                "harvest_food",
-                "Gather several food servings from the nearby food source.",
-                foodPriority,
-                foodSource.Id));
-        }
-        else if (shouldGatherFood && foodSource is not null)
-        {
-            candidates.Add(new CognitionCandidate(
-                "seek_food",
-                "Travel within gathering range of an available food source.",
-                foodPriority,
-                foodSource.Id));
-        }
-        else if (wantsFood && sharedFood is null)
-        {
-            AddMakeRoomForFoodCandidate(candidates, inhabitantId, state, foodPriority);
-        }
-
-        if (instructionCandidate == "seek_food" && foodSource is not null &&
-            !candidates.Any(item => item.Id == "seek_food"))
-        {
-            candidates.Add(new CognitionCandidate("seek_food", "Follow the owner's travel instruction.", 0, foodSource.Id));
-        }
-
-        if (instructionCandidate == "harvest_food" &&
-            foodSource is not null &&
-            IsWithinInteractionRange(state.Position, foodSource.Position, ResourceInteractionRange) &&
-            !candidates.Any(item => item.Id == "harvest_food"))
-        {
-            candidates.Add(new CognitionCandidate("harvest_food", "Follow the owner's harvest instruction.", 0, foodSource.Id));
-        }
-
-        if (AdultResident(inhabitantId)) AddHandcartCandidates(candidates, inhabitantId, state);
-        if (AdultResident(inhabitantId)) AddAnimalCandidates(candidates, inhabitantId);
-        AddSurvivalCandidates(candidates, inhabitantId, state);
-        AddTownSalvageCandidates(candidates, inhabitantId);
-        AddDependentCareCandidates(candidates, inhabitantId);
-        if (GuardianPlacementCandidate(inhabitantId) is { } placementCandidate) candidates.Add(placementCandidate);
-        AddMedicalCareCandidates(candidates, inhabitantId);
-        if (AdultResident(inhabitantId))
-        {
-            AddKnowledgeCandidates(candidates, inhabitantId, state);
-            AddFamilyCandidates(candidates, inhabitantId);
-            AddHousingCandidates(candidates, inhabitantId);
-            AddParenthoodCandidates(candidates, inhabitantId);
-            AddRecoverHouseholdDeliveryCandidate(candidates, inhabitantId, state);
-            AddUrgentFoodPotCandidate(candidates, inhabitantId, state);
-            AddBusinessCandidates(candidates, inhabitantId);
-            AddToolMakingRequestCandidates(candidates, inhabitantId);
-        }
-        if (!NeedsUrgentWarmth(state) && ChildResident(inhabitantId))
-        {
-            AddChildCandidates(candidates, inhabitantId, state);
-            AddChildNonviolentCandidates(candidates, inhabitantId);
-        }
+        var context = new ChoiceContext(candidates, inhabitantId, state, currentConversation is not null);
+        AddRegisteredChoices(ChoiceGroup.Prelude, context);
+        if (AdultResident(inhabitantId)) AddRegisteredChoices(ChoiceGroup.Adult, context);
+        if (!NeedsUrgentWarmth(state) && ChildResident(inhabitantId)) AddRegisteredChoices(ChoiceGroup.Child, context);
         if (!NeedsUrgentFood(state) && AdultResident(inhabitantId))
         {
             var inhabitant = society.Checkpoint.GetInhabitant(inhabitantId);
@@ -1399,41 +1001,16 @@ public sealed partial class PrivateWorldRuntime
             var accessibleWarehouses = new Lazy<PlacedBuilding[]>(() => WarehousesAccessibleTo(inhabitantId).ToArray(),
                 LazyThreadSafetyMode.None);
             var buildingsWithoutSites = new List<string>();
-            AddBuildCandidates(candidates, inhabitant, state, reachableToolCache, accessibleWarehouses, buildingsWithoutSites);
-            AddBuildingExpansionCandidates(candidates, inhabitantId, reachableToolCache, accessibleWarehouses);
-            AddHouseGuestCandidates(candidates, inhabitantId);
-            AddHouseHaulCandidate(candidates, inhabitantId, state);
-            AddWarehouseStockCandidate(candidates, inhabitantId, state);
-            AddFarmGrainCandidate(candidates, inhabitantId);
-            AddFarmFlourCandidate(candidates, inhabitantId, state);
-            AddFieldCandidates(candidates, inhabitantId, state);
-            AddBlacksmithStockCandidate(candidates, inhabitantId, state);
-            AddBlacksmithOreCandidates(candidates, inhabitantId, state);
-            AddWorkstationSupplyCandidate(candidates, inhabitantId);
-            AddContainerCandidates(candidates, inhabitantId, state);
-            AddCraftToolCandidates(candidates, inhabitantId);
-            AddRareMiningCandidates(candidates, inhabitantId);
-            AddProjectAssistanceCandidates(candidates, inhabitantId);
-            AddForestryCandidates(candidates, inhabitantId, state);
-            AddTradeCandidates(candidates, inhabitantId);
-            AddCouncilCandidates(candidates, inhabitantId);
-            AddTownCivicCandidates(candidates, inhabitantId, buildingsWithoutSites);
-            AddTownProjectDonationCandidates(candidates, inhabitantId);
-            AddMarketCandidates(candidates, inhabitantId);
-            AddBoatCandidates(candidates, inhabitantId);
-            AddLearningCandidates(candidates, inhabitantId);
-            AddExplorationCandidate(candidates, inhabitantId, state);
+            AddRegisteredChoices(ChoiceGroup.UnhurriedAdult, context with
+            {
+                Inhabitant = inhabitant,
+                ReachableTools = reachableToolCache,
+                AccessibleWarehouses = accessibleWarehouses,
+                BuildingsWithoutSites = buildingsWithoutSites,
+            });
         }
-
-        // Urgent owners can retrieve their food without starting unrelated Market work.
-        if (NeedsUrgentFood(state) && AdultResident(inhabitantId))
-            AddMarketCandidates(candidates, inhabitantId);
-
-        // Released Town cargo can be set down even while urgent needs hide construction work.
-        AddTownProjectCandidates(candidates, inhabitantId);
-        if (currentConversation is null)
-            candidates.AddRange(ConversationCandidates(inhabitantId));
-        candidates.Add(new CognitionCandidate("safe_idle", "Continue safely without starting a new task.", 100));
+        if (NeedsUrgentFood(state) && AdultResident(inhabitantId)) AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
+        AddRegisteredChoices(ChoiceGroup.Final, context);
         if (restrictForOrder && PendingInstructionFor(inhabitantId) is { } order)
             return RestrictCandidatesForOrder(candidates, order, state);
         return candidates;
