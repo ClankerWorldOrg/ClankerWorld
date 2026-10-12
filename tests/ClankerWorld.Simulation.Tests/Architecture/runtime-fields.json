@@ -1,6 +1,6 @@
 {
   "saved": [
-    "animalWorld",
+    "animalSystem",
     "assetReservations",
     "boatTransport",
     "bridgeTraffic",
@@ -41,6 +41,7 @@
     "farmingSystem"
   ],
   "live": [
+    "animalWorldAdapter",
     "AgentBeliefChanged",
     "conversationWorld",
     "civicWorld",
