@@ -99,7 +99,7 @@ public partial class Main
                 !inhabitantDetails.Text.Contains("Jev made their latest choice.", StringComparison.Ordinal))
                 throw new InvalidOperationException($"A choice Jev made must be said plainly: {profileActivityLabel.Text} / {inhabitantDetails.Text}");
             var approvalDeadline = snapshot.WorldTick + (snapshot.CalendarPace?.TicksPerDay ?? 1_440);
-            var approval = new OwnerWorldDecisionFactor("town-membership", "Town: none · First Town's council approved admission; not accepted yet")
+            var approval = new OwnerWorldDecisionFactor("town-membership", "Town: none · First Town's council agreed to the request to join; not accepted yet")
             {
                 AcceptanceDeadlineTick = approvalDeadline,
             };
@@ -116,9 +116,9 @@ public partial class Main
             RenderSelectedInhabitantCard(snapshot with
             {
                 Inhabitants = [mira with { DecisionFactors = [.. mira.DecisionFactors,
-                    new("town-membership", "Town: none · First Town's admission approval expired without acceptance; ask again")] }, rowan, pip],
+                    new("town-membership", "Town: none · First Town's approval to join expired before it was accepted; can ask again")] }, rowan, pip],
             });
-            if (!inhabitantDetails.Text.Contains("expired without acceptance", StringComparison.Ordinal) ||
+            if (!inhabitantDetails.Text.Contains("expired before it was accepted", StringComparison.Ordinal) ||
                 inhabitantDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
                 inhabitantDetails.Text.Contains("not accepted yet", StringComparison.Ordinal))
                 throw new InvalidOperationException("A lapsed admission must show its reason without a pending approval or acceptance deadline.");

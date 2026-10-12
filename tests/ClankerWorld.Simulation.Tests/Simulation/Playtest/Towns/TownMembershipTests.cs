@@ -130,8 +130,8 @@ public sealed partial class TownMembershipTests
         Assert.Empty(world.Towns.Single(town => town.Id == First).Admissions ?? []);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "household_joined" && item.Detail == $"{applicant}:{Alpha}");
         Assert.Contains(model.ObservationsOf(applicant), observation => observation.Self?.TownMembershipNote?.Contains(
-            "admission to First Town pending until world day", StringComparison.Ordinal) == true);
-        Assert.StartsWith("Town: none · no council vote; seek admission or resettle", OwnerView(world, applicant), StringComparison.Ordinal);
+            "asked to join First Town; its council decides by world day", StringComparison.Ordinal) == true);
+        Assert.StartsWith("Town: none · no council vote; can ask a Town's council to join, or resettle", OwnerView(world, applicant), StringComparison.Ordinal);
 
         foreach (var founder in Founders) model.Scripts[founder] = [Civic(First, "read"), Civic(First, "yes")];
         using var voting = Reopen(Paused(world), model);
@@ -658,7 +658,7 @@ public sealed partial class TownMembershipTests
         Assert.True(proposals[1].OpenedTick >= settled + day);
         var observations = model.ObservationsOf(applicant);
         const string admission = "civic|town:first|admission||";
-        const string refusal = "First Town's council did not approve admission on world day 1";
+        const string refusal = "First Town's council turned down the request to join on world day 1";
         Assert.DoesNotContain(observations, observation => observation.WorldTick >= settled && observation.WorldTick < settled + day &&
             observation.Candidates.Any(candidate => candidate.Id == admission));
         Assert.Contains(observations, observation => observation.WorldTick >= settled + day &&
@@ -699,7 +699,7 @@ public sealed partial class TownMembershipTests
             Func<TownRuntimeState, string, string, bool>? knows = null) =>
             TownMembershipText.Describe([first, secondTown ?? second], society, id, day,
                 warehouses ?? new HashSet<string>([First], StringComparer.Ordinal), knows);
-        const string none = "Town: none · no council vote; seek admission or resettle an abandoned Town";
+        const string none = "Town: none · no council vote; can ask a Town's council to join, or resettle an abandoned Town";
 
         Assert.Equal(none, Describe(outsider));
         Assert.Equal("Town: resident of First Town · may sit and vote on its council and collect its Warehouse stock in person, housed or not",
@@ -729,7 +729,7 @@ public sealed partial class TownMembershipTests
         // Pending, approved, refused and cancelled requests, each only once its notice is known.
         var pending = TownGovernanceRules.SubmitProposal(council, Second, outsider, "admission", outsider, "Admit me.", "council:0", [voter], 0, day);
         var proposal = pending.Proposals[0].Id;
-        Assert.Equal(none + " · admission to Second Town pending until world day 2; grants nothing yet",
+        Assert.Equal(none + " · asked to join Second Town; its council decides by world day 2, and nothing changes until then",
             Describe(outsider, second with { Governance = pending }));
         // The deadline is one full day after tick zero. In a world that starts
         // part-way through its first day it still falls on calendar day 2, and
@@ -739,12 +739,12 @@ public sealed partial class TownMembershipTests
         string? Morning(TownGovernanceState governance, int offset) => TownMembershipText.Describe(
             [first, second with { Governance = governance }], society, outsider, day,
             new HashSet<string>([First], StringComparer.Ordinal), calendarOffsetTicks: offset);
-        Assert.Equal(none + " · admission to Second Town pending until world day 2; grants nothing yet", Morning(pending, day / 4));
+        Assert.Equal(none + " · asked to join Second Town; its council decides by world day 2, and nothing changes until then", Morning(pending, day / 4));
         var early = pending with { Proposals = [pending.Proposals[0] with { DeadlineTick = day - day / 4 - 1 }] };
-        Assert.Equal(none + " · admission to Second Town pending until world day 1; grants nothing yet", Morning(early, day / 4));
+        Assert.Equal(none + " · asked to join Second Town; its council decides by world day 1, and nothing changes until then", Morning(early, day / 4));
         var atMidnight = pending with { Proposals = [pending.Proposals[0] with { DeadlineTick = day - day / 4 }] };
-        Assert.Equal(none + " · admission to Second Town pending until world day 2; grants nothing yet", Morning(atMidnight, day / 4));
-        Assert.Equal(none + " · admission to Second Town pending until world day 1; grants nothing yet", Morning(atMidnight, 0));
+        Assert.Equal(none + " · asked to join Second Town; its council decides by world day 2, and nothing changes until then", Morning(atMidnight, day / 4));
+        Assert.Equal(none + " · asked to join Second Town; its council decides by world day 1, and nothing changes until then", Morning(atMidnight, 0));
         Assert.Equal(none, Describe(outsider, second with { Governance = pending }, knows: (_, _, _) => false));
 
         var passed = TownGovernanceRules.SubmitProposal(council, Second, voter, "admission", outsider, "Admit them.", "council:0", [voter], 0, day);
@@ -754,13 +754,13 @@ public sealed partial class TownMembershipTests
             Governance = passed,
             Admissions = [new TownAdmissionRecord(proposal, outsider, "approved", 1)],
         };
-        Assert.Equal(none + " · Second Town's council approved admission; accept before world day 2 at 00:04; about 23 world hours 44 minutes left; paused time does not count",
+        Assert.Equal(none + " · Second Town's council agreed to the request to join; accept before world day 2 at 00:04; about 23 world hours 44 minutes left; paused time does not count",
             Describe(outsider, approved));
         Assert.Equal(none, Describe(outsider, approved, knows: (_, kind, _) => kind != "result"));
 
         var rejected = TownGovernanceRules.VoteProposal(pending, proposal, voter, false, 1);
         Assert.Equal("rejected", rejected.Proposals[0].Status);
-        Assert.Equal(none + " · Second Town's council did not approve admission on world day 1",
+        Assert.Equal(none + " · Second Town's council turned down the request to join on world day 1",
             Describe(outsider, second with { Governance = rejected }));
         Assert.Equal(none, Describe(outsider, second with { Governance = rejected }, knows: (_, kind, _) => kind != "result"));
         var nextDay = society with { WorldTick = 1 + day };
@@ -769,7 +769,7 @@ public sealed partial class TownMembershipTests
 
         var cancelled = TownGovernanceRules.Advance(pending, Second, "membership-text", [voter, resident], 2, day);
         Assert.Equal("cancelled", cancelled.Proposals[0].Status);
-        Assert.Equal(none + " · admission request to Second Town closed when its council changed; ask again",
+        Assert.Equal(none + " · the request to join Second Town closed when its council changed; can ask again",
             Describe(outsider, second with { Governance = cancelled }));
         Assert.Equal(none, Describe(outsider, second with { Governance = cancelled },
             knows: (_, kind, subject) => kind != "council" || subject != "council:1"));
@@ -830,7 +830,7 @@ public sealed partial class TownMembershipTests
                 Assert.DoesNotContain($"{town.Name}'s council approved", observation.Self?.TownMembershipNote ?? "", StringComparison.Ordinal);
             });
             Assert.Contains(observed, observation => observation.Candidates.Any(candidate => candidate.Id.StartsWith(accept, StringComparison.Ordinal)) &&
-                observation.Self?.TownMembershipNote?.Contains("council approved admission; accept before", StringComparison.Ordinal) == true);
+                observation.Self?.TownMembershipNote?.Contains("council agreed to the request to join; accept before", StringComparison.Ordinal) == true);
             if (townId == Second) secondProposal = record.ProposalId;
             else return (state, record.ProposalId, secondProposal!);
         }

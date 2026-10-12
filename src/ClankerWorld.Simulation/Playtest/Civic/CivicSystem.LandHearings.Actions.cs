@@ -228,7 +228,7 @@ internal sealed partial class CivicSystem
             case "hearing_answer":
             case "hearing_waive":
                 hearings = TownLandHearingRules.Respond(hearings, item.Id, revision.Number, actor,
-                    action == "hearing_answer" ? "answer" : "waive", action == "hearing_waive" ? "I waive only my own response opportunity." : LandHearingText(hearingChoice?.Statement ?? proposalText),
+                    action == "hearing_answer" ? "answer" : "waive", action == "hearing_waive" ? "I choose not to respond. This speaks only for me." : LandHearingText(hearingChoice?.Statement ?? proposalText),
                     world.WorldTick, council.Knowledge, parties, partyId: parties.Single(party => CivicAgentToken(party.Id) == choice).Id);
                 break;
             case "hearing_property_accept":

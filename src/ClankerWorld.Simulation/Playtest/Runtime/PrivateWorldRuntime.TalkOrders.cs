@@ -60,13 +60,13 @@ public sealed partial class PrivateWorldRuntime
         if (!HasExplicitConversationProvider(actor) || !HasExplicitConversationProvider(target))
             return "Both people need their own available conversation model.";
         if (!HasConversationAllowance(actor) || !HasConversationAllowance(target))
-            return "Waiting for both people's conversation allowance.";
+            return "Waiting until both people are under their daily conversation limit.";
         if (conversations.Count >= AgentConversationRules.MaximumSavedConversations &&
             !conversations.Any(conversation => conversation.Status == AgentConversationStatus.Closed && !ActiveTalkOrderUses(conversation.Id)))
             return "Waiting for space in the conversation history.";
         return IsWithinInteractionRange(person.Position, other.Position, ResourceInteractionRange) ||
             FindUnoccupiedRoute(actor, person.Position, other.Position, ResourceInteractionRange).Count > 0
-                ? null : "Waiting for a legal accessible route to the named person.";
+                ? null : "Waiting for an open route to the named person.";
     }
 
     private void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, PlaytestInhabitantState person)

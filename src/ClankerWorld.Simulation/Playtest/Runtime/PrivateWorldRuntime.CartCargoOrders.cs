@@ -75,14 +75,14 @@ public sealed partial class PrivateWorldRuntime
         if (HasActiveContainerReservation(society.Checkpoint.Inventory, cart.Id)) return "The selected cart or its cargo is reserved for another task.";
         if (order.Action == "load_handcart" && cart.ConditionBasisPoints == 0) return "The selected cart is broken; it needs repair before loading.";
         if (person.Position != CartPosition(cart))
-            return FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count > 0 ? null : "Waiting for a clear legal route to the selected cart.";
+            return FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count > 0 ? null : "Waiting for a clear route to the selected cart.";
         if (order.Action == "load_handcart" && CargoQuantity(cart.Id) >= InventoryContainerRules.HandcartCapacity)
             return "Waiting for space in the selected cart.";
         if (order.Action == "unload_handcart" && FreeCarryCapacity(actor) <= 0) return "Waiting for personal carrying space to unload the selected cart.";
         var cargo = CargoLotForOrder(instruction, person, cart);
         if (cargo is null || cargo.ItemKind != order.TargetItemKind ||
             (order.Action == "load_handcart" ? !CanLoadCartLot(actor, person, cargo) : cargo.OwnerId != actor || cargo.ContainerLotId != cart.Id))
-            return "Waiting for the requested accessible, authorized and unreserved loose goods at the selected cart.";
+            return "Waiting for the requested loose goods at the cart; they must be reachable, allowed and not reserved.";
         return null;
     }
 

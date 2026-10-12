@@ -14,7 +14,7 @@ internal sealed partial class CivicSystem
             // A different pending case over these tiles must rule on the lapsed permission first; only a
             // ruling made at or after the agreed end, with the terms unchanged since, has already reviewed it.
             if (TownLandHearingRules.FilingRefusal(hearings, town.Id, right.Tiles, householdLandUseRights, right.Id) is not null) continue;
-            var filing = new TownLandCaseFiling(null, "expiry", "Review an agreed permission expiry; existing permission remains provisional.",
+            var filing = new TownLandCaseFiling(null, "expiry", "Review a use right that reached its agreed end; it stays in place until the ruling.",
                 new("confirm"), world.WorldTick, right.Id);
             (council, hearings) = OpenLandHearing(world, town, council, hearings, filing, right.Tiles);
         }

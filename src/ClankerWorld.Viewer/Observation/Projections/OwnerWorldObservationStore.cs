@@ -16,28 +16,64 @@ namespace ClankerWorld.Viewer.Observation;
 /// </summary>
 public sealed partial class OwnerWorldObservationStore
 {
+    /// <summary>
+    /// The duties of a mayoral office as the Towns page names them. Agents' models read
+    /// <see cref="TownArrangementRules.MandateLabel"/> instead, whose wording their prompts rely on.
+    /// </summary>
+    private static string OfficeDuties(string mandates) => string.Join(", plus ", mandates.Split('+').Select(mandate => mandate switch
+    {
+        "land" => "land disputes and expiring use rights",
+        "ordinary" => "everyday laws and letting newcomers join",
+        "non_land" => "non-land hearings and voluntary settlements",
+        _ => "a duty this version doesn't support",
+    }));
+
+    /// <summary>
+    /// A Town's way of governing in the Towns page's words: who decides, how the mayor is chosen and what happens
+    /// while the office is empty. Agents' models read <see cref="TownArrangementRules.Declaration"/> instead.
+    /// </summary>
+    private static string GovernmentSummary(TownArrangement arrangement)
+    {
+        var everyday = arrangement.Ordinary switch
+        {
+            TownArrangementRules.Council => "the Town council (every adult resident, or three elected representatives with ten-day terms once there are four adults)",
+            TownArrangementRules.AllAdultCouncil => "every adult resident, however many there are",
+            TownArrangementRules.ElectedCouncil => "three elected representatives with ten-day terms (every adult resident when there are three or fewer)",
+            TownArrangementRules.Mayor => "one elected leader, the mayor",
+            _ => "an arrangement this version doesn't support",
+        };
+        var text = "Everyday decisions: " + everyday + ". Land cases: " +
+            (arrangement.Land == TownArrangementRules.Mayor ? "the elected mayor" : "nobody holds this duty, so land cases wait") + ". " +
+            "Non-land cases: " + (arrangement.NonLand == TownArrangementRules.Mayor ? "the elected mayor, as a separate duty" : "nobody holds this duty, so formal cases wait") + ".";
+        if (TownArrangementRules.Mandates(arrangement) is not { } mandates) return text;
+        return text + $" Residents elect a willing adult resident as mayor ({OfficeDuties(mandates)}), one vote each; a tie means another vote. " +
+            $"A term lasts {TownArrangementRules.MayorTermDays} unpaused days, and voting for the next term starts one day before it ends. " +
+            "If the office becomes empty, an election for a fresh full term starts straight away" +
+            (arrangement.Ordinary == TownArrangementRules.Mayor ? "; until then every adult resident makes everyday decisions." : "; until then land cases wait.");
+    }
+
     private static ViewerTownGovernment ProjectGovernment(TownGovernmentState government, Func<string, string> name, long tick)
     {
         ViewerMayoralElection Election(TownMayoralContest contest) => new(contest.Id,
-            TownArrangementRules.MandateLabel(contest.Mandates), contest.Stage, contest.Round, contest.RoundDeadlineTick,
+            OfficeDuties(contest.Mandates), contest.Stage, contest.Round, contest.RoundDeadlineTick,
             contest.Candidates.Select(id => new ViewerCivicCandidate(id, name(id), contest.Ballots.Count(b => b.CandidateId == id))).ToArray(),
             contest.WinnerId is { } winner ? name(winner) : null, contest.Reason);
-        return new(TownArrangementRules.Declaration(government.Arrangement),
+        return new(GovernmentSummary(government.Arrangement),
             government.Laws.TakeLast(16).Select(l =>
             {
                 var v = TownLawRules.Current(l);
                 return new ViewerTownLaw(l.Id, v.Subject, v.Rule, v.BoatAccess is null ? v.Scope : "communal_boats", v.SiteTiles.Count, v.Version, v.AdoptedTick, v.EndedTick)
                 { Site = v.SiteTiles.Select(ToPosition).ToArray() };
             }).ToArray(), government.Laws.Count,
-            government.Offices.Select(o => new ViewerTownOffice(TownArrangementRules.MandateLabel(o.Mandates),
+            government.Offices.Select(o => new ViewerTownOffice(OfficeDuties(o.Mandates),
                 o.HolderId is { } holder ? name(holder) : null, o.TermEndTick, o.VacancyReason)).ToArray(),
             government.Changes.TakeLast(8).Select(c => new ViewerGovernmentChange(c.Id,
-                (c.Kind == "replace_mayor" ? "Replace the elected mayoral mandates. " : "") + TownArrangementRules.Declaration(c.Target),
+                (c.Kind == "replace_mayor" ? "Elect a new mayor for the same duties. " : "") + GovernmentSummary(c.Target),
                 c.Status, c.Votes.Count(v => v.Yes), c.Votes.Count(v => !v.Yes), c.Voters.Count / 2 + 1,
                 c.DeadlineTick, c.HandoverDeadlineTick, c.Reason)
             {
                 NonLandExtension = c.NonLandExtension is { } extension ? new(extension.HolderId, name(extension.HolderId),
-                    TownArrangementRules.MandateLabel(extension.BaseMandate), extension.TermStartTick, extension.TermEndTick, extension.ConsentTick) : null,
+                    OfficeDuties(extension.BaseMandate), extension.TermStartTick, extension.TermEndTick, extension.ConsentTick) : null,
             }).ToArray(),
             government.Contest is { } live ? Election(live) : null,
             government.ContestHistory.Count > 0 ? Election(government.ContestHistory[^1]) : null, government.MayoralRetryTick)
@@ -47,7 +83,7 @@ public sealed partial class OwnerWorldObservationStore
                 ? new(authority.HolderId, name(authority.HolderId), authority.AuthorityId, authority.EffectiveTick,
                     authority.TermStartTick, authority.TermEndTick) : null,
             NonLandGrants = government.NonLandGrants.Select(grant => new ViewerNonLandGrant(grant.Id, grant.HolderId,
-                name(grant.HolderId), TownArrangementRules.MandateLabel(grant.BaseMandate), grant.ConsentTick,
+                name(grant.HolderId), OfficeDuties(grant.BaseMandate), grant.ConsentTick,
                 grant.EffectiveTick, grant.TermStartTick, grant.TermEndTick)).ToArray(),
         };
     }
@@ -158,7 +194,7 @@ public sealed partial class OwnerWorldObservationStore
                         "Property: " + Readable(property.Request.BuildingId) + ". Shared goods: " +
                             (property.Snapshots[^1].SharedLots.Count == 0 ? "none" : string.Join(", ", property.Snapshots[^1].SharedLots
                                 .GroupBy(lot => lot.ItemKind).Select(group => group.Sum(lot => lot.Quantity) + " " + group.Key.Replace('_', ' ')))) + ".",
-                        "Property consent is separate from answering or waiving a response. Personal goods retain their owners."
+                        "Agreeing to hand over the property is separate from answering the notice or choosing not to respond. Personal goods stay with their owners."
                     }.Concat(TownPropertyRules.RequiredConsent(property.Snapshots[^1]).Select(actor =>
                         AgentName(actor) + ": " + (property.Consents.LastOrDefault(consent => consent.Revision == property.Snapshots[^1].Revision && consent.AgentId == actor) is { } consent
                             ? consent.Agreed ? "personally agreed to this property transfer" : "refused this property transfer" : "has not agreed to this property transfer") + "."))
@@ -233,16 +269,16 @@ public sealed partial class OwnerWorldObservationStore
     private static string LandRequestApprovalDetail(PrivateWorldRuntimeState state, HouseholdLandUseRequest request, bool disputed)
     {
         if (request.Status != "pending") return request.Status == "hearing_resolved"
-            ? "Use request resolved by a recorded land ruling" : "Household request " + request.Status.Replace('_', ' ');
+            ? "A land ruling settled this use request" : "Household request " + request.Status.Replace('_', ' ');
         var adults = state.Society.Society.Inhabitants.Where(p => p.HouseholdId == request.HouseholdId &&
             p.Status == SocietyInhabitantStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).ToArray();
         var accepted = adults.Count(p => request.Consents.Any(c => c.AgentId == p.Id && c.Accepted));
         var proposal = state.Towns?.Single(t => t.Id == request.TownId).Governance?.Proposals.SingleOrDefault(p => p.Id == request.CouncilProposalId);
-        var council = proposal?.Status == "passed" ? "Council approved" : proposal is null ? "Awaiting Council consideration" :
+        var council = proposal?.Status == "passed" ? "Council approved" : proposal is null ? "Waiting for the Council to consider it" :
             $"Council votes: {proposal.Votes.Count(v => v.Yes)}/{proposal.RequiredYes}";
         var resolved = request.HearingResolutions.SelectMany(receipt => receipt.Tiles).Distinct().Count();
-        return $"{council}; household acceptance: {accepted}/{adults.Length}" + (disputed ? "; disputed plot" : "") +
-            (resolved > 0 ? $"; {resolved}/{request.Tiles.Count} requested tiles resolved by land rulings; remaining tiles still pending" : "");
+        return $"{council}; household adults who agreed: {accepted}/{adults.Length}" + (disputed ? "; disputed plot" : "") +
+            (resolved > 0 ? $"; land rulings settled {resolved} of {request.Tiles.Count} requested tiles; the rest are still waiting" : "");
     }
 
     private const int AgentKnowledgeArtifactLimit = 8;
@@ -774,7 +810,7 @@ public sealed partial class OwnerWorldObservationStore
                     Governance = item.Governance is { } civic ? new ViewerTownGovernance(
                         civic.Form, civic.Fallback, civic.Members.Select(id => inhabitantsById.GetValueOrDefault(id)?.Name ?? id).ToArray(),
                         civic.TermEndTick, civic.RetryTick, civic.Candidates.Select(c =>
-                            (inhabitantsById.GetValueOrDefault(c.AgentId)?.Name ?? c.AgentId) + (c.FullTerm ? " (full term)" : " (current vacancy only)")).ToArray(),
+                            (inhabitantsById.GetValueOrDefault(c.AgentId)?.Name ?? c.AgentId) + (c.FullTerm ? " (full term)" : " (only to fill the empty seat)")).ToArray(),
                         civic.Proposals.TakeLast(RecentCivicProposalLimit).Select(p => new ViewerCivicProposal(p.Id, p.Kind,
                             item.Government?.LawDrafts.SingleOrDefault(d => d.ProposalId == p.Id) is { } draft ? TownLawRules.VoteText(draft) :
                                 p.Text + (p.LandClaimTiles is { } tiles ? " Exact tiles: " + TownLandClaimRules.DescribeTiles(tiles) + "." :
@@ -1320,8 +1356,8 @@ public sealed partial class OwnerWorldObservationStore
             SocialNotes = state.Society.Society.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
                     (offer.FirstPartyId == inhabitant.Id || offer.SecondPartyId == inhabitant.Id))
                 .Select(offer => offer.AcceptedBy.Contains(inhabitant.Id, StringComparer.Ordinal)
-                    ? "Waiting for the other inhabitant to accept or decline an exchange."
-                    : "An exchange is offered; acceptance or refusal is still undecided.")
+                    ? "Waiting for the other agent to accept or decline an exchange."
+                    : "An exchange is on offer; nobody has accepted or refused it yet.")
                 .Concat(BusinessTradeNotes(state, inhabitant))
                 .Concat(MarriageNotes(state, inhabitant.Id))
                 .Concat(state.Inhabitants.Where(person => person.Parenthood is { } plan &&
@@ -1431,7 +1467,7 @@ public sealed partial class OwnerWorldObservationStore
         return blocker switch
         {
             HousingBlockers.AwaitingAnswer => $"No home yet. Asked the {asked} household to live in their House; every adult member must agree.",
-            HousingBlockers.NoHousehold => "No home. Seek an accepting household with room for the complete care group first; otherwise start a household and build a House.",
+            HousingBlockers.NoHousehold => "No home. Looking first for a household that will take them and has room for everyone in their care; otherwise they start a household and build a House.",
             HousingBlockers.NoAuthorizedHome => "No home. The household holds no House yet and can plan one.",
             HousingBlockers.MissingMaterials => "No home. The household holds no House and lacks the materials to build one.",
             HousingBlockers.NoLegalSite => "No home. The household has the materials for a House but no legal site to build it. " +
@@ -1486,7 +1522,7 @@ public sealed partial class OwnerWorldObservationStore
             relocation.HouseholdId == inhabitant.HouseholdId);
         return counts + (notices > 0
             ? $" {notices} {(notices == 1 ? "adult has" : "adults have")} notice to move out; completed expansion may let them stay."
-            : " Nobody has notice to move out. Seek a feasible expansion or a voluntary household split that preserves dependent care.") + construction;
+            : " Nobody has notice to move out. The household can expand the House, or someone can choose to move out while keeping children with their carers.") + construction;
     }
 
     /// <summary>Requests to live in this adult's House that they must answer, or have answered.</summary>

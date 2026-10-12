@@ -94,7 +94,7 @@ public static partial class TownGovernmentRules
         var change = state.Changes.SingleOrDefault(c => c.Id == id);
         if (change is null || change.AuthorId != actor || change.Status is not ("queued" or "voting"))
             throw new InvalidOperationException("Only the author may withdraw a queued or unfinished resident vote.");
-        state = Replace(state, change with { Status = "withdrawn", SettledTick = tick, Reason = "Withdrawn by its author." });
+        state = Replace(state, change with { Status = "withdrawn", SettledTick = tick, Reason = "The person who proposed it withdrew it." });
         return (Notice(council, "government", id, "Resident government proposal withdrawn.", tick), state);
     }
 
@@ -109,7 +109,7 @@ public static partial class TownGovernmentRules
                 queued.NonLandExtension is { } extension && (state.Arrangement.NonLand != TownArrangementRules.NoOffice ||
                     !ExtensionBaseCurrent(state, extension, tick)))
             {
-                state = Replace(state, queued with { Status = "cancelled", SettledTick = tick, Reason = "The queued request is no longer applicable." });
+                state = Replace(state, queued with { Status = "cancelled", SettledTick = tick, Reason = "This waiting proposal no longer applies, because its author or the Town's government changed." });
                 council = Notice(council, "government", queued.Id, "Queued government proposal cancelled because its author or requested arrangement changed.", tick);
                 continue;
             }
@@ -141,7 +141,7 @@ public static partial class TownGovernmentRules
         foreach (var office in state.Offices.Where(o => o.HolderId is not null).ToArray())
             if (!Has(adults, office.HolderId!) || tick >= office.TermEndTick)
                 (council, state) = EndOffice(council, state, office, tick,
-                    !Has(adults, office.HolderId!) ? "The holder died or left Town membership." : "The term ended.");
+                    !Has(adults, office.HolderId!) ? "The mayor died or left the Town." : "The term ended.");
 
         if (ActiveChange(state) is { Status: "voting" } voting)
         {
@@ -157,7 +157,7 @@ public static partial class TownGovernmentRules
             }
             else if (tick >= voting.DeadlineTick || yes + voters.Length - voting.Votes.Count < required)
             {
-                voting = voting with { Status = "rejected", SettledTick = tick, Reason = "No resident majority approved the proposal." };
+                voting = voting with { Status = "rejected", SettledTick = tick, Reason = "Not enough residents voted yes." };
                 council = Notice(council, "government", voting.Id, "Resident government proposal failed: no required majority.", tick);
             }
             state = Replace(state, voting);
@@ -217,18 +217,18 @@ public static partial class TownGovernmentRules
             {
                 if (winner is not null) (council, state) = SeatMayor(council, state, winner, tick, day);
                 if (state.Contest?.ChangeId == handover.Id)
-                    (council, state) = ArchiveContest(council, state, "cancelled", "The government handover completed without needing this election.", adults, tick, day);
+                    (council, state) = ArchiveContest(council, state, "cancelled", "The government change finished without needing this election.", adults, tick, day);
                 if (handover.NonLandExtension is not null)
                     (council, state) = ExtendNonLandOffice(council, state, handover, tick);
                 foreach (var office in state.Offices.Where(o => !Has(Mandates(handover.Target), o.Mandates)).ToArray())
                 {
-                    if (office.HolderId is not null) (council, state) = EndOffice(council, state, office, tick, "Residents ended this mandate.");
+                    if (office.HolderId is not null) (council, state) = EndOffice(council, state, office, tick, "Residents voted to remove this duty.");
                     state = state with { Offices = state.Offices.Where(o => o.Mandates != office.Mandates).ToArray() };
                 }
                 state = state with { Arrangement = handover.Target };
                 if (state.Contest is { Purpose: not "handover" } obsolete &&
                     obsolete.Mandates.Split('+').Any(m => !Has(Mandates(handover.Target), m)))
-                    (council, state) = ArchiveContest(council, state, "cancelled", "The protected handover ended a mandate this contest would fill.", adults, tick, day);
+                    (council, state) = ArchiveContest(council, state, "cancelled", "The government change removed the duty this election would have filled.", adults, tick, day);
                 state = Replace(state, handover with
                 {
                     Status = "completed",
@@ -251,9 +251,9 @@ public static partial class TownGovernmentRules
             }
             else if (tick >= handover.HandoverDeadlineTick)
             {
-                state = Replace(state, handover with { Status = "cancelled", SettledTick = tick, Reason = "No valid successor was ready within three days." });
+                state = Replace(state, handover with { Status = "cancelled", SettledTick = tick, Reason = "Nobody was ready to take over within three days, so the change was called off." });
                 if (state.Contest?.ChangeId == handover.Id)
-                    (council, state) = ArchiveContest(council, state, "cancelled", "The creating government transition expired.", adults, tick, day);
+                    (council, state) = ArchiveContest(council, state, "cancelled", "The government change that called this election ran out of time.", adults, tick, day);
                 if (ForcedElectionIsLive(handover, council))
                     council = TownGovernanceRules.CancelElection(council, tick, "The creating government transition expired.");
                 council = Notice(council, "government", handover.Id, "Government handover cancelled: no valid successor was ready within three days. Existing lawful authority remains.", tick);

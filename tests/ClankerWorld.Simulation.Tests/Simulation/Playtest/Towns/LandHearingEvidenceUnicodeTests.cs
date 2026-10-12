@@ -126,7 +126,7 @@ public sealed class LandHearingEvidenceUnicodeTests
             foreach (var adult in party.AdultIds)
             {
                 council = TownGovernanceRules.LearnNotices(council, adult, [revision.NoticeId], state.Society.Society.WorldTick);
-                hearings = TownLandHearingRules.Respond(hearings, item.Id, revision.Number, adult, "waive", "I waive only my own response opportunity.",
+                hearings = TownLandHearingRules.Respond(hearings, item.Id, revision.Number, adult, "waive", "I choose not to respond. This speaks only for me.",
                     state.Society.Society.WorldTick, council.Knowledge, revision.Parties);
             }
         var inspect = new NonviolentTestProvider

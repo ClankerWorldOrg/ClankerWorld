@@ -402,7 +402,7 @@ public sealed partial class PrivateWorldRuntime
             goods.Quantity < offer.FirstQuantity || payment.Quantity < offer.SecondQuantity ||
             new[] { DerivedId.Create(offer.Id + ":first"), DerivedId.Create(offer.Id + ":second") }.Any(id => !inventory.Reservations.Any(reservation =>
                 reservation.Id == id && reservation.State == InventoryReservationState.Reserved)))
-            return "The reserved goods are no longer available at the agreed location.";
+            return "The goods set aside for this exchange are no longer at the agreed place.";
         var kind = BusinessRules.KindOf(worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId));
         if (kind is null || !BusinessRules.MaySell(kind, goods.ItemKind))
             return "This shop cannot sell the offered goods.";
@@ -415,7 +415,7 @@ public sealed partial class PrivateWorldRuntime
             releasedBusinessReservation: Math.Max(0, offer.SecondQuantity - offer.FirstQuantity));
         if (afterCarry > PersonalEquipmentRules.Capacity(inventory, trade.BuyerId, equipment) + HorseCargoCapacity(trade.BuyerId) ||
             offer.SecondQuantity > storageRoom)
-            return "There is no longer enough receiving space.";
+            return "There is no longer enough room to receive the goods.";
         if (!IsWithinInteractionRange(buyerState.Position, trade.Position, ResourceInteractionRange) &&
             FindUnoccupiedRoute(trade.BuyerId, buyerState.Position, trade.Position, ResourceInteractionRange).Count == 0)
             return "The buyer can no longer reach the shop.";

@@ -60,7 +60,7 @@ public sealed partial class TownMembershipTests
             Assert.Single(Town(approved, First).Admissions!), AdmissionJsonOptions));
         Assert.Equal(JsonSerializer.Serialize(proposal), JsonSerializer.Serialize(Assert.Single(world.Towns[0].Governance!.Proposals)));
         Assert.DoesNotContain(world.Towns, town => town.ResidentIds.Contains(newcomer, StringComparer.Ordinal));
-        Assert.Contains("approval expired without acceptance; ask again", OwnerView(world, newcomer), StringComparison.Ordinal);
+        Assert.Contains("approval to join expired before it was accepted; can ask again", OwnerView(world, newcomer), StringComparison.Ordinal);
         AssertAcceptanceDeadlineProjection(world, newcomer, null);
         var eventAtDeadline = Assert.Single(world.ExportState().Events, item => item.Kind == "town_admission_lapsed");
         Assert.Equal(deadline, eventAtDeadline.WorldTick);
@@ -74,7 +74,7 @@ public sealed partial class TownMembershipTests
         var observation = Assert.Single(observer.ObservationsOf(newcomer));
         Assert.DoesNotContain(observation.Candidates, candidate => candidate.Id.Contains("|accept_admission|", StringComparison.Ordinal) ||
             candidate.Id.Contains("|decline_admission|", StringComparison.Ordinal));
-        Assert.Contains("approval expired without acceptance; ask again", observation.Self?.TownMembershipNote, StringComparison.Ordinal);
+        Assert.Contains("approval to join expired before it was accepted; can ask again", observation.Self?.TownMembershipNote, StringComparison.Ordinal);
         AssertRoundTrip(inspected);
         inspected.Validate();
     }
@@ -297,7 +297,7 @@ public sealed partial class TownMembershipTests
         var window = FormattableString.Invariant($"world day {deadline / AcceptanceDay + 1} at {clockMinutes / 60:00}:{clockMinutes % 60:00}; {duration}; paused time does not count");
         var candidate = Assert.Single(observation.Candidates, item => item.Id == Civic(First, "accept_admission") + proposal.Id + "|");
         Assert.Contains("accept before " + window, candidate.Description, StringComparison.Ordinal);
-        Assert.Contains("council approved admission; accept before " + window, observation.Self?.TownMembershipNote, StringComparison.Ordinal);
+        Assert.Contains("council agreed to the request to join; accept before " + window, observation.Self?.TownMembershipNote, StringComparison.Ordinal);
     }
 
     private static void AssertAdmissionCodecRefuses(PrivateWorldRuntime world, Action<JsonArray> damage)

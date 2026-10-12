@@ -70,7 +70,7 @@ public sealed partial class PrivateWorldRuntime
         var geometry = PortNavigationRules.Geometry(map, definition, plan.Site);
         var legal = world.Legal.Value;
         if (geometry.LandTiles.Any(point => !legal.Contains(point)) || !legal.Contains(plan.Entrance))
-            return "The Port's land end and approach need uncontested Town title.";
+            return "The Port's land end and approach must be undisputed Town land.";
         if (plan.BoatPortId is { } portId)
         {
             var port = Port(portId);
@@ -92,7 +92,7 @@ public sealed partial class PrivateWorldRuntime
         var work = TownProjectRules.WorkSite(plan);
         if (actor is not null && inhabitants.TryGetValue(actor, out var person) &&
             person.Position != work && FindUnoccupiedRoute(actor, person.Position, work, 0).Count == 0)
-            return "No usable foot route reaches the Port's land end.";
+            return "No walking route reaches the Port's land end.";
         return null;
     }
 

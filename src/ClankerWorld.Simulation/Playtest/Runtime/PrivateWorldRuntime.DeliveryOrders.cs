@@ -281,7 +281,7 @@ public sealed partial class PrivateWorldRuntime
              (order.DeliveryPurpose == "town_surplus" ? TownForResident(actor) != building.TownId : HouseholdFor(actor) != building.HouseholdId)))
             return "The selected destination moved, changed owner or is no longer available; the order keeps its original destination.";
         if (order.DeliveryLotId is not null)
-            return "The selected shipment must remain carried, usable and unreserved, with room and an open route for its whole load at the destination.";
+            return "The goods for this delivery must still be carried, usable and not reserved, and the destination needs room and an open route for the whole load.";
         if (!ReadyForBriefInteraction(actor)) return "The agent needs warmth before delivering goods.";
         return "No matching delivery is available under this building's normal stock, reserve, carrying and access limits.";
     }

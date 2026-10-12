@@ -245,7 +245,7 @@ public sealed partial class PrivateWorldRuntime
         if (instruction.Order.ExpansionBinding is { } binding && ExpansionOrderBuilding(instruction) is { } building &&
             !CanFitExpansion(building, binding.TargetPosition, binding.TargetFootprint, out var failure, binding.JobId))
             return failure;
-        return "The building needs more space, a permitted expansion site, reachable materials and an authorized worker before this order can continue.";
+        return "The building needs more space, a permitted expansion site, reachable materials and a worker who may build there before this order can continue.";
     }
 
     private static void ValidateExpansionOrderBindings(WorldContentSimulationState? simulation,

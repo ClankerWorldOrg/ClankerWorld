@@ -32,7 +32,7 @@ public static class ToolMakingRequestRules
             ToolMakingRequestStatus.Requested => $"Asked the Blacksmith household to make a {item}; no payment has been taken.",
             ToolMakingRequestStatus.Accepted => $"The household accepted the {item} request. It uses its own materials.",
             ToolMakingRequestStatus.Ready => $"The {item} was made. Bring payment to the shop to propose an exchange.",
-            ToolMakingRequestStatus.Offered => $"An exchange for the actual {item} is pending. Both traders must meet at the shop.",
+            ToolMakingRequestStatus.Offered => $"An exchange for the finished {item} is waiting. Both traders must meet at the shop.",
             ToolMakingRequestStatus.Fulfilled => $"The {item} was bought through the agreed exchange.",
             ToolMakingRequestStatus.Refused => $"The household refused the {item} request; nothing was taken.",
             ToolMakingRequestStatus.Withdrawn => $"The {item} request was withdrawn. Any work or finished tool remains household property.",

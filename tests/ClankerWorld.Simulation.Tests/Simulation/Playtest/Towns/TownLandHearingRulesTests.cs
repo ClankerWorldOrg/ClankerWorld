@@ -684,8 +684,8 @@ public sealed class TownLandHearingRulesTests
         // The mayor resigned later in the same tick, so the recorded term ends at the ruling's own tick.
         var resigned = mayor with
         {
-            Offices = [new("land", null, null, null, 11, "The holder resigned this mandate.")],
-            OfficeHistory = [new("other", "land", 3, 11, "The holder resigned this mandate.", "independent-election")]
+            Offices = [new("land", null, null, null, 11, "The mayor resigned.")],
+            OfficeHistory = [new("other", "land", 3, 11, "The mayor resigned.", "independent-election")]
         };
         void ValidateUnder(TownGovernmentState government) => TownLandHearingValidation.Validate(Map(), 11, "town", ruled, rights, [Title()],
             Adults.ToHashSet(), Households.Values.OfType<string>().ToHashSet(), council, 10, government);

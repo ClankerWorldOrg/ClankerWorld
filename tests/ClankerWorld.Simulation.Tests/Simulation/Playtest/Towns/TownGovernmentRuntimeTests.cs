@@ -65,7 +65,7 @@ public sealed partial class TownGovernmentRuntimeTests
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var client = JsonSerializer.Deserialize<GodotSnapshot>(JsonSerializer.Serialize(snapshot, json), json)!;
         var visible = Assert.Single(client.Towns).Government!;
-        Assert.Equal("land disputes and permission expiries", Assert.Single(visible.Offices).Mandate);
+        Assert.Equal("land disputes and expiring use rights", Assert.Single(visible.Offices).Mandate);
         Assert.NotNull(visible.Offices[0].HolderName);
         Assert.Equal("completed", visible.LatestElection!.Stage);
         Assert.Contains(world.ExportState().Events, e => e.Kind == "town_civic_mayor");

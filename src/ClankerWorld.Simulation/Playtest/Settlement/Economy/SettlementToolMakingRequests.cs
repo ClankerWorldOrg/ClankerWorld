@@ -356,7 +356,7 @@ public sealed partial class PrivateWorldRuntime
                 if (offer is { State: DirectBarterState.Settled })
                     SetToolRequest(request with { Status = ToolMakingRequestStatus.Fulfilled }, "tool_request_completed");
                 else if (offer is null or { State: DirectBarterState.Cancelled })
-                    SetToolRequest(request with { Status = ToolMakingRequestStatus.Interrupted, Blocker = "The exchange was cancelled; goods retain their owners." }, "tool_request_interrupted");
+                    SetToolRequest(request with { Status = ToolMakingRequestStatus.Interrupted, Blocker = "The exchange was cancelled; goods keep their owners." }, "tool_request_interrupted");
             }
         }
         var retired = toolMakingRequests.Where(request => ToolMakingRequestRules.IsTerminal(request.Status))

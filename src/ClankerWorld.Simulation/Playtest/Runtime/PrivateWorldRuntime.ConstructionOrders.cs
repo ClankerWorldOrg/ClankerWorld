@@ -55,7 +55,7 @@ public sealed partial class PrivateWorldRuntime
         if (definition is null || !PrivateWorldBuildingOrderCatalog.Supports("construct_building", catalog!.BuildingKind)) return false;
         failure = "Only an adult household member can construct this building.";
         if (!AdultResident(actor) || household is null) return false;
-        failure = "The household bound to this construction order has changed.";
+        failure = "The household this building was ordered for has changed.";
         if (order.ConstructionOwnerId is { } owner && owner != household) return false;
         failure = "Another project is already in progress; finish or stop it before starting this construction.";
         if (person.Project is { Stage: not ("completed" or "cancelled") } project &&
@@ -77,8 +77,8 @@ public sealed partial class PrivateWorldRuntime
             return false;
         var target = order.ConstructionPosition ?? order.TargetPosition;
         var layout = CreateTownLayoutContext(actor, target, definition);
-        failure = target is null ? "No legal construction site is currently available."
-            : "The requested construction site is not legal or cannot be reached.";
+        failure = target is null ? "No site where this building is allowed is free right now."
+            : "The requested site isn't allowed for this building or can't be reached.";
         if (target is { } requested)
         {
             if (!TownLayoutService.TryEvaluateConstructionSite(layout, definition, requested, out _)) return false;
@@ -175,7 +175,7 @@ public sealed partial class PrivateWorldRuntime
                 society.Checkpoint.GetInhabitant(instruction.TargetInhabitantId).HouseholdId != instruction.Order!.ConstructionOwnerId)
             {
                 CancelConstructionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The bound construction worker or household is no longer available.");
+                SetOrderStatus(instruction, "blocked", "The worker or household for this building is no longer available.");
             }
             else if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
                 SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");

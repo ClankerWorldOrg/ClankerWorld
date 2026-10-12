@@ -26,7 +26,7 @@ public sealed partial class PrivateWorldRuntime
         var recipes = RecipesToWrite(actor, source.Kind, source);
         if (!HasCompleteCopyContents(actor, source, facts, recipes)) return "Waiting to learn all sites and recipes in the held source before copying it.";
         if (KnowledgeCopySourceFor(instruction) is null)
-            return "These contents have already been written. Waiting for another held account to copy.";
+            return "Everything in the held item has already been copied. Waiting for another item to copy.";
         return source.Kind == "book"
             ? "Waiting for permitted paper and cloth, a reachable supply and carrying space."
             : "Waiting for permitted paper, a reachable supply and carrying space.";

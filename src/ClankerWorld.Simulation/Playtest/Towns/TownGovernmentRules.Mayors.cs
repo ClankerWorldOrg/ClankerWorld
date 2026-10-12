@@ -44,7 +44,7 @@ public static partial class TownGovernmentRules
     {
         var office = state.Offices.SingleOrDefault(o => o.Mandates == mandate && o.HolderId == actor);
         if (office is null) throw new InvalidOperationException("Only the current holder may resign this mandate.");
-        return EndOffice(council, state, office, tick, "The holder resigned this mandate.");
+        return EndOffice(council, state, office, tick, "The mayor resigned.");
     }
 
     private static (TownGovernanceState, TownGovernmentState) EndOffice(TownGovernanceState council,
@@ -57,7 +57,7 @@ public static partial class TownGovernmentRules
         if (office.Mandates != "non_land" && state.Offices.SingleOrDefault(current => current.Mandates == "non_land" &&
                 current.HolderId is not null && state.NonLandGrants.Any(grant => grant.Id == current.ElectionId &&
                     grant.BaseMandate == office.Mandates && grant.BaseElectionId == office.ElectionId)) is { } dependent)
-            (council, state) = EndOffice(council, state, dependent, tick, "The elected term supporting these added duties ended.");
+            (council, state) = EndOffice(council, state, dependent, tick, "The term these added duties belonged to ended.");
         var ended = Math.Min(tick, office.TermEndTick!.Value);
         state = state with
         {
@@ -89,9 +89,9 @@ public static partial class TownGovernmentRules
             };
             state = state with { Contest = live };
             if (live.Purpose == "handover" && !state.Changes.Any(c => c.Id == live.ChangeId && c.Status == "handover"))
-                (council, state) = ArchiveContest(council, state, "cancelled", "The creating transition is no longer active.", adults, tick, day);
+                (council, state) = ArchiveContest(council, state, "cancelled", "The government change that called this election is no longer going ahead.", adults, tick, day);
             else if (live.Stage == "ready" && (live.WinnerId is null || !Has(willing, live.WinnerId)))
-                (council, state) = ArchiveContest(council, state, "failed", "The selected successor is no longer eligible or willing.", adults, tick, day);
+                (council, state) = ArchiveContest(council, state, "failed", "The winner can no longer take office or no longer wants to.", adults, tick, day);
             // Only a council election that is still voting interrupts; seats waiting for a handover do not.
             else if (live.Stage == "voting" && council.Election is { Stage: "main" or "runoff" })
             {
@@ -114,7 +114,7 @@ public static partial class TownGovernmentRules
                 var totals = candidates.ToDictionary(id => id, id => live.Ballots.Count(b => b.CandidateId == id), StringComparer.Ordinal);
                 var most = totals.Count > 0 ? totals.Values.Max() : 0;
                 if (most == 0)
-                    (council, state) = ArchiveContest(council, state, "failed", "No eligible candidate received a vote in this round.", adults, tick, day);
+                    (council, state) = ArchiveContest(council, state, "failed", "Nobody standing got a vote in this round.", adults, tick, day);
                 else
                 {
                     var top = Ordered(candidates.Where(id => totals[id] == most));
@@ -201,7 +201,7 @@ public static partial class TownGovernmentRules
             };
             state = state with { Contest = waiting };
             if (candidates.Length == 0)
-                return ArchiveContest(council, state, "failed", "No willing eligible candidate is available.", adults, tick, day);
+                return ArchiveContest(council, state, "failed", "Nobody eligible has agreed to stand.", adults, tick, day);
             council = Notice(council, "mayor", RoundToken(waiting),
                 $"Mayoral round {waiting.Round}: choose one of {string.Join(", ", candidates)} for {TownArrangementRules.MandateLabel(waiting.Mandates)}. " +
                 $"Ballots may change until tick {tick + day}. Self-voting is allowed; a winner needs an actual vote in this round.", tick);
@@ -238,7 +238,7 @@ public static partial class TownGovernmentRules
         foreach (var mandate in contest.Mandates.Split('+'))
         {
             if (state.Offices.SingleOrDefault(o => o.Mandates == mandate && o.HolderId is not null) is { } previous)
-                (council, state) = EndOffice(council, state, previous, tick, "A protected replacement took office.");
+                (council, state) = EndOffice(council, state, previous, tick, "Residents elected a replacement, who took office.");
             var office = new TownOffice(mandate, contest.WinnerId, tick, tick + (long)TownArrangementRules.MayorTermDays * day, null, null, contest.Id);
             state = state with { Offices = state.Offices.Where(o => o.Mandates != mandate).Append(office).OrderBy(o => o.Mandates, StringComparer.Ordinal).ToArray() };
         }
@@ -246,7 +246,7 @@ public static partial class TownGovernmentRules
         {
             Contest = null,
             ContestHistory = state.ContestHistory.Append(contest with
-            { Stage = "completed", SettledTick = tick, Reason = "The elected successor took office." }).ToArray(),
+            { Stage = "completed", SettledTick = tick, Reason = "The winner took office." }).ToArray(),
             MayoralRetryTick = 0,
             MayoralRetryCircumstances = ""
         };

@@ -49,7 +49,7 @@ internal sealed partial class CivicSystem
             {
                 var request = new TownViolationFilingRequest(allegation, text);
                 council = TownGovernanceRules.SubmitProposal(council, town.Id, actor, "law_case", null,
-                    "Authorize this Town legal report.", "council:" + council.Revision, TownAdults(world, town), world.WorldTick, CivicDay(world),
+                    "Let the Town file this report for a non-land hearing.", "council:" + council.Revision, TownAdults(world, town), world.WorldTick, CivicDay(world),
                     noticeText: TownNonviolentGovernmentFilingRules.Describe(request), nonviolentRequest: request);
                 return (council, state);
             }
@@ -135,7 +135,7 @@ internal sealed partial class CivicSystem
             case "law_case_waive":
                 var party = parties.Single(party => CivicAgentToken(party.Id) == choice);
                 state = TownNonviolentRules.Respond(state, item.Id, revision.Number, actor, party.SubjectId, party.Id,
-                    action == "law_case_answer" ? "answer" : "waive", action == "law_case_answer" ? NonviolentText(payload?.Statement) : "I waive only this response opportunity, without admitting the allegation.", world.WorldTick, council.Knowledge, parties);
+                    action == "law_case_answer" ? "answer" : "waive", action == "law_case_answer" ? NonviolentText(payload?.Statement) : "I choose not to respond. This admits nothing.", world.WorldTick, council.Knowledge, parties);
                 break;
             case "law_case_judge_register": state = TownCaseJudgeRules.Register(state, item.Id, actor, TownAdults(world, town), LandHearingHouseholds(world), world.WorldTick, parties); break;
             case "law_case_judge_withdraw": state = TownCaseJudgeRules.Withdraw(state, item.Id, actor, world.WorldTick); break;

@@ -57,7 +57,7 @@ public sealed partial class PrivateWorldRuntime
         var definition = TownProjectRules.DefinitionFor(plan.DefinitionId);
         var lantern = StreetLanternContent.IsLantern(plan.DefinitionId);
         if (definition is null || !worldContent.Buildings.Any(d => d.CanonicalId == plan.DefinitionId))
-            return "The Town building content is no longer available.";
+            return "This kind of Town building is no longer available in this version.";
         if (world is not null && (world.TownId != town.Id || world.ProjectId != projectId || world.IgnorePendingRequests != ignorePendingRequests))
             throw new InvalidOperationException("A Town project site check was given tiles gathered for another check.");
         world ??= CreateTownProjectSiteWorld(town, projectId, ignorePendingRequests);
@@ -66,17 +66,17 @@ public sealed partial class PrivateWorldRuntime
         var footprint = TownProjectRules.Footprint(plan).ToArray();
         var legal = world.Legal.Value;
         if (footprint.Any(p => !legal.Contains(p)))
-            return "The full project site needs uncontested Town title without a household right or pending land request.";
+            return "The whole site must be undisputed Town land, with no household use right or pending land request on it.";
         if (projectId is null && footprint.Append(plan.Entrance).Any(world.Pending.Value.Contains))
             return "Another proposed Town project already uses part of this site.";
         if (definition.Tags.Contains(MarketContent.StallTag, StringComparer.Ordinal) && MarketForStallPlan(town, plan) is null)
-            return "An additional stall needs an unused slot in this Town's paid, usable Market.";
+            return "Another stall needs a free stall space in one of this Town's finished Markets.";
         if (definition.Tags.Contains(MarketContent.HallTag, StringComparer.Ordinal) && town.Markets
                 .Where(market => market.RemovedTick is null).Any(market => MarketContent.SiteTiles(market.Site).Intersect(footprint).Any()))
             return "The new Market site overlaps an existing Market.";
         if (lantern && (!StreetLanternContent.IsRoadEdge(plan.Site, plan.Entrance) ||
             !roadTiles.Contains(plan.Entrance) || !legal.Contains(plan.Entrance)))
-            return "The lantern must stand beside an actual Road on uncontested Town-titled land.";
+            return "The lantern must stand beside a Road, on undisputed Town land.";
         if (!CanPlaceBuilding(definition, plan.Site, out var failure, projectId, world.Placement)) return failure;
         var occupied = world.Occupied.Value;
         if (footprint.Any(point => !map.IsBuildable(point) || occupied.Contains(point)))
@@ -92,7 +92,7 @@ public sealed partial class PrivateWorldRuntime
             return "The approved building's doorway is blocked.";
         if (actor is not null && inhabitants.TryGetValue(actor, out var person) &&
             person.Position != plan.Site && FindUnoccupiedRoute(actor, person.Position, plan.Site, 0).Count == 0)
-            return "No usable foot route reaches the approved construction site.";
+            return "No walking route reaches the approved building site.";
         return null;
     }
 
