@@ -1,4 +1,4 @@
-name: Prototype or experiment
+name: Experiment
 description: Something must be tried before it can be decided.
 labels: ["type:experiment", "priority:p2"]
 body:
