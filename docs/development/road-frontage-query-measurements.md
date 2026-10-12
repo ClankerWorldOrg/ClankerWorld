@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Road-frontage query measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Road-frontage scoring uses direct loops over the existing rectangular Footprint
 and direction table, removing nested iterator and predicate allocations. Cardinal
 neighbors, scores, reasons and the separate custom placement footprint retain
@@ -93,7 +99,7 @@ The [Draft and immutable sample publication](https://github.com/ClankerWorldOrg/
 contains every ordinary, repeated and rejected measurement sample, profile
 samples, provenance and complete capture comparison manifests. Raw samples, full captures, traces,
 probe sources and hash manifests are retained outside Git under
-`.evidence/keep/998-9b395a8e/`. Broader construction/layout/route costs remain in
+`.evidence/keep/998-9b395a8e/`. Broader construction/layout/route costs were tracked in
 [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
 
 Run the published probe on two clean checkouts, using one checkpoint directory:

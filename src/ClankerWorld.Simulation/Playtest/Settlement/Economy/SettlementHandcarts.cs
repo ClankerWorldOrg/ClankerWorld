@@ -154,7 +154,7 @@ public sealed partial class PrivateWorldRuntime
     private bool CanLoadCartLot(string actor, PlaytestInhabitantState person, InventoryLot lot) =>
         lot.ContainerLotId is null && lot.DeliveryBuildingId is null &&
         !OnBorrowedMarketStall(lot) && (lot.OwnerId != actor || !OnMarketStall(lot)) &&
-        !InventoryContainerRules.IsContainer(lot.ItemKind) && AvailableLotQuantity(lot) > 0 &&
+        RecheckGoods(new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(lot.OwnerId), GoodsKinds.One(lot.ItemKind)), lot.Id) is not null &&
         // Worn clothing, a carry aid, a worn ornament or an item under repair stays on the agent.
         !PersonalEquipmentRules.IsSelected(person.Equipment, lot.Id) &&
         // Goods in anyone's custody, even the owner's, must be put down before loading.
@@ -223,7 +223,7 @@ public sealed partial class PrivateWorldRuntime
                 }
         }
         if (NearbyOwnedHandcart(actor, person.Position) is not { } nearby) return;
-        var cargo = inventory.Lots.Where(lot => lot.ContainerLotId == nearby.Id).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
+        var cargo = CartCargoLots(actor, nearby.Id).ToArray();
         var room = InventoryContainerRules.HandcartCapacity - cargo.Sum(lot => lot.Quantity);
         if (room > 0 && CanPullHandcart(nearby))
             foreach (var lot in inventory.Lots.Where(lot => CanLoadCartLot(actor, person, lot)).OrderBy(lot => lot.Id, StringComparer.Ordinal))
@@ -232,7 +232,7 @@ public sealed partial class PrivateWorldRuntime
         foreach (var cart in NearbyOwnedHandcarts(actor, person.Position))
         {
             if (HasActiveContainerReservation(inventory, cart.Id)) continue;
-            foreach (var lot in inventory.Lots.Where(lot => lot.ContainerLotId == cart.Id).OrderBy(lot => lot.Id, StringComparer.Ordinal))
+            foreach (var lot in CartCargoLots(actor, cart.Id))
             {
                 if (FreeCarryCapacity(actor) > 0)
                     candidates.Add(new(UnloadCartPrefix + lot.Id, "Unload cart goods into your carried load, within your carrying limit.", UnassignedCartPriority));
@@ -323,8 +323,7 @@ public sealed partial class PrivateWorldRuntime
         {
             var lot = society.Checkpoint.Inventory.Lots.FirstOrDefault(item => item.Id == candidateId[LoadCartPrefix.Length..]);
             if (lot is null || !CanLoadCartLot(actor, person, lot) || !CanPullHandcart(cartHere)) return true;
-            var room = InventoryContainerRules.HandcartCapacity - society.Checkpoint.Inventory.Lots
-                .Where(item => item.ContainerLotId == cartHere.Id).Sum(item => item.Quantity);
+            var room = InventoryContainerRules.HandcartCapacity - ContainerContentsQuantity(society.Checkpoint.Inventory, cartHere.Id);
             var available = AvailableLotQuantity(lot);
             if (lot.OwnerId != actor && IsEdibleFood(lot.ItemKind))
                 available = Math.Min(available, SharedFoodCollectionAllowance(actor));
@@ -348,7 +347,7 @@ public sealed partial class PrivateWorldRuntime
         else if (isUnload)
         {
             var prefix = ontoGround ? UnloadCartGroundPrefix : UnloadCartPrefix;
-            var cargo = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == candidateId[prefix.Length..] && lot.ContainerLotId == cartHere.Id);
+            var cargo = RecheckCartCargo(actor, cartHere.Id, candidateId[prefix.Length..]);
             if (cargo is null) return true;
             var quantity = Math.Min(maximumQuantity, ontoGround ? cargo.Quantity : Math.Min(cargo.Quantity, FreeCarryCapacity(actor)));
             if (quantity <= 0) return true;
