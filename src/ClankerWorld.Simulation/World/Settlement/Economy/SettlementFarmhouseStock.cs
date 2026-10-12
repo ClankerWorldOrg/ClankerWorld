@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
     {
         var source = HouseholdStockPosition(choice.Carrier);
         var range = HouseholdStockInteractionRange(choice.Carrier);
-        var position = inhabitants[actor].Position;
+        var position = agents[actor].Position;
         // Try the next permitted store when the preferred one cannot accept
         // this actual load. The planner retains whole-vessel and partial-grain rules.
         return FarmStorageFor(householdId, choice.Resource.ItemKind, requestedBuildingId, destination =>
@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
         if (itemKind is not null && itemKind != FarmFieldRules.Grain ||
             FarmhouseForHousehold(householdId) is not { } farmhouse ||
             destinationId is not null && destinationId != farmhouse.InstanceId ||
-            !inhabitants.TryGetValue(actor, out var person))
+            !agents.TryGetValue(actor, out var person))
             return null;
         var inputTarget = worldContent.Recipes.Where(recipe =>
                 recipe.WorkstationBuildingId == farmhouse.DefinitionId && !recipe.IsCrop &&
@@ -169,7 +169,7 @@ public sealed partial class WorldRuntime
 
     private void AddFarmGrainCandidate(List<CognitionCandidate> candidates, string actor)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             FarmhouseForHousehold(householdId) is null ||
             FarmGrainForDelivery(householdId, actor) is not { } grain ||
@@ -179,9 +179,9 @@ public sealed partial class WorldRuntime
             "Carry household crops and seeds from their actual location to farm storage.", 24, farmhouse.InstanceId));
     }
 
-    private void HaulFarmGrain(string actor, InhabitantState state)
+    private void HaulFarmGrain(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             FarmhouseForHousehold(householdId) is null ||
             FarmGrainForDelivery(householdId, actor) is not { } grain ||
@@ -201,9 +201,9 @@ public sealed partial class WorldRuntime
     }
 
     private void AddFarmFlourCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state)
+        AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             FarmhouseForHousehold(householdId) is not { } farmhouse ||
             HouseForHousehold(householdId) is not { } house ||
@@ -218,9 +218,9 @@ public sealed partial class WorldRuntime
             "Carry household flour from its Farmhouse to its House.", 25, house.InstanceId));
     }
 
-    private void HaulFarmFlour(string actor, InhabitantState state)
+    private void HaulFarmFlour(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             FarmhouseForHousehold(householdId) is not { } farmhouse ||
             HouseForHousehold(householdId) is not { } house ||

@@ -15,7 +15,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         var initial = setup.ExportState();
         var initialBuildingIds = initial.WorldSimulation!.Buildings.Select(building => building.InstanceId)
             .ToHashSet(StringComparer.Ordinal);
-        var actor = initial.Society.Society.Inhabitants.First(person => person.HouseholdId == Household).Id;
+        var actor = initial.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
         var house = initial.WorldSimulation!.Buildings.Single(building => building.HouseholdId == Household &&
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("house", StringComparer.Ordinal));
@@ -37,7 +37,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
         initial = initial with
         {
             Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = initial.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = house.Position,
                 HungerBasisPoints = 9_500,
@@ -59,7 +59,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
             {
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
                 var state = world.ExportState();
-                var equipment = state.Inhabitants.Single(person => person.InhabitantId == actor).Equipment;
+                var equipment = state.Agents.Single(person => person.AgentId == actor).Equipment;
                 var carried = PersonalEquipmentRules.CarriedQuantity(state.Society.Society.Inventory, actor, equipment);
                 Assert.InRange(carried, 0, PersonalEquipmentRules.BaseCapacity);
                 var storedStone = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == Household &&
@@ -83,7 +83,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
                         reservation.LotId == storedTool.Id && reservation.State is
                             InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or
                             InventoryReservationState.Committed);
-                    Assert.Null(state.Inhabitants.Single(person => person.InhabitantId == actor).Project);
+                    Assert.Null(state.Agents.Single(person => person.AgentId == actor).Project);
                     sawToolStoredAfterStoneDelivery = true;
                 }
             }
@@ -108,7 +108,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
             Assert.Contains(deliveryLots, lot => lot.ItemKind == "wood" && lot.Quantity == 4);
             Assert.All(deliveryLots, lot => Assert.Null(lot.StorageBuildingId));
             var gatheredCarry = PersonalEquipmentRules.CarriedQuantity(gatheredState.Society.Society.Inventory, actor,
-                gatheredState.Inhabitants.Single(person => person.InhabitantId == actor).Equipment);
+                gatheredState.Agents.Single(person => person.AgentId == actor).Equipment);
             var collectedTreeSeeds = gatheredState.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor &&
                 lot.ItemKind == TreeGrowthRules.TreeSeedItem && lot.DeliveryBuildingId == house.InstanceId)
                 .Sum(lot => lot.Quantity);
@@ -125,10 +125,10 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
                      lot.DeliveryBuildingId == house.InstanceId); tick++)
             {
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-                hadToTravel |= world.ExportState().Events.Any(item => item.Kind == "inhabitant_moved" &&
+                hadToTravel |= world.ExportState().Events.Any(item => item.Kind == "agent_moved" &&
                     item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) && item.Detail.EndsWith(":household_stock", StringComparison.Ordinal));
                 Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-                    world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment), 0, PersonalEquipmentRules.BaseCapacity);
+                    world.Agents.Single(person => person.AgentId == actor).Equipment), 0, PersonalEquipmentRules.BaseCapacity);
             }
 
             Assert.True(hadToTravel);
@@ -137,7 +137,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
             Assert.Contains(world.Society.Inventory.Lots, lot => lot.OwnerId == Household && lot.ItemKind == "wood" &&
                 lot.Quantity == 4 && lot.StorageBuildingId == house.InstanceId && lot.DeliveryBuildingId is null);
             Assert.Equal(5, PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, actor,
-                world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
+                world.Agents.Single(person => person.AgentId == actor).Equipment));
             world.Validate();
 
             var finalBytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -149,7 +149,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
             {
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
                 Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-                    world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment),
+                    world.Agents.Single(person => person.AgentId == actor).Equipment),
                     0, PersonalEquipmentRules.BaseCapacity);
             }
 
@@ -160,7 +160,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
                 item.Detail.StartsWith(builtHouseholdBuilding.InstanceId + ":", StringComparison.Ordinal));
             Assert.Contains(completedState.Events, item => item.Kind == "project_progress" &&
                 item.Detail.StartsWith(actor + ":working:", StringComparison.Ordinal));
-            var completedProject = world.Inhabitants.Single(person => person.InhabitantId == actor).Project!;
+            var completedProject = world.Agents.Single(person => person.AgentId == actor).Project!;
             Assert.StartsWith("build:building:", completedProject.CandidateId);
             Assert.Equal("completed", completedProject.Stage);
             var spareTool = world.Society.Inventory.GetLot("prep-house-tool");
@@ -198,7 +198,7 @@ public sealed class HouseholdBuildingPreparationDeliveryTests
                 candidates.Single(candidate => candidate.Id == "safe_idle");
             ChosenCandidates.Add(selected.Id);
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

@@ -18,7 +18,7 @@ public sealed class QueuedIdentityRoutingTests
         var state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { HungerBasisPoints = 7_020, IdentityChoicePending = true } : person).ToArray(),
             Society = state.Society with
             {
@@ -46,7 +46,7 @@ public sealed class QueuedIdentityRoutingTests
             for (var tick = 0; tick < 6; tick++)
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             Assert.Contains(Assert.Single(world.ExportState().Society.Cognition.Queue,
-                entry => entry.InhabitantId == Actor).Observation.Candidates,
+                entry => entry.AgentId == Actor).Observation.Candidates,
                 candidate => candidate.Id is "seek_food" or "harvest_food");
             Assert.Empty(provider.RoutineRequests);
 
@@ -69,7 +69,7 @@ public sealed class QueuedIdentityRoutingTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token);
                 Assert.True(step.Advanced);
-                var decisions = step.Decisions.Where(item => item.InhabitantId == Actor).ToArray();
+                var decisions = step.Decisions.Where(item => item.AgentId == Actor).ToArray();
                 if (decisions.Length == 0)
                 {
                     await Task.Delay(5, deadline.Token);
@@ -82,8 +82,8 @@ public sealed class QueuedIdentityRoutingTests
             }
             Assert.True(admitted, "The held identity reply was not admitted within the bounded wait.");
             Assert.Empty(provider.RoutineRequests);
-            Assert.False(world.Inhabitants.Single(person => person.InhabitantId == Actor).IdentityChoicePending);
-            Assert.Single(world.ExportState().Society.Cognition.Queue, entry => entry.InhabitantId == Actor);
+            Assert.False(world.Agents.Single(person => person.AgentId == Actor).IdentityChoicePending);
+            Assert.Single(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == Actor);
 
             var admittedTick = world.WorldTick;
             var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -93,10 +93,10 @@ public sealed class QueuedIdentityRoutingTests
             foreach (var current in new[] { world, restored })
             {
                 var step = await current.AdvanceOneTickNonBlockingAsync();
-                var decision = Assert.Single(step.Decisions, item => item.InhabitantId == Actor);
+                var decision = Assert.Single(step.Decisions, item => item.AgentId == Actor);
                 Assert.True(decision.Admission.Accepted);
                 Assert.Equal(DecisionProviderKind.Deterministic, decision.Admission.Intention!.Provider);
-                Assert.DoesNotContain(current.ExportState().Society.Cognition.Queue, entry => entry.InhabitantId == Actor);
+                Assert.DoesNotContain(current.ExportState().Society.Cognition.Queue, entry => entry.AgentId == Actor);
                 current.Validate();
             }
             foreach (var currentProvider in new[] { provider, restoredProvider })
@@ -136,14 +136,14 @@ public sealed class QueuedIdentityRoutingTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> HostedRequests { get; } = new();
-        public ConcurrentQueue<InhabitantObservation> RoutineRequests { get; } = new();
+        public ConcurrentQueue<AgentObservation> HostedRequests { get; } = new();
+        public ConcurrentQueue<AgentObservation> RoutineRequests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Complete { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public DecisionProviderKind KindFor(InhabitantObservation observation) =>
+        public DecisionProviderKind KindFor(AgentObservation observation) =>
             observation.NeedsPersonality || observation.NeedsAspiration
                 ? DecisionProviderKind.LargeLanguageModel : DecisionProviderKind.Deterministic;
 
@@ -179,7 +179,7 @@ public sealed class QueuedIdentityRoutingTests
     }
 
     private static CognitionDecisionResponse Reply(CognitionDecisionRequest request, DecisionProviderKind kind, long epoch) =>
-        new(request.RequestId, request.Observation.InhabitantId, kind, epoch, request.Observation.RunEpoch,
+        new(request.RequestId, request.Observation.AgentId, kind, epoch, request.Observation.RunEpoch,
             request.Observation.DecisionGeneration, request.Observation.ObservationDigest, "safe_idle", 1,
             request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                 candidate => candidate.Id == "safe_idle" ? 1d : 0d));

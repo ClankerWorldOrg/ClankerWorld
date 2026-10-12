@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 public sealed class OwnerWorldRuntimeTests
 {
     [Fact]
-    public void InstructionCannotTargetAnInhabitantThatIsNotActiveInThisWorld()
+    public void InstructionCannotTargetAnAgentThatIsNotActiveInThisWorld()
     {
         var runtime = new OwnerWorldRuntime("camp-alpha");
 
@@ -15,11 +15,11 @@ public sealed class OwnerWorldRuntimeTests
             new OwnerInstructionRequest(
                 "missing-target",
                 "owner-device:test",
-                "not-a-real-inhabitant",
+                "not-a-real-agent",
                 OwnerInstructionKind.Suggestive,
                 "Do a little dance.")));
 
-        Assert.Contains("No active inhabitant", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("No active agent", exception.Message, StringComparison.Ordinal);
         Assert.Empty(runtime.Capture().Events);
     }
 

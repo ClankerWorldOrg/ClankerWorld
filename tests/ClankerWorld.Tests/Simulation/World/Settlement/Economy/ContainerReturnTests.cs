@@ -26,15 +26,15 @@ public sealed class ContainerReturnTests
         var original = state.Society.Society.Inventory.GetLot(Vessel);
         var provider = new VesselChoices("return_empty_vessel:", "haul_household_stock");
         using var world = Restore(state, actor, provider);
-        Assert.Equal(house.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.NotEqual(house.Position, workplace.Position);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == UsedContents);
         Assert.Equal(InventoryReservationState.Completed, world.Society.Inventory.GetReservation(UsedReservation).State);
         await AdvanceUntil(world, () => world.Society.Inventory.GetLot(Vessel).OwnerId == actor, 120);
 
         Assert.Contains("return_empty_vessel:" + Vessel, provider.Offered);
-        Assert.Equal(workplace.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+        Assert.Equal(workplace.Position, world.Agents.Single(person => person.AgentId == actor).Position);
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
         Assert.Single(world.ExportState().Events, item => item.Kind == "empty_vessel_picked_up" &&
             item.Detail == $"{actor}:{Vessel}:{Clinic}:{House}");
@@ -59,7 +59,7 @@ public sealed class ContainerReturnTests
         }
         var returned = world.Society.Inventory.GetLot(Vessel);
         Assert.Equal((Alpha, House, null, 1), (returned.OwnerId, returned.StorageBuildingId, returned.DeliveryBuildingId, returned.Quantity));
-        Assert.Equal(house.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Equal(original.Id, returned.Id);
         Assert.Equal(original.ProvenanceLotId, returned.ProvenanceLotId);
         Assert.Equal(original.ConditionBasisPoints, returned.ConditionBasisPoints);
@@ -82,10 +82,10 @@ public sealed class ContainerReturnTests
         var actor = Actor(state);
         var inventory = state.Society.Society.Inventory;
         if (boundary == "foreign-adult")
-            actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId != Alpha).Id;
+            actor = state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
         if (boundary == "full-hands")
         {
-            var person = state.Inhabitants.Single(item => item.InhabitantId == actor);
+            var person = state.Agents.Single(item => item.AgentId == actor);
             var free = PersonalEquipmentRules.FreeCapacity(inventory, actor, person.Equipment);
             Assert.True(free > 0);
             inventory = InventoryAuthority.AddLot(inventory, "container-return-ballast", "test_cargo", actor, free);
@@ -103,7 +103,7 @@ public sealed class ContainerReturnTests
                 free - incoming, storageBuildingId: House);
             if (incoming != 0)
             {
-                var deliverer = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha && person.Id != actor).Id;
+                var deliverer = state.Society.Society.Agents.First(person => person.HouseholdId == Alpha && person.Id != actor).Id;
                 inventory = InventoryAuthority.AddLot(inventory, "container-return-incoming", "wood", Alpha, 1);
                 inventory = InventoryAuthority.Transfer(inventory, "container-return-incoming-pickup", Alpha,
                     deliverer, "container-return-incoming", 1, "household_input_picked_up",
@@ -159,17 +159,17 @@ public sealed class ContainerReturnTests
             "consumed_workstation_input", state.Society.Society.WorldTick);
         inventory = InventoryAuthority.ConsumeReservation(inventory, UsedReservation);
         var actor = Actor(state);
-        var previous = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = state.Agents.Single(person => person.AgentId == actor).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, HungerBasisPoints = 9_000 }
                 : person.Position == house.Position ? person with { Position = previous } : person).ToArray(),
         };
         return WithInventory(state, inventory);
     }
 
-    private static string Actor(WorldRuntimeState state) => state.Society.Society.Inhabitants.First(person =>
+    private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person =>
         person.HouseholdId == Alpha && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>

@@ -7,13 +7,13 @@ public sealed partial class WorldRuntime
     private void RecordModelAttempt(string id, string status, string? acceptedCandidateId = null,
         string? setupBlocker = null)
     {
-        if (!inhabitants.TryGetValue(id, out var physical)) return;
+        if (!agents.TryGetValue(id, out var physical)) return;
         var previous = physical.LastModelAttempt;
         var next = new ModelAttempt(status, WorldTick,
             acceptedCandidateId ?? previous?.LastAcceptedCandidateId,
             acceptedCandidateId is not null ? WorldTick : previous?.LastAcceptedTick, setupBlocker);
         if (next == previous) return;
-        inhabitants[id] = physical with { LastModelAttempt = next };
+        agents[id] = physical with { LastModelAttempt = next };
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("model_attempt_status", $"{id}:{status}");
     }

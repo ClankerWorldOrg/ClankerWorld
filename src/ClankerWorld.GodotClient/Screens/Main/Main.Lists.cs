@@ -18,7 +18,7 @@ public partial class Main
     private void BuildRosterCards(Control body)
     {
         // The text list stays for selection and checks, but never shows.
-        inhabitantList.Hide();
+        agentList.Hide();
         rosterCards.Compact = true;
         rosterCards.CustomMinimumSize = new Vector2(380, 60);
         rosterCards.ItemClicked += index => SelectRosterCard(index, keepRosterOpen: false);
@@ -29,28 +29,28 @@ public partial class Main
             OpenAgentProfile(speak: false);
         };
         body.AddChild(rosterCards);
-        inhabitantList.Hide();
+        agentList.Hide();
     }
 
     private void SelectRosterCard(long index, bool keepRosterOpen)
     {
         if (index < 0 || index >= rosterCardIds.Count) return;
-        for (var row = 0; row < inhabitantList.ItemCount; row++)
-            if (inhabitantList.GetItemMetadata(row).AsString() == rosterCardIds[(int)index])
+        for (var row = 0; row < agentList.ItemCount; row++)
+            if (agentList.GetItemMetadata(row).AsString() == rosterCardIds[(int)index])
             {
-                SelectInhabitantFromList(row, keepRosterOpen);
+                SelectAgentFromList(row, keepRosterOpen);
                 return;
             }
     }
 
-    private void RenderRosterCards(OwnerWorldInhabitant[] inhabitants)
+    private void RenderRosterCards(OwnerWorldAgent[] agents)
     {
         var previousSelection = rosterCards.GetSelectedItems();
         var restoringSelection = previousSelection.Length > 0 && previousSelection[0] < rosterCardIds.Count &&
-            rosterCardIds[previousSelection[0]] == selectedInhabitantId;
+            rosterCardIds[previousSelection[0]] == selectedAgentId;
         rosterCards.Clear();
         rosterCardIds.Clear();
-        foreach (var person in inhabitants)
+        foreach (var person in agents)
         {
             var living = IsLiving(person);
             List<SlotTag> tags = [];
@@ -70,10 +70,10 @@ public partial class Main
             }
             rosterCards.AddItem(person.DisplayName, detail, AgentPortrait(person, living), tags, muted: !living);
             rosterCardIds.Add(person.Id);
-            if (person.Id == selectedInhabitantId) rosterCards.Select(rosterCardIds.Count - 1, scrollIntoView: !restoringSelection);
+            if (person.Id == selectedAgentId) rosterCards.Select(rosterCardIds.Count - 1, scrollIntoView: !restoringSelection);
         }
-        rosterCards.Visible = inhabitants.Length > 0;
-        var rows = Math.Max(1, inhabitants.Length);
+        rosterCards.Visible = agents.Length > 0;
+        var rows = Math.Max(1, agents.Length);
         rosterWantedHeight = rows * 50;
         FitHudLists();
         QueueHudListsFit();
@@ -107,7 +107,7 @@ public partial class Main
                 "guardian_needed" or "guardian_assigned" or "guardian_placement_pending" or
                 "guardian_placement_completed" or "guardian_placement_cancelled" or "marriage_accepted" or "marriage_surname_agreed"
                 => PixelIcons.Texture(PixelGlyph.Heart, pink, pink, 1),
-            "inhabitant_removed" or "estate_will_accepted" or "estate_will_default" or "animal_died" => PixelIcons.Texture(PixelGlyph.Grave, ink, stone, 1),
+            "agent_removed" or "estate_will_accepted" or "estate_will_default" or "animal_died" => PixelIcons.Texture(PixelGlyph.Grave, ink, stone, 1),
             "town_founded" or "town_founding_started" or "town_border_expanded" or
                 "town_project_approved" or "town_project_resumed"
                 => PixelIcons.Texture(PixelGlyph.Flag, ink, green, 1),
@@ -118,7 +118,7 @@ public partial class Main
                 => PixelIcons.Texture(PixelGlyph.House, ink, wood, 1),
             "paused" => PixelIcons.Texture(PixelGlyph.Pause, ink, ink, 1),
             "resumed" => PixelIcons.Texture(PixelGlyph.Play, ink, ink, 1),
-            "instruction_not_understood" or "inhabitant_building_proposed" => PixelIcons.Texture(PixelGlyph.Speech, ink, UiTheme.Current.Paper, 1),
+            "instruction_not_understood" or "agent_building_proposed" => PixelIcons.Texture(PixelGlyph.Speech, ink, UiTheme.Current.Paper, 1),
             "settlement_trade_completed" or "town_project_donated" or "town_project_material_picked_up" or
                 "town_project_material_delivered" or "town_project_material_returned" or "market_stock_loaded" or "market_stock_delivered" or
                 "market_stock_collected" or "market_trade_offered" or "market_trade_completed" or "market_trade_cancelled"

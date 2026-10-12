@@ -23,7 +23,7 @@ public sealed class MarketOwnerFoodRecoveryTests
     public async Task HungryOwnersRetrieveAndEatTheirActuallyDepositedMarketFood(bool urgent, int orderMode, string choiceMode)
     {
         var state = await PaidMarketWorld.StateAsync();
-        var seller = state.Inhabitants.OrderBy(person => person.InhabitantId, StringComparer.Ordinal).First().InhabitantId;
+        var seller = state.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal).First().AgentId;
         var market = PaidMarketWorld.Market(state);
         var inventory = state.Society.Society.Inventory with
         {
@@ -72,7 +72,7 @@ public sealed class MarketOwnerFoodRecoveryTests
         var ready = setup.ExportState();
         ready = ready with
         {
-            Inhabitants = ready.Inhabitants.Select(person => person.InhabitantId == seller
+            Agents = ready.Agents.Select(person => person.AgentId == seller
                 ? person with { HungerBasisPoints = 1_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -93,12 +93,12 @@ public sealed class MarketOwnerFoodRecoveryTests
         string? talkConversationId = null;
         if (orderMode == 3)
         {
-            var target = ready.Inhabitants.First(person => person.InhabitantId != seller &&
-                ready.Society.Society.GetInhabitant(person.InhabitantId).AgeBand != SocietyAgeBand.Infant).InhabitantId;
-            var position = ready.Inhabitants.Single(person => person.InhabitantId == seller).Position;
+            var target = ready.Agents.First(person => person.AgentId != seller &&
+                ready.Society.Society.GetAgent(person.AgentId).AgeBand != SocietyAgeBand.Infant).AgentId;
+            var position = ready.Agents.Single(person => person.AgentId == seller).Position;
             var occupied = ready.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                     ready.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
-                .Concat(ready.Inhabitants.Where(person => person.InhabitantId != target).Select(person => person.Position)).ToHashSet();
+                .Concat(ready.Agents.Where(person => person.AgentId != target).Select(person => person.Position)).ToHashSet();
             var adjacent = ready.Map.FootNeighbors(position).First(point => ready.Map.IsPassable(point) && !occupied.Contains(point));
             var invitation = new MarketRulesPolicy
             {
@@ -120,7 +120,7 @@ public sealed class MarketOwnerFoodRecoveryTests
         }
         ready = ready with
         {
-            Inhabitants = ready.Inhabitants.Select(person => person.InhabitantId == seller
+            Agents = ready.Agents.Select(person => person.AgentId == seller
                 ? person with { HungerBasisPoints = urgent ? 1_900 : 2_100, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -128,7 +128,7 @@ public sealed class MarketOwnerFoodRecoveryTests
         {
             var occupied = ready.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                     ready.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
-                .Concat(ready.Inhabitants.Where(person => person.InhabitantId != seller).Select(person => person.Position))
+                .Concat(ready.Agents.Where(person => person.AgentId != seller).Select(person => person.Position))
                 .ToHashSet();
             var stallSite = MarketContent.StallSite(market.Site, 0);
             var start = MarketContent.PlazaTiles(market.Site)
@@ -188,13 +188,13 @@ public sealed class MarketOwnerFoodRecoveryTests
             Assert.Contains(choices.OfferedTo(seller), candidate => candidate.Id.StartsWith("market_collect:", StringComparison.Ordinal) &&
                 candidate.Description.Contains(" berries ", StringComparison.Ordinal));
             Assert.True(Meals(world, seller) > before,
-                $"{choiceMode}: hunger={world.Inhabitants.Single(person => person.InhabitantId == seller).HungerBasisPoints}, " +
+                $"{choiceMode}: hunger={world.Agents.Single(person => person.AgentId == seller).HungerBasisPoints}, " +
                 $"food={world.Society.Inventory.Lots.FirstOrDefault(lot => lot.Id == food.LotId)}, " +
                 $"events={string.Join(';', world.ExportState().Events.Where(item => item.EventId > lastInitialEvent).TakeLast(8).Select(item => item.Kind + ':' + item.Detail))}");
-            Assert.True(world.Inhabitants.Single(person => person.InhabitantId == seller).HungerBasisPoints > 2_100);
+            Assert.True(world.Agents.Single(person => person.AgentId == seller).HungerBasisPoints > 2_100);
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == food.LotId && lot.GroundPosition is not null);
             if (choiceMode == "walking")
-                Assert.True(world.ExportState().Events.Count(item => item.EventId > lastInitialEvent && item.Kind == "inhabitant_moved" &&
+                Assert.True(world.ExportState().Events.Count(item => item.EventId > lastInitialEvent && item.Kind == "agent_moved" &&
                     item.Detail.StartsWith(seller + ":", StringComparison.Ordinal) && item.Detail.EndsWith(":market_collect", StringComparison.Ordinal)) >= 2);
         }
         else

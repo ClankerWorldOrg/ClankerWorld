@@ -46,7 +46,7 @@ public sealed class SharedReadServicesTests
     public void ResidentQueriesUseLivePositionWarmthAndReplacedSocietySnapshots()
     {
         var world = new ReadWorld();
-        var actor = world.Society.Inhabitants[0].Id;
+        var actor = world.Society.Agents[0].Id;
         world.People.Add(actor, new(actor, new(1, 1), 1_999, 0, "kind", "learn")
         { Survival = new(WarmthBasisPoints: 3_499) });
         Assert.True(ResidentQueries.AdultResident(world, actor));
@@ -59,13 +59,13 @@ public sealed class SharedReadServicesTests
         Assert.False(ResidentQueries.NeedsUrgentWarmth(world, world.People[actor], 3_500));
         world.Society = world.Society with
         {
-            Inhabitants = world.Society.Inhabitants.Select(person =>
+            Agents = world.Society.Agents.Select(person =>
             person with { AgeBand = SocietyAgeBand.Child, HouseholdId = null }).ToArray()
         };
         Assert.False(ResidentQueries.AdultResident(world, actor));
         Assert.True(ResidentQueries.ChildResident(world, actor));
         Assert.Equal(actor, ResidentQueries.HouseholdFor(world, actor));
-        var owner = world.Society.Inhabitants[1].Id;
+        var owner = world.Society.Agents[1].Id;
         var inventory = InventoryAuthority.AddLot(world.Society.Inventory, "carried", "wood", owner, 1);
         inventory = InventoryAuthority.Relocate(inventory, "carry", "carried", owner, 1, carrierId: actor);
         inventory = InventoryAuthority.AddLot(inventory, "ground", "wood", actor, 1, groundPosition: new(4, 5));
@@ -82,25 +82,25 @@ public sealed class SharedReadServicesTests
     }
 
     [Fact]
-    public void InhabitantIndexKeepsSingleSemanticsAndDetectsMutationBehindSnapshotKey()
+    public void AgentIndexKeepsSingleSemanticsAndDetectsMutationBehindSnapshotKey()
     {
         var checkpoint = new ReadWorld().Society;
-        var person = checkpoint.Inhabitants[0];
-        Assert.Same(person, checkpoint.GetInhabitant(person.Id));
-        Assert.Throws<InvalidOperationException>(() => checkpoint.GetInhabitant(person.Id.ToUpperInvariant()));
-        Assert.Throws<InvalidOperationException>(() => checkpoint.GetInhabitant(null!));
-        var duplicates = checkpoint with { Inhabitants = [person, person, checkpoint.Inhabitants[1]] };
-        Assert.Same(checkpoint.Inhabitants[1], duplicates.GetInhabitant(checkpoint.Inhabitants[1].Id));
-        Assert.Throws<InvalidOperationException>(() => duplicates.GetInhabitant(person.Id));
-        var list = checkpoint.Inhabitants.ToList();
-        var mutable = checkpoint with { Inhabitants = list };
-        Assert.Same(person, mutable.GetInhabitant(person.Id));
+        var person = checkpoint.Agents[0];
+        Assert.Same(person, checkpoint.GetAgent(person.Id));
+        Assert.Throws<InvalidOperationException>(() => checkpoint.GetAgent(person.Id.ToUpperInvariant()));
+        Assert.Throws<InvalidOperationException>(() => checkpoint.GetAgent(null!));
+        var duplicates = checkpoint with { Agents = [person, person, checkpoint.Agents[1]] };
+        Assert.Same(checkpoint.Agents[1], duplicates.GetAgent(checkpoint.Agents[1].Id));
+        Assert.Throws<InvalidOperationException>(() => duplicates.GetAgent(person.Id));
+        var list = checkpoint.Agents.ToList();
+        var mutable = checkpoint with { Agents = list };
+        Assert.Same(person, mutable.GetAgent(person.Id));
         list[0] = person with { Name = "Changed Name" };
         Assert.True(DerivedVerification.RecomputeOnHit);
-        Assert.Throws<InvalidOperationException>(() => mutable.GetInhabitant(person.Id));
-        var replaced = mutable with { Inhabitants = list.ToArray() };
-        Assert.Equal("Changed Name", replaced.GetInhabitant(person.Id).Name);
-        Assert.Same(person, checkpoint.GetInhabitant(person.Id));
+        Assert.Throws<InvalidOperationException>(() => mutable.GetAgent(person.Id));
+        var replaced = mutable with { Agents = list.ToArray() };
+        Assert.Equal("Changed Name", replaced.GetAgent(person.Id).Name);
+        Assert.Same(person, checkpoint.GetAgent(person.Id));
     }
 
     [Fact]
@@ -121,9 +121,9 @@ public sealed class SharedReadServicesTests
         Assert.NotSame(log, Log(world));
         var actor = command.AgentId;
         Assert.True(world.RenameAgent(actor, "Aster Readservice"));
-        Assert.Equal("Aster Readservice", world.Society.GetInhabitant(actor).Name);
+        Assert.Equal("Aster Readservice", world.Society.GetAgent(actor).Name);
         var renamed = world.ExportState().Events.Last(item => item.Kind == "agent_renamed");
-        Assert.Equal(world.Inhabitants.Single(person => person.InhabitantId == actor).Position, renamed.Position);
+        Assert.Equal(world.Agents.Single(person => person.AgentId == actor).Position, renamed.Position);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var reload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new DeterministicDecisionProvider());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(reload.ExportState()));
@@ -146,15 +146,15 @@ public sealed class SharedReadServicesTests
     {
         public SocietyCheckpoint Society { get; set; } = SocietyRules.CreateGenesis("read-services",
             [SocietyRules.CreateFounder("agent-a", "Aster Ash"), SocietyRules.CreateFounder("agent-b", "Rowan Reed")]);
-        public Dictionary<string, InhabitantState> People { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, AgentState> People { get; } = new(StringComparer.Ordinal);
         public Dictionary<string, GridPoint> Dead { get; } = new(StringComparer.Ordinal);
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants => People;
+        public IReadOnlyDictionary<string, AgentState> Agents => People;
         public long WorldTick => 10;
         public GridPoint SettlementStoragePosition => new(9, 9);
         public int Warmth { get; set; } = -1;
         public GridPoint BuildingPosition(string id) => id == "store" ? new(6, 7) : throw new InvalidOperationException();
         public int FootDistance(GridPoint origin, GridPoint destination) => Math.Abs(origin.X - destination.X) + Math.Abs(origin.Y - destination.Y);
-        public int WarmthChange(InhabitantState person) => Warmth;
+        public int WarmthChange(AgentState person) => Warmth;
         public GridPoint? LivingPosition(string id) => People.TryGetValue(id, out var person) ? person.Position : null;
         public GridPoint? DeceasedPosition(string id) => Dead.TryGetValue(id, out var point) ? point : null;
     }

@@ -39,11 +39,11 @@ public sealed class SettlementCouncilTests
     public async Task AdoptedPolicyChangesSharedFoodAccessButProtectsHungryMembers(string policy, int hunger, bool allowed)
     {
         var state = await PreparedState();
-        var collector = state.Inhabitants[1].InhabitantId;
+        var collector = state.Agents[1].AgentId;
         state = state with
         {
             Council = state.Council! with { FoodPolicy = policy },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == collector
+            Agents = state.Agents.Select(person => person.AgentId == collector
                 ? person with { HungerBasisPoints = hunger, LastDecisionContext = null } : person).ToArray(),
         };
         // Food-policy access is independent of weather's urgent shelter decisions.
@@ -67,7 +67,7 @@ public sealed class SettlementCouncilTests
         state = state with
         {
             Society = society.ExportState(),
-            Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != departed).ToArray(),
+            Agents = state.Agents.Where(person => person.AgentId != departed).ToArray(),
             Council = state.Council with { FoodPolicy = "essential_first" },
         };
         using var world = WorldRuntime.Restore(state, _ => new CouncilProvider("safe_idle"));
@@ -76,7 +76,7 @@ public sealed class SettlementCouncilTests
         Assert.Equal("essential_first", council.FoodPolicy);
         Assert.NotNull(council.StewardId);
         Assert.NotEqual(departed, council.StewardId);
-        Assert.Equal(SocietyInhabitantStatus.Active, world.Society.GetInhabitant(council.StewardId!).Status);
+        Assert.Equal(SocietyAgentStatus.Active, world.Society.GetAgent(council.StewardId!).Status);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "council_steward_changed");
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(council, restored.ExportState().Council);
@@ -96,7 +96,7 @@ public sealed class SettlementCouncilTests
                 {
                     Society = state.Society.Society with
                     {
-                        Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == steward
+                        Agents = state.Society.Society.Agents.Select(person => person.Id == steward
                             ? person with { Name = "council-free-text-secret" } : person).ToArray(),
                     },
                 },
@@ -121,7 +121,7 @@ public sealed class SettlementCouncilTests
     public async Task ForgedBallotsFailClosed()
     {
         var state = await PreparedState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var invalid = state with
         {
             Council = state.Council! with
@@ -145,8 +145,8 @@ public sealed class SettlementCouncilTests
         var food = state.Society.Society.Inventory.Lots.First(lot => lot.ItemKind == "food" && lot.OwnerId == "household:camp-alpha");
         return state with
         {
-            Council = new(state.Inhabitants[0].InhabitantId, "open", 0),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Council = new(state.Agents[0].AgentId, "open", 0),
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 7_000,
                 Survival = new(),

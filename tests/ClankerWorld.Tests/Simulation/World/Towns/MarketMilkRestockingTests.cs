@@ -68,11 +68,11 @@ public sealed class MarketMilkRestockingTests
         var source = MarketContent.StallSite(PaidMarketWorld.Market(state).Site, 0);
         // Leaving the stall releases the goods but does not vacate their pickup tile.
         state = PaidMarketWorld.At(state, seller, MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0));
-        Assert.DoesNotContain(state.Inhabitants, person => person.Position == source);
+        Assert.DoesNotContain(state.Agents, person => person.Position == source);
         var away = state.Map.Tiles.Select(item => item.Position).First(point => state.Map.IsBuildable(point) &&
             state.Map.FootDistance(point, source) is >= 6 and <= 8 &&
             state.Map.IsReachableOnFoot(point, source) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         state = PaidMarketWorld.At(state, collector, away);
         var borrowing = false;
         var choices = MilkPolicy(collector, Store);
@@ -84,7 +84,7 @@ public sealed class MarketMilkRestockingTests
         using var world = WorldRuntime.Restore(state, choices.CreateProvider);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var walking = world.ExportState();
-        Assert.StartsWith("business_stock_store", walking.Society.Cognition.Runtimes.Single(item => item.InhabitantId == collector).CurrentIntention!.CandidateId);
+        Assert.StartsWith("business_stock_store", walking.Society.Cognition.Runtimes.Single(item => item.AgentId == collector).CurrentIntention!.CandidateId);
         Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot(Milk).GroundPosition);
         borrowing = true;
         _ = world.SubmitInstruction(new("milk-stall-reborrow", "owner:test", seller,
@@ -154,7 +154,7 @@ public sealed class MarketMilkRestockingTests
         };
         state = PaidMarketWorld.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => state.Society.Society.GetInhabitant(person.InhabitantId).HouseholdId == household
+            Agents = state.Agents.Select(person => state.Society.Society.GetAgent(person.AgentId).HouseholdId == household
                 ? person with { Equipment = null } : person).ToArray(),
         };
         return WorldRuntimeCodec.Encode(state);
@@ -180,14 +180,14 @@ public sealed class MarketMilkRestockingTests
 
     private static (string Seller, string Collector, string Household) Actors(WorldRuntimeState state)
     {
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
-        return (seller, state.Society.Society.Inhabitants.First(person => person.HouseholdId == household && person.Id != seller).Id, household);
+        return (seller, state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != seller).Id, household);
     }
 
     private static WorldRuntimeState Fresh(WorldRuntimeState state) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person with
+        Agents = state.Agents.Select(person => person with
         { HungerBasisPoints = 9_500, Survival = new SurvivalCondition(), LastDecisionContext = null, Project = null }).ToArray(),
     };
 

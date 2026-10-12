@@ -13,14 +13,14 @@ public sealed partial class WorldRuntime
         if (!AdultResident(actor) || !text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return null;
         var target = text[prefix.Length..].Trim();
         if (target.Length == 0) return null;
-        var active = society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active);
+        var active = society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active);
         // Bind the complete, unique name (or exact ID) once. Renames cannot
         // redirect a queued order, and leftover words are never guessed away.
         var named = active.Where(person => person.Id == target).ToArray();
-        if (named.Length == 0 && InhabitantNameRules.CanonicalKey(target) is { } targetName)
-            named = active.Where(person => string.Equals(InhabitantNameRules.CanonicalKey(person.Name), targetName,
+        if (named.Length == 0 && AgentNameRules.CanonicalKey(target) is { } targetName)
+            named = active.Where(person => string.Equals(AgentNameRules.CanonicalKey(person.Name), targetName,
                 StringComparison.OrdinalIgnoreCase)).ToArray();
-        if (named.Length != 1 || !NeedsCaregiver(named[0].Id) || inhabitants[named[0].Id].GuardianSearch is null)
+        if (named.Length != 1 || !NeedsCaregiver(named[0].Id) || agents[named[0].Id].GuardianSearch is null)
             return null;
         return new("accept_guardianship", "queued", 1, 0, "guardianships", false, TargetAgentId: named[0].Id);
     }
@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
 
     private void ExecuteGuardianOrder(OwnerQueuedInstruction instruction, CognitionCandidate candidate)
     {
-        var adult = instruction.TargetInhabitantId;
+        var adult = instruction.TargetAgentId;
         var child = instruction.Order!.TargetAgentId!;
         if (candidate.Id != "guardian_accept:" + child || !CanAcceptGuardian(adult, child))
         {
@@ -40,7 +40,7 @@ public sealed partial class WorldRuntime
             return;
         }
         ApplyDependentCareCandidate(adult, candidate.Id);
-        if (society.Checkpoint.GetInhabitant(child).PrimaryCaregiverId == adult && !NeedsCaregiver(child))
+        if (society.Checkpoint.GetAgent(child).PrimaryCaregiverId == adult && !NeedsCaregiver(child))
             CreditOrderEffect(instruction, GuardianOrderEffectId(adult, child), 1);
         else
             SetOrderStatus(instruction, "blocked", GuardianOrderBlockedReason(adult, child));
@@ -49,7 +49,7 @@ public sealed partial class WorldRuntime
     private string GuardianOrderBlockedReason(string adult, string child)
     {
         if (!AdultResident(adult)) return "Only an adult can become a guardian.";
-        if (!NeedsCaregiver(child) || inhabitants[child].GuardianSearch is null)
+        if (!NeedsCaregiver(child) || agents[child].GuardianSearch is null)
             return "The named child is no longer looking for a guardian.";
         if (!ReadyForBriefInteraction(adult)) return "The adult needs to finish their current activity before accepting care.";
         return "Waiting for this adult to be asked by the child's guardian search.";

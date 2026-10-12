@@ -55,7 +55,7 @@ public sealed class UnreachableMaterialMemoryTests
         {
             Assert.False(explored);
             Assert.Equal(("blocked", 0, remote.Id), (order.Status, order.CompletedUnits, order.TargetResourceId));
-            Assert.Equal(Origin, result.Inhabitants.Single(person => person.InhabitantId == Actor).Position);
+            Assert.Equal(Origin, result.Agents.Single(person => person.AgentId == Actor).Position);
         }
         else if (memory == "local")
         {
@@ -86,16 +86,16 @@ public sealed class UnreachableMaterialMemoryTests
         inventory = InventoryAuthority.AddLot(inventory, "island-material-cloak", "rain_cloak", Actor, 1);
         state = PaidMarketWorld.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Actor ? Origin : person.Position,
+                Position = person.AgentId == Actor ? Origin : person.Position,
                 HungerBasisPoints = 9_500,
                 Survival = new SurvivalCondition(),
                 Project = null,
                 Exploration = null,
                 TravelCooldownTicks = 0,
                 LastDecisionContext = null,
-                Equipment = person.InhabitantId == Actor ? new("island-material-cloak", "island-material-basket") : person.Equipment,
+                Equipment = person.AgentId == Actor ? new("island-material-cloak", "island-material-basket") : person.Equipment,
             }).ToArray(),
         };
         return WorldRuntimeCodec.Encode(state);

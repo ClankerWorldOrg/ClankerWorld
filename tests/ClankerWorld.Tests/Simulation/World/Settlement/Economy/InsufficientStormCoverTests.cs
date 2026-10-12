@@ -25,7 +25,7 @@ public sealed class InsufficientStormCoverTests
             state.WorldSystems!.Ecology.GetResource(resource.Id).Quantity > 0);
         state = SettlementWeatherTestFixture.WithWeather(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == Actor ? person with
             {
                 Position = Cover,
                 Survival = new(3_400),
@@ -36,7 +36,7 @@ public sealed class InsufficientStormCoverTests
             {
                 Cognition = state.Society.Cognition with
                 {
-                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.InhabitantId == Actor
+                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.AgentId == Actor
                         ? runtime with { CurrentIntention = null } : runtime).ToArray(),
                 }
             },
@@ -52,17 +52,17 @@ public sealed class InsufficientStormCoverTests
             state = PaidMarketWorld.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
                 "storm-cover-cloak", "rain_cloak", Actor, 1));
             using var equipping = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), policy.CreateProvider);
-            for (var tick = 0; tick < 4 && equipping.Inhabitants.Single(person => person.InhabitantId == Actor).Equipment?.ClothingLotId != "storm-cover-cloak"; tick++)
+            for (var tick = 0; tick < 4 && equipping.Agents.Single(person => person.AgentId == Actor).Equipment?.ClothingLotId != "storm-cover-cloak"; tick++)
                 await equipping.AdvanceOneTickAsync();
-            Assert.Equal("storm-cover-cloak", equipping.Inhabitants.Single(person => person.InhabitantId == Actor).Equipment?.ClothingLotId);
+            Assert.Equal("storm-cover-cloak", equipping.Agents.Single(person => person.AgentId == Actor).Equipment?.ClothingLotId);
             state = equipping.ExportState() with
             {
-                Inhabitants = equipping.Inhabitants.Select(person => person.InhabitantId == Actor
+                Agents = equipping.Agents.Select(person => person.AgentId == Actor
                 ? person with { LastDecisionContext = null } : person).ToArray()
             };
             wanted = "seek_warmth";
         }
-        var warmthBefore = state.Inhabitants.Single(person => person.InhabitantId == Actor).Survival!.WarmthBasisPoints;
+        var warmthBefore = state.Agents.Single(person => person.AgentId == Actor).Survival!.WarmthBasisPoints;
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), policy.CreateProvider);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
@@ -78,17 +78,17 @@ public sealed class InsufficientStormCoverTests
             Assert.Equal(WorldRuntimeCodec.Encode(continuation.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.Contains(policy.Chosen, item => item.Actor == Actor && item.Id == "seek_warmth");
-        var person = continuation.Inhabitants.Single(person => person.InhabitantId == Actor);
+        var person = continuation.Agents.Single(person => person.AgentId == Actor);
         var destination = protectedByCloak ? Cover : house.Position;
         Assert.True(person.Position == destination,
             $"{weather}: expected {destination}, actual {person.Position}, warmth {person.Survival!.WarmthBasisPoints}; " +
-            string.Join("; ", continuation.ExportState().Events.Where(item => item.Kind == "inhabitant_moved" &&
+            string.Join("; ", continuation.ExportState().Events.Where(item => item.Kind == "agent_moved" &&
                 item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal)).TakeLast(8).Select(item => item.Detail)));
         Assert.True(person.Survival!.WarmthBasisPoints > warmthBefore);
         Assert.Contains(continuation.ExportState().Survival!.Fires, fire => fire.BuildingId == house.InstanceId && fire.FuelUntilTick > continuation.WorldTick);
         Assert.Single(continuation.ExportState().Events, item => item.Kind == "fire_fuelled" && item.Detail == house.InstanceId);
         if (!protectedByCloak)
-            Assert.Contains(continuation.ExportState().Events, item => item.Kind == "inhabitant_moved" && item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
+            Assert.Contains(continuation.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
         var saved = WorldRuntimeCodec.Encode(continuation.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -108,20 +108,20 @@ public sealed class InsufficientStormCoverTests
         var state = generated.ExportState();
         var ownHouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var guestHouse = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-b");
-        var host = state.Society.Society.Inhabitants.First(person => person.HouseholdId == guestHouse.HouseholdId).Id;
-        var hostStart = state.Inhabitants.Single(person => person.InhabitantId == host).Position;
+        var host = state.Society.Society.Agents.First(person => person.HouseholdId == guestHouse.HouseholdId).Id;
+        var hostStart = state.Agents.Single(person => person.AgentId == host).Position;
         var heaters = ownHouseLit ? new[] { Actor, host } : [host];
         var inventory = state.Society.Society.Inventory;
         foreach (var heater in heaters)
             inventory = InventoryAuthority.AddLot(inventory, "guest-cover-fuel:" + heater, "wood", heater, 1);
         state = SettlementWeatherTestFixture.WithWeather(PaidMarketWorld.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Actor ? ownHouse.Position :
-                    person.InhabitantId == host ? guestHouse.Position : person.Position,
+                Position = person.AgentId == Actor ? ownHouse.Position :
+                    person.AgentId == host ? guestHouse.Position : person.Position,
                 HungerBasisPoints = 10_000,
-                Survival = new(heaters.Contains(person.InhabitantId) ? 3_400 : 10_000),
+                Survival = new(heaters.Contains(person.AgentId) ? 3_400 : 10_000),
                 Equipment = null,
                 LastDecisionContext = null,
             }).ToArray(),
@@ -143,24 +143,24 @@ public sealed class InsufficientStormCoverTests
                 state.Map.IsPassable(resource.Position) &&
                 state.Map.IsReachableOnFoot(resource.Position, ownHouse.Position) &&
                 state.Map.IsReachableOnFoot(resource.Position, guestHouse.Position) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != Actor && person.Position == resource.Position) &&
+                !state.Agents.Any(person => person.AgentId != Actor && person.Position == resource.Position) &&
                 state.Map.FootDistance(resource.Position, guestHouse.Position) < state.Map.FootDistance(resource.Position, ownHouse.Position) &&
                 state.Map.FootDistance(resource.Position, ownHouse.Position) <= 12)
             .OrderBy(resource => state.Map.FootDistance(resource.Position, guestHouse.Position)).First().Position;
         state = SettlementWeatherTestFixture.WithWeather(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == Actor ? person with
             {
                 Position = cover,
                 Survival = new(3_400),
                 LastDecisionContext = null,
                 TravelCooldownTicks = 0,
-            } : person.InhabitantId == host ? person with { Position = hostStart } : person).ToArray(),
+            } : person.AgentId == host ? person with { Position = hostStart } : person).ToArray(),
             Society = state.Society with
             {
                 Cognition = state.Society.Cognition with
                 {
-                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.InhabitantId == Actor
+                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.AgentId == Actor
                         ? runtime with { CurrentIntention = null } : runtime).ToArray(),
                 },
             },
@@ -177,13 +177,13 @@ public sealed class InsufficientStormCoverTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.Contains(policy.Chosen, choice => choice.Actor == Actor && choice.Id == "seek_warmth");
-        var person = world.Inhabitants.Single(person => person.InhabitantId == Actor);
+        var person = world.Agents.Single(person => person.AgentId == Actor);
         Assert.True(person.Position == (ownHouseLit ? ownHouse.Position : guestHouse.Position),
             $"Own={ownHouse.Position}, guest={guestHouse.Position}, cover={cover}, actual={person.Position}, ownLit={ownHouseLit}, warmth={person.Survival!.WarmthBasisPoints}");
         if (ownHouseLit) Assert.True(person.Survival!.WarmthBasisPoints > 3_400);
         else Assert.True(person.Survival!.WarmthBasisPoints < 3_400);
         Assert.Contains(world.ExportState().Events.Skip(state.Events.Count), item =>
-            item.Kind == "inhabitant_moved" && item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
+            item.Kind == "agent_moved" && item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
         Assert.Contains(world.ExportState().Survival!.Fires, fire => fire.BuildingId == guestHouse.InstanceId && fire.FuelUntilTick > world.WorldTick);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
@@ -200,11 +200,11 @@ public sealed class InsufficientStormCoverTests
         state = SettlementWeatherTestFixture.WithWeather(PaidMarketWorld.WithInventory(state,
             InventoryAuthority.AddLot(state.Society.Society.Inventory, "storm-cover-fuel", "wood", Actor, 1)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Actor ? house.Position : person.Position,
+                Position = person.AgentId == Actor ? house.Position : person.Position,
                 HungerBasisPoints = 10_000,
-                Survival = new(person.InhabitantId == Actor ? 3_400 : 10_000),
+                Survival = new(person.AgentId == Actor ? 3_400 : 10_000),
                 Equipment = null,
                 LastDecisionContext = null,
             }).ToArray(),

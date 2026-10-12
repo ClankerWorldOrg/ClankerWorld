@@ -3,7 +3,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CivicSystem
 {
-    internal static Dictionary<string, string?> LandHearingHouseholds(ICivicTownWorld world) => world.Society.Inhabitants
+    internal static Dictionary<string, string?> LandHearingHouseholds(ICivicTownWorld world) => world.Society.Agents
             .ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
 
     internal (TownGovernanceState Council, TownLandHearingState LandHearings) AdvanceLandHearingJudges(

@@ -21,7 +21,7 @@ public partial class Main
     private void BeginCameraMotion()
     {
         cameraPinnedCards.Clear();
-        if (selectedInhabitantCard.Visible) cameraPinnedCards.Add(selectedInhabitantCard);
+        if (selectedAgentCard.Visible) cameraPinnedCards.Add(selectedAgentCard);
         if (buildingQuickCard.Visible) cameraPinnedCards.Add(buildingQuickCard);
     }
 
@@ -38,7 +38,7 @@ public partial class Main
         CancelCameraMotion();
         cameraCenterTiles = tileCenter;
         UpdateMapGeometry(snapshot);
-        PositionSelectedInhabitantCard(snapshot);
+        PositionSelectedAgentCard(snapshot);
         PositionBuildingQuickCard(snapshot);
     }
 
@@ -70,7 +70,7 @@ public partial class Main
         if (!CameraMoving)
         {
             cameraPinnedCards.Clear();
-            PositionSelectedInhabitantCard(snapshot);
+            PositionSelectedAgentCard(snapshot);
             PositionBuildingQuickCard(snapshot);
         }
     }

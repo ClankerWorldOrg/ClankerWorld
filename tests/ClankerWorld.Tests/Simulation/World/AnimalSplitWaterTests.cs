@@ -66,7 +66,7 @@ public sealed partial class AnimalPipelineTests
             inventory = InventoryAuthority.Relocate(inventory, "carry-" + id, id, home, inventory.GetLot(id).Quantity, carrierId: actor);
         var start = scenario == "carried" ? yard.Position : house.Position;
         state = At(state, actor, start, inventory, [cow]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         using var world = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), actor);
         var instruction = world.SubmitInstruction(new("split-water-order", "owner", actor, OwnerInstructionKind.MustDo, "care for Moss"));
         var initialBytes = WorldRuntimeCodec.Encode(world.ExportState());

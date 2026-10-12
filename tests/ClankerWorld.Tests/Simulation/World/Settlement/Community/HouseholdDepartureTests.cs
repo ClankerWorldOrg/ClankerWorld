@@ -32,20 +32,20 @@ public sealed class HouseholdDepartureTests
             groundPosition: onGround ? new(house.Position.X, house.Position.Y) : null);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, HungerBasisPoints = 9_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
         using var departing = WorldRuntime.Restore(state, _ => provider);
         provider.Wanted[actor] = "household_leave";
         departing.Resume();
-        await AdvanceUntil(departing, () => departing.Society.GetInhabitant(actor).HouseholdId is null);
+        await AdvanceUntil(departing, () => departing.Society.GetAgent(actor).HouseholdId is null);
         departing.Pause();
         state = departing.ExportState();
         var systems = state.WorldSystems!;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null } : person).ToArray(),
             WorldSystems = systems with
             {
@@ -77,7 +77,7 @@ public sealed class HouseholdDepartureTests
         state = world.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null } : person).ToArray(),
         };
         using var collecting = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
@@ -85,8 +85,8 @@ public sealed class HouseholdDepartureTests
         await AdvanceUntil(collecting, () => PersonalEquipmentRules.IsCarried(collecting.Society.Inventory.GetLot(lotId), actor));
         provider.Wanted[actor] = action;
         await AdvanceUntil(collecting, () => kind == "sack"
-            ? collecting.Inhabitants.Single(person => person.InhabitantId == actor).Equipment?.CarryAidLotId == lotId
-            : collecting.Inhabitants.Single(person => person.InhabitantId == actor).Equipment?.ClothingLotId == lotId);
+            ? collecting.Agents.Single(person => person.AgentId == actor).Equipment?.CarryAidLotId == lotId
+            : collecting.Agents.Single(person => person.AgentId == actor).Equipment?.ClothingLotId == lotId);
         collecting.Validate();
         var unit = collecting.Society.Inventory.GetLot(lotId);
         Assert.Equal((actor, 1), (unit.OwnerId, unit.Quantity));
@@ -159,7 +159,7 @@ public sealed class HouseholdDepartureTests
         state = WithInventory(state, inventory) with
         {
             Knowledge = new WorldKnowledgeState([fact], artifacts),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, HungerBasisPoints = 9_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -173,7 +173,7 @@ public sealed class HouseholdDepartureTests
             provider.Wanted[actor] = "household_collect:" + lotId;
             await AdvanceUntil(world, () => PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot(lotId), actor));
             Assert.Equal(actor, world.Society.Inventory.GetLot(lotId).OwnerId);
-            Assert.Equal(Alpha, world.Society.GetInhabitant(actor).HouseholdId);
+            Assert.Equal(Alpha, world.Society.GetAgent(actor).HouseholdId);
         }
         world.Validate();
         var collected = WorldRuntimeCodec.Encode(world.ExportState());
@@ -199,9 +199,9 @@ public sealed class HouseholdDepartureTests
         provider.Wanted[actor] = "household_leave";
         var town = world.Towns.Single().ResidentIds.ToArray();
         world.Resume();
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(actor).HouseholdId is null);
+        await AdvanceUntil(world, () => world.Society.GetAgent(actor).HouseholdId is null);
         provider.Wanted[actor] = "safe_idle";
-        var departure = Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+        var departure = Assert.Single(world.Agents.Single(person => person.AgentId == actor).Departures!);
         Assert.InRange(departure.AllowancePortions, 0, 2);
         Assert.Equal("voluntary", departure.Cause);
         Assert.Equal(actor, world.Society.Inventory.GetLot("personal-coat").OwnerId);
@@ -221,16 +221,16 @@ public sealed class HouseholdDepartureTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.False(restored.DisplaceAdult(actor));
-        Assert.Single(restored.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+        Assert.Single(restored.Agents.Single(person => person.AgentId == actor).Departures!);
         provider.Wanted[actor] = "household_collect:personal-coat";
         restored.Resume();
         await AdvanceUntil(restored, () => PersonalEquipmentRules.IsCarried(restored.Society.Inventory.GetLot("personal-coat"), actor), 180);
-        Assert.Null(restored.Society.GetInhabitant(actor).HouseholdId);
+        Assert.Null(restored.Society.GetAgent(actor).HouseholdId);
         Assert.Equal(actor, restored.Society.Inventory.GetLot("personal-coat").OwnerId);
         provider.Wanted[actor] = "household_return:borrowed-axe";
         await AdvanceUntil(restored, () => restored.Society.Inventory.GetLot("borrowed-axe").StorageBuildingId == house.InstanceId, 180);
         Assert.Equal(Alpha, restored.Society.Inventory.GetLot("borrowed-axe").OwnerId);
-        Assert.Single(restored.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+        Assert.Single(restored.Agents.Single(person => person.AgentId == actor).Departures!);
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public sealed class HouseholdDepartureTests
         var state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = placed.Position, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => provider);
@@ -276,12 +276,12 @@ public sealed class HouseholdDepartureTests
         }
         provider.Wanted[actor] = "household_leave";
         world.Resume();
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(actor).HouseholdId is null);
+        await AdvanceUntil(world, () => world.Society.GetAgent(actor).HouseholdId is null);
         world.Pause();
         var homeless = world.ExportState();
         homeless = homeless with
         {
-            Inhabitants = homeless.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = homeless.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     LastDecisionContext = null,
@@ -292,8 +292,8 @@ public sealed class HouseholdDepartureTests
         using var forming = WorldRuntime.Restore(homeless, _ => provider);
         provider.Wanted[actor] = "household_found";
         forming.Resume();
-        await AdvanceUntil(forming, () => forming.Society.GetInhabitant(actor).HouseholdId is not null);
-        Assert.NotEqual(Alpha, forming.Society.GetInhabitant(actor).HouseholdId);
+        await AdvanceUntil(forming, () => forming.Society.GetAgent(actor).HouseholdId is not null);
+        Assert.NotEqual(Alpha, forming.Society.GetAgent(actor).HouseholdId);
         Assert.Equal(WorldProductionJobState.Running, forming.WorldSimulation.ProductionJobs.Single(job => job.JobId == started.JobId).State);
         forming.Pause();
         var saved = WorldRuntimeCodec.Encode(forming.ExportState());
@@ -319,13 +319,13 @@ public sealed class HouseholdDepartureTests
         using var world = WorldRuntime.Restore(state);
         var members = world.Society.GetHousehold(Alpha).MemberIds.ToArray();
         Assert.True(world.DisplaceAdult(members[0]));
-        var first = Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == members[0]).Departures!);
+        var first = Assert.Single(world.Agents.Single(person => person.AgentId == members[0]).Departures!);
         Assert.Equal(1, first.AllowancePortions);
         Assert.Equal(2, world.Society.Inventory.GetLot("departure-food").Quantity);
         Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("care-food").State);
         Assert.True(world.DisplaceAdult(members[1]));
         Assert.Empty(world.Society.GetHousehold(Alpha).MemberIds);
-        Assert.Equal(0, Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == members[1]).Departures!).AllowancePortions);
+        Assert.Equal(0, Assert.Single(world.Agents.Single(person => person.AgentId == members[1]).Departures!).AllowancePortions);
         Assert.Contains(world.WorldSimulation.Buildings, item => item.HouseholdId == Alpha);
         Assert.Equal(Alpha, world.Society.Inventory.GetLot("departure-food").OwnerId);
         Assert.False(world.DisplaceAdult(members[1]));
@@ -347,7 +347,7 @@ public sealed class HouseholdDepartureTests
         var state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Housing = new(Refusals: [new(Alpha, state.Society.Society.WorldTick), new(Beta, state.Society.Society.WorldTick)]) }
                 : person).ToArray(),
         };
@@ -355,13 +355,13 @@ public sealed class HouseholdDepartureTests
         var beforeBuildings = state.WorldSimulation!.Buildings.ToArray();
         using var world = WorldRuntime.Restore(state, _ => provider);
         world.Resume();
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(actor).HouseholdId is { } home && home != Alpha && home != Beta);
-        var solo = world.Society.GetHousehold(world.Society.GetInhabitant(actor).HouseholdId!);
+        await AdvanceUntil(world, () => world.Society.GetAgent(actor).HouseholdId is { } home && home != Alpha && home != Beta);
+        var solo = world.Society.GetHousehold(world.Society.GetAgent(actor).HouseholdId!);
         Assert.Equal([actor], solo.MemberIds);
         Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.HouseholdId == solo.Id);
         Assert.Equal(beforeBuildings.Length, world.WorldSimulation.Buildings.Count);
         Assert.Equal(beforeLots.Sum(lot => lot.Quantity), world.Society.Inventory.Lots.Sum(lot => lot.Quantity));
-        Assert.NotNull(world.Inhabitants.Single(person => person.InhabitantId == actor).Housing?.Blocker);
+        Assert.NotNull(world.Agents.Single(person => person.AgentId == actor).Housing?.Blocker);
     }
 
     [Fact]
@@ -375,11 +375,11 @@ public sealed class HouseholdDepartureTests
         var state = WithDependent(initial.ExportState(), actor, child);
         using var world = WorldRuntime.Restore(state, _ => provider);
         Assert.False(world.DisplaceAdult(actor));
-        Assert.Equal(Alpha, world.Society.GetInhabitant(actor).HouseholdId);
+        Assert.Equal(Alpha, world.Society.GetAgent(actor).HouseholdId);
         provider.Wanted[actor] = "household_leave";
         world.Resume();
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(actor).HouseholdId is null);
-        Assert.Null(world.Society.GetInhabitant(child).HouseholdId);
+        await AdvanceUntil(world, () => world.Society.GetAgent(actor).HouseholdId is null);
+        Assert.Null(world.Society.GetAgent(child).HouseholdId);
         Assert.True(SocietyRules.HasActivePrimaryCaregiver(world.Society, child));
         provider.Wanted[actor] = "safe_idle";
         provider.Offered.TryRemove(actor, out _);
@@ -390,24 +390,24 @@ public sealed class HouseholdDepartureTests
         Assert.True(world.DisplaceAdult(betaMembers[1]));
         provider.Wanted[actor] = "household_ask:" + Beta;
         provider.Wanted[betaMembers[0]] = "household_admit:" + actor;
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(actor).HouseholdId == Beta, 160);
+        await AdvanceUntil(world, () => world.Society.GetAgent(actor).HouseholdId == Beta, 160);
         provider.Wanted[actor] = "safe_idle";
-        Assert.Equal(Beta, world.Society.GetInhabitant(child).HouseholdId);
-        Assert.Equal(actor, world.Society.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Equal(Beta, world.Society.GetAgent(child).HouseholdId);
+        Assert.Equal(actor, world.Society.GetAgent(child).PrimaryCaregiverId);
         Assert.Contains(child, world.Society.GetHousehold(Beta).MemberIds);
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == child).Housing);
+        Assert.Null(world.Agents.Single(person => person.AgentId == child).Housing);
         world.Pause();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => provider);
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         provider.Wanted[betaMembers[0]] = "household_accept_care:" + child;
         restored.Resume();
-        await AdvanceUntil(restored, () => restored.Society.GetInhabitant(child).PrimaryCaregiverId == betaMembers[0], 160);
+        await AdvanceUntil(restored, () => restored.Society.GetAgent(child).PrimaryCaregiverId == betaMembers[0], 160);
         provider.Wanted[actor] = "household_leave";
-        await AdvanceUntil(restored, () => restored.Society.GetInhabitant(actor).HouseholdId is null, 160);
-        Assert.Equal(Beta, restored.Society.GetInhabitant(child).HouseholdId);
+        await AdvanceUntil(restored, () => restored.Society.GetAgent(actor).HouseholdId is null, 160);
+        Assert.Equal(Beta, restored.Society.GetAgent(child).HouseholdId);
         Assert.True(SocietyRules.HasActivePrimaryCaregiver(restored.Society, child));
-        Assert.Equal(2, restored.Inhabitants.Single(person => person.InhabitantId == actor).Departures!.Count);
+        Assert.Equal(2, restored.Agents.Single(person => person.AgentId == actor).Departures!.Count);
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public sealed class HouseholdDepartureTests
         inventory = InventoryAuthority.AddLot(inventory, "carried-berries", "berries", actor, 7);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, HungerBasisPoints = 3_500, Position = house.Position, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -437,7 +437,7 @@ public sealed class HouseholdDepartureTests
         provider.Wanted[actor] = "safe_idle";
         Assert.Equal(8, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, null));
         Assert.Equal(3, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "clothing" && lot.OwnerId == actor).Sum(lot => lot.Quantity));
-        var departure = Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+        var departure = Assert.Single(world.Agents.Single(person => person.AgentId == actor).Departures!);
         world.Pause();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => provider);
@@ -447,7 +447,7 @@ public sealed class HouseholdDepartureTests
         provider.Wanted[actor] = "household_collect:own-coats";
         await AdvanceUntil(restored, () => restored.Society.Inventory.GetLot("own-coats").Quantity == 1 ||
             restored.Society.Inventory.GetLot("own-coats").StorageBuildingId is null, 160);
-        Assert.Equal(departure.AllowancePortions, Assert.Single(restored.Inhabitants.Single(person => person.InhabitantId == actor).Departures!).AllowancePortions);
+        Assert.Equal(departure.AllowancePortions, Assert.Single(restored.Agents.Single(person => person.AgentId == actor).Departures!).AllowancePortions);
         Assert.Equal(3, restored.Society.Inventory.Lots.Where(lot => lot.ItemKind == "clothing" && lot.OwnerId == actor).Sum(lot => lot.Quantity));
     }
 
@@ -477,14 +477,14 @@ public sealed class HouseholdDepartureTests
             storageBuildingId: house.InstanceId, containerLotId: "own-pot");
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, Position = house.Position, LastDecisionContext = null }
                 : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => provider);
 
         Assert.True(world.DisplaceAdult(actor));
-        Assert.Equal(0, Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == actor).Departures!).AllowancePortions);
+        Assert.Equal(0, Assert.Single(world.Agents.Single(person => person.AgentId == actor).Departures!).AllowancePortions);
         var sealedFood = world.Society.Inventory.GetLot("household-pot-berries");
         Assert.Equal((Alpha, "household-pot", 3), (sealedFood.OwnerId, sealedFood.ContainerLotId, sealedFood.Quantity));
 
@@ -534,7 +534,7 @@ public sealed class HouseholdDepartureTests
                 ProductionJobs = [new WorldProductionJob("departure-private-job", recipe.CanonicalId, house.InstanceId,
                     actor, initial.WorldTick, initial.WorldTick + 30, WorldProductionJobState.Running, reservationIds) { OwnerId = Alpha }],
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Project = new(TownConstructionCandidateIds.Recipe(recipe.CanonicalId), recipe.DisplayName,
                     initial.WorldTick, "waiting", JobId: "departure-private-job", LastTransitionTick: initial.WorldTick),
@@ -542,8 +542,8 @@ public sealed class HouseholdDepartureTests
         };
         using var world = WorldRuntime.Restore(state, _ => provider);
         Assert.True(world.DisplaceAdult(actor));
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == actor).Project);
-        Assert.NotNull(Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == actor).Departures!).SharedProject);
+        Assert.Null(world.Agents.Single(person => person.AgentId == actor).Project);
+        Assert.NotNull(Assert.Single(world.Agents.Single(person => person.AgentId == actor).Departures!).SharedProject);
         provider.Wanted[actor] = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
         world.Resume();
         for (var tick = 0; tick < 8; tick++) await world.AdvanceOneTickAsync();
@@ -574,7 +574,7 @@ public sealed class HouseholdDepartureTests
         var atWorkSite = repeated.ExportState();
         atWorkSite = atWorkSite with
         {
-            Inhabitants = atWorkSite.Inhabitants.Select(person => person.InhabitantId == remaining
+            Agents = atWorkSite.Agents.Select(person => person.AgentId == remaining
                 ? person with { Position = house.Position, LastDecisionContext = null } : person).ToArray(),
         };
         using var resuming = WorldRuntime.Restore(atWorkSite, _ => provider);
@@ -619,7 +619,7 @@ public sealed class HouseholdDepartureTests
         inventory = InventoryAuthority.Relocate(inventory, "broken-borrow", "broken-borrowed", Alpha, 1, actor);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => provider);
@@ -647,7 +647,7 @@ public sealed class HouseholdDepartureTests
             var state = initial.ExportState();
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Personality = secret } : person).ToArray(),
             };
             using var world = WorldRuntime.Restore(state, _ => provider);
@@ -657,7 +657,7 @@ public sealed class HouseholdDepartureTests
             var logger = new RecordingLogger<WorldRuntimeService>();
             using var service = new WorldRuntimeService(world,
                 new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
-            for (var tick = 0; tick < 8 && world.Society.GetInhabitant(actor).HouseholdId is not null; tick++)
+            for (var tick = 0; tick < 8 && world.Society.GetAgent(actor).HouseholdId is not null; tick++)
                 Assert.True(await service.TryAdvanceOnceAsync());
             Assert.Contains(logger.Messages, message => message.Contains("settlement_housing tick=", StringComparison.Ordinal) &&
                 message.Contains("event=household_left", StringComparison.Ordinal));
@@ -699,7 +699,7 @@ public sealed class HouseholdDepartureTests
         var child = Assert.IsType<string>(birth.CreatedId);
         var rate = society.LifeClock?.Rate ?? 1;
         var adultAge = society.Config.FounderStartingAge;
-        var childBirth = society.GetInhabitant(child).BirthLifeTick ?? society.GetInhabitant(child).BirthTick;
+        var childBirth = society.GetAgent(child).BirthLifeTick ?? society.GetAgent(child).BirthTick;
         var beforeAdult = childBirth + adultAge * society.Config.TicksPerLifecycleAge - 16L * rate;
         // Skip only idle age waiting; death, default settlement, departure and maturation still run normally.
         if (society.LifeClock is not null)
@@ -721,7 +721,7 @@ public sealed class HouseholdDepartureTests
         var lastDay = society.Config.DayLifecycle!.MaximumDay;
         society = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == deceased ? person with
+            Agents = society.Agents.Select(person => person.Id == deceased ? person with
             {
                 BirthTick = society.LifeClock is null
                     ? society.LifeTickAt(society.WorldTick + 1) - lastDay * society.Config.TicksPerLifecycleAge : person.BirthTick,
@@ -735,16 +735,16 @@ public sealed class HouseholdDepartureTests
                 LastLifecycleYearChecked = adultAge - 1,
             } : person).ToArray(),
         };
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != caregiver).Select(person => person.Position)
+        var occupied = state.Agents.Where(person => person.AgentId != caregiver).Select(person => person.Position)
             .Append(house.Position).ToHashSet();
         var childPosition = state.Map.FootNeighbors(house.Position).First(point => state.Map.IsPassable(point) && !occupied.Contains(point));
         state = state with
         {
             Society = state.Society with { Society = society },
             Survival = new(society.WorldTick, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == caregiver ? house.Position : person.Position,
+                Position = person.AgentId == caregiver ? house.Position : person.Position,
                 HungerBasisPoints = 10_000,
                 Survival = new(10_000),
                 Equipment = null,
@@ -783,25 +783,25 @@ public sealed class HouseholdDepartureTests
             // than waiting out the earlier idle intention past adulthood.
             inheritedState = inheritedState with
             {
-                Inhabitants = inheritedState.Inhabitants.Select(person => person.InhabitantId == caregiver
+                Agents = inheritedState.Agents.Select(person => person.AgentId == caregiver
                     ? person with { LastDecisionContext = null } : person).ToArray(),
             };
         }
         using var departed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(inheritedState)), _ => provider);
         if (moved)
         {
-            await AdvanceUntil(departed, () => departed.Society.GetInhabitant(caregiver).HouseholdId is null, 12);
-            Assert.Null(departed.Society.GetInhabitant(child).HouseholdId);
-            Assert.NotEqual(SocietyAgeBand.Adult, departed.Society.GetInhabitant(child).AgeBand);
+            await AdvanceUntil(departed, () => departed.Society.GetAgent(caregiver).HouseholdId is null, 12);
+            Assert.Null(departed.Society.GetAgent(child).HouseholdId);
+            Assert.NotEqual(SocietyAgeBand.Adult, departed.Society.GetAgent(child).AgeBand);
             provider.Wanted[caregiver] = "safe_idle";
         }
         var bytes = WorldRuntimeCodec.Encode(departed.ExportState());
         using var growing = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         using var growingReplay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(growing.ExportState()));
-        for (var tick = 0; tick < 24 && growing.Society.GetInhabitant(child).AgeBand != SocietyAgeBand.Adult; tick++)
+        for (var tick = 0; tick < 24 && growing.Society.GetAgent(child).AgeBand != SocietyAgeBand.Adult; tick++)
             await AdvancePair(growing, growingReplay);
-        Assert.Equal(SocietyAgeBand.Adult, growing.Society.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Adult, growing.Society.GetAgent(child).AgeBand);
         var collectionState = growing.ExportState();
         if (boundary == "caregiver-death")
         {
@@ -812,7 +812,7 @@ public sealed class HouseholdDepartureTests
                 {
                     Society = checkpoint with
                     {
-                        Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == caregiver ? person with
+                        Agents = checkpoint.Agents.Select(person => person.Id == caregiver ? person with
                         {
                             BirthTick = checkpoint.LifeClock is null
                                 ? checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge : person.BirthTick,
@@ -827,8 +827,8 @@ public sealed class HouseholdDepartureTests
             using var orphaned = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(collectionState)), _ => provider);
             Assert.True((await orphaned.AdvanceOneTickAsync()).Advanced);
             collectionState = orphaned.ExportState();
-            Assert.DoesNotContain(collectionState.Inhabitants, person => person.InhabitantId == caregiver);
-            var archived = Assert.Single(collectionState.DeceasedInhabitants!, person => person.InhabitantId == caregiver);
+            Assert.DoesNotContain(collectionState.Agents, person => person.AgentId == caregiver);
+            var archived = Assert.Single(collectionState.DeceasedAgents!, person => person.AgentId == caregiver);
             Assert.Contains(archived.LastPhysical.Departures!, departure => departure.HouseholdId == Alpha && departure.CareGroup.Contains(child));
             var departure = Assert.Single(archived.LastPhysical.Departures!);
             foreach (var invalid in new[]
@@ -842,14 +842,14 @@ public sealed class HouseholdDepartureTests
             {
                 var corrupted = collectionState with
                 {
-                    DeceasedInhabitants = collectionState.DeceasedInhabitants!.Select(person => person.InhabitantId == caregiver
+                    DeceasedAgents = collectionState.DeceasedAgents!.Select(person => person.AgentId == caregiver
                         ? person with { LastPhysical = person.LastPhysical with { Departures = [invalid] } } : person).ToArray(),
                 };
                 Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(corrupted));
             }
             var document = JsonNode.Parse(WorldRuntimeCodec.Encode(collectionState))!;
-            var savedCaregiver = document["state"]!["deceasedInhabitants"]!.AsArray()
-                .Single(person => person!["inhabitantId"]!.GetValue<string>() == caregiver)!;
+            var savedCaregiver = document["state"]!["deceasedAgents"]!.AsArray()
+                .Single(person => person!["agentId"]!.GetValue<string>() == caregiver)!;
             savedCaregiver["lastPhysical"]!["departures"]![0]!["careGroup"] = new JsonArray(child);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(
                 System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())));
@@ -860,7 +860,7 @@ public sealed class HouseholdDepartureTests
                 axe.Id, 1, "work", long.MaxValue);
         if (boundary == "full-hands")
         {
-            var equipment = collectionState.Inhabitants.Single(person => person.InhabitantId == child).Equipment;
+            var equipment = collectionState.Agents.Single(person => person.AgentId == child).Equipment;
             var room = PersonalEquipmentRules.FreeCapacity(collectionInventory, child, equipment);
             collectionInventory = InventoryAuthority.AddLot(collectionInventory, "dependent-full-hands", "wood", child, room);
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(collectionInventory, child, equipment));
@@ -883,7 +883,7 @@ public sealed class HouseholdDepartureTests
         Assert.Equal(available, PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot(axe.Id), child));
         if (!available) Assert.Equal(house.InstanceId, world.Society.Inventory.GetLot(axe.Id).StorageBuildingId);
         Assert.Equal(child, world.Society.Inventory.GetLot(axe.Id).OwnerId);
-        Assert.Equal(moved ? null : Alpha, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(moved ? null : Alpha, world.Society.GetAgent(child).HouseholdId);
         world.Validate();
 
         OwnerInstructionOrder Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
@@ -900,14 +900,14 @@ public sealed class HouseholdDepartureTests
         var society = state.Society.Society;
         society = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = society.Agents.Select(person => person.Id == child ? person with
             {
                 AgeBand = SocietyAgeBand.Infant,
                 BirthTick = society.WorldTick,
                 BirthLifeTick = null,
                 LastLifecycleYearChecked = 0,
                 PrimaryCaregiverId = adult,
-                DomesticFamilyUnitId = society.GetInhabitant(adult).DomesticFamilyUnitId,
+                DomesticFamilyUnitId = society.GetAgent(adult).DomesticFamilyUnitId,
             } : person).ToArray(),
             Relationships = society.Relationships.Append(new SocietyRelationship("departure-test-care", 1,
                 SocietyRelationshipType.Caregiver, adult, child, SocietyRelationshipState.Accepted,
@@ -923,8 +923,8 @@ public sealed class HouseholdDepartureTests
             {
                 // The former adult is now a dependent and no longer sits on the council.
                 Governance = TownGovernanceRules.Advance(town.Governance!, town.Id, state.WorldSeed,
-                    town.ResidentIds.Where(id => society.Inhabitants.Any(person => person.Id == id &&
-                        person.Status == SocietyInhabitantStatus.Active &&
+                    town.ResidentIds.Where(id => society.Agents.Any(person => person.Id == id &&
+                        person.Status == SocietyAgentStatus.Active &&
                         person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
                     society.WorldTick, state.WorldSystems!.Config.TicksPerDay),
             }).ToArray(),
@@ -951,8 +951,8 @@ public sealed class HouseholdDepartureTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            Offered[observation.InhabitantId] = observation.Candidates.Select(item => item.Id).ToArray();
-            var wanted = Wanted.GetValueOrDefault(observation.InhabitantId, "safe_idle");
+            Offered[observation.AgentId] = observation.Candidates.Select(item => item.Id).ToArray();
+            var wanted = Wanted.GetValueOrDefault(observation.AgentId, "safe_idle");
             var selected = observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(wanted, StringComparison.Ordinal))
                 ?? observation.Candidates.Single(item => item.Id == "safe_idle");
             return new DeterministicDecisionProvider().DecideAsync(request with { Observation = observation with { Candidates = [selected] } }, cancellationToken);

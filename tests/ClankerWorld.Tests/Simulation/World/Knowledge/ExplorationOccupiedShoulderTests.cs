@@ -47,7 +47,7 @@ public sealed class ExplorationOccupiedShoulderTests
         using var world = CreateWorld(Start, [new(3, 1), Start], [shoulder, new(1, 0), new(0, 0)]);
         var diagonal = new GridPoint(5, 0);
         Assert.True(world.ExportState().Map.CanFootStep(Start, diagonal));
-        Assert.DoesNotContain(world.Inhabitants, person => person.Position == diagonal);
+        Assert.DoesNotContain(world.Agents, person => person.Position == diagonal);
 
         Assert.Equal(1, await Step(world));
         var expected = new GridPoint(expectedX, expectedY);
@@ -103,16 +103,16 @@ public sealed class ExplorationOccupiedShoulderTests
         var otherIndex = 0;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Actor ? start : others[otherIndex++],
+                Position = person.AgentId == Actor ? start : others[otherIndex++],
                 HungerBasisPoints = 9_500,
                 MoveWaitTicks = 0,
                 TravelCooldownTicks = 0,
-                Exploration = person.InhabitantId == Actor ? new SettlementExploration(path, path, 0, false) : null,
+                Exploration = person.AgentId == Actor ? new SettlementExploration(path, path, 0, false) : null,
             }).ToArray(),
         };
-        Assert.All(state.Inhabitants, person => Assert.True(state.Map.IsPassable(person.Position)));
+        Assert.All(state.Agents, person => Assert.True(state.Map.IsPassable(person.Position)));
         return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
     }
 
@@ -124,8 +124,8 @@ public sealed class ExplorationOccupiedShoulderTests
         return restored;
     }
 
-    private static InhabitantState Scout(WorldRuntime world) =>
-        world.Inhabitants.Single(person => person.InhabitantId == Actor);
+    private static AgentState Scout(WorldRuntime world) =>
+        world.Agents.Single(person => person.AgentId == Actor);
 
     private static void AssertSameState(WorldRuntime world, WorldRuntime restored) =>
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
@@ -134,7 +134,7 @@ public sealed class ExplorationOccupiedShoulderTests
     private static async Task<int> Step(WorldRuntime world)
     {
         var before = Scout(world);
-        var occupied = world.Inhabitants.Where(person => person.InhabitantId != Actor)
+        var occupied = world.Agents.Where(person => person.AgentId != Actor)
             .Select(person => person.Position).ToHashSet();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var after = Scout(world);

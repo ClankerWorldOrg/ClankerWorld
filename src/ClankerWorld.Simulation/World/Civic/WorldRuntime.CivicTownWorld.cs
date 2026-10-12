@@ -15,29 +15,29 @@ public sealed partial class WorldRuntime
     private sealed partial class CivicWorldAdapter
     {
         public void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddBoatAccessCandidates(candidates, actor, town);
-        public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, InhabitantState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
+        public void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person) => runtime.AddEquipmentCandidates(candidates, actor, person);
         public void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
-                InhabitantState person) => runtime.AddHandcartCandidates(candidates, actor, person);
+                AgentState person) => runtime.AddHandcartCandidates(candidates, actor, person);
         public void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor) => runtime.AddToolRepairCandidates(candidates, actor);
         public void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => runtime.AddTownProjectProposalCandidates(candidates, actor, town);
         public bool AdultResident(string actor) => runtime.AdultResident(actor);
         public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => runtime.AppendEvent(kind, detail, eventPosition);
-        public bool ApplyHandcartCandidate(string actor, InhabitantState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
+        public bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue) => runtime.ApplyHandcartCandidate(actor, person, candidateId, targetCartId, maximumQuantity);
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => runtime.ApplyInventoryTransition(transition);
         public bool CanContinueEquipmentRepair(string actor) => runtime.CanContinueEquipmentRepair(actor);
-        public bool CanPrepareEquipmentRepair(string actor, InhabitantState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
-        public IEnumerable<InhabitantState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);
+        public bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) => runtime.CanPrepareEquipmentRepair(actor, person, lot);
+        public IEnumerable<AgentState> ChildrenNeedingCare(string actor) => runtime.ChildrenNeedingCare(actor);
         public bool ChildResident(string actor) => runtime.ChildResident(actor);
         public EquipmentRepairWork? ContinueEquipmentRepair(string actor) => runtime.ContinueEquipmentRepair(actor);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot) => runtime.EquipmentRepairSite(actor, lot);
         public List<GridPoint> FindUnoccupiedRoute(
-                string inhabitantId,
+                string agentId,
                 GridPoint origin,
                 GridPoint destination,
                 int interactionRange,
                 bool allowSwimming = true,
-                int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(inhabitantId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
+                int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public bool HasCarriedMaterial(string actor, string itemKind, int quantity) => runtime.HasCarriedMaterial(actor, itemKind, quantity);
         public PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag) => runtime.HouseholdBuildingWithTag(householdId, tag);
@@ -49,12 +49,12 @@ public sealed partial class WorldRuntime
         public void MaintainTownProjects() => runtime.MaintainTownProjects();
         public WorldMap Map { get => runtime.map; }
         public void MoveToward(
-                string inhabitantId,
-                InhabitantState state,
+                string agentId,
+                AgentState state,
                 GridPoint destination,
                 string reason,
                 int interactionRange = 0,
-                int horseMovementBudget = 100) => runtime.MoveToward(inhabitantId, state, destination, reason, interactionRange, horseMovementBudget);
+                int horseMovementBudget = 100) => runtime.MoveToward(agentId, state, destination, reason, interactionRange, horseMovementBudget);
         public long NextEventId { get => runtime.nextEventId; }
         public (string TownId, string AgreementId, string TermId)? NonviolentRemedySelection { get => runtime.nonviolentRemedySelection; set => runtime.nonviolentRemedySelection = value; }
         public TownProjectPayload? OfferedTownProjectPlan(TownRuntimeState town, string actor, string definition,
@@ -64,8 +64,8 @@ public sealed partial class WorldRuntime
                 string? sourceLotId = null) => runtime.PersonalWarehouseSurplus(actor, itemKind, sourceLotId);
         public PlacedBuilding? Port(string id) => runtime.Port(id);
         public IEnumerable<InventoryLot> PreferredFood(string owner, string? actor = null) => runtime.PreferredFood(owner, actor);
-        public void RepairEquipment(string actor, InhabitantState person, string? requestedLotId = null, string? orderInstructionId = null) => runtime.RepairEquipment(actor, person, requestedLotId, orderInstructionId);
-        public string? RepairTool(string actor, InhabitantState state, string lotId,
+        public void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null) => runtime.RepairEquipment(actor, person, requestedLotId, orderInstructionId);
+        public string? RepairTool(string actor, AgentState state, string lotId,
                 IReadOnlyList<string>? protectedToolIds = null) => runtime.RepairTool(actor, state, lotId, protectedToolIds);
         public int SkilledWorkTicks(string actor, SettlementSkillKind skill, int ticks) => runtime.SkilledWorkTicks(actor, skill, ticks);
         public IReadOnlyList<TownLandTitleRecord> TownLandTitles { get => runtime.townLandTitles; }
@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
         public (TownGovernanceState Council, TownLandHearingState LandHearings) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownGovernanceState council, TownGovernmentState government) => runtime.RequestPropertyCase(town, actor, subject, choice, statement, council, government);
         public TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision) => runtime.CaptureProperty(town, request, revision);
         public TownLandHearingState TransferCaseProperty(TownRuntimeState town, TownLandHearingState hearings, string caseId, TownPropertySnapshot prior) => runtime.TransferCaseProperty(town, hearings, caseId, prior);
-        public int CaregiverFoodCarryRequirement(string actor, InhabitantState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
+        public int CaregiverFoodCarryRequirement(string actor, AgentState parent) => runtime.CaregiverFoodCarryRequirement(actor, parent);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
         public int MarketSurplus(string actor, InventoryLot lot) => runtime.MarketSurplus(actor, lot);
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
@@ -105,7 +105,7 @@ public sealed partial class WorldRuntime
         public void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding) => runtime.GenerateRoadBetweenTowns(town, firstBuilding);
         public bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination) => runtime.CanReachByFootOrSwimming(actor, from, destination);
         public PlacedBuilding? HouseForHousehold(string householdId) => runtime.HouseForHousehold(householdId);
-        public bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
+        public bool CanFitHouseResident(string householdId, SocietyAgent proposedResident) => runtime.CanFitHouseResident(householdId, proposedResident);
         public List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null) => runtime.GenerateRoadToBuilding(building, border);
         public IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null) => runtime.SpendingGoods(actor, use, owners, kind);
         public IReadOnlyList<FarmFieldState> Fields => runtime.fields;
@@ -116,9 +116,9 @@ public sealed partial class WorldRuntime
         public ContentRegistryState ContentState => runtime.contentRegistry.ExportState();
         public void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> operation) => runtime.society.Apply(operation);
         public void ResumeSociety() => runtime.society.Resume();
-        public void AddInhabitant(string id, InhabitantState person) => runtime.inhabitants.Add(id, person);
-        public void SetInhabitant(string id, InhabitantState person) => runtime.inhabitants[id] = person;
-        public void RemoveInhabitant(string id) => runtime.inhabitants.Remove(id);
+        public void AddAgent(string id, AgentState person) => runtime.agents.Add(id, person);
+        public void SetAgent(string id, AgentState person) => runtime.agents[id] = person;
+        public void RemoveAgent(string id) => runtime.agents.Remove(id);
     }
     internal static class CivicSharedRules
     {
@@ -132,7 +132,7 @@ public sealed partial class WorldRuntime
         internal static string NonviolentRelayChoiceId(string town, string act, string listener) => WorldRuntime.NonviolentRelayChoiceId(town, act, listener);
         internal static TownProjectPayload BoatProjectPlan(PlacedBuilding port, string name) => WorldRuntime.BoatProjectPlan(port, name);
         internal static bool IsEdibleFood(string kind) => WorldRuntime.IsEdibleFood(kind);
-        internal static bool NeedsUrgentFood(InhabitantState person) => WorldRuntime.NeedsUrgentFood(person);
+        internal static bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
         internal static string RepairCartPrefix => WorldRuntime.RepairCartPrefix;
         internal static string RepairToolPrefix => WorldRuntime.RepairToolPrefix;
         internal static int ResourceInteractionRange => WorldRuntime.ResourceInteractionRange;

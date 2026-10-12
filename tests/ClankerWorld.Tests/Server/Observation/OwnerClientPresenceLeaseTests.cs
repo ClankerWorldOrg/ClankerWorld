@@ -28,7 +28,7 @@ public sealed class OwnerClientPresenceLeaseTests
             Assert.True(provider.ReceivedCancellation.IsCancellationRequested);
             Assert.Equal(committedTick, runtime.WorldTick);
             Assert.Contains(runtime.ExportState().Society.Cognition.Queue,
-                item => item.InhabitantId == "founder-scout");
+                item => item.AgentId == "founder-scout");
         }
         finally
         {
@@ -82,7 +82,7 @@ public sealed class OwnerClientPresenceLeaseTests
                 message.Contains("model_unavailable", StringComparison.Ordinal));
             Assert.Equal(1, provider.Calls);
             Assert.All(logger.Messages.Where(message => message.Contains("hosted_decision tick=", StringComparison.Ordinal)),
-                message => Assert.Contains($"inhabitant={actorId} outcome=", message, StringComparison.Ordinal));
+                message => Assert.Contains($"agent={actorId} outcome=", message, StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("super-secret-api-key", StringComparison.Ordinal));
         }
         finally

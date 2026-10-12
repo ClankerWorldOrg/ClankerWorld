@@ -12,10 +12,10 @@ public sealed partial class SettlementParenthoodTests
     {
         var prepared = await CookedBirthFixture.PrepareAsync(inPot: true);
         using var planning = CookedBirthFixture.Restore(prepared);
-        for (var tick = 0; tick < 40 && planning.Inhabitants.Single(person => person.InhabitantId == prepared.First)
+        for (var tick = 0; tick < 40 && planning.Agents.Single(person => person.AgentId == prepared.First)
                  .Parenthood?.Stage != "preparing"; tick++)
             Assert.True((await planning.AdvanceOneTickAsync()).Advanced);
-        var plan = planning.Inhabitants.Single(person => person.InhabitantId == prepared.First).Parenthood!;
+        var plan = planning.Agents.Single(person => person.AgentId == prepared.First).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         // Keep the actual native plan and move only the fixture clock past idle waiting.
         PositionFamilyFixtureAt(planning, plan.LastTransitionTick + 599);
@@ -29,7 +29,7 @@ public sealed partial class SettlementParenthoodTests
             storageBuildingId: house.InstanceId, containerLotId: "stored-birth-extra-pot");
         inventory = InventoryAuthority.Reserve(inventory, "stored-birth-other-meal", prepared.Household,
             prepared.OutputIds[0], 1, "another_meal", long.MaxValue);
-        var person = state.Inhabitants.Single(person => person.InhabitantId == caregiver);
+        var person = state.Agents.Single(person => person.AgentId == caregiver);
         var room = PersonalEquipmentRules.FreeCapacity(inventory, caregiver, person.Equipment);
         if (room > 0) inventory = InventoryAuthority.AddLot(inventory, "stored-birth-ballast", "stone", caregiver, room);
         if (broken) inventory = inventory with
@@ -39,13 +39,13 @@ public sealed partial class SettlementParenthoodTests
         };
         var away = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
             state.Map.FootDistance(tile.Position, house.Position) > 3 &&
-            state.Inhabitants.All(inhabitant => inhabitant.Position != tile.Position)).Position;
+            state.Agents.All(agent => agent.Position != tile.Position)).Position;
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(inhabitant => inhabitant with
+            Agents = state.Agents.Select(agent => agent with
             {
-                Position = inhabitant.InhabitantId == caregiver ? away : inhabitant.Position,
+                Position = agent.AgentId == caregiver ? away : agent.Position,
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null
             }).ToArray(),

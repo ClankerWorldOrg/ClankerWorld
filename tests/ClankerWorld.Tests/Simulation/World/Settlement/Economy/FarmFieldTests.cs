@@ -131,7 +131,7 @@ public sealed class FarmFieldTests
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("farmhouse", StringComparer.Ordinal));
         var town = state.Towns!.Single(item => item.Id == farmhouse.TownId);
-        var residents = state.Society.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var residents = state.Society.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             town.ResidentIds.Contains(person.Id, StringComparer.Ordinal)).ToArray();
         // Consume the Town's ready food through the existing reservation boundary;
         // raw crops, planting reserves and another Town's stock stay in place.
@@ -191,17 +191,17 @@ public sealed class FarmFieldTests
     {
         var (state, actor, household, point) = PreparedFarmer("field-claim-through-occupancy");
         state = FeedFarmTownFromAvailableStock(state, household);
-        var sibling = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var sibling = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand == SocietyAgeBand.Adult && person.Id != actor).Id;
-        var siblingOrigin = state.Inhabitants.Single(person => person.InhabitantId == sibling).Position;
+        var siblingOrigin = state.Agents.Single(person => person.AgentId == sibling).Position;
         Assert.NotEqual(point, siblingOrigin);
         Assert.True(state.Map.IsReachableOnFoot(siblingOrigin, point));
         var occupied = state.Map.Resources.Select(resource => resource.Position)
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var siblingAway = state.Map.Tiles.Select(tile => tile.Position)
             .First(position => position != point && position != siblingOrigin && state.Map.IsBuildable(position) &&
-                !occupied.Contains(position) && !state.Inhabitants.Any(person =>
-                    person.Position == position && person.InhabitantId != actor && person.InhabitantId != sibling) &&
+                !occupied.Contains(position) && !state.Agents.Any(person =>
+                    person.Position == position && person.AgentId != actor && person.AgentId != sibling) &&
                 state.Map.IsReachableOnFoot(position, point));
         var candidateId = $"farm:Plant:{point.X}:{point.Y}:{FarmFieldRules.Greens}";
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
@@ -227,7 +227,7 @@ public sealed class FarmFieldTests
                 },
             },
             Fields = [new(point, household, FarmFieldStage.Prepared)],
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = siblingOrigin,
@@ -235,26 +235,26 @@ public sealed class FarmFieldTests
                     LastDecisionContext = null,
                     Project = savedPlan
                 }
-                : person.InhabitantId == sibling
+                : person.AgentId == sibling
                     ? person with { Position = siblingAway, HungerBasisPoints = 10_000, LastDecisionContext = null }
                     : person).ToArray(),
         };
         var firstChoice = new RecordingFieldChoiceProvider(actor, candidateId);
         using var choosing = WorldRuntime.Restore(state, _ => firstChoice);
         Assert.True((await choosing.AdvanceOneTickAsync()).Advanced);
-        var actorCandidates = firstChoice.Requests.Where(request => request.InhabitantId == actor)
+        var actorCandidates = firstChoice.Requests.Where(request => request.AgentId == actor)
             .SelectMany(request => request.CandidateIds).ToArray();
         Assert.True(actorCandidates.Contains(candidateId, StringComparer.Ordinal),
             $"Actor candidates: {string.Join(",", actorCandidates)}");
         Assert.Contains(candidateId, firstChoice.SelectedCandidateIds);
-        var actorRuntime = choosing.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == actor);
+        var actorRuntime = choosing.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == actor);
         Assert.Equal(candidateId, actorRuntime.CurrentIntention?.CandidateId);
         Assert.Contains(choosing.Society.Inventory.Lots, lot => lot.OwnerId == actor &&
             lot.ItemKind == FarmFieldRules.PlantingItem(FarmFieldRules.Greens) && lot.Quantity == 1);
 
         state = choosing.ExportState() with
         {
-            Inhabitants = choosing.ExportState().Inhabitants.Select(person => person.InhabitantId == sibling
+            Agents = choosing.ExportState().Agents.Select(person => person.AgentId == sibling
                     ? person with { Position = point, LastDecisionContext = null }
                     : person).ToArray(),
         };
@@ -262,16 +262,16 @@ public sealed class FarmFieldTests
         var secondChoice = new RecordingFieldChoiceProvider(actor, candidateId);
         using var contested = WorldRuntime.Restore(state, _ => secondChoice);
         Assert.Equal(candidateId, contested.ExportState().Society.Cognition.Runtimes
-            .Single(item => item.InhabitantId == actor).CurrentIntention?.CandidateId);
+            .Single(item => item.AgentId == actor).CurrentIntention?.CandidateId);
         Assert.True((await contested.AdvanceOneTickAsync()).Advanced);
-        var siblingRequest = Assert.Single(secondChoice.Requests, request => request.InhabitantId == sibling);
+        var siblingRequest = Assert.Single(secondChoice.Requests, request => request.AgentId == sibling);
         Assert.True(!siblingRequest.CandidateIds.Any(id => id.StartsWith(
                 $"farm:Plant:{point.X}:{point.Y}:", StringComparison.Ordinal)),
             $"Sibling candidates: {string.Join(",", siblingRequest.CandidateIds)}");
         Assert.Equal(candidateId, contested.ExportState().Society.Cognition.Runtimes
-            .Single(item => item.InhabitantId == actor).CurrentIntention?.CandidateId);
+            .Single(item => item.AgentId == actor).CurrentIntention?.CandidateId);
         Assert.Contains(contested.Fields, field => field.Position == point && field.Stage == FarmFieldStage.Prepared);
-        Assert.Equal(savedPlan, contested.Inhabitants.Single(person => person.InhabitantId == actor).Project);
+        Assert.Equal(savedPlan, contested.Agents.Single(person => person.AgentId == actor).Project);
         contested.Validate();
     }
 
@@ -290,7 +290,7 @@ public sealed class FarmFieldTests
         state = WithInventory(state, inventory) with
         {
             Fields = [new(point, household, FarmFieldStage.Prepared)],
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Project = project, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -304,7 +304,7 @@ public sealed class FarmFieldTests
         var field = Assert.Single(world.Fields);
         Assert.Equal(FarmWorkKind.Plant, field.Work?.Kind);
         Assert.Equal(actor, field.Work?.WorkerId);
-        var paused = world.Inhabitants.Single(item => item.InhabitantId == actor).Project;
+        var paused = world.Agents.Single(item => item.AgentId == actor).Project;
         Assert.Equal(project, paused);
         world.Validate();
     }
@@ -369,7 +369,7 @@ public sealed class FarmFieldTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         AgeBand = age,
                         BirthTick = birth,
@@ -536,7 +536,7 @@ public sealed class FarmFieldTests
         saved = DyingWorker(saved, actor);
         using var dying = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(saved)));
         await Advance(dying, 1);
-        Assert.Equal(SocietyInhabitantStatus.Dead, dying.Society.GetInhabitant(actor).Status);
+        Assert.Equal(SocietyAgentStatus.Dead, dying.Society.GetAgent(actor).Status);
         var field = Assert.Single(dying.Fields);
         Assert.Null(field.Work);
         Assert.Equal(completed ? FarmFieldStage.Harvested : harvest ? FarmFieldStage.Ready : FarmFieldStage.Prepared, field.Stage);
@@ -565,7 +565,7 @@ public sealed class FarmFieldTests
                 Society = society with
                 {
                     LifeClock = new SocietyLifeClock(society.LifeClock?.Rate ?? 1, society.WorldTick, nextLifeTick),
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthLifeTick = nextLifeTick + 1 - (years + 1) * society.Config.TicksPerLifecycleAge,
                         AgeBand = SocietyAgeBand.Elder,
@@ -589,12 +589,12 @@ public sealed class FarmFieldTests
         var fertility = new LandFertility(readyState.Map, readyState.WorldSeed);
         var readyPoint = readyState.Map.Tiles.Select(tile => tile.Position)
             .Where(candidate => fertility.CanFarm(candidate) && !occupied.Contains(candidate) &&
-                !readyState.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == candidate))
+                !readyState.Agents.Any(person => person.AgentId != actor && person.Position == candidate))
             .OrderBy(candidate => readyState.Map.FootDistance(point, candidate)).First();
         return (readyState with
         {
             Fields = [new(readyPoint, household, FarmFieldStage.Ready, "grain", ReadyTick: 1, Tended: true)],
-            Inhabitants = readyState.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = readyState.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = readyPoint, LastDecisionContext = null, TravelCooldownTicks = 0 }
                 : person).ToArray(),
         }, actor, household, readyPoint);
@@ -616,7 +616,7 @@ public sealed class FarmFieldTests
         using var prepared = Reload(tilling);
         await Advance(prepared, 1);
         Assert.Equal(FarmFieldStage.Prepared, Assert.Single(prepared.Fields).Stage);
-        Assert.Contains(prepared.Inhabitants.Single(person => person.InhabitantId == actor).Skills!,
+        Assert.Contains(prepared.Agents.Single(person => person.AgentId == actor).Skills!,
             skill => skill.Kind == SettlementSkillKind.Farming);
         Assert.True(prepared.StartFieldWork(actor, point, FarmWorkKind.Plant, crop, "carried-planting").Accepted);
         Assert.Equal(3, Assert.Single(prepared.Fields).Work!.RemainingTicks);
@@ -671,7 +671,7 @@ public sealed class FarmFieldTests
     public async Task RefusedOrInterruptedWorkCannotConsumeRemoteOrForeignSeedsOrDuplicateAField()
     {
         var (state, actor, household, point) = PreparedFarmer("field-refusals");
-        var foreign = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var foreign = state.Agents.First(person => person.AgentId != actor).AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "remote-seed", "grain_seed", household, 2);
         inventory = InventoryAuthority.AddLot(inventory, "foreign-seed", "grain_seed", foreign, 2);
         inventory = InventoryAuthority.AddLot(inventory, "own-seed", "grain_seed", actor, 2);
@@ -691,7 +691,7 @@ public sealed class FarmFieldTests
         await Advance(world, 2);
         state = world.ExportState() with
         {
-            Inhabitants = world.ExportState().Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = world.ExportState().Agents.Select(person => person.AgentId == actor
                 ? person with { Position = AwayFromField(state) } : person).ToArray(),
         };
         using var interrupted = Restore(state);
@@ -708,7 +708,7 @@ public sealed class FarmFieldTests
     }
 
     private static GridPoint AwayFromField(WorldRuntimeState state) => state.Map.Tiles
-        .First(tile => state.Map.IsBuildable(tile.Position) && !state.Inhabitants.Any(person => person.Position == tile.Position)).Position;
+        .First(tile => state.Map.IsBuildable(tile.Position) && !state.Agents.Any(person => person.Position == tile.Position)).Position;
 
     [Fact]
     public async Task OrdinaryChooserHarvestsReadyCropsOntoTheFieldEvenWhenBothFarmStoresAreFull()
@@ -855,7 +855,7 @@ public sealed class FarmFieldTests
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => provider);
         await Advance(world, 10);
-        Assert.Contains(provider.Requests, request => request.InhabitantId == actor);
+        Assert.Contains(provider.Requests, request => request.AgentId == actor);
         Assert.DoesNotContain(provider.Requests, request => request.CandidateIds.Contains(candidateId));
         Assert.DoesNotContain(world.Fields, field => field.Position == point && field.Crop == FarmFieldRules.Potatoes);
         Assert.Equal("potato-pot", world.Society.Inventory.GetLot("potted-potatoes").ContainerLotId);
@@ -867,7 +867,7 @@ public sealed class FarmFieldTests
         var state = GeographyGeneratorTests.StartedGeneratedWorld(new(seed, WorldSizePreset.Small));
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         using var world = Restore(state);
         var occupied = world.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             world.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building))
@@ -875,12 +875,12 @@ public sealed class FarmFieldTests
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var fertility = new LandFertility(state.Map, seed);
         var point = state.Map.Tiles.Select(tile => tile.Position).Where(point => fertility.CanFarm(point) &&
-            !occupied.Contains(point) && !state.Inhabitants.Any(person => person.Position == point))
+            !occupied.Contains(point) && !state.Agents.Any(person => person.Position == point))
             .OrderBy(point => state.Map.FootDistance(farmhouse.Position, point)).First();
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "carried-hoe", "wooden_hoe", actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = point, HungerBasisPoints = 10_000 } : person).ToArray(),
         };
         return (state, actor, household, point);
@@ -899,7 +899,7 @@ public sealed class FarmFieldTests
         await Advance(setup, 9);
         var state = setup.ExportState();
         var household = state.Society.Society.Households[0].Id;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var farmhouse = setup.WorldContent.Buildings.Single(definition => definition.LocalId == "farmhouse-1x1");
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in farmhouse.BuildCosts)
@@ -918,12 +918,12 @@ public sealed class FarmFieldTests
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var fertility = new LandFertility(state.Map, seed);
         var point = state.Map.Tiles.Select(tile => tile.Position).Where(position => fertility.CanFarm(position) &&
-                !occupied.Contains(position) && !state.Inhabitants.Any(person => person.Position == position))
+                !occupied.Contains(position) && !state.Agents.Any(person => person.Position == position))
             .OrderByDescending(fertility.At).ThenBy(position => position.Y).ThenBy(position => position.X).First();
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "carried-hoe", "wooden_hoe", actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = point, HungerBasisPoints = 10_000 } : person).ToArray(),
         };
         Assert.Equal(household, placing.WorldSimulation.Buildings.Single(building => building.InstanceId == placed.InstanceId).HouseholdId);
@@ -968,7 +968,7 @@ public sealed class FarmFieldTests
             }, cancellationToken);
     }
 
-    private sealed record FieldChoiceRequest(string InhabitantId, string[] CandidateIds);
+    private sealed record FieldChoiceRequest(string AgentId, string[] CandidateIds);
 
     private sealed class RecordingFieldChoiceProvider(string actor, string candidateId) : IDecisionProvider
     {
@@ -984,16 +984,16 @@ public sealed class FarmFieldTests
             CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            requests.Enqueue(new FieldChoiceRequest(observation.InhabitantId,
+            requests.Enqueue(new FieldChoiceRequest(observation.AgentId,
                 observation.Candidates.Select(item => item.Id).ToArray()));
-            var chosen = observation.InhabitantId == actor
+            var chosen = observation.AgentId == actor
                 ? observation.Candidates.FirstOrDefault(item => item.Id == candidateId)
                 : null;
             chosen ??= observation.Candidates.Single(item => item.Id == "safe_idle");
             selected.Enqueue(chosen.Id);
             var probabilities = observation.Candidates.ToDictionary(item => item.Id,
                 item => item.Id == chosen.Id ? 1d : 0d, StringComparer.Ordinal);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration,
                 observation.ObservationDigest, chosen.Id, 1, probabilities));
         }

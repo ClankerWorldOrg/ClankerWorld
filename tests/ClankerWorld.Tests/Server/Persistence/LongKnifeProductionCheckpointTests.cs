@@ -29,7 +29,7 @@ public sealed partial class LongInventoryActionCheckpointTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == Actor ? person with
             { Position = house.Position, HungerBasisPoints = 10_000, Survival = new() } : person).ToArray(),
         };
         Assert.Equal(lotId, ToolProgressionRules.PlanWork(inventory, Actor, ToolFamily.Knife)!.ToolLotId);

@@ -54,7 +54,7 @@ public sealed class GoodsQueryTests
         var state = generated.ExportState();
         const string household = "household:camp-alpha";
         const string house = "first-town-house-a";
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "query-partial", "flour", household, 3, storageBuildingId: house);
         inventory = InventoryAuthority.Reserve(inventory, "query-reservation", household, "query-partial", 2, "other-work", 100);
@@ -107,7 +107,7 @@ public sealed class GoodsQueryTests
         var request = new GoodsRequest(GoodsUse.Holdings, null, GoodsOwners.One(owner), GoodsKinds.One("flour"), Explain: true);
         using (var ordinary = WorldRuntime.Restore(state, _ => new Idle()))
             Assert.Contains(ordinary.FindGoods(request).Matches, match => match.Lot.Id == "query-sale-flour" && match.Quantity == 2);
-        var seller = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var seller = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         using var sale = WorldRuntime.Restore(PaidMarketWorld.Borrowing(state, seller, 0), _ => new Idle());
         var before = WorldRuntimeCodec.Encode(sale.ExportState());
         var answer = sale.FindGoods(request);
@@ -129,7 +129,7 @@ public sealed class GoodsQueryTests
     {
         var state = await PaidMarketWorld.StateAsync();
         const string owner = "household:camp-alpha";
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var house = PaidMarketWorld.HouseOf(state, owner);
         var stall = PaidMarketWorld.StallTile(state, 0);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
@@ -190,7 +190,7 @@ public sealed class GoodsQueryTests
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }));
     }

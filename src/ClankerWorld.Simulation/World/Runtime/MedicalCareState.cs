@@ -19,7 +19,7 @@ public static class MedicalCareRules
     public const int MaximumNamedCaregivers = 16;
 
     /// <summary>Only the person's own care state; safe for a captured owner or personal-model snapshot.</summary>
-    public static string? Note(InhabitantState person)
+    public static string? Note(AgentState person)
     {
         if (person.MedicalTreatment is null && person.MedicalConsent is null &&
             (person.Survival?.IllnessBasisPoints ?? 0) == 0) return null;

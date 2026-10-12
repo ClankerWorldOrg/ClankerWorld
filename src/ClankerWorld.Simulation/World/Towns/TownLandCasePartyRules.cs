@@ -7,7 +7,7 @@ public static class TownLandCasePartyRules
 {
     public static TownLandCaseParty[] CurrentParties(TownRuntimeState town, IReadOnlyList<GridPoint> tiles,
         IReadOnlyList<HouseholdLandUseRight> rights, IReadOnlyList<HouseholdLandUseRequest> requests,
-        IReadOnlyList<SocietyInhabitant> inhabitants, long tick, TownLandCase? item = null,
+        IReadOnlyList<SocietyAgent> agents, long tick, TownLandCase? item = null,
         string? filingHousehold = null, string? townRepresentative = null)
     {
         var householdIds = rights.Where(right => right.TownId == town.Id && right.Tiles.Any(tiles.Contains))
@@ -19,19 +19,19 @@ public static class TownLandCasePartyRules
             .Concat(filingHousehold is null ? [] : new[] { filingHousehold });
         var parties = householdIds.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)
             .Select(id => new TownLandCaseParty(HouseholdPartyId(id), "household", id, town.Id,
-                inhabitants.Where(person => IsAdult(person) && person.HouseholdId == id)
+                agents.Where(person => IsAdult(person) && person.HouseholdId == id)
                     .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray())).ToList();
         var townFiling = item?.Filings.LastOrDefault(filing => filing.AuthorityId is not null && filing.Kind != "expiry");
         if (townRepresentative is not null || townFiling is not null)
         {
             var representative = townRepresentative ?? (townFiling?.AgentId is { } filer &&
-                TownFilingAuthority(town, filer, townFiling.AuthorityId, inhabitants, tick) ? filer : null);
+                TownFilingAuthority(town, filer, townFiling.AuthorityId, agents, tick) ? filer : null);
             if (representative is null && town.Government is { Arrangement.Ordinary: TownArrangementRules.Mayor } government)
                 representative = government.Offices.SingleOrDefault(office => office.Mandates == "ordinary" &&
                     office.HolderId is not null && office.TermEndTick > tick)?.HolderId;
             parties.Add(new(TownRecordIds.TownParty(town.Id), "town", null, town.Id, [], representative));
         }
-        return item?.Property is { } property ? TownPropertyRules.Parties(parties, property, town.Id, inhabitants) :
+        return item?.Property is { } property ? TownPropertyRules.Parties(parties, property, town.Id, agents) :
             parties.OrderBy(party => party.Id, StringComparer.Ordinal).ToArray();
     }
 
@@ -42,9 +42,9 @@ public static class TownLandCasePartyRules
     }
 
     public static bool TownFilingAuthority(TownRuntimeState town, string actor, string? authorityId,
-        IReadOnlyList<SocietyInhabitant> inhabitants, long tick)
+        IReadOnlyList<SocietyAgent> agents, long tick)
     {
-        if (!town.ResidentIds.Contains(actor, StringComparer.Ordinal) || !inhabitants.Any(person => person.Id == actor && IsAdult(person)) ||
+        if (!town.ResidentIds.Contains(actor, StringComparer.Ordinal) || !agents.Any(person => person.Id == actor && IsAdult(person)) ||
             town.Government is not { } government || authorityId is null) return false;
         if (government.Arrangement.Ordinary == TownArrangementRules.Mayor)
             return government.Offices.Any(office => office.Mandates == "ordinary" && office.HolderId == actor &&
@@ -55,6 +55,6 @@ public static class TownLandCasePartyRules
                 proposal.Status == "passed" && proposal.AuthorId == actor);
     }
 
-    private static bool IsAdult(SocietyInhabitant person) => person.Status == SocietyInhabitantStatus.Active &&
+    private static bool IsAdult(SocietyAgent person) => person.Status == SocietyAgentStatus.Active &&
         person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
 }

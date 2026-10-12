@@ -22,13 +22,13 @@ public sealed partial class WorldShelterOrderTests
         state = AwayFromHouse(state, actor, home);
         state = WithCondition(state, actor, warmth: 3_000);
         if (child) state = AsChild(state, actor);
-        var occupant = state.Inhabitants.First(person => person.InhabitantId != actor &&
-            state.Society.Society.GetInhabitant(person.InhabitantId).HouseholdId == Alpha).InhabitantId;
+        var occupant = state.Agents.First(person => person.AgentId != actor &&
+            state.Society.Society.GetAgent(person.AgentId).HouseholdId == Alpha).AgentId;
         state = At(state, occupant, home.Position);
         using var world = Restore(state);
         if (child)
         {
-            Assert.Equal(SocietyAgeBand.Child, world.Society.GetInhabitant(actor).AgeBand);
+            Assert.Equal(SocietyAgeBand.Child, world.Society.GetAgent(actor).AgeBand);
             Assert.All(world.ExportState().Towns!, town => Assert.DoesNotContain(actor, town.Governance!.Members));
         }
         var receipt = Submit(world, actor, "occupied-house", AtText("shelter in my House", home.Position));
@@ -191,7 +191,7 @@ public sealed partial class WorldShelterOrderTests
             .SelectMany(item => WorldContentSimulationRules.Footprint(state.WorldContent.Buildings.Single(value => value.CanonicalId == item.DefinitionId), item))
             .Concat(state.Map.Resources.Select(item => item.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
             .Concat(state.RoadTiles!).Concat(state.Fields!.Select(item => item.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position)).ToHashSet();
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position)).ToHashSet();
         foreach (var site in state.Map.Tiles.Select(tile => tile.Position)
             .OrderBy(point => state.Map.FootDistance(home.Position, point)).ThenBy(point => point.Y).ThenBy(point => point.X))
         {
@@ -223,7 +223,7 @@ public sealed partial class WorldShelterOrderTests
     private static WorldRuntimeState WithCondition(WorldRuntimeState state, string actor, int warmth = 10_000, int fullness = 10_000) =>
         state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = fullness, Survival = new(warmth), LastDecisionContext = null } : person).ToArray(),
         };
 
@@ -237,7 +237,7 @@ public sealed partial class WorldShelterOrderTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -250,8 +250,8 @@ public sealed partial class WorldShelterOrderTests
             Towns = state.Towns!.Select(town => town with
             {
                 Governance = TownGovernanceRules.Advance(town.Governance!, town.Id, state.WorldSeed,
-                    town.ResidentIds.Where(id => id != actor && society.GetInhabitant(id) is
-                    { Status: SocietyInhabitantStatus.Active, AgeBand: SocietyAgeBand.Adult or SocietyAgeBand.Elder }),
+                    town.ResidentIds.Where(id => id != actor && society.GetAgent(id) is
+                    { Status: SocietyAgentStatus.Active, AgeBand: SocietyAgeBand.Adult or SocietyAgeBand.Elder }),
                     society.WorldTick, state.WorldSystems!.Config.TicksPerDay),
             }).ToArray(),
         };
@@ -260,7 +260,7 @@ public sealed partial class WorldShelterOrderTests
     private static GridPoint ForestAwayFromTown(WorldRuntimeState state) => state.Map.Tiles
         .Where(tile => state.Map.VegetationAt(tile.Position) == VegetationCover.Forest && state.Map.IsPassable(tile.Position) &&
             state.WorldSimulation!.Buildings.All(building => state.Map.FootDistance(building.Position, tile.Position) > 14) &&
-            state.Inhabitants.All(person => person.Position != tile.Position))
+            state.Agents.All(person => person.Position != tile.Position))
         .OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X).First().Position;
 
     private static void AssertBuildingBinding(OwnerInstructionOrder order, PlacedBuilding home)
@@ -282,7 +282,7 @@ public sealed partial class WorldShelterOrderTests
         world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text, Queue: queue));
     private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
         world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
-    private static InhabitantState Person(WorldRuntime world, string actor) => world.Inhabitants.Single(item => item.InhabitantId == actor);
+    private static AgentState Person(WorldRuntime world, string actor) => world.Agents.Single(item => item.AgentId == actor);
     private static string AtText(string command, GridPoint position) => string.Create(CultureInfo.InvariantCulture,
         $"{command} at ({position.X}, {position.Y})");
     private static async Task Tick(WorldRuntime world) => Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -302,7 +302,7 @@ public sealed partial class WorldShelterOrderTests
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -320,7 +320,7 @@ public sealed partial class WorldShelterOrderTests
             var selected = observation.OperativeOrderInstructionId is null ? "safe_idle" :
                 observation.Candidates.Any(candidate => candidate.Id == "seek_shelter") ? "seek_shelter" :
                 observation.Candidates.Any(candidate => candidate.Id == "inspect_shelter_site") ? "inspect_shelter_site" : "safe_idle";
-            return new(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

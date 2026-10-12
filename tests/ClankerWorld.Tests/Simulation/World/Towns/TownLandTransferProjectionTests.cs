@@ -20,8 +20,8 @@ public sealed class TownLandTransferProjectionTests
         // A bounded term exercises the full public permission contract; generated private property stays intact.
         var permission = initial.HouseholdLandUseRights![0] with { AgreedEndTick = 72 };
         var rights = initial.HouseholdLandUseRights!.Select(right => right.Id == permission.Id ? permission : right).ToArray();
-        var people = initial.Society.Society.Inhabitants;
-        var adults = people.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var people = initial.Society.Society.Agents;
+        var adults = people.Where(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
         var households = initial.Society.Society.Households;

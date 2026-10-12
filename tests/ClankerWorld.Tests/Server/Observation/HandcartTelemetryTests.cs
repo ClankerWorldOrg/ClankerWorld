@@ -21,7 +21,7 @@ public sealed class HandcartTelemetryTests
         HandcartTelemetry.Record(logger, new(3, 3, "handcart_blocked", "founder:1:no_route:private-text"), inventory, ActorIds);
         var messages = logger.Messages.ToArray();
         Assert.Equal(2, messages.Length);
-        Assert.Contains("event=handcart_loaded inhabitant=founder:1 cart=cart condition=85 cargo=12", messages[0], StringComparison.Ordinal);
+        Assert.Contains("event=handcart_loaded agent=founder:1 cart=cart condition=85 cargo=12", messages[0], StringComparison.Ordinal);
         Assert.Contains("event=handcart_blocked", messages[1], StringComparison.Ordinal);
         Assert.All(messages, message =>
         {

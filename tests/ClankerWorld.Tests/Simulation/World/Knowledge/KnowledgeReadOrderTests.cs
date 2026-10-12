@@ -74,8 +74,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         {
             Lots = inventory.Lots.Select(lot => lot.Id == artifact.LotId ? lot with
             {
-                GroundPosition = new(state.Inhabitants.Single(person => person.InhabitantId == reader).Position.X,
-                    state.Inhabitants.Single(person => person.InhabitantId == reader).Position.Y)
+                GroundPosition = new(state.Agents.Single(person => person.AgentId == reader).Position.X,
+                    state.Agents.Single(person => person.AgentId == reader).Position.Y)
             } : lot).ToArray()
         };
         var blocked = WithInventory(state, inventory);
@@ -95,7 +95,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
     public async Task ReadOrderDoesNotCreditAnotherReadersLearningAndWaitsForOwnershipToReturn()
     {
         var (state, artifact, reader) = await WrittenReadOrderState();
-        var other = state.Inhabitants.First(person => person.InhabitantId != reader && person.InhabitantId != artifact.CreatorId).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != reader && person.AgentId != artifact.CreatorId).AgentId;
         using var setup = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
         setup.SubmitInstruction(new("wait-for-my-item", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + artifact.Id));
         state = setup.ExportState();
@@ -146,7 +146,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Equal("queued", queued.Instructions!.Single(item => item.InstructionId == read.InstructionId).Order!.Status);
         queued = queued with
         {
-            Inhabitants = queued.Inhabitants.Select(person => person.InhabitantId == reader
+            Agents = queued.Agents.Select(person => person.AgentId == reader
             ? person with { HungerBasisPoints = 0 } : person).ToArray()
         };
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(queued)), _ => new ChoosingProvider(reader));
@@ -193,11 +193,11 @@ public sealed partial class PhysicalKnowledgePipelineTests
         // for the boundary, with a real explored and written source.
         using var generated = NormalPathWorld.CreateGenerated("read-order-knowledge-cap", _ => new ActionCoverageRecorder(chooseIdle: true));
         var initial = generated.ExportState();
-        var author = initial.Inhabitants[0].InhabitantId;
-        var reader = initial.Inhabitants[1].InhabitantId;
+        var author = initial.Agents[0].AgentId;
+        var reader = initial.Agents[1].AgentId;
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with
+            Agents = initial.Agents.Select(person => person with
             { HungerBasisPoints = 9_500 }).ToArray()
         };
         var scout = new ChoosingProvider(author, "explore");
@@ -209,8 +209,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         scout.Prefixes = ["explore_return"];
         exploring.SubmitInstruction(new("return-before-capacity-map", "owner:test", author,
             OwnerInstructionKind.Suggestive, "Return from scouting before writing the map."));
-        await AdvanceUntil(exploring, () => exploring.ExportState().Inhabitants.Single(person =>
-            person.InhabitantId == author).Exploration is { OutingPath.Count: 0 }, 12);
+        await AdvanceUntil(exploring, () => exploring.ExportState().Agents.Single(person =>
+            person.AgentId == author).Exploration is { OutingPath.Count: 0 }, 12);
         Assert.Contains(exploring.ExportState().Events, item => item.Kind == "exploration_completed");
         var explored = exploring.ExportState();
         using var writing = WorldRuntime.Restore(WithInventory(explored, AddWritingSupplies(explored, author, 1, 0)), _ =>
@@ -308,7 +308,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         await AdvanceUntil(writing, () => writing.Knowledge.Artifacts.Count == 1, 64);
         var written = writing.ExportState();
         var artifact = Assert.Single(written.Knowledge!.Artifacts);
-        var reader = written.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
+        var reader = written.Agents.First(person => person.AgentId != author).AgentId;
         var transferred = InventoryAuthority.Transfer(written.Society.Society.Inventory, "give-read-order-artifact",
             author, reader, artifact.LotId, 1, "give the actual written artifact");
         return (WithInventory(written, transferred), artifact, reader);

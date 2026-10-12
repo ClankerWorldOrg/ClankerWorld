@@ -54,7 +54,7 @@ public sealed partial class WorldStorageOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "equipment-spare", kind, actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Equipment = kind == "basket" ? new(CarryAidLotId: "equipment-worn") : new(ClothingLotId: "equipment-worn"),
             } : person).ToArray(),
@@ -69,7 +69,7 @@ public sealed partial class WorldStorageOrderTests
         Assert.Equal("blocked", Order(world, receipt).Status);
         Assert.Contains("not worn", Order(world, receipt).BlockedReason, StringComparison.Ordinal);
         Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("equipment-worn"), actor));
-        Assert.True(PersonalEquipmentRules.IsSelected(world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment, "equipment-worn"));
+        Assert.True(PersonalEquipmentRules.IsSelected(world.Agents.Single(person => person.AgentId == actor).Equipment, "equipment-worn"));
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(1, Order(restored, receipt).CompletedUnits);
     }

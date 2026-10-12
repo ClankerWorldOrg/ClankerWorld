@@ -146,15 +146,15 @@ public sealed class MarketBlacksmithDemandTests
 
     private static (string ForeignSeller, string Seller, string Buyer) Actors(WorldRuntimeState state)
     {
-        var foreignSeller = state.Inhabitants[0].InhabitantId;
+        var foreignSeller = state.Agents[0].AgentId;
         var foreignHousehold = PaidMarketWorld.HouseholdOf(state, foreignSeller);
-        var seller = state.Society.Society.Inhabitants.First(person => person.HouseholdId is not null && person.HouseholdId != foreignHousehold).Id;
-        return (foreignSeller, seller, state.Society.Society.Inhabitants.First(person => person.HouseholdId == PaidMarketWorld.HouseholdOf(state, seller) && person.Id != seller).Id);
+        var seller = state.Society.Society.Agents.First(person => person.HouseholdId is not null && person.HouseholdId != foreignHousehold).Id;
+        return (foreignSeller, seller, state.Society.Society.Agents.First(person => person.HouseholdId == PaidMarketWorld.HouseholdOf(state, seller) && person.Id != seller).Id);
     }
 
     private static WorldRuntimeState Fresh(WorldRuntimeState state) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person with
+        Agents = state.Agents.Select(person => person with
         { HungerBasisPoints = 9_500, Survival = new SurvivalCondition(), LastDecisionContext = null, Project = null }).ToArray(),
     };
 

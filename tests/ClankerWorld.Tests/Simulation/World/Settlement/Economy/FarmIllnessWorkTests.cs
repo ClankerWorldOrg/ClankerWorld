@@ -26,7 +26,7 @@ public sealed class FarmIllnessWorkTests
             var previousCondition = ill.Society.Inventory.GetLot(toolId).ConditionBasisPoints;
             Assert.True((await healthy.AdvanceOneTickAsync()).Advanced);
             Assert.True((await ill.AdvanceOneTickAsync()).Advanced);
-            var person = ill.Inhabitants.Single(person => person.InhabitantId == setup.Actor);
+            var person = ill.Agents.Single(person => person.AgentId == setup.Actor);
             Assert.InRange(person.Survival!.IllnessBasisPoints, 7_500, 10_000);
             if (!SettlementIllnessRules.AllowsWork(setup.Actor, ill.WorldTick, person.Survival.IllnessBasisPoints))
             {
@@ -157,7 +157,7 @@ public sealed class FarmIllnessWorkTests
     private static WorldRuntimeState WithIllness(WorldRuntimeState state, string actor, int illness) => state with
     {
         Survival = state.Survival ?? new SettlementSurvivalState(0, []),
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+        Agents = state.Agents.Select(person => person.AgentId == actor ? person with
         {
             Survival = (person.Survival ?? new SurvivalCondition()) with { WarmthBasisPoints = 10_000, IllnessBasisPoints = illness },
         } : person).ToArray(),

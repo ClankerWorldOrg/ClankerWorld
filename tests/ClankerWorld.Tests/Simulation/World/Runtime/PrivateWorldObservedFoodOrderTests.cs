@@ -14,7 +14,7 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateHarvestInstructionWorld(orchard, hungerBasisPoints: 9_500);
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = FullFoodOrderMemory(setup.ExportState());
-        var actor = state.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var actor = state.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         var target = state.Map.Resources.Where(resource => orchard ? resource.TreeKind == "orchard" : resource.Id == "berry-patch")
             .OrderBy(resource => state.Map.FootDistance(actor.Position, resource.Position)).First();
         using var ordered = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());
@@ -51,10 +51,10 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateHarvestInstructionWorld(orchard: false, hungerBasisPoints: 9_500);
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = FullFoodOrderMemory(setup.ExportState());
-        var actor = state.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var actor = state.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         var target = state.Map.Resources.First(resource => resource.Kind == "food" &&
             state.Map.FootDistance(actor.Position, resource.Position) > 20 && state.Map.IsReachableOnFoot(actor.Position, resource.Position));
-        var other = state.Inhabitants.First(person => person.InhabitantId != HarvestInstructionActor).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != HarvestInstructionActor).AgentId;
         var otherFact = new AgentKnowledgeFact("other-food-order-site", other, other, target.Position,
             state.Map.TerrainKindAt(target.Position)!.Value.ToString(), ["berries"], state.Society.Society.WorldTick, "firsthand");
         state = state with { Knowledge = state.Knowledge! with { Facts = state.Knowledge.Facts.Append(otherFact).ToArray() } };
@@ -91,7 +91,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(AgentKnowledgeRules.MaximumFactsPerAgent, facts.Length);
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { Survival = new SurvivalCondition() } : person).ToArray(),
             Knowledge = state.Knowledge! with
             {

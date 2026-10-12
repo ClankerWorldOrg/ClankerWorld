@@ -28,7 +28,7 @@ public sealed partial class TownLandTransferRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, Project = null, LastDecisionContext = null }).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);

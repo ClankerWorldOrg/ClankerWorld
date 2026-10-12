@@ -24,7 +24,7 @@ public sealed class SocietyLifePaceTests
             NaturalMortalitySlopeBasisPoints: 0,
             ContractVersion: 3,
             DayLifecycle: new SocietyDayLifecycle());
-        var child = new SocietyInhabitant("child", "Child", 0, SocietyInhabitantStatus.Active,
+        var child = new SocietyAgent("child", "Child", 0, SocietyAgentStatus.Active,
             SocietyAgeBand.Infant, 10_000, null, null, SocietyWorkRole.Unassigned, 0);
         var society = SocietyRules.CreateGenesis("short-life", [child], config: config);
         var founder = SocietyRules.CreateFounder("founder", "Founder", config: config);
@@ -32,18 +32,18 @@ public sealed class SocietyLifePaceTests
         Assert.Equal(SocietyAgeBand.Adult, founder.AgeBand);
 
         society = SocietyRules.AdvanceTo(society, 3 * 360 - 1).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Infant, society.GetInhabitant("child").AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, society.GetAgent("child").AgeBand);
         society = SocietyRules.AdvanceTo(society, 3 * 360).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Child, society.GetInhabitant("child").AgeBand);
+        Assert.Equal(SocietyAgeBand.Child, society.GetAgent("child").AgeBand);
         society = SocietyRules.AdvanceTo(society, 15 * 360).Checkpoint;
         society = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(society));
-        Assert.Equal(SocietyAgeBand.Adult, society.GetInhabitant("child").AgeBand);
+        Assert.Equal(SocietyAgeBand.Adult, society.GetAgent("child").AgeBand);
         society = SocietyRules.AdvanceTo(society, 45 * 360).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Elder, society.GetInhabitant("child").AgeBand);
+        Assert.Equal(SocietyAgeBand.Elder, society.GetAgent("child").AgeBand);
         society = SocietyRules.AdvanceTo(society, 60 * 360).Checkpoint;
-        Assert.Equal(SocietyInhabitantStatus.Dead, society.GetInhabitant("child").Status);
-        Assert.Equal(SocietyDeathCause.NaturalAge, society.GetInhabitant("child").DeathCause);
-        Assert.Equal(60 * 360, society.GetInhabitant("child").DeathTick);
+        Assert.Equal(SocietyAgentStatus.Dead, society.GetAgent("child").Status);
+        Assert.Equal(SocietyDeathCause.NaturalAge, society.GetAgent("child").DeathCause);
+        Assert.Equal(60 * 360, society.GetAgent("child").DeathTick);
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public sealed class SocietyLifePaceTests
             for (var index = 0; index < 60; index++)
                 society = SocietyRules.AddAdult(society, FormattableString.Invariant($"{idPrefix}-{index:D2}"), null).Checkpoint;
             society = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(society));
-            Assert.All(society.Inhabitants, person => Assert.Equal(SocietyAgeBand.Adult, person.AgeBand));
-            return society.Inhabitants.Select(person => society.AgeAt(person, society.WorldTick)).ToArray();
+            Assert.All(society.Agents, person => Assert.Equal(SocietyAgeBand.Adult, person.AgeBand));
+            return society.Agents.Select(person => society.AgeAt(person, society.WorldTick)).ToArray();
         }
 
         var ages = AddedAges("added-adults", "agent:first");
@@ -112,15 +112,15 @@ public sealed class SocietyLifePaceTests
 
         // A day-25 arrival reaches elder age after 20 days; nobody dies of age before then.
         society = SocietyRules.AdvanceTo(society, 20 * 360 - 1).Checkpoint;
-        Assert.All(society.Inhabitants, person =>
+        Assert.All(society.Agents, person =>
         {
-            Assert.Equal(SocietyInhabitantStatus.Active, person.Status);
+            Assert.Equal(SocietyAgentStatus.Active, person.Status);
             Assert.Equal(SocietyAgeBand.Adult, person.AgeBand);
         });
         society = SocietyRules.AdvanceTo(society, 45 * 360).Checkpoint;
-        Assert.All(society.Inhabitants, person =>
+        Assert.All(society.Agents, person =>
         {
-            Assert.Equal(SocietyInhabitantStatus.Dead, person.Status);
+            Assert.Equal(SocietyAgentStatus.Dead, person.Status);
             Assert.Equal(SocietyDeathCause.NaturalAge, person.DeathCause);
             Assert.InRange(society.AgeAt(person, person.DeathTick!.Value), 45, 60);
         });
@@ -143,11 +143,11 @@ public sealed class SocietyLifePaceTests
                 WorldCalendarRules.FromTick(10 * 360, created.WorldSystems.Config).Season);
             Assert.Equal(360, created.Society.Config.TicksPerWorldDay);
             Assert.Equal(60, created.Society.Config.DayLifecycle?.MaximumDay);
-            var ages = created.Society.Inhabitants.Select(person => created.Society.AgeAt(person, 0)).ToArray();
+            var ages = created.Society.Agents.Select(person => created.Society.AgeAt(person, 0)).ToArray();
             Assert.All(ages, age => Assert.InRange(age, 15, 25));
             Assert.Equal(ages.Length, ages.Distinct().Count());
             var scoutAge = SocietyRules.FounderArrivalAge(created.Society.Config, "new-pace", 0);
-            var scout = new OwnerWorldObservationStore(created).GetSnapshot().Inhabitants
+            var scout = new OwnerWorldObservationStore(created).GetSnapshot().Agents
                 .Single(person => person.Id == "founder-scout");
             Assert.Equal(scoutAge.ToString(CultureInfo.InvariantCulture),
                 scout.DecisionFactors.Single(factor => factor.Key == "age-days").Detail);
@@ -168,18 +168,18 @@ public sealed class SocietyLifePaceTests
     public void PaceChangesPreserveCurrentAgeBirthDatesAndTheWorldCalendar()
     {
         var original = SocietyRules.AdvanceTo(SocietyRules.CreateGenesis("life-clock"), 1_234).Checkpoint;
-        var person = original.Inhabitants[0];
+        var person = original.Agents[0];
         Assert.Throws<InvalidOperationException>(() => SocietyRules.SetLifePace(original, 1_460));
         var paused = SocietyRules.Pause(original).Checkpoint;
         var fast = SocietyRules.SetLifePace(paused, 1_460).Checkpoint;
         Assert.Equal(original.AgeAt(person, original.WorldTick), fast.AgeAt(person, fast.WorldTick));
-        Assert.Equal(person.BirthTick, fast.Inhabitants[0].BirthTick);
+        Assert.Equal(person.BirthTick, fast.Agents[0].BirthTick);
         Assert.Equal(365, fast.Config.DaysPerWorldYear);
         Assert.Equal(paused.WorldTick, fast.WorldTick);
         var advanced = SocietyRules.AdvanceTo(SocietyRules.Resume(fast).Checkpoint, fast.WorldTick + 360).Checkpoint;
-        Assert.Equal(original.AgeAt(person, original.WorldTick) + 1, advanced.AgeAt(advanced.Inhabitants[0], advanced.WorldTick));
+        Assert.Equal(original.AgeAt(person, original.WorldTick) + 1, advanced.AgeAt(advanced.Agents[0], advanced.WorldTick));
         var normal = SocietyRules.SetLifePace(SocietyRules.Pause(advanced).Checkpoint, 1).Checkpoint;
-        Assert.Equal(advanced.AgeAt(advanced.Inhabitants[0], advanced.WorldTick), normal.AgeAt(normal.Inhabitants[0], normal.WorldTick));
+        Assert.Equal(advanced.AgeAt(advanced.Agents[0], advanced.WorldTick), normal.AgeAt(normal.Agents[0], normal.WorldTick));
         Assert.Equal(advanced.LifeTickAt(advanced.WorldTick), normal.LifeTickAt(normal.WorldTick));
         Assert.Equal(normal, SocietyRules.SetLifePace(normal, 1).Checkpoint);
     }
@@ -197,18 +197,18 @@ public sealed class SocietyLifePaceTests
         var birth = SocietyRules.CommitBirth(society, new("baby", 1, "alice", "bob", "home", ["alice", "bob"],
             ["alice", "bob"], "food", 1, society.WorldTick, PrimaryCaregiverId: "alice"));
         society = birth.Checkpoint;
-        var child = society.GetInhabitant(birth.CreatedId!);
+        var child = society.GetAgent(birth.CreatedId!);
         Assert.Equal(1_000, child.BirthTick);
         Assert.Equal(1_460_000, child.BirthLifeTick);
         Assert.Equal(0, society.AgeAt(child, society.WorldTick));
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(society));
         var before = SocietyRules.AdvanceTo(restored, 1_719).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Infant, before.GetInhabitant(child.Id).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, before.GetAgent(child.Id).AgeBand);
         var after = SocietyRules.AdvanceTo(before, 1_720).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Child, after.GetInhabitant(child.Id).AgeBand);
+        Assert.Equal(SocietyAgeBand.Child, after.GetAgent(child.Id).AgeBand);
         var adult = SocietyRules.AdvanceTo(after, 7_480).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Adult, adult.GetInhabitant(child.Id).AgeBand);
-        Assert.Equal(18, adult.AgeAt(adult.GetInhabitant(child.Id), adult.WorldTick));
+        Assert.Equal(SocietyAgeBand.Adult, adult.GetAgent(child.Id).AgeBand);
+        Assert.Equal(18, adult.AgeAt(adult.GetAgent(child.Id), adult.WorldTick));
     }
 
     [Fact]
@@ -242,9 +242,9 @@ public sealed class SocietyLifePaceTests
         var normal = SocietyRules.AdvanceTo(seed, 72 * seed.Config.TicksPerWorldYear).Checkpoint;
         var fast = SocietyRules.SetLifePace(SocietyRules.Pause(seed).Checkpoint, 1_460).Checkpoint;
         fast = SocietyRules.AdvanceTo(SocietyRules.Resume(fast).Checkpoint, 72 * 360).Checkpoint;
-        Assert.Contains(normal.Inhabitants, person => person.Status == SocietyInhabitantStatus.Dead);
-        Assert.Equal(normal.Inhabitants.Select(person => (person.Id, person.Status, person.AgeBand, person.LastLifecycleYearChecked, person.DeathCause)),
-            fast.Inhabitants.Select(person => (person.Id, person.Status, person.AgeBand, person.LastLifecycleYearChecked, person.DeathCause)));
+        Assert.Contains(normal.Agents, person => person.Status == SocietyAgentStatus.Dead);
+        Assert.Equal(normal.Agents.Select(person => (person.Id, person.Status, person.AgeBand, person.LastLifecycleYearChecked, person.DeathCause)),
+            fast.Agents.Select(person => (person.Id, person.Status, person.AgeBand, person.LastLifecycleYearChecked, person.DeathCause)));
     }
 
     [Fact]
@@ -252,14 +252,14 @@ public sealed class SocietyLifePaceTests
     {
         using var seed = new WorldRuntime("minor-work");
         var state = seed.ExportState();
-        var childId = state.Inhabitants[0].InhabitantId;
+        var childId = state.Agents[0].AgentId;
         state = state with
         {
             Society = state.Society with
             {
                 Society = state.Society.Society with
                 {
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == childId ? person with
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == childId ? person with
                     {
                         BirthTick = -3 * state.Society.Society.Config.TicksPerWorldYear,
                         AgeBand = SocietyAgeBand.Child,
@@ -272,8 +272,8 @@ public sealed class SocietyLifePaceTests
         using var world = WorldRuntime.Restore(state);
         world.StageStarterContent();
         for (var tick = 0; tick < 50; tick++) await world.AdvanceOneTickAsync();
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == childId).Project);
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == childId).Lesson);
+        Assert.Null(world.Agents.Single(person => person.AgentId == childId).Project);
+        Assert.Null(world.Agents.Single(person => person.AgentId == childId).Lesson);
     }
 
     [Theory]

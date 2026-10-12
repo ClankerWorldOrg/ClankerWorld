@@ -18,7 +18,7 @@ public sealed partial class WorldRuntime
         public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => runtime.CreditOrderEffect(instruction, effectId, units);
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => runtime.DestinationRoom(buildingId, movingRoot);
         public GoodsAnswer FindGoods(GoodsRequest request) => runtime.FindGoods(request);
-        public List<GridPoint> FindUnoccupiedRoute(string inhabitantId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(inhabitantId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
+        public List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => runtime.FindUnoccupiedRoute(agentId, origin, destination, interactionRange, allowSwimming, additionalCarriedUnits);
         public int FreeCarryCapacity(string actor) => runtime.FreeCarryCapacity(actor);
         public GridPoint[] FreshWaterShorePositions() => runtime.FreshWaterShorePositions();
         public long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds) => runtime.HoldingsTotal(owners, kinds);
@@ -26,9 +26,9 @@ public sealed partial class WorldRuntime
         public string HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) => runtime.IsWithinInteractionRange(origin, destination, interactionRange);
-        public void MoveToward(string inhabitantId, InhabitantState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => runtime.MoveToward(inhabitantId, state, destination, reason, interactionRange, horseMovementBudget);
+        public void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => runtime.MoveToward(agentId, state, destination, reason, interactionRange, horseMovementBudget);
         public BoatState? PassengerBoat(string actor) => runtime.PassengerBoat(actor);
-        public OwnerQueuedInstruction? PendingInstructionFor(string inhabitantId) => runtime.PendingInstructionFor(inhabitantId);
+        public OwnerQueuedInstruction? PendingInstructionFor(string agentId) => runtime.PendingInstructionFor(agentId);
         public int PhysicalUnreservedQuantity(InventoryLot lot) => runtime.PhysicalUnreservedQuantity(lot);
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => runtime.RecheckGoods(request, lotId);
@@ -42,7 +42,7 @@ public sealed partial class WorldRuntime
         public WorldSystemsState Environment => runtime.worldSystems;
         public WorldContentSimulationState Simulation => runtime.worldSimulation;
         public DeclarativeWorldContentState Content => runtime.worldContent;
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants => runtime.inhabitants;
+        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
         public string Seed => runtime.worldSeed;
         public GeographyOptions? Geography => runtime.geographyOptions;
         public long NextEventId => runtime.nextEventId;
@@ -50,7 +50,7 @@ public sealed partial class WorldRuntime
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
         public IReadOnlyList<ContentPackageRecord> Packages => runtime.contentRegistry.ExportState().Packages;
         public GoodsKinds EdibleFoodGoods => WorldRuntime.EdibleFoodGoods;
-        public void SetInhabitant(string id, InhabitantState state) => runtime.inhabitants[id] = state;
+        public void SetAgent(string id, AgentState state) => runtime.agents[id] = state;
         public void ReplaceEcologyResource(string id, EcologyResource resource) => runtime.environmentSystem.ReplaceEcologyResource(id, resource);
     }
 

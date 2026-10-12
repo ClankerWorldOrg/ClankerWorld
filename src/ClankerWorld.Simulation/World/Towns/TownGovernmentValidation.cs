@@ -29,7 +29,7 @@ public static class TownGovernmentValidation
             .Concat(state.NonLandGrants.Select(grant => grant.Id)).ToArray();
         if (ids.Distinct(StringComparer.Ordinal).Count() != ids.Length)
             throw new InvalidDataException("A Town's saved law, government-change and election identities must be unique.");
-        ValidateLaws(town, state, council, titles, tick, society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal));
+        ValidateLaws(town, state, council, titles, tick, society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal));
         TownGovernmentStateValidation.Validate(town, state, council, society, day);
     }
 

@@ -35,7 +35,7 @@ public sealed class ChildHouseholdHelpingTests
         Assert.Equal(baseline, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Contains("child_gather:" + kind + ":" + source.Id, provider.Seen);
         var ecologyBefore = world.WorldSystems.Ecology.GetResource(source.Id).Quantity;
-        var household = world.Society.GetInhabitant(child).HouseholdId!;
+        var household = world.Society.GetAgent(child).HouseholdId!;
         var storedBefore = Stored(world, household, house, itemKind);
         using var replay = Restore(WorldRuntimeCodec.Decode(baseline), child, new HelpingProvider("child_gather:" + kind + ":"));
         await StepPair(world, replay);
@@ -43,7 +43,7 @@ public sealed class ChildHouseholdHelpingTests
         Assert.Equal((itemKind, quantity), (cargo.ItemKind, cargo.Quantity));
         Assert.Equal(ecologyBefore - 1, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
         Assert.Equal(storedBefore, Stored(world, household, house, itemKind));
-        Assert.Equal(source.Position, world.Inhabitants.Single(person => person.InhabitantId == child).Position);
+        Assert.Equal(source.Position, world.Agents.Single(person => person.AgentId == child).Position);
         var midTrip = WorldRuntimeCodec.Encode(world.ExportState());
         using var resumed = Restore(WorldRuntimeCodec.Decode(midTrip), child, new HelpingProvider("child_gather:" + kind + ":"));
         Assert.Equal(midTrip, WorldRuntimeCodec.Encode(resumed.ExportState()));
@@ -54,9 +54,9 @@ public sealed class ChildHouseholdHelpingTests
         Assert.Equal(storedBefore + quantity, Stored(world, household, house, itemKind));
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == child && lot.DeliveryBuildingId == house);
         Assert.Equal(state.WorldSimulation!.Buildings.Single(item => item.InstanceId == house).Position,
-            world.Inhabitants.Single(person => person.InhabitantId == child).Position);
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == child).Project);
-        Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetInhabitant(child).CurrentRole);
+            world.Agents.Single(person => person.AgentId == child).Position);
+        Assert.Null(world.Agents.Single(person => person.AgentId == child).Project);
+        Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetAgent(child).CurrentRole);
         world.Validate();
     }
 
@@ -67,7 +67,7 @@ public sealed class ChildHouseholdHelpingTests
     {
         var (state, child, house, source) = await Prepared("food");
         var checkpoint = state.Society.Society;
-        var household = checkpoint.GetInhabitant(child).HouseholdId!;
+        var household = checkpoint.GetAgent(child).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "child-ground-stock", kind, household, 9,
             groundPosition: new(source.Position.X, source.Position.Y));
         inventory = InventoryAuthority.Reserve(inventory, "child-stock-held", household, "child-ground-stock", 7,
@@ -101,7 +101,7 @@ public sealed class ChildHouseholdHelpingTests
     {
         var (state, child, houseId, source) = await Prepared("food");
         var checkpoint = state.Society.Society;
-        var household = checkpoint.GetInhabitant(child).HouseholdId!;
+        var household = checkpoint.GetAgent(child).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "child-waiting-stock", "wood", household, 4,
             groundPosition: new(source.Position.X, source.Position.Y));
         state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
@@ -156,7 +156,7 @@ public sealed class ChildHouseholdHelpingTests
         using var locating = Restore(state, child, new HelpingProvider("safe_idle"));
         var route = state.Map.Tiles.Where(tile => state.Map.IsPassable(tile.Position) &&
                 state.Map.FootDistance(tile.Position, house.Position) <= 8 &&
-                !state.Inhabitants.Any(person => person.InhabitantId != child && person.Position == tile.Position))
+                !state.Agents.Any(person => person.AgentId != child && person.Position == tile.Position))
             .OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X)
             .Select(tile => (IReadOnlyList<GridPoint>)routeMethod.Invoke(locating,
                 [child, tile.Position, house.Position, 0, true, 0])!)
@@ -165,14 +165,14 @@ public sealed class ChildHouseholdHelpingTests
         Assert.NotNull(route);
         Assert.Equal(house.Position, route[^1]);
         var point = route[0];
-        var household = state.Society.Society.GetInhabitant(child).HouseholdId!;
+        var household = state.Society.Society.GetAgent(child).HouseholdId!;
         const string stockId = "000-child-boundary-stock";
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, stockId, "wood", household, 1,
             groundPosition: new(point.X, point.Y));
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child
+            Agents = state.Agents.Select(person => person.AgentId == child
                 ? person with { Position = point } : person).ToArray(),
         };
         var provider = new HelpingProvider("child_carry:" + stockId);
@@ -208,7 +208,7 @@ public sealed class ChildHouseholdHelpingTests
             await StepPair(world, replay);
         Assert.Single(world.ExportState().Events, item => item.Kind == "child_delivered_household");
         Assert.Equal(storedBefore + 1, Stored(world, household, houseId, "wood"));
-        Assert.Equal(house.Position, world.Inhabitants.Single(person => person.InhabitantId == child).Position);
+        Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == child).Position);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == child && lot.DeliveryBuildingId == houseId);
         world.Validate();
     }
@@ -224,7 +224,7 @@ public sealed class ChildHouseholdHelpingTests
         var infantBirth = checkpoint.LifeTickAt(checkpoint.WorldTick);
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == child
+            Agents = checkpoint.Agents.Select(person => person.Id == child
             ? person with
             {
                 BirthTick = infantBirth,
@@ -234,7 +234,7 @@ public sealed class ChildHouseholdHelpingTests
             } : person).ToArray()
         };
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "infant-help-stock", "wood",
-            checkpoint.GetInhabitant(child).HouseholdId!, 4, groundPosition: new(source.Position.X, source.Position.Y));
+            checkpoint.GetAgent(child).HouseholdId!, 4, groundPosition: new(source.Position.X, source.Position.Y));
         state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory } } };
         var wanted = task == "carry" ? "child_carry:infant-help-stock" : "child_gather:" + task + ":" + source.Id;
         var provider = new HelpingProvider(wanted, forge: true);
@@ -255,7 +255,7 @@ public sealed class ChildHouseholdHelpingTests
     {
         var (state, child, house, source) = await Prepared("food");
         var checkpoint = state.Society.Society;
-        var household = checkpoint.GetInhabitant(child).HouseholdId!;
+        var household = checkpoint.GetAgent(child).HouseholdId!;
         var foreign = checkpoint.Households.First(item => item.Id != household).Id;
         var far = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
             state.Map.FootDistance(tile.Position, source.Position) > 16).Position;
@@ -276,7 +276,7 @@ public sealed class ChildHouseholdHelpingTests
         using var world = Restore(state, child, provider);
         var admissions = new List<SocietyCognitionDispatchResult>();
         for (var tick = 0; tick < 8; tick++)
-            admissions.AddRange((await world.AdvanceOneTickAsync()).Decisions.Where(item => item.InhabitantId == child));
+            admissions.AddRange((await world.AdvanceOneTickAsync()).Decisions.Where(item => item.AgentId == child));
         Assert.NotEmpty(admissions);
         Assert.All(admissions, decision =>
         {
@@ -339,7 +339,7 @@ public sealed class ChildHouseholdHelpingTests
         var born = checkpoint.LifeTickAt(checkpoint.WorldTick) - age * checkpoint.Config.TicksPerLifecycleAge;
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == child
+            Agents = checkpoint.Agents.Select(person => person.Id == child
             ? person with
             {
                 BirthTick = born,
@@ -353,7 +353,7 @@ public sealed class ChildHouseholdHelpingTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Append(new(child, source.Position, 10_000, 0, "curious", "help at home")).ToArray(),
+            Agents = state.Agents.Append(new(child, source.Position, 10_000, 0, "curious", "help at home")).ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(parents[0]) ? town with
             { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() } : town).ToArray(),
         };
@@ -390,7 +390,7 @@ public sealed class ChildHouseholdHelpingTests
             var selected = forge ? wanted : delivery?.Id ?? (Gather ? request.Observation.Candidates.FirstOrDefault(item =>
                 item.Id.StartsWith(wanted, StringComparison.Ordinal))?.Id : null) ?? "safe_idle";
             Chosen.Add(selected);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, request.Observation.Candidates.ToDictionary(item => item.Id,
                     item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal)));

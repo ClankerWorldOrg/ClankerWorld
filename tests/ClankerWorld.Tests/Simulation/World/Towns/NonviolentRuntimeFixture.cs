@@ -29,7 +29,7 @@ internal static class NonviolentRuntimeFixture
         subjectId ??= Subject;
         var provider = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == subjectId
+            Choose = observation => observation.AgentId == subjectId
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal)) : null
         };
         var prepared = Prepared();
@@ -44,7 +44,7 @@ internal static class NonviolentRuntimeFixture
         var conduct = Assert.Single(world.Towns[0].Nonviolent.ConductRecords);
         Assert.Equal(subjectId, conduct.ActorId);
         Assert.Equal("travel", conduct.ConductKind);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" && item.Detail.StartsWith(subjectId + ":", StringComparison.Ordinal));
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.StartsWith(subjectId + ":", StringComparison.Ordinal));
         return Strict(world.ExportState());
     }
 
@@ -78,7 +78,7 @@ internal static class NonviolentRuntimeFixture
     {
         var provider = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == Judge
+            Choose = observation => observation.AgentId == Judge
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_find|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith("|warning", StringComparison.Ordinal)) : null,
             Payload = (_, candidate) => candidate.Id.Contains("|law_case_find|", StringComparison.Ordinal) ? FindingPayload(candidate) : null
@@ -113,7 +113,7 @@ internal static class NonviolentRuntimeFixture
         {
             Choose = observation =>
             {
-                if (observation.InhabitantId != Subject) return null;
+                if (observation.AgentId != Subject) return null;
                 var choice = observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|remedy_read|", StringComparison.Ordinal)) ??
@@ -209,7 +209,7 @@ internal static class NonviolentRuntimeFixture
     internal static NonviolentTestProvider FilingProvider(DecisionProviderKind kind = DecisionProviderKind.LargeLanguageModel,
         bool includePayload = true) => new(kind)
         {
-            Choose = observation => observation.InhabitantId == Witness
+            Choose = observation => observation.AgentId == Witness
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal)) : null,
             Payload = (_, choice) => includePayload && choice.Id.Contains("|law_case_file|", StringComparison.Ordinal)
                 ? new(Statement: "I saw this person travel through the public notice place under the recorded rule.") : null
@@ -257,9 +257,9 @@ internal static class NonviolentRuntimeFixture
         state = state with
         {
             Towns = [town with { Governance = council, Government = government }],
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Subject ? start : person.InhabitantId == Stranger ? far : board,
+                Position = person.AgentId == Subject ? start : person.AgentId == Stranger ? far : board,
                 HungerBasisPoints = 9_000,
                 LastDecisionContext = null
             }).ToArray(),
@@ -280,11 +280,11 @@ internal sealed class NonviolentTestProvider(DecisionProviderKind kind = Decisio
 {
     public DecisionProviderKind Kind => kind;
     public long ProviderEpoch => 1;
-    internal Func<InhabitantObservation, CognitionCandidate?>? Choose { get; init; }
-    internal Func<InhabitantObservation, CognitionCandidate, CognitionNonviolentChoice?>? Payload { get; init; }
-    internal Func<InhabitantObservation, CognitionCandidate, CognitionLandHearingChoice?>? LandPayload { get; init; }
-    internal Func<InhabitantObservation, CognitionCandidate, IReadOnlyList<CognitionLandTile>?>? LandTiles { get; init; }
-    internal ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+    internal Func<AgentObservation, CognitionCandidate?>? Choose { get; init; }
+    internal Func<AgentObservation, CognitionCandidate, CognitionNonviolentChoice?>? Payload { get; init; }
+    internal Func<AgentObservation, CognitionCandidate, CognitionLandHearingChoice?>? LandPayload { get; init; }
+    internal Func<AgentObservation, CognitionCandidate, IReadOnlyList<CognitionLandTile>?>? LandTiles { get; init; }
+    internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
     internal ConcurrentQueue<string> Selected { get; } = new();
 
     public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -292,8 +292,8 @@ internal sealed class NonviolentTestProvider(DecisionProviderKind kind = Decisio
         var observation = request.Observation;
         Observations.Enqueue(observation);
         var choice = Choose?.Invoke(observation) ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-        Selected.Enqueue(observation.InhabitantId + "|" + choice.Id);
-        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+        Selected.Enqueue(observation.AgentId + "|" + choice.Id);
+        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
             observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
             observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal),
             CivicNonviolent: Payload?.Invoke(observation, choice),

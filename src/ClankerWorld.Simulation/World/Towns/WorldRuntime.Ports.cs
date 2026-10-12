@@ -89,7 +89,7 @@ public sealed partial class WorldRuntime
                 return "The approved Port's land approach is blocked.";
         }
         var work = TownProjectRules.WorkSite(plan);
-        if (actor is not null && inhabitants.TryGetValue(actor, out var person) &&
+        if (actor is not null && agents.TryGetValue(actor, out var person) &&
             person.Position != work && FindUnoccupiedRoute(actor, person.Position, work, 0).Count == 0)
             return "No usable foot route reaches the Port's land end.";
         return null;
@@ -108,11 +108,11 @@ public sealed partial class WorldRuntime
         if (town.Government?.Laws.Any(law => TownLawRules.IsInForce(law) && TownLawRules.Current(law).BoatAccess is { VisitorId: null }) != true)
             candidates.Add(new(CivicAction(town.Id, "boat_access", "all", ""),
                 "Ask the Council to adopt standing permission for all visitors to use the Town's communal boats; this grants no ownership or membership.", 193));
-        foreach (var visitor in inhabitants.Keys.Where(id => !town.ResidentIds.Contains(id, StringComparer.Ordinal) &&
-                     IsWithinInteractionRange(inhabitants[id].Position, inhabitants[actor].Position, ResourceInteractionRange) &&
+        foreach (var visitor in agents.Keys.Where(id => !town.ResidentIds.Contains(id, StringComparer.Ordinal) &&
+                     IsWithinInteractionRange(agents[id].Position, agents[actor].Position, ResourceInteractionRange) &&
                      !TownBoatAccessRules.Allows(town, id, WorldTick)).Order(StringComparer.Ordinal).Take(8))
             candidates.Add(new(CivicAction(town.Id, "boat_access", visitor, ""),
-                $"Ask the Council to allow {society.Checkpoint.GetInhabitant(visitor).Name} to use the Town's communal boats; this grants no ownership or membership.", 194));
+                $"Ask the Council to allow {society.Checkpoint.GetAgent(visitor).Name} to use the Town's communal boats; this grants no ownership or membership.", 194));
     }
 
     private void AddPortProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town, TownProjectSiteWorld world)

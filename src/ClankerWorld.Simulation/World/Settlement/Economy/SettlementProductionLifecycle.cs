@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
 {
     private void CancelUnavailableWorkers()
     {
-        var active = society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active)
+        var active = society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var cancelled = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
             .Where(job => job.State == WorldProductionJobState.Running && !active.Contains(job.WorkerId))

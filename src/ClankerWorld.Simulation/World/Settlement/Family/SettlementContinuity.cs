@@ -39,8 +39,8 @@ public sealed partial class WorldRuntime
     private bool HasInfant(string parent) => society.Checkpoint.Relationships.Any(item =>
         item.Type is SocietyRelationshipType.BiologicalParentage or SocietyRelationshipType.Caregiver &&
         item.State == SocietyRelationshipState.Accepted && item.ProposerId == parent &&
-        inhabitants.ContainsKey(item.TargetId) &&
-        society.Checkpoint.GetInhabitant(item.TargetId).AgeBand == SocietyAgeBand.Infant);
+        agents.ContainsKey(item.TargetId) &&
+        society.Checkpoint.GetAgent(item.TargetId).AgeBand == SocietyAgeBand.Infant);
 
     /// <summary>
     /// Living adult couples who could have children. Having an infant does not remove a partnership
@@ -53,8 +53,8 @@ public sealed partial class WorldRuntime
         .Select(item => string.CompareOrdinal(item.ProposerId, item.TargetId) < 0
             ? (First: item.ProposerId, Second: item.TargetId)
             : (First: item.TargetId, Second: item.ProposerId))
-        .Where(pair => society.Checkpoint.GetInhabitant(pair.First).Status == SocietyInhabitantStatus.Active &&
-            society.Checkpoint.GetInhabitant(pair.Second).Status == SocietyInhabitantStatus.Active && Partners(pair.First, pair.Second))
+        .Where(pair => society.Checkpoint.GetAgent(pair.First).Status == SocietyAgentStatus.Active &&
+            society.Checkpoint.GetAgent(pair.Second).Status == SocietyAgentStatus.Active && Partners(pair.First, pair.Second))
         .Distinct()
         .OrderBy(pair => pair.First, StringComparer.Ordinal)
         .ThenBy(pair => pair.Second, StringComparer.Ordinal);
@@ -98,14 +98,14 @@ public sealed partial class WorldRuntime
     /// <summary>Once "not yet" has run out, the couple's plan goes ahead as if both had agreed.</summary>
     private void ProceedWithContinuityPlan(string first, string second)
     {
-        var active = inhabitants.Values.Where(person => person.Parenthood is { } plan && ActiveParenthood(plan) &&
-            (person.InhabitantId == first || person.InhabitantId == second || plan.PartnerId == first || plan.PartnerId == second)).ToArray();
+        var active = agents.Values.Where(person => person.Parenthood is { } plan && ActiveParenthood(plan) &&
+            (person.AgentId == first || person.AgentId == second || plan.PartnerId == first || plan.PartnerId == second)).ToArray();
         if (active.Length > 1) return;
         string owner;
         if (active.Length == 1)
         {
             var plan = active[0].Parenthood!;
-            owner = active[0].InhabitantId;
+            owner = active[0].AgentId;
             if (plan.Stage != "requested" || plan.PartnerId != (owner == first ? second : first)) return;
             SetParenthood(owner, plan with { Stage = "preparing" });
         }
@@ -113,11 +113,11 @@ public sealed partial class WorldRuntime
         {
             // The partner who asked most recently initiates; otherwise the first by ID, as a stable tie-break.
             owner = new[] { first, second }
-                .OrderByDescending(id => inhabitants[id].Parenthood is { } previous &&
+                .OrderByDescending(id => agents[id].Parenthood is { } previous &&
                     previous.PartnerId == (id == first ? second : first) ? previous.RequestedTick : -1)
                 .ThenBy(id => id, StringComparer.Ordinal).First();
             var partner = owner == first ? second : first;
-            var previous = inhabitants[owner].Parenthood;
+            var previous = agents[owner].Parenthood;
             SetParenthood(owner, previous is { Stage: "postponed" } && previous.PartnerId == partner
                 ? previous with { Stage = "preparing" }
                 : new(partner, "preparing", WorldTick, WorldTick,
@@ -131,15 +131,15 @@ public sealed partial class WorldRuntime
     private string? ContinuityNote(string actor)
     {
         if (ContinuityCoupleOf(actor) is not { } couple) return null;
-        var preparing = inhabitants.Values.FirstOrDefault(person => person.Parenthood is { Stage: "preparing" } plan &&
-            (person.InhabitantId == actor || plan.PartnerId == actor));
+        var preparing = agents.Values.FirstOrDefault(person => person.Parenthood is { Stage: "preparing" } plan &&
+            (person.AgentId == actor || plan.PartnerId == actor));
         if (preparing?.Parenthood?.PrimaryCaregiverId is { } caregiver)
         {
             var deadline = !ContinuityAllowsPostponement(couple) ? "Your two days are up. "
                 : $"Your two days end in about {((couple.DeadlineTick - WorldTick) * 24 + worldSystems.Config.TicksPerDay - 1) / worldSystems.Config.TicksPerDay} hours. ";
             return "Continuity rule: you may put off a child for two days but may not refuse. " + deadline +
                 "Preparing for parenthood. " + ParenthoodFoodNote(society.Checkpoint, caregiver, towns,
-                    society.Checkpoint.GetInhabitant(actor).HouseholdId == society.Checkpoint.GetInhabitant(caregiver).HouseholdId);
+                    society.Checkpoint.GetAgent(actor).HouseholdId == society.Checkpoint.GetAgent(caregiver).HouseholdId);
         }
         var rule = $"Continuity rule: fewer than {ContinuityEligibleCoupleThreshold} adult couples who are not close relatives can have children. " +
             "You may put off having a child for up to two days but may not refuse.";
@@ -154,7 +154,7 @@ public sealed partial class WorldRuntime
     {
         if (schemaVersion < ContinuitySchemaVersion || saved?.Couples is null)
             throw new InvalidDataException($"World schema {ContinuitySchemaVersion} requires the continuity rule state.");
-        var known = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var known = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var postponeTicks = ContinuityPostponeDays * (long)society.Config.TicksPerWorldDay;
         SettlementContinuityCouple? previous = null;
         foreach (var couple in saved.Couples)

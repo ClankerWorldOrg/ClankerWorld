@@ -22,15 +22,15 @@ public sealed class OrchardSeedCargoFixture : IAsyncLifetime
     {
         // This seed has food on land cut off from the first Town, which the unreachable-House test needs.
         var state = GeographyGeneratorTests.StartedGeneratedWorld(new GeographyOptions("orchard-reserve-deadlock-4", WorldSizePreset.Small));
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         using var probe = WorldRuntime.Restore(state);
         var blocked = probe.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 probe.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building.Position))
             .Concat(probe.RoadTiles).Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
-        var occupied = state.Inhabitants.Skip(1).Select(person => person.Position).ToHashSet();
-        var start = state.Inhabitants[0].Position;
+        var occupied = state.Agents.Skip(1).Select(person => person.Position).ToHashSet();
+        var start = state.Agents[0].Position;
         var site = state.Map.Tiles.Select(tile => tile.Position).Where(point => !blocked.Contains(point) &&
                 TreeGrowthRules.GroundRefusal(state.Map, point) is null && state.Map.IsReachableOnFoot(start, point))
             .OrderBy(point => state.Map.FootDistance(start, point)).First();
@@ -39,7 +39,7 @@ public sealed class OrchardSeedCargoFixture : IAsyncLifetime
         inventory = InventoryAuthority.AddLot(inventory, "food-recovery-orchard-start", "orchard_seed", actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = stand, HungerBasisPoints = 6_000, Equipment = new(CarryAidLotId: BasketLotId) } : person).ToArray(),
         };
         using (var planting = WorldRuntime.Restore(state, _ => new Choices([])))
@@ -53,7 +53,7 @@ public sealed class OrchardSeedCargoFixture : IAsyncLifetime
         {
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Position = stand, HungerBasisPoints = 6_000 } : person).ToArray(),
                 WorldSystems = state.WorldSystems! with
                 {
@@ -96,7 +96,7 @@ public sealed class OrchardSeedCargoFixture : IAsyncLifetime
             .First(item => item.Stands.Length > 0);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = target.Stands[0], HungerBasisPoints = 1_000 } : person).ToArray(),
         };
         var movement = new Choices(["seek_food"]);
@@ -109,7 +109,7 @@ public sealed class OrchardSeedCargoFixture : IAsyncLifetime
         Assert.Contains("seek_food", movement.Offered);
         inventory = state.Society.Society.Inventory;
         Assert.Equal(0, inventory.GetLot(BasketLotId).ConditionBasisPoints);
-        var physical = state.Inhabitants.Single(person => person.InhabitantId == actor);
+        var physical = state.Agents.Single(person => person.AgentId == actor);
         Assert.Equal(8, PersonalEquipmentRules.Capacity(inventory, actor, physical.Equipment));
         Assert.Equal(3, PersonalEquipmentRules.FreeCapacity(inventory, actor, physical.Equipment));
         Actor = actor;

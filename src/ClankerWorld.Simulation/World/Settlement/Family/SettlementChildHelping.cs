@@ -9,15 +9,15 @@ public sealed partial class WorldRuntime
     private const int ChildHelpingLoad = 4;
     private const int ChildHelpingRoute = 8;
 
-    private PlacedBuilding? ChildHelpingHouse(string actor, InhabitantState state) =>
+    private PlacedBuilding? ChildHelpingHouse(string actor, AgentState state) =>
         ChildResident(actor) && state.HungerBasisPoints >= 6_000 && !NeedsUrgentWarmth(state) &&
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is { } household &&
+        society.Checkpoint.GetAgent(actor).HouseholdId is { } household &&
         HouseForHousehold(household) is { } house &&
         map.FootDistance(state.Position, house.Position) <= ChildHelpingRoute ? house : null;
 
     private int ChildHelpingRoom(string actor) => Math.Min(FreeCarryCapacity(actor), Math.Max(0,
         ChildHelpingLoad - PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor,
-            inhabitants[actor].Equipment)));
+            agents[actor].Equipment)));
 
     private bool ChildHelpingReachable(string actor, GridPoint source, int range, PlacedBuilding house)
     {
@@ -29,7 +29,7 @@ public sealed partial class WorldRuntime
                 route.All(point => map.FootDistance(point, house.Position) <= ChildHelpingRoute);
         }
         return map.FootDistance(source, house.Position) <= ChildHelpingRoute &&
-            ShortRoute(inhabitants[actor].Position, source, range) && ShortRoute(source, house.Position, 0);
+            ShortRoute(agents[actor].Position, source, range) && ShortRoute(source, house.Position, 0);
     }
 
     private static bool ChildHelpingItem(string kind) => kind == "wood" || IsEdibleFood(kind);
@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
             PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
             lot.DeliveryBuildingId == house.InstanceId && ChildHelpingItem(lot.ItemKind) &&
             lot.Quantity <= ChildHelpingLoad &&
-            PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) <= ChildHelpingLoad && AvailableLotQuantity(lot) == lot.Quantity &&
+            PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) <= ChildHelpingLoad && AvailableLotQuantity(lot) == lot.Quantity &&
             CanDeliverHouseDelivery(lot)).OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private InventoryLot? ChildHelpingStock(string actor, PlacedBuilding house) =>
@@ -57,10 +57,10 @@ public sealed partial class WorldRuntime
                 DestinationRoom(house.InstanceId) >= FoodHarvestQuantity(source)
                 : source.TreeKind is null && (source.Kind == "wood" || source.NaturalObjectKind == "fallen_wood")) &&
             ChildHelpingReachable(actor, source.Position, ResourceInteractionRange, house))
-        .OrderBy(source => map.FootDistance(inhabitants[actor].Position, source.Position))
+        .OrderBy(source => map.FootDistance(agents[actor].Position, source.Position))
         .ThenBy(source => source.Id, StringComparer.Ordinal).FirstOrDefault();
 
-    private void AddChildHelpingCandidates(List<CognitionCandidate> candidates, string actor, InhabitantState state)
+    private void AddChildHelpingCandidates(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
         if (ChildHelpingHouse(actor, state) is not { } house) return;
         if (ChildHelpingDelivery(actor, house) is { } delivery)
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
                         "Pick up nearby fallen wood for your household, then carry it home.", 30));
     }
 
-    private void ApplyChildHelpingCandidate(string actor, InhabitantState state, string candidate)
+    private void ApplyChildHelpingCandidate(string actor, AgentState state, string candidate)
     {
         if (ChildHelpingHouse(actor, state) is not { } house) return;
         var legal = new List<CognitionCandidate>();

@@ -21,7 +21,7 @@ public sealed class TownLawRuntimeTests
         var origin = initial.Towns![0].OriginSite!.Value;
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = origin, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = origin, HungerBasisPoints = 8_000 }).ToArray(),
         }, id => providers.GetOrAdd(id, key => new LawProvider(key)));
         var before = world.ExportState();
         for (var tick = 0; tick < 120 && !(world.Towns[0].Government is { Laws: [{ Versions.Count: > 1 }, ..] }); tick++)
@@ -189,7 +189,7 @@ public sealed class TownLawRuntimeTests
                 }
             }
             selected ??= o.Candidates.Single(c => c.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicProposal: selected.Id.Contains("|propose|", StringComparison.Ordinal) || selected.Id.Contains("|amend|", StringComparison.Ordinal) ? text : null));

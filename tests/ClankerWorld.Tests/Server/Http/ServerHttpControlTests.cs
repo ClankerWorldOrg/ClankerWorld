@@ -244,7 +244,7 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
                 Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
-                var births = runtime.Society.Inhabitants.Select(person => person.BirthTick).ToArray();
+                var births = runtime.Society.Agents.Select(person => person.BirthTick).ToArray();
                 var action = new OwnerLifePaceAction(1_460, runtime.Society.WorldId);
                 const string path = "/api/v1/owner/control/life-pace";
                 using var running = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.LifePacePayload(action));
@@ -262,7 +262,7 @@ public sealed partial class ServerHttpTests
                 Assert.True((await configured.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
                 using var repeated = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.LifePacePayload(action));
                 Assert.False((await repeated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
-                Assert.Equal(births, runtime.Society.Inhabitants.Select(person => person.BirthTick));
+                Assert.Equal(births, runtime.Society.Agents.Select(person => person.BirthTick));
                 Assert.Equal(0, runtime.WorldTick);
                 Assert.True(runtime.Society.IsPaused);
                 var observation = host.Services.GetRequiredService<OwnerWorldObservationStore>();
@@ -304,9 +304,9 @@ public sealed partial class ServerHttpTests
         Assert.Contains("owner-observation.read.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-control.request.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
-        Assert.Contains("owner-inhabitant-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.Contains("owner-agent-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
         Assert.True(factory.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
-        Assert.Single(reconnect.Baseline.Snapshot.Inhabitants);
+        Assert.Single(reconnect.Baseline.Snapshot.Agents);
         Assert.NotNull(reconnect.Baseline.Snapshot.Authoring);
 
         using var pause = await SendSignedAsync(

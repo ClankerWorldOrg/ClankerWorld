@@ -10,7 +10,7 @@ public partial class Main
     {
         var ticksPerDay = snapshot.CalendarPace is { TicksPerDay: > 0 } pace ? pace.TicksPerDay : 1_440;
         var daysPerYear = snapshot.CalendarPace is { DaysPerYear: > 0 } calendar ? calendar.DaysPerYear : 365;
-        var deaths = snapshot.Inhabitants.Where(person => !person.IsDraft && person.Lifecycle == "dead")
+        var deaths = snapshot.Agents.Where(person => !person.IsDraft && person.Lifecycle == "dead")
             .Select(person => (Person: person, Tick: long.TryParse(person.DecisionFactors.FirstOrDefault(factor =>
                 factor.Key == "death-tick")?.Detail, NumberStyles.None, CultureInfo.InvariantCulture, out var tick) ? tick : -1))
             .Where(death => death.Tick >= 0 && death.Tick <= snapshot.WorldTick &&

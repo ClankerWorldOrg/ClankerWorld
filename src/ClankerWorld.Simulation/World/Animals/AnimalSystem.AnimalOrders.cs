@@ -28,7 +28,7 @@ internal sealed partial class AnimalSystem
             if (targets.Length != 1) return null;
             var animal = targets[0];
             if (!AnimalHouseholdMember(world, actor, animal) && !MayCareForAnimal(world, actor, animal) && !MayRideAnimal(world, actor, animal) &&
-                !(action == "tame" && animal.HouseholdId is null && world.Map.FootDistance(world.Inhabitants[actor].Position, animal.Position) <= 4)) return null;
+                !(action == "tame" && animal.HouseholdId is null && world.Map.FootDistance(world.Agents[actor].Position, animal.Position) <= 4)) return null;
             return new("animal_" + action, "queued", 1, 0, "animal_tasks", repeat) { TargetAnimalId = animal.Id };
         }
         return null;
@@ -36,7 +36,7 @@ internal sealed partial class AnimalSystem
 
     internal CognitionCandidate? AnimalOrderCandidate(IAnimalWorld world, OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var animal = Animal(instruction.Order!.TargetAnimalId!);
         if (!world.AdultResident(actor) || animal is not { DiedTick: null } ||
             instruction.Order.Action == "animal_care" && animal.CareUntilTick <= world.WorldTick && !HasAnimalCareOrderSupplies(world, actor, animal)) return null;
@@ -52,14 +52,14 @@ internal sealed partial class AnimalSystem
 
     internal string AnimalOrderBlockedReason(IAnimalWorld world, OwnerQueuedInstruction instruction) =>
         instruction.Order is { Action: "animal_care", TargetAnimalId: { } id } && Animal(id) is { DiedTick: null } animal &&
-        animal.CareUntilTick <= world.WorldTick && MayCareForAnimal(world, instruction.TargetInhabitantId, animal) &&
-        !HasAnimalCareOrderSupplies(world, instruction.TargetInhabitantId, animal)
+        animal.CareUntilTick <= world.WorldTick && MayCareForAnimal(world, instruction.TargetAgentId, animal) &&
+        !HasAnimalCareOrderSupplies(world, instruction.TargetAgentId, animal)
             ? "Waiting for safe feed and jug water to care for " + animal.Name + "."
             : "Waiting for the named animal, permission, a legal route, carry space and physical feed or jug water.";
 
     internal void ExecuteAnimalOrder(IAnimalWorld world, OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         var animal = Animal(order.TargetAnimalId!);
         if (animal is not { DiedTick: null }) return;
@@ -70,10 +70,10 @@ internal sealed partial class AnimalSystem
         var oldCare = animal.CareUntilTick;
         var oldProduct = animal.ReadyProductLotId;
         var choice = AnimalChoices(world, actor).FirstOrDefault(choice => choice.AnimalId == animal.Id && choice.Action == action);
-        var previousPosition = world.Inhabitants[actor].Position;
+        var previousPosition = world.Agents[actor].Position;
         if (choice is not null) _ = ApplyAnimalCandidate(world, actor, choice.Id);
         if (CreditEffect()) return;
-        if (world.Inhabitants[actor].Position != previousPosition) return;
+        if (world.Agents[actor].Position != previousPosition) return;
         if (action is "care" or "collect" or "saddle")
         {
             if (State.SupplyTrips.FirstOrDefault(trip => trip.ActorId == actor && trip.AnimalId == animal.Id) is not null)
@@ -110,9 +110,9 @@ internal sealed partial class AnimalSystem
     internal void CancelAnimalSupplyForOrder(OwnerQueuedInstruction instruction)
     {
         if (instruction.Order is not { } order || !IsAnimalOrder(order.Action)) return;
-        if (State.SupplyTrips.Any(trip => trip.ActorId == instruction.TargetInhabitantId &&
+        if (State.SupplyTrips.Any(trip => trip.ActorId == instruction.TargetAgentId &&
                 trip.AnimalId == order.TargetAnimalId && trip.Action == order.Action[7..]))
-            FinishAnimalSupplyTrip(instruction.TargetInhabitantId);
+            FinishAnimalSupplyTrip(instruction.TargetAgentId);
     }
 }
 

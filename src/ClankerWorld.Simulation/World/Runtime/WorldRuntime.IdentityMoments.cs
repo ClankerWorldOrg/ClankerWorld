@@ -16,9 +16,9 @@ public sealed partial class WorldRuntime
     private void DiscoverIdentityMoments()
     {
         var checkpoint = society.Checkpoint;
-        foreach (var person in checkpoint.Inhabitants.Where(item => item.Status == SocietyInhabitantStatus.Active))
+        foreach (var person in checkpoint.Agents.Where(item => item.Status == SocietyAgentStatus.Active))
         {
-            var physical = inhabitants[person.Id];
+            var physical = agents[person.Id];
             var kinds = new List<AgentIdentityMomentKind>();
             var age = checkpoint.AgeAt(person, WorldTick);
             if (checkpoint.Config.DayLifecycle is { } days && age >= days.MaximumDay / 2)
@@ -33,18 +33,18 @@ public sealed partial class WorldRuntime
                 (edge.ProposerId == person.Id || edge.TargetId == person.Id)))
                 kinds.Add(AgentIdentityMomentKind.PartnerLoss);
             if (checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
-                edge.TargetId == person.Id && checkpoint.GetInhabitant(edge.ProposerId).Status == SocietyInhabitantStatus.Dead))
+                edge.TargetId == person.Id && checkpoint.GetAgent(edge.ProposerId).Status == SocietyAgentStatus.Dead))
                 kinds.Add(AgentIdentityMomentKind.ParentLoss);
             var existing = physical.IdentityMoments ?? [];
             var added = kinds.Where(kind => !existing.Any(moment => moment.Kind == kind))
                 .Select(kind => new AgentIdentityMoment(kind, WorldTick)).ToArray();
             if (added.Length == 0) continue;
-            inhabitants[person.Id] = physical with { IdentityMoments = existing.Concat(added).ToArray() };
+            agents[person.Id] = physical with { IdentityMoments = existing.Concat(added).ToArray() };
             checkpointSchemaVersion = StateSchemaVersion;
         }
     }
 
-    private static bool HasWaitingIdentityMoment(InhabitantState physical) =>
+    private static bool HasWaitingIdentityMoment(AgentState physical) =>
         !physical.IdentityChoicePending && (physical.IdentityMoments ?? [])
             .Any(moment => moment.Outcome is "waiting" or "requested");
 
@@ -59,12 +59,12 @@ public sealed partial class WorldRuntime
         // Bounded separately from ordinary decisions. The installation usage
         // store still reserves each potentially paid request before HTTP.
         var capacity = Math.Max(0, maxCognitionDispatchPerCycle - (activeIdentityIds?.Count ?? pendingIdentityMoments.Count));
-        foreach (var person in society.Checkpoint.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active && item.AgeBand != SocietyAgeBand.Infant)
+        foreach (var person in society.Checkpoint.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active && item.AgeBand != SocietyAgeBand.Infant)
             .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
             if (capacity == 0) break;
-            var physical = inhabitants[person.Id];
+            var physical = agents[person.Id];
             if (physical.IdentityChoicePending || (activeIdentityIds?.Contains(person.Id) ?? pendingIdentityMoments.ContainsKey(person.Id)) ||
                 (activeHostedIds?.Contains(person.Id) ?? pendingHosted.ContainsKey(person.Id)) || IsConversationBusy(person.Id) ||
                 NeedsUrgentFood(physical) || NeedsUrgentWarmth(physical)) continue;
@@ -111,16 +111,16 @@ public sealed partial class WorldRuntime
                 return new IdentityMomentOutcome(null);
             }
         });
-        pendingIdentityMoments.Add(prepared.Request.Observation.InhabitantId,
+        pendingIdentityMoments.Add(prepared.Request.Observation.AgentId,
             new(prepared.Kind, prepared.Request, task, cancellation));
     }
 
-    private InhabitantObservation CreateIdentityMomentObservation(
-        SocietyInhabitant person, InhabitantState physical, AgentIdentityMoment moment)
+    private AgentObservation CreateIdentityMomentObservation(
+        SocietyAgent person, AgentState physical, AgentIdentityMoment moment)
     {
         var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{person.Id}|{moment.Kind}|{moment.TriggeredTick}|{physical.Personality}|{physical.Aspiration}")));
-        return new InhabitantObservation(person.Id, WorldTick, society.Checkpoint.RunEpoch,
+        return new AgentObservation(person.Id, WorldTick, society.Checkpoint.RunEpoch,
             moment.TriggeredTick, digest, physical.HungerBasisPoints,
             [new("identity_optional", "Keep your current identity or choose an optional change for this life moment.")],
             RequiresPersonalProvider: true,
@@ -135,9 +135,9 @@ public sealed partial class WorldRuntime
     {
         foreach (var pending in completed)
         {
-            var id = pending.Request.Observation.InhabitantId;
-            if (!inhabitants.TryGetValue(id, out var physical) ||
-                society.Checkpoint.GetInhabitant(id).Status != SocietyInhabitantStatus.Active ||
+            var id = pending.Request.Observation.AgentId;
+            if (!agents.TryGetValue(id, out var physical) ||
+                society.Checkpoint.GetAgent(id).Status != SocietyAgentStatus.Active ||
                 !(physical.IdentityMoments ?? []).Any(moment => moment.Kind == pending.Kind && moment.Outcome == "requested"))
                 continue;
             if (society.Checkpoint.RunEpoch != pending.Request.Observation.RunEpoch ||
@@ -153,7 +153,7 @@ public sealed partial class WorldRuntime
             {
                 response?.Validate();
                 valid = response is not null && response.RequestId == pending.Request.RequestId &&
-                    response.InhabitantId == id && response.Provider == DecisionProviderKind.LargeLanguageModel &&
+                    response.AgentId == id && response.Provider == DecisionProviderKind.LargeLanguageModel &&
                     response.ProviderEpoch == pending.Request.ProviderEpoch &&
                     response.RunEpoch == pending.Request.Observation.RunEpoch &&
                     response.DecisionGeneration == pending.Request.Observation.DecisionGeneration &&
@@ -166,7 +166,7 @@ public sealed partial class WorldRuntime
             if (personality == physical.Personality) personality = null;
             if (aspiration == physical.Aspiration) aspiration = null;
             var accepted = personality is not null || aspiration is not null;
-            inhabitants[id] = physical with
+            agents[id] = physical with
             {
                 Personality = personality ?? physical.Personality,
                 Aspiration = aspiration ?? physical.Aspiration,
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
     {
         try
         {
-            var provider = providerFactory?.Invoke(pending.Request.Observation.InhabitantId);
+            var provider = providerFactory?.Invoke(pending.Request.Observation.AgentId);
             return provider is not null && provider.KindFor(pending.Request.Observation) == DecisionProviderKind.LargeLanguageModel &&
                 provider.ProviderEpoch == pending.Request.ProviderEpoch;
         }
@@ -190,7 +190,7 @@ public sealed partial class WorldRuntime
     private void FinishIdentityMoment(string id, AgentIdentityMomentKind kind, string outcome,
         string? personality = null, string? aspiration = null)
     {
-        var moment = (inhabitants[id].IdentityMoments ?? []).Single(item => item.Kind == kind);
+        var moment = (agents[id].IdentityMoments ?? []).Single(item => item.Kind == kind);
         SetIdentityMoment(id, moment with
         {
             Outcome = outcome,
@@ -203,8 +203,8 @@ public sealed partial class WorldRuntime
 
     private void SetIdentityMoment(string id, AgentIdentityMoment moment)
     {
-        var physical = inhabitants[id];
-        inhabitants[id] = physical with
+        var physical = agents[id];
+        agents[id] = physical with
         {
             IdentityMoments = (physical.IdentityMoments ?? []).Select(item => item.Kind == moment.Kind ? moment : item).ToArray(),
         };
@@ -219,7 +219,7 @@ public sealed partial class WorldRuntime
     private void CancelIdentityMoment(string id, bool underRuntimeGate = true)
     {
         if (!pendingIdentityMoments.Remove(id, out var pending)) return;
-        if (inhabitants.TryGetValue(id, out var physical) &&
+        if (agents.TryGetValue(id, out var physical) &&
             (physical.IdentityMoments ?? []).Any(moment => moment.Kind == pending.Kind && moment.Outcome == "requested"))
             FinishIdentityMoment(id, pending.Kind, "interrupted");
         CancelProviderCall(pending.Cancellation, underRuntimeGate);
@@ -229,14 +229,14 @@ public sealed partial class WorldRuntime
     private void ReconcileIdentityMoments()
     {
         foreach (var (id, pending) in pendingIdentityMoments.ToArray())
-            if (!inhabitants.ContainsKey(id) || society.Checkpoint.RunEpoch != pending.Request.Observation.RunEpoch ||
+            if (!agents.ContainsKey(id) || society.Checkpoint.RunEpoch != pending.Request.Observation.RunEpoch ||
                 !IsIdentityMomentProviderCurrent(pending))
                 CancelIdentityMoment(id);
         // A saved request has no live provider task after restore. Its single
         // opportunity remains consumed; returning to the game never retries it.
-        foreach (var physical in inhabitants.Values.ToArray())
+        foreach (var physical in agents.Values.ToArray())
             foreach (var moment in (physical.IdentityMoments ?? []).Where(item => item.Outcome == "requested"))
-                if (!pendingIdentityMoments.ContainsKey(physical.InhabitantId))
-                    FinishIdentityMoment(physical.InhabitantId, moment.Kind, "interrupted");
+                if (!pendingIdentityMoments.ContainsKey(physical.AgentId))
+                    FinishIdentityMoment(physical.AgentId, moment.Kind, "interrupted");
     }
 }

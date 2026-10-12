@@ -100,7 +100,7 @@ public sealed class LiveConversationSnapshotTests
         var state = world.ExportState();
         var occupied = state.Map.MapObjects.Select(item => item.Position)
             .Concat(state.Map.Resources.Select(item => item.Position))
-            .Concat(state.Inhabitants.Select(item => item.Position)).ToHashSet();
+            .Concat(state.Agents.Select(item => item.Position)).ToHashSet();
         var borders = state.Towns!.SelectMany(item => item.BorderTiles).ToHashSet();
         var chosen = new List<GridPoint>();
         world.Pause();
@@ -147,12 +147,12 @@ public sealed class LiveConversationSnapshotTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
         public bool CanSpeakAs(string agentId) => true;
-        protected virtual string Selected(InhabitantObservation observation) => "safe_idle";
+        protected virtual string Selected(AgentObservation observation) => "safe_idle";
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
             var selected = Selected(observation);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal),
                 ChosenPersonality: observation.NeedsPersonality ? "patient and curious" : null,
@@ -165,7 +165,7 @@ public sealed class LiveConversationSnapshotTests
     private sealed class InvitationProvider(string actor, IReadOnlyDictionary<string, string> pairs,
         ConcurrentDictionary<string, byte> sent) : QuietConversationProvider
     {
-        protected override string Selected(InhabitantObservation observation)
+        protected override string Selected(AgentObservation observation)
         {
             if (pairs.TryGetValue(actor, out var partner) && observation.Candidates.Any(item => item.Id == "talk:" + partner) &&
                 sent.TryAdd(actor, 0)) return "talk:" + partner;

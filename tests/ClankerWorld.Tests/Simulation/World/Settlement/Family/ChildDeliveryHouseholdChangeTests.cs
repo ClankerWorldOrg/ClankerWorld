@@ -30,8 +30,8 @@ public sealed class ChildDeliveryHouseholdChangeTests
             await choices.IdentityEntered.Task.WaitAsync(TimeSpan.FromSeconds(30));
             await Assert.ThrowsAsync<TimeoutException>(() => step.WaitAsync(TimeSpan.FromSeconds(1)));
             await ReachIdentityCheckpoint(replayHost);
-            var requested = world.Inhabitants.SelectMany(person => (person.IdentityMoments ?? [])
-                .Where(moment => moment.Outcome == "requested").Select(moment => (person.InhabitantId, moment.Kind))).ToArray();
+            var requested = world.Agents.SelectMany(person => (person.IdentityMoments ?? [])
+                .Where(moment => moment.Outcome == "requested").Select(moment => (person.AgentId, moment.Kind))).ToArray();
             Assert.NotEmpty(requested);
             choices.IdentityResponseGate.SetResult();
             await step.WaitAsync(TimeSpan.FromSeconds(30));
@@ -40,7 +40,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
             await replayHost.Step();
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_identity_moment_kept");
-            Assert.All(requested, item => Assert.Equal("kept", world.Inhabitants.Single(person => person.InhabitantId == item.InhabitantId)
+            Assert.All(requested, item => Assert.Equal("kept", world.Agents.Single(person => person.AgentId == item.AgentId)
                 .IdentityMoments!.Single(moment => moment.Kind == item.Kind).Outcome));
         }
         finally
@@ -54,7 +54,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
             for (var tick = 0; tick < 20; tick++)
             {
                 await checkpointHost.Step();
-                if (checkpointHost.World.Inhabitants.SelectMany(person => person.IdentityMoments ?? [])
+                if (checkpointHost.World.Agents.SelectMany(person => person.IdentityMoments ?? [])
                     .Any(moment => moment.Outcome == "requested")) return;
             }
             Assert.Fail("The native host never requested an identity input.");
@@ -68,8 +68,8 @@ public sealed class ChildDeliveryHouseholdChangeTests
     public async Task CaregiverDeparturePreservesChildCargoAndNativeCheckpoints(bool leave, bool deliverFirst)
     {
         var (state, child, house, source) = await ChildHouseholdHelpingTests.Prepared("wood");
-        var household = state.Society.Society.GetInhabitant(child).HouseholdId!;
-        var caregiver = state.Society.Society.GetInhabitant(child).PrimaryCaregiverId!;
+        var household = state.Society.Society.GetAgent(child).HouseholdId!;
+        var caregiver = state.Society.Society.GetAgent(child).PrimaryCaregiverId!;
         state = AddStock(state, child, household, house, source.Position);
         var choices = new DeliveryChoices(child, caregiver);
         using var world = WorldRuntime.Restore(state, _ => choices);
@@ -94,9 +94,9 @@ public sealed class ChildDeliveryHouseholdChangeTests
         using var replayHost = new CheckpointHost(replay, replayChoices);
         using var continuing = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => choices);
         using var continuingHost = new CheckpointHost(continuing, choices);
-        await ContinuePair(continuingHost, replayHost, () => !leave || continuing.Society.GetInhabitant(child).HouseholdId is null);
-        Assert.Equal(leave ? null : household, continuing.Society.GetInhabitant(child).HouseholdId);
-        Assert.Equal(leave ? null : household, continuing.Society.GetInhabitant(caregiver).HouseholdId);
+        await ContinuePair(continuingHost, replayHost, () => !leave || continuing.Society.GetAgent(child).HouseholdId is null);
+        Assert.Equal(leave ? null : household, continuing.Society.GetAgent(child).HouseholdId);
+        Assert.Equal(leave ? null : household, continuing.Society.GetAgent(caregiver).HouseholdId);
         if (leave) Assert.Contains((caregiver, "household_leave"), choices.Selected);
         AssertCargo(continuing, child, household, house, deliverFirst);
         Assert.Equal(leave ? 1 : 0, continuing.ExportState().Events.Count(item => item.Kind == "household_left"));
@@ -118,7 +118,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         var born = society.LifeTickAt(society.WorldTick) - age * society.Config.TicksPerLifecycleAge;
         society = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = society.Agents.Select(person => person.Id == child ? person with
             {
                 BirthTick = born,
                 BirthLifeTick = society.LifeClock is null ? null : born,
@@ -131,7 +131,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child
+            Agents = state.Agents.Select(person => person.AgentId == child
                 ? person with { Position = scenario.SourceHouse.Position } : person).ToArray(),
         };
         state = AddStock(state, child, GuardianPlacementTestFixture.SourceHousehold,
@@ -164,8 +164,8 @@ public sealed class ChildDeliveryHouseholdChangeTests
         await ContinuePair(continuingHost, replayHost, () => GuardianPlacementTestFixture.Placed(continuing, scenario, child));
         Assert.True(continuingHost.RefusedArrival);
         Assert.True(replayHost.RefusedArrival);
-        Assert.Equal(scenario.House.Position, continuing.Inhabitants.Single(person => person.InhabitantId == child).Position);
-        Assert.Equal(GuardianPlacementTestFixture.DestinationHousehold, continuing.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(scenario.House.Position, continuing.Agents.Single(person => person.AgentId == child).Position);
+        Assert.Equal(GuardianPlacementTestFixture.DestinationHousehold, continuing.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.DestinationTownId, GuardianPlacementTestFixture.TownOf(continuing, child));
         Assert.Contains((caregiver, "guardian_accept:" + child), choices.Selected);
         Assert.Contains((caregiver, "guardian_relocate:" + child), choices.Selected);
@@ -202,7 +202,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
     }
 
     private static void Refresh(WorldRuntime world, string actor) => world.SubmitInstruction(new(
-        "child-house-change:" + world.WorldTick + ":" + Array.IndexOf(world.Inhabitants.Select(person => person.InhabitantId).ToArray(), actor), "owner:test", actor, OwnerInstructionKind.Suggestive, "Consider the next household task."));
+        "child-house-change:" + world.WorldTick + ":" + Array.IndexOf(world.Agents.Select(person => person.AgentId).ToArray(), actor), "owner:test", actor, OwnerInstructionKind.Suggestive, "Consider the next household task."));
 
     private static async Task ContinuePair(CheckpointHost host, CheckpointHost replay, Func<bool> completed)
     {
@@ -245,10 +245,10 @@ public sealed class ChildDeliveryHouseholdChangeTests
         }
         public async Task Step()
         {
-            if (refuseArrival && !RefusedArrival && World.Inhabitants.Any(person =>
+            if (refuseArrival && !RefusedArrival && World.Agents.Any(person =>
                     person.GuardianPlacement is { Stage: "escorting", HousePosition: { } home } placement &&
                     person.TravelCooldownTicks == 0 && World.ExportState().Map.FootDistance(person.Position, home) == 1 &&
-                    World.Inhabitants.Single(guardian => guardian.InhabitantId == placement.CaregiverId).Position == home))
+                    World.Agents.Single(guardian => guardian.AgentId == placement.CaregiverId).Position == home))
             {
                 var before = WorldRuntimeCodec.Encode(World.ExportState());
                 Assert.False((await World.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
@@ -299,14 +299,14 @@ public sealed class ChildDeliveryHouseholdChangeTests
                 IdentityEntered.TrySetResult();
                 await IdentityResponseGate.Task.WaitAsync(cancellationToken);
             }
-            string[] wanted = observation.InhabitantId == child
+            string[] wanted = observation.AgentId == child
                 ? Deliver ? ["child_carry:"] : Pickup && !ChangeHousehold ? ["child_carry:child-moving-wood"] : []
-                : observation.InhabitantId == caregiver && ChangeHousehold
+                : observation.AgentId == caregiver && ChangeHousehold
                     ? guardian ? ["guardian_accept:" + child, "guardian_relocate:" + child] : ["household_leave"] : [];
             var candidate = wanted.Select(prefix => observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)))
                 .FirstOrDefault(item => item is not null) ?? observation.Candidates.Single(item => item.Id == "safe_idle");
-            Selected.Enqueue((observation.InhabitantId, candidate.Id));
-            return new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            Selected.Enqueue((observation.AgentId, candidate.Id));
+            return new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, candidate.Id, 1,
                 new Dictionary<string, double> { [candidate.Id] = 1 },
                 ChosenName: observation.NeedsName ? observation.Self!.Name : null,

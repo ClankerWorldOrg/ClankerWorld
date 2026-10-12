@@ -19,7 +19,7 @@ public sealed partial class WorldFireOrderTests
         if (!hungry) state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Snow);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = hungry ? 1_000 : 9_000, Survival = new(hungry ? 10_000 : 1_000) }
                 : person).ToArray(),
         };
@@ -108,7 +108,7 @@ public sealed partial class WorldFireOrderTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(step.Advanced);
-                admitted = step.Decisions.Any(item => item.InhabitantId == actor && item.Admission.Accepted);
+                admitted = step.Decisions.Any(item => item.AgentId == actor && item.Admission.Accepted);
                 if (!admitted) await Task.Delay(10);
             }
             Assert.True(admitted, "A post-release decision must actually be admitted before checking the cancelled order.");

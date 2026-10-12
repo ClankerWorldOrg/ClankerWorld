@@ -22,7 +22,7 @@ public sealed class TownHallStormRefugeTests
         state = state with
         {
             Survival = new(state.Society.Society.WorldTick, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = new(),
@@ -73,7 +73,7 @@ public sealed class TownHallStormRefugeTests
             actor = "agent:00000000000000000000000000000005";
             var outside = state.Map.Tiles.First(tile => state.Map.IsBuildable(tile.Position) &&
                 !state.Map.Resources.Any(site => site.Position == tile.Position) &&
-                state.Inhabitants.All(person => person.Position != tile.Position) &&
+                state.Agents.All(person => person.Position != tile.Position) &&
                 state.Towns!.All(town => !town.BorderTiles.Contains(tile.Position)) &&
                 state.Map.IsReachableOnFoot(tile.Position, hall.Position)).Position;
             setup.AddAgent(actor, outside);
@@ -132,10 +132,10 @@ public sealed class TownHallStormRefugeTests
             .OrderBy(site => state.Map.FootDistance(site.Position, hall.Position)).First().Position;
         state = At(state, actor, cover) with
         {
-            Inhabitants = At(state, actor, cover).Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = At(state, actor, cover).Agents.Select(person => person.AgentId == actor
                 ? person with { Survival = new(3_400), TravelCooldownTicks = 0 } : person).ToArray(),
         };
-        var occupant = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var occupant = state.Agents.First(person => person.AgentId != actor).AgentId;
         state = At(state, occupant, hall.Position);
         using var world = Restore(state, actor);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -150,14 +150,14 @@ public sealed class TownHallStormRefugeTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        Assert.Contains(world.Inhabitants.Single(person => person.InhabitantId == actor).Position,
+        Assert.Contains(world.Agents.Single(person => person.AgentId == actor).Position,
             WorldContentSimulationRules.Footprint(TownHallContent.Hall3x4(), hall));
         Assert.Empty(world.ExportState().Survival!.Fires);
         Assert.DoesNotContain(world.ExportState().Events.Skip(state.Events.Count), item => item.Kind == "fire_fuelled");
 
         state = At(state, actor, cover);
         var orderPoint = WorldContentSimulationRules.Footprint(TownHallContent.Hall3x4(), hall)
-            .Where(point => state.Inhabitants.All(person => person.Position != point))
+            .Where(point => state.Agents.All(person => person.Position != point))
             .OrderByDescending(point => state.Map.FootDistance(cover, point)).First();
         using var ordered = Restore(state);
         var receipt = ordered.SubmitInstruction(new("hall-travel", "owner:test", actor, OwnerInstructionKind.MustDo,
@@ -183,11 +183,11 @@ public sealed class TownHallStormRefugeTests
         state = At(state, actor, position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Survival = new(5_000) } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Survival = new(5_000) } : person).ToArray(),
         };
         using var world = Restore(state);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        return world.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.WarmthBasisPoints;
+        return world.Agents.Single(person => person.AgentId == actor).Survival!.WarmthBasisPoints;
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state, string? seeker = null) =>

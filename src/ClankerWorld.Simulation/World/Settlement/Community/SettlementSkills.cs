@@ -33,12 +33,12 @@ public sealed partial class WorldRuntime
     }
 
     private bool HasSkill(string actor, SettlementSkillKind skill) =>
-        inhabitants.TryGetValue(actor, out var person) && person.Skills?.Any(item => item.Kind == skill) == true;
+        agents.TryGetValue(actor, out var person) && person.Skills?.Any(item => item.Kind == skill) == true;
 
     private void GainSkill(string actor, SettlementSkillKind skill, string? teacher = null)
     {
-        if (!inhabitants.TryGetValue(actor, out var person) || HasSkill(actor, skill)) return;
-        inhabitants[actor] = person with
+        if (!agents.TryGetValue(actor, out var person) || HasSkill(actor, skill)) return;
+        agents[actor] = person with
         {
             Skills = (person.Skills ?? []).Append(new SettlementSkill(skill, WorldTick, teacher))
                 .OrderBy(item => item.Kind).ToArray(),
@@ -56,7 +56,7 @@ public sealed partial class WorldRuntime
             ? SettlementSkillKind.Smithing : SettlementSkillKind.Crafting;
     }
 
-    private static void ValidateSkills(InhabitantState person, int schema, long latestTick,
+    private static void ValidateSkills(AgentState person, int schema, long latestTick,
         HashSet<string> known)
     {
         if (person.Skills is not { } skills) return;
@@ -64,7 +64,7 @@ public sealed partial class WorldRuntime
             skills.Any(item => item is null) ||
             skills.Select(item => item.Kind).Distinct().Count() != skills.Count ||
             skills.Any(item => !Enum.IsDefined(item.Kind) || item.LearnedTick < 0 || item.LearnedTick > latestTick ||
-                item.TeacherId is { } teacher && (teacher == person.InhabitantId || !known.Contains(teacher))))
+                item.TeacherId is { } teacher && (teacher == person.AgentId || !known.Contains(teacher))))
             throw new InvalidDataException("The saved skills are invalid.");
     }
 }

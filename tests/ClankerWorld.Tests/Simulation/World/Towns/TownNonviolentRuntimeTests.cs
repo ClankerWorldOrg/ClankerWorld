@@ -20,7 +20,7 @@ public sealed class TownNonviolentRuntimeTests
         Assert.InRange(Assert.Single(state.Towns![0].Nonviolent.ConductRecords).Id.Length, 1, DerivedId.MaximumLength);
         var provider = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == NonviolentRuntimeFixture.Judge
+            Choose = observation => observation.AgentId == NonviolentRuntimeFixture.Judge
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_find|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith("|warning", StringComparison.Ordinal)) : null,
             Payload = (_, candidate) =>
@@ -45,7 +45,7 @@ public sealed class TownNonviolentRuntimeTests
             Assert.Contains(item.Evidence, evidence => evidence.Id == id);
         });
         var found = NonviolentRuntimeFixture.Strict(world.ExportState());
-        var household = found.Society.Society.GetInhabitant(subject).HouseholdId!;
+        var household = found.Society.Society.GetAgent(subject).HouseholdId!;
         var lotId = "personal-stone:" + subject;
         var inventory = InventoryAuthority.AddLot(found.Society.Society.Inventory, lotId, "stone", subject, 1);
         var toolId = "borrowed-axe:" + subject;
@@ -53,10 +53,10 @@ public sealed class TownNonviolentRuntimeTests
         inventory = InventoryAuthority.Relocate(inventory, "borrow-for-remedy", toolId, household, 1, carrierId: subject);
         var carriedToolId = inventory.Lots.Single(lot => lot.Id == toolId && lot.CarrierId == subject).Id;
         found = found with { Society = found.Society with { Society = found.Society.Society with { Inventory = inventory } } };
-        var name = found.Society.Society.GetInhabitant(subject).Name;
+        var name = found.Society.Society.GetAgent(subject).Name;
         var offering = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == subject
+            Choose = observation => observation.AgentId == subject
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|remedy_offer|", StringComparison.Ordinal)) : null,
@@ -126,7 +126,7 @@ public sealed class TownNonviolentRuntimeTests
         var notice = Assert.Single(item.Revisions).NoticeId;
         Assert.Contains(world.Towns[0].Governance!.Knowledge, receipt => receipt.NoticeId == notice && receipt.AgentId == NonviolentRuntimeFixture.Witness);
         Assert.DoesNotContain(world.Towns[0].Governance!.Knowledge, receipt => receipt.NoticeId == notice && receipt.AgentId == NonviolentRuntimeFixture.Subject);
-        Assert.DoesNotContain(provider.Observations.Where(observation => observation.InhabitantId == NonviolentRuntimeFixture.Stranger)
+        Assert.DoesNotContain(provider.Observations.Where(observation => observation.AgentId == NonviolentRuntimeFixture.Stranger)
             .SelectMany(observation => observation.Candidates), candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal));
         NonviolentRuntimeFixture.Strict(world.ExportState());
     }
@@ -187,16 +187,16 @@ public sealed class TownNonviolentRuntimeTests
         state = NonviolentRuntimeFixture.Strict(state with
         {
             Towns = [town with { ResidentIds = residents, Governance = council }],
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == NonviolentRuntimeFixture.Stranger
+            Agents = state.Agents.Select(person => person.AgentId == NonviolentRuntimeFixture.Stranger
                 ? person with { Position = town.OriginSite!.Value, LastDecisionContext = null } : person).ToArray()
         });
         var property = Property(state);
         var provider = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == NonviolentRuntimeFixture.Stranger
+            Choose = observation => observation.AgentId == NonviolentRuntimeFixture.Stranger
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal))
-                : observation.InhabitantId == NonviolentRuntimeFixture.Witness
+                : observation.AgentId == NonviolentRuntimeFixture.Witness
                     ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("nonviolent_relay:", StringComparison.Ordinal) &&
                         candidate.DestinationId == NonviolentRuntimeFixture.Stranger) : null,
             Payload = (_, choice) => choice.Id.Contains("|law_case_file|", StringComparison.Ordinal)
@@ -204,7 +204,7 @@ public sealed class TownNonviolentRuntimeTests
         };
         using var world = NonviolentRuntimeFixture.Create(state, provider);
         await NonviolentRuntimeFixture.UntilAsync(world, () => world.Towns[0].Nonviolent.Cases.Count > 0, 10);
-        var views = provider.Observations.Where(observation => observation.InhabitantId == NonviolentRuntimeFixture.Stranger).ToArray();
+        var views = provider.Observations.Where(observation => observation.AgentId == NonviolentRuntimeFixture.Stranger).ToArray();
         Assert.DoesNotContain(views[0].Candidates, candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal));
         Assert.Contains(views.Skip(1).SelectMany(observation => observation.Candidates), candidate => candidate.Id.Contains("|law_case_file|", StringComparison.Ordinal));
         var acquired = Assert.Single(world.Towns[0].Nonviolent.Acquisitions, acquisition => acquisition.AgentId == NonviolentRuntimeFixture.Stranger);

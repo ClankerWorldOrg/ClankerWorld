@@ -91,8 +91,8 @@ public sealed class GeographyGeneratorTests
         var options = new GeographyOptions("agent-replanting", WorldSizePreset.Small);
         var initial = StartedGeneratedWorld(options);
         var map = initial.Map;
-        var actor = initial.Inhabitants[0].InhabitantId;
-        var occupied = initial.Inhabitants.Skip(1).Select(person => person.Position).ToHashSet();
+        var actor = initial.Agents[0].AgentId;
+        var occupied = initial.Agents.Skip(1).Select(person => person.Position).ToHashSet();
         var treeSite = map.Resources.Where(site => site.TreeKind is "broadleaf" or "conifer" && site.IsRenewable &&
                 map.IsReachableFromStartingSiteOnFoot(site.Position))
             .Select(site => new
@@ -113,7 +113,7 @@ public sealed class GeographyGeneratorTests
             "replant-test-seed", TreeGrowthRules.TreeSeedItem, actor, 1);
         var state = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = initial.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = treeSite.Stand, HungerBasisPoints = 9_000 }
                 : person).ToArray(),
             Resources = initial.Resources.Select(resource => resource.ResourceId == treeSite.Site.Id
@@ -246,7 +246,7 @@ public sealed class GeographyGeneratorTests
         var initial = world.ExportState();
         Assert.Equal(options, initial.Geography);
         Assert.True(initial.Map.WrapsEastWest);
-        Assert.Empty(world.Inhabitants);
+        Assert.Empty(world.Agents);
         Assert.True(world.Society.IsPaused);
         var projection = new OwnerWorldObservationStore(world).GetSnapshot();
         Assert.Empty(projection.Tiles);
@@ -293,7 +293,7 @@ public sealed class GeographyGeneratorTests
         Assert.Equal(options, restored.ExportState().Geography);
         Assert.True(restored.ExportState().Map.WrapsEastWest);
         Assert.True(new OwnerWorldObservationStore(restored).GetSnapshot().WrapsEastWest);
-        Assert.Equal(4, restored.Inhabitants.Count);
+        Assert.Equal(4, restored.Agents.Count);
         Assert.True(restored.WorldSystems.Chunks.Count > 1);
         Assert.All(restored.ExportState().Map.Resources, site =>
         {
@@ -399,14 +399,14 @@ public sealed class GeographyGeneratorTests
             adding.AddAgent(actorId, pair.Open);
             initial = adding.ExportState();
         }
-        var actor = initial.Inhabitants.Single(person => person.InhabitantId == actorId);
+        var actor = initial.Agents.Single(person => person.AgentId == actorId);
         var systems = initial.WorldSystems!;
         var profiles = Enum.GetValues<SeasonKind>()
             .Select(season => new WeatherProfile(season, 0, 0, 0, 1, 0)).ToArray();
         using var world = WorldRuntime.Restore(initial with
         {
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == actor.InhabitantId
+            Agents = initial.Agents.Select(person => person.AgentId == actor.AgentId
                 ? person with
                 {
                     Position = pair.Open,
@@ -422,15 +422,15 @@ public sealed class GeographyGeneratorTests
             },
         }, _ => new SeekCoverProvider());
         for (var tick = 0; tick < 6 && !world.ExportState().Events.Any(item =>
-                 item.Kind == "inhabitant_moved" && item.Detail.StartsWith(actor.InhabitantId + ":", StringComparison.Ordinal) &&
+                 item.Kind == "agent_moved" && item.Detail.StartsWith(actor.AgentId + ":", StringComparison.Ordinal) &&
                  item.Detail.EndsWith(":storm_cover", StringComparison.Ordinal)); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        var moved = world.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId);
+        var moved = world.Agents.Single(person => person.AgentId == actor.AgentId);
         Assert.Equal(VegetationCover.Forest, map.VegetationAt(moved.Position));
         var previousWarmth = moved.Survival!.WarmthBasisPoints;
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var sheltered = world.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId);
+        var sheltered = world.Agents.Single(person => person.AgentId == actor.AgentId);
         Assert.Equal(moved.Position, sheltered.Position);
         Assert.Equal(previousWarmth - 33, sheltered.Survival!.WarmthBasisPoints);
     }

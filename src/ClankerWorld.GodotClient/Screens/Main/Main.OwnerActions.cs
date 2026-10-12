@@ -38,8 +38,8 @@ public partial class Main
             return;
         }
 
-        var selected = current.Baseline.Snapshot.Inhabitants
-            .FirstOrDefault(inhabitant => string.Equals(inhabitant.Id, selectedInhabitantId, StringComparison.Ordinal));
+        var selected = current.Baseline.Snapshot.Agents
+            .FirstOrDefault(agent => string.Equals(agent.Id, selectedAgentId, StringComparison.Ordinal));
         if (selected is null || selected.IsDraft)
         {
             SetStatus("Pick an agent first.", good: false);
@@ -93,7 +93,7 @@ public partial class Main
             SetStatus("Wait for the world to load before cancelling an order.", good: false);
             return;
         }
-        var order = PendingOrderToCancel(current.Baseline.Snapshot, selectedInhabitantId);
+        var order = PendingOrderToCancel(current.Baseline.Snapshot, selectedAgentId);
         if (order is null)
         {
             SetStatus("This agent has no waiting or active order to cancel.", good: false);
@@ -102,7 +102,7 @@ public partial class Main
 
         var action = new OwnerOrderCancelAction(
             $"cancel_order_{OwnerPairingProtocol.CreateRequestId()}",
-            order.TargetInhabitantId,
+            order.TargetAgentId,
             order.InstructionId,
             current.Baseline.Snapshot.WorldId);
         if (!TryBeginPendingOrderCancel(action, out var pending))
@@ -299,9 +299,9 @@ public partial class Main
 
     private async Task RenameSelectedAgentAsync()
     {
-        if (selectedInhabitantId is not { } agentId ||
+        if (selectedAgentId is not { } agentId ||
             observationSession.Current?.Baseline.Snapshot is not { } snapshot ||
-            snapshot.Inhabitants.All(person => person.Id != agentId))
+            snapshot.Agents.All(person => person.Id != agentId))
             return;
         var attempted = renameAgentInput.Text;
         var name = attempted.Trim();
@@ -327,7 +327,7 @@ public partial class Main
                 renameRow.Hide();
                 return result.Changed ? $"Renamed to {result.Name}" : "Name unchanged";
             }
-            catch (OwnerAgentNameTakenException) when (selectedInhabitantId == agentId &&
+            catch (OwnerAgentNameTakenException) when (selectedAgentId == agentId &&
                 renamingAgentId == agentId && renameRow.Visible && renameAgentInput.Text == attempted &&
                 IsCurrentWorldRequest(generation) &&
                 observationSession.Current?.Baseline.Snapshot.WorldId == worldId)
@@ -436,8 +436,8 @@ public partial class Main
         menuQuitToMainButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         var paused = snapshot?.Authoring?.IsPaused == true;
-        var selected = snapshot?.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
+        var selected = snapshot?.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
         var actionDisabled = !paired || isOwnerAction || pendingSubmission is not null ||
             observationSession.AwaitingFreshBaseline;
         buildingManagementApply.Disabled = actionDisabled || buildingManagementChoice.ItemCount == 0;

@@ -22,21 +22,21 @@ internal sealed partial class CivicSystem
             IReadOnlyList<TownRuntimeState> savedTowns, IReadOnlyList<HouseholdLandUseRight> rights,
             IReadOnlyList<HouseholdLandUseRequest> requests, IReadOnlyList<TownLandTitleRecord> titles, int day)
     {
-        var knownAgents = checkpoint.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var knownAgents = checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var knownHouseholds = checkpoint.Households.Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
-        var households = checkpoint.Inhabitants.ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
+        var households = checkpoint.Agents.ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
         foreach (var town in savedTowns)
         {
             if (town.LandHearings is null)
                 throw new InvalidDataException("A saved Town is missing its land-hearing history.");
-            var adults = checkpoint.Inhabitants.Where(person => town.ResidentIds.Contains(person.Id, StringComparer.Ordinal) &&
-                    person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+            var adults = checkpoint.Agents.Where(person => town.ResidentIds.Contains(person.Id, StringComparer.Ordinal) &&
+                    person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
                 .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
             TownLandHearingValidation.Validate(map, checkpoint.WorldTick, town.Id, town.LandHearings,
                 rights.Where(right => right.TownId == town.Id).ToArray(), titles, knownAgents, knownHouseholds,
                 town.Governance, day, town.Government, adults, households,
                 currentPartiesResolver: item => TownLandCasePartyRules.CurrentParties(town,
-                    TownLandHearingRules.CurrentRevision(item).Tiles, rights, requests, checkpoint.Inhabitants,
+                    TownLandHearingRules.CurrentRevision(item).Tiles, rights, requests, checkpoint.Agents,
                     checkpoint.WorldTick, item));
             TownLandTransferValidation.ValidateSalePayments(map, town.LandHearings, checkpoint.Inventory);
             foreach (var proposal in town.Governance?.Proposals.Where(proposal => proposal.Kind == "land_hearing") ?? [])

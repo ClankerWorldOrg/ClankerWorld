@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
     private sealed record BorrowedReturnEffect(string MoveId, string ItemKind, int Quantity);
 
     private IEnumerable<InventoryLot> ReturnableBorrowedGoods(string actor) => CarriedBorrowedGoods(actor).Where(lot =>
-        lot.DeliveryBuildingId is null && !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id) &&
+        lot.DeliveryBuildingId is null && !PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id) &&
         PhysicalUnreservedQuantity(lot) > 0 &&
         (!InventoryContainerRules.IsContainer(lot.ItemKind) || !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id)));
 
@@ -25,9 +25,9 @@ public sealed partial class WorldRuntime
                 house.HouseholdId != requiredHouseholdId || house.Position != requiredPosition)) return null;
         if (requiredHouseId is not null) InterruptOrdinaryFieldWorkForCustody(actor, lotId);
         // Returning at the entrance grants no access to private household stock.
-        if (!IsWithinInteractionRange(inhabitants[actor].Position, house.Position, 1))
+        if (!IsWithinInteractionRange(agents[actor].Position, house.Position, 1))
         {
-            MoveToward(actor, inhabitants[actor], house.Position, "personal_goods", 1);
+            MoveToward(actor, agents[actor], house.Position, "personal_goods", 1);
             return null;
         }
         var room = DestinationRoom(house.InstanceId);

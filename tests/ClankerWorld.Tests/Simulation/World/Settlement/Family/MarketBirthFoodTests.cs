@@ -18,7 +18,7 @@ public sealed partial class SettlementParenthoodTests
     public async Task BirthProtectsActiveMarketFoodInItsGatePaymentAndGuidance(bool leaveFirst, bool removeStock, int homePortions, bool canBirth)
     {
         var state = await PaidMarketWorld.StateAsync();
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
         var members = state.Society.Society.GetHousehold(household).MemberIds;
         Assert.Equal(2, members.Count);
@@ -62,22 +62,22 @@ public sealed partial class SettlementParenthoodTests
         state = state with
         {
             Society = society.ExportState(),
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null, Project = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null, Project = null }).ToArray(),
         };
         using var preparing = WorldRuntime.Restore(state, id => new ParentProvider(id == seller ? "parent_propose:" + caregiver :
             id == caregiver ? "parent_accept:" + seller + ":acceptor" : "safe_idle"));
-        for (var tick = 0; tick < 10 && preparing.Inhabitants.Single(person => person.InhabitantId == seller).Parenthood?.Stage != "preparing"; tick++)
+        for (var tick = 0; tick < 10 && preparing.Agents.Single(person => person.AgentId == seller).Parenthood?.Stage != "preparing"; tick++)
             Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
-        var plan = preparing.Inhabitants.Single(person => person.InhabitantId == seller).Parenthood!;
+        var plan = preparing.Agents.Single(person => person.AgentId == seller).Parenthood!;
         Assert.Equal(("preparing", caregiver, household), (plan.Stage, plan.PrimaryCaregiverId, plan.IntendedHouseholdId));
         state = preparing.ExportState();
         if (leaveFirst)
         {
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person with
+                Agents = state.Agents.Select(person => person with
                 {
-                    Position = person.InhabitantId == seller ? MarketContent.StallEntrance(market.Site, 0) : person.Position,
+                    Position = person.AgentId == seller ? MarketContent.StallEntrance(market.Site, 0) : person.Position,
                     HungerBasisPoints = 10_000,
                     LastDecisionContext = null,
                     Project = null,
@@ -95,7 +95,7 @@ public sealed partial class SettlementParenthoodTests
             Assert.True(leaving.ExportState().Events.Any(item => item.Kind == "market_stall_left"),
                 System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    Seller = leaving.Inhabitants.Single(person => person.InhabitantId == seller),
+                    Seller = leaving.Agents.Single(person => person.AgentId == seller),
                     Choices = leave.OfferedTo(seller).Where(candidate => candidate.Id.StartsWith("market_", StringComparison.Ordinal)),
                     Chosen = leave.Chosen.Where(item => item.Actor == seller).Select(item => new { item.Id, item.Tick }),
                 }));
@@ -114,13 +114,13 @@ public sealed partial class SettlementParenthoodTests
         };
         state = PaidMarketWorld.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null, Project = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null, Project = null }).ToArray(),
         };
         var observations = new ConcurrentQueue<CognitionDecisionRequest>();
         var initial = WorldRuntimeCodec.Encode(state);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(initial), _ => new ParentProvider("safe_idle", observations.Enqueue));
         Assert.Equal(initial, WorldRuntimeCodec.Encode(world.ExportState()));
-        var notes = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants
+        var notes = new OwnerWorldObservationStore(world).GetSnapshot().Agents
             .Where(person => members.Contains(person.Id)).SelectMany(person => person.SocialNotes).ToArray();
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(initial), _ => new ParentProvider("safe_idle"));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -152,11 +152,11 @@ public sealed partial class SettlementParenthoodTests
             var payment = world.Society.Inventory.GetReservation($"birth:{birth.RequestId}:food:00");
             Assert.Equal((household, 4, InventoryReservationState.Completed), (payment.OwnerId, payment.Quantity, payment.State));
             Assert.Equal(homePortions > 0 ? "z-birth-home" : "a-birth-sale-0", payment.LotId);
-            Assert.Equal("completed", world.Inhabitants.Single(person => person.InhabitantId == seller).Parenthood!.Stage);
+            Assert.Equal("completed", world.Agents.Single(person => person.AgentId == seller).Parenthood!.Stage);
         }
         else
         {
-            Assert.Equal("preparing", world.Inhabitants.Single(person => person.InhabitantId == seller).Parenthood!.Stage);
+            Assert.Equal("preparing", world.Agents.Single(person => person.AgentId == seller).Parenthood!.Stage);
             Assert.Contains(observations, request => request.Observation.Self?.OwnerId == caregiver &&
                 request.Observation.Self.ContinuityNote?.Contains($"{ready}/8 ready-to-eat portions", StringComparison.Ordinal) == true);
         }

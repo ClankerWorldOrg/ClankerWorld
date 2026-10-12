@@ -16,10 +16,10 @@ public sealed partial class BusinessTradeTests
     public async Task OrdinaryMilkTradesRetainMovedPaymentThroughHostReloadAndResolution(int partialMoves, bool accept)
     {
         var (state, buyer, seller, shop) = CreateShopState("store");
-        var home = state.Society.Society.GetInhabitant(seller).HouseholdId!;
+        var home = state.Society.Society.GetAgent(seller).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "history-milk", "milk", home, 2, storageBuildingId: shop);
-        var buyerHome = state.Society.Society.GetInhabitant(buyer).HouseholdId!;
+        var buyerHome = state.Society.Society.GetAgent(buyer).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == buyerHome &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var paymentId = "buyer-payment";
@@ -39,7 +39,7 @@ public sealed partial class BusinessTradeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == buyer
+            Agents = state.Agents.Select(person => person.AgentId == buyer
                 ? person with { HungerBasisPoints = 5000, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -90,12 +90,12 @@ public sealed partial class BusinessTradeTests
         {
             request.Validate();
             var observation = request.Observation;
-            var prefix = Mode == "offer" && observation.InhabitantId == buyer ? "business_shop:"
-                : observation.InhabitantId == seller && Mode is "accept" or "decline"
+            var prefix = Mode == "offer" && observation.AgentId == buyer ? "business_shop:"
+                : observation.AgentId == seller && Mode is "accept" or "decline"
                     ? Mode == "accept" ? "business_continue:" : "business_cancel:" : "safe_idle";
             var choice = observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal))
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, 0,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d)));
         }

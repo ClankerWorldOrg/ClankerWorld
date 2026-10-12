@@ -30,7 +30,7 @@ public sealed partial class ServerHttpTests
             host.Services.GetRequiredService<ILoggerFactory>().AddProvider(new RecordingLoggerProvider<ServerHttpTests>(placementLog));
             var device = await StartAndActivateAsync(host, client, key);
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
-            Assert.Empty(runtime.Inhabitants);
+            Assert.Empty(runtime.Agents);
             using var premature = await SendSignedAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
             Assert.Equal(HttpStatusCode.Conflict, premature.StatusCode);
@@ -55,7 +55,7 @@ public sealed partial class ServerHttpTests
                         Action = action with { X = positions[index].X + 1 },
                     });
                     Assert.False(tampered.IsSuccessStatusCode);
-                    Assert.Empty(runtime.Inhabitants);
+                    Assert.Empty(runtime.Agents);
                 }
                 using var placed = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
                     OwnerHttpBinding.FounderPlacementPayload(action));
@@ -78,12 +78,12 @@ public sealed partial class ServerHttpTests
                         Action = firstFounderMove with { X = destination.X + 1 },
                     });
                     Assert.False(tamperedMove.IsSuccessStatusCode);
-                    Assert.Equal(positions[0], runtime.Inhabitants.Single(person => person.InhabitantId == id).Position);
+                    Assert.Equal(positions[0], runtime.Agents.Single(person => person.AgentId == id).Position);
                     using var moved = await SendSignedAsync(host, client, key, device.DeviceId,
                         movePath, firstFounderMove, OwnerHttpBinding.FounderMovePayload(firstFounderMove));
                     Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
                     Assert.True((await moved.Content.ReadFromJsonAsync<OwnerFounderMoveReceipt>())!.Changed);
-                    Assert.Equal(destination, runtime.Inhabitants.Single(person => person.InhabitantId == id).Position);
+                    Assert.Equal(destination, runtime.Agents.Single(person => person.AgentId == id).Position);
                     Assert.Contains(placementLog.Messages, message => message.Contains(
                         "founder_setup outcome=moved world_tick=0", StringComparison.Ordinal));
                 }
@@ -110,7 +110,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(runtime.FounderSetup.FounderIds[^1], host.Services
                 .GetRequiredService<OwnerWorldObservationStore>().GetSnapshot().FounderSetup!.LastFounderId);
             var providerStatus = host.Services.GetRequiredService<ProviderConfigurationStore>().CaptureStatus();
-            var inheritedRoutes = providerStatus.Assignments!.Where(item => item.InhabitantId == lastFounder).ToArray();
+            var inheritedRoutes = providerStatus.Assignments!.Where(item => item.AgentId == lastFounder).ToArray();
             Assert.Equal(2, inheritedRoutes.Length);
             Assert.Equal([PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.RoutineRole],
                 inheritedRoutes.Select(item => item.Role).Order(StringComparer.Ordinal));
@@ -172,19 +172,19 @@ public sealed partial class ServerHttpTests
                 Action = adult with { ExpectedTownId = "town:stale" },
             });
             Assert.False(tamperedAdult.IsSuccessStatusCode);
-            Assert.Equal(4, runtime.Inhabitants.Count);
+            Assert.Equal(4, runtime.Agents.Count);
 
             var staleId = "agent:" + Guid.NewGuid().ToString("N");
             var stale = new OwnerAgentPlacementAction(staleId, adult.X, adult.Y,
-                adultCognition with { InhabitantId = staleId }, null, "town:stale");
+                adultCognition with { AgentId = staleId }, null, "town:stale");
             using var changed = await SendSignedAsync(host, client, key, device.DeviceId, agentPath,
                 stale, OwnerHttpBinding.AgentPlacementPayload(stale));
             Assert.Equal(HttpStatusCode.Conflict, changed.StatusCode);
             var changedFailure = await changed.Content.ReadFromJsonAsync<OwnerControlFailure>();
             Assert.Equal("placement_changed", changedFailure!.Code);
-            Assert.Equal(4, runtime.Inhabitants.Count);
+            Assert.Equal(4, runtime.Agents.Count);
             Assert.DoesNotContain(host.Services.GetRequiredService<ProviderConfigurationStore>().CaptureStatus()
-                .Assignments ?? [], assignment => assignment.InhabitantId == staleId);
+                .Assignments ?? [], assignment => assignment.AgentId == staleId);
 
             using var added = await SendSignedAsync(host, client, key, device.DeviceId, agentPath,
                 adult, OwnerHttpBinding.AgentPlacementPayload(adult));
@@ -192,10 +192,10 @@ public sealed partial class ServerHttpTests
             var addedReceipt = await added.Content.ReadFromJsonAsync<OwnerAgentPlacementReceipt>();
             Assert.Null(addedReceipt!.HouseholdId);
             Assert.Equal(placement.TownId, addedReceipt.TownId);
-            Assert.Equal(5, runtime.Inhabitants.Count);
-            Assert.Null(runtime.Society.GetInhabitant(agentId).HouseholdId);
+            Assert.Equal(5, runtime.Agents.Count);
+            Assert.Null(runtime.Society.GetAgent(agentId).HouseholdId);
             Assert.Contains(agentId, runtime.Towns.Single().ResidentIds);
-            var observedAdult = observationStore.GetSnapshot().Inhabitants.Single(person => person.Id == agentId);
+            var observedAdult = observationStore.GetSnapshot().Agents.Single(person => person.Id == agentId);
             Assert.Equal("active", observedAdult.Lifecycle);
             Assert.Equal("unhoused", observedAdult.DecisionFactors.Single(factor => factor.Key == "household").Detail);
             using var duplicate = await SendSignedAsync(host, client, key, device.DeviceId, agentPath,
@@ -211,12 +211,12 @@ public sealed partial class ServerHttpTests
                 Action = rename with { Name = "Someone else" },
             });
             Assert.False(tamperedRename.IsSuccessStatusCode);
-            Assert.Equal("New agent", runtime.Society.GetInhabitant(agentId).Name);
+            Assert.Equal("New agent", runtime.Society.GetAgent(agentId).Name);
             using var renamed = await SendSignedAsync(host, client, key, device.DeviceId, renamePath,
                 rename, OwnerHttpBinding.AgentRenamePayload(rename));
             Assert.Equal(HttpStatusCode.OK, renamed.StatusCode);
             Assert.Equal("Nova", host.Services.GetRequiredService<OwnerWorldObservationStore>()
-                .GetSnapshot().Inhabitants.Single(person => person.Id == agentId).DisplayName);
+                .GetSnapshot().Agents.Single(person => person.Id == agentId).DisplayName);
             Assert.Contains(placementLog.Messages, message => message.Contains("AgentRenamed AgentId=" + agentId, StringComparison.Ordinal));
             Assert.DoesNotContain(placementLog.Messages, message => message.Contains("test-secret-key", StringComparison.Ordinal));
             Assert.DoesNotContain("test-secret-key", File.ReadAllText(host.Services.GetRequiredService<WorldStateFile>().Path));

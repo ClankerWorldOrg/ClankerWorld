@@ -7,11 +7,11 @@ namespace ClankerWorld.Simulation.World;
 internal interface IEnvironmentResidentWorld : IEnvironmentWorld
 {
     SocietyCheckpoint Society { get; }
-    IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; }
-    void AddInhabitant(string id, InhabitantState state);
-    void SetInhabitant(string id, InhabitantState state);
-    void RemoveInhabitant(string id);
-    void AddDeceasedInhabitant(string id, DeceasedInhabitantState state);
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
+    void AddAgent(string id, AgentState state);
+    void SetAgent(string id, AgentState state);
+    void RemoveAgent(string id);
+    void AddDeceasedAgent(string id, DeceasedAgentState state);
     OwnerQueuedInstruction? PendingInstructionFor(string id);
     void CancelConstructionForOrder(OwnerQueuedInstruction instruction);
     void CancelExpansionForOrder(OwnerQueuedInstruction instruction);

@@ -21,7 +21,7 @@ public sealed class ToolProgressionRuntimeTests
         var state = setup.ExportState();
         var smith = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var household = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var house = setup.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("house"));
@@ -62,7 +62,7 @@ public sealed class ToolProgressionRuntimeTests
                 ? resource with { State = ResourceState.Available }
                 : ecology.Resources.Any(item => item.Id == resource.ResourceId && item.State == EcologyResourceState.Depleted)
                     ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = house.Position,
@@ -169,10 +169,10 @@ public sealed class ToolProgressionRuntimeTests
     {
         using var setup = NormalPathWorld.CreateGenerated("tool-rare-mining", _ => new CandidateProvider("safe_idle"));
         var state = setup.ExportState();
-        var actor = state.Society.Society.Inhabitants[0].Id;
+        var actor = state.Society.Society.Agents[0].Id;
         var source = state.Map.Resources.Where(resource => resource.Kind == itemKind && !resource.IsRenewable &&
                 state.Map.IsPassable(resource.Position) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == resource.Position))
+                !state.Agents.Any(person => person.AgentId != actor && person.Position == resource.Position))
             .OrderBy(resource => resource.Id, StringComparer.Ordinal).First();
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "mining-pick", scenario == "stone" ? "stone_pickaxe" : "iron_pickaxe", actor, 1);
@@ -194,7 +194,7 @@ public sealed class ToolProgressionRuntimeTests
                         ? resource with { Quantity = 1 } : resource).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = source.Position,
@@ -263,7 +263,7 @@ public sealed class ToolProgressionRuntimeTests
         var state = setup.ExportState();
         var farmhouse = setup.WorldSimulation.Buildings.Single(building => setup.WorldContent.Buildings
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
-        var actor = state.Society.Society.Inhabitants.First(person =>
+        var actor = state.Society.Society.Agents.First(person =>
             (person.HouseholdId == farmhouse.HouseholdId) == farmHousehold &&
             person.HouseholdId is not null && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var warehouse = setup.WorldSimulation.Buildings.Single(building => setup.WorldContent.Buildings
@@ -278,7 +278,7 @@ public sealed class ToolProgressionRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = warehouse.Position,
@@ -321,7 +321,7 @@ public sealed class ToolProgressionRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("tool-warehouse-access",
             _ => new CandidateProvider("safe_idle"));
         var state = setup.ExportState();
-        var actor = state.Society.Society.Inhabitants[0].Id;
+        var actor = state.Society.Society.Agents[0].Id;
         var warehouse = Assert.Single(setup.WorldSimulation.Buildings, building =>
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("warehouse", StringComparer.Ordinal));
@@ -344,11 +344,11 @@ public sealed class ToolProgressionRuntimeTests
             var outside = state.Map.Tiles.Select(tile => tile.Position)
                 .First(point => state.Map.IsLand(point) && !firstTown.BorderTiles.Contains(point));
             var otherResidents = scenario == "inhabited"
-                ? state.Society.Society.Inhabitants.Where(person => person.HouseholdId == "household:camp-beta")
+                ? state.Society.Society.Agents.Where(person => person.HouseholdId == "household:camp-beta")
                     .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray()
                 : [];
             var firstTownResidents = firstTown.ResidentIds.Except(otherResidents).ToArray();
-            var adultIds = state.Society.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+            var adultIds = state.Society.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
             state = state with
             {
@@ -382,7 +382,7 @@ public sealed class ToolProgressionRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = warehouse.Position, HungerBasisPoints = 10_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -440,7 +440,7 @@ public sealed class ToolProgressionRuntimeTests
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var household = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var house = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
@@ -473,7 +473,7 @@ public sealed class ToolProgressionRuntimeTests
             Resources = state.Resources.Select(resource => resource.ResourceId == tree?.Id
                 ? resource with { State = ResourceState.Available }
                 : resource with { State = ResourceState.Depleted }).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = house.Position,
@@ -554,14 +554,14 @@ public sealed class ToolProgressionRuntimeTests
         var smith = state.WorldSimulation!.Buildings.Single(building =>
             building.InstanceId == "first-town-blacksmith");
         var household = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory with { Lots = [], Reservations = [] },
             "personal-blacksmith-wood", "wood", actor, 8);
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = smith.Position,
@@ -609,7 +609,7 @@ public sealed class ToolProgressionRuntimeTests
         var house = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("house"));
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "repair-target", "iron_pickaxe", actor, 1,
@@ -624,7 +624,7 @@ public sealed class ToolProgressionRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = house.Position,
@@ -681,7 +681,7 @@ public sealed class ToolProgressionRuntimeTests
         var house = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("house"));
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "repair-target", "iron_pickaxe", actor, 1,
@@ -693,7 +693,7 @@ public sealed class ToolProgressionRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = house.Position,
@@ -757,13 +757,13 @@ public sealed class ToolProgressionRuntimeTests
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
         var map = state.Map;
-        var actor = state.Society.Society.Inhabitants[0].Id;
+        var actor = state.Society.Society.Agents[0].Id;
         var available = state.Resources.Where(item => item.State == ResourceState.Available)
             .Select(item => item.ResourceId).ToHashSet(StringComparer.Ordinal);
         var loose = map.Resources.Where(resource => IsLoose(resource) && available.Contains(resource.Id))
             .Select(resource => resource.Position).ToArray();
         Assert.NotEmpty(loose);
-        var taken = state.Inhabitants.Select(person => person.Position)
+        var taken = state.Agents.Select(person => person.Position)
             .Concat(map.Resources.Select(resource => resource.Position)).ToHashSet();
         // Stand beside a tree well away from the fallen wood, so trees are nearer than any loose wood.
         var stand = map.Resources.Where(resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
@@ -795,7 +795,7 @@ public sealed class ToolProgressionRuntimeTests
         WorldRuntimeState Prepared(InventoryCheckpoint inventory) => state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = stand, Project = null, LastDecisionContext = null } : person).ToArray(),
         };
         foreach (var (inventory, expected) in new[]
@@ -850,7 +850,7 @@ public sealed class ToolProgressionRuntimeTests
             var selected = candidates.FirstOrDefault(item => item.Id == candidateId) ??
                 candidates.Single(item => item.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d)));
         }

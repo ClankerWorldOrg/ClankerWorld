@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
     private MapResource? RareMiningSource(string actor, string itemKind)
     {
         if (itemKind is not ("gold_ore" or "diamond") || !AdultResident(actor) ||
-            !inhabitants.TryGetValue(actor, out var state) || NeedsUrgentFood(state) ||
+            !agents.TryGetValue(actor, out var state) || NeedsUrgentFood(state) ||
             NeedsUrgentWarmth(state) || state.Project is { Stage: not ("completed" or "cancelled"), RequiresFreshChoice: false } ||
             ToolProgressionRules.BestUsableTool(society.Checkpoint.Inventory, actor, ToolFamily.Pickaxe) is not { } pick ||
             ToolProgressionRules.Find(pick.ItemKind)!.Tier < 3)
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
                     $"Mine {itemKind.Replace('_', ' ')} with the carried iron pickaxe.", 36, source.Id));
     }
 
-    private void GatherRareMaterial(string actor, InhabitantState state, string itemKind)
+    private void GatherRareMaterial(string actor, AgentState state, string itemKind)
     {
         if (RareMiningSource(actor, itemKind) is { } source)
             GatherProjectMaterial(actor, state, itemKind, source);
@@ -94,7 +94,7 @@ public sealed partial class WorldRuntime
             .FirstOrDefault();
     }
 
-    private bool CollectToolForGathering(string actor, InhabitantState state,
+    private bool CollectToolForGathering(string actor, AgentState state,
         string itemKind, MapResource source)
     {
         if (ToolProgressionRules.PlanGather(itemKind, source, society.Checkpoint.Inventory, actor,
@@ -170,7 +170,7 @@ public sealed partial class WorldRuntime
     {
         foreach (var tool in RepairableTools(actor))
         {
-            var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId!;
+            var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
             var blacksmith = HouseholdBuildingWithTag(householdId, "blacksmith")!;
             candidates.Add(new CognitionCandidate(RepairToolPrefix + tool.Id,
                 $"Repair the worn {tool.ItemKind.Replace('_', ' ')} at the household Blacksmith.", 23,
@@ -180,9 +180,9 @@ public sealed partial class WorldRuntime
 
     private InventoryLot[] RepairableTools(string actor, IReadOnlyList<string>? protectedToolIds = null)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseholdBuildingWithTag(householdId, "blacksmith") is not { } blacksmith ||
-            !inhabitants.TryGetValue(actor, out var state))
+            !agents.TryGetValue(actor, out var state))
             return [];
 
         var inventory = society.Checkpoint.Inventory;
@@ -203,7 +203,7 @@ public sealed partial class WorldRuntime
     private bool CanPrepareRepairInputs(string actor, string repairToolId,
         IReadOnlyList<ContentQuantity> repairMaterials, GridPoint destination, IReadOnlyList<string>? protectedToolIds = null)
     {
-        if (!inhabitants.TryGetValue(actor, out var state)) return false;
+        if (!agents.TryGetValue(actor, out var state)) return false;
 
         var inventory = society.Checkpoint.Inventory;
         var harvestToolIds = new List<string>();
@@ -272,7 +272,7 @@ public sealed partial class WorldRuntime
         return cargo.Sum(move => move.PhysicalQuantity) >= missing ? cargo : [];
     }
 
-    private bool MakeRoomForToolRepairInput(string actor, InhabitantState state,
+    private bool MakeRoomForToolRepairInput(string actor, AgentState state,
         string repairToolId, int requiredUnits, string? harvestToolId, IReadOnlyList<ContentQuantity> repairMaterials,
         IReadOnlyList<string>? protectedToolIds = null)
     {
@@ -301,16 +301,16 @@ public sealed partial class WorldRuntime
         return inputs;
     }
 
-    private string? RepairTool(string actor, InhabitantState state, string lotId,
+    private string? RepairTool(string actor, AgentState state, string lotId,
         IReadOnlyList<string>? protectedToolIds = null)
     {
         var inventory = society.Checkpoint.Inventory;
         var tool = inventory.Lots.FirstOrDefault(lot => lot.Id == lotId &&
             ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) &&
-            (lot.OwnerId == actor || lot.OwnerId == society.Checkpoint.GetInhabitant(actor).HouseholdId) &&
+            (lot.OwnerId == actor || lot.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId) &&
             ToolProgressionRules.Find(lot.ItemKind) is not null && lot.ConditionBasisPoints is > 0 and < 10_000 &&
             UnreservedQuantity(inventory, lot) > 0);
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         var blacksmith = householdId is null ? null : HouseholdBuildingWithTag(householdId, "blacksmith");
         if (tool is null || blacksmith is null)
             return null;

@@ -18,7 +18,7 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
     {
         using var world = await BuildCornerBridgeAfterActualScoutingAndNaturalDeath();
         var state = world.ExportState();
-        var deceased = Assert.Single(state.DeceasedInhabitants!);
+        var deceased = Assert.Single(state.DeceasedAgents!);
         var exploration = Assert.IsType<SettlementExploration>(deceased.LastPhysical.Exploration);
         var bytes = WorldRuntimeCodec.Encode(state);
         using (var strict = Restore(WorldRuntimeCodec.Decode(bytes)))
@@ -45,7 +45,7 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
                     },
                 },
             };
-            var malformed = state with { DeceasedInhabitants = [deceased with { LastPhysical = physical }] };
+            var malformed = state with { DeceasedAgents = [deceased with { LastPhysical = physical }] };
             var encodeError = Record.Exception(() => WorldRuntimeCodec.Encode(malformed));
             var restoreError = Record.Exception(() => { using var restored = Restore(malformed); });
             output.WriteLine($"Historical {fault} on future-only deck {FutureDeck}: codec={encodeError?.GetType().Name ?? "ACCEPTED"}, direct={restoreError?.GetType().Name ?? "ACCEPTED"}.");
@@ -57,16 +57,16 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
         // without the later bridge. It still cannot manufacture foot scouting memories.
         var waterPosition = state with
         {
-            DeceasedInhabitants = [deceased with { LastPhysical = deceased.LastPhysical with { Position = FutureDeck } }],
+            DeceasedAgents = [deceased with { LastPhysical = deceased.LastPhysical with { Position = FutureDeck } }],
         };
         using var savedSwimmer = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(waterPosition)));
-        Assert.Equal(FutureDeck, Assert.Single(savedSwimmer.ExportState().DeceasedInhabitants!).LastPhysical.Position);
+        Assert.Equal(FutureDeck, Assert.Single(savedSwimmer.ExportState().DeceasedAgents!).LastPhysical.Position);
     }
 
     private async Task<WorldRuntime> BuildCornerBridgeAfterActualScoutingAndNaturalDeath()
     {
         using var scouting = ExplorationBridgeSaveTests.CreateScoutingWorld();
-        var actor = scouting.Inhabitants[0].InhabitantId;
+        var actor = scouting.Agents[0].AgentId;
         for (var tick = 0; tick < 400 && Scout(scouting, actor).Exploration!.OutingPath.Count < 3; tick++)
         {
             var previous = Scout(scouting, actor).Position;
@@ -85,10 +85,10 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
         Assert.DoesNotContain(walking.Map.Resources, resource => crossing.Entrances.Contains(resource.Position) || resource.Position == WorkshopSite);
         using var aging = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(AtNaturalLifeBoundary(walking, actor))));
         Assert.True((await aging.AdvanceOneTickAsync()).Advanced);
-        var dead = aging.Society.GetInhabitant(actor);
-        Assert.Equal(SocietyInhabitantStatus.Dead, dead.Status);
+        var dead = aging.Society.GetAgent(actor);
+        Assert.Equal(SocietyAgentStatus.Dead, dead.Status);
         Assert.Equal(SocietyDeathCause.NaturalAge, dead.DeathCause);
-        var deceased = Assert.Single(aging.ExportState().DeceasedInhabitants!);
+        var deceased = Assert.Single(aging.ExportState().DeceasedAgents!);
         Assert.Equal(exploration.OutingPath, deceased.LastPhysical.Exploration!.OutingPath);
         var naturalArchive = WorldRuntimeCodec.Encode(aging.ExportState());
         using (var strict = Restore(WorldRuntimeCodec.Decode(naturalArchive)))
@@ -121,7 +121,7 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
             Assert.Equal(woodBefore - 10, Wood(after));
             Assert.False(before.Map.IsPassable(FutureDeck));
             Assert.True(after.Map.IsPassable(FutureDeck));
-            Assert.Equal(JsonSerializer.Serialize(deceased), JsonSerializer.Serialize(Assert.Single(after.DeceasedInhabitants!)));
+            Assert.Equal(JsonSerializer.Serialize(deceased), JsonSerializer.Serialize(Assert.Single(after.DeceasedAgents!)));
             Assert.Equal(JsonSerializer.Serialize(before.Knowledge!.Facts), JsonSerializer.Serialize(after.Knowledge!.Facts));
             output.WriteLine($"Actual scouting began {exploration.LastOutingTick}, natural death {deceased.DeathTick}, public paid corner bridge {bridge.Id} built {bridge.BuiltTick}; wood10 spent; deck {FutureDeck} becomes passable only after death.");
             return world;
@@ -146,7 +146,7 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
                 Society = society with
                 {
                     LifeClock = new SocietyLifeClock(society.LifeClock?.Rate ?? 1, society.WorldTick, nextLifeTick),
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthLifeTick = nextLifeTick + 1 - (days + 1) * society.Config.TicksPerLifecycleAge,
                         AgeBand = SocietyAgeBand.Elder,
@@ -159,8 +159,8 @@ public sealed class ExplorationBridgeFutureDeckArchiveTests(ITestOutputHelper ou
 
     private static int Wood(WorldRuntimeState state) => state.Society.Society.Inventory.Lots
         .Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
-    private static InhabitantState Scout(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static AgentState Scout(WorldRuntime world, string actor) =>
+        world.Agents.Single(person => person.AgentId == actor);
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, Provider);
     private static IDecisionProvider Provider(string actor) => new IdleProvider();
 

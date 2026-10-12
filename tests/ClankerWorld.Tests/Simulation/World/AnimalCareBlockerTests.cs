@@ -30,7 +30,7 @@ public sealed partial class AnimalPipelineTests
             inventory = InventoryAuthority.AddLot(inventory, "care-blocker-water", "fresh_water", actor, 2, containerLotId: "care-blocker-jug");
         }
         state = At(state, actor, yard.Position, inventory, [cow]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         var decisions = new CareBlockerChooser();
         IDecisionProvider Provider(string id) => id == actor ? decisions : new AnimalChooser();
         using var preparing = WorldRuntime.Restore(state, Provider);
@@ -106,7 +106,7 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(2, recovering.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("retry-care-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
         Assert.Equal((home, 2), (recovering.Society.Inventory.GetLot("retry-care-water").OwnerId, recovering.Society.Inventory.GetLot("retry-care-water").Quantity));
         Assert.Equal((home, actor), (recovering.Society.Inventory.GetLot("retry-care-jug").OwnerId, recovering.Society.Inventory.GetLot("retry-care-jug").CarrierId));
-        Assert.Equal(recovering.Animals.Single().Position, recovering.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(recovering.Animals.Single().Position, recovering.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Empty(recovering.ExportState().AnimalWorld.SupplyTrips);
         using var recoveredReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(recovering.ExportState())), Provider);
         recoveredReload.Validate();

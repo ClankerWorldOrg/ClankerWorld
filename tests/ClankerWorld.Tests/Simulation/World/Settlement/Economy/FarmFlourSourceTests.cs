@@ -19,7 +19,7 @@ public sealed class FarmFlourSourceTests
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new Choices("safe_idle"));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-alpha").Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
         const string household = "household:camp-alpha";
         var farmhouse = generated.WorldSimulation.Buildings.Single(building => building.HouseholdId == household &&
             generated.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
@@ -45,7 +45,7 @@ public sealed class FarmFlourSourceTests
         if (source == "full-hands") inventory = InventoryAuthority.AddLot(inventory, "full-cargo", "wood", actor, 8);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = farmhouse.Position,
                 HungerBasisPoints = 9_500,
@@ -134,7 +134,7 @@ public sealed class FarmFlourSourceTests
             Offered.AddRange(request.Observation.Candidates.Select(candidate => candidate.Id));
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == wanted) ??
                 request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d)));

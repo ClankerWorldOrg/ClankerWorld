@@ -19,9 +19,9 @@ public sealed partial class WorldRuntime
     private bool ReadyToBoard(string actor) => AdultResident(actor) && PassengerBoat(actor) is null &&
         !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor) &&
         ConversationFor(actor) is null && AttachedHandcart(actor) is null && !HasGuardianPlacementTask(actor) &&
-        !inhabitants.Values.Any(person => person.GuardianPlacement?.CaregiverId == actor) && MovingCareGroup(actor).Count == 1 &&
-        inhabitants[actor].Project is not { Stage: not ("completed" or "cancelled") } &&
-        inhabitants[actor].Equipment?.Repair is null && inhabitants[actor].MedicalTreatment is null &&
+        !agents.Values.Any(person => person.GuardianPlacement?.CaregiverId == actor) && MovingCareGroup(actor).Count == 1 &&
+        agents[actor].Project is not { Stage: not ("completed" or "cancelled") } &&
+        agents[actor].Equipment?.Repair is null && agents[actor].MedicalTreatment is null &&
         !fields.Any(field => field.Work?.WorkerId == actor) &&
         !IsActiveTownProjectDeliveryForActor(actor);
 
@@ -32,8 +32,8 @@ public sealed partial class WorldRuntime
         (town.ResidentIds.Contains(actor, StringComparer.Ordinal) || TownBoatAccessRules.Allows(town, actor, WorldTick));
 
     private GridPoint? AvailablePortLanding(PlacedBuilding port, string passenger) =>
-        PortGeometryFor(port).LandTiles.Where(point => !inhabitants.Values.Any(person =>
-            person.InhabitantId != passenger && person.Position == point)).Cast<GridPoint?>().FirstOrDefault();
+        PortGeometryFor(port).LandTiles.Where(point => !agents.Values.Any(person =>
+            person.AgentId != passenger && person.Position == point)).Cast<GridPoint?>().FirstOrDefault();
 
     private IReadOnlyList<GridPoint> BoatWaterRoute(GridPoint origin, GridPoint dock, string? boatId = null) =>
         PortNavigationRules.WaterRoute(map, origin, [dock], PortObstacles()
@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
                      .OrderBy(port => port.InstanceId, StringComparer.Ordinal))
         {
             var approach = origin.Entrance!.Value;
-            if (!CanWalkForTownProject(actor, inhabitants[actor].Position, approach)) continue;
+            if (!CanWalkForTownProject(actor, agents[actor].Position, approach)) continue;
             foreach (var townId in boatTransport.Boats.Where(boat => boat.DockedPortId == origin.InstanceId)
                          .Select(boat => boat.TownId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
             {
@@ -69,7 +69,7 @@ public sealed partial class WorldRuntime
         if (WaitingBoatRequest(actor) is { } waiting)
         {
             candidates.Add(new("boat_cancel:" + waiting.Id, "Cancel your waiting boat trip and release unused reservations.", 90));
-            if (Port(waiting.OriginPortId) is { } origin && inhabitants[actor].Position != origin.Entrance)
+            if (Port(waiting.OriginPortId) is { } origin && agents[actor].Position != origin.Entrance)
                 candidates.Add(new("boat_queue:" + waiting.Id, "Return to the Port's land approach to wait for your boat trip.", 80));
             return;
         }
@@ -91,15 +91,15 @@ public sealed partial class WorldRuntime
         {
             if (WaitingBoatRequest(actor) is { } request && candidateId == "boat_queue:" + request.Id &&
                 Port(request.OriginPortId) is { } origin)
-                MoveToward(actor, inhabitants[actor], origin.Entrance!.Value, "boat_queue", 0);
+                MoveToward(actor, agents[actor], origin.Entrance!.Value, "boat_queue", 0);
             return true;
         }
         if (!candidateId.StartsWith(BoatTripPrefix, StringComparison.Ordinal)) return false;
         var choice = BoatTripChoices(actor).FirstOrDefault(choice => choice.Id == candidateId);
         if (choice is null) return true;
-        if (inhabitants[actor].Position != choice.Origin.Entrance)
+        if (agents[actor].Position != choice.Origin.Entrance)
         {
-            MoveToward(actor, inhabitants[actor], choice.Origin.Entrance!.Value, "boat_departure", 0);
+            MoveToward(actor, agents[actor], choice.Origin.Entrance!.Value, "boat_departure", 0);
             return true;
         }
         QueueBoatTrip(actor, choice);
@@ -130,13 +130,13 @@ public sealed partial class WorldRuntime
         {
             var origin = Port(request.OriginPortId);
             var destination = Port(request.DestinationPortId);
-            if (!inhabitants.ContainsKey(request.PassengerId) || !CanUseTownBoat(request.BoatTownId, request.PassengerId) || origin is null || destination is null)
+            if (!agents.ContainsKey(request.PassengerId) || !CanUseTownBoat(request.BoatTownId, request.PassengerId) || origin is null || destination is null)
             {
                 SetBoatRequest(request with { Status = "cancelled", SettledTick = WorldTick });
                 AppendEvent("boat_trip_cancelled", $"{request.PassengerId}:{request.Id}:departure_unavailable");
                 continue;
             }
-            if (!ReadyToBoard(request.PassengerId) || inhabitants[request.PassengerId].Position != origin.Entrance ||
+            if (!ReadyToBoard(request.PassengerId) || agents[request.PassengerId].Position != origin.Entrance ||
                 !PortIsLegal(origin) || !PortIsLegal(destination) || AvailablePortLanding(destination, request.PassengerId) is null) continue;
             foreach (var boat in boatTransport.Boats.Where(boat => boat.TownId == request.BoatTownId &&
                          boat.DockedPortId == origin.InstanceId && boat.Journey is null).OrderBy(boat => boat.Id, StringComparer.Ordinal))
@@ -153,7 +153,7 @@ public sealed partial class WorldRuntime
                 });
                 SetBoatRequest(request with { Status = "underway", BoatId = boat.Id });
                 SetBoatOrderTravelStatus(request, "doing", null);
-                inhabitants[request.PassengerId] = inhabitants[request.PassengerId] with
+                agents[request.PassengerId] = agents[request.PassengerId] with
                 { Position = boat.Position, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
                 AppendEvent("boat_departed", $"{request.PassengerId}:{boat.Id}:{origin.InstanceId}:{destination.InstanceId}", boat.Position);
                 break;
@@ -191,16 +191,16 @@ public sealed partial class WorldRuntime
                     }
                 };
                 SetBoat(boat);
-                if (inhabitants.TryGetValue(journey.PassengerId, out var passenger))
-                    inhabitants[journey.PassengerId] = passenger with { Position = next };
+                if (agents.TryGetValue(journey.PassengerId, out var passenger))
+                    agents[journey.PassengerId] = passenger with { Position = next };
                 boat = MoveBoatGroundCargo(boat);
                 journey = boat.Journey!;
                 if (journey.PathIndex + 1 < journey.WaterPath.Count) continue;
             }
             var landing = AvailablePortLanding(target, journey.PassengerId);
             if (landing is null) { WaitOrRecoverBoat(boat, tick); continue; }
-            if (inhabitants.TryGetValue(journey.PassengerId, out var arriving))
-                inhabitants[journey.PassengerId] = arriving with { Position = landing.Value, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
+            if (agents.TryGetValue(journey.PassengerId, out var arriving))
+                agents[journey.PassengerId] = arriving with { Position = landing.Value, MoveWaitTicks = 0, TravelCooldownTicks = 0 };
             MoveBoatGroundCargo(boat, landing.Value);
             SetBoat(boat with { DockedPortId = target.InstanceId, Journey = null, GroundCargoLotIds = null });
             var request = boatTransport.Requests.Single(request => request.Id == journey.RequestId);

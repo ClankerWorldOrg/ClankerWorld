@@ -17,7 +17,7 @@ public sealed partial class TownMembershipTests
         var first = Town(state, First);
         if (remoteBlockedTarget)
         {
-            var targetHousehold = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+            var targetHousehold = state.Society.Society.GetAgent(actor).HouseholdId!;
             state = state with
             {
                 TownLandTitles = state.TownLandTitles!.Concat(TownLandRightsRules.InitialTitles(state.Map, second, 0))
@@ -69,7 +69,7 @@ public sealed partial class TownMembershipTests
         var town = Assert.Single(state.Towns!, item => item.Id != First && item.Id != Second);
         Assert.Empty(town.AssignedBuildingIds);
         Assert.Null(town.FirstBuildingCompletedTick);
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldContent!.Buildings.Single(item => item.LocalId == "house-1x1");
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in house.BuildCosts)

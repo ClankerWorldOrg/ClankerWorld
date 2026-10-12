@@ -35,7 +35,7 @@ public sealed class AbandonedWarehouseConsumerTests
         using var world = Reload(state);
         Assert.Contains(Candidates(world, actor), item => item.Id == choice);
         Choose(world, actor, choice);
-        var person = world.ExportState().Inhabitants.Single(item => item.InhabitantId == actor);
+        var person = world.ExportState().Agents.Single(item => item.AgentId == actor);
         Assert.Equal("salvage-stock", kind == "sack" ? person.Equipment!.CarryAidLotId : person.Equipment!.ClothingLotId);
         var equipped = world.Society.Inventory.GetLot("salvage-stock");
         Assert.Equal(actor, equipped.OwnerId);
@@ -93,7 +93,7 @@ public sealed class AbandonedWarehouseConsumerTests
             conditionBasisPoints: 3_000);
         state = WithReservation(WithInventory(state, inventory), "salvage-stock", 1) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = new PersonalEquipment(ClothingLotId: "worn-clothing") } : person).ToArray(),
         };
         using var world = Reload(state);
@@ -175,7 +175,7 @@ public sealed class AbandonedWarehouseConsumerTests
         if (change == "reserved") state = WithReservation(state, "salvage-stock", 1);
         else if (change == "revived")
         {
-            var returning = state.Society.Society.Inhabitants.First(item => item.Id != actor).Id;
+            var returning = state.Society.Society.Agents.First(item => item.Id != actor).Id;
             state = state with
             {
                 Towns = state.Towns!.Select(town => town.Id == QuietTown
@@ -191,7 +191,7 @@ public sealed class AbandonedWarehouseConsumerTests
         {
             // A Warehouse destination can be shared. Block every ordinary exit
             // from a narrow part of the real map to retain the no-route refusal.
-            var blockers = state.Inhabitants.Where(item => item.InhabitantId != actor).ToArray();
+            var blockers = state.Agents.Where(item => item.AgentId != actor).ToArray();
             var origin = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             {
                 var exits = state.Map.FootNeighbors(point).ToArray();
@@ -199,12 +199,12 @@ public sealed class AbandonedWarehouseConsumerTests
                     !exits.Contains(warehouse.Position);
             });
             var positions = state.Map.FootNeighbors(origin).Select((point, index) =>
-                (blockers[index].InhabitantId, point)).ToDictionary(item => item.InhabitantId, item => item.point, StringComparer.Ordinal);
+                (blockers[index].AgentId, point)).ToDictionary(item => item.AgentId, item => item.point, StringComparer.Ordinal);
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Position = origin }
-                    : positions.TryGetValue(person.InhabitantId, out var blockedExit) ? person with { Position = blockedExit } : person).ToArray(),
+                    : positions.TryGetValue(person.AgentId, out var blockedExit) ? person with { Position = blockedExit } : person).ToArray(),
             };
         }
         else
@@ -292,12 +292,12 @@ public sealed class AbandonedWarehouseConsumerTests
             Assert.True(reassigned.Applied, reassigned.Failure);
             state = setup.ExportState();
         }
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == household).Id;
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "salvage-stock", kind, QuietTown, quantity,
             conditionBasisPoints: 7_600, freshnessBasisPoints: 8_300, storageBuildingId: warehouse.InstanceId);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = warehouse.Position, HungerBasisPoints = 10_000, Project = null, Equipment = null }
                 : person).ToArray(),
         };
@@ -316,11 +316,11 @@ public sealed class AbandonedWarehouseConsumerTests
 
     private static List<CognitionCandidate> Candidates(WorldRuntime world, string actor) =>
         (List<CognitionCandidate>)typeof(WorldRuntime).GetMethod("CreateCandidates", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(world, [actor, world.ExportState().Inhabitants.Single(item => item.InhabitantId == actor), true])!;
+            .Invoke(world, [actor, world.ExportState().Agents.Single(item => item.AgentId == actor), true])!;
 
     private static void Choose(WorldRuntime world, string actor, string choice) =>
         typeof(WorldRuntime).GetMethod("ApplyCandidate", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(world, [actor, world.ExportState().Inhabitants.Single(item => item.InhabitantId == actor), choice, false]);
+            .Invoke(world, [actor, world.ExportState().Agents.Single(item => item.AgentId == actor), choice, false]);
 
     private static void AssertRoundTrip(WorldRuntime world)
     {

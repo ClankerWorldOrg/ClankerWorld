@@ -16,8 +16,8 @@ public sealed class ExpansionGoodsQueryTests
         using var generated = NormalPathWorld.CreateGenerated("expansion-goods-query", _ => new Idle());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-alpha").Id;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             building.InstanceId == "first-town-house-a");
         var warehouse = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
@@ -26,7 +26,7 @@ public sealed class ExpansionGoodsQueryTests
         var other = state.Society.Society.GetHousehold(household).MemberIds.First(id => id != actor);
         var source = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             state.Map.FootDistance(building.Position, point) is >= 2 and < 8 &&
-            state.Inhabitants.All(person => person.Position != point) &&
+            state.Agents.All(person => person.Position != point) &&
             state.WorldSimulation.Buildings.All(item => !WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == item.DefinitionId), item).Contains(point)) &&
             state.Map.Resources.All(resource => resource.Position != point));
@@ -50,7 +50,7 @@ public sealed class ExpansionGoodsQueryTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = building.Position, Equipment = null, Project = null, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -94,7 +94,7 @@ public sealed class ExpansionGoodsQueryTests
     {
         var owner = building.HouseholdId ?? building.TownId!;
         var site = new InventoryGroundPosition(building.Position.X, building.Position.Y);
-        var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = world.Agents.Single(person => person.AgentId == actor).Position;
         var inventory = world.Society.Inventory;
         int Available(InventoryLot lot) => lot.FreshnessBasisPoints == 0 || lot.ConditionBasisPoints == 0 ? 0 :
             lot.Quantity - inventory.Reservations.Where(reservation => reservation.LotId == lot.Id &&

@@ -24,7 +24,7 @@ public sealed class DeveloperToolsObservationTests
         var (state, diagnostics) = await AdvanceUntilSomeoneWalksAsync(runtime);
         Assert.NotNull(diagnostics.LastTickMilliseconds);
         Assert.True(diagnostics.LastTickMilliseconds >= 0);
-        var positions = state.Inhabitants.ToDictionary(item => item.InhabitantId, item => item.Position, StringComparer.Ordinal);
+        var positions = state.Agents.ToDictionary(item => item.AgentId, item => item.Position, StringComparer.Ordinal);
         foreach (var (id, route) in diagnostics.PlannedRoutes)
         {
             // The route starts beside the agent and every step is one foot step on.
@@ -42,7 +42,7 @@ public sealed class DeveloperToolsObservationTests
         var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, WireOptions), WireOptions)!;
         Assert.NotNull(client.LastTickMilliseconds);
-        foreach (var person in client.Inhabitants)
+        foreach (var person in client.Agents)
         {
             if (!diagnostics.PlannedRoutes.TryGetValue(person.Id, out var route))
             {
@@ -79,7 +79,7 @@ public sealed class DeveloperToolsObservationTests
         var (_, restoredDiagnostics) = restored.ExportStateWithDiagnostics();
         Assert.Empty(restoredDiagnostics.PlannedRoutes);
         Assert.Null(restoredDiagnostics.LastTickMilliseconds);
-        Assert.All(new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants,
+        Assert.All(new OwnerWorldObservationStore(restored).GetSnapshot().Agents,
             person => Assert.Null(person.PlannedRoute));
 
         // Loading a checkpoint into the running host clears the old readouts too.

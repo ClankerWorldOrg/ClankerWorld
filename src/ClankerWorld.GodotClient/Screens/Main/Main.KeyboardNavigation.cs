@@ -20,7 +20,7 @@ public partial class Main
         {
             mainMenuOverlay, gameMenuPanel, settingsPanel, modLibraryPanel, worldMenuOverlay, manualSaveOverlay,
             controlsPanel, founderSetupPanel, rosterPanel, eventsPanel, worldInfoPanel, filtersPanel, worldOverviewPanel,
-            selectedInhabitantCard, agentProfilePanel, familyTreePanel, memoriesPanel, thoughtsPanel, ordersPanel,
+            selectedAgentCard, agentProfilePanel, familyTreePanel, memoriesPanel, thoughtsPanel, ordersPanel,
             conversationPanel, selectedTilePanel, buildingQuickCard, buildingDetailsPanel, developerPanel,
         })
         {

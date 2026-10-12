@@ -36,7 +36,7 @@ public sealed class TownFoodInheritanceTests
         society = society with
         {
             Inventory = inventory,
-            Inhabitants = society.Inhabitants.Select(person => person.Id == deceased ? person with
+            Agents = society.Agents.Select(person => person.Id == deceased ? person with
             {
                 BirthTick = society.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -47,7 +47,7 @@ public sealed class TownFoodInheritanceTests
         state = state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == deceased
+            Agents = state.Agents.Select(person => person.AgentId == deceased
                 ? person with { Equipment = null } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);

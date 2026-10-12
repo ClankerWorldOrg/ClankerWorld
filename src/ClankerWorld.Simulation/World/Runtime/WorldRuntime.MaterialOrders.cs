@@ -9,9 +9,9 @@ public sealed partial class WorldRuntime
 {
     private sealed record MaterialGatherEffect(string LotId, string ItemKind, int Quantity, string ResourceId);
 
-    private CognitionCandidate? MaterialOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? MaterialOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         if (FreeCarryCapacity(actor) == 0) return null;
         var known = KnownMaterialOrderSources(instruction, person).ToArray();
@@ -41,10 +41,10 @@ public sealed partial class WorldRuntime
         return new CognitionCandidate("explore", "Explore nearby terrain to discover the requested material.", 0);
     }
 
-    private IEnumerable<MapResource> KnownMaterialOrderSources(OwnerQueuedInstruction instruction, InhabitantState person)
+    private IEnumerable<MapResource> KnownMaterialOrderSources(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order!;
-        var knownPositions = knowledge.Facts.Where(fact => fact.OwnerId == instruction.TargetInhabitantId &&
+        var knownPositions = knowledge.Facts.Where(fact => fact.OwnerId == instruction.TargetAgentId &&
                 fact.ResourceKinds.Any(kind => kind == order.TargetMaterialKind ||
                     order.TargetMaterialKind == "wood" && kind == "construction"))
             .Select(fact => fact.Position).ToHashSet();
@@ -67,9 +67,9 @@ public sealed partial class WorldRuntime
         IsWithinInteractionRange(position, target, ResourceInteractionRange) ||
         FindUnoccupiedRoute(actor, position, target, ResourceInteractionRange).Count > 0;
 
-    private void ExecuteMaterialOrderStep(OwnerQueuedInstruction instruction, InhabitantState person, string candidate)
+    private void ExecuteMaterialOrderStep(OwnerQueuedInstruction instruction, AgentState person, string candidate)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (candidate == "inspect_material_site")
         {
             if (MaterialOrderTarget(instruction) is { } target && map.Contains(target))
@@ -77,7 +77,7 @@ public sealed partial class WorldRuntime
                 MoveToward(actor, person, target, "owner_order_material_site", ResourceInteractionRange);
                 // Retain the observed site rather than every walking step. The bounded
                 // ledger accepts passable tiles, so false impassable sites add no fact.
-                var reached = inhabitants[actor].Position;
+                var reached = agents[actor].Position;
                 if (map.IsPassable(target) && IsWithinInteractionRange(reached, target, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, target);
             }
@@ -104,9 +104,9 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private string MaterialOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string MaterialOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AgePermitsCandidate(actor, "gather_material"))
             return "This agent is too young to gather these materials.";
         if (instruction.Order!.TargetPosition is { } target && !map.Contains(target))

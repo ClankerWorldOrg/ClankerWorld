@@ -21,10 +21,10 @@ public sealed class GuardianPlacementBoundaryTests
     public async Task SavedPlacementRejectsForgedCareAndIncompleteDestinations(string damage)
     {
         var state = WorldRuntimeCodec.Decode(await AcceptedCheckpoint.Value);
-        var child = Assert.Single(state.Inhabitants, person => person.GuardianPlacement is not null);
+        var child = Assert.Single(state.Agents, person => person.GuardianPlacement is not null);
         var placement = Assert.IsType<SettlementGuardianPlacement>(child.GuardianPlacement);
-        var otherAdult = state.Society.Society.Inhabitants.First(person => person.Id != placement.CaregiverId &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
+        var otherAdult = state.Society.Society.Agents.First(person => person.Id != placement.CaregiverId &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var invalid = damage switch
         {
             "stage" => placement with { Stage = "arrived" },
@@ -32,7 +32,7 @@ public sealed class GuardianPlacementBoundaryTests
             "care_edge" => placement with
             {
                 CareRelationshipId = state.Society.Society.Relationships.First(edge =>
-                    edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == child.InhabitantId).Id,
+                    edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == child.AgentId).Id,
             },
             "care_revision" => placement with { CareRevision = placement.CareRevision + 1 },
             "caregiver" => placement with { CaregiverId = otherAdult },
@@ -53,7 +53,7 @@ public sealed class GuardianPlacementBoundaryTests
         var canonical = WorldRuntimeCodec.Encode(original.ExportState());
         var damaged = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child.InhabitantId
+            Agents = state.Agents.Select(person => person.AgentId == child.AgentId
                 ? person with { GuardianPlacement = invalid } : person).ToArray(),
         };
         var error = Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(damaged, _ => new GuardianPlacementChoices()));
@@ -99,8 +99,8 @@ public sealed class GuardianPlacementBoundaryTests
         var pending = Assert.IsType<SettlementGuardianPlacement>(GuardianPlacementTestFixture.Person(world, child).GuardianPlacement);
         Assert.Null(pending.HouseId);
         Assert.Contains("completed House", pending.Blocker, StringComparison.Ordinal);
-        Assert.Equal(scenario.Guardians[0], world.Society.GetInhabitant(child).PrimaryCaregiverId);
-        Assert.Equal(GuardianPlacementTestFixture.SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(scenario.Guardians[0], world.Society.GetAgent(child).PrimaryCaregiverId);
+        Assert.Equal(GuardianPlacementTestFixture.SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, GuardianPlacementTestFixture.TownOf(world, child));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "guardian_placement_completed");
     }
@@ -126,7 +126,7 @@ public sealed class GuardianPlacementBoundaryTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == id ? person with
+                    Agents = society.Agents.Select(person => person.Id == id ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -144,17 +144,17 @@ public sealed class GuardianPlacementBoundaryTests
         await GuardianPlacementTestFixture.Step(replay);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         Assert.Null(GuardianPlacementTestFixture.Person(world, child).GuardianPlacement);
-        Assert.Equal(GuardianPlacementTestFixture.SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(GuardianPlacementTestFixture.SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, GuardianPlacementTestFixture.TownOf(world, child));
         Assert.Single(world.ExportState().Events, item => item.Kind == "guardian_placement_cancelled" && item.Detail == child);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "guardian_placement_completed");
         Assert.Equal(state.Society.Society.Births, world.Society.Births);
         if (guardianDies)
         {
-            Assert.Equal(SocietyInhabitantStatus.Dead, world.Society.GetInhabitant(guardian).Status);
-            Assert.DoesNotContain(world.Inhabitants, person => person.InhabitantId == guardian);
+            Assert.Equal(SocietyAgentStatus.Dead, world.Society.GetAgent(guardian).Status);
+            Assert.DoesNotContain(world.Agents, person => person.AgentId == guardian);
         }
-        else Assert.Equal(SocietyAgeBand.Adult, world.Society.GetInhabitant(child).AgeBand);
+        else Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public sealed class GuardianPlacementBoundaryTests
         var scenario = GuardianPlacementTestFixture.Prepared();
         var state = WorldRuntimeCodec.Decode(await AcceptedCheckpoint.Value);
         var child = scenario.Children[0];
-        var placement = Assert.IsType<SettlementGuardianPlacement>(state.Inhabitants.Single(person => person.InhabitantId == child).GuardianPlacement);
+        var placement = Assert.IsType<SettlementGuardianPlacement>(state.Agents.Single(person => person.AgentId == child).GuardianPlacement);
         // The Society operation deliberately changes only household membership.
         // The runtime must still finish physical arrival and the independent Town transfer.
         var householdMove = SocietyRules.PlaceDependentWithGuardian(state.Society.Society, placement.CaregiverId,
@@ -183,9 +183,9 @@ public sealed class GuardianPlacementBoundaryTests
         world.SubmitInstruction(new("same-home-end-care", "owner:test", placement.CaregiverId,
             OwnerInstructionKind.Suggestive, "Withdraw from this caregiving relationship."));
         await GuardianPlacementTestFixture.Until(world,
-            () => world.Society.GetInhabitant(child).PrimaryCaregiverId is null, maximumTicks: 12);
+            () => world.Society.GetAgent(child).PrimaryCaregiverId is null, maximumTicks: 12);
         Assert.Null(GuardianPlacementTestFixture.Person(world, child).GuardianPlacement);
-        Assert.Equal(GuardianPlacementTestFixture.DestinationHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(GuardianPlacementTestFixture.DestinationHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, GuardianPlacementTestFixture.TownOf(world, child));
         choices.Set(placement.CaregiverId, "guardian_accept:" + child, "guardian_relocate:" + child);
         world.SubmitInstruction(new("same-home-accept-care", "owner:test", placement.CaregiverId,
@@ -209,7 +209,7 @@ public sealed class GuardianPlacementBoundaryTests
         var scenario = GuardianPlacementTestFixture.Prepared();
         var state = WorldRuntimeCodec.Decode(await AcceptedCheckpoint.Value);
         var child = scenario.Children[0];
-        var pending = Assert.IsType<SettlementGuardianPlacement>(state.Inhabitants.Single(person => person.InhabitantId == child).GuardianPlacement);
+        var pending = Assert.IsType<SettlementGuardianPlacement>(state.Agents.Single(person => person.AgentId == child).GuardianPlacement);
         var society = state.Society.Society;
         var compactLifecycle = new SocietyDayLifecycle(1, 2, 3, 4);
         var config = society.Config with { DayLifecycle = compactLifecycle };
@@ -223,9 +223,9 @@ public sealed class GuardianPlacementBoundaryTests
                 Society = society with
                 {
                     Config = config,
-                    Inhabitants = society.Inhabitants.Select(person =>
+                    Agents = society.Agents.Select(person =>
                     {
-                        if (person.Status != SocietyInhabitantStatus.Active) return person;
+                        if (person.Status != SocietyAgentStatus.Active) return person;
                         var age = person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder ? 2 : 0;
                         var birth = society.LifeTickAt(society.WorldTick) - age * config.TicksPerLifecycleAge;
                         return person with
@@ -240,25 +240,25 @@ public sealed class GuardianPlacementBoundaryTests
             },
         };
         using var world = GuardianPlacementTestFixture.Restore(state);
-        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(child).AgeBand);
         Assert.NotNull(GuardianPlacementTestFixture.Person(world, child).GuardianPlacement);
         world.Pause();
         Assert.True(world.SetLifePace(1_460));
         world.Resume();
         await GuardianPlacementTestFixture.Step(world);
-        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetInhabitant(child).DeathCause);
-        Assert.DoesNotContain(world.Inhabitants, person => person.InhabitantId == child);
+        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(child).DeathCause);
+        Assert.DoesNotContain(world.Agents, person => person.AgentId == child);
         var final = world.ExportState();
-        var archived = Assert.Single(final.DeceasedInhabitants!, person => person.InhabitantId == child);
+        var archived = Assert.Single(final.DeceasedAgents!, person => person.AgentId == child);
         Assert.Null(archived.LastPhysical.GuardianPlacement);
         using var reload = GuardianPlacementTestFixture.Reload(world, new());
         var invalid = final with
         {
-            DeceasedInhabitants = final.DeceasedInhabitants!.Select(person => person.InhabitantId == child
+            DeceasedAgents = final.DeceasedAgents!.Select(person => person.AgentId == child
                 ? person with { LastPhysical = person.LastPhysical with { GuardianPlacement = pending } } : person).ToArray(),
         };
         var error = Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(invalid));
-        Assert.Contains("deceased inhabitant archive", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("deceased agent archive", error.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -268,18 +268,18 @@ public sealed class GuardianPlacementBoundaryTests
     public async Task HouseholdPlacementCannotReuseAnotherCareRevisionGuardianOrDestination(string mismatch)
     {
         var state = WorldRuntimeCodec.Decode(await AcceptedCheckpoint.Value);
-        var child = Assert.Single(state.Inhabitants, person => person.GuardianPlacement is not null);
+        var child = Assert.Single(state.Agents, person => person.GuardianPlacement is not null);
         var placement = Assert.IsType<SettlementGuardianPlacement>(child.GuardianPlacement);
         var society = state.Society.Society;
         var guardian = mismatch == "guardian"
             ? society.GetHousehold(GuardianPlacementTestFixture.DestinationHousehold).MemberIds.First(id =>
-                id != placement.CaregiverId && society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+                id != placement.CaregiverId && society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             : placement.CaregiverId;
-        var result = SocietyRules.PlaceDependentWithGuardian(society, guardian, child.InhabitantId,
+        var result = SocietyRules.PlaceDependentWithGuardian(society, guardian, child.AgentId,
             placement.CareRelationshipId, placement.CareRevision + (mismatch == "revision" ? 1 : 0),
             mismatch == "household" ? GuardianPlacementTestFixture.SourceHousehold : GuardianPlacementTestFixture.DestinationHousehold);
         Assert.Null(result.CreatedId);
-        Assert.Equal(society.Inhabitants, result.Checkpoint.Inhabitants);
+        Assert.Equal(society.Agents, result.Checkpoint.Agents);
         Assert.Equal(society.Households, result.Checkpoint.Households);
         Assert.Equal(society.Relationships, result.Checkpoint.Relationships);
         Assert.Contains(result.NewEvents!, item => item.Kind == "care_placement_rejected");
@@ -309,7 +309,7 @@ public sealed class GuardianPlacementBoundaryTests
         using var replay = GuardianPlacementTestFixture.Reload(world, choices.Copy());
         await GuardianPlacementTestFixture.Until(world, () => GuardianPlacementTestFixture.Person(world, child).GuardianPlacement is null, replay: replay);
         Assert.Equal(scenario.House.Position, GuardianPlacementTestFixture.Person(world, child).Position);
-        Assert.Equal(GuardianPlacementTestFixture.DestinationHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(GuardianPlacementTestFixture.DestinationHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, GuardianPlacementTestFixture.TownOf(world, child));
         Assert.DoesNotContain(child, world.Towns.Single(town => town.Id == scenario.DestinationTownId).ResidentIds);
         Assert.Single(world.ExportState().Events, item => item.Kind == "guardian_placement_completed");
@@ -350,7 +350,7 @@ public sealed class GuardianPlacementBoundaryTests
         var placement = Assert.IsType<SettlementGuardianPlacement>(GuardianPlacementTestFixture.Person(world, scenario.Children[0]).GuardianPlacement);
         Assert.Equal(scenario.House.InstanceId, placement.HouseId);
         Assert.Equal(scenario.Guardians[0], placement.CaregiverId);
-        Assert.Equal(GuardianPlacementTestFixture.SourceHousehold, world.Society.GetInhabitant(scenario.Children[0]).HouseholdId);
+        Assert.Equal(GuardianPlacementTestFixture.SourceHousehold, world.Society.GetAgent(scenario.Children[0]).HouseholdId);
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
 }

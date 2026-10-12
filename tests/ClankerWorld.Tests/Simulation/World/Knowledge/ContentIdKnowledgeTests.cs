@@ -15,14 +15,14 @@ public sealed class ContentIdKnowledgeTests
     {
         using var generated = NormalPathWorld.CreateGenerated("content-id-knowledge", _ => new ContentIdFixture.Idle());
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var point = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var point = state.Agents[0].Position;
         var terrain = state.Map.Tiles.Single(tile => tile.Position == point).Terrain.ToString();
         var kind = "a." + new string('x', length - 2);
         // Explicit knowledge-boundary arrangement; this is not evidence of a native discovery.
         var fact = new AgentKnowledgeFact("content-resource-fact", actor, actor, point, terrain, [kind], state.Society.Society.WorldTick, "firsthand");
         state = state with { Knowledge = state.Knowledge! with { Facts = [fact] } };
-        var observation = new InhabitantObservation(actor, state.Society.Society.WorldTick, state.Society.Society.RunEpoch,
+        var observation = new AgentObservation(actor, state.Society.Society.WorldTick, state.Society.Society.RunEpoch,
             1, "content-resource-observation", 8_000, [new("safe_idle", "Wait", 0)],
             KnownMapFacts: [new(point.X, point.Y, terrain, [kind], actor, fact.LearnedTick, "firsthand")]);
         if (accepted)

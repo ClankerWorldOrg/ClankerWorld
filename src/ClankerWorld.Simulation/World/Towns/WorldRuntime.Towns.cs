@@ -99,15 +99,15 @@ public sealed partial class WorldRuntime
         gate.Wait();
         try
         {
-            if (founderSetup is null || !society.Checkpoint.Inhabitants.Any(person => person.Id == agentId))
+            if (founderSetup is null || !society.Checkpoint.Agents.Any(person => person.Id == agentId))
                 throw new ArgumentException("Choose an agent in this world.", nameof(agentId));
             ArgumentNullException.ThrowIfNull(name);
-            var existing = society.Checkpoint.GetInhabitant(agentId);
+            var existing = society.Checkpoint.GetAgent(agentId);
             if (existing.Name == name.Trim() && existing.HasChosenName && !existing.NeedsName) return false;
-            if (InhabitantNameRules.CanonicalKey(name) is null)
+            if (AgentNameRules.CanonicalKey(name) is null)
                 throw new ArgumentException("Choose a valid name.", nameof(name));
-            if (InhabitantNameRules.IsTaken(society.Checkpoint, agentId, name))
-                throw new InhabitantNameTakenException();
+            if (AgentNameRules.IsTaken(society.Checkpoint, agentId, name))
+                throw new AgentNameTakenException();
             if (marriages.SingleOrDefault(item => item.EndReceipt is null && item.CompletedTick is null && item.SurnameReceipt is null &&
                     AgentMarriageRules.HasParticipant(item, agentId)) is { } pendingMarriage &&
                 !AgentMarriageRules.CanKeepSurnameChoices(pendingMarriage, name))
@@ -122,7 +122,7 @@ public sealed partial class WorldRuntime
                 if (marriageIndex >= 0)
                 {
                     var marriage = marriages[marriageIndex];
-                    var surname = InhabitantNameRules.SurnameKey(society.Checkpoint.GetInhabitant(agentId).Name)!;
+                    var surname = AgentNameRules.SurnameKey(society.Checkpoint.GetAgent(agentId).Name)!;
                     if (surname != marriage.CurrentSurname)
                         SetMarriageAt(marriageIndex, marriage with { LatestPlayerRename = new AgentMarriageRename(agentId, surname, WorldTick) });
                 }

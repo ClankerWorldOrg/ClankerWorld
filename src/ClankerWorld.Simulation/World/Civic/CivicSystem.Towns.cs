@@ -24,7 +24,7 @@ internal sealed partial class CivicSystem
         var founder = SocietyRules.CreateFounder(founderId, name, config: config,
             startingAge: SocietyRules.FounderArrivalAge(config, world.WorldSeed, setup.FounderIds.Count));
         world.ApplySocietyTransition(checkpoint => SocietyRules.PlaceFounder(checkpoint, founder, householdId));
-        world.AddInhabitant(founderId, new InhabitantState(founderId, position, 6_500, 0,
+        world.AddAgent(founderId, new AgentState(founderId, position, 6_500, 0,
                         "undecided", "find a purpose", IdentityChoicePending: true));
         founderSetup = setup with { FounderIds = [.. setup.FounderIds, founderId] };
         AddTownResident(world, TownBorderRules.FirstTownId, founderId, "founder_joined");
@@ -38,14 +38,14 @@ internal sealed partial class CivicSystem
             world.WorldTick != 0)
             throw new InvalidOperationException("Founders can only be moved during initial paused setup.");
         if (string.IsNullOrWhiteSpace(founderId) || !setup.FounderIds.Contains(founderId, StringComparer.Ordinal) ||
-            !world.Inhabitants.TryGetValue(founderId, out var founder))
+            !world.Agents.TryGetValue(founderId, out var founder))
             throw new ArgumentException("Choose a placed founder to move.", nameof(founderId));
         if (!world.Map.IsBuildable(position) || world.Map.MapObjects.Any(item => item.Position == position) ||
             world.Map.Resources.Any(item => item.Position == position) ||
-            world.Inhabitants.Values.Any(person => person.InhabitantId != founderId && person.Position == position))
+            world.Agents.Values.Any(person => person.AgentId != founderId && person.Position == position))
             throw new ArgumentException("Choose an empty passable tile for this founder.", nameof(position));
         if (founder.Position == position) return false;
-        world.SetInhabitant(founderId, founder with { Position = position });
+        world.SetAgent(founderId, founder with { Position = position });
         world.AppendEvent("founder_moved", $"{founderId}:{founder.Position.X},{founder.Position.Y}->{position.X},{position.Y}");
         return true;
     }
@@ -58,7 +58,7 @@ internal sealed partial class CivicSystem
         if (setup.FounderIds[^1] != founderId)
             throw new ArgumentException("Only the most recently placed founder can be undone.", nameof(founderId));
         world.ApplySocietyTransition(checkpoint => SocietyRules.UndoFounderPlacement(checkpoint, founderId));
-        world.RemoveInhabitant(founderId);
+        world.RemoveAgent(founderId);
         founderSetup = setup with { FounderIds = setup.FounderIds.Take(setup.FounderIds.Count - 1).ToArray() };
         RemoveTownResident(world, founderId);
         world.AppendEvent("founder_placement_undone", founderId);
@@ -77,11 +77,11 @@ internal sealed partial class CivicSystem
             throw new InvalidOperationException("Choose the first Town site before placing founders.");
         if (founderId is null || !founderId.StartsWith("founder:", StringComparison.Ordinal) ||
             !Guid.TryParseExact(founderId["founder:".Length..], "N", out _) ||
-            world.Inhabitants.ContainsKey(founderId))
+            world.Agents.ContainsKey(founderId))
             throw new ArgumentException("The founder ID is invalid or already used.", nameof(founderId));
         if (!world.Map.IsBuildable(position) || world.Map.MapObjects.Any(item => item.Position == position) ||
             world.Map.Resources.Any(item => item.Position == position) ||
-            world.Inhabitants.Values.Any(person => person.Position == position))
+            world.Agents.Values.Any(person => person.Position == position))
             throw new ArgumentException("Choose an empty passable tile for this founder.", nameof(position));
     }
 
@@ -90,7 +90,7 @@ internal sealed partial class CivicSystem
         var town = membership.TownId is null ? null : towns.Single(item => item.Id == membership.TownId);
         var householdId = membership.HouseholdIdFor(agentId);
         world.ApplySocietyTransition(checkpoint => SocietyRules.AddAdult(checkpoint, agentId, householdId));
-        world.AddInhabitant(agentId, new InhabitantState(agentId, position, 6_500, 0,
+        world.AddAgent(agentId, new AgentState(agentId, position, 6_500, 0,
                     "undecided", "find a purpose", IdentityChoicePending: true));
         if (town is not null) AddTownResident(world, town.Id, agentId, "agent_joined");
         else world.AppendEvent("town_membership_evaluated", $"{agentId}:unaffiliated");
@@ -104,11 +104,11 @@ internal sealed partial class CivicSystem
             throw new InvalidOperationException("Start the world with four founders before adding more agents.");
         if (agentId is null || !agentId.StartsWith("agent:", StringComparison.Ordinal) ||
             !Guid.TryParseExact(agentId["agent:".Length..], "N", out _) ||
-            world.Society.Inhabitants.Any(person => person.Id == agentId))
+            world.Society.Agents.Any(person => person.Id == agentId))
             throw new ArgumentException("The agent ID is invalid or already used.", nameof(agentId));
         if (!world.Map.IsBuildable(position) || world.Map.MapObjects.Any(item => item.Position == position) ||
             world.Map.Resources.Any(item => item.Position == position) ||
-            (world.Inhabitants.Values.Any(person => person.Position == position) && !IsHouseAt(world, position)))
+            (world.Agents.Values.Any(person => person.Position == position) && !IsHouseAt(world, position)))
             throw new ArgumentException("Choose an empty passable tile for this agent.", nameof(position));
 
         var definitions = world.WorldContent.BuildingDefinitions;

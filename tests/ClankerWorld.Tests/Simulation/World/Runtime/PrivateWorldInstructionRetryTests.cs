@@ -20,7 +20,7 @@ public sealed partial class WorldRuntimeTests
         foreach (var conflicting in new[]
         {
             request with { IssuerId = "owner:other" },
-            request with { TargetInhabitantId = "missing-agent" },
+            request with { TargetAgentId = "missing-agent" },
             request with { Kind = OwnerInstructionKind.MustDo },
             request with { Text = "gather food" },
         })

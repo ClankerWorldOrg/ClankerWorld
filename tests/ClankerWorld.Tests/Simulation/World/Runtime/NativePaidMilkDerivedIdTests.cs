@@ -89,7 +89,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 null, people[0], restored.WorldTick, candidates, restored.Society);
             var recalled = Assert.Single(memories, memory => memory.Id == transferred.Id);
             Assert.Equal((people[0], people[1], summary), (recalled.OwnerId, recalled.SubjectId, recalled.Summary));
-            new InhabitantObservation(people[0], restored.WorldTick, 0, 1, "sha256:native-resale", 0,
+            new AgentObservation(people[0], restored.WorldTick, 0, 1, "sha256:native-resale", 0,
                 candidates, RetrievedMemories: memories).Validate();
         }
         return WorldRuntimeCodec.Encode(state with { Society = state.Society with { Society = society } });

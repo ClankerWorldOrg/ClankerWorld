@@ -181,7 +181,7 @@ public sealed class ModelNeedWordsTests
         Assert.Null(RetiredWording.Find(instructions));
     }
 
-    private static async Task<(string System, string Input)> PersonalRequestAsync(ModelNeedFormat format, InhabitantObservation observation)
+    private static async Task<(string System, string Input)> PersonalRequestAsync(ModelNeedFormat format, AgentObservation observation)
     {
         var handler = new RecordingHandler(PersonalReply);
         using var client = new HttpClient(handler);
@@ -207,7 +207,7 @@ public sealed class ModelNeedWordsTests
             var name => name,
         }).ToArray();
 
-    private static async Task<(string Body, string Instructions)> JevRequestAsync(ModelNeedFormat? format, InhabitantObservation observation)
+    private static async Task<(string Body, string Instructions)> JevRequestAsync(ModelNeedFormat? format, AgentObservation observation)
     {
         var handler = new RecordingHandler(
             """
@@ -230,7 +230,7 @@ public sealed class ModelNeedWordsTests
             .GetProperty("instructions").GetString()!);
     }
 
-    private static InhabitantObservation Observation(int fullness, int? warmth, int? illness) => new(
+    private static AgentObservation Observation(int fullness, int? warmth, int? illness) => new(
         "actor-scout", 9, 1, 3, "sha256:need-words", fullness,
         [
             new CognitionCandidate("safe_idle", "Continue safely.", 0),

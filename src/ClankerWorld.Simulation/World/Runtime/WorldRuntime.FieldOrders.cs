@@ -21,9 +21,9 @@ public sealed partial class WorldRuntime
     private bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) =>
         IsWithinInteractionRange(from, destination, range) || FindUnoccupiedRoute(actor, from, destination, range).Count > 0;
 
-    private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, InhabitantState person)
+    private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var household = HouseholdFor(actor);
         if (!AdultResident(actor) || FarmhouseForHousehold(household) is not { } farmhouse) return null;
         var order = instruction.Order!;
@@ -50,14 +50,14 @@ public sealed partial class WorldRuntime
             .OrderBy(field => map.FootDistance(person.Position, field.Position))
             .ThenBy(field => field.Position.Y).ThenBy(field => field.Position.X)
             .Where(field => CanWalkToFieldOrderSite(actor, person.Position, field.Position) &&
-                (kind != FarmWorkKind.Plant || !HasOtherInhabitantClaimedPlanting(field, actor) &&
+                (kind != FarmWorkKind.Plant || !HasOtherAgentClaimedPlanting(field, actor) &&
                     PlantingStock(actor, field, order.TargetCropKind!, requirePickupRoute: true) is not null))
             .Select(field => (GridPoint?)field.Position).FirstOrDefault();
     }
 
-    private CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        if (FarmWorkFor(instruction.TargetInhabitantId) is { Work: { } work })
+        if (FarmWorkFor(instruction.TargetAgentId) is { Work: { } work })
             return new("work_field", work.OrderInstructionId == instruction.InstructionId
                 ? "Finish the requested field work with its real tools and planting stock."
                 : "End the previous field work and release unused planting stock before starting this task.", 0);
@@ -65,9 +65,9 @@ public sealed partial class WorldRuntime
             new("work_field", "Walk to a suitable household field and complete the requested work.", 0);
     }
 
-    private void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (FarmWorkFor(actor) is { Work: { } work } current)
         {
             if (work.OrderInstructionId == instruction.InstructionId)
@@ -93,7 +93,7 @@ public sealed partial class WorldRuntime
 
     private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AgePermitsCandidate(actor, instruction.Order!.Action)) return "This agent is too young to work on fields.";
         if (instruction.Order.TargetPosition is { } target && !map.Contains(target))
             return "The requested tile is outside this world.";
@@ -121,7 +121,7 @@ public sealed partial class WorldRuntime
 
     private void CancelFieldWorkForOrder(OwnerQueuedInstruction instruction)
     {
-        if (FarmWorkFor(instruction.TargetInhabitantId) is { Work: { } work } field &&
+        if (FarmWorkFor(instruction.TargetAgentId) is { Work: { } work } field &&
             work.OrderInstructionId == instruction.InstructionId)
             CancelFarmWork(field);
     }
@@ -132,7 +132,7 @@ public sealed partial class WorldRuntime
         foreach (var field in savedFields)
         {
             if (field.Work is not { OrderInstructionId: { } orderId } work) continue;
-            var instruction = instructions.Where(item => item.TargetInhabitantId == work.WorkerId &&
+            var instruction = instructions.Where(item => item.TargetAgentId == work.WorkerId &&
                     item.Kind == OwnerInstructionKind.MustDo && item.Order is { } order && IsActiveOrder(order.Status))
                 .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
             if (instruction is null || instruction.InstructionId != orderId || instruction.Order is not { } task ||

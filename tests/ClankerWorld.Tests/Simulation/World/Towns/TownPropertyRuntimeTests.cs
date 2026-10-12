@@ -21,7 +21,7 @@ public sealed partial class TownLandHearingRuntimeTests
         using var elected = NewWorld(election);
         await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, election);
         var state = elected.ExportState();
-        var household = state.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = state.Society.Society.GetAgent(Filer).HouseholdId!;
         var stock = state.Society.Society.Inventory.Lots.First(lot => lot.OwnerId == household &&
             lot.StorageBuildingId == PropertyHouse && lot.ContainerLotId is null && lot.Quantity > 1);
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "personal-held", household, Filer,
@@ -48,7 +48,7 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         var provider = new HearingProvider { SeekMayor = false };
         using var world = NewWorld(provider);
-        var source = world.ExportState().Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var source = world.ExportState().Society.Society.GetAgent(Filer).HouseholdId!;
         var house = Assert.Single(world.ExportState().WorldSimulation!.Buildings,
             building => building.HouseholdId == source && world.ExportState().WorldContent!.Buildings.Any(definition =>
                 definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house", StringComparer.Ordinal)));
@@ -319,24 +319,24 @@ public sealed partial class TownLandHearingRuntimeTests
             var choices = observation.Candidates;
             CognitionCandidate? Find(string action) => choices.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             var selected = Find("read") ?? Find("hearing_inspect") ?? Find("yes");
-            if (Collect is { } lot && observation.InhabitantId == Filer)
+            if (Collect is { } lot && observation.AgentId == Filer)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id == "household_collect:" + lot);
-            if (Request && observation.InhabitantId == PropertyFiler)
+            if (Request && observation.AgentId == PropertyFiler)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_property_request|" + BuildingId + "|", StringComparison.Ordinal) &&
                     (Target is null ? candidate.Id.EndsWith("|town", StringComparison.Ordinal) :
                         candidate.Description.Contains("grant household " + Target + " ", StringComparison.Ordinal)));
             if (Agree is { } agree)
-                selected ??= Find("hearing_property_" + (observation.InhabitantId == Refuser || !agree ? "refuse" : "accept"));
+                selected ??= Find("hearing_property_" + (observation.AgentId == Refuser || !agree ? "refuse" : "accept"));
             if (Waive) selected ??= Find("hearing_waive");
             selected ??= Find("hearing_answer");
-            if (observation.InhabitantId == Judge && (Rule || Reject))
+            if (observation.AgentId == Judge && (Rule || Reject))
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal) &&
                     (candidate.Id.EndsWith("|reclaim", StringComparison.Ordinal) || candidate.Id.EndsWith("|grant", StringComparison.Ordinal) || Reject &&
                         candidate.Id.EndsWith("|reject", StringComparison.Ordinal)));
             selected ??= choices.Single(candidate => candidate.Id == "safe_idle");
             var evidence = selected.Description.Split([' ', ';', ','], StringSplitOptions.RemoveEmptyEntries)
                 .Where(token => token.StartsWith("land-evidence:", StringComparison.Ordinal)).Select(token => token.Split('=')[0]).Distinct(StringComparer.Ordinal).ToArray();
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 choices.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandHearing: new(Statement: "Please decide this exact noticed property request using its ownership records and personal agreements.", EvidenceIds: evidence)));

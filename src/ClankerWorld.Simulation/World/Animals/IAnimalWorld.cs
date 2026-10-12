@@ -16,7 +16,7 @@ internal interface IAnimalWorld
     void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     GoodsAnswer FindGoods(GoodsRequest request);
-    List<GridPoint> FindUnoccupiedRoute(string inhabitantId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0);
+    List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0);
     int FreeCarryCapacity(string actor);
     GridPoint[] FreshWaterShorePositions();
     long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds);
@@ -24,9 +24,9 @@ internal interface IAnimalWorld
     string HouseholdFor(string actor);
     GridPoint HouseholdStockPosition(InventoryLot lot);
     bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange);
-    void MoveToward(string inhabitantId, InhabitantState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
+    void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100);
     BoatState? PassengerBoat(string actor);
-    OwnerQueuedInstruction? PendingInstructionFor(string inhabitantId);
+    OwnerQueuedInstruction? PendingInstructionFor(string agentId);
     int PhysicalUnreservedQuantity(InventoryLot lot);
     int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0);
     GoodsMatch? RecheckGoods(GoodsRequest request, string lotId);
@@ -40,7 +40,7 @@ internal interface IAnimalWorld
     WorldSystemsState Environment { get; }
     WorldContentSimulationState Simulation { get; }
     DeclarativeWorldContentState Content { get; }
-    IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; }
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
     string Seed { get; }
     GeographyOptions? Geography { get; }
     long NextEventId { get; }
@@ -48,6 +48,6 @@ internal interface IAnimalWorld
     SocietyCheckpoint Society { get; }
     IReadOnlyList<ContentPackageRecord> Packages { get; }
     GoodsKinds EdibleFoodGoods { get; }
-    void SetInhabitant(string id, InhabitantState state);
+    void SetAgent(string id, AgentState state);
     void ReplaceEcologyResource(string id, EcologyResource resource);
 }

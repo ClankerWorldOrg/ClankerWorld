@@ -27,7 +27,7 @@ public sealed record OwnerClimate(string Weather, string Season);
 
 /// <summary>
 /// A proposed founder. It is intentionally not a <see cref="HarnessActor"/>:
-/// paused authoring may stage future inhabitants but may not edit the protected
+/// paused authoring may stage future agents but may not edit the protected
 /// actor record used by the existing deterministic fixture.
 /// </summary>
 public sealed record OwnerFounderDraft(
@@ -508,7 +508,7 @@ public sealed class OwnerWorldRuntime
     public async ValueTask<OwnerCognitionAdvanceResult> AdvanceOneActionAsync(
         CancellationToken cancellationToken = default)
     {
-        InhabitantObservation observation;
+        AgentObservation observation;
         lock (sync)
         {
             if (isPaused)
@@ -580,13 +580,13 @@ public sealed class OwnerWorldRuntime
         lock (sync)
         {
             // Founder drafts are authoring-time proposals, not active people.
-            // This fixture has one authoritative inhabitant, so rejecting an
+            // This fixture has one authoritative agent, so rejecting an
             // unknown target keeps a signed owner request from becoming a
             // durable but meaningless command record.
-            if (!string.Equals(request.TargetInhabitantId.Trim(), world.Actor.Id, StringComparison.Ordinal))
+            if (!string.Equals(request.TargetAgentId.Trim(), world.Actor.Id, StringComparison.Ordinal))
             {
                 throw new ArgumentException(
-                    $"No active inhabitant with ID '{request.TargetInhabitantId.Trim()}' exists.",
+                    $"No active agent with ID '{request.TargetAgentId.Trim()}' exists.",
                     nameof(request));
             }
 
@@ -607,7 +607,7 @@ public sealed class OwnerWorldRuntime
                 instructionId,
                 request.IdempotencyKey,
                 request.IssuerId.Trim(),
-                request.TargetInhabitantId.Trim(),
+                request.TargetAgentId.Trim(),
                 request.Kind,
                 request.Text.Trim(),
                 world.Identity.WorldTick,
@@ -812,7 +812,7 @@ public sealed class OwnerWorldRuntime
             _ = restoredCognition.Pause(restoredWorld.Identity.WorldTick);
         }
 
-        if (!string.Equals(restoredCognition.InhabitantId, restoredWorld.Actor.Id, StringComparison.Ordinal) ||
+        if (!string.Equals(restoredCognition.AgentId, restoredWorld.Actor.Id, StringComparison.Ordinal) ||
             restoredCognition.Capture().IsPaused != state.IsPaused)
         {
             throw new InvalidDataException("The saved cognition state does not match the world pause or actor boundary.");
@@ -994,9 +994,9 @@ public sealed class OwnerWorldRuntime
             var idempotencyKey = stored.IdempotencyKey;
             _ = RequireStoredText(idempotencyKey, "Instruction idempotency key");
             var issuerId = RequireCanonicalStoredText(stored.IssuerId, "Instruction issuer ID");
-            var targetInhabitantId = RequireCanonicalStoredText(
-                stored.TargetInhabitantId,
-                "Instruction target inhabitant ID");
+            var targetAgentId = RequireCanonicalStoredText(
+                stored.TargetAgentId,
+                "Instruction target agent ID");
             var text = RequireCanonicalStoredText(stored.Text, "Instruction text");
             if (!Enum.IsDefined(stored.Kind) ||
                 stored.State != OwnerInstructionState.Queued ||
@@ -1005,7 +1005,7 @@ public sealed class OwnerWorldRuntime
                 stored.SubmittedTick > restoredWorld.Identity.WorldTick ||
                 stored.RunEpoch < 0 ||
                 stored.RunEpoch > state.RunEpoch ||
-                !string.Equals(targetInhabitantId, restoredWorld.Actor.Id, StringComparison.Ordinal) ||
+                !string.Equals(targetAgentId, restoredWorld.Actor.Id, StringComparison.Ordinal) ||
                 !string.Equals(
                     stored.InstructionId,
                     CreateInstructionId(stored.SubmissionSequence),
@@ -1018,7 +1018,7 @@ public sealed class OwnerWorldRuntime
             var normalized = stored with
             {
                 IssuerId = issuerId,
-                TargetInhabitantId = targetInhabitantId,
+                TargetAgentId = targetAgentId,
                 Text = text,
             };
             if (!byIdempotency.TryAdd(idempotencyKey, normalized))
@@ -1397,12 +1397,12 @@ public sealed class OwnerWorldRuntime
     private static string CreateInstructionId(long sequence) =>
         $"instruction-{sequence.ToString("D10", CultureInfo.InvariantCulture)}";
 
-    private InhabitantObservation CreateCognitionObservation()
+    private AgentObservation CreateCognitionObservation()
     {
         var actor = world.Actor;
         var generation = cognition.Capture().DecisionGeneration + 1;
         var candidates = CreateCognitionCandidates(world);
-        return new InhabitantObservation(
+        return new AgentObservation(
             actor.Id,
             world.Identity.WorldTick,
             runEpoch,
@@ -1813,7 +1813,7 @@ public sealed class OwnerWorldRuntime
     {
         _ = NormalizeRequiredText(request.IdempotencyKey, "Instruction idempotency key");
         _ = NormalizeRequiredText(request.IssuerId, "Instruction issuer ID");
-        _ = NormalizeRequiredText(request.TargetInhabitantId, "Instruction target inhabitant ID");
+        _ = NormalizeRequiredText(request.TargetAgentId, "Instruction target agent ID");
         _ = NormalizeRequiredText(request.Text, "Instruction text");
         if (!Enum.IsDefined(request.Kind))
         {
@@ -1823,7 +1823,7 @@ public sealed class OwnerWorldRuntime
 
     private static bool Matches(OwnerQueuedInstruction instruction, OwnerInstructionRequest request) =>
         string.Equals(instruction.IssuerId, request.IssuerId.Trim(), StringComparison.Ordinal) &&
-        string.Equals(instruction.TargetInhabitantId, request.TargetInhabitantId.Trim(), StringComparison.Ordinal) &&
+        string.Equals(instruction.TargetAgentId, request.TargetAgentId.Trim(), StringComparison.Ordinal) &&
         instruction.Kind == request.Kind &&
         string.Equals(instruction.Text, request.Text.Trim(), StringComparison.Ordinal) &&
         instruction.Queue == request.Queue;

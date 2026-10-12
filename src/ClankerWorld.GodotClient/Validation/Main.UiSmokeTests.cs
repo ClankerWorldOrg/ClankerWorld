@@ -303,10 +303,10 @@ public partial class Main
         var menuVisible = mainMenuOverlay.Visible;
         var gameMenuVisible = gameMenuPanel.Visible;
         var menuShadeVisible = menuShade.Visible;
-        var oldSelection = selectedInhabitantId;
+        var oldSelection = selectedAgentId;
         var oldProfileRequested = agentProfileRequested;
         var oldProfileVisible = agentProfilePanel.Visible;
-        var oldQuickCardVisible = selectedInhabitantCard.Visible;
+        var oldQuickCardVisible = selectedAgentCard.Visible;
         var wasInWorld = isInWorld;
         isInWorld = true;
         mainMenuOverlay.Hide();
@@ -322,7 +322,7 @@ public partial class Main
             var secondPosition = new OwnerWorldPosition(2, 1);
             var thirdPosition = new OwnerWorldPosition(1, 3);
             var fourthPosition = new OwnerWorldPosition(2, 3);
-            OwnerWorldInhabitant Agent(string id, string name, OwnerWorldPosition position) => new(
+            OwnerWorldAgent Agent(string id, string name, OwnerWorldPosition position) => new(
                 id, name, "active", position, 8_000, [], [], new OwnerWorldRoute("idle", null, null, [], string.Empty),
                 new OwnerWorldSpatialKnowledge(position, [position], [position]), false);
             var publicText = string.Join(' ', Enumerable.Repeat("A public sentence with enough words to wrap comfortably on a large screen.", 6));
@@ -349,19 +349,19 @@ public partial class Main
             {
                 PackedTerrain = new OwnerWorldPackedTerrain(6, 6, "terrain-kind-v1",
                     Convert.ToBase64String(new byte[36])),
-                Inhabitants = [
+                Agents = [
                     Agent(firstAgentId, "Aster", firstPosition), Agent(secondAgentId, "Rowan", secondPosition),
                     Agent(thirdAgentId, "Mira", thirdPosition), Agent(fourthAgentId, "Ilya", fourthPosition)],
                 Conversations = conversations,
             };
             RenderMap(conversationMap);
-            selectedInhabitantId = secondAgentId;
-            RenderSelectedInhabitantCard(conversationMap);
+            selectedAgentId = secondAgentId;
+            RenderSelectedAgentCard(conversationMap);
             OpenAgentProfile(speak: false);
             for (var frame = 0; frame < 2; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
-            var marker = inhabitantVisuals[firstAgentId];
+            var marker = agentVisuals[firstAgentId];
             if (!marker.ConversationBadgeVisible || !marker.ConversationUnread || marker.TooltipText.Contains(publicText, StringComparison.Ordinal))
                 throw new InvalidOperationException("A nearby public conversation must show a bounded unread bubble preview without placing its full history in the tooltip.");
             marker._GuiInput(new InputEventMouseButton
@@ -373,7 +373,7 @@ public partial class Main
             for (var frame = 0; frame < 2; frame++)
                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!conversationPanel.Visible || !conversationReaderStatus.Text.StartsWith("Closed ·", StringComparison.Ordinal) ||
-                marker.ConversationUnread || selectedInhabitantId != secondAgentId || !agentProfilePanel.Visible ||
+                marker.ConversationUnread || selectedAgentId != secondAgentId || !agentProfilePanel.Visible ||
                 conversationReaderSummary.Text.Contains(publicText, StringComparison.Ordinal))
                 throw new InvalidOperationException("Clicking the conversation bubble must open its closed-session summary, mark it read locally, and leave agent selection alone.");
 
@@ -390,7 +390,7 @@ public partial class Main
 
             GetViewport().GuiGetFocusOwner()?.ReleaseFocus();
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
-            if (conversationPanel.Visible || selectedInhabitantId != secondAgentId ||
+            if (conversationPanel.Visible || selectedAgentId != secondAgentId ||
                 !agentProfilePanel.Visible || gameMenuPanel.Visible)
                 throw new InvalidOperationException("Escape must close expanded conversation history before the selected agent's Profile, without clearing selection or opening the Pause Menu.");
 
@@ -411,7 +411,7 @@ public partial class Main
                     var unicodeMap = conversationMap with { Conversations = [unicodeConversation] };
                     RenderMap(unicodeMap);
                     OpenConversationReader(unicodeMap, firstAgentId, unicodeConversation.Id);
-                    var preview = limit == 150 ? conversationReaderSummary.Text : inhabitantVisuals[firstAgentId].TooltipText;
+                    var preview = limit == 150 ? conversationReaderSummary.Text : agentVisuals[firstAgentId].TooltipText;
                     if (!preview.Contains(prefix + "...", StringComparison.Ordinal))
                         unicodeFailures.Add($"{limit}-unit preview split {character}");
                     conversationHistoryExpanded = true;
@@ -428,7 +428,7 @@ public partial class Main
             RenderMap(shortMap);
             OpenConversationReader(shortMap, firstAgentId, shortConversation.Id);
             if (!conversationReaderSummary.Text.Contains(shortSpeech, StringComparison.Ordinal) ||
-                !inhabitantVisuals[firstAgentId].TooltipText.Contains(shortSpeech, StringComparison.Ordinal))
+                !agentVisuals[firstAgentId].TooltipText.Contains(shortSpeech, StringComparison.Ordinal))
                 throw new InvalidOperationException("A complete short public turn must remain intact in both previews.");
             RenderMap(conversationMap);
             if (unicodeFailures.Count > 0)
@@ -461,10 +461,10 @@ public partial class Main
             conversationPanel.Hide();
             openConversationId = null;
             openConversationAgentId = null;
-            selectedInhabitantId = oldSelection;
+            selectedAgentId = oldSelection;
             agentProfileRequested = oldProfileRequested;
             agentProfilePanel.Visible = oldProfileVisible;
-            selectedInhabitantCard.Visible = oldQuickCardVisible;
+            selectedAgentCard.Visible = oldQuickCardVisible;
             isInWorld = wasInWorld;
             mainMenuOverlay.Visible = menuVisible;
             gameMenuPanel.Visible = gameMenuVisible;
@@ -638,18 +638,18 @@ public partial class Main
         string? restorationFailure = null;
         try
         {
-            var inhabitant = new OwnerWorldInhabitant(childId, "Mira", "alive", new(0, 0), 0, [], [],
+            var agent = new OwnerWorldAgent(childId, "Mira", "alive", new(0, 0), 0, [], [],
                 new("none", null, null, [], "ui-test"), new(new(0, 0), [], []), false)
             {
-                Relationships = [new OwnerWorldInhabitantRelationship(
+                Relationships = [new OwnerWorldAgentRelationship(
                     "ui-child-parentage", "founder:parent", "biological_parentage", "accepted", "family", 0, "child")],
             };
             var snapshot = new OwnerWorldSnapshot("ui-child-world", 0, "ui-map", [new(0, 0, "meadow")], [], [],
                 null, 0)
-            { Inhabitants = [inhabitant] };
+            { Agents = [agent] };
             var reconnect = new OwnerWorldReconnect(
                 new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                         "owner-control.request.v1", "paused-authoring.request.v1"], []),
                 new OwnerWorldReconnectBaseline(snapshot, new OwnerWorldEventSlice(0, 0, [])));
             if (!observationSession.TryAccept(reconnect, 0, out var failure))
@@ -714,7 +714,7 @@ public partial class Main
 
             snapshot = snapshot with
             {
-                Inhabitants = [inhabitant with
+                Agents = [agent with
                 {
                     DecisionFactors = [new("birth-model-provider", "openai"), new("birth-model-id", "frozen-before-save-model")],
                 }],
@@ -1408,7 +1408,7 @@ public partial class Main
                         else settingsPanel.Hide();
                         foreach (var selected in new[] { false, true, false })
                         {
-                            selectedInhabitantCard.Visible = selected;
+                            selectedAgentCard.Visible = selected;
                             for (var frame = 0; frame < 5; frame++)
                             {
                                 await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -1435,7 +1435,7 @@ public partial class Main
             menuShade.Hide();
             if (topBarShade.Visible)
                 throw new InvalidOperationException("Closing the Pause Menu must restore top-bar actions.");
-            selectedInhabitantCard.Hide();
+            selectedAgentCard.Hide();
             var sampleResource = new OwnerWorldResource("wood", "construction", new(1, 1), false, "available", 8, 12, 0, 0, "spring");
             var sample = new OwnerWorldSnapshot("ui-test", 0, "ui-map", Enumerable.Range(0, 16)
                 .Select(index => new OwnerWorldTile(index % 4, index / 4, "meadow")).ToArray(), [], [sampleResource], null, 0)
@@ -2679,15 +2679,15 @@ public partial class Main
                 builtMarker.Size.X <= builtMarker.Size.Y)
                 throw new InvalidOperationException("Built structures must keep their multi-tile footprint and hover help without a name on the map.");
             var founderPosition = new OwnerWorldPosition(2, 0);
-            var founder = new OwnerWorldInhabitant("founder-ui-test", "Rowan", "active", founderPosition,
+            var founder = new OwnerWorldAgent("founder-ui-test", "Rowan", "active", founderPosition,
                 8_000, [], [], new OwnerWorldRoute("idle", null, null, [], string.Empty),
                 new OwnerWorldSpatialKnowledge(founderPosition, [founderPosition], [founderPosition]), false)
             {
                 Survival = new OwnerWorldSurvival(8_200, 300, true, false, 7_400, null),
             };
-            var occupied = sample with { Inhabitants = [founder] };
+            var occupied = sample with { Agents = [founder] };
             RenderMap(occupied);
-            var founderButton = inhabitantVisuals[founder.Id];
+            var founderButton = agentVisuals[founder.Id];
             var founderButtonIdentity = founderButton.GetInstanceId();
             if (founderButton.Variant != AgentSprites.VariantFor(founder.Id) || founderButton.Caption != "Rowan" ||
                 founderButton.NameShown)
@@ -2712,8 +2712,8 @@ public partial class Main
                 (new string('W', 12) + "🇳🇿 Reed", "W."),
             })
             {
-                RenderMap(occupied with { Inhabitants = [founder with { DisplayName = name }] });
-                var namedMarker = inhabitantVisuals[founder.Id];
+                RenderMap(occupied with { Agents = [founder with { DisplayName = name }] });
+                var namedMarker = agentVisuals[founder.Id];
                 namedMarker.Selected = true;
                 for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 if (namedMarker.Caption != expectedNameplate || namedMarker.NameplateText != expectedNameplate)
@@ -2727,25 +2727,25 @@ public partial class Main
             if (terrainLayer.BuildingSpriteCount != occupied.PlacedBuildings.Count ||
                 mapObjectVisuals.TryGetValue("building:test-hall", out var hallMarker) && hallMarker.Text.Contains('⌂'))
                 throw new InvalidOperationException("Placed buildings must be drawn as roof art rather than text glyphs.");
-            selectedInhabitantId = founder.Id;
-            RenderSelectedInhabitantCard(occupied);
+            selectedAgentId = founder.Id;
+            RenderSelectedAgentCard(occupied);
             RenderMap(occupied with { WorldTick = 1 });
-            RenderSelectedInhabitantCard(occupied with { WorldTick = 1 });
+            RenderSelectedAgentCard(occupied with { WorldTick = 1 });
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (inhabitantVisuals[founder.Id].GetInstanceId() != founderButtonIdentity ||
+            if (agentVisuals[founder.Id].GetInstanceId() != founderButtonIdentity ||
                 quickWarmthMeter.Percent != 82 || quickFullnessMeter.Percent != 80 ||
                 !quickWarmthMeter.IsVisibleInTree() || agentProfilePanel.Visible ||
-                !selectedInhabitantCard.GetGlobalRect().Encloses(quickWarmthMeter.GetGlobalRect()))
+                !selectedAgentCard.GetGlobalRect().Encloses(quickWarmthMeter.GetGlobalRect()))
                 throw new InvalidOperationException("The quick card's condition bars and agent hover targets must survive observation refreshes.");
-            if (!mapCanvas.GetGlobalRect().Grow(1).Encloses(selectedInhabitantCard.GetGlobalRect()))
-                throw new InvalidOperationException($"The agent card must fit inside the world view: map={mapCanvas.GetGlobalRect()} card={selectedInhabitantCard.GetGlobalRect()}.");
-            if (selectedInhabitantCard.GetGlobalRect().Intersects(inhabitantVisuals[founder.Id].GetGlobalRect()))
-                throw new InvalidOperationException($"The agent card must not cover the agent it describes: card={selectedInhabitantCard.GetGlobalRect()} agent={inhabitantVisuals[founder.Id].GetGlobalRect()}.");
+            if (!mapCanvas.GetGlobalRect().Grow(1).Encloses(selectedAgentCard.GetGlobalRect()))
+                throw new InvalidOperationException($"The agent card must fit inside the world view: map={mapCanvas.GetGlobalRect()} card={selectedAgentCard.GetGlobalRect()}.");
+            if (selectedAgentCard.GetGlobalRect().Intersects(agentVisuals[founder.Id].GetGlobalRect()))
+                throw new InvalidOperationException($"The agent card must not cover the agent it describes: card={selectedAgentCard.GetGlobalRect()} agent={agentVisuals[founder.Id].GetGlobalRect()}.");
             // The quick card opens the Profile, which docks on the left below the
             // top bar and steps back to the quick card.
             quickCardProfileButton.EmitSignal(BaseButton.SignalName.Pressed);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!agentProfilePanel.Visible || selectedInhabitantCard.Visible || agentProfilePanel.Position.X > 20 ||
+            if (!agentProfilePanel.Visible || selectedAgentCard.Visible || agentProfilePanel.Position.X > 20 ||
                 agentProfilePanel.Position.Y < HudTop - 1 || !ShowsGlyph(profileCloseButton, PixelGlyph.Back) ||
                 !selectedActorConditionLabel.Text.Contains("Clothed", StringComparison.Ordinal) || profileDietMeter.Percent != 74 ||
                 !mapCanvas.GetGlobalRect().Grow(1).Encloses(agentProfilePanel.GetGlobalRect()))
@@ -2760,7 +2760,7 @@ public partial class Main
                         "Private message for someone else.", "pending", 0, 0, 2),
                 ],
             };
-            RenderSelectedInhabitantCard(messageSnapshot);
+            RenderSelectedAgentCard(messageSnapshot);
             var renderedMessages = instructionHistory.GetParsedText();
             if (!renderedMessages.Contains("Try the riverbank berries.", StringComparison.Ordinal) ||
                 !renderedMessages.Contains("Suggestion heard by their personal model", StringComparison.Ordinal) ||
@@ -2771,7 +2771,7 @@ public partial class Main
                 throw new InvalidOperationException("The Profile must show only this agent's original observer messages and keep a short reply separate from private thoughts.");
             // The server keeps closed messages that no personal model heard, such as orders the game
             // could not act on. They must show as closed without hiding an older order that is still open.
-            RenderSelectedInhabitantCard(occupied with
+            RenderSelectedAgentCard(occupied with
             {
                 Instructions =
                 [
@@ -2801,7 +2801,7 @@ public partial class Main
                         Order: new OwnerWorldInstructionOrder("harvest_food", "queued", 1, 0, "harvests", false))),
                 ],
             };
-            RenderSelectedInhabitantCard(queuedOrderSnapshot);
+            RenderSelectedAgentCard(queuedOrderSnapshot);
             renderedMessages = instructionHistory.GetParsedText();
             if (!renderedMessages.Contains("Doing · Eating food · 2/3 food items\n“You said: Eat three berries you carry.”", StringComparison.Ordinal) ||
                 !renderedMessages.Contains("Gather berries from queued site 4.", StringComparison.Ordinal) ||
@@ -2810,7 +2810,7 @@ public partial class Main
                 renderedMessages.Split("You said:", StringSplitOptions.None).Length - 1 != 4 ||
                 !instructionCancelButton.Visible || PendingOrderToCancel(queuedOrderSnapshot, founder.Id)?.InstructionId != "message-active-order")
                 throw new InvalidOperationException($"Four queued orders must not hide the active task, its progress or the task Cancel targets: {renderedMessages}");
-            RenderSelectedInhabitantCard(queuedOrderSnapshot with
+            RenderSelectedAgentCard(queuedOrderSnapshot with
             {
                 Instructions =
                 [
@@ -2841,7 +2841,7 @@ public partial class Main
                     "Doing · Making cloth · 3 batches completed so far, repeats until cancelled"),
             })
             {
-                RenderSelectedInhabitantCard(occupied with
+                RenderSelectedAgentCard(occupied with
                 {
                     Instructions =
                     [
@@ -2867,7 +2867,7 @@ public partial class Main
                     "Doing · Returning borrowed refined iron · 3 items so far, repeats until cancelled"),
             })
             {
-                RenderSelectedInhabitantCard(occupied with
+                RenderSelectedAgentCard(occupied with
                 {
                     Instructions =
                     [
@@ -2896,7 +2896,7 @@ public partial class Main
                     "Finished · Delivering cloth to Tailor Shop · 2/2 items"),
             })
             {
-                RenderSelectedInhabitantCard(occupied with
+                RenderSelectedAgentCard(occupied with
                 {
                     Instructions =
                     [
@@ -2922,7 +2922,7 @@ public partial class Main
                     "Finished · Expanding Town Warehouse · 1/1 expansions finished"),
             })
             {
-                RenderSelectedInhabitantCard(occupied with
+                RenderSelectedAgentCard(occupied with
                 {
                     Instructions =
                     [
@@ -2948,7 +2948,7 @@ public partial class Main
                     "Finished · Lighting a fire · 1/1 fires lit"),
             })
             {
-                RenderSelectedInhabitantCard(occupied with
+                RenderSelectedAgentCard(occupied with
                 {
                     Instructions =
                     [
@@ -2961,7 +2961,7 @@ public partial class Main
                     instructionCancelButton.Visible == (shelterOrder.Status == "finished"))
                     throw new InvalidOperationException($"Shelter tasks must show their actual arrival or ignition progress, blocker and cancellation state: {renderedMessages}");
             }
-            RenderSelectedInhabitantCard(queuedOrderSnapshot);
+            RenderSelectedAgentCard(queuedOrderSnapshot);
             var alreadyFinished = OrderCancellationResultText(
                 new OwnerOrderControlReceipt("order-private-id", "finished", false, 0, 0));
             var alreadyUnrecognized = OrderCancellationResultText(
@@ -3044,29 +3044,29 @@ public partial class Main
                 throw new InvalidOperationException("Clicking the Profile's thoughts must open the thoughts reader.");
             thoughtsPanel.Hide();
             profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
-            if (agentProfilePanel.Visible || !selectedInhabitantCard.Visible || selectedInhabitantId != founder.Id)
+            if (agentProfilePanel.Visible || !selectedAgentCard.Visible || selectedAgentId != founder.Id)
                 throw new InvalidOperationException("Back on the Profile must return to the quick card with the agent still selected.");
             quickCardSpeakButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!agentProfilePanel.Visible || !speakSection.Visible)
                 throw new InvalidOperationException("Speak on the quick card must open the Profile at its message box.");
             profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
-            selectedInhabitantId = null;
-            RenderSelectedInhabitantCard(occupied with { WorldTick = 1 });
-            if (selectedInhabitantCard.Visible || agentProfilePanel.Visible)
+            selectedAgentId = null;
+            RenderSelectedAgentCard(occupied with { WorldTick = 1 });
+            if (selectedAgentCard.Visible || agentProfilePanel.Visible)
                 throw new InvalidOperationException("Clearing the selection must close both the quick card and the Profile.");
-            selectedInhabitantId = founder.Id;
-            RenderSelectedInhabitantCard(occupied with { WorldTick = 1 });
+            selectedAgentId = founder.Id;
+            RenderSelectedAgentCard(occupied with { WorldTick = 1 });
             if (ProfilePeopleText().Length == 0 || privateThoughtHistory.Text.Length == 0)
                 throw new InvalidOperationException("Reselecting an unchanged agent must restore their social details and private thoughts.");
-            RenderSelectedInhabitantCard(occupied with
+            RenderSelectedAgentCard(occupied with
             {
-                Inhabitants = [founder with
+                Agents = [founder with
                 {
                     Survival = null,
                     PublicIntention = new OwnerWorldPublicIntention("safe_idle", "keeping a safe routine", "deterministic", 1),
                     Lesson = new("Mira", "farming", "training", 3, 20),
                     Skills = [new("building", 0, "teacher-id", "Mira"), new("crafting", 0, null, null)],
-                    Relationships = [new OwnerWorldInhabitantRelationship("home:test", "household:one",
+                    Relationships = [new OwnerWorldAgentRelationship("home:test", "household:one",
                         "household_membership", "accepted", "household", 1)],
                 }],
                 Stockpiles = [new("household:one", "Founder's household", [])],
@@ -3074,19 +3074,19 @@ public partial class Main
             if (quickWarmthMeter.Visible || profileWarmthMeter.Visible || selectedActorConditionLabel.Text.Contains('%') ||
                 !ProfilePeopleText().Contains("Member of Founder's household", StringComparison.Ordinal) ||
                 ProfilePeopleText().Contains("household:one", StringComparison.OrdinalIgnoreCase) ||
-                inhabitantDetails.Text.Contains("Unassigned", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Building skill · taught by Mira", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Crafting skill · learned by doing", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Learning Farming with Mira", StringComparison.Ordinal) ||
-                inhabitantDetails.Text.Contains("teacher-id", StringComparison.Ordinal) ||
+                agentDetails.Text.Contains("Unassigned", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("Building skill · taught by Mira", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("Crafting skill · learned by doing", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("Learning Farming with Mira", StringComparison.Ordinal) ||
+                agentDetails.Text.Contains("teacher-id", StringComparison.Ordinal) ||
                 !quickCardActivityLabel.Text.Contains("Keeping a safe routine", StringComparison.Ordinal))
                 throw new InvalidOperationException($"The agent cards must read naturally, name households and omit unavailable condition or unassigned-role placeholders: {quickCardActivityLabel.Text} / {ProfilePeopleText()}");
-            RenderSelectedInhabitantCard(occupied with { WorldTick = 1 });
+            RenderSelectedAgentCard(occupied with { WorldTick = 1 });
             if (!quickWarmthMeter.Visible || !profileWarmthMeter.Visible)
                 throw new InvalidOperationException("Reported agent condition must be shown again.");
-            RenderSelectedInhabitantCard(occupied with
+            RenderSelectedAgentCard(occupied with
             {
-                Inhabitants = [founder with
+                Agents = [founder with
                 {
                     DecisionFactors = [.. founder.DecisionFactors.Where(factor => factor.Key != "model-status"),
                         new("model-status", "unusable_reply"), new("last-model-choice", "seek_food")],
@@ -3095,18 +3095,18 @@ public partial class Main
             });
             if (!quickCardActivityLabel.Text.Contains("Model: Unusable reply", StringComparison.Ordinal) ||
                 !quickCardActivityLabel.Text.Contains("Keeping a safe routine", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Last model choice:", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("Last model choice:", StringComparison.Ordinal) ||
                 quickCardActivityLabel.Text.Contains("unusable_reply", StringComparison.Ordinal))
                 throw new InvalidOperationException("Agent cards must distinguish a failed model attempt, the safe activity and the last accepted model choice.");
-            RenderSelectedInhabitantCard(occupied with { WorldTick = 1 });
+            RenderSelectedAgentCard(occupied with { WorldTick = 1 });
             UpdateTileHover(founderButton.Position + mapStage.Position + founderButton.Size / 2);
             if (terrainLayer.HoveredTile is not null)
                 throw new InvalidOperationException("An agent marker must take hover priority over its ground tile.");
             UpdateTileHover(new Vector2(currentTileSize * 1.5f, currentTileSize * 0.5f) + mapStage.Position);
             if (terrainLayer.HoveredTile != new Vector2I(1, 0))
                 throw new InvalidOperationException("The hovered ground tile must receive a square outline.");
-            selectedInhabitantId = null;
-            selectedInhabitantCard.Hide();
+            selectedAgentId = null;
+            selectedAgentCard.Hide();
             var agentClick = founderButton.GetGlobalRect().GetCenter();
             GetViewport().PushInput(new InputEventMouseButton
             {
@@ -3116,11 +3116,11 @@ public partial class Main
                 Pressed = true,
             }, inLocalCoords: true);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (selectedInhabitantId != founder.Id)
+            if (selectedAgentId != founder.Id)
                 throw new InvalidOperationException("Clicking an agent marker must select the agent before the ground tile.");
-            selectedInhabitantId = null;
+            selectedAgentId = null;
             RenderMap(sample with { Resources = [], PlacedBuildings = [] });
-            if (inhabitantVisuals.ContainsKey(founder.Id))
+            if (agentVisuals.ContainsKey(founder.Id))
                 throw new InvalidOperationException("Removed agent marker was retained.");
             if (mapObjectVisuals.ContainsKey("resource:wood")) throw new InvalidOperationException("Removed resource marker was retained.");
             if (mapObjectVisuals.ContainsKey("building:test-hall")) throw new InvalidOperationException("Removed building marker was retained.");
@@ -3142,7 +3142,7 @@ public partial class Main
                 MapLayersDigest = null,
                 Tiles = Enumerable.Range(0, 64 * 64)
                     .Select(index => new OwnerWorldTile(index % 64, index / 64, "meadow")).ToArray(),
-                Inhabitants = Enumerable.Range(0, 4)
+                Agents = Enumerable.Range(0, 4)
                     .Select(index => founder with { Id = $"crowded-{index}", Position = new OwnerWorldPosition(2, 2) })
                     .ToArray(),
                 Resources = [],
@@ -3155,7 +3155,7 @@ public partial class Main
                 SetCameraAtImmediately(new Vector2(2.5f, 2.5f));
                 var tileRect = new Rect2(new Vector2(2 * currentTileSize, 2 * currentTileSize),
                     new Vector2(currentTileSize, currentTileSize));
-                var markers = crowded.Inhabitants.Select(person => inhabitantVisuals[person.Id]).ToArray();
+                var markers = crowded.Agents.Select(person => agentVisuals[person.Id]).ToArray();
                 if (markers.Any(marker => !tileRect.Encloses(new Rect2(marker.Position, marker.Size))) ||
                     markers.Where((marker, i) => markers.Skip(i + 1)
                         .Any(other => new Rect2(marker.Position, marker.Size).Intersects(
@@ -3283,7 +3283,7 @@ public partial class Main
             // Each top-bar panel opens under the button that opened it, not at the far side of the screen.
             foreach (var (panel, button, toggle) in new (Control Panel, Button Button, Action Toggle)[]
             {
-                (filtersPanel, filtersButton, ToggleMapFilters), (rosterPanel, inhabitantsButton, ToggleInhabitants),
+                (filtersPanel, filtersButton, ToggleMapFilters), (rosterPanel, agentsButton, ToggleAgents),
                 (worldInfoPanel, worldInfoButton, ToggleWorldInfo),
             })
             {
@@ -3749,7 +3749,7 @@ public partial class Main
             var emptyWorldFocus = InitialCameraCenter(largeMap with
             {
                 Towns = [],
-                Inhabitants = [],
+                Agents = [],
                 Objects = [],
             }, waterCenter);
             if (emptyWorldFocus.DistanceTo(new Vector2(6.5f, 6.5f)) > 0.01f)
@@ -3783,14 +3783,14 @@ public partial class Main
                 throw new InvalidOperationException($"A Town across the wrapped seam must be framed as one place: camera={cameraCenterTiles}.");
             RenderMap(largeMap);
             var rosterPosition = new OwnerWorldPosition(180, 90);
-            OwnerWorldInhabitant RosterAgent(string id, string name, string lifecycle, int fullness) =>
+            OwnerWorldAgent RosterAgent(string id, string name, string lifecycle, int fullness) =>
                 new(id, name, lifecycle, rosterPosition, fullness, [], [],
                     new OwnerWorldRoute("idle", null, null, [], string.Empty),
                     new OwnerWorldSpatialKnowledge(rosterPosition, [rosterPosition], [rosterPosition]), false);
             var rosterMap = largeMap with
             {
                 WorldId = "ui-roster",
-                Inhabitants =
+                Agents =
                 [
                     RosterAgent("roster-rowan", "Rowan", "active", 2_000) with
                     {
@@ -3801,9 +3801,9 @@ public partial class Main
                 ],
             };
             RenderMap(rosterMap);
-            RenderInhabitantList(rosterMap);
+            RenderAgentList(rosterMap);
             // The cards show who is doing what and who needs help; the hidden text list keeps the same order for selection.
-            if (rosterCards.ItemCount != 3 || !rosterCards.Visible || inhabitantList.Visible ||
+            if (rosterCards.ItemCount != 3 || !rosterCards.Visible || agentList.Visible ||
                 rosterCards.GetItemTitle(0) != "Ilya" || rosterCards.GetItemTitle(1) != "Rowan" || rosterCards.GetItemTitle(2) != "Mira" ||
                 !RosterCardText(1).Contains("Looking for food", StringComparison.Ordinal) ||
                 !RosterCardText(1).Contains("hungry", StringComparison.OrdinalIgnoreCase) ||
@@ -3812,17 +3812,17 @@ public partial class Main
                 !rosterSummaryLabel.Text.Contains("1 hungry", StringComparison.Ordinal))
                 throw new InvalidOperationException("The Agents list must show a card per agent, living first, with activity and a Hungry tag: " +
                     string.Join(" | ", Enumerable.Range(0, rosterCards.ItemCount).Select(RosterCardText)));
-            if (inhabitantList.ItemCount != 4 ||
-                !inhabitantList.GetItemText(0).StartsWith("Ilya", StringComparison.Ordinal) ||
-                !inhabitantList.GetItemText(1).Contains("looking for food", StringComparison.Ordinal) ||
-                !inhabitantList.GetItemText(1).Contains("very hungry", StringComparison.Ordinal) ||
-                inhabitantList.GetItemText(0).Contains("hungry", StringComparison.Ordinal) ||
-                inhabitantList.GetItemText(2) != "Deceased" || inhabitantList.IsItemSelectable(2) ||
-                !inhabitantList.GetItemText(3).StartsWith("Mira", StringComparison.Ordinal))
+            if (agentList.ItemCount != 4 ||
+                !agentList.GetItemText(0).StartsWith("Ilya", StringComparison.Ordinal) ||
+                !agentList.GetItemText(1).Contains("looking for food", StringComparison.Ordinal) ||
+                !agentList.GetItemText(1).Contains("very hungry", StringComparison.Ordinal) ||
+                agentList.GetItemText(0).Contains("hungry", StringComparison.Ordinal) ||
+                agentList.GetItemText(2) != "Deceased" || agentList.IsItemSelectable(2) ||
+                !agentList.GetItemText(3).StartsWith("Mira", StringComparison.Ordinal))
                 throw new InvalidOperationException("The roster must list the living with their activity and hunger before the deceased.");
-            RenderInhabitantList(rosterMap with
+            RenderAgentList(rosterMap with
             {
-                Inhabitants = [rosterMap.Inhabitants[0] with
+                Agents = [rosterMap.Agents[0] with
                 {
                     PublicIntention = new OwnerWorldPublicIntention("knowledge_copy:knowledge-artifact-000001",
                         "knowledge_copy:knowledge-artifact-000001", "deterministic", 1),
@@ -3831,22 +3831,22 @@ public partial class Main
             if (!RosterCardText(0).Contains("Copying a written work", StringComparison.Ordinal) ||
                 RosterCardText(0).Contains("knowledge-artifact", StringComparison.Ordinal))
                 throw new InvalidOperationException("The Agents list must describe copying written knowledge without showing internal artifact identifiers.");
-            RenderInhabitantList(rosterMap);
+            RenderAgentList(rosterMap);
             RenderWorldHud(rosterMap);
-            if (!agentsWarning.Visible || inhabitantsButton.Text != "2" ||
-                !inhabitantsButton.TooltipText.Contains("hungry: Rowan", StringComparison.Ordinal))
+            if (!agentsWarning.Visible || agentsButton.Text != "2" ||
+                !agentsButton.TooltipText.Contains("hungry: Rowan", StringComparison.Ordinal))
                 throw new InvalidOperationException("The Agents button must count the living and flag anyone hungry.");
             SetCameraAtImmediately(new Vector2(40, 30));
-            SelectInhabitantFromList(1);
+            SelectAgentFromList(1);
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
-            if (selectedInhabitantId != "roster-rowan" || cameraCenterTiles.DistanceTo(new Vector2(180.5f, 90.5f)) > 1.5f)
+            if (selectedAgentId != "roster-rowan" || cameraCenterTiles.DistanceTo(new Vector2(180.5f, 90.5f)) > 1.5f)
                 throw new InvalidOperationException($"Choosing a living agent in the roster must bring them into view: camera={cameraCenterTiles}.");
-            selectedInhabitantId = null;
-            RenderInhabitantList(rosterMap with { Inhabitants = [] });
-            if (inhabitantList.Visible || rosterCards.Visible || !rosterSummaryLabel.Text.Contains("No one lives here yet", StringComparison.Ordinal))
+            selectedAgentId = null;
+            RenderAgentList(rosterMap with { Agents = [] });
+            if (agentList.Visible || rosterCards.Visible || !rosterSummaryLabel.Text.Contains("No one lives here yet", StringComparison.Ordinal))
                 throw new InvalidOperationException("An empty roster must show its summary without an empty list box.");
             var formerPosition = new OwnerWorldPosition(2, 2);
-            var deceased = new OwnerWorldInhabitant("agent:00000000000000000000000000000098", "Mira", "dead", formerPosition,
+            var deceased = new OwnerWorldAgent("agent:00000000000000000000000000000098", "Mira", "dead", formerPosition,
                 5_000, [], [new("age-band", "elder"), new("death-tick", "1"), new("will-status", "accepted")],
                 new OwnerWorldRoute("deceased", null, null, [], string.Empty),
                 new OwnerWorldSpatialKnowledge(formerPosition, [formerPosition], [formerPosition]), false)
@@ -3874,38 +3874,38 @@ public partial class Main
             var historicalSnapshot = sample with
             {
                 WorldId = "ui-deceased",
-                Inhabitants = [deceased],
+                Agents = [deceased],
                 Resources = [],
                 PlacedBuildings = [],
             };
             RenderMap(historicalSnapshot);
-            RenderInhabitantList(historicalSnapshot);
-            selectedInhabitantId = deceased.Id;
-            RenderSelectedInhabitantCard(historicalSnapshot);
+            RenderAgentList(historicalSnapshot);
+            selectedAgentId = deceased.Id;
+            RenderSelectedAgentCard(historicalSnapshot);
             if (entityLayer.GetChildren().Any(child => !child.IsQueuedForDeletion()) ||
-                inhabitantList.ItemCount != 1 || !rosterSummaryLabel.Text.Contains("1 deceased", StringComparison.Ordinal) ||
-                !agentProfilePanel.Visible || selectedInhabitantCard.Visible || speakSection.Visible ||
+                agentList.ItemCount != 1 || !rosterSummaryLabel.Text.Contains("1 deceased", StringComparison.Ordinal) ||
+                !agentProfilePanel.Visible || selectedAgentCard.Visible || speakSection.Visible ||
                 !selectedActorSummaryLabel.Text.Contains("Dead", StringComparison.Ordinal) ||
                 !ShowsGlyph(profileCloseButton, PixelGlyph.Close) || renameAgentInput.Text != "Mira")
-                throw new InvalidOperationException("A deceased inhabitant must open straight to a historical Profile without appearing as a living map actor.");
-            if (!inhabitantDetails.Visible ||
-                !inhabitantDetails.Text.Contains("Final will: belongings left item by item to Rowan and First Town.", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("To Rowan: 3 seed", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("To First Town: 4 wood", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Final words: \u201CKeep the orchard going.\u201D", StringComparison.Ordinal) ||
-                inhabitantDetails.Text.Contains("town:first", StringComparison.Ordinal))
+                throw new InvalidOperationException("A deceased agent must open straight to a historical Profile without appearing as a living map actor.");
+            if (!agentDetails.Visible ||
+                !agentDetails.Text.Contains("Final will: belongings left item by item to Rowan and First Town.", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("To Rowan: 3 seed", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("To First Town: 4 wood", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("Final words: \u201CKeep the orchard going.\u201D", StringComparison.Ordinal) ||
+                agentDetails.Text.Contains("town:first", StringComparison.Ordinal))
                 throw new InvalidOperationException("A historical Profile must show the final will's heirs, their goods and the final words.");
             // Model text remains plain even if a malformed snapshot contains formatting tags.
             var taggedWords = "[b]Keep the orchard going.[/b]";
             var taggedSnapshot = historicalSnapshot with
             {
-                Inhabitants = [deceased with { FinalWill = deceased.FinalWill! with { FinalWords = taggedWords } }],
+                Agents = [deceased with { FinalWill = deceased.FinalWill! with { FinalWords = taggedWords } }],
             };
-            RenderSelectedInhabitantCard(taggedSnapshot);
-            if (inhabitantDetails.BbcodeEnabled ||
-                !inhabitantDetails.GetParsedText().Contains(taggedWords, StringComparison.Ordinal))
+            RenderSelectedAgentCard(taggedSnapshot);
+            if (agentDetails.BbcodeEnabled ||
+                !agentDetails.GetParsedText().Contains(taggedWords, StringComparison.Ordinal))
                 throw new InvalidOperationException("Final words must render as plain text without applying formatting from the model.");
-            RenderSelectedInhabitantCard(historicalSnapshot);
+            RenderSelectedAgentCard(historicalSnapshot);
             if (!privateThoughtHistory.Text.Contains("I hope Rowan remembers our garden.", StringComparison.Ordinal) ||
                 !thoughtsHeading.Text.Contains("HISTORICAL", StringComparison.Ordinal) ||
                 !thoughtsReaderText.GetParsedText().Contains("I hope Rowan remembers our garden.", StringComparison.Ordinal) ||
@@ -3926,7 +3926,7 @@ public partial class Main
             RenderMap(historicalSnapshot);
             var deathDestination = cameraCenterTiles.X < 8
                 ? new OwnerWorldPosition(15, 11) : new OwnerWorldPosition(0, 0);
-            knownEvents[101] = new OwnerWorldEvent(101, 2, "inhabitant_removed", deceased.Id,
+            knownEvents[101] = new OwnerWorldEvent(101, 2, "agent_removed", deceased.Id,
                 deathDestination);
             knownEvents[102] = new OwnerWorldEvent(102, 3, "agent_knowledge_artifact_created",
                 deceased.Id + "|knowledge-artifact-000002|book|1", formerPosition);
@@ -3954,34 +3954,34 @@ public partial class Main
             if (eventsPanel.Visible || cameraCenterTiles.DistanceTo(beforeDeathJump) < 0.5f)
                 throw new InvalidOperationException("A death in the Event Log must jump to its location.");
             var parentPosition = new OwnerWorldPosition(1, 1);
-            var parent = new OwnerWorldInhabitant("living-parent", "Rowan", "active", parentPosition,
+            var parent = new OwnerWorldAgent("living-parent", "Rowan", "active", parentPosition,
                 7_000, [], [new("age-band", "adult")],
                 new OwnerWorldRoute("idle", null, null, [], string.Empty),
                 new OwnerWorldSpatialKnowledge(parentPosition, [parentPosition], [parentPosition]), false)
             {
                 Relationships =
                 [
-                    new OwnerWorldInhabitantRelationship("birth:test", deceased.Id,
+                    new OwnerWorldAgentRelationship("birth:test", deceased.Id,
                         "biological_parentage", "accepted", "family", 1, "parent"),
-                    new OwnerWorldInhabitantRelationship("partner:test", "living-partner",
+                    new OwnerWorldAgentRelationship("partner:test", "living-partner",
                         "partnership", "accepted", "family", 1, "partner"),
                 ],
             };
-            var partner = new OwnerWorldInhabitant("living-partner", "Ilya", "active", parentPosition,
+            var partner = new OwnerWorldAgent("living-partner", "Ilya", "active", parentPosition,
                 7_000, [], [new("age-band", "adult")],
                 new OwnerWorldRoute("idle", null, null, [], string.Empty),
                 new OwnerWorldSpatialKnowledge(parentPosition, [parentPosition], [parentPosition]), false)
             {
-                Relationships = [new OwnerWorldInhabitantRelationship("partner:test", parent.Id,
+                Relationships = [new OwnerWorldAgentRelationship("partner:test", parent.Id,
                     "partnership", "accepted", "family", 1, "partner")],
             };
             var child = deceased with
             {
                 DisplayName = "Alexandria Montgomery Historical Relative Name",
-                Relationships = [new OwnerWorldInhabitantRelationship("birth:test", parent.Id,
+                Relationships = [new OwnerWorldAgentRelationship("birth:test", parent.Id,
                     "biological_parentage", "accepted", "family", 1, "child")],
             };
-            var family = new List<OwnerWorldInhabitant> { parent, child, partner };
+            var family = new List<OwnerWorldAgent> { parent, child, partner };
             var currentParent = parent;
             for (var generation = 0; generation < 8; generation++)
             {
@@ -3989,13 +3989,13 @@ public partial class Main
                 {
                     Id = $"ancestor:{generation}",
                     DisplayName = $"Ancestor {generation + 1}",
-                    Relationships = [new OwnerWorldInhabitantRelationship($"birth:ancestor:{generation}", currentParent.Id,
+                    Relationships = [new OwnerWorldAgentRelationship($"birth:ancestor:{generation}", currentParent.Id,
                         "biological_parentage", "accepted", "family", 1, "parent")],
                 };
                 family.Add(ancestor);
                 currentParent = ancestor;
             }
-            ShowFamilyTree(historicalSnapshot with { Inhabitants = family.ToArray() }, child.Id);
+            ShowFamilyTree(historicalSnapshot with { Agents = family.ToArray() }, child.Id);
             if (!familyTreePanel.Visible || familyTreeView.ParentEdgeCount != 9 || familyTreeView.PartnerEdgeCount != 1 ||
                 !familyTreeView.VisiblePersonIds.Contains(parent.Id) ||
                 !familyTreeView.VisiblePersonIds.Contains(child.Id) ||
@@ -4036,7 +4036,7 @@ public partial class Main
                 familyWindow.Size = size;
                 familyWindow.ContentScaleSize = size;
                 familyTreePanel.Hide();
-                ShowFamilyTree(historicalSnapshot with { Inhabitants = [parent, child, partner] }, child.Id);
+                ShowFamilyTree(historicalSnapshot with { Agents = [parent, child, partner] }, child.Id);
                 for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 ApplyResponsiveLayout();
                 var panelRect = familyTreePanel.GetGlobalRect();
@@ -4054,7 +4054,7 @@ public partial class Main
             ApplyResponsiveLayout();
             familyTreeView.GetChildren().OfType<Button>().Single(button => button.Text.StartsWith(parent.DisplayName, StringComparison.Ordinal))
                 .EmitSignal(BaseButton.SignalName.Pressed);
-            if (selectedInhabitantId != parent.Id || familyTreePanel.Visible)
+            if (selectedAgentId != parent.Id || familyTreePanel.Visible)
                 throw new InvalidOperationException("Selecting a relative must open that person's agent profile.");
             familyTreeView.SetPeople("roommates-only", [parent with { Relationships = [] }, child with { Relationships = [] }, partner with { Relationships = [] }], child.Id);
             if (familyTreeView.VisiblePersonIds.Count != 1 || familyTreeView.ParentEdgeCount != 0)
@@ -4081,11 +4081,11 @@ public partial class Main
                 throw new InvalidOperationException("A pressed top-bar button must return keyboard focus to map controls.");
             eventsButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!pauseButton.TooltipText.Contains("(Space)", StringComparison.Ordinal) ||
-                !inhabitantsButton.TooltipText.Contains("(R)", StringComparison.Ordinal) ||
+                !agentsButton.TooltipText.Contains("(R)", StringComparison.Ordinal) ||
                 !eventsButton.TooltipText.Contains("(E)", StringComparison.Ordinal))
                 throw new InvalidOperationException("Top-bar tooltips must keep naming their keyboard shortcuts after refreshes.");
             RenderMap(occupied);
-            ClearInhabitantSelection();
+            ClearAgentSelection();
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.I, Pressed = true });
             if (!worldInfoPanel.Visible || !PageText(worldStatsPage).Contains("F1", StringComparison.Ordinal))
                 throw new InvalidOperationException("I must open World Info, which points to the F1 controls list.");
@@ -4124,30 +4124,30 @@ public partial class Main
                 throw new InvalidOperationException("The + key must zoom in after - zoomed out.");
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.N, Pressed = true });
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
-            if (selectedInhabitantId != founder.Id ||
-                !mapCanvas.GetGlobalRect().Encloses(inhabitantVisuals[founder.Id].GetGlobalRect()))
-                throw new InvalidOperationException($"N must select the next living agent and bring them into view: selected={selectedInhabitantId} marker={inhabitantVisuals[founder.Id].GetGlobalRect()}.");
+            if (selectedAgentId != founder.Id ||
+                !mapCanvas.GetGlobalRect().Encloses(agentVisuals[founder.Id].GetGlobalRect()))
+                throw new InvalidOperationException($"N must select the next living agent and bring them into view: selected={selectedAgentId} marker={agentVisuals[founder.Id].GetGlobalRect()}.");
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.N, Pressed = true });
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
-            if (selectedInhabitantId != founder.Id)
+            if (selectedAgentId != founder.Id)
                 throw new InvalidOperationException("N with a single living agent must keep them selected.");
             ClearTileSelection();
             // Escape steps back from the Profile to the quick card, then clears the selection.
-            RenderSelectedInhabitantCard(renderedMapSnapshot!);
+            RenderSelectedAgentCard(renderedMapSnapshot!);
             OpenAgentProfile(speak: false);
             OpenThoughtsReader();
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
             if (thoughtsPanel.Visible || !agentProfilePanel.Visible)
                 throw new InvalidOperationException("Escape must close the thoughts reader before the Profile.");
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
-            if (agentProfilePanel.Visible || !selectedInhabitantCard.Visible)
+            if (agentProfilePanel.Visible || !selectedAgentCard.Visible)
                 throw new InvalidOperationException("Escape must step back from the Profile to the quick card.");
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
-            if (selectedInhabitantCard.Visible || selectedInhabitantId is not null)
+            if (selectedAgentCard.Visible || selectedAgentId is not null)
                 throw new InvalidOperationException("Escape on the quick card must clear the selection.");
-            selectedInhabitantCard.Hide();
+            selectedAgentCard.Hide();
             agentProfilePanel.Hide();
-            selectedInhabitantId = null;
+            selectedAgentId = null;
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
             if (!gameMenuPanel.Visible || !topBarShade.Visible)
                 throw new InvalidOperationException("Escape with nothing open must open the Pause Menu.");
@@ -4202,15 +4202,15 @@ public partial class Main
     {
         const string founderId = "founder:00000000000000000000000000000001";
         const string agentId = "agent:00000000000000000000000000000099";
-        const string childId = "world:inhabitant:birth:" + founderId + ":" + agentId + ":1";
+        const string childId = "world:agent:birth:" + founderId + ":" + agentId + ":1";
         var position = new OwnerWorldPosition(0, 0);
-        OwnerWorldInhabitant Person(string id, string name, string lifecycle = "active") =>
+        OwnerWorldAgent Person(string id, string name, string lifecycle = "active") =>
             new(id, name, lifecycle, position, 8_000, [], [],
                 new("idle", null, null, [], ""), new(position, [], []), false);
         var snapshot = new OwnerWorldSnapshot("event-name-smoke", 1, "event-name-map",
             [new(0, 0, "meadow")], [], [], null, 9)
         {
-            Inhabitants = [Person(founderId, "Rowan"), Person(agentId, "Aster", "dead"),
+            Agents = [Person(founderId, "Rowan"), Person(agentId, "Aster", "dead"),
                 Person(childId, "Mira"), Person("founder-scout", "Scout")],
             Towns = [new("town:first", "First Town", "founded", 0, [], [], [])],
         };
@@ -4219,7 +4219,7 @@ public partial class Main
             new(1, 1, "tree_planted", founderId + ":planted-tree-3-4:broadleaf"),
             new(2, 1, "field_prepared", "founder-scout:field-2-2:"),
             new(3, 1, "child_born", childId),
-            new(4, 1, "inhabitant_removed", agentId),
+            new(4, 1, "agent_removed", agentId),
             new(5, 1, "town_resident_joined", "town:first:" + founderId + ":founder_joined:residents:4"),
             new(6, 1, "town_resident_left", "town:first:" + agentId + ":residents:3"),
             new(7, 1, "town_civic_law", "town:first|record-ui|actor-ui"),
@@ -4227,7 +4227,7 @@ public partial class Main
             new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui"),
         ];
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {
@@ -4253,7 +4253,7 @@ public partial class Main
                 throw new InvalidOperationException("The Event Log omitted civic decisions: " + string.Join("; ", missingDecisions));
             snapshot = snapshot with
             {
-                Inhabitants = snapshot.Inhabitants.Select(person => person.Id == founderId
+                Agents = snapshot.Agents.Select(person => person.Id == founderId
                     ? person with { DisplayName = "Renamed Rowan" } : person).ToArray(),
             };
             baseline = baseline with { Snapshot = snapshot };

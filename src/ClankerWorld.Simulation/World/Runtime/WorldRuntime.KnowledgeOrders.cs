@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
 
     private CognitionCandidate? KnowledgeOrderCandidateFor(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var kind = instruction.Order!.TargetKnowledgeKind!;
         if (!AdultResident(actor)) return null;
         if (KnowledgeWritingFor(actor) is { } project)
@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
 
     private string KnowledgeOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var kind = instruction.Order!.TargetKnowledgeKind!;
         if (!AdultResident(actor)) return "Only an adult can write or copy a record, map or book.";
         if (KnowledgeWritingFor(actor) is { } project &&
@@ -50,9 +50,9 @@ public sealed partial class WorldRuntime
             : "Waiting for permitted paper, a reachable supply and carrying space.";
     }
 
-    private void ExecuteKnowledgeOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteKnowledgeOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var kind = instruction.Order!.TargetKnowledgeKind!;
         if (KnowledgeOrderCandidateFor(instruction) is null)
         {
@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
             ApplyKnowledgeWritingCandidate(actor, person, candidate);
             if (KnowledgeWritingFor(actor) is null)
             {
-                if (inhabitants[actor].Position == person.Position && society.Checkpoint.Inventory == inventory)
+                if (agents[actor].Position == person.Position && society.Checkpoint.Inventory == inventory)
                     SetOrderStatus(instruction, "blocked", KnowledgeOrderBlockedReason(instruction));
                 return;
             }
@@ -136,7 +136,7 @@ public sealed partial class WorldRuntime
 
     private void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction)
     {
-        if (instruction.Order is { } order && IsKnowledgeOrder(order.Action) && KnowledgeWritingFor(instruction.TargetInhabitantId) is { } project &&
+        if (instruction.Order is { } order && IsKnowledgeOrder(order.Action) && KnowledgeWritingFor(instruction.TargetAgentId) is { } project &&
             project.OrderInstructionId == instruction.InstructionId)
             CancelKnowledgeWriting(project, "owner_order_cancelled");
     }
@@ -151,17 +151,17 @@ public sealed partial class WorldRuntime
         foreach (var project in knowledge.WritingProjects.Where(item => item.OrderInstructionId is not null))
         {
             if (!orders.TryGetValue(project.OrderInstructionId!, out var instruction) ||
-                instruction.TargetInhabitantId != project.ActorId || instruction.Order!.TargetKnowledgeKind != project.Kind ||
+                instruction.TargetAgentId != project.ActorId || instruction.Order!.TargetKnowledgeKind != project.Kind ||
                 instruction.Order.KnowledgeWritingProjectId != project.Id || !MatchesKnowledgeSource(instruction.Order, project.SourceArtifactId, bound: true) ||
                 !IsActiveOrder(instruction.Order.Status) || instruction.Order.Status == "queued" ||
-                saved.Where(item => item.TargetInhabitantId == project.ActorId && item.Order is { } order && IsActiveOrder(order.Status))
+                saved.Where(item => item.TargetAgentId == project.ActorId && item.Order is { } order && IsActiveOrder(order.Status))
                     .OrderBy(item => item.SubmissionSequence).FirstOrDefault()?.InstructionId != instruction.InstructionId)
                 throw new InvalidDataException("Ordered writing has no matching current owner task.");
         }
         foreach (var artifact in knowledge.Artifacts.Where(item => item.OrderInstructionId is not null))
         {
             if (!orders.TryGetValue(artifact.OrderInstructionId!, out var instruction) ||
-                instruction.TargetInhabitantId != artifact.CreatorId || instruction.Order!.TargetKnowledgeKind != artifact.Kind ||
+                instruction.TargetAgentId != artifact.CreatorId || instruction.Order!.TargetKnowledgeKind != artifact.Kind ||
                 (instruction.Order.Action == "copy_knowledge") != (artifact.SourceArtifactId is not null) ||
                 artifact.CreatedTick < instruction.SubmittedTick)
                 throw new InvalidDataException("A written artifact does not belong to its recorded owner task.");

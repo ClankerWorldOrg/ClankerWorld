@@ -12,9 +12,9 @@ public sealed partial class WorldRuntime
 {
     private static bool IsShelterOrder(string action) => action is "seek_shelter" or "tend_fire";
 
-    private bool ShelterBuildingKnown(string actor, InhabitantState person, PlacedBuilding building) =>
+    private bool ShelterBuildingKnown(string actor, AgentState person, PlacedBuilding building) =>
         building.HouseholdId is { } owner &&
-            (owner == society.Checkpoint.GetInhabitant(actor).HouseholdId || HasHouseGuestInvitation(actor, building.InstanceId)) ||
+            (owner == society.Checkpoint.GetAgent(actor).HouseholdId || HasHouseGuestInvitation(actor, building.InstanceId)) ||
         IsTownHallStormRefuge(actor, building) ||
         IsWithinInteractionRange(person.Position, building.Position, ResourceInteractionRange);
 
@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         return available.FirstOrDefault(building => building.InstanceId == binding.BuildingInstanceId &&
             building.DefinitionId == binding.DefinitionId && building.HouseholdId == binding.OwnerId &&
             building.Position == binding.BuildingPosition && building.PlacedTick == binding.BuildingPlacedTick &&
-            (order.TargetBuildingKind != "house" || building.HouseholdId == society.Checkpoint.GetInhabitant(actor).HouseholdId &&
+            (order.TargetBuildingKind != "house" || building.HouseholdId == society.Checkpoint.GetAgent(actor).HouseholdId &&
                 worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house", StringComparer.Ordinal)));
     }
 
@@ -49,15 +49,15 @@ public sealed partial class WorldRuntime
             : ShelterBuildingCovers(actor, building, binding.Position);
     }
 
-    private OwnerShelterBinding? SelectShelterBinding(OwnerQueuedInstruction instruction, InhabitantState person)
+    private OwnerShelterBinding? SelectShelterBinding(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         if (order.ShelterBinding is { } bound) return bound;
         var buildings = (order.Action == "tend_fire" ? AccessibleHeatingBuildings(actor) : AccessibleShelters(actor))
             .Where(building => ShelterBuildingKnown(actor, person, building))
             .Where(building => order.TargetBuildingKind != "house" ||
-                building.HouseholdId == society.Checkpoint.GetInhabitant(actor).HouseholdId &&
+                building.HouseholdId == society.Checkpoint.GetAgent(actor).HouseholdId &&
                 worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house", StringComparer.Ordinal))
             .Where(building => order.Action != "tend_fire" || !IsFireLit(building))
             .OrderBy(building => map.FootDistance(person.Position, building.Position))
@@ -103,12 +103,12 @@ public sealed partial class WorldRuntime
             .ThenBy(choice => choice.BuildingInstanceId, StringComparer.Ordinal).FirstOrDefault();
     }
 
-    private bool CanInspectShelterTarget(OwnerInstructionOrder order, string actor, InhabitantState person) =>
+    private bool CanInspectShelterTarget(OwnerInstructionOrder order, string actor, AgentState person) =>
         order.ShelterBinding is null && order.TargetPosition is { } target && map.Contains(target) &&
         !IsWithinInteractionRange(person.Position, target, ResourceInteractionRange) &&
         FindUnoccupiedRoute(actor, person.Position, target, ResourceInteractionRange).Count > 0;
 
-    private MapResource? KnownOrderFirewoodSource(string actor, InhabitantState person,
+    private MapResource? KnownOrderFirewoodSource(string actor, AgentState person,
         GridPoint? returnTo = null)
     {
         var known = knowledge.Facts.Where(fact => fact.OwnerId == actor &&
@@ -127,28 +127,28 @@ public sealed partial class WorldRuntime
                 (returnTo is null || CanReturnWithHarvest(actor, "wood", source, returnTo.Value)));
     }
 
-    private bool CanObtainFirewood(string actor, InhabitantState person, GridPoint? returnTo = null) => HasCarriedOwnItem(actor, "wood") ||
+    private bool CanObtainFirewood(string actor, AgentState person, GridPoint? returnTo = null) => HasCarriedOwnItem(actor, "wood") ||
         FreeCarryCapacity(actor) > 0 && SharedItem("wood", actor, returnTo) is not null || KnownOrderFirewoodSource(actor, person, returnTo) is not null;
 
-    private CognitionCandidate? ShelterOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? ShelterOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (survivalState is null) return null;
         var order = instruction.Order!;
         var binding = SelectShelterBinding(instruction, person);
         if (binding is null)
-            return CanInspectShelterTarget(order, instruction.TargetInhabitantId, person)
+            return CanInspectShelterTarget(order, instruction.TargetAgentId, person)
                 ? new CognitionCandidate("inspect_shelter_site", "Travel to observe the shelter site named by this order.", 0) : null;
-        if (!ShelterBindingIsAvailable(instruction.TargetInhabitantId, order with { ShelterBinding = binding }) ||
-            !ShelterRouteIsOpen(instruction.TargetInhabitantId, person.Position, binding.Position) ||
-            order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetInhabitantId, person, binding.Position)) return null;
+        if (!ShelterBindingIsAvailable(instruction.TargetAgentId, order with { ShelterBinding = binding }) ||
+            !ShelterRouteIsOpen(instruction.TargetAgentId, person.Position, binding.Position) ||
+            order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetAgentId, person, binding.Position)) return null;
         return new CognitionCandidate(order.Action,
             order.Action == "seek_shelter" ? "Reach the requested permitted shelter." : "Light one permitted hearth using your own wood.",
             0, binding.BuildingInstanceId);
     }
 
-    private void ExecuteShelterOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteShelterOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         var order = current.Order!;
         var binding = SelectShelterBinding(current, person);
@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
             if (CanInspectShelterTarget(order, actor, person))
             {
                 MoveToward(actor, person, order.TargetPosition!.Value, "owner_order_shelter_site", ResourceInteractionRange);
-                var reached = inhabitants[actor].Position;
+                var reached = agents[actor].Position;
                 if (reached != person.Position) RecordKnowledgeFact(actor, reached);
                 if (IsWithinInteractionRange(reached, order.TargetPosition.Value, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, order.TargetPosition.Value);
@@ -184,7 +184,7 @@ public sealed partial class WorldRuntime
             else if (KnownOrderFirewoodSource(actor, person, binding.Position) is { } source)
             {
                 _ = GatherProjectMaterial(actor, person, "wood", source, returnTo: binding.Position);
-                var reached = inhabitants[actor].Position;
+                var reached = agents[actor].Position;
                 if (IsWithinInteractionRange(reached, source.Position, ResourceInteractionRange))
                     RecordKnowledgeFact(actor, source.Position);
             }
@@ -193,30 +193,30 @@ public sealed partial class WorldRuntime
         }
         if (person.Position != binding.Position)
             MoveToward(actor, person, binding.Position, order.Action == "tend_fire" ? "fuel_fire" : "warmth");
-        if (inhabitants[actor].Position != binding.Position || !ShelterBindingIsAvailable(actor, order)) return;
+        if (agents[actor].Position != binding.Position || !ShelterBindingIsAvailable(actor, order)) return;
         string? payment = null;
         if (order.Action == "tend_fire")
         {
-            var effect = TendFireAt(actor, inhabitants[actor], BoundShelterBuilding(actor, order)!);
+            var effect = TendFireAt(actor, agents[actor], BoundShelterBuilding(actor, order)!);
             if (effect is null) return;
             payment = effect.FuelReservationId;
         }
-        var completion = new OwnerShelterCompletion(WorldTick, inhabitants[actor].Position, payment);
+        var completion = new OwnerShelterCompletion(WorldTick, agents[actor].Position, payment);
         current = instructionsByIdempotency[current.IdempotencyKey];
         current = current with { Order = current.Order! with { ShelterCompletion = completion } };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         CreditOrderEffect(current, ShelterOrderReceipt(current.InstructionId, current.Order!), 1);
     }
 
-    private string ShelterOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string ShelterOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order!;
-        if (!AgePermitsCandidate(instruction.TargetInhabitantId, order.Action))
+        if (!AgePermitsCandidate(instruction.TargetAgentId, order.Action))
             return order.Action == "tend_fire" ? "This agent is too young to light a fire." : "This agent needs a caregiver to reach shelter.";
         if (survivalState is null) return "Shelter and fire care are not available in this world yet.";
-        if (order.ShelterBinding is not null && !ShelterBindingIsAvailable(instruction.TargetInhabitantId, order))
+        if (order.ShelterBinding is not null && !ShelterBindingIsAvailable(instruction.TargetAgentId, order))
             return order.Action == "tend_fire" ? "The chosen hearth is unavailable, changed, or already burning." : "The chosen shelter is no longer available or permitted.";
-        if (order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetInhabitantId, person))
+        if (order.Action == "tend_fire" && !CanObtainFirewood(instruction.TargetAgentId, person))
             return "No usable owned firewood can be carried to the hearth right now.";
         return order.TargetPosition is not null ? "The requested shelter site is not permitted or reachable right now." :
             "No known permitted shelter is reachable right now.";
@@ -279,7 +279,7 @@ public sealed partial class WorldRuntime
                 continue;
             }
             var reservation = society.Inventory.Reservations.FirstOrDefault(item => item.Id == completion.FuelReservationId);
-            if (reservation is null || !fuelReceipts.Add(reservation.Id) || reservation.OwnerId != instruction.TargetInhabitantId ||
+            if (reservation is null || !fuelReceipts.Add(reservation.Id) || reservation.OwnerId != instruction.TargetAgentId ||
                 reservation.Quantity != 1 || reservation.Purpose != "heating_fuel" || reservation.State != InventoryReservationState.Completed ||
                 reservation.ExpiryTick != completion.WorldTick ||
                 society.Inventory.Lots.FirstOrDefault(item => item.Id == reservation.LotId) is { ItemKind: not "wood" })

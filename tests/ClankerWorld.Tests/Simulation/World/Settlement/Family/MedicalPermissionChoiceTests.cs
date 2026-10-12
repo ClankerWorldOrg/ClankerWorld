@@ -26,7 +26,7 @@ public sealed class MedicalPermissionChoiceTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var observed = choices.Observations.Where(observation => observation.InhabitantId == patient).ToArray();
+        var observed = choices.Observations.Where(observation => observation.AgentId == patient).ToArray();
         Assert.NotEmpty(observed);
         if (expected)
         {
@@ -36,7 +36,7 @@ public sealed class MedicalPermissionChoiceTests
         else
             Assert.All(observed, observation => Assert.DoesNotContain(observation.Candidates,
                 candidate => candidate.Id.StartsWith("medical_allow:", StringComparison.Ordinal)));
-        var consent = world.Inhabitants.Single(person => person.InhabitantId == patient).MedicalConsent!;
+        var consent = world.Agents.Single(person => person.AgentId == patient).MedicalConsent!;
         Assert.Equal(expected, consent.CaregiverIds.Contains(chosen));
         Assert.Equal(existingCount + (expected ? 1 : 0), consent.CaregiverIds.Count);
         Assert.InRange(consent.CaregiverIds.Count, 1, MedicalCareRules.MaximumNamedCaregivers);
@@ -46,7 +46,7 @@ public sealed class MedicalPermissionChoiceTests
         if (expected)
         {
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == Dose);
-            var treatment = Assert.IsType<MedicalTreatmentState>(world.Inhabitants.Single(person => person.InhabitantId == patient).MedicalTreatment);
+            var treatment = Assert.IsType<MedicalTreatmentState>(world.Agents.Single(person => person.AgentId == patient).MedicalTreatment);
             var receipt = world.Society.Inventory.GetReservation(treatment.DoseReservationId);
             Assert.Equal((chosen, Dose, 1, InventoryReservationState.Completed),
                 (receipt.OwnerId, receipt.LotId, receipt.Quantity, receipt.State));
@@ -73,19 +73,19 @@ public sealed class MedicalPermissionChoiceTests
                 !generated.Towns.Any(town => town.BorderTiles.Contains(point)) &&
                 !current.Map.Resources.Any(resource => resource.Position == point) &&
                 !current.Map.MapObjects.Any(startingSite => startingSite.Position == point) &&
-                generated.Inhabitants.All(person => person.Position != point));
+                generated.Agents.All(person => person.Position != point));
             generated.AddAgent("agent:" + (100 + index).ToString("x32", CultureInfo.InvariantCulture), place);
         }
         generated.Resume();
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        Assert.Equal(18, state.Inhabitants.Count);
-        var founders = state.Inhabitants.Where(person => person.InhabitantId.StartsWith("founder:", StringComparison.Ordinal))
-            .Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(18, state.Agents.Count);
+        var founders = state.Agents.Where(person => person.AgentId.StartsWith("founder:", StringComparison.Ordinal))
+            .Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray();
         var patient = founders[0];
         var first = founders[1];
         var chosen = founders[2];
-        var away = state.Inhabitants.Select(person => person.InhabitantId)
+        var away = state.Agents.Select(person => person.AgentId)
             .Where(id => id != patient && id != first && id != chosen).Order(StringComparer.Ordinal).ToArray();
         var permissions = away.Take(Math.Min(15, existingCount)).Concat(existingCount == 16 ? [first] : [])
             .Order(StringComparer.Ordinal).ToArray();
@@ -108,14 +108,14 @@ public sealed class MedicalPermissionChoiceTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == patient ? center : person.InhabitantId == first ? adjacent[0] :
-                    person.InhabitantId == chosen ? adjacent[1] : distant[Array.IndexOf(away, person.InhabitantId)],
+                Position = person.AgentId == patient ? center : person.AgentId == first ? adjacent[0] :
+                    person.AgentId == chosen ? adjacent[1] : distant[Array.IndexOf(away, person.AgentId)],
                 HungerBasisPoints = 10_000,
-                Survival = new(IllnessBasisPoints: person.InhabitantId == patient ? 4_000 : 0),
+                Survival = new(IllnessBasisPoints: person.AgentId == patient ? 4_000 : 0),
                 LastDecisionContext = null,
-                MedicalConsent = person.InhabitantId == patient ? new(permissions) : null,
+                MedicalConsent = person.AgentId == patient ? new(permissions) : null,
             }).ToArray(),
             WorldSystems = state.WorldSystems! with
             {
@@ -132,7 +132,7 @@ public sealed class MedicalPermissionChoiceTests
 
     private sealed class PersonalChoices(string patient, string chosen)
     {
-        public List<InhabitantObservation> Observations { get; } = [];
+        public List<AgentObservation> Observations { get; } = [];
         public IDecisionProvider CreateProvider(string actor) => new Provider(this, actor, patient, chosen);
         private sealed class Provider(PersonalChoices owner, string actor, string patient, string chosen) : IDecisionProvider
         {

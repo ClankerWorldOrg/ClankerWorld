@@ -32,11 +32,11 @@ public sealed class OrnamentPersonalUseTests
         Assert.False(world.WearOrnament(actor, Ornament).Applied);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         var startingLoad = PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, Physical(world, actor).Equipment);
-        for (var tick = 0; tick < 121 && Physical(world, actor).Position == state.Inhabitants.Single(person => person.InhabitantId == actor).Position; tick++)
+        for (var tick = 0; tick < 121 && Physical(world, actor).Position == state.Agents.Single(person => person.AgentId == actor).Position; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(provider.Offered, candidate => candidate.Id.StartsWith("wear_ornament:", StringComparison.Ordinal));
         Assert.Null(Physical(world, actor).Equipment?.OrnamentLotId);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
         Assert.Equal((Alpha, House, 2), (world.Society.Inventory.GetLot(Ornament).OwnerId,
             world.Society.Inventory.GetLot(Ornament).StorageBuildingId, world.Society.Inventory.GetLot(Ornament).Quantity));
 
@@ -137,7 +137,7 @@ public sealed class OrnamentPersonalUseTests
             storageBuildingId: foreign ? "first-town-house-b" : House);
         if (boundary == "full-hands")
         {
-            var load = PersonalEquipmentRules.CarriedQuantity(inventory, actor, state.Inhabitants.Single(person => person.InhabitantId == actor).Equipment);
+            var load = PersonalEquipmentRules.CarriedQuantity(inventory, actor, state.Agents.Single(person => person.AgentId == actor).Equipment);
             inventory = InventoryAuthority.AddLot(inventory, "wear-full-hands", "stone", actor, 8 - load);
         }
         if (boundary == "reserved-stock")
@@ -262,7 +262,7 @@ public sealed class OrnamentPersonalUseTests
         {
             var source = adding.ExportState();
             var site = source.Map.Tiles.First(tile => source.Map.IsBuildable(tile.Position) &&
-                source.Inhabitants.All(person => person.Position != tile.Position) &&
+                source.Agents.All(person => person.Position != tile.Position) &&
                 source.Map.Resources.All(resource => resource.Position != tile.Position) &&
                 source.Map.MapObjects.All(item => item.Position != tile.Position) &&
                 source.WorldSimulation!.Buildings.All(building => source.Map.FootDistance(building.Position, tile.Position) > 20)).Position;
@@ -271,25 +271,25 @@ public sealed class OrnamentPersonalUseTests
         Assert.True((await adding.AdvanceOneTickAsync()).Advanced);
         var state = adding.ExportState();
         var actor = Actor(state);
-        var neighbors = state.Inhabitants.Where(person => person.InhabitantId != actor)
-            .OrderBy(person => person.InhabitantId, StringComparer.Ordinal).ToArray();
+        var neighbors = state.Agents.Where(person => person.AgentId != actor)
+            .OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray();
         Assert.Equal(9, neighbors.Length);
-        var recipient = neighbors[^1].InhabitantId;
+        var recipient = neighbors[^1].AgentId;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
-        var sharedResident = state.Society.Society.Inhabitants.Single(person => person.HouseholdId == Alpha && person.Id != actor).Id;
+        var sharedResident = state.Society.Society.Agents.Single(person => person.HouseholdId == Alpha && person.Id != actor).Id;
         var points = state.Map.FootNeighbors(house.Position).Where(state.Map.IsPassable).ToArray();
         Assert.Equal(8, points.Length);
-        var positions = neighbors.Where(person => person.InhabitantId != sharedResident)
-            .Select((person, index) => (person.InhabitantId, Position: points[index]))
-            .ToDictionary(item => item.InhabitantId, item => item.Position, StringComparer.Ordinal);
+        var positions = neighbors.Where(person => person.AgentId != sharedResident)
+            .Select((person, index) => (person.AgentId, Position: points[index]))
+            .ToDictionary(item => item.AgentId, item => item.Position, StringComparer.Ordinal);
         positions[sharedResident] = house.Position;
         positions[actor] = house.Position;
-        if (moveOneFullNeighborAway) positions[neighbors[0].InhabitantId] = neighbors[0].Position;
+        if (moveOneFullNeighborAway) positions[neighbors[0].AgentId] = neighbors[0].Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = positions[person.InhabitantId],
+                Position = positions[person.AgentId],
                 HungerBasisPoints = 10_000,
                 Equipment = null,
                 Project = null,
@@ -301,13 +301,13 @@ public sealed class OrnamentPersonalUseTests
         inventory = inventory with
         {
             Lots = inventory.Lots.Where(lot => lot.OwnerId != recipient &&
-            (fullNeighbors || neighbors.All(person => person.InhabitantId != lot.OwnerId))).ToArray()
+            (fullNeighbors || neighbors.All(person => person.AgentId != lot.OwnerId))).ToArray()
         };
-        foreach (var neighbor in neighbors.Where(person => fullNeighbors && person.InhabitantId != recipient))
+        foreach (var neighbor in neighbors.Where(person => fullNeighbors && person.AgentId != recipient))
         {
-            var room = PersonalEquipmentRules.FreeCapacity(inventory, neighbor.InhabitantId, null);
-            if (room > 0) inventory = InventoryAuthority.AddLot(inventory, "crowded-load:" + neighbor.InhabitantId,
-                "stone", neighbor.InhabitantId, room);
+            var room = PersonalEquipmentRules.FreeCapacity(inventory, neighbor.AgentId, null);
+            if (room > 0) inventory = InventoryAuthority.AddLot(inventory, "crowded-load:" + neighbor.AgentId,
+                "stone", neighbor.AgentId, room);
         }
         inventory = InventoryAuthority.AddLot(inventory, Ornament, "gold_ornament", actor, 1);
         Assert.Equal(8, PersonalEquipmentRules.FreeCapacity(inventory, recipient, null));
@@ -330,15 +330,15 @@ public sealed class OrnamentPersonalUseTests
         var recipient = Recipient(state);
         if (boundary == "remote")
         {
-            var location = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var location = state.Agents.Single(person => person.AgentId == actor).Position;
             var remote = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
                 state.Map.FootDistance(location, tile.Position) >= 4 &&
-                state.Inhabitants.All(person => person.Position != tile.Position) &&
+                state.Agents.All(person => person.Position != tile.Position) &&
                 state.Map.Resources.All(resource => resource.Position != tile.Position) &&
                 state.Map.MapObjects.All(item => item.Position != tile.Position)).Position;
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == recipient
+                Agents = state.Agents.Select(person => person.AgentId == recipient
                 ? person with { Position = remote } : person).ToArray()
             };
         }
@@ -346,8 +346,8 @@ public sealed class OrnamentPersonalUseTests
             boundary == "foreign" ? recipient : boundary is "stored" or "promised" ? Alpha : actor, 1,
             conditionBasisPoints: boundary == "broken" ? 0 : 10_000,
             storageBuildingId: boundary == "stored" ? House : null,
-            groundPosition: boundary == "ground" ? new(state.Inhabitants.Single(person => person.InhabitantId == actor).Position.X,
-                state.Inhabitants.Single(person => person.InhabitantId == actor).Position.Y) : null);
+            groundPosition: boundary == "ground" ? new(state.Agents.Single(person => person.AgentId == actor).Position.X,
+                state.Agents.Single(person => person.AgentId == actor).Position.Y) : null);
         if (boundary == "promised")
             inventory = InventoryAuthority.Transfer(inventory, "gift-promised-house-delivery", Alpha, actor,
                 Ornament, 1, "collect", destinationDeliveryBuildingId: House);
@@ -355,7 +355,7 @@ public sealed class OrnamentPersonalUseTests
             inventory = InventoryAuthority.Reserve(inventory, "gift-reserved", actor, Ornament, 1, "other_owned_work", 120);
         if (boundary == "recipient-full")
         {
-            var physical = state.Inhabitants.Single(person => person.InhabitantId == recipient);
+            var physical = state.Agents.Single(person => person.AgentId == recipient);
             var load = PersonalEquipmentRules.CarriedQuantity(inventory, recipient, physical.Equipment);
             inventory = InventoryAuthority.AddLot(inventory, "gift-full-recipient", "stone", recipient, 8 - load);
         }
@@ -391,7 +391,7 @@ public sealed class OrnamentPersonalUseTests
             // Below comfortable fullness, so the eat order runs instead of waiting.
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { HungerBasisPoints = 3_000 } : person).ToArray(),
             };
         }
@@ -512,7 +512,7 @@ public sealed class OrnamentPersonalUseTests
         state = WithInventory(state, inventory);
         if (boundary == "unknown") state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Equipment = person.Equipment! with { OrnamentLotId = "missing-ornament" } } : person).ToArray()
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state));
@@ -534,7 +534,7 @@ public sealed class OrnamentPersonalUseTests
         checkpoint = checkpoint with
         {
             Config = checkpoint.Config with { BaseNaturalMortalityBasisPoints = 10_000, NaturalMortalitySlopeBasisPoints = 0 },
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
             {
                 BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -544,18 +544,18 @@ public sealed class OrnamentPersonalUseTests
         };
         using var world = Restore(state with { Society = state.Society with { Society = checkpoint } });
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetInhabitant(actor).DeathCause);
+        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(actor).DeathCause);
         var estate = Assert.Single(world.Society.Estates, item => item.DeceasedId == actor);
         Assert.Equal((estate.Id, 1, 10_000), (world.Society.Inventory.GetLot(Ornament).OwnerId,
             world.Society.Inventory.GetLot(Ornament).Quantity, world.Society.Inventory.GetLot(Ornament).ConditionBasisPoints));
-        var dead = Assert.Single(world.ExportState().DeceasedInhabitants!, item => item.InhabitantId == actor);
+        var dead = Assert.Single(world.ExportState().DeceasedAgents!, item => item.AgentId == actor);
         Assert.Null(dead.LastPhysical.Equipment?.OrnamentLotId);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(resumed.ExportState()));
         var malformed = world.ExportState() with
         {
-            DeceasedInhabitants = [dead with { LastPhysical = dead.LastPhysical with
+            DeceasedAgents = [dead with { LastPhysical = dead.LastPhysical with
             { Equipment = (dead.LastPhysical.Equipment ?? new PersonalEquipment()) with { OrnamentLotId = Ornament } } }]
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(malformed));
@@ -567,7 +567,7 @@ public sealed class OrnamentPersonalUseTests
         var actor = Actor(state);
         var recipient = Recipient(state);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
-        var others = state.Inhabitants.Where(person => person.InhabitantId != actor && person.InhabitantId != recipient)
+        var others = state.Agents.Where(person => person.AgentId != actor && person.AgentId != recipient)
             .Select(person => person.Position).ToHashSet();
         bool Clear(GridPoint point) => state.Map.IsPassable(point) && !others.Contains(point) &&
             state.Map.Resources.All(resource => resource.Position != point) &&
@@ -585,10 +585,10 @@ public sealed class OrnamentPersonalUseTests
         return state with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? local ? house.Position : route.Far :
-                    person.InhabitantId == recipient ? recipientPosition : person.Position,
+                Position = person.AgentId == actor ? local ? house.Position : route.Far :
+                    person.AgentId == recipient ? recipientPosition : person.Position,
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
@@ -597,11 +597,11 @@ public sealed class OrnamentPersonalUseTests
 
     private static string ChoiceId(string prefix, params string[] identity) => prefix + Convert.ToHexStringLower(
         System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(identity))));
-    private static string Actor(WorldRuntimeState state) => state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha).Id;
-    private static string Recipient(WorldRuntimeState state) => state.Society.Society.Inhabitants.First(person => person.HouseholdId != Alpha).Id;
+    private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
+    private static string Recipient(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
-    private static InhabitantState Physical(WorldRuntime world, string actor) => world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static AgentState Physical(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor);
     private static WorldRuntime Restore(WorldRuntimeState state, string? actor = null, IDecisionProvider? provider = null) =>
         WorldRuntime.Restore(state, id => id == actor && provider is not null ? provider : new OrnamentChoices());
 
@@ -619,7 +619,7 @@ public sealed class OrnamentPersonalUseTests
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal) &&
                 (destination is null || candidate.DestinationId == destination))
                 ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1, new Dictionary<string, double> { [selected.Id] = 1 })
             {

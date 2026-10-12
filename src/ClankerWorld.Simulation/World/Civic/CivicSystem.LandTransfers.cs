@@ -5,8 +5,8 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CivicSystem
 {
-    internal static Dictionary<string, string?> LandTransferAdultHouseholds(ICivicTownWorld world) => world.Society.Inhabitants
-            .Where(person => person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+    internal static Dictionary<string, string?> LandTransferAdultHouseholds(ICivicTownWorld world) => world.Society.Agents
+            .Where(person => person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
 
     internal static IReadOnlyList<TownLandTransferParty> LandTransferParties(ICivicTownWorld world, TownLandTransferRequest request) =>
@@ -15,9 +15,9 @@ internal sealed partial class CivicSystem
 
     internal static SocietyHousehold[] LandTransferKnownHouseholds(ICivicTownWorld world, string actor, TownRuntimeState town)
     {
-        var people = TownAdults(world, town).Concat(world.Inhabitants.Values.Where(person =>
-            world.IsWithinInteractionRange(person.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange))
-            .Select(person => person.InhabitantId)).ToHashSet(StringComparer.Ordinal);
+        var people = TownAdults(world, town).Concat(world.Agents.Values.Where(person =>
+            world.IsWithinInteractionRange(person.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange))
+            .Select(person => person.AgentId)).ToHashSet(StringComparer.Ordinal);
         var households = LandTransferAdultHouseholds(world).Where(pair => people.Contains(pair.Key) && pair.Value is not null)
             .Select(pair => pair.Value!).ToHashSet(StringComparer.Ordinal);
         return world.Society.Households.Where(household => households.Contains(household.Id))
@@ -91,7 +91,7 @@ internal sealed partial class CivicSystem
     internal void AddTownLandTransferCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
         if (!LandHearingAdult(world, actor) || town.Governance is not { } council) return;
-        var household = world.Society.GetInhabitant(actor).HouseholdId;
+        var household = world.Society.GetAgent(actor).HouseholdId;
         var atBoard = NearCivicBoard(world, actor, town);
         if (!atBoard && MayVisitLandTransfer(world, actor, town) && !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) &&
             !MayVisitAsNewcomer(world, actor, town) && !MayVisitLandHearing(world, actor, town))

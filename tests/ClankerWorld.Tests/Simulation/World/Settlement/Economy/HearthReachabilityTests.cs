@@ -26,7 +26,7 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
-        var actor = world.Inhabitants.Single(person => person.InhabitantId == Actor);
+        var actor = world.Agents.Single(person => person.AgentId == Actor);
         Assert.Equal(new GridPoint(128, 16), actor.Position);
         Assert.Equal(0, actor.MoveWaitTicks);
         Assert.Empty(world.ExportState().Survival!.Fires);
@@ -44,7 +44,7 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
         using var world = Restore(fixture.CreateState(blocked: false), choices);
         await UntilFuelled(world, House, interactionRange: 0);
         Assert.Contains("tend_fire", choices.Offered);
-        Assert.Equal(fixture.HousePosition, world.Inhabitants.Single(person => person.InhabitantId == Actor).Position);
+        Assert.Equal(fixture.HousePosition, world.Agents.Single(person => person.AgentId == Actor).Position);
         using var restored = Restore(RoundTrip(world.ExportState()), new Choices(true));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Validate();
@@ -55,13 +55,13 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
     {
         using var world = Restore(fixture.CreateState(blocked: true), new Choices(true));
         var state = world.ExportState();
-        var start = state.Inhabitants.Single(person => person.InhabitantId == Actor).Position;
+        var start = state.Agents.Single(person => person.AgentId == Actor).Position;
         var fire = world.WorldContent.Buildings.Single(definition => definition.LocalId == "fire");
         var site = state.Map.Tiles.Select(tile => tile.Position).Where(point =>
                 state.Map.IsBuildable(point) && state.Map.FootDistance(start, point) is >= 2 and <= 4 &&
                 !state.Map.Resources.Any(resource => resource.Position == point) &&
                 !state.Map.MapObjects.Any(item => item.Position == point) &&
-                !state.Inhabitants.Any(person => person.Position == point) &&
+                !state.Agents.Any(person => person.Position == point) &&
                 !world.WorldSimulation.Buildings.Any(building => building.Position == point) &&
                 state.Map.IsReachableOnFoot(start, point))
             .OrderBy(point => state.Map.FootDistance(start, point)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
@@ -80,7 +80,7 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
     {
         using var walking = Restore(fixture.CreateState(blocked: false), new Choices(true));
         var step = await walking.AdvanceOneTickAsync();
-        Assert.Contains(step.Decisions, decision => decision.InhabitantId == Actor &&
+        Assert.Contains(step.Decisions, decision => decision.AgentId == Actor &&
             decision.Admission.Intention?.CandidateId == "tend_fire");
         Assert.Empty(walking.ExportState().Survival!.Fires);
         // The saved intention stays intact while the position fixture models the new crowd.
@@ -91,7 +91,7 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
 
         Assert.DoesNotContain("tend_fire", choices.Offered);
         Assert.Contains("seek_warmth", choices.Offered);
-        Assert.Equal(0, world.Inhabitants.Single(person => person.InhabitantId == Actor).MoveWaitTicks);
+        Assert.Equal(0, world.Agents.Single(person => person.AgentId == Actor).MoveWaitTicks);
         Assert.Empty(world.ExportState().Survival!.Fires);
         Assert.Equal(1, world.Society.Inventory.GetLot(Fuel).Quantity);
         world.Validate();
@@ -103,7 +103,7 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
         for (var tick = 0; tick < 24 && world.ExportState().Survival!.Fires.Count == 0; tick++)
         {
             Assert.Equal(1, world.Society.Inventory.GetLot(Fuel).Quantity);
-            var before = world.Inhabitants.Single(person => person.InhabitantId == Actor).Position;
+            var before = world.Agents.Single(person => person.AgentId == Actor).Position;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             if (world.ExportState().Survival!.Fires.Count > 0)
                 Assert.InRange(world.ExportState().Map.FootDistance(before, destination), 0, interactionRange);
@@ -150,8 +150,8 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
             var index = 0;
             return state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor ? person : person with
-                { Position = blocked ? ring[index++] : originalPositions[person.InhabitantId] }).ToArray(),
+                Agents = state.Agents.Select(person => person.AgentId == Actor ? person : person with
+                { Position = blocked ? ring[index++] : originalPositions[person.AgentId] }).ToArray(),
             };
         }
 
@@ -173,12 +173,12 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
                     !current.Towns!.Any(town => town.BorderTiles.Contains(position)) &&
                     !current.Map.Resources.Any(resource => resource.Position == position) &&
                     !current.Map.MapObjects.Any(item => item.Position == position) &&
-                    !current.Inhabitants.Any(person => person.Position == position));
+                    !current.Agents.Any(person => person.Position == position));
                 initial.AddAgent($"agent:{index:D32}", point);
             }
             var state = initial.ExportState();
             HousePosition = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
-            originalPositions = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal);
+            originalPositions = state.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
             var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, Fuel, "wood", Actor, 1);
             var systems = state.WorldSystems!;
             state = state with
@@ -192,13 +192,13 @@ public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixt
                     { WeatherProfiles = Enum.GetValues<SeasonKind>().Select(season => new WeatherProfile(season, 0, 0, 0, 1, 0)).ToArray() },
                     Climate = systems.Climate with { Weather = WeatherKind.Storm },
                 },
-                Inhabitants = state.Inhabitants.Select(person => person with
+                Agents = state.Agents.Select(person => person with
                 {
-                    Position = person.InhabitantId == Actor ? new(134, 8) : person.Position,
+                    Position = person.AgentId == Actor ? new(134, 8) : person.Position,
                     HungerBasisPoints = 9_000,
                     TravelCooldownTicks = 0,
                     LastDecisionContext = null,
-                    Survival = new(person.InhabitantId == Actor ? 3_400 : 10_000),
+                    Survival = new(person.AgentId == Actor ? 3_400 : 10_000),
                 }).ToArray(),
             };
             baseline = WorldRuntimeCodec.Encode(state);

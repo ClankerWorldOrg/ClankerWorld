@@ -19,7 +19,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(3, births.Length);
         var actor = births[^1].ChildId;
         var relative = births[^2].ChildId;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var smith = state.WorldSimulation!.Buildings.SingleOrDefault(building => building.HouseholdId == home &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("blacksmith"));
         var society = state.Society.Society;
@@ -37,7 +37,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 cost => supplied.Lots.Where(lot => lot.OwnerId == home && lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity), StringComparer.Ordinal);
             using var setup = WorldRuntime.Restore(state with
             { Society = state.Society with { Society = society with { Inventory = supplied } } });
-            var origin = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var origin = state.Agents.Single(person => person.AgentId == actor).Position;
             foreach (var tile in state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, origin)))
                 if (setup.PlaceBuilding(smithId, definition.CanonicalId, tile.Position, home).Applied) break;
             smith = Assert.Single(setup.WorldSimulation.Buildings, building => building.InstanceId == smithId);
@@ -64,13 +64,13 @@ public sealed partial class GrownAgentHelperMemoryTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? smith.Position : person.Position,
+                Position = person.AgentId == actor ? smith.Position : person.Position,
                 LastDecisionContext = null,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
-                Project = person.InhabitantId == actor ? null : person.Project,
-                Survival = person.InhabitantId == actor ? new() : person.Survival,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
+                Project = person.AgentId == actor ? null : person.Project,
+                Survival = person.AgentId == actor ? new() : person.Survival,
                 HungerBasisPoints = 10_000,
             }).ToArray(),
         };
@@ -117,7 +117,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
             var memory = Assert.Single(recalled, memory => memory.Id == id);
             Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-            new InhabitantObservation(actor, restored.WorldTick, 0, 1, "sha256:repair-inventory", 0,
+            new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:repair-inventory", 0,
                 [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
         }
     }
@@ -131,12 +131,12 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             request.Validate();
             var observation = request.Observation;
-            var choice = observation.InhabitantId == actor ? observation.Candidates.FirstOrDefault(candidate =>
+            var choice = observation.AgentId == actor ? observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id == "repair_tool" || candidate.Id == "repair_tool:" + lot) : null;
             choice ??= observation.Candidates.FirstOrDefault(candidate => candidate.Id == "safe_idle") ??
                 observation.Candidates.Single(candidate => candidate.Id == "identity_optional");
-            Selected.Enqueue((observation.InhabitantId, choice.Id));
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            Selected.Enqueue((observation.AgentId, choice.Id));
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 request.ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 choice.Id, 1, new Dictionary<string, double> { [choice.Id] = 1 }));
         }

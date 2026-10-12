@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
     private const int ExplorationCooldownTicks = 180;
     private const int ExplorationMemoryLimit = 256;
 
-    private InhabitantState CompleteExplorationGoal(string actor, InhabitantState person)
+    private AgentState CompleteExplorationGoal(string actor, AgentState person)
     {
         if (person.Exploration?.Goal is not { } goal) return person;
         var completed = person with
@@ -37,12 +37,12 @@ public sealed partial class WorldRuntime
                 LastOutingTick = WorldTick,
             },
         };
-        inhabitants[actor] = completed;
+        agents[actor] = completed;
         AppendEvent("exploration_goal_found", $"{actor}:{goal.Kind}:{goal.Target}");
         return completed;
     }
 
-    private void AddExplorationCandidate(List<CognitionCandidate> candidates, string actor, InhabitantState person)
+    private void AddExplorationCandidate(List<CognitionCandidate> candidates, string actor, AgentState person)
     {
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
             return;
@@ -79,7 +79,7 @@ public sealed partial class WorldRuntime
             candidates.Add(new("explore", "Scout nearby terrain and resources out of curiosity; choose when to return.", 75));
     }
 
-    private bool HasWarmthForOuting(InhabitantState person)
+    private bool HasWarmthForOuting(AgentState person)
     {
         if (person.Survival is not { } condition) return true;
         // Keep the starting trial budget, then account for a longer recorded return.
@@ -87,14 +87,14 @@ public sealed partial class WorldRuntime
         var steps = Math.Max(StartingExplorationWarmthBudgetSteps, person.Exploration?.OutingPath.Count ?? 0);
         return map.FootNeighbors(person.Position).Where(map.IsPassable).All(next =>
         {
-            var loss = Math.Max(0, OutdoorExposure(next) - ClothingProtection(person.InhabitantId, next));
+            var loss = Math.Max(0, OutdoorExposure(next) - ClothingProtection(person.AgentId, next));
             var stepTicks = (RoadStepCost(person.Position, next) + 99) / 100 +
                 SettlementIllnessRules.TravelDelayTicks(condition.IllnessBasisPoints);
             return loss == 0 || condition.WarmthBasisPoints - (long)loss * stepTicks * steps * 2 >= UrgentWarmth;
         });
     }
 
-    private void Explore(string actor, InhabitantState person, SettlementExplorationGoal? goal = null, bool replaceGoal = false)
+    private void Explore(string actor, AgentState person, SettlementExplorationGoal? goal = null, bool replaceGoal = false)
     {
         var exploration = person.Exploration ?? new SettlementExploration([], [], WorldTick, false);
         // A return path holds remaining waypoints, not each intermediate detour.
@@ -140,7 +140,7 @@ public sealed partial class WorldRuntime
             return;
         }
 
-        var occupied = inhabitants.Values.Where(item => item.InhabitantId != actor)
+        var occupied = agents.Values.Where(item => item.AgentId != actor)
             .Select(item => item.Position).ToHashSet();
         var pullingCart = AttachedHandcart(actor) is not null;
         var next = map.FootNeighbors(person.Position)
@@ -163,16 +163,16 @@ public sealed partial class WorldRuntime
 
         // Movement still obeys the ordinary travel delay, weather, occupancy,
         // river-wading and mountain rules. Only a completed step joins memory.
-        inhabitants[actor] = person with { Exploration = exploration };
-        MoveToward(actor, inhabitants[actor], next.Value, "explore");
-        var moved = inhabitants[actor];
+        agents[actor] = person with { Exploration = exploration };
+        MoveToward(actor, agents[actor], next.Value, "explore");
+        var moved = agents[actor];
         if (moved.Position == person.Position)
             return;
         var visited = exploration.VisitedTiles.Contains(moved.Position)
             ? exploration.VisitedTiles
             : exploration.VisitedTiles.Append(moved.Position).TakeLast(ExplorationMemoryLimit).ToArray();
         var learned = RecordKnowledgeFact(actor, moved.Position);
-        inhabitants[actor] = moved with
+        agents[actor] = moved with
         {
             Exploration = exploration with
             {
@@ -191,11 +191,11 @@ public sealed partial class WorldRuntime
             AppendEvent("exploration_discovered",
                 $"{actor}:{moved.Position.X},{moved.Position.Y}:{terrain}:{string.Join(',', resourcesHere)}");
         }
-        if (exploration.Goal is { } reachedGoal && ExplorationGoalReached(actor, inhabitants[actor], reachedGoal))
-            CompleteExplorationGoal(actor, inhabitants[actor]);
+        if (exploration.Goal is { } reachedGoal && ExplorationGoalReached(actor, agents[actor], reachedGoal))
+            CompleteExplorationGoal(actor, agents[actor]);
     }
 
-    private void ChooseExplorationReturn(string actor, InhabitantState person)
+    private void ChooseExplorationReturn(string actor, AgentState person)
     {
         if (person.Exploration is not { OutingPath.Count: > 0 } exploration) return;
         if (!exploration.Returning)
@@ -203,11 +203,11 @@ public sealed partial class WorldRuntime
         ReturnFromExploration(actor, person, exploration with { Returning = true });
     }
 
-    private void ReturnFromExploration(string actor, InhabitantState person, SettlementExploration exploration)
+    private void ReturnFromExploration(string actor, AgentState person, SettlementExploration exploration)
     {
         if (exploration.OutingPath.Count == 1 && person.Position == exploration.OutingPath[0])
         {
-            inhabitants[actor] = person with
+            agents[actor] = person with
             {
                 Exploration = exploration with
                 {
@@ -222,13 +222,13 @@ public sealed partial class WorldRuntime
         }
 
         var destination = exploration.OutingPath.Count == 1 ? exploration.OutingPath[0] : exploration.OutingPath[^2];
-        inhabitants[actor] = person with { Exploration = exploration };
-        MoveToward(actor, inhabitants[actor], destination, "explore_return");
-        var moved = inhabitants[actor];
+        agents[actor] = person with { Exploration = exploration };
+        MoveToward(actor, agents[actor], destination, "explore_return");
+        var moved = agents[actor];
         if (moved.Position != person.Position)
             RecordKnowledgeFact(actor, moved.Position);
         if (moved.Position == destination && exploration.OutingPath.Count > 1)
-            inhabitants[actor] = moved with
+            agents[actor] = moved with
             {
                 Exploration = exploration with
                 {
@@ -237,7 +237,7 @@ public sealed partial class WorldRuntime
             };
         else if (moved.MoveWaitTicks >= 30)
         {
-            inhabitants[actor] = moved with
+            agents[actor] = moved with
             {
                 Exploration = exploration with
                 {

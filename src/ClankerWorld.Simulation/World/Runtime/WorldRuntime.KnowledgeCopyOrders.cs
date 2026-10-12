@@ -3,11 +3,11 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private AgentKnowledgeArtifact? KnowledgeCopySourceFor(OwnerQueuedInstruction instruction) =>
-        HeldKnowledgeArtifacts(instruction.TargetInhabitantId).FirstOrDefault(source =>
+        HeldKnowledgeArtifacts(instruction.TargetAgentId).FirstOrDefault(source =>
         {
             var order = instruction.Order!;
             if (source.Kind != order.TargetKnowledgeKind || order.KnowledgeCopySourceArtifactId is { } bound && source.Id != bound) return false;
-            var actor = instruction.TargetInhabitantId;
+            var actor = instruction.TargetAgentId;
             var facts = FactsToWrite(actor, source.Kind, source);
             var recipes = RecipesToWrite(actor, source.Kind, source);
             return facts.Length + recipes.Length > 0 && HasCompleteCopyContents(actor, source, facts, recipes) && !AlreadyWrote(actor, source.Kind, facts, recipes);
@@ -15,7 +15,7 @@ public sealed partial class WorldRuntime
 
     private string KnowledgeCopyBlockedReason(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         var source = HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Kind == order.TargetKnowledgeKind &&
             (order.KnowledgeCopySourceArtifactId is null || order.KnowledgeCopySourceArtifactId == item.Id));

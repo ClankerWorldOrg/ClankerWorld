@@ -5,15 +5,15 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CivicSystem
 {
-    internal static string[] CouncilMembers(ICivicWorld world) => world.Society.Inhabitants.Where(person =>
-            person.Status == SocietyInhabitantStatus.Active && person.HouseholdId is not null &&
+    internal static string[] CouncilMembers(ICivicWorld world) => world.Society.Agents.Where(person =>
+            person.Status == SocietyAgentStatus.Active && person.HouseholdId is not null &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
         .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 
     internal static int ContributionScore(ICivicWorld world, string actor) => world.Society.Memories.Count(memory => memory.SubjectId == actor &&
             (memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) || memory.Id.StartsWith("settlement-trust:", StringComparison.Ordinal) ||
                 memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal))) +
-        (world.Inhabitants.GetValueOrDefault(actor)?.Project?.Stage == "completed" ? 1 : 0);
+        (world.Agents.GetValueOrDefault(actor)?.Project?.Stage == "completed" ? 1 : 0);
 
     internal static int SharedFoodQuantity(ICivicWorld world) => world.Society.Inventory.Lots.Where(lot =>
             world.Society.Households.Any(household => household.Id == lot.OwnerId) && world.IsEdibleFood(lot.ItemKind))
@@ -27,19 +27,19 @@ internal sealed partial class CivicSystem
             return null;
         }
         var quantity = SharedFoodQuantity(world);
-        return council.FoodPolicy == "open" && quantity < world.Inhabitants.Count * 2 ? "essential_first"
-            : council.FoodPolicy == "essential_first" && quantity >= world.Inhabitants.Count * 4 ? "open" : null;
+        return council.FoodPolicy == "open" && quantity < world.Agents.Count * 2 ? "essential_first"
+            : council.FoodPolicy == "essential_first" && quantity >= world.Agents.Count * 4 ? "open" : null;
     }
 
-    internal bool HasCouncilDecision(ICivicWorld world, string actor) => !world.NeedsUrgentWarmth(world.Inhabitants[actor]) && (
+    internal bool HasCouncilDecision(ICivicWorld world, string actor) => !world.NeedsUrgentWarmth(world.Agents[actor]) && (
         council?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
         !ballot.Approvals.Contains(actor, StringComparer.Ordinal) && !ballot.Rejections.Contains(actor, StringComparer.Ordinal) ||
         ProposedFoodPolicy(world, actor) is not null);
 
     internal int SharedFoodCollectionAllowance(ICivicWorld world, string actor) => council?.FoodPolicy != "essential_first" ||
-        world.Inhabitants[actor].HungerBasisPoints < 4_500
+        world.Agents[actor].HungerBasisPoints < 4_500
             ? int.MaxValue
-            : Math.Max(0, SharedFoodQuantity(world) - world.Inhabitants.Count);
+            : Math.Max(0, SharedFoodQuantity(world) - world.Agents.Count);
 
     internal bool MayCollectSharedFood(ICivicWorld world, string actor) => SharedFoodCollectionAllowance(world, actor) > 0;
 
@@ -91,7 +91,7 @@ internal sealed partial class CivicSystem
 
     internal void AddCouncilCandidates(ICivicWorld world, List<CognitionCandidate> candidates, string actor)
     {
-        if (world.NeedsUrgentWarmth(world.Inhabitants[actor]))
+        if (world.NeedsUrgentWarmth(world.Agents[actor]))
         {
             return;
         }
@@ -104,7 +104,7 @@ internal sealed partial class CivicSystem
         if (council?.Ballot is { } ballot && ballot.Electorate.Contains(actor, StringComparer.Ordinal) &&
             !ballot.Approvals.Contains(actor, StringComparer.Ordinal) && !ballot.Rejections.Contains(actor, StringComparer.Ordinal))
         {
-            var helps = ballot.Policy == "essential_first" ? SharedFoodQuantity(world) < world.Inhabitants.Count * 2 : SharedFoodQuantity(world) >= world.Inhabitants.Count * 4;
+            var helps = ballot.Policy == "essential_first" ? SharedFoodQuantity(world) < world.Agents.Count * 2 : SharedFoodQuantity(world) >= world.Agents.Count * 4;
             var description = ballot.Policy == "essential_first" ? "reserve the last shared servings for hungry members" : "restore open shared-food access";
             candidates.Add(new("council_vote_yes", "Vote to " + description + ".", helps ? 13 : 60));
             candidates.Add(new("council_vote_no", "Reject the proposed food policy; retain the existing access rule.", helps ? 60 : 13));
@@ -144,7 +144,7 @@ internal sealed partial class CivicSystem
             return;
         }
         var tick = state.Society.Society.WorldTick;
-        var known = state.Society.Society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var known = state.Society.Society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         if (saved.FoodPolicy is not ("open" or "essential_first") ||
             saved.LastResolutionTick < 0 || saved.LastResolutionTick > tick ||
             saved.StewardId is not null && !known.Contains(saved.StewardId))

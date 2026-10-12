@@ -368,8 +368,8 @@ public sealed partial class WorldRuntime
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The workstation has no free production capacity.");
             var workPosition = placed.Position;
 
-            var worker = society.Checkpoint.Inhabitants.SingleOrDefault(item => item.Id == normalizedWorkerId);
-            if (worker is null || worker.Status != SocietyInhabitantStatus.Active)
+            var worker = society.Checkpoint.Agents.SingleOrDefault(item => item.Id == normalizedWorkerId);
+            if (worker is null || worker.Status != SocietyAgentStatus.Active)
             {
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The production worker is not active.");
             }
@@ -397,7 +397,7 @@ public sealed partial class WorldRuntime
                 return ProductionStartResult.Rejected(normalizedRecipeId,
                     MissingProductionIngredients(recipe, worker.HouseholdId!, placed!.InstanceId));
 
-            if (!inhabitants.TryGetValue(normalizedWorkerId, out var physical) || physical.Position != workPosition)
+            if (!agents.TryGetValue(normalizedWorkerId, out var physical) || physical.Position != workPosition)
             {
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The worker must be standing at the build site.");
             }
@@ -479,7 +479,7 @@ public sealed partial class WorldRuntime
                     packageRecipes.Contains(request.RecipeId)))
                 throw new InvalidOperationException("Content referenced by active tool requests requires an explicit migration before removal.");
             var remainingSimulation = WorldContentSimulationRules.RemovePackage(worldSimulation, manifest.PackageDigest);
-            if (inhabitants.Values.Any(person => person.Project is { } project &&
+            if (agents.Values.Any(person => person.Project is { } project &&
                 (project.CandidateId.StartsWith($"build:building:{manifest.PackageDigest}/", StringComparison.Ordinal) ||
                  project.CandidateId.StartsWith($"build:recipe:{manifest.PackageDigest}/", StringComparison.Ordinal))))
             {
@@ -487,7 +487,7 @@ public sealed partial class WorldRuntime
             }
             var remainingContent = ContentDefinitionApplicator.RemovePackage(worldContent, manifest.PackageDigest);
             var completed = completedInstructionIds.ToArray();
-            var people = society.Checkpoint.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+            var people = society.Checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
             // Cancelled orders remain checkpoint history and still need their original content targets.
             if (instructionsByIdempotency.Values.Any(instruction =>
                 instruction.Order is { Action: "produce_item" or "deliver_stock" or "construct_building" or "expand_building" } order &&

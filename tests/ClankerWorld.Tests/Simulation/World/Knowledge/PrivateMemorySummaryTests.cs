@@ -14,7 +14,7 @@ public sealed class PrivateMemorySummaryTests
     public async Task AcceptedUnicodeExtractsKeepTheirSourcesAndReloadExactly(int prefixLength)
     {
         var state = await ArchivedState();
-        var owner = state.Inhabitants[0].InhabitantId;
+        var owner = state.Agents[0].AgentId;
         var original = state.Society.Society.ArchivedMemories.Select(item => item.Memory.OwnerId == owner
             ? item with { Memory = item.Memory with { Summary = new string('a', prefixLength) + "😀" + new string('b', 40) } }
             : item).ToArray();
@@ -59,8 +59,8 @@ public sealed class PrivateMemorySummaryTests
         Assert.Equal(owner, summary.OwnerId);
         Assert.InRange(summary.SubjectId.Length, 1, 128);
         Assert.All(summary.SummarySources!, source => Assert.Equal(summary.SubjectId, source.SubjectId));
-        var observation = new InhabitantObservation(owner, 4, 0, 1, "sha256:long-summary", 10_000, candidates) { RetrievedMemories = memories };
-        var scheduler = new SocietyCognitionScheduler(society.Inhabitants);
+        var observation = new AgentObservation(owner, 4, 0, 1, "sha256:long-summary", 10_000, candidates) { RetrievedMemories = memories };
+        var scheduler = new SocietyCognitionScheduler(society.Agents);
         Assert.True(scheduler.Enqueue(new("long-summary-recall", owner, 1, 4, ["memory-recall"], observation)));
         scheduler.Validate();
     }
@@ -100,9 +100,9 @@ public sealed class PrivateMemorySummaryTests
     public async Task AcceptedHelperSummarizesOnlyOwnArchiveAndRecallPreservesEvidenceAcrossReplay(DecisionProviderKind kind)
     {
         var state = await ArchivedState();
-        var owner = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
-        var observed = new List<InhabitantObservation>();
+        var owner = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
+        var observed = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(state with { JevEnabled = true, RoutineHelper = new("jev", "jev-1.13.0") },
             id => id == owner ? new SummaryProvider(kind, observed) : new SummaryProvider(DecisionProviderKind.Deterministic, observed));
         for (var tick = 0; tick < 8 && world.Society.MemorySummaries.Count == 0; tick++)
@@ -116,7 +116,7 @@ public sealed class PrivateMemorySummaryTests
             .Sum(item => item.Memory.Summary.Length) + state.Society.Society.ArchivedBeliefs.Sum(item => item.Belief.Statement.Length));
         Assert.Equal(state.Society.Society.ArchivedMemories, world.Society.ArchivedMemories);
         Assert.Equal(state.Society.Society.ArchivedBeliefs, world.Society.ArchivedBeliefs);
-        Assert.All(observed.Where(item => item.InhabitantId == other), observation => Assert.Empty(observation.MemorySummaryOptions ?? []));
+        Assert.All(observed.Where(item => item.AgentId == other), observation => Assert.Empty(observation.MemorySummaryOptions ?? []));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Detail.Contains("secret", StringComparison.Ordinal));
         Assert.Contains(world.Society.Memories, memory => memory.Id == "permanent");
 
@@ -124,7 +124,7 @@ public sealed class PrivateMemorySummaryTests
         var loadedState = WorldRuntimeCodec.Decode(bytes);
         using var loaded = WorldRuntime.Restore(loadedState);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(loaded.ExportState()));
-        var recall = new List<InhabitantObservation>();
+        var recall = new List<AgentObservation>();
         using var replay = WorldRuntime.Restore(loadedState, _ => new SummaryProvider(DecisionProviderKind.Deterministic, recall));
         using var paired = WorldRuntime.Restore(loadedState, _ => new SummaryProvider(DecisionProviderKind.Deterministic));
         replay.Pause(); paired.Pause();
@@ -132,13 +132,13 @@ public sealed class PrivateMemorySummaryTests
         replay.Resume(); paired.Resume();
         replay.SubmitInstruction(new("summary-recall", "owner:test", owner, OwnerInstructionKind.Suggestive, "Remember the familiar path."));
         paired.SubmitInstruction(new("summary-recall", "owner:test", owner, OwnerInstructionKind.Suggestive, "Remember the familiar path."));
-        for (var tick = 0; tick < 8 && !recall.Any(item => item.InhabitantId == owner); tick++)
+        for (var tick = 0; tick < 8 && !recall.Any(item => item.AgentId == owner); tick++)
         {
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.True((await paired.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(replay.ExportState()), WorldRuntimeCodec.Encode(paired.ExportState()));
         }
-        var memory = Assert.Single(recall.First(item => item.InhabitantId == owner).RetrievedMemories!, item => item.Kind == "summary");
+        var memory = Assert.Single(recall.First(item => item.AgentId == owner).RetrievedMemories!, item => item.Kind == "summary");
         var rumor = Assert.Single(memory.SummarySources!, source => source.Kind == "belief");
         Assert.Equal(("hearsay", 4_200, other), (rumor.Provenance, rumor.ConfidenceBasisPoints, rumor.SourceAgentId));
         Assert.Equal(summary.Text, memory.Summary);
@@ -151,9 +151,9 @@ public sealed class PrivateMemorySummaryTests
         Assert.Equal(correctedBytes, WorldRuntimeCodec.Encode(corrected.ExportState()));
         recall.Clear();
         replay.SubmitInstruction(new("summary-correction-recall", "owner:test", owner, OwnerInstructionKind.Suggestive, "Remember the path and its correction."));
-        for (var tick = 0; tick < 8 && !recall.Any(item => item.InhabitantId == owner); tick++)
+        for (var tick = 0; tick < 8 && !recall.Any(item => item.AgentId == owner); tick++)
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
-        var correctedMemory = Assert.Single(recall.First(item => item.InhabitantId == owner).RetrievedMemories!, item => item.Kind == "summary");
+        var correctedMemory = Assert.Single(recall.First(item => item.AgentId == owner).RetrievedMemories!, item => item.Kind == "summary");
         Assert.True(Assert.Single(correctedMemory.SummarySources!, source => source.Id == rumor.Id).IsCorrected);
         Assert.Equal(summary.Text, correctedMemory.Summary);
     }
@@ -162,7 +162,7 @@ public sealed class PrivateMemorySummaryTests
     public async Task HelperOffDiscardsHeldSummaryAndRefusedTickPreservesCheckpoint()
     {
         var state = await ArchivedState();
-        var owner = state.Inhabitants[0].InhabitantId;
+        var owner = state.Agents[0].AgentId;
         var held = new HeldSummaryProvider();
         using var world = WorldRuntime.Restore(state with { JevEnabled = true, RoutineHelper = new("jev", "jev-1.13.0") },
             id => id == owner ? held : new SummaryProvider(DecisionProviderKind.Deterministic));
@@ -190,8 +190,8 @@ public sealed class PrivateMemorySummaryTests
     public async Task OptionalOrUnusableHelperCannotWriteSummaryOrChangeTheArchive(string mode)
     {
         var state = await ArchivedState();
-        var owner = state.Inhabitants[0].InhabitantId;
-        var observed = new List<InhabitantObservation>();
+        var owner = state.Agents[0].AgentId;
+        var observed = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(state with { JevEnabled = mode != "off", RoutineHelper = mode == "off" ? RoutineHelperSettings.Off : new("jev", "jev-1.13.0") },
             id => new SummaryProvider(mode == "off" || id != owner ? DecisionProviderKind.Deterministic : DecisionProviderKind.Jev, observed, mode));
         for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -211,7 +211,7 @@ public sealed class PrivateMemorySummaryTests
     public async Task StrictLoadingRejectsAlteredSummarySourcesWithoutChangingOriginalBytes(string fault)
     {
         var state = await ArchivedState();
-        var owner = state.Inhabitants[0].InhabitantId;
+        var owner = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state with { JevEnabled = true, RoutineHelper = new("jev", "jev-1.13.0") },
             id => new SummaryProvider(id == owner ? DecisionProviderKind.Jev : DecisionProviderKind.Deterministic));
         for (var tick = 0; tick < 8 && world.Society.MemorySummaries.Count == 0; tick++) await world.AdvanceOneTickAsync();
@@ -223,7 +223,7 @@ public sealed class PrivateMemorySummaryTests
         switch (fault)
         {
             case "missing": society.AsObject().Remove("memorySummaries"); break;
-            case "foreign": summary["ownerId"] = state.Inhabitants[1].InhabitantId; break;
+            case "foreign": summary["ownerId"] = state.Agents[1].AgentId; break;
             case "text": summary["text"] = "A made-up authoritative fact."; break;
             case "tick": summary["createdTick"] = world.WorldTick + 1; break;
             case "duplicate": society["memorySummaries"]!.AsArray().Add(summary.DeepClone()); break;
@@ -237,15 +237,15 @@ public sealed class PrivateMemorySummaryTests
     {
         using var seed = new WorldRuntime("summary-private");
         var state = seed.ExportState();
-        var owner = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var owner = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var config = state.Society.Society.Config with { TicksPerWorldDay = 2, BaseNaturalMortalityBasisPoints = 0 };
         var society = state.Society.Society with
         {
             Config = config,
             WorldTick = 5,
             Inventory = state.Society.Society.Inventory with { WorldTick = 5 },
-            Inhabitants = state.Society.Society.Inhabitants.Select(item => item with
+            Agents = state.Society.Society.Agents.Select(item => item with
             {
                 BirthTick = item.BirthTick * 2 / state.Society.Society.Config.TicksPerWorldDay,
                 BirthLifeTick = item.BirthLifeTick * 2 / state.Society.Society.Config.TicksPerWorldDay,
@@ -267,13 +267,13 @@ public sealed class PrivateMemorySummaryTests
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = society },
             WorldSystems = systems,
-            Inhabitants = state.Inhabitants.Select(item => item with { LastDecisionContext = null, HungerBasisPoints = 10_000 }).ToArray(),
+            Agents = state.Agents.Select(item => item with { LastDecisionContext = null, HungerBasisPoints = 10_000 }).ToArray(),
         }, _ => new SummaryProvider(DecisionProviderKind.Deterministic));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(5, world.Society.ArchivedMemories.Count);
         return world.ExportState() with
         {
-            Inhabitants = world.ExportState().Inhabitants.Select(item => item with { LastDecisionContext = null }).ToArray(),
+            Agents = world.ExportState().Agents.Select(item => item with { LastDecisionContext = null }).ToArray(),
         };
     }
 
@@ -281,7 +281,7 @@ public sealed class PrivateMemorySummaryTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;
-        public TaskCompletionSource<InhabitantObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -289,13 +289,13 @@ public sealed class PrivateMemorySummaryTests
             Started.TrySetResult(request.Observation);
             await Release.Task;
             Returned.TrySetResult(true);
-            return new(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+            return new(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, "safe_idle", 1,
                 new Dictionary<string, double> { ["safe_idle"] = 1 }, MemorySummaryChoice: request.Observation.MemorySummaryOptions![0].Choice);
         }
     }
 
-    private sealed class SummaryProvider(DecisionProviderKind kind, List<InhabitantObservation>? observations = null, string mode = "accepted") : IDecisionProvider
+    private sealed class SummaryProvider(DecisionProviderKind kind, List<AgentObservation>? observations = null, string mode = "accepted") : IDecisionProvider
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
@@ -305,7 +305,7 @@ public sealed class PrivateMemorySummaryTests
             if (mode == "failure" && kind == DecisionProviderKind.Jev) throw new InvalidOperationException("Helper unavailable.");
             const string selected = "safe_idle";
             var choice = mode == "unrequested" ? "unknown" : mode == "accepted" ? request.Observation.MemorySummaryOptions is { Count: > 0 } options ? options[0].Choice : null : null;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
                 new Dictionary<string, double> { [selected] = 1 }, MemorySummaryChoice: choice));
         }

@@ -22,7 +22,7 @@ public sealed partial class TownGovernmentRuntimeTests
         {
             Towns = removeFoundingOffice ? state.Towns!.Select(town => town with
             { Government = TownGovernmentTestSetup.WithoutOffice(town.Id, town.ResidentIds.ToArray(), Day) }).ToArray() : state.Towns,
-            Inhabitants = state.Inhabitants.Select(p => p with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = state.Agents.Select(p => p with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
         }, providers);
     }
 
@@ -131,7 +131,7 @@ public sealed partial class TownGovernmentRuntimeTests
         const string traveler = "founder:00000000000000000000000000000002";
         using var world = WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(p => p.InhabitantId == traveler ? p with { Position = away } : p).ToArray(),
+            Agents = state.Agents.Select(p => p.AgentId == traveler ? p with { Position = away } : p).ToArray(),
         }, _ => provider);
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -153,8 +153,8 @@ public sealed partial class TownGovernmentRuntimeTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var o = request.Observation;
-            foreach (var item in o.Candidates) offered.GetOrAdd(o.InhabitantId, _ => new()).Enqueue(item.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            foreach (var item in o.Candidates) offered.GetOrAdd(o.AgentId, _ => new()).Enqueue(item.Id);
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, "safe_idle", 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == "safe_idle" ? 1d : 0d, StringComparer.Ordinal)));
         }
@@ -174,11 +174,11 @@ public sealed partial class TownGovernmentRuntimeTests
             var choice = o.Candidates.FirstOrDefault(c => c.Id.Contains("|read|", StringComparison.Ordinal)) ??
                 o.Candidates.FirstOrDefault(c => c.Id.Contains("|government_yes|", StringComparison.Ordinal)) ??
                 o.Candidates.FirstOrDefault(c => c.Id.Contains("|mayor_vote|", StringComparison.Ordinal) && c.Id.EndsWith("|" + Author, StringComparison.Ordinal));
-            if (choice is null && o.InhabitantId == Author)
+            if (choice is null && o.AgentId == Author)
                 choice = o.Candidates.FirstOrDefault(c => c.Id.Contains("|mayor_register|land|", StringComparison.Ordinal)) ??
                     o.Candidates.FirstOrDefault(c => c.Id.Contains("|government_propose|council+mayor|", StringComparison.Ordinal));
             choice ??= o.Candidates.Single(c => c.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, choice.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

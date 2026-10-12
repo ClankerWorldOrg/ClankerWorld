@@ -190,7 +190,7 @@ public partial class Main
         if (field is not null)
         {
             var worker = field.WorkerId is { } workerId
-                ? snapshot.Inhabitants.FirstOrDefault(person => person.Id == workerId)?.DisplayName ?? workerId
+                ? snapshot.Agents.FirstOrDefault(person => person.Id == workerId)?.DisplayName ?? workerId
                 : null;
             AddTileThing(PixelIcons.Texture(PixelGlyph.Leaf, palette.Ink, palette.Name == "dark" ? new Color("8DBA6A") : palette.Primary, 1),
                 field.Crop is null ? $"Field · {Pretty(field.Stage).ToLowerInvariant()}" : $"Field · {Pretty(field.Stage).ToLowerInvariant()} {Pretty(field.Crop).ToLowerInvariant()}",

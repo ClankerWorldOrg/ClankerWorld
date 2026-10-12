@@ -58,7 +58,7 @@ internal static partial class OwnerEndpoints
                         var receipt = privateRuntime.SubmitInstruction(new OwnerInstructionRequest(
                             request.Action.IdempotencyKey,
                             $"owner-device:{authorization.Value!.DeviceId}",
-                            request.Action.TargetInhabitantId,
+                            request.Action.TargetAgentId,
                             kind,
                         request.Action.Text,
                         request.Action.Queue));
@@ -92,7 +92,7 @@ internal static partial class OwnerEndpoints
                 var receipt = runtime.SubmitInstruction(new OwnerInstructionRequest(
                     request.Action.IdempotencyKey,
                     $"owner-device:{authorization.Value!.DeviceId}",
-                    request.Action.TargetInhabitantId,
+                    request.Action.TargetAgentId,
                     kind,
                     request.Action.Text,
                     request.Action.Queue));
@@ -155,7 +155,7 @@ internal static partial class OwnerEndpoints
                         request.Action.IdempotencyKey,
                         $"owner-device:{authorization.Value!.DeviceId}",
                         request.Action.WorldId,
-                        request.Action.TargetInhabitantId,
+                        request.Action.TargetAgentId,
                         request.Action.OrderId));
                     privateStateFile.Save(privateRuntime);
                     return Results.Ok(receipt);

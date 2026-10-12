@@ -22,14 +22,14 @@ public sealed partial class WorldRuntime
             return null;
         if (lot.OwnerId == actor)
             return PersonalGoodsAwaitingCollection(actor).Any(item => item.Id == lot.Id) ? lot : null;
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         return householdId is not null && lot.OwnerId == householdId &&
             (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
                 building.InstanceId == lot.StorageBuildingId && building.HouseholdId == householdId)) ? lot : null;
     }
 
     private void AddKnowledgeStorageCandidates(List<CognitionCandidate> candidates,
-        string actor, InhabitantState person)
+        string actor, AgentState person)
     {
         if (!AdultResident(actor)) return;
         if (FreeCarryCapacity(actor) > 0)
@@ -49,7 +49,7 @@ public sealed partial class WorldRuntime
                     $"Collect {artifact.Title} to carry, read, copy or trade it.", 190));
             }
         }
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             DestinationRoom(house.InstanceId) < 1 ||
             person.Position != house.Position && FindUnoccupiedRoute(actor, person.Position, house.Position, 0).Count == 0)
@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
                 $"Store {artifact.Title} in your House while keeping personal ownership.", 190));
     }
 
-    private bool ApplyKnowledgeStorageCandidate(string actor, InhabitantState person, string candidateId)
+    private bool ApplyKnowledgeStorageCandidate(string actor, AgentState person, string candidateId)
     {
         var collect = candidateId.StartsWith(KnowledgeCollectPrefix, StringComparison.Ordinal);
         var store = candidateId.StartsWith(KnowledgeStorePrefix, StringComparison.Ordinal);
@@ -88,7 +88,7 @@ public sealed partial class WorldRuntime
             return true;
         }
         if (!HeldKnowledgeArtifacts(actor).Any(item => item.Id == artifact.Id) ||
-            society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+            society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             DestinationRoom(house.InstanceId) < 1)
             return true;

@@ -14,7 +14,7 @@ public sealed class WorldMarriageOrderTests
     {
         using var world = NormalPathWorld.CreateGenerated("marriage-order-audit", id => new PersonalProvider(id));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var people = world.Inhabitants.Select(person => person.InhabitantId).ToArray();
+        var people = world.Agents.Select(person => person.AgentId).ToArray();
         Assert.True(world.RenameAgent(people[0], "Aster Ash"));
         Assert.True(world.RenameAgent(people[1], "Rowan Reed"));
         var state = SettlementWeatherTestFixture.WithWeather(world.ExportState(), WeatherKind.Clear);
@@ -29,16 +29,16 @@ public sealed class WorldMarriageOrderTests
         var partnership = source.Relationships.Single(item => item.Type == SocietyRelationshipType.Partnership &&
             item.State == SocietyRelationshipState.Accepted && (item.ProposerId == people[0] || item.TargetId == people[0]));
         Assert.Equal(people[1], partnership.ProposerId == people[0] ? partnership.TargetId : partnership.ProposerId);
-        var site = state.Map.FootNeighbors(state.Inhabitants[0].Position).First(point => state.Map.IsPassable(point) &&
-            state.Inhabitants.All(person => person.Position != point));
+        var site = state.Map.FootNeighbors(state.Agents[0].Position).First(point => state.Map.IsPassable(point) &&
+            state.Agents.All(person => person.Position != point));
         return WorldRuntimeCodec.Encode(state with
         {
             Society = state.Society with { Society = source },
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == people[1] ? site : person.Position,
+                Position = person.AgentId == people[1] ? site : person.Position,
                 HungerBasisPoints = 9_500,
                 Survival = new(),
                 LastDecisionContext = null,
@@ -52,9 +52,9 @@ public sealed class WorldMarriageOrderTests
     public async Task MarriageOrderUsesBothPersonalModelsAndWaitsForTheActualSurnameCompletion()
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var partner = state.Inhabitants[1].InhabitantId;
-        var providers = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => new PersonalProvider(person.InhabitantId));
+        var actor = state.Agents[0].AgentId;
+        var partner = state.Agents[1].AgentId;
+        var providers = state.Agents.ToDictionary(person => person.AgentId, person => new PersonalProvider(person.AgentId));
         using var world = WorldRuntime.Restore(state, id => providers[id]);
         var receipt = world.SubmitInstruction(new("marriage", "owner:test", actor, OwnerInstructionKind.MustDo, "Propose marriage"));
         var submitted = Assert.Single(world.ExportState().Instructions!).Order!;
@@ -64,8 +64,8 @@ public sealed class WorldMarriageOrderTests
         var accepted = Assert.Single(world.Marriages);
         Assert.Null(accepted.CompletedTick);
         Assert.Equal(0, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits);
-        Assert.Equal("Aster Ash", world.Society.GetInhabitant(actor).Name);
-        Assert.Equal("Rowan Reed", world.Society.GetInhabitant(partner).Name);
+        Assert.Equal("Aster Ash", world.Society.GetAgent(actor).Name);
+        Assert.Equal("Rowan Reed", world.Society.GetAgent(partner).Name);
         await Until(world, () => world.ExportState().CompletedInstructionIds!.Contains(receipt.InstructionId));
         var completed = Assert.Single(world.Marriages);
         Assert.NotNull(completed.CompletedTick);
@@ -80,8 +80,8 @@ public sealed class WorldMarriageOrderTests
         Assert.All(providers[actor].Turns.Where(turn => turn.Purpose == AgentConversationPurpose.SurnameChoice), turn => Assert.Null(turn.RequestedActivity));
         Assert.Single(world.ExportState().Events, item => item.Kind == "marriage_accepted");
         Assert.Single(world.ExportState().Events, item => item.Kind == "marriage_surname_agreed");
-        Assert.Equal(state.Society.Society.GetInhabitant(actor).HouseholdId, world.Society.GetInhabitant(actor).HouseholdId);
-        Assert.Equal(state.Society.Society.GetInhabitant(partner).HouseholdId, world.Society.GetInhabitant(partner).HouseholdId);
+        Assert.Equal(state.Society.Society.GetAgent(actor).HouseholdId, world.Society.GetAgent(actor).HouseholdId);
+        Assert.Equal(state.Society.Society.GetAgent(partner).HouseholdId, world.Society.GetAgent(partner).HouseholdId);
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), id => providers[id]);
         await Tick(loaded);
         Assert.Single(loaded.Marriages);
@@ -92,15 +92,15 @@ public sealed class WorldMarriageOrderTests
     public async Task MarriageApproachesTheBoundPartnerAndReportsChangedEligibility()
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var partner = state.Inhabitants[1].InhabitantId;
-        var origin = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var partner = state.Agents[1].AgentId;
+        var origin = state.Agents[0].Position;
         var destination = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
             state.Map.FootDistance(origin, point) > 2 && state.Map.IsReachableOnFoot(origin, point) &&
-            state.Inhabitants.All(person => person.Position != point)).OrderBy(point => state.Map.FootDistance(origin, point)).First();
+            state.Agents.All(person => person.Position != point)).OrderBy(point => state.Map.FootDistance(origin, point)).First();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == partner
+            Agents = state.Agents.Select(person => person.AgentId == partner
                 ? person with { Position = destination } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(state, id => new PersonalProvider(id));
@@ -108,8 +108,8 @@ public sealed class WorldMarriageOrderTests
         await Tick(world);
         Assert.Empty(world.Conversations);
         await Until(world, () => world.Conversations.Any(item => item.Turns.Count > 0));
-        Assert.True(world.ExportState().Map.FootDistance(world.Inhabitants.Single(person => person.InhabitantId == actor).Position,
-            world.Inhabitants.Single(person => person.InhabitantId == partner).Position) <= 1);
+        Assert.True(world.ExportState().Map.FootDistance(world.Agents.Single(person => person.AgentId == actor).Position,
+            world.Agents.Single(person => person.AgentId == partner).Position) <= 1);
         var conversationId = Assert.Single(world.Conversations).Id;
         Assert.True(world.RenameAgent(actor, "Aster"));
         Assert.False(AgentMarriageRules.CanPropose(world.Society, world.Marriages, actor, partner));
@@ -145,9 +145,9 @@ public sealed class WorldMarriageOrderTests
     public async Task RefusalAndNoProposalNeverClaimMarriage(string choice, string outcome)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var partner = state.Inhabitants[1].InhabitantId;
-        var providers = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => new PersonalProvider(person.InhabitantId));
+        var actor = state.Agents[0].AgentId;
+        var partner = state.Agents[1].AgentId;
+        var providers = state.Agents.ToDictionary(person => person.AgentId, person => new PersonalProvider(person.AgentId));
         providers[partner].DeclineInvitation = choice == "invitation";
         providers[actor].DeclineWrapUp = choice == "actor_wrapup";
         providers[partner].DeclineWrapUp = choice == "partner_wrapup";
@@ -158,8 +158,8 @@ public sealed class WorldMarriageOrderTests
         var order = Assert.Single(world.ExportState().Instructions!).Order!;
         Assert.Equal((outcome, 1), (order.TalkOutcome, order.CompletedUnits));
         Assert.Empty(world.Marriages);
-        Assert.Equal("Aster Ash", world.Society.GetInhabitant(actor).Name);
-        Assert.Equal("Rowan Reed", world.Society.GetInhabitant(partner).Name);
+        Assert.Equal("Aster Ash", world.Society.GetAgent(actor).Name);
+        Assert.Equal("Rowan Reed", world.Society.GetAgent(partner).Name);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "marriage_accepted");
         Assert.All(providers[partner].Turns, turn => Assert.Null(turn.RequestedActivity));
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), id => providers[id]);
@@ -173,9 +173,9 @@ public sealed class WorldMarriageOrderTests
     public async Task ReloadedProposalAndSurnameNeedBothFreshResumeChoices(bool surname)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var partner = state.Inhabitants[1].InhabitantId;
-        var providers = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => new PersonalProvider(person.InhabitantId));
+        var actor = state.Agents[0].AgentId;
+        var partner = state.Agents[1].AgentId;
+        var providers = state.Agents.ToDictionary(person => person.AgentId, person => new PersonalProvider(person.AgentId));
         using var world = WorldRuntime.Restore(state, id => providers[id]);
         var receipt = world.SubmitInstruction(new("resume-marriage", "owner:test", actor, OwnerInstructionKind.MustDo, "Propose marriage"));
         await Until(world, () => surname ? world.Marriages.Count == 1 : world.Conversations.Any(item => item.Turns.Count > 0));
@@ -210,8 +210,8 @@ public sealed class WorldMarriageOrderTests
     public async Task CancelOrReplaceDoesNotInventOrUndoConsent(bool replace, bool accepted)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var providers = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => new PersonalProvider(person.InhabitantId));
+        var actor = state.Agents[0].AgentId;
+        var providers = state.Agents.ToDictionary(person => person.AgentId, person => new PersonalProvider(person.AgentId));
         using var world = WorldRuntime.Restore(state, id => providers[id]);
         var receipt = world.SubmitInstruction(new("cancel-marriage", "owner:test", actor, OwnerInstructionKind.MustDo, "Propose marriage"));
         if (accepted) await Until(world, () => world.Marriages.Count == 1);
@@ -234,8 +234,8 @@ public sealed class WorldMarriageOrderTests
     public async Task MissingOrChangedPartnerBlocksWithoutSelectingAnotherPerson(bool alreadyBound)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var partner = state.Inhabitants[1].InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var partner = state.Agents[1].AgentId;
         var relationship = state.Society.Society.Relationships.Single(item => item.Type == SocietyRelationshipType.Partnership && item.State == SocietyRelationshipState.Accepted &&
             (item.ProposerId == actor || item.TargetId == actor));
         using var original = WorldRuntime.Restore(state, id => new PersonalProvider(id));
@@ -264,7 +264,7 @@ public sealed class WorldMarriageOrderTests
     public async Task MarriageOrderReplaysAndRejectsForgedBindingsAndAtomicTicks()
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, id => new PersonalProvider(id));
         world.SubmitInstruction(new("marriage-replay", "owner:test", actor, OwnerInstructionKind.MustDo, "Propose marriage"));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), id => new PersonalProvider(id));
@@ -282,7 +282,7 @@ public sealed class WorldMarriageOrderTests
             if (instruction.Order!.TalkConversationId is not null)
             {
                 Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(current with
-                { Instructions = [instruction with { Order = instruction.Order with { TargetAgentId = current.Inhabitants[2].InhabitantId } }] }));
+                { Instructions = [instruction with { Order = instruction.Order with { TargetAgentId = current.Agents[2].AgentId } }] }));
                 if (instruction.Order.CompletedUnits == 0)
                     Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(current with { Conversations = [] }));
             }
@@ -308,7 +308,7 @@ public sealed class WorldMarriageOrderTests
         Assert.Equal(finished.Order, Assert.Single(trimmedReload.ExportState().Instructions!).Order);
         var changedOutcome = finished with { Order = finished.Order! with { TalkOutcome = "proposal_declined" } };
         var forgedReceipt = "marriage-order:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"{changedOutcome.InstructionId}|{changedOutcome.TargetInhabitantId}|{changedOutcome.Order!.TargetAgentId}|{changedOutcome.Order.TalkConversationId}|{changedOutcome.Order.TalkOutcome}")));
+            $"{changedOutcome.InstructionId}|{changedOutcome.TargetAgentId}|{changedOutcome.Order!.TargetAgentId}|{changedOutcome.Order.TalkConversationId}|{changedOutcome.Order.TalkOutcome}")));
         changedOutcome = changedOutcome with { Order = changedOutcome.Order! with { LastEffectId = forgedReceipt } };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(trimmed with { Instructions = [changedOutcome] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(trimmed with { Marriages = [] }));
@@ -354,7 +354,7 @@ public sealed class WorldMarriageOrderTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();
-            Assert.Equal(owner, request.Observation.InhabitantId);
+            Assert.Equal(owner, request.Observation.AgentId);
             var observation = request.Observation;
             var candidate = observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(DeclineWrapUp ? "conversation_wrapup_decline:" : "conversation_wrapup_accept:", StringComparison.Ordinal) ||
                 ResumeAllowed && item.Id.StartsWith("conversation_resume:", StringComparison.Ordinal) ||

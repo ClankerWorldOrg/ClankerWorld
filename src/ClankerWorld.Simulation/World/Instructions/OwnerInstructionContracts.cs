@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>
-/// The two owner-to-inhabitant instruction strengths the game
+/// The two owner-to-agent instruction strengths the game
 /// supports. The request never carries an instruction ID: that ID is minted by
 /// the authoritative runtime after validation.
 /// </summary>
@@ -31,7 +31,7 @@ public enum OwnerInstructionState
 public sealed record OwnerInstructionRequest(
     string IdempotencyKey,
     string IssuerId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     OwnerInstructionKind Kind,
     string Text,
     bool Queue = false);
@@ -130,7 +130,7 @@ public sealed record OwnerOrderCancelRequest(
     string IdempotencyKey,
     string IssuerId,
     string WorldId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId);
 
 public sealed record OwnerOrderControlReceipt(
@@ -144,7 +144,7 @@ public sealed record OwnerOrderCancellation(
     string IdempotencyKey,
     string IssuerId,
     string WorldId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId,
     OwnerOrderControlReceipt Receipt);
 
@@ -155,7 +155,7 @@ public sealed record OwnerQueuedInstruction(
     string InstructionId,
     string IdempotencyKey,
     string IssuerId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     OwnerInstructionKind Kind,
     string Text,
     long SubmittedTick,

@@ -314,7 +314,7 @@ public sealed partial class TownLandTransferRuntimeTests
         for (var tick = 0; tick < 4; tick++)
         {
             var step = await world.AdvanceOneTickAsync();
-            admitted |= step.Decisions.Any(decision => decision.InhabitantId == Filer && decision.Admission.Accepted &&
+            admitted |= step.Decisions.Any(decision => decision.AgentId == Filer && decision.Admission.Accepted &&
                 !decision.Admission.FellBack && decision.Admission.Intention is { Provider: DecisionProviderKind.Jev } intention &&
                 intention.CandidateId.Contains(sell ? "|land_transfer_sell|" : "|land_transfer_propose|", StringComparison.Ordinal));
         }
@@ -327,8 +327,8 @@ public sealed partial class TownLandTransferRuntimeTests
 
     private static void Configure(TransferProvider provider, WorldRuntime world)
     {
-        provider.SourceHouseholdId = world.Society.GetInhabitant(Filer).HouseholdId!;
-        provider.TargetHouseholdId = world.Society.GetInhabitant(Beneficiary).HouseholdId!;
+        provider.SourceHouseholdId = world.Society.GetAgent(Filer).HouseholdId!;
+        provider.TargetHouseholdId = world.Society.GetAgent(Beneficiary).HouseholdId!;
         provider.Plot = world.HouseholdLandUseRights.Where(right => right.HouseholdId == provider.SourceHouseholdId)
             .OrderBy(right => right.Id, StringComparer.Ordinal).First().Tiles.ToArray();
     }
@@ -343,13 +343,13 @@ public sealed partial class TownLandTransferRuntimeTests
         if (generatedClock)
             return WorldRuntime.Restore(state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray()
+                Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray()
             }, _ => provider);
         // Existing generated title, plots, founders, buildings and stock remain actual.
         // The same scoped public-board proximity/comfort and shorter day fixture as the civic runtime tests is used.
         return WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
             WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
             { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
             Society = state.Society with
@@ -357,7 +357,7 @@ public sealed partial class TownLandTransferRuntimeTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     { BirthTick = person.BirthTick / oldDay * Day, BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
                 }
             }
@@ -390,7 +390,7 @@ public sealed partial class TownLandTransferRuntimeTests
         Titles = state.TownLandTitles!.OrderBy(title => title.Id, StringComparer.Ordinal),
         Buildings = state.WorldSimulation!.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal),
         state.Fields,
-        Membership = state.Society.Society.Inhabitants.OrderBy(person => person.Id, StringComparer.Ordinal).Select(person => new { person.Id, person.HouseholdId }),
+        Membership = state.Society.Society.Agents.OrderBy(person => person.Id, StringComparer.Ordinal).Select(person => new { person.Id, person.HouseholdId }),
         TownMembers = state.Towns!.OrderBy(town => town.Id, StringComparer.Ordinal).Select(town => new { town.Id, town.ResidentIds }),
         Lots = state.Society.Society.Inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).Select(lot => new
         { lot.Id, lot.ItemKind, lot.OwnerId, lot.Quantity, lot.ProvenanceLotId, lot.StorageBuildingId, lot.DeliveryBuildingId, lot.ContainerLotId, lot.GroundPosition, lot.CarrierId })
@@ -448,19 +448,19 @@ public sealed partial class TownLandTransferRuntimeTests
             var observation = request.Observation;
             var candidates = observation.Candidates;
             CognitionCandidate? Pick(string action) => candidates.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
-            var proposal = AllowPropose && !Proposed && observation.InhabitantId == Filer
+            var proposal = AllowPropose && !Proposed && observation.AgentId == Filer
                 ? Pick(Sell ? "land_transfer_sell" : "land_transfer_propose") : null;
             var choice = Kind == DecisionProviderKind.Jev ? proposal : null;
             choice ??= Pick("read") ?? Pick("land_transfer_read") ??
-                (Sell && PaySales && Mode is null ? (PaymentActor is null || observation.InhabitantId == PaymentActor
+                (Sell && PaySales && Mode is null ? (PaymentActor is null || observation.AgentId == PaymentActor
                     ? (CollectSalePayment ? Pick("land_transfer_collect_payment") : null) ?? Pick("land_transfer_pay") : null) ?? Pick("land_transfer_meet") : null) ?? Pick("visit");
             if (choice is null && AcceptGrants)
-                choice = Pick("yes") ?? (observation.InhabitantId is Filer or SourcePartner ? Pick("accept_land_use") : null);
-            if (choice is null && Mode == "withdraw" && observation.InhabitantId == Filer) choice = Pick("land_transfer_withdraw");
-            if (choice is null && Mode == "decline" && observation.InhabitantId == SourcePartner) choice = Pick("land_transfer_decline");
-            if (choice is null && Mode is null && (observation.InhabitantId != Newcomer || AllowNewcomer)) choice = Pick("land_transfer_accept");
+                choice = Pick("yes") ?? (observation.AgentId is Filer or SourcePartner ? Pick("accept_land_use") : null);
+            if (choice is null && Mode == "withdraw" && observation.AgentId == Filer) choice = Pick("land_transfer_withdraw");
+            if (choice is null && Mode == "decline" && observation.AgentId == SourcePartner) choice = Pick("land_transfer_decline");
+            if (choice is null && Mode is null && (observation.AgentId != Newcomer || AllowNewcomer)) choice = Pick("land_transfer_accept");
             choice ??= proposal ?? candidates.Single(candidate => candidate.Id == "safe_idle");
-            if (Sell && HoldSellerMeeting && observation.InhabitantId is Filer or SourcePartner)
+            if (Sell && HoldSellerMeeting && observation.AgentId is Filer or SourcePartner)
                 choice = candidates.Single(candidate => candidate.Id == "safe_idle");
             var proposing = choice.Id.Contains("|land_transfer_propose|", StringComparison.Ordinal) ||
                 choice.Id.Contains("|land_transfer_sell|", StringComparison.Ordinal);
@@ -469,13 +469,13 @@ public sealed partial class TownLandTransferRuntimeTests
                 Proposed = true;
                 ProposalDescription = choice.Description;
             }
-            Selected.Enqueue(observation.InhabitantId + ":" + choice.Id);
-            var response = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            Selected.Enqueue(observation.AgentId + ":" + choice.Id);
+            var response = new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: proposing ? Plot.Select(tile => new CognitionLandTile(tile.X, tile.Y)).ToArray() : null,
                 CivicLandHearing: proposing ? new(HouseholdId: TargetHouseholdId, PaymentItemKind: Sell ? SaleItemKind : null, PaymentQuantity: Sell ? SaleQuantity : null) : null);
-            if (HoldPartner && observation.InhabitantId == SourcePartner && held is null && choice.Id.Contains("|land_transfer_accept|", StringComparison.Ordinal))
+            if (HoldPartner && observation.AgentId == SourcePartner && held is null && choice.Id.Contains("|land_transfer_accept|", StringComparison.Ordinal))
             {
                 held = response;
                 HeldCandidateId = choice.Id;

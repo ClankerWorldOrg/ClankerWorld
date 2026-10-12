@@ -17,7 +17,7 @@ public sealed partial class WorldRuntimeTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var admitted = world.ExportState();
         var intention = Assert.Single(admitted.Society.Cognition.Runtimes,
-            item => item.InhabitantId == HarvestInstructionActor).CurrentIntention!;
+            item => item.AgentId == HarvestInstructionActor).CurrentIntention!;
         Assert.Equal("seek_food", intention.CandidateId);
         Assert.Equal(order.InstructionId, intention.OperativeOrderInstructionId);
         var position = CancellationActorPosition(admitted);
@@ -131,7 +131,7 @@ public sealed partial class WorldRuntimeTests
             world.Pause();
             var paused = world.ExportState();
             Assert.Contains(paused.Society.Cognition.Queue, entry =>
-                entry.InhabitantId == HarvestInstructionActor &&
+                entry.AgentId == HarvestInstructionActor &&
                 entry.Observation.OperativeOrderInstructionId == order.InstructionId);
             var resumeWorld = world;
             if (reload)
@@ -196,7 +196,7 @@ public sealed partial class WorldRuntimeTests
             new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         var state = setup.ExportState();
         var source = Assert.Single(state.Map.Resources, resource => resource.Id == "berry-patch");
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(person => person.AgentId != HarvestInstructionActor)
             .Select(person => person.Position).ToHashSet();
         occupied.UnionWith(state.WorldSimulation!.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(
@@ -211,7 +211,7 @@ public sealed partial class WorldRuntimeTests
                 route.All(step => !occupied.Contains(step)));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { Position = start, HungerBasisPoints = 6_000, TravelCooldownTicks = 0 }
                 : person).ToArray(),
             Society = state.Society with
@@ -238,7 +238,7 @@ public sealed partial class WorldRuntimeTests
             HarvestInstructionActor, orderId)).Changed);
 
     private static GridPoint CancellationActorPosition(WorldRuntimeState state) =>
-        state.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor).Position;
+        state.Agents.Single(person => person.AgentId == HarvestInstructionActor).Position;
 
     private static OwnerInstructionOrder CancellationOrder(WorldRuntimeState state, string orderId) =>
         Assert.Single(state.Instructions!, instruction => instruction.InstructionId == orderId).Order!;
@@ -248,7 +248,7 @@ public sealed partial class WorldRuntimeTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

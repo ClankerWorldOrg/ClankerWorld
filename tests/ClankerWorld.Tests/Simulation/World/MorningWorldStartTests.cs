@@ -16,7 +16,7 @@ public sealed class MorningWorldStartTests
         AssertMorning(world);
         Assert.True(world.Society.IsPaused);
         Assert.False(world.FounderSetup!.Started);
-        Assert.Empty(world.Inhabitants);
+        Assert.Empty(world.Agents);
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);
 
         world.InitializeFirstTownContent();
@@ -32,14 +32,14 @@ public sealed class MorningWorldStartTests
         for (var index = 0; index < positions.Length; index++)
             world.PlaceFounder($"founder:{index + 1:D32}", positions[index]);
         var lastId = world.FounderSetup.FounderIds[^1];
-        var lastBirth = world.Society.GetInhabitant(lastId).BirthTick;
+        var lastBirth = world.Society.GetAgent(lastId).BirthTick;
         Assert.Equal(3, world.UndoLastFounder(lastId));
         world.PlaceFounder(lastId, positions[^1]);
-        Assert.Equal(lastBirth, world.Society.GetInhabitant(lastId).BirthTick);
+        Assert.Equal(lastBirth, world.Society.GetAgent(lastId).BirthTick);
         AssertMorning(world);
         for (var index = 0; index < world.FounderSetup.FounderIds.Count; index++)
         {
-            var person = world.Society.GetInhabitant(world.FounderSetup.FounderIds[index]);
+            var person = world.Society.GetAgent(world.FounderSetup.FounderIds[index]);
             Assert.Equal(SocietyRules.FounderArrivalAge(world.Society.Config, seed, index),
                 world.Society.AgeAt(person, 0));
         }
@@ -57,15 +57,15 @@ public sealed class MorningWorldStartTests
         using var existingClock = WorldRuntime.Restore(WorldRuntimeCodec.Decode(zeroOffsetBytes));
         Assert.Equal(zeroOffsetBytes, WorldRuntimeCodec.Encode(existingClock.ExportState()));
         Assert.Equal(0, WorldCalendarRules.FromTick(existingClock.WorldTick, existingClock.WorldSystems.Config).TickOfDay);
-        Assert.Equal(world.Society.Inhabitants.Select(person => (person.BirthTick, person.BirthLifeTick, world.Society.AgeAt(person, 0))),
-            existingClock.Society.Inhabitants.Select(person => (person.BirthTick, person.BirthLifeTick, existingClock.Society.AgeAt(person, 0))));
+        Assert.Equal(world.Society.Agents.Select(person => (person.BirthTick, person.BirthLifeTick, world.Society.AgeAt(person, 0))),
+            existingClock.Society.Agents.Select(person => (person.BirthTick, person.BirthLifeTick, existingClock.Society.AgeAt(person, 0))));
         var encoded = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded),
             _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
         AssertMorning(restored);
-        Assert.Equal(world.Society.Inhabitants.Select(person => person.BirthTick),
-            restored.Society.Inhabitants.Select(person => person.BirthTick));
+        Assert.Equal(world.Society.Agents.Select(person => person.BirthTick),
+            restored.Society.Agents.Select(person => person.BirthTick));
 
         world.StartWorld();
         restored.StartWorld();
@@ -84,7 +84,7 @@ public sealed class MorningWorldStartTests
     {
         using var modern = new WorldRuntime("morning-modern-preset", startPace: WorldStartPace.PlacedFounders);
         AssertMorning(modern);
-        Assert.NotEmpty(modern.Inhabitants);
+        Assert.NotEmpty(modern.Agents);
         using var legacy = new WorldRuntime("morning-legacy-save");
         var before = legacy.ExportState();
         Assert.Equal(0, before.WorldSystems!.Config.CalendarOffsetTicks);
@@ -95,8 +95,8 @@ public sealed class MorningWorldStartTests
         Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Equal(0, WorldCalendarRules.FromTick(restored.WorldTick, restored.WorldSystems.Config).TickOfDay);
         Assert.Equal(DaylightRules.FullDarkness, DaylightRules.DarknessBasisPoints(restored.WorldSystems));
-        Assert.Equal(before.Society.Society.Inhabitants.Select(person => (person.BirthTick, person.BirthLifeTick, person.AgeBand)),
-            restored.Society.Inhabitants.Select(person => (person.BirthTick, person.BirthLifeTick, person.AgeBand)));
+        Assert.Equal(before.Society.Society.Agents.Select(person => (person.BirthTick, person.BirthLifeTick, person.AgeBand)),
+            restored.Society.Agents.Select(person => (person.BirthTick, person.BirthLifeTick, person.AgeBand)));
     }
 
     [Fact]

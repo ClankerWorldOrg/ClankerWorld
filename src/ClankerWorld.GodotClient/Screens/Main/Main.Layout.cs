@@ -241,10 +241,10 @@ public partial class Main
         rosterSummaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         rosterBody.AddChild(rosterSummaryLabel);
 
-        inhabitantList.CustomMinimumSize = new Vector2(380, 40);
-        inhabitantList.ItemSelected += index => SelectInhabitantFromList(index);
-        inhabitantList.TooltipText = "Choose someone to find them in the world.";
-        rosterBody.AddChild(inhabitantList);
+        agentList.CustomMinimumSize = new Vector2(380, 40);
+        agentList.ItemSelected += index => SelectAgentFromList(index);
+        agentList.TooltipText = "Choose someone to find them in the world.";
+        rosterBody.AddChild(agentList);
         BuildRosterCards(rosterBody);
         AddClosablePanelContents(rosterPanel, "Agents", rosterBody);
         rosterPanel.CustomMinimumSize = new Vector2(410, 0);

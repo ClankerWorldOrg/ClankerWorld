@@ -18,14 +18,14 @@ public sealed class HoeUpgradePlantingClaimTests
     {
         var (state, actor, household, point) = FarmFieldTests.PreparedFarmer("field-claim-through-occupancy");
         state = FarmFieldTests.FeedFarmTownFromAvailableStock(state, household);
-        var sibling = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var sibling = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand == SocietyAgeBand.Adult && person.Id != actor).Id;
-        var origin = state.Inhabitants.Single(person => person.InhabitantId == sibling).Position;
+        var origin = state.Agents.Single(person => person.AgentId == sibling).Position;
         var occupied = state.Map.Resources.Select(resource => resource.Position)
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var away = state.Map.Tiles.Select(tile => tile.Position).First(position => position != point &&
             position != origin && state.Map.IsBuildable(position) && !occupied.Contains(position) &&
-            !state.Inhabitants.Any(person => person.Position == position && person.InhabitantId != actor && person.InhabitantId != sibling) &&
+            !state.Agents.Any(person => person.Position == position && person.AgentId != actor && person.AgentId != sibling) &&
             state.Map.IsReachableOnFoot(position, point));
         var greens = $"farm:Plant:{point.X}:{point.Y}:{FarmFieldRules.Greens}";
         var grain = $"farm:Plant:{point.X}:{point.Y}:{FarmFieldRules.Grain}";
@@ -36,9 +36,9 @@ public sealed class HoeUpgradePlantingClaimTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Fields = [new(point, household, FarmFieldStage.Prepared)],
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? origin : person.InhabitantId == sibling ? away : person.Position,
+                Position = person.AgentId == actor ? origin : person.AgentId == sibling ? away : person.Position,
                 HungerBasisPoints = 10_000,
                 Project = null,
                 LastDecisionContext = null,
@@ -64,7 +64,7 @@ public sealed class HoeUpgradePlantingClaimTests
         {
             Assert.True((await selecting.AdvanceOneTickAsync()).Advanced);
             state = selecting.ExportState();
-            Assert.Equal(greens, state.Society.Cognition.Runtimes.Single(runtime => runtime.InhabitantId == actor).CurrentIntention?.CandidateId);
+            Assert.Equal(greens, state.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == actor).CurrentIntention?.CandidateId);
             Assert.Equal(1, state.Society.Society.Inventory.GetLot("upgrade-greens-seed").Quantity);
         }
         if (hoeChange != "original")
@@ -79,7 +79,7 @@ public sealed class HoeUpgradePlantingClaimTests
         }
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == sibling
+            Agents = state.Agents.Select(person => person.AgentId == sibling
                 ? person with { Position = point, LastDecisionContext = null } : person).ToArray(),
         };
         // Offers before the original planting intention was selected are not contested choices.
@@ -98,7 +98,7 @@ public sealed class HoeUpgradePlantingClaimTests
         }
         state = blocked.ExportState() with
         {
-            Inhabitants = blocked.Inhabitants.Select(person => person.InhabitantId == sibling
+            Agents = blocked.Agents.Select(person => person.AgentId == sibling
                 ? person with { Position = away, LastDecisionContext = null } : person).ToArray(),
         };
         bytes = WorldRuntimeCodec.Encode(state);

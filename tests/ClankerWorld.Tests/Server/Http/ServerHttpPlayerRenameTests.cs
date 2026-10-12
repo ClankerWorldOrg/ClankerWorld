@@ -56,9 +56,9 @@ public sealed partial class ServerHttpTests
                 new Client.OwnerAgentRenameAction(second, "Marin Lake"), signer, default);
             Assert.False(retry.Changed);
             using var restored = file.LoadOrCreate(runtime.ExportState().WorldSeed);
-            Assert.Equal("Marin Lake", restored.Society.GetInhabitant(second).Name);
-            Assert.True(restored.Society.GetInhabitant(second).HasChosenName);
-            Assert.Equal(second, restored.Society.GetInhabitant(second).Id);
+            Assert.Equal("Marin Lake", restored.Society.GetAgent(second).Name);
+            Assert.True(restored.Society.GetAgent(second).HasChosenName);
+            Assert.Equal(second, restored.Society.GetAgent(second).Id);
             Assert.Equal(remembered, Assert.Single(restored.Society.Memories, item => item.OwnerId == second));
         }
         finally { directory.Delete(recursive: true); }
@@ -94,15 +94,15 @@ public sealed partial class ServerHttpTests
                 var rejected = Assert.Single(responses, response => response.StatusCode == HttpStatusCode.Conflict);
                 Assert.Equal("name_taken", (await rejected.Content.ReadFromJsonAsync<OwnerControlFailure>())!.Code);
                 var winner = Array.FindIndex(responses, response => response.StatusCode == HttpStatusCode.OK);
-                var chosen = Assert.Single(runtime.Society.Inhabitants, person => person.HasChosenName);
+                var chosen = Assert.Single(runtime.Society.Agents, person => person.HasChosenName);
                 Assert.Equal(ids[winner], chosen.Id);
                 Assert.Equal(names[winner], chosen.Name);
-                Assert.False(runtime.Society.GetInhabitant(ids[1 - winner]).HasChosenName);
-                Assert.True(runtime.Society.GetInhabitant(ids[1 - winner]).NeedsName);
+                Assert.False(runtime.Society.GetAgent(ids[1 - winner]).HasChosenName);
+                Assert.True(runtime.Society.GetAgent(ids[1 - winner]).NeedsName);
                 using var restored = host.Services.GetRequiredService<WorldStateFile>()
                     .LoadOrCreate(runtime.ExportState().WorldSeed);
-                Assert.Equal(chosen, Assert.Single(restored.Society.Inhabitants, person => person.HasChosenName));
-                Assert.False(restored.Society.GetInhabitant(ids[1 - winner]).HasChosenName);
+                Assert.Equal(chosen, Assert.Single(restored.Society.Agents, person => person.HasChosenName));
+                Assert.False(restored.Society.GetAgent(ids[1 - winner]).HasChosenName);
             }
             finally { foreach (var response in responses) response.Dispose(); }
         }

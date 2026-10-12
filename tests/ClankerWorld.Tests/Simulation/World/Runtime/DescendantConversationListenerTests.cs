@@ -21,8 +21,8 @@ public sealed class DescendantConversationListenerTests
         society = SocietyRules.ProposeRelationship(society, new("listener-partnership", 1,
             SocietyRelationshipType.Partnership, Speaker, Partner, society.WorldTick)).Checkpoint;
         society = SocietyRules.AcceptRelationship(society, "listener-partnership", 1, Partner).Checkpoint;
-        var household = society.GetInhabitant(Speaker).HouseholdId!;
-        var caregivers = new[] { Speaker, Partner }.Where(id => society.GetInhabitant(id).HouseholdId == household)
+        var household = society.GetAgent(Speaker).HouseholdId!;
+        var caregivers = new[] { Speaker, Partner }.Where(id => society.GetAgent(id).HouseholdId == household)
             .Append(Speaker).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         var birth = SocietyRules.CommitBirth(society, new($"family:{Speaker}:{society.WorldTick}", 1,
             Speaker, Partner, household, caregivers, [Speaker, Partner], "food:camp-alpha", 2, society.WorldTick,
@@ -34,7 +34,7 @@ public sealed class DescendantConversationListenerTests
         var adultBirth = society.LifeTickAt(society.WorldTick) - 20 * society.Config.TicksPerLifecycleAge;
         society = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = society.Agents.Select(person => person.Id == child ? person with
             {
                 BirthTick = adultBirth,
                 BirthLifeTick = society.LifeClock is null ? null : adultBirth,
@@ -51,16 +51,16 @@ public sealed class DescendantConversationListenerTests
                          where b != a && state.Map.FootDistance(a, b) == 1
                          let listeners = land.Where(point => point != a && point != b && state.Map.FootDistance(a, point) <= 3).ToArray()
                          let distant = land.Where(point => state.Map.FootDistance(a, point) > 3 && state.Map.FootDistance(b, point) > 3).ToArray()
-                         where listeners.Length > 0 && distant.Length >= state.Inhabitants.Count
+                         where listeners.Length > 0 && distant.Length >= state.Agents.Count
                          select (First: a, Second: b, Close: listeners[0], Far: distant)).First();
         var (first, second, close, far) = placement;
         var distantIndex = 1;
         state = state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Speaker ? first : person.InhabitantId == Partner ? second : far[distantIndex++],
+                Position = person.AgentId == Speaker ? first : person.AgentId == Partner ? second : far[distantIndex++],
                 HungerBasisPoints = 9_500,
             }).Append(new(child, nearby ? close : far[0], 9_500, 0, "patient", "listen")).ToArray(),
         };
@@ -137,7 +137,7 @@ public sealed class DescendantConversationListenerTests
         Assert.Equal(turn.SpeakerId, restoredTurn.SpeakerId);
         Assert.Equal(turn.ListenerIds, restoredTurn.ListenerIds);
         Assert.Equal(beliefs, restored.ExportState().Society.Society.Beliefs);
-        Assert.Contains(restored.Society.Inhabitants, item => item.Id == child);
+        Assert.Contains(restored.Society.Agents, item => item.Id == child);
         using var pairedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new ListenerProvider());
         restored.Resume();
         pairedReload.Resume();
@@ -156,7 +156,7 @@ public sealed class DescendantConversationListenerTests
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
             Assert.True((await pairedReload.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(restored.ExportState()), WorldRuntimeCodec.Encode(pairedReload.ExportState()));
-            if (tick >= 3 && (!nearby || reloadedProvider.Observations.Any(item => item.InhabitantId == child &&
+            if (tick >= 3 && (!nearby || reloadedProvider.Observations.Any(item => item.AgentId == child &&
                 (item.RetrievedMemories ?? []).Any(memory => memory.Kind == "belief" && memory.Summary == turn.Text))))
                 break;
         }
@@ -164,7 +164,7 @@ public sealed class DescendantConversationListenerTests
         restored.Validate();
         if (nearby)
         {
-            var recalled = reloadedProvider.Observations.Where(item => item.InhabitantId == child)
+            var recalled = reloadedProvider.Observations.Where(item => item.AgentId == child)
                 .SelectMany(item => item.RetrievedMemories ?? []).Where(item => item.Kind == "belief" && item.Summary == turn.Text).ToArray();
             Assert.NotEmpty(recalled);
             Assert.All(recalled, memory =>
@@ -198,7 +198,7 @@ public sealed class DescendantConversationListenerTests
 
     private sealed class ListenerProvider : IDecisionProvider, IAgentConversationProvider
     {
-        public System.Collections.Concurrent.ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public System.Collections.Concurrent.ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public bool CanSpeakAs(string agentId) => agentId is Speaker or Partner;
@@ -211,11 +211,11 @@ public sealed class DescendantConversationListenerTests
             var observation = request.Observation;
             Observations.Enqueue(observation);
             var selected = observation.Candidates.FirstOrDefault(candidate =>
-                observation.InhabitantId == Speaker && candidate.Id == $"talk:{Partner}") ??
-                observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId == Partner &&
+                observation.AgentId == Speaker && candidate.Id == $"talk:{Partner}") ??
+                observation.Candidates.FirstOrDefault(candidate => observation.AgentId == Partner &&
                     candidate.Id.StartsWith("conversation_accept:", StringComparison.Ordinal)) ??
                 observation.Candidates.First(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1d, observation.Candidates.ToDictionary(item => item.Id,
                     item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),

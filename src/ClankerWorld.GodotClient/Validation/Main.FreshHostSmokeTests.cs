@@ -31,7 +31,7 @@ public partial class Main
         var approved = new OwnerPairingStatus(host.Authority, "menu-pairing", "smoke-device",
             signer.PublicKeyFingerprint, OwnerPairingState.Approved, expiry);
         host.Reconnect = new(new(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []),
             new(new("paired-world", 0, "paired-map", [new(0, 0, "meadow")], [], [], null, 0), new(0, 0, [])));
         int Requests(string path) => host.Requests.Count(request => request == path);
@@ -146,7 +146,7 @@ public partial class Main
         using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
         using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         var bootstrap = new OwnerWorldSnapshot("bootstrap", 0, "entry-map", [new(0, 0, "meadow")],
             [new("campfire", "cooking", new(0, 0))], [], null, 0)
@@ -300,7 +300,7 @@ public partial class Main
         using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
         host.ReleasePause.TrySetResult();
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         var snapshot = new OwnerWorldSnapshot("continue-probe", 0, "continue-map", [new(0, 0, "meadow")],
             [], [], null, 0)

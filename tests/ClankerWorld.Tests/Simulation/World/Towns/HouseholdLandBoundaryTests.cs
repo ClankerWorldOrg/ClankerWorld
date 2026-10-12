@@ -17,7 +17,7 @@ public sealed partial class HouseholdLandGrantTests
         var choices = new Choices();
         using var source = WorldRuntime.Restore(baseline with
         {
-            Inhabitants = baseline.Inhabitants.Select(person => person with { Position = baseline.Towns![0].OriginSite!.Value }).ToArray(),
+            Agents = baseline.Agents.Select(person => person with { Position = baseline.Towns![0].OriginSite!.Value }).ToArray(),
         }, _ => new Provider(choices));
         var before = source.ExportState();
         var buildingId = runOn ? "bridge-run-on" : "bridge-growth";
@@ -76,14 +76,14 @@ public sealed partial class HouseholdLandGrantTests
         if (protection != "unclaimed")
         {
             var applicant = protection.StartsWith("own-", StringComparison.Ordinal) ? farmer :
-                source.Society.Inhabitants.First(person => person.HouseholdId != household).Id;
+                source.Society.Agents.First(person => person.HouseholdId != household).Id;
             var requested = source.RequestHouseholdLandUse("land-boundary-land", applicant, source.Towns[0].Id, [point]);
             Assert.True(requested.Applied, requested.Failure);
             if (protection.EndsWith("granted", StringComparison.Ordinal))
                 await GrantLandForBoundaryTest(source, choices, applicant, "land-boundary-land");
             else
                 Assert.Equal("pending", Assert.Single(source.HouseholdLandUseRequests).Status);
-            Assert.Equal(permitted, source.Society.GetInhabitant(applicant).HouseholdId == household);
+            Assert.Equal(permitted, source.Society.GetAgent(applicant).HouseholdId == household);
         }
         using var world = FarmFieldTests.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             EquipFarmerForLandTest(source.ExportState(), farmer, point))));
@@ -104,7 +104,7 @@ public sealed partial class HouseholdLandGrantTests
         if (protection == "own-granted")
         {
             // A recorded-right dispute stays a dispute even when its holder has farmed the plot.
-            var challenger = reloaded.Society.Inhabitants.First(person => person.HouseholdId != household).Id;
+            var challenger = reloaded.Society.Agents.First(person => person.HouseholdId != household).Id;
             var disputed = reloaded.RequestHouseholdLandUse("worked-right-dispute", challenger, reloaded.Towns[0].Id, [point]);
             Assert.True(disputed.Applied, disputed.Failure);
             Assert.True(disputed.IsDisputed);
@@ -133,7 +133,7 @@ public sealed partial class HouseholdLandGrantTests
         Assert.True(tilled.Society.Inventory.GetLot("land-boundary-carried-hoe").ConditionBasisPoints < 10_000);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(tilled.ExportState())), _ => new Provider(choices));
-        var applicant = sameHousehold ? farmer : world.Society.Inhabitants.First(person => person.HouseholdId != household).Id;
+        var applicant = sameHousehold ? farmer : world.Society.Agents.First(person => person.HouseholdId != household).Id;
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var request = world.RequestHouseholdLandUse("land-boundary-field", applicant, world.Towns[0].Id, [point]);
         Assert.Equal(sameHousehold, request.Applied);
@@ -159,7 +159,7 @@ public sealed partial class HouseholdLandGrantTests
         // Replay that admission in a fieldless clone, then retain the real worked field.
         // The request, proposal and notices are native; votes and consents are still absent.
         using var admission = WorldRuntime.Restore(worked with { Fields = [] }, _ => new Provider(choices));
-        var applicant = admission.Society.Inhabitants.First(person => person.HouseholdId != household).Id;
+        var applicant = admission.Society.Agents.First(person => person.HouseholdId != household).Id;
         const string requestId = "historical-foreign-field";
         var filing = admission.RequestHouseholdLandUse(requestId, applicant, admission.Towns[0].Id, [point]);
         Assert.True(filing.Applied, filing.Failure);
@@ -171,9 +171,9 @@ public sealed partial class HouseholdLandGrantTests
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new Provider(choices));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
 
-        var applicantsHousehold = world.Society.GetInhabitant(applicant).HouseholdId;
+        var applicantsHousehold = world.Society.GetAgent(applicant).HouseholdId;
         choices.Voters.UnionWith(world.Towns[0].ResidentIds);
-        choices.Acceptors.UnionWith(world.Society.Inhabitants.Where(person => person.HouseholdId == applicantsHousehold).Select(person => person.Id));
+        choices.Acceptors.UnionWith(world.Society.Agents.Where(person => person.HouseholdId == applicantsHousehold).Select(person => person.Id));
         Refresh(world, world.Towns[0].ResidentIds);
         await Until(world, () => world.Towns[0].Governance!.Proposals.Single().Status == "passed" &&
             choices.Acceptors.All(actor => world.HouseholdLandUseRequests.Single().Consents.Any(consent => consent.AgentId == actor && consent.Accepted)));
@@ -196,7 +196,7 @@ public sealed partial class HouseholdLandGrantTests
     {
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
-        var farmer = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var farmer = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var definitions = state.WorldContent!.Buildings.ToDictionary(definition => definition.CanonicalId, StringComparer.Ordinal);
         var occupied = state.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building))
             .Concat(state.Map.Resources.Select(resource => resource.Position)).Concat(state.RoadTiles!)
@@ -215,7 +215,7 @@ public sealed partial class HouseholdLandGrantTests
         FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "land-boundary-carried-hoe", "wooden_hoe", farmer, 1, state.Society.Society.WorldTick)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == farmer ? person with
+            Agents = state.Agents.Select(person => person.AgentId == farmer ? person with
             {
                 Position = point,
                 HungerBasisPoints = 10_000,
@@ -236,9 +236,9 @@ public sealed partial class HouseholdLandGrantTests
 
     private static async Task GrantLandForBoundaryTest(WorldRuntime world, Choices choices, string applicant, string requestId)
     {
-        var household = world.Society.GetInhabitant(applicant).HouseholdId!;
+        var household = world.Society.GetAgent(applicant).HouseholdId!;
         choices.Voters.UnionWith(world.Towns[0].ResidentIds);
-        choices.Acceptors.UnionWith(world.Society.Inhabitants.Where(person => person.HouseholdId == household).Select(person => person.Id));
+        choices.Acceptors.UnionWith(world.Society.Agents.Where(person => person.HouseholdId == household).Select(person => person.Id));
         Refresh(world, world.Towns[0].ResidentIds);
         await Until(world, () => world.HouseholdLandUseRequests.Single(request => request.Id == requestId).Status == "granted");
         var request = world.HouseholdLandUseRequests.Single(request => request.Id == requestId);

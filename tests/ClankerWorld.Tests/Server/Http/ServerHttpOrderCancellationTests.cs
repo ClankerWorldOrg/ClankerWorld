@@ -60,7 +60,7 @@ public sealed partial class ServerHttpTests
                 foreach (var invalidIdentity in new[]
                 {
                     cancellation with { IdempotencyKey = new string('k', 129) },
-                    cancellation with { TargetInhabitantId = "founder-mira\u0001" },
+                    cancellation with { TargetAgentId = "founder-mira\u0001" },
                 })
                 {
                     using var invalid = await SendSignedAsync(host, client, key, deviceId, cancellationPath,

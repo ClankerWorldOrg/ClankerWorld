@@ -13,7 +13,7 @@ public sealed partial class TownLandHearingRuntimeTests
             world.Towns[0].Government!.Offices.All(office => office.HolderId == Judge), Day * 3, provider);
         Assert.Equal(2, world.Towns[0].Government!.Offices.Count);
         Assert.All(world.Towns[0].Government!.Offices, office => Assert.Equal(Judge, office.HolderId));
-        var household = world.Society.GetInhabitant(Judge).HouseholdId!;
+        var household = world.Society.GetAgent(Judge).HouseholdId!;
         provider.Plot = world.ExportState().HouseholdLandUseRights!.Where(right => right.HouseholdId == household)
             .OrderBy(right => right.Id, StringComparer.Ordinal).First().Tiles.ToArray();
         provider.CaseFiler = Judge;

@@ -92,7 +92,7 @@ public static partial class OwnerBuildingDesign
         await testWorld.AdvanceOneTickAsync(cancellationToken);
         var state = testWorld.ExportState();
         var building = preview.WorldContent.Buildings.Single();
-        var worker = state.Inhabitants.First(person => state.Map.IsPassable(person.Position) &&
+        var worker = state.Agents.First(person => state.Map.IsPassable(person.Position) &&
             !state.Map.Resources.Any(resource => resource.Position == person.Position) &&
             !state.Map.MapObjects.Any(item => item.Position == person.Position));
         var woodBefore = testWorld.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
@@ -119,7 +119,7 @@ public static partial class OwnerBuildingDesign
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == "safe_idle" ? 1d : 0d, StringComparer.Ordinal)));

@@ -95,7 +95,7 @@ public sealed class OpenAiDecisionsTests
         }
     }
 
-    private static InhabitantObservation Observation() => new("agent-test", 4, 0, 2, "sha256:test", 5_000,
+    private static AgentObservation Observation() => new("agent-test", 4, 0, 2, "sha256:test", 5_000,
         [new("safe_idle", "Wait safely.", 0), new("seek_food", "Travel to food.", 10)],
         MemoryCompactionCandidates: [new("private-source-id", "agent-test", "experience", "friend", "A remembered promise.", 1)]);
 

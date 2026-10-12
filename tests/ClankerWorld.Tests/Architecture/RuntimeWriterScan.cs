@@ -20,7 +20,7 @@ internal static class RuntimeWriterScan
 
     public static SortedDictionary<string, string[]> FindWriters(string root)
     {
-        var properties = typeof(InhabitantState).GetProperties(BindingFlags.Instance | BindingFlags.Public)
+        var properties = typeof(AgentState).GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Select(property => property.Name).ToArray();
         var writers = properties.Append("$collection").ToDictionary(name => name,
             _ => new SortedSet<string>(StringComparer.Ordinal), StringComparer.Ordinal);
@@ -47,36 +47,36 @@ internal static class RuntimeWriterScan
             var filename = Path.GetRelativePath(root, tree.FilePath).Replace(Path.DirectorySeparatorChar, '/');
             foreach (var node in tree.GetRoot().DescendantNodes())
             {
-                if (node is WithExpressionSyntax with && IsInhabitant(model.GetTypeInfo(with.Expression).Type))
+                if (node is WithExpressionSyntax with && IsAgent(model.GetTypeInfo(with.Expression).Type))
                     foreach (var assignment in with.Initializer.Expressions.OfType<AssignmentExpressionSyntax>())
                         if (model.GetSymbolInfo(assignment.Left).Symbol is IPropertySymbol property && writers.TryGetValue(property.Name, out var files))
                             files.Add(filename);
                 // Construction writes every component, including defaults; moving construction
                 // into a new file must be reviewed just like adding a new component update.
-                if (node is BaseObjectCreationExpressionSyntax creation && IsInhabitant(model.GetTypeInfo(creation).Type))
+                if (node is BaseObjectCreationExpressionSyntax creation && IsAgent(model.GetTypeInfo(creation).Type))
                     foreach (var property in properties) writers[property].Add(filename);
                 if (node is AssignmentExpressionSyntax write)
                 {
-                    if (model.GetSymbolInfo(write.Left).Symbol is IPropertySymbol property && IsInhabitant(property.ContainingType))
+                    if (model.GetSymbolInfo(write.Left).Symbol is IPropertySymbol property && IsAgent(property.ContainingType))
                         writers[property.Name].Add(filename);
-                    if (write.Left is ElementAccessExpressionSyntax element && IsInhabitantDictionary(model.GetTypeInfo(element.Expression).Type) ||
-                        model.GetSymbolInfo(write.Left).Symbol is IFieldSymbol { Name: "inhabitants", ContainingType.Name: "WorldRuntime" })
+                    if (write.Left is ElementAccessExpressionSyntax element && IsAgentDictionary(model.GetTypeInfo(element.Expression).Type) ||
+                        model.GetSymbolInfo(write.Left).Symbol is IFieldSymbol { Name: "agents", ContainingType.Name: "WorldRuntime" })
                         writers["$collection"].Add(filename);
                 }
                 if (node is InvocationExpressionSyntax call && call.Expression is MemberAccessExpressionSyntax access &&
                     access.Name.Identifier.ValueText is "Add" or "Remove" or "Clear" or "TryAdd" &&
-                    IsInhabitantDictionary(model.GetTypeInfo(access.Expression).Type))
+                    IsAgentDictionary(model.GetTypeInfo(access.Expression).Type))
                     writers["$collection"].Add(filename);
             }
         }
         return new SortedDictionary<string, string[]>(writers.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()), StringComparer.Ordinal);
     }
 
-    private static bool IsInhabitant(ITypeSymbol? type) => type?.ToDisplayString() == "ClankerWorld.Simulation.World.InhabitantState";
+    private static bool IsAgent(ITypeSymbol? type) => type?.ToDisplayString() == "ClankerWorld.Simulation.World.AgentState";
     private static bool IsGeneratedRegexDeclaration(Diagnostic diagnostic) => diagnostic.Id == "CS8795" &&
         diagnostic.Location.SourceTree?.GetRoot().FindNode(diagnostic.Location.SourceSpan)
             .AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault()?.AttributeLists
             .SelectMany(list => list.Attributes).Any(attribute => attribute.Name.ToString() == "GeneratedRegex") == true;
-    private static bool IsInhabitantDictionary(ITypeSymbol? type) => type is INamedTypeSymbol { Name: "Dictionary", TypeArguments.Length: 2 } dictionary &&
-        IsInhabitant(dictionary.TypeArguments[1]);
+    private static bool IsAgentDictionary(ITypeSymbol? type) => type is INamedTypeSymbol { Name: "Dictionary", TypeArguments.Length: 2 } dictionary &&
+        IsAgent(dictionary.TypeArguments[1]);
 }

@@ -65,7 +65,7 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/founders/place", payload);
             if (!authorization.IsSuccess)
                 return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (cognition.InhabitantId != action.FounderId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
+            if (cognition.AgentId != action.FounderId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
                 cognition.ForgetCredential || !PlayerDecisionProviders.IsHosted(cognition.Provider))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["cognition"] = ["Choose one personal hosted model for this founder."] });
 
@@ -216,7 +216,7 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/agents/place", payload);
             if (!authorization.IsSuccess)
                 return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (cognition.InhabitantId != action.AgentId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
+            if (cognition.AgentId != action.AgentId || cognition.Role != PlayerDecisionProviders.PersonalRole ||
                 cognition.ForgetCredential || !PlayerDecisionProviders.IsHosted(cognition.Provider))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["cognition"] = ["Choose one personal hosted model for this agent."] });
 
@@ -281,9 +281,9 @@ internal static partial class OwnerEndpoints
                     AgentPlacementLog.Renamed(logger, action.AgentId, runtime.WorldTick);
                 }
                 return Results.Ok(new OwnerAgentRenameReceipt(action.AgentId,
-                    runtime.Society.GetInhabitant(action.AgentId).Name, changed));
+                    runtime.Society.GetAgent(action.AgentId).Name, changed));
             }
-            catch (ClankerWorld.Simulation.Society.InhabitantNameTakenException exception)
+            catch (ClankerWorld.Simulation.Society.AgentNameTakenException exception)
             {
                 return Results.Conflict(new OwnerControlFailure("name_taken", exception.Message));
             }
@@ -318,7 +318,7 @@ internal static partial class OwnerEndpoints
                 var assignments = providerStatus.Assignments ?? [];
                 foreach (var founderId in setup.FounderIds)
                 {
-                    var personal = assignments.Where(item => item.InhabitantId == founderId).ToArray();
+                    var personal = assignments.Where(item => item.AgentId == founderId).ToArray();
                     if (personal.Length != 2 || !personal.Any(item => item.Role == PlayerDecisionProviders.RoutineRole) ||
                         !personal.Any(item => item.Role == PlayerDecisionProviders.PlanningRole) ||
                         personal.Any(item => !PlayerDecisionProviders.IsHosted(item.Provider)) ||

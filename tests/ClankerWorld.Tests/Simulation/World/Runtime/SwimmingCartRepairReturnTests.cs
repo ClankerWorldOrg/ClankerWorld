@@ -20,14 +20,14 @@ public sealed class SwimmingCartRepairReturnTests
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == FoodCapacityTestFixture.House);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId).Id;
         Assert.True(state.Map.IsPassable(house.Position));
-        Assert.DoesNotContain(state.Inhabitants, person => person.InhabitantId != actor && person.Position == house.Position);
+        Assert.DoesNotContain(state.Agents, person => person.AgentId != actor && person.Position == house.Position);
         var remote = state.Map.Resources.OrderBy(resource => state.Map.FootDistance(resource.Position, house.Position))
             .First(resource => state.Map.IsPassable(resource.Position) &&
                 !state.Map.IsReachableOnFoot(resource.Position, house.Position) &&
                 SwimmingRules.IsReachable(state.Map, resource.Position, house.Position) &&
-                state.Inhabitants.All(person => person.Position != resource.Position)).Position;
+                state.Agents.All(person => person.Position != resource.Position)).Position;
         var cartPosition = footReturn ? house.Position : remote;
         Assert.Equal(footReturn, state.Map.IsReachableOnFoot(house.Position, cartPosition));
         Assert.True(SwimmingRules.IsReachable(state.Map, house.Position, cartPosition));
@@ -49,7 +49,7 @@ public sealed class SwimmingCartRepairReturnTests
         Assert.True(PersonalEquipmentRules.Capacity(inventory, actor, null) > SwimmingRules.MaximumCarriedUnits);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = house.Position,
                 HungerBasisPoints = 10_000,

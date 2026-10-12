@@ -22,8 +22,8 @@ public sealed class ReachableFarmStockTests
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var original = generated.ExportState();
         const string actor = "founder:00000000000000000000000000000001";
-        var blocker = original.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
-        var household = Assert.IsType<string>(original.Society.Society.GetInhabitant(actor).HouseholdId);
+        var blocker = original.Agents.First(person => person.AgentId != actor).AgentId;
+        var household = Assert.IsType<string>(original.Society.Society.GetAgent(actor).HouseholdId);
         var farmhouse = Assert.Single(original.WorldSimulation!.Buildings, building =>
             building.HouseholdId == household && generated.WorldContent.Buildings.Single(definition =>
                 definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
@@ -59,9 +59,9 @@ public sealed class ReachableFarmStockTests
         var initial = original with
         {
             Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
-            Inhabitants = original.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = original.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = source, HungerBasisPoints = 9_000 }
-                : person.InhabitantId == blocker ? person with { Position = blockedSource } : person).ToArray(),
+                : person.AgentId == blocker ? person with { Position = blockedSource } : person).ToArray(),
         };
         var initialGrain = inventory.Lots.Where(lot => lot.ItemKind == "grain").Sum(lot => lot.Quantity);
         var movedRoot = inVessel ? reachableRoot : reachableGrain;
@@ -74,7 +74,7 @@ public sealed class ReachableFarmStockTests
 
         Assert.Contains(world.ExportState().Events, item => item.Kind == "farm_grain_picked_up" &&
             item.Detail == $"{actor}:{reachableGrain}:{quantity}:{farmhouse.InstanceId}");
-        Assert.Equal(source, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(source, world.Agents.Single(person => person.AgentId == actor).Position);
         foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.Id == movedRoot || lot.Id == reachableGrain))
         {
             Assert.Equal(actor, lot.OwnerId);
@@ -94,9 +94,9 @@ public sealed class ReachableFarmStockTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
                 WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        Assert.Equal(farmhouse.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(farmhouse.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.NotEqual(source, farmhouse.Position);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
             item.Detail.EndsWith(":household_stock", StringComparison.Ordinal));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "household_stock_delivered" &&
@@ -113,7 +113,7 @@ public sealed class ReachableFarmStockTests
         if (inVessel) Assert.Equal(1, world.Society.Inventory.GetLot(reachableRoot).Quantity);
         Assert.Equal(initialGrain, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "grain").Sum(lot => lot.Quantity));
         Assert.Equal(inventory.Reservations, world.Society.Inventory.Reservations);
-        Assert.Equal(blockedSource, world.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
+        Assert.Equal(blockedSource, world.Agents.Single(person => person.AgentId == blocker).Position);
         AssertBlockedFamilyUnchanged(world, blockedFamily);
         using var final = Restore(world.ExportState(), actor);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(final.ExportState()));

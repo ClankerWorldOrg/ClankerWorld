@@ -31,7 +31,7 @@ public sealed class RestitutionSourceLotTests
         var perform = false;
         NonviolentTestProvider Choices() => new()
         {
-            Choose = observation => observation.InhabitantId != actor ? null :
+            Choose = observation => observation.AgentId != actor ? null :
                 observation.OperativeOrderInstructionId is not null
                     ? observation.Candidates.FirstOrDefault(candidate => candidate.Id is "store_material" or "collect_goods" or "move_to")
                     : perform ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("nonviolent_remedy:", StringComparison.Ordinal)) : null
@@ -48,13 +48,13 @@ public sealed class RestitutionSourceLotTests
         Assert.Equal(smallFirst ? 2 : 1, carried[1].Quantity);
         var board = preparing.Towns[0].OriginSite!.Value;
         var destination = state.Map.FootNeighbors(board).Where(point =>
-            !preparing.Inhabitants.Any(person => person.Position == point) &&
+            !preparing.Agents.Any(person => person.Position == point) &&
             !preparing.WorldSimulation.Buildings.Any(building => building.Position == point))
-            .OrderBy(point => state.Map.FootDistance(point, preparing.Inhabitants.Single(person => person.InhabitantId == actor).Position))
+            .OrderBy(point => state.Map.FootDistance(point, preparing.Agents.Single(person => person.AgentId == actor).Position))
             .ThenBy(point => point.Y).ThenBy(point => point.X).First();
         await Order("restitution-walk", string.Create(CultureInfo.InvariantCulture, $"go to ({destination.X},{destination.Y})"));
-        Assert.InRange(state.Map.FootDistance(preparing.Inhabitants.Single(person => person.InhabitantId == actor).Position,
-            preparing.Inhabitants.Single(person => person.InhabitantId == recipient).Position), 0, 1);
+        Assert.InRange(state.Map.FootDistance(preparing.Agents.Single(person => person.AgentId == actor).Position,
+            preparing.Agents.Single(person => person.AgentId == recipient).Position), 0, 1);
         state = NonviolentRuntimeFixture.Strict(preparing.ExportState());
         inventory = state.Society.Society.Inventory;
         if (boundary == "reserved")

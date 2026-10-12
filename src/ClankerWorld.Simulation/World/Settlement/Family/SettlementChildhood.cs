@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
     // an age transition and any future direct action caller.
     private bool AgePermitsCandidate(string actor, string candidate)
     {
-        var age = society.Checkpoint.GetInhabitant(actor).AgeBand;
+        var age = society.Checkpoint.GetAgent(actor).AgeBand;
         if (age == SocietyAgeBand.Infant) return false;
         if (candidate == "make_room_for_food" && ChildResident(actor)) return true;
         if (age is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
@@ -38,23 +38,23 @@ public sealed partial class WorldRuntime
     }
 
     private bool ChildSocialAvailable(string actor, string target, string kind) =>
-        ChildResident(actor) && actor != target && inhabitants.ContainsKey(target) &&
-        society.Checkpoint.GetInhabitant(target).AgeBand != SocietyAgeBand.Infant &&
+        ChildResident(actor) && actor != target && agents.ContainsKey(target) &&
+        society.Checkpoint.GetAgent(target).AgeBand != SocietyAgeBand.Infant &&
         !society.Checkpoint.Memories.Any(memory => memory.OwnerId == actor && memory.SubjectId == target &&
             memory.Id.StartsWith($"child-social:{kind}:", StringComparison.Ordinal) &&
             memory.SourceTick > WorldTick - ChildSocialCooldownTicks);
 
-    private void AddChildCandidates(List<CognitionCandidate> candidates, string actor, InhabitantState state)
+    private void AddChildCandidates(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
         var availableTargets = 0;
-        foreach (var target in inhabitants.Keys.Where(id => id != actor &&
-                     society.Checkpoint.GetInhabitant(id).AgeBand != SocietyAgeBand.Infant)
-                 .OrderBy(id => map.FootDistance(state.Position, inhabitants[id].Position))
+        foreach (var target in agents.Keys.Where(id => id != actor &&
+                     society.Checkpoint.GetAgent(id).AgeBand != SocietyAgeBand.Infant)
+                 .OrderBy(id => map.FootDistance(state.Position, agents[id].Position))
                  .ThenBy(id => id, StringComparer.Ordinal))
         {
-            if (NeedsUrgentFood(state) && !IsWithinInteractionRange(state.Position, inhabitants[target].Position, ResourceInteractionRange))
+            if (NeedsUrgentFood(state) && !IsWithinInteractionRange(state.Position, agents[target].Position, ResourceInteractionRange))
                 continue;
-            if (FindUnoccupiedRoute(actor, state.Position, inhabitants[target].Position, ResourceInteractionRange).Count == 0)
+            if (FindUnoccupiedRoute(actor, state.Position, agents[target].Position, ResourceInteractionRange).Count == 0)
                 continue;
             var candidateCount = candidates.Count;
             if (ChildSocialAvailable(actor, target, "converse"))
@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
             if (candidates.Count > candidateCount && ++availableTargets == 3) break;
         }
 
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         AddChildHelpingCandidates(candidates, actor, state);
         var house = householdId is null ? null : HouseForHousehold(householdId);
         if (state.HungerBasisPoints >= 6_000 && PersonalSpareFood(actor) is not null &&
@@ -77,7 +77,7 @@ public sealed partial class WorldRuntime
             candidates.Add(new("child_help_food", "Carry one spare food serving back to the household store.", 26));
     }
 
-    private void ApplyChildCandidate(string actor, InhabitantState state, string candidate)
+    private void ApplyChildCandidate(string actor, AgentState state, string candidate)
     {
         if (!ChildResident(actor) || NeedsUrgentWarmth(state)) return;
         if (candidate.StartsWith("child_gather:", StringComparison.Ordinal) ||
@@ -91,7 +91,7 @@ public sealed partial class WorldRuntime
             if (state.HungerBasisPoints < 6_000 ||
                 PersonalSpareFood(actor) is not { } lot)
                 return;
-            var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+            var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
             var house = householdId is null ? null : HouseForHousehold(householdId);
             if (house is not null && DestinationRoom(house.InstanceId) == 0)
                 return;
@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime
         var target = candidate[(separator + 1)..];
         if (kind is not ("converse" or "play" or "learn") || !ChildSocialAvailable(actor, target, kind) ||
             kind == "learn" && !AdultResident(target)) return;
-        var destination = inhabitants[target].Position;
+        var destination = agents[target].Position;
         if (!IsWithinInteractionRange(state.Position, destination, ResourceInteractionRange))
         {
             MoveToward(actor, state, destination, "child_social", ResourceInteractionRange);

@@ -12,7 +12,7 @@ public sealed class MarketAnimalFoodReserveTests
     public async Task AnimalCareProtectsMealsWhileFamilyReserveIsOnSale(bool leaveFirst, bool removeStock, bool canCare)
     {
         var state = await PaidMarketWorld.StateAsync();
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
         var members = state.Society.Society.GetHousehold(household).MemberIds;
         Assert.Equal(2, members.Count);
@@ -22,7 +22,7 @@ public sealed class MarketAnimalFoodReserveTests
         inventory = InventoryAuthority.AddLot(inventory, "reserve-yard-rope", "rope", household, 2);
         using var placing = WorldRuntime.Restore(PaidMarketWorld.WithInventory(state, inventory));
         var definition = placing.WorldContent.Buildings.Single(item => item.Tags.Contains("animal-yard"));
-        var yard = state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Inhabitants[0].Position))
+        var yard = state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Agents[0].Position))
             .Select(tile => placing.PlaceBuilding("reserve-yard", definition.CanonicalId, tile.Position, household))
             .First(result => result.Applied);
         state = placing.ExportState();
@@ -81,8 +81,8 @@ public sealed class MarketAnimalFoodReserveTests
             AnimalWorld = new(true, [cow], []),
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
-            { Position = person.InhabitantId == actor ? placedYard.Position : person.Position, HungerBasisPoints = 9_500, LastDecisionContext = null, Project = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with
+            { Position = person.AgentId == actor ? placedYard.Position : person.Position, HungerBasisPoints = 9_500, LastDecisionContext = null, Project = null }).ToArray(),
         };
         var care = new MarketRulesPolicy
         {

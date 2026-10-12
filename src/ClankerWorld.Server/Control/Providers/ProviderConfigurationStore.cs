@@ -113,7 +113,7 @@ public sealed record ProviderConfigurationState(
     StoredProviderCredential Jev,
     StoredProviderCredential OpenAi,
     StoredProviderCredential OllamaCloud,
-    IReadOnlyList<InhabitantProviderAssignment>? Assignments = null,
+    IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<ProviderCredentialSlot>? CredentialSlots = null,
     IReadOnlyList<string>? DeletedCredentialSlotIds = null,
     StoredProviderCredential? Anthropic = null);
@@ -125,7 +125,7 @@ public sealed record RuntimeProviderConfiguration(
     StoredProviderCredential OpenAi,
     StoredProviderCredential OllamaCloud,
     long Revision,
-    IReadOnlyList<InhabitantProviderAssignment>? Assignments = null,
+    IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<ProviderCredentialSlot>? CredentialSlots = null,
     StoredProviderCredential? Anthropic = null);
 
@@ -140,7 +140,7 @@ internal sealed record FrozenChildModelBinding(
 /// </summary>
 public sealed class ProviderConfigurationStore
 {
-    public const int StateSchemaVersion = 3;
+    public const int StateSchemaVersion = 4;
     private const int MaximumApiKeyLength = 4096;
     private const int MaximumModelLength = 200;
 
@@ -268,7 +268,7 @@ public sealed class ProviderConfigurationStore
     }
 
     /// <summary>Restore per-agent routing from a world checkpoint, leaving installation keys and defaults alone.</summary>
-    public void RestoreWorldAssignments(IReadOnlyList<InhabitantProviderAssignment> assignments)
+    public void RestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments)
     {
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
@@ -281,7 +281,7 @@ public sealed class ProviderConfigurationStore
     }
 
     /// <summary>Preflight a saved world's required local credentials without changing the active routing.</summary>
-    public bool CanRestoreWorldAssignments(IReadOnlyList<InhabitantProviderAssignment> assignments)
+    public bool CanRestoreWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments)
     {
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
@@ -338,7 +338,7 @@ public sealed class ProviderConfigurationStore
         ArgumentNullException.ThrowIfNull(frozen);
         ArgumentNullException.ThrowIfNull(commit);
         if (childId != childId.Trim())
-            throw new ArgumentException("A child model choice requires a valid inhabitant ID.", nameof(childId));
+            throw new ArgumentException("A child model choice requires a valid agent ID.", nameof(childId));
         var boundSelection = frozen.Selection;
         if (boundSelection.ChoiceReason is not (WorldRuntime.ChildModelChoiceParentsAgreed or
             WorldRuntime.ChildModelChoiceInitiatingParent or WorldRuntime.ChildModelChoiceNoParentModel))
@@ -349,7 +349,7 @@ public sealed class ProviderConfigurationStore
             var before = state;
             var credentialSlots = (state.CredentialSlots ?? []).ToList();
             var existingRows = (state.Assignments ?? []).Where(item =>
-                item.InhabitantId == childId && item.SelectionReason is not null).ToArray();
+                item.AgentId == childId && item.SelectionReason is not null).ToArray();
             if (existingRows.Length > 0 && existingRows.Any(item =>
                     item.Provider != boundSelection.Provider || item.Model != boundSelection.ModelId ||
                     item.CredentialSlotId != boundSelection.CredentialSlotId ||
@@ -386,7 +386,7 @@ public sealed class ProviderConfigurationStore
                 }
             }
             var assignments = (state.Assignments ?? [])
-                .Where(item => item.InhabitantId != childId ||
+                .Where(item => item.AgentId != childId ||
                     item.Role is not (PlayerDecisionProviders.RoutineRole or PlayerDecisionProviders.PlanningRole) ||
                     item.SelectionReason is null)
                 .ToList();
@@ -407,9 +407,9 @@ public sealed class ProviderConfigurationStore
                     throw new ArgumentException("The inherited child model choice is incomplete.", nameof(frozen));
                 foreach (var role in new[] { PlayerDecisionProviders.RoutineRole, PlayerDecisionProviders.PlanningRole })
                 {
-                    if (assignments.Any(item => item.InhabitantId == childId && item.Role == role))
+                    if (assignments.Any(item => item.AgentId == childId && item.Role == role))
                         continue;
-                    assignments.Add(new InhabitantProviderAssignment(childId, role, provider,
+                    assignments.Add(new AgentProviderAssignment(childId, role, provider,
                         boundSelection.ModelId, boundSelection.CredentialSlotId, boundSelection.ChoiceReason));
                 }
             }
@@ -421,7 +421,7 @@ public sealed class ProviderConfigurationStore
             var next = state with
             {
                 CredentialSlots = credentialSlots,
-                Assignments = assignments.OrderBy(item => item.InhabitantId, StringComparer.Ordinal)
+                Assignments = assignments.OrderBy(item => item.AgentId, StringComparer.Ordinal)
                     .ThenBy(item => item.Role, StringComparer.Ordinal).ToArray(),
                 Revision = checked(state.Revision + 1),
             };
@@ -441,7 +441,7 @@ public sealed class ProviderConfigurationStore
         }
     }
 
-    private ProviderConfigurationState PreparedWorldAssignments(IReadOnlyList<InhabitantProviderAssignment> assignments)
+    private ProviderConfigurationState PreparedWorldAssignments(IReadOnlyList<AgentProviderAssignment> assignments)
     {
         // Historical assignments to explicitly deleted keys fall back to
         // deterministic cognition, never another hosted account's credential.
@@ -449,7 +449,7 @@ public sealed class ProviderConfigurationStore
         var ordered = assignments.Select(item => item.CredentialSlotId is { } slot && deleted.Contains(slot) && item.SelectionReason is null
                 ? item with { Provider = PlayerDecisionProviders.Deterministic, Model = null, CredentialSlotId = null, Thinking = null }
                 : item)
-            .OrderBy(item => item.InhabitantId, StringComparer.Ordinal)
+            .OrderBy(item => item.AgentId, StringComparer.Ordinal)
             .ThenBy(item => item.Role, StringComparer.Ordinal).ToArray();
         return state with { Assignments = ordered, Revision = checked(state.Revision + 1) };
     }
@@ -459,15 +459,15 @@ public sealed class ProviderConfigurationStore
         ArgumentNullException.ThrowIfNull(action);
         lock (gate)
         {
-            var role = action.InhabitantId is not null && action.Role == PlayerDecisionProviders.PersonalRole
+            var role = action.AgentId is not null && action.Role == PlayerDecisionProviders.PersonalRole
                 ? PlayerDecisionProviders.PersonalRole
                 : PlayerDecisionProviders.NormalizeRole(action.Role);
-            if (action.InhabitantId is not null)
+            if (action.AgentId is not null)
             {
-                return ConfigureInhabitant(action, role);
+                return ConfigureAgent(action, role);
             }
             if (action.CredentialSlotId is not null || action.NewCredentialLabel is not null)
-                throw new ArgumentException("Credential slots belong to individual inhabitants.", nameof(action));
+                throw new ArgumentException("Credential slots belong to individual agents.", nameof(action));
             if (action.Thinking is not null)
                 throw new ArgumentException("Thinking is set for each agent with its model.", nameof(action));
             var provider = PlayerDecisionProviders.Normalize(action.Provider);
@@ -489,12 +489,12 @@ public sealed class ProviderConfigurationStore
         }
     }
 
-    private OwnerProviderConfigurationStatus ConfigureInhabitant(OwnerProviderConfigurationAction action, string role)
+    private OwnerProviderConfigurationStatus ConfigureAgent(OwnerProviderConfigurationAction action, string role)
     {
-        var id = action.InhabitantId!;
+        var id = action.AgentId!;
         if (string.IsNullOrWhiteSpace(id) || id != id.Trim())
         {
-            throw new ArgumentException("An assignment requires a valid inhabitant ID.", nameof(action));
+            throw new ArgumentException("An assignment requires a valid agent ID.", nameof(action));
         }
         if (action.ForgetCredential)
         {
@@ -505,7 +505,7 @@ public sealed class ProviderConfigurationStore
             ? new[] { PlayerDecisionProviders.RoutineRole, PlayerDecisionProviders.PlanningRole }
             : [role];
         var assignments = (state.Assignments ?? [])
-            .Where(item => item.InhabitantId != id || !roles.Contains(item.Role, StringComparer.Ordinal)).ToList();
+            .Where(item => item.AgentId != id || !roles.Contains(item.Role, StringComparer.Ordinal)).ToList();
         var next = state;
         if (action.Provider == PlayerDecisionProviders.Inherit)
         {
@@ -515,7 +515,7 @@ public sealed class ProviderConfigurationStore
                 throw new ArgumentException("Inheritance does not accept a model or key.", nameof(action));
             }
             foreach (var assignedRole in roles)
-                assignments.Add(new InhabitantProviderAssignment(id, assignedRole, PlayerDecisionProviders.Inherit));
+                assignments.Add(new AgentProviderAssignment(id, assignedRole, PlayerDecisionProviders.Inherit));
         }
         else
         {
@@ -563,14 +563,14 @@ public sealed class ProviderConfigurationStore
                     next = WithCredential(next, provider, CredentialFor(next, provider)! with { Model = CredentialFor(state, provider)!.Model });
             }
             foreach (var assignedRole in roles)
-                assignments.Add(new InhabitantProviderAssignment(id, assignedRole, provider, model, slotId, Thinking: thinking));
+                assignments.Add(new AgentProviderAssignment(id, assignedRole, provider, model, slotId, Thinking: thinking));
         }
 
         next = next with
         {
             RoutineProvider = state.RoutineProvider,
             PlanningProvider = state.PlanningProvider,
-            Assignments = assignments.OrderBy(item => item.InhabitantId, StringComparer.Ordinal)
+            Assignments = assignments.OrderBy(item => item.AgentId, StringComparer.Ordinal)
                 .ThenBy(item => item.Role, StringComparer.Ordinal).ToArray(),
             Revision = checked(state.Revision + 1),
         };
@@ -591,14 +591,16 @@ public sealed class ProviderConfigurationStore
             }
 
             var stored = File.ReadAllText(Path);
-            var json = ProviderCredentialFile.Decode(stored);
+            var json = UpgradeAssignmentAgentIds(ProviderCredentialFile.Decode(stored));
             var loaded = JsonSerializer.Deserialize<ProviderConfigurationState>(json, JsonOptions) ??
                 throw new InvalidDataException("The provider-configuration state file is empty.");
             // Files written before Anthropic was added have no record for it.
             loaded = loaded with { Anthropic = AnthropicCredential(loaded.Anthropic) };
             if (loaded.SchemaVersion == 2)
+                loaded = loaded with { SchemaVersion = 3, CredentialSlots = [] };
+            if (loaded.SchemaVersion == 3)
             {
-                loaded = loaded with { SchemaVersion = StateSchemaVersion, CredentialSlots = [] };
+                loaded = loaded with { SchemaVersion = StateSchemaVersion };
                 ValidateState(loaded);
                 SaveUnsafe(loaded);
             }
@@ -608,6 +610,23 @@ public sealed class ProviderConfigurationStore
             RestrictPermissions(Path);
             return loaded;
         }
+    }
+
+    // Schema 4 names the agent of each assignment AgentId; schema 2 and 3 files
+    // name it InhabitantId. The file holds the player's model keys, so an older
+    // file is upgraded rather than refused.
+    private static string UpgradeAssignmentAgentIds(string json)
+    {
+        if (JsonNode.Parse(json) is not JsonObject root || root["SchemaVersion"] is not JsonValue version ||
+            !version.TryGetValue<int>(out var schema) || schema is not (2 or 3) || root["Assignments"] is not JsonArray assignments)
+            return json;
+        foreach (var assignment in assignments.OfType<JsonObject>())
+        {
+            if (!assignment.TryGetPropertyValue("InhabitantId", out var agentId)) continue;
+            assignment.Remove("InhabitantId");
+            assignment["AgentId"] = agentId;
+        }
+        return root.ToJsonString();
     }
 
     private static ProviderConfigurationState CreateInitial(ProviderConfigurationSeed seed)
@@ -811,10 +830,10 @@ public sealed class ProviderConfigurationStore
         var assignmentKeys = new HashSet<(string, string)>();
         foreach (var assignment in state.Assignments ?? [])
         {
-            if (string.IsNullOrWhiteSpace(assignment.InhabitantId) ||
-                !assignmentKeys.Add((assignment.InhabitantId, assignment.Role)))
+            if (string.IsNullOrWhiteSpace(assignment.AgentId) ||
+                !assignmentKeys.Add((assignment.AgentId, assignment.Role)))
             {
-                throw new InvalidDataException("Provider assignments must have unique inhabitant/role identities.");
+                throw new InvalidDataException("Provider assignments must have unique agent/role identities.");
             }
             if (assignment.Provider == PlayerDecisionProviders.Inherit)
             {
@@ -851,7 +870,7 @@ public sealed class ProviderConfigurationStore
         }
         var assignments = state.Assignments ?? [];
         foreach (var group in assignments.Where(item => item.SelectionReason is not null)
-                     .GroupBy(item => item.InhabitantId, StringComparer.Ordinal))
+                     .GroupBy(item => item.AgentId, StringComparer.Ordinal))
         {
             var rows = group.ToArray();
             var pairedBirthChoice = rows.Length == 2 &&
@@ -860,7 +879,7 @@ public sealed class ProviderConfigurationStore
                 rows.Select(item => (item.Provider, item.Model, item.CredentialSlotId, item.SelectionReason)).Distinct().Count() == 1;
             var preservedBirthChoiceWithOwnerOverride = rows.Length == 1 &&
                 rows[0].Role is (PlayerDecisionProviders.RoutineRole or PlayerDecisionProviders.PlanningRole) &&
-                assignments.Any(item => item.InhabitantId == group.Key &&
+                assignments.Any(item => item.AgentId == group.Key &&
                     item.Role == (rows[0].Role == PlayerDecisionProviders.RoutineRole
                         ? PlayerDecisionProviders.PlanningRole : PlayerDecisionProviders.RoutineRole) &&
                     item.SelectionReason is null);
@@ -1008,7 +1027,7 @@ public sealed class WorldJevPolicy
 }
 
 /// <summary>
-/// A stable provider object shared by every inhabitant. Player changes update
+/// A stable provider object shared by every agent. Player changes update
 /// its kind and epoch dynamically; requests already issued against an older
 /// configuration are rejected and fall back locally at the cognition boundary.
 /// </summary>
@@ -1406,7 +1425,7 @@ public sealed partial class ConfigurableDecisionProvider(
         int inputTokens,
         int outputTokens);
 
-    public DecisionProviderKind KindFor(InhabitantObservation observation)
+    public DecisionProviderKind KindFor(AgentObservation observation)
     {
         ArgumentNullException.ThrowIfNull(observation);
         var selected = configuration.CaptureRuntimeConfiguration();
@@ -1506,7 +1525,7 @@ public sealed partial class ConfigurableDecisionProvider(
                     providerId,
                     role,
                     string.IsNullOrWhiteSpace(credential.Model) ? "local" : credential.Model,
-                    request.Observation.InhabitantId,
+                    request.Observation.AgentId,
                     request.Observation.WorldTick,
                     response.SelectedCandidateId,
                     response.Confidence,
@@ -1535,7 +1554,7 @@ public sealed partial class ConfigurableDecisionProvider(
                     providerId,
                     role,
                     string.IsNullOrWhiteSpace(credential.Model) ? "local" : credential.Model,
-                    request.Observation.InhabitantId,
+                    request.Observation.AgentId,
                     request.Observation.WorldTick,
                     stopwatch.ElapsedMilliseconds);
             }
@@ -1553,7 +1572,7 @@ public sealed partial class ConfigurableDecisionProvider(
                     providerId,
                     role,
                     string.IsNullOrWhiteSpace(credential.Model) ? "local" : credential.Model,
-                    request.Observation.InhabitantId,
+                    request.Observation.AgentId,
                     request.Observation.WorldTick,
                     exception.GetType().Name,
                     stopwatch.ElapsedMilliseconds);
@@ -1562,9 +1581,9 @@ public sealed partial class ConfigurableDecisionProvider(
         }
     }
 
-    private static (string Provider, InhabitantProviderAssignment? Assignment) ProviderFor(
+    private static (string Provider, AgentProviderAssignment? Assignment) ProviderFor(
         RuntimeProviderConfiguration configuration,
-        InhabitantObservation observation,
+        AgentObservation observation,
         (bool Enabled, long Revision, RoutineHelperSettings Helper) policy)
     {
         var helper = policy.Helper;
@@ -1577,7 +1596,7 @@ public sealed partial class ConfigurableDecisionProvider(
             (helper.Provider == "decisions" || policy.Revision > 0 || observation.RequiresPersonalProvider))
             return (helper.Provider, null);
         var role = routine ? PlayerDecisionProviders.RoutineRole : PlayerDecisionProviders.PlanningRole;
-        var assigned = AssignmentFor(configuration, observation.InhabitantId, role);
+        var assigned = AssignmentFor(configuration, observation.AgentId, role);
         if (assigned?.Provider == PlayerDecisionProviders.Inherit)
         {
             if (observation.RequiresPersonalProvider)
@@ -1602,7 +1621,7 @@ public sealed partial class ConfigurableDecisionProvider(
             // Jev is a world-level helper, never a requirement for an agent to
             // continue. Prefer this agent's personal planner, then the world
             // planner, and finally local safe decisions when no model is set.
-            assigned = AssignmentFor(configuration, observation.InhabitantId, PlayerDecisionProviders.PlanningRole);
+            assigned = AssignmentFor(configuration, observation.AgentId, PlayerDecisionProviders.PlanningRole);
             provider = assigned?.Provider == PlayerDecisionProviders.Inherit
                 ? configuration.PlanningProvider
                 : assigned?.Provider ?? configuration.PlanningProvider;
@@ -1610,12 +1629,12 @@ public sealed partial class ConfigurableDecisionProvider(
         return (provider, assigned);
     }
 
-    private static InhabitantProviderAssignment? AssignmentFor(RuntimeProviderConfiguration configuration, string inhabitantId, string role) =>
-        configuration.Assignments?.FirstOrDefault(item => item.InhabitantId == inhabitantId && item.Role == role);
+    private static AgentProviderAssignment? AssignmentFor(RuntimeProviderConfiguration configuration, string agentId, string role) =>
+        configuration.Assignments?.FirstOrDefault(item => item.AgentId == agentId && item.Role == role);
 
     private static bool HasUsableCredential(
         RuntimeProviderConfiguration configuration,
-        InhabitantProviderAssignment assignment)
+        AgentProviderAssignment assignment)
     {
         if (assignment.Provider == PlayerDecisionProviders.Deterministic) return true;
         if (assignment.CredentialSlotId is { } slotId)
@@ -1623,7 +1642,7 @@ public sealed partial class ConfigurableDecisionProvider(
         return !string.IsNullOrWhiteSpace(CredentialFor(configuration, assignment.Provider).ApiKey);
     }
 
-    private static bool IsRoutine(InhabitantObservation observation) =>
+    private static bool IsRoutine(AgentObservation observation) =>
         observation.ObserverGuidance is not { Count: > 0 } &&
         !observation.NeedsName && !observation.IsNameRetry &&
         !observation.NeedsPersonality && !observation.NeedsAspiration &&
@@ -1654,13 +1673,13 @@ public sealed partial class ConfigurableDecisionProvider(
     [LoggerMessage(
         EventId = 2101,
         Level = LogLevel.Information,
-        Message = "cognition_provider_call status=completed provider={Provider} role={Role} model={Model} inhabitant={InhabitantId} tick={WorldTick} candidate={CandidateId} confidence={Confidence} input_tokens={InputTokens} output_tokens={OutputTokens} latency_ms={LatencyMilliseconds}")]
+        Message = "cognition_provider_call status=completed provider={Provider} role={Role} model={Model} agent={AgentId} tick={WorldTick} candidate={CandidateId} confidence={Confidence} input_tokens={InputTokens} output_tokens={OutputTokens} latency_ms={LatencyMilliseconds}")]
     private static partial void LogProviderCallCompleted(
         ILogger logger,
         string provider,
         string role,
         string model,
-        string inhabitantId,
+        string agentId,
         long worldTick,
         string candidateId,
         double confidence,
@@ -1671,26 +1690,26 @@ public sealed partial class ConfigurableDecisionProvider(
     [LoggerMessage(
         EventId = 2102,
         Level = LogLevel.Information,
-        Message = "cognition_provider_call status=cancelled provider={Provider} role={Role} model={Model} inhabitant={InhabitantId} tick={WorldTick} latency_ms={LatencyMilliseconds}")]
+        Message = "cognition_provider_call status=cancelled provider={Provider} role={Role} model={Model} agent={AgentId} tick={WorldTick} latency_ms={LatencyMilliseconds}")]
     private static partial void LogProviderCallCancelled(
         ILogger logger,
         string provider,
         string role,
         string model,
-        string inhabitantId,
+        string agentId,
         long worldTick,
         long latencyMilliseconds);
 
     [LoggerMessage(
         EventId = 2103,
         Level = LogLevel.Warning,
-        Message = "cognition_provider_call status=failed provider={Provider} role={Role} model={Model} inhabitant={InhabitantId} tick={WorldTick} error_type={ErrorType} latency_ms={LatencyMilliseconds}")]
+        Message = "cognition_provider_call status=failed provider={Provider} role={Role} model={Model} agent={AgentId} tick={WorldTick} error_type={ErrorType} latency_ms={LatencyMilliseconds}")]
     private static partial void LogProviderCallFailed(
         ILogger logger,
         string provider,
         string role,
         string model,
-        string inhabitantId,
+        string agentId,
         long worldTick,
         string errorType,
         long latencyMilliseconds);

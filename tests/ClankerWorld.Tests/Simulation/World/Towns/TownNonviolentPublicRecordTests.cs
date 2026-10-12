@@ -13,7 +13,7 @@ public sealed class TownNonviolentPublicRecordTests
         var original = Assert.Single(town.Nonviolent.Cases);
         var position = original.Allegation.Position;
         var actor = NonviolentRuntimeFixture.Subject;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         Assert.Contains(state.TownLandTitles!, title => title.TownId == town.Id && title.Tiles.Contains(position));
         var groups = state.HouseholdLandUseRights!.Where(right => right.TownId == town.Id)
             .GroupBy(right => right.HouseholdId).Select(group => (HouseholdId: group.Key,
@@ -30,7 +30,7 @@ public sealed class TownNonviolentPublicRecordTests
         {
             Choose = observation =>
             {
-                var action = observation.InhabitantId == actor ? stage switch
+                var action = observation.AgentId == actor ? stage switch
                 {
                     0 => "hearing_file",
                     1 => "hearing_inspect",
@@ -38,7 +38,7 @@ public sealed class TownNonviolentPublicRecordTests
                     3 => "law_case_inspect",
                     4 => "law_case_reopen",
                     _ => null,
-                } : observation.InhabitantId == NonviolentRuntimeFixture.Judge ? stage switch
+                } : observation.AgentId == NonviolentRuntimeFixture.Judge ? stage switch
                 {
                     5 => "law_case_inspect",
                     6 => "law_case_assess_reopen",

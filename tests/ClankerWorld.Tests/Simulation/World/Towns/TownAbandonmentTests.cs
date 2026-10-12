@@ -20,7 +20,7 @@ public sealed partial class TownMembershipTests
         var model = new ScriptedModel();
         model.Scripts[caregiver] = [Civic(Second, "resettle")];
         state = Calm(At(state, original.OriginSite!.Value, caregiver));
-        var physical = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position);
+        var physical = state.Agents.ToDictionary(person => person.AgentId, person => person.Position);
         var buildings = state.WorldSimulation!.Buildings.ToArray();
         var stock = state.Society.Society.Inventory.Lots.ToArray();
         var rights = state.HouseholdLandUseRights;
@@ -45,9 +45,9 @@ public sealed partial class TownMembershipTests
             world.Society.Inventory.Lots.Select(lot => (lot.Id, lot.OwnerId, lot.Quantity, lot.StorageBuildingId)));
         foreach (var child in children)
         {
-            var person = world.Society.GetInhabitant(child);
+            var person = world.Society.GetAgent(child);
             Assert.Equal((Alpha, caregiver), (person.HouseholdId, person.PrimaryCaregiverId));
-            Assert.Equal(physical[child], world.Inhabitants.Single(item => item.InhabitantId == child).Position);
+            Assert.Equal(physical[child], world.Agents.Single(item => item.AgentId == child).Position);
         }
         Assert.DoesNotContain(revived.Governance.Knowledge, receipt => receipt.AgentId == caregiver);
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_resettled");
@@ -236,7 +236,7 @@ public sealed partial class TownMembershipTests
             groundPosition: new(Board(state, Second).X, Board(state, Second).Y));
         // The resident is physically in the first Town and has no House or household.
         var departure = SocietyRules.LeaveHousehold(state.Society.Society, resident);
-        Assert.Null(departure.Checkpoint.GetInhabitant(resident).HouseholdId);
+        Assert.Null(departure.Checkpoint.GetAgent(resident).HouseholdId);
         var society = departure.Checkpoint;
         state = state with { Society = state.Society with { Society = society } };
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.OwnerId != resident).ToArray() };
@@ -343,7 +343,7 @@ public sealed partial class TownMembershipTests
             await Task.Delay(10);
             var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
-            completed = step.Decisions.Any(decision => decision.InhabitantId == visitor && decision.Admission.FellBack) ||
+            completed = step.Decisions.Any(decision => decision.AgentId == visitor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == visitor);
         }
         Assert.True(completed, "The host must process and refuse the previously valid salvage reply after revival.");
@@ -548,7 +548,7 @@ public sealed partial class TownMembershipTests
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Observation.InhabitantId != actor || Pending is not null ||
+            if (request.Observation.AgentId != actor || Pending is not null ||
                 !request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("town_salvage:", StringComparison.Ordinal)))
                 return OtherChoices.DecideAsync(request, cancellationToken);
             Pending = request;

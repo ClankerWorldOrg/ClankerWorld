@@ -20,20 +20,20 @@ internal static class PaidMarketWorld
     {
         var state = WorldRuntimeCodec.Decode(await Paid.Value);
         var inventory = state.Society.Society.Inventory;
-        foreach (var person in state.Inhabitants)
+        foreach (var person in state.Agents)
         {
-            inventory = InventoryAuthority.AddLot(inventory, "market-rules-cloak:" + person.InhabitantId, "rain_cloak", person.InhabitantId, 1);
-            inventory = InventoryAuthority.AddLot(inventory, "market-rules-sack:" + person.InhabitantId, "sack", person.InhabitantId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, "market-rules-cloak:" + person.AgentId, "rain_cloak", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, "market-rules-sack:" + person.AgentId, "sack", person.AgentId, 1);
         }
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_500,
                 Survival = new SurvivalCondition(),
                 Project = null,
                 LastDecisionContext = null,
-                Equipment = new PersonalEquipment("market-rules-cloak:" + person.InhabitantId, "market-rules-sack:" + person.InhabitantId),
+                Equipment = new PersonalEquipment("market-rules-cloak:" + person.AgentId, "market-rules-sack:" + person.AgentId),
             }).ToArray(),
         };
     }
@@ -54,11 +54,11 @@ internal static class PaidMarketWorld
 
     internal static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = position } : person).ToArray(),
+        Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = position } : person).ToArray(),
     };
 
     internal static string HouseholdOf(WorldRuntimeState state, string actor) =>
-        state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        state.Society.Society.GetAgent(actor).HouseholdId!;
 
     internal static PlacedBuilding HouseOf(WorldRuntimeState state, string household) =>
         state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&

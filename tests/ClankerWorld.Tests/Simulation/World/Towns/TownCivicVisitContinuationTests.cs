@@ -25,9 +25,9 @@ public sealed class TownCivicVisitContinuationTests
         using var world = WorldRuntime.Restore(initial with
         {
             Towns = [town with { Governance = governance }],
-            Inhabitants = initial.Inhabitants.Select(person => person with
+            Agents = initial.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == visitor ? start : person.Position,
+                Position = person.AgentId == visitor ? start : person.Position,
                 HungerBasisPoints = 8_000,
                 TravelCooldownTicks = 0,
             }).ToArray(),
@@ -35,7 +35,7 @@ public sealed class TownCivicVisitContinuationTests
 
         var first = await world.AdvanceOneTickAsync();
         Assert.True(first.Advanced);
-        var decision = Assert.Single(first.Decisions, result => result.InhabitantId == visitor);
+        var decision = Assert.Single(first.Decisions, result => result.AgentId == visitor);
         Assert.True(decision.Admission.Accepted);
         Assert.False(decision.Admission.FellBack);
         var firstObservation = Assert.Single(provider.Observations);
@@ -79,7 +79,7 @@ public sealed class TownCivicVisitContinuationTests
     }
 
     private static GridPoint Position(WorldRuntime world, string visitor) =>
-        world.ExportState().Inhabitants.Single(person => person.InhabitantId == visitor).Position;
+        world.ExportState().Agents.Single(person => person.AgentId == visitor).Position;
 
     private static int VisitActionCount(WorldRuntimeState state, string town, string visitor) =>
         state.Events.Count(item => item.Kind == "town_civic_action" && item.Detail == $"{town}|{visitor}|visit");
@@ -100,7 +100,7 @@ public sealed class TownCivicVisitContinuationTests
 
     private static GridPoint ReachableDistantPosition(WorldRuntimeState state, string visitor, GridPoint board)
     {
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != visitor)
+        var occupied = state.Agents.Where(person => person.AgentId != visitor)
             .Select(person => person.Position).ToHashSet();
         foreach (var point in state.Map.Tiles.Select(tile => tile.Position)
                      .Where(point => state.Map.IsBuildable(point) && !occupied.Contains(point) &&
@@ -123,7 +123,7 @@ public sealed class TownCivicVisitContinuationTests
 
     private sealed class VisitOnceProvider : IDecisionProvider
     {
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public string? VisitId { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -137,7 +137,7 @@ public sealed class TownCivicVisitContinuationTests
                 ? observation.Candidates.Single(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal))
                 : observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             VisitId ??= selected.Id;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1, observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

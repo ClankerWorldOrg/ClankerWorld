@@ -23,9 +23,9 @@ public sealed class RemedyRenegotiationCounterTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId is subject or witness ? board : person.Position,
+                Position = person.AgentId is subject or witness ? board : person.Position,
                 HungerBasisPoints = 9_000,
                 Survival = person.Survival is { } survival ? survival with { WarmthBasisPoints = 9_000, IllnessBasisPoints = 0 } : null,
                 LastDecisionContext = null,
@@ -127,14 +127,14 @@ public sealed class RemedyRenegotiationCounterTests
         {
             Choose = observation =>
             {
-                if (observation.InhabitantId is not (subject or witness)) return null;
+                if (observation.AgentId is not (subject or witness)) return null;
                 if (phase == "perform") return observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("nonviolent_remedy:", StringComparison.Ordinal));
                 var informed = observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|remedy_read|", StringComparison.Ordinal));
                 if (informed is not null) return informed;
-                var action = phase == "accept" ? "remedy_accept" : phase == "counter" && observation.InhabitantId == counterActor ? "remedy_counter" :
-                    phase == "renegotiate" && observation.InhabitantId == subject ? "remedy_renegotiate" : null;
+                var action = phase == "accept" ? "remedy_accept" : phase == "counter" && observation.AgentId == counterActor ? "remedy_counter" :
+                    phase == "renegotiate" && observation.AgentId == subject ? "remedy_renegotiate" : null;
                 return action is null ? null : observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             },
             Payload = (_, candidate) => candidate.Id.Contains("|remedy_renegotiate|", StringComparison.Ordinal) ||

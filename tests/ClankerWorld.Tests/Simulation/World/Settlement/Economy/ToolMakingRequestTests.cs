@@ -20,15 +20,15 @@ public sealed partial class ToolMakingRequestTests
         using var setup = NormalPathWorld.CreateGenerated("probe-a", _ => new RequestChoices());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-alpha").Id;
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
         var inventory = state.Society.Society.Inventory with { Lots = [] };
         inventory = InventoryAuthority.AddLot(inventory, "full-personal-load", "iron", buyer, 8);
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == buyer ? new GridPoint(124, 44) : person.Position,
+                Position = person.AgentId == buyer ? new GridPoint(124, 44) : person.Position,
                 HungerBasisPoints = 9_500,
                 LastDecisionContext = null,
                 Project = null,
@@ -104,7 +104,7 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(shop.InstanceId, job.BuildingInstanceId);
         Assert.Equal(request.RecipeId, job.RecipeId);
         Assert.True(job.StartedTick > request.AcceptedTick.GetValueOrDefault());
-        Assert.Contains(working.ExportState().Events, item => item.Kind == "inhabitant_moved" && item.Detail.StartsWith(seller + ":", StringComparison.Ordinal));
+        Assert.Contains(working.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.StartsWith(seller + ":", StringComparison.Ordinal));
         var receipt = Assert.Single(working.Society.Inventory.Reservations, receipt => job.InputReservationIds.Contains(receipt.Id));
         Assert.Equal("smith-input", receipt.LotId);
         Assert.Equal(shop.HouseholdId, receipt.OwnerId);
@@ -151,7 +151,7 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(shop.InstanceId, payment.StorageBuildingId);
         Assert.Equal(3, payment.Quantity);
         Assert.Equal(woodBefore - 3, collecting.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
-        Assert.Equal(state.Society.Society.GetInhabitant(buyer).HouseholdId, collecting.Society.GetInhabitant(buyer).HouseholdId);
+        Assert.Equal(state.Society.Society.GetAgent(buyer).HouseholdId, collecting.Society.GetAgent(buyer).HouseholdId);
         Assert.False(collecting.StartProduction(request.RecipeId, shop.InstanceId, buyer).Applied);
         _ = Roundtrip(collecting);
     }
@@ -318,7 +318,7 @@ public sealed partial class ToolMakingRequestTests
         Assert.False(removed.Applied);
         Assert.Contains("tool request", removed.Failure!, StringComparison.Ordinal);
         var reassigned = world.ReassignBuilding(shop.InstanceId, shop.TownId, shop.HouseholdId,
-            targetTownId: null, targetHouseholdId: world.Society.GetInhabitant(buyer).HouseholdId);
+            targetTownId: null, targetHouseholdId: world.Society.GetAgent(buyer).HouseholdId);
         Assert.False(reassigned.Applied);
         Assert.Contains("tool request", reassigned.Failure!, StringComparison.Ordinal);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -547,10 +547,10 @@ public sealed partial class ToolMakingRequestTests
         Assert.Equal(WorldProductionJobState.Paused, making.WorldSimulation.ProductionJobs.Single(job => job.JobId == jobId).State);
         state = Roundtrip(making);
         var housemate = state.Society.Society.GetHousehold(shop.HouseholdId!).MemberIds.First(id => id != seller &&
-            state.Society.Society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+            state.Society.Society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == housemate
+            Agents = state.Agents.Select(person => person.AgentId == housemate
                 ? person with { Position = shop.Position, LastDecisionContext = null, Project = null } : person).ToArray(),
         };
         var resumer = new RequestChoices("household_resume_work:");
@@ -726,10 +726,10 @@ public sealed partial class ToolMakingRequestTests
         var shop = state.WorldSimulation!.Buildings.Single(building => state.WorldContent!.Buildings.Single(definition =>
             definition.CanonicalId == building.DefinitionId).Tags.Contains("blacksmith"));
         var seller = state.Society.Society.GetHousehold(shop.HouseholdId!).MemberIds[0];
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId != shop.HouseholdId).Id;
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId != shop.HouseholdId).Id;
         var house = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == shop.HouseholdId &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != buyer && person.InhabitantId != seller)
+        var occupied = state.Agents.Where(person => person.AgentId != buyer && person.AgentId != seller)
             .Select(person => person.Position).ToHashSet();
         var customerPosition = state.Map.Tiles.Select(tile => tile.Position).First(position => state.Map.IsPassable(position) &&
             state.Map.FootDistance(position, shop.Position) == 1 && !occupied.Contains(position));
@@ -747,13 +747,13 @@ public sealed partial class ToolMakingRequestTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == buyer ? customerPosition : person.InhabitantId == seller ? sellerPosition : person.Position,
+                Position = person.AgentId == buyer ? customerPosition : person.AgentId == seller ? sellerPosition : person.Position,
                 HungerBasisPoints = 8_000,
                 LastDecisionContext = null,
                 Project = null,
-                Equipment = person.InhabitantId == buyer ? null : person.Equipment,
+                Equipment = person.AgentId == buyer ? null : person.Equipment,
             }).ToArray(),
         };
         return (state, buyer, seller, shop);
@@ -796,7 +796,7 @@ public sealed partial class ToolMakingRequestTests
                 (!prefix.EndsWith("place:", StringComparison.Ordinal) || candidate.Description.Contains("wooden axe", StringComparison.Ordinal))))
                 .FirstOrDefault(candidate => candidate is not null) ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             if (prefixes.Any(prefix => choice.Id.StartsWith(prefix, StringComparison.Ordinal))) Chosen.TrySetResult();
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, choice.Id, 1, new Dictionary<string, double> { [choice.Id] = 1 }));
         }

@@ -20,12 +20,12 @@ public sealed class SettlementTradeTests
         using var setup = NormalPathWorld.CreateGenerated("personal-barter-lots", _ => new TradeProvider("safe_idle"));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         var meeting = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse").Position;
         var positions = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
                 state.Map.FootDistance(point, meeting) <= 1 &&
-                state.Inhabitants.All(person => person.InhabitantId == first || person.InhabitantId == second || person.Position != point))
+                state.Agents.All(person => person.AgentId == first || person.AgentId == second || person.Position != point))
             .OrderBy(point => point.Y).ThenBy(point => point.X).Take(2).ToArray();
         Assert.Equal(2, positions.Length);
         var inventory = state.Society.Society.Inventory with
@@ -50,12 +50,12 @@ public sealed class SettlementTradeTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == first ? positions[0] : person.InhabitantId == second ? positions[1] : person.Position,
+                Position = person.AgentId == first ? positions[0] : person.AgentId == second ? positions[1] : person.Position,
                 HungerBasisPoints = 7_500,
                 Survival = new(),
-                Equipment = new(person.InhabitantId == first && reserve == "worn" ? "barter-clothing-b" : null),
+                Equipment = new(person.AgentId == first && reserve == "worn" ? "barter-clothing-b" : null),
                 LastDecisionContext = null,
                 Project = null,
             }).ToArray(),
@@ -107,8 +107,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("young-barter-recipient");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         state = WithAge(WithTradeGoods(state, first, second), second, age);
         var bytes = WorldRuntimeCodec.Encode(state);
         for (var round = 0; round < 2; round++)
@@ -138,8 +138,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("direct-young-barter");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         state = WithAge(WithTradeGoods(state, first, second), youngFirst ? first : second, age);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state));
         var society = state.Society.Society;
@@ -178,8 +178,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("container-settlement-trade");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         state = WithTradeGoods(state, first, second);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "trade-pot", InventoryContainerRules.StoragePot, first, 1);
@@ -205,8 +205,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("elder-barter");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         state = WithAge(WithTradeGoods(state, first, second), second, SocietyAgeBand.Elder);
         IDecisionProvider Provider(string id) => new TradeProvider(id == first ? "trade_propose:" + second :
             id == second ? "trade_accept:" : "safe_idle");
@@ -243,7 +243,7 @@ public sealed class SettlementTradeTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         AgeBand = age,
                         BirthTick = birth,
@@ -271,8 +271,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("settlement-trade-test");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         state = WithTradeGoods(state, first, second, foodKind);
         IDecisionProvider Provider(string id) => new TradeProvider(id == first ? "trade_propose:" : id == second
             ? decline ? "trade_decline:" : "trade_accept:" : "safe_idle");
@@ -281,7 +281,7 @@ public sealed class SettlementTradeTests
         var offered = Assert.Single(world.ExportState().Society.Society.Inventory.Offers);
         Assert.Equal(DirectBarterState.Open, offered.State);
         Assert.Equal([first], offered.AcceptedBy);
-        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == second).SocialNotes,
+        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == second).SocialNotes,
             note => note.Contains("undecided", StringComparison.Ordinal));
         world.Pause();
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -301,7 +301,7 @@ public sealed class SettlementTradeTests
         {
             Assert.DoesNotContain(inventory.Lots, lot => lot.OwnerId == second && lot.ItemKind == foodKind);
             Assert.Empty(final.Society.Society.Memories);
-            Assert.All(final.Inhabitants, person => Assert.True(person.SocialStanding is null or []));
+            Assert.All(final.Agents, person => Assert.True(person.SocialStanding is null or []));
             Assert.Contains(final.Events, item => item.Kind == "settlement_trade_declined");
         }
         else
@@ -309,9 +309,9 @@ public sealed class SettlementTradeTests
             Assert.Contains(inventory.Lots, lot => lot.OwnerId == second && lot.ItemKind == foodKind && lot.Quantity == 1);
             Assert.Contains(inventory.Lots, lot => lot.OwnerId == first && lot.ItemKind == "clothing" && lot.Quantity == 1);
             Assert.Equal(2, final.Society.Society.Memories.Count);
-            Assert.Equal(1, final.Inhabitants.Single(person => person.InhabitantId == first).SocialStanding!
+            Assert.Equal(1, final.Agents.Single(person => person.AgentId == first).SocialStanding!
                 .Single(item => item.SubjectId == second).Trust);
-            Assert.Equal(1, final.Inhabitants.Single(person => person.InhabitantId == second).SocialStanding!
+            Assert.Equal(1, final.Agents.Single(person => person.AgentId == second).SocialStanding!
                 .Single(item => item.SubjectId == first).Trust);
             Assert.Contains(final.Events, item => item.Kind == "settlement_trade_completed");
         }
@@ -322,8 +322,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("withdraw-settlement-trade");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         var withdraw = false;
         using var world = WorldRuntime.Restore(WithTradeGoods(state, first, second),
             id => new TradeProvider(id == first ? withdraw ? "trade_decline:" : "trade_propose:" : "safe_idle"));
@@ -341,8 +341,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("ignored-settlement-trade");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         using var world = WorldRuntime.Restore(WithTradeGoods(state, first, second),
             id => new TradeProvider(id == first ? "trade_propose:" : "safe_idle"));
         for (var tick = 0; tick < 125; tick++)
@@ -363,8 +363,8 @@ public sealed class SettlementTradeTests
     {
         using var seed = new WorldRuntime("spoiled-settlement-trade");
         var state = seed.ExportState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         using var world = WorldRuntime.Restore(WithTradeGoods(state, first, second),
             id => new TradeProvider(id == first ? "trade_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
@@ -403,7 +403,7 @@ public sealed class SettlementTradeTests
         state = AtTradeMeeting(state, first, second);
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 7_500 }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 7_500 }).ToArray(),
             Society = state.Society with
             {
                 Society = state.Society.Society with
@@ -421,15 +421,15 @@ public sealed class SettlementTradeTests
         var meeting = state.Map.GetObject("storage").Position;
         var positions = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
             state.Map.FootDistance(point, meeting) <= 1 &&
-            state.Inhabitants.All(person => person.InhabitantId == first || person.InhabitantId == second || person.Position != point))
+            state.Agents.All(person => person.AgentId == first || person.AgentId == second || person.Position != point))
             .OrderBy(point => point.Y).ThenBy(point => point.X).Take(2).ToArray();
         Assert.Equal(2, positions.Length);
         Assert.All(positions, point => Assert.True(state.Map.IsReachableOnFoot(point, meeting)));
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == first
+            Agents = state.Agents.Select(person => person.AgentId == first
                 ? person with { Position = positions[0] }
-                : person.InhabitantId == second ? person with { Position = positions[1] } : person).ToArray(),
+                : person.AgentId == second ? person with { Position = positions[1] } : person).ToArray(),
         };
     }
 

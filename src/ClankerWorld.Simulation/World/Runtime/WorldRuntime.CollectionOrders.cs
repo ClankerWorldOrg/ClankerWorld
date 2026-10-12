@@ -7,9 +7,9 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private CognitionCandidate? CollectionOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? CollectionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!ReadyForBriefInteraction(actor) || FreeCarryCapacity(actor) <= 0) return null;
         var lot = CollectionOrderGoods(instruction, GoodsUse.Recover)
             .OrderBy(item => map.FootDistance(person.Position, HouseholdStockPosition(item)))
@@ -20,8 +20,8 @@ public sealed partial class WorldRuntime
     }
 
     private IEnumerable<InventoryLot> CollectionOrderGoods(OwnerQueuedInstruction instruction, GoodsUse use = GoodsUse.RecoveryHoldings) =>
-        (use == GoodsUse.Recover ? RecoverablePersonalGoods(instruction.TargetInhabitantId)
-            : PersonalGoodsAwaitingCollection(instruction.TargetInhabitantId)).Where(lot =>
+        (use == GoodsUse.Recover ? RecoverablePersonalGoods(instruction.TargetAgentId)
+            : PersonalGoodsAwaitingCollection(instruction.TargetAgentId)).Where(lot =>
             (instruction.Order!.Action switch
             {
                 "collect_food" => IsEdibleFood(lot.ItemKind) &&
@@ -32,7 +32,7 @@ public sealed partial class WorldRuntime
             }) &&
             (instruction.Order.TargetPosition is null || HouseholdStockPosition(lot) == instruction.Order.TargetPosition));
 
-    private void ExecuteCollectionOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteCollectionOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         var candidate = CollectionOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         var order = instruction.Order!;
         var remaining = order.QuantityIsExplicit && !order.RepeatUntilCancelled
             ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
-        if (CollectPersonalGoods(instruction.TargetInhabitantId, lotId, remaining) is { } effect)
+        if (CollectPersonalGoods(instruction.TargetAgentId, lotId, remaining) is { } effect)
         {
             var receipt = PersonalCollectionReceipt(effect.MoveId);
             CreditOrderEffect(instruction, receipt,
@@ -60,9 +60,9 @@ public sealed partial class WorldRuntime
             _ => "material",
         };
 
-    private string CollectionOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string CollectionOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var goods = CollectionOrderGoodsName(instruction.Order!);
         var pluralGoods = instruction.Order!.Action == "collect_material" ? "materials" : goods;
         if (!AgePermitsCandidate(actor, instruction.Order.Action))

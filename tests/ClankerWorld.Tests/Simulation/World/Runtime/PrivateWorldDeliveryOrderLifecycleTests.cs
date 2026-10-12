@@ -90,7 +90,7 @@ public sealed partial class WorldDeliveryOrderTests
         state = initial.ExportState();
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "urgent-berries", "berries", actor, 1)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
         };
         using var world = Restore(state);

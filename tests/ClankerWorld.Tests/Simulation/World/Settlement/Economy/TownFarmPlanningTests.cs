@@ -62,7 +62,7 @@ public sealed class TownFarmPlanningTests
     {
         var (state, actor, household, point) = Fixture();
         var neighbor = state.Society.Society.Households.Single(item => item.Id != household).Id;
-        var neighborIds = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == neighbor).Select(person => person.Id).ToArray();
+        var neighborIds = state.Society.Society.Agents.Where(person => person.HouseholdId == neighbor).Select(person => person.Id).ToArray();
         if (owner == "foreign-town")
         {
             var first = Assert.Single(state.Towns!);
@@ -99,7 +99,7 @@ public sealed class TownFarmPlanningTests
         state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
         {
             Survival = state.Survival ?? new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 LastDecisionContext = null,
                 HungerBasisPoints = 10_000,
@@ -150,12 +150,12 @@ public sealed class TownFarmPlanningTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            if (observation.InhabitantId == actor && observation.Candidates.Any(item => item.Id.StartsWith("farm:Till:", StringComparison.Ordinal)))
+            if (observation.AgentId == actor && observation.Candidates.Any(item => item.Id.StartsWith("farm:Till:", StringComparison.Ordinal)))
                 OfferedTill = true;
-            var chosen = observation.InhabitantId == actor ? observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)) : null;
+            var chosen = observation.AgentId == actor ? observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)) : null;
             if (chosen is not null) Offered = true;
             chosen ??= observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 chosen.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == chosen.Id ? 1d : 0d)));
         }

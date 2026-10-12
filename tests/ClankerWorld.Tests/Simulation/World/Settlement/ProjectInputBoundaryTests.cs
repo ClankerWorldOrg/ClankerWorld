@@ -40,7 +40,7 @@ public sealed class ProjectInputBoundaryTests
     {
         using var seed = await Prepared();
         var state = seed.ExportState();
-        var beta = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var beta = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
         var house = seed.WorldContent.Buildings.Single(item => item.LocalId == "house-1x1");
         var recipe = seed.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         BuildingPlacementResult? placement = null;
@@ -56,7 +56,7 @@ public sealed class ProjectInputBoundaryTests
         state = seed.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == beta ? person with
+            Agents = state.Agents.Select(person => person.AgentId == beta ? person with
             {
                 Position = placed.Position,
                 HungerBasisPoints = 9_500,
@@ -66,7 +66,7 @@ public sealed class ProjectInputBoundaryTests
         };
         using var blocked = WorldRuntime.Restore(state, _ => new Idle());
         _ = await blocked.AdvanceOneTickAsync();
-        Assert.Equal("blocked", blocked.Inhabitants.Single(person => person.InhabitantId == beta).Project!.Stage);
+        Assert.Equal("blocked", blocked.Agents.Single(person => person.AgentId == beta).Project!.Stage);
         Assert.Empty(blocked.WorldSimulation.ProductionJobs);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(blocked.ExportState()));
         state = state with
@@ -99,10 +99,10 @@ public sealed class ProjectInputBoundaryTests
         var workshop = seed.WorldContent.Buildings.Single(item => item.LocalId == "workshop");
         var recipe = seed.WorldContent.Recipes.Single(item => item.LocalId == "tools");
         var initial = seed.ExportState();
-        var adults = initial.Society.Society.Inhabitants.Where(person => person.HouseholdId == "household:camp-alpha").ToArray();
+        var adults = initial.Society.Society.Agents.Where(person => person.HouseholdId == "household:camp-alpha").ToArray();
         var actor = adults[0].Id;
         var blocker = adults[1].Id;
-        var actorPosition = initial.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var actorPosition = initial.Agents.Single(person => person.AgentId == actor).Position;
         var initialTown = Assert.Single(initial.Towns!);
         var reachableBuildSites = initial.Map.Tiles.Select(tile => tile.Position)
             .Where(position => initial.Map.IsBuildable(position) &&
@@ -134,7 +134,7 @@ public sealed class ProjectInputBoundaryTests
         GridPoint? secondWorkshopPosition = null;
         var secondWorkshopFailures = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var position in reachableBuildSites.Where(position => position != firstWorkshopPosition.Value &&
-                     initial.Inhabitants.All(person => person.Position != position)))
+                     initial.Agents.All(person => person.Position != position)))
         {
             var placement = seed.PlaceBuilding("z-workshop", workshop.CanonicalId, position);
             if (!placement.Applied)
@@ -154,7 +154,7 @@ public sealed class ProjectInputBoundaryTests
         var state = seed.ExportState();
         // No role: a communal Workshop serves any Town resident.
         var society = state.Society.Society;
-        Assert.Equal(SocietyWorkRole.Unassigned, society.GetInhabitant(actor).CurrentRole);
+        Assert.Equal(SocietyWorkRole.Unassigned, society.GetAgent(actor).CurrentRole);
         var inventory = society.Inventory;
         foreach (var lot in inventory.Lots.Where(lot => lot.ItemKind == "tool" && lot.Quantity > 0).ToArray())
         {
@@ -165,9 +165,9 @@ public sealed class ProjectInputBoundaryTests
         state = state with
         {
             Society = state.Society with { Society = society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == blocker ? firstWorkshopPosition.Value : person.Position,
+                Position = person.AgentId == blocker ? firstWorkshopPosition.Value : person.Position,
                 HungerBasisPoints = 9_500,
             }).ToArray(),
         };
@@ -184,7 +184,7 @@ public sealed class ProjectInputBoundaryTests
             Assert.True((await continuing.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(continuing.WorldSimulation.ProductionJobs, job => job.WorkerId == actor &&
             job.BuildingInstanceId == "z-workshop" && job.State == WorldProductionJobState.Completed);
-        Assert.Equal(firstWorkshopPosition.Value, continuing.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
+        Assert.Equal(firstWorkshopPosition.Value, continuing.Agents.Single(person => person.AgentId == blocker).Position);
         Assert.DoesNotContain(continuing.WorldSimulation.ProductionJobs, job => job.WorkerId == actor && job.BuildingInstanceId == "a-workshop");
         Assert.Contains(continuing.Society.Inventory.Lots, lot => lot.OwnerId == "household:camp-alpha" && lot.ItemKind == "tool" && lot.Quantity > 0);
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(continuing.ExportState()));

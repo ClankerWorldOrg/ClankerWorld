@@ -33,7 +33,7 @@ public sealed partial class ServerHttpTests
             other.Pause();
             var entryB = catalog.Add("Other", other.ExportState());
             Assert.NotEqual(worldA, other.Society.WorldId);
-            Assert.Contains(other.Inhabitants, person => person.InhabitantId == "founder-mira");
+            Assert.Contains(other.Agents, person => person.AgentId == "founder-mira");
 
             // Persist exactly the client-owned payload, as if the accepted receipt was lost.
             var authority = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
@@ -62,7 +62,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
             var retained = Assert.IsType<OwnerPendingSubmission>(store.TryLoad(binding));
             var payload = retained.Instruction!.ToAction();
-            var retry = new OwnerInstructionAction(payload.IdempotencyKey, payload.TargetInhabitantId,
+            var retry = new OwnerInstructionAction(payload.IdempotencyKey, payload.TargetAgentId,
                 payload.Kind, payload.Text, payload.WorldId);
             Assert.False(retained.Instruction.CanRetryIn(runtime.Society.WorldId));
             var beforeB = WorldRuntimeCodec.Encode(runtime.ExportState());

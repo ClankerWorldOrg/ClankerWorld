@@ -10,7 +10,7 @@ public sealed partial class WorldFireOrderTests
     public async Task AHouseBuiltAndBoundInOneTickCannotBeReplacedUntilItsIdentityTickHasPassed()
     {
         var state = Prepared(fuel: 0);
-        var adults = state.Society.Society.Inhabitants.Where(person =>
+        var adults = state.Society.Society.Agents.Where(person =>
                 person.HouseholdId == Alpha && person.AgeBand == SocietyAgeBand.Adult)
             .OrderBy(person => person.Id, StringComparer.Ordinal).ToArray();
         Assert.True(adults.Length >= 2);
@@ -35,7 +35,7 @@ public sealed partial class WorldFireOrderTests
         // A valid near-completion ordinary project still performs the last work tick and actual paid placement.
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == builder
+            Agents = state.Agents.Select(person => person.AgentId == builder
                 ? person with
                 {
                     Project = new SettlementProject(TownConstructionCandidateIds.Building(definition.CanonicalId, original.Position),
@@ -47,7 +47,7 @@ public sealed partial class WorldFireOrderTests
         using var world = Restore(state);
         var receipt = Submit(world, seeker, "same-tick-house-fire", AtHouse(original));
         await Tick(world);
-        Assert.Equal(10, world.Inhabitants.Single(person => person.InhabitantId == builder).Project!.WorkDone);
+        Assert.Equal(10, world.Agents.Single(person => person.AgentId == builder).Project!.WorkDone);
         Assert.Null(Order(world, receipt).ShelterBinding);
         Assert.DoesNotContain(world.WorldSimulation.Buildings, building => building.HouseholdId == Alpha &&
             building.DefinitionId == definition.CanonicalId);
@@ -58,8 +58,8 @@ public sealed partial class WorldFireOrderTests
         Assert.Equal((world.WorldTick, built.InstanceId, built.PlacedTick),
             (built.PlacedTick, binding.BuildingInstanceId, binding.BuildingPlacedTick!.Value));
         Assert.Equal(("completed", (string?)null),
-            (world.Inhabitants.Single(person => person.InhabitantId == builder).Project!.Stage,
-                world.Inhabitants.Single(person => person.InhabitantId == builder).Project!.OrderInstructionId));
+            (world.Agents.Single(person => person.AgentId == builder).Project!.Stage,
+                world.Agents.Single(person => person.AgentId == builder).Project!.OrderInstructionId));
         Assert.Empty(world.WorldSimulation.ConstructionReceipts ?? []);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "build_completed" &&
             item.Detail.StartsWith(built.InstanceId + ":", StringComparison.Ordinal));

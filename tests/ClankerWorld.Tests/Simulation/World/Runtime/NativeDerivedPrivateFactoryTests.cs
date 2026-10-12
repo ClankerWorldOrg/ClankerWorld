@@ -157,7 +157,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Contains(state.Society.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
             edge.ProposerId == relative && edge.TargetId == actor);
         var society = state.Society.Society;
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var cartId = "cart:" + new string('c', 123);
         society = society with
         {
@@ -177,7 +177,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 Inventory = ClankerWorld.Simulation.Kernel.InventoryAuthority.AddLot(society.Inventory,
                 seedId, TreeGrowthRules.OrchardSeedItem, actor, TreeGrowthRules.OrchardSeedsPerPick)
             };
-        var home = society.GetInhabitant(actor).HouseholdId!;
+        var home = society.GetAgent(actor).HouseholdId!;
         society = society with
         {
             Households = society.Households.Select(household =>
@@ -382,7 +382,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
         var memory = Assert.Single(recalled, memory => memory.Id == id);
         Assert.Equal((actor, subject, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-        new InhabitantObservation(actor, restored.WorldTick, 0, 1, "sha256:factory-inventory", 0,
+        new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:factory-inventory", 0,
             [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
     }
 }

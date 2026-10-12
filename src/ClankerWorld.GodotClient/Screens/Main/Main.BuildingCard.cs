@@ -205,7 +205,7 @@ public partial class Main
             ClearBuildingSelection();
             return;
         }
-        if (selectedInhabitantId is not null) ClearInhabitantSelection();
+        if (selectedAgentId is not null) ClearAgentSelection();
         ClearTileSelection();
         selectedBuildingId = instanceId;
         buildingDetailsRequested = false;
@@ -537,7 +537,7 @@ public partial class Main
         RenderBuildingRecipes(building);
 
         var residents = building.HouseholdId is { } householdId && building.Tags?.Contains("house") == true
-            ? snapshot.Inhabitants
+            ? snapshot.Agents
                 .Where(person => !person.IsDraft && IsLiving(person) && person.Relationships.Any(link =>
                     link.Type == "household_membership" && link.OtherPartyId == householdId &&
                     string.Equals(link.State, "accepted", StringComparison.Ordinal)))
@@ -813,7 +813,7 @@ public partial class Main
 
     private (string What, int Percent, string Detail) JobSummary(OwnerWorldSnapshot snapshot, OwnerWorldProductionJob job)
     {
-        var worker = snapshot.Inhabitants.FirstOrDefault(person => person.Id == job.WorkerId)?.DisplayName ?? "Someone";
+        var worker = snapshot.Agents.FirstOrDefault(person => person.Id == job.WorkerId)?.DisplayName ?? "Someone";
         var length = Math.Max(1, job.CompletionTick - job.StartedTick);
         var percent = (int)Math.Clamp((snapshot.WorldTick - job.StartedTick) * 100 / length, 0, 100);
         return (job.Recipe?.Name ?? RecipeName(job.RecipeId), percent, $"{worker} · {TimeLeft(job.CompletionTick - snapshot.WorldTick)}");

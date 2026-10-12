@@ -26,7 +26,7 @@ public sealed class CognitionRuntimeTests
         Assert.True(accepted.Accepted);
         var observed = Assert.IsType<CognitionObserverGuidanceResult>(accepted.ObserverGuidance);
         Assert.Equal("world-guidance-runtime-test", observed.WorldId);
-        Assert.Equal("actor-scout", observed.InhabitantId);
+        Assert.Equal("actor-scout", observed.AgentId);
         Assert.Equal(request.RequestId, observed.RequestId);
         Assert.Equal(observation.DecisionGeneration, observed.DecisionGeneration);
         Assert.Equal(observation.ObservationDigest, observed.ObservationDigest);
@@ -277,7 +277,7 @@ public sealed class CognitionRuntimeTests
         Assert.Equal(after.Events, CognitionRuntime.Restore(runtime.ExportState()).Capture().Events);
     }
 
-    private static InhabitantObservation CreateObservation(
+    private static AgentObservation CreateObservation(
         long runEpoch = 0,
         long decisionGeneration = 0) => new(
         "actor-scout",
@@ -298,7 +298,7 @@ public sealed class CognitionRuntimeTests
         string selectedCandidateId,
         double confidence) => new(
         request.RequestId,
-        request.Observation.InhabitantId,
+        request.Observation.AgentId,
         provider,
         providerEpoch,
         request.Observation.RunEpoch,

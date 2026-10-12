@@ -11,7 +11,7 @@ public partial class Main
         var previousSize = window.Size;
         var previousRenderSize = window.ContentScaleSize;
         var previousMap = renderedMapSnapshot;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousProfileRequested = agentProfileRequested;
         var previousMainMenuVisible = mainMenuOverlay.Visible;
         var previousInWorld = isInWorld;
@@ -44,16 +44,16 @@ public partial class Main
                         Enumerable.Range(0, 36).Select(i => new OwnerWorldTile(i % 6, i / 6, "meadow")).ToArray(), [], [], null, 0)
                     {
                         PackedTerrain = new(6, 6, "terrain-kind-v1", Convert.ToBase64String(new byte[36])),
-                        Inhabitants = [person, other, third],
+                        Agents = [person, other, third],
                         Instructions = [new("reader-name-order", person.Id, "must_do", "Eat berries.", "queued", 1, 0, 1,
                             Order: new("consume_food", "queued", 1, 0, "food_items", false))],
                         Conversations = [new("reader-name-conversation", person.Id, name, other.Id, otherName,
                             "closed", null, "agreed", 0, 1, [new("reader-name-turn", person.Id, name, "Hello.", 1, [other.Id, third.Id], false)])],
                     };
                     RenderMap(snapshot);
-                    selectedInhabitantId = person.Id;
+                    selectedAgentId = person.Id;
                     agentProfileRequested = true;
-                    RenderSelectedInhabitantCard(snapshot);
+                    RenderSelectedAgentCard(snapshot);
                     await SettleAsync();
                     if (uiLayer.Factor != factor)
                         throw new InvalidOperationException("Reader name checks must use the window's automatic UI scale.");
@@ -96,9 +96,9 @@ public partial class Main
                             throw new InvalidOperationException("Wrapping the heading must retain the conversation text.");
                         await CheckAsync(conversationPanel, conversationReaderTitle, heading);
                     }
-                    var historical = snapshot with { Inhabitants = [person with { Lifecycle = "dead" }, other, third] };
+                    var historical = snapshot with { Agents = [person with { Lifecycle = "dead" }, other, third] };
                     RenderMap(historical);
-                    RenderSelectedInhabitantCard(historical);
+                    RenderSelectedAgentCard(historical);
                     readThoughtsButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await CheckAsync(thoughtsPanel, thoughtsReaderTitle, $"{name} · thoughts, historical");
                 }
@@ -109,7 +109,7 @@ public partial class Main
             thoughtsPanel.Hide();
             ordersPanel.Hide();
             conversationPanel.Hide();
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             agentProfileRequested = previousProfileRequested;
             window.Size = previousSize;
             window.ContentScaleSize = previousRenderSize;
@@ -119,7 +119,7 @@ public partial class Main
             if (previousMap is not null)
             {
                 RenderMap(previousMap);
-                RenderSelectedInhabitantCard(previousMap);
+                RenderSelectedAgentCard(previousMap);
             }
             mainMenuOverlay.Visible = previousMainMenuVisible;
             isInWorld = previousInWorld;

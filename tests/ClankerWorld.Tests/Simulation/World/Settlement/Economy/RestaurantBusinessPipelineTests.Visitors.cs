@@ -18,10 +18,10 @@ public sealed partial class RestaurantBusinessPipelineTests
             "visiting-customer-warehouse-basket", "basket", warehouse.TownId!, 1, storageBuildingId: warehouse.InstanceId);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == fixture.Customer
+            Agents = state.Agents.Select(person => person.AgentId == fixture.Customer
                 ? person with { Position = warehouse.Position, HungerBasisPoints = 9_000 } : person).ToArray(),
         };
-        Assert.DoesNotContain(state.Inhabitants, person => person.InhabitantId != fixture.Customer && person.Position == warehouse.Position);
+        Assert.DoesNotContain(state.Agents, person => person.AgentId != fixture.Customer && person.Position == warehouse.Position);
         if (visiting) state = WithForeignTownResident(state, fixture.Customer);
         var choices = new PipelineProvider("equip_carry_aid");
         using var world = WorldRuntime.Restore(state, id => id == fixture.Customer ? choices : new PipelineProvider("safe_idle"));
@@ -38,7 +38,7 @@ public sealed partial class RestaurantBusinessPipelineTests
     {
         var first = state.Towns!.Single();
         var residents = first.ResidentIds.Where(id => id != actor).ToArray();
-        var adults = residents.Where(id => state.Society.Society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+        var adults = residents.Where(id => state.Society.Society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         var site = state.Map.Tiles.Select(tile => tile.Position)
             .First(point => state.Map.IsBuildable(point) && !first.BorderTiles.Contains(point));
         return state with

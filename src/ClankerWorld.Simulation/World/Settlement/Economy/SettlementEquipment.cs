@@ -7,13 +7,13 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private int FreeCarryCapacity(string actor) => Math.Max(0, PersonalEquipmentRules.Capacity(
-        society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) + HorseCargoCapacity(actor) -
-        PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) - ReservedBusinessCarrySpace(actor));
+        society.Checkpoint.Inventory, actor, agents[actor].Equipment) + HorseCargoCapacity(actor) -
+        PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) - ReservedBusinessCarrySpace(actor));
 
     private string EquipmentNote(string actor)
     {
         var inventory = society.Checkpoint.Inventory;
-        var equipment = inhabitants[actor].Equipment;
+        var equipment = agents[actor].Equipment;
         var clothing = PersonalEquipmentRules.EquippedUnit(inventory, actor, equipment?.ClothingLotId);
         var aid = PersonalEquipmentRules.EquippedUnit(inventory, actor, equipment?.CarryAidLotId);
         var ornament = PersonalEquipmentRules.EquippedUnit(inventory, actor, equipment?.OrnamentLotId);
@@ -25,7 +25,7 @@ public sealed partial class WorldRuntime
 
     private InventoryLot? EquippedGarment(string actor) =>
         PersonalEquipmentRules.EquippedUnit(society.Checkpoint.Inventory, actor,
-            inhabitants[actor].Equipment?.ClothingLotId) is { } selected && AvailableLotQuantity(selected) > 0
+            agents[actor].Equipment?.ClothingLotId) is { } selected && AvailableLotQuantity(selected) > 0
             ? selected : null;
 
     private int ClothingProtection(string actor, GridPoint position) => EquippedGarment(actor) is { } garment
@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
     private bool CanEquipPrivateItem(string actor, InventoryLot item, bool carryAid)
     {
         var inventory = society.Checkpoint.Inventory;
-        var equipment = inhabitants[actor].Equipment;
+        var equipment = agents[actor].Equipment;
         var previous = PersonalEquipmentRules.EquippedUnit(inventory, actor,
             carryAid ? equipment?.CarryAidLotId : equipment?.ClothingLotId);
         var before = PersonalEquipmentRules.CarriedQuantity(inventory, actor, equipment);
@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
         FindGoods(PrivateEquipmentRequest(actor, actor)).Matches.Select(match => match.Lot)
         // Borrowed goods, carried by this agent or by another member, are not theirs to take.
         .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor))
-        .Concat(society.Checkpoint.GetInhabitant(actor).HouseholdId is { } household
+        .Concat(society.Checkpoint.GetAgent(actor).HouseholdId is { } household
             ? FindGoods(PrivateEquipmentRequest(actor, household)).Matches.Select(match => match.Lot)
                 .Where(lot => lot.CarrierId is null)
             : [])
@@ -69,7 +69,7 @@ public sealed partial class WorldRuntime
     private InventoryLot? BetterGarment(string actor)
     {
         var current = EquippedGarment(actor);
-        var weather = WeatherAt(inhabitants[actor].Position);
+        var weather = WeatherAt(agents[actor].Position);
         return PrivateEquipmentSources(actor).Where(lot => PersonalEquipmentRules.IsGarment(lot.ItemKind) &&
                 lot.Id != current?.Id && CanEquipPrivateItem(actor, lot, false) &&
                 (current is null || PersonalEquipmentRules.Protection(lot, weather) >
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
 
     private InventoryLot? BetterCarryAid(string actor)
     {
-        var capacity = PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment);
+        var capacity = PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, agents[actor].Equipment);
         return PrivateEquipmentSources(actor).Where(lot => PersonalEquipmentRules.IsCarryAid(lot.ItemKind) &&
                 CanEquipPrivateItem(actor, lot, true) &&
                 (lot.ItemKind == "leather_sack" ? 32 : lot.ItemKind == "sack" ? PersonalEquipmentRules.SackCapacity : PersonalEquipmentRules.BasketCapacity) > capacity)
@@ -88,10 +88,10 @@ public sealed partial class WorldRuntime
             .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
-    private InventoryLot? RepairableEquipment(string actor, InhabitantState person) =>
+    private InventoryLot? RepairableEquipment(string actor, AgentState person) =>
         WornEquipmentItems(actor).FirstOrDefault(lot => CanPrepareEquipmentRepair(actor, person, lot));
 
-    private bool CanPrepareEquipmentRepair(string actor, InhabitantState person, InventoryLot lot) =>
+    private bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) =>
         MissingRepairInputUnits(actor, lot) <= FreeCarryCapacity(actor) &&
         EquipmentRepairSite(actor, lot) is { } site &&
         (person.Position == site.Position || FindUnoccupiedRoute(actor, person.Position, site.Position, 0).Count > 0) &&
@@ -104,13 +104,13 @@ public sealed partial class WorldRuntime
             (PersonalEquipmentRules.IsGarment(lot.ItemKind) || PersonalEquipmentRules.IsCarryAid(lot.ItemKind)) &&
             society.Checkpoint.Inventory.Reservations.All(item => item.LotId != lot.Id || item.State is not
                 (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed)))
-        .OrderBy(lot => lot.Id == inhabitants[actor].Equipment?.CarryAidLotId ? 0 : 1)
+        .OrderBy(lot => lot.Id == agents[actor].Equipment?.CarryAidLotId ? 0 : 1)
         .ThenBy(lot => lot.Id, StringComparer.Ordinal);
 
     private PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot) =>
         HouseholdBuildingWithTag(HouseholdFor(actor), lot.ItemKind == "basket" ? "house" : "tailor");
 
-    private void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, InhabitantState person)
+    private void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person)
     {
         if (OutdoorExposure(person.Position) > 0 && BetterGarment(actor) is { } garment)
             candidates.Add(new("wear_clothing", $"Collect and wear {garment.ItemKind.Replace('_', ' ')} to keep warm outdoors.", 3));
@@ -122,7 +122,7 @@ public sealed partial class WorldRuntime
             candidates.Add(new("repair_equipment", $"Bring materials to repair the worn {worn.ItemKind.Replace('_', ' ')}.", 12, site.InstanceId));
     }
 
-    private void EquipPrivateItem(string actor, InhabitantState person, bool carryAid)
+    private void EquipPrivateItem(string actor, AgentState person, bool carryAid)
     {
         var item = carryAid ? BetterCarryAid(actor) : BetterGarment(actor);
         if (item is null) return;
@@ -142,7 +142,7 @@ public sealed partial class WorldRuntime
             !CanEquipPrivateItem(actor, match.Lot, carryAid)) return;
         item = match.Lot;
         var equippedId = item.Id;
-        var previous = inhabitants[actor].Equipment;
+        var previous = agents[actor].Equipment;
         var equipment = previous ?? new PersonalEquipment();
         InventoryCheckpoint Equip(InventoryCheckpoint inventory)
         {
@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
                 equippedId = EquippedUnitId(WorldTick, actor, item.Id);
                 inventory = InventoryAuthority.SplitLot(inventory, item.Id, 1, equippedId);
             }
-            inhabitants[actor] = inhabitants[actor] with
+            agents[actor] = agents[actor] with
             {
                 Equipment = carryAid ? equipment with { CarryAidLotId = equippedId } : equipment with { ClothingLotId = equippedId },
             };
@@ -169,20 +169,20 @@ public sealed partial class WorldRuntime
         }
         catch
         {
-            inhabitants[actor] = inhabitants[actor] with { Equipment = previous };
+            agents[actor] = agents[actor] with { Equipment = previous };
             throw;
         }
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("equipment_equipped", $"{actor}|{equippedId}|{item.ItemKind}");
     }
 
-    private bool CanContinueEquipmentRepair(string actor) => inhabitants[actor].Equipment?.Repair is { } repair &&
+    private bool CanContinueEquipmentRepair(string actor) => agents[actor].Equipment?.Repair is { } repair &&
         !NonviolentEquipmentRepairPaused(actor) &&
-        !NeedsUrgentFood(inhabitants[actor]) && !NeedsUrgentWarmth(inhabitants[actor]) &&
+        !NeedsUrgentFood(agents[actor]) && !NeedsUrgentWarmth(agents[actor]) &&
         repair.MaterialReservationIds.All(id => society.Checkpoint.Inventory.GetReservation(id) is
         { State: InventoryReservationState.Reserved } reservation && reservation.ExpiryTick >= WorldTick);
 
-    private void RepairEquipment(string actor, InhabitantState person, string? requestedLotId = null, string? orderInstructionId = null)
+    private void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null)
     {
         var target = requestedLotId is null ? RepairableEquipment(actor, person) : WornEquipmentItems(actor).FirstOrDefault(lot => lot.Id == requestedLotId);
         if (!AdultResident(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person) ||
@@ -215,7 +215,7 @@ public sealed partial class WorldRuntime
             }
             return inventory;
         });
-        inhabitants[actor] = inhabitants[actor] with
+        agents[actor] = agents[actor] with
         {
             Equipment = (person.Equipment ?? new PersonalEquipment()) with
             { Repair = new(target.Id, site.InstanceId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
@@ -226,7 +226,7 @@ public sealed partial class WorldRuntime
 
     private EquipmentRepairWork? ContinueEquipmentRepair(string actor)
     {
-        var person = inhabitants[actor];
+        var person = agents[actor];
         if (person.Equipment?.Repair is not { } repair) return null;
         RecordAttemptedAction(actor, "repair_equipment");
         if (!CanContinueEquipmentRepair(actor) ||
@@ -244,11 +244,11 @@ public sealed partial class WorldRuntime
         var progress = repair.WorkDone + 1;
         if (progress < SkilledWorkTicks(actor, SettlementSkillKind.Crafting, PersonalEquipmentRules.RepairWorkTicks))
         {
-            inhabitants[actor] = person with { Equipment = person.Equipment with { Repair = repair with { WorkDone = progress } } };
+            agents[actor] = person with { Equipment = person.Equipment with { Repair = repair with { WorkDone = progress } } };
             return null;
         }
         ApplyInventoryTransition(inventory => InventoryAuthority.RepairSingleUnit(inventory, repair.LotId, 6_000, repair.MaterialReservationIds));
-        inhabitants[actor] = inhabitants[actor] with { Equipment = person.Equipment with { Repair = null } };
+        agents[actor] = agents[actor] with { Equipment = person.Equipment with { Repair = null } };
         GainSkill(actor, SettlementSkillKind.Crafting);
         RecordNonviolentRepairCompletion(actor, target, repair.LotId,
             $"repair-equipment:{repair.StartedTick}:{WorldTick}:{actor}:{repair.LotId}", person.Position, repair.MaterialReservationIds);
@@ -258,7 +258,7 @@ public sealed partial class WorldRuntime
 
     private void CancelEquipmentRepair(string actor)
     {
-        if (inhabitants[actor].Equipment?.Repair is not { } repair) return;
+        if (agents[actor].Equipment?.Repair is not { } repair) return;
         ApplyInventoryTransition(inventory =>
         {
             foreach (var id in repair.MaterialReservationIds)
@@ -266,31 +266,31 @@ public sealed partial class WorldRuntime
                     inventory = InventoryAuthority.ReleaseReservation(inventory, id, "equipment_repair_interrupted");
             return inventory;
         });
-        var person = inhabitants[actor];
-        inhabitants[actor] = person with { Equipment = person.Equipment! with { Repair = null } };
+        var person = agents[actor];
+        agents[actor] = person with { Equipment = person.Equipment! with { Repair = null } };
         AppendEvent("equipment_repair_interrupted", $"{actor}|{repair.LotId}");
     }
 
     private void WearEquippedClothing()
     {
-        foreach (var person in inhabitants.Values.ToArray())
+        foreach (var person in agents.Values.ToArray())
         {
-            if (person.Equipment?.Repair is not null && !CanContinueEquipmentRepair(person.InhabitantId))
-                CancelEquipmentRepair(person.InhabitantId);
+            if (person.Equipment?.Repair is not null && !CanContinueEquipmentRepair(person.AgentId))
+                CancelEquipmentRepair(person.AgentId);
             // Garments wear in cold or wet weather only. The night chill is
             // felt as lost warmth, but adds no wear the agreed design did not ask for.
             if (person.Equipment?.Repair?.LotId == person.Equipment?.ClothingLotId ||
-                WeatherExposure(person.Position) == 0 || EquippedGarment(person.InhabitantId) is not { } garment) continue;
+                WeatherExposure(person.Position) == 0 || EquippedGarment(person.AgentId) is not { } garment) continue;
             ApplyInventoryTransition(inventory => InventoryAuthority.WearSingleUnit(inventory, garment.Id, 10));
         }
     }
 
     private void WearCarryAid(string actor)
     {
-        if (inhabitants[actor].Equipment?.Repair is not null ||
-            PersonalEquipmentRules.EquippedUnit(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment?.CarryAidLotId) is not { } aid ||
+        if (agents[actor].Equipment?.Repair is not null ||
+            PersonalEquipmentRules.EquippedUnit(society.Checkpoint.Inventory, actor, agents[actor].Equipment?.CarryAidLotId) is not { } aid ||
             AvailableLotQuantity(aid) == 0 || PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor,
-                inhabitants[actor].Equipment) == 0) return;
+                agents[actor].Equipment) == 0) return;
         ApplyInventoryTransition(inventory => InventoryAuthority.WearSingleUnit(inventory, aid.Id, 10));
     }
 }

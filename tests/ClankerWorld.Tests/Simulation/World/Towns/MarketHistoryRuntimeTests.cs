@@ -78,7 +78,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
         inventory = InventoryAuthority.AddLot(inventory, "history-payment-wood", "wood", buyer, 4);
         inventory = InventoryAuthority.AddLot(inventory, "history-payment-reserve", "wood", buyer, 16,
             storageBuildingId: PaidMarketWorld.HouseOf(state, PaidMarketWorld.HouseholdOf(state, buyer)).InstanceId);
-        Assert.InRange(PersonalEquipmentRules.CarriedQuantity(inventory, buyer, state.Inhabitants.Single(person => person.InhabitantId == buyer).Equipment),
+        Assert.InRange(PersonalEquipmentRules.CarriedQuantity(inventory, buyer, state.Agents.Single(person => person.AgentId == buyer).Equipment),
             0, PersonalEquipmentRules.SackCapacity);
         state = PaidMarketWorld.At(PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory),
             Seller, MarketContent.StallEntrance(market.Site, 0)), buyer, position);
@@ -244,7 +244,7 @@ public sealed class MarketHistoryRuntimeTests(ITestOutputHelper output)
                 Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
                 Assert.Equal(WorldRuntimeCodec.Encode(live.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             }
-            Assert.True(reached(live), $"No native {prefix} transition at {live.WorldTick}; actor {chooser} at {live.ExportState().Inhabitants.Single(item => item.InhabitantId == chooser).Position}; selected {string.Join(", ", policy.Chosen.Skip(before).Where(item => item.Actor == chooser).TakeLast(4).Select(item => item.Id))}; offered: {string.Join(", ", policy.Offered.Where(item => item.Actor == chooser).Last().Candidates.Where(candidate => candidate.Id.StartsWith("market_", StringComparison.Ordinal)).Select(candidate => candidate.Description))}.");
+            Assert.True(reached(live), $"No native {prefix} transition at {live.WorldTick}; actor {chooser} at {live.ExportState().Agents.Single(item => item.AgentId == chooser).Position}; selected {string.Join(", ", policy.Chosen.Skip(before).Where(item => item.Actor == chooser).TakeLast(4).Select(item => item.Id))}; offered: {string.Join(", ", policy.Offered.Where(item => item.Actor == chooser).Last().Candidates.Where(candidate => candidate.Id.StartsWith("market_", StringComparison.Ordinal)).Select(candidate => candidate.Description))}.");
             Assert.Contains(policy.Chosen.Skip(before), choice => choice.Actor == chooser && choice.Id.StartsWith(prefix, StringComparison.Ordinal));
             return live.ExportState();
         }

@@ -16,10 +16,10 @@ public sealed partial class WorldRuntimeTests
         Activate(seed, package);
         await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Project = new SettlementProject("build:building:" + building.CanonicalId, "Workshop", seed.WorldTick,
                     stage, stage == "completed" ? 10 : 0, LastTransitionTick: seed.WorldTick),
@@ -91,21 +91,21 @@ public sealed partial class WorldRuntimeTests
         Activate(seed, cropPackage);
         await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var worker = state.Inhabitants[0];
+        var worker = state.Agents[0];
         var site = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
                 !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
                 !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != worker.InhabitantId && person.Position == tile.Position)).Position;
+                !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker.InhabitantId ? person with { Position = site }
+            Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with { Position = site }
                 : person.Position == site ? person with { Position = worker.Position } : person).ToArray(),
         };
         var world = WorldRuntime.Restore(state,
             _ => new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         var placed = world.PlaceBuilding("rollback-workshop", building.CanonicalId, site);
         Assert.True(placed.Applied, placed.Failure);
-        var started = world.StartProduction(workRecipe.CanonicalId, placed.InstanceId, worker.InhabitantId);
+        var started = world.StartProduction(workRecipe.CanonicalId, placed.InstanceId, worker.AgentId);
         Assert.True(started.Applied, started.Failure);
         Assert.NotNull(started.JobId);
         return (world, workPackage.PackageId, cropPackage.PackageId, started.JobId);

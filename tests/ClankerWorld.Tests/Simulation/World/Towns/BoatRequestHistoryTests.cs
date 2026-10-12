@@ -190,9 +190,9 @@ public sealed partial class PortBoatRuntimeTests
         var origin = departure.World.WorldSimulation.Buildings.Single(port => port.InstanceId == departure.World.Boats[0].DockedPortId);
         departure.World.SubmitInstruction(new("return-history-traveler", "owner:test", BoatPolicy.Author,
             OwnerInstructionKind.MustDo, $"move to {origin.Entrance!.Value.X},{origin.Entrance.Value.Y}"));
-        await departure.UntilAsync(() => departure.World.Inhabitants.Single(person =>
-            person.InhabitantId == BoatPolicy.Author).Position == origin.Entrance, 120);
-        var blockedLanding = departure.World.Inhabitants.Single(person => person.InhabitantId == Blockers[0]).Position;
+        await departure.UntilAsync(() => departure.World.Agents.Single(person =>
+            person.AgentId == BoatPolicy.Author).Position == origin.Entrance, 120);
+        var blockedLanding = departure.World.Agents.Single(person => person.AgentId == Blockers[0]).Position;
         departure.World.SubmitInstruction(new("clear-history-landing", "owner:test", Blockers[0],
             OwnerInstructionKind.MustDo, MoveAwayFromPorts(departure.World)));
         policy.IdleActors.Remove(Blockers[0]);
@@ -201,8 +201,8 @@ public sealed partial class PortBoatRuntimeTests
         {
             departure.World.SubmitInstruction(new("reblock-history-landing", "owner:test", Blockers[0],
                 OwnerInstructionKind.MustDo, $"move to {blockedLanding.X},{blockedLanding.Y}"));
-            await departure.UntilAsync(() => departure.World.Inhabitants.Single(person =>
-                person.InhabitantId == Blockers[0]).Position == blockedLanding, 30);
+            await departure.UntilAsync(() => departure.World.Agents.Single(person =>
+                person.AgentId == Blockers[0]).Position == blockedLanding, 30);
         }
         var state = departure.World.ExportState();
         if (outcome == "death")
@@ -217,7 +217,7 @@ public sealed partial class PortBoatRuntimeTests
                     Society = checkpoint with
                     {
                         Config = checkpoint.Config with { BaseNaturalMortalityBasisPoints = 0, NaturalMortalitySlopeBasisPoints = 0 },
-                        Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == BoatPolicy.Author ? person with
+                        Agents = checkpoint.Agents.Select(person => person.Id == BoatPolicy.Author ? person with
                         {
                             BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                             BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -247,8 +247,8 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Equal(bytes, WorldRuntimeCodec.Encode(voyage.World.ExportState()));
             if (outcome == "death")
             {
-                await voyage.UntilAsync(() => (voyage.World.ExportState().DeceasedInhabitants ?? []).Any(person =>
-                    person.InhabitantId == BoatPolicy.Author), 4);
+                await voyage.UntilAsync(() => (voyage.World.ExportState().DeceasedAgents ?? []).Any(person =>
+                    person.AgentId == BoatPolicy.Author), 4);
                 Assert.Contains("travel-jug", voyage.World.Boats[0].GroundCargoLotIds!);
                 _ = file.Save(voyage.World);
                 using var restored = file.LoadOrCreate(state.WorldSeed);
@@ -368,8 +368,8 @@ public sealed partial class PortBoatRuntimeTests
         var aside = FreeSpotAwayFromPorts(scenario.World);
         scenario.World.SubmitInstruction(new("leave-boat-approach", "owner:test", BoatPolicy.Author,
             OwnerInstructionKind.MustDo, $"move to {aside.X},{aside.Y}"));
-        await scenario.UntilAsync(() => scenario.World.Inhabitants.Single(person =>
-            person.InhabitantId == BoatPolicy.Author).Position == aside, 30);
+        await scenario.UntilAsync(() => scenario.World.Agents.Single(person =>
+            person.AgentId == BoatPolicy.Author).Position == aside, 30);
         policy.IdleActors.Add(BoatPolicy.Author);
         policy.TripActor = Follower;
         var cancelled = new List<BoatTripRequest>();

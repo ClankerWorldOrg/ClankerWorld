@@ -50,9 +50,9 @@ public sealed partial class TownMembershipTests
             .Where(title => title.TownId == founded.Id).SelectMany(title => title.Tiles)));
         foreach (var child in children)
         {
-            Assert.Equal(founder, world.Society.GetInhabitant(child).PrimaryCaregiverId);
-            Assert.Equal(state.Inhabitants.Single(person => person.InhabitantId == child).Position,
-                world.Inhabitants.Single(person => person.InhabitantId == child).Position);
+            Assert.Equal(founder, world.Society.GetAgent(child).PrimaryCaregiverId);
+            Assert.Equal(state.Agents.Single(person => person.AgentId == child).Position,
+                world.Agents.Single(person => person.AgentId == child).Position);
         }
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_founded" && item.Detail.StartsWith(founded.Id, StringComparison.Ordinal));
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -118,7 +118,7 @@ public sealed partial class TownMembershipTests
         var state = Generated("town-found-house");
         var site = NewTownSite(state);
         var definition = state.WorldContent!.Buildings.Single(item => item.LocalId == "house-1x1");
-        var owner = ownsHouse ? Alpha : state.Society.Society.GetInhabitant(Founders[2]).HouseholdId!;
+        var owner = ownsHouse ? Alpha : state.Society.Society.GetAgent(Founders[2]).HouseholdId!;
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in definition.BuildCosts)
             inventory = ClankerWorld.Simulation.Kernel.InventoryAuthority.AddLot(inventory,
@@ -187,7 +187,7 @@ public sealed partial class TownMembershipTests
             await Task.Delay(10);
             var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
-            completed = step.Decisions.Any(decision => decision.InhabitantId == actor && decision.Admission.FellBack) ||
+            completed = step.Decisions.Any(decision => decision.AgentId == actor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == actor);
         }
         Assert.True(completed, "The host must process and refuse the previously valid founding reply after title is claimed.");
@@ -207,7 +207,7 @@ public sealed partial class TownMembershipTests
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Observation.InhabitantId != actor || Pending is not null ||
+            if (request.Observation.AgentId != actor || Pending is not null ||
                 !request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith(FoundTownChoice, StringComparison.Ordinal)))
                 return OtherChoices.DecideAsync(request, cancellationToken);
             Pending = request;
@@ -242,7 +242,7 @@ public sealed partial class TownMembershipTests
         var fertility = new LandFertility(state.Map, state.WorldSeed);
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => fertility.CanFarm(point) &&
             TownBorderRules.Around(state.Map, [point]).All(tile => !occupied.Contains(tile)));
-        var owner = ownsField ? Alpha : state.Society.Society.GetInhabitant(Founders[2]).HouseholdId!;
+        var owner = ownsField ? Alpha : state.Society.Society.GetAgent(Founders[2]).HouseholdId!;
         var field = new FarmFieldState(site, owner, FarmFieldStage.Prepared);
         state = Calm(At(state with { Fields = [field] }, site, Founders[0]));
         var model = FoundingModel(Founders[0]);

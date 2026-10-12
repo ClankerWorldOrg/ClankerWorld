@@ -34,14 +34,14 @@ public sealed class ProductionAgeTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 5; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var worker = state.Inhabitants[0];
+        var worker = state.Agents[0];
         var site = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
                 !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
                 !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != worker.InhabitantId && person.Position == tile.Position)).Position;
+                !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker.InhabitantId
+            Agents = state.Agents.Select(person => person.AgentId == worker.AgentId
                 ? person with { Position = site } : person).ToArray(),
         };
         using var placing = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -67,7 +67,7 @@ public sealed class ProductionAgeTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == worker.InhabitantId ? person with
+                    Agents = society.Agents.Select(person => person.Id == worker.AgentId ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -81,7 +81,7 @@ public sealed class ProductionAgeTests
         using var validated = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         validated.Validate();
         var recipe = placing.WorldContent.Recipes.Single(item => item.LocalId == "tools");
-        return new(state, recipe.CanonicalId, workstation, worker.InhabitantId);
+        return new(state, recipe.CanonicalId, workstation, worker.AgentId);
     }
 
     internal sealed record PreparedProduction(WorldRuntimeState State, string RecipeId, string WorkstationId, string WorkerId);

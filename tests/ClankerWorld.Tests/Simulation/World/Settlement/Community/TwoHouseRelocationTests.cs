@@ -34,34 +34,34 @@ public sealed class TwoHouseRelocationTests
 
         using var restored = Restore(world.ExportState());
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal(firstNotice, restored.Inhabitants.Single(person => person.InhabitantId == first.InhabitantId).Housing!.Relocation);
-        Assert.Equal(secondNotice, restored.Inhabitants.Single(person => person.InhabitantId == second.InhabitantId).Housing!.Relocation);
+        Assert.Equal(firstNotice, restored.Agents.Single(person => person.AgentId == first.AgentId).Housing!.Relocation);
+        Assert.Equal(secondNotice, restored.Agents.Single(person => person.AgentId == second.AgentId).Housing!.Relocation);
         await AdvanceTo(restored, 4);
-        var departing = restored.Society.GetHousehold(Household).MemberIds.First(id => id != first.InhabitantId);
+        var departing = restored.Society.GetHousehold(Household).MemberIds.First(id => id != first.AgentId);
         Assert.True(restored.DisplaceAdult(departing));
         await AdvanceTo(restored, 5);
         Assert.Equal(3, restored.Society.GetHousehold(Household).MemberIds.Count);
         Assert.Equal(4, restored.Society.GetHousehold(secondHousehold).MemberIds.Count);
-        Assert.Equal(Household, restored.Society.GetInhabitant(first.InhabitantId).HouseholdId);
-        Assert.Null(restored.Inhabitants.Single(person => person.InhabitantId == first.InhabitantId).Departures);
+        Assert.Equal(Household, restored.Society.GetAgent(first.AgentId).HouseholdId);
+        Assert.Null(restored.Agents.Single(person => person.AgentId == first.AgentId).Departures);
         Assert.Equal(secondNotice, Assert.Single(Noticed(restored)).Housing!.Relocation);
         Assert.Contains(restored.ExportState().Events, item => item.Kind == "relocation_cancelled" &&
-            item.Detail == $"{first.InhabitantId}|{Household}|room");
+            item.Detail == $"{first.AgentId}|{Household}|room");
         Assert.DoesNotContain(restored.ExportState().Events, item => item.Kind == "relocation_cancelled" &&
-            item.Detail.StartsWith(second.InhabitantId + "|", StringComparison.Ordinal));
+            item.Detail.StartsWith(second.AgentId + "|", StringComparison.Ordinal));
 
         using var continued = Restore(restored.ExportState());
         await AdvanceTo(continued, secondNotice.DeadlineTick - 1);
-        Assert.Equal(secondHousehold, continued.Society.GetInhabitant(second.InhabitantId).HouseholdId);
+        Assert.Equal(secondHousehold, continued.Society.GetAgent(second.AgentId).HouseholdId);
         Assert.Equal(secondNotice, Assert.Single(Noticed(continued)).Housing!.Relocation);
         await AdvanceTo(continued, secondNotice.DeadlineTick);
-        Assert.Null(continued.Society.GetInhabitant(second.InhabitantId).HouseholdId);
-        var departure = Assert.Single(continued.Inhabitants.Single(person => person.InhabitantId == second.InhabitantId).Departures!);
+        Assert.Null(continued.Society.GetAgent(second.AgentId).HouseholdId);
+        var departure = Assert.Single(continued.Agents.Single(person => person.AgentId == second.AgentId).Departures!);
         Assert.Equal("displaced", departure.Cause);
         Assert.Equal(secondNotice.DeadlineTick, departure.Tick);
         Assert.Equal(3, continued.Society.GetHousehold(Household).MemberIds.Count);
         Assert.Equal(3, continued.Society.GetHousehold(secondHousehold).MemberIds.Count);
         Assert.Empty(Noticed(continued));
-        Assert.Equal(2, continued.Inhabitants.Sum(person => person.Departures?.Count ?? 0));
+        Assert.Equal(2, continued.Agents.Sum(person => person.Departures?.Count ?? 0));
     }
 }

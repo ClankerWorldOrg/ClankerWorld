@@ -41,7 +41,7 @@ public sealed class ChildhoodMemoryRecallTests
         var birthLifeTick = checkpoint.LifeTickAt(checkpoint.WorldTick) - age * checkpoint.Config.TicksPerLifecycleAge;
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == child ? person with
             {
                 BirthTick = birthLifeTick,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : birthLifeTick,
@@ -49,15 +49,15 @@ public sealed class ChildhoodMemoryRecallTests
                 LastLifecycleYearChecked = age,
             } : person).ToArray(),
         };
-        var parentPosition = state.Inhabitants.Single(person => person.InhabitantId == parent).Position;
+        var parentPosition = state.Agents.Single(person => person.AgentId == parent).Position;
         var position = state.Map.FootNeighbors(parentPosition).First(point => state.Map.IsPassable(point) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         state = state with
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Append(new(child, position, 10_000, 0, "curious", "grow with the household")).ToArray(),
+            Agents = state.Agents.Append(new(child, position, 10_000, 0, "curious", "grow with the household")).ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(parent)
                 ? town with { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() }
                 : town).ToArray(),
@@ -144,7 +144,7 @@ public sealed class ChildhoodMemoryRecallTests
 
     private sealed class SocialProvider(string choice) : IDecisionProvider
     {
-        public List<InhabitantObservation> Observations { get; } = [];
+        public List<AgentObservation> Observations { get; } = [];
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
 
@@ -154,7 +154,7 @@ public sealed class ChildhoodMemoryRecallTests
             Observations.Add(request.Observation);
             var selected = request.Observation.Candidates.Any(candidate => candidate.Id == choice) ? choice : "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected ? 1d : 0d, StringComparer.Ordinal)));

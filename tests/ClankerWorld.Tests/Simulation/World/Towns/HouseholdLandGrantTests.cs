@@ -17,8 +17,8 @@ public sealed partial class HouseholdLandGrantTests
         var town = world.Towns[0];
         choices.Author = town.ResidentIds[0];
         choices.Plot = OpenPlot(initial);
-        var household = world.Society.GetInhabitant(choices.Author).HouseholdId!;
-        var adults = world.Society.Inhabitants.Where(p => p.HouseholdId == household).Select(p => p.Id).Order().ToArray();
+        var household = world.Society.GetAgent(choices.Author).HouseholdId!;
+        var adults = world.Society.Agents.Where(p => p.HouseholdId == household).Select(p => p.Id).Order().ToArray();
         Assert.Equal(2, adults.Length);
         await Until(world, () => world.HouseholdLandUseRequests.Count == 1);
         choices.Plot = null;
@@ -87,8 +87,8 @@ public sealed partial class HouseholdLandGrantTests
         var initial = world.ExportState();
         var plot = OpenPlot(initial);
         var alpha = world.Towns[0].ResidentIds[0];
-        var household = world.Society.GetInhabitant(alpha).HouseholdId;
-        var beta = world.Society.Inhabitants.First(p => p.HouseholdId != household).Id;
+        var household = world.Society.GetAgent(alpha).HouseholdId;
+        var beta = world.Society.Agents.First(p => p.HouseholdId != household).Id;
         var first = world.RequestHouseholdLandUse("first", alpha, world.Towns[0].Id, plot);
         var rival = world.RequestHouseholdLandUse("rival", beta, world.Towns[0].Id, plot);
         Assert.True(first.Applied, first.Failure);
@@ -96,7 +96,7 @@ public sealed partial class HouseholdLandGrantTests
         Assert.True(rival.IsDisputed);
         Assert.Null(rival.Request!.CouncilProposalId);
         choices.Voters.UnionWith(world.Towns[0].ResidentIds);
-        choices.Acceptors.UnionWith(world.Society.Inhabitants.Where(p => p.HouseholdId == household).Select(p => p.Id));
+        choices.Acceptors.UnionWith(world.Society.Agents.Where(p => p.HouseholdId == household).Select(p => p.Id));
         await Until(world, () => world.Towns[0].Governance!.Proposals[0].Status == "passed" &&
             world.HouseholdLandUseRequests.Single(r => r.Id == "first").Consents.Count == 2);
         Assert.All(world.HouseholdLandUseRequests, r => Assert.Equal("pending", r.Status));
@@ -115,8 +115,8 @@ public sealed partial class HouseholdLandGrantTests
         var choices = new Choices();
         using var world = Create("household-grant-new-member", choices);
         var actor = world.Towns[0].ResidentIds[0];
-        var household = world.Society.GetInhabitant(actor).HouseholdId!;
-        var adults = world.Society.Inhabitants.Where(p => p.HouseholdId == household).Select(p => p.Id).ToArray();
+        var household = world.Society.GetAgent(actor).HouseholdId!;
+        var adults = world.Society.Agents.Where(p => p.HouseholdId == household).Select(p => p.Id).ToArray();
         Assert.True(world.RequestHouseholdLandUse("growing-household", actor, world.Towns[0].Id, OpenPlot(world.ExportState())).Applied);
         choices.Voters.UnionWith(world.Towns[0].ResidentIds);
         choices.Acceptors.Add(adults[0]);
@@ -158,14 +158,14 @@ public sealed partial class HouseholdLandGrantTests
         using var world = Create("household-grant-existing", choices);
         var initial = world.ExportState();
         var actor = world.Towns[0].ResidentIds[0];
-        var household = world.Society.GetInhabitant(actor).HouseholdId;
+        var household = world.Society.GetAgent(actor).HouseholdId;
         var other = world.HouseholdLandUseRights.First(r => r.HouseholdId != household);
         var result = world.RequestHouseholdLandUse("occupied", actor, world.Towns[0].Id, other.Tiles);
         Assert.True(result.Applied, result.Failure);
         Assert.True(result.IsDisputed);
         Assert.Null(result.Request!.CouncilProposalId);
         choices.Voters.UnionWith(world.Towns[0].ResidentIds);
-        choices.Acceptors.UnionWith(world.Society.Inhabitants.Where(p => p.HouseholdId == household).Select(p => p.Id));
+        choices.Acceptors.UnionWith(world.Society.Agents.Where(p => p.HouseholdId == household).Select(p => p.Id));
         await Until(world, () => world.HouseholdLandUseRequests[0].Consents.Count == 2);
         Assert.Equal("pending", world.HouseholdLandUseRequests[0].Status);
         Assert.Empty(world.Towns[0].Governance!.Proposals);
@@ -179,7 +179,7 @@ public sealed partial class HouseholdLandGrantTests
         using var world = Create("household-grant-existing", new Choices());
         var town = world.Towns[0];
         var actor = town.ResidentIds[0];
-        var household = world.Society.GetInhabitant(actor).HouseholdId;
+        var household = world.Society.GetAgent(actor).HouseholdId;
         var warehouse = world.WorldSimulation.Buildings.First(b => b.TownId == town.Id && b.HouseholdId is null);
         var refused = world.RequestHouseholdLandUse("warehouse", actor, town.Id, [warehouse.Position]);
         Assert.False(refused.Applied);
@@ -204,7 +204,7 @@ public sealed partial class HouseholdLandGrantTests
         var reader = new ListedLandProvider(actor);
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = origin }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = origin }).ToArray(),
         }, _ => reader);
         await Until(world, () => world.HouseholdLandUseRequests.Count == 1);
         Assert.Contains(FormattableString.Invariant($"You stand at ({origin.X}, {origin.Y})"), reader.Description, StringComparison.Ordinal);
@@ -230,7 +230,7 @@ public sealed partial class HouseholdLandGrantTests
         var state = world.ExportState();
         var town = state.Towns![0];
         var actor = town.ResidentIds[0];
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var other = state.Society.Society.Households.First(h => h.Id != household && h.MemberIds.Count > 0).Id;
         var warehouse = state.WorldSimulation!.Buildings.First(b => b.TownId == town.Id && b.HouseholdId is null);
         var definitions = state.WorldContent!.Buildings.ToDictionary(d => d.CanonicalId, StringComparer.Ordinal);
@@ -279,11 +279,11 @@ public sealed partial class HouseholdLandGrantTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var o = request.Observation;
-            var choice = o.InhabitantId == author && Description is null
+            var choice = o.AgentId == author && Description is null
                 ? o.Candidates.FirstOrDefault(c => c.Id.Contains("|request_land_use|", StringComparison.Ordinal)) : null;
             var selected = choice ?? o.Candidates.Single(c => c.Id == "safe_idle");
             Description ??= choice?.Description;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: choice is null ? null : [.. ListedTiles(choice.Description).Take(1).Select(tile => new CognitionLandTile(tile.X, tile.Y))]));
@@ -296,7 +296,7 @@ public sealed partial class HouseholdLandGrantTests
         var initial = source.ExportState();
         return WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = initial.Towns![0].OriginSite!.Value }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = initial.Towns![0].OriginSite!.Value }).ToArray(),
         }, _ => new Provider(choices));
     }
 
@@ -337,12 +337,12 @@ public sealed partial class HouseholdLandGrantTests
             CognitionCandidate? Pick(string action) => o.Candidates.FirstOrDefault(c => c.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             var selected = Pick("read") ??
                 o.Candidates.FirstOrDefault(c => choices.WithdrawRequest is not null && c.Id.Contains("|withdraw_land_use|" + choices.WithdrawRequest + "|", StringComparison.Ordinal)) ??
-                (choices.Voters.Contains(o.InhabitantId) ? Pick("yes") : null) ??
-                (choices.Acceptors.Contains(o.InhabitantId) ? Pick("accept_land_use") : null) ??
-                (choices.Decliners.Contains(o.InhabitantId) ? Pick("decline_land_use") : null) ??
-                (choices.Author == o.InhabitantId && choices.Plot is not null ? Pick("request_land_use") : null) ??
+                (choices.Voters.Contains(o.AgentId) ? Pick("yes") : null) ??
+                (choices.Acceptors.Contains(o.AgentId) ? Pick("accept_land_use") : null) ??
+                (choices.Decliners.Contains(o.AgentId) ? Pick("decline_land_use") : null) ??
+                (choices.Author == o.AgentId && choices.Plot is not null ? Pick("request_land_use") : null) ??
                 o.Candidates.Single(c => c.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: selected.Id.Contains("|request_land_use|", StringComparison.Ordinal)

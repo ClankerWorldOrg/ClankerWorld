@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException("Building expansions and guest invitations require world schema 30.");
         var buildings = simulation.Buildings.ToDictionary(item => item.InstanceId, StringComparer.Ordinal);
         var definitions = content.BuildingDefinitions;
-        var people = society.Inhabitants.ToDictionary(item => item.Id, StringComparer.Ordinal);
+        var people = society.Agents.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var allJobIds = simulation.ProductionJobs.Concat(simulation.CropBuilds ?? []).Select(item => item.JobId)
             .ToHashSet(StringComparer.Ordinal);
         var activeBuildings = new HashSet<string>(StringComparer.Ordinal);

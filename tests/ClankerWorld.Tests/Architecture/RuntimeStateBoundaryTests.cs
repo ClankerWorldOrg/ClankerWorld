@@ -80,7 +80,7 @@ public sealed class RuntimeStateBoundaryTests
         Assert.Same(original, proposed.State);
         var snapshot = prepared.ExportState();
         var town = Assert.Single(snapshot.Towns!);
-        var occupied = snapshot.Inhabitants.Select(person => person.Position)
+        var occupied = snapshot.Agents.Select(person => person.Position)
             .Concat(snapshot.Map.Resources.Select(resource => resource.Position))
             .Concat(snapshot.Map.MapObjects.Select(item => item.Position))
             .Concat(snapshot.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(

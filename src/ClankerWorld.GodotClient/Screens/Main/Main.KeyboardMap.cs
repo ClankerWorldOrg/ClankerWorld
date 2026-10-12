@@ -105,9 +105,9 @@ public partial class Main
             _ = PlaceFounderAtAsync(tile);
         else if (founderSetupPanel.Visible && placingAddedAgent && snapshot.FounderSetup is { Started: true })
             _ = PlaceAgentAtAsync(tile);
-        else if (selectAgent && snapshot.Inhabitants.FirstOrDefault(person => !person.IsDraft && IsLiving(person) &&
+        else if (selectAgent && snapshot.Agents.FirstOrDefault(person => !person.IsDraft && IsLiving(person) &&
             person.Position.X == tile.X && person.Position.Y == tile.Y) is { } agent)
-            SelectInhabitant(agent.Id);
+            SelectAgent(agent.Id);
         else if (BuildingAt(snapshot, tile, selectAgent ? null : canvasPoint) is { } building)
             SelectBuilding(building.InstanceId);
         else

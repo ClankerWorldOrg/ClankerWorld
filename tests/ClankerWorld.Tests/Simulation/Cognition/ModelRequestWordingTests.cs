@@ -23,7 +23,7 @@ public sealed class ModelRequestWordingTests
         var state = seed.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select((person, index) => person with
+            Agents = state.Agents.Select((person, index) => person with
             {
                 Skills = index == 0 ? [new(SettlementSkillKind.Building, 0), new(SettlementSkillKind.Farming, 0)]
                     : index == 1 ? [new(SettlementSkillKind.Smithing, 0)] : null,
@@ -45,11 +45,11 @@ public sealed class ModelRequestWordingTests
             var userText = personal ? payload.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()! : null;
             using var user = userText is null ? null : JsonDocument.Parse(userText);
             var context = personal ? user!.RootElement : payload.RootElement.GetProperty("state");
-            var agent = world.Society.GetInhabitant(context.GetProperty("agent_id").GetString()!);
+            var agent = world.Society.GetAgent(context.GetProperty("agent_id").GetString()!);
             var self = personal ? context.GetProperty("self") : context;
             Assert.Equal(world.Society.GetHousehold(agent.HouseholdId!).Name, self.GetProperty("household").GetString());
             Assert.Equal(world.Towns.Single().Name, self.GetProperty("town").GetString());
-            Assert.Equal((state.Inhabitants.Single(person => person.InhabitantId == agent.Id).Skills ?? [])
+            Assert.Equal((state.Agents.Single(person => person.AgentId == agent.Id).Skills ?? [])
                 .Select(skill => skill.Kind.ToString().ToLowerInvariant()),
                 self.GetProperty("skills").EnumerateArray().Select(skill => skill.GetString()));
             foreach (var field in new[] { "world_tick", "run_epoch", "decision_generation", "inhabitant_id", "household_id" })
@@ -79,9 +79,9 @@ public sealed class ModelRequestWordingTests
             ? new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model")
             : new JevDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/systemone"));
         using var world = WorldRuntime.Restore(state, _ => provider);
-        foreach (var person in state.Inhabitants)
-            world.SubmitInstruction(new OwnerInstructionRequest("recipe-context:" + person.InhabitantId, "owner:test",
-                person.InhabitantId, OwnerInstructionKind.Suggestive, "Tell me what you have learned."));
+        foreach (var person in state.Agents)
+            world.SubmitInstruction(new OwnerInstructionRequest("recipe-context:" + person.AgentId, "owner:test",
+                person.AgentId, OwnerInstructionKind.Suggestive, "Tell me what you have learned."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         for (var attempt = 0; attempt < 50 && handler.Bodies.Count < WorldRuntime.RequiredFounders; attempt++)
             await Task.Delay(10);
@@ -98,7 +98,7 @@ public sealed class ModelRequestWordingTests
             seen.Add(actor);
         }
         Assert.Contains(author, seen);
-        Assert.Equal(state.Inhabitants.Count, seen.Count);
+        Assert.Equal(state.Agents.Count, seen.Count);
     }
 
     private sealed class SyntheticModelHandler(bool personal) : HttpMessageHandler

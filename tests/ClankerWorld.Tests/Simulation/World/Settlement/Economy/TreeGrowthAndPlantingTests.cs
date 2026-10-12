@@ -14,7 +14,7 @@ public sealed class TreeGrowthAndPlantingTests
     {
         var initial = GeographyGeneratorTests.StartedGeneratedWorld(
             new GeographyOptions("tree-planting-agent", WorldSizePreset.Small));
-        var actor = initial.Inhabitants[0].InhabitantId;
+        var actor = initial.Agents[0].AgentId;
         var offered = new List<IReadOnlyList<string>>();
 
         // Households start with grain seed only; that is not a tree seed.
@@ -137,7 +137,7 @@ public sealed class TreeGrowthAndPlantingTests
     public void PlantingRefusesIllegalTilesAndSeedsWithAReasonAndKeepsTheSeed()
     {
         var (state, actor, site) = PlantingWorld("tree-planting-refusals");
-        var other = state.Inhabitants[1].InhabitantId;
+        var other = state.Agents[1].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "grain-seed", "seed", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "other-tree-seed", TreeGrowthRules.TreeSeedItem, other, 1);
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
@@ -274,7 +274,7 @@ public sealed class TreeGrowthAndPlantingTests
         saved = growing.ExportState();
         saved = saved with
         {
-            Inhabitants = saved.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = site, HungerBasisPoints = 6_000 } : person).ToArray(),
+            Agents = saved.Agents.Select(person => person.AgentId == actor ? person with { Position = site, HungerBasisPoints = 6_000 } : person).ToArray(),
             WorldSystems = saved.WorldSystems! with
             {
                 Ecology = saved.WorldSystems.Ecology with
@@ -379,7 +379,7 @@ public sealed class TreeGrowthAndPlantingTests
     private static (WorldRuntimeState State, string Actor, GridPoint Site) PlantingWorld(string seed)
     {
         var initial = GeographyGeneratorTests.StartedGeneratedWorld(new GeographyOptions(seed, WorldSizePreset.Small));
-        var actor = initial.Inhabitants[0].InhabitantId;
+        var actor = initial.Agents[0].AgentId;
         var map = initial.Map;
         using var probe = WorldRuntime.Restore(initial);
         var blocked = probe.WorldSimulation.Buildings.SelectMany(building =>
@@ -390,8 +390,8 @@ public sealed class TreeGrowthAndPlantingTests
             .Concat(map.Resources.Select(resource => resource.Position))
             .Concat(map.MapObjects.Select(item => item.Position))
             .ToHashSet();
-        var occupied = initial.Inhabitants.Skip(1).Select(person => person.Position).ToHashSet();
-        var start = initial.Inhabitants[0].Position;
+        var occupied = initial.Agents.Skip(1).Select(person => person.Position).ToHashSet();
+        var start = initial.Agents[0].Position;
         var (site, stand) = map.Tiles.Select(tile => tile.Position)
             .Where(point => !blocked.Contains(point) && TreeGrowthRules.GroundRefusal(map, point) is null &&
                 map.IsReachableOnFoot(start, point))
@@ -404,7 +404,7 @@ public sealed class TreeGrowthAndPlantingTests
             .First();
         var state = WithTreeSeeds(Fed(initial, actor), actor, 1) with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = initial.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = stand, HungerBasisPoints = 9_000 } : person).ToArray(),
         };
         return (state, actor, site);
@@ -412,7 +412,7 @@ public sealed class TreeGrowthAndPlantingTests
 
     private static WorldRuntimeState Fed(WorldRuntimeState state, string actor) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+        Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { HungerBasisPoints = 9_000 } : person).ToArray(),
     };
 

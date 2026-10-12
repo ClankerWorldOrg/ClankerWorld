@@ -27,7 +27,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-nearer", "wood", actor, 3,
             groundPosition: new(position.X, position.Y));
@@ -38,7 +38,7 @@ public sealed partial class WorldCollectionOrderTests
         Assert.Equal("waiting", Order(world, receipt).Status);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
-        Assert.NotEqual(position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(position, world.Agents.Single(person => person.AgentId == actor).Position);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 20 && Order(world, receipt).Status != "finished"; tick++)
         {
@@ -69,7 +69,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var source = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var source = state.Agents.Single(person => person.AgentId == actor).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-elsewhere", "clay", actor, 3, storageBuildingId: House);
         if (boundary is not ("empty" or "outside-map"))
         {
@@ -107,7 +107,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var source = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var source = state.Agents.Single(person => person.AgentId == actor).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-first", "stone", actor, 2,
             groundPosition: new(source.X, source.Y));
         inventory = InventoryAuthority.AddLot(inventory, "collect-elsewhere", "stone", actor, 3, storageBuildingId: House);
@@ -137,7 +137,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var originalPosition = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var originalPosition = state.Agents.Single(person => person.AgentId == actor).Position;
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-moving", "wood", actor, 2, storageBuildingId: House);
         using var world = Restore(WithInventory(state, inventory));
@@ -160,7 +160,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var firstSource = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var firstSource = state.Agents.Single(person => person.AgentId == actor).Position;
         var secondSource = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "collect-queue-first", "clay", actor, 1,
             groundPosition: new(firstSource.X, firstSource.Y));

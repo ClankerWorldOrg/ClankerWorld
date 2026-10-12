@@ -72,7 +72,7 @@ public sealed class WildForageIndexTests(ITestOutputHelper output)
         var state = ShelterOrderTestFixture.WithClearWeather(initial.ExportState());
         var patch = state.Map.Resources.Single(source => source.Id == "wild-greens-patch");
         var positions = state.Map.FootNeighbors(patch.Position).Where(state.Map.IsPassable)
-            .Where(point => !state.Inhabitants.Any(person => person.Position == point) &&
+            .Where(point => !state.Agents.Any(person => person.Position == point) &&
                 !state.Map.Resources.Any(source => source.NaturalObjectKind == "wild_greens" && source.Id != patch.Id &&
                     state.Map.FootDistance(point, source.Position) <= 1)).Take(2).ToArray();
         Assert.Equal(2, positions.Length);

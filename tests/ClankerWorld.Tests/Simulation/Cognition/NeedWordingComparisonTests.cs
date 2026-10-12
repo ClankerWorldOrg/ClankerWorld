@@ -79,7 +79,7 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
         initial = initial with
         {
             // Same start as the survival priority prototype: fine but not full, chilly.
-            Inhabitants = initial.Inhabitants.Select(person => person with
+            Agents = initial.Agents.Select(person => person with
             { HungerBasisPoints = 4_500, Survival = new SurvivalCondition(WarmthBasisPoints: 5_500), LastDecisionContext = null }).ToArray(),
             WorldSystems = initial.WorldSystems! with
             {
@@ -107,16 +107,16 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
             {
                 if (decision.Admission.Intention is { } intention)
                 {
-                    latestChoice[decision.InhabitantId] = intention.CandidateId;
-                    report.Choices.Add($"{world.WorldTick}:{decision.InhabitantId}:{intention.CandidateId}");
+                    latestChoice[decision.AgentId] = intention.CandidateId;
+                    report.Choices.Add($"{world.WorldTick}:{decision.AgentId}:{intention.CandidateId}");
                     report.CountChoice(Category(intention.CandidateId));
                 }
                 if (decision.Admission.FellBack) report.Fallbacks++;
             }
-            foreach (var person in world.Inhabitants)
+            foreach (var person in world.Agents)
             {
                 report.AgentTicks++;
-                if (latestChoice.TryGetValue(person.InhabitantId, out var choice) && Category(choice) == "survival")
+                if (latestChoice.TryGetValue(person.AgentId, out var choice) && Category(choice) == "survival")
                     report.SurvivalAgentTicks++;
                 if (person.HungerBasisPoints < 2_000) report.StarvingAgentTicks++;
                 if (person.HungerBasisPoints < 4_000) report.HungryAgentTicks++;
@@ -133,7 +133,7 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
         var state = world.ExportState();
         report.FinalFood = Food(world);
         report.Meals = state.Events.Count(item => item.Kind == "food_consumed");
-        report.Deaths = world.Society.Inhabitants.Count(person => person.Status == SocietyInhabitantStatus.Dead);
+        report.Deaths = world.Society.Agents.Count(person => person.Status == SocietyAgentStatus.Dead);
         report.Decisions = measured.Calls;
         report.Failures = measured.Failures;
         report.RequestCharacters = measured.RequestCharacters;

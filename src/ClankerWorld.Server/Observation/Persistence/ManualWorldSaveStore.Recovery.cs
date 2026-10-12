@@ -25,7 +25,7 @@ public sealed partial class ManualWorldSaveStore
     }
 
     public ManualWorldSave CreateLoadRecovery(WorldRuntime runtime,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings? settings)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings? settings)
     {
         lock (gate)
         {

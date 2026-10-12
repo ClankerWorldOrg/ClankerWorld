@@ -16,8 +16,8 @@ public sealed partial class SettlementParenthoodTests
         try
         {
             var state = await PreparedState();
-            var initiatorId = state.Inhabitants[0].InhabitantId;
-            var partnerId = state.Inhabitants[1].InhabitantId;
+            var initiatorId = state.Agents[0].AgentId;
+            var partnerId = state.Agents[1].AgentId;
             var callCounts = new Dictionary<string, int>(StringComparer.Ordinal);
             IDecisionProvider ProviderFor(string id) => id == initiatorId
                 ? new ParentProvider("parent_propose:")
@@ -36,7 +36,7 @@ public sealed partial class SettlementParenthoodTests
             using var world = WorldRuntime.Restore(state, ProviderFor);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var plan = world.Inhabitants.Single(person => person.InhabitantId == initiatorId).Parenthood!;
+            var plan = world.Agents.Single(person => person.AgentId == initiatorId).Parenthood!;
             Assert.Equal("preparing", plan.Stage);
             PositionFamilyFixtureAt(world, plan.LastTransitionTick + 598);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -52,13 +52,13 @@ public sealed partial class SettlementParenthoodTests
 
             var birth = Assert.Single(world.Society.Births);
             var childId = birth.ChildId;
-            var child = world.Inhabitants.Single(item => item.InhabitantId == childId);
-            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+            var child = world.Agents.Single(item => item.AgentId == childId);
+            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
             Assert.Equal("initiating-parent-model", child.ChildModelSelection!.ModelId);
             Assert.Equal("openai", child.ChildModelSelection.Provider);
             Assert.Equal(0, callCounts.GetValueOrDefault(childId));
-            Assert.DoesNotContain(providers.CaptureStatus().Assignments ?? [], item => item.InhabitantId == childId);
-            var shown = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(item => item.Id == childId);
+            Assert.DoesNotContain(providers.CaptureStatus().Assignments ?? [], item => item.AgentId == childId);
+            var shown = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(item => item.Id == childId);
             Assert.Contains(shown.DecisionFactors, factor => factor.Key == "birth-model-provider" && factor.Detail == "openai");
             Assert.Contains(shown.DecisionFactors, factor => factor.Key == "birth-model-id" && factor.Detail == "initiating-parent-model");
 
@@ -75,8 +75,8 @@ public sealed partial class SettlementParenthoodTests
                 providers.CaptureRuntimeConfiguration().Assignments ?? []);
             var savedManual = manualSaves.ReadCommitted(manual.Id);
             Assert.Equal(child.ChildModelSelection,
-                savedManual.Checkpoint.Inhabitants.Single(item => item.InhabitantId == childId).ChildModelSelection);
-            Assert.DoesNotContain(savedManual.Assignments, item => item.InhabitantId == childId);
+                savedManual.Checkpoint.Agents.Single(item => item.AgentId == childId).ChildModelSelection);
+            Assert.DoesNotContain(savedManual.Assignments, item => item.AgentId == childId);
 
             File.Delete(providerDirectory);
             Directory.CreateDirectory(providerDirectory);
@@ -101,9 +101,9 @@ public sealed partial class SettlementParenthoodTests
                 false, initiatorId));
             Assert.False(await service.TryAdvanceOnceAsync());
 
-            child = world.Inhabitants.Single(item => item.InhabitantId == childId);
+            child = world.Agents.Single(item => item.AgentId == childId);
             Assert.Equal(birthTick, world.WorldTick);
-            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
             Assert.Equal("initiating-parent-model", child.ChildModelSelection!.ModelId);
             Assert.Equal("openai", child.ChildModelSelection.Provider);
             Assert.Equal(WorldRuntime.OpenAiModelEndpointIdentity, child.ChildModelSelection.EndpointIdentity);
@@ -111,10 +111,10 @@ public sealed partial class SettlementParenthoodTests
             Assert.Equal(WorldRuntime.ChildModelChoiceInitiatingParent, child.ChildModelSelection.ChoiceReason);
             Assert.Equal(0, callCounts.GetValueOrDefault(childId));
             Assert.Equal("ollama-cloud", providers.CaptureRuntimeConfiguration().Assignments!
-                .Single(item => item.InhabitantId == initiatorId && item.Role == PlayerDecisionProviders.PlanningRole).Provider);
+                .Single(item => item.AgentId == initiatorId && item.Role == PlayerDecisionProviders.PlanningRole).Provider);
 
             var childAssignments = providers.CaptureStatus().Assignments!
-                .Where(item => item.InhabitantId == childId).ToArray();
+                .Where(item => item.AgentId == childId).ToArray();
             Assert.Equal(2, childAssignments.Length);
             Assert.All(childAssignments, assignment =>
             {
@@ -135,24 +135,24 @@ public sealed partial class SettlementParenthoodTests
 
             using var restored = stateFile.LoadOrCreate("settlement-parenthood");
             Assert.Equal(child.ChildModelSelection,
-                restored.Inhabitants.Single(item => item.InhabitantId == childId).ChildModelSelection);
+                restored.Agents.Single(item => item.AgentId == childId).ChildModelSelection);
             var restoredProviders = new ProviderConfigurationStore(providers.Path,
                 new ProviderConfigurationSeed("deterministic", null, null, null, null, null, null));
             Assert.Equal("initiating-parent-model", Assert.Single(restoredProviders.CaptureStatus().Assignments!,
-                item => item.InhabitantId == childId && item.Role == "planning").Model);
+                item => item.AgentId == childId && item.Role == "planning").Model);
 
             var saved = restored.ExportState();
             var death = SocietyRules.Kill(saved.Society.Society, childId, SocietyDeathCause.Accident).Checkpoint;
-            var archivedChild = new DeceasedInhabitantState(childId, death.WorldTick,
-                death.AgeAt(death.GetInhabitant(childId), death.WorldTick), child);
+            var archivedChild = new DeceasedAgentState(childId, death.WorldTick,
+                death.AgeAt(death.GetAgent(childId), death.WorldTick), child);
             var archived = saved with
             {
                 Society = saved.Society with { Society = death },
-                Inhabitants = saved.Inhabitants.Where(item => item.InhabitantId != childId).ToArray(),
-                DeceasedInhabitants = [.. saved.DeceasedInhabitants ?? [], archivedChild],
+                Agents = saved.Agents.Where(item => item.AgentId != childId).ToArray(),
+                DeceasedAgents = [.. saved.DeceasedAgents ?? [], archivedChild],
             };
             Assert.Equal(child.ChildModelSelection, Assert.Single(WorldRuntimeCodec.Decode(
-                WorldRuntimeCodec.Encode(archived)).DeceasedInhabitants!).LastPhysical.ChildModelSelection);
+                WorldRuntimeCodec.Encode(archived)).DeceasedAgents!).LastPhysical.ChildModelSelection);
             var olderArchive = Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(
                 archived with { SchemaVersion = 33 }));
             Assert.Contains($"minimum supported schema {WorldRuntime.StateSchemaVersion}", olderArchive.Message,
@@ -161,7 +161,7 @@ public sealed partial class SettlementParenthoodTests
                 archived with { SchemaVersion = WorldRuntime.ChildModelSelectionSchemaVersion - 1 }));
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(archived with
             {
-                DeceasedInhabitants = [archivedChild with
+                DeceasedAgents = [archivedChild with
                 {
                     LastPhysical = child with { ChildModelSelection = child.ChildModelSelection! with { Role = "invalid" } },
                 }],
@@ -173,10 +173,10 @@ public sealed partial class SettlementParenthoodTests
             Assert.Contains($"minimum supported schema {WorldRuntime.StateSchemaVersion}", olderLiving.Message,
                 StringComparison.Ordinal);
             Assert.Equal(child.ChildModelSelection, WorldRuntimeCodec.Decode(
-                WorldRuntimeCodec.Encode(saved)).Inhabitants.Single(person => person.InhabitantId == childId).ChildModelSelection);
+                WorldRuntimeCodec.Encode(saved)).Agents.Single(person => person.AgentId == childId).ChildModelSelection);
             var hungryChildState = saved with
             {
-                Inhabitants = saved.Inhabitants.Select(item => item.InhabitantId == childId
+                Agents = saved.Agents.Select(item => item.AgentId == childId
                     ? item with { HungerBasisPoints = 500 } : item).ToArray(),
             };
             using var agingWorld = WorldRuntime.Restore(hungryChildState, ProviderFor);
@@ -185,12 +185,12 @@ public sealed partial class SettlementParenthoodTests
             PositionChildBeforeAge(agingWorld, childId, agingWorld.Society.Config.InfantYears);
             agingWorld.Resume();
             Assert.True((await agingWorld.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(SocietyAgeBand.Infant, agingWorld.Society.GetInhabitant(childId).AgeBand);
+            Assert.Equal(SocietyAgeBand.Infant, agingWorld.Society.GetAgent(childId).AgeBand);
             Assert.Equal(0, callCounts.GetValueOrDefault(childId));
             var maturityTicks = agingWorld.Society.Config.TicksPerWorldDay;
             for (var tick = 0; tick < maturityTicks && callCounts.GetValueOrDefault(childId) == 0; tick++)
                 Assert.True((await agingWorld.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(SocietyAgeBand.Child, agingWorld.Society.GetInhabitant(childId).AgeBand);
+            Assert.Equal(SocietyAgeBand.Child, agingWorld.Society.GetAgent(childId).AgeBand);
             Assert.True(callCounts.GetValueOrDefault(childId) > 0);
         }
         finally
@@ -206,8 +206,8 @@ public sealed partial class SettlementParenthoodTests
         try
         {
             var state = await PreparedState();
-            var initiatorId = state.Inhabitants[0].InhabitantId;
-            var partnerId = state.Inhabitants[1].InhabitantId;
+            var initiatorId = state.Agents[0].AgentId;
+            var partnerId = state.Agents[1].AgentId;
             IDecisionProvider ProviderFor(string id) => id == initiatorId
                 ? new ParentProvider("parent_propose:")
                 : id == partnerId
@@ -238,7 +238,7 @@ public sealed partial class SettlementParenthoodTests
 
             var childId = Assert.Single(world.Society.Births).ChildId;
             var birthTick = world.WorldTick;
-            var birthChoice = world.Inhabitants.Single(item => item.InhabitantId == childId).ChildModelSelection!;
+            var birthChoice = world.Agents.Single(item => item.AgentId == childId).ChildModelSelection!;
             Assert.Equal("birth-model", birthChoice.ModelId);
             Assert.Equal("openai", birthChoice.Provider);
             var slotId = birthChoice.CredentialSlotId;
@@ -262,17 +262,17 @@ public sealed partial class SettlementParenthoodTests
             _ = restartedProviders.Configure(new("personal", "ollama-cloud", "later-parent-model", "later-parent-key",
                 false, initiatorId));
             using var restartedWorld = stateFile.LoadOrCreate("settlement-parenthood");
-            Assert.Equal(birthChoice, restartedWorld.Inhabitants.Single(item => item.InhabitantId == childId).ChildModelSelection);
+            Assert.Equal(birthChoice, restartedWorld.Agents.Single(item => item.AgentId == childId).ChildModelSelection);
             using var restartedService = new WorldRuntimeService(restartedWorld, stateFile, presence,
                 providers: restartedProviders);
             Assert.True(await restartedService.TryAdvanceOnceAsync());
 
             Assert.Equal(birthTick + 1, restartedWorld.WorldTick);
-            var child = restartedWorld.Inhabitants.Single(item => item.InhabitantId == childId);
+            var child = restartedWorld.Agents.Single(item => item.AgentId == childId);
             Assert.Equal(birthChoice, child.ChildModelSelection);
-            Assert.Equal(SocietyAgeBand.Infant, restartedWorld.Society.GetInhabitant(childId).AgeBand);
+            Assert.Equal(SocietyAgeBand.Infant, restartedWorld.Society.GetAgent(childId).AgeBand);
             var childAssignments = restartedProviders.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == childId).ToArray();
+                .Where(item => item.AgentId == childId).ToArray();
             Assert.Equal(2, childAssignments.Length);
             Assert.All(childAssignments, assignment =>
             {
@@ -285,7 +285,7 @@ public sealed partial class SettlementParenthoodTests
             var reloadedProviderStore = new ProviderConfigurationStore(providerPath,
                 new ProviderConfigurationSeed("deterministic", null, null, null, null, null, null));
             Assert.Equal("openai", reloadedProviderStore.CaptureRuntimeConfiguration().Assignments!
-                .Single(item => item.InhabitantId == childId && item.Role == PlayerDecisionProviders.PlanningRole).Provider);
+                .Single(item => item.AgentId == childId && item.Role == PlayerDecisionProviders.PlanningRole).Provider);
             Assert.DoesNotContain(reloadedProviderStore.CaptureRuntimeConfiguration().CredentialSlots!, slot =>
                 slot.Id == slotId);
         }
@@ -302,8 +302,8 @@ public sealed partial class SettlementParenthoodTests
         try
         {
             var state = await PreparedState();
-            var initiatorId = state.Inhabitants[0].InhabitantId;
-            var partnerId = state.Inhabitants[1].InhabitantId;
+            var initiatorId = state.Agents[0].AgentId;
+            var partnerId = state.Agents[1].AgentId;
             IDecisionProvider ProviderFor(string id) => id == initiatorId
                 ? new ParentProvider("parent_propose:")
                 : id == partnerId
@@ -331,19 +331,19 @@ public sealed partial class SettlementParenthoodTests
             File.WriteAllText(providerDirectory, "block the provider configuration directory");
             Assert.False(await service.TryAdvanceOnceAsync());
 
-            var child = Assert.Single(world.Inhabitants, item => item.ChildModelSelection is not null);
+            var child = Assert.Single(world.Agents, item => item.ChildModelSelection is not null);
             var birthChoice = child.ChildModelSelection!;
             File.Delete(providerDirectory);
             Directory.CreateDirectory(providerDirectory);
             var pendingOwnerSlotId = Guid.NewGuid().ToString("N");
             _ = providers.Configure(new(PlayerDecisionProviders.PlanningRole, "ollama-cloud",
-                "owner-pending-model", "owner-pending-test-key", false, child.InhabitantId,
+                "owner-pending-model", "owner-pending-test-key", false, child.AgentId,
                 pendingOwnerSlotId, "Owner model set during recovery"));
             Assert.False(await service.TryAdvanceOnceAsync(),
                 "Persisting the missing birth route must leave the world paused until the owner resumes it.");
 
             var birthAssignments = providers.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, birthAssignments.Length);
             var recoveredBirthRoute = Assert.Single(birthAssignments,
                 assignment => assignment.Role == PlayerDecisionProviders.RoutineRole);
@@ -361,11 +361,11 @@ public sealed partial class SettlementParenthoodTests
             world.Resume();
             var ownerSlotId = Guid.NewGuid().ToString("N");
             _ = providers.Configure(new(PlayerDecisionProviders.PlanningRole, "ollama-cloud",
-                "owner-selected-model", "owner-only-test-key", false, child.InhabitantId,
+                "owner-selected-model", "owner-only-test-key", false, child.AgentId,
                 ownerSlotId, "Owner-selected model"));
 
             var ownerAssignments = providers.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, ownerAssignments.Length);
             var unchangedBirthRoute = Assert.Single(ownerAssignments,
                 item => item.Role == PlayerDecisionProviders.RoutineRole);
@@ -388,10 +388,10 @@ public sealed partial class SettlementParenthoodTests
                 providers: restartedProviders);
             Assert.True(await restartedService.TryAdvanceOnceAsync());
 
-            Assert.Equal(birthChoice, restartedWorld.Inhabitants.Single(item => item.InhabitantId == child.InhabitantId)
+            Assert.Equal(birthChoice, restartedWorld.Agents.Single(item => item.AgentId == child.AgentId)
                 .ChildModelSelection);
             var restartedAssignments = restartedProviders.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, restartedAssignments.Length);
             var restartedBirthRoute = Assert.Single(restartedAssignments,
                 item => item.Role == PlayerDecisionProviders.RoutineRole);
@@ -407,9 +407,9 @@ public sealed partial class SettlementParenthoodTests
             Assert.Null(restartedOwnerRoute.SelectionReason);
 
             _ = restartedProviders.Configure(new(PlayerDecisionProviders.RoutineRole, PlayerDecisionProviders.Inherit,
-                null, null, false, child.InhabitantId));
+                null, null, false, child.AgentId));
             var partiallyUnconfigured = restartedProviders.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, partiallyUnconfigured.Length);
             var inheritedRoutine = Assert.Single(partiallyUnconfigured,
                 assignment => assignment.Role == PlayerDecisionProviders.RoutineRole);
@@ -428,10 +428,10 @@ public sealed partial class SettlementParenthoodTests
             using var partiallyUnconfiguredService = new WorldRuntimeService(
                 partiallyUnconfiguredWorld, stateFile, presence, providers: partiallyUnconfiguredProviders);
             Assert.True(await partiallyUnconfiguredService.TryAdvanceOnceAsync());
-            Assert.Equal(birthChoice, partiallyUnconfiguredWorld.Inhabitants
-                .Single(item => item.InhabitantId == child.InhabitantId).ChildModelSelection);
+            Assert.Equal(birthChoice, partiallyUnconfiguredWorld.Agents
+                .Single(item => item.AgentId == child.AgentId).ChildModelSelection);
             var reloadedPartialChoice = partiallyUnconfiguredProviders.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, reloadedPartialChoice.Length);
             Assert.Equal(PlayerDecisionProviders.Inherit,
                 Assert.Single(reloadedPartialChoice, item => item.Role == PlayerDecisionProviders.RoutineRole).Provider);
@@ -439,9 +439,9 @@ public sealed partial class SettlementParenthoodTests
                 Assert.Single(reloadedPartialChoice, item => item.Role == PlayerDecisionProviders.PlanningRole).Model);
 
             _ = partiallyUnconfiguredProviders.Configure(new("personal", PlayerDecisionProviders.Inherit,
-                null, null, false, child.InhabitantId));
+                null, null, false, child.AgentId));
             var explicitlyUnconfigured = partiallyUnconfiguredProviders.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, explicitlyUnconfigured.Length);
             Assert.All(explicitlyUnconfigured, assignment =>
             {
@@ -456,10 +456,10 @@ public sealed partial class SettlementParenthoodTests
             using var explicitlyUnconfiguredService = new WorldRuntimeService(
                 explicitlyUnconfiguredWorld, stateFile, presence, providers: explicitlyUnconfiguredProviders);
             Assert.True(await explicitlyUnconfiguredService.TryAdvanceOnceAsync());
-            Assert.Equal(birthChoice, explicitlyUnconfiguredWorld.Inhabitants
-                .Single(item => item.InhabitantId == child.InhabitantId).ChildModelSelection);
+            Assert.Equal(birthChoice, explicitlyUnconfiguredWorld.Agents
+                .Single(item => item.AgentId == child.AgentId).ChildModelSelection);
             var reloadedExplicitChoice = explicitlyUnconfiguredProviders.CaptureRuntimeConfiguration().Assignments!
-                .Where(item => item.InhabitantId == child.InhabitantId).ToArray();
+                .Where(item => item.AgentId == child.AgentId).ToArray();
             Assert.Equal(2, reloadedExplicitChoice.Length);
             Assert.All(reloadedExplicitChoice, assignment =>
             {
@@ -473,7 +473,7 @@ public sealed partial class SettlementParenthoodTests
         }
     }
 
-    private sealed class CountingProvider(string inhabitantId, Dictionary<string, int> callCounts) : IDecisionProvider
+    private sealed class CountingProvider(string agentId, Dictionary<string, int> callCounts) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -481,7 +481,7 @@ public sealed partial class SettlementParenthoodTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            callCounts[inhabitantId] = callCounts.GetValueOrDefault(inhabitantId) + 1;
+            callCounts[agentId] = callCounts.GetValueOrDefault(agentId) + 1;
             return new DeterministicDecisionProvider().DecideAsync(request, cancellationToken);
         }
     }

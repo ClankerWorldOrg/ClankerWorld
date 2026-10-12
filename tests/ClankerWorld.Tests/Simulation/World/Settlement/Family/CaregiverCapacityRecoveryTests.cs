@@ -22,7 +22,7 @@ public sealed class CaregiverCapacityRecoveryTests
         Assert.Equal(carried, PersonalEquipmentRules.CarriedQuantity(initial, actor, null));
         var sourceQuantity = initial.GetLot(sourceId).Quantity;
         Assert.True(sourceQuantity >= 4);
-        Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetAgent(child).AgeBand);
         Assert.Contains(state.Society.Society.Relationships, relationship =>
             relationship.Type == SocietyRelationshipType.Caregiver && relationship.ProposerId == actor &&
             relationship.TargetId == child && relationship.State == SocietyRelationshipState.Accepted);
@@ -62,8 +62,8 @@ public sealed class CaregiverCapacityRecoveryTests
         Assert.Contains(world.ExportState().Events, item => item.Kind == "child_cared_for" && item.Detail == child);
         Assert.InRange(world.WorldTick - started, 1, 40);
         Assert.Equal(world.WorldTick, waiting.WorldTick);
-        Assert.Equal(3_000, world.Inhabitants.Single(person => person.InhabitantId == child).HungerBasisPoints -
-            waiting.Inhabitants.Single(person => person.InhabitantId == child).HungerBasisPoints);
+        Assert.Equal(3_000, world.Agents.Single(person => person.AgentId == child).HungerBasisPoints -
+            waiting.Agents.Single(person => person.AgentId == child).HungerBasisPoints);
         Assert.Equal(sourceQuantity - 1, world.Society.Inventory.GetLot(sourceId).Quantity);
         Assert.Equal(sourceQuantity, waiting.Society.Inventory.GetLot(sourceId).Quantity);
         Assert.True(sawPickup, "Care must first acquire the real household serving.");
@@ -182,7 +182,7 @@ public sealed class CaregiverCapacityRecoveryTests
         Assert.Equal(7, world.Society.Inventory.GetLot("care-orchard-seeds").Quantity);
         Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("care-orchard-seeds"), actor));
         Assert.Equal(sourceQuantity - 1, world.Society.Inventory.GetLot(sourceId).Quantity);
-        Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > 7_000);
+        Assert.True(world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints > 7_000);
         await FoodCapacityTestFixture.AssertReplay(world, actor, "care:", "make_room_for_food");
     }
 
@@ -191,7 +191,7 @@ public sealed class CaregiverCapacityRecoveryTests
     {
         var (state, actor, point) = await FoodCapacityTestFixture.Generated("audit-town-invariants");
         var society = ChosenBirthNameTestFixture.NameParent(state.Society.Society, actor);
-        var partner = society.Inhabitants.First(person => person.HouseholdId == FoodCapacityTestFixture.Household && person.Id != actor).Id;
+        var partner = society.Agents.First(person => person.HouseholdId == FoodCapacityTestFixture.Household && person.Id != actor).Id;
         society = SocietyRules.ProposeRelationship(society, new("capacity-care-parents", 1,
             SocietyRelationshipType.Partnership, actor, partner, society.WorldTick)).Checkpoint;
         society = SocietyRules.AcceptRelationship(society, "capacity-care-parents", 1, partner).Checkpoint;
@@ -207,7 +207,7 @@ public sealed class CaregiverCapacityRecoveryTests
             reservation.OwnerId == FoodCapacityTestFixture.Household && reservation.State == InventoryReservationState.Completed &&
             reservation.Purpose.StartsWith("birth:", StringComparison.Ordinal));
         var childPoint = state.Map.FootNeighbors(point).First(candidate => state.Map.IsBuildable(candidate) &&
-            !state.Inhabitants.Any(person => person.Position == candidate) && !state.Map.Resources.Any(resource => resource.Position == candidate));
+            !state.Agents.Any(person => person.Position == candidate) && !state.Map.Resources.Any(resource => resource.Position == candidate));
         var inventory = society.Inventory with { Lots = society.Inventory.Lots.Where(lot => lot.OwnerId != actor).ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, Cargo, "stone", actor, carried);
         var sourceId = food.Id;
@@ -227,10 +227,10 @@ public sealed class CaregiverCapacityRecoveryTests
         {
             Society = state.Society with { Society = society with { Inventory = inventory } },
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { HungerBasisPoints = parentFullness } : person)
-                .Append(new InhabitantState(child, childPoint, 1_000, 0, "curious", "grow", Survival: new SurvivalCondition(10_000)))
-                .OrderBy(person => person.InhabitantId, StringComparer.Ordinal).ToArray(),
+                .Append(new AgentState(child, childPoint, 1_000, 0, "curious", "grow", Survival: new SurvivalCondition(10_000)))
+                .OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(actor) ? town with
             {
                 ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray(),

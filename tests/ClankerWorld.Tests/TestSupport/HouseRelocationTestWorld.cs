@@ -24,13 +24,13 @@ internal static class HouseRelocationTestWorld
             var site = setup.Towns![0].BorderTiles.First(point => setup.Map.IsBuildable(point) &&
                 !occupied.Contains(point) && !setup.Map.Resources.Any(resource => resource.Position == point) &&
                 !setup.Map.MapObjects.Any(item => item.Position == point) &&
-                !setup.Inhabitants.Any(person => person.Position == point));
+                !setup.Agents.Any(person => person.Position == point));
             generated.AddAgent($"agent:{ordinal:D32}", site);
         }
         generated.Pause();
         var state = generated.ExportState();
         var society = state.Society.Society;
-        foreach (var person in society.Inhabitants.Where(person => person.HouseholdId != Household).ToArray())
+        foreach (var person in society.Agents.Where(person => person.HouseholdId != Household).ToArray())
         {
             if (person.HouseholdId is not null)
                 society = SocietyRules.LeaveHousehold(society, person.Id).Checkpoint;
@@ -40,7 +40,7 @@ internal static class HouseRelocationTestWorld
         society = society with
         {
             Config = society.Config with { TicksPerWorldDay = day },
-            Inhabitants = society.Inhabitants.Select(person => person with
+            Agents = society.Agents.Select(person => person with
             {
                 BirthTick = person.BirthTick / originalDay * day,
                 BirthLifeTick = person.BirthLifeTick is { } birth ? birth / originalDay * day : null,
@@ -59,7 +59,7 @@ internal static class HouseRelocationTestWorld
             {
                 Governance = TownGovernanceState.Create(town.ResidentIds),
             }).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_000,
                 Survival = person.Survival is { } survival ? survival with { WarmthBasisPoints = 9_000 } : null,
@@ -75,14 +75,14 @@ internal static class HouseRelocationTestWorld
         var society = state.Society.Society;
         society = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = society.Agents.Select(person => person.Id == child ? person with
             {
                 AgeBand = SocietyAgeBand.Infant,
                 BirthTick = society.WorldTick,
                 BirthLifeTick = null,
                 LastLifecycleYearChecked = 0,
                 PrimaryCaregiverId = caregiver,
-                DomesticFamilyUnitId = society.GetInhabitant(caregiver).DomesticFamilyUnitId,
+                DomesticFamilyUnitId = society.GetAgent(caregiver).DomesticFamilyUnitId,
             } : person).ToArray(),
             Relationships = society.Relationships.Append(new SocietyRelationship("relocation-care:" + child, 1,
                 SocietyRelationshipType.Caregiver, caregiver, child, SocietyRelationshipState.Accepted,
@@ -98,8 +98,8 @@ internal static class HouseRelocationTestWorld
             Towns = state.Towns!.Select(town => town with
             {
                 Governance = TownGovernanceRules.Advance(town.Governance!, town.Id, state.WorldSeed,
-                    town.ResidentIds.Where(id => society.Inhabitants.Any(person => person.Id == id &&
-                        person.Status == SocietyInhabitantStatus.Active &&
+                    town.ResidentIds.Where(id => society.Agents.Any(person => person.Id == id &&
+                        person.Status == SocietyAgentStatus.Active &&
                         person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
                     society.WorldTick, state.WorldSystems!.Config.TicksPerDay),
             }).ToArray(),
@@ -118,7 +118,7 @@ internal static class HouseRelocationTestWorld
             .Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position))
             .Concat(state.RoadTiles!).Concat(state.Fields!.Select(field => field.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != worker).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != worker).Select(person => person.Position))
             .ToHashSet();
         var site = state.Map.Tiles.Select(tile => tile.Position)
             .OrderBy(point => Math.Abs(point.X - house.Position.X) + Math.Abs(point.Y - house.Position.Y))
@@ -130,7 +130,7 @@ internal static class HouseRelocationTestWorld
         var relocated = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "relocation-expansion-wood", "wood", Household, 8, storageBuildingId: HouseId)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker
+            Agents = state.Agents.Select(person => person.AgentId == worker
                 ? person with { Position = site } : person).ToArray(),
             WorldSimulation = state.WorldSimulation with
             {
@@ -158,8 +158,8 @@ internal static class HouseRelocationTestWorld
         while (world.WorldTick < tick) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
     }
 
-    public static InhabitantState[] Noticed(WorldRuntime world) => world.Inhabitants
-        .Where(person => person.Housing?.Relocation is not null).OrderBy(person => person.InhabitantId, StringComparer.Ordinal).ToArray();
+    public static AgentState[] Noticed(WorldRuntime world) => world.Agents
+        .Where(person => person.Housing?.Relocation is not null).OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray();
 
     public sealed class Choices : IDecisionProvider
     {
@@ -173,9 +173,9 @@ internal static class HouseRelocationTestWorld
         {
             var observation = request.Observation;
             if (observation.Self?.HousingNote is { } housingNote)
-                HousingNotes[observation.InhabitantId] = housingNote;
-            Offered[observation.InhabitantId] = observation.Candidates.Select(candidate => candidate.Id).ToArray();
-            var wanted = Wanted.GetValueOrDefault(observation.InhabitantId, "safe_idle");
+                HousingNotes[observation.AgentId] = housingNote;
+            Offered[observation.AgentId] = observation.Candidates.Select(candidate => candidate.Id).ToArray();
+            var wanted = Wanted.GetValueOrDefault(observation.AgentId, "safe_idle");
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id == wanted) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return new DeterministicDecisionProvider().DecideAsync(request with

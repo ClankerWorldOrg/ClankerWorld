@@ -50,7 +50,7 @@ public sealed class HouseholdBuildingUseCoverageTests
         Assert.NotNull(farmhouse.HouseholdId);
         Assert.NotNull(blacksmith.HouseholdId);
         Assert.NotEqual(farmhouse.HouseholdId, blacksmith.HouseholdId);
-        Assert.All(world.Society.Inhabitants, person => Assert.Equal(SocietyWorkRole.Unassigned, person.CurrentRole));
+        Assert.All(world.Society.Agents, person => Assert.Equal(SocietyWorkRole.Unassigned, person.CurrentRole));
 
         var farmFamilies = FamiliesForHousehold(world, recorder, farmhouse.HouseholdId!);
         var smithFamilies = FamiliesForHousehold(world, recorder, blacksmith.HouseholdId!);
@@ -89,7 +89,7 @@ public sealed class HouseholdBuildingUseCoverageTests
         {
             var building = Assert.Single(world.WorldSimulation.Buildings,
                 item => item.InstanceId == offer.DestinationId);
-            Assert.Equal(world.Society.GetInhabitant(offer.AgentId).HouseholdId, building.HouseholdId);
+            Assert.Equal(world.Society.GetAgent(offer.AgentId).HouseholdId, building.HouseholdId);
         });
 
         // Building offers need materials in hand; HouseholdBuildingPlanTests
@@ -129,7 +129,7 @@ public sealed class HouseholdBuildingUseCoverageTests
                 definition.Tags.Contains(tag, StringComparer.Ordinal)));
 
     private static HashSet<string> FamiliesForHousehold(WorldRuntime world, ActionCoverageRecorder recorder,
-        string householdId) => world.Society.Inhabitants
+        string householdId) => world.Society.Agents
         .Where(person => person.HouseholdId == householdId)
         .SelectMany(person => recorder.FamiliesOfferedTo(person.Id, world.WorldContent))
         .ToHashSet(StringComparer.Ordinal);

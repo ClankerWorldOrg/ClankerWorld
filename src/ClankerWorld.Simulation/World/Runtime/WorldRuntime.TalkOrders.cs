@@ -13,17 +13,17 @@ public sealed partial class WorldRuntime
 
     private OwnerInstructionOrder? ParseTalkOrder(string text, string actor)
     {
-        if (society.Checkpoint.GetInhabitant(actor).AgeBand == SocietyAgeBand.Infant) return null;
+        if (society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Infant) return null;
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
         foreach (var prefix in new[] { "talk to ", "talk with ", "speak to ", "speak with " })
         {
             if (!text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
             var name = text[prefix.Length..].Trim();
-            var people = society.Checkpoint.Inhabitants.Where(person => person.Id != actor).ToArray();
+            var people = society.Checkpoint.Agents.Where(person => person.Id != actor).ToArray();
             var targets = people.Where(person => person.Id == name).ToArray();
-            if (targets.Length == 0 && InhabitantNameRules.CanonicalKey(name) is { } key)
-                targets = people.Where(person => string.Equals(InhabitantNameRules.CanonicalKey(person.Name), key, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(InhabitantNameRules.FirstNameKey(person.Name), key, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (targets.Length == 0 && AgentNameRules.CanonicalKey(name) is { } key)
+                targets = people.Where(person => string.Equals(AgentNameRules.CanonicalKey(person.Name), key, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(AgentNameRules.FirstNameKey(person.Name), key, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (targets.Length != 1) return null;
             return new("talk_to", "queued", 1, 0, "conversations", false, TargetAgentId: targets[0].Id);
         }
@@ -33,23 +33,23 @@ public sealed partial class WorldRuntime
     private static bool IsLinkedTalkOrder(OwnerQueuedInstruction instruction) => instruction.Order is { TalkConversationId: not null } order && IsConversationOrder(order.Action);
 
     private bool TalkOrderHasConversation(OwnerQueuedInstruction instruction) => instruction.Order is { } order && IsConversationOrder(order.Action) &&
-        (IsLinkedTalkOrder(instruction) || ConversationFor(instruction.TargetInhabitantId) is not null);
+        (IsLinkedTalkOrder(instruction) || ConversationFor(instruction.TargetAgentId) is not null);
 
-    private CognitionCandidate? TalkOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person) =>
+    private CognitionCandidate? TalkOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         IsLinkedTalkOrder(instruction) || TalkOrderBlocker(instruction, person) is null
             ? new(instruction.Order!.Action, IsLinkedTalkOrder(instruction) ? "Wait for the actual conversation's outcome, preserving each person's choices." :
-                "Reach the named person and attempt one face-to-face invitation.", 0, instruction.Order!.TargetAgentId ?? CurrentMarriageOrderPartner(instruction.TargetInhabitantId))
+                "Reach the named person and attempt one face-to-face invitation.", 0, instruction.Order!.TargetAgentId ?? CurrentMarriageOrderPartner(instruction.TargetAgentId))
             : null;
 
-    private string? TalkOrderBlocker(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string? TalkOrderBlocker(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (instruction.Order!.Action == "propose_marriage" && MarriageOrderBlocker(instruction) is { } marriageBlocker)
             return marriageBlocker;
         var target = instruction.Order.TargetAgentId ?? CurrentMarriageOrderPartner(actor)!;
-        if (!inhabitants.TryGetValue(target, out var other) || society.Checkpoint.GetInhabitant(target).Status != SocietyInhabitantStatus.Active)
+        if (!agents.TryGetValue(target, out var other) || society.Checkpoint.GetAgent(target).Status != SocietyAgentStatus.Active)
             return "The named person is no longer available.";
-        if (society.Checkpoint.GetInhabitant(target).AgeBand == SocietyAgeBand.Infant)
+        if (society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant)
             return "The named person is too young for this conversation.";
         if (PassengerBoat(actor) is not null || PassengerBoat(target) is not null)
             return "Waiting for both people to be ashore for a face-to-face conversation.";
@@ -68,7 +68,7 @@ public sealed partial class WorldRuntime
                 ? null : "Waiting for a legal accessible route to the named person.";
     }
 
-    private void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteTalkOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (IsLinkedTalkOrder(instruction))
         {
@@ -87,7 +87,7 @@ public sealed partial class WorldRuntime
             SetOrderStatus(instruction, "blocked", blocker);
             return;
         }
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (instruction.Order!.TargetAgentId is null)
         {
             var bound = instructionsByIdempotency[instruction.IdempotencyKey];
@@ -95,9 +95,9 @@ public sealed partial class WorldRuntime
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
         }
         var target = instruction.Order!.TargetAgentId!;
-        if (!IsWithinInteractionRange(person.Position, inhabitants[target].Position, ResourceInteractionRange))
+        if (!IsWithinInteractionRange(person.Position, agents[target].Position, ResourceInteractionRange))
         {
-            MoveToward(actor, person, inhabitants[target].Position, "owner_order_talk", ResourceInteractionRange);
+            MoveToward(actor, person, agents[target].Position, "owner_order_talk", ResourceInteractionRange);
             return;
         }
         if (!ProposeConversation(actor, target))
@@ -113,9 +113,9 @@ public sealed partial class WorldRuntime
 
     private void ApplyTalkOrderConversationDecision(OwnerQueuedInstruction instruction, SocietyCognitionDispatchResult decision)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var candidate = decision.Admission.Intention!.CandidateId;
-        var person = inhabitants[actor];
+        var person = agents[actor];
         if ((NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) && IsSurvivalCandidate(actor, candidate))
         {
             SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
@@ -158,7 +158,7 @@ public sealed partial class WorldRuntime
     private static string TalkOrderEffectId(OwnerQueuedInstruction instruction) =>
         (instruction.Order!.Action == "propose_marriage" ? "marriage-order:" : "talk-order:") +
         DerivedId.Hash(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.TargetAgentId}|{instruction.Order.TalkConversationId}|{instruction.Order.TalkOutcome}");
+            $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Order!.TargetAgentId}|{instruction.Order.TalkConversationId}|{instruction.Order.TalkOutcome}");
 
     private static bool IsTalkOutcome(string? outcome) => outcome is "agreed" or "refused" or "deadline" or "daily_limit" or
         "disagreed" or "withdrawn" or "participant_unavailable";
@@ -172,7 +172,7 @@ public sealed partial class WorldRuntime
         {
             if (instruction.Order is not { TalkConversationId: { } id } order || !IsConversationOrder(order.Action)) continue;
             if (order.Action == "propose_marriage" && order.TalkOutcome == "married" &&
-                !marriages.Any(marriage => marriage.Consent.Id == id && marriage.InitiatorId == instruction.TargetInhabitantId &&
+                !marriages.Any(marriage => marriage.Consent.Id == id && marriage.InitiatorId == instruction.TargetAgentId &&
                     marriage.InviteeId == order.TargetAgentId && marriage.CompletedTick is not null))
                 throw new InvalidDataException("A finished marriage order lost its completed marriage record.");
             if (!linked.Add(id)) throw new InvalidDataException("Several talk orders share one invitation.");
@@ -183,7 +183,7 @@ public sealed partial class WorldRuntime
                     continue; // Completed/cancelled tasks may outlive bounded closed conversation history.
                 conversation = marriage.Consent; // Marriage keeps the actual consent after ordinary history is trimmed.
             }
-            if (conversation.Kind != AgentConversationKind.Ordinary || conversation.InitiatorId != instruction.TargetInhabitantId ||
+            if (conversation.Kind != AgentConversationKind.Ordinary || conversation.InitiatorId != instruction.TargetAgentId ||
                 conversation.InviteeId != order.TargetAgentId || conversation.CreatedTick < instruction.SubmittedTick ||
                 order.CompletedUnits == 1 && (conversation.Status != AgentConversationStatus.Closed || (order.Action == "propose_marriage" ? MarriageOrderOutcome(conversation, marriages) : conversation.Outcome) != order.TalkOutcome))
                 throw new InvalidDataException("A talk order does not match its actual invitation or outcome.");

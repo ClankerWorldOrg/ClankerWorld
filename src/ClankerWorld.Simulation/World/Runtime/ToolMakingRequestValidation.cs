@@ -8,7 +8,7 @@ public sealed partial class WorldRuntime
 {
     private static void ValidateToolMakingRequests(IReadOnlyList<ToolMakingRequestState>? requests,
         WorldContentSimulationState simulation, DeclarativeWorldContentState content, SocietyCheckpoint societyState,
-        IEnumerable<InhabitantState> people, IReadOnlyList<BusinessTradeState> trades, long worldTick)
+        IEnumerable<AgentState> people, IReadOnlyList<BusinessTradeState> trades, long worldTick)
     {
         if (requests is null || requests.Any(request => request is null) || requests.Count >
                 ToolMakingRequestRules.MaximumActiveRequests + ToolMakingRequestRules.MaximumTerminalRequests ||
@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
                 .Any(group => group.Count() > 1) || requests.Where(request => request.OfferId is not null).GroupBy(request => request.OfferId)
                 .Any(group => group.Count() > 1))
             throw new InvalidDataException("Tool requests are missing, unbounded or duplicated.");
-        var physical = people.ToDictionary(person => person.InhabitantId, StringComparer.Ordinal);
+        var physical = people.ToDictionary(person => person.AgentId, StringComparer.Ordinal);
         foreach (var request in requests)
         {
             var terminal = ToolMakingRequestRules.IsTerminal(request.Status);
@@ -35,11 +35,11 @@ public sealed partial class WorldRuntime
                 ToolProgressionRules.Find(request.ItemKind) is null || request.RequestedTick < 0 ||
                 request.LastTransitionTick < request.RequestedTick || request.LastTransitionTick > worldTick ||
                 request.AcceptedTick is { } acceptedTick && (acceptedTick < request.RequestedTick || acceptedTick > request.LastTransitionTick) ||
-                !societyState.Inhabitants.Any(person => person.Id == request.RequesterId) ||
+                !societyState.Agents.Any(person => person.Id == request.RequesterId) ||
                 !societyState.Households.Any(household => household.Id == request.SellerHouseholdId) ||
                 request.Blocker is not null && !BoundedBusinessText(request.Blocker, 160) ||
                 accepted != (request.WorkerId is not null) || request.WorkerId is { } worker &&
-                    !societyState.Inhabitants.Any(person => person.Id == worker) ||
+                    !societyState.Agents.Any(person => person.Id == worker) ||
                 request.Status is ToolMakingRequestStatus.Requested or ToolMakingRequestStatus.Refused &&
                     (accepted || request.JobId is not null || request.OfferId is not null) ||
                 request.Status is ToolMakingRequestStatus.Accepted or ToolMakingRequestStatus.Ready or
@@ -49,10 +49,10 @@ public sealed partial class WorldRuntime
                     !content.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
                         definition.Tags.Contains("blacksmith", StringComparer.Ordinal)) ||
                     !physical.ContainsKey(request.RequesterId) ||
-                    societyState.GetInhabitant(request.RequesterId).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
+                    societyState.GetAgent(request.RequesterId).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
                 request.Status == ToolMakingRequestStatus.Accepted &&
-                    (!physical.ContainsKey(request.WorkerId!) || societyState.GetInhabitant(request.WorkerId!).HouseholdId != request.SellerHouseholdId ||
-                     societyState.GetInhabitant(request.WorkerId!).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
+                    (!physical.ContainsKey(request.WorkerId!) || societyState.GetAgent(request.WorkerId!).HouseholdId != request.SellerHouseholdId ||
+                     societyState.GetAgent(request.WorkerId!).AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
                 recipe is not null && (!ToolMakingRequestRules.IsToolRecipe(recipe) || recipe.Outputs[0].ResourceId != request.ItemKind))
                 throw new InvalidDataException("A tool request has invalid identity, authority, status or timing.");
             if (request.JobId is { } jobId)
@@ -99,7 +99,7 @@ public sealed partial class WorldRuntime
         }
         foreach (var person in physical.Values.Where(person => person.Project?.ToolMakingRequestId is not null))
             if (!requests.Any(request => request.Id == person.Project!.ToolMakingRequestId &&
-                request.WorkerId == person.InhabitantId && request.AcceptedTick == person.Project.StartedTick &&
+                request.WorkerId == person.AgentId && request.AcceptedTick == person.Project.StartedTick &&
                 request.Status == ToolMakingRequestStatus.Accepted && person.Project.CandidateId == "build:recipe:" + request.RecipeId))
                 throw new InvalidDataException("A household project has an invalid tool request binding.");
         foreach (var job in simulation.ProductionJobs.Where(job => job.ToolMakingRequestId is not null))

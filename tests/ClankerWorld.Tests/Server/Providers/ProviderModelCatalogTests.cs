@@ -119,7 +119,7 @@ public sealed class ProviderModelCatalogTests
         using var directory = new TemporaryDirectory();
         var store = directory.Store();
         var slot = Guid.NewGuid().ToString("N");
-        _ = store.Configure(new("personal", "openai", "gpt-6-sol", "slot-secret", false, "inhabitant-test", slot, "Second account"));
+        _ = store.Configure(new("personal", "openai", "gpt-6-sol", "slot-secret", false, "agent-test", slot, "Second account"));
         var handler = new ListHandler(_ => (HttpStatusCode.OK, OpenAiList));
         var catalog = new ProviderModelCatalog(store, new ClientFactory(handler));
 

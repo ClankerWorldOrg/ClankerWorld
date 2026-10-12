@@ -28,17 +28,17 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("multiple-carried-jugs", _ => new IdleProvider());
         var state = setup.ExportState();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var shores = FreshWaterShorePoints(state.Map);
         var origin = walk
             ? state.Map.Tiles.Select(tile => tile.Position).First(point =>
                 state.Map.IsPassable(point) && state.Map.HydrologyAt(point) == WaterKind.Land &&
-                state.Inhabitants.All(person => person.Position != point) &&
+                state.Agents.All(person => person.Position != point) &&
                 shores.All(shore => state.Map.FootDistance(point, shore) >= 2) &&
                 shores.Any(shore => state.Map.FootDistance(point, shore) == 2 && state.Map.IsReachableOnFoot(point, shore)))
             : shores.First(point => state.Map.IsReachableOnFoot(house.Position, point) &&
-                state.Inhabitants.All(person => person.Position != point));
+                state.Agents.All(person => person.Position != point));
         var full = fullFirst ? "jug-a" : "jug-b";
         var empty = fullFirst ? "jug-b" : "jug-a";
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, full, InventoryContainerRules.WaterJug, actor, 1);
@@ -69,7 +69,7 @@ public sealed class PotteryContentTests
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
         }, actor, 10_000, origin);
-        var person = state.Inhabitants.Single(item => item.InhabitantId == actor);
+        var person = state.Agents.Single(item => item.AgentId == actor);
         Assert.Equal(boundary == "full-hands" ? 0 : boundary == "reserved" ? 1 : boundary == "plain-milk" ? 1 : 2,
             PersonalEquipmentRules.FreeCapacity(inventory, actor, person.Equipment));
         var provider = new PrefixCandidateProvider("fill_water_jug:");
@@ -94,7 +94,7 @@ public sealed class PotteryContentTests
         Assert.Contains(provider.OfferedCandidates, id => id.StartsWith("fill_water_jug:", StringComparison.Ordinal));
         if (walk)
         {
-            Assert.NotEqual(origin, world.Inhabitants.Single(item => item.InhabitantId == actor).Position);
+            Assert.NotEqual(origin, world.Agents.Single(item => item.AgentId == actor).Position);
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.ContainerLotId == empty);
             using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
                 id => id == actor ? new PrefixCandidateProvider("fill_water_jug:") : new IdleProvider());
@@ -153,7 +153,7 @@ public sealed class PotteryContentTests
         using var setup = NormalPathWorld.CreateGenerated("empty-container-return", _ => new IdleProvider());
         var state = setup.ExportState();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         const string potId = "personal-food-pot";
         const string foodId = "personal-pot-berries";
@@ -181,7 +181,7 @@ public sealed class PotteryContentTests
         }
         state = world.ExportState();
         inventory = state.Society.Society.Inventory;
-        var other = state.Society.Society.Inhabitants.First(person => person.Id != actor &&
+        var other = state.Society.Society.Agents.First(person => person.Id != actor &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         if (boundary == "reserved")
             inventory = InventoryAuthority.Reserve(inventory, "personal-pot-food-claim", actor, foodId, 2, "other_work",
@@ -205,7 +205,7 @@ public sealed class PotteryContentTests
             };
         if (boundary == "full-hands")
         {
-            var equipment = state.Inhabitants.Single(person => person.InhabitantId == actor).Equipment;
+            var equipment = state.Agents.Single(person => person.AgentId == actor).Equipment;
             inventory = InventoryAuthority.AddLot(inventory, "personal-pot-ballast", "test_cargo", actor,
                 PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
             Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment));
@@ -262,8 +262,8 @@ public sealed class PotteryContentTests
             initial.Map.HydrologyAt(point) is WaterKind.River or WaterKind.Lake);
         Assert.Equal(16, initial.WorldSystems!.Ecology.GetResource(clay.Id).Quantity);
 
-        var householdId = initial.Society.Society.Inhabitants.First(person => person.HouseholdId is not null).HouseholdId!;
-        var actor = initial.Society.Society.Inhabitants.First(person =>
+        var householdId = initial.Society.Society.Agents.First(person => person.HouseholdId is not null).HouseholdId!;
+        var actor = initial.Society.Society.Agents.First(person =>
             person.HouseholdId == householdId && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var houseDefinition = setup.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
         var house = setup.WorldSimulation.Buildings.SingleOrDefault(building =>
@@ -278,7 +278,7 @@ public sealed class PotteryContentTests
                 !buildingTiles.Contains(point) && !setup.RoadTiles.Contains(point) &&
                 !initial.Map.MapObjects.Any(item => item.Position == point) &&
                 !initial.Map.Resources.Any(item => item.Position == point) &&
-                !initial.Inhabitants.Any(person => person.Position == point));
+                !initial.Agents.Any(person => person.Position == point));
             var placement = setup.PlaceBuilding("pottery-house", houseDefinition.CanonicalId, site, householdId);
             Assert.True(placement.Applied, placement.Failure);
             house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "pottery-house");
@@ -288,8 +288,8 @@ public sealed class PotteryContentTests
         var supplyState = setup.ExportState();
         // This clay-supply control begins after the household has usable tools.
         // Otherwise tool wood is picked up first and needs a separate hauling action.
-        var adults = supplyState.Society.Society.Inhabitants.Count(person => person.HouseholdId == householdId &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+        var adults = supplyState.Society.Society.Agents.Count(person => person.HouseholdId == householdId &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         var toolStock = InventoryAuthority.AddLot(supplyState.Society.Society.Inventory,
             "pottery-fixture-axes", "wooden_axe", householdId, adults, storageBuildingId: house.InstanceId);
         toolStock = InventoryAuthority.AddLot(toolStock, "pottery-fixture-picks", "wooden_pickaxe", householdId,
@@ -300,7 +300,7 @@ public sealed class PotteryContentTests
         };
         supplyState = supplyState with
         {
-            Inhabitants = supplyState.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = supplyState.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     HungerBasisPoints = 10_000,
@@ -312,7 +312,7 @@ public sealed class PotteryContentTests
         };
 
         var currentInventory = supplyState.Society.Society.Inventory;
-        var adult = supplyState.Inhabitants.Single(person => person.InhabitantId == actor);
+        var adult = supplyState.Agents.Single(person => person.AgentId == actor);
         var freeCapacity = PersonalEquipmentRules.FreeCapacity(currentInventory, actor, adult.Equipment);
         if (freeCapacity > 0)
             currentInventory = InventoryAuthority.AddLot(currentInventory, "test-workstation-full-load", "test_load",
@@ -367,7 +367,7 @@ public sealed class PotteryContentTests
         var noJugCandidates = await ObservePersistedCandidates(noJugState, actor);
         Assert.Empty(ContainerActionCandidates(noJugCandidates));
 
-        var otherAdult = productionState.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var otherAdult = productionState.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.Id != actor && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var foreignJugInventory = InventoryAuthority.AddLot(productionState.Society.Society.Inventory,
             "test-foreign-carried-jug", InventoryContainerRules.WaterJug, otherAdult, 1,
@@ -383,7 +383,7 @@ public sealed class PotteryContentTests
         Assert.Empty(ContainerActionCandidates(foreignJugCandidates));
 
         var freshwaterShores = FreshWaterShorePoints(productionState.Map);
-        var occupiedTiles = productionState.Inhabitants.Select(person => person.Position)
+        var occupiedTiles = productionState.Agents.Select(person => person.Position)
             .Concat(setup.WorldSimulation.Buildings.Select(building => building.Position))
             .Concat(setup.RoadTiles)
             .Concat(productionState.Map.MapObjects.Select(item => item.Position))
@@ -469,7 +469,7 @@ public sealed class PotteryContentTests
         // ordinary safe-idle reevaluation interval.
         var collectionStartState = productionState with
         {
-            Inhabitants = productionState.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = productionState.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -558,8 +558,8 @@ public sealed class PotteryContentTests
         var refillProgress = refilling.ExportState();
         Assert.True(refillCandidates.Any(id => id.StartsWith("fill_water_jug:", StringComparison.Ordinal)),
             $"Offered [{string.Join(", ", refillCandidates)}] at tick {refillProgress.Society.Society.WorldTick}; " +
-            $"actor status {refillProgress.Society.Society.Inhabitants.Single(person => person.Id == actor).Status}, " +
-            $"position {refillProgress.Inhabitants.Single(person => person.InhabitantId == actor).Position}");
+            $"actor status {refillProgress.Society.Society.Agents.Single(person => person.Id == actor).Status}, " +
+            $"position {refillProgress.Agents.Single(person => person.AgentId == actor).Position}");
         Assert.Contains(refilling.Society.Inventory.Lots, lot => lot.ContainerLotId == jugId &&
             lot.ItemKind == InventoryContainerRules.FreshWater && lot.Quantity == InventoryContainerRules.WaterJugCapacity);
         Assert.Equal(householdId, refilling.Society.Inventory.GetLot(jugId).OwnerId);
@@ -705,7 +705,7 @@ public sealed class PotteryContentTests
         const string jugId = "supply-test-jug";
         const string waterId = "supply-test-water";
         var (initial, _) = TailorTestWorld.Create($"container-workstation-supply-{waterQuantity}", 0);
-        var actor = initial.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = initial.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         using var setup = WorldRuntime.Restore(initial, _ => new IdleProvider());
         var package = WaterWorkstationFixture(waterQuantity);
@@ -762,7 +762,7 @@ public sealed class PotteryContentTests
         inventory = InventoryAuthority.AddLot(inventory, waterId, InventoryContainerRules.FreshWater,
             householdId, waterQuantity, state.Society.Society.WorldTick, containerLotId: jugId,
             storageBuildingId: sourceHouseId);
-        var equipment = state.Inhabitants.Single(person => person.InhabitantId == actor).Equipment;
+        var equipment = state.Agents.Single(person => person.AgentId == actor).Equipment;
         if (!familyFits)
         {
             var free = PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment);
@@ -783,7 +783,7 @@ public sealed class PotteryContentTests
 
         if (!familyFits)
         {
-            var person = state.Inhabitants.Single(item => item.InhabitantId == actor);
+            var person = state.Agents.Single(item => item.AgentId == actor);
             var ballast = PersonalEquipmentRules.FreeCapacity(inventory, actor, person.Equipment) - waterQuantity;
             if (ballast > 0)
                 inventory = InventoryAuthority.AddLot(inventory, "water-supply-ballast", "test_cargo", actor, ballast);
@@ -812,7 +812,7 @@ public sealed class PotteryContentTests
             return;
         }
 
-        var actorState = world.Inhabitants.Single(person => person.InhabitantId == actor);
+        var actorState = world.Agents.Single(person => person.AgentId == actor);
         var actorLots = world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor)
             .Select(lot => $"{lot.Id}:{lot.ItemKind}:{lot.Quantity}:storage={lot.StorageBuildingId}:delivery={lot.DeliveryBuildingId}");
         Assert.True(provider.OfferedCandidates.Contains("supply_workstation:fresh_water"),
@@ -852,7 +852,7 @@ public sealed class PotteryContentTests
         var state = setup.ExportState();
         const string householdId = "household:camp-alpha";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var adults = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == householdId &&
+        var adults = state.Society.Society.Agents.Where(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).ToArray();
         var actor = adults[0].Id;
         var deliverer = adults[1].Id;
@@ -892,7 +892,7 @@ public sealed class PotteryContentTests
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
         }, actor, 10_000, house.Position) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, HungerBasisPoints = 10_000, Equipment = null, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -940,11 +940,11 @@ public sealed class PotteryContentTests
         var state = setup.ExportState();
         const string householdId = "household:camp-alpha";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var origin = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsPassable(point) &&
             !state.Map.IsReachableOnFoot(point, house.Position) &&
-            !state.Inhabitants.Any(person => person.Position == point));
+            !state.Agents.Any(person => person.Position == point));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "unreachable-test-pot",
             InventoryContainerRules.StoragePot, householdId, 1, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "unreachable-test-food", "food", householdId, 2,
@@ -970,7 +970,7 @@ public sealed class PotteryContentTests
         const string backupJugId = "zz-house-reserve-jug";
         const string backupWaterId = "zz-house-reserve-water";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var inventory = state.Society.Society.Inventory with
         {
@@ -1000,7 +1000,7 @@ public sealed class PotteryContentTests
         }, actor, 10_000, house.Position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, LastDecisionContext = null } : person).ToArray(),
         };
         var beforeTotal = inventory.Lots.Sum(lot => lot.Quantity);
@@ -1072,7 +1072,7 @@ public sealed class PotteryContentTests
         const string jugId = "needed-house-jug";
         const string waterId = "needed-house-water";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var inventory = state.Society.Society.Inventory with
         {
@@ -1095,7 +1095,7 @@ public sealed class PotteryContentTests
         }, actor, 10_000, house.Position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, LastDecisionContext = null } : person).ToArray(),
         };
         var provider = new WaterLoopProvider();
@@ -1136,7 +1136,7 @@ public sealed class PotteryContentTests
         const string householdId = "household:camp-alpha";
         const string potId = "serving-rules-pot";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         // Only the pot holds household food, so the food policy sees no surplus.
         var inventory = state.Society.Society.Inventory with
@@ -1152,11 +1152,11 @@ public sealed class PotteryContentTests
         state = SetActorCondition(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Council = new(state.Inhabitants[0].InhabitantId, policy, 0),
+            Council = new(state.Agents[0].AgentId, policy, 0),
         }, actor, 6_000, house.Position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, LastDecisionContext = null } : person).ToArray(),
         };
 
@@ -1185,7 +1185,7 @@ public sealed class PotteryContentTests
         const string householdId = "household:camp-alpha";
         const string potId = "urgent-owner-order-pot";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var inventory = state.Society.Society.Inventory with
         {
@@ -1199,11 +1199,11 @@ public sealed class PotteryContentTests
         state = SetActorCondition(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Council = new(state.Inhabitants[0].InhabitantId, "open", 0),
+            Council = new(state.Agents[0].AgentId, "open", 0),
         }, actor, 0, house.Position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -1236,7 +1236,7 @@ public sealed class PotteryContentTests
         const string householdId = "household:camp-alpha";
         const string jugId = "0-oversized-loose-jug";
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         // The jug and its four water make five units, more than the actor's
         // four remaining spaces. Loose wood still fits without splitting it.
@@ -1259,7 +1259,7 @@ public sealed class PotteryContentTests
         }, actor, 10_000, house.Position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = null, LastDecisionContext = null } : person).ToArray(),
         };
 
@@ -1285,7 +1285,7 @@ public sealed class PotteryContentTests
     private static WorldRuntimeState SetActorCondition(WorldRuntimeState state, string actor,
         int hunger, GridPoint position) => state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = position,
@@ -1403,7 +1403,7 @@ public sealed class PotteryContentTests
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default) => ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
@@ -1429,7 +1429,7 @@ public sealed class PotteryContentTests
                 candidate.Id.StartsWith(prefix, StringComparison.Ordinal)) ??
                 request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d)));
@@ -1454,7 +1454,7 @@ public sealed class PotteryContentTests
                 request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "return_water_jug") ??
                 request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d)));

@@ -235,7 +235,7 @@ public sealed partial class ServerHttpTests
                 generatedId = entry.Id;
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 Assert.True(runtime.Society.IsPaused);
-                Assert.Empty(runtime.Inhabitants);
+                Assert.Empty(runtime.Agents);
                 Assert.Equal(0, runtime.WorldTick);
                 Assert.Equal(26, runtime.Content.Packages.Count);
                 Assert.Contains(runtime.Content.Packages, package => package.Manifest.PackageId == AnimalContent.PackageId);
@@ -532,7 +532,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal(PlayerDecisionProviders.Deterministic, inheritedConfiguration.RoutineProvider);
                 Assert.Equal(PlayerDecisionProviders.OllamaCloud, inheritedConfiguration.PlanningProvider);
                 var inheritedRoutes = inheritedConfiguration.Assignments!
-                    .Where(item => item.InhabitantId == "founder:checkpoint").ToArray();
+                    .Where(item => item.AgentId == "founder:checkpoint").ToArray();
                 Assert.Equal(2, inheritedRoutes.Length);
                 Assert.Equal(new[] { PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.RoutineRole },
                     inheritedRoutes.Select(item => item.Role).Order(StringComparer.Ordinal));
@@ -544,7 +544,7 @@ public sealed partial class ServerHttpTests
                     Assert.Null(assignment.SelectionReason);
                 });
                 var decisionProvider = host.Services.GetRequiredService<ConfigurableDecisionProvider>();
-                var routineObservation = new InhabitantObservation("founder:checkpoint", runtime.WorldTick, 0, 0,
+                var routineObservation = new AgentObservation("founder:checkpoint", runtime.WorldTick, 0, 0,
                     "sha256:inheritance-fallback", 5_000,
                     [new CognitionCandidate("safe_idle", "Wait safely.")]);
                 var planningObservation = routineObservation with
@@ -594,7 +594,7 @@ public sealed partial class ServerHttpTests
                     branched?.Branch?.Number, branched?.WorldTick),
                     await timeline.Content.ReadFromJsonAsync<SaveTimelinePosition>());
                 Assert.Contains(providers.CaptureRuntimeConfiguration().Assignments ?? [],
-                    item => item.InhabitantId == "founder:checkpoint" && item.CredentialSlotId == slotId);
+                    item => item.AgentId == "founder:checkpoint" && item.CredentialSlotId == slotId);
                 var statusAction = new OwnerControlAction("autosave-status");
                 using var status = await SendSignedAsync(host, client, key, device.DeviceId,
                     "/api/v1/owner/saves/autosave/status", statusAction,
@@ -698,7 +698,7 @@ public sealed partial class ServerHttpTests
         runtime.LoadPausedCheckpoint(emptyStartingSite);
 
         Assert.Empty(runtime.FounderSetup!.FounderIds);
-        Assert.Empty(runtime.Inhabitants);
+        Assert.Empty(runtime.Agents);
         Assert.Throws<InvalidOperationException>(runtime.Resume);
     }
 

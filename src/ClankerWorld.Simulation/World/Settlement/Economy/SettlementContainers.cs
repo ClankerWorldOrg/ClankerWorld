@@ -48,9 +48,9 @@ public sealed partial class WorldRuntime
         InventoryIndex.For(inventory).HasReservedFamily(containerId);
 
     private void AddContainerCandidates(List<CognitionCandidate> candidates, string actor,
-        InhabitantState person)
+        AgentState person)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house)
             return;
 
@@ -95,7 +95,7 @@ public sealed partial class WorldRuntime
     }
 
     private void AddFoodPotCandidates(List<CognitionCandidate> candidates, string actor,
-        InhabitantState person, string householdId, PlacedBuilding house)
+        AgentState person, string householdId, PlacedBuilding house)
     {
         var inventory = society.Checkpoint.Inventory;
         var foodToStore = FindFoodToStore(actor, householdId, house.InstanceId);
@@ -110,9 +110,9 @@ public sealed partial class WorldRuntime
     }
 
     private void AddUrgentFoodPotCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState person)
+        AgentState person)
     {
-        if (!NeedsUrgentFood(person) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!NeedsUrgentFood(person) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house)
             return;
 
@@ -120,7 +120,7 @@ public sealed partial class WorldRuntime
     }
 
     private void AddFoodPotRetrievalCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState person, string householdId, PlacedBuilding house)
+        AgentState person, string householdId, PlacedBuilding house)
     {
         var inventory = society.Checkpoint.Inventory;
         // Like collecting other household food, a serving follows the Town's
@@ -196,7 +196,7 @@ public sealed partial class WorldRuntime
             building.HouseholdId == householdId && worldContent.Buildings.Any(definition =>
                 definition.CanonicalId == building.DefinitionId && definition.Tags.Any(tag => tag is "house" or "restaurant")));
 
-    private InventoryLot? StoredWaterJugForRefill(string actor, InhabitantState person, string householdId)
+    private InventoryLot? StoredWaterJugForRefill(string actor, AgentState person, string householdId)
     {
         var inventory = society.Checkpoint.Inventory;
         return FindGoods(new(GoodsUse.VesselFor, actor, GoodsOwners.One(householdId),
@@ -223,9 +223,9 @@ public sealed partial class WorldRuntime
             ContainerFamilyQuantity(society.Checkpoint.Inventory, jug.Id) ? house.Position : null;
     }
 
-    private void CollectWaterJug(string actor, InhabitantState person)
+    private void CollectWaterJug(string actor, AgentState person)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house)
             return;
         var inventory = society.Checkpoint.Inventory;
@@ -245,7 +245,7 @@ public sealed partial class WorldRuntime
         AppendEvent("water_jug_collected", $"{actor}:{jug.Id}");
     }
 
-    private void FillWaterJug(string actor, InhabitantState person, string target)
+    private void FillWaterJug(string actor, AgentState person, string target)
     {
         if (!TryParsePoint(target, out var shore) || !FreshWaterShorePositions().Contains(shore) ||
             CarriedWaterJugForRefill(actor) is not { } jug)
@@ -273,9 +273,9 @@ public sealed partial class WorldRuntime
         AppendEvent("water_jug_filled", $"{actor}:{jug.Id}:{remaining}:{shore.X},{shore.Y}");
     }
 
-    private void ReturnWaterJug(string actor, InhabitantState person)
+    private void ReturnWaterJug(string actor, AgentState person)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             CarriedWaterJugForReturn(actor, house.InstanceId) is not { } jug)
             return;
@@ -290,9 +290,9 @@ public sealed partial class WorldRuntime
         AppendEvent("water_jug_returned", $"{actor}:{jug.Id}:{house.InstanceId}");
     }
 
-    private void StoreFoodInPot(string actor, InhabitantState person)
+    private void StoreFoodInPot(string actor, AgentState person)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             FindFoodToStore(actor, householdId, house.InstanceId) is not { } choice)
             return;
@@ -327,9 +327,9 @@ public sealed partial class WorldRuntime
         AppendEvent("food_stored_in_pot", $"{actor}:{choice.Pot.Id}:{choice.Food.Id}:{quantity}");
     }
 
-    private void TakeFoodFromPot(string actor, InhabitantState person)
+    private void TakeFoodFromPot(string actor, AgentState person)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             FindFoodInPot(householdId, house.InstanceId) is not { } choice)
             return;

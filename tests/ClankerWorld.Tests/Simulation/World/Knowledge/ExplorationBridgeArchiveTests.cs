@@ -19,7 +19,7 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
     {
         using var world = await BuildBridgeAfterActualScoutingAndNaturalDeath();
         var state = world.ExportState();
-        var deceased = Assert.Single(state.DeceasedInhabitants!);
+        var deceased = Assert.Single(state.DeceasedAgents!);
         var exploration = Assert.IsType<SettlementExploration>(deceased.LastPhysical.Exploration);
         var bridge = Assert.Single(state.Bridges!, item => item.Id == "bridge-0-102-ew-2");
         Assert.True(exploration.LastOutingTick > 0);
@@ -35,7 +35,7 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
     private async Task<WorldRuntime> BuildBridgeAfterActualScoutingAndNaturalDeath()
     {
         using var scouting = ExplorationBridgeSaveTests.CreateScoutingWorld();
-        var actor = scouting.Inhabitants[0].InhabitantId;
+        var actor = scouting.Agents[0].AgentId;
         for (var tick = 0; tick < 400 && Scout(scouting, actor).Exploration!.OutingPath.Count < 3; tick++)
         {
             var previous = Scout(scouting, actor).Position;
@@ -54,11 +54,11 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
         try
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var dead = world.Society.GetInhabitant(actor);
-            Assert.Equal(SocietyInhabitantStatus.Dead, dead.Status);
+            var dead = world.Society.GetAgent(actor);
+            Assert.Equal(SocietyAgentStatus.Dead, dead.Status);
             Assert.Equal(SocietyDeathCause.NaturalAge, dead.DeathCause);
-            var deceased = Assert.Single(world.ExportState().DeceasedInhabitants!);
-            Assert.Equal(actor, deceased.InhabitantId);
+            var deceased = Assert.Single(world.ExportState().DeceasedAgents!);
+            Assert.Equal(actor, deceased.AgentId);
             Assert.Equal(dead.DeathTick, deceased.DeathTick);
             Assert.Equal(SecondWater, deceased.LastPhysical.Position);
             var archivedPath = Assert.IsType<SettlementExploration>(deceased.LastPhysical.Exploration);
@@ -67,7 +67,7 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
             Assert.Equal(exploration.OutingDiscoveries, archivedPath.OutingDiscoveries);
             Assert.Equal(exploration.LastOutingTick, archivedPath.LastOutingTick);
             Assert.Equal(exploration.Returning, archivedPath.Returning);
-            Assert.DoesNotContain(world.Inhabitants, person => person.InhabitantId == actor);
+            Assert.DoesNotContain(world.Agents, person => person.AgentId == actor);
             var archivedBytes = WorldRuntimeCodec.Encode(world.ExportState());
             using (var validArchive = Restore(WorldRuntimeCodec.Decode(archivedBytes)))
                 Assert.Equal(archivedBytes, WorldRuntimeCodec.Encode(validArchive.ExportState()));
@@ -87,7 +87,7 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
             Assert.True(bridge.BuiltTick > exploration.LastOutingTick);
             var after = world.ExportState();
             Assert.Equal(woodBefore - 10, after.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
-            Assert.Equal(JsonSerializer.Serialize(deceased), JsonSerializer.Serialize(Assert.Single(after.DeceasedInhabitants!)));
+            Assert.Equal(JsonSerializer.Serialize(deceased), JsonSerializer.Serialize(Assert.Single(after.DeceasedAgents!)));
             Assert.Equal(before.Knowledge!.Facts, after.Knowledge!.Facts);
             Assert.False(after.Map.CanFootStep(Start, FirstWater));
             Assert.False(after.Map.CanFootStep(FirstWater, SecondWater));
@@ -114,7 +114,7 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
                 Society = society with
                 {
                     LifeClock = new SocietyLifeClock(society.LifeClock?.Rate ?? 1, society.WorldTick, nextLifeTick),
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthLifeTick = nextLifeTick + 1 - (days + 1) * society.Config.TicksPerLifecycleAge,
                         AgeBand = SocietyAgeBand.Elder,
@@ -125,8 +125,8 @@ public sealed class ExplorationBridgeArchiveTests(ITestOutputHelper output)
         };
     }
 
-    private static InhabitantState Scout(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static AgentState Scout(WorldRuntime world, string actor) =>
+        world.Agents.Single(person => person.AgentId == actor);
 
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, Provider);
     private static IDecisionProvider Provider(string actor) => new IdleProvider();

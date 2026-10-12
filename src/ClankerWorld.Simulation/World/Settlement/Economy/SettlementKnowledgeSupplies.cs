@@ -7,7 +7,7 @@ public sealed partial class WorldRuntime
         if (householdId is null || knowledge.Artifacts.Count >= AgentKnowledgeRules.MaximumArtifactsInWorld)
             return false;
 
-        var writers = society.Checkpoint.Inhabitants.Where(person => person.HouseholdId == householdId &&
+        var writers = society.Checkpoint.Agents.Where(person => person.HouseholdId == householdId &&
                 AdultResident(person.Id) && knowledge.Facts.Any(fact => fact.OwnerId == person.Id) &&
                 knowledge.Artifacts.Count(artifact => artifact.CreatorId == person.Id) <
                     AgentKnowledgeRules.MaximumArtifactsPerCreator)

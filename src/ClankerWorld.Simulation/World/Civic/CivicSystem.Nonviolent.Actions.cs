@@ -194,7 +194,7 @@ internal sealed partial class CivicSystem
         if (payload?.Terms is not { Count: > 0 } terms) throw new InvalidOperationException("A restorative offer needs finite named goods or work.");
         string? PhysicalReference(string? reference) => reference is null ? null : world.Society.Inventory.Lots.Select(lot => lot.Id).Concat(world.WorldSimulation.Buildings.Select(building => building.InstanceId))
                 .FirstOrDefault(id => id == reference || CivicAgentToken(id) == reference) ?? reference;
-        string BeneficiaryReference(string reference) => world.Society.Inhabitants.Select(person => person.Id)
+        string BeneficiaryReference(string reference) => world.Society.Agents.Select(person => person.Id)
             .Concat(world.Society.Households.Select(household => household.Id)).Concat(world.Towns.Select(item => item.Id))
             .FirstOrDefault(id => id == reference || CivicAgentToken(id) == reference) ?? reference;
         var result = terms.Select((term, index) => new TownRemedyTerm("term:" + NonviolentToken(caseId + "|" + town.Nonviolent.Sequence + "|" + index),

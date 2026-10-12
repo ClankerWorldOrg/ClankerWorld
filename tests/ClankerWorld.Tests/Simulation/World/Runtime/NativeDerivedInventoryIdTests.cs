@@ -26,7 +26,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var recipient = births[^2].ChildId;
         Assert.Contains(state.Society.Society.Relationships, edge =>
             edge.Type == SocietyRelationshipType.BiologicalParentage && edge.ProposerId == recipient && edge.TargetId == owner);
-        var physical = state.Inhabitants.Single(person => person.InhabitantId == owner).Position;
+        var physical = state.Agents.Single(person => person.AgentId == owner).Position;
         var ground = new InventoryGroundPosition(physical.X, physical.Y);
         var society = state.Society.Society;
         // Display-name controls preserve the actual IDs, relationships and native birth history.
@@ -112,10 +112,10 @@ public sealed partial class GrownAgentHelperMemoryTests
                 restored.Society.Beliefs ?? [], null, owner, restored.WorldTick, candidates, restored.Society);
             var recalled = Assert.Single(memories, memory => memory.Id == id);
             Assert.Equal((owner, recipient, summary), (recalled.OwnerId, recalled.SubjectId, recalled.Summary));
-            new InhabitantObservation(owner, restored.WorldTick, 0, 1, "sha256:bounded-generator", 0,
+            new AgentObservation(owner, restored.WorldTick, 0, 1, "sha256:bounded-generator", 0,
                 candidates, RetrievedMemories: memories).Validate();
             Assert.Equal("Household " + new string('h', 118), restored.Society.GetHousehold(
-                restored.Society.GetInhabitant(owner).HouseholdId!).Name);
+                restored.Society.GetAgent(owner).HouseholdId!).Name);
         }
     }
 }

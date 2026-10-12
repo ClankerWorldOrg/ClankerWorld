@@ -18,7 +18,7 @@ public sealed class HouseToolsBootstrapTests
     {
         var chooser = new OfferedChoiceProvider();
         using var world = await BuildIndependentHouse(chooser);
-        var household = world.Society.GetInhabitant(Actor).HouseholdId!;
+        var household = world.Society.GetAgent(Actor).HouseholdId!;
         var house = Assert.Single(world.WorldSimulation.Buildings);
         var paidHouseTick = world.WorldTick;
         foreach (var kind in new[] { HouseToolsContent.CrudeWoodenAxe, HouseToolsContent.CrudeWoodenPickaxe })
@@ -117,7 +117,7 @@ public sealed class HouseToolsBootstrapTests
         {
             var tool = world.Society.Inventory.GetLot(firstTool.Id);
             Assert.InRange(tool.ConditionBasisPoints, 0, 6_000);
-            Assert.Equal(world.Society.GetInhabitant(Actor).HouseholdId, tool.OwnerId);
+            Assert.Equal(world.Society.GetAgent(Actor).HouseholdId, tool.OwnerId);
         }
         Assert.Contains(world.ExportState().Events, item => item.Kind == "material_gathered" && item.Detail == Actor + ":wood:4");
         Assert.Contains(world.ExportState().Events, item => item.Kind == "material_gathered" && item.Detail == Actor + ":stone:4");
@@ -145,13 +145,13 @@ public sealed class HouseToolsBootstrapTests
         Assert.Equal(16, setup.WorldSystems.Ecology.GetResource("settlement-wood").Quantity);
         Assert.DoesNotContain(setup.Society.Inventory.Lots, lot => ToolProgressionRules.Find(lot.ItemKind)?.Family is ToolFamily.Axe or ToolFamily.Pickaxe);
         Assert.True(setup.DisplaceAdult(Actor));
-        Assert.Null(setup.Society.GetInhabitant(Actor).HouseholdId);
+        Assert.Null(setup.Society.GetAgent(Actor).HouseholdId);
         Assert.DoesNotContain(setup.Society.Inventory.Lots, lot => lot.OwnerId == Actor && lot.ItemKind != "food");
         var world = Restore(setup, chooser);
         await Until(world, () => world.WorldSimulation.Buildings.Count == 1, chooser);
         var house = Assert.Single(world.WorldSimulation.Buildings);
         Assert.Equal(HouseContent.House1x1().CanonicalId, house.DefinitionId);
-        Assert.Equal(world.Society.GetInhabitant(Actor).HouseholdId, house.HouseholdId);
+        Assert.Equal(world.Society.GetAgent(Actor).HouseholdId, house.HouseholdId);
         Assert.Null(house.TownId);
         var payments = world.Society.Inventory.Reservations.Where(reservation => reservation.Purpose == "building:" + house.InstanceId).ToArray();
         Assert.Equal(8, payments.Sum(item => item.Quantity));
@@ -180,7 +180,7 @@ public sealed class HouseToolsBootstrapTests
             chooser is ActionCoverageRecorder automatic ? string.Join(",", automatic.Chosen.Keys) : "") +
         "; events=" + string.Join(" | ", world.ExportState().Events.TakeLast(12).Select(item => item.Kind + ":" + item.Detail));
 
-    private static InhabitantState Physical(WorldRuntime world) => world.ExportState().Inhabitants.Single(item => item.InhabitantId == Actor);
+    private static AgentState Physical(WorldRuntime world) => world.ExportState().Agents.Single(item => item.AgentId == Actor);
     private static WorldProductionJob Job(WorldRuntime world, string id) => world.WorldSimulation.ProductionJobs.Single(item => item.JobId == id);
     private static byte[] Encode(WorldRuntime world) => WorldRuntimeCodec.Encode(world.ExportState());
     private static WorldRuntime Restore(WorldRuntime world, IDecisionProvider chooser) =>
@@ -196,9 +196,9 @@ public sealed class HouseToolsBootstrapTests
         var events = JsonSerializer.Deserialize<OwnerWorldEventSlice>(JsonSerializer.Serialize(store.GetEventsAfter(0), WebJson), WebJson)!;
         var made = Assert.Single(events.Events, item => item.Kind == "house_tool_made" && item.Detail == Actor + "|" + kind);
         Assert.True(GameUiText.IsPlayerFacingEvent(made.Kind));
-        Assert.Equal(world.Society.GetInhabitant(Actor).Name + " made a " + kind.Replace('_', ' ') + ".", WorldEventText.Describe(made, snapshot));
-        Assert.Contains(snapshot.Inhabitants, person => person.Id == Actor);
-        var house = world.WorldSimulation.Buildings.Single(building => building.HouseholdId == world.Society.GetInhabitant(Actor).HouseholdId &&
+        Assert.Equal(world.Society.GetAgent(Actor).Name + " made a " + kind.Replace('_', ' ') + ".", WorldEventText.Describe(made, snapshot));
+        Assert.Contains(snapshot.Agents, person => person.Id == Actor);
+        var house = world.WorldSimulation.Buildings.Single(building => building.HouseholdId == world.Society.GetAgent(Actor).HouseholdId &&
             building.DefinitionId == HouseContent.House1x1().CanonicalId);
         Assert.Equal(new OwnerWorldPosition(house.Position.X, house.Position.Y), made.Position);
     }
@@ -225,7 +225,7 @@ public sealed class HouseToolsBootstrapTests
                     candidates.FirstOrDefault(item => item.Id == "supply_workstation:wood");
             selected ??= candidates.Single(item => item.Id == "safe_idle");
             Choices.Add(selected.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1,
                 candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d),

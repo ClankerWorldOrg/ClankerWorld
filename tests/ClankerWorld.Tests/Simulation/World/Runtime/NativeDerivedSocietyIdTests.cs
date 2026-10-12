@@ -37,13 +37,13 @@ public sealed partial class GrownAgentHelperMemoryTests
         if (generator.StartsWith("household-", StringComparison.Ordinal))
         {
             society = SocietyRules.LeaveHousehold(society, actor).Checkpoint;
-            Assert.Null(society.GetInhabitant(actor).HouseholdId);
+            Assert.Null(society.GetAgent(actor).HouseholdId);
             if (generator == "household-creation")
                 society = SocietyRules.CreateHousehold(society, newHome, name, [actor]).Checkpoint;
             else
             {
                 society = SocietyRules.LeaveHousehold(society, relative).Checkpoint;
-                Assert.Null(society.GetInhabitant(relative).HouseholdId);
+                Assert.Null(society.GetAgent(relative).HouseholdId);
                 society = SocietyRules.CreateHousehold(society, newHome, name, [relative]).Checkpoint;
                 society = SocietyRules.JoinHousehold(society, actor, newHome).Checkpoint;
                 if (generator == "household-rejoin")
@@ -52,7 +52,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     society = SocietyRules.JoinHousehold(society, actor, newHome).Checkpoint;
                 }
             }
-            Assert.Equal(newHome, society.GetInhabitant(actor).HouseholdId);
+            Assert.Equal(newHome, society.GetAgent(actor).HouseholdId);
             Assert.Equal(name, society.GetHousehold(newHome).Name);
         }
         else if (generator == "consumption")
@@ -71,7 +71,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 SocietyRelationshipType.HouseholdMembership).Select(edge => edge.Id).ToArray(),
             "birth-food" => society.Inventory.Reservations.Where(hold => births.Any(birth => hold.Purpose == "birth:" + birth.RequestId))
                 .Select(hold => hold.Id).ToArray(),
-            "domestic-person" => births.Select(birth => society.GetInhabitant(birth.ChildId).DomesticFamilyUnitId!).ToArray(),
+            "domestic-person" => births.Select(birth => society.GetAgent(birth.ChildId).DomesticFamilyUnitId!).ToArray(),
             "birth-domestic" => births.Select(birth => birth.DomesticFamilyUnitId).ToArray(),
             "household-creation" or "household-join" or "household-rejoin" => society.Relationships
                 .Where(edge => !priorEdges.Contains(edge.Id)).Select(edge => edge.Id).ToArray(),
@@ -95,7 +95,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
             var memory = Assert.Single(recalled, memory => memory.Id == id);
             Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-            new InhabitantObservation(actor, restored.WorldTick, 0, 1, "sha256:society-inventory", 0,
+            new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:society-inventory", 0,
                 [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
         }
     }

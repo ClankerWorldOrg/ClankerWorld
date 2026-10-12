@@ -82,12 +82,12 @@ public sealed partial class LongInventoryActionCheckpointTests
         Assert.Equal((Actor, 8 - splits, Cart), (cargo.OwnerId, cargo.Quantity, cargo.ContainerLotId));
         var selected = Assert.Single(model.Selected);
         Assert.Equal("load_handcart:" + lotId, selected);
-        var accepted = world.Inhabitants.Single(person => person.InhabitantId == Actor).LastModelAttempt!;
+        var accepted = world.Agents.Single(person => person.AgentId == Actor).LastModelAttempt!;
         Assert.Equal(("ready", selected), (accepted.Status, accepted.LastAcceptedCandidateId));
-        Assert.Equal(selected, world.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == Actor)
+        Assert.Equal(selected, world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == Actor)
             .CurrentIntention!.CandidateId);
         Assert.Equal(DecisionProviderKind.LargeLanguageModel, world.ExportState().Society.Cognition.Runtimes
-            .Single(item => item.InhabitantId == Actor).CurrentIntention!.Provider);
+            .Single(item => item.AgentId == Actor).CurrentIntention!.Provider);
 
         var acceptedState = world.ExportState();
         foreach (var damaged in new[]
@@ -100,7 +100,7 @@ public sealed partial class LongInventoryActionCheckpointTests
                  })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(acceptedState with
             {
-                Inhabitants = acceptedState.Inhabitants.Select(person => person.InhabitantId == Actor
+                Agents = acceptedState.Agents.Select(person => person.AgentId == Actor
                     ? person with { LastModelAttempt = damaged } : person).ToArray(),
             }));
 
@@ -110,16 +110,16 @@ public sealed partial class LongInventoryActionCheckpointTests
         // independently of the current safe fallback intention.
         await CompleteLaterFailure(world, host);
         await CompleteLaterFailure(replay, replayHost);
-        var failed = world.Inhabitants.Single(person => person.InhabitantId == Actor).LastModelAttempt!;
+        var failed = world.Agents.Single(person => person.AgentId == Actor).LastModelAttempt!;
         Assert.Equal((selected, accepted.LastAcceptedTick), (failed.LastAcceptedCandidateId, failed.LastAcceptedTick));
         Assert.Equal((selected, accepted.LastAcceptedTick),
-            (replay.Inhabitants.Single(person => person.InhabitantId == Actor).LastModelAttempt!.LastAcceptedCandidateId,
-                replay.Inhabitants.Single(person => person.InhabitantId == Actor).LastModelAttempt!.LastAcceptedTick));
-        Assert.Equal("safe_idle", world.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == Actor)
+            (replay.Agents.Single(person => person.AgentId == Actor).LastModelAttempt!.LastAcceptedCandidateId,
+                replay.Agents.Single(person => person.AgentId == Actor).LastModelAttempt!.LastAcceptedTick));
+        Assert.Equal("safe_idle", world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == Actor)
             .CurrentIntention!.CandidateId);
         using var reloaded = host.Reload(Providers);
-        Assert.Equal(selected, reloaded.Inhabitants.Single(person => person.InhabitantId == Actor).LastModelAttempt!.LastAcceptedCandidateId);
-        Assert.Contains(new OwnerWorldObservationStore(reloaded).GetSnapshot().Inhabitants.Single(person => person.Id == Actor)
+        Assert.Equal(selected, reloaded.Agents.Single(person => person.AgentId == Actor).LastModelAttempt!.LastAcceptedCandidateId);
+        Assert.Contains(new OwnerWorldObservationStore(reloaded).GetSnapshot().Agents.Single(person => person.Id == Actor)
             .DecisionFactors, factor => factor.Key == "last-model-choice" && factor.Detail == selected);
         Assert.Equal((Actor, 8 - splits, Cart), (reloaded.Society.Inventory.GetLot(lotId).OwnerId,
             reloaded.Society.Inventory.GetLot(lotId).Quantity, reloaded.Society.Inventory.GetLot(lotId).ContainerLotId));
@@ -144,7 +144,7 @@ public sealed partial class LongInventoryActionCheckpointTests
         }
         if (kind == "wood")
         {
-            var position = state.Inhabitants.Single(person => person.InhabitantId == Actor).Position;
+            var position = state.Agents.Single(person => person.AgentId == Actor).Position;
             var ground = new InventoryGroundPosition(position.X, position.Y);
             inventory = InventoryAuthority.Relocate(inventory, "place-cargo", currentId, Actor,
                 inventory.GetLot(currentId).Quantity, groundPosition: ground);
@@ -152,7 +152,7 @@ public sealed partial class LongInventoryActionCheckpointTests
         }
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { HungerBasisPoints = kind == "food" ? 3_500 : 9_500 } : person).ToArray(),
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
         };
@@ -175,7 +175,7 @@ public sealed partial class LongInventoryActionCheckpointTests
             await host.AdvanceAndCheckSaved();
         }
         Assert.True(Failed(), "The host must apply the controlled later model failure.");
-        Assert.Equal("safe_idle", world.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == Actor)
+        Assert.Equal("safe_idle", world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == Actor)
             .CurrentIntention!.CandidateId);
     }
 
@@ -240,7 +240,7 @@ public sealed partial class LongInventoryActionCheckpointTests
             var candidate = request.Observation.Candidates.SingleOrDefault(item => item.Id == "load_handcart:" + lotId);
             if (candidate is null) throw new HttpRequestException("Controlled later model failure.");
             Selected.Enqueue(candidate.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, candidate.Id, 1d,
                 request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == candidate.Id ? 1d : 0d,

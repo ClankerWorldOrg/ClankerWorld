@@ -21,11 +21,11 @@ public sealed class WorldCartCargoOrderTests
     public async Task ExactQuantityUsesSelectedCartAndSurvivesRollbackReloadAndReplay(string text, bool loaded, int moved, bool approach)
     {
         var state = await CargoState(loaded);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         if (approach)
         {
-            var site = state.Map.FootNeighbors(state.Inhabitants[0].Position)
-                .First(point => state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point));
+            var site = state.Map.FootNeighbors(state.Agents[0].Position)
+                .First(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point));
             state = WithInventory(state, state.Society.Society.Inventory with
             {
                 Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id is "z-cart" or "cargo"
@@ -44,10 +44,10 @@ public sealed class WorldCartCargoOrderTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < (approach ? 8 : 4); tick++)
         {
-            var before = world.Inhabitants[0].Position;
+            var before = world.Agents[0].Position;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
-            var after = world.Inhabitants[0].Position;
+            var after = world.Agents[0].Position;
             if (before != after) Assert.True(state.Map.CanFootStep(before, after));
             if (Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits > 0)
                 Assert.Equal(new InventoryGroundPosition(after.X, after.Y), world.Society.Inventory.GetLot("z-cart").GroundPosition);
@@ -77,7 +77,7 @@ public sealed class WorldCartCargoOrderTests
     public async Task PartialUnloadingRetainsItsSourceAndProgressWhenReloadedOrStopped(string next)
     {
         var state = await CargoState(true);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "ballast", "fiber", actor, 6));
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var receipt = world.SubmitInstruction(Request("partial", actor, "Unload 3 wood from cart z-cart"));
@@ -123,7 +123,7 @@ public sealed class WorldCartCargoOrderTests
     public async Task PartialLoadingCountsAvailableSpaceAndResumesItsBoundStackAfterUrgentFood()
     {
         var state = await CargoState(false);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart-ballast", "fiber", actor, 30, containerLotId: "z-cart"));
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("partial-load", actor, "Load 3 wood into cart z-cart"));
@@ -137,7 +137,7 @@ public sealed class WorldCartCargoOrderTests
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != "cart-ballast").ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, "emergency-food", "berries", actor, 4);
         partial = WithInventory(partial, inventory) with
-        { Inhabitants = partial.Inhabitants.Select(person => person.InhabitantId == actor ? person with { HungerBasisPoints = 0 } : person).ToArray() };
+        { Agents = partial.Agents.Select(person => person.AgentId == actor ? person with { HungerBasisPoints = 0 } : person).ToArray() };
         using var hungry = WorldRuntime.Restore(partial, _ => new IdleProvider());
         Assert.True((await hungry.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("interrupted", Assert.Single(hungry.ExportState().Instructions!).Order!.Status);
@@ -165,8 +165,8 @@ public sealed class WorldCartCargoOrderTests
     public async Task NativeAccessAndReservationGuardsBlockWithoutFalseProgress(bool loaded, string blocker)
     {
         var state = await CargoState(loaded);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with
         {
@@ -179,7 +179,7 @@ public sealed class WorldCartCargoOrderTests
         };
         if (blocker == "stored-personal-stock")
         {
-            var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+            var household = state.Society.Society.GetAgent(actor).HouseholdId;
             var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && HouseholdBuildingKinds.KindOf(definition) == "house"));
             inventory = inventory with
@@ -188,7 +188,7 @@ public sealed class WorldCartCargoOrderTests
                 ? lot with { StorageBuildingId = house.InstanceId, GroundPosition = null }
                 : lot.ItemKind == "handcart" ? lot with { GroundPosition = new(house.Position.X, house.Position.Y) } : lot).ToArray()
             };
-            state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = house.Position } : person).ToArray() };
+            state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = house.Position } : person).ToArray() };
         }
         if (blocker == "reserved-other-cargo")
             inventory = InventoryAuthority.AddLot(inventory, "held-other-cargo", "fiber", actor, 1, containerLotId: "z-cart");
@@ -215,7 +215,7 @@ public sealed class WorldCartCargoOrderTests
     public async Task BrokenCartRecoveryPreservesPhysicallyDamagedCargo(bool spoiledFood)
     {
         var state = await CargoState(true);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, state.Society.Society.Inventory with
         { Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id is "z-cart" or "cargo" ? lot with { ConditionBasisPoints = 0, ItemKind = lot.Id == "cargo" && spoiledFood ? "berries" : lot.ItemKind, FreshnessBasisPoints = lot.Id == "cargo" && spoiledFood ? 0 : lot.FreshnessBasisPoints } : lot).ToArray() });
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -238,8 +238,8 @@ public sealed class WorldCartCargoOrderTests
     public async Task HouseholdFoodPolicyLimitsActualLoadingAndFilledVesselsStaySeparate(string policy, int stock, int allowed)
     {
         var state = await CargoState(false);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && HouseholdBuildingKinds.KindOf(definition) == "house"));
         var inventory = state.Society.Society.Inventory;
@@ -254,7 +254,7 @@ public sealed class WorldCartCargoOrderTests
         state = WithInventory(state, inventory) with
         {
             Council = new(actor, policy, inventory.WorldTick),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Position = house.Position, HungerBasisPoints = 6_000 } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -281,7 +281,7 @@ public sealed class WorldCartCargoOrderTests
     public async Task QuantityCanSpanRealStacksButMalformedSavedBindingsAndReceiptsAreRefused()
     {
         var state = await CargoState(false);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with { Lots = inventory.Lots.Select(lot => lot.Id == "cargo" ? lot with { Quantity = 2 } : lot).ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, "next-cargo", "wood", actor, 2, groundPosition: inventory.GetLot("z-cart").GroundPosition);
@@ -313,8 +313,8 @@ public sealed class WorldCartCargoOrderTests
     private static async Task<WorldRuntimeState> CargoState(bool loaded)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var position = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var position = state.Agents[0].Position;
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "a-cart", "handcart", actor, 1, groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "z-cart", "handcart", actor, 1, groundPosition: new(position.X, position.Y));
@@ -323,7 +323,7 @@ public sealed class WorldCartCargoOrderTests
         return state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { HungerBasisPoints = 9_500, Survival = new(), Equipment = null, LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }).ToArray(),
         };
     }

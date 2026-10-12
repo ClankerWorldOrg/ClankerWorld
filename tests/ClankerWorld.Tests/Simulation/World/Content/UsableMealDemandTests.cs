@@ -23,8 +23,8 @@ public sealed partial class ConcreteMealTests
         string? storedMeal, bool broken, bool ordered, bool canCook)
     {
         var state = WorldRuntimeCodec.Decode(await CookingDemandWorld.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         Assert.Equal(2, state.Society.Society.GetHousehold(household).MemberIds.Count);
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
@@ -46,13 +46,13 @@ public sealed partial class ConcreteMealTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Equipment = null,
                 HungerBasisPoints = 9_500,
                 LastDecisionContext = null,
                 Project = null,
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
+                Position = person.AgentId == actor ? house.Position : person.Position,
             }).ToArray(),
         };
         var choice = "build:recipe:" + recipe.CanonicalId;

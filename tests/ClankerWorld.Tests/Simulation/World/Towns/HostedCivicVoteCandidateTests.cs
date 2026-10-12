@@ -75,7 +75,7 @@ public sealed class HostedCivicVoteCandidateTests
         var runtime = new CognitionRuntime("actor", provider);
         var candidates = offered.Select(id => new CognitionCandidate(id, "An offered personal choice.", 10))
             .Prepend(new("safe_idle", "Continue safely.", 0)).ToArray();
-        var observation = new InhabitantObservation("actor", 0, 0, 0, "digest", 8_000, candidates);
+        var observation = new AgentObservation("actor", 0, 0, 0, "digest", 8_000, candidates);
 
         var admission = await runtime.RequestAndDecideAsync(observation);
 

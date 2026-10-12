@@ -27,10 +27,10 @@ public sealed partial class ToolMakingRequestTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var recipe = Assert.Single(world.WorldContent.Recipes, item => item.PackageDigest == package.PackageDigest);
         world.SubmitInstruction(new("native-recipe", "owner:test", smith, OwnerInstructionKind.Suggestive, "Consider crafting tools."));
-        for (var tick = 0; tick < 8 && world.ExportState().Inhabitants.Single(person => person.InhabitantId == smith).Project is null; tick++)
+        for (var tick = 0; tick < 8 && world.ExportState().Agents.Single(person => person.AgentId == smith).Project is null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(choices.Offered, candidate => candidate.Id == "build:recipe:" + recipe.CanonicalId);
-        var project = world.ExportState().Inhabitants.Single(person => person.InhabitantId == smith).Project;
+        var project = world.ExportState().Agents.Single(person => person.AgentId == smith).Project;
         Assert.NotNull(project);
         Assert.Equal("build:recipe:" + recipe.CanonicalId, project.CandidateId);
         world.Pause();

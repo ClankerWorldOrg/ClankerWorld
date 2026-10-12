@@ -15,7 +15,7 @@ public sealed class WorkstationDestinationReachabilityTests
         var shop = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == shopId);
         var household = shop.HouseholdId!;
         var house = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var start = new GridPoint(119, 49);
         Assert.Equal(new GridPoint(125, 55), shop.Position);
         Assert.Equal(new GridPoint(125, 56), house.Position);
@@ -23,7 +23,7 @@ public sealed class WorkstationDestinationReachabilityTests
             .OrderBy(point => point.X == shop.Position.X + 1 && point.Y == shop.Position.Y ? 0 : 1)
             .ThenBy(point => point.Y).ThenBy(point => point.X).ToArray();
         Assert.Equal(8, ring.Length);
-        var others = state.Inhabitants.Where(person => person.InhabitantId != actor).ToArray();
+        var others = state.Agents.Where(person => person.AgentId != actor).ToArray();
         var away = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             state.Map.FootDistance(point, shop.Position) > 4 && point != start);
         var day = state.WorldSystems!.Config.TicksPerDay;
@@ -48,15 +48,15 @@ public sealed class WorkstationDestinationReachabilityTests
             inventory = InventoryAuthority.AddLot(inventory, "tailor-stocked-fiber", "fiber", household, 6, storageBuildingId: shopId);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? start : mode == "opened" && person.InhabitantId == others[0].InhabitantId
-                    ? away : ring[Array.FindIndex(others, other => other.InhabitantId == person.InhabitantId)],
+                Position = person.AgentId == actor ? start : mode == "opened" && person.AgentId == others[0].AgentId
+                    ? away : ring[Array.FindIndex(others, other => other.AgentId == person.AgentId)],
                 HungerBasisPoints = 9_500,
                 Survival = new(),
                 Project = null,
                 LastDecisionContext = null,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 TravelCooldownTicks = 0,
                 MoveWaitTicks = 0,
             }).ToArray(),
@@ -77,11 +77,11 @@ public sealed class WorkstationDestinationReachabilityTests
         var visitedHouse = false;
         for (var tick = 0; tick < 80 && StoredWood() != 3; tick++)
         {
-            var before = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var before = world.Agents.Single(person => person.AgentId == actor).Position;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            var after = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var after = world.Agents.Single(person => person.AgentId == actor).Position;
             visitedHouse |= after == house.Position;
             if (before != after) Assert.True(state.Map.CanFootStep(before, after));
             if (mode == "blocked" && !visitedHouse)

@@ -11,11 +11,11 @@ public sealed class MedicalTreatmentConsentTests
     public async Task OneActualMedicineDoseAddsGradualIllnessReliefAndReplaysAfterTheSourceLotIsGone()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
+        var patient = state.Agents[0].AgentId;
         state = WithMedicine(state, patient, 1);
         using var treated = Restore(state);
         using var untreated = Restore(state);
-        var health = treated.Society.GetInhabitant(patient).HealthBasisPoints;
+        var health = treated.Society.GetAgent(patient).HealthBasisPoints;
 
         Assert.True(treated.TreatPatient(patient, patient, "medicine").Applied);
         Assert.Equal(4_000, Physical(treated, patient).Survival!.IllnessBasisPoints);
@@ -50,7 +50,7 @@ public sealed class MedicalTreatmentConsentTests
         Assert.Equal(1_500, Physical(untreated, patient).Survival!.IllnessBasisPoints -
             Physical(resumed, patient).Survival!.IllnessBasisPoints);
         Assert.Null(Physical(resumed, patient).MedicalTreatment);
-        Assert.Equal(health, resumed.Society.GetInhabitant(patient).HealthBasisPoints);
+        Assert.Equal(health, resumed.Society.GetAgent(patient).HealthBasisPoints);
         Assert.Single(resumed.ExportState().Events, item => item.Kind == "medical_treatment_completed");
         Assert.Equal(InventoryReservationState.Completed, resumed.Society.Inventory.GetReservation(dose.Id).State);
         Assert.EndsWith(":closed", resumed.Society.Inventory.GetReservation(dose.Id).Purpose, StringComparison.Ordinal);
@@ -67,8 +67,8 @@ public sealed class MedicalTreatmentConsentTests
         DecisionProviderKind kind, bool fail, bool mustDo)
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         state = WithMedicine(state, caregiver, 2);
         if (mustDo)
         {
@@ -76,7 +76,7 @@ public sealed class MedicalTreatmentConsentTests
                 "medical-forced-berry", "berries", patient, 1)) with
             {
                 // Below comfortable fullness, so the eat order runs instead of waiting.
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == patient
+                Agents = state.Agents.Select(person => person.AgentId == patient
                     ? person with { HungerBasisPoints = 3_000 } : person).ToArray(),
             };
         }
@@ -119,8 +119,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task FreshMedicalConsentAlsoRecordsTheExactOwnerSuggestionAndReplyAcrossReload()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         const string messageText = "Tell me who you would ask for medical help.";
         const string replyText = "I chose my neighbor as a caregiver.";
         var selected = "medical_allow:" + caregiver;
@@ -133,7 +133,7 @@ public sealed class MedicalTreatmentConsentTests
         Assert.Contains(choice.Offered, candidate => candidate.Id == selected);
         var prompted = Assert.Single(choice.Guidance, message => message.InstructionId == receipt.InstructionId);
         Assert.Equal((patient, "suggestive", messageText),
-            (prompted.TargetInhabitantId, prompted.Kind, prompted.Text));
+            (prompted.TargetAgentId, prompted.Kind, prompted.Text));
         Assert.Equal([caregiver], Physical(world, patient).MedicalConsent!.CaregiverIds);
         var result = world.ExportState();
         var observed = Assert.Single(result.Instructions!, message => message.InstructionId == receipt.InstructionId);
@@ -161,8 +161,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task RevocationNeedsAFreshPersonalChoiceAndStopsTheConsumedDoseWithoutRefund()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         using var granting = Restore(WithMedicine(state, caregiver, 1), patient,
             new MedicalChoiceProvider("medical_allow:" + caregiver));
         Assert.True((await granting.AdvanceOneTickAsync()).Advanced);
@@ -200,8 +200,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task RenewingPermissionCannotResurrectThePreviouslyInterruptedDose()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         using var grant = Restore(WithMedicine(state, caregiver, 1), patient,
             new MedicalChoiceProvider("medical_allow:" + caregiver));
         Assert.True((await grant.AdvanceOneTickAsync()).Advanced);
@@ -222,7 +222,7 @@ public sealed class MedicalTreatmentConsentTests
         var current = renew.ExportState();
         var forged = current with
         {
-            Inhabitants = current.Inhabitants.Select(person => person.InhabitantId == patient ? person with
+            Agents = current.Agents.Select(person => person.AgentId == patient ? person with
             {
                 MedicalTreatment = consumed with
                 {
@@ -239,8 +239,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task EffectiveAcceptedDependentCareAuthorizesMedicineButAnAdultCareEdgeDoesNot()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         state = WithMedicine(state, caregiver, 1);
         var checkpoint = state.Society.Society;
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
@@ -258,7 +258,7 @@ public sealed class MedicalTreatmentConsentTests
         using var dependent = Restore(WithCheckpoint(state, checkpoint));
         Assert.False(dependent.TreatPatient(caregiver, patient, "medicine").Applied);
         Assert.True((await dependent.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(SocietyAgeBand.Child, dependent.Society.GetInhabitant(patient).AgeBand);
+        Assert.Equal(SocietyAgeBand.Child, dependent.Society.GetAgent(patient).AgeBand);
         Assert.True(dependent.TreatPatient(caregiver, patient, "medicine").Applied);
         Assert.Null(Physical(dependent, patient).MedicalConsent);
         using var reloaded = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(dependent.ExportState())));
@@ -271,8 +271,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task LocalAuthorizationDoesNotRevealRemotePatientsOrConsumeAnotherOwnersReservedDose()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         using var granting = Restore(WithMedicine(state, caregiver, 1), patient,
             new MedicalChoiceProvider("medical_allow:" + caregiver));
         Assert.True((await granting.AdvanceOneTickAsync()).Advanced);
@@ -280,11 +280,11 @@ public sealed class MedicalTreatmentConsentTests
         var far = authorized.Map.Tiles.First(tile => authorized.Map.IsPassable(tile.Position) &&
             Math.Abs(tile.Position.X - Physical(granting, caregiver).Position.X) +
             Math.Abs(tile.Position.Y - Physical(granting, caregiver).Position.Y) > 5 &&
-            !authorized.Inhabitants.Any(person => person.Position == tile.Position)).Position;
+            !authorized.Agents.Any(person => person.Position == tile.Position)).Position;
         var observer = new MedicalChoiceProvider("safe_idle");
         using var remote = Restore(authorized with
         {
-            Inhabitants = authorized.Inhabitants.Select(person => person.InhabitantId == patient
+            Agents = authorized.Agents.Select(person => person.AgentId == patient
                 ? person with { Position = far } : person).ToArray(),
         }, caregiver, observer);
         Assert.True((await remote.AdvanceOneTickAsync()).Advanced);
@@ -302,7 +302,7 @@ public sealed class MedicalTreatmentConsentTests
             authorized.Society.Society.Inventory with
             {
                 Lots = authorized.Society.Society.Inventory.Lots.Select(lot => lot.Id == "medical-test-dose"
-                    ? lot with { OwnerId = authorized.Inhabitants[2].InhabitantId } : lot).ToArray(),
+                    ? lot with { OwnerId = authorized.Agents[2].AgentId } : lot).ToArray(),
             }));
         Assert.False(foreign.TreatPatient(caregiver, patient, "medicine").Applied);
         Assert.Equal(1, foreign.Society.Inventory.GetLot("medical-test-dose").Quantity);
@@ -312,8 +312,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task WithdrawingTheActualDependentCareEdgeClosesTheDoseBeforeTheTickCanBeSaved()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         state = WithMedicine(state, caregiver, 1);
         var checkpoint = state.Society.Society;
         checkpoint = WithAge(checkpoint, patient, checkpoint.Config.DayLifecycle?.ChildStartDay ?? checkpoint.Config.InfantYears);
@@ -342,8 +342,8 @@ public sealed class MedicalTreatmentConsentTests
     public async Task CaregiverNaturalDeathInterruptsTheEffectAndHistoricalPermissionRemainsRevocable()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
         using var granting = Restore(WithMedicine(state, caregiver, 1), patient,
             new MedicalChoiceProvider("medical_allow:" + caregiver));
         Assert.True((await granting.AdvanceOneTickAsync()).Advanced);
@@ -360,12 +360,12 @@ public sealed class MedicalTreatmentConsentTests
         using var world = Restore(doomed);
         using var untreated = Restore(doomed with
         {
-            Inhabitants = doomed.Inhabitants.Select(person => person.InhabitantId == patient
+            Agents = doomed.Agents.Select(person => person.AgentId == patient
                 ? person with { MedicalTreatment = null } : person).ToArray(),
         });
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await untreated.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetInhabitant(caregiver).DeathCause);
+        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(caregiver).DeathCause);
         Assert.Null(Physical(world, patient).MedicalTreatment);
         Assert.Equal(Physical(untreated, patient).Survival!.IllnessBasisPoints,
             Physical(world, patient).Survival!.IllnessBasisPoints);
@@ -373,7 +373,7 @@ public sealed class MedicalTreatmentConsentTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "medical_treatment_interrupted");
         Assert.Equal(InventoryReservationState.Completed, world.Society.Inventory.GetReservation(dose).State);
         Assert.EndsWith(":closed", world.Society.Inventory.GetReservation(dose).Purpose, StringComparison.Ordinal);
-        var dead = Assert.Single(world.ExportState().DeceasedInhabitants!, person => person.InhabitantId == caregiver);
+        var dead = Assert.Single(world.ExportState().DeceasedAgents!, person => person.AgentId == caregiver);
         Assert.Null(dead.LastPhysical.MedicalTreatment);
         var revocation = new MedicalChoiceProvider("medical_revoke:" + caregiver);
         using var revoking = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
@@ -391,17 +391,17 @@ public sealed class MedicalTreatmentConsentTests
 
         var archivedTreatment = world.ExportState() with
         {
-            DeceasedInhabitants = [dead with { LastPhysical = dead.LastPhysical with
+            DeceasedAgents = [dead with { LastPhysical = dead.LastPhysical with
                 { MedicalTreatment = Physical(granting, patient).MedicalTreatment } }],
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(archivedTreatment));
         var archivedPermission = world.ExportState() with
         {
-            DeceasedInhabitants = [dead with { LastPhysical = dead.LastPhysical with
+            DeceasedAgents = [dead with { LastPhysical = dead.LastPhysical with
                 { MedicalConsent = new(["unknown-caregiver"]) } }],
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(archivedPermission));
-        var missingPhysical = world.ExportState() with { DeceasedInhabitants = [dead with { LastPhysical = null! }] };
+        var missingPhysical = world.ExportState() with { DeceasedAgents = [dead with { LastPhysical = null! }] };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(missingPhysical));
     }
 
@@ -417,8 +417,8 @@ public sealed class MedicalTreatmentConsentTests
     public void CodecRejectsAReboundOrRewoundConsumedDose(string corruption)
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         using var world = Restore(WithMedicine(state, patient, corruption == "live-kind" ? 2 : 1));
         Assert.True(world.TreatPatient(patient, patient, "medicine").Applied);
         var active = world.ExportState();
@@ -436,9 +436,9 @@ public sealed class MedicalTreatmentConsentTests
         };
         var forged = active with
         {
-            Inhabitants = active.Inhabitants.Select(person => person.InhabitantId == patient
+            Agents = active.Agents.Select(person => person.AgentId == patient
                 ? person with { MedicalTreatment = changed, MedicalConsent = corruption == "patient" ? new([other]) : null }
-                : corruption == "duplicate" && person.InhabitantId == other
+                : corruption == "duplicate" && person.AgentId == other
                     ? person with { MedicalTreatment = original, MedicalConsent = new([patient]) } : person).ToArray(),
         };
         if (corruption == "live-kind") forged = WithInventory(forged, forged.Society.Society.Inventory with
@@ -454,8 +454,8 @@ public sealed class MedicalTreatmentConsentTests
     {
         // A lot carried for someone else, such as a former household's stock, is custody, not ownership.
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var owner = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var owner = state.Agents[1].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "borrowed-medicine", "medicine", owner, 1);
         inventory = inventory with
         {
@@ -475,7 +475,7 @@ public sealed class MedicalTreatmentConsentTests
     public async Task OrdinarySelfCareConsumesMedicineWhileBandagesHaveNoUndeclaredHealthEffect()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
+        var patient = state.Agents[0].AgentId;
         state = WithMedicine(state, patient, 1);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "medical-bandages", "bandage", patient, 2);
         var choice = new MedicalChoiceProvider("medical_treat:" + patient + ":medicine", DecisionProviderKind.Deterministic);
@@ -485,9 +485,9 @@ public sealed class MedicalTreatmentConsentTests
         Assert.NotNull(Physical(world, patient).MedicalTreatment);
         Assert.Single(world.ExportState().Events, item => item.Kind == "medical_treatment_started");
         Assert.Equal(2, world.Society.Inventory.GetLot("medical-bandages").Quantity);
-        Assert.Equal(10_000, world.Society.GetInhabitant(patient).HealthBasisPoints);
+        Assert.Equal(10_000, world.Society.GetAgent(patient).HealthBasisPoints);
         Assert.DoesNotContain(choice.Offered, candidate => candidate.Id.EndsWith(":bandage", StringComparison.Ordinal));
-        Assert.Null(MedicalCareRules.Note(Physical(world, state.Inhabitants[2].InhabitantId)));
+        Assert.Null(MedicalCareRules.Note(Physical(world, state.Agents[2].AgentId)));
         world.Validate();
     }
 
@@ -495,8 +495,8 @@ public sealed class MedicalTreatmentConsentTests
     public void TransferringTheRemainingMedicineDoesNotRebindTheDoseAlreadyConsumed()
     {
         var state = PreparedState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var recipient = state.Inhabitants[1].InhabitantId;
+        var patient = state.Agents[0].AgentId;
+        var recipient = state.Agents[1].AgentId;
         using var world = Restore(WithMedicine(state, patient, 2));
         Assert.True(world.TreatPatient(patient, patient, "medicine").Applied);
         var active = world.ExportState();
@@ -515,9 +515,9 @@ public sealed class MedicalTreatmentConsentTests
     {
         using var seed = new WorldRuntime("medical-treatment-boundaries", _ => new MedicalChoiceProvider("safe_idle", DecisionProviderKind.Deterministic));
         var state = seed.ExportState();
-        var patient = state.Inhabitants[0].InhabitantId;
-        var caregiver = state.Inhabitants[1].InhabitantId;
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != patient && person.InhabitantId != caregiver)
+        var patient = state.Agents[0].AgentId;
+        var caregiver = state.Agents[1].AgentId;
+        var occupied = state.Agents.Where(person => person.AgentId != patient && person.AgentId != caregiver)
             .Select(person => person.Position).ToHashSet();
         var patientPosition = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) && !occupied.Contains(tile.Position) &&
             state.Map.FootNeighbors(tile.Position).Any(point => state.Map.IsPassable(point) && !occupied.Contains(point))).Position;
@@ -527,11 +527,11 @@ public sealed class MedicalTreatmentConsentTests
         {
             JevEnabled = true,
             Survival = new(state.Society.Society.WorldTick, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == patient ? patientPosition : person.InhabitantId == caregiver ? caregiverPosition : person.Position,
+                Position = person.AgentId == patient ? patientPosition : person.AgentId == caregiver ? caregiverPosition : person.Position,
                 HungerBasisPoints = 10_000,
-                Survival = new(IllnessBasisPoints: person.InhabitantId == patient ? 4_000 : 0),
+                Survival = new(IllnessBasisPoints: person.AgentId == patient ? 4_000 : 0),
                 LastDecisionContext = null,
             }).ToArray(),
             WorldSystems = state.WorldSystems! with
@@ -553,7 +553,7 @@ public sealed class MedicalTreatmentConsentTests
             checkpoint.Config.TicksPerLifecycleAge + (justBeforeNextAge ? 1 : 0);
         return checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
             {
                 BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -576,8 +576,8 @@ public sealed class MedicalTreatmentConsentTests
         WorldRuntime.Restore(state, id => id == actor && provider is not null ? provider :
             new MedicalChoiceProvider("safe_idle", DecisionProviderKind.Deterministic));
 
-    private static InhabitantState Physical(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static AgentState Physical(WorldRuntime world, string actor) =>
+        world.Agents.Single(person => person.AgentId == actor);
 
     private sealed class MedicalChoiceProvider(string selected, DecisionProviderKind kind = DecisionProviderKind.LargeLanguageModel,
         bool fail = false, string? observerReply = null) : IDecisionProvider
@@ -594,7 +594,7 @@ public sealed class MedicalTreatmentConsentTests
             Guidance.AddRange(request.Observation.ObserverGuidance ?? []);
             if (fail) throw new InvalidOperationException("medical provider fixture unavailable");
             var choice = request.Observation.Candidates.Any(candidate => candidate.Id == selected) ? selected : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, choice, 1, new Dictionary<string, double> { [choice] = 1 })
             {

@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
         var lot = PersonalStorageLots(actor, house.InstanceId).FirstOrDefault(item => item.Id == lotId);
         if (lot is null) return null;
         if (requiredHouseId is not null) InterruptOrdinaryFieldWorkForCustody(actor, lotId);
-        var person = inhabitants[actor];
+        var person = agents[actor];
         if (!IsWithinInteractionRange(person.Position, house.Position, 1))
         {
             MoveToward(actor, person, house.Position, "personal_goods", 1);

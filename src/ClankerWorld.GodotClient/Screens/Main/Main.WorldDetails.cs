@@ -117,59 +117,59 @@ public partial class Main
         eventsPanel.Hide();
     }
 
-    private void SelectInhabitantFromList(long index, bool keepRosterOpen = false)
+    private void SelectAgentFromList(long index, bool keepRosterOpen = false)
     {
-        if (index < 0 || index >= inhabitantList.ItemCount)
+        if (index < 0 || index >= agentList.ItemCount)
         {
             return;
         }
 
-        var inhabitantId = inhabitantList.GetItemMetadata((int)index).AsString();
-        if (string.Equals(inhabitantId, selectedInhabitantId, StringComparison.Ordinal))
+        var agentId = agentList.GetItemMetadata((int)index).AsString();
+        if (string.Equals(agentId, selectedAgentId, StringComparison.Ordinal))
         {
-            if (!keepRosterOpen) ClearInhabitantSelection();
+            if (!keepRosterOpen) ClearAgentSelection();
             return;
         }
 
-        selectedInhabitantId = inhabitantId;
+        selectedAgentId = agentId;
         if (!keepRosterOpen) rosterPanel.Hide();
         // The roster promises to find the agent, so bring them into view.
-        CenterOnInhabitant(inhabitantId);
+        CenterOnAgent(agentId);
         if (observationSession.Current is { } current)
         {
-            RenderSelectedInhabitantCard(current.Baseline.Snapshot);
+            RenderSelectedAgentCard(current.Baseline.Snapshot);
             RenderMap(current.Baseline.Snapshot);
             RefreshControlAvailability();
         }
     }
 
-    private void SelectInhabitant(string inhabitantId)
+    private void SelectAgent(string agentId)
     {
-        if (string.Equals(inhabitantId, selectedInhabitantId, StringComparison.Ordinal))
+        if (string.Equals(agentId, selectedAgentId, StringComparison.Ordinal))
         {
-            ClearInhabitantSelection();
+            ClearAgentSelection();
             return;
         }
 
-        selectedInhabitantId = inhabitantId;
-        for (var index = 0; index < inhabitantList.ItemCount; index++)
+        selectedAgentId = agentId;
+        for (var index = 0; index < agentList.ItemCount; index++)
         {
-            if (string.Equals(inhabitantList.GetItemMetadata(index).AsString(), inhabitantId, StringComparison.Ordinal))
+            if (string.Equals(agentList.GetItemMetadata(index).AsString(), agentId, StringComparison.Ordinal))
             {
-                inhabitantList.Select(index);
+                agentList.Select(index);
                 break;
             }
         }
 
         if (observationSession.Current is { } current)
         {
-            RenderSelectedInhabitantCard(current.Baseline.Snapshot);
+            RenderSelectedAgentCard(current.Baseline.Snapshot);
             RenderMap(current.Baseline.Snapshot);
             RefreshControlAvailability();
         }
     }
 
-    private void ClearInhabitantSelection()
+    private void ClearAgentSelection()
     {
         CloseAgentModelEditor();
         familyTreePanel.Hide();
@@ -177,13 +177,13 @@ public partial class Main
         thoughtsPanel.Hide();
         ordersPanel.Hide();
         conversationPanel.Hide();
-        selectedInhabitantId = null;
-        inhabitantList.DeselectAll();
-        selectedInhabitantCard.Hide();
+        selectedAgentId = null;
+        agentList.DeselectAll();
+        selectedAgentCard.Hide();
         agentProfilePanel.Hide();
         if (observationSession.Current is { } current)
         {
-            RenderSelectedInhabitantCard(current.Baseline.Snapshot);
+            RenderSelectedAgentCard(current.Baseline.Snapshot);
             RenderMap(current.Baseline.Snapshot);
             RefreshControlAvailability();
         }

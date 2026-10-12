@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ClankerWorld.Simulation.Society;
 
-public enum SocietyInhabitantStatus
+public enum SocietyAgentStatus
 {
     Active,
     Dead,
@@ -176,11 +176,11 @@ public sealed record SocietyConfig(
     }
 }
 
-public sealed record SocietyInhabitant(
+public sealed record SocietyAgent(
     string Id,
     string Name,
     long BirthTick,
-    SocietyInhabitantStatus Status,
+    SocietyAgentStatus Status,
     SocietyAgeBand AgeBand,
     int HealthBasisPoints,
     string? HouseholdId,
@@ -290,7 +290,7 @@ public sealed record SocietyAgentBelief(
     long FormedTick,
     string? SourceAgentId = null,
     long? SourceEventId = null,
-    string? AboutInhabitantId = null,
+    string? AboutAgentId = null,
     string? SupersedesBeliefId = null,
     string? SupersededByBeliefId = null,
     long? SupersededTick = null,
@@ -419,7 +419,7 @@ public sealed record SocietyCheckpoint(
     bool IsPaused,
     SocietyConfig Config,
     string? WorldDefaultProviderBindingId,
-    IReadOnlyList<SocietyInhabitant> Inhabitants,
+    IReadOnlyList<SocietyAgent> Agents,
     IReadOnlyList<SocietyHousehold> Households,
     IReadOnlyList<SocietyRelationship> Relationships,
     IReadOnlyList<SocietyOrganization> Organizations,
@@ -451,11 +451,11 @@ public sealed record SocietyCheckpoint(
 
     public long LifeTickAt(long worldTick) => LifeClock?.At(worldTick) ?? worldTick;
 
-    public int AgeAt(SocietyInhabitant inhabitant, long worldTick) =>
-        Config.AgeAt(inhabitant.BirthLifeTick ?? inhabitant.BirthTick, LifeTickAt(worldTick));
+    public int AgeAt(SocietyAgent agent, long worldTick) =>
+        Config.AgeAt(agent.BirthLifeTick ?? agent.BirthTick, LifeTickAt(worldTick));
 
-    public SocietyInhabitant GetInhabitant(string id) =>
-        SocietyInhabitantIndex.Get(Inhabitants, id);
+    public SocietyAgent GetAgent(string id) =>
+        SocietyAgentIndex.Get(Agents, id);
 
     public SocietyHousehold GetHousehold(string id) =>
         Households.Single(item => string.Equals(item.Id, id, StringComparison.Ordinal));

@@ -13,7 +13,7 @@ public sealed class SwimmingStockDeliveryTests
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == FoodCapacityTestFixture.House);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId).Id;
         var source = new GridPoint(103, 47);
         Assert.True(state.Map.IsBuildable(source));
         Assert.False(state.Map.IsReachableOnFoot(source, house.Position));
@@ -34,7 +34,7 @@ public sealed class SwimmingStockDeliveryTests
             house.HouseholdId!, 2, containerLotId: "1-swim-small-jug");
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = source,
                 HungerBasisPoints = 10_000,
@@ -82,9 +82,9 @@ public sealed class SwimmingStockDeliveryTests
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var source = swimOnly ? new GridPoint(103, 47) : state.Map.FootNeighbors(smith.Position)
-            .First(point => state.Map.IsBuildable(point) && state.Inhabitants.All(person => person.Position != point));
+            .First(point => state.Map.IsBuildable(point) && state.Agents.All(person => person.Position != point));
         Assert.True(state.Map.IsBuildable(source));
         Assert.Equal(!swimOnly, state.Map.IsReachableOnFoot(source, smith.Position));
         Assert.True(SwimmingRules.IsReachable(state.Map, source, smith.Position));
@@ -98,7 +98,7 @@ public sealed class SwimmingStockDeliveryTests
             groundPosition: new(source.X, source.Y));
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = source,
                 HungerBasisPoints = 10_000,
@@ -142,7 +142,7 @@ public sealed class SwimmingStockDeliveryTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            sawSwimming |= SwimmingRules.IsSwimmingWater(world.ExportState().Map, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            sawSwimming |= SwimmingRules.IsSwimmingWater(world.ExportState().Map, world.Agents.Single(person => person.AgentId == actor).Position);
         }
         Assert.Equal(swimOnly, sawSwimming);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == actor &&

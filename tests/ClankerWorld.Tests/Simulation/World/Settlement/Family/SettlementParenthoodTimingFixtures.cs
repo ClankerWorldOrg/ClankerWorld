@@ -25,7 +25,7 @@ public sealed partial class SettlementParenthoodTests
                 RegionalWeather = RegionalWeatherRules.Advance(systems, targetTick),
                 Climate = WeatherRules.Advance(systems.Climate, targetTick, state.WorldSeed, systems.Config),
             },
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         });
         if (resume) world.Resume();
     }
@@ -36,7 +36,7 @@ public sealed partial class SettlementParenthoodTests
         world.Pause();
         var state = world.ExportState();
         var society = state.Society.Society;
-        var child = society.GetInhabitant(childId);
+        var child = society.GetAgent(childId);
         var rate = society.LifeClock!.Rate;
         var before = (child.BirthLifeTick ?? child.BirthTick) + age * society.Config.TicksPerLifecycleAge - 2L * rate;
         Assert.True(before >= society.LifeTickAt(society.WorldTick));
@@ -46,7 +46,7 @@ public sealed partial class SettlementParenthoodTests
             {
                 Society = society with { LifeClock = new(rate, society.WorldTick, before) },
             },
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         });
         if (resume) world.Resume();
     }

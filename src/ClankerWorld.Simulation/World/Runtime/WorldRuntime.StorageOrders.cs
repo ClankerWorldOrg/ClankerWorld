@@ -6,9 +6,9 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private CognitionCandidate? StorageOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? StorageOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!ReadyForBriefInteraction(actor) || CustodyOrderHouse(instruction, HouseholdFor(actor)) is not { } house ||
             DestinationRoom(house.InstanceId) <= 0 ||
             !IsWithinInteractionRange(person.Position, house.Position, 1) &&
@@ -21,7 +21,7 @@ public sealed partial class WorldRuntime
         return lot is null ? null : new(order.Action, $"Carry your own {subject} to your House and store it as personal property.", 0, lot.Id);
     }
 
-    private void ExecuteStorageOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteStorageOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         var candidate = StorageOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
@@ -29,12 +29,12 @@ public sealed partial class WorldRuntime
             SetOrderStatus(instruction, "blocked", StorageOrderBlockedReason(instruction, person));
             return;
         }
-        var house = CustodyOrderHouse(instruction, HouseholdFor(instruction.TargetInhabitantId))!;
+        var house = CustodyOrderHouse(instruction, HouseholdFor(instruction.TargetAgentId))!;
         instruction = BindCustodyOrder(instruction, house);
         var order = instruction.Order!;
         var remaining = order.QuantityIsExplicit && !order.RepeatUntilCancelled
             ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
-        if (StorePersonalGoods(instruction.TargetInhabitantId, lotId, remaining,
+        if (StorePersonalGoods(instruction.TargetAgentId, lotId, remaining,
                 order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is { } effect)
         {
             // Split inventory identities can grow; keep the saved receipt bounded.
@@ -44,9 +44,9 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private string StorageOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string StorageOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         var subject = StorageOrderSubject(order);
         if (!AgePermitsCandidate(actor, order.Action))

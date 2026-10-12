@@ -16,7 +16,7 @@ public sealed class WorldCreationObservationTests
         Assert.Null(state.Geography);
         Assert.Equal((6, 5), (state.Map.Width, state.Map.Height));
         Assert.NotEmpty(state.Map.MapObjects);
-        Assert.Empty(state.Inhabitants);
+        Assert.Empty(state.Agents);
         Assert.Empty(world.FounderSetup!.FounderIds);
         Assert.False(world.FounderSetup.Started);
         Assert.True(world.Society.IsPaused);
@@ -86,7 +86,7 @@ public sealed class WorldCreationObservationTests
         else Assert.Equal(founder, Assert.Single(world.FounderSetup!.FounderIds));
         Assert.Equal(0, world.WorldTick);
         Assert.False(world.FounderSetup!.Started);
-        if (undo) Assert.Empty(world.Inhabitants);
+        if (undo) Assert.Empty(world.Agents);
         Assert.False(new OwnerWorldObservationStore(world).GetSnapshot().FounderSetup!.RequiresWorldCreation);
 
         AssertCheckpointPreserved(file, world, requiresCreation: false);
@@ -101,7 +101,7 @@ public sealed class WorldCreationObservationTests
         var design = BuildingDesign.Create("My first shelter", "shelter", 2);
         world.ProposeContent(design);
         Assert.Equal(design.PackageId, Assert.Single(world.Content.Packages).Manifest.PackageId);
-        Assert.Empty(world.Inhabitants);
+        Assert.Empty(world.Agents);
         Assert.Empty(world.WorldSimulation.Buildings);
         Assert.Equal(0, world.WorldTick);
         Assert.False(new OwnerWorldObservationStore(world).GetSnapshot().FounderSetup!.RequiresWorldCreation);
@@ -118,7 +118,7 @@ public sealed class WorldCreationObservationTests
         var file = new WorldStateFile(checkpoint.Path);
         using var world = file.LoadOrCreate("legacy-world");
         Assert.Null(world.FounderSetup);
-        Assert.NotEmpty(world.Inhabitants);
+        Assert.NotEmpty(world.Agents);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         world.Pause();
         Assert.Equal(1, world.WorldTick);

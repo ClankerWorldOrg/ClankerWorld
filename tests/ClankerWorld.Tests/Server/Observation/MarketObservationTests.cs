@@ -96,7 +96,7 @@ internal static class MarketObservationTests
         }
         return client;
 
-        string Name(string id) => state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == id)?.Name ??
+        string Name(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ??
             state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ??
             state.Towns?.FirstOrDefault(town => town.Id == id)?.Name ?? id;
     }

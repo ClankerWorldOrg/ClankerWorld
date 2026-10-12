@@ -38,14 +38,14 @@ public sealed class SettlementSurvivalTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 8; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var worker = state.Inhabitants[0];
+        var worker = state.Agents[0];
         var site = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
                 !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
                 !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != worker.InhabitantId && person.Position == tile.Position)).Position;
+                !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker.InhabitantId ? person with { Position = site }
+            Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with { Position = site }
                 : person.Position == site ? person with { Position = worker.Position } : person).ToArray(),
             Society = state.Society with
             {
@@ -62,35 +62,35 @@ public sealed class SettlementSurvivalTests
         Assert.True(placement.Applied, placement.Failure);
         var workstation = placement.InstanceId;
         using var cooking = StockPotatoMeal(preparing, placement.InstanceId);
-        var started = cooking.StartProduction(recipe.CanonicalId, workstation, worker.InhabitantId);
+        var started = cooking.StartProduction(recipe.CanonicalId, workstation, worker.AgentId);
         Assert.True(started.Applied, started.Failure);
         if (completionDue)
             for (var tick = 1; tick < recipe.DurationTicks; tick++) await cooking.AdvanceOneTickAsync();
         if (completedBeforeDeath) await cooking.AdvanceOneTickAsync();
         state = cooking.ExportState();
-        var practice = state.Inhabitants.Single(person => person.InhabitantId == worker.InhabitantId).Proficiency;
+        var practice = state.Agents.Single(person => person.AgentId == worker.AgentId).Proficiency;
         if (completedBeforeDeath)
         {
             Assert.Equal(new SettlementProficiency(Crafting: 1), practice);
             using var proof = WorldRuntime.Restore(state, _ => new IdleProvider());
             await proof.AdvanceOneTickAsync();
-            Assert.Equal(practice, proof.Inhabitants.Single(person => person.InhabitantId == worker.InhabitantId).Proficiency);
+            Assert.Equal(practice, proof.Agents.Single(person => person.AgentId == worker.AgentId).Proficiency);
         }
         else Assert.Null(practice);
         var produced = state.Society.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith(started.JobId + ":output:", StringComparison.Ordinal))
             .Select(lot => (lot.Id, lot.Quantity)).ToArray();
         using var society = SocietyRuntime.Restore(state.Society);
-        society.Apply(checkpoint => SocietyRules.Kill(checkpoint, worker.InhabitantId, SocietyDeathCause.Accident, checkpoint.WorldTick));
+        society.Apply(checkpoint => SocietyRules.Kill(checkpoint, worker.AgentId, SocietyDeathCause.Accident, checkpoint.WorldTick));
         state = state with
         {
             Society = society.ExportState() with
             {
                 Society = society.Checkpoint with
                 {
-                    Inhabitants = society.Checkpoint.Inhabitants.Select(person => person with { Name = $"sk-private-production-test-{person.Id}" }).ToArray(),
+                    Agents = society.Checkpoint.Agents.Select(person => person with { Name = $"sk-private-production-test-{person.Id}" }).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != worker.InhabitantId).ToArray(),
+            Agents = state.Agents.Where(person => person.AgentId != worker.AgentId).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var messages = await AdvanceProductionWithLogs(world);
@@ -148,7 +148,7 @@ public sealed class SettlementSurvivalTests
         var state = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Snow);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Survival = person.Survival! with { WarmthBasisPoints = 1_000 } }).ToArray()
         };
         using var world = WorldRuntime.Restore(state);
@@ -165,13 +165,13 @@ public sealed class SettlementSurvivalTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 8; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var worker = state.Inhabitants[0];
+        var worker = state.Agents[0];
         var position = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
             !state.Map.MapObjects.Any(item => item.Position == tile.Position) && !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Inhabitants.Any(person => person.InhabitantId != worker.InhabitantId && person.Position == tile.Position)).Position;
+            !state.Agents.Any(person => person.AgentId != worker.AgentId && person.Position == tile.Position)).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker.InhabitantId
+            Agents = state.Agents.Select(person => person.AgentId == worker.AgentId
             ? person with { Position = position } : person).ToArray()
         };
         using var preparing = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -180,7 +180,7 @@ public sealed class SettlementSurvivalTests
         Assert.True(placed.Applied, placed.Failure);
         var recipe = preparing.WorldContent.Recipes.Single(recipe => recipe.LocalId == "house-meal");
         using var cooking = StockPotatoMeal(preparing, placed.InstanceId);
-        var started = cooking.StartProduction(recipe.CanonicalId, placed.InstanceId, worker.InhabitantId);
+        var started = cooking.StartProduction(recipe.CanonicalId, placed.InstanceId, worker.AgentId);
         Assert.True(started.Applied, started.Failure);
         var pending = cooking.ExportState();
         pending = pending with
@@ -202,7 +202,7 @@ public sealed class SettlementSurvivalTests
         Assert.Equal(WorldProductionJobState.Cancelled, world.WorldSimulation.ProductionJobs.Single(job => job.JobId == started.JobId).State);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id.StartsWith(started.JobId + ":output:", StringComparison.Ordinal));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "production_input_unusable");
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == worker.InhabitantId).Proficiency);
+        Assert.Null(world.Agents.Single(person => person.AgentId == worker.AgentId).Proficiency);
     }
 
     [Theory]
@@ -235,7 +235,7 @@ public sealed class SettlementSurvivalTests
         // Moisture is derived from three weather days, not accumulated by
         // world ticks. Prepare the idle fixture just before the third
         // clear day, then cross that boundary through the real runtime.
-        Assert.All(state.Inhabitants, person =>
+        Assert.All(state.Agents, person =>
         {
             Assert.Null(person.Project);
             Assert.Null(person.Exploration);
@@ -286,7 +286,7 @@ public sealed class SettlementSurvivalTests
         Assert.NotNull(state.Survival);
         Assert.Contains(state.Events, item => item.Kind == "fire_fuelled");
         Assert.Contains(state.Events, item => item.Kind == "survival_condition_changed");
-        Assert.All(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants, person => Assert.NotNull(person.Survival));
+        Assert.All(new OwnerWorldObservationStore(world).GetSnapshot().Agents, person => Assert.NotNull(person.Survival));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         Assert.Equal(WorldRuntimeCodec.Encode(state), WorldRuntimeCodec.Encode(restored.ExportState()));
 
@@ -295,14 +295,14 @@ public sealed class SettlementSurvivalTests
         var heater = world.WorldSimulation.Buildings.First(building => world.WorldContent.Buildings.Any(definition =>
             definition.CanonicalId == building.DefinitionId &&
             definition.Tags.Any(tag => tag is "cooking" or "warmth") &&
-            (building.HouseholdId is null || state.Society.Society.Inhabitants.Any(inhabitant =>
-                inhabitant.HouseholdId == building.HouseholdId))));
-        var recoveringId = state.Society.Society.Inhabitants.First(inhabitant =>
-            heater.HouseholdId is null || inhabitant.HouseholdId == heater.HouseholdId).Id;
-        var recoveringPosition = state.Inhabitants.Single(person => person.InhabitantId == recoveringId).Position;
+            (building.HouseholdId is null || state.Society.Society.Agents.Any(agent =>
+                agent.HouseholdId == building.HouseholdId))));
+        var recoveringId = state.Society.Society.Agents.First(agent =>
+            heater.HouseholdId is null || agent.HouseholdId == heater.HouseholdId).Id;
+        var recoveringPosition = state.Agents.Single(person => person.AgentId == recoveringId).Position;
         var recoveryState = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == recoveringId
+            Agents = state.Agents.Select(person => person.AgentId == recoveringId
                 ? person with
                 {
                     Position = heater.Position,
@@ -331,7 +331,7 @@ public sealed class SettlementSurvivalTests
                 // during the autonomous run, start that walk again.
                 Cognition = state.Society.Cognition with
                 {
-                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.InhabitantId == recoveringId
+                    Runtimes = state.Society.Cognition.Runtimes.Select(runtime => runtime.AgentId == recoveringId
                         ? runtime with { CurrentIntention = null } : runtime).ToArray(),
                 },
             },
@@ -342,7 +342,7 @@ public sealed class SettlementSurvivalTests
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(recoveryState)), _ => recoveryProvider);
         for (var tick = 0; tick < 110; tick++)
             Assert.True((await recovering.AdvanceOneTickAsync()).Advanced);
-        var recovered = recovering.Inhabitants.Single(person => person.InhabitantId == recoveringId);
+        var recovered = recovering.Agents.Single(person => person.AgentId == recoveringId);
         var recoveryInventory = recovering.Society.Inventory;
         var equipped = recoveryInventory.Lots.FirstOrDefault(lot => lot.Id == recovered.Equipment?.ClothingLotId);
         Assert.True(recoveryProvider.WearOffered);
@@ -373,7 +373,7 @@ public sealed class SettlementSurvivalTests
         var original = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Clear);
         var sick = original with
         {
-            Inhabitants = original.Inhabitants.Select(person => person with
+            Agents = original.Agents.Select(person => person with
             {
                 Survival = new SurvivalCondition(7_000, 5_000),
             }).ToArray()
@@ -383,7 +383,7 @@ public sealed class SettlementSurvivalTests
         {
             await world.AdvanceOneTickAsync();
         }
-        Assert.All(world.Inhabitants, person =>
+        Assert.All(world.Agents, person =>
         {
             Assert.True(person.Survival!.IllnessBasisPoints < 5_000);
             Assert.True(person.Survival.WarmthBasisPoints > 7_000);
@@ -403,9 +403,9 @@ public sealed class SettlementSurvivalTests
         // Worlds start at midnight.
         Assert.Equal(DaylightRules.FullDarkness, DaylightRules.DarknessBasisPoints(seed.WorldSystems));
         var start = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Clear);
-        var subject = start.Inhabitants[0].InhabitantId;
+        var subject = start.Agents[0].AgentId;
         var spot = start.Map.Tiles.Select(tile => tile.Position).First(point => start.Map.IsPassable(point) &&
-            !start.Inhabitants.Any(person => person.InhabitantId != subject && person.Position == point) &&
+            !start.Agents.Any(person => person.AgentId != subject && person.Position == point) &&
             !start.Map.MapObjects.Any(item => item.Position == point) &&
             !start.Map.Resources.Any(item => item.Position == point));
 
@@ -424,7 +424,7 @@ public sealed class SettlementSurvivalTests
             var state = preparing.ExportState();
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == subject
+                Agents = state.Agents.Select(person => person.AgentId == subject
                     ? person with
                     {
                         Position = spot,
@@ -450,7 +450,7 @@ public sealed class SettlementSurvivalTests
                 WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());
         }
         int Warmth(WorldRuntime runtime) =>
-            runtime.Inhabitants.Single(person => person.InhabitantId == subject).Survival!.WarmthBasisPoints;
+            runtime.Agents.Single(person => person.AgentId == subject).Survival!.WarmthBasisPoints;
         async Task<int> WarmthAfterNightTicks(WorldRuntime runtime)
         {
             for (var tick = 0; tick < 20; tick++) Assert.True((await runtime.AdvanceOneTickAsync()).Advanced);
@@ -537,10 +537,10 @@ public sealed class SettlementSurvivalTests
             seed.StageStarterContent();
             for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
             var state = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Clear);
-            var actor = state.Inhabitants[0];
+            var actor = state.Agents[0];
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor.InhabitantId ? person with
+                Agents = state.Agents.Select(person => person.AgentId == actor.AgentId ? person with
                 {
                     HungerBasisPoints = 9_000,
                     Personality = "private-illness-secret",
@@ -557,7 +557,7 @@ public sealed class SettlementSurvivalTests
             Assert.True(await service.TryAdvanceOnceAsync());
 
             Assert.Contains(logger.Messages, message => message.Contains("survival_condition", StringComparison.Ordinal) &&
-                message.Contains("inhabitant=" + actor.InhabitantId + " ", StringComparison.Ordinal) &&
+                message.Contains("agent=" + actor.AgentId + " ", StringComparison.Ordinal) &&
                 message.Contains("illness_work_percent=50", StringComparison.Ordinal) &&
                 message.Contains("illness_travel_delay=1", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("private-illness-secret", StringComparison.Ordinal));
@@ -574,25 +574,25 @@ public sealed class SettlementSurvivalTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Clear);
-        var worker = state.Inhabitants[0];
+        var worker = state.Agents[0];
         var position = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
             !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
             !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Inhabitants.Any(person => person.Position == tile.Position)).Position;
+            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var building = seed.WorldContent.Buildings.Single(item => item.LocalId == "shelter");
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "tool").ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory,
-            $"illness-work-wood:{worker.InhabitantId}", "wood", worker.InhabitantId, 8);
+            $"illness-work-wood:{worker.AgentId}", "wood", worker.AgentId, 8);
         state = state with
         {
             Society = state.Society with
             {
                 Society = state.Society.Society with { Inventory = inventory },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker.InhabitantId ? person with
+            Agents = state.Agents.Select(person => person.AgentId == worker.AgentId ? person with
             {
                 Position = position,
                 HungerBasisPoints = 9_000,
@@ -604,8 +604,8 @@ public sealed class SettlementSurvivalTests
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var progress = world.Inhabitants.Single(person => person.InhabitantId == worker.InhabitantId).Project!.WorkDone;
-        Assert.Equal("working", world.Inhabitants.Single(person => person.InhabitantId == worker.InhabitantId).Project!.Stage);
+        var progress = world.Agents.Single(person => person.AgentId == worker.AgentId).Project!.WorkDone;
+        Assert.Equal("working", world.Agents.Single(person => person.AgentId == worker.AgentId).Project!.Stage);
         return progress;
     }
 
@@ -615,10 +615,10 @@ public sealed class SettlementSurvivalTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Clear);
-        var scout = state.Inhabitants[0];
+        var scout = state.Agents[0];
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == scout.InhabitantId ? person with
+            Agents = state.Agents.Select(person => person.AgentId == scout.AgentId ? person with
             {
                 HungerBasisPoints = 9_000,
                 Survival = new SurvivalCondition(10_000, illnessBasisPoints),
@@ -627,8 +627,8 @@ public sealed class SettlementSurvivalTests
         };
         using var world = WorldRuntime.Restore(state, _ => new ExplorationProvider());
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        return world.ExportState().Events.Count(item => item.Kind == "inhabitant_moved" &&
-            item.Detail.StartsWith(scout.InhabitantId + ":", StringComparison.Ordinal));
+        return world.ExportState().Events.Count(item => item.Kind == "agent_moved" &&
+            item.Detail.StartsWith(scout.AgentId + ":", StringComparison.Ordinal));
     }
 
     private static WorldRuntime StockPotatoMeal(WorldRuntime preparing, string houseId)
@@ -649,7 +649,7 @@ public sealed class SettlementSurvivalTests
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == "safe_idle" ? 1d : 0d)));
@@ -663,7 +663,7 @@ public sealed class SettlementSurvivalTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            var wear = request.Observation.InhabitantId == actor
+            var wear = request.Observation.AgentId == actor
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "wear_clothing") : null;
             WearOffered |= wear is not null;
             var selected = wear ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");

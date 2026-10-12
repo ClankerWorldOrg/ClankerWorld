@@ -8,14 +8,14 @@ internal sealed partial class CivicSystem
     internal static readonly string[] NonviolentFindingChoices = ["unsupported", "explanation", "warning", "censure"];
     internal void AddChildNonviolentCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor)
     {
-        if (!world.ChildResident(actor) || WorldRuntime.CivicSharedRules.NeedsUrgentFood(world.Inhabitants[actor]) || world.NeedsUrgentWarmth(world.Inhabitants[actor])) return;
+        if (!world.ChildResident(actor) || WorldRuntime.CivicSharedRules.NeedsUrgentFood(world.Agents[actor]) || world.NeedsUrgentWarmth(world.Agents[actor])) return;
         foreach (var town in world.Towns.Where(town => town.FoundingState == "founded" && town.Governance is not null))
             AddTownNonviolentCandidates(world, candidates, actor, town);
     }
 
     internal void AddTownNonviolentCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (town.Governance is not { } council || !world.Inhabitants.TryGetValue(actor, out var actorState) || world.Society.GetInhabitant(actor).AgeBand == SocietyAgeBand.Infant) return;
+        if (town.Governance is not { } council || !world.Agents.TryGetValue(actor, out var actorState) || world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant) return;
         var adult = LandHearingAdult(world, actor);
         var atBoard = NearCivicBoard(world, actor, town);
         var history = CivicHistory(town);
@@ -70,7 +70,7 @@ internal sealed partial class CivicSystem
                          !item.Responses.Any(response => response.Revision == revision.Number && response.PartyId == party.Id)))
             {
                 candidates.Add(new(CivicAction(world, town.Id, "law_case_answer", token, party.Id),
-                    "Answer this allegation for " + world.Society.GetInhabitant(party.SubjectId).Name +
+                    "Answer this allegation for " + world.Society.GetAgent(party.SubjectId).Name +
                     (party.SubjectId == actor ? "." : " with your actual caregiver support.") + " Supply civic_nonviolent.statement. This promises no goods or work." + NonviolentEvidenceChoices(world, town, item, actor), 165));
                 candidates.Add(new(CivicAction(world, town.Id, "law_case_waive", token, party.Id), "Explicitly waive only this person's current response opportunity; this admits nothing and supplies no restorative consent.", 166));
             }
@@ -85,7 +85,7 @@ internal sealed partial class CivicSystem
             if (item.Contest is { Stage: "voting" } contest && contest.Voters.Contains(actor, StringComparer.Ordinal) && history.Knows(actor, TownCaseJudgeRules.RoundToken(contest)))
                 foreach (var candidate in contest.Candidates)
                     candidates.Add(new(CivicAction(world, town.Id, "law_case_judge_vote", token + "#" + TownCaseJudgeRules.RoundToken(contest), candidate),
-                        "Vote for " + world.Society.GetInhabitant(candidate).Name + " as independent judge of this case only.", 167));
+                        "Vote for " + world.Society.GetAgent(candidate).Name + " as independent judge of this case only.", 167));
             if (item.Judge is { } judge && judge.AgentId == actor && NonviolentJudgeValid(world, town, item, judge) && NonviolentReadCurrent(world, item, actor))
             {
                 if (item.Status == "pending" && TownNonviolentRules.CanCloseResponses(item, parties, world.WorldTick))
@@ -108,9 +108,9 @@ internal sealed partial class CivicSystem
                 (isParty || finding.Judge.AgentId == actor && NonviolentJudgeValid(world, town, item, finding.Judge)))
                 candidates.Add(new(CivicAction(world, town.Id, "remedy_offer", token, finding.Id),
                     "Offer feasible named goods, repair or Town resource delivery in civic_nonviolent.terms, with reasons and optional completion_ticks (default three days after consent). Each contributing adult must personally agree. No stock is reserved and no work forced." + NonviolentRemedyReferences(world, town, actor), 183));
-            foreach (var recipient in world.Inhabitants.Values.Where(person => person.InhabitantId != actor && world.IsWithinInteractionRange(person.Position, actorState.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
-                if (NonviolentReadCurrent(world, item, actor) && NonviolentMayInspect(world, town, item, recipient.InhabitantId) && !NonviolentReadCurrent(world, item, recipient.InhabitantId))
-                    candidates.Add(new(CivicAction(world, town.Id, "law_case_relay", token, recipient.InhabitantId), "Relay the case material you actually read to " + world.Society.GetInhabitant(recipient.InhabitantId).Name + " nearby.", 181));
+            foreach (var recipient in world.Agents.Values.Where(person => person.AgentId != actor && world.IsWithinInteractionRange(person.Position, actorState.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+                if (NonviolentReadCurrent(world, item, actor) && NonviolentMayInspect(world, town, item, recipient.AgentId) && !NonviolentReadCurrent(world, item, recipient.AgentId))
+                    candidates.Add(new(CivicAction(world, town.Id, "law_case_relay", token, recipient.AgentId), "Relay the case material you actually read to " + world.Society.GetAgent(recipient.AgentId).Name + " nearby.", 181));
         }
         foreach (var agreement in town.Nonviolent.Agreements.Where(agreement => adult && agreement.Status != "completed" &&
                      !TownRemedyRules.IsSuperseded(town.Nonviolent, agreement.Id) && agreement.Terms.Any(term => term.ContributorId == actor)))
@@ -146,12 +146,12 @@ internal sealed partial class CivicSystem
         NonviolentDaysText(world, offer.ResponseDeadlineTick - offer.PublishedTick) + " of publication.";
     internal string NonviolentRemedyReferences(ICivicTownWorld world, TownRuntimeState town, string actor)
     {
-        var people = world.Inhabitants.Values.Where(person => person.InhabitantId == actor || town.ResidentIds.Contains(person.InhabitantId) || world.IsWithinInteractionRange(person.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)).ToArray();
-        var lots = world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor || lot.OwnerId == world.HouseholdFor(actor) || world.Inhabitants.TryGetValue(lot.OwnerId, out var holder) && ToolProgressionRules.IsTopLevelCarriedLot(lot, lot.OwnerId) && world.IsWithinInteractionRange(holder.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
+        var people = world.Agents.Values.Where(person => person.AgentId == actor || town.ResidentIds.Contains(person.AgentId) || world.IsWithinInteractionRange(person.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)).ToArray();
+        var lots = world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor || lot.OwnerId == world.HouseholdFor(actor) || world.Agents.TryGetValue(lot.OwnerId, out var holder) && ToolProgressionRules.IsTopLevelCarriedLot(lot, lot.OwnerId) && world.IsWithinInteractionRange(holder.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
             CanObserveNonviolentAct(world, actor, lot.OwnerId, holder.Position));
         var warehouses = world.WorldSimulation.Buildings.Where(building => building.TownId == town.Id &&
-            (TownForResident(world, actor) == town.Id || world.IsWithinInteractionRange(building.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)));
-        return " Use these references in terms. People: " + string.Join("; ", people.Select(person => world.Society.GetInhabitant(person.InhabitantId).Name + " (" + CivicAgentToken(person.InhabitantId) + ")")) +
+            (TownForResident(world, actor) == town.Id || world.IsWithinInteractionRange(building.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)));
+        return " Use these references in terms. People: " + string.Join("; ", people.Select(person => world.Society.GetAgent(person.AgentId).Name + " (" + CivicAgentToken(person.AgentId) + ")")) +
             ". Town: " + town.Name + " (" + CivicAgentToken(town.Id) + "). Known goods: " + string.Join("; ", lots.Select(lot =>
                 lot.ItemKind.Replace('_', ' ') + " (" + CivicAgentToken(lot.Id) + ") held by " + CivicAgentToken(lot.OwnerId))) +
             ". Known Town buildings: " + string.Join("; ", warehouses.Select(building => CivicAgentToken(building.InstanceId))) + ".";

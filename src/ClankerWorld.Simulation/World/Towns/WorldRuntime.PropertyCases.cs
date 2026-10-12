@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         if (request.SourceHouseholdId is { } source)
         {
             var household = society.Checkpoint.Households.SingleOrDefault(household => household.Id == source);
-            if (household is null || household.MemberIds.Any(id => society.Checkpoint.GetInhabitant(id).Status == SocietyInhabitantStatus.Active))
+            if (household is null || household.MemberIds.Any(id => society.Checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active))
                 throw new InvalidOperationException("The household still has members; its property cannot be reclaimed.");
             former = TownPropertyRules.FormerMembers(society.Checkpoint, source, WorldTick);
         }
@@ -94,7 +94,7 @@ public sealed partial class WorldRuntime
             TownArrangementRules.AllAdultCouncil && council.Members.Contains(actor, StringComparer.Ordinal);
         if (!mayor && !councillor) return;
         var empty = society.Checkpoint.Households.Where(household => !household.MemberIds.Any(id =>
-            society.Checkpoint.GetInhabitant(id).Status == SocietyInhabitantStatus.Active)).Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
+            society.Checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active)).Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
         var recovered = town.LandHearings.Cases.Where(item => item.Property?.Transfer is { ResultBuilding.HouseholdId: null })
             .Select(item => item.Property!.Transfer!.ResultBuilding.InstanceId).ToHashSet(StringComparer.Ordinal);
         foreach (var building in worldSimulation.Buildings.Where(building => building.TownId == town.Id &&

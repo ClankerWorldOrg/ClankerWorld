@@ -39,7 +39,7 @@ internal static class MarketAdditionalStallScenario
         var initial = paidBoundary with
         {
             Society = paidBoundary.Society with { Society = paidBoundary.Society.Society with { Inventory = inventory } },
-            Inhabitants = paidBoundary.Inhabitants.Select(person => actors.Contains(person.InhabitantId)
+            Agents = paidBoundary.Agents.Select(person => actors.Contains(person.AgentId)
                 ? person with
                 {
                     HungerBasisPoints = 9_500,
@@ -47,8 +47,8 @@ internal static class MarketAdditionalStallScenario
                     LastDecisionContext = null,
                     Equipment = (person.Equipment ?? new PersonalEquipment()) with
                     {
-                        ClothingLotId = "extra-stall-cloak:" + person.InhabitantId,
-                        CarryAidLotId = "extra-stall-sack:" + person.InhabitantId,
+                        ClothingLotId = "extra-stall-cloak:" + person.AgentId,
+                        CarryAidLotId = "extra-stall-sack:" + person.AgentId,
                     },
                 }
                 : person).ToArray(),
@@ -216,14 +216,14 @@ internal static class MarketAdditionalStallScenario
         for (var tick = 0; tick < ticks && !reached(); tick++)
         {
             var previousInventory = world.Society.Inventory;
-            var positions = world.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal);
+            var positions = world.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            foreach (var person in world.Inhabitants)
+            foreach (var person in world.Agents)
             {
-                var old = positions[person.InhabitantId];
+                var old = positions[person.AgentId];
                 if (old != person.Position) Assert.True(movementMap.CanFootStep(old, person.Position));
-                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.InhabitantId, person.Equipment),
-                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.InhabitantId, person.Equipment));
+                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.AgentId, person.Equipment),
+                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.AgentId, person.Equipment));
             }
             foreach (var delivery in world.Towns[0].Projects.SelectMany(item => item.Deliveries)
                          .Where(item => policy.PersonalDonations.Add(item.Id)))
@@ -261,7 +261,7 @@ internal static class MarketAdditionalStallScenario
             // borrow/travel sequence remains uninterrupted.
             World = WorldRuntime.Restore(retained with
             {
-                Inhabitants = retained.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+                Agents = retained.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
             }, policy.CreateProvider);
             return World;
         }

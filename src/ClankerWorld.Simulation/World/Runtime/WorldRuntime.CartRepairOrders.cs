@@ -8,7 +8,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private InventoryLot? CartForRepairOrder(string actor, InhabitantState person) =>
+    private InventoryLot? CartForRepairOrder(string actor, AgentState person) =>
         society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
                 lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 && IsValidInstructionIdentifier(lot.Id) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id))
@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
 
     private CognitionCandidate CartRepairOrderCandidateFor(OwnerQueuedInstruction instruction, InventoryLot cart)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var collection = CartRepairCollectionPlan(actor, cart);
         var missing = collection is { Count: > 0 } ? collection[0].Kind :
             CartRepairKinds.FirstOrDefault(kind => !HasCarriedMaterial(actor, kind, 1));
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
         return PlanInputCollection(actor, inputs, CartPosition(cart));
     }
 
-    private string? CartRepairOrderBlocker(string actor, InhabitantState person, InventoryLot cart)
+    private string? CartRepairOrderBlocker(string actor, AgentState person, InventoryLot cart)
     {
         if (cart.ConditionBasisPoints >= 10_000) return "The selected cart is healthy; no repair is needed.";
         if (HasActiveContainerReservation(society.Checkpoint.Inventory, cart.Id))
@@ -55,19 +55,19 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void ExecuteCartRepairOrderStep(OwnerQueuedInstruction instruction, InhabitantState person, InventoryLot cart)
+    private void ExecuteCartRepairOrderStep(OwnerQueuedInstruction instruction, AgentState person, InventoryLot cart)
     {
-        var collection = CartRepairCollectionPlan(instruction.TargetInhabitantId, cart);
+        var collection = CartRepairCollectionPlan(instruction.TargetAgentId, cart);
         if (collection is null) return;
         if (collection.Count > 0)
         {
             var input = collection[0];
-            CollectEquipment(instruction.TargetInhabitantId, person,
+            CollectEquipment(instruction.TargetAgentId, person,
                 input.Kind, CartPosition(cart), plannedLotId: input.Stock!.Id);
             return;
         }
         var candidate = CartRepairOrderCandidateFor(instruction, cart);
-        ApplyHandcartCandidate(instruction.TargetInhabitantId, person, candidate.Id);
+        ApplyHandcartCandidate(instruction.TargetAgentId, person, candidate.Id);
         if (candidate.Id != RepairCartPrefix + cart.Id ||
             society.Checkpoint.Inventory.GetLot(cart.Id).ConditionBasisPoints <= cart.ConditionBasisPoints) return;
         // This receipt identifies this instruction's native repair, not a pre-existing healthy cart.
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
 
     private static string CartRepairOrderReceipt(OwnerQueuedInstruction instruction, long tick) =>
         DerivedId.Hash(
-            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetInhabitantId}:{instruction.Order!.TargetCartLotId}",
+            $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetAgentId}:{instruction.Order!.TargetCartLotId}",
             CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":");
 
     private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)

@@ -14,24 +14,24 @@ public sealed partial class WorldRuntime
 {
     private const string GatherBuildingMaterialPrefix = "gather_building_material:";
 
-    private void AddHouseholdBuildingPlans(List<CognitionCandidate> candidates, SocietyInhabitant inhabitant,
-        InhabitantState state, string householdId, List<string> buildingsWithoutSites)
+    private void AddHouseholdBuildingPlans(List<CognitionCandidate> candidates, SocietyAgent agent,
+        AgentState state, string householdId, List<string> buildingsWithoutSites)
     {
         TownLayoutContext? sharedLayout = null;
-        foreach (var definition in PlannableHouseholdBuildings(householdId, inhabitant.Id))
+        foreach (var definition in PlannableHouseholdBuildings(householdId, agent.Id))
         {
             if (NeedsUrgentWarmth(state) && !definition.Tags.Any(tag => tag is "shelter" or "warmth" or "cooking"))
                 continue;
             // The identity reads the same actor, design and reservations for this
             // synchronous query; compute it once rather than for every building.
-            var instanceId = BuildInstanceId(inhabitant.Id, definition);
+            var instanceId = BuildInstanceId(agent.Id, definition);
             if (worldSimulation.Buildings.Any(item => item.InstanceId == instanceId) ||
                 !HouseholdHasMaterialsInHand(householdId, definition.BuildCosts))
                 continue;
 
             var layout = HouseholdBuildingKind(definition) == "silo"
-                ? CreateTownLayoutContext(inhabitant.Id, building: definition)
-                : sharedLayout ??= CreateTownLayoutContext(inhabitant.Id);
+                ? CreateTownLayoutContext(agent.Id, building: definition)
+                : sharedLayout ??= CreateTownLayoutContext(agent.Id);
             var sites = TownLayoutService.RankConstructionSites(layout, definition);
             if (sites.Count == 0) buildingsWithoutSites.Add(definition.DisplayName);
             for (var rank = 0; rank < sites.Count; rank++)
@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
             }
         }
 
-        AddBuildingMaterialCandidate(candidates, inhabitant.Id, householdId);
+        AddBuildingMaterialCandidate(candidates, agent.Id, householdId);
     }
 
     /// <summary>Active building designs this household may plan now, in a stable order.</summary>
@@ -65,13 +65,13 @@ public sealed partial class WorldRuntime
     /// <summary>Whether a member already has a live plan for this kind, so the household plans at most one.</summary>
     private bool HouseholdBuildingProjectInProgress(string householdId, string? kind = null,
         string? retryingActor = null) =>
-        inhabitants.Values.Any(person =>
+        agents.Values.Any(person =>
             person.Project is { } project && project.Stage is not ("completed" or "cancelled") &&
             TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection) && selection.IsBuilding &&
-            society.Checkpoint.GetInhabitant(person.InhabitantId).HouseholdId == householdId &&
+            society.Checkpoint.GetAgent(person.AgentId).HouseholdId == householdId &&
             worldContent.Buildings.FirstOrDefault(definition => definition.CanonicalId == selection.DefinitionId) is { } planned &&
             HouseholdBuildingKind(planned) is { } plannedKind && (kind is null || plannedKind == kind) &&
-            !(person.InhabitantId == retryingActor && project.Stage == "blocked" &&
+            !(person.AgentId == retryingActor && project.Stage == "blocked" &&
                 WorldTick - project.LastTransitionTick >= BlockedProjectRetryDelayTicks));
 
     /// <summary>Materials the household owns, wherever it stores them, plus what its members carry.</summary>
@@ -81,7 +81,7 @@ public sealed partial class WorldRuntime
     private long HouseholdMaterialInHand(string householdId, string itemKind) =>
         society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == itemKind &&
                 (lot.OwnerId == householdId ||
-                 inhabitants.ContainsKey(lot.OwnerId) && HouseholdFor(lot.OwnerId) == householdId))
+                 agents.ContainsKey(lot.OwnerId) && HouseholdFor(lot.OwnerId) == householdId))
             .Sum(lot => (long)AvailableLotQuantity(lot));
 
     /// <summary>
@@ -139,7 +139,7 @@ public sealed partial class WorldRuntime
     /// </summary>
     private InventoryLot? BuildingPreparationToolToStore(string actor, string householdId)
     {
-        if (inhabitants[actor].Project is { Stage: not ("completed" or "cancelled") } ||
+        if (agents[actor].Project is { Stage: not ("completed" or "cancelled") } ||
             HouseForHousehold(householdId) is not { } house || DestinationRoom(house.InstanceId) == 0 ||
             NeededBuildingMaterial(actor, householdId) is not { } need ||
             MaterialSource(need.Material.ResourceId, actor, HouseForHousehold(householdId)?.Position ?? SettlementStoragePosition,
@@ -160,9 +160,9 @@ public sealed partial class WorldRuntime
         return tool is not null && free + Math.Min(1, AvailableLotQuantity(tool)) >= required ? tool : null;
     }
 
-    private void GatherBuildingMaterial(string actor, InhabitantState state, string itemKind)
+    private void GatherBuildingMaterial(string actor, AgentState state, string itemKind)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             NeededBuildingMaterial(actor, householdId) is not { } need || need.Material.ResourceId != itemKind ||
             MaterialSource(itemKind, actor, HouseForHousehold(householdId)?.Position ?? SettlementStoragePosition,
                 HouseForHousehold(householdId) is null ? ResourceInteractionRange : 0, useHarvestBonus: false) is not { } source)

@@ -98,8 +98,8 @@ public sealed partial class WorldStorageOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Null(world.Society.Inventory.GetLot("storage-distant").StorageBuildingId);
-        Assert.NotEqual(state.Inhabitants.Single(person => person.InhabitantId == actor).Position,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(state.Agents.Single(person => person.AgentId == actor).Position,
+            world.Agents.Single(person => person.AgentId == actor).Position);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         for (var tick = 0; tick < 20 && Order(world, receipt).Status != "finished"; tick++)
         {
@@ -154,8 +154,8 @@ public sealed partial class WorldStorageOrderTests
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-boundary",
             boundary == "wrong-kind" ? "stone" : kind, boundary == "borrowed" ? Household : actor, 2,
             storageBuildingId: boundary == "stored" ? House : null,
-            groundPosition: boundary == "ground" ? new(state.Inhabitants.Single(person => person.InhabitantId == actor).Position.X,
-                state.Inhabitants.Single(person => person.InhabitantId == actor).Position.Y) : null);
+            groundPosition: boundary == "ground" ? new(state.Agents.Single(person => person.AgentId == actor).Position.X,
+                state.Agents.Single(person => person.AgentId == actor).Position.Y) : null);
         if (boundary is "borrowed" or "promised") inventory = inventory with
         {
             Lots = inventory.Lots.Select(lot => lot.Id == "storage-boundary" ? lot with
@@ -261,7 +261,7 @@ public sealed partial class WorldStorageOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "storage-after-food", kind, actor, 2);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
         };
         using var world = Restore(state);
         var receipt = Submit(world, actor, "survival", $"store {kind}");
@@ -373,7 +373,7 @@ public sealed partial class WorldStorageOrderTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -386,7 +386,7 @@ public sealed partial class WorldStorageOrderTests
             Towns = state.Towns!.Select(town => town with
             {
                 Governance = TownGovernanceState.Create(town.ResidentIds.Where(id => id != actor &&
-                    checkpoint.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
+                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
             }).ToArray(),
         };
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "storage-child", kind, actor, 1));
@@ -438,7 +438,7 @@ public sealed partial class WorldStorageOrderTests
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
             var invoked = await AwaitStorageSignal(provider.Invoked.Task, "receive the native request");
-            Assert.Equal(actor, invoked.Observation.InhabitantId);
+            Assert.Equal(actor, invoked.Observation.AgentId);
             Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
             {
@@ -458,7 +458,7 @@ public sealed partial class WorldStorageOrderTests
             provider.Release.TrySetResult(true);
             var returned = await AwaitStorageSignal(provider.Returned.Task, "return the late reply");
             Assert.Equal(invoked.RequestId, returned.RequestId);
-            Assert.Equal(actor, returned.InhabitantId);
+            Assert.Equal(actor, returned.AgentId);
             Assert.Equal(kind == "basket" ? "store_equipment" : "store_material", returned.SelectedCandidateId);
             for (var tick = 0; tick < 5; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             Assert.Equal(("cancelled", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -490,7 +490,7 @@ public sealed partial class WorldStorageOrderTests
         var state = WorldRuntimeCodec.Decode(Generated.Value);
         var actor = Actor(state);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
         bool Clear(GridPoint point) => state.Map.IsPassable(point) && !occupied.Contains(point) &&
             state.Map.Resources.All(resource => resource.Position != point) && state.Map.MapObjects.All(item => item.Position != point);
         var position = distant ? (from near in state.Map.FootNeighbors(house.Position)
@@ -501,9 +501,9 @@ public sealed partial class WorldStorageOrderTests
         return state with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
+                Position = person.AgentId == actor ? position : person.Position,
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
@@ -511,7 +511,7 @@ public sealed partial class WorldStorageOrderTests
     }
 
     private static string Actor(WorldRuntimeState state) =>
-        state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household).Id;
+        state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new StorageChoices());
@@ -523,10 +523,10 @@ public sealed partial class WorldStorageOrderTests
     private sealed class StorageChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
     {
         public DecisionProviderKind Kind => kind;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public Task? EntryGate { get; set; }
         public TaskCompletionSource<CognitionDecisionRequest> Invoked { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<InhabitantObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public long ProviderEpoch => 0;
@@ -547,7 +547,7 @@ public sealed partial class WorldStorageOrderTests
             }
             var selected = request.Observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id is "store_material" or "store_equipment")?.Id ?? "safe_idle";
-            var response = new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            var response = new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
             if (held) Returned.TrySetResult(response);

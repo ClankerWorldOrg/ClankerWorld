@@ -19,7 +19,7 @@ public sealed partial class BusinessTradeTests
             storageBuildingId: house);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Equipment = null,
                 Project = null,
@@ -54,7 +54,7 @@ public sealed partial class BusinessTradeTests
         var destination = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == store).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = destination, LastDecisionContext = null } : person).ToArray(),
         };
         policy.Offered.Clear();

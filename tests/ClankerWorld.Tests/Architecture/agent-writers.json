@@ -33,6 +33,11 @@
     "src/ClankerWorld.Simulation/World/Settlement/SettlementSurvival.cs",
     "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs"
   ],
+  "AgentId": [
+    "src/ClankerWorld.Simulation/World/Civic/CivicSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Settlement/Family/SettlementParenthood.cs"
+  ],
   "Aspiration": [
     "src/ClankerWorld.Simulation/World/Civic/CivicSystem.Towns.cs",
     "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
@@ -102,11 +107,6 @@
     "src/ClankerWorld.Simulation/World/Civic/CivicSystem.Towns.cs",
     "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
     "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs",
-    "src/ClankerWorld.Simulation/World/Settlement/Family/SettlementParenthood.cs"
-  ],
-  "InhabitantId": [
-    "src/ClankerWorld.Simulation/World/Civic/CivicSystem.Towns.cs",
-    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
     "src/ClankerWorld.Simulation/World/Settlement/Family/SettlementParenthood.cs"
   ],
   "LastDecisionContext": [

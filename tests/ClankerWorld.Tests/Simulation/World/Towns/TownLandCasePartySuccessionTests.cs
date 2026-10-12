@@ -10,7 +10,7 @@ public sealed class TownLandCasePartySuccessionTests
     private static readonly GridPoint[] Plot = [new(1, 0), new(2, 0)];
     private static readonly HouseholdLandUseRight[] Rights = [new("right", "town", "alpha", Plot, 0, "original-grant", 100)];
     private static readonly HouseholdLandUseRequest[] Requests = [new("beta-request", "town", "beta", "b", Plot, 0, 100)];
-    private static readonly SocietyInhabitant[] People =
+    private static readonly SocietyAgent[] People =
     [Person("a", "alpha"), Person("b", "beta"), Person("judge", "neutral"), Person("other", "other-household")];
     private static readonly IReadOnlyDictionary<string, string?> Households = People.ToDictionary(person => person.Id, person => person.HouseholdId);
 
@@ -85,7 +85,7 @@ public sealed class TownLandCasePartySuccessionTests
         var notice = JsonSerializer.Serialize(state.Cases[0].Revisions[0]);
         var changed = People.Select(person => person.Id switch
         {
-            "a" => person with { Status = SocietyInhabitantStatus.Dead, DeathTick = 1 },
+            "a" => person with { Status = SocietyAgentStatus.Dead, DeathTick = 1 },
             "b" => person with { HouseholdId = "neutral" },
             _ => person,
         }).Append(Person("new-adult", "beta")).ToArray();
@@ -98,8 +98,8 @@ public sealed class TownLandCasePartySuccessionTests
         Assert.Equal(notice, JsonSerializer.Serialize(state.Cases[0].Revisions[0]));
     }
 
-    private static SocietyInhabitant Person(string id, string household) =>
-        new(id, id, 0, SocietyInhabitantStatus.Active, SocietyAgeBand.Adult, 10_000, household, null, SocietyWorkRole.Unassigned, 0);
+    private static SocietyAgent Person(string id, string household) =>
+        new(id, id, 0, SocietyAgentStatus.Active, SocietyAgeBand.Adult, 10_000, household, null, SocietyWorkRole.Unassigned, 0);
     private static Dictionary<string, IReadOnlyList<TownLandCaseParty>> ForCase(string id, IReadOnlyList<TownLandCaseParty> parties) =>
         new Dictionary<string, IReadOnlyList<TownLandCaseParty>>(StringComparer.Ordinal) { [id] = parties };
     private static void Validate(TownLandHearingState state, TownGovernanceState council, TownGovernmentState government,

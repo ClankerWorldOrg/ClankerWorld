@@ -125,23 +125,23 @@ public partial class Main
     }
 
     /// <summary>What this agent remembers, believes and has mapped, newest first, for the Memories panel.</summary>
-    private void RenderMemoryCards(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant)
+    private void RenderMemoryCards(OwnerWorldSnapshot snapshot, OwnerWorldAgent agent)
     {
         // A belief names its subject by looking them up, so a rename must redraw it too.
         // The names are copied out so the cards do not keep the whole snapshot alive.
         var names = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var person in snapshot.Inhabitants) names.TryAdd(person.Id, person.DisplayName);
+        foreach (var person in snapshot.Agents) names.TryAdd(person.Id, person.DisplayName);
         string? SubjectName(string? id) => id is not null && names.TryGetValue(id, out var name) ? name : null;
-        var signature = string.Join("|", inhabitant.Id, UiTheme.Current.Name, displayPreferences.DateStyle, observedCalendarPace, displayPreferences.UseTwelveHourClock,
-            string.Join(",", inhabitant.RecentMemories.Select(item => $"{item.WorldTick}:{item.Summary}:{item.SubjectName}:{item.Visibility}:{item.Permanent}")),
-            string.Join(",", inhabitant.RecentBeliefs.Select(item => $"{item.WorldTick}:{item.Statement}:{item.Provenance}:{item.ConfidenceBasisPoints}:{item.SourceAgentName}:{item.AboutInhabitantId}:{SubjectName(item.AboutInhabitantId)}:{item.IsCorrected}:{item.CorrectedTick}")),
-            string.Join(",", inhabitant.RecentKnowledgeFacts.Select(item => $"{item.WorldTick}:{item.X}:{item.Y}:{item.Terrain}:{string.Join('+', item.ResourceKinds)}:{item.Acquisition}:{item.SourceAgentName}:{item.DiscovererName}")),
-            string.Join(",", inhabitant.KnownRecipes.Select(item => $"{item.WorldTick}:{item.Name}:{item.Acquisition}:{item.SourceAgentName}")),
-            string.Join(",", inhabitant.KnowledgeArtifacts.Select(item => $"{item.Id}:{item.Title}:{item.CreatorName}:{item.Sites.Count}:{string.Join('+', item.RecipeNames)}")));
+        var signature = string.Join("|", agent.Id, UiTheme.Current.Name, displayPreferences.DateStyle, observedCalendarPace, displayPreferences.UseTwelveHourClock,
+            string.Join(",", agent.RecentMemories.Select(item => $"{item.WorldTick}:{item.Summary}:{item.SubjectName}:{item.Visibility}:{item.Permanent}")),
+            string.Join(",", agent.RecentBeliefs.Select(item => $"{item.WorldTick}:{item.Statement}:{item.Provenance}:{item.ConfidenceBasisPoints}:{item.SourceAgentName}:{item.AboutAgentId}:{SubjectName(item.AboutAgentId)}:{item.IsCorrected}:{item.CorrectedTick}")),
+            string.Join(",", agent.RecentKnowledgeFacts.Select(item => $"{item.WorldTick}:{item.X}:{item.Y}:{item.Terrain}:{string.Join('+', item.ResourceKinds)}:{item.Acquisition}:{item.SourceAgentName}:{item.DiscovererName}")),
+            string.Join(",", agent.KnownRecipes.Select(item => $"{item.WorldTick}:{item.Name}:{item.Acquisition}:{item.SourceAgentName}")),
+            string.Join(",", agent.KnowledgeArtifacts.Select(item => $"{item.Id}:{item.Title}:{item.CreatorName}:{item.Sites.Count}:{string.Join('+', item.RecipeNames)}")));
         if (signature == renderedMemoryCards) return;
         renderedMemoryCards = signature;
         memoryCardEntries.Clear();
-        foreach (var memory in inhabitant.RecentMemories)
+        foreach (var memory in agent.RecentMemories)
         {
             var item = memory;
             memoryCardEntries.Add(new(item.WorldTick, MemoryKind.Memory, () =>
@@ -152,7 +152,7 @@ public partial class Main
                 return MemoryEntry(MemoryKind.Memory, PixelGlyph.Thought, item.Summary, MetaLine([.. meta]));
             }));
         }
-        foreach (var belief in inhabitant.RecentBeliefs)
+        foreach (var belief in agent.RecentBeliefs)
         {
             var item = belief;
             var source = item.Provenance switch
@@ -162,7 +162,7 @@ public partial class Main
                 "hearsay" => "Heard it from someone",
                 _ => "Worked it out",
             };
-            var subject = SubjectName(item.AboutInhabitantId);
+            var subject = SubjectName(item.AboutAgentId);
             memoryCardEntries.Add(new(item.WorldTick, MemoryKind.Belief, () =>
             {
                 var meta = new List<Control>
@@ -179,7 +179,7 @@ public partial class Main
                 return MemoryEntry(MemoryKind.Belief, PixelGlyph.Bulb, item.Statement, MetaLine([.. meta]), faded: item.IsCorrected);
             }));
         }
-        foreach (var fact in inhabitant.RecentKnowledgeFacts)
+        foreach (var fact in agent.RecentKnowledgeFacts)
         {
             var item = fact;
             var how = item.Acquisition == "firsthand"
@@ -193,7 +193,7 @@ public partial class Main
                 MetaLine(MetaText($"{DisplayWorldClock(item.WorldTick)} · {how}")),
                 MemorySite(item.Terrain, item.X, item.Y, item.ResourceKinds))));
         }
-        foreach (var recipe in inhabitant.KnownRecipes)
+        foreach (var recipe in agent.KnownRecipes)
         {
             var item = recipe;
             var how = item.Acquisition == "practice" ? "Learned through practice" :
@@ -201,7 +201,7 @@ public partial class Main
             memoryCardEntries.Add(new(item.WorldTick, MemoryKind.Memory, () => MemoryEntry(MemoryKind.Memory, PixelGlyph.Scroll,
                 $"Recipe: {item.Name}", MetaLine(MetaText($"{DisplayWorldClock(item.WorldTick)} · {how}")))));
         }
-        foreach (var artifact in inhabitant.KnowledgeArtifacts)
+        foreach (var artifact in agent.KnowledgeArtifacts)
         {
             var item = artifact;
             memoryCardEntries.Add(new(item.CreatedTick, MemoryKind.Map, () =>

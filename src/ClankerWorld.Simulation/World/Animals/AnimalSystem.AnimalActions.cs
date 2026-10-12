@@ -16,7 +16,7 @@ internal sealed partial class AnimalSystem
     internal IEnumerable<AnimalChoice> AnimalChoices(IAnimalWorld world, string actor)
     {
         if (!world.AdultResident(actor)) yield break;
-        var person = world.Inhabitants[actor];
+        var person = world.Agents[actor];
         foreach (var animal in State.Animals.Where(item => item.DiedTick is not null && item.HouseholdId is null))
             if (world.Map.FootDistance(person.Position, animal.Position) <= 4 && world.FreeCarryCapacity(actor) >= 1 &&
                 WildAnimalHide(world, animal) is not null)
@@ -81,10 +81,10 @@ internal sealed partial class AnimalSystem
             if (CarriedMilk(world, actor) is { } milk)
             {
                 ConsumeAnimalInputs(world, actor, "drink_milk", [(milk, 1)]);
-                world.SetInhabitant(actor, world.Inhabitants[actor] with
+                world.SetAgent(actor, world.Agents[actor] with
                 {
                     HungerBasisPoints = Math.Min(10_000,
-                    world.Inhabitants[actor].HungerBasisPoints + 3_000)
+                    world.Agents[actor].HungerBasisPoints + 3_000)
                 });
                 world.AppendEvent("milk_drunk", actor);
             }
@@ -95,7 +95,7 @@ internal sealed partial class AnimalSystem
         var choice = AnimalChoices(world, actor).FirstOrDefault(item => item.Id == candidateId);
         if (choice is null) return true;
         var animal = Animal(choice.AnimalId)!;
-        var person = world.Inhabitants[actor];
+        var person = world.Agents[actor];
         if (choice.Action is "care" or "saddle")
         {
             var needsSupply = choice.Action switch
@@ -183,16 +183,16 @@ internal sealed partial class AnimalSystem
              (PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor) ||
               lot.CarrierId is null && animal.YardId is { } yardId &&
               world.Simulation.Buildings.FirstOrDefault(building => building.InstanceId == yardId) is { } yard &&
-              (lot.StorageBuildingId == yardId && world.Inhabitants[actor].Position == yard.Position ||
+              (lot.StorageBuildingId == yardId && world.Agents[actor].Position == yard.Position ||
                lot.GroundPosition is { } ground && YardTiles(world, yard).Contains(new(ground.X, ground.Y)) &&
-               world.IsWithinInteractionRange(world.Inhabitants[actor].Position, new(ground.X, ground.Y), 1)))))
+               world.IsWithinInteractionRange(world.Agents[actor].Position, new(ground.X, ground.Y), 1)))))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal);
     }
     internal static List<(InventoryLot Lot, int Quantity)>? AnimalCareInputs(IAnimalWorld world, string actor, AnimalState animal, int feed, int water)
     {
         var inventory = world.Society.Inventory;
         var lots = AnimalSuppliesAtHand(world, actor, animal).Where(lot =>
-            world.Inhabitants[actor].Position == animal.Position ||
+            world.Agents[actor].Position == animal.Position ||
             PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor)).ToArray();
         var result = new List<(InventoryLot, int)>();
         string? FoodHousehold(InventoryLot lot) => lot.OwnerId == animal.HouseholdId ? animal.HouseholdId : world.HouseholdFor(actor);
@@ -232,10 +232,10 @@ internal sealed partial class AnimalSystem
     {
         var household = stockHousehold ?? world.HouseholdFor(actor);
         if (quantity == 0 || household is null) return true;
-        var people = world.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == household)
+        var people = world.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active && person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var ready = world.HoldingsTotal(people.Append(household), world.EdibleFoodGoods);
-        return ready - quantity >= people.Count * 2 + (world.Inhabitants.Values.Any(person => people.Contains(person.InhabitantId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
+        return ready - quantity >= people.Count * 2 + (world.Agents.Values.Any(person => people.Contains(person.AgentId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
     }
     internal static void ConsumeAnimalInputs(IAnimalWorld world, string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)
     {
@@ -285,7 +285,7 @@ internal sealed partial class AnimalSystem
         var destination = FreeAnimalYardTile(world, yard, animal.Id);
         if (destination is null) return;
         SetAnimal(animal with { LeaderId = actor, LeadDestination = destination });
-        world.MoveToward(actor, world.Inhabitants[actor], destination.Value, "lead_animal_home");
+        world.MoveToward(actor, world.Agents[actor], destination.Value, "lead_animal_home");
     }
 }
 

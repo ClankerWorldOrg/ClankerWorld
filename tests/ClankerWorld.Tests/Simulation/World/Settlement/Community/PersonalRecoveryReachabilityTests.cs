@@ -27,7 +27,7 @@ public sealed class PersonalRecoveryReachabilityTests
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId &&
             person.AgeBand == SocietyAgeBand.Adult).Id;
         // The north edge is polar sea. Use actual disconnected land for the
         // earlier lot, preserving the native route and custody controls.
@@ -54,7 +54,7 @@ public sealed class PersonalRecoveryReachabilityTests
             groundPosition: new(house.Position.X, house.Position.Y));
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = house.Position,
@@ -72,7 +72,7 @@ public sealed class PersonalRecoveryReachabilityTests
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.Contains("household_collect:" + Earlier, chooser.Offered);
-            Assert.NotEqual(house.Position, world.ExportState().Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            Assert.NotEqual(house.Position, world.ExportState().Agents.Single(person => person.AgentId == actor).Position);
             Assert.False(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot(Earlier), actor));
             state = FarmFieldTests.WithInventory(world.ExportState(), InventoryAuthority.Relocate(world.Society.Inventory,
                 "recovery-source-moved", Earlier, actor, 1, groundPosition: new(disconnected.X, disconnected.Y)));

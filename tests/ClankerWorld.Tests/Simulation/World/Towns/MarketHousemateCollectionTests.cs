@@ -47,9 +47,9 @@ public sealed class MarketHousemateCollectionTests
         }
         if (otherHouseholdBorrows)
         {
-            var nextSeller = state.Society.Society.Inhabitants.First(person =>
+            var nextSeller = state.Society.Society.Agents.First(person =>
                 person.HouseholdId is not null && person.HouseholdId != household &&
-                person.Status == SocietyInhabitantStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
+                person.Status == SocietyAgentStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
             inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
                 "next-household-market-load", "wood", nextSeller, 4);
             inventory = InventoryAuthority.Relocate(inventory, "prepare-next-market-load",
@@ -71,7 +71,7 @@ public sealed class MarketHousemateCollectionTests
         state = PaidMarketWorld.At(state, collector, stall);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { LastDecisionContext = null }).ToArray()
         };
         var choices = Policy(collector, "market_collect:");

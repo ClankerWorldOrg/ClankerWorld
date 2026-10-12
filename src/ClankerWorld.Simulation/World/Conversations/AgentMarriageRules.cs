@@ -43,7 +43,7 @@ public static class AgentMarriageRules
 {
     public const int MaximumSurnameTurns = 4;
 
-    public static bool IsAdult(SocietyInhabitant person) => person.Status == SocietyInhabitantStatus.Active &&
+    public static bool IsAdult(SocietyAgent person) => person.Status == SocietyAgentStatus.Active &&
         person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
 
     public static SocietyRelationship? Partnership(SocietyCheckpoint society, string first, string second) =>
@@ -54,12 +54,12 @@ public static class AgentMarriageRules
 
     public static bool CanPropose(SocietyCheckpoint society, IEnumerable<AgentMarriage> marriages,
         string first, string second) => first != second &&
-        society.Inhabitants.SingleOrDefault(person => person.Id == first) is { } initiator && IsAdult(initiator) &&
-        society.Inhabitants.SingleOrDefault(person => person.Id == second) is { } invitee && IsAdult(invitee) &&
+        society.Agents.SingleOrDefault(person => person.Id == first) is { } initiator && IsAdult(initiator) &&
+        society.Agents.SingleOrDefault(person => person.Id == second) is { } invitee && IsAdult(invitee) &&
         initiator.HasChosenName && invitee.HasChosenName &&
-        InhabitantNameRules.CanonicalKey(initiator.Name) is { Length: <= 48 } &&
-        InhabitantNameRules.CanonicalKey(invitee.Name) is { Length: <= 48 } &&
-        InhabitantNameRules.SurnameKey(initiator.Name) is not null && InhabitantNameRules.SurnameKey(invitee.Name) is not null &&
+        AgentNameRules.CanonicalKey(initiator.Name) is { Length: <= 48 } &&
+        AgentNameRules.CanonicalKey(invitee.Name) is { Length: <= 48 } &&
+        AgentNameRules.SurnameKey(initiator.Name) is not null && AgentNameRules.SurnameKey(invitee.Name) is not null &&
         Partnership(society, first, second) is not null &&
         !marriages.Any(marriage => marriage.EndReceipt is null &&
             (HasParticipant(marriage, first) || HasParticipant(marriage, second)));
@@ -70,7 +70,7 @@ public static class AgentMarriageRules
     public static string Note(AgentMarriage marriage, string agentId, SocietyCheckpoint society)
     {
         var otherId = agentId == marriage.InitiatorId ? marriage.InviteeId : marriage.InitiatorId;
-        var other = society.GetInhabitant(otherId).Name;
+        var other = society.GetAgent(otherId).Name;
         if (marriage.EndReceipt is { } ending)
             return ending.State == SocietyRelationshipState.EndedByDeath
                 ? $"Marriage with {other} ended after a partner died."
@@ -86,8 +86,8 @@ public static class AgentMarriageRules
     internal static string SurnameConversationId(string marriageId) => DerivedId.Create(marriageId + ":surname");
 
     public static IReadOnlyList<string> AllowedSurnames(AgentMarriage marriage) =>
-        new[] { InhabitantNameRules.SurnameKey(marriage.InitiatorNameAtAcceptance)!,
-                InhabitantNameRules.SurnameKey(marriage.InviteeNameAtAcceptance)! }
+        new[] { AgentNameRules.SurnameKey(marriage.InitiatorNameAtAcceptance)!,
+                AgentNameRules.SurnameKey(marriage.InviteeNameAtAcceptance)! }
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(surname => WithSurname(marriage.InitiatorNameAtAcceptance, surname).Length <= 48 &&
                 WithSurname(marriage.InviteeNameAtAcceptance, surname).Length <= 48)
@@ -101,10 +101,10 @@ public static class AgentMarriageRules
 
     public static string WithSurname(string name, string surname)
     {
-        var canonical = InhabitantNameRules.CanonicalKey(name);
+        var canonical = AgentNameRules.CanonicalKey(name);
         var separator = canonical?.LastIndexOf(' ') ?? -1;
         if (canonical is null ||
-            InhabitantNameRules.CanonicalKey(surname) != surname || surname.Contains(' '))
+            AgentNameRules.CanonicalKey(surname) != surname || surname.Contains(' '))
             throw new ArgumentException("A married agent needs a first name and shared surname.");
         return (separator < 0 ? canonical : canonical[..separator]) + " " + surname;
     }

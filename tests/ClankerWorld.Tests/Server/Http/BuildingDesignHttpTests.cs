@@ -73,7 +73,7 @@ public sealed partial class ServerHttpTests
             var definition = Assert.Single(runtime.WorldContent.Buildings);
             Assert.Equal(action.Name, definition.DisplayName);
             var state = runtime.ExportState();
-            var worker = state.Inhabitants.First(person => !state.Map.MapObjects.Any(item => item.Position == person.Position) &&
+            var worker = state.Agents.First(person => !state.Map.MapObjects.Any(item => item.Position == person.Position) &&
                 !state.Map.Resources.Any(item => item.Position == person.Position));
             var placement = runtime.PlaceBuilding("workbench-home", definition.CanonicalId, worker.Position);
             Assert.True(placement.Applied, placement.Failure);

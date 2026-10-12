@@ -22,14 +22,14 @@ public sealed partial class GrownAgentHelperMemoryTests
         var state = WorldRuntimeCodec.Decode(await LaterAdult.Value);
         var checkpoint = state.Society.Society;
         var births = checkpoint.Births.OrderBy(birth => birth.CommittedTick).ToArray();
-        var first = nativeBorn ? births[2].ChildId : checkpoint.Inhabitants.First(person =>
+        var first = nativeBorn ? births[2].ChildId : checkpoint.Agents.First(person =>
             person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:camp-beta").Id;
-        var second = nativeBorn ? births[1].ChildId : checkpoint.Inhabitants.First(person => person.Id != first &&
+        var second = nativeBorn ? births[1].ChildId : checkpoint.Agents.First(person => person.Id != first &&
             person.Id.StartsWith("founder:", StringComparison.Ordinal) && person.HouseholdId == "household:camp-beta").Id;
         Assert.InRange(first.Length, 1, DerivedId.MaximumLength);
         Assert.InRange(second.Length, 1, DerivedId.MaximumLength);
         var beforeTrust = new[] { (Owner: first, Subject: second), (Owner: second, Subject: first) }
-            .ToDictionary(pair => pair.Owner, pair => state.Inhabitants.Single(person => person.InhabitantId == pair.Owner)
+            .ToDictionary(pair => pair.Owner, pair => state.Agents.Single(person => person.AgentId == pair.Owner)
                 .SocialStanding?.SingleOrDefault(item => item.SubjectId == pair.Subject)?.Trust ?? 0);
         // Explicit personal stock isolates recall. This does not claim an ornament
         // manufacture/wear/gift journey. The actual offer, consent, reservations,
@@ -41,8 +41,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = checkpoint with { Inventory = inventory } }
         };
-        var firstName = checkpoint.GetInhabitant(first).Name;
-        var secondName = checkpoint.GetInhabitant(second).Name;
+        var firstName = checkpoint.GetAgent(first).Name;
+        var secondName = checkpoint.GetAgent(second).Name;
         var offering = new NativeBarterChoices(true, secondName);
         var accepting = new NativeBarterChoices(false, firstName);
         using var world = WorldRuntime.Restore(state,
@@ -73,9 +73,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             Assert.Equal(SocietyMemoryKind.Relationship, memory.Kind);
             Assert.Equal("public", memory.Visibility);
-            Assert.Equal("Completed a mutually accepted exchange with " + checkpoint.GetInhabitant(memory.SubjectId).Name + ".", memory.Summary);
+            Assert.Equal("Completed a mutually accepted exchange with " + checkpoint.GetAgent(memory.SubjectId).Name + ".", memory.Summary);
             if (!nativeBorn) Assert.Equal("settlement-trust:" + memory.OwnerId + ":" + memory.SubjectId, memory.Id);
-            Assert.Equal(beforeTrust[memory.OwnerId] + 1, world.Inhabitants.Single(person => person.InhabitantId == memory.OwnerId)
+            Assert.Equal(beforeTrust[memory.OwnerId] + 1, world.Agents.Single(person => person.AgentId == memory.OwnerId)
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
         world.CancelPendingHostedDecisions();
@@ -119,7 +119,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         foreach (var memory in memories)
         {
             Assert.Equal(memory, Assert.Single(reload.Society.Memories, item => item.Id == memory.Id));
-            Assert.Equal(beforeTrust[memory.OwnerId] + 1, reload.Inhabitants.Single(person => person.InhabitantId == memory.OwnerId)
+            Assert.Equal(beforeTrust[memory.OwnerId] + 1, reload.Agents.Single(person => person.AgentId == memory.OwnerId)
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
         if (nativeBorn)
@@ -154,8 +154,8 @@ public sealed partial class GrownAgentHelperMemoryTests
                 ? offer with { ExpiryTick = checkpoint.WorldTick - 121 } : offer).ToArray()
         };
         state = state with { Society = state.Society with { Society = checkpoint with { Inventory = inventory, Memories = savedMemories } } };
-        var offering = new NativeBarterChoices(true, checkpoint.GetInhabitant(second).Name);
-        var accepting = new NativeBarterChoices(false, checkpoint.GetInhabitant(first).Name);
+        var offering = new NativeBarterChoices(true, checkpoint.GetAgent(second).Name);
+        var accepting = new NativeBarterChoices(false, checkpoint.GetAgent(first).Name);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == first ? offering : id == second ? accepting : new QuietProvider());
         using var host = new NativeConversationCheckpointHost(world);
@@ -170,7 +170,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         foreach (var memory in previous)
         {
             Assert.Equal(memory, Assert.Single(retained, item => item.Id == memory.Id));
-            Assert.Equal(beforeTrust[memory.OwnerId] + 2, world.Inhabitants.Single(person => person.InhabitantId == memory.OwnerId)
+            Assert.Equal(beforeTrust[memory.OwnerId] + 2, world.Agents.Single(person => person.AgentId == memory.OwnerId)
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
     }
@@ -189,7 +189,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public ConcurrentQueue<string> Choices { get; } = new();
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
@@ -201,7 +201,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 : observation.Candidates.FirstOrDefault(item => item.Description == "Accept exchange: give one clothing, receive one gold_ornament.");
             choice ??= observation.Candidates.Single(item => item.Id == "safe_idle");
             Choices.Enqueue(choice.Description);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 choice.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d)));
         }

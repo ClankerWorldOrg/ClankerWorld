@@ -23,9 +23,9 @@ public sealed class ExplorationHandcartTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? Start : person.Position,
+                Position = person.AgentId == actor ? Start : person.Position,
                 HungerBasisPoints = 9_500,
                 Survival = new(),
                 LastDecisionContext = null,
@@ -38,7 +38,7 @@ public sealed class ExplorationHandcartTests
         Assert.Equal(TerrainKind.Mountain, state.Map.Tiles.Single(tile => tile.Position == Mountain).Terrain);
         Assert.True(state.Map.CanFootStep(Start, new(234, 54)));
         Assert.DoesNotContain(state.RoadTiles!, point => point == Mountain);
-        Assert.DoesNotContain(state.Inhabitants.Where(person => person.InhabitantId != actor),
+        Assert.DoesNotContain(state.Agents.Where(person => person.AgentId != actor),
             person => state.Map.FootDistance(Start, person.Position) <= 1);
         var chooser = new ScoutChooser(attached ? "attach_handcart:" + cart.Id : "safe_idle");
         using var initial = WorldRuntime.Restore(state, id => id == actor ? chooser : new ScoutChooser("safe_idle"));
@@ -58,11 +58,11 @@ public sealed class ExplorationHandcartTests
         var moves = 0;
         for (var tick = 0; tick < 40; tick++)
         {
-            var before = world.Inhabitants.Single(person => person.InhabitantId == actor);
+            var before = world.Agents.Single(person => person.AgentId == actor);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            var after = world.Inhabitants.Single(person => person.InhabitantId == actor);
+            var after = world.Agents.Single(person => person.AgentId == actor);
             var previousVisited = before.Exploration?.VisitedTiles ?? [];
             Assert.All(after.Exploration!.VisitedTiles, point => Assert.True(previousVisited.Contains(point) ||
                 point == before.Position || point == after.Position));
@@ -92,7 +92,7 @@ public sealed class ExplorationHandcartTests
             }
             world.Validate();
         }
-        var result = world.Inhabitants.Single(person => person.InhabitantId == actor);
+        var result = world.Agents.Single(person => person.AgentId == actor);
         Assert.True(moves > 0 || result.Exploration!.OutingPath.Count == 0,
             "A scout must take the available legal cart exit or end the outing within 40 native ticks.");
         Assert.Contains(world.ExportState().Events, item => item.Kind == "exploration_completed" &&
@@ -112,7 +112,7 @@ public sealed class ExplorationHandcartTests
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         // Crafting/payment is covered by NormalCraftLoadPullSaveParkAndUnloadConservePhysicalMaterials.
         // This fixture starts at the independent attachment/scouting boundary on unchanged generated terrain.
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "scout-cart", "handcart", actor, 1,

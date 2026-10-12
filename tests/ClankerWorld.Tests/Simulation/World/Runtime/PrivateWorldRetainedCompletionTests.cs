@@ -16,7 +16,7 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 15, 60);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
                 ? item with { Position = farStand, HungerBasisPoints = 0 }
                 : item).ToArray(),
             Society = state.Society with
@@ -27,7 +27,7 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
             ? provider
             : new ActionCoverageRecorder(chooseIdle: true));
-        GridPoint Position() => world.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor).Position;
+        GridPoint Position() => world.Agents.Single(item => item.AgentId == HarvestInstructionActor).Position;
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         // Newer guidance keeps the actor queued after its held reply is accepted.
@@ -41,11 +41,11 @@ public sealed partial class WorldRuntimeTests
 
         var before = Position();
         var completion = await world.AdvanceOneTickNonBlockingAsync();
-        Assert.Contains(completion.Decisions, item => item.InhabitantId == HarvestInstructionActor &&
+        Assert.Contains(completion.Decisions, item => item.AgentId == HarvestInstructionActor &&
             item.Admission.Intention?.CandidateId == "seek_food");
-        Assert.Contains(world.ExportState().Society.Cognition.Queue, entry => entry.InhabitantId == HarvestInstructionActor);
+        Assert.Contains(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == HarvestInstructionActor);
         Assert.True(world.ExportState().Map.FootDistance(before, Position()) <= 1);
-        Assert.True(completion.Events.Count(item => item.Kind == "inhabitant_moved" &&
+        Assert.True(completion.Events.Count(item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal)) <= 1);
     }
 
@@ -64,7 +64,7 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 7, 40);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
                 ? item with { Position = farStand, HungerBasisPoints = 10_000 }
                 : item).ToArray(),
         };
@@ -147,11 +147,11 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 7, 40);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
                 ? item with { Position = farStand, HungerBasisPoints = 10_000 }
                 : item).ToArray(),
         };
-        var blockerId = state.Society.Society.Inhabitants
+        var blockerId = state.Society.Society.Agents
             .Where(item => item.Id != HarvestInstructionActor && item.AgeBand != ClankerWorld.Simulation.Society.SocietyAgeBand.Infant)
             .Select(item => item.Id).OrderBy(item => item, StringComparer.Ordinal).First();
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
@@ -195,7 +195,7 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public int CallCount => Volatile.Read(ref callCount);
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -238,11 +238,11 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 7, 40);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
                 ? item with { Position = farStand, HungerBasisPoints = 10_000 }
                 : item).ToArray(),
         };
-        var blockerId = state.Society.Society.Inhabitants
+        var blockerId = state.Society.Society.Agents
             .Where(item => item.Id != HarvestInstructionActor && item.AgeBand != ClankerWorld.Simulation.Society.SocietyAgeBand.Infant)
             .Select(item => item.Id).OrderBy(item => item, StringComparer.Ordinal).First();
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
@@ -293,7 +293,7 @@ public sealed partial class WorldRuntimeTests
     private static GridPoint FarFromBerries(WorldRuntimeState state, int nearest, int farthest)
     {
         var source = state.Map.Resources.Single(item => item.Id == "berry-patch");
-        var occupied = state.Inhabitants.Where(item => item.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(item => item.AgentId != HarvestInstructionActor)
             .Select(item => item.Position).ToHashSet();
         return state.Map.Tiles.Select(item => item.Position)
             .Where(point => state.Map.IsPassable(point) && !occupied.Contains(point) &&
@@ -311,7 +311,7 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public int CallCount => Volatile.Read(ref callCount);
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

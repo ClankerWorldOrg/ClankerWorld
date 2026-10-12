@@ -16,11 +16,11 @@ public sealed class SettlementLearningTests
     {
         var state = await PreparedState();
         const string teacher = "founder-ilya";
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         var building = state.WorldContent!.Buildings[0];
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == teacher ? person with
+            Agents = state.Agents.Select(person => person.AgentId == teacher ? person with
             {
                 Skills = condition == "unskilled" ? null : person.Skills,
                 HungerBasisPoints = condition == "hungry" ? 1_000 : 9_000,
@@ -32,7 +32,7 @@ public sealed class SettlementLearningTests
         using var world = WorldRuntime.Restore(state, id => id == learner ? provider : new LessonProvider("safe_idle"));
         await world.AdvanceOneTickAsync();
         Assert.Equal(expected, provider.CandidateIds.Contains("learn:building:" + teacher));
-        Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetInhabitant(teacher).CurrentRole);
+        Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetAgent(teacher).CurrentRole);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public sealed class SettlementLearningTests
         var state = await PreparedState();
         using var valid = WorldRuntime.Restore(state);
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { SchemaVersion = 30 }));
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         foreach (var skill in new[]
         {
             new SettlementSkill(SettlementSkillKind.Building, state.Society.Society.WorldTick, "missing-teacher"),
@@ -50,7 +50,7 @@ public sealed class SettlementLearningTests
         {
             Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Skills = [skill] } : person).ToArray(),
             }));
         }
@@ -63,15 +63,15 @@ public sealed class SettlementLearningTests
         try
         {
             using var world = WorldRuntime.Restore(await PreparedState(), actor => new CancellationRaceProvider(actor));
-            var beforeRole = world.Society.GetInhabitant("founder-scout").CurrentRole;
+            var beforeRole = world.Society.GetAgent("founder-scout").CurrentRole;
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
             file.Save(world);
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(5));
             presence.RecordAuthenticatedReconnect("test-owner");
             using var service = new WorldRuntimeService(world, file, presence);
             for (var tick = 0; tick < 3; tick++) Assert.True(await service.TryAdvanceOnceAsync());
-            Assert.Equal("declined", world.Inhabitants.Single(person => person.InhabitantId == "founder-scout").Lesson!.Stage);
-            Assert.Equal(beforeRole, world.Society.GetInhabitant("founder-scout").CurrentRole);
+            Assert.Equal("declined", world.Agents.Single(person => person.AgentId == "founder-scout").Lesson!.Stage);
+            Assert.Equal(beforeRole, world.Society.GetAgent("founder-scout").CurrentRole);
             Assert.False(world.Society.IsPaused);
             Assert.True(await service.TryAdvanceOnceAsync());
             using var reloaded = file.LoadOrCreate(world.ExportState().WorldSeed);
@@ -99,15 +99,15 @@ public sealed class SettlementLearningTests
     public async Task BusyMentorCannotAcceptUntilTheirWorkStops()
     {
         var state = await PreparedState();
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         using var requesting = WorldRuntime.Restore(state, actor => new LessonProvider(actor == learner ? "learn:building:" : "safe_idle"));
         await requesting.AdvanceOneTickAsync();
         state = requesting.ExportState();
-        var teacher = state.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.TeacherId;
+        var teacher = state.Agents.Single(person => person.AgentId == learner).Lesson!.TeacherId;
         var definition = state.WorldContent!.Buildings[0];
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == teacher ? person with
+            Agents = state.Agents.Select(person => person.AgentId == teacher ? person with
             {
                 Project = new("build:building:" + definition.CanonicalId, definition.DisplayName, requesting.WorldTick, "acquiring",
                 LastTransitionTick: requesting.WorldTick),
@@ -115,64 +115,64 @@ public sealed class SettlementLearningTests
         };
         using var world = WorldRuntime.Restore(state, _ => new LessonProvider("lesson_accept:"));
         await world.AdvanceOneTickAsync();
-        Assert.Equal("requested", world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage);
-        Assert.Empty(world.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
+        Assert.Equal("requested", world.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
+        Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
     }
 
     [Fact]
     public async Task AcceptedTrainingSurvivesPauseAndRestartAndSavesTheSkillAndTeacher()
     {
         var state = await PreparedState();
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         IDecisionProvider Provider(string actor) => new LessonProvider(actor == learner ? "learn:building:" : "lesson_accept:");
         using var world = WorldRuntime.Restore(state, Provider);
         await world.AdvanceOneTickAsync();
-        Assert.Equal("requested", world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage);
-        Assert.Equal(SocietyWorkRole.Trader, world.Society.GetInhabitant(learner).CurrentRole);
-        for (var tick = 0; tick < 80 && world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress < 3; tick++)
+        Assert.Equal("requested", world.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
+        Assert.Equal(SocietyWorkRole.Trader, world.Society.GetAgent(learner).CurrentRole);
+        for (var tick = 0; tick < 80 && world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress < 3; tick++)
         {
             await world.AdvanceOneTickAsync();
         }
-        var lesson = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
+        var lesson = world.Agents.Single(person => person.AgentId == learner).Lesson!;
         Assert.InRange(lesson.Progress, 3, 19);
-        Assert.Equal(SocietyWorkRole.Trader, world.Society.GetInhabitant(learner).CurrentRole);
-        Assert.Equal(lesson.Progress, new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == learner).Lesson!.Progress);
+        Assert.Equal(SocietyWorkRole.Trader, world.Society.GetAgent(learner).CurrentRole);
+        Assert.Equal(lesson.Progress, new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == learner).Lesson!.Progress);
         world.Pause();
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Provider);
         restored.Resume();
-        for (var tick = 0; tick < 100 && restored.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage != "completed"; tick++)
+        for (var tick = 0; tick < 100 && restored.Agents.Single(person => person.AgentId == learner).Lesson!.Stage != "completed"; tick++)
         {
             await restored.AdvanceOneTickAsync();
         }
-        Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetInhabitant(learner).CurrentRole);
-        Assert.Equal("completed", restored.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage);
+        Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetAgent(learner).CurrentRole);
+        Assert.Equal("completed", restored.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
         Assert.Contains(restored.Society.Memories, memory => memory.OwnerId == learner && memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
-        var completed = restored.Inhabitants.Single(person => person.InhabitantId == learner);
+        var completed = restored.Agents.Single(person => person.AgentId == learner);
         var skill = Assert.Single(completed.Skills!);
         Assert.Equal(SettlementSkillKind.Building, skill.Kind);
         Assert.Equal(completed.Lesson!.TeacherId, skill.TeacherId);
         Assert.Equal(completed.Lesson.LastTransitionTick, skill.LearnedTick);
         Assert.Null(completed.Proficiency);
-        var shown = Assert.Single(new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants.Single(person => person.Id == learner).Skills);
+        var shown = Assert.Single(new OwnerWorldObservationStore(restored).GetSnapshot().Agents.Single(person => person.Id == learner).Skills);
         Assert.Equal(skill.TeacherId, shown.TeacherId);
-        Assert.Equal(restored.Society.GetInhabitant(skill.TeacherId!).Name, shown.TeacherName);
+        Assert.Equal(restored.Society.GetAgent(skill.TeacherId!).Name, shown.TeacherName);
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
         var wire = System.Text.Json.JsonSerializer.Serialize(new OwnerWorldObservationStore(restored).GetSnapshot(), options);
         using (var document = System.Text.Json.JsonDocument.Parse(wire))
         {
-            var wireLesson = document.RootElement.GetProperty("inhabitants").EnumerateArray()
+            var wireLesson = document.RootElement.GetProperty("agents").EnumerateArray()
                 .Single(person => person.GetProperty("id").GetString() == learner).GetProperty("lesson");
             Assert.Equal("building", wireLesson.GetProperty("role").GetString());
             Assert.False(wireLesson.TryGetProperty("skill", out _));
         }
         var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(wire, options)!;
-        Assert.Equal("building", client.Inhabitants.Single(person => person.Id == learner).Lesson!.Skill);
-        Assert.Equal(skill.TeacherId, Assert.Single(client.Inhabitants.Single(person => person.Id == learner).Skills!).TeacherId);
+        Assert.Equal("building", client.Agents.Single(person => person.Id == learner).Lesson!.Skill);
+        Assert.Equal(skill.TeacherId, Assert.Single(client.Agents.Single(person => person.Id == learner).Skills!).TeacherId);
         using var completedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(restored.ExportState())));
-        Assert.Equal(completed.Skills, completedReload.Inhabitants.Single(person => person.InhabitantId == learner).Skills);
+        Assert.Equal(completed.Skills, completedReload.Agents.Single(person => person.AgentId == learner).Skills);
         Assert.Equal(2, completed.SocialStanding!.Single(item => item.SubjectId == completed.Lesson!.TeacherId).Trust);
     }
 
@@ -180,63 +180,63 @@ public sealed class SettlementLearningTests
     public async Task MentorRefusalDoesNotGrantTheRequestedSkill()
     {
         var state = await PreparedState();
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         using var world = WorldRuntime.Restore(state, actor => new LessonProvider(actor == learner ? "learn:building:" : "lesson_decline:"));
         for (var tick = 0; tick < 5; tick++)
         {
             await world.AdvanceOneTickAsync();
         }
-        Assert.Equal("declined", world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage);
-        Assert.Equal(0, world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress);
-        Assert.Empty(world.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
-        Assert.Equal(SocietyWorkRole.Trader, world.Society.GetInhabitant(learner).CurrentRole);
+        Assert.Equal("declined", world.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
+        Assert.Equal(0, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
+        Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
+        Assert.Equal(SocietyWorkRole.Trader, world.Society.GetAgent(learner).CurrentRole);
     }
 
     [Fact]
     public async Task MentorDeathCancelsTrainingWithoutGrantingAnUnearnedSkill()
     {
         var state = await PreparedState();
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         using var world = WorldRuntime.Restore(state, actor => new LessonProvider(actor == learner ? "learn:building:" : "lesson_accept:"));
         await world.AdvanceOneTickAsync();
         await world.AdvanceOneTickAsync();
         state = world.ExportState();
-        var mentor = state.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.TeacherId;
+        var mentor = state.Agents.Single(person => person.AgentId == learner).Lesson!.TeacherId;
         using var society = SocietyRuntime.Restore(state.Society);
         society.Apply(checkpoint => SocietyRules.Kill(checkpoint, mentor, SocietyDeathCause.Accident, checkpoint.WorldTick));
-        state = state with { Society = society.ExportState(), Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != mentor).ToArray() };
+        state = state with { Society = society.ExportState(), Agents = state.Agents.Where(person => person.AgentId != mentor).ToArray() };
         using var restored = WorldRuntime.Restore(state, _ => new LessonProvider("safe_idle"));
         await restored.AdvanceOneTickAsync();
-        Assert.Equal("cancelled", restored.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage);
-        Assert.Empty(restored.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
-        Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetInhabitant(learner).CurrentRole);
+        Assert.Equal("cancelled", restored.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
+        Assert.Empty(restored.Agents.Single(person => person.AgentId == learner).Skills ?? []);
+        Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetAgent(learner).CurrentRole);
     }
 
     [Fact]
     public async Task HungerInterruptsTrainingWithoutLosingProgressOrGrantingTheSkill()
     {
         var state = await PreparedState();
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         using var world = WorldRuntime.Restore(state, actor => new LessonProvider(actor == learner ? "learn:building:" : "lesson_accept:"));
-        for (var tick = 0; tick < 80 && world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson?.Progress is not >= 3; tick++)
+        for (var tick = 0; tick < 80 && world.Agents.Single(person => person.AgentId == learner).Lesson?.Progress is not >= 3; tick++)
         {
             await world.AdvanceOneTickAsync();
         }
         state = world.ExportState();
-        var progress = state.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress;
+        var progress = state.Agents.Single(person => person.AgentId == learner).Lesson!.Progress;
         Assert.InRange(progress, 3, 19);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == learner ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == learner ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
         };
         using var restored = WorldRuntime.Restore(state, _ => new LessonProvider("safe_idle"));
         for (var tick = 0; tick < 10; tick++)
         {
             await restored.AdvanceOneTickAsync();
         }
-        Assert.Equal(progress, restored.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress);
-        Assert.Empty(restored.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
-        Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetInhabitant(learner).CurrentRole);
+        Assert.Equal(progress, restored.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
+        Assert.Empty(restored.Agents.Single(person => person.AgentId == learner).Skills ?? []);
+        Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetAgent(learner).CurrentRole);
     }
 
     [Fact]
@@ -246,14 +246,14 @@ public sealed class SettlementLearningTests
         try
         {
             var state = await PreparedState();
-            var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+            var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
             state = state with
             {
                 Society = state.Society with
                 {
                     Society = state.Society.Society with
                     {
-                        Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == learner
+                        Agents = state.Society.Society.Agents.Select(person => person.Id == learner
                             ? person with { Name = "lesson-free-text-secret" } : person).ToArray(),
                     },
                 },
@@ -278,18 +278,18 @@ public sealed class SettlementLearningTests
     public async Task InvalidTrainingProgressAndOldSchemaFailClosed()
     {
         var state = await PreparedState();
-        var learner = state.Inhabitants[0].InhabitantId;
-        var mentor = state.Inhabitants[1].InhabitantId;
+        var learner = state.Agents[0].AgentId;
+        var mentor = state.Agents[1].AgentId;
         var withLesson = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == learner
+            Agents = state.Agents.Select(person => person.AgentId == learner
                 ? person with { Lesson = new(mentor, SettlementSkillKind.Building, "training", 21, 0, 0) } : person).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(withLesson));
         withLesson = withLesson with
         {
             SchemaVersion = 7,
-            Inhabitants = withLesson.Inhabitants.Select(person => person.Lesson is { } lesson
+            Agents = withLesson.Agents.Select(person => person.Lesson is { } lesson
                 ? person with { Lesson = lesson with { Progress = 1 } } : person).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(withLesson));
@@ -302,13 +302,13 @@ public sealed class SettlementLearningTests
     public async Task APendingPersonalReplyContinuesAnAcceptedLessonWithoutAnsweringAPartnership(bool delayedStartup, int entryDelayMilliseconds)
     {
         var state = await PreparedState();
-        var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
+        var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
         using var setup = WorldRuntime.Restore(state,
             actor => new LessonProvider(actor == learner ? "learn:building:" : "lesson_accept:"));
-        for (var tick = 0; tick < 80 && setup.Inhabitants.Single(person => person.InhabitantId == learner).Lesson?.Progress is not >= 3; tick++)
+        for (var tick = 0; tick < 80 && setup.Agents.Single(person => person.AgentId == learner).Lesson?.Progress is not >= 3; tick++)
             Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         state = setup.ExportState();
-        var lesson = state.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
+        var lesson = state.Agents.Single(person => person.AgentId == learner).Lesson!;
         Assert.InRange(lesson.Progress, 3, 10);
         var teacher = lesson.TeacherId;
         var proposal = SocietyRules.ProposeRelationship(state.Society.Society,
@@ -345,13 +345,13 @@ public sealed class SettlementLearningTests
         Assert.Equal(entering, WorldRuntimeCodec.Encode(world.ExportState()));
         if (delayedStartup) Assert.True(world.WorldTick >= startAfter);
         Assert.Contains(Assert.Single(provider.Requests).Candidates, candidate => candidate.Id.StartsWith("partner_accept:", StringComparison.Ordinal));
-        var before = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
+        var before = world.Agents.Single(person => person.AgentId == learner).Lesson!;
         Assert.InRange(before.Progress, 3, 17);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.Equal(before.Progress + 3, world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress);
+        Assert.Equal(before.Progress + 3, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         Assert.Equal(SocietyRelationshipState.Proposed,
             world.Society.Relationships.Single(item => item.Id == "waiting-lesson-partnership").State);
         Assert.Single(provider.Requests);
@@ -394,14 +394,14 @@ public sealed class SettlementLearningTests
             {
                 Society = state.Society.Society with
                 {
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == "founder-ilya"
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == "founder-ilya"
                         ? person with { CurrentRole = SocietyWorkRole.Unassigned } : person).ToArray(),
                 }
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 LastDecisionContext = null,
-                Skills = person.InhabitantId == "founder-ilya"
+                Skills = person.AgentId == "founder-ilya"
                     ? [new(SettlementSkillKind.Building, state.Society.Society.WorldTick),
                         new(SettlementSkillKind.Farming, state.Society.Society.WorldTick)] : null,
             }).ToArray(),

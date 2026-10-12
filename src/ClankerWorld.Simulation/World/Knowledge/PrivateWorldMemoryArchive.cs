@@ -12,12 +12,12 @@ public sealed partial class WorldRuntime
         if (WorldTick % society.Checkpoint.Config.TicksPerWorldDay != 0) return;
         var protectedOwners = activeHostedIds.Concat(instructionsByIdempotency.Values
                 .Where(item => item.Order is { } order && IsActiveOrder(order.Status))
-                .Select(item => item.TargetInhabitantId))
-            .Concat(inhabitants.Values.Where(person =>
+                .Select(item => item.TargetAgentId))
+            .Concat(agents.Values.Where(person =>
                 person.Project is { Stage: not ("completed" or "cancelled") } || ActiveLesson(person.Lesson) ||
                 ActiveParenthood(person.Parenthood))
-                .Select(person => person.InhabitantId))
-            .Concat(inhabitants.Values.Where(person => ActiveLesson(person.Lesson))
+                .Select(person => person.AgentId))
+            .Concat(agents.Values.Where(person => ActiveLesson(person.Lesson))
                 .Select(person => person.Lesson!.TeacherId))
             .Concat(society.Checkpoint.Relationships.Where(item => item.State == SocietyRelationshipState.Proposed)
                 .SelectMany(item => new[] { item.ProposerId, item.TargetId }))

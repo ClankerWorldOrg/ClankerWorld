@@ -14,10 +14,10 @@ public sealed class FoodCapacityRoutingTests
         for (var tick = 0; tick < 3; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
         const string actor = "founder-scout";
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var berries = state.Map.Resources.Single(resource => resource.Id == "berry-patch");
         Assert.Equal(new GridPoint(4, 1), berries.Position);
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
         var naturalSites = state.Map.Resources.Select(resource => resource.Position).ToHashSet();
         var facilities = state.Map.MapObjects.Select(item => item.Position).ToHashSet();
         var buildingTiles = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
@@ -54,7 +54,7 @@ public sealed class FoodCapacityRoutingTests
         inventory = InventoryAuthority.AddLot(inventory, "actual-orchard-seed", "orchard_seed", actor, 1);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = stand,
@@ -94,7 +94,7 @@ public sealed class FoodCapacityRoutingTests
             (state.Map.Resources.Single(resource => resource.Id == orchardId).Kind,
                 state.Map.Resources.Single(resource => resource.Id == orchardId).TreeKind));
         Assert.True(state.Map.CanFootStep(stand, orchardPoint));
-        Assert.DoesNotContain(state.Inhabitants, person => person.InhabitantId != actor && person.Position == orchardPoint);
+        Assert.DoesNotContain(state.Agents, person => person.AgentId != actor && person.Position == orchardPoint);
         Assert.InRange(state.Map.FootDistance(orchardPoint, berries.Position), 0, 1);
         Assert.All(state.Map.Resources.Where(resource => resource.Kind == "food" && resource.Id != berries.Id),
             resource => Assert.True(state.Map.FootDistance(stand, berries.Position) < state.Map.FootDistance(stand, resource.Position) ||
@@ -114,7 +114,7 @@ public sealed class FoodCapacityRoutingTests
         Assert.Contains(choices.Offers, offer => offer.Contains("seek_food", StringComparer.Ordinal));
         Assert.Single(world.ExportState().Events, item => item.Kind == "food_harvested" && item.Detail == actor + ":4");
         Assert.Equal(berriesBefore - 1, world.WorldSystems.Ecology.GetResource(berries.Id).Quantity);
-        Assert.InRange(state.Map.FootDistance(world.Inhabitants.Single(person => person.InhabitantId == actor).Position, berries.Position), 0, 1);
+        Assert.InRange(state.Map.FootDistance(world.Agents.Single(person => person.AgentId == actor).Position, berries.Position), 0, 1);
         Assert.Equal(3, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "berries").Sum(lot => lot.Quantity));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "food_consumed" && item.Detail == actor);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "fruit_harvested" && item.Detail.Contains(orchardId, StringComparison.Ordinal));
@@ -140,7 +140,7 @@ public sealed class FoodCapacityRoutingTests
         Assert.Equal(8, PersonalEquipmentRules.CarriedQuantity(inventory, actor, null));
         Assert.Contains(state.Map.Resources, resource => resource.Kind == "food" &&
             state.Resources.Any(status => status.ResourceId == resource.Id && status.State == ResourceState.Available) &&
-            state.Map.IsReachableOnFoot(state.Inhabitants.Single(person => person.InhabitantId == actor).Position, resource.Position));
+            state.Map.IsReachableOnFoot(state.Agents.Single(person => person.AgentId == actor).Position, resource.Position));
         var choices = new FoodCapacityTestFixture.Choices("make_room_for_food", "collect_shared_food", "consume_food");
         using var world = FoodCapacityTestFixture.Restore(state, actor, choices);
         var pickedUp = false;
@@ -204,7 +204,7 @@ public sealed class FoodCapacityRoutingTests
                 society = society with
                 {
                     Config = legacy,
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     {
                         BirthTick = lifeTick - legacy.AdultYears * legacy.TicksPerLifecycleAge,
                         BirthLifeTick = society.LifeClock is null ? null : lifeTick - legacy.AdultYears * legacy.TicksPerLifecycleAge,
@@ -218,7 +218,7 @@ public sealed class FoodCapacityRoutingTests
             var birth = society.LifeTickAt(society.WorldTick) - ageYears * society.Config.TicksPerLifecycleAge;
             society = society with
             {
-                Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                Agents = society.Agents.Select(person => person.Id == actor ? person with
                 {
                     BirthTick = birth,
                     BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -238,8 +238,8 @@ public sealed class FoodCapacityRoutingTests
             Assert.Equal("founded", town.FoundingState);
             var governance = Assert.IsType<TownGovernanceState>(town.Governance);
             Assert.Equal("all_adult", governance.Form);
-            var adults = town.ResidentIds.Where(id => society.Inhabitants.Any(person =>
-                person.Id == id && person.Status == SocietyInhabitantStatus.Active &&
+            var adults = town.ResidentIds.Where(id => society.Agents.Any(person =>
+                person.Id == id && person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
                 .Order(StringComparer.Ordinal).ToArray();
             var updated = TownGovernanceRules.Advance(governance, town.Id, state.WorldSeed,

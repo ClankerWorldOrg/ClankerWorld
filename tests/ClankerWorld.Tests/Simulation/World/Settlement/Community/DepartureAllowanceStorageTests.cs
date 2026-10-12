@@ -50,7 +50,7 @@ public sealed class DepartureAllowanceStorageTests
         state = WithInventory(state, inventory) with
         {
             // Place the actor near the physical stock, with no urgent food competing with collection.
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = store.Position, HungerBasisPoints = 9_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -66,11 +66,11 @@ public sealed class DepartureAllowanceStorageTests
             using var host = new WorldRuntimeService(world, file, presence);
             world.Resume();
             if (displaced) Assert.True(world.DisplaceAdult(actor));
-            for (var tick = 0; tick < 8 && world.Society.GetInhabitant(actor).HouseholdId is not null; tick++)
+            for (var tick = 0; tick < 8 && world.Society.GetAgent(actor).HouseholdId is not null; tick++)
                 Assert.True(await host.TryAdvanceOnceAsync(), "An offered departure must remain saveable.");
-            Assert.Null(world.Society.GetInhabitant(actor).HouseholdId);
+            Assert.Null(world.Society.GetAgent(actor).HouseholdId);
             if (!displaced) Assert.True(choices.SelectedLeave);
-            var departure = Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+            var departure = Assert.Single(world.Agents.Single(person => person.AgentId == actor).Departures!);
             Assert.Equal(2, departure.AllowancePortions);
             var allowance = world.Society.Inventory.GetLot(Assert.Single(departure.AllowanceLotIds));
             Assert.Equal((actor, 2, storage, ground, (string?)null),
@@ -87,7 +87,7 @@ public sealed class DepartureAllowanceStorageTests
             var saved = reloaded.ExportState();
             saved = saved with
             {
-                Inhabitants = saved.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = saved.Agents.Select(person => person.AgentId == actor
                     ? person with { LastDecisionContext = null } : person).ToArray(),
             };
             using var collecting = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(saved)), _ => choices);
@@ -99,7 +99,7 @@ public sealed class DepartureAllowanceStorageTests
             Assert.Null(carried.StorageBuildingId);
             Assert.Null(carried.GroundPosition);
             Assert.Equal((actor, 2), (carried.OwnerId, carried.Quantity));
-            Assert.Single(collecting.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+            Assert.Single(collecting.Agents.Single(person => person.AgentId == actor).Departures!);
             var collected = WorldRuntimeCodec.Encode(collecting.ExportState());
             using var final = WorldRuntime.Restore(WorldRuntimeCodec.Decode(collected), _ => choices);
             Assert.Equal(collected, WorldRuntimeCodec.Encode(final.ExportState()));
@@ -122,12 +122,12 @@ public sealed class DepartureAllowanceStorageTests
         using var departing = WorldRuntime.Restore(WithInventory(state, inventory), _ => new Choices());
         Assert.True(departing.DisplaceAdult(actor));
         state = departing.ExportState();
-        var departure = Assert.Single(state.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+        var departure = Assert.Single(state.Agents.Single(person => person.AgentId == actor).Departures!);
         var id = Assert.Single(departure.AllowanceLotIds);
         inventory = InventoryAuthority.Relocate(state.Society.Society.Inventory, "invalid-store", id, actor, 2, storageBuildingId: Store);
         state = WithInventory(state, inventory);
         if (corruption == "unrecorded")
-            state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Departures = null } : person).ToArray() };
+            state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Departures = null } : person).ToArray() };
         else if (corruption == "wrong-household")
             state = state with { WorldSimulation = state.WorldSimulation! with { Buildings = state.WorldSimulation.Buildings.Select(building => building.InstanceId == Store ? building with { HouseholdId = "household:camp-beta" } : building).ToArray() } };
         else
@@ -153,7 +153,7 @@ public sealed class DepartureAllowanceStorageTests
             storageBuildingId: Store);
         using var leaving = WorldRuntime.Restore(WithInventory(state, inventory), _ => new Choices());
         Assert.True(leaving.DisplaceAdult(actor));
-        var allowanceId = Assert.Single(Assert.Single(leaving.Inhabitants.Single(person => person.InhabitantId == actor).Departures!).AllowanceLotIds);
+        var allowanceId = Assert.Single(Assert.Single(leaving.Agents.Single(person => person.AgentId == actor).Departures!).AllowanceLotIds);
         state = leaving.ExportState();
         var checkpoint = state.Society.Society;
         // Explicit lifecycle fixture: the departed adult reaches the normal
@@ -162,7 +162,7 @@ public sealed class DepartureAllowanceStorageTests
         var birth = checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge;
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
             {
                 BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -228,7 +228,7 @@ public sealed class DepartureAllowanceStorageTests
         }
         Assert.True(Assert.Single(settling.Society.Estates).Settled);
         var inherited = Assert.Single(settling.Society.Inventory.Lots, lot => lot.Id == allowanceId || lot.ProvenanceLotId == allowanceId);
-        var town = Assert.Single(settling.ExportState().DeceasedInhabitants!, person => person.InhabitantId == actor).TownId;
+        var town = Assert.Single(settling.ExportState().DeceasedAgents!, person => person.AgentId == actor).TownId;
         Assert.Equal((town, Store, 2, (string?)null), (inherited.OwnerId, inherited.StorageBuildingId, inherited.Quantity, inherited.CarrierId));
         var saved = WorldRuntimeCodec.Encode(settling.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new Choices());
@@ -261,7 +261,7 @@ public sealed class DepartureAllowanceStorageTests
                 }
             };
         var names = (namedHeirDies ? new[] { beneficiary, otherHeir } : [beneficiary])
-            .Select(id => state.Society.Society.GetInhabitant(id).Name).ToArray();
+            .Select(id => state.Society.Society.GetAgent(id).Name).ToArray();
         var will = new PostDeathWillTests.WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice(names.Select(name => PostDeathWillTests.HeirKey(observation, name)).ToArray(),
                 CognitionWillContext.EqualSplit));
@@ -282,7 +282,7 @@ public sealed class DepartureAllowanceStorageTests
             Assert.Contains(first.BeneficiaryIds, id => id == beneficiary);
             using var unavailable = WorldRuntime.Restore(DieOnNextTick(state, otherHeir), _ => new Choices());
             Assert.True((await unavailable.AdvanceOneTickNonBlockingAsync()).Advanced);
-            Assert.Equal(SocietyInhabitantStatus.Dead, unavailable.Society.GetInhabitant(otherHeir).Status);
+            Assert.Equal(SocietyAgentStatus.Dead, unavailable.Society.GetAgent(otherHeir).Status);
             state = unavailable.ExportState();
         }
         var ready = WorldRuntimeCodec.Encode(DueOnNextTick(state, first.Id));
@@ -302,7 +302,7 @@ public sealed class DepartureAllowanceStorageTests
 
         // The heir has no departure record. Its next real death must preserve
         // the first estate's physical allowance rather than requiring a new one.
-        Assert.Null(settling.Inhabitants.Single(person => person.InhabitantId == beneficiary).Departures);
+        Assert.Null(settling.Agents.Single(person => person.AgentId == beneficiary).Departures);
         using var secondDeath = WorldRuntime.Restore(DieOnNextTick(settling.ExportState(), beneficiary), _ => new Choices());
         Assert.True((await secondDeath.AdvanceOneTickNonBlockingAsync()).Advanced);
         var second = Assert.Single(secondDeath.Society.Estates, item => item.DeceasedId == beneficiary);
@@ -314,7 +314,7 @@ public sealed class DepartureAllowanceStorageTests
         Assert.Equal(held, WorldRuntimeCodec.Encode(reloaded.ExportState()));
         var unrecorded = reloaded.ExportState() with
         {
-            DeceasedInhabitants = reloaded.ExportState().DeceasedInhabitants!.Select(person => person.InhabitantId == actor
+            DeceasedAgents = reloaded.ExportState().DeceasedAgents!.Select(person => person.AgentId == actor
                 ? person with { LastPhysical = person.LastPhysical with { Departures = null } } : person).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(unrecorded));
@@ -343,7 +343,7 @@ public sealed class DepartureAllowanceStorageTests
         using var leaving = WorldRuntime.Restore(WithInventory(state, inventory), _ => new Choices());
         Assert.True(leaving.DisplaceAdult(actor));
         state = leaving.ExportState();
-        var departure = Assert.Single(leaving.Inhabitants.Single(person => person.InhabitantId == actor).Departures!);
+        var departure = Assert.Single(leaving.Agents.Single(person => person.AgentId == actor).Departures!);
         Assert.Equal(2, departure.AllowanceLotIds.Count);
         Assert.Equal(2, departure.AllowancePortions);
         Assert.Equal(2, state.Society.Society.Inventory.Lots.Where(lot => departure.AllowanceLotIds.Contains(lot.Id)).Sum(lot => lot.Quantity));
@@ -370,7 +370,7 @@ public sealed class DepartureAllowanceStorageTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -408,7 +408,7 @@ public sealed class DepartureAllowanceStorageTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var selected = observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId == Actor && candidate.Id == Wanted)
+            var selected = observation.Candidates.FirstOrDefault(candidate => observation.AgentId == Actor && candidate.Id == Wanted)
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             if (selected.Id == "household_leave") SelectedLeave = true;
             return new DeterministicDecisionProvider().DecideAsync(request with { Observation = observation with { Candidates = [selected] } }, cancellationToken);

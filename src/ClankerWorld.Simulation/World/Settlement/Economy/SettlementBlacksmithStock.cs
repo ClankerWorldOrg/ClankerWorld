@@ -48,7 +48,7 @@ public sealed partial class WorldRuntime
                     // The old tool becomes spare after the upgrade. The new
                     // shared tool is not carried yet and cannot be set down.
                     var cargo = SpareCargoForFood(actor, roomMissing);
-                    if (cargo.Count == 0 || SpareCargoDestination(actor, inhabitants[actor],
+                    if (cargo.Count == 0 || SpareCargoDestination(actor, agents[actor],
                             cargo.Sum(move => move.PhysicalQuantity)) is null)
                         continue;
                 }
@@ -103,9 +103,9 @@ public sealed partial class WorldRuntime
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private void AddBlacksmithOreCandidates(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state)
+        AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith ||
             DestinationRoom(blacksmith.InstanceId) == 0 ||
@@ -131,9 +131,9 @@ public sealed partial class WorldRuntime
             "Mine iron ore for the household Blacksmith.", 30, source.Id));
     }
 
-    private void GatherBlacksmithOre(string actor, InhabitantState state)
+    private void GatherBlacksmithOre(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith ||
             BlacksmithOreStocked(householdId, blacksmith.InstanceId) >= BlacksmithInputTarget(blacksmith.InstanceId, "iron_ore") ||
@@ -144,9 +144,9 @@ public sealed partial class WorldRuntime
             GatherProjectMaterial(actor, state, "iron_ore", source, returnTo: blacksmith.Position);
     }
 
-    private void DeliverBlacksmithOre(string actor, InhabitantState state)
+    private void DeliverBlacksmithOre(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith ||
             PersonalSmithOre(actor) is not { } ore)
@@ -206,7 +206,7 @@ public sealed partial class WorldRuntime
             BlacksmithInputForDelivery(householdId, blacksmith, actor, itemKind) is not { } input)
             return false;
         if (input.OwnerId != actor) return FreeCarryCapacity(actor) > 0;
-        var position = inhabitants[actor].Position;
+        var position = agents[actor].Position;
         return position == blacksmith.Position || FindUnoccupiedRoute(actor, position, blacksmith.Position, 0).Count > 0;
     }
 
@@ -233,9 +233,9 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void GatherBlacksmithInput(string actor, InhabitantState state, string itemKind)
+    private void GatherBlacksmithInput(string actor, AgentState state, string itemKind)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith ||
             BlacksmithInputToGather(householdId, blacksmith.InstanceId, actor) is not { } missing ||
@@ -245,7 +245,7 @@ public sealed partial class WorldRuntime
             GatherProjectMaterial(actor, state, itemKind, missing.Source, returnTo: blacksmith.Position);
     }
 
-    private bool MakeRoomForBlacksmithHarvest(string actor, InhabitantState state,
+    private bool MakeRoomForBlacksmithHarvest(string actor, AgentState state,
         string householdId, string itemKind, MapResource source)
     {
         if (ProjectMaterialHarvest(actor, itemKind, source) is not { } plan)
@@ -255,7 +255,7 @@ public sealed partial class WorldRuntime
             SpareCargoForFood(actor, missing, plan.ToolLotId));
     }
 
-    private bool CanMakeRoomForBlacksmithHarvest(string actor, InhabitantState state,
+    private bool CanMakeRoomForBlacksmithHarvest(string actor, AgentState state,
         string itemKind, MapResource source)
     {
         if (ProjectMaterialHarvest(actor, itemKind, source) is not { } plan)
@@ -281,9 +281,9 @@ public sealed partial class WorldRuntime
     }
 
     private void AddBlacksmithStockCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state)
+        AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || CarriedHouseDelivery(actor) is not null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith)
         {
@@ -325,9 +325,9 @@ public sealed partial class WorldRuntime
             24, blacksmith.InstanceId));
     }
 
-    private void HaulBlacksmithInput(string actor, InhabitantState state)
+    private void HaulBlacksmithInput(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null ||
             BlacksmithForHousehold(householdId) is not { } blacksmith ||
             BlacksmithInputForDelivery(householdId, blacksmith, actor) is not { } input)
@@ -379,7 +379,7 @@ public sealed partial class WorldRuntime
         AppendEvent("smith_input_picked_up", $"{actor}:{input.Id}:{quantity}:{blacksmith.InstanceId}");
     }
 
-    private DeliveryOrderPlan? GetBlacksmithOrderPlan(string actor, InhabitantState person,
+    private DeliveryOrderPlan? GetBlacksmithOrderPlan(string actor, AgentState person,
         OwnerInstructionOrder order, int maximumQuantity)
     {
         if (!AdultResident(actor) || HouseholdFor(actor) is not { } householdId ||

@@ -25,16 +25,16 @@ public sealed partial class WorldConversationTests
         var submitted = Assert.Single(world.ExportState().Instructions!).Order!;
         Assert.Equal("talk_to", submitted.Action);
         Assert.Equal(InviteeId, submitted.TargetAgentId);
-        var destination = world.ExportState().Map.FootNeighbors(world.Inhabitants.Single(item => item.InhabitantId == InitiatorId).Position)
-            .First(point => world.ExportState().Map.IsPassable(point) && world.Inhabitants.All(item => item.Position != point));
+        var destination = world.ExportState().Map.FootNeighbors(world.Agents.Single(item => item.AgentId == InitiatorId).Position)
+            .First(point => world.ExportState().Map.IsPassable(point) && world.Agents.All(item => item.Position != point));
         world.SubmitInstruction(new("after-talk", "owner:test", InitiatorId, OwnerInstructionKind.MustDo,
             $"Move to ({destination.X}, {destination.Y})", Queue: true));
-        var originalPosition = world.Inhabitants.Single(item => item.InhabitantId == InitiatorId).Position;
+        var originalPosition = world.Agents.Single(item => item.AgentId == InitiatorId).Position;
         for (var tick = 0; tick < 40 && world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!.Status != "finished"; tick++)
         {
             await AdvanceTalkOrderTick(world);
             if (world.Conversations.Any(item => item.Status != AgentConversationStatus.Closed))
-                Assert.Equal(originalPosition, world.Inhabitants.Single(item => item.InhabitantId == InitiatorId).Position);
+                Assert.Equal(originalPosition, world.Agents.Single(item => item.AgentId == InitiatorId).Position);
         }
         var conversation = Assert.Single(world.Conversations);
         Assert.Equal(AgentConversationStatus.Closed, conversation.Status);
@@ -58,9 +58,9 @@ public sealed partial class WorldConversationTests
         }
         Assert.Equal(0, TrustScore(world, InitiatorId, InviteeId));
         Assert.Equal(0, TrustScore(world, InviteeId, InitiatorId));
-        for (var tick = 0; tick < 8 && world.Inhabitants.Single(item => item.InhabitantId == InitiatorId).Position != destination; tick++)
+        for (var tick = 0; tick < 8 && world.Agents.Single(item => item.AgentId == InitiatorId).Position != destination; tick++)
             await AdvanceTalkOrderTick(world);
-        Assert.Equal(destination, world.Inhabitants.Single(item => item.InhabitantId == InitiatorId).Position);
+        Assert.Equal(destination, world.Agents.Single(item => item.AgentId == InitiatorId).Position);
         Assert.Single(world.Conversations);
     }
 
@@ -73,7 +73,7 @@ public sealed partial class WorldConversationTests
         setup.StartWorld();
         var initial = setup.ExportState();
         using var namedSociety = SocietyRuntime.Restore(initial.Society);
-        namedSociety.Apply(checkpoint => SocietyRules.RenameInhabitant(checkpoint, InviteeId, "Élodie Reed"));
+        namedSociety.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, InviteeId, "Élodie Reed"));
         using var named = WorldRuntime.Restore(initial with { Society = namedSociety.ExportState() }, factory);
         var held = named.SubmitInstruction(new("hold-talk", "owner:test", InitiatorId, OwnerInstructionKind.MustDo, "Move to (1000,1000)"));
         var talk = named.SubmitInstruction(new("named-talk", "owner:test", InitiatorId, OwnerInstructionKind.MustDo,
@@ -83,7 +83,7 @@ public sealed partial class WorldConversationTests
         Assert.Equal("queued", queued.Instructions!.Single(item => item.InstructionId == talk.InstructionId).Order!.Status);
         Assert.Equal(InviteeId, queued.Instructions!.Single(item => item.InstructionId == talk.InstructionId).Order!.TargetAgentId);
         using var renamed = SocietyRuntime.Restore(queued.Society);
-        renamed.Apply(checkpoint => SocietyRules.RenameInhabitant(checkpoint, InviteeId, "River Reed"));
+        renamed.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, InviteeId, "River Reed"));
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             queued with { Society = renamed.ExportState() })), factory);
         world.CancelOrder(new("release-talk", "owner:test", world.Society.WorldId, InitiatorId, held.InstructionId));
@@ -100,17 +100,17 @@ public sealed partial class WorldConversationTests
     {
         var provider = new TalkOrderProvider(decline: true);
         using var world = NormalPathWorld.CreateGenerated("normal-talk-order", _ => provider);
-        var people = world.Inhabitants.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray();
-        provider.SpeakIds.UnionWith(people.Select(item => item.InhabitantId));
+        var people = world.Agents.OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray();
+        provider.SpeakIds.UnionWith(people.Select(item => item.AgentId));
         var pair = (from actor in people
                     from target in people
-                    where actor.InhabitantId != target.InhabitantId
+                    where actor.AgentId != target.AgentId
                     orderby world.ExportState().Map.FootDistance(actor.Position, target.Position) descending
                     select (actor, target)).First();
         Assert.True(world.ExportState().Map.FootDistance(pair.actor.Position, pair.target.Position) > 1);
-        provider.DeclineAgent = pair.target.InhabitantId;
-        var order = world.SubmitInstruction(new("generated-talk", "owner:test", pair.actor.InhabitantId,
-            OwnerInstructionKind.MustDo, "Talk to " + pair.target.InhabitantId));
+        provider.DeclineAgent = pair.target.AgentId;
+        var order = world.SubmitInstruction(new("generated-talk", "owner:test", pair.actor.AgentId,
+            OwnerInstructionKind.MustDo, "Talk to " + pair.target.AgentId));
         var initial = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(initial), _ => provider);
         for (var tick = 0; tick < 40 && !world.ExportState().CompletedInstructionIds!.Contains(order.InstructionId); tick++)
@@ -120,8 +120,8 @@ public sealed partial class WorldConversationTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             if (world.Conversations.Count != 0)
                 Assert.True(world.ExportState().Map.FootDistance(
-                    world.Inhabitants.Single(item => item.InhabitantId == pair.actor.InhabitantId).Position,
-                    world.Inhabitants.Single(item => item.InhabitantId == pair.target.InhabitantId).Position) <= 1);
+                    world.Agents.Single(item => item.AgentId == pair.actor.AgentId).Position,
+                    world.Agents.Single(item => item.AgentId == pair.target.AgentId).Position) <= 1);
         }
         Assert.Equal("refused", Assert.Single(world.Conversations).Outcome);
         Assert.Equal(1, world.ExportState().Instructions!.Single().Order!.CompletedUnits);
@@ -325,13 +325,13 @@ public sealed partial class WorldConversationTests
             request.Validate();
             cancellationToken.ThrowIfCancellationRequested();
             var observation = request.Observation;
-            var selected = observation.Candidates.FirstOrDefault(candidate => decline && observation.InhabitantId == DeclineAgent &&
+            var selected = observation.Candidates.FirstOrDefault(candidate => decline && observation.AgentId == DeclineAgent &&
                     candidate.Id.StartsWith("conversation_decline:", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(candidate => !decline && candidate.Id.StartsWith("conversation_accept:", StringComparison.Ordinal)) ??
-                observation.Candidates.FirstOrDefault(candidate => ResumeAgents.ContainsKey(observation.InhabitantId) && candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)) ??
+                observation.Candidates.FirstOrDefault(candidate => ResumeAgents.ContainsKey(observation.AgentId) && candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("conversation_wrapup_accept:", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(candidate => candidate.Id == "safe_idle") ?? observation.Candidates[0];
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1d, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 ChosenName: observation.NeedsName ? observation.Self?.Name ?? "Test Agent" : null,

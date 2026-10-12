@@ -17,7 +17,7 @@ public sealed partial class SettlementParenthoodTests
         var state = world.ExportState();
         var childId = Assert.Single(state.Society.Society.Births).ChildId;
         var search = Assert.IsType<SettlementGuardianSearch>(
-            Assert.Single(state.Inhabitants, person => person.InhabitantId == childId).GuardianSearch);
+            Assert.Single(state.Agents, person => person.AgentId == childId).GuardianSearch);
         Assert.Equal("household", search.Stage);
         Assert.NotEmpty(search.OfferedAdultIds);
         var canonical = WorldRuntimeCodec.Encode(state);
@@ -35,7 +35,7 @@ public sealed partial class SettlementParenthoodTests
         };
         var damaged = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == childId
+            Agents = state.Agents.Select(person => person.AgentId == childId
                 ? person with { GuardianSearch = invalidSearch }
                 : person).ToArray(),
         };

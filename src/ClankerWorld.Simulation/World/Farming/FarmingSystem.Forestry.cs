@@ -27,7 +27,7 @@ internal sealed partial class FarmingSystem
         resource.Id.StartsWith(TreeGrowthRules.PlantedTreeIdPrefix, StringComparison.Ordinal);
 
     internal static void AddForestryCandidates(IFarmingWorld world, List<CognitionCandidate> candidates, string actor,
-        InhabitantState state)
+        AgentState state)
     {
         var carried = world.HasCarriedOwnItem(actor, TreeGrowthRules.TreeSeedItem);
         var orchardCarried = CarriedPlantingSeed(world, actor, TreeGrowthRules.OrchardSeedItem) is not null;
@@ -65,7 +65,7 @@ internal sealed partial class FarmingSystem
                 world.FindUnoccupiedRoute(actor, origin, resource.Position, 1).Count > 0);
     }
 
-    internal static void ReplantTree(IFarmingWorld world, string actor, InhabitantState state)
+    internal static void ReplantTree(IFarmingWorld world, string actor, AgentState state)
     {
         var tree = ReplantableTree(world, actor, state.Position);
         if (tree is null) return;
@@ -102,7 +102,7 @@ internal sealed partial class FarmingSystem
     {
         if (!TreeGrowthRules.IsPlantableSpecies(species))
             return TreePlantingResult.Refused(TreePlantingRefusal.UnsupportedSpecies);
-        if (!world.Inhabitants.TryGetValue(planterId, out var planter) || !world.AdultResident(planterId))
+        if (!world.Agents.TryGetValue(planterId, out var planter) || !world.AdultResident(planterId))
             return TreePlantingResult.Refused(TreePlantingRefusal.PlanterUnavailable);
         var seed = world.Society.Inventory.Lots.FirstOrDefault(lot => lot.Id == seedLotId);
         if (seed is null)
@@ -144,7 +144,7 @@ internal sealed partial class FarmingSystem
         return TreePlantingResult.Success(tree.Id, species);
     }
 
-    internal static void PlantTreeNearby(IFarmingWorld world, string actor, InhabitantState state, bool orchard = false)
+    internal static void PlantTreeNearby(IFarmingWorld world, string actor, AgentState state, bool orchard = false)
     {
         if (PlantingSite(world, actor, state.Position) is not { } site) return;
         var seedKind = orchard ? TreeGrowthRules.OrchardSeedItem : TreeGrowthRules.TreeSeedItem;

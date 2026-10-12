@@ -68,7 +68,7 @@ public sealed partial class WorldConversationTests
         }));
         Reject(original with { OwnerId = "unknown-owner" });
         Reject(original with { SourceAgentId = "unknown-reporter" });
-        Reject(original with { AboutInhabitantId = "unknown-subject" });
+        Reject(original with { AboutAgentId = "unknown-subject" });
         Reject(original with { SupersedesBeliefId = "belief:missing" });
         Reject(original with { SupersededByBeliefId = "belief:missing", SupersededTick = checkpoint.WorldTick });
 

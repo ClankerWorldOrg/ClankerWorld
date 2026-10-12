@@ -10,7 +10,7 @@ public sealed partial class BusinessTradeTests
     {
         using var initial = NormalPathWorld.CreateGenerated("ordinary-milk-resale", _ => new ShopProvider());
         var state = initial.ExportState();
-        var parties = state.Inhabitants.Take(2).Select(person => person.InhabitantId).ToArray();
+        var parties = state.Agents.Take(2).Select(person => person.AgentId).ToArray();
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "ordinary-resale-milk", "milk", parties[0], 1);
         inventory = InventoryAuthority.AddLot(inventory, "ordinary-resale-payment", "stone", parties[1], 1);

@@ -20,15 +20,15 @@ public sealed class GuardianPlacementUnicodeTests
         var scenario = GuardianPlacementTestFixture.Prepared();
         var child = scenario.Children[0];
         var state = WorldRuntimeCodec.Decode(await Escorting.Value);
-        var placement = state.Inhabitants.Single(person => person.InhabitantId == child).GuardianPlacement!;
+        var placement = state.Agents.Single(person => person.AgentId == child).GuardianPlacement!;
         var actor = placement.CaregiverId;
         // A controlled cold guardian interrupts its accepted escort through the
         // runtime's own warmth blocker. No derived note or blocker is injected.
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child
+            Agents = state.Agents.Select(person => person.AgentId == child
                 ? person with { LastDecisionContext = null }
-                : person.InhabitantId == actor ? person with
+                : person.AgentId == actor ? person with
                 {
                     LastDecisionContext = null,
                     Survival = person.Survival! with { WarmthBasisPoints = 0 },
@@ -50,18 +50,18 @@ public sealed class GuardianPlacementUnicodeTests
         Assert.Equal(220, childStart); // Keep these rows at, before and after the actual cutoff.
         Assert.Equal(noteLength, note.Length);
         Assert.Equal(new string('a', namePrefix) + (includesEmoji ? "😀" : string.Empty), note[childStart..]);
-        var wire = JsonSerializer.Deserialize<InhabitantObservation>(JsonSerializer.Serialize(observation))!;
+        var wire = JsonSerializer.Deserialize<AgentObservation>(JsonSerializer.Serialize(observation))!;
         Assert.Equal(note, wire.Self!.HousingNote);
         _ = new UTF8Encoding(false, true).GetBytes(note);
-        Assert.Equal(name, world.Society.GetInhabitant(child).Name);
+        Assert.Equal(name, world.Society.GetAgent(child).Name);
         _ = new UTF8Encoding(false, true).GetBytes(name);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var reload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new Capture(actor));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reload.ExportState()));
         var after = Assert.IsType<SettlementGuardianPlacement>(GuardianPlacementTestFixture.Person(world, child).GuardianPlacement);
         Assert.Equal(placement, after with { Blocker = placement.Blocker });
-        Assert.Equal(placement.CaregiverId, world.Society.GetInhabitant(child).PrimaryCaregiverId);
-        Assert.Equal(state.Society.Society.GetInhabitant(child).HouseholdId, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(placement.CaregiverId, world.Society.GetAgent(child).PrimaryCaregiverId);
+        Assert.Equal(state.Society.Society.GetAgent(child).HouseholdId, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, GuardianPlacementTestFixture.TownOf(world, child));
     }
 
@@ -78,16 +78,16 @@ public sealed class GuardianPlacementUnicodeTests
 
     private sealed class Capture(string actor) : IDecisionProvider
     {
-        internal ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            if (request.Observation.InhabitantId == actor && request.Observation.Self?.HousingNote is not null)
+            if (request.Observation.AgentId == actor && request.Observation.Self?.HousingNote is not null)
                 Observations.Enqueue(request.Observation);
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, "safe_idle", 1,
                 request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == "safe_idle" ? 1d : 0d)));
         }

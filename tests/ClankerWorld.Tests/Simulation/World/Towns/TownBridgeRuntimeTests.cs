@@ -78,10 +78,10 @@ public sealed class TownBridgeRuntimeTests
         // An agent standing on the deck, and its memory of that tile, are
         // valid. Without the bridge it would be wading the two-tile river
         // there, which is valid too; water too deep to wade is refused.
-        var walker = state.Inhabitants[0].InhabitantId;
+        var walker = state.Agents[0].AgentId;
         var onDeck = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == walker
+            Agents = state.Agents.Select(person => person.AgentId == walker
                 ? person with { Position = bridge.Span[1] } : person).ToArray(),
             Knowledge = state.Knowledge! with
             {
@@ -90,13 +90,13 @@ public sealed class TownBridgeRuntimeTests
             },
         };
         using (var standing = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(onDeck))))
-            Assert.Equal(bridge.Span[1], standing.Inhabitants.Single(person => person.InhabitantId == walker).Position);
+            Assert.Equal(bridge.Span[1], standing.Agents.Single(person => person.AgentId == walker).Position);
         using (var wading = WorldRuntime.Restore(onDeck with { Bridges = [] }))
             Assert.Equal(WorldMap.TwoTileWadingFootCost, wading.ExportState().Map.FootTravelCost(bridge.Span[1]));
         var deepWater = map.Tiles.Select(tile => tile.Position).First(point => !map.IsLand(point) && !map.IsPassable(point));
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(onDeck with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == walker
+            Agents = state.Agents.Select(person => person.AgentId == walker
                 ? person with { Position = deepWater } : person).ToArray(),
         }));
 
@@ -256,7 +256,7 @@ public sealed class TownBridgeRuntimeTests
         for (var tick = 0; tick < 20 && control.BridgeTraffic.Completed.All(item => item.AgentId != TrafficAgentId); tick++)
         {
             Assert.True((await control.AdvanceOneTickAsync()).Advanced);
-            var position = control.Inhabitants.Single(item => item.InhabitantId == TrafficAgentId).Position;
+            var position = control.Agents.Single(item => item.AgentId == TrafficAgentId).Position;
             if (position == new GridPoint(102, 19))
             {
                 wadingSeen = true;
@@ -318,7 +318,7 @@ public sealed class TownBridgeRuntimeTests
         for (var tick = 0; tick < 20 && control.BridgeTraffic.Completed.All(item => item.AgentId != TrafficAgentId); tick++)
         {
             Assert.True((await control.AdvanceOneTickAsync()).Advanced);
-            var position = control.Inhabitants.Single(item => item.InhabitantId == TrafficAgentId).Position;
+            var position = control.Agents.Single(item => item.AgentId == TrafficAgentId).Position;
             ticksAt[position] = ticksAt.GetValueOrDefault(position) + 1;
             if (!water.Contains(position)) continue;
             Assert.Equal(new BridgeTrafficWade(TrafficAgentId, crossingId, start),
@@ -327,7 +327,7 @@ public sealed class TownBridgeRuntimeTests
             if (position == water[1]) midstream ??= control.ExportState();
         }
         Assert.Equal([3, 3], water.Select(tile => ticksAt.GetValueOrDefault(tile)));
-        Assert.Equal(farBank, control.Inhabitants.Single(item => item.InhabitantId == TrafficAgentId).Position);
+        Assert.Equal(farBank, control.Agents.Single(item => item.AgentId == TrafficAgentId).Position);
         Assert.Equal(crossingId, Assert.Single(control.BridgeTraffic.Completed, item => item.AgentId == TrafficAgentId).CrossingId);
         Assert.Empty(control.Bridges);
 
@@ -404,7 +404,7 @@ public sealed class TownBridgeRuntimeTests
             Bridges = [bridge],
             BridgeTraffic = BridgeTrafficState.Empty,
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == TrafficAgentId
+            Agents = state.Agents.Select(person => person.AgentId == TrafficAgentId
                 ? person with { Position = crossing.EntranceA } : person).ToArray(),
         });
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -462,7 +462,7 @@ public sealed class TownBridgeRuntimeTests
         ];
         return WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == TrafficAgentId
+            Agents = state.Agents.Select(person => person.AgentId == TrafficAgentId
                 ? person with { HungerBasisPoints = 3_000 } : person).ToArray(),
             BridgeTraffic = seedEvidence ? new BridgeTrafficState([], earlier) : state.BridgeTraffic,
         });

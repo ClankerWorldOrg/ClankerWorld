@@ -25,7 +25,7 @@ public sealed partial class ToolMakingRequestTests
         var (state, _, worker, shop) = Prepared();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker
+            Agents = state.Agents.Select(person => person.AgentId == worker
                 ? person with { Position = shop.Position } : person).ToArray(),
         };
         if (kind == InventoryContainerRules.Handcart)

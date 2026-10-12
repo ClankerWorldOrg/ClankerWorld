@@ -10,17 +10,17 @@ public sealed class ReachableMentorTests
     public async Task AnIsolatedSkilledMentorDoesNotHideAReachableLesson(bool isolatedSkilled)
     {
         var state = await Prepared(isolatedSkilled);
-        var adults = state.Inhabitants.Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray();
+        var adults = state.Agents.Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray();
         var isolated = adults[0];
         var reachable = adults[1];
         var learner = adults[2];
         var policy = Policy(isolated, reachable, learner);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), policy.CreateProvider);
-        for (var tick = 0; tick < 50 && (world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson?.Progress ?? 0) < 3; tick++)
+        for (var tick = 0; tick < 50 && (world.Agents.Single(person => person.AgentId == learner).Lesson?.Progress ?? 0) < 3; tick++)
             await world.AdvanceOneTickAsync();
         Assert.Contains(policy.OfferedTo(learner), candidate => candidate.Id == "learn:building:" + reachable);
         Assert.DoesNotContain(policy.OfferedTo(learner), candidate => candidate.Id == "learn:building:" + isolated);
-        Assert.InRange(world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress, 3, 19);
+        Assert.InRange(world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress, 3, 19);
         world.Pause();
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);
@@ -32,13 +32,13 @@ public sealed class ReachableMentorTests
         var before = WorldRuntimeCodec.Encode(restored.ExportState());
         Assert.False((await restored.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(restored.ExportState()));
-        for (var tick = 0; tick < 60 && restored.Inhabitants.Single(person => person.InhabitantId == learner).Lesson?.Stage != "completed"; tick++)
+        for (var tick = 0; tick < 60 && restored.Agents.Single(person => person.AgentId == learner).Lesson?.Stage != "completed"; tick++)
         {
             await restored.AdvanceOneTickAsync();
             await replay.AdvanceOneTickAsync();
             Assert.Equal(WorldRuntimeCodec.Encode(restored.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var person = restored.Inhabitants.Single(person => person.InhabitantId == learner);
+        var person = restored.Agents.Single(person => person.AgentId == learner);
         Assert.Equal("completed", person.Lesson?.Stage);
         Assert.Equal(20, person.Lesson?.Progress);
         var skill = Assert.Single(person.Skills!);
@@ -53,11 +53,11 @@ public sealed class ReachableMentorTests
     public async Task AnIsolatedLearnerIsNotOfferedAnUnreachableLesson()
     {
         var state = await Prepared(isolatedSkilled: false);
-        var adults = state.Inhabitants.Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray();
+        var adults = state.Agents.Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray();
         var learner = adults[2];
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == learner
+            Agents = state.Agents.Select(person => person.AgentId == learner
             ? person with { Position = Island(state), LastDecisionContext = null } : person).ToArray()
         };
         var policy = Policy(adults[0], adults[1], learner);
@@ -65,8 +65,8 @@ public sealed class ReachableMentorTests
         for (var tick = 0; tick < 4; tick++) await world.AdvanceOneTickAsync();
         Assert.NotEmpty(policy.OfferedTo(learner));
         Assert.DoesNotContain(policy.OfferedTo(learner), candidate => candidate.Id.StartsWith("learn:", StringComparison.Ordinal));
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson);
-        Assert.Empty(world.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
+        Assert.Null(world.Agents.Single(person => person.AgentId == learner).Lesson);
+        Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
@@ -79,7 +79,7 @@ public sealed class ReachableMentorTests
         using var generated = NormalPathWorld.CreateGenerated("island-lesson-audit-0", initialPolicy.CreateProvider);
         await generated.AdvanceOneTickAsync();
         var state = generated.ExportState();
-        var adults = state.Inhabitants.Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray();
+        var adults = state.Agents.Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray();
         var isolated = adults[0];
         var reachable = adults[1];
         var learner = adults[2];
@@ -89,14 +89,14 @@ public sealed class ReachableMentorTests
         using (var search = new UnoccupiedRouteSearch(state.Map, island, [], (_, _) => 1))
             Assert.Empty(search.RouteTo(site, 1));
         var beside = state.Map.FootNeighbors(site).First(point => state.Map.IsPassable(point) &&
-            state.Map.FootDistance(point, site) == 1 && !state.Inhabitants.Any(person => person.Position == point));
+            state.Map.FootDistance(point, site) == 1 && !state.Agents.Any(person => person.Position == point));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == isolated ? island : person.InhabitantId == reachable ? site :
-                    person.InhabitantId == learner ? beside : person.Position,
-                Skills = person.InhabitantId == reachable || person.InhabitantId == isolated && isolatedSkilled
+                Position = person.AgentId == isolated ? island : person.AgentId == reachable ? site :
+                    person.AgentId == learner ? beside : person.Position,
+                Skills = person.AgentId == reachable || person.AgentId == isolated && isolatedSkilled
                     ? [new(SettlementSkillKind.Building, state.Society.Society.WorldTick)] : null,
                 Project = null,
                 HungerBasisPoints = 10_000,

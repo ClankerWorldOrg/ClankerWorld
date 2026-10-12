@@ -8,14 +8,14 @@ internal static class InstructionRecipientFixture
     public static WorldRuntimeState AfterDeath(WorldRuntimeState state, string targetId)
     {
         var checkpoint = SocietyRules.Kill(state.Society.Society, targetId, SocietyDeathCause.Accident).Checkpoint;
-        var physical = state.Inhabitants.Single(item => item.InhabitantId == targetId);
-        var deceased = checkpoint.GetInhabitant(targetId);
+        var physical = state.Agents.Single(item => item.AgentId == targetId);
+        var deceased = checkpoint.GetAgent(targetId);
         return state with
         {
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Where(item => item.InhabitantId != targetId).ToArray(),
-            DeceasedInhabitants = (state.DeceasedInhabitants ?? []).Append(
-                new DeceasedInhabitantState(targetId, checkpoint.WorldTick,
+            Agents = state.Agents.Where(item => item.AgentId != targetId).ToArray(),
+            DeceasedAgents = (state.DeceasedAgents ?? []).Append(
+                new DeceasedAgentState(targetId, checkpoint.WorldTick,
                     checkpoint.AgeAt(deceased, checkpoint.WorldTick), physical)).ToArray(),
         };
     }

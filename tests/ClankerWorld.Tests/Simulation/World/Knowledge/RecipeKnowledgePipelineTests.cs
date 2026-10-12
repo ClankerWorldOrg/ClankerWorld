@@ -19,11 +19,11 @@ public sealed class RecipeKnowledgePipelineTests
         Assert.Equal((author, author, "practice", recipeId),
             (recipe.OwnerId, recipe.DiscovererId, recipe.Acquisition, recipe.RecipeId));
         Assert.Empty(state.Knowledge.Facts);
-        var reader = state.Inhabitants.First(person => person.InhabitantId != author &&
-            state.Society.Society.GetInhabitant(person.InhabitantId).HouseholdId !=
-            state.Society.Society.GetInhabitant(author).HouseholdId).InhabitantId;
-        var untouched = state.Inhabitants.First(person => person.InhabitantId != author && person.InhabitantId != reader).InhabitantId;
-        var skills = state.Inhabitants.Single(person => person.InhabitantId == reader).Skills ?? [];
+        var reader = state.Agents.First(person => person.AgentId != author &&
+            state.Society.Society.GetAgent(person.AgentId).HouseholdId !=
+            state.Society.Society.GetAgent(author).HouseholdId).AgentId;
+        var untouched = state.Agents.First(person => person.AgentId != author && person.AgentId != reader).AgentId;
+        var skills = state.Agents.Single(person => person.AgentId == reader).Skills ?? [];
         Assert.Empty(skills);
         using var writing = Restore(Supply(state, author, paper, cloth), author, "knowledge_write:" + kind, "knowledge_continue");
         await Until(writing, () => writing.ExportState().Knowledge!.WritingProjects.Count == 1);
@@ -73,10 +73,10 @@ public sealed class RecipeKnowledgePipelineTests
         var learned = Assert.Single(read.Knowledge!.Recipes, item => item.OwnerId == reader);
         Assert.Equal((recipeId, author, original.Id, recipe.SourceProductionJobId, "read"),
             (learned.RecipeId, learned.DiscovererId, learned.SourceArtifactId, learned.SourceProductionJobId, learned.Acquisition));
-        Assert.Equal(skills, read.Inhabitants.Single(person => person.InhabitantId == reader).Skills ?? []);
+        Assert.Equal(skills, read.Agents.Single(person => person.AgentId == reader).Skills ?? []);
         Assert.DoesNotContain(read.WorldSimulation!.ProductionJobs, item => item.WorkerId == reader);
         Assert.DoesNotContain(read.Knowledge.Recipes, item => item.OwnerId == untouched);
-        var cards = new OwnerWorldObservationStore(reading).GetSnapshot().Inhabitants;
+        var cards = new OwnerWorldObservationStore(reading).GetSnapshot().Agents;
         Assert.Single(cards.Single(person => person.Id == reader).KnownRecipes);
         Assert.Empty(cards.Single(person => person.Id == untouched).KnownRecipes);
         Assert.Single(Assert.Single(cards.Single(person => person.Id == reader).KnowledgeArtifacts).RecipeNames);
@@ -92,7 +92,7 @@ public sealed class RecipeKnowledgePipelineTests
             (account.OwnerId, account.RecipeId, account.DiscovererId, account.SourceArtifactId, account.SourceProductionJobId));
         Assert.Equal(original.Id, copy.SourceArtifactId);
         Assert.NotEqual(original.LotId, copy.LotId);
-        Assert.Equal(skills, copied.Inhabitants.Single(person => person.InhabitantId == reader).Skills ?? []);
+        Assert.Equal(skills, copied.Agents.Single(person => person.AgentId == reader).Skills ?? []);
         var forged = copied with
         {
             Knowledge = copied.Knowledge with
@@ -132,8 +132,8 @@ public sealed class RecipeKnowledgePipelineTests
             scout.Prefixes = ["explore_return"];
             exploring.SubmitInstruction(new("return-before-recipe-book", "owner:test", author,
                 OwnerInstructionKind.Suggestive, "Return from scouting before writing the book."));
-            await Until(exploring, () => exploring.ExportState().Inhabitants.Single(person =>
-                person.InhabitantId == author).Exploration is { OutingPath.Count: 0 });
+            await Until(exploring, () => exploring.ExportState().Agents.Single(person =>
+                person.AgentId == author).Exploration is { OutingPath.Count: 0 });
             Assert.Contains(exploring.ExportState().Events, item => item.Kind == "exploration_completed");
             state = exploring.ExportState();
         }
@@ -143,9 +143,9 @@ public sealed class RecipeKnowledgePipelineTests
         var artifact = Assert.Single(written.Knowledge!.Artifacts);
         Assert.Equal(includeSites, artifact.Facts.Count > 0);
         Assert.Single(artifact.Recipes);
-        var reader = written.Inhabitants.First(person => person.InhabitantId != author &&
-            written.Society.Society.GetInhabitant(person.InhabitantId).HouseholdId !=
-            written.Society.Society.GetInhabitant(author).HouseholdId).InhabitantId;
+        var reader = written.Agents.First(person => person.AgentId != author &&
+            written.Society.Society.GetAgent(person.AgentId).HouseholdId !=
+            written.Society.Society.GetAgent(author).HouseholdId).AgentId;
         using (var withheld = Restore(written, reader))
         {
             withheld.SubmitInstruction(new("read-withheld-recipe-book", "owner:test", reader,
@@ -177,7 +177,7 @@ public sealed class RecipeKnowledgePipelineTests
         var learned = Assert.Single(completed.Knowledge!.Recipes, recipe => recipe.OwnerId == reader);
         Assert.Equal(("read", artifact.Id, author, receipt.WorldTick),
             (learned.Acquisition, learned.SourceArtifactId, learned.SourceAgentId, learned.LearnedTick));
-        Assert.Empty(completed.Inhabitants.Single(person => person.InhabitantId == reader).Skills ?? []);
+        Assert.Empty(completed.Agents.Single(person => person.AgentId == reader).Skills ?? []);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         {
             Knowledge = completed.Knowledge with
@@ -203,13 +203,13 @@ public sealed class RecipeKnowledgePipelineTests
         await Until(writing, () => writing.ExportState().Knowledge!.Artifacts.Count == 1);
         var written = writing.ExportState();
         var artifact = Assert.Single(written.Knowledge!.Artifacts);
-        var reader = written.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
-        var position = written.Inhabitants.Single(person => person.InhabitantId == author).Position;
+        var reader = written.Agents.First(person => person.AgentId != author).AgentId;
+        var position = written.Agents.Single(person => person.AgentId == author).Position;
         var adjacent = written.Map.FootNeighbors(position).First(point => written.Map.IsPassable(point) &&
-            written.Inhabitants.All(person => person.Position != point));
+            written.Agents.All(person => person.Position != point));
         var nearby = written with
         {
-            Inhabitants = written.Inhabitants.Select(person => person.InhabitantId == reader
+            Agents = written.Agents.Select(person => person.AgentId == reader
             ? person with { Position = adjacent } : person).ToArray()
         };
         using var sharing = Restore(nearby, author, "knowledge_share:" + artifact.Id + "|" + reader);
@@ -220,7 +220,7 @@ public sealed class RecipeKnowledgePipelineTests
             (learned.RecipeId, learned.SourceAgentId, learned.SourceArtifactId, learned.Acquisition));
         Assert.Equal(author, shared.Society.Society.Inventory.GetLot(artifact.LotId).OwnerId);
         Assert.Single(shared.Knowledge.Artifacts);
-        Assert.Empty(shared.Inhabitants.Single(person => person.InhabitantId == reader).Skills ?? []);
+        Assert.Empty(shared.Agents.Single(person => person.AgentId == reader).Skills ?? []);
         Assert.Equal(2, shared.Knowledge.Recipes.Count);
         using var reloaded = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(shared)), author);
         Assert.Equal(WorldRuntimeCodec.Encode(shared), WorldRuntimeCodec.Encode(reloaded.ExportState()));
@@ -231,12 +231,12 @@ public sealed class RecipeKnowledgePipelineTests
     {
         var (state, author, _) = await ProducedRecipe();
         var known = Assert.Single(state.Knowledge!.Recipes);
-        var other = state.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != author).AgentId;
         foreach (var forged in new[]
         {
             known with { SourceProductionJobId = "missing-completed-job" },
             known with { DiscovererId = other },
-            known with { OwnerId = state.Society.Society.GetInhabitant(author).HouseholdId! },
+            known with { OwnerId = state.Society.Society.GetAgent(author).HouseholdId! },
             known with { LearnedTick = state.Society.Society.WorldTick + 1 },
             known with { RecipeId = "unknown-recipe" },
             known with { Acquisition = "read", SourceAgentId = other, SourceArtifactId = "missing-written-source" },
@@ -267,19 +267,19 @@ public sealed class RecipeKnowledgePipelineTests
     {
         var (state, actor, _) = await ProducedRecipe(complete: false);
         var society = SocietyRules.Kill(state.Society.Society, actor, SocietyDeathCause.NaturalAge).Checkpoint;
-        var person = society.GetInhabitant(actor);
+        var person = society.GetAgent(actor);
         state = state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Where(item => item.InhabitantId != actor).ToArray(),
-            DeceasedInhabitants = [.. state.DeceasedInhabitants ?? [], new DeceasedInhabitantState(actor,
+            Agents = state.Agents.Where(item => item.AgentId != actor).ToArray(),
+            DeceasedAgents = [.. state.DeceasedAgents ?? [], new DeceasedAgentState(actor,
                 person.DeathTick!.Value, society.AgeAt(person, person.DeathTick.Value),
-                state.Inhabitants.Single(item => item.InhabitantId == actor))],
+                state.Agents.Single(item => item.AgentId == actor))],
             Towns = state.Towns!.Select(town =>
             {
                 var residents = town.ResidentIds.Where(id => id != actor).ToArray();
-                var adults = residents.Where(id => society.GetInhabitant(id).Status == SocietyInhabitantStatus.Active &&
-                    society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+                var adults = residents.Where(id => society.GetAgent(id).Status == SocietyAgentStatus.Active &&
+                    society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
                 return town with
                 {
                     ResidentIds = residents,
@@ -294,7 +294,7 @@ public sealed class RecipeKnowledgePipelineTests
         Assert.Equal(WorldProductionJobState.Cancelled, Assert.Single(world.WorldSimulation.ProductionJobs).State);
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation(id).State));
         Assert.Empty(world.ExportState().Knowledge!.Recipes);
-        Assert.Empty(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(item => item.Id == actor).KnownRecipes);
+        Assert.Empty(new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(item => item.Id == actor).KnownRecipes);
         using var reloaded = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), "");
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
     }
@@ -331,14 +331,14 @@ public sealed class RecipeKnowledgePipelineTests
             state = seed.ExportState();
         }
         var building = state.WorldSimulation!.Buildings.First(item => item.DefinitionId == recipe.WorkstationBuildingId);
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == building.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == building.HouseholdId).Id;
         var inventory = state.Society.Society.Inventory;
         foreach (var input in recipe.Inputs)
             inventory = InventoryAuthority.AddLot(inventory, "recipe-input:" + input.ResourceId, input.ResourceId,
                 building.HouseholdId!, input.Amount, storageBuildingId: building.InstanceId);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = building.Position, HungerBasisPoints = 10_000 } : person).ToArray(),
         };
         using var world = Restore(state, actor);
@@ -391,7 +391,7 @@ public sealed class RecipeKnowledgePipelineTests
         public string[] Prefixes { get; set; } = prefixes;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var selected = request.Observation.InhabitantId == actor
+            var selected = request.Observation.AgentId == actor
                 ? Prefixes.Select(prefix => request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)))
                     .FirstOrDefault(item => item is not null) : null;
             selected ??= request.Observation.Candidates.Single(item => item.Id == "safe_idle");

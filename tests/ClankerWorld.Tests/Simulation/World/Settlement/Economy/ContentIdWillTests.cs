@@ -26,7 +26,7 @@ public sealed partial class BusinessTradeTests
         var birth = checkpoint.LifeTickAt(checkpoint.WorldTick + 1) - lastDay * checkpoint.Config.TicksPerLifecycleAge;
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == deceased ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == deceased ? person with
             {
                 BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -93,7 +93,7 @@ public sealed partial class BusinessTradeTests
             var item = Assert.Single(context.Items, item => item.Kind.StartsWith('x'));
             var choice = new CognitionWillChoice([heir], CognitionWillContext.ItemSplit,
                 new Dictionary<string, string> { [item.Key] = heir }, "Keep tending the orchard.");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, CognitionWillContext.HeirsCandidateId, 1,
                 new Dictionary<string, double> { [CognitionWillContext.HeirsCandidateId] = 1 }, Will: choice));

@@ -16,14 +16,14 @@ public sealed class SettlementSkillWorkTests
         var state = seed.ExportState();
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == recipeName);
         var building = state.WorldSimulation!.Buildings.First(item => item.DefinitionId == recipe.WorkstationBuildingId);
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == building.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == building.HouseholdId).Id;
         var inventory = state.Society.Society.Inventory;
         foreach (var input in recipe.Inputs)
             inventory = InventoryAuthority.AddLot(inventory, "skill-input:" + input.ResourceId, input.ResourceId,
                 building.HouseholdId!, input.Amount, storageBuildingId: building.InstanceId);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = building.Position, HungerBasisPoints = 10_000 } : person).ToArray(),
         };
         using var novice = Restore(WithSkill(state, actor, null));
@@ -58,7 +58,7 @@ public sealed class SettlementSkillWorkTests
         Assert.All(recipe.Outputs, item => Assert.Equal(item.Amount, output.Where(lot => lot.ItemKind == item.ResourceId).Sum(lot => lot.Quantity)));
         while (novice.WorldTick < normalJob.CompletionTick) await novice.AdvanceOneTickAsync();
         Assert.Equal(WorldProductionJobState.Completed, Assert.Single(novice.WorldSimulation.ProductionJobs).State);
-        Assert.Contains(novice.Inhabitants.Single(person => person.InhabitantId == actor).Skills!, item => item.Kind == skill);
+        Assert.Contains(novice.Agents.Single(person => person.AgentId == actor).Skills!, item => item.Kind == skill);
         novice.Validate();
         reloaded.Validate();
     }
@@ -132,15 +132,15 @@ public sealed class SettlementSkillWorkTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var actor = state.Inhabitants[0];
+        var actor = state.Agents[0];
         var site = state.Map.Tiles.Last(tile => state.Map.IsPassable(tile.Position) &&
             !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
             !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Inhabitants.Any(person => person.Position == tile.Position)).Position;
+            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var definition = seed.WorldContent.Buildings.Single(item => item.LocalId == "fire");
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person == actor ? person with
+            Agents = state.Agents.Select(person => person == actor ? person with
             {
                 Position = site,
                 HungerBasisPoints = 10_000,
@@ -148,27 +148,27 @@ public sealed class SettlementSkillWorkTests
                     seed.WorldTick, "working", LastTransitionTick: seed.WorldTick),
             } : person).ToArray(),
         };
-        using var novice = Restore(WithSkill(state, actor.InhabitantId, null));
-        using var skilled = Restore(WithSkill(state, actor.InhabitantId, SettlementSkillKind.Building));
+        using var novice = Restore(WithSkill(state, actor.AgentId, null));
+        using var skilled = Restore(WithSkill(state, actor.AgentId, SettlementSkillKind.Building));
         await skilled.AdvanceOneTickAsync();
         await novice.AdvanceOneTickAsync();
         using var reloaded = Reload(skilled);
-        for (var tick = 0; tick < 20 && skilled.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId).Project!.Stage != "completed"; tick++)
+        for (var tick = 0; tick < 20 && skilled.Agents.Single(person => person.AgentId == actor.AgentId).Project!.Stage != "completed"; tick++)
         {
             await skilled.AdvanceOneTickAsync();
             await reloaded.AdvanceOneTickAsync();
             await novice.AdvanceOneTickAsync();
             Assert.Equal(WorldRuntimeCodec.Encode(skilled.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
         }
-        Assert.Equal("completed", skilled.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId).Project!.Stage);
-        Assert.Equal("working", novice.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId).Project!.Stage);
+        Assert.Equal("completed", skilled.Agents.Single(person => person.AgentId == actor.AgentId).Project!.Stage);
+        Assert.Equal("working", novice.Agents.Single(person => person.AgentId == actor.AgentId).Project!.Stage);
         Assert.Contains(skilled.WorldSimulation.Buildings, item => item.DefinitionId == definition.CanonicalId && item.Position == site);
         reloaded.Validate();
     }
 
     internal static WorldRuntimeState WithSkill(WorldRuntimeState state, string actor, SettlementSkillKind? skill) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+        Agents = state.Agents.Select(person => person.AgentId == actor ? person with
         {
             Skills = skill is { } kind ? [new(kind, state.Society.Society.WorldTick)] : null,
             Proficiency = null,
@@ -201,10 +201,10 @@ public sealed class SettlementSkillWorkTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var selected = observation.InhabitantId == actor
+            var selected = observation.AgentId == actor
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("town_project_work:", StringComparison.Ordinal)) : null;
             selected ??= observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return new(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch,
+            return new(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 new Dictionary<string, double> { [selected.Id] = 1 }));
         }

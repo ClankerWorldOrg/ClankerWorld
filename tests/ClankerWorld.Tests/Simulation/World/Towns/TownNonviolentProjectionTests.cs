@@ -15,7 +15,7 @@ public sealed class TownNonviolentProjectionTests
         var state = await NonviolentRuntimeFixture.FiledAsync();
         using var world = NonviolentRuntimeFixture.Create(state, new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == NonviolentRuntimeFixture.Subject
+            Choose = observation => observation.AgentId == NonviolentRuntimeFixture.Subject
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) : null,
         });
         var actual = Assert.Single(world.Towns[0].Nonviolent.Cases);
@@ -29,7 +29,7 @@ public sealed class TownNonviolentProjectionTests
         Assert.Equal((actual.Id, actual.Allegation.SubjectId, actual.Allegation.ConductKind, actual.Allegation.ConductTick),
             (hearing.Id, hearing.SubjectId, hearing.ConductKind, hearing.ConductTick));
         Assert.Equal((actual.Allegation.Position.X, actual.Allegation.Position.Y), (hearing.Position.X, hearing.Position.Y));
-        Assert.Equal(world.Society.GetInhabitant(actual.Allegation.SubjectId).Name, hearing.SubjectName);
+        Assert.Equal(world.Society.GetAgent(actual.Allegation.SubjectId).Name, hearing.SubjectName);
         Assert.Equal(actual.Allegation.LawVersion, hearing.ApplicableLaw!.Version);
         Assert.Equal("resident_duty", hearing.ApplicableLaw.Scope);
         Assert.Equal((revision.NoticeId, revision.PublishedTick, revision.DeadlineTick),

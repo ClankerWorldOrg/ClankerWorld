@@ -13,9 +13,9 @@ public sealed class IslandTreeReplantingTests
         using var setup = IslandWorld();
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var origin = state.Inhabitants[0].Position;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var origin = state.Agents[0].Position;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var society = state.Society.Society;
         foreach (var lot in society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood").ToArray())
             society = SocietyRules.ConsumeInventory(society, household, lot.Id, lot.Quantity, "fuel-depletion-fixture").Checkpoint;
@@ -29,7 +29,7 @@ public sealed class IslandTreeReplantingTests
             Resources = state.Resources.Select(resource => resource.ResourceId == looseWood.Id
                 ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 4_000),
@@ -75,7 +75,7 @@ public sealed class IslandTreeReplantingTests
         // heating so the agent can choose to replant through ordinary decisions.
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 9_000),
@@ -102,11 +102,11 @@ public sealed class IslandTreeReplantingTests
     public async Task OccupiedNearestStumpDoesNotHideAnotherReachableStump()
     {
         using var setup = IslandWorld();
-        var actor = setup.Inhabitants[0].InhabitantId;
+        var actor = setup.Agents[0].AgentId;
         var map = setup.ExportState().Map;
         var blocked = map.GetResource("tree-136-16");
         var reachable = map.GetResource("tree-138-17");
-        var origin = setup.Inhabitants[0].Position;
+        var origin = setup.Agents[0].Position;
         Assert.True(map.FootDistance(origin, blocked.Position) < map.FootDistance(origin, reachable.Position));
         Assert.True(map.IsReachableOnFoot(origin, blocked.Position));
         Assert.True(map.IsReachableOnFoot(origin, reachable.Position));
@@ -117,7 +117,7 @@ public sealed class IslandTreeReplantingTests
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 9_000),

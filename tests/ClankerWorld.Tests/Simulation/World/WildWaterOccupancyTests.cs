@@ -36,7 +36,7 @@ public sealed class WildWaterOccupancyTests
             .Select((point, index) => new AnimalState("water-blocker-" + index, "Ash", "horse", "female", -7L * day,
                 point, "water-blocker-herd", CareUntilTick: until)).ToArray();
         state = state with { AnimalWorld = new(true, blockers.Prepend(cow).ToArray(), []) };
-        var occupied = state.Inhabitants.Select(person => person.Position).Concat(blockers.Select(animal => animal.Position)).ToHashSet();
+        var occupied = state.Agents.Select(person => person.Position).Concat(blockers.Select(animal => animal.Position)).ToHashSet();
         using (var search = new UnoccupiedRouteSearch(state.Map, origin, occupied, state.Map.FootStepCost))
         {
             Assert.Equal(openApproach, search.RouteTo(preferred, 0).Count > 0);

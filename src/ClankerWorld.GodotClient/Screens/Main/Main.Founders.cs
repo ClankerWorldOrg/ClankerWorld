@@ -36,9 +36,9 @@ public partial class Main
         }
         if (observationSession.Current?.Baseline.Snapshot is not
             { FounderSetup: { Started: false, Placed: > 0 } } snapshot ||
-            selectedInhabitantId is not { } founderId ||
+            selectedAgentId is not { } founderId ||
             !founderId.StartsWith("founder:", StringComparison.Ordinal) ||
-            !snapshot.Inhabitants.Any(person => person.Id == founderId && person.Lifecycle == "active"))
+            !snapshot.Agents.Any(person => person.Id == founderId && person.Lifecycle == "active"))
             return;
         movingFounderId = founderId;
         moveFounderButton.Text = "Cancel move";
@@ -53,7 +53,7 @@ public partial class Main
         if (movingFounderId is not { } founderId || isOwnerAction ||
             observationSession.Current?.Baseline.Snapshot is not { FounderSetup: { Started: false } } snapshot ||
             !MapContains(snapshot, tile.X, tile.Y) ||
-            snapshot.Inhabitants.Any(person => person.Id != founderId &&
+            snapshot.Agents.Any(person => person.Id != founderId &&
                 person.Position.X == tile.X && person.Position.Y == tile.Y) ||
             snapshot.Objects.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y) ||
             snapshot.Resources.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y))
@@ -83,7 +83,7 @@ public partial class Main
         {
             var result = await AwaitCurrentWorldResultAsync(ownerApi.UndoFounderAsync(ResolveWorldUri(), authority, deviceId,
                 new OwnerFounderUndoAction(founderId), signer, CancellationToken.None));
-            if (selectedInhabitantId == founderId) selectedInhabitantId = null;
+            if (selectedAgentId == founderId) selectedAgentId = null;
             movingFounderId = null;
             founderApiKeyInput.Text = string.Empty;
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
@@ -334,7 +334,7 @@ public partial class Main
         var generation = observationSession.RequestGeneration;
         if (isOwnerAction || observationSession.Current?.Baseline.Snapshot is not { FounderSetup: { Started: true } } snapshot ||
             !MapContains(snapshot, tile.X, tile.Y) ||
-            (snapshot.Inhabitants.Any(item => item.Lifecycle == "active" &&
+            (snapshot.Agents.Any(item => item.Lifecycle == "active" &&
                 item.Position.X == tile.X && item.Position.Y == tile.Y) &&
                 !IsHouseAt(snapshot, tile)) ||
             snapshot.Objects.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y) ||
@@ -368,7 +368,7 @@ public partial class Main
         var agentId = "agent:" + Guid.NewGuid().ToString("N");
         var cognition = new OwnerProviderConfigurationAction(
             "personal", provider, model, newKey ? founderApiKeyInput.Text : null,
-            ForgetCredential: false, InhabitantId: agentId,
+            ForgetCredential: false, AgentId: agentId,
             CredentialSlotId: newKey ? Guid.NewGuid().ToString("N") : choice == "default" ? null : choice,
             NewCredentialLabel: newKey ? founderKeyLabelInput.Text.Trim() : null,
             Thinking: SelectedThinking(founderThinkingChoice));
@@ -421,7 +421,7 @@ public partial class Main
         var generation = observationSession.RequestGeneration;
         if (isOwnerAction || observationSession.Current?.Baseline.Snapshot is not { FounderSetup: { Started: false } } snapshot ||
             !MapContains(snapshot, tile.X, tile.Y) ||
-            snapshot.Inhabitants.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y) ||
+            snapshot.Agents.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y) ||
             snapshot.Objects.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y) ||
             snapshot.Resources.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y))
         {
@@ -447,7 +447,7 @@ public partial class Main
         var founderId = "founder:" + Guid.NewGuid().ToString("N");
         var cognition = new OwnerProviderConfigurationAction(
             "personal", provider, model, newKey ? founderApiKeyInput.Text : null,
-            ForgetCredential: false, InhabitantId: founderId,
+            ForgetCredential: false, AgentId: founderId,
             CredentialSlotId: newKey ? Guid.NewGuid().ToString("N") : choice == "default" ? null : choice,
             NewCredentialLabel: newKey ? founderKeyLabelInput.Text.Trim() : null,
             Thinking: SelectedThinking(founderThinkingChoice));
@@ -513,7 +513,7 @@ public partial class Main
             if (wasChoosingTownSite) UpdateHoverReadout(snapshot, hoverReadoutTile);
         }
         townSiteButton.Text = TownSiteButtonText(setup);
-        if (movingFounderId is not null && !snapshot.Inhabitants.Any(person => person.Id == movingFounderId))
+        if (movingFounderId is not null && !snapshot.Agents.Any(person => person.Id == movingFounderId))
         {
             movingFounderId = null;
             moveFounderButton.Text = "Move founder";
@@ -538,7 +538,7 @@ public partial class Main
     {
         if (!placingAddedAgent || !founderSetupPanel.Visible) return;
         if (!MapContains(snapshot, tile.X, tile.Y) ||
-            (snapshot.Inhabitants.Any(item => item.Lifecycle == "active" &&
+            (snapshot.Agents.Any(item => item.Lifecycle == "active" &&
                 item.Position.X == tile.X && item.Position.Y == tile.Y) &&
                 !IsHouseAt(snapshot, tile)) ||
             snapshot.Objects.Any(item => item.Position.X == tile.X && item.Position.Y == tile.Y) ||

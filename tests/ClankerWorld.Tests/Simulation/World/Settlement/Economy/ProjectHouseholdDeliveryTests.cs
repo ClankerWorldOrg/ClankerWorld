@@ -24,13 +24,13 @@ public sealed class ProjectHouseholdDeliveryTests
             .Sum(lot => lot.Quantity);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "full-house-food", "food", Household,
             capacity - stored, storageBuildingId: fixture.Destination.InstanceId);
-        var collector = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household &&
+        var collector = state.Society.Society.Agents.First(person => person.HouseholdId == Household &&
             person.Id != fixture.Actor && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == collector
+            Agents = state.Agents.Select(person => person.AgentId == collector
                 ? person with { Position = fixture.Destination.Position, LastDecisionContext = null }
-                : person.InhabitantId == fixture.Actor ? person with { Project = null } : person).ToArray(),
+                : person.AgentId == fixture.Actor ? person with { Project = null } : person).ToArray(),
         };
         // The collector waits until the test asks it to collect food, so it never arrives already loaded.
         var allowed = new[] { "safe_idle", "safe_idle" };
@@ -40,7 +40,7 @@ public sealed class ProjectHouseholdDeliveryTests
         using var world = WorldRuntime.Restore(state, Provider);
         var cargo = world.Society.Inventory.GetLot(fixture.CargoId);
         for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var project = world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project;
+        var project = world.Agents.Single(person => person.AgentId == fixture.Actor).Project;
         Assert.NotNull(project);
         Assert.Equal("blocked", project.Stage);
         Assert.Contains("storage", project.Blocker, StringComparison.OrdinalIgnoreCase);
@@ -73,7 +73,7 @@ public sealed class ProjectHouseholdDeliveryTests
         // Step aside, but not onto the workshop's work site.
         var workshop = restored.WorldSimulation.Buildings.Single(building => building.InstanceId == Workshop);
         var clear = map.Tiles.Select(tile => tile.Position).Where(point => map.IsBuildable(point) &&
-                !restored.Inhabitants.Any(person => person.Position == point) && map.FootDistance(workshop.Position, point) > 3)
+                !restored.Agents.Any(person => person.Position == point) && map.FootDistance(workshop.Position, point) > 3)
             .OrderBy(point => map.FootDistance(fixture.Destination.Position, point)).First();
         restored.SubmitInstruction(new("clear-house", "owner:test", collector, OwnerInstructionKind.MustDo,
             $"move to {clear.X},{clear.Y}"));
@@ -140,7 +140,7 @@ public sealed class ProjectHouseholdDeliveryTests
                     (delivered.OwnerId, delivered.Quantity, delivered.StorageBuildingId,
                         delivered.DeliveryBuildingId, delivered.ProvenanceLotId));
                 Assert.Equal(fixture.Destination.Position, current);
-                var project = world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project;
+                var project = world.Agents.Single(person => person.AgentId == fixture.Actor).Project;
                 Assert.NotNull(project);
                 Assert.Equal(fixture.ProjectCandidate, project.CandidateId);
                 Assert.Null(project.JobId);
@@ -223,7 +223,7 @@ public sealed class ProjectHouseholdDeliveryTests
     private static async Task<Fixture> Prepared(bool toWorkstation, bool includeAxe = false)
     {
         var (initial, _, _) = await FoodCapacityTestFixture.Generated("probe-a");
-        var actor = initial.Society.Society.Inhabitants.First(person => person.HouseholdId == Household &&
+        var actor = initial.Society.Society.Agents.First(person => person.HouseholdId == Household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var house = initial.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-b");
         var smith = initial.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
@@ -285,17 +285,17 @@ public sealed class ProjectHouseholdDeliveryTests
         var candidate = TownConstructionCandidateIds.Recipe(recipe.CanonicalId);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_500,
-                Position = person.InhabitantId == actor ? source.Position : person.Position,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
-                Project = person.InhabitantId == actor
+                Position = person.AgentId == actor ? source.Position : person.Position,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
+                Project = person.AgentId == actor
                     ? new SettlementProject(candidate, recipe.DisplayName, state.Society.Society.WorldTick,
                         "acquiring", LastTransitionTick: state.Society.Society.WorldTick)
                     : person.Project,
-                LastDecisionContext = person.InhabitantId == actor ? null : person.LastDecisionContext,
-                TravelCooldownTicks = person.InhabitantId == actor ? 0 : person.TravelCooldownTicks,
+                LastDecisionContext = person.AgentId == actor ? null : person.LastDecisionContext,
+                TravelCooldownTicks = person.AgentId == actor ? 0 : person.TravelCooldownTicks,
             }).ToArray(),
         };
         return new(state, actor, destination, cargo.Id, recipe, candidate, state.Society.Society.WorldTick,
@@ -303,14 +303,14 @@ public sealed class ProjectHouseholdDeliveryTests
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new Idle());
-    private static GridPoint Position(WorldRuntime world, string actor) => world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+    private static GridPoint Position(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor).Position;
     private static int Load(WorldRuntime world, string actor) => PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory,
-        actor, world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment);
+        actor, world.Agents.Single(person => person.AgentId == actor).Equipment);
     private static bool CompletedTools(WorldRuntime world, Fixture fixture) => world.WorldSimulation.ProductionJobs.Any(job =>
         job.WorkerId == fixture.Actor && job.RecipeId == fixture.Recipe.CanonicalId && job.State == WorldProductionJobState.Completed);
     private static string Failure(WorldRuntime world, Fixture fixture) =>
         $"tick={world.WorldTick}; position={Position(world, fixture.Actor)}; project=" +
-        world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project;
+        world.Agents.Single(person => person.AgentId == fixture.Actor).Project;
 
     private static void AssertProtectedStock(WorldRuntime world, Fixture fixture)
     {

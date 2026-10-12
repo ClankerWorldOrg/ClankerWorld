@@ -85,9 +85,9 @@ sealed class RecordingChoices : IDecisionProvider
     public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
     {
         var observation = request.Observation;
-        Observations.Enqueue(new(observation.InhabitantId, observation.WorldTick, observation.ObservationDigest));
+        Observations.Enqueue(new(observation.AgentId, observation.WorldTick, observation.ObservationDigest));
         return native.DecideAsync(request, cancellationToken);
     }
 }
 
-sealed record ObservationDigest(string InhabitantId, long WorldTick, string Digest);
+sealed record ObservationDigest(string AgentId, long WorldTick, string Digest);

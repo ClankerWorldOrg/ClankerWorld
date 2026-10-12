@@ -12,7 +12,7 @@ public sealed partial class PurposefulExplorationTests
         var (state, actor, _, source, _) = await MaterialCourse();
         state = UnpaidWoodProject(state, actor);
         var resourceTiles = state.Map.Resources.Select(resource => resource.Position).ToHashSet();
-        var start = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var start = state.Agents.Single(person => person.AgentId == actor).Position;
         // Controlled unrelated starting memory, not played visits or injected discoveries.
         // It includes neither a source position nor any matching Forest terrain.
         var facts = state.Map.Tiles.Where(tile => state.Map.IsPassable(tile.Position) &&

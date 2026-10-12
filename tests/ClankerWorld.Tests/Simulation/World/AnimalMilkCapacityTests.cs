@@ -23,7 +23,7 @@ public sealed partial class AnimalPipelineTests
         state = At(state, actor, yard.Position, inventory, [cow]);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray(),
         };
         using var producing = WorldRuntime.Restore(state, _ => new AnimalChooser());
         Assert.True((await producing.AdvanceOneTickAsync()).Advanced);

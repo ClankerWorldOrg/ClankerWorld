@@ -15,7 +15,7 @@ public sealed partial class WorldConstructionOrderTests
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "construction-prior-fiber", "fiber", Alpha, 3, storageBuildingId: House)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         };
         var choose = new ConstructionChoices(candidate);
         using var ordinary = WorldRuntime.Restore(state, id => id == setup.Actor ? choose : new ConstructionChoices());
@@ -56,7 +56,7 @@ public sealed partial class WorldConstructionOrderTests
         var setup = await Baseline.Value;
         var choices = new ConstructionChoices(setup.CandidateId);
         var state = Decode(setup);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         using var ordinary = WorldRuntime.Restore(state, id => id == setup.Actor ? choices : new ConstructionChoices());
         await Tick(ordinary);
         Assert.Contains(choices.Observations, observation => observation.Candidates.Any(candidate => candidate.Id == setup.CandidateId));

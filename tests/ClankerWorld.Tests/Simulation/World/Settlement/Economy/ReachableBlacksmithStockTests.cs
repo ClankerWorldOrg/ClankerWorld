@@ -17,8 +17,8 @@ public sealed class ReachableBlacksmithStockTests
         var original = generated.ExportState();
         var smith = original.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var warehouse = original.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
-        var actor = original.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
-        var blocker = original.Society.Society.Inhabitants.First(person => person.HouseholdId != smith.HouseholdId).Id;
+        var actor = original.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var blocker = original.Society.Society.Agents.First(person => person.HouseholdId != smith.HouseholdId).Id;
         var blockedPosition = new GridPoint(smith.Position.X - 1, smith.Position.Y - 1);
         const string blockedId = "a-blocked-wood";
         const string reachableId = "b-reachable-wood";
@@ -38,9 +38,9 @@ public sealed class ReachableBlacksmithStockTests
         var state = original with
         {
             Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
-            Inhabitants = original.Inhabitants.Select(person => person with
+            Agents = original.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? smith.Position : person.InhabitantId == blocker ? blockedPosition : person.Position,
+                Position = person.AgentId == actor ? smith.Position : person.AgentId == blocker ? blockedPosition : person.Position,
                 HungerBasisPoints = 9_000,
                 Project = null,
                 LastDecisionContext = null,
@@ -76,7 +76,7 @@ public sealed class ReachableBlacksmithStockTests
         Assert.Equal(inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity),
             world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.Equal(inventory.Reservations, world.Society.Inventory.Reservations);
-        Assert.Equal(blockedPosition, world.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
+        Assert.Equal(blockedPosition, world.Agents.Single(person => person.AgentId == blocker).Position);
         AssertBlockedUnchanged(world);
         world.Validate();
         using var final = Restore(world.ExportState(), actor, new HaulChoices(true));
@@ -113,7 +113,7 @@ public sealed class ReachableBlacksmithStockTests
             OfferedSmithHaul |= smith;
             var selected = haul && smith ? "haul_smith_input" : haul &&
                 request.Observation.Candidates.Any(candidate => candidate.Id == "haul_household_stock") ? "haul_household_stock" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

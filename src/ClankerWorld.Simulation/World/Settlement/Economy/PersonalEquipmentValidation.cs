@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private static void ValidateEquipment(IEnumerable<InhabitantState> people, SocietyCheckpoint society,
+    private static void ValidateEquipment(IEnumerable<AgentState> people, SocietyCheckpoint society,
         WorldContentSimulationState? simulation, DeclarativeWorldContentState? content, int schema)
     {
         foreach (var person in people)
@@ -16,7 +16,7 @@ public sealed partial class WorldRuntime
             foreach (var (id, carryAid) in new[] { (equipment.ClothingLotId, false), (equipment.CarryAidLotId, true) })
             {
                 if (id is null) continue;
-                var unit = PersonalEquipmentRules.EquippedUnit(society.Inventory, person.InhabitantId, id);
+                var unit = PersonalEquipmentRules.EquippedUnit(society.Inventory, person.AgentId, id);
                 if (unit is null || !(carryAid ? PersonalEquipmentRules.IsCarryAid(unit.ItemKind) : PersonalEquipmentRules.IsGarment(unit.ItemKind)) ||
                     society.Inventory.Reservations.Any(item => item.LotId == id && item.State is
                         InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed))
@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
             }
             if (equipment.OrnamentLotId is { } ornamentId)
             {
-                var ornament = PersonalEquipmentRules.EquippedUnit(society.Inventory, person.InhabitantId, ornamentId);
+                var ornament = PersonalEquipmentRules.EquippedUnit(society.Inventory, person.AgentId, ornamentId);
                 if (ornament is null || ornament.ContainerLotId is not null ||
                     !PersonalEquipmentRules.IsOrnament(ornament.ItemKind) ||
                     society.Inventory.Reservations.Any(item => item.LotId == ornamentId && item.State is
@@ -35,8 +35,8 @@ public sealed partial class WorldRuntime
             var target = society.Inventory.Lots.FirstOrDefault(lot => lot.Id == repair.LotId);
             var building = simulation?.Buildings.FirstOrDefault(item => item.InstanceId == repair.BuildingId);
             var definition = content?.Buildings.FirstOrDefault(item => item.CanonicalId == building?.DefinitionId);
-            var household = society.Inhabitants.Single(item => item.Id == person.InhabitantId).HouseholdId;
-            if (target is null || target.Quantity != 1 || !PersonalEquipmentRules.IsCarried(target, person.InhabitantId) ||
+            var household = society.Agents.Single(item => item.Id == person.AgentId).HouseholdId;
+            if (target is null || target.Quantity != 1 || !PersonalEquipmentRules.IsCarried(target, person.AgentId) ||
                 target.DeliveryBuildingId is not null || target.ConditionBasisPoints >= 10_000 ||
                 society.Inventory.Reservations.Any(item => item.LotId == target.Id && item.State is
                     InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed) ||
@@ -50,9 +50,9 @@ public sealed partial class WorldRuntime
                 var reservation = society.Inventory.Reservations.FirstOrDefault(item => item.Id == id);
                 var lot = society.Inventory.Lots.FirstOrDefault(item => item.Id == reservation?.LotId);
                 if (reservation is null || lot is null || reservation.State != InventoryReservationState.Reserved ||
-                    reservation.Purpose != "equipment_repair" || reservation.OwnerId != person.InhabitantId ||
+                    reservation.Purpose != "equipment_repair" || reservation.OwnerId != person.AgentId ||
                     reservation.ExpiryTick < society.WorldTick || reservation.ExpiryTick > repair.StartedTick + 120 ||
-                    lot.Id == target.Id || !PersonalEquipmentRules.IsCarried(lot, person.InhabitantId) ||
+                    lot.Id == target.Id || !PersonalEquipmentRules.IsCarried(lot, person.AgentId) ||
                     lot.DeliveryBuildingId is not null || lot.ConditionBasisPoints == 0 || lot.FreshnessBasisPoints == 0)
                     throw new InvalidDataException("The saved equipment repair has invalid material reservations.");
                 actual[lot.ItemKind] = actual.GetValueOrDefault(lot.ItemKind) + reservation.Quantity;

@@ -89,7 +89,7 @@ public sealed partial class WorldRuntime
         // expansions and protected project sites that can block a doorway.
         if (!map.IsBuildable(plan.Entrance) || occupied.Contains(plan.Entrance))
             return "The approved building's doorway is blocked.";
-        if (actor is not null && inhabitants.TryGetValue(actor, out var person) &&
+        if (actor is not null && agents.TryGetValue(actor, out var person) &&
             person.Position != plan.Site && FindUnoccupiedRoute(actor, person.Position, plan.Site, 0).Count == 0)
             return "No usable foot route reaches the approved construction site.";
         return null;

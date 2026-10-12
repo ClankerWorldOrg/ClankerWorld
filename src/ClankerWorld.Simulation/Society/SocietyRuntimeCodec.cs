@@ -45,11 +45,11 @@ public static class SocietyRuntimeCodec
         SocietyRules.Validate(state.Society);
         var scheduler = SocietyCognitionScheduler.Restore(state.Cognition);
         scheduler.Validate();
-        var activeIds = state.Society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        var activeIds = state.Society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .Select(item => item.Id)
             .OrderBy(item => item, StringComparer.Ordinal);
-        if (!activeIds.SequenceEqual(scheduler.InhabitantIds.OrderBy(item => item, StringComparer.Ordinal)))
+        if (!activeIds.SequenceEqual(scheduler.AgentIds.OrderBy(item => item, StringComparer.Ordinal)))
         {
             throw new InvalidDataException("The Phase 4 runtime populations disagree.");
         }

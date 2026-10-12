@@ -17,7 +17,7 @@ public enum AssetSourceKind
     Human,
     Generated,
     Transformed,
-    Inhabitant,
+    Agent,
 }
 
 /// <summary>
@@ -317,7 +317,7 @@ public static class AssetRules
         AssetSourceKind.Human => "human",
         AssetSourceKind.Generated => "generated",
         AssetSourceKind.Transformed => "transformed",
-        AssetSourceKind.Inhabitant => "inhabitant",
+        AssetSourceKind.Agent => "agent",
         _ => throw new ArgumentOutOfRangeException(nameof(sourceKind)),
     };
 

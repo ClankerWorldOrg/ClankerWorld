@@ -24,27 +24,27 @@ public sealed class WorldDeferredCognitionTests
         using var world = CreateNameTestWorld("duplicate-name-retry", provider);
         const string takenName = "  Élodie\u00a0Vale  ";
         Assert.True(world.RenameAgent(NameOwnerId, takenName));
-        var placeholder = world.Society.GetInhabitant(NameTargetId).Name;
+        var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var first = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        var rejectedAction = Assert.Single(first.Decisions, item => item.InhabitantId == NameTargetId).Admission;
+        var rejectedAction = Assert.Single(first.Decisions, item => item.AgentId == NameTargetId).Admission;
         Assert.True(rejectedAction.FellBack);
         Assert.Equal("candidate_not_legal", rejectedAction.Outcome);
-        Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
-        Assert.True(world.Society.GetInhabitant(NameTargetId).NeedsName);
+        Assert.Equal(placeholder, world.Society.GetAgent(NameTargetId).Name);
+        Assert.True(world.Society.GetAgent(NameTargetId).NeedsName);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_name_retry_requested" && item.Detail == NameTargetId);
 
         var retry = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        Assert.True(Assert.Single(retry.Decisions, item => item.InhabitantId == NameTargetId).Admission.Accepted);
+        Assert.True(Assert.Single(retry.Decisions, item => item.AgentId == NameTargetId).Admission.Accepted);
         Assert.Equal(2, provider.CallCount);
         Assert.False(provider.ObservedRequests.ElementAt(0).IsNameRetry);
         Assert.True(provider.ObservedRequests.ElementAt(1).IsNameRetry);
         Assert.True(provider.ObservedRequests.ElementAt(1).NeedsName);
-        Assert.Equal("Maia Vale", world.Society.GetInhabitant(NameTargetId).Name);
-        Assert.True(world.Society.GetInhabitant(NameTargetId).HasChosenName);
-        Assert.False(world.Society.GetInhabitant(NameTargetId).NeedsName);
+        Assert.Equal("Maia Vale", world.Society.GetAgent(NameTargetId).Name);
+        Assert.True(world.Society.GetAgent(NameTargetId).HasChosenName);
+        Assert.False(world.Society.GetAgent(NameTargetId).NeedsName);
         Assert.DoesNotContain(world.ExportState().Events, item =>
             item.Detail.Contains("Élodie", StringComparison.OrdinalIgnoreCase) ||
             item.Detail.Contains("Maia Vale", StringComparison.Ordinal));
@@ -57,17 +57,17 @@ public sealed class WorldDeferredCognitionTests
         using var world = CreateNameTestWorld("name-with-rejected-action", provider);
         world.StartWorld();
         var result = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        var admission = Assert.Single(result.Decisions, item => item.InhabitantId == NameTargetId).Admission;
+        var admission = Assert.Single(result.Decisions, item => item.AgentId == NameTargetId).Admission;
         Assert.True(admission.FellBack);
         Assert.Equal("candidate_not_legal", admission.Outcome);
-        var named = world.Society.GetInhabitant(NameTargetId);
+        var named = world.Society.GetAgent(NameTargetId);
         Assert.Equal("Maia Vale", named.Name);
         Assert.True(named.HasChosenName);
         Assert.False(named.NeedsName);
         Assert.Single(provider.ObservedRequests);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_name_retry_requested");
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.True(restored.Society.GetInhabitant(NameTargetId).HasChosenName);
+        Assert.True(restored.Society.GetAgent(NameTargetId).HasChosenName);
     }
 
     [Theory]
@@ -96,7 +96,7 @@ public sealed class WorldDeferredCognitionTests
             _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
             Assert.InRange(handler.RequestCount, 1, 2);
             Assert.InRange(usage.Capture().Attempts, 1, 2);
-            Assert.True(world.Society.GetInhabitant(NameTargetId).NeedsName);
+            Assert.True(world.Society.GetAgent(NameTargetId).NeedsName);
 
             _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
             Assert.Equal(2, handler.RequestCount);
@@ -104,7 +104,7 @@ public sealed class WorldDeferredCognitionTests
             Assert.Equal(2, metering.Attempts);
             Assert.Equal(2, metering.Completed);
             Assert.Equal(2, metering.Rows.Sum(row => row.Attempts));
-            Assert.Equal("Maia Vale", world.Society.GetInhabitant(NameTargetId).Name);
+            Assert.Equal("Maia Vale", world.Society.GetAgent(NameTargetId).Name);
         }
         finally
         {
@@ -119,17 +119,17 @@ public sealed class WorldDeferredCognitionTests
         // Peers must not take shared tools and create a real follow-up choice before this reply is admitted.
         using var world = CreateNameTestWorld("malformed-name-reply", provider, quietOthers: true);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
-        var placeholder = world.Society.GetInhabitant(NameTargetId).Name;
+        var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var result = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        var admission = Assert.Single(result.Decisions, item => item.InhabitantId == NameTargetId).Admission;
+        var admission = Assert.Single(result.Decisions, item => item.AgentId == NameTargetId).Admission;
 
         Assert.True(admission.FellBack);
         Assert.Equal("malformed_response", admission.Outcome);
-        Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
-        Assert.True(world.Society.GetInhabitant(NameTargetId).NeedsName);
+        Assert.Equal(placeholder, world.Society.GetAgent(NameTargetId).Name);
+        Assert.True(world.Society.GetAgent(NameTargetId).NeedsName);
         Assert.Equal(1, provider.CallCount);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_name_retry_requested");
     }
@@ -141,7 +141,7 @@ public sealed class WorldDeferredCognitionTests
             [new NameReply("Taken Lake")], false, false, true);
         using var world = CreateNameTestWorld("failed-name-retry", provider);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
-        var placeholder = world.Society.GetInhabitant(NameTargetId).Name;
+        var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -152,7 +152,7 @@ public sealed class WorldDeferredCognitionTests
         await Task.Delay(100);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
 
-        var namedAgent = world.Society.GetInhabitant(NameTargetId);
+        var namedAgent = world.Society.GetAgent(NameTargetId);
         Assert.Equal(placeholder, namedAgent.Name);
         Assert.False(namedAgent.NeedsName);
         Assert.False(namedAgent.HasChosenName);
@@ -164,7 +164,7 @@ public sealed class WorldDeferredCognitionTests
         Assert.Single(world.ExportState().Events,
             item => item.Kind == "agent_name_retry_requested" && item.Detail == NameTargetId);
         Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue,
-            entry => entry.InhabitantId == NameTargetId && entry.TriggerIds.Contains(
+            entry => entry.AgentId == NameTargetId && entry.TriggerIds.Contains(
                 SocietyCognitionScheduler.NameRetryTriggerId, StringComparer.Ordinal));
     }
 
@@ -176,7 +176,7 @@ public sealed class WorldDeferredCognitionTests
             new NameReply("taken\u00a0Ridge"));
         using var world = CreateNameTestWorld("duplicate-name-exhausted", provider);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
-        var placeholder = world.Society.GetInhabitant(NameTargetId).Name;
+        var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -185,9 +185,9 @@ public sealed class WorldDeferredCognitionTests
         // How many ticks a hosted reply takes depends on the runner, so an ordinary
         // re-evaluation may also start; only the two naming requests may ask for a name.
         Assert.Equal(2, provider.ObservedRequests.Count(request => request.NeedsName || request.IsNameRetry));
-        Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
-        Assert.False(world.Society.GetInhabitant(NameTargetId).NeedsName);
-        Assert.False(world.Society.GetInhabitant(NameTargetId).HasChosenName);
+        Assert.Equal(placeholder, world.Society.GetAgent(NameTargetId).Name);
+        Assert.False(world.Society.GetAgent(NameTargetId).NeedsName);
+        Assert.False(world.Society.GetAgent(NameTargetId).HasChosenName);
         Assert.Contains(world.ExportState().Events,
             item => item.Kind == "agent_name_retry_exhausted" && item.Detail == NameTargetId);
 
@@ -208,11 +208,11 @@ public sealed class WorldDeferredCognitionTests
         // context changes; neither may reopen the completed naming attempt.
         Assert.Equal(2, provider.ObservedRequests.Count(request => request.NeedsName || request.IsNameRetry));
         Assert.Equal(namingRequests, provider.ObservedRequests.Where(request => request.NeedsName || request.IsNameRetry).ToArray());
-        Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
-        Assert.False(world.Society.GetInhabitant(NameTargetId).NeedsName);
-        Assert.False(world.Society.GetInhabitant(NameTargetId).HasChosenName);
+        Assert.Equal(placeholder, world.Society.GetAgent(NameTargetId).Name);
+        Assert.False(world.Society.GetAgent(NameTargetId).NeedsName);
+        Assert.False(world.Society.GetAgent(NameTargetId).HasChosenName);
         Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue,
-            entry => entry.InhabitantId == NameTargetId && entry.TriggerIds.Contains(
+            entry => entry.AgentId == NameTargetId && entry.TriggerIds.Contains(
                 SocietyCognitionScheduler.NameRetryTriggerId, StringComparer.Ordinal));
 
         // Compaction must not infer name ownership from the retry events it archives.
@@ -232,11 +232,11 @@ public sealed class WorldDeferredCognitionTests
             Assert.DoesNotContain(compact.Events, item => item.Kind == "agent_name_retry_exhausted");
             using var fromDisk = file.LoadOrCreate(compact.WorldSeed);
             Assert.Equal(WorldRuntimeCodec.Encode(compact), WorldRuntimeCodec.Encode(fromDisk.ExportState()));
-            Assert.False(fromDisk.Society.GetInhabitant(NameTargetId).HasChosenName);
-            Assert.False(fromDisk.Society.GetInhabitant(NameTargetId).NeedsName);
+            Assert.False(fromDisk.Society.GetAgent(NameTargetId).HasChosenName);
+            Assert.False(fromDisk.Society.GetAgent(NameTargetId).NeedsName);
             // Every founder placeholder can coexist with a genuinely chosen Founder first name.
             Assert.True(fromDisk.RenameAgent(NameOwnerId, "Founder Vale"));
-            Assert.Equal(placeholder, fromDisk.Society.GetInhabitant(NameTargetId).Name);
+            Assert.Equal(placeholder, fromDisk.Society.GetAgent(NameTargetId).Name);
 
             var ordinaryProvider = new SequencedHostedProvider(new NameReply("Unexpected Replacement"));
             using var resumed = WorldRuntime.Restore(
@@ -252,8 +252,8 @@ public sealed class WorldDeferredCognitionTests
                 Assert.False(request.NeedsName);
                 Assert.False(request.IsNameRetry);
             });
-            Assert.Equal(placeholder, resumed.Society.GetInhabitant(NameTargetId).Name);
-            Assert.False(resumed.Society.GetInhabitant(NameTargetId).HasChosenName);
+            Assert.Equal(placeholder, resumed.Society.GetAgent(NameTargetId).Name);
+            Assert.False(resumed.Society.GetAgent(NameTargetId).HasChosenName);
         }
         finally { directory.Delete(recursive: true); }
     }
@@ -275,7 +275,7 @@ public sealed class WorldDeferredCognitionTests
         world.PlaceFounder(NameOwnerId, new GridPoint(1, 2));
         world.PlaceFounder("founder:cccccccccccccccccccccccccccccccc", new GridPoint(2, 2));
         world.PlaceFounder("founder:dddddddddddddddddddddddddddddddd", new GridPoint(3, 2));
-        var secondPlaceholder = world.Society.GetInhabitant(NameOwnerId).Name;
+        var secondPlaceholder = world.Society.GetAgent(NameOwnerId).Name;
         world.StartWorld();
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -291,15 +291,15 @@ public sealed class WorldDeferredCognitionTests
         }
         var simultaneous = await world.AdvanceOneTickNonBlockingAsync();
         Assert.True(simultaneous.Advanced);
-        Assert.Contains(simultaneous.Decisions, item => item.InhabitantId == NameTargetId && item.Admission.Accepted);
-        Assert.Contains(simultaneous.Decisions, item => item.InhabitantId == NameOwnerId && item.Admission.Accepted);
-        Assert.Equal("Shared Vale", world.Society.GetInhabitant(NameTargetId).Name);
-        Assert.Equal(secondPlaceholder, world.Society.GetInhabitant(NameOwnerId).Name);
-        Assert.True(world.Society.GetInhabitant(NameOwnerId).NeedsName);
+        Assert.Contains(simultaneous.Decisions, item => item.AgentId == NameTargetId && item.Admission.Accepted);
+        Assert.Contains(simultaneous.Decisions, item => item.AgentId == NameOwnerId && item.Admission.Accepted);
+        Assert.Equal("Shared Vale", world.Society.GetAgent(NameTargetId).Name);
+        Assert.Equal(secondPlaceholder, world.Society.GetAgent(NameOwnerId).Name);
+        Assert.True(world.Society.GetAgent(NameOwnerId).NeedsName);
 
         _ = await AdvanceUntilAcceptedAsync(world, NameOwnerId);
         Assert.True(secondProvider.ObservedRequests.ElementAt(1).IsNameRetry);
-        Assert.Equal("Second Name", world.Society.GetInhabitant(NameOwnerId).Name);
+        Assert.Equal("Second Name", world.Society.GetAgent(NameOwnerId).Name);
     }
 
     [Fact]
@@ -311,7 +311,7 @@ public sealed class WorldDeferredCognitionTests
             ignoreSecondCancellation: true);
         using var world = CreateNameTestWorld("duplicate-name-retry-save", provider);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
-        var placeholder = world.Society.GetInhabitant(NameTargetId).Name;
+        var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -325,7 +325,7 @@ public sealed class WorldDeferredCognitionTests
         var savedJson = WorldRuntimeCodec.Encode(world.ExportState());
         var saved = WorldRuntimeCodec.Decode(savedJson);
         Assert.Contains(SocietyCognitionScheduler.NameRetryTriggerId,
-            saved.Society.Cognition.Queue.Single(item => item.InhabitantId == NameTargetId).TriggerIds);
+            saved.Society.Cognition.Queue.Single(item => item.AgentId == NameTargetId).TriggerIds);
         Assert.False(Encoding.UTF8.GetString(savedJson).Contains("isNameRetry", StringComparison.OrdinalIgnoreCase));
 
         Assert.True(provider.SecondCancellationToken.IsCancellationRequested);
@@ -334,7 +334,7 @@ public sealed class WorldDeferredCognitionTests
         Assert.Equal("Restored Name", (await canceledReply).ChosenName);
         Assert.Equal(completedBeforeCancellation, world.ExportState().Events.Count(item =>
             item.Kind == "hosted_decision_completed"));
-        Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
+        Assert.Equal(placeholder, world.Society.GetAgent(NameTargetId).Name);
 
         var restoredProvider = new SequencedHostedProvider(new NameReply("Restored Name"));
         using var restored = WorldRuntime.Restore(saved, id => id == NameTargetId
@@ -344,9 +344,9 @@ public sealed class WorldDeferredCognitionTests
         Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
         await restoredProvider.FirstReturned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var completed = await AdvanceUntilAcceptedAsync(restored, NameTargetId);
-        Assert.True(Assert.Single(completed.Decisions, item => item.InhabitantId == NameTargetId).Admission.Accepted);
+        Assert.True(Assert.Single(completed.Decisions, item => item.AgentId == NameTargetId).Admission.Accepted);
         Assert.True(Assert.Single(restoredProvider.ObservedRequests).IsNameRetry);
-        Assert.Equal("Restored Name", restored.Society.GetInhabitant(NameTargetId).Name);
+        Assert.Equal("Restored Name", restored.Society.GetAgent(NameTargetId).Name);
     }
 
     [Theory]
@@ -371,7 +371,7 @@ public sealed class WorldDeferredCognitionTests
             {
                 Cognition = saved.Society.Cognition with
                 {
-                    Queue = saved.Society.Cognition.Queue.Select(entry => entry.InhabitantId == NameTargetId
+                    Queue = saved.Society.Cognition.Queue.Select(entry => entry.AgentId == NameTargetId
                         ? entry with
                         {
                             TriggerIds = otherWork ? [SocietyCognitionScheduler.NameRetryTriggerId, "other_work"]
@@ -384,7 +384,7 @@ public sealed class WorldDeferredCognitionTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(saved)),
             id => id == NameTargetId ? freshProvider : new QuietDecisionProvider());
         Assert.True(restored.RenameAgent(NameTargetId, "Player Name"));
-        var queued = restored.ExportState().Society.Cognition.Queue.SingleOrDefault(entry => entry.InhabitantId == NameTargetId);
+        var queued = restored.ExportState().Society.Cognition.Queue.SingleOrDefault(entry => entry.AgentId == NameTargetId);
         if (otherWork) Assert.Equal(["other_work"], queued!.TriggerIds);
         else Assert.Null(queued);
         restored.Resume();
@@ -392,7 +392,7 @@ public sealed class WorldDeferredCognitionTests
         await Task.Delay(100);
         Assert.DoesNotContain(freshProvider.ObservedRequests, request => request.IsNameRetry || request.NeedsName);
         if (!otherWork) Assert.Equal(0, freshProvider.CallCount);
-        Assert.Equal("Player Name", restored.Society.GetInhabitant(NameTargetId).Name);
+        Assert.Equal("Player Name", restored.Society.GetAgent(NameTargetId).Name);
     }
 
     [Fact]
@@ -447,10 +447,10 @@ public sealed class WorldDeferredCognitionTests
         var first = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
         Assert.True(first.Advanced);
         Assert.Equal(1, world.WorldTick);
-        Assert.Contains(first.Decisions, item => item.InhabitantId != "founder-scout" && item.Admission.Accepted);
+        Assert.Contains(first.Decisions, item => item.AgentId != "founder-scout" && item.Admission.Accepted);
         await hosted.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        Assert.Contains(world.ExportState().Society.Cognition.Queue, item => item.InhabitantId == "founder-scout");
-        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants
+        Assert.Contains(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
+        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Agents
                 .Single(item => item.Id == "founder-scout").DecisionFactors,
             item => item.Key == "decision-pending");
 
@@ -463,7 +463,7 @@ public sealed class WorldDeferredCognitionTests
         await hosted.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var admitted = await AdvanceUntilAcceptedAsync(world, "founder-scout");
         Assert.Contains(admitted.Events, item => item.Kind == "hosted_decision_completed");
-        Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.InhabitantId == "founder-scout");
+        Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
     }
 
     [Fact]
@@ -481,14 +481,14 @@ public sealed class WorldDeferredCognitionTests
         hosted.Release.TrySetResult(true);
         await hosted.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var admitted = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        Assert.False(Assert.Single(admitted.Decisions, item => item.InhabitantId == NameTargetId).Admission.FellBack);
-        Assert.Equal("Player-picked", world.Society.GetInhabitant(NameTargetId).Name);
+        Assert.False(Assert.Single(admitted.Decisions, item => item.AgentId == NameTargetId).Admission.FellBack);
+        Assert.Equal("Player-picked", world.Society.GetAgent(NameTargetId).Name);
 
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal(WorldRuntime.StateSchemaVersion, saved.SchemaVersion);
         using var restored = WorldRuntime.Restore(saved);
-        Assert.Equal("Player-picked", restored.Society.GetInhabitant(NameTargetId).Name);
-        var people = new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants;
+        Assert.Equal("Player-picked", restored.Society.GetAgent(NameTargetId).Name);
+        var people = new OwnerWorldObservationStore(restored).GetSnapshot().Agents;
         Assert.Equal("I should gather food before the others wake.",
             Assert.Single(people.Single(person => person.Id == NameTargetId).RecentPrivateThoughts).Text);
         Assert.All(people.Where(person => person.Id != NameTargetId),
@@ -510,7 +510,7 @@ public sealed class WorldDeferredCognitionTests
         await staleProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var initialObservation = Assert.Single(staleProvider.ObservedRequests);
         Assert.Equal(world.Society.WorldId, initialObservation.WorldId);
-        Assert.Equal(targetId, initialObservation.InhabitantId);
+        Assert.Equal(targetId, initialObservation.AgentId);
         Assert.Equal(first.InstructionId, Assert.Single(initialObservation.ObserverGuidance!).InstructionId);
 
         world.Pause();
@@ -532,7 +532,7 @@ public sealed class WorldDeferredCognitionTests
         await replacement.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var retryObservation = Assert.Single(replacement.ObservedRequests);
         Assert.Equal(saved.Society.Society.WorldId, retryObservation.WorldId);
-        Assert.Equal(targetId, retryObservation.InhabitantId);
+        Assert.Equal(targetId, retryObservation.AgentId);
         Assert.Equal([first.InstructionId, second.InstructionId], retryObservation.ObserverGuidance!
             .Select(item => item.InstructionId).ToArray());
         replacement.Release.TrySetResult(true);
@@ -550,18 +550,18 @@ public sealed class WorldDeferredCognitionTests
 
         using var roundtripped = WorldRuntime.Restore(final);
         var projection = new OwnerWorldObservationStore(roundtripped).GetSnapshot();
-        var targetMessages = projection.Instructions.Where(item => item.TargetInhabitantId == targetId).ToArray();
+        var targetMessages = projection.Instructions.Where(item => item.TargetAgentId == targetId).ToArray();
         Assert.Equal(2, targetMessages.Length);
         Assert.Equal(first.InstructionId, targetMessages[0].InstructionId);
         Assert.Equal(firstSaved.ObserverReply, targetMessages[0].ObserverReply);
         Assert.Equal(second.InstructionId, targetMessages[1].InstructionId);
         Assert.NotNull(targetMessages[1].ObservedTick);
         Assert.Null(targetMessages[1].ObserverReply);
-        Assert.DoesNotContain(projection.Instructions, item => item.TargetInhabitantId != targetId);
+        Assert.DoesNotContain(projection.Instructions, item => item.TargetAgentId != targetId);
         roundtripped.Validate();
     }
 
-    private static async Task<WorldStepResult> AdvanceUntilAcceptedAsync(WorldRuntime world, string inhabitantId)
+    private static async Task<WorldStepResult> AdvanceUntilAcceptedAsync(WorldRuntime world, string agentId)
     {
         var field = typeof(WorldRuntime).GetField("pendingHosted",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -570,21 +570,21 @@ public sealed class WorldDeferredCognitionTests
         {
             // Finish the registered wrapper task, including provider metering,
             // without spending native ticks on thread-pool scheduling.
-            if (pending.Contains(inhabitantId))
+            if (pending.Contains(agentId))
             {
-                var call = pending[inhabitantId]!;
+                var call = pending[agentId]!;
                 var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
                 var checkpoint = WorldRuntimeCodec.Encode(world.ExportState());
                 await task.WaitAsync(TimeSpan.FromSeconds(30));
-                Assert.Same(call, pending[inhabitantId]);
+                Assert.Same(call, pending[agentId]);
                 Assert.Equal(checkpoint, WorldRuntimeCodec.Encode(world.ExportState()));
             }
             var step = await world.AdvanceOneTickNonBlockingAsync();
             Assert.True(step.Advanced);
-            if (step.Decisions.Any(item => item.InhabitantId == inhabitantId && item.Admission.Accepted))
+            if (step.Decisions.Any(item => item.AgentId == agentId && item.Admission.Accepted))
                 return step;
         }
-        throw new TimeoutException($"The completed hosted decision for {inhabitantId} was not admitted within 20 ticks.");
+        throw new TimeoutException($"The completed hosted decision for {agentId} was not admitted within 20 ticks.");
     }
 
     private static WorldRuntime CreateNameTestWorld(
@@ -612,7 +612,7 @@ public sealed class WorldDeferredCognitionTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, "safe_idle", 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == "safe_idle" ? 1d : 0d, StringComparer.Ordinal)));
         }
@@ -640,11 +640,11 @@ public sealed class WorldDeferredCognitionTests
         {
         }
 
-        public ConcurrentQueue<InhabitantObservation> ObservedRequests { get; } = new();
+        public ConcurrentQueue<AgentObservation> ObservedRequests { get; } = new();
         public TaskCompletionSource<bool> FirstReturned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> SecondStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> SecondFailed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public InhabitantObservation? SecondObservation { get; private set; }
+        public AgentObservation? SecondObservation { get; private set; }
         public CancellationToken SecondCancellationToken { get; private set; }
         public int CallCount => Volatile.Read(ref callCount);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
@@ -683,7 +683,7 @@ public sealed class WorldDeferredCognitionTests
                 candidate => candidate.Id == selected ? 1d : 0d, StringComparer.Ordinal);
             var response = new CognitionDecisionResponse(
                 request.RequestId,
-                observation.InhabitantId,
+                observation.AgentId,
                 Kind,
                 ProviderEpoch,
                 observation.RunEpoch,
@@ -775,7 +775,7 @@ public sealed class WorldDeferredCognitionTests
                 item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal);
             Returned.TrySetResult(true);
             return new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d, probabilities,
                 PrivateThought: privateThought, ChosenName: chosenName);
@@ -787,7 +787,7 @@ public sealed class WorldDeferredCognitionTests
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public ConcurrentQueue<InhabitantObservation> ObservedRequests { get; } = new();
+        public ConcurrentQueue<AgentObservation> ObservedRequests { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
 
@@ -804,7 +804,7 @@ public sealed class WorldDeferredCognitionTests
                 item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal);
             var firstMessage = observation.ObserverGuidance?.FirstOrDefault(message => message.ReplyAllowed);
             var response = new CognitionDecisionResponse(
-                request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1d, probabilities,
                 ObserverReplies: firstMessage is null ? [] : [new(firstMessage.InstructionId, replyText)]);

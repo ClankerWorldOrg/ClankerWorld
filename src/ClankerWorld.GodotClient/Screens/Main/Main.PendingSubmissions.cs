@@ -214,7 +214,7 @@ public partial class Main
         pendingSubmissionLabel.Text = pendingSubmission switch
         {
             { Instruction: { } instruction } =>
-                $"Retained instruction retry · {instruction.Kind} for {instruction.TargetInhabitantId} · ID {instruction.IdempotencyKey}" +
+                $"Retained instruction retry · {instruction.Kind} for {instruction.TargetAgentId} · ID {instruction.IdempotencyKey}" +
                 (CanRetryPendingSubmission(pendingSubmission)
                     ? string.Empty : " · Previous world state: check the world, then forget this request before sending a new one."),
             { Authoring: { } authoring } =>
@@ -222,7 +222,7 @@ public partial class Main
                 (CanRetryPendingSubmission(pendingSubmission)
                     ? string.Empty : " · Previous world state: check the world, then forget this request before sending a new one."),
             { OrderCancel: { } cancellation } =>
-                $"Retained order-cancellation retry · order {cancellation.OrderId} for {cancellation.TargetInhabitantId}" +
+                $"Retained order-cancellation retry · order {cancellation.OrderId} for {cancellation.TargetAgentId}" +
                 (CanRetryPendingSubmission(pendingSubmission)
                     ? string.Empty : " · Previous world state: check the world, then forget this request before sending a new one."),
             _ => "No retained owner request. A network failure keeps one instruction, order cancellation or authoring batch here for an exact retry.",

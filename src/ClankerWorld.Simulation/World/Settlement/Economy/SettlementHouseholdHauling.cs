@@ -24,9 +24,9 @@ public sealed partial class WorldRuntime
         InventoryContainerRules.IsContainer(root.ItemKind) && inventory.Lots.Any(lot =>
             lot.ContainerLotId == root.Id && (lot.ConditionBasisPoints == 0 || lot.FreshnessBasisPoints == 0));
 
-    private InventoryLot? RecoverableHouseholdDelivery(string actor, InhabitantState state)
+    private InventoryLot? RecoverableHouseholdDelivery(string actor, AgentState state)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             !IsWithinInteractionRange(state.Position, SettlementStoragePosition, ResourceInteractionRange) &&
             FindUnoccupiedRoute(actor, state.Position, SettlementStoragePosition, ResourceInteractionRange).Count == 0)
             return null;
@@ -42,14 +42,14 @@ public sealed partial class WorldRuntime
     }
 
     private void AddRecoverHouseholdDeliveryCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state)
+        AgentState state)
     {
         if (RecoverableHouseholdDelivery(actor, state) is not null)
             candidates.Add(new("recover_household_delivery",
                 "Return unusable delivery supplies to your household's pile at camp.", 18));
     }
 
-    private void RecoverHouseholdDelivery(string actor, InhabitantState state)
+    private void RecoverHouseholdDelivery(string actor, AgentState state)
     {
         if (RecoverableHouseholdDelivery(actor, state) is not { } stock)
             return;
@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, state, startingSite, "recover_household_delivery", ResourceInteractionRange);
             return;
         }
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId!;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
         var quantity = InventoryContainerRules.IsContainer(stock.ItemKind) ? 1 : stock.Quantity;
         var physicalQuantity = HouseDeliveryPhysicalQuantity(society.Checkpoint.Inventory, stock);
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
@@ -126,9 +126,9 @@ public sealed partial class WorldRuntime
     }
 
     private void AddHouseHaulCandidate(List<CognitionCandidate> candidates,
-        string actor, InhabitantState state)
+        string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (householdId is null)
             return;
         if (CarriedHouseDelivery(actor) is { } carried)
@@ -167,9 +167,9 @@ public sealed partial class WorldRuntime
             (sourceLotId is null || lot.Id == sourceLotId) && lot.ContainerLotId is null && lot.DeliveryBuildingId is null &&
             !InventoryContainerRules.IsContainer(lot.ItemKind) && AvailableLotQuantity(lot) > 1);
 
-    private void StoreHouseholdFood(string actor, InhabitantState state)
+    private void StoreHouseholdFood(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null || state.HungerBasisPoints < 6_000 ||
             HouseForHousehold(householdId) is not { } house || PersonalSpareFood(actor) is not { } food)
             return;
@@ -186,9 +186,9 @@ public sealed partial class WorldRuntime
         AppendEvent("household_food_stored", $"{actor}:{food.Id}:{quantity}:{house.InstanceId}");
     }
 
-    private void HaulHouseholdStock(string actor, InhabitantState state)
+    private void HaulHouseholdStock(string actor, AgentState state)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (!AdultResident(actor) || householdId is null)
             return;
         if (CarriedHouseDelivery(actor) is { } carried)
@@ -260,9 +260,9 @@ public sealed partial class WorldRuntime
     /// adult food recovery may release only the orchard seeds it actually sets down.
     /// </summary>
     private void AddMakeRoomForFoodCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state, int priority)
+        AgentState state, int priority)
     {
-        if (!(AdultResident(actor) || ChildResident(actor)) || society.Checkpoint.GetInhabitant(actor).HouseholdId is null)
+        if (!(AdultResident(actor) || ChildResident(actor)) || society.Checkpoint.GetAgent(actor).HouseholdId is null)
             return;
         var cargo = FoodRecoveryCargo(actor, state);
         if (cargo.Count == 0 ||
@@ -282,7 +282,7 @@ public sealed partial class WorldRuntime
             destination.StorageBuildingId));
     }
 
-    private int FoodRoomMissing(string actor, InhabitantState state)
+    private int FoodRoomMissing(string actor, AgentState state)
     {
         var required = state.HungerBasisPoints < 7_000 && !PreferredFood(actor, actor).Any()
             ? MinimumFoodPickupCarryUnits(actor, state.Position, forDependent: false) : 0;
@@ -307,7 +307,7 @@ public sealed partial class WorldRuntime
         IReadOnlyDictionary<string, int>? retainedLotQuantities = null)
     {
         if (missing <= 0) return [];
-        var equipment = inhabitants[actor].Equipment;
+        var equipment = agents[actor].Equipment;
         var inventory = society.Checkpoint.Inventory;
         var spare = inventory.Lots
             .Where(lot => (lot.OwnerId == actor || lot.OwnerId == HouseholdFor(actor)) &&
@@ -335,7 +335,7 @@ public sealed partial class WorldRuntime
         return moves;
     }
 
-    private List<SpareCargoMove> FoodRecoveryCargo(string actor, InhabitantState state)
+    private List<SpareCargoMove> FoodRecoveryCargo(string actor, AgentState state)
     {
         var missing = FoodRoomMissing(actor, state);
         var moves = OrdinarySpareCargo(actor, missing);
@@ -360,7 +360,7 @@ public sealed partial class WorldRuntime
         if (lot.OwnerId != actor || lot.ItemKind != TreeGrowthRules.OrchardSeedItem ||
             !PersonalEquipmentRules.IsCarried(lot, actor) || lot.ContainerLotId is not null ||
             lot.DeliveryBuildingId is not null || lot.ConditionBasisPoints <= 0 || lot.FreshnessBasisPoints <= 0 ||
-            PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id))
+            PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id))
             return null;
         var claims = inventory.Reservations.Where(reservation => reservation.LotId == lot.Id && reservation.State is
             InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed).ToArray();
@@ -374,9 +374,9 @@ public sealed partial class WorldRuntime
 
     /// <summary>The household House when it has room, otherwise the household's pile at camp.</summary>
     private (GridPoint Position, int Range, string? StorageBuildingId)? SpareCargoDestination(string actor,
-        InhabitantState state, int quantity)
+        AgentState state, int quantity)
     {
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId!;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
         if (HouseForHousehold(householdId) is { } house && DestinationRoom(house.InstanceId) >= quantity &&
             (state.Position == house.Position || FindUnoccupiedRoute(actor, state.Position, house.Position, 0).Count > 0))
             return (house.Position, 0, house.InstanceId);
@@ -386,15 +386,15 @@ public sealed partial class WorldRuntime
             ? (startingSite, ResourceInteractionRange, null) : null;
     }
 
-    private void MakeRoomForFood(string actor, InhabitantState state)
+    private void MakeRoomForFood(string actor, AgentState state)
     {
-        if (!(AdultResident(actor) || ChildResident(actor)) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId)
+        if (!(AdultResident(actor) || ChildResident(actor)) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId)
             return;
         var cargo = FoodRecoveryCargo(actor, state);
         StoreSpareCargo(actor, state, householdId, cargo);
     }
 
-    private bool StoreSpareCargo(string actor, InhabitantState state, string householdId,
+    private bool StoreSpareCargo(string actor, AgentState state, string householdId,
         List<SpareCargoMove> cargo)
     {
         if (cargo.Count == 0 ||

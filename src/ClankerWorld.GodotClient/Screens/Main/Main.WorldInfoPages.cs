@@ -148,8 +148,8 @@ public partial class Main
     /// </summary>
     private void RenderTownExtras(OwnerWorldSnapshot snapshot)
     {
-        var workers = snapshot.Inhabitants.Where(person => person.Project is not null).ToArray();
-        var notes = snapshot.Inhabitants.SelectMany(person => person.SocialNotes.Take(2).Select(note => (person, note))).ToArray();
+        var workers = snapshot.Agents.Where(person => person.Project is not null).ToArray();
+        var notes = snapshot.Agents.SelectMany(person => person.SocialNotes.Take(2).Select(note => (person, note))).ToArray();
         var council = snapshot.Council;
         var signature = string.Join("\n", snapshot.Stockpiles.Select(store => store.Name + ":" + string.Join(",", store.Items.Select(item => item.Kind + item.Quantity)))) +
             "|" + string.Join(",", workers.Select(person =>
@@ -174,7 +174,7 @@ public partial class Main
             townExtras.AddChild(band);
         }
         void Note(string text) => townExtras.AddChild(new Label { Text = text, ThemeTypeVariation = "DimLabel" });
-        static TextureRect Portrait(OwnerWorldInhabitant person, Control.SizeFlags vertical) => new()
+        static TextureRect Portrait(OwnerWorldAgent person, Control.SizeFlags vertical) => new()
         {
             Texture = AgentPortrait(person, IsLiving(person)),
             TooltipText = person.DisplayName,
@@ -262,7 +262,7 @@ public partial class Main
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 2);
         foreach (var id in town.ResidentIds.Take(ResidentPortraitLimit))
-            if (snapshot.Inhabitants.FirstOrDefault(person => person.Id == id) is { } person)
+            if (snapshot.Agents.FirstOrDefault(person => person.Id == id) is { } person)
                 row.AddChild(new TextureRect { Texture = AgentPortrait(person, IsLiving(person)), TooltipText = person.DisplayName, StretchMode = TextureRect.StretchModeEnum.KeepCentered });
         if (town.ResidentIds.Count > ResidentPortraitLimit)
             row.AddChild(new Label { Text = $"+{town.ResidentIds.Count - ResidentPortraitLimit}", ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
@@ -271,7 +271,7 @@ public partial class Main
 
     /// <summary>What the resident portraits show, so the Town list is redrawn when one changes.</summary>
     private static string ResidentPortraitsKey(OwnerWorldSnapshot snapshot, OwnerWorldTown town) =>
-        string.Join(",", town.ResidentIds.Take(ResidentPortraitLimit).Select(id => snapshot.Inhabitants.FirstOrDefault(person => person.Id == id) is { } person
+        string.Join(",", town.ResidentIds.Take(ResidentPortraitLimit).Select(id => snapshot.Agents.FirstOrDefault(person => person.Id == id) is { } person
             ? $"{id}:{person.DisplayName.Length}:{person.DisplayName}:{IsLiving(person)}:{person.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail}"
             : id));
 

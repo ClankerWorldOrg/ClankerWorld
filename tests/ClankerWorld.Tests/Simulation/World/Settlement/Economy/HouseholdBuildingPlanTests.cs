@@ -61,7 +61,7 @@ public sealed class HouseholdBuildingPlanTests
         var silo = world.WorldContent.Buildings.Single(item => item.LocalId == "silo-1x1");
         var farmhouse = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-farmhouse");
         var siloSites = recorder.OfferedByAgent
-            .Where(entry => world.Society.GetInhabitant(entry.Key).HouseholdId == Alpha)
+            .Where(entry => world.Society.GetAgent(entry.Key).HouseholdId == Alpha)
             .SelectMany(entry => entry.Value.Keys)
             .Where(id => TownConstructionCandidateIds.TryParse(id, out var selection) &&
                 selection.IsBuilding && selection.DefinitionId == silo.CanonicalId)
@@ -118,7 +118,7 @@ public sealed class HouseholdBuildingPlanTests
     }
 
     private static HashSet<string> FamiliesForHousehold(WorldRuntime world, ActionCoverageRecorder recorder,
-        string householdId) => world.Society.Inhabitants
+        string householdId) => world.Society.Agents
         .Where(person => person.HouseholdId == householdId)
         .SelectMany(person => recorder.FamiliesOfferedTo(person.Id, world.WorldContent))
         .ToHashSet(StringComparer.Ordinal);

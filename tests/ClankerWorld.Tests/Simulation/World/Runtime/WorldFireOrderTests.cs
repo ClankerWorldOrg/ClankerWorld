@@ -321,7 +321,7 @@ public sealed partial class WorldFireOrderTests
             }
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(item => item.Id == "tend_fire")
                 ? "tend_fire" : "safe_idle";
-            return new(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

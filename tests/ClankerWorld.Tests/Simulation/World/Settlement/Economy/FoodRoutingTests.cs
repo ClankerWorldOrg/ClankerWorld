@@ -33,7 +33,7 @@ public sealed class FoodRoutingTests
         var state = setup.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { HungerBasisPoints = 1_800 } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
@@ -52,13 +52,13 @@ public sealed class FoodRoutingTests
             Assert.True(step.Advanced);
             harvested |= step.Events.Any(item => item.Kind == "food_harvested" &&
                 item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
-            if (harvested && restored.Inhabitants.Single(person => person.InhabitantId == Actor).HungerBasisPoints > 1_800)
+            if (harvested && restored.Agents.Single(person => person.AgentId == Actor).HungerBasisPoints > 1_800)
                 break;
         }
         restored.Validate();
         var result = restored.ExportState();
         Assert.Contains(result.Events, item => item.Kind == "food_harvested" && item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
-        Assert.True(restored.Inhabitants.Single(person => person.InhabitantId == Actor).HungerBasisPoints > 1_800);
+        Assert.True(restored.Agents.Single(person => person.AgentId == Actor).HungerBasisPoints > 1_800);
         Assert.DoesNotContain(result.Events, item => item.Kind == "movement_blocked" &&
             item.Detail.StartsWith(Actor + ":no_route", StringComparison.Ordinal));
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(result));
@@ -70,7 +70,7 @@ public sealed class FoodRoutingTests
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var choice = request.Observation.InhabitantId == Actor
+            var choice = request.Observation.AgentId == Actor
                 ? request.Observation.Candidates.FirstOrDefault(item => item.Id is "consume_food" or "harvest_food" or "seek_food") : null;
             choice ??= request.Observation.Candidates.Single(item => item.Id == "safe_idle");
             return new DeterministicDecisionProvider().DecideAsync(request with

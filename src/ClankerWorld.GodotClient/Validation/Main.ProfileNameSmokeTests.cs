@@ -15,11 +15,11 @@ public partial class Main
         var previousKey = deviceKey;
         var previousUrl = worldUrlInput.Text;
         var previousObservation = observationSession.Current;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousCardSnapshot = agentCardSnapshot;
         var previousProfileRequested = agentProfileRequested;
         var previousProfileVisible = agentProfilePanel.Visible;
-        var previousQuickCardVisible = selectedInhabitantCard.Visible;
+        var previousQuickCardVisible = selectedAgentCard.Visible;
         var previousMainMenuVisible = mainMenuOverlay.Visible;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
@@ -29,12 +29,12 @@ public partial class Main
         const string shorter = "Short Vale";
         var tick = 0L;
         OwnerWorldReconnect World(string name) => new(new(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []),
             new(new OwnerWorldSnapshot("long-profile-world", ++tick, "long-profile-map", [new(0, 0, "meadow")],
                 [], [], null, 0)
             {
-                Inhabitants = [new(agentId, name, "active", new(0, 0), 8_000, [], [],
+                Agents = [new(agentId, name, "active", new(0, 0), 8_000, [], [],
                     new("idle", null, null, [], string.Empty), new(new(0, 0), [new(0, 0)], [new(0, 0)]), false)],
             }, new(tick, 0, [])));
         async Task SettleAsync()
@@ -64,8 +64,8 @@ public partial class Main
                     ApplyUiScale();
                     host.Reconnect = World(name);
                     await RefreshAsync().WaitAsync(TimeSpan.FromSeconds(5));
-                    selectedInhabitantId = null;
-                    SelectInhabitant(agentId);
+                    selectedAgentId = null;
+                    SelectAgent(agentId);
                     OpenAgentProfile(speak: false);
                     await SettleAsync();
                     if (uiLayer.Factor != (size.X == 1920 ? 2 : 1))
@@ -94,7 +94,7 @@ public partial class Main
                     Fits(shorter, agentProfilePanel, renameToggleButton, profileCloseButton);
                     profileCloseButton.EmitSignal(BaseButton.SignalName.Pressed);
                     await SettleAsync();
-                    if (agentProfilePanel.Visible || !selectedInhabitantCard.Visible || selectedInhabitantId != agentId)
+                    if (agentProfilePanel.Visible || !selectedAgentCard.Visible || selectedAgentId != agentId)
                         throw new InvalidOperationException("The Profile's visible Back button must return to the selected agent's quick card.");
                 }
         }
@@ -107,11 +107,11 @@ public partial class Main
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             agentCardSnapshot = previousCardSnapshot;
             agentProfileRequested = previousProfileRequested;
             agentProfilePanel.Visible = previousProfileVisible;
-            selectedInhabitantCard.Visible = previousQuickCardVisible;
+            selectedAgentCard.Visible = previousQuickCardVisible;
             mainMenuOverlay.Visible = previousMainMenuVisible;
             window.Size = previousSize;
             window.ContentScaleSize = previousRenderSize;

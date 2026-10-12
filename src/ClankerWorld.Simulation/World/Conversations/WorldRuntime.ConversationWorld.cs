@@ -10,10 +10,10 @@ public sealed partial class WorldRuntime
         public long WorldTick => runtime.WorldTick;
         public string WorldSeed => runtime.worldSeed;
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants => runtime.inhabitants;
+        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
         public long WorldDayAt(long tick) => WorldCalendarRules.FromTick(tick, runtime.worldSystems.Config).DayIndex;
-        public bool NeedsUrgentFood(InhabitantState person) => WorldRuntime.NeedsUrgentFood(person);
-        public bool NeedsUrgentWarmth(InhabitantState person) => runtime.NeedsUrgentWarmth(person);
+        public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
+        public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
         public bool IsAboardBoat(string agentId) => runtime.PassengerBoat(agentId) is not null;
         public int FootDistance(GridPoint from, GridPoint to) => runtime.map.FootDistance(from, to);
         public bool IsWithinInteractionRange(GridPoint from, GridPoint to, int range) =>

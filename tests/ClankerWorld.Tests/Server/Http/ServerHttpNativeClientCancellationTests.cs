@@ -45,7 +45,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.OK, submitted.StatusCode);
             var receipt = Assert.IsType<OwnerInstructionReceipt>(await submitted.Content.ReadFromJsonAsync<OwnerInstructionReceipt>());
             var order = Assert.Single(runtime.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
-            Assert.Equal((actor, "consume_food", "waiting"), (order.TargetInhabitantId, order.Order!.Action, order.Order.Status));
+            Assert.Equal((actor, "consume_food", "waiting"), (order.TargetAgentId, order.Order!.Action, order.Order.Status));
 
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
             var authority = new ClientAuthority(identity.ServerAuthorityId, identity.WorldId);
@@ -69,7 +69,7 @@ public sealed partial class ServerHttpTests
                 authority, device.DeviceId, action, signer, CancellationToken.None));
             Assert.Equal("cancelled", Assert.Single(runtime.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Order!.Status);
             var original = Assert.Single(runtime.ExportState().OrderCancellations!);
-            Assert.Equal((actor, action.OrderId, action.WorldId), (original.TargetInhabitantId, original.OrderId, original.WorldId));
+            Assert.Equal((actor, action.OrderId, action.WorldId), (original.TargetAgentId, original.OrderId, original.WorldId));
             var afterFirst = WorldRuntimeCodec.Encode(runtime.ExportState());
             Assert.Equal(pendingBytes, File.ReadAllBytes(path));
 
@@ -89,7 +89,7 @@ public sealed partial class ServerHttpTests
             Assert.Single(runtime.ExportState().OrderCancellations!);
             using var reloaded = host.Services.GetRequiredService<WorldStateFile>().LoadOrCreate(state.WorldSeed);
             Assert.Equal(afterFirst, WorldRuntimeCodec.Encode(reloaded.ExportState()));
-            Assert.Equal(actor, Assert.Single(reloaded.ExportState().OrderCancellations!).TargetInhabitantId);
+            Assert.Equal(actor, Assert.Single(reloaded.ExportState().OrderCancellations!).TargetAgentId);
             Assert.True(restartedStore.TryClear(retained));
             Assert.Null(restartedStore.TryLoad(binding));
         }

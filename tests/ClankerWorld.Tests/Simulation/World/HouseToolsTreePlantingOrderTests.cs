@@ -17,7 +17,7 @@ public sealed partial class HouseToolsBehaviorTests
         using var setup = NormalPathWorld.CreateGenerated("smith-whole-load", _ => new IdleProvider());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var source = state.Map.Resources.Where(resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
                 state.Resources.Single(item => item.ResourceId == resource.Id).State == ResourceState.Available &&
                 state.WorldSystems!.Ecology.GetResource(resource.Id).Quantity == 1 &&
@@ -33,12 +33,12 @@ public sealed partial class HouseToolsBehaviorTests
         state = felling.ExportState();
         if (mode.EndsWith("_stored", StringComparison.Ordinal))
         {
-            var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+            var household = state.Society.Society.GetAgent(actor).HouseholdId!;
             var house = Assert.Single(state.WorldSimulation!.Buildings, building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house"));
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Position = house.Position, TravelCooldownTicks = 0, LastDecisionContext = null }
                     : person).ToArray(),
             };
@@ -70,19 +70,19 @@ public sealed partial class HouseToolsBehaviorTests
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
             .Concat(felling.RoadTiles).Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position))
             .Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
         bool Legal(GridPoint point) => !blocked.Contains(point) && TreeGrowthRules.GroundRefusal(state.Map, point) is null &&
             state.WorldSystems!.Chunks.Any(chunk => chunk.Coordinate == ChunkRules.ToChunkCoordinate(point, chunk.ChunkSize) &&
                 chunk.Resources.Count < state.WorldSystems.Config.MaxResourcesPerChunk);
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(Legal)
-            .Where(point => state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point) &&
+            .Where(point => state.Map.IsReachableOnFoot(state.Agents[0].Position, point) &&
                 state.Map.FootNeighbors(point).Any(Legal))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
         var stand = state.Map.FootNeighbors(target).First(Legal);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
                 HungerBasisPoints = 9_000,

@@ -57,7 +57,7 @@ public sealed class WorldOrderCancellationSaveValidationTests
             IdempotencyKey = " " + checkpoint.Request.IdempotencyKey + " ",
             IssuerId = " " + checkpoint.Request.IssuerId + " ",
             WorldId = " " + checkpoint.Request.WorldId + " ",
-            TargetInhabitantId = " " + checkpoint.Request.TargetInhabitantId + " ",
+            TargetAgentId = " " + checkpoint.Request.TargetAgentId + " ",
             OrderId = " " + checkpoint.Request.OrderId + " ",
         };
 

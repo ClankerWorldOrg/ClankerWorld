@@ -61,7 +61,7 @@ public sealed partial class TownLandTransferRuntimeTests
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         }
         Assert.True(restored.Towns[0].LandHearings.Transfers[0].Status == "transferred",
-            string.Join("\n", provider.Selected.TakeLast(24)) + "\n" + JsonSerializer.Serialize(restored.ExportState().Inhabitants.Select(person => new { person.InhabitantId, person.Position, person.MoveWaitTicks })) +
+            string.Join("\n", provider.Selected.TakeLast(24)) + "\n" + JsonSerializer.Serialize(restored.ExportState().Agents.Select(person => new { person.AgentId, person.Position, person.MoveWaitTicks })) +
             "\n" + JsonSerializer.Serialize(restored.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood")) + "\n" + JsonSerializer.Serialize(restored.ExportState().Events.TakeLast(16)));
         var completed = Assert.Single(restored.Towns[0].LandHearings.Transfers);
         var payment = Assert.IsType<TownLandSalePayment>(completed.Receipt!.Payment);
@@ -161,7 +161,7 @@ public sealed partial class TownLandTransferRuntimeTests
             }
             if (barrier == "full")
             {
-                var person = state.Inhabitants.Single(item => item.InhabitantId == buyer);
+                var person = state.Agents.Single(item => item.AgentId == buyer);
                 var free = PersonalEquipmentRules.FreeCapacity(inventory, buyer, person.Equipment);
                 if (free > 0) inventory = InventoryAuthority.AddLot(inventory, "sale-full:" + buyer, "stone", buyer, free);
                 Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, buyer, person.Equipment));
@@ -205,7 +205,7 @@ public sealed partial class TownLandTransferRuntimeTests
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId is Filer or SourcePartner ? person with { Position = far } : person).ToArray()
+            Agents = state.Agents.Select(person => person.AgentId is Filer or SourcePartner ? person with { Position = far } : person).ToArray()
         }, _ => provider);
         var before = world.ExportState();
         world.SubmitInstruction(new("sale-meeting-payment", "owner:test", Beneficiary, OwnerInstructionKind.Suggestive,
@@ -251,7 +251,7 @@ public sealed partial class TownLandTransferRuntimeTests
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 10_000 }).ToArray()
         }, _ => provider);
         var before = world.ExportState();
@@ -318,7 +318,7 @@ public sealed partial class TownLandTransferRuntimeTests
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Beneficiary ? person with
+            Agents = state.Agents.Select(person => person.AgentId == Beneficiary ? person with
             {
                 Position = pickup,
                 HungerBasisPoints = 10_000,
@@ -386,7 +386,7 @@ public sealed partial class TownLandTransferRuntimeTests
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Position = town.OriginSite!.Value, HungerBasisPoints = 10_000 }).ToArray(),
             Towns = state.Towns.Select(item => item.Id == town.Id ? item with
             { Governance = council, LandHearings = hearings } : item).ToArray()

@@ -20,7 +20,7 @@ public sealed class TreeSeedCarryCapacityTests
         var state = generated.ExportState();
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "cargo-stone", "stone", actor, stones);
         inventory = InventoryAuthority.AddLot(inventory, "planting-seed", kind, carriedSeed ? actor : household, 1,
@@ -30,10 +30,10 @@ public sealed class TreeSeedCarryCapacityTests
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Equipment = null,
-                Position = person.InhabitantId == actor ? farmhouse.Position : person.Position,
+                Position = person.AgentId == actor ? farmhouse.Position : person.Position,
                 HungerBasisPoints = 9_000,
             }).ToArray(),
         };
@@ -87,7 +87,7 @@ public sealed class TreeSeedCarryCapacityTests
             Offered.Enqueue(observation.Candidates.Select(candidate => candidate.Id).ToArray());
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id == choice) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

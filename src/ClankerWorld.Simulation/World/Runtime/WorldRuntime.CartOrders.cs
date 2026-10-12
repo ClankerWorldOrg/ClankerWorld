@@ -43,9 +43,9 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private InventoryLot? CartForOrder(OwnerQueuedInstruction instruction, InhabitantState person)
+    private InventoryLot? CartForOrder(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         if (order.TargetCartLotId is { } target)
             return society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == target && lot.ItemKind == InventoryContainerRules.Handcart);
@@ -60,7 +60,7 @@ public sealed partial class WorldRuntime
 
     private static GridPoint CartPosition(InventoryLot cart) => new(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y);
 
-    private CognitionCandidate? CartOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? CartOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (IsCartCargoOrder(instruction.Order!.Action)) return CartCargoOrderCandidateFor(instruction, person);
         if (CartOrderBlocker(instruction, person) is not null) return null;
@@ -71,10 +71,10 @@ public sealed partial class WorldRuntime
                 "Reach and attach the selected owned cart through its normal physical action.", 0, cart.Id);
     }
 
-    private string? CartOrderBlocker(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string? CartOrderBlocker(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (IsCartCargoOrder(instruction.Order!.Action)) return CartCargoOrderBlocker(instruction, person);
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AdultResident(actor)) return "Only an adult can pull, park or repair a handcart.";
         var cart = CartForOrder(instruction, person);
         if (cart is null) return "Waiting for an accessible owned cart suitable for this task.";
@@ -92,7 +92,7 @@ public sealed partial class WorldRuntime
             ? null : "Waiting for a clear legal route to the selected cart.";
     }
 
-    private void ExecuteCartOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteCartOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (IsCartCargoOrder(instruction.Order!.Action))
         { ExecuteCartCargoOrderStep(instruction, person); return; }
@@ -113,17 +113,17 @@ public sealed partial class WorldRuntime
             ExecuteCartRepairOrderStep(instruction, person, cart);
             return;
         }
-        var wasAttached = AttachedHandcart(instruction.TargetInhabitantId)?.Id == cart.Id;
+        var wasAttached = AttachedHandcart(instruction.TargetAgentId)?.Id == cart.Id;
         var parking = instruction.Order!.Action == "park_handcart";
-        ApplyHandcartCandidate(instruction.TargetInhabitantId, person, parking ? "park_handcart" : AttachCartPrefix + cart.Id);
-        var isAttached = AttachedHandcart(instruction.TargetInhabitantId)?.Id == cart.Id;
+        ApplyHandcartCandidate(instruction.TargetAgentId, person, parking ? "park_handcart" : AttachCartPrefix + cart.Id);
+        var isAttached = AttachedHandcart(instruction.TargetAgentId)?.Id == cart.Id;
         if (parking ? wasAttached && !isAttached : !wasAttached && isAttached)
             CreditOrderEffect(instruction, CartOrderEffectId(instruction), 1);
     }
 
     private static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>
         DerivedId.Hash(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}", "cart-order:");
+            $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Order!.Action}|{instruction.Order.TargetCartLotId}", "cart-order:");
 
     private static void ValidateCartOrderBindings(InventoryCheckpoint inventory, IEnumerable<OwnerQueuedInstruction> instructions)
     {
@@ -137,8 +137,8 @@ public sealed partial class WorldRuntime
             if (order.Action != "repair_handcart" || order.CompletedUnits == 0) continue;
             repairReservations ??= inventory.Reservations.ToDictionary(item => item.Id, StringComparer.Ordinal);
             if (CartRepairOrderReceiptTick(instruction, inventory.WorldTick) is not { } tick ||
-                !CartRepairKinds.All(kind => repairReservations.TryGetValue(CartRepairReservationId(tick, instruction.TargetInhabitantId, kind), out var input) &&
-                    input.OwnerId == instruction.TargetInhabitantId && input.Quantity == 1 && input.Purpose == "equipment_repair" &&
+                !CartRepairKinds.All(kind => repairReservations.TryGetValue(CartRepairReservationId(tick, instruction.TargetAgentId, kind), out var input) &&
+                    input.OwnerId == instruction.TargetAgentId && input.Quantity == 1 && input.Purpose == "equipment_repair" &&
                     input.ExpiryTick == tick + 1 && input.State == InventoryReservationState.Completed))
                 throw new InvalidDataException("A cart repair order lacks its actual consumed repair inputs.");
         }

@@ -14,8 +14,8 @@ public sealed partial class SettlementParenthoodTests
     public async Task DailyMemoryArchiveProtectsOnlyAnActiveNativeParenthoodPlan(string stage, bool archives)
     {
         var seed = await PreparedState();
-        var owner = seed.Inhabitants[0].InhabitantId;
-        var partner = seed.Inhabitants[1].InhabitantId;
+        var owner = seed.Agents[0].AgentId;
+        var partner = seed.Agents[1].AgentId;
         var day = seed.Society.Society.Config.TicksPerWorldDay;
         var boundary = 4L * day;
         var proposing = new ParentProvider("parent_propose:");
@@ -36,32 +36,32 @@ public sealed partial class SettlementParenthoodTests
                     Society = fed.Society.Society with
                     {
                         Inventory = InventoryAuthority.AddLot(fed.Society.Society.Inventory, "archive-parent-food", "bread",
-                            fed.Society.Society.GetInhabitant(owner).HouseholdId!, 24),
+                            fed.Society.Society.GetAgent(owner).HouseholdId!, 24),
                     },
                 },
             });
             family.Resume();
         }
-        for (var attempt = 0; attempt < 10 && family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood is null; attempt++)
+        for (var attempt = 0; attempt < 10 && family.Agents.Single(person => person.AgentId == owner).Parenthood is null; attempt++)
             Assert.True((await family.AdvanceOneTickAsync()).Advanced);
-        Assert.True(family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood is not null,
-            $"Age={family.Society.GetInhabitant(owner).AgeBand}; food={WorldRuntime.ParenthoodFoodReadiness(family.Society, owner, family.Towns)}; " +
+        Assert.True(family.Agents.Single(person => person.AgentId == owner).Parenthood is not null,
+            $"Age={family.Society.GetAgent(owner).AgeBand}; food={WorldRuntime.ParenthoodFoodReadiness(family.Society, owner, family.Towns)}; " +
             string.Join(";", proposing.SeenCandidates.Select(candidate => candidate.Id)));
-        Assert.Equal("requested", family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!.Stage);
+        Assert.Equal("requested", family.Agents.Single(person => person.AgentId == owner).Parenthood!.Stage);
         if (stage != "requested")
-            for (var attempt = 0; attempt < 10 && family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!.Stage == "requested"; attempt++)
+            for (var attempt = 0; attempt < 10 && family.Agents.Single(person => person.AgentId == owner).Parenthood!.Stage == "requested"; attempt++)
                 Assert.True((await family.AdvanceOneTickAsync()).Advanced);
         if (stage == "completed")
         {
-            var preparation = family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!;
+            var preparation = family.Agents.Single(person => person.AgentId == owner).Parenthood!;
             Assert.Equal("preparing", preparation.Stage);
             PositionFamilyFixtureAt(family, preparation.LastTransitionTick + 599);
             Assert.True((await family.AdvanceOneTickAsync()).Advanced);
             var birth = Assert.Single(family.Society.Births);
-            Assert.Equal(birth.ChildId, family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!.ChildId);
+            Assert.Equal(birth.ChildId, family.Agents.Single(person => person.AgentId == owner).Parenthood!.ChildId);
         }
         PositionFamilyFixtureAt(family, boundary - 1);
-        var plan = family.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!;
+        var plan = family.Agents.Single(person => person.AgentId == owner).Parenthood!;
         Assert.Equal(stage, plan.Stage);
         Assert.Equal(boundary - 1, family.WorldTick);
         var state = family.ExportState();
@@ -95,7 +95,7 @@ public sealed partial class SettlementParenthoodTests
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         var saved = world.ExportState();
         Assert.Equal(boundary, world.WorldTick);
-        Assert.Equal(plan, saved.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood);
+        Assert.Equal(plan, saved.Agents.Single(person => person.AgentId == owner).Parenthood);
         Assert.Equal(archives, world.Society.ArchivedMemories.Any(item => item.Memory.Id == ordinary.Id));
         Assert.Equal(archives, world.Society.ArchivedBeliefs.Any(item => item.Belief.Id == belief.Id));
         Assert.Equal(!archives, world.Society.Memories.Contains(ordinary));
@@ -114,6 +114,6 @@ public sealed partial class SettlementParenthoodTests
         Assert.Equal(after, WorldRuntimeCodec.Encode(replay.ExportState()));
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(after), _ => new ParentProvider("safe_idle"));
         Assert.Equal(after, WorldRuntimeCodec.Encode(loaded.ExportState()));
-        Assert.Equal(plan, loaded.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood);
+        Assert.Equal(plan, loaded.Agents.Single(person => person.AgentId == owner).Parenthood);
     }
 }

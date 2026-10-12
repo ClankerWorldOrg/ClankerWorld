@@ -8,11 +8,11 @@ public sealed partial class WorldRuntime
 {
     private const string ReturnEmptyVesselPrefix = "return_empty_vessel:";
 
-    private InventoryLot? EmptyVesselToReturn(string actor, InhabitantState person,
+    private InventoryLot? EmptyVesselToReturn(string actor, AgentState person,
         string? selectedLotId = null)
     {
         if (!AdultResident(actor) || CarriedHouseDelivery(actor) is not null || FreeCarryCapacity(actor) < 1 ||
-            society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+            society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseForHousehold(householdId) is not { } house ||
             DestinationRoom(house.InstanceId) < 1)
             return null;
@@ -41,14 +41,14 @@ public sealed partial class WorldRuntime
     }
 
     private void AddEmptyVesselReturnCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState person)
+        AgentState person)
     {
         if (EmptyVesselToReturn(actor, person) is not { } vessel) return;
         candidates.Add(new(ReturnEmptyVesselPrefix + vessel.Id,
             "Bring an empty household vessel back to the House for reuse.", 22, vessel.StorageBuildingId));
     }
 
-    private void ReturnEmptyVessel(string actor, InhabitantState person, string lotId)
+    private void ReturnEmptyVessel(string actor, AgentState person, string lotId)
     {
         if (EmptyVesselToReturn(actor, person, lotId) is not { } vessel) return;
         var source = worldSimulation.Buildings.Single(building => building.InstanceId == vessel.StorageBuildingId);
@@ -57,7 +57,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, person, source.Position, "return_empty_vessel", 0);
             return;
         }
-        var householdId = society.Checkpoint.GetInhabitant(actor).HouseholdId!;
+        var householdId = society.Checkpoint.GetAgent(actor).HouseholdId!;
         var house = HouseForHousehold(householdId)!;
         ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
             $"empty-vessel-pickup:{WorldTick}:{actor}", householdId, actor, vessel.Id, 1,

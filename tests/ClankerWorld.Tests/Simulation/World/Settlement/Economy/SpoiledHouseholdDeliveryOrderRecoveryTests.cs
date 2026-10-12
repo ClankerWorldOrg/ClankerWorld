@@ -28,17 +28,17 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         var admittedRecovery = false;
         var walked = false;
-        var previous = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = world.Agents.Single(person => person.AgentId == actor).Position;
         for (var tick = 0; tick < 96 && world.Society.Inventory.GetLot(Pot).OwnerId == actor; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             var current = world.ExportState();
             Assert.Equal(WorldRuntimeCodec.Encode(current), WorldRuntimeCodec.Encode(replay.ExportState()));
-            var intention = current.Society.Cognition.Runtimes.Single(item => item.InhabitantId == actor).CurrentIntention;
+            var intention = current.Society.Cognition.Runtimes.Single(item => item.AgentId == actor).CurrentIntention;
             admittedRecovery |= intention is { CandidateId: "recover_household_delivery", Provider: DecisionProviderKind.Deterministic } &&
                 intention.OperativeOrderInstructionId == receipt.InstructionId;
-            var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var position = world.Agents.Single(person => person.AgentId == actor).Position;
             if (position != previous)
             {
                 Assert.True(state.Map.CanFootStep(previous, position));
@@ -93,7 +93,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var provider = new HeldSpoiledDeliveryProvider();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? (IDecisionProvider)provider : new DeliveryChoices());
-        var previous = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = world.Agents.Single(person => person.AgentId == actor).Position;
         var walked = false;
         try
         {
@@ -105,7 +105,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             Assert.DoesNotContain(request.Candidates, candidate => candidate.Id == "make_room_for_food");
             for (var tick = 0; tick < 96 && world.Society.Inventory.GetLot(Pot).OwnerId == actor; tick++)
             {
-                var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+                var position = world.Agents.Single(person => person.AgentId == actor).Position;
                 if (position != previous)
                 {
                     Assert.True(state.Map.CanFootStep(previous, position));
@@ -127,7 +127,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             var current = world.ExportState();
             Assert.DoesNotContain(current.Events, item => item.Kind == "hosted_decision_completed" &&
                 item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
-            Assert.DoesNotContain(current.Society.Cognition.Runtimes, item => item.InhabitantId == actor &&
+            Assert.DoesNotContain(current.Society.Cognition.Runtimes, item => item.AgentId == actor &&
                 item.CurrentIntention is { CandidateId: "recover_household_delivery", Provider: DecisionProviderKind.LargeLanguageModel });
             Assert.Single(current.Events, item => item.Kind == "household_delivery_recovered" &&
                 item.Detail == $"{actor}:{Pot}:4:camp");
@@ -168,7 +168,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             UrgentRecoveryMeal, "berries", Household, 1, groundPosition: new(startingSite.X, startingSite.Y));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
         };
@@ -231,7 +231,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -243,7 +243,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             Started.TrySetResult(true);
             await Release.Task.WaitAsync(cancellationToken);
             var selected = request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,

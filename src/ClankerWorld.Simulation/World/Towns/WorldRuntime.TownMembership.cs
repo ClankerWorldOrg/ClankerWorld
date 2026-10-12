@@ -103,8 +103,8 @@ public static class TownMembershipText
         ArgumentNullException.ThrowIfNull(towns);
         ArgumentNullException.ThrowIfNull(society);
         ArgumentNullException.ThrowIfNull(townsWithWarehouse);
-        var person = society.Inhabitants.FirstOrDefault(item => item.Id == agentId);
-        if (person is not { Status: SocietyInhabitantStatus.Active }) return null;
+        var person = society.Agents.FirstOrDefault(item => item.Id == agentId);
+        if (person is not { Status: SocietyAgentStatus.Active }) return null;
         knows ??= (_, _, _) => true;
         var adult = person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
         var home = towns.SingleOrDefault(town => town.ResidentIds.Contains(agentId, StringComparer.Ordinal));
@@ -143,7 +143,7 @@ public static class TownMembershipText
     {
         ArgumentNullException.ThrowIfNull(towns);
         ArgumentNullException.ThrowIfNull(society);
-        if (!society.Inhabitants.Any(person => person.Id == agentId && person.Status == SocietyInhabitantStatus.Active &&
+        if (!society.Agents.Any(person => person.Id == agentId && person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)) return null;
         knows ??= (_, _, _) => true;
         return KnownPendingAdmission(towns, agentId, knows) is not null ? null :

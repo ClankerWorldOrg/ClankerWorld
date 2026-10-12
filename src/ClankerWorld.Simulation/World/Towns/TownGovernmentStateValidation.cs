@@ -9,9 +9,9 @@ internal static class TownGovernmentStateValidation
         SocietyCheckpoint society, int day)
     {
         var tick = society.WorldTick;
-        var known = society.Inhabitants.Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
-        var adults = town.ResidentIds.Where(id => society.Inhabitants.Any(p => p.Id == id &&
-            p.Status == SocietyInhabitantStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).ToHashSet(StringComparer.Ordinal);
+        var known = society.Agents.Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
+        var adults = town.ResidentIds.Where(id => society.Agents.Any(p => p.Id == id &&
+            p.Status == SocietyAgentStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).ToHashSet(StringComparer.Ordinal);
         if (state.Offices is null || state.Changes.Any(c => c is null) || state.Consents.Any(c => c is null) ||
             state.OfficeHistory.Any(o => o is null) || state.Offices.Any(o => o is null) || state.ContestHistory.Any(c => c is null) ||
             state.Changes.Count(c => c.Status is "voting" or "handover") > 1 ||

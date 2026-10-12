@@ -96,7 +96,7 @@ public sealed class CivicNonviolentProviderTests
     private static OpenAiCompatibleDecisionProvider Provider(HttpClient client) =>
         new(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
 
-    private static InhabitantObservation Observation() => new("actor", 17, 0, 0, "current-hearing-digest", 8_000,
+    private static AgentObservation Observation() => new("actor", 17, 0, 0, "current-hearing-digest", 8_000,
         [new("safe_idle", "Continue safely.", 0), new(Candidate, "Offer a remedy for the inspected case.", 190)]);
 
     private sealed class ReplyHandler(string? payload, bool poisonSiblingFields = false) : HttpMessageHandler

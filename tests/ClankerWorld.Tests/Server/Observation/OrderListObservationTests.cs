@@ -24,7 +24,7 @@ public sealed class OrderListObservationTests
         var state = genesis.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == Agent
+            Agents = state.Agents.Select(item => item.AgentId == Agent
                 ? item with { HungerBasisPoints = 9_000 }
                 : item).ToArray(),
         };
@@ -80,6 +80,6 @@ public sealed class OrderListObservationTests
     private static OwnerWorldInstruction[] Received(WorldRuntime world) =>
         JsonSerializer.Deserialize<OwnerWorldInstruction[]>(
                 JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot().Instructions, HostJson), GameJson)!
-            .Where(item => item.TargetInhabitantId == Agent)
+            .Where(item => item.TargetAgentId == Agent)
             .ToArray();
 }

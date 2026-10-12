@@ -10,7 +10,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = await PaidMarketWorld.StateAsync();
         const string owner = "household:camp-alpha";
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var stall = PaidMarketWorld.StallTile(state, 0);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "spend-stall-stock", "flour", owner, 3,
             groundPosition: new(stall.X, stall.Y));

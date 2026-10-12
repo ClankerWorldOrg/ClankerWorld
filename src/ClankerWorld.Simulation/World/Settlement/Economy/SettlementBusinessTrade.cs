@@ -78,8 +78,8 @@ public sealed partial class WorldRuntime
                 WorkstationSourceSurplus(inventory, group.First())));
         var purchases = OpenBusinessTrades(inventory).Where(pair => pair.Offer.ExpiryTick >= WorldTick &&
                 pair.Trade.GoodsKind == itemKind &&
-                society.Checkpoint.Inhabitants.Any(person => person.Id == pair.Trade.BuyerId &&
-                    person.HouseholdId == householdId && person.Status == SocietyInhabitantStatus.Active) &&
+                society.Checkpoint.Agents.Any(person => person.Id == pair.Trade.BuyerId &&
+                    person.HouseholdId == householdId && person.Status == SocietyAgentStatus.Active) &&
                 pair.Offer.AcceptedBy.Contains(pair.Trade.BuyerId, StringComparer.Ordinal))
             .Where(pair => inventory.Lots.Any(lot => lot.Id == pair.Offer.FirstLotId &&
                     lot.OwnerId == pair.Trade.SellerHouseholdId &&
@@ -107,7 +107,7 @@ public sealed partial class WorldRuntime
         }
         if (PersonalEquipmentRules.IsGarment(lot.ItemKind))
         {
-            var weather = WeatherAt(inhabitants[actor].Position);
+            var weather = WeatherAt(agents[actor].Position);
             var bestProtection = inventory.Lots.Where(item =>
                     ToolProgressionRules.IsTopLevelCarriedLot(item, actor) &&
                     PersonalEquipmentRules.IsGarment(item.ItemKind) && AvailableLotQuantity(item) > 0)
@@ -123,7 +123,7 @@ public sealed partial class WorldRuntime
                 HoldingsTotal(new[] { actor, household }.OfType<string>(), GoodsKinds.One("iron")) < 2;
         }
         if (PersonalEquipmentRules.IsCarryAid(lot.ItemKind))
-            return PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) <
+            return PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) <
                 (lot.ItemKind == "leather_sack" ? 32 : lot.ItemKind == "sack" ? PersonalEquipmentRules.SackCapacity : PersonalEquipmentRules.BasketCapacity);
         return false;
     }
@@ -157,7 +157,7 @@ public sealed partial class WorldRuntime
     private bool BusinessReceivingSpace(string buyer, PlacedBuilding building, int goods, int payment)
     {
         var inventory = society.Checkpoint.Inventory;
-        var equipment = inhabitants[buyer].Equipment;
+        var equipment = agents[buyer].Equipment;
         return PersonalEquipmentRules.CarriedQuantity(inventory, buyer, equipment) - payment + goods +
                 ReservedBusinessCarrySpace(buyer) <= PersonalEquipmentRules.Capacity(inventory, buyer, equipment) + HorseCargoCapacity(buyer) &&
             payment <= DestinationRoom(inventory, building.InstanceId, outgoingQuantity: goods);
@@ -176,17 +176,17 @@ public sealed partial class WorldRuntime
             .Where(lot => PersonalEquipmentRules.IsCarried(lot, buyer) && IsLooseBusinessLot(lot) &&
                 !protectedToolIds.Contains(lot.Id) && !BusinessBuyerWants(buyer, lot) &&
                 BusinessPaymentUseful(building, lot) &&
-                !PersonalEquipmentRules.IsSelected(inhabitants[buyer].Equipment, lot.Id) &&
+                !PersonalEquipmentRules.IsSelected(agents[buyer].Equipment, lot.Id) &&
                 !AgentKnowledgeRules.IsArtifactKind(lot.ItemKind));
     }
 
     private bool MayVisitBusiness(string buyer, PlacedBuilding building)
     {
-        if (!AdultResident(buyer) || NeedsUrgentWarmth(inhabitants[buyer]) ||
+        if (!AdultResident(buyer) || NeedsUrgentWarmth(agents[buyer]) ||
             building.HouseholdId is not { } seller || seller == HouseholdFor(buyer) ||
             !society.Checkpoint.Households.Any(household => household.Id == seller) ||
-            !inhabitants.Keys.Any(actor => AdultResident(actor) && HouseholdFor(actor) == seller) ||
-            IsWithinInteractionRange(inhabitants[buyer].Position, building.Position, ResourceInteractionRange) ||
+            !agents.Keys.Any(actor => AdultResident(actor) && HouseholdFor(actor) == seller) ||
+            IsWithinInteractionRange(agents[buyer].Position, building.Position, ResourceInteractionRange) ||
             society.Checkpoint.Inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
                 (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer))) return false;
         return true;
@@ -207,7 +207,7 @@ public sealed partial class WorldRuntime
         return inputs.Any(itemKind => BusinessRules.MaySell(kind, itemKind) && RestaurantInputDemand(buyer, itemKind) > 0) &&
             BusinessPaymentLots(buyer, building).Any(payment => RestaurantInputDemand(buyer, payment.ItemKind, 1) ==
                 RestaurantInputDemand(buyer, payment.ItemKind)) &&
-            FindUnoccupiedRoute(buyer, inhabitants[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
+            FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
     }
 
     private bool RestaurantMealShopTrip(string buyer, PlacedBuilding building)
@@ -222,17 +222,17 @@ public sealed partial class WorldRuntime
         return mealKinds.Any(kind => BusinessRules.MaySell("restaurant", kind) && WantsTradeFoodKind(buyer, kind)) &&
             BusinessPaymentLots(buyer, building).Any(payment => RestaurantInputDemand(buyer, payment.ItemKind, 1) ==
                 RestaurantInputDemand(buyer, payment.ItemKind)) &&
-            FindUnoccupiedRoute(buyer, inhabitants[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
+            FindUnoccupiedRoute(buyer, agents[buyer].Position, building.Position, ResourceInteractionRange).Count > 0;
     }
 
     private BusinessQuote? BusinessOpportunity(string buyer, PlacedBuilding building, string? exactGoodsLotId = null, bool requestedGoods = false)
     {
         var inventory = society.Checkpoint.Inventory;
-        if (!AdultResident(buyer) || NeedsUrgentWarmth(inhabitants[buyer]) ||
+        if (!AdultResident(buyer) || NeedsUrgentWarmth(agents[buyer]) ||
             building.HouseholdId is not { } seller || seller == HouseholdFor(buyer) ||
             !society.Checkpoint.Households.Any(household => household.Id == seller) ||
-            !inhabitants.Keys.Any(actor => AdultResident(actor) && HouseholdFor(actor) == seller) ||
-            !IsWithinInteractionRange(inhabitants[buyer].Position, building.Position, ResourceInteractionRange) ||
+            !agents.Keys.Any(actor => AdultResident(actor) && HouseholdFor(actor) == seller) ||
+            !IsWithinInteractionRange(agents[buyer].Position, building.Position, ResourceInteractionRange) ||
             inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
                 (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer)))
             return null;
@@ -279,8 +279,8 @@ public sealed partial class WorldRuntime
 
     private void AddBusinessCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        if (!AdultResident(actor) || NeedsUrgentWarmth(inhabitants[actor])) return;
-        if (!NeedsUrgentFood(inhabitants[actor])) AddStoreStockCandidate(candidates, actor);
+        if (!AdultResident(actor) || NeedsUrgentWarmth(agents[actor])) return;
+        if (!NeedsUrgentFood(agents[actor])) AddStoreStockCandidate(candidates, actor);
         foreach (var (trade, offer) in OpenBusinessTrades().OrderBy(pair => pair.Trade.OfferId, StringComparer.Ordinal))
         {
             var buyer = trade.BuyerId == actor;
@@ -309,7 +309,7 @@ public sealed partial class WorldRuntime
                     14, building.InstanceId));
     }
 
-    private void ApplyBusinessCandidate(string actor, InhabitantState state, string candidate)
+    private void ApplyBusinessCandidate(string actor, AgentState state, string candidate)
     {
         if (candidate == "business_stock_store")
         {
@@ -351,7 +351,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, state, trade.Position, "business_trade", ResourceInteractionRange);
             return;
         }
-        if (actor == trade.BuyerId || !IsWithinInteractionRange(inhabitants[trade.BuyerId].Position,
+        if (actor == trade.BuyerId || !IsWithinInteractionRange(agents[trade.BuyerId].Position,
                 trade.Position, ResourceInteractionRange)) return;
         ApplyInventoryTransition(inventory =>
         {
@@ -386,11 +386,11 @@ public sealed partial class WorldRuntime
     private string? BusinessTradeFailure(BusinessTradeState trade, DirectBarterOffer offer)
     {
         if (offer.ExpiryTick < WorldTick) return "The offer ran out of time.";
-        if (!inhabitants.TryGetValue(trade.BuyerId, out var buyerState) || !AdultResident(trade.BuyerId))
+        if (!agents.TryGetValue(trade.BuyerId, out var buyerState) || !AdultResident(trade.BuyerId))
             return "The buyer is no longer available.";
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == trade.BuildingInstanceId);
         if (building is null || building.HouseholdId != trade.SellerHouseholdId || building.Position != trade.Position ||
-            !inhabitants.Keys.Any(actor => MayRespondAtBusiness(actor, trade)))
+            !agents.Keys.Any(actor => MayRespondAtBusiness(actor, trade)))
             return "The selling household no longer has access to this shop.";
         var inventory = society.Checkpoint.Inventory;
         var goods = inventory.Lots.SingleOrDefault(lot => lot.Id == offer.FirstLotId);
@@ -472,7 +472,7 @@ public sealed partial class WorldRuntime
                 trade.ProposedTick < 0 || trade.ProposedTick > worldTick ||
                 !BoundedBusinessText(trade.BuildingInstanceId, 256) ||
                 !societyState.Households.Any(household => household.Id == trade.SellerHouseholdId) ||
-                !societyState.Inhabitants.Any(person => person.Id == trade.BuyerId) ||
+                !societyState.Agents.Any(person => person.Id == trade.BuyerId) ||
                 !BusinessResourceKind(trade.GoodsKind) || !BusinessResourceKind(trade.PaymentKind) ||
                 trade.Position.X < 0 || trade.Position.X >= map.Width || trade.Position.Y < 0 || trade.Position.Y >= map.Height ||
                 inventory.Lots.Any(lot => lot.Id == offer.FirstLotId && lot.ItemKind != trade.GoodsKind) ||
@@ -485,7 +485,7 @@ public sealed partial class WorldRuntime
                     !offer.AcceptedBy.SequenceEqual(new[] { offer.FirstPartyId, offer.SecondPartyId }
                         .Order(StringComparer.Ordinal), StringComparer.Ordinal) ||
                 offer.State == DirectBarterState.Settled && (trade.SellerActorId is null ||
-                    !societyState.Inhabitants.Any(person => person.Id == trade.SellerActorId)) ||
+                    !societyState.Agents.Any(person => person.Id == trade.SellerActorId)) ||
                 trade.SellerActorId is not null && offer.State != DirectBarterState.Settled ||
                 offer.State == DirectBarterState.Cancelled && !BoundedBusinessText(trade.CancellationReason, 160) ||
                 trade.CancellationReason is not null && offer.State != DirectBarterState.Cancelled)

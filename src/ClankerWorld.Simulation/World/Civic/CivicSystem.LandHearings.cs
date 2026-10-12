@@ -89,7 +89,7 @@ internal sealed partial class CivicSystem
         var before = hearings.Cases.Count;
         var property = propertyRequest is null ? null : new TownPropertyCase(propertyRequest, [world.CaptureProperty(town, propertyRequest, 1)], []);
         var parties = LandHearingParties(world, town, tiles, filingHousehold: filingHousehold, townRepresentative: townRepresentative);
-        if (property is not null) parties = TownPropertyRules.Parties(parties, property, town.Id, world.Society.Inhabitants);
+        if (property is not null) parties = TownPropertyRules.Parties(parties, property, town.Id, world.Society.Agents);
         hearings = TownLandHearingRules.File(hearings, town.Id, filing, tiles, householdLandUseRights,
             parties, world.WorldTick, CivicDay(world), "notice:" + (council.Notices.Count + 1), property);
         var item = hearings.Cases.Single(item => item.Status == "pending" && item.Filings.Contains(filing) &&

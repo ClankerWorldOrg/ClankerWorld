@@ -130,10 +130,10 @@ public sealed partial class TownGovernmentRuntimeTests
             var choice = observation.Candidates.FirstOrDefault(item => item.Id.Contains("|read|", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(item => item.Id.Contains("|mayor_vote|", StringComparison.Ordinal) &&
                     item.Id.EndsWith("|" + Author, StringComparison.Ordinal));
-            if (choice is null && observation.InhabitantId == Author)
+            if (choice is null && observation.AgentId == Author)
                 choice = observation.Candidates.FirstOrDefault(item => item.Id.Contains("|mayor_register|land+non_land|", StringComparison.Ordinal));
             choice ??= observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal));
         }

@@ -22,7 +22,7 @@ public sealed class NaturalStormCoverRoutingTests
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
             id => new CoverProvider(id == Actor));
         for (var tick = 0; tick < 18; tick++) Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        var sheltered = restored.Inhabitants.Single(person => person.InhabitantId == Actor);
+        var sheltered = restored.Agents.Single(person => person.AgentId == Actor);
         Assert.NotEqual(new GridPoint(88, 55), sheltered.Position);
         Assert.Equal(VegetationCover.Forest, state.Map.VegetationAt(sheltered.Position));
         Assert.Equal(0, sheltered.MoveWaitTicks);
@@ -39,7 +39,7 @@ public sealed class NaturalStormCoverRoutingTests
         var probe = new CoverProvider(true);
         using var world = WorldRuntime.Restore(StormState(neighbors), id => id == Actor ? probe : new CoverProvider(false));
         for (var tick = 0; tick < 12; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(new GridPoint(88, 55), world.Inhabitants.Single(person => person.InhabitantId == Actor).Position);
+        Assert.Equal(new GridPoint(88, 55), world.Agents.Single(person => person.AgentId == Actor).Position);
         Assert.DoesNotContain(probe.Seen, request => request.Observation.Candidates.Any(item => item.Id == "seek_warmth"));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "movement_blocked" &&
             item.Detail.StartsWith(Actor + ":no_route", StringComparison.Ordinal));
@@ -70,7 +70,7 @@ public sealed class NaturalStormCoverRoutingTests
         {
             var placement = map.Tiles.First(tile => map.IsBuildable(tile.Position) &&
                 !map.Resources.Any(site => site.Position == tile.Position) &&
-                !setup.Inhabitants.Any(person => person.Position == tile.Position)).Position;
+                !setup.Agents.Any(person => person.Position == tile.Position)).Position;
             var id = "agent:" + (index + 100).ToString("x32", System.Globalization.CultureInfo.InvariantCulture);
             setup.AddAgent(id, placement);
             blockerPositions.Add(id, blockers[index]);
@@ -79,9 +79,9 @@ public sealed class NaturalStormCoverRoutingTests
         return state with
         {
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { HungerBasisPoints = 9_000, Survival = new SurvivalCondition(WarmthBasisPoints: 4_000) }
-                : blockerPositions.TryGetValue(person.InhabitantId, out var blockerPosition)
+                : blockerPositions.TryGetValue(person.AgentId, out var blockerPosition)
                     ? person with { Position = blockerPosition }
                     : person).ToArray(),
             WorldSystems = state.WorldSystems! with

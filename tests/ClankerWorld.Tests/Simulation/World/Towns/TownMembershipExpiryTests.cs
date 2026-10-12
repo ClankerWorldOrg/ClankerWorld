@@ -96,7 +96,7 @@ public sealed partial class TownMembershipTests
         var step = await world.AdvanceOneTickAsync();
         Assert.True(step.Advanced);
         Assert.Equal(deadline - 1, world.WorldTick);
-        Assert.Contains(step.Decisions, decision => decision.InhabitantId == newcomer &&
+        Assert.Contains(step.Decisions, decision => decision.AgentId == newcomer &&
             decision.Admission is { Accepted: true, FellBack: false } &&
             decision.Admission.Intention?.Provider == DecisionProviderKind.LargeLanguageModel &&
             decision.Admission.Intention.CandidateId == Civic(First, "accept_admission") + proposal.Id + "|");
@@ -106,7 +106,7 @@ public sealed partial class TownMembershipTests
         Assert.Null(admission.Reason);
         Assert.Contains(newcomer, world.Towns[0].ResidentIds);
         Assert.Contains(newcomer, world.Towns[0].Governance!.Members);
-        Assert.Null(world.Society.GetInhabitant(newcomer).HouseholdId);
+        Assert.Null(world.Society.GetAgent(newcomer).HouseholdId);
         Assert.Equal(property, AdmissionPhysicalProperty(world));
         AssertAcceptanceDeadlineProjection(world, newcomer, null);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -166,7 +166,7 @@ public sealed partial class TownMembershipTests
             Assert.True(holding.Started.Task.IsCompletedSuccessfully);
             Assert.Same(heldRequest, await holding.Started.Task);
             Assert.Equal((heldRequest.RequestId, newcomer, heldRequest.ProviderEpoch),
-                (reply.RequestId, reply.InhabitantId, reply.ProviderEpoch));
+                (reply.RequestId, reply.AgentId, reply.ProviderEpoch));
             Assert.Equal((holding.Choice, offered.RunEpoch, offered.DecisionGeneration, offered.ObservationDigest),
                 (reply.SelectedCandidateId, reply.RunEpoch, reply.DecisionGeneration, reply.ObservationDigest));
             Assert.Equal(HeldAdmissionModel.StaleThought, reply.PrivateThought);
@@ -179,7 +179,7 @@ public sealed partial class TownMembershipTests
             {
                 // A provider's reply signal precedes completion of the runtime's wrapping task.
                 // Wait only for an actual in-flight call, without spending any deadline ticks.
-                if (world.Inhabitants.Single(person => person.InhabitantId == newcomer).LastModelAttempt?.Status == "waiting")
+                if (world.Agents.Single(person => person.AgentId == newcomer).LastModelAttempt?.Status == "waiting")
                 {
                     using var completionTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                     while (!world.HostedDecisionsFinished(newcomer)) await Task.Delay(1, completionTimeout.Token);
@@ -187,7 +187,7 @@ public sealed partial class TownMembershipTests
                 var completed = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(completed.Advanced);
                 discarded |= completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == newcomer);
-                outcomes.AddRange(completed.Decisions.Where(decision => decision.InhabitantId == newcomer)
+                outcomes.AddRange(completed.Decisions.Where(decision => decision.AgentId == newcomer)
                     .Select(decision => decision.Admission));
             }
             var discard = Assert.Single(world.ExportState().Events, item => item.EventId > beforeReplyEvent &&
@@ -195,7 +195,7 @@ public sealed partial class TownMembershipTests
             Assert.True(discard.WorldTick > deadline);
             Assert.Contains(outcomes, NewerIdle);
             Assert.DoesNotContain(outcomes, outcome => outcome.Intention?.CandidateId == holding.Choice);
-            Assert.DoesNotContain(world.Inhabitants.Single(person => person.InhabitantId == newcomer).RecentThoughts ?? [],
+            Assert.DoesNotContain(world.Agents.Single(person => person.AgentId == newcomer).RecentThoughts ?? [],
                 thought => thought.Text == HeldAdmissionModel.StaleThought);
             Assert.DoesNotContain(world.Towns, town => town.ResidentIds.Contains(newcomer, StringComparer.Ordinal));
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "town_admission_accepted");
@@ -251,7 +251,7 @@ public sealed partial class TownMembershipTests
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind is "town_admission_approved" or "town_admission_lapsed");
         AssertAcceptanceDeadlineProjection(world, newcomer, null);
         Assert.Equal(property, AdmissionPhysicalProperty(world));
-        Assert.Null(world.Society.GetInhabitant(newcomer).HouseholdId);
+        Assert.Null(world.Society.GetAgent(newcomer).HouseholdId);
         world.Validate();
         AssertRoundTrip(world);
     }
@@ -289,7 +289,7 @@ public sealed partial class TownMembershipTests
         return approved;
     }
 
-    private static void AssertOfferedApprovalClock(InhabitantObservation observation, TownProposal proposal, string duration)
+    private static void AssertOfferedApprovalClock(AgentObservation observation, TownProposal proposal, string duration)
     {
         var deadline = proposal.SettledTick!.Value + AcceptanceDay;
         Assert.NotEqual(0, deadline % AcceptanceDay);
@@ -314,10 +314,10 @@ public sealed partial class TownMembershipTests
     {
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var factor = Assert.Single(snapshot.Inhabitants.Single(person => person.Id == newcomer).DecisionFactors, item => item.Key == "town-membership");
+        var factor = Assert.Single(snapshot.Agents.Single(person => person.Id == newcomer).DecisionFactors, item => item.Key == "town-membership");
         Assert.Equal(expected, factor.AcceptanceDeadlineTick);
         var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, AdmissionJsonOptions), AdmissionJsonOptions)!;
-        var clientFactor = Assert.Single(client.Inhabitants.Single(person => person.Id == newcomer).DecisionFactors, item => item.Key == "town-membership");
+        var clientFactor = Assert.Single(client.Agents.Single(person => person.Id == newcomer).DecisionFactors, item => item.Key == "town-membership");
         Assert.Equal(expected, clientFactor.AcceptanceDeadlineTick);
         Assert.Equal(factor.Detail, clientFactor.Detail);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -376,14 +376,14 @@ public sealed partial class TownMembershipTests
         public TaskCompletionSource<CognitionDecisionResponse> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public DecisionProviderKind KindFor(InhabitantObservation observation) => observation.InhabitantId == newcomer
+        public DecisionProviderKind KindFor(AgentObservation observation) => observation.AgentId == newcomer
             ? DecisionProviderKind.LargeLanguageModel : DecisionProviderKind.Deterministic;
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
             var selected = "safe_idle";
-            var held = observation.InhabitantId == newcomer && !Started.Task.IsCompleted &&
+            var held = observation.AgentId == newcomer && !Started.Task.IsCompleted &&
                 observation.Candidates.Any(candidate => candidate.Id == Choice);
             if (held)
             {
@@ -395,7 +395,7 @@ public sealed partial class TownMembershipTests
                 // Deliberately return despite cancellation: the actual deadline must defeat a previously valid personal reply.
                 await Release.Task;
             }
-            var response = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, KindFor(observation), ProviderEpoch,
+            var response = new CognitionDecisionResponse(request.RequestId, observation.AgentId, KindFor(observation), ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected ? 1d : 0d, StringComparer.Ordinal),
                 PrivateThought: held ? StaleThought : null);

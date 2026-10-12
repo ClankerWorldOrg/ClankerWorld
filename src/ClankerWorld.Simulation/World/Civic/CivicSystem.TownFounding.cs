@@ -12,12 +12,12 @@ internal sealed partial class CivicSystem
     internal TownRuntimeState? TownFoundingLayout(ICivicTownWorld world, string actor)
     {
         if (founderSetup is not { Started: true } || !world.AdultResident(actor) || !world.ReadyForBriefInteraction(actor)) return null;
-        var site = world.Inhabitants[actor].Position;
+        var site = world.Agents[actor].Position;
         if (!world.Map.IsBuildable(site)) return null;
         if (towns.Any(town => town.BorderTiles.Contains(site)) || townLandTitles.Any(title => title.Tiles.Contains(site))) return null;
         var claimed = towns.SelectMany(town => town.BorderTiles)
             .Concat(townLandTitles.SelectMany(title => title.Tiles)).ToHashSet();
-        var household = world.Society.GetInhabitant(actor).HouseholdId;
+        var household = world.Society.GetAgent(actor).HouseholdId;
         var core = new HashSet<GridPoint> { site };
         var assigned = new HashSet<string>(StringComparer.Ordinal);
         IReadOnlyList<GridPoint> border;
@@ -69,7 +69,7 @@ internal sealed partial class CivicSystem
         townLandTitles = [.. townLandTitles, .. TownLandRightsRules.InitialTitles(world.Map, town, world.WorldTick)];
         townLandTitles = townLandTitles.OrderBy(title => title.Id, StringComparer.Ordinal).ToList();
         var assigned = town.AssignedBuildingIds.ToHashSet(StringComparer.Ordinal);
-        var household = world.Society.GetInhabitant(actor).HouseholdId;
+        var household = world.Society.GetAgent(actor).HouseholdId;
         if (household is not null)
         {
             var used = world.WorldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId)).SelectMany(item => TownFoundingBuildingTiles(world, item))
@@ -85,7 +85,7 @@ internal sealed partial class CivicSystem
         };
         AdvanceTownGovernance(world);
         SettleTownAdmissions(world);
-        world.AppendEvent("town_founded", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Inhabitants[actor].Position);
+        world.AppendEvent("town_founded", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Agents[actor].Position);
         if (world.WorldSimulation.Buildings.Where(building => assigned.Contains(building.InstanceId))
             .OrderBy(building => building.PlacedTick).ThenBy(building => building.InstanceId, StringComparer.Ordinal)
             .FirstOrDefault() is { } firstBuilding)

@@ -15,9 +15,9 @@ public sealed partial class SettlementParenthoodTests
     {
         using var preparing = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(await BirthBeforeDueTick.Value), _ => new ParentProvider("safe_idle"));
-        var parent = preparing.Inhabitants.Single(person => person.Parenthood is { Stage: "preparing" }).InhabitantId;
-        var plan = preparing.Inhabitants.Single(person => person.InhabitantId == parent).Parenthood!;
-        var home = preparing.Society.GetInhabitant(plan.PrimaryCaregiverId!).HouseholdId!;
+        var parent = preparing.Agents.Single(person => person.Parenthood is { Stage: "preparing" }).AgentId;
+        var plan = preparing.Agents.Single(person => person.AgentId == parent).Parenthood!;
+        var home = preparing.Society.GetAgent(plan.PrimaryCaregiverId!).HouseholdId!;
         var shelter = preparing.WorldSimulation.Buildings.Single(building => building.InstanceId == "family-house");
         if (shelterChange == "removed")
         {
@@ -42,13 +42,13 @@ public sealed partial class SettlementParenthoodTests
         var birth = Assert.Single(restored.Society.Births);
         Assert.Equal(home, birth.HouseholdId);
         Assert.Equal(plan.PrimaryCaregiverId, birth.PrimaryCaregiverId);
-        Assert.Equal("completed", restored.Inhabitants.Single(person => person.InhabitantId == parent).Parenthood!.Stage);
-        var child = restored.Inhabitants.Single(person => person.InhabitantId == birth.ChildId);
+        Assert.Equal("completed", restored.Agents.Single(person => person.AgentId == parent).Parenthood!.Stage);
+        var child = restored.Agents.Single(person => person.AgentId == birth.ChildId);
         Assert.True(restored.ExportState().Map.IsBuildable(child.Position));
-        Assert.DoesNotContain(restored.Inhabitants, person => person.InhabitantId != birth.ChildId && person.Position == child.Position);
+        Assert.DoesNotContain(restored.Agents, person => person.AgentId != birth.ChildId && person.Position == child.Position);
         if (shelterChange != "kept")
         {
-            var caregiver = restored.Inhabitants.Single(person => person.InhabitantId == plan.PrimaryCaregiverId);
+            var caregiver = restored.Agents.Single(person => person.AgentId == plan.PrimaryCaregiverId);
             Assert.InRange(restored.ExportState().Map.FootDistance(caregiver.Position, child.Position), 0, 1);
             Assert.NotNull(child.Housing?.Blocker);
             Assert.Contains(restored.ExportState().Events, item => item.Kind == "housing_blocked" &&
@@ -57,7 +57,7 @@ public sealed partial class SettlementParenthoodTests
         using var savedBirth = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(restored.ExportState())), _ => new ParentProvider("safe_idle"));
         Assert.Equal(birth, Assert.Single(savedBirth.Society.Births));
-        Assert.Equal(child.Housing, savedBirth.Inhabitants.Single(person => person.InhabitantId == birth.ChildId).Housing);
+        Assert.Equal(child.Housing, savedBirth.Agents.Single(person => person.AgentId == birth.ChildId).Housing);
         savedBirth.Resume();
         Assert.True((await savedBirth.AdvanceOneTickAsync()).Advanced);
         Assert.Single(savedBirth.Society.Births);
@@ -69,8 +69,8 @@ public sealed partial class SettlementParenthoodTests
     public async Task PreparedBirthStillWaitsForFoodWithOrWithoutAHouse(bool removeHouse)
     {
         var state = WorldRuntimeCodec.Decode(await BirthBeforeDueTick.Value);
-        var parent = state.Inhabitants.Single(person => person.Parenthood is { Stage: "preparing" });
-        var home = state.Society.Society.GetInhabitant(parent.Parenthood!.PrimaryCaregiverId!).HouseholdId;
+        var parent = state.Agents.Single(person => person.Parenthood is { Stage: "preparing" });
+        var home = state.Society.Society.GetAgent(parent.Parenthood!.PrimaryCaregiverId!).HouseholdId;
         state = state with
         {
             Society = state.Society with
@@ -94,14 +94,14 @@ public sealed partial class SettlementParenthoodTests
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Empty(world.Society.Births);
-        Assert.Equal("preparing", world.Inhabitants.Single(person => person.InhabitantId == parent.InhabitantId).Parenthood!.Stage);
+        Assert.Equal("preparing", world.Agents.Single(person => person.AgentId == parent.AgentId).Parenthood!.Stage);
     }
 
     private static async Task<byte[]> CreateBirthBeforeDueTick()
     {
         var state = await PreparedState();
-        var parent = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[2].InhabitantId;
+        var parent = state.Agents[0].AgentId;
+        var other = state.Agents[2].AgentId;
         using (var society = SocietyRuntime.Restore(state.Society))
         {
             var membership = society.Checkpoint.Relationships.Single(item => item.Type == SocietyRelationshipType.HouseholdMembership &&
@@ -113,14 +113,14 @@ public sealed partial class SettlementParenthoodTests
         using var setup = WorldRuntime.Restore(state, _ => new ParentProvider("safe_idle"));
         var shelter = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "family-shelter");
         Assert.True(setup.RemoveBuilding(shelter.InstanceId, shelter.TownId, shelter.HouseholdId).Applied);
-        var home = setup.Society.GetInhabitant(parent).HouseholdId!;
+        var home = setup.Society.GetAgent(parent).HouseholdId!;
         var placed = setup.PlaceBuilding("family-house", HouseContent.House1x1().CanonicalId, shelter.Position, home);
         Assert.True(placed.Applied, placed.Failure);
         using var preparing = WorldRuntime.Restore(setup.ExportState(),
             actor => new ParentProvider(actor == parent ? "parent_propose:" : "parent_accept:"));
         Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
         Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
-        var plan = preparing.Inhabitants.Single(person => person.InhabitantId == parent).Parenthood!;
+        var plan = preparing.Agents.Single(person => person.AgentId == parent).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         using var waiting = WorldRuntime.Restore(preparing.ExportState(), _ => new ParentProvider("safe_idle"));
         while (waiting.WorldTick < plan.LastTransitionTick + 599)

@@ -90,7 +90,7 @@ public sealed class WorldCustodyOrderTests
         Assert.Equal(("finished", 1, "goods_items"),
             (Order(world, collected).Status, Order(world, collected).CompletedUnits, Order(world, collected).ProgressUnit));
         Assert.Equal(amount + 1, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
+            world.Agents.Single(person => person.AgentId == actor).Equipment));
         AssertFamily(world, actor, null, amount);
         using var replay = Reload(world);
         var stored = Submit(world, actor, "store-vessel", "store one " + subject);
@@ -100,7 +100,7 @@ public sealed class WorldCustodyOrderTests
         Assert.Equal(("finished", 1), (Order(world, stored).Status, Order(world, stored).CompletedUnits));
         AssertFamily(world, actor, House, amount);
         Assert.Equal(0, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
+            world.Agents.Single(person => person.AgentId == actor).Equipment));
         Assert.Equal(2, world.ExportState().Events.Count(item => item.Kind is "personal_goods_collected" or "personal_goods_stored"));
     }
 
@@ -248,7 +248,7 @@ public sealed class WorldCustodyOrderTests
     {
         var state = Prepared(atOtherHouse: true);
         var actor = Actor(state);
-        var otherPerson = state.Society.Society.Inhabitants.First(person => person.HouseholdId == OtherHousehold).Id;
+        var otherPerson = state.Society.Society.Agents.First(person => person.HouseholdId == OtherHousehold).Id;
         var owner = boundary == "private-owner" ? otherPerson : OtherHousehold;
         var inventory = boundary == "reserved-loan"
             ? InventoryAuthority.AddLot(state.Society.Society.Inventory, "vessel", "cloth", owner, 1, storageBuildingId: OtherHouse)
@@ -334,7 +334,7 @@ public sealed class WorldCustodyOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "spare-ornament", "gold_ornament", actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = new(OrnamentLotId: "worn-ornament") } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -346,7 +346,7 @@ public sealed class WorldCustodyOrderTests
         await TickTogether(world, replay);
         Assert.Equal(("blocked", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
         Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("worn-ornament"), actor));
-        Assert.Equal("worn-ornament", world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.OrnamentLotId);
+        Assert.Equal("worn-ornament", world.Agents.Single(person => person.AgentId == actor).Equipment!.OrnamentLotId);
         Assert.Single(world.ExportState().Events, item => item.Kind == "personal_goods_stored");
     }
 
@@ -363,7 +363,7 @@ public sealed class WorldCustodyOrderTests
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building))
             .Concat(state.RoadTiles ?? []).Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position)).ToHashSet();
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position)).ToHashSet();
         var fertility = new LandFertility(state.Map, state.WorldSeed);
         var point = state.Map.FootNeighbors(destination.Position).First(candidate =>
             fertility.CanFarm(candidate) && !occupied.Contains(candidate));
@@ -377,7 +377,7 @@ public sealed class WorldCustodyOrderTests
             inventory = InventoryAuthority.AddLot(inventory, "a-spare-hoe", "wooden_hoe", actor, 1, conditionBasisPoints: 5_000);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = point } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -392,7 +392,7 @@ public sealed class WorldCustodyOrderTests
         // Validate before another tick can silently discard the now-invalid tool reference.
         using var replay = Reload(world);
         Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
-        Assert.Equal(point, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(point, world.Agents.Single(person => person.AgentId == actor).Position);
         if (moveSpare)
         {
             Assert.Equal("working-hoe", Assert.Single(world.Fields).Work!.HoeLotId);
@@ -538,7 +538,7 @@ public sealed class WorldCustodyOrderTests
                 lot.StorageBuildingId is not (House or OtherHouse)).ToArray(),
         });
         var house = Home(state, atOtherHouse ? OtherHouse : House);
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
         bool Clear(GridPoint point) => state.Map.IsPassable(point) && !occupied.Contains(point) &&
             state.Map.Resources.All(resource => resource.Position != point) && state.Map.MapObjects.All(item => item.Position != point);
         var position = distant ? (from near in state.Map.FootNeighbors(house.Position)
@@ -549,11 +549,11 @@ public sealed class WorldCustodyOrderTests
         return state with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
+                Position = person.AgentId == actor ? position : person.Position,
                 HungerBasisPoints = 10_000,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 LastDecisionContext = null,
             }).ToArray(),
         };
@@ -565,7 +565,7 @@ public sealed class WorldCustodyOrderTests
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "carrying-basket", "basket", actor, 1));
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = new(CarryAidLotId: "carrying-basket") } : person).ToArray(),
         };
     }
@@ -601,7 +601,7 @@ public sealed class WorldCustodyOrderTests
     private static IEnumerable<GridPoint> Nearby(GridPoint point) => Enumerable.Range(-5, 11).SelectMany(y =>
         Enumerable.Range(-5, 11).Select(x => new GridPoint(point.X + x, point.Y + y)));
     private static PlacedBuilding Home(WorldRuntimeState state, string id = House) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == id);
-    private static string Actor(WorldRuntimeState state) => state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household).Id;
+    private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new CustodyChoices());
@@ -629,7 +629,7 @@ public sealed class WorldCustodyOrderTests
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();
@@ -638,7 +638,7 @@ public sealed class WorldCustodyOrderTests
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id is
                     "collect_goods" or "store_goods" or "return_borrowed" or "store_material" or "store_equipment")?.Id ?? "safe_idle"
                 : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

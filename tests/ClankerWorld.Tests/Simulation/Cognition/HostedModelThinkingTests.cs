@@ -90,7 +90,7 @@ public sealed class HostedModelThinkingTests
     private static CognitionDecisionRequest Request() => new(
         "request-thinking",
         2,
-        new InhabitantObservation(
+        new AgentObservation(
             "agent-thinking",
             12,
             0,

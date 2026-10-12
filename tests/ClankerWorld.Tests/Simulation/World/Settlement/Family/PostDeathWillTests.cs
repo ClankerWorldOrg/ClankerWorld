@@ -44,7 +44,7 @@ public sealed class PostDeathWillTests
         Assert.True(GameUiText.IsPlayerFacingEvent("estate_will_accepted"));
         Assert.False(GameUiText.IsPlayerFacingEvent("estate_will_started"));
 
-        var profile = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants
+        var profile = new OwnerWorldObservationStore(world).GetSnapshot().Agents
             .Single(item => item.Id == "founder-scout").FinalWill!;
         Assert.Equal(("accepted", "equal", Words), (profile.Status, profile.Split, profile.FinalWords));
         Assert.Equal(["Mira", "Rowan"], profile.Heirs.Select(heir => heir.Name));
@@ -112,9 +112,9 @@ public sealed class PostDeathWillTests
             .Single(heir => heir.Name == "Mira").Relation);
 
         var settled = await AdvanceUntilSettled(world, estate.Id);
-        Assert.Equal(SocietyAgeBand.Child, settled.GetInhabitant("founder-ilya").AgeBand);
+        Assert.Equal(SocietyAgeBand.Child, settled.GetAgent("founder-ilya").AgeBand);
         var childStone = Assert.Single(settled.Inventory.Lots, lot => lot.ProvenanceLotId == "stone-lot");
-        var deathPosition = world.ExportState().DeceasedInhabitants!.Single(person => person.InhabitantId == "founder-scout")
+        var deathPosition = world.ExportState().DeceasedAgents!.Single(person => person.AgentId == "founder-scout")
             .LastPhysical.Position;
         Assert.Equal(("founder-ilya", 5, (string?)null, (string?)null,
                 (InventoryGroundPosition?)new InventoryGroundPosition(deathPosition.X, deathPosition.Y)),
@@ -288,7 +288,7 @@ public sealed class PostDeathWillTests
         Assert.Contains(world.ExportState().Events,
             item => item.Kind == "estate_will_default" && item.Detail.EndsWith(":household_selected", StringComparison.Ordinal));
         var settled = await AdvanceUntilSettled(world, estate.Id);
-        var heirs = estate.BeneficiaryIds.Where(id => settled.GetInhabitant(id).Status == SocietyInhabitantStatus.Active)
+        var heirs = estate.BeneficiaryIds.Where(id => settled.GetAgent(id).Status == SocietyAgentStatus.Active)
             .Order(StringComparer.Ordinal).ToArray();
         Assert.NotEmpty(heirs);
         Assert.Equal(heirs, FinalWordMemories(settled).Select(item => item.OwnerId));
@@ -403,10 +403,10 @@ public sealed class PostDeathWillTests
         Assert.Equal(1, held.CallCount);
     }
 
-    internal static string HeirKey(InhabitantObservation observation, string name) =>
+    internal static string HeirKey(AgentObservation observation, string name) =>
         observation.Will!.Heirs.Single(heir => heir.Name == name).Key;
 
-    internal static string ItemKey(InhabitantObservation observation, string kind) =>
+    internal static string ItemKey(AgentObservation observation, string kind) =>
         observation.Will!.Items.Single(item => item.Kind == kind).Key;
 
     private static (string OwnerId, string LotId, int Quantity)[] Inherited(SocietyCheckpoint checkpoint) =>
@@ -443,7 +443,7 @@ public sealed class PostDeathWillTests
             var birth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
             checkpoint = checkpoint with
             {
-                Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == "founder-ilya" ? person with
+                Agents = checkpoint.Agents.Select(person => person.Id == "founder-ilya" ? person with
                 {
                     BirthTick = birth,
                     BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -454,10 +454,10 @@ public sealed class PostDeathWillTests
             };
             checkpoint = SocietyRules.AcceptDependentGuardianship(checkpoint, "founder-mira", "founder-ilya").Checkpoint;
             Assert.True(SocietyRules.HasActivePrimaryCaregiver(checkpoint, "founder-ilya"));
-            Assert.Equal(checkpoint.GetInhabitant("founder-mira").DomesticFamilyUnitId,
-                checkpoint.GetInhabitant("founder-ilya").DomesticFamilyUnitId);
+            Assert.Equal(checkpoint.GetAgent("founder-mira").DomesticFamilyUnitId,
+                checkpoint.GetAgent("founder-ilya").DomesticFamilyUnitId);
         }
-        var physical = state.Inhabitants.Single(item => item.InhabitantId == "founder-scout");
+        var physical = state.Agents.Single(item => item.AgentId == "founder-scout");
         checkpoint = SocietyRules.Kill(checkpoint, "founder-scout", SocietyDeathCause.Accident).Checkpoint;
         // This fixture archives the death directly, so perform the same physical
         // drop as the runtime before removing the deceased's physical state.
@@ -476,14 +476,14 @@ public sealed class PostDeathWillTests
         {
             Estates = checkpoint.Estates.Select(estate => estate with { ExpiryTick = estate.CreatedTick + 4 }).ToArray(),
         };
-        var deceased = checkpoint.GetInhabitant("founder-scout");
+        var deceased = checkpoint.GetAgent("founder-scout");
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Where(item => item.InhabitantId != "founder-scout")
-                .Select(item => childHeir && item.InhabitantId == "founder-ilya"
+            Agents = state.Agents.Where(item => item.AgentId != "founder-scout")
+                .Select(item => childHeir && item.AgentId == "founder-ilya"
                     ? item with { LastDecisionContext = null } : item).ToArray(),
-            DeceasedInhabitants = [new DeceasedInhabitantState("founder-scout", 0,
+            DeceasedAgents = [new DeceasedAgentState("founder-scout", 0,
                 checkpoint.AgeAt(deceased, 0), physical)],
         };
         return WorldRuntime.Restore(state, id => id == "founder-scout" ? provider : new DeterministicDecisionProvider());
@@ -510,7 +510,7 @@ public sealed class PostDeathWillTests
 
     internal sealed class WillProvider(
         string choice,
-        Func<InhabitantObservation, CognitionWillChoice?>? will = null,
+        Func<AgentObservation, CognitionWillChoice?>? will = null,
         bool fail = false,
         bool hold = false,
         bool ignoreCancellation = false) : IDecisionProvider
@@ -520,7 +520,7 @@ public sealed class PostDeathWillTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch { get; set; } = 42;
         public int CallCount { get; private set; }
-        public List<InhabitantObservation> Observations { get; } = [];
+        public List<AgentObservation> Observations { get; } = [];
         public TaskCompletionSource<bool> Called { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Cancelled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -550,7 +550,7 @@ public sealed class PostDeathWillTests
                 }
             }
             if (fail) throw new InvalidOperationException("provider secret must not enter world events");
-            var response = new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            var response = new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 choice, 1, new Dictionary<string, double> { [choice] = 1 },

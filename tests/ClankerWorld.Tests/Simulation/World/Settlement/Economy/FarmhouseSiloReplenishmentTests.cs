@@ -101,7 +101,7 @@ public sealed class FarmhouseSiloReplenishmentTests
         Assert.Equal(95, Stored(flour, setup.Farmhouse));
 
         using var replenishing = Reload(flour, setup.Actor, "haul_farm_grain", "haul_household_stock");
-        var beforePosition = replenishing.Inhabitants.Single(person => person.InhabitantId == setup.Actor).Position;
+        var beforePosition = replenishing.Agents.Single(person => person.AgentId == setup.Actor).Position;
         await Until(replenishing, () => CarriedGrain(replenishing, setup) is { } carried && IsFrom(carried, grainRoot),
             96, "stored harvest picked up from the Silo");
         var incoming = CarriedGrain(replenishing, setup)!;
@@ -111,7 +111,7 @@ public sealed class FarmhouseSiloReplenishmentTests
         Assert.Equal(1, replenishing.Society.Inventory.Lots.Where(lot => lot.DeliveryBuildingId == setup.Farmhouse).Sum(lot => lot.Quantity));
         Assert.Equal(batchQuantity - 1, replenishing.Society.Inventory.Lots.Where(lot => IsFrom(lot, grainRoot) &&
             lot.StorageBuildingId == setup.Silo).Sum(lot => lot.Quantity));
-        Assert.NotEqual(beforePosition, replenishing.Inhabitants.Single(person => person.InhabitantId == setup.Actor).Position);
+        Assert.NotEqual(beforePosition, replenishing.Agents.Single(person => person.AgentId == setup.Actor).Position);
 
         var bytes = WorldRuntimeCodec.Encode(replenishing.ExportState());
         using var replay = Restore(WorldRuntimeCodec.Decode(bytes), setup.Actor, "haul_farm_grain", "haul_household_stock");
@@ -164,7 +164,7 @@ public sealed class FarmhouseSiloReplenishmentTests
             FarmFieldRules.Grain, setup.Household, 2, storageBuildingId: setup.Farmhouse);
         if (boundary == "incoming")
         {
-            var carrier = setup.State.Society.Society.Inhabitants.First(person => person.HouseholdId == setup.Household &&
+            var carrier = setup.State.Society.Society.Agents.First(person => person.HouseholdId == setup.Household &&
                 person.Id != setup.Actor).Id;
             inventory = InventoryAuthority.AddLot(inventory, "incoming-grain-root", FarmFieldRules.Grain,
                 setup.Household, 2, storageBuildingId: setup.Silo);
@@ -172,7 +172,7 @@ public sealed class FarmhouseSiloReplenishmentTests
                 "incoming-grain-root", 2, "farm_grain_picked_up", destinationDeliveryBuildingId: setup.Farmhouse);
         }
         if (boundary == "satisfied") inventory = InventoryAuthority.AddLot(inventory, "enough-flour", "flour",
-            setup.Household, setup.State.Inhabitants.Count, storageBuildingId: setup.House);
+            setup.Household, setup.State.Agents.Count, storageBuildingId: setup.House);
         if (boundary == "reserved") inventory = InventoryAuthority.Reserve(inventory, "silo-reservation",
             setup.Household, "protected-silo-grain", 8, "saved-grain-claim", long.MaxValue);
         var provider = new Choices("haul_farm_grain", "haul_household_stock");
@@ -341,7 +341,7 @@ public sealed class FarmhouseSiloReplenishmentTests
         state = FarmFieldTests.WithInventory(state, inventory);
         if (!growField) state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = paid.Position, LastDecisionContext = null, TravelCooldownTicks = 0 } : person).ToArray(),
         };
         using var verified = FarmFieldTests.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
@@ -354,7 +354,7 @@ public sealed class FarmhouseSiloReplenishmentTests
     private static void AssertFlourDeliveryPremises(WorldRuntime world, Setup setup)
     {
         var state = world.ExportState();
-        var person = state.Inhabitants.Single(item => item.InhabitantId == setup.Actor);
+        var person = state.Agents.Single(item => item.AgentId == setup.Actor);
         var inventory = world.Society.Inventory;
         var house = world.WorldSimulation.Buildings.Single(item => item.InstanceId == setup.House);
         var farmhouse = world.WorldSimulation.Buildings.Single(item => item.InstanceId == setup.Farmhouse);
@@ -404,9 +404,9 @@ public sealed class FarmhouseSiloReplenishmentTests
     private static bool HasUnoccupiedRoute(WorldRuntimeState state, string actor, GridPoint source,
         GridPoint destination, int interactionRange = 0)
     {
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor)
+        var occupied = state.Agents.Where(person => person.AgentId != actor)
             .Select(person => person.Position).ToHashSet();
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId;
         // Exact work tiles at buildings held by this household are shared.
         if (interactionRange == 0 && state.WorldSimulation!.Buildings.Any(building =>
                 building.Position == destination && building.HouseholdId == household && household is not null))
@@ -432,8 +432,8 @@ public sealed class FarmhouseSiloReplenishmentTests
     {
         var state = world.ExportState();
         var inventory = world.Society.Inventory;
-        var person = state.Inhabitants.Single(item => item.InhabitantId == setup.Actor);
-        var social = state.Society.Society.GetInhabitant(setup.Actor);
+        var person = state.Agents.Single(item => item.AgentId == setup.Actor);
+        var social = state.Society.Society.GetAgent(setup.Actor);
         var household = state.Society.Society.GetHousehold(setup.Household);
         var farmhouse = world.WorldSimulation.Buildings.Single(item => item.InstanceId == setup.Farmhouse);
         var silo = world.WorldSimulation.Buildings.Single(item => item.InstanceId == setup.Silo);
@@ -499,8 +499,8 @@ public sealed class FarmhouseSiloReplenishmentTests
     {
         for (var tick = 0; tick < ticks && !done(); tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(done(), $"{phase} did not finish within {ticks} actual ticks (world tick {world.WorldTick}).\n" +
-            "People: " + string.Join("; ", world.Inhabitants.Select(person =>
-                $"{person.InhabitantId}@{person.Position}, hunger={person.HungerBasisPoints}, project={person.Project}, context={person.LastDecisionContext}")) +
+            "People: " + string.Join("; ", world.Agents.Select(person =>
+                $"{person.AgentId}@{person.Position}, hunger={person.HungerBasisPoints}, project={person.Project}, context={person.LastDecisionContext}")) +
             "\nGrain/flour/delivery stock: " + string.Join("; ", world.Society.Inventory.Lots.Where(lot =>
                 lot.ItemKind is FarmFieldRules.Grain or "flour" || lot.DeliveryBuildingId is not null).Select(lot =>
                 $"{lot.Id}:{lot.ItemKind}:{lot.Quantity}:owner={lot.OwnerId}:store={lot.StorageBuildingId}:delivery={lot.DeliveryBuildingId}:ground={lot.GroundPosition}:pot={lot.ContainerLotId}")) +
@@ -527,7 +527,7 @@ public sealed class FarmhouseSiloReplenishmentTests
             Offered.AddRange(request.Observation.Candidates.Select(candidate => candidate.Id));
             var selected = ids.Select(id => request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == id))
                 .FirstOrDefault(candidate => candidate is not null) ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d)));

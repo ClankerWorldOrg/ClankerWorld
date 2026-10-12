@@ -8,7 +8,7 @@ public static class WorldEventText
 {
     public const string ContinuityRisk = "The world is at risk of dying out.";
 
-    private sealed record ActionRefusal(string InhabitantId, string CandidateId);
+    private sealed record ActionRefusal(string AgentId, string CandidateId);
 
     private static string DescribeActionRefusal(string detail, OwnerWorldSnapshot? snapshot)
     {
@@ -27,7 +27,7 @@ public static class WorldEventText
                 "gather_food" => "gather food",
                 _ => "carry out this choice",
             };
-            return $"{Name(snapshot, refusal.InhabitantId)} couldn't {action} because of a game error. They waited instead.";
+            return $"{Name(snapshot, refusal.AgentId)} couldn't {action} because of a game error. They waited instead.";
         }
         catch (JsonException) { return "An agent waited because a choice caused a game error."; }
     }
@@ -138,7 +138,7 @@ public static class WorldEventText
         }
         var buildingName = snapshot?.PlacedBuildings.FirstOrDefault(building =>
             IsLeadingId(worldEvent.Detail, building.InstanceId))?.DisplayName ?? "building";
-        var guestName = snapshot?.Inhabitants.OrderByDescending(person => person.Id.Length).FirstOrDefault(person =>
+        var guestName = snapshot?.Agents.OrderByDescending(person => person.Id.Length).FirstOrDefault(person =>
             worldEvent.Detail.EndsWith(":" + person.Id, StringComparison.Ordinal))?.DisplayName ?? "The guest";
         var civicTownId = worldEvent.Detail.Split('|', 3)[0];
         var civicTownName = snapshot?.Towns.FirstOrDefault(town => town.Id == civicTownId)?.Name ?? "A Town";
@@ -207,9 +207,9 @@ public static class WorldEventText
             "food_consumed" => $"{Name(snapshot, worldEvent.Detail)} ate.",
             "tree_planted" => $"{LeadingName(snapshot, worldEvent.Detail)} planted a tree.",
             "tree_replanted" => $"{LeadingName(snapshot, worldEvent.Detail)} replanted a tree.",
-            "inhabitant_slept" => $"{Name(snapshot, worldEvent.Detail)} slept.",
+            "agent_slept" => $"{Name(snapshot, worldEvent.Detail)} slept.",
             "child_born" => DescribeBirth(snapshot, worldEvent.Detail),
-            "inhabitant_removed" => $"{Name(snapshot, worldEvent.Detail)} died.",
+            "agent_removed" => $"{Name(snapshot, worldEvent.Detail)} died.",
             "estate_will_accepted" => $"{EstateOwner(snapshot, worldEvent.Detail)}'s will was accepted for their estate.",
             "estate_will_default" => $"{EstateOwner(snapshot, worldEvent.Detail)}'s estate will use default inheritance.",
             "partnership_accepted" => Partner(snapshot, worldEvent.Detail, worldEvent.WorldTick) is { } partner
@@ -275,7 +275,7 @@ public static class WorldEventText
                 DescribeWrittenKnowledge(worldEvent, snapshot),
             "skill_learned" => DescribeSkill(worldEvent.Detail, snapshot),
             "agent_recipe_learned" => $"{Name(snapshot, worldEvent.Detail.Split('|')[0])} learned a recipe through practice.",
-            "inhabitant_building_proposed" => $"{LeadingName(snapshot, worldEvent.Detail)} suggested a new building design.",
+            "agent_building_proposed" => $"{LeadingName(snapshot, worldEvent.Detail)} suggested a new building design.",
             "instruction_not_understood" => $"{Name(snapshot, BeforeLastField(worldEvent.Detail))} didn't understand your order. " +
                 "Try one of the listed tasks, or use Suggest instead.",
             "town_civic_law" => $"{civicTownName} recorded a law decision. See the Towns page for its wording and scope.",
@@ -385,7 +385,7 @@ public static class WorldEventText
     {
         var fields = worldEvent.Detail.Split('|', 3);
         var town = snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0])?.Name ?? "A Town";
-        var actor = fields.Length == 3 ? snapshot?.Inhabitants.FirstOrDefault(person => person.Id == fields[2])?.DisplayName : null;
+        var actor = fields.Length == 3 ? snapshot?.Agents.FirstOrDefault(person => person.Id == fields[2])?.DisplayName : null;
         return worldEvent.Kind switch
         {
             "law_case_opened" => $"{town} opened a case about someone's conduct. Nothing has been decided yet.",
@@ -429,7 +429,7 @@ public static class WorldEventText
         var subject = "the land handover";
         if (transfer is not null) subject += " from " + string.Join(" and ", transfer.Parties.Where(party => party.Kind == "source")
             .Select(party => party.HouseholdName)) + " to " + transfer.TargetHouseholdName;
-        var actor = fields.Length == 5 ? snapshot?.Inhabitants.FirstOrDefault(item => item.Id == fields[3])?.DisplayName : null;
+        var actor = fields.Length == 5 ? snapshot?.Agents.FirstOrDefault(item => item.Id == fields[3])?.DisplayName : null;
         return worldEvent.Kind switch
         {
             "land_transfer_proposed" => $"{actor ?? "An adult"} proposed {subject} in {town?.Name ?? "a Town"}. Every adult involved must agree.",
@@ -452,7 +452,7 @@ public static class WorldEventText
         var number = caseId.Length > 0 ? caseId[(caseId.LastIndexOf(':') + 1)..] : "";
         var subject = number.Length > 0 ? "land case " + number : "a land case";
         var townName = town?.Name ?? "A Town";
-        var actor = fields.Length == 5 ? snapshot?.Inhabitants.FirstOrDefault(item => item.Id == fields[3])?.DisplayName : null;
+        var actor = fields.Length == 5 ? snapshot?.Agents.FirstOrDefault(item => item.Id == fields[3])?.DisplayName : null;
         var action = fields.Length == 5 ? fields[4] : "";
         return worldEvent.Kind switch
         {
@@ -492,7 +492,7 @@ public static class WorldEventText
             .FirstOrDefault(item => IsLeadingId(detail, item.Id));
         if (town?.Projects.FirstOrDefault(project => IsLeadingId(detail, town.Id + ":" + project.Id)) is { } townProject)
             return townProject;
-        var person = snapshot.Inhabitants.OrderByDescending(item => item.Id.Length)
+        var person = snapshot.Agents.OrderByDescending(item => item.Id.Length)
             .FirstOrDefault(item => IsLeadingId(detail, item.Id));
         var projects = snapshot.Towns.SelectMany(item => item.Projects).ToArray();
         if (person is not null && projects.FirstOrDefault(project => IsLeadingId(detail, person.Id + ":" + project.Id)) is { } personProject)
@@ -562,7 +562,7 @@ public static class WorldEventText
     /// <summary>A newborn agent, with the parents their record names when it names any.</summary>
     private static string DescribeBirth(OwnerWorldSnapshot? snapshot, string childId)
     {
-        var parents = snapshot?.Inhabitants.FirstOrDefault(person => person.Id == childId)?.Relationships
+        var parents = snapshot?.Agents.FirstOrDefault(person => person.Id == childId)?.Relationships
             .Where(item => item.Type == "biological_parentage" && item.Direction == "child")
             .Select(item => Name(snapshot, item.OtherPartyId)).Where(name => name != "Someone").ToArray() ?? [];
         return parents.Length == 0 ? $"{Name(snapshot, childId)} was born."
@@ -579,9 +579,9 @@ public static class WorldEventText
 
     private static string? RelatedAt(OwnerWorldSnapshot? snapshot, string agentId, long tick, params string[] types)
     {
-        var other = snapshot?.Inhabitants.FirstOrDefault(person => person.Id == agentId)?.Relationships
+        var other = snapshot?.Agents.FirstOrDefault(person => person.Id == agentId)?.Relationships
             .FirstOrDefault(item => types.Contains(item.Type) && item.State == "accepted" && item.EffectiveTick == tick)?.OtherPartyId;
-        return other is null ? null : snapshot?.Inhabitants.FirstOrDefault(person => person.Id == other)?.DisplayName;
+        return other is null ? null : snapshot?.Agents.FirstOrDefault(person => person.Id == other)?.DisplayName;
     }
 
     /// <summary>The agent whose estate an event settles. Estate IDs are <c>estate:&lt;agent&gt;:&lt;tick&gt;</c>.</summary>
@@ -602,7 +602,7 @@ public static class WorldEventText
 
     /// <summary>The agent whose complete ID ends an event detail, such as a handcart's new keeper.</summary>
     private static string LastPerson(OwnerWorldSnapshot? snapshot, string detail, string fallback) =>
-        snapshot?.Inhabitants.OrderByDescending(person => person.Id.Length)
+        snapshot?.Agents.OrderByDescending(person => person.Id.Length)
             .FirstOrDefault(person => detail.EndsWith(":" + person.Id, StringComparison.Ordinal))?.DisplayName ?? fallback;
 
     /// <summary>The household named inside a land-use event, by its stores name.</summary>
@@ -709,7 +709,7 @@ public static class WorldEventText
     }
 
     private static string Name(OwnerWorldSnapshot? snapshot, string id) =>
-        snapshot?.Inhabitants.FirstOrDefault(person => person.Id == id)?.DisplayName
+        snapshot?.Agents.FirstOrDefault(person => person.Id == id)?.DisplayName
         ?? (string.IsNullOrEmpty(id) || id.Contains(':', StringComparison.Ordinal)
             ? "Someone" : GameUiText.HumanizeIdentifier(id));
 
@@ -733,7 +733,7 @@ public static class WorldEventText
     {
         // Descendant IDs can start with another agent's complete ID. Prefer
         // the longest complete identity rather than the first matching parent.
-        var person = snapshot?.Inhabitants.OrderByDescending(item => item.Id.Length)
+        var person = snapshot?.Agents.OrderByDescending(item => item.Id.Length)
             .FirstOrDefault(item => IsLeadingId(detail, item.Id));
         return person?.DisplayName ?? Name(snapshot, detail.Split(':', 2)[0]);
     }
@@ -741,11 +741,11 @@ public static class WorldEventText
     private static string OrnamentGiftRecipient(OwnerWorldSnapshot? snapshot, string detail)
     {
         const string marker = ":ornament_gift:";
-        var actor = snapshot?.Inhabitants.OrderByDescending(person => person.Id.Length)
+        var actor = snapshot?.Agents.OrderByDescending(person => person.Id.Length)
             .FirstOrDefault(person => detail.StartsWith(person.Id + marker, StringComparison.Ordinal));
         if (actor is null) return "someone";
         var recipientDetail = detail[(actor.Id.Length + marker.Length)..];
-        return snapshot!.Inhabitants.OrderByDescending(person => person.Id.Length)
+        return snapshot!.Agents.OrderByDescending(person => person.Id.Length)
             .FirstOrDefault(person => IsLeadingId(recipientDetail, person.Id))?.DisplayName ?? "someone";
     }
 
@@ -775,7 +775,7 @@ public static class WorldEventText
     /// <summary>The household named after the leading agent ID, as the player sees it.</summary>
     private static string HouseholdAfterAgent(OwnerWorldSnapshot? snapshot, string detail)
     {
-        var person = snapshot?.Inhabitants.OrderByDescending(item => item.Id.Length)
+        var person = snapshot?.Agents.OrderByDescending(item => item.Id.Length)
             .FirstOrDefault(item => IsLeadingId(detail, item.Id));
         string rest;
         if (person is not null)

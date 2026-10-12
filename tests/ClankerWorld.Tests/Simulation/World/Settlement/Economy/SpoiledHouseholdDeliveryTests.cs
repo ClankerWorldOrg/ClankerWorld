@@ -38,7 +38,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             {
                 var lot = pickupWorld.Society.Inventory.GetLot(id);
                 return $"{id}: owner={lot.OwnerId}, quantity={lot.Quantity}, freshness={lot.FreshnessBasisPoints}, delivery={lot.DeliveryBuildingId}";
-            })) + $"; actor={pickupWorld.Inhabitants.Single(person => person.InhabitantId == actor).Position}" +
+            })) + $"; actor={pickupWorld.Agents.Single(person => person.AgentId == actor).Position}" +
             "; offers=" + string.Join(" | ", choices.Offers.TakeLast(3).Select(offer => string.Join(",", offer))));
         foreach (var id in new[] { FirstGreens, SecondGreens })
         {
@@ -63,7 +63,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         using var replay = Restore(WorldRuntimeCodec.Decode(bytes), actor,
             DeliveryPolicy());
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(recovered.ExportState()));
-        var previous = recovered.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = recovered.Agents.Single(person => person.AgentId == actor).Position;
         var walked = false;
         for (var tick = 0; tick < 96 && !BothAtStartingSite(recovered, startingSite); tick++)
         {
@@ -71,7 +71,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(recovered.ExportState()),
                 WorldRuntimeCodec.Encode(replay.ExportState()));
-            var position = recovered.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var position = recovered.Agents.Single(person => person.AgentId == actor).Position;
             if (position != previous)
             {
                 Assert.True(state.Map.CanFootStep(previous, position));
@@ -121,7 +121,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         using var generated = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new DeliveryChoices());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var house = generated.WorldSimulation.Buildings.Single(building => building.InstanceId == House);
         var otherHouse = generated.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-b");
@@ -133,7 +133,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var source = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
                 !footprints.Contains(point) && !state.Map.Resources.Any(resource => resource.Position == point) &&
                 !state.Map.MapObjects.Any(item => item.Position == point) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point) &&
+                !state.Agents.Any(person => person.AgentId != actor && person.Position == point) &&
                 state.Map.FootDistance(point, house.Position) >= 4 && state.Map.FootDistance(point, startingSite) >= 3 &&
                 state.Map.IsReachableOnFoot(point, house.Position) && state.Map.IsReachableOnFoot(point, startingSite))
             .OrderBy(point => state.Map.FootDistance(point, farmhouse.Position)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
@@ -181,9 +181,9 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         state = SettlementWeatherTestFixture.WithWeather(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? source : person.Position,
+                Position = person.AgentId == actor ? source : person.Position,
                 HungerBasisPoints = 9_000,
                 Survival = new SurvivalCondition(10_000),
                 LastDecisionContext = null,
@@ -240,7 +240,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
                 .FirstOrDefault() ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             var probabilities = request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                 candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d, probabilities));
         }

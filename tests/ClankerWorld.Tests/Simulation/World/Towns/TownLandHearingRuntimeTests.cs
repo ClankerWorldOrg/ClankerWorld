@@ -20,7 +20,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider();
         using var world = NewWorld(provider);
         var generated = world.ExportState();
-        var household = generated.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = generated.Society.Society.GetAgent(Filer).HouseholdId!;
         var right = generated.HouseholdLandUseRights!.Where(item => item.HouseholdId == household)
             .OrderBy(item => item.Id, StringComparer.Ordinal).First();
         provider.Plot = right.Tiles.ToArray();
@@ -153,7 +153,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider(DecisionProviderKind.Jev) { HearingsEnabled = true, SkipNoticeReads = true };
         using var world = NewWorld(provider);
         var original = world.ExportState();
-        var household = original.Society.Society.GetInhabitant(Filer).HouseholdId;
+        var household = original.Society.Society.GetAgent(Filer).HouseholdId;
         provider.Plot = original.HouseholdLandUseRights!.Where(item => item.HouseholdId == household)
             .OrderBy(item => item.Id, StringComparer.Ordinal).First().Tiles.ToArray();
         var acceptedFileChoice = false;
@@ -161,7 +161,7 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced);
-            acceptedFileChoice |= result.Decisions.Any(decision => decision.InhabitantId == Filer &&
+            acceptedFileChoice |= result.Decisions.Any(decision => decision.AgentId == Filer &&
                 decision.Admission.Accepted && !decision.Admission.FellBack &&
                 decision.Admission.Intention is { Provider: DecisionProviderKind.Jev } intention &&
                 intention.CandidateId.Contains("|hearing_file|", StringComparison.Ordinal));
@@ -222,7 +222,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider { Plot = settled.Plot, InspectWhenOffered = true, AcceptRehearings = true };
         using var world = WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Filer ? person with { Position = spot } : person).ToArray()
+            Agents = state.Agents.Select(person => person.AgentId == Filer ? person with { Position = spot } : person).ToArray()
         }, _ => provider);
         var adults = world.Towns[0].Governance!.Members;
         foreach (var adult in adults) Prompt(world, adult, "Read the land ruling posted at the notice place.");
@@ -354,7 +354,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider { SeekMayor = false };
         using var generated = NewWorld(provider);
         var initial = generated.ExportState();
-        var household = initial.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = initial.Society.Society.GetAgent(Filer).HouseholdId!;
         var lapsing = initial.HouseholdLandUseRights!.Where(right => right.HouseholdId == household && right.Tiles.Count > 1)
             .OrderBy(right => right.Id, StringComparer.Ordinal).First();
         var other = initial.HouseholdLandUseRights!.Where(right => right.HouseholdId != household)
@@ -416,7 +416,7 @@ public sealed partial class TownLandHearingRuntimeTests
         using var elected = NewWorld(provider);
         await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, provider);
         var state = elected.ExportState();
-        var household = state.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = state.Society.Society.GetAgent(Filer).HouseholdId!;
         var right = state.HouseholdLandUseRights!.Where(item => item.HouseholdId == household)
             .OrderBy(item => item.Id, StringComparer.Ordinal).First();
         var end = state.Society.Society.WorldTick + Day * 3;
@@ -442,7 +442,7 @@ public sealed partial class TownLandHearingRuntimeTests
         // generated Town title, household allocations, buildings, goods and founder identities remain actual.
         return WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
         }, _ => provider);
     }
@@ -466,7 +466,7 @@ public sealed partial class TownLandHearingRuntimeTests
         Titles = state.TownLandTitles!.OrderBy(title => title.Id, StringComparer.Ordinal),
         Buildings = state.WorldSimulation!.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal),
         state.Fields,
-        Membership = state.Society.Society.Inhabitants.OrderBy(person => person.Id, StringComparer.Ordinal)
+        Membership = state.Society.Society.Agents.OrderBy(person => person.Id, StringComparer.Ordinal)
             .Select(person => new { person.Id, person.HouseholdId }),
         Lots = state.Society.Society.Inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Select(lot => new
@@ -587,51 +587,51 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             var observation = request.Observation;
             var choices = observation.Candidates;
-            Offered[observation.InhabitantId] = choices.Select(candidate => candidate.Id).ToArray();
+            Offered[observation.AgentId] = choices.Select(candidate => candidate.Id).ToArray();
             var choice = SkipNoticeReads ? null : choices.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
             CognitionLandHearingChoice? hearing = null;
             IReadOnlyList<CognitionLandTile>? tiles = null;
-            if (AcceptRehearings && observation.InhabitantId == Judge)
+            if (AcceptRehearings && observation.AgentId == Judge)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_assess_reopen|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith(":accept", StringComparison.Ordinal));
-            if (ObserveAndReopen && !Observed && observation.InhabitantId == Filer)
+            if (ObserveAndReopen && !Observed && observation.AgentId == Filer)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_observe|", StringComparison.Ordinal));
             if (InspectWhenOffered)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal));
-            if (ObserveAndReopen && Observed && observation.InhabitantId == Filer)
+            if (ObserveAndReopen && Observed && observation.AgentId == Filer)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_reopen|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith("|material_evidence", StringComparison.Ordinal));
             if (VoteYes)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|yes|", StringComparison.Ordinal));
-            if (choice is null && observation.InhabitantId == Judge && !TownProposals.IsEmpty)
+            if (choice is null && observation.AgentId == Judge && !TownProposals.IsEmpty)
                 choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_propose_town|", StringComparison.Ordinal));
             if (HearingsEnabled)
             {
                 if (ActingJudge is { } independent)
                 {
-                    if (observation.InhabitantId == independent)
+                    if (observation.AgentId == independent)
                         choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_judge_register|", StringComparison.Ordinal));
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_judge_vote|", StringComparison.Ordinal) &&
                         candidate.Id.EndsWith("|" + independent, StringComparison.Ordinal));
                 }
-                if (observation.InhabitantId == (ActingJudge ?? Judge))
+                if (observation.AgentId == (ActingJudge ?? Judge))
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal) && candidate.Id.EndsWith("|confirm", StringComparison.Ordinal)) ??
                         choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal));
-                if (observation.InhabitantId == CaseFiler)
+                if (observation.AgentId == CaseFiler)
                 {
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_answer|", StringComparison.Ordinal));
                     if (choice is null && !choices.Any(candidate => candidate.Id.Contains("|hearing_statement|", StringComparison.Ordinal) ||
                             candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal) || candidate.Id.Contains("|hearing_reopen|", StringComparison.Ordinal)))
                         choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_file|", StringComparison.Ordinal));
                 }
-                if (observation.InhabitantId == Waiver)
+                if (observation.AgentId == Waiver)
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_waive|", StringComparison.Ordinal));
             }
             if (Kind == DecisionProviderKind.LargeLanguageModel && SeekMayor)
             {
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|government_yes|", StringComparison.Ordinal)) ??
                     choices.FirstOrDefault(candidate => candidate.Id.Contains("|mayor_vote|", StringComparison.Ordinal) && candidate.Id.EndsWith("|" + Judge, StringComparison.Ordinal));
-                if (choice is null && observation.InhabitantId == Judge)
+                if (choice is null && observation.AgentId == Judge)
                     choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|mayor_register|land+non_land|", StringComparison.Ordinal));
             }
             choice ??= choices.Single(candidate => candidate.Id == "safe_idle");
@@ -663,8 +663,8 @@ public sealed partial class TownLandHearingRuntimeTests
                     .Distinct(StringComparer.Ordinal).ToArray();
                 hearing = new(Statement: "The inspected public record and both personal responses support confirming this permission.", EvidenceIds: evidence);
             }
-            Selected.Enqueue(observation.InhabitantId + ":" + choice.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            Selected.Enqueue(observation.AgentId + ":" + choice.Id);
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 choices.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: tiles, CivicLandHearing: hearing));

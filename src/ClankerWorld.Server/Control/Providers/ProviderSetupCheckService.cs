@@ -153,7 +153,7 @@ public sealed class ProviderSetupCheckService(
     private static CognitionDecisionRequest CreateRequest() => new(
         "owner-model-setup-check",
         0,
-        new InhabitantObservation(
+        new AgentObservation(
             ModelName,
             WorldTick: 0,
             RunEpoch: 0,

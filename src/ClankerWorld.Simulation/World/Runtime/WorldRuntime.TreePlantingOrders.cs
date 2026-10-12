@@ -10,14 +10,14 @@ public sealed partial class WorldRuntime
     private static bool IsTreePlantingOrder(string action) =>
         action is "plant_tree" or "plant_broadleaf" or "plant_conifer" or "plant_orchard";
 
-    private GridPoint? TreeOrderSite(OwnerQueuedInstruction instruction, InhabitantState person)
+    private GridPoint? TreeOrderSite(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (instruction.Order!.TargetPosition is not { } site)
-            return PlantingSite(instruction.TargetInhabitantId, person.Position);
+            return PlantingSite(instruction.TargetAgentId, person.Position);
         if (!map.Contains(site) || towns.Any(town => town.BorderTiles.Contains(site)) ||
             PlantingSiteRefusal(site, PlantingObstacles()) is not null || TreeAreaFull(site)) return null;
         return IsWithinInteractionRange(person.Position, site, ResourceInteractionRange) ||
-            FindUnoccupiedRoute(instruction.TargetInhabitantId, person.Position, site, ResourceInteractionRange).Count > 0
+            FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, site, ResourceInteractionRange).Count > 0
             ? site : null;
     }
 
@@ -37,12 +37,12 @@ public sealed partial class WorldRuntime
     private InventoryLot? CollectableTreeOrderSeed(string actor, string kind, GridPoint site) =>
         RecoverablePersonalGoods(actor, kind).Where(lot => PlantingSeedQuantity(lot) > 0 &&
             PickupCarryCapacity(actor, lot, site, ResourceInteractionRange) >= 1)
-            .OrderBy(lot => map.FootDistance(inhabitants[actor].Position, HouseholdStockPosition(lot)))
+            .OrderBy(lot => map.FootDistance(agents[actor].Position, HouseholdStockPosition(lot)))
             .ThenBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault() ?? SharedItem(kind, actor, site, ResourceInteractionRange);
 
-    private TreeOrderPlan? TreePlantingOrderPlan(OwnerQueuedInstruction instruction, InhabitantState person)
+    private TreeOrderPlan? TreePlantingOrderPlan(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AdultResident(actor) || !ReadyForBriefInteraction(actor) || TreeOrderSite(instruction, person) is not { } site) return null;
         var species = TreeOrderSpecies(instruction.Order!, site);
         var kind = TreeGrowthRules.SeedItem(species);
@@ -51,16 +51,16 @@ public sealed partial class WorldRuntime
             ? new(site, species, stock, false) : null;
     }
 
-    private CognitionCandidate? TreePlantingOrderCandidate(OwnerQueuedInstruction instruction, InhabitantState person) =>
+    private CognitionCandidate? TreePlantingOrderCandidate(OwnerQueuedInstruction instruction, AgentState person) =>
         TreePlantingOrderPlan(instruction, person) is { } plan
             ? new(instruction.Order!.Action, plan.Carried
                 ? "Walk to the requested planting site and plant one sapling using your actual seed."
                 : "Collect a permitted planting seed before travelling to the planting site.", 0, plan.Seed.Id)
             : null;
 
-    private void ExecuteTreePlantingOrder(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteTreePlantingOrder(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (TreePlantingOrderPlan(instruction, person) is not { } plan)
         {
             SetOrderStatus(instruction, "blocked", TreePlantingOrderBlockedReason(instruction, person));
@@ -82,9 +82,9 @@ public sealed partial class WorldRuntime
         else SetOrderStatus(instruction, "blocked", "The planting site or seed is no longer available; the seed was kept.");
     }
 
-    private string TreePlantingOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string TreePlantingOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AdultResident(actor)) return "This agent is too young to plant trees.";
         if (!ReadyForBriefInteraction(actor)) return "The agent needs warmth before planting trees.";
         if (instruction.Order!.TargetPosition is { } site)

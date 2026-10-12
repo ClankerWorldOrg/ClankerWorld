@@ -19,10 +19,10 @@ public partial class Main
         var previousCenter = cameraCenterTiles;
         var previousRefreshing = isRefreshing;
         var previousTile = selectedTile;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousCard = agentCardSnapshot;
         var previousProfileRequested = agentProfileRequested;
-        var previousPanels = new[] { selectedTilePanel, selectedInhabitantCard, agentProfilePanel }
+        var previousPanels = new[] { selectedTilePanel, selectedAgentCard, agentProfilePanel }
             .Select(panel => (Panel: panel, panel.Visible)).ToArray();
         try
         {
@@ -68,10 +68,10 @@ public partial class Main
                 cameraCenterTiles = previousCenter;
             }
             selectedTile = previousTile;
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             agentProfileRequested = previousProfileRequested;
             if (previousMap is not null) RenderTileInspection(previousMap);
-            if (previousCard is not null) RenderSelectedInhabitantCard(previousCard);
+            if (previousCard is not null) RenderSelectedAgentCard(previousCard);
             agentCardSnapshot = previousCard;
             foreach (var (panel, visible) in previousPanels) panel.Visible = visible;
             isRefreshing = previousRefreshing;
@@ -132,14 +132,14 @@ public partial class Main
     private void VerifyHandcartMotionAndZoom()
     {
         var at = new OwnerWorldPosition(120, 60);
-        var actor = new OwnerWorldInhabitant("cart-owner", "Rowan", "active", at, 10_000, [], [],
+        var actor = new OwnerWorldAgent("cart-owner", "Rowan", "active", at, 10_000, [], [],
             new("idle", null, null, [], ""), new(at, [], []), false);
         var cart = new OwnerWorldHandcart("moving-cart", actor.Id, actor.DisplayName, at, 32, 83,
             actor.Id, actor.DisplayName, [new("wood", 16)]);
         var map = new OwnerWorldSnapshot("cart-motion-smoke", 1, "cart-motion-map", [], [], [], null, 0)
         {
             PackedTerrain = new(256, 128, "terrain-kind-v1", Convert.ToBase64String(new byte[256 * 128])),
-            Inhabitants = [actor],
+            Agents = [actor],
             Handcarts = [cart],
         };
         RenderMap(map);
@@ -180,7 +180,7 @@ public partial class Main
             {
                 WorldTick = map.WorldTick + 1,
                 Handcarts = [cart],
-                Inhabitants = visiblePuller ? [actor with { Position = at }] : []
+                Agents = visiblePuller ? [actor with { Position = at }] : []
             };
             RenderMap(map);
         }
@@ -241,7 +241,7 @@ public partial class Main
             // Establish an east-facing pose before every independently observable reset.
             Move(0, 60);
             Expect(6, true, true, "before " + phase);
-            map = replace(map) with { Handcarts = [cart], Inhabitants = [] };
+            map = replace(map) with { Handcarts = [cart], Agents = [] };
             RenderMap(map);
             cameraZoom = 40f / baseTile;
             RenderMap(map);
@@ -278,7 +278,7 @@ public partial class Main
         var snapshot = new OwnerWorldSnapshot("cart-ui-smoke", 1, "cart-ui-map",
             Enumerable.Range(0, 16).Select(index => new OwnerWorldTile(index % 4, index / 4, "meadow")).ToArray(), [], [], null, 0)
         {
-            Inhabitants = [new("cart-owner", "Rowan", "active", position, 10_000, [], [],
+            Agents = [new("cart-owner", "Rowan", "active", position, 10_000, [], [],
                 new("idle", null, null, [], ""), new(position, [], []), false)],
             Handcarts = [new("cart", "cart-owner", "Rowan", position, 32, 83,
                 "cart-owner", "Rowan", [new("wood", 16)])],
@@ -294,11 +294,11 @@ public partial class Main
             throw new InvalidOperationException("A handcart must have a visible map sprite and actual ownership/cargo hover help.");
         selectedTile = new(1, 1);
         RenderTileInspection(snapshot);
-        selectedInhabitantId = "cart-owner";
-        RenderSelectedInhabitantCard(snapshot);
+        selectedAgentId = "cart-owner";
+        RenderSelectedAgentCard(snapshot);
         if (!selectedTileText.Text.Contains("Pulled by Rowan", StringComparison.Ordinal) ||
             !selectedTileText.Text.Contains("Condition: 83%", StringComparison.Ordinal) ||
-            !inhabitantDetails.Text.Contains("Cargo: 16/32", StringComparison.Ordinal))
+            !agentDetails.Text.Contains("Cargo: 16/32", StringComparison.Ordinal))
             throw new InvalidOperationException("Tile and agent inspection must show a cart's pull state, condition and separate cargo.");
         snapshot = snapshot with { Handcarts = [snapshot.Handcarts[0] with { PullerId = null, PullerName = null, ConditionPercent = 0 }] };
         RenderMap(snapshot);
@@ -311,8 +311,8 @@ public partial class Main
         if (mapObjectVisuals.ContainsKey("handcart:cart"))
             throw new InvalidOperationException("A cart absent from the accepted snapshot must lose its map marker.");
         ClearTileSelection();
-        selectedInhabitantId = null;
-        selectedInhabitantCard.Hide();
+        selectedAgentId = null;
+        selectedAgentCard.Hide();
         agentProfilePanel.Hide();
     }
 }

@@ -34,8 +34,8 @@ public sealed partial class AnimalPipelineTests
         inventory = InventoryAuthority.AddLot(inventory, "replacement-water", "fresh_water", home, 2, containerLotId: "replacement-water-jug");
         state = At(state, actor, house.Position, inventory, [moss, fern]) with
         {
-            Inhabitants = At(state, actor, house.Position, inventory, [moss, fern]).Inhabitants.Select(person =>
-            person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray()
+            Agents = At(state, actor, house.Position, inventory, [moss, fern]).Agents.Select(person =>
+            person.AgentId == actor ? person with { Equipment = null } : person).ToArray()
         };
         using var setup = WorldRuntime.Restore(state, _ => new AnimalChooser());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);

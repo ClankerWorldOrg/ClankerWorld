@@ -16,7 +16,7 @@ public sealed partial class AnimalPipelineTests
         var (state, actor, home, yard) = CreateYard("animal-horse-cargo");
         var tiles = WorldContentSimulationRules.Footprint(state.WorldContent!.Buildings.Single(definition =>
             definition.CanonicalId == yard.DefinitionId), yard).ToArray();
-        var sheepPosition = tiles.First(point => point != yard.Position && !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point));
+        var sheepPosition = tiles.First(point => point != yard.Position && !state.Agents.Any(person => person.AgentId != actor && person.Position == point));
         var day = state.WorldSystems!.Config.TicksPerDay;
         var horse = new AnimalState("mounted-collect-horse", "Moss", "horse", "female", -(long)AnimalRules.Definition("horse").AdultDays * day,
             yard.Position, "household:" + home, home, yard.InstanceId, CareUntilTick: state.Society.Society.WorldTick + day);
@@ -30,7 +30,7 @@ public sealed partial class AnimalPipelineTests
             inventory = InventoryAuthority.Relocate(InventoryAuthority.AddLot(inventory, "mounted-collect-jug", "water_jug", home, 1),
                 "mounted-collect-carry-jug", "mounted-collect-jug", home, 1, carrierId: actor);
         state = At(state, actor, yard.Position, inventory, [horse, sheep]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         using var preparing = RestoreMountedCollection(state, actor);
         preparing.SubmitInstruction(new("mounted-collect-saddle", "owner", actor, OwnerInstructionKind.MustDo, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
@@ -74,7 +74,7 @@ public sealed partial class AnimalPipelineTests
                 Assert.Equal(0, world.ExportState().Instructions!.Single(item => item.InstructionId == collect.InstructionId).Order!.CompletedUnits);
                 Assert.Equal(productId, world.Animals.Single(animal => animal.Id == sheep.Id).ReadyProductLotId);
                 Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(productHeld).State);
-                Assert.Equal(horse.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+                Assert.Equal(horse.Position, world.Agents.Single(person => person.AgentId == actor).Position);
             }
         }
         var order = world.ExportState().Instructions!.Single(item => item.InstructionId == collect.InstructionId).Order!;
@@ -116,7 +116,7 @@ public sealed partial class AnimalPipelineTests
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.ContainerLotId == "mounted-collect-jug");
         }
         Assert.Null(world.Animals.Single(animal => animal.Id == sheep.Id).ReadyProductLotId);
-        Assert.Equal(sheepPosition, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(sheepPosition, world.Agents.Single(person => person.AgentId == actor).Position);
         using var loaded = RestoreMountedCollection(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor);
         loaded.Validate();
         world.Validate();

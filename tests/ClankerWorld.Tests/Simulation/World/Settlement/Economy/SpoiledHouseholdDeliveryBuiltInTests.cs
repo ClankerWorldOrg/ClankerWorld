@@ -12,7 +12,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var (pickedUp, actor, startingSite) = await PickedUpPot();
         Assert.True(pickedUp.Society.Society.Inventory.GetLot(PotGreens).FreshnessBasisPoints > 0);
         Assert.Equal("haul_household_stock", pickedUp.Society.Cognition.Runtimes
-            .Single(runtime => runtime.InhabitantId == actor).CurrentIntention?.CandidateId);
+            .Single(runtime => runtime.AgentId == actor).CurrentIntention?.CandidateId);
         Assert.DoesNotContain(pickedUp.Events, item => item.Kind == "household_delivery_recovered");
         var family = pickedUp.Society.Society.Inventory.Lots.Where(lot => lot.Id == Pot || lot.ContainerLotId == Pot).ToArray();
         var bytes = WorldRuntimeCodec.Encode(pickedUp);
@@ -21,7 +21,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         var admitted = false;
         var walked = false;
-        var previous = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = world.Agents.Single(person => person.AgentId == actor).Position;
 
         // Keep the actual fresh pickup intention and context. Ordinary spoilage
         // must trigger a new unfiltered built-in decision, followed by a real
@@ -32,10 +32,10 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             var current = world.ExportState();
             Assert.Equal(WorldRuntimeCodec.Encode(current), WorldRuntimeCodec.Encode(replay.ExportState()));
-            var intention = current.Society.Cognition.Runtimes.Single(runtime => runtime.InhabitantId == actor).CurrentIntention;
+            var intention = current.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == actor).CurrentIntention;
             admitted |= intention is { CandidateId: "recover_household_delivery", Provider: DecisionProviderKind.Deterministic } &&
                 intention.WorldTick > pickedUp.Society.Society.WorldTick;
-            var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var position = world.Agents.Single(person => person.AgentId == actor).Position;
             if (position != previous)
             {
                 Assert.True(pickedUp.Map.CanFootStep(previous, position));

@@ -26,7 +26,7 @@ public sealed class StoredFuelRoutingTests
         for (var index = 0; index < 4; index++) initial.PlaceFounder(ids[index], positions[index]);
         initial.StartWorld();
         var state = blockStorage ? StorageRoutingTestFixture.BlockAccess(initial, storagePosition, 1) : initial.ExportState();
-        var household = state.Society.Society.GetInhabitant(ids[0]).HouseholdId!;
+        var household = state.Society.Society.GetAgent(ids[0]).HouseholdId!;
         var society = state.Society.Society;
         var storedWood = society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood")
             .Sum(lot => lot.Quantity);
@@ -36,7 +36,7 @@ public sealed class StoredFuelRoutingTests
         {
             Society = state.Society with { Society = society },
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 4_000),
@@ -71,7 +71,7 @@ public sealed class StoredFuelRoutingTests
                 // A changed layout can leave only the final hearth approach after
                 // the original budget. Permit a short, physically bounded tail.
                 var arrival = world.ExportState();
-                var actor = arrival.Inhabitants.Single(person => person.InhabitantId == ids[0]).Position;
+                var actor = arrival.Agents.Single(person => person.AgentId == ids[0]).Position;
                 var hearth = arrival.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a").Position;
                 var distance = arrival.Map.FootDistance(actor, hearth);
                 Assert.InRange(distance, 0, 4);
@@ -85,7 +85,7 @@ public sealed class StoredFuelRoutingTests
             if (blockStorage)
             {
                 Assert.True(result.Events.Any(item => item.Kind == "material_gathered" && item.Detail.StartsWith(ids[0] + ":", StringComparison.Ordinal)),
-                    $"tick={world.WorldTick}; fires={result.Survival!.Fires.Count}; no_route={result.Events.Count(item => item.Kind == "movement_blocked" && item.Detail.StartsWith(ids[0] + ":no_route", StringComparison.Ordinal))}; warmth={result.Inhabitants.Single(person => person.InhabitantId == ids[0]).Survival!.WarmthBasisPoints}; stored wood={storedWood}");
+                    $"tick={world.WorldTick}; fires={result.Survival!.Fires.Count}; no_route={result.Events.Count(item => item.Kind == "movement_blocked" && item.Detail.StartsWith(ids[0] + ":no_route", StringComparison.Ordinal))}; warmth={result.Agents.Single(person => person.AgentId == ids[0]).Survival!.WarmthBasisPoints}; stored wood={storedWood}");
                 Assert.Equal(storedWood, result.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood").Sum(lot => lot.Quantity));
             }
             Assert.Contains(result.Survival!.Fires, fire => fire.BuildingId == "first-town-house-a");
@@ -103,10 +103,10 @@ public sealed class StoredFuelRoutingTests
         public bool WasToolOffered { get; private set; }
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Observation.InhabitantId == actor &&
+            if (request.Observation.AgentId == actor &&
                 request.Observation.Candidates.Any(candidate => candidate.Id == "collect_wooden_axe"))
                 WasToolOffered = true;
-            var selected = request.Observation.InhabitantId == actor
+            var selected = request.Observation.AgentId == actor
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "tend_fire") : null;
             selected ??= request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return new DeterministicDecisionProvider().DecideAsync(request with

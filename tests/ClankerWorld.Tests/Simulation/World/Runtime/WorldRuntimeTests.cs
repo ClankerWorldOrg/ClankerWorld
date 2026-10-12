@@ -100,7 +100,7 @@ public sealed partial class WorldRuntimeTests
         var occupiedMapPositions = runtime.ExportState().Map.MapObjects.Select(item => item.Position)
             .Concat(runtime.ExportState().Map.Resources.Select(item => item.Position))
             .ToHashSet();
-        var worker = runtime.Inhabitants.First(item => !occupiedMapPositions.Contains(item.Position));
+        var worker = runtime.Agents.First(item => !occupiedMapPositions.Contains(item.Position));
         var rejected = runtime.PlaceBuilding("blocked-kitchen", building.CanonicalId, new GridPoint(0, 0));
         Assert.False(rejected.Applied);
         Assert.Equal(48, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:camp-alpha").Quantity);
@@ -116,7 +116,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Single(runtime.WorldSimulation.Buildings);
         Assert.Equal(46, runtime.Society.Inventory.Lots.Single(item => item.Id == "wood:camp-alpha").Quantity);
 
-        var started = runtime.StartProduction(recipe.CanonicalId, placement.InstanceId, worker.InhabitantId);
+        var started = runtime.StartProduction(recipe.CanonicalId, placement.InstanceId, worker.AgentId);
         Assert.True(started.Applied, started.Failure);
         Assert.Equal(1, runtime.WorldSimulation.ProductionJobs.Count(item => item.State == WorldProductionJobState.Running));
 
@@ -158,7 +158,7 @@ public sealed partial class WorldRuntimeTests
         Activate(runtime, package);
         await runtime.AdvanceOneTickAsync();
         var before = WorldRuntimeCodec.Encode(runtime.ExportState());
-        var refused = runtime.StartProduction(recipe.CanonicalId, "arbitrary-ground", runtime.Inhabitants[0].InhabitantId);
+        var refused = runtime.StartProduction(recipe.CanonicalId, "arbitrary-ground", runtime.Agents[0].AgentId);
         Assert.False(refused.Applied);
         Assert.Contains("tilled field", refused.Failure, StringComparison.Ordinal);
         Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
@@ -180,10 +180,10 @@ public sealed partial class WorldRuntimeTests
         };
         state = state with
         {
-            Inhabitants = state.Inhabitants
-                .Select(inhabitant => inhabitant with
+            Agents = state.Agents
+                .Select(agent => agent with
                 {
-                    Position = stuckPositions[inhabitant.InhabitantId],
+                    Position = stuckPositions[agent.AgentId],
                     HungerBasisPoints = 0,
                     MoveWaitTicks = 4_500,
                 })
@@ -212,17 +212,17 @@ public sealed partial class WorldRuntimeTests
         var recovered = runtime.ExportState();
         Assert.Contains(recovered.Events, item => item.Kind == "food_harvested");
         Assert.Contains(recovered.Events, item => item.Kind == "food_consumed");
-        Assert.Contains(recovered.Events, item => item.Kind == "inhabitant_moved" && item.WorldTick > 1);
-        Assert.All(recovered.Inhabitants, inhabitant =>
+        Assert.Contains(recovered.Events, item => item.Kind == "agent_moved" && item.WorldTick > 1);
+        Assert.All(recovered.Agents, agent =>
         {
             Assert.True(
-                inhabitant.HungerBasisPoints > 0,
-                $"{inhabitant.InhabitantId}: " + string.Join(", ", recovered.Events
-                    .Where(item => item.Detail.StartsWith(inhabitant.InhabitantId, StringComparison.Ordinal) &&
+                agent.HungerBasisPoints > 0,
+                $"{agent.AgentId}: " + string.Join(", ", recovered.Events
+                    .Where(item => item.Detail.StartsWith(agent.AgentId, StringComparison.Ordinal) &&
                         item.Kind is "food_harvested" or "food_consumed" or "harvest_failed")
                     .Select(item => $"{item.WorldTick}:{item.Kind}:{item.Detail}")));
         });
-        Assert.Equal(4, recovered.Inhabitants.Select(item => item.Position).Distinct().Count());
+        Assert.Equal(4, recovered.Agents.Select(item => item.Position).Distinct().Count());
         Assert.True(provider.CallCount < 100, $"Expected fewer than 100 cognition calls, got {provider.CallCount}.");
     }
 
@@ -361,7 +361,7 @@ public sealed partial class WorldRuntimeTests
                 StringComparer.Ordinal);
             return ValueTask.FromResult(new CognitionDecisionResponse(
                 request.RequestId,
-                request.Observation.InhabitantId,
+                request.Observation.AgentId,
                 Kind,
                 ProviderEpoch,
                 request.Observation.RunEpoch,
@@ -396,7 +396,7 @@ public sealed partial class WorldRuntimeTests
         var hungry = restored.ExportState();
         using var urgent = WorldRuntime.Restore(hungry with
         {
-            Inhabitants = hungry.Inhabitants.Select(inhabitant => inhabitant with { HungerBasisPoints = 2_000 }).ToArray(),
+            Agents = hungry.Agents.Select(agent => agent with { HungerBasisPoints = 2_000 }).ToArray(),
         }, _ => provider);
         _ = await urgent.AdvanceOneTickAsync();
         Assert.Equal(8, provider.CallCount);
@@ -422,7 +422,7 @@ public sealed partial class WorldRuntimeTests
         };
         using var world = WorldRuntime.Restore(initialState, _ => provider);
         _ = await world.AdvanceOneTickAsync();
-        var initial = world.Inhabitants.Single(person => person.InhabitantId == "founder-scout");
+        var initial = world.Agents.Single(person => person.AgentId == "founder-scout");
         Assert.NotEmpty(initial.Exploration!.OutingPath);
         world.SubmitInstruction(new OwnerInstructionRequest("interrupt-exploration", "owner:test",
             "founder-scout", OwnerInstructionKind.MustDo, "travel to berry-patch"));
@@ -432,7 +432,7 @@ public sealed partial class WorldRuntimeTests
             var state = world.ExportState();
             var bytes = WorldRuntimeCodec.Encode(state);
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
-            var scout = state.Inhabitants.Single(person => person.InhabitantId == "founder-scout");
+            var scout = state.Agents.Single(person => person.AgentId == "founder-scout");
             var path = scout.Exploration!.OutingPath;
             Assert.All(path.Zip(path.Skip(1)), edge => Assert.True(state.Map.CanFootStep(edge.First, edge.Second)));
             if (!scout.Exploration.Returning && path.Count > 8 && !provider.ReturnRequested)
@@ -461,12 +461,12 @@ public sealed partial class WorldRuntimeTests
             cancellationToken.ThrowIfCancellationRequested();
             CallCount++;
             var options = request.Observation.Candidates;
-            var selected = request.Observation.InhabitantId == targetId
+            var selected = request.Observation.AgentId == targetId
                 ? options.FirstOrDefault(option => option.Id == (ReturnRequested ? "explore_return" : "explore"))
                 : null;
             selected ??= options.FirstOrDefault(option => option.Id == "safe_idle") ?? options[0];
             return ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d,
                 options.ToDictionary(option => option.Id, option => option.Id == selected.Id ? 1d : 0d,
@@ -501,7 +501,7 @@ public sealed partial class WorldRuntimeTests
                 StringComparer.Ordinal);
             return ValueTask.FromResult(new CognitionDecisionResponse(
                 request.RequestId,
-                request.Observation.InhabitantId,
+                request.Observation.AgentId,
                 Kind,
                 ProviderEpoch,
                 request.Observation.RunEpoch,

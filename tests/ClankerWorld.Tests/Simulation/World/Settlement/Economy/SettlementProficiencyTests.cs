@@ -19,11 +19,11 @@ public sealed class SettlementProficiencyTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var actor = state.Inhabitants[0];
+        var actor = state.Agents[0];
         var site = state.Map.Tiles.Last(tile => state.Map.IsPassable(tile.Position) &&
             !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
             !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-            !state.Inhabitants.Any(person => person.Position == tile.Position)).Position;
+            !state.Agents.Any(person => person.Position == tile.Position)).Position;
         var definition = seed.WorldContent.Buildings.Single(building => building.LocalId == "fire");
         state = state with
         {
@@ -31,11 +31,11 @@ public sealed class SettlementProficiencyTests
             {
                 Society = state.Society.Society with
                 {
-                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "practice-tool", "wooden_hammer", actor.InhabitantId, 1),
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person with { Name = $"sk-private-practice-name-{person.Id}" }).ToArray(),
+                    Inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "practice-tool", "wooden_hammer", actor.AgentId, 1),
+                    Agents = state.Society.Society.Agents.Select(person => person with { Name = $"sk-private-practice-name-{person.Id}" }).ToArray(),
                 }
             },
-            Inhabitants = state.Inhabitants.Select(person => person == actor ? person with
+            Agents = state.Agents.Select(person => person == actor ? person with
             {
                 Position = site,
                 HungerBasisPoints = 9_000,
@@ -54,7 +54,7 @@ public sealed class SettlementProficiencyTests
             var logger = new RecordingLogger<WorldRuntimeService>();
             using var service = new WorldRuntimeService(world, new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
             Assert.True(await service.TryAdvanceOnceAsync());
-            var result = world.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId);
+            var result = world.Agents.Single(person => person.AgentId == actor.AgentId);
             Assert.Equal(finish ? Math.Min(30, experience + 1) : experience, result.Proficiency!.Building);
             Assert.Equal(finish ? 10 : 2 + experience / 10, result.Project!.WorkDone);
             Assert.Equal(finish ? "completed" : "working", result.Project.Stage);
@@ -68,7 +68,7 @@ public sealed class SettlementProficiencyTests
             else Assert.Empty(result.Skills ?? []);
             Assert.Equal(finish && experience < 30, logger.Messages.Any(message => message.Contains("work_practice tick=", StringComparison.Ordinal)));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("sk-private-practice-name", StringComparison.Ordinal));
-            var projection = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == actor.InhabitantId);
+            var projection = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == actor.AgentId);
             Assert.Equal(result.Proficiency.Building, projection.Proficiency!.Building);
             Assert.Equal(finish || knownSkill ? 1 : 0, projection.Skills.Count);
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), _ => new IdleProvider());
@@ -76,8 +76,8 @@ public sealed class SettlementProficiencyTests
             if (finish)
             {
                 await restored.AdvanceOneTickAsync();
-                Assert.Equal(result.Proficiency, restored.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId).Proficiency);
-                Assert.Equal(result.Skills, restored.Inhabitants.Single(person => person.InhabitantId == actor.InhabitantId).Skills);
+                Assert.Equal(result.Proficiency, restored.Agents.Single(person => person.AgentId == actor.AgentId).Proficiency);
+                Assert.Equal(result.Skills, restored.Agents.Single(person => person.AgentId == actor.AgentId).Skills);
             }
         }
         finally { directory.Delete(recursive: true); }

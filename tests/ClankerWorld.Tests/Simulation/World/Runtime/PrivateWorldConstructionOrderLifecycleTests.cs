@@ -45,7 +45,7 @@ public sealed partial class WorldConstructionOrderTests
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "builders-meal", "berries", setup.Actor, 1)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == setup.Actor
+            Agents = state.Agents.Select(person => person.AgentId == setup.Actor
                 ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -76,7 +76,7 @@ public sealed partial class WorldConstructionOrderTests
         using var replay = Reload(world);
         Assert.Equal(("blocked", 0, Alpha),
             (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ConstructionOwnerId));
-        Assert.NotEqual(Alpha, world.Society.GetInhabitant(setup.Actor).HouseholdId);
+        Assert.NotEqual(Alpha, world.Society.GetAgent(setup.Actor).HouseholdId);
         for (var tick = 0; tick < 3; tick++) await TickTogether(world, replay);
         Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.InstanceId == instance);
         Assert.Empty(world.WorldSimulation.ConstructionReceipts ?? []);
@@ -100,7 +100,7 @@ public sealed partial class WorldConstructionOrderTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == setup.Actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == setup.Actor ? person with
                     {
                         BirthTick = nextTick - maximumDay * society.Config.TicksPerLifecycleAge,
                         BirthLifeTick = society.LifeClock is null ? null :
@@ -113,12 +113,12 @@ public sealed partial class WorldConstructionOrderTests
         };
         using var world = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         using var replay = Reload(world);
-        Assert.Equal(SocietyInhabitantStatus.Active, world.Society.GetInhabitant(setup.Actor).Status);
+        Assert.Equal(SocietyAgentStatus.Active, world.Society.GetAgent(setup.Actor).Status);
         await TickTogether(world, replay);
-        Assert.Equal((SocietyInhabitantStatus.Dead, SocietyDeathCause.NaturalAge, nextTick),
-            (world.Society.GetInhabitant(setup.Actor).Status, world.Society.GetInhabitant(setup.Actor).DeathCause,
-                world.Society.GetInhabitant(setup.Actor).DeathTick));
-        Assert.DoesNotContain(world.Inhabitants, person => person.InhabitantId == setup.Actor);
+        Assert.Equal((SocietyAgentStatus.Dead, SocietyDeathCause.NaturalAge, nextTick),
+            (world.Society.GetAgent(setup.Actor).Status, world.Society.GetAgent(setup.Actor).DeathCause,
+                world.Society.GetAgent(setup.Actor).DeathTick));
+        Assert.DoesNotContain(world.Agents, person => person.AgentId == setup.Actor);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Null(Order(world, receipt).LastEffectId);
         Assert.Empty(world.WorldSimulation.ConstructionReceipts ?? []);
@@ -191,7 +191,7 @@ public sealed partial class WorldConstructionOrderTests
             Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
                 ? item with { Order = forged } : item).ToArray(),
             CompletedInstructionIds = state.CompletedInstructionIds!.Append(receipt.InstructionId).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == setup.Actor
+            Agents = state.Agents.Select(person => person.AgentId == setup.Actor
                 ? person with { Project = person.Project! with { Stage = "completed", WorkDone = 10 } } : person).ToArray(),
         }));
         foreach (var bad in new[]

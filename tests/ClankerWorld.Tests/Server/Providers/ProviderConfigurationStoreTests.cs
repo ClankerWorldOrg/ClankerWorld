@@ -32,7 +32,7 @@ public sealed partial class ProviderConfigurationStoreTests
         {
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             _ = store.Configure(new("routine", "jev", "configured-jev-model", "jev-test-key", false));
-            _ = store.Configure(new("personal", "openai", "own-model", "personal-test-key", false, "inhabitant-test"));
+            _ = store.Configure(new("personal", "openai", "own-model", "personal-test-key", false, "agent-test"));
             var policy = new WorldJevPolicy();
             var handler = new ProviderResponseHandler();
             var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
@@ -54,7 +54,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal(DecisionProviderKind.LargeLanguageModel,
                 router.KindFor(oldRequest.Observation with { RequiresPersonalProvider = true }));
             Assert.Equal(DecisionProviderKind.Deterministic,
-                router.KindFor(oldRequest.Observation with { InhabitantId = "unassigned-child", RequiresPersonalProvider = true }));
+                router.KindFor(oldRequest.Observation with { AgentId = "unassigned-child", RequiresPersonalProvider = true }));
             Assert.False(world.SetRoutineHelper(RoutineHelperSettings.Jev));
             Assert.Equal(1, world.JevPolicyRevision);
         }
@@ -138,7 +138,7 @@ public sealed partial class ProviderConfigurationStoreTests
 
             var slot = Guid.NewGuid().ToString("N");
             _ = store.Configure(new("personal", "openai", "child-model", "child-secret", false,
-                "inhabitant-test", slot, "Child model"));
+                "agent-test", slot, "Child model"));
             var restoredStore = new ProviderConfigurationStore(path, EmptySeed());
             var restored = new ConfigurableDecisionProvider(restoredStore, new FixedHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, restored.KindFor(planning));
@@ -147,7 +147,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal("child-model", handler.LastModel);
             Assert.Equal("Bearer child-secret", handler.LastAuthorization);
 
-            _ = restoredStore.Configure(new("personal", PlayerDecisionProviders.Inherit, null, null, false, "inhabitant-test"));
+            _ = restoredStore.Configure(new("personal", PlayerDecisionProviders.Inherit, null, null, false, "agent-test"));
             var inheritedAssignments = restoredStore.CaptureStatus().Assignments!;
             Assert.Equal(2, inheritedAssignments.Count);
             Assert.All(inheritedAssignments, assignment =>
@@ -198,7 +198,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal(1, handler.RequestCount);
 
             _ = store.Configure(new("planning", PlayerDecisionProviders.Deterministic,
-                null, null, false, "inhabitant-test"));
+                null, null, false, "agent-test"));
             var offRouter = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
             Assert.Equal(DecisionProviderKind.Deterministic, offRouter.KindFor(adultObservation));
             Assert.Equal(DecisionProviderKind.Deterministic,
@@ -220,10 +220,10 @@ public sealed partial class ProviderConfigurationStoreTests
             var selection = new ChildPersonalModelSelection("personal", "openai",
                 WorldRuntime.OpenAiModelEndpointIdentity, "birth-model", null,
                 WorldRuntime.ChildModelChoiceParentsAgreed);
-            var bound = store.ConfigureChildModelSelectionWithCommit("inhabitant-test", selection, static _ => { });
+            var bound = store.ConfigureChildModelSelectionWithCommit("agent-test", selection, static _ => { });
 
             _ = store.Configure(new(PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.Deterministic,
-                null, null, false, "inhabitant-test"));
+                null, null, false, "agent-test"));
 
             var reloaded = new ProviderConfigurationStore(path, EmptySeed());
             var assignments = reloaded.CaptureStatus().Assignments!;
@@ -257,7 +257,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var selection = new ChildPersonalModelSelection("personal", "openai",
                 WorldRuntime.OpenAiModelEndpointIdentity, "inherited-private-model", slotId,
                 WorldRuntime.ChildModelChoiceInitiatingParent);
-            original.ConfigureChildModelSelectionWithCommit("inhabitant-test", selection, static _ => { });
+            original.ConfigureChildModelSelectionWithCommit("agent-test", selection, static _ => { });
             var savedAssignments = original.CaptureStatus().Assignments!;
             Assert.Equal(2, savedAssignments.Count);
             Assert.All(savedAssignments, assignment =>
@@ -317,7 +317,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = defaultKeyStore.Configure(new("planning", "openai", "default-model", "default-key-secret", false));
             var defaultKeySelection = selection with { CredentialSlotId = null, ModelId = "default-model" };
             var boundDefaultSelection = defaultKeyStore.ConfigureChildModelSelectionWithCommit(
-                "inhabitant-test", defaultKeySelection, static _ => { });
+                "agent-test", defaultKeySelection, static _ => { });
             var localSlotId = Assert.IsType<string>(boundDefaultSelection.CredentialSlotId);
             Assert.Contains(defaultKeyStore.CaptureStatus().CredentialSlots!, item => item.Id == localSlotId && item.Provider == "openai");
             var defaultAssignments = defaultKeyStore.CaptureStatus().Assignments!;
@@ -394,7 +394,7 @@ public sealed partial class ProviderConfigurationStoreTests
         {
             var configuration = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             _ = configuration.Configure(new("planning", "openai", "personal-model", "openai-test-key", false));
-            _ = configuration.Configure(new("personal", "openai", "own-model", null, false, "inhabitant-test"));
+            _ = configuration.Configure(new("personal", "openai", "own-model", null, false, "agent-test"));
             var helperSlot = namedKey ? Guid.NewGuid().ToString("N") : null;
             if (helperSlot is not null) _ = configuration.CreateCredentialSlot(new(helperSlot, "openai", "Helper key", "named-openai-key"));
             var before = File.ReadAllBytes(configuration.Path);
@@ -411,7 +411,7 @@ public sealed partial class ProviderConfigurationStoreTests
             {
                 Observation = original.Observation with
                 {
-                    MemoryCompactionCandidates = [new("source", "inhabitant-test", "experience", "friend", "Private remembered event.", 1)],
+                    MemoryCompactionCandidates = [new("source", "agent-test", "experience", "friend", "Private remembered event.", 1)],
                 }
             };
             var response = await router.DecideAsync(request);
@@ -427,7 +427,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal(1, handler.RequestCount);
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(Request(router.ProviderEpoch, strategic: true).Observation));
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(request.Observation with { RequiresPersonalProvider = true }));
-            Assert.Equal(DecisionProviderKind.Deterministic, router.KindFor(request.Observation with { InhabitantId = "unassigned-child", RequiresPersonalProvider = true }));
+            Assert.Equal(DecisionProviderKind.Deterministic, router.KindFor(request.Observation with { AgentId = "unassigned-child", RequiresPersonalProvider = true }));
             Assert.Equal(before, File.ReadAllBytes(configuration.Path));
             Assert.DoesNotContain("openai-test-key", File.ReadAllText(Path.Combine(directory.FullName, "usage.json")));
         }
@@ -454,7 +454,7 @@ public sealed partial class ProviderConfigurationStoreTests
                 {
                     MemoryCompactionCandidates = Enumerable.Range(0, 4).Select(index =>
                         new CognitionMemoryCompactionCandidate(
-                            $"experience-{index}", "inhabitant-test", "experience", "friend",
+                            $"experience-{index}", "agent-test", "experience", "friend",
                             $"Existing owner-private event {index}.", 1)).ToArray(),
                 },
             };
@@ -484,9 +484,9 @@ public sealed partial class ProviderConfigurationStoreTests
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             _ = store.Configure(new("routine", "jev", "jev-test", "routine-test-secret", false));
             _ = store.Configure(new("planning", "ollama-cloud", "world-model", "world-test-secret", false));
-            _ = store.Configure(new("planning", "openai", "personal-model", "personal-test-secret", false, "inhabitant-test"));
+            _ = store.Configure(new("planning", "openai", "personal-model", "personal-test-secret", false, "agent-test"));
             Assert.Throws<ArgumentException>(() => store.Configure(
-                new("routine", "jev", null, null, false, "inhabitant-test")));
+                new("routine", "jev", null, null, false, "agent-test")));
             var policy = new WorldJevPolicy();
             var handler = new ProviderResponseHandler();
             var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler), jevPolicy: policy);
@@ -501,7 +501,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal("api.openai.com", handler.LastUri!.Host);
             Assert.Equal("personal-model", handler.LastModel);
 
-            _ = store.Configure(new("planning", "inherit", null, null, false, "inhabitant-test"));
+            _ = store.Configure(new("planning", "inherit", null, null, false, "agent-test"));
             _ = await router.DecideAsync(Request(router.ProviderEpoch));
             Assert.Equal("ollama.com", handler.LastUri!.Host);
 
@@ -520,7 +520,7 @@ public sealed partial class ProviderConfigurationStoreTests
     }
 
     [Fact]
-    public void InhabitantInventionUsesPlanningProvider()
+    public void AgentInventionUsesPlanningProvider()
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-invention-routing-");
         try
@@ -583,7 +583,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var path = Path.Combine(directory.FullName, "providers.json");
             var store = new ProviderConfigurationStore(path, EmptySeed());
             _ = store.Configure(new("planning", "ollama-cloud", "world-model", "cloud-test-secret", false));
-            _ = store.Configure(new("planning", "openai", "personal-model", "openai-test-secret", false, "inhabitant-test"));
+            _ = store.Configure(new("planning", "openai", "personal-model", "openai-test-secret", false, "agent-test"));
             Assert.Equal("ollama-cloud", store.CaptureStatus().PlanningProvider);
             Assert.Single(store.CaptureStatus().Assignments!);
             Assert.DoesNotContain("test-secret", System.Text.Json.JsonSerializer.Serialize(store.CaptureStatus()), StringComparison.Ordinal);
@@ -598,11 +598,11 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal("planning", response.Usage.Role);
             Assert.True(response.Usage.LatencyMilliseconds >= 0);
             var other = Request(router.ProviderEpoch, strategic: true);
-            _ = await router.DecideAsync(other with { Observation = other.Observation with { InhabitantId = "other" } });
+            _ = await router.DecideAsync(other with { Observation = other.Observation with { AgentId = "other" } });
             Assert.Equal("ollama.com", handler.LastUri!.Host);
             Assert.Equal("world-model", handler.LastModel);
 
-            _ = store.Configure(new("planning", "inherit", null, null, false, "inhabitant-test"));
+            _ = store.Configure(new("planning", "inherit", null, null, false, "agent-test"));
             var inherited = store.CaptureStatus().Assignments!;
             var inheritedPlanning = Assert.Single(inherited);
             Assert.Equal(PlayerDecisionProviders.PlanningRole, inheritedPlanning.Role);
@@ -610,7 +610,7 @@ public sealed partial class ProviderConfigurationStoreTests
             _ = await router.DecideAsync(Request(router.ProviderEpoch, strategic: true));
             Assert.Equal("ollama.com", handler.LastUri!.Host);
 
-            _ = store.Configure(new("planning", "openai", "personal-model", null, false, "inhabitant-test"));
+            _ = store.Configure(new("planning", "openai", "personal-model", null, false, "agent-test"));
             _ = store.Configure(new("planning", "openai", null, null, true));
             Assert.Empty(store.CaptureStatus().Assignments!);
             Assert.Equal("ollama-cloud", store.CaptureStatus().PlanningProvider);
@@ -632,7 +632,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var firstSlot = Guid.NewGuid().ToString("N");
             var secondSlot = Guid.NewGuid().ToString("N");
             _ = store.Configure(new("planning", "openai", "model-one", "first-agent-secret", false,
-                "inhabitant-test", firstSlot, "First account"));
+                "agent-test", firstSlot, "First account"));
             _ = store.Configure(new("planning", "openai", "model-two", "second-agent-secret", false,
                 "other", secondSlot, "Second account"));
             Assert.Equal("deterministic", store.CaptureStatus().PlanningProvider);
@@ -648,7 +648,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal("Bearer first-agent-secret", handler.LastAuthorization);
             Assert.Equal("model-one", handler.LastModel);
             var other = Request(router.ProviderEpoch, strategic: true);
-            _ = await router.DecideAsync(other with { Observation = other.Observation with { InhabitantId = "other" } });
+            _ = await router.DecideAsync(other with { Observation = other.Observation with { AgentId = "other" } });
             Assert.Equal("Bearer second-agent-secret", handler.LastAuthorization);
             Assert.Equal("model-two", handler.LastModel);
 
@@ -675,7 +675,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var slotId = Guid.NewGuid().ToString("N");
             const string secret = "obsolete-slot-secret";
             _ = store.Configure(new("personal", "openai", "personal-model", secret, false,
-                "inhabitant-test", slotId, "Obsolete"));
+                "agent-test", slotId, "Obsolete"));
             var oldWorldAssignments = store.CaptureStatus().Assignments!.ToArray();
             var revision = store.CaptureStatus().Revision;
 
@@ -686,7 +686,7 @@ public sealed partial class ProviderConfigurationStoreTests
             if (OperatingSystem.IsWindows())
                 Assert.DoesNotContain(secret, File.ReadAllText(path), StringComparison.Ordinal);
 
-            _ = store.Configure(new("personal", "inherit", null, null, false, "inhabitant-test"));
+            _ = store.Configure(new("personal", "inherit", null, null, false, "agent-test"));
             var deleted = store.DeleteCredentialSlot(slotId);
             Assert.Empty(deleted.CredentialSlots!);
             Assert.Equal(2, deleted.Assignments!.Count);
@@ -738,7 +738,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             var slot = Guid.NewGuid().ToString("N");
             _ = store.Configure(new("personal", "openai", "chosen-model", "chosen-secret", false,
-                "inhabitant-test", slot, "Personal"));
+                "agent-test", slot, "Personal"));
             Assert.Equal(2, store.CaptureStatus().Assignments!.Count);
             var handler = new ProviderResponseHandler();
             var router = new ConfigurableDecisionProvider(store, new FixedHttpClientFactory(handler));
@@ -749,7 +749,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal("Bearer chosen-secret", handler.LastAuthorization);
             Assert.Equal("chosen-model", handler.LastModel);
 
-            _ = store.Configure(new("personal", "inherit", null, null, false, "inhabitant-test"));
+            _ = store.Configure(new("personal", "inherit", null, null, false, "agent-test"));
             var inherited = store.CaptureStatus().Assignments!;
             Assert.Equal(2, inherited.Count);
             Assert.All(inherited, assignment => Assert.Equal(PlayerDecisionProviders.Inherit, assignment.Provider));
@@ -795,13 +795,13 @@ public sealed partial class ProviderConfigurationStoreTests
         Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(action),
             ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.ProviderConfiguration(clientAction));
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
-            OwnerHttpBinding.ProviderConfigurationPayload(action with { InhabitantId = "rowan" }));
+            OwnerHttpBinding.ProviderConfigurationPayload(action with { AgentId = "rowan" }));
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(action),
-            OwnerHttpBinding.ProviderConfigurationPayload(action with { InhabitantId = null }));
+            OwnerHttpBinding.ProviderConfigurationPayload(action with { AgentId = null }));
         var slotAction = action with { Provider = "openai", CredentialSlotId = Guid.NewGuid().ToString("N"), NewCredentialLabel = "Personal" };
         var clientSlotAction = new ClankerWorld.GodotClient.UI.OwnerProviderConfigurationAction(
             slotAction.Role, slotAction.Provider, slotAction.Model, slotAction.ApiKey,
-            slotAction.ForgetCredential, slotAction.InhabitantId, slotAction.CredentialSlotId, slotAction.NewCredentialLabel);
+            slotAction.ForgetCredential, slotAction.AgentId, slotAction.CredentialSlotId, slotAction.NewCredentialLabel);
         Assert.Equal(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
             ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.ProviderConfiguration(clientSlotAction));
         Assert.NotEqual(OwnerHttpBinding.ProviderConfigurationPayload(slotAction),
@@ -1011,13 +1011,13 @@ public sealed partial class ProviderConfigurationStoreTests
         return new CognitionDecisionRequest("request-provider-test", epoch, observation);
     }
 
-    private static InhabitantObservation RequestObservation(bool strategic)
+    private static AgentObservation RequestObservation(bool strategic)
     {
         CognitionCandidate[] candidates = strategic
             ? [new CognitionCandidate("build:building:shelter", "Build a shelter.", 20), new CognitionCandidate("safe_idle", "Wait safely.", 100)]
             : [new CognitionCandidate("safe_idle", "Wait safely.", 100)];
-        return new InhabitantObservation(
-            "inhabitant-test",
+        return new AgentObservation(
+            "agent-test",
             12,
             0,
             3,
@@ -1026,12 +1026,12 @@ public sealed partial class ProviderConfigurationStoreTests
             candidates);
     }
 
-    private static InhabitantObservation GuidanceObservation() => RequestObservation(strategic: false) with
+    private static AgentObservation GuidanceObservation() => RequestObservation(strategic: false) with
     {
         WorldId = "world-provider-test",
         ObserverGuidance =
         [
-            new CognitionObserverGuidance("private-instruction-0000000001", "owner:test", "inhabitant-test",
+            new CognitionObserverGuidance("private-instruction-0000000001", "owner:test", "agent-test",
                 "suggestive", "Try berries near the shore.", 12, 0, 1, null, true),
         ],
     };

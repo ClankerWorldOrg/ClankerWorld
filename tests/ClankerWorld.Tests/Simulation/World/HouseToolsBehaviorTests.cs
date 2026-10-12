@@ -12,7 +12,7 @@ public sealed partial class HouseToolsBehaviorTests
     {
         using var setup = await StartingSiteAsync();
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var source = state.Map.GetResource("settlement-stone");
         var originalStock = state.WorldSystems!.Ecology.GetResource(source.Id).Quantity;
         state = BesideSource(state, actor, source, HouseToolsContent.CrudeWoodenPickaxe);
@@ -59,7 +59,7 @@ public sealed partial class HouseToolsBehaviorTests
     {
         using var setup = await StartingSiteAsync();
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var source = state.Map.GetResource("settlement-stone");
         var originalStock = state.WorldSystems!.Ecology.GetResource(source.Id).Quantity;
         state = BesideSource(state, actor, source, HouseToolsContent.CrudeWoodenPickaxe);
@@ -90,7 +90,7 @@ public sealed partial class HouseToolsBehaviorTests
         using var setup = NormalPathWorld.CreateGenerated("smith-whole-load", _ => new IdleProvider());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var source = state.Map.Resources.Where(resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
                 state.Resources.Single(item => item.ResourceId == resource.Id).State == ResourceState.Available &&
                 state.WorldSystems!.Ecology.GetResource(resource.Id).Quantity == 1 &&
@@ -131,13 +131,13 @@ public sealed partial class HouseToolsBehaviorTests
     {
         using var setup = await StartingSiteAsync();
         var state = setup.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-alpha").Id;
-        var outsider = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-beta").Id;
-        var owner = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-alpha").Id;
+        var outsider = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var owner = state.Society.Society.GetAgent(actor).HouseholdId!;
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             !state.Map.MapObjects.Any(item => item.Position == point) &&
             !state.Map.Resources.Any(item => item.Position == point) &&
-            !state.Inhabitants.Any(person => person.Position == point));
+            !state.Agents.Any(person => person.Position == point));
         var placed = setup.PlaceBuilding("crude-tool-house", HouseContent.House1x1().CanonicalId, site, owner);
         Assert.True(placed.Applied, placed.Failure);
         state = setup.ExportState();
@@ -151,7 +151,7 @@ public sealed partial class HouseToolsBehaviorTests
                 "pending_trade", state.Society.Society.WorldTick + 120);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor && obstruction != "worker-away"
+            Agents = state.Agents.Select(person => person.AgentId == actor && obstruction != "worker-away"
                 ? person with { Position = site } : person).ToArray(),
         };
         using (var refused = Restore(state))
@@ -174,7 +174,7 @@ public sealed partial class HouseToolsBehaviorTests
         };
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = site } : person).ToArray(),
         };
         using var allowed = Restore(state);
@@ -197,13 +197,13 @@ public sealed partial class HouseToolsBehaviorTests
         using var setup = await StartingSiteAsync();
         var state = setup.ExportState();
         const string owner = "household:camp-alpha";
-        var members = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == owner).ToArray();
+        var members = state.Society.Society.Agents.Where(person => person.HouseholdId == owner).ToArray();
         Assert.Equal(2, members.Length);
         var actor = members[0].Id;
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             !state.Map.MapObjects.Any(item => item.Position == point) &&
             !state.Map.Resources.Any(item => item.Position == point) &&
-            !state.Inhabitants.Any(person => person.Position == point));
+            !state.Agents.Any(person => person.Position == point));
         var placed = setup.PlaceBuilding("family-tool-house", HouseContent.House1x1().CanonicalId, site, owner);
         Assert.True(placed.Applied, placed.Failure);
         state = setup.ExportState();
@@ -218,7 +218,7 @@ public sealed partial class HouseToolsBehaviorTests
         inventory = InventoryAuthority.AddLot(inventory, "personal-family-axe", "wooden_axe", actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = site, LastDecisionContext = null } : person).ToArray(),
         };
         var first = new IdleProvider();
@@ -274,7 +274,7 @@ public sealed partial class HouseToolsBehaviorTests
         var stand = FreeNeighbors(state, actor, source).First();
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
                 HungerBasisPoints = 10_000,
@@ -289,7 +289,7 @@ public sealed partial class HouseToolsBehaviorTests
 
     private static IEnumerable<GridPoint> FreeNeighbors(WorldRuntimeState state, string actor, MapResource source)
     {
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position)
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position)
             .Concat(state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building)))
             .ToHashSet();

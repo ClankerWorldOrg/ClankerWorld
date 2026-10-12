@@ -44,9 +44,9 @@ public sealed class GuardianPlacementQueueTests
             WildFedUntilTick: until, WildWaterUntilTick: until)).ToArray();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == first ? distant : person.InhabitantId == second ? nearby : home,
+                Position = person.AgentId == first ? distant : person.AgentId == second ? nearby : home,
                 HungerBasisPoints = 9_500,
                 Survival = new(),
                 Project = null,
@@ -68,8 +68,8 @@ public sealed class GuardianPlacementQueueTests
             OwnerInstructionKind.MustDo, "become guardian for " + second, Queue: mode != "second-only"));
         await GuardianPlacementTestFixture.Until(accepting, () => accepting.ExportState().Instructions!
             .Single(item => item.InstructionId == receipt.InstructionId).Order!.Status == "finished", maximumTicks: 12);
-        Assert.Equal(guardian, accepting.Society.GetInhabitant(second).PrimaryCaregiverId);
-        if (mode != "second-only") Assert.Equal(guardian, accepting.Society.GetInhabitant(first).PrimaryCaregiverId);
+        Assert.Equal(guardian, accepting.Society.GetAgent(second).PrimaryCaregiverId);
+        if (mode != "second-only") Assert.Equal(guardian, accepting.Society.GetAgent(first).PrimaryCaregiverId);
         Assert.All(accepting.ExportState().Instructions!, item => Assert.Equal("finished", item.Order!.Status));
         choices.Set(guardian, "guardian_relocate:");
         using var world = GuardianPlacementTestFixture.Reload(accepting, choices.Copy());
@@ -91,7 +91,7 @@ public sealed class GuardianPlacementQueueTests
                 await GuardianPlacementTestFixture.Step(resumed);
                 await GuardianPlacementTestFixture.Step(resumedReplay);
                 Assert.Equal(WorldRuntimeCodec.Encode(resumed.ExportState()), WorldRuntimeCodec.Encode(resumedReplay.ExportState()));
-                Assert.DoesNotContain(resumed.ExportState().Events.Skip(previousEvents), item => item.Kind == "inhabitant_moved" &&
+                Assert.DoesNotContain(resumed.ExportState().Events.Skip(previousEvents), item => item.Kind == "agent_moved" &&
                     item.Detail.StartsWith(guardian + ":", StringComparison.Ordinal) &&
                     item.Detail.EndsWith(":collect_guardian_child", StringComparison.Ordinal));
                 resumed.Validate();
@@ -116,21 +116,21 @@ public sealed class GuardianPlacementQueueTests
                 Assert.Equal(blockers.Single(blocker => blocker.Id == animal.Id).Position, animal.Position));
         }
         Assert.True(GuardianPlacementTestFixture.Placed(world, scenario, second), "The reachable accepted child should move home.");
-        Assert.Equal(guardian, world.Society.GetInhabitant(second).PrimaryCaregiverId);
+        Assert.Equal(guardian, world.Society.GetAgent(second).PrimaryCaregiverId);
         if (mode == "opened") Assert.True(GuardianPlacementTestFixture.Placed(world, scenario, first));
         if (mode == "blocked")
         {
             Assert.False(GuardianPlacementTestFixture.Placed(world, scenario, first));
             var pending = Assert.IsType<SettlementGuardianPlacement>(GuardianPlacementTestFixture.Person(world, first).GuardianPlacement);
             Assert.Contains("clear walking route", pending.Blocker!, StringComparison.Ordinal);
-            Assert.Equal(guardian, world.Society.GetInhabitant(first).PrimaryCaregiverId);
+            Assert.Equal(guardian, world.Society.GetAgent(first).PrimaryCaregiverId);
             var released = ReleaseFirstApproach(world);
             using var resumed = GuardianPlacementTestFixture.Restore(released, choices.Copy());
             using var resumedReplay = GuardianPlacementTestFixture.Reload(resumed, choices.Copy());
             await GuardianPlacementTestFixture.Until(resumed, () => GuardianPlacementTestFixture.Placed(resumed, scenario, first),
                 maximumTicks: 100, replay: resumedReplay);
             Assert.True(GuardianPlacementTestFixture.Placed(resumed, scenario, second));
-            Assert.Equal(guardian, resumed.Society.GetInhabitant(first).PrimaryCaregiverId);
+            Assert.Equal(guardian, resumed.Society.GetAgent(first).PrimaryCaregiverId);
             resumed.Validate();
         }
         WorldRuntimeState ReleaseFirstApproach(WorldRuntime runtime)

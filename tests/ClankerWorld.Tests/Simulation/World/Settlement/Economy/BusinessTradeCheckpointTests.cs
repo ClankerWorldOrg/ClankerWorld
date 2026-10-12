@@ -73,8 +73,8 @@ public sealed class BusinessTradeCheckpointTests
         var shop = state.WorldSimulation!.Buildings.Single(building => state.WorldContent!.Buildings
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("blacksmith"));
         var seller = state.Society.Society.GetHousehold(shop.HouseholdId!).MemberIds[0];
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId != shop.HouseholdId).Id;
-        var taken = state.Inhabitants.Where(person => person.InhabitantId != buyer && person.InhabitantId != seller)
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId != shop.HouseholdId).Id;
+        var taken = state.Agents.Where(person => person.AgentId != buyer && person.AgentId != seller)
             .Select(person => person.Position).ToHashSet();
         var buyerPosition = state.Map.Tiles.Select(tile => tile.Position).First(position =>
             Math.Abs(position.X - shop.Position.X) + Math.Abs(position.Y - shop.Position.Y) == 1 &&
@@ -88,13 +88,13 @@ public sealed class BusinessTradeCheckpointTests
         stock = InventoryAuthority.AddLot(stock, "checkpoint-buyer-payment", "wood", buyer, 6);
         state = WithInventory(state, stock) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == buyer ? buyerPosition : person.InhabitantId == seller ? shop.Position : person.Position,
+                Position = person.AgentId == buyer ? buyerPosition : person.AgentId == seller ? shop.Position : person.Position,
                 HungerBasisPoints = 7_500,
                 LastDecisionContext = null,
                 Project = null,
-                Equipment = person.InhabitantId == buyer ? null : person.Equipment,
+                Equipment = person.AgentId == buyer ? null : person.Equipment,
             }).ToArray(),
         };
         using var offering = WorldRuntime.Restore(state, actor => actor == buyer

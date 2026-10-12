@@ -10,8 +10,8 @@ internal sealed partial class FarmingSystem
     internal FarmWorkResult StartFieldWorkCore(IFarmingWorld world, string workerId, GridPoint position, FarmWorkKind kind,
         string? crop = null, string? seedLotId = null, string? orderInstructionId = null)
     {
-        if (!Enum.IsDefined(kind) || !world.Inhabitants.TryGetValue(workerId, out var worker) || !world.AdultResident(workerId) ||
-            world.Society.GetInhabitant(workerId).HouseholdId is not { } householdId ||
+        if (!Enum.IsDefined(kind) || !world.Agents.TryGetValue(workerId, out var worker) || !world.AdultResident(workerId) ||
+            world.Society.GetAgent(workerId).HouseholdId is not { } householdId ||
             world.FarmhouseForHousehold(householdId) is null)
             return new(false, "An adult from a household with a Farmhouse must do the work.");
         if (worker.Position != position) return new(false, "The worker must stand on the field tile.");
@@ -104,7 +104,7 @@ internal sealed partial class FarmingSystem
     {
         foreach (var field in fields.ToArray())
         {
-            if (field.Work is { } work && (!world.Inhabitants.TryGetValue(work.WorkerId, out var worker) ||
+            if (field.Work is { } work && (!world.Agents.TryGetValue(work.WorkerId, out var worker) ||
                 !world.AdultResident(work.WorkerId) || world.HouseholdFor(work.WorkerId) != field.HouseholdId || world.FarmhouseForHousehold(field.HouseholdId) is null ||
                 worker.Position != field.Position || !FieldWorkToolsAvailable(world, work.WorkerId, work) ||
                 world.NeedsUrgentFood(worker) || world.NeedsUrgentWarmth(worker) ||
@@ -155,12 +155,12 @@ internal sealed partial class FarmingSystem
 
     internal void CancelFieldWorkForUnavailableWorkers(IFarmingWorld world)
     {
-        var active = world.Society.Inhabitants
-            .Where(person => person.Status == SocietyInhabitantStatus.Active)
+        var active = world.Society.Agents
+            .Where(person => person.Status == SocietyAgentStatus.Active)
             .Select(person => person.Id)
             .ToHashSet(StringComparer.Ordinal);
         foreach (var field in fields.Where(field => field.Work is { } work &&
-                     (!world.Inhabitants.ContainsKey(work.WorkerId) || !active.Contains(work.WorkerId))).ToArray())
+                     (!world.Agents.ContainsKey(work.WorkerId) || !active.Contains(work.WorkerId))).ToArray())
             CancelFarmWork(world, field);
     }
 
@@ -172,7 +172,7 @@ internal sealed partial class FarmingSystem
         if (FarmWorkFor(world, workerId) is not { Work: { } work } field) return false;
         world.RecordAttemptedAction(workerId, FarmCandidate(work.Kind, field.Position, work.Crop));
         if (work.LastWorkedTick == world.WorldTick) return true;
-        if (!world.Inhabitants.TryGetValue(workerId, out var worker) || !world.AdultResident(workerId) || world.HouseholdFor(workerId) != field.HouseholdId ||
+        if (!world.Agents.TryGetValue(workerId, out var worker) || !world.AdultResident(workerId) || world.HouseholdFor(workerId) != field.HouseholdId ||
             world.FarmhouseForHousehold(field.HouseholdId) is null || worker.Position != field.Position ||
             world.NeedsUrgentFood(worker) || world.NeedsUrgentWarmth(worker) || !FieldWorkToolsAvailable(world, workerId, work))
         {

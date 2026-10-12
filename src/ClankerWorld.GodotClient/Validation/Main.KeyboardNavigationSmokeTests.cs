@@ -121,7 +121,7 @@ public partial class Main
     {
         var original = renderedMapSnapshot ?? throw new InvalidOperationException("Keyboard screen walk needs a rendered world.");
         var previousReconnect = observationSession.Current;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousProfile = agentProfileRequested;
         var previousCursor = keyboardMapTile;
         var previousKeyboard = keyboardNavigation;
@@ -139,9 +139,9 @@ public partial class Main
             new OwnerWorldPlacedBuilding("keyboard-hanging", "test/hanging_lantern", new(3, 2), 0,
                 "Hanging street lantern", ["street_lantern", "hanging_lantern"], 1, 1, Entrance: new(3, 3)),
         };
-        var snapshot = original with { Inhabitants = people, PlacedBuildings = lanterns, LatestEventId = 0 };
+        var snapshot = original with { Agents = people, PlacedBuildings = lanterns, LatestEventId = 0 };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {
@@ -152,7 +152,7 @@ public partial class Main
             observationSession.ResetAfterLoad();
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(0, 0, []))), 0, out var failure))
                 throw new InvalidOperationException("Keyboard observation refused: " + failure);
-            selectedInhabitantId = null;
+            selectedAgentId = null;
             agentProfileRequested = false;
             Render(snapshot, []);
             if (lanterns.Any(lantern => !MapContains(snapshot, lantern.Position.X, lantern.Position.Y)))
@@ -163,10 +163,10 @@ public partial class Main
                 throw new InvalidOperationException("R must enter the Agents list with visible keyboard focus.");
             await KeyboardKeyAsync(Key.Down);
             await KeyboardKeyAsync(Key.Down);
-            if (!rosterPanel.Visible || !rosterCards.HasFocus() || selectedInhabitantId != people[1].Id)
+            if (!rosterPanel.Visible || !rosterCards.HasFocus() || selectedAgentId != people[1].Id)
                 throw new InvalidOperationException("Arrow browsing must keep the Agents list focused.");
             await KeyboardKeyAsync(Key.Enter);
-            if (!agentProfilePanel.Visible || selectedInhabitantId != people[1].Id)
+            if (!agentProfilePanel.Visible || selectedAgentId != people[1].Id)
                 throw new InvalidOperationException("Enter must open the selected Profile.");
             await KeyboardActivateAsync(agentProfilePanel, renameToggleButton);
             if (!renameRow.Visible || !renameAgentInput.HasFocus())
@@ -298,7 +298,7 @@ public partial class Main
             cameraZoom = 4;
             keyboardMapTile = new Vector2I(terrainMap.Width - 1, terrainMap.Height - 1);
             UpdateMapGeometry(snapshot);
-            selectedInhabitantId = people[0].Id;
+            selectedAgentId = people[0].Id;
             await KeyboardKeyAsync(Key.C);
             if (keyboardMapTile != new Vector2I(people[0].Position.X, people[0].Position.Y))
                 throw new InvalidOperationException("C must move the focused cursor to the selected agent instead of undoing the camera jump.");
@@ -336,7 +336,7 @@ public partial class Main
                 throw new InvalidOperationException("The camera must show the focused tile after resizing.");
             // Select an empty ground tile through the ordinary map action.
             var ground = snapshot.Tiles.First(tile =>
-                !snapshot.Inhabitants.Any(person => person.Position.X == tile.X && person.Position.Y == tile.Y) &&
+                !snapshot.Agents.Any(person => person.Position.X == tile.X && person.Position.Y == tile.Y) &&
                 BuildingAt(snapshot, new(tile.X, tile.Y)) is null);
             keyboardMapTile = new Vector2I(ground.X, ground.Y);
             RefreshKeyboardMapSelection();
@@ -371,7 +371,7 @@ public partial class Main
         finally
         {
             foreach (var (panel, _) in keyboardPanels.ToArray()) panel.Hide();
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             agentProfileRequested = previousProfile;
             keyboardMapTile = previousCursor;
             keyboardNavigation = previousKeyboard;

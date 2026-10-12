@@ -11,9 +11,9 @@ public sealed class SettlementFamilyTests
     public async Task LegacyRevokedParentageStillCountsAsFamilyHistory()
     {
         var state = await PreparedState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
-        var parent = state.Inhabitants[2].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        var parent = state.Agents[2].AgentId;
         var tick = state.Society.Society.WorldTick;
         var edges = new[] { first, second }.Select(child => new SocietyRelationship("legacy-parent:" + child, 1,
             SocietyRelationshipType.BiologicalParentage, parent, child, SocietyRelationshipState.Revoked,
@@ -38,9 +38,9 @@ public sealed class SettlementFamilyTests
     public async Task AncestryAndSiblingExclusionsSurviveInterveningRelativeDeath(bool ancestor, bool relativeDies)
     {
         var state = await PreparedState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
-        var middle = state.Inhabitants[2].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        var middle = state.Agents[2].AgentId;
         var tick = state.Society.Society.WorldTick;
         SocietyRelationship[] edges =
         [
@@ -63,7 +63,7 @@ public sealed class SettlementFamilyTests
         {
             using var society = SocietyRuntime.Restore(state.Society);
             society.Apply(checkpoint => SocietyRules.Kill(checkpoint, middle, SocietyDeathCause.Accident, tick));
-            state = state with { Society = society.ExportState(), Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != middle).ToArray() };
+            state = state with { Society = society.ExportState(), Agents = state.Agents.Where(person => person.AgentId != middle).ToArray() };
         }
         using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == first ? "partner_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
@@ -76,11 +76,11 @@ public sealed class SettlementFamilyTests
     public async Task AuntsAndUnclesCannotPairWithNiecesOrNephews(bool auntProposes, bool fullSiblings)
     {
         var state = await PreparedState();
-        var proposer = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var proposer = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var (aunt, niece) = auntProposes ? (proposer, other) : (other, proposer);
-        var nieceParent = state.Inhabitants[2].InhabitantId;
-        var grandparent = state.Inhabitants[3].InhabitantId;
+        var nieceParent = state.Agents[2].AgentId;
+        var grandparent = state.Agents[3].AgentId;
         state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
             (grandparent, aunt), (grandparent, nieceParent), (nieceParent, niece));
         if (fullSiblings)
@@ -101,10 +101,10 @@ public sealed class SettlementFamilyTests
     public async Task NieceOrNephewCannotAcceptAnAuntOrUnclesProposal()
     {
         var state = await PreparedState();
-        var aunt = state.Inhabitants[0].InhabitantId;
-        var niece = state.Inhabitants[1].InhabitantId;
-        var nieceParent = state.Inhabitants[2].InhabitantId;
-        var grandparent = state.Inhabitants[3].InhabitantId;
+        var aunt = state.Agents[0].AgentId;
+        var niece = state.Agents[1].AgentId;
+        var nieceParent = state.Agents[2].AgentId;
+        var grandparent = state.Agents[3].AgentId;
         state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
             (grandparent, aunt), (grandparent, nieceParent), (nieceParent, niece));
         using (var society = SocietyRuntime.Restore(state.Society))
@@ -125,10 +125,10 @@ public sealed class SettlementFamilyTests
     public async Task FirstCousinsCanStillPair()
     {
         var state = await PreparedState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
-        var firstParent = state.Inhabitants[2].InhabitantId;
-        var secondParent = state.Inhabitants[3].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        var firstParent = state.Agents[2].AgentId;
+        var secondParent = state.Agents[3].AgentId;
         (state, var grandparent) = FamilyTreeFixture.WithDeadAncestor(state, "grandparent");
         state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
             (grandparent, firstParent), (grandparent, secondParent), (firstParent, first), (secondParent, second));
@@ -143,10 +143,10 @@ public sealed class SettlementFamilyTests
     public async Task SharedHouseholdsAndCaregiversDoNotCountAsKinship()
     {
         var state = await PreparedState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
-        var caregiver = state.Inhabitants[2].InhabitantId;
-        Assert.Equal(state.Society.Society.GetInhabitant(first).HouseholdId, state.Society.Society.GetInhabitant(second).HouseholdId);
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        var caregiver = state.Agents[2].AgentId;
+        Assert.Equal(state.Society.Society.GetAgent(first).HouseholdId, state.Society.Society.GetAgent(second).HouseholdId);
         state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.Caregiver,
             (caregiver, first), (caregiver, second), (first, second));
         using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == first ? "partner_propose:" : "partner_accept:"));
@@ -162,7 +162,7 @@ public sealed class SettlementFamilyTests
     public async Task PartnershipRequiresAnIndependentResponseAcrossRestart(string response, SocietyRelationshipState expected)
     {
         var state = await PreparedState();
-        var proposer = state.Inhabitants[0].InhabitantId;
+        var proposer = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
         await world.AdvanceOneTickAsync();
         var proposal = Assert.Single(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
@@ -176,10 +176,10 @@ public sealed class SettlementFamilyTests
         await restored.AdvanceOneTickAsync();
         Assert.Equal(expected, restored.Society.GetRelationship(proposal.Id).State);
         Assert.Empty(restored.Society.Births);
-        Assert.Equal(4, restored.Inhabitants.Count);
+        Assert.Equal(4, restored.Agents.Count);
         if (expected == SocietyRelationshipState.Accepted)
         {
-            Assert.Contains(new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants.Single(item => item.Id == proposer).Relationships,
+            Assert.Contains(new OwnerWorldObservationStore(restored).GetSnapshot().Agents.Single(item => item.Id == proposer).Relationships,
                 item => item.Type == "partnership" && item.State == "accepted");
         }
         for (var tick = 0; tick < 5; tick++)
@@ -193,7 +193,7 @@ public sealed class SettlementFamilyTests
     public async Task EitherPartnerCanLeaveWithoutTheOthersPermission()
     {
         var state = await PreparedState();
-        var proposer = state.Inhabitants[0].InhabitantId;
+        var proposer = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "partner_accept:"));
         await world.AdvanceOneTickAsync();
         await world.AdvanceOneTickAsync();
@@ -211,7 +211,7 @@ public sealed class SettlementFamilyTests
     public async Task UnansweredProposalsExpireInsteadOfBecomingConsent()
     {
         var state = await PreparedState();
-        var proposer = state.Inhabitants[0].InhabitantId;
+        var proposer = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, actor => new FamilyProvider(actor == proposer ? "partner_propose:" : "safe_idle"));
         for (var tick = 0; tick < 125; tick++)
         {
@@ -239,14 +239,14 @@ public sealed class SettlementFamilyTests
     public async Task MinorsCannotReceivePartnershipProposals()
     {
         var state = await PreparedState();
-        var target = state.Inhabitants[1].InhabitantId;
+        var target = state.Agents[1].AgentId;
         state = state with
         {
             Society = state.Society with
             {
                 Society = state.Society.Society with
                 {
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == target
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == target
                         ? person with { BirthTick = state.Society.Society.WorldTick, AgeBand = SocietyAgeBand.Infant, LastLifecycleYearChecked = 0 }
                         : person).ToArray(),
                 },
@@ -264,14 +264,14 @@ public sealed class SettlementFamilyTests
         try
         {
             var state = await PreparedState();
-            var proposer = state.Inhabitants[0].InhabitantId;
+            var proposer = state.Agents[0].AgentId;
             state = state with
             {
                 Society = state.Society with
                 {
                     Society = state.Society.Society with
                     {
-                        Inhabitants = state.Society.Society.Inhabitants.Select(person => person with { Name = $"family-private-text-secret-{person.Id}" }).ToArray(),
+                        Agents = state.Society.Society.Agents.Select(person => person with { Name = $"family-private-text-secret-{person.Id}" }).ToArray(),
                     },
                 },
             };
@@ -300,12 +300,12 @@ public sealed class SettlementFamilyTests
             await world.AdvanceOneTickAsync();
         }
         var state = world.ExportState();
-        var proposer = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var proposer = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         using var society = SocietyRuntime.Restore(state.Society);
         society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint,
             new("settlement-trust:" + proposer + ":" + other, proposer, other, "Exchanged needed materials.", "public", checkpoint.WorldTick)));
-        return state with { Society = society.ExportState(), Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        return state with { Society = society.ExportState(), Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
     }
 
     private sealed class FamilyProvider(string prefix) : IDecisionProvider

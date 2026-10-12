@@ -15,8 +15,8 @@ public sealed partial class WorldRuntime
 
     private void LearnProducedRecipe(WorldProductionJob job, RecipeDefinition recipe, long tick)
     {
-        if (!inhabitants.ContainsKey(job.WorkerId) ||
-            society.Checkpoint.GetInhabitant(job.WorkerId).Status != SocietyInhabitantStatus.Active ||
+        if (!agents.ContainsKey(job.WorkerId) ||
+            society.Checkpoint.GetAgent(job.WorkerId).Status != SocietyAgentStatus.Active ||
             KnowsRecipe(job.WorkerId, recipe.CanonicalId) ||
             knowledge.Recipes.Count(item => item.OwnerId == job.WorkerId) >= AgentKnowledgeRules.MaximumRecipesPerAgent) return;
         knowledge = knowledge with

@@ -36,12 +36,12 @@ public partial class Main
     /// closed ones the world still keeps, newest first.
     /// </summary>
     private static (OwnerWorldInstruction? Now, OwnerWorldInstruction[] Queued, OwnerWorldInstruction[] Earlier) OrdersFor(
-        OwnerWorldSnapshot snapshot, string inhabitantId)
+        OwnerWorldSnapshot snapshot, string agentId)
     {
         var orders = snapshot.Instructions
-            .Where(item => item.TargetInhabitantId == inhabitantId && item.Kind == "must_do")
+            .Where(item => item.TargetAgentId == agentId && item.Kind == "must_do")
             .ToArray();
-        var now = PendingOrderToCancel(snapshot, inhabitantId);
+        var now = PendingOrderToCancel(snapshot, agentId);
         var queued = orders.Where(item => IsOpenOrder(item) && item.InstructionId != now?.InstructionId)
             .OrderBy(item => item.SubmissionSequence).ToArray();
         var earlier = orders.Where(item => !IsOpenOrder(item) && item.InstructionId != now?.InstructionId)
@@ -54,19 +54,19 @@ public partial class Main
     /// held up and how many wait behind it; otherwise how their latest order
     /// ended. Completion shows only once the host reports the task finished.
     /// </summary>
-    private static string? OrderCardLine(OwnerWorldSnapshot snapshot, string inhabitantId)
+    private static string? OrderCardLine(OwnerWorldSnapshot snapshot, string agentId)
     {
-        var (now, queued, earlier) = OrdersFor(snapshot, inhabitantId);
+        var (now, queued, earlier) = OrdersFor(snapshot, agentId);
         if (now is not null)
             return $"Order: {InstructionOrderSummary(now, includeHeard: false)}" +
                 (queued.Length == 0 ? string.Empty : $"\n{queued.Length} more {(queued.Length == 1 ? "order" : "orders")} queued");
         return earlier.Length == 0 ? null : $"Last order: {InstructionOrderSummary(earlier[0], includeHeard: false)}";
     }
 
-    private void RenderOrderSummary(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant, bool isDeceased)
+    private void RenderOrderSummary(OwnerWorldSnapshot snapshot, OwnerWorldAgent agent, bool isDeceased)
     {
-        var line = isDeceased ? null : OrderCardLine(snapshot, inhabitant.Id);
-        var heldUp = PendingOrderToCancel(snapshot, inhabitant.Id)?.Order?.Status is "blocked" or "interrupted";
+        var line = isDeceased ? null : OrderCardLine(snapshot, agent.Id);
+        var heldUp = PendingOrderToCancel(snapshot, agent.Id)?.Order?.Status is "blocked" or "interrupted";
         var style = heldUp ? "WarningLabel" : line?.StartsWith("Last order:", StringComparison.Ordinal) == true ? "DimLabel" : "SoftLabel";
         foreach (var label in new[] { quickCardOrderLabel, profileOrderLabel })
         {
@@ -75,7 +75,7 @@ public partial class Main
             label.Visible = line is not null;
         }
         allOrdersButton.Visible = !isDeceased && snapshot.Instructions.Any(item =>
-            item.TargetInhabitantId == inhabitant.Id && item.Kind == "must_do");
+            item.TargetAgentId == agent.Id && item.Kind == "must_do");
     }
 
     private void BuildOrdersReader()
@@ -100,7 +100,7 @@ public partial class Main
 
     private void OpenOrdersReader()
     {
-        if (SelectedInhabitant() is not { } inhabitant || agentCardSnapshot is not { } snapshot) return;
+        if (SelectedAgent() is not { } agent || agentCardSnapshot is not { } snapshot) return;
         memoriesPanel.Hide();
         familyTreePanel.Hide();
         thoughtsPanel.Hide();
@@ -111,7 +111,7 @@ public partial class Main
         worldInfoPanel.Hide();
         ordersPanel.Show();
         renderedOrdersReader = null;
-        RenderOrdersReader(snapshot, inhabitant);
+        RenderOrdersReader(snapshot, agent);
         ApplyResponsiveLayout();
     }
 
@@ -120,11 +120,11 @@ public partial class Main
     /// Earlier headings. Each shows its state, the player's words and any
     /// reply, which is set apart as the agent's own speech.
     /// </summary>
-    private void RenderOrdersReader(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant)
+    private void RenderOrdersReader(OwnerWorldSnapshot snapshot, OwnerWorldAgent agent)
     {
         // Only an open reader follows the world; opening it draws it afresh.
         if (!ordersPanel.Visible) return;
-        var (now, queued, earlier) = OrdersFor(snapshot, inhabitant.Id);
+        var (now, queued, earlier) = OrdersFor(snapshot, agent.Id);
         var groups = new (string Heading, OwnerWorldInstruction[] Orders)[]
         {
             ("Now", now is null ? [] : [now]),
@@ -133,10 +133,10 @@ public partial class Main
         };
         var signature = string.Join("\n", groups.SelectMany(group => group.Orders.Select(item =>
                 $"{group.Heading}|{item.InstructionId}|{InstructionOrderSummary(item)}|{item.Text}|{item.ObserverReply}"))
-            .Prepend($"{inhabitant.Id}|{inhabitant.DisplayName}|{UiTheme.Current.Name}"));
+            .Prepend($"{agent.Id}|{agent.DisplayName}|{UiTheme.Current.Name}"));
         if (renderedOrdersReader == signature) return;
         renderedOrdersReader = signature;
-        ordersReaderTitle.Text = ordersReaderTitle.TooltipText = $"{inhabitant.DisplayName} · orders";
+        ordersReaderTitle.Text = ordersReaderTitle.TooltipText = $"{agent.DisplayName} · orders";
         ordersReaderText.Clear();
         if (groups.All(group => group.Orders.Length == 0))
         {
@@ -169,7 +169,7 @@ public partial class Main
                 {
                     ordersReaderText.Newline();
                     ordersReaderText.PushColor(UiTheme.Current.Link);
-                    ordersReaderText.AddText(GameUiText.PlainEllipses($"{inhabitant.DisplayName} replied: “{reply}”"));
+                    ordersReaderText.AddText(GameUiText.PlainEllipses($"{agent.DisplayName} replied: “{reply}”"));
                     ordersReaderText.Pop();
                 }
             }

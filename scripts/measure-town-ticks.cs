@@ -54,7 +54,7 @@ foreach (var size in cases)
             state = world.ExportState();
             var house = state.WorldContent!.Buildings.Single(definition => definition.LocalId == "house-1x1");
             var site = Sites(state, house).First(point => state.Towns![0].BorderTiles.Contains(point) &&
-                !state.Inhabitants.Any(person => person.Position == point));
+                !state.Agents.Any(person => person.Position == point));
             var actor = $"agent:{ordinal:D32}";
             world.AddAgent(actor, site);
             state = world.ExportState();
@@ -250,7 +250,7 @@ sealed class MarketBuilder : IDecisionProvider
             candidates.FirstOrDefault(candidate => candidate.Id.Contains("|yes|", StringComparison.Ordinal)) ??
             candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
         string? proposal = null;
-        if (chosen is null && !proposed && MarketLocalId is not null && observation.InhabitantId.EndsWith("01", StringComparison.Ordinal))
+        if (chosen is null && !proposed && MarketLocalId is not null && observation.AgentId.EndsWith("01", StringComparison.Ordinal))
         {
             chosen = candidates.FirstOrDefault(candidate => candidate.Id.Contains("|project|" + MarketLocalId + "|", StringComparison.Ordinal));
             if (chosen is not null) { proposed = true; proposal = "First Market"; }
@@ -259,7 +259,7 @@ sealed class MarketBuilder : IDecisionProvider
             chosen ??= candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal));
         chosen ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal));
         chosen ??= candidates.Single(candidate => candidate.Id == "safe_idle");
-        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
             Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
             chosen.Id, 1, candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == chosen.Id ? 1d : 0d),
             CivicProposal: proposal));

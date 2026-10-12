@@ -335,7 +335,7 @@ public sealed class HouseRelocationRulesTests
         var residents = new[]
         {
             Resident("first"), Resident("second"), Resident("third"),
-            Resident("dead") with { Status = SocietyInhabitantStatus.Dead },
+            Resident("dead") with { Status = SocietyAgentStatus.Dead },
         };
         HouseRelocationRules.Adult[] adults =
         [new("first", 1, true), new("second", 2, true),
@@ -354,7 +354,7 @@ public sealed class HouseRelocationRulesTests
         var residents = new[]
         {
             Resident("first"), Resident("second"), Resident("third"), Resident("fourth"),
-            Resident("dead") with { Status = SocietyInhabitantStatus.Dead },
+            Resident("dead") with { Status = SocietyAgentStatus.Dead },
         };
         HouseRelocationRules.Adult[] adults =
         [new("first", 1, true), new("second", 2, true), new("third", 3, true), new("fourth", 4, true),
@@ -367,7 +367,7 @@ public sealed class HouseRelocationRulesTests
         Assert.Equal(3, selection.Remaining.ResidentCount);
     }
 
-    private static SocietyInhabitant Resident(string id, string? familyId = null) =>
+    private static SocietyAgent Resident(string id, string? familyId = null) =>
         SocietyRules.CreateFounder(id, id) with
         {
             HouseholdId = "home",

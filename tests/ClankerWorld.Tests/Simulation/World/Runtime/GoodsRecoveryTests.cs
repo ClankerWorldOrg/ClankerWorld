@@ -40,8 +40,8 @@ public sealed partial class WorldCollectionOrderTests
         Assert.Contains(("recover-free", GoodsReason.CarryRoom), full.FindGoods(request).Excluded);
         Assert.Equal(1, Assert.Single(full.FindGoods(request with { Use = GoodsUse.RecoveryHoldings }).Matches).Quantity);
         inventory = InventoryAuthority.Relocate(inventory, "set-down-recovery-ballast", "recover-ballast", actor,
-            inventory.GetLot("recover-ballast").Quantity, groundPosition: new(state.Inhabitants.Single(person => person.InhabitantId == actor).Position.X,
-                state.Inhabitants.Single(person => person.InhabitantId == actor).Position.Y));
+            inventory.GetLot("recover-ballast").Quantity, groundPosition: new(state.Agents.Single(person => person.AgentId == actor).Position.X,
+                state.Agents.Single(person => person.AgentId == actor).Position.Y));
         inventory = InventoryAuthority.Relocate(inventory, "take-recovered-unit", "recover-free", actor, 1, carrierId: actor);
         using var changed = Restore(WithInventory(state, inventory));
         Assert.Null(changed.RecheckGoods(request, "recover-free"));

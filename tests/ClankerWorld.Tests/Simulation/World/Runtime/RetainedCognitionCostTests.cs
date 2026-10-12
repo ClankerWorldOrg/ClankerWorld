@@ -27,7 +27,7 @@ public sealed class RetainedCognitionCostTests
         var original = provider.Requests.First().Observation.Candidates.Select(candidate => candidate.Id).ToHashSet(StringComparer.Ordinal);
         var current = (List<CognitionCandidate>)typeof(WorldRuntime)
             .GetMethod("CreateCandidates", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(world, [TargetId, world.Inhabitants.Single(person => person.InhabitantId == TargetId), true])!;
+            .Invoke(world, [TargetId, world.Agents.Single(person => person.AgentId == TargetId), true])!;
         Assert.Contains(current, candidate => candidate.Id == "explore");
         Assert.True(original.Except(current.Select(candidate => candidate.Id)).Any(),
             "The held observation must actually lose an offered choice.");
@@ -39,7 +39,7 @@ public sealed class RetainedCognitionCostTests
             await Task.Delay(20);
             var step = await world.AdvanceOneTickNonBlockingAsync();
             Assert.True(step.Advanced);
-            admitted = step.Decisions.Any(decision => decision.InhabitantId == TargetId);
+            admitted = step.Decisions.Any(decision => decision.AgentId == TargetId);
         }
         Assert.True(admitted);
         for (var tick = 0; tick < 6; tick++)
@@ -82,7 +82,7 @@ public sealed class RetainedCognitionCostTests
             var selected = call == 1 ? observation.Candidates.Single(c => c.Id == "explore").Id :
                 observation.Candidates.OrderBy(c => c.DeterministicPriority).ThenBy(c => c.Id, StringComparer.Ordinal)
                 .First(c => c.Id != "safe_idle" && !c.Id.StartsWith("conversation", StringComparison.Ordinal)).Id;
-            return new(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected, 1,
                 observation.Candidates.ToDictionary(c => c.Id, c => c.Id == selected ? 1d : 0d, StringComparer.Ordinal),
                 ChosenName: observation.NeedsName ? "Reviewa" : null,

@@ -32,7 +32,7 @@ public sealed class HouseResidentCapacityRulesTests
         {
             Resident("home", "family-a"),
             Resident("infant-traveler", "family-a") with { AgeBand = SocietyAgeBand.Infant },
-            Resident("deceased", "family-b") with { Status = SocietyInhabitantStatus.Dead },
+            Resident("deceased", "family-b") with { Status = SocietyAgentStatus.Dead },
         };
 
         var capacity = HouseResidentCapacityRules.Calculate(residents, 1, 1);
@@ -41,7 +41,7 @@ public sealed class HouseResidentCapacityRulesTests
         Assert.True(capacity.HasDominantFamily);
     }
 
-    private static SocietyInhabitant Resident(string id, string familyId) =>
+    private static SocietyAgent Resident(string id, string familyId) =>
         SocietyRules.CreateFounder(id, id) with
         {
             HouseholdId = "home",

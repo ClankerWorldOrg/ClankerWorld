@@ -113,7 +113,7 @@ public sealed partial class ServerHttpTests
             var firstId = catalog.Capture().ActiveId;
             var slotId = Guid.NewGuid().ToString("N");
             catalog.ArchiveActive(runtime.ExportState(),
-                [new InhabitantProviderAssignment("founder:checkpoint", "planning", "openai", "test-model", slotId)],
+                [new AgentProviderAssignment("founder:checkpoint", "planning", "openai", "test-model", slotId)],
                 autosave.Capture());
             using var other = new WorldRuntime("provider-cache-world");
             other.Pause();

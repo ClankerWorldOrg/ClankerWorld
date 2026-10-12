@@ -15,7 +15,7 @@ public sealed class WorldCartRepairOrderTests
         var state = SettlementWeatherTestFixture.WithWeather(setup.ExportState(), WeatherKind.Clear);
         return WorldRuntimeCodec.Encode(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { HungerBasisPoints = 9_500, Survival = new(), LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }).ToArray(),
         });
     });
@@ -26,7 +26,7 @@ public sealed class WorldCartRepairOrderTests
     public async Task NamedRepairConsumesRealInputsAndKeepsTheSelectedCartsDamagedCargoAcrossReplay(int condition)
     {
         var state = await CartState(condition);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("repair", actor, "Repair my handcart z-cart"));
         var submitted = Assert.Single(world.ExportState().Instructions!).Order!;
@@ -75,12 +75,12 @@ public sealed class WorldCartRepairOrderTests
     public async Task PhysicalBlockersDoNotRepairAnotherCartOrSpendProtectedInputs(string blocker, string reason)
     {
         var state = await CartState(blocker switch { "healthy" => 10_000, "reserved" => 4_000, _ => 0 }, carriedInputs: blocker != "capacity");
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory;
         if (blocker == "foreign") inventory = inventory with
         {
             Lots = inventory.Lots.Select(lot => lot.Id is "z-cart" or "cargo"
-                ? lot with { OwnerId = state.Inhabitants[1].InhabitantId } : lot).ToArray(),
+                ? lot with { OwnerId = state.Agents[1].AgentId } : lot).ToArray(),
         };
         if (blocker == "reserved") inventory = InventoryAuthority.Reserve(inventory, "protected-cargo", actor, "cargo", 1,
             "other_work", inventory.WorldTick + 100);
@@ -93,7 +93,7 @@ public sealed class WorldCartRepairOrderTests
             }
         if (blocker == "capacity")
         {
-            var equipment = state.Inhabitants[0].Equipment;
+            var equipment = state.Agents[0].Equipment;
             var space = PersonalEquipmentRules.Capacity(inventory, actor, equipment) - PersonalEquipmentRules.CarriedQuantity(inventory, actor, equipment);
             inventory = InventoryAuthority.AddLot(inventory, "full-carried-load", "stone", actor, space);
         }
@@ -103,7 +103,7 @@ public sealed class WorldCartRepairOrderTests
             var site = inventory.GetLot("z-cart").GroundPosition!.Value;
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select((person, index) => index == 1
+                Agents = state.Agents.Select((person, index) => index == 1
                 ? person with { Position = new(site.X, site.Y) } : person).ToArray()
             };
         }
@@ -129,7 +129,7 @@ public sealed class WorldCartRepairOrderTests
     public async Task SharedSuppliesAreCollectedPhysicallyAndTheBoundRepairResumesAcrossReload()
     {
         var state = await SharedSupplyState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("shared-repair", actor, "Repair cart z-cart"));
         await ReachFirstCollection(world, actor);
@@ -161,7 +161,7 @@ public sealed class WorldCartRepairOrderTests
     public async Task CancelOrReplaceAfterCollectionKeepsActualGoodsAndDoesNotRepairTheCart(bool replace)
     {
         var state = await SharedSupplyState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var instruction = world.SubmitInstruction(Request("cancel-repair", actor, "Repair cart z-cart"));
         await ReachFirstCollection(world, actor);
@@ -170,7 +170,7 @@ public sealed class WorldCartRepairOrderTests
         Assert.NotEqual("cancelled", world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status);
         if (replace)
         {
-            var position = world.Inhabitants[0].Position;
+            var position = world.Agents[0].Position;
             world.SubmitInstruction(Request("replacement", actor, $"Move to ({position.X}, {position.Y})"));
         }
         else world.CancelOrder(new("cancel", "owner:test", state.Society.Society.WorldId, actor, instruction.InstructionId));
@@ -190,7 +190,7 @@ public sealed class WorldCartRepairOrderTests
     public async Task UnspecifiedRepairKeepsItsCartWhenThatCartChangesOwner()
     {
         var state = await SharedSupplyState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("choose-repair", actor, "Please repair my cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -199,7 +199,7 @@ public sealed class WorldCartRepairOrderTests
         var inventory = started.Society.Society.Inventory with
         {
             Lots = started.Society.Society.Inventory.Lots.Select(lot => lot.Id == "a-cart"
-                ? lot with { OwnerId = state.Inhabitants[1].InhabitantId } : lot).ToArray(),
+                ? lot with { OwnerId = state.Agents[1].AgentId } : lot).ToArray(),
         };
         using var transferred = WorldRuntime.Restore(WithInventory(started, inventory), _ => new IdleProvider());
         Assert.True((await transferred.AdvanceOneTickAsync()).Advanced);
@@ -215,7 +215,7 @@ public sealed class WorldCartRepairOrderTests
     public async Task QueuedRepairsEachConsumeTheirOwnRealSetAndFinishOnlyTheirSelectedCart()
     {
         var state = await SharedSupplyState(2);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("first-repair", actor, "Repair cart a-cart"));
         world.SubmitInstruction(Request("second-repair", actor, "Repair cart z-cart", queue: true));
@@ -234,11 +234,11 @@ public sealed class WorldCartRepairOrderTests
     public async Task UrgentFoodInterruptsRepairThenResumesItsSelectedCart()
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "urgent-food", "berries", actor, 4));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { HungerBasisPoints = 1 } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -260,7 +260,7 @@ public sealed class WorldCartRepairOrderTests
     public async Task RepairCompletionRequiresItsNativeReceiptAndConsumedMaterialEvidence()
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("receipt-repair", actor, "Repair cart z-cart"));
         for (var tick = 0; tick < 16 && world.ExportState().Instructions![0].Order!.Status != "finished"; tick++)
@@ -279,7 +279,7 @@ public sealed class WorldCartRepairOrderTests
         var foreignInputs = final.Society.Society.Inventory with
         {
             Reservations = final.Society.Society.Inventory.Reservations.Select(item => item.Id.StartsWith("cart-repair:", StringComparison.Ordinal)
-            ? item with { OwnerId = state.Inhabitants[1].InhabitantId } : item).ToArray()
+            ? item with { OwnerId = state.Agents[1].AgentId } : item).ToArray()
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithInventory(final, foreignInputs)));
     }
@@ -294,7 +294,7 @@ public sealed class WorldCartRepairOrderTests
     private static async Task<WorldRuntimeState> SharedSupplyState(int quantity = 1)
     {
         var state = await CartState(carriedInputs: false);
-        var household = state.Society.Society.GetInhabitant(state.Inhabitants[0].InhabitantId).HouseholdId!;
+        var household = state.Society.Society.GetAgent(state.Agents[0].AgentId).HouseholdId!;
         var inventory = state.Society.Society.Inventory;
         foreach (var kind in RepairKinds)
             inventory = InventoryAuthority.AddLot(inventory, "000-repair-shared-" + kind, kind, household, quantity);
@@ -304,9 +304,9 @@ public sealed class WorldCartRepairOrderTests
     private static async Task<WorldRuntimeState> CartState(int condition = 0, bool carriedInputs = true)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var position = state.Map.FootNeighbors(state.Inhabitants[0].Position)
-            .First(point => state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point));
+        var actor = state.Agents[0].AgentId;
+        var position = state.Map.FootNeighbors(state.Agents[0].Position)
+            .First(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "a-cart", "handcart", actor, 1,
             groundPosition: new(position.X, position.Y), conditionBasisPoints: 3_000);
         inventory = InventoryAuthority.AddLot(inventory, "z-cart", "handcart", actor, 1,

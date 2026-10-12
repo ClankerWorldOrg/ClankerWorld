@@ -24,7 +24,7 @@ public sealed class NativeForagedDietTests
             checkpoint = SocietyRules.ProposeRelationship(checkpoint, new(partnership, 1,
                 SocietyRelationshipType.Partnership, actor, partner, checkpoint.WorldTick)).Checkpoint;
             checkpoint = SocietyRules.AcceptRelationship(checkpoint, partnership, 1, partner).Checkpoint;
-            var household = checkpoint.GetInhabitant(actor).HouseholdId!;
+            var household = checkpoint.GetAgent(actor).HouseholdId!;
             var birth = SocietyRules.CommitBirth(checkpoint, new($"family:{actor}:{checkpoint.WorldTick}", 1,
                 actor, partner, household, [actor, partner], [actor, partner], "food:camp-alpha", 2,
                 checkpoint.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(checkpoint, actor, "Forager" + generation),
@@ -34,7 +34,7 @@ public sealed class NativeForagedDietTests
             var adultBirth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 20 * checkpoint.Config.TicksPerLifecycleAge;
             checkpoint = checkpoint with
             {
-                Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+                Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
                 {
                     BirthTick = adultBirth,
                     BirthLifeTick = checkpoint.LifeClock is null ? null : adultBirth,
@@ -43,12 +43,12 @@ public sealed class NativeForagedDietTests
                 } : person).ToArray(),
             };
             var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-                state.Map.IsBuildable(point) && state.Inhabitants.All(person => person.Position != point) &&
+                state.Map.IsBuildable(point) && state.Agents.All(person => person.Position != point) &&
                 state.Map.Resources.All(resource => resource.Position != point) &&
                 state.Map.MapObjects.All(item => item.Position != point));
             state = state with
             {
-                Inhabitants = state.Inhabitants.Append(new InhabitantState(actor, position,
+                Agents = state.Agents.Append(new AgentState(actor, position,
                     3_000, 0, "curious", "find food")).ToArray(),
             };
         }
@@ -57,7 +57,7 @@ public sealed class NativeForagedDietTests
         var source = state.Map.Resources.First(resource => resource.Kind == "food" &&
             resource.NaturalObjectKind != "wild_greens");
         var stand = state.Map.FootNeighbors(source.Position).First(point => state.Map.IsBuildable(point) &&
-            state.Inhabitants.All(person => person.Position != point) &&
+            state.Agents.All(person => person.Position != point) &&
             state.Map.Resources.All(resource => resource.Position != point) &&
             state.Map.MapObjects.All(item => item.Position != point));
         state = state with
@@ -66,7 +66,7 @@ public sealed class NativeForagedDietTests
             JevEnabled = false,
             Survival = new SettlementSurvivalState(checkpoint.WorldTick, []),
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
                 Survival = new SurvivalCondition(NutritionBasisPoints: 5_000, LastMealKind: "camp_rations"),
@@ -94,14 +94,14 @@ public sealed class NativeForagedDietTests
         for (var tick = 0; tick < 20 && !restored.ExportState().CompletedInstructionIds!.Contains(eat.InstructionId); tick++)
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(eat.InstructionId, restored.ExportState().CompletedInstructionIds!);
-        var condition = restored.Inhabitants.Single(person => person.InhabitantId == actor).Survival!;
+        var condition = restored.Agents.Single(person => person.AgentId == actor).Survival!;
         Assert.Equal("foraged", condition.LastMealKind);
         Assert.Equal(5_500, condition.NutritionBasisPoints);
         Assert.Equal(food.Quantity - 1, restored.Society.Inventory.GetLot(food.Id).Quantity);
         var eaten = WorldRuntimeCodec.Encode(restored.ExportState());
         using var final = WorldRuntime.Restore(WorldRuntimeCodec.Decode(eaten), _ => new IdleProvider());
         Assert.Equal(eaten, WorldRuntimeCodec.Encode(final.ExportState()));
-        Assert.Equal("foraged", final.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.LastMealKind);
+        Assert.Equal("foraged", final.Agents.Single(person => person.AgentId == actor).Survival!.LastMealKind);
     }
 
     private sealed class IdleProvider(string? actor = null) : IDecisionProvider
@@ -110,7 +110,7 @@ public sealed class NativeForagedDietTests
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var candidate = request.Observation.InhabitantId == actor
+            var candidate = request.Observation.AgentId == actor
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id is "consume_food" or "harvest_food")
                 : null;
             candidate ??= request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");

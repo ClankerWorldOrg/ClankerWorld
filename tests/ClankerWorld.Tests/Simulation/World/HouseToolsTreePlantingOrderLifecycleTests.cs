@@ -13,7 +13,7 @@ public sealed partial class HouseToolsBehaviorTests
         using var generated = NormalPathWorld.CreateGenerated("smith-whole-load", _ => new IdleProvider());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         for (var count = 0; count < 2; count++)
         {
             var source = state.Map.Resources.Where(resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
@@ -23,7 +23,7 @@ public sealed partial class HouseToolsBehaviorTests
                 .OrderBy(resource => resource.Id, StringComparer.Ordinal).First();
             state = count == 0 ? BesideSource(state, actor, source, HouseToolsContent.CrudeWoodenAxe) : state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+                Agents = state.Agents.Select(person => person.AgentId == actor ? person with
                 {
                     Position = FreeNeighbors(state, actor, source).First(),
                     TravelCooldownTicks = 0,
@@ -45,12 +45,12 @@ public sealed partial class HouseToolsBehaviorTests
     private static (WorldRuntimeState State, string Actor, GridPoint Target) PreparedTreeOrder(WorldRuntimeState? saved = null)
     {
         var state = saved ?? WorldRuntimeCodec.Decode(NativeTreeOrderSeeds.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
             .Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position))
             .Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
         using var roads = Restore(state);
         blocked.UnionWith(roads.RoadTiles);
@@ -58,13 +58,13 @@ public sealed partial class HouseToolsBehaviorTests
             state.WorldSystems!.Chunks.Any(chunk => chunk.Coordinate == ChunkRules.ToChunkCoordinate(point, chunk.ChunkSize) &&
                 chunk.Resources.Count < state.WorldSystems.Config.MaxResourcesPerChunk);
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(Legal)
-            .Where(point => state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point) &&
+            .Where(point => state.Map.IsReachableOnFoot(state.Agents[0].Position, point) &&
                 state.Map.FootNeighbors(point).Any(Legal))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
         var stand = state.Map.FootNeighbors(target).First(Legal);
         return (state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
                 HungerBasisPoints = 9_000,
@@ -137,18 +137,18 @@ public sealed partial class HouseToolsBehaviorTests
         var (state, actor, target) = PreparedTreeOrder();
         var start = state.Map.Tiles.Select(tile => tile.Position)
             .Where(point => state.Map.IsPassable(point) && state.Map.FootDistance(point, target) is >= 4 and <= 6 &&
-                state.Map.IsReachableOnFoot(point, target) && !state.Inhabitants.Any(person => person.Position == point))
+                state.Map.IsReachableOnFoot(point, target) && !state.Agents.Any(person => person.Position == point))
             .OrderBy(point => state.Map.FootDistance(point, target)).First();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Position = start } : person).ToArray()
         };
         using var world = Restore(state);
         var receipt = world.SubmitInstruction(new("walk-tree", "owner:test", actor, OwnerInstructionKind.MustDo,
             $"plant a broadleaf tree at {target.X},{target.Y}"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.NotEqual(start, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(start, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Equal(2, PersonalQuantity(world, actor, TreeGrowthRules.TreeSeedItem));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -195,7 +195,7 @@ public sealed partial class HouseToolsBehaviorTests
         if (cause is "foreign" or "missing")
         {
             var inventory = state.Society.Society.Inventory;
-            var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+            var other = state.Agents.First(person => person.AgentId != actor).AgentId;
             var seeds = inventory.Lots.Where(lot => lot.ItemKind == TreeGrowthRules.TreeSeedItem).ToArray();
             foreach (var seed in seeds)
                 inventory = cause == "foreign" ? InventoryAuthority.Transfer(inventory, "foreign-" + seed.Id,

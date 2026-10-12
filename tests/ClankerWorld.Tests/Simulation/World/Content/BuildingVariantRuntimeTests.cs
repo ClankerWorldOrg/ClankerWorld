@@ -102,9 +102,9 @@ public sealed class BuildingVariantRuntimeTests
         var fixture = await BuildingVariantTestWorld.CreatePreparedAsync("blacksmith");
         var provider = new VariantActionProvider(id => BuildingVariantTestWorld.IsBuildingCandidate(id, fixture.Definition.CanonicalId));
         using var world = BuildingVariantTestWorld.Restore(fixture, provider);
-        await BuildingVariantTestWorld.UntilAsync(world, () => world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor)
+        await BuildingVariantTestWorld.UntilAsync(world, () => world.Agents.Single(person => person.AgentId == fixture.Actor)
             .Project is { Stage: "working", WorkDone: > 0 and < 10 });
-        var project = world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project!;
+        var project = world.Agents.Single(person => person.AgentId == fixture.Actor).Project!;
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = BuildingVariantTestWorld.Restore(fixture with { State = WorldRuntimeCodec.Decode(before) },
             new VariantActionProvider(provider.Choose));
@@ -145,13 +145,13 @@ public sealed class BuildingVariantRuntimeTests
 
         var chooser = new VariantActionProvider(id => BuildingVariantTestWorld.IsBuildingCandidate(id, fixture.Definition.CanonicalId));
         using var planning = BuildingVariantTestWorld.Restore(fixture, chooser);
-        await BuildingVariantTestWorld.UntilAsync(planning, () => planning.Inhabitants.Single(person => person.InhabitantId == fixture.Actor)
+        await BuildingVariantTestWorld.UntilAsync(planning, () => planning.Agents.Single(person => person.AgentId == fixture.Actor)
             .Project is { Stage: "working", WorkDone: > 0 });
-        var peer = fixture.State.Society.Society.Inhabitants.First(person => person.HouseholdId == fixture.Household &&
+        var peer = fixture.State.Society.Society.Agents.First(person => person.HouseholdId == fixture.Household &&
             person.Id != fixture.Actor).Id;
         var state = planning.ExportState() with
         {
-            Inhabitants = planning.Inhabitants.Select(person => person.InhabitantId == peer
+            Agents = planning.Agents.Select(person => person.AgentId == peer
                 ? person with { LastDecisionContext = null } : person).ToArray(),
         };
         var peerChoices = new VariantActionProvider();
@@ -171,10 +171,10 @@ public sealed class BuildingVariantRuntimeTests
         var fixture = await BuildingVariantTestWorld.CreatePreparedAsync("blacksmith");
         var chooser = new VariantActionProvider(id => BuildingVariantTestWorld.IsBuildingCandidate(id, fixture.Definition.CanonicalId));
         using var planning = BuildingVariantTestWorld.Restore(fixture, chooser);
-        await BuildingVariantTestWorld.UntilAsync(planning, () => planning.Inhabitants.Single(person => person.InhabitantId == fixture.Actor)
+        await BuildingVariantTestWorld.UntilAsync(planning, () => planning.Agents.Single(person => person.AgentId == fixture.Actor)
             .Project is { Stage: "working", WorkDone: > 0 });
         var state = planning.ExportState();
-        var project = state.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project!;
+        var project = state.Agents.Single(person => person.AgentId == fixture.Actor).Project!;
         Assert.True(TownConstructionCandidateIds.TryParse(project.CandidateId, out var selected));
         var anchor = selected.SitePosition!.Value;
         var tile = WorldContentSimulationRules.Footprint(fixture.Definition, anchor).Last();
@@ -193,7 +193,7 @@ public sealed class BuildingVariantRuntimeTests
         // A pending request (not a grant) must exclude the other household just as a right does.
         if (pending)
         {
-            var requester = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-beta").Id;
+            var requester = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
             state = state with
             {
                 HouseholdLandUseRequests = state.HouseholdLandUseRequests!.Append(new HouseholdLandUseRequest(
@@ -211,7 +211,7 @@ public sealed class BuildingVariantRuntimeTests
             new VariantActionProvider());
         Assert.True((await blocked.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(blocked.WorldSimulation.Buildings, item => item.DefinitionId == fixture.Definition.CanonicalId);
-        var after = blocked.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project!;
+        var after = blocked.Agents.Single(person => person.AgentId == fixture.Actor).Project!;
         Assert.Equal("blocked", after.Stage);
         Assert.Contains("selected site is no longer legal", after.Blocker, StringComparison.Ordinal);
         Assert.Equal(project.WorkDone, after.WorkDone);
@@ -229,7 +229,7 @@ public sealed class BuildingVariantRuntimeTests
         var fixture = await BuildingVariantTestWorld.BuildAsync("clinic");
         var recipe = fixture.State.WorldContent!.Recipes.Single(item => item.WorkstationBuildingId == fixture.Definition.CanonicalId);
         fixture = WithRecipeInputs(fixture, recipe);
-        var foreign = fixture.State.Society.Society.Inhabitants.First(person => person.HouseholdId != fixture.Household).Id;
+        var foreign = fixture.State.Society.Society.Agents.First(person => person.HouseholdId != fixture.Household).Id;
         var originalRecipe = fixture.State.WorldContent!.Recipes.Single(item => item.LocalId == "clinic-medicine");
         using var world = BuildingVariantTestWorld.Restore(fixture, new VariantActionProvider());
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -286,7 +286,7 @@ public sealed class BuildingVariantRuntimeTests
         {
             State = BuildingVariantTestWorld.Strict(BuildingVariantTestWorld.WithInventory(state, inventory) with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == fixture.Actor
+                Agents = state.Agents.Select(person => person.AgentId == fixture.Actor
                     ? person with { LastDecisionContext = null, Project = null, HungerBasisPoints = 10_000 }
                     : person).ToArray(),
             }),

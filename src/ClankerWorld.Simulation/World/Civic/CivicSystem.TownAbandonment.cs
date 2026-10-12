@@ -10,7 +10,7 @@ internal sealed partial class CivicSystem
 {
     internal static bool MayResettleTown(ICivicTownWorld world, string actor, TownRuntimeState town) =>
             town.IsAbandoned && world.AdultResident(actor) && world.ReadyForBriefInteraction(actor) &&
-            town.BorderTiles.Contains(world.Inhabitants[actor].Position);
+            town.BorderTiles.Contains(world.Agents[actor].Position);
 
     internal string ResettlementText(ICivicTownWorld world, string actor, TownRuntimeState town)
     {
@@ -33,15 +33,15 @@ internal sealed partial class CivicSystem
         SetTown(world, town with { ResidentIds = group });
         AdvanceTownGovernance(world);
         SettleTownAdmissions(world);
-        world.AppendEvent("town_resettled", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Inhabitants[actor].Position);
+        world.AppendEvent("town_resettled", $"{town.Id}|{actor}|{previous ?? "none"}|{group.Length}", world.Agents[actor].Position);
     }
 
     internal static string TownSalvageId(string townId, string lotId) => DerivedId.Hash(townId + "|" + lotId, WorldRuntime.CivicSharedRules.TownSalvagePrefix);
 
     internal IEnumerable<(TownRuntimeState Town, InventoryLot Lot, int Quantity)> AbandonedStockForPickup(ICivicTownWorld world, string actor)
     {
-        if (!world.Inhabitants.TryGetValue(actor, out var person) || !world.ReadyForBriefInteraction(actor) ||
-            world.Society.GetInhabitant(actor).AgeBand == SocietyAgeBand.Infant)
+        if (!world.Agents.TryGetValue(actor, out var person) || !world.ReadyForBriefInteraction(actor) ||
+            world.Society.GetAgent(actor).AgeBand == SocietyAgeBand.Infant)
             yield break;
         var abandoned = towns.Where(town => town.IsAbandoned).ToDictionary(town => town.Id, StringComparer.Ordinal);
         if (abandoned.Count == 0) yield break;
@@ -83,7 +83,7 @@ internal sealed partial class CivicSystem
                 WorldRuntime.CivicSharedRules.TownSalvageOperationId(world.WorldTick, actor, candidate),
                 town.Id, actor, lot.Id, quantity,
                 "town_stock_salvaged"));
-            world.AppendEvent("town_stock_salvaged", $"{town.Id}|{actor}|{lot.ItemKind}|{quantity}", world.Inhabitants[actor].Position);
+            world.AppendEvent("town_stock_salvaged", $"{town.Id}|{actor}|{lot.ItemKind}|{quantity}", world.Agents[actor].Position);
             return;
         }
     }

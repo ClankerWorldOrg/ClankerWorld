@@ -36,21 +36,21 @@ public sealed class HouseholdJoinRequestTests
         var startingSite = initial.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-warehouse").Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == teacher || person.InhabitantId == learner
+            Agents = state.Agents.Select(person => person.AgentId == teacher || person.AgentId == learner
                 ? person with
                 {
                     Position = startingSite,
                     HungerBasisPoints = 9_000,
                     Project = null,
                     LastDecisionContext = null,
-                    Skills = person.InhabitantId == teacher ? [new(SettlementSkillKind.Building, initial.WorldTick)] : null,
+                    Skills = person.AgentId == teacher ? [new(SettlementSkillKind.Building, initial.WorldTick)] : null,
                 } : person).ToArray(),
         };
         provider.Choices[learner] = "learn:building:" + teacher;
         provider.Choices[teacher] = "lesson_accept:" + learner;
         using var setup = WorldRuntime.Restore(state, _ => provider);
-        await AdvanceUntil(setup, () => setup.Inhabitants.Single(person => person.InhabitantId == learner).Lesson?.Progress is >= 3);
-        Assert.InRange(setup.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress, 3, 10);
+        await AdvanceUntil(setup, () => setup.Agents.Single(person => person.AgentId == learner).Lesson?.Progress is >= 3);
+        Assert.InRange(setup.Agents.Single(person => person.AgentId == learner).Lesson!.Progress, 3, 10);
         const string applicant = "agent:dddddddddddddddddddddddddddddddd";
         Assert.Null(setup.AddAgent(applicant, TownTileBeside(setup, "first-town-house-a")));
         provider.Choices[applicant] = "household_ask:" + Alpha;
@@ -64,7 +64,7 @@ public sealed class HouseholdJoinRequestTests
             travellingLearner = FreeTiles(setup).First(point => state.Map.FootDistance(point, startingSite) == 2);
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == learner
+                Agents = state.Agents.Select(person => person.AgentId == learner
                     ? person with { Position = travellingLearner.Value, TravelCooldownTicks = 0, LastDecisionContext = null }
                     : person).ToArray(),
             };
@@ -82,28 +82,28 @@ public sealed class HouseholdJoinRequestTests
         // Registration precedes the provider's background startup. The lesson
         // must continue while that exact request is pending in either phase.
         var (heldRequest, heldTask) = CapturePendingHousingCall(world, member);
-        Assert.Equal(member, heldRequest.Observation.InhabitantId);
+        Assert.Equal(member, heldRequest.Observation.AgentId);
         Assert.Contains(heldRequest.Observation.Candidates, candidate => candidate.Id == "household_admit:" + applicant);
         Assert.False(heldTask.IsCompleted);
         if (deferStartup) Assert.False(held.Started.Task.IsCompleted);
         if (travellingLearner is { } start)
         {
             for (var tick = 0; tick < 8 && state.Map.FootDistance(
-                world.Inhabitants.Single(person => person.InhabitantId == learner).Position, startingSite) > 1; tick++)
+                world.Agents.Single(person => person.AgentId == learner).Position, startingSite) > 1; tick++)
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var arrival = world.Inhabitants.Single(person => person.InhabitantId == learner).Position;
+            var arrival = world.Agents.Single(person => person.AgentId == learner).Position;
             Assert.NotEqual(start, arrival);
             Assert.InRange(state.Map.FootDistance(arrival, startingSite), 0, 1);
         }
-        var before = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
+        var before = world.Agents.Single(person => person.AgentId == learner).Lesson!;
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.Equal(before.Progress + 3, world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress);
+        Assert.Equal(before.Progress + 3, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         Assert.Equal(JsonSerializer.Serialize(request), JsonSerializer.Serialize(Housing(world, applicant)!.Request));
-        Assert.Null(world.Society.GetInhabitant(applicant).HouseholdId);
-        Assert.Empty(world.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
+        Assert.Null(world.Society.GetAgent(applicant).HouseholdId);
+        Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
         Assert.False(heldTask.IsCompleted);
         if (deferStartup) Assert.False(held.Started.Task.IsCompleted);
         var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
@@ -141,15 +141,15 @@ public sealed class HouseholdJoinRequestTests
         const int progress = 3;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == teacher || person.InhabitantId == learner
+            Agents = state.Agents.Select(person => person.AgentId == teacher || person.AgentId == learner
                 ? person with
                 {
                     Position = startingSite,
                     HungerBasisPoints = 9_000,
                     Project = null,
                     LastDecisionContext = null,
-                    Skills = person.InhabitantId == teacher ? [new(SettlementSkillKind.Building, world.WorldTick)] : null,
-                    Lesson = person.InhabitantId == learner
+                    Skills = person.AgentId == teacher ? [new(SettlementSkillKind.Building, world.WorldTick)] : null,
+                    Lesson = person.AgentId == learner
                         ? new(teacher, SettlementSkillKind.Building, "training", progress, world.WorldTick, world.WorldTick) : null,
                 } : person).ToArray(),
         };
@@ -162,9 +162,9 @@ public sealed class HouseholdJoinRequestTests
         for (var tick = 0; tick < 5; tick++)
         {
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(progress, restored.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress);
+            Assert.Equal(progress, restored.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         }
-        Assert.Empty(restored.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
+        Assert.Empty(restored.Agents.Single(person => person.AgentId == learner).Skills ?? []);
         Assert.NotNull(Housing(restored, applicant)!.Request);
         foreach (var adult in restored.Society.GetHousehold(Alpha).MemberIds)
             provider.Choices[adult] = "household_admit:" + applicant;
@@ -172,18 +172,18 @@ public sealed class HouseholdJoinRequestTests
         var readyToAnswer = restored.ExportState();
         readyToAnswer = readyToAnswer with
         {
-            Inhabitants = readyToAnswer.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = readyToAnswer.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         };
         using var answered = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(readyToAnswer)), _ => provider);
         answered.Resume();
-        await AdvanceUntil(answered, () => answered.Society.GetInhabitant(applicant).HouseholdId == Alpha);
-        await AdvanceUntil(answered, () => answered.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Stage == "completed");
-        var skill = Assert.Single(answered.Inhabitants.Single(person => person.InhabitantId == learner).Skills!);
+        await AdvanceUntil(answered, () => answered.Society.GetAgent(applicant).HouseholdId == Alpha);
+        await AdvanceUntil(answered, () => answered.Agents.Single(person => person.AgentId == learner).Lesson!.Stage == "completed");
+        var skill = Assert.Single(answered.Agents.Single(person => person.AgentId == learner).Skills!);
         Assert.Equal(SettlementSkillKind.Building, skill.Kind);
         Assert.Equal(teacher, skill.TeacherId);
         var shown = new OwnerWorldObservationStore(answered).GetSnapshot();
-        Assert.Equal(teacher, Assert.Single(shown.Inhabitants.Single(person => person.Id == learner).Skills).TeacherId);
-        Assert.DoesNotContain(shown.Inhabitants.Single(person => person.Id == applicant).DecisionFactors, factor => factor.Key == "housing");
+        Assert.Equal(teacher, Assert.Single(shown.Agents.Single(person => person.Id == learner).Skills).TeacherId);
+        Assert.DoesNotContain(shown.Agents.Single(person => person.Id == applicant).DecisionFactors, factor => factor.Key == "housing");
     }
 
     [Theory]
@@ -235,14 +235,14 @@ public sealed class HouseholdJoinRequestTests
         Assert.Contains(newAdult, pending.Members);
         Assert.Contains(originalMembers[0], pending.Approvals);
         Assert.DoesNotContain(newAdult, pending.Approvals);
-        Assert.Null(world.Society.GetInhabitant(applicant).HouseholdId);
+        Assert.Null(world.Society.GetAgent(applicant).HouseholdId);
         Assert.DoesNotContain(applicant, world.Society.GetHousehold(Alpha).MemberIds);
         Assert.DoesNotContain(provider.Offered[applicant].Keys, candidate => candidate is "collect_shared_food" or "haul_household_stock");
         provider.Choices[newAdult] = (agrees ? "household_admit:" : "household_refuse:") + applicant;
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(applicant).HouseholdId is not null ||
+        await AdvanceUntil(world, () => world.Society.GetAgent(applicant).HouseholdId is not null ||
             world.ExportState().Events.Any(item => item.Kind == "housing_request_refused"));
 
-        Assert.Equal(agrees ? Alpha : null, world.Society.GetInhabitant(applicant).HouseholdId);
+        Assert.Equal(agrees ? Alpha : null, world.Society.GetAgent(applicant).HouseholdId);
         Assert.Contains(world.ExportState().Events, item => item.Kind == (agrees ? "household_joined" : "housing_request_refused"));
         world.Validate();
     }
@@ -276,11 +276,11 @@ public sealed class HouseholdJoinRequestTests
         await AdvanceUntil(world, () => world.ExportState().Events.Any(item =>
             item.Kind == "housing_request_blocked_capacity" && item.Detail == $"{applicant}:{Alpha}"));
 
-        Assert.Null(world.Society.GetInhabitant(applicant).HouseholdId);
+        Assert.Null(world.Society.GetAgent(applicant).HouseholdId);
         Assert.DoesNotContain(applicant, world.Society.GetHousehold(Alpha).MemberIds);
         Assert.Equal(originalMembers.Concat([newcomer]).Order(StringComparer.Ordinal),
             world.Society.GetHousehold(Alpha).MemberIds);
-        Assert.Equal(3, world.Society.Inhabitants.Count(person => person.Status == SocietyInhabitantStatus.Active &&
+        Assert.Equal(3, world.Society.Agents.Count(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId == Alpha));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "household_joined" &&
             item.Detail == $"{applicant}:{Alpha}");
@@ -297,7 +297,7 @@ public sealed class HouseholdJoinRequestTests
         await AdvanceUntil(world, () => world.ExportState().Events.Any(item => item.Kind == "housing_request_made"));
 
         // Standing beside a House grants nothing; the adult is told why and may ask.
-        Assert.Null(world.Society.GetInhabitant(agent).HouseholdId);
+        Assert.Null(world.Society.GetAgent(agent).HouseholdId);
         var offered = provider.Offered[agent];
         Assert.Contains("household_ask:" + Alpha, offered.Keys);
         Assert.Contains("household_ask:" + Beta, offered.Keys);
@@ -305,7 +305,7 @@ public sealed class HouseholdJoinRequestTests
         Assert.All(offered.Values, description => Assert.Null(RetiredWording.Find(description)));
         Assert.Contains("no household", provider.HousingNotes[agent], StringComparison.Ordinal);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "housing_blocked" && item.Detail == $"{agent}:no_household");
-        var request = world.Inhabitants.Single(person => person.InhabitantId == agent).Housing!.Request!;
+        var request = world.Agents.Single(person => person.AgentId == agent).Housing!.Request!;
         Assert.Equal(Alpha, request.HouseholdId);
         var members = world.Society.GetHousehold(Alpha).MemberIds.Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(2, members.Length);
@@ -318,21 +318,21 @@ public sealed class HouseholdJoinRequestTests
         provider.Choices[agent] = "safe_idle";
         provider.Choices[members[0]] = "household_admit:" + agent;
         provider.Choices[members[1]] = ScriptedProvider.AnythingButHousing;
-        await AdvanceUntil(world, () => world.Inhabitants.Single(person => person.InhabitantId == agent)
+        await AdvanceUntil(world, () => world.Agents.Single(person => person.AgentId == agent)
             .Housing?.Request?.Approvals.Contains(members[0], StringComparer.Ordinal) == true);
-        Assert.Equal([members[0]], world.Inhabitants.Single(person => person.InhabitantId == agent).Housing!.Request!.Approvals);
-        Assert.Null(world.Society.GetInhabitant(agent).HouseholdId);
+        Assert.Equal([members[0]], world.Agents.Single(person => person.AgentId == agent).Housing!.Request!.Approvals);
+        Assert.Null(world.Society.GetAgent(agent).HouseholdId);
         Assert.DoesNotContain(world.Society.GetHousehold(Alpha).MemberIds, id => id == agent);
         Assert.DoesNotContain(provider.Offered[agent].Keys, id => id is "collect_shared_food" or "haul_household_stock");
         Assert.DoesNotContain(provider.Offered[agent].Keys, id => id.StartsWith("household_ask:", StringComparison.Ordinal));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var visible = new OwnerWorldObservationStore(world).GetSnapshot();
-        var applicant = visible.Inhabitants.Single(person => person.Id == agent);
+        var applicant = visible.Agents.Single(person => person.Id == agent);
         Assert.Equal("unhoused", applicant.DecisionFactors.Single(factor => factor.Key == "household").Detail);
         Assert.Contains("every adult member must agree", applicant.DecisionFactors.Single(factor => factor.Key == "housing").Detail, StringComparison.Ordinal);
-        Assert.Contains(visible.Inhabitants.Single(person => person.Id == members[0]).SocialNotes,
+        Assert.Contains(visible.Agents.Single(person => person.Id == members[0]).SocialNotes,
             note => note.StartsWith("Agreed to let", StringComparison.Ordinal));
-        Assert.Contains(visible.Inhabitants.Single(person => person.Id == members[1]).SocialNotes,
+        Assert.Contains(visible.Agents.Single(person => person.Id == members[1]).SocialNotes,
             note => note.Contains("asked to live", StringComparison.Ordinal));
 
         // The pending request survives a save, and replay from it is deterministic.
@@ -343,11 +343,11 @@ public sealed class HouseholdJoinRequestTests
         provider.Choices[members[1]] = "household_admit:" + agent;
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => provider);
-        Assert.Equal(Alpha, restored.Inhabitants.Single(person => person.InhabitantId == agent).Housing!.Request!.HouseholdId);
+        Assert.Equal(Alpha, restored.Agents.Single(person => person.AgentId == agent).Housing!.Request!.HouseholdId);
         restored.Resume();
         replay.Resume();
         var ticks = 0;
-        await AdvanceUntil(restored, () => restored.Society.GetInhabitant(agent).HouseholdId == Alpha, 80, () => ticks++);
+        await AdvanceUntil(restored, () => restored.Society.GetAgent(agent).HouseholdId == Alpha, 80, () => ticks++);
         for (var tick = 0; tick < ticks; tick++)
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(restored.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -356,10 +356,10 @@ public sealed class HouseholdJoinRequestTests
         Assert.Contains(agent, restored.Society.GetHousehold(Alpha).MemberIds);
         Assert.Contains(restored.Society.Relationships, edge => edge.Type == SocietyRelationshipType.HouseholdMembership &&
             edge.State == SocietyRelationshipState.Accepted && edge.TargetId == agent && edge.HouseholdId == Alpha);
-        Assert.Null(restored.Inhabitants.Single(person => person.InhabitantId == agent).Housing);
+        Assert.Null(restored.Agents.Single(person => person.AgentId == agent).Housing);
         Assert.Contains(restored.ExportState().Events, item => item.Kind == "household_joined" && item.Detail == $"{agent}:{Alpha}");
         await AdvanceUntil(restored, () => provider.Offered[agent].ContainsKey("collect_shared_food"));
-        var housed = new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants.Single(person => person.Id == agent);
+        var housed = new OwnerWorldObservationStore(restored).GetSnapshot().Agents.Single(person => person.Id == agent);
         Assert.DoesNotContain(housed.DecisionFactors, factor => factor.Key == "housing");
         Assert.NotEqual("unhoused", housed.DecisionFactors.Single(factor => factor.Key == "household").Detail);
         restored.Validate();
@@ -373,25 +373,25 @@ public sealed class HouseholdJoinRequestTests
         var agent = "agent:" + Guid.NewGuid().ToString("N");
         Assert.Null(world.AddAgent(agent, TownTileBeside(world, "first-town-house-a")));
         provider.Choices[agent] = "household_ask:" + Alpha;
-        await AdvanceUntil(world, () => world.Inhabitants.Single(person => person.InhabitantId == agent).Housing?.Request is not null);
+        await AdvanceUntil(world, () => world.Agents.Single(person => person.AgentId == agent).Housing?.Request is not null);
         provider.Choices[agent] = "safe_idle";
         var members = world.Society.GetHousehold(Alpha).MemberIds.Order(StringComparer.Ordinal).ToArray();
         provider.Choices[members[0]] = "household_admit:" + agent;
         provider.Choices[members[1]] = "household_refuse:" + agent;
         await AdvanceUntil(world, () => world.ExportState().Events.Any(item => item.Kind == "housing_request_refused"));
 
-        Assert.Null(world.Society.GetInhabitant(agent).HouseholdId);
-        var housing = world.Inhabitants.Single(person => person.InhabitantId == agent).Housing!;
+        Assert.Null(world.Society.GetAgent(agent).HouseholdId);
+        var housing = world.Agents.Single(person => person.AgentId == agent).Housing!;
         Assert.Null(housing.Request);
         Assert.Equal(Alpha, Assert.Single(housing.Refusals!).HouseholdId);
         Assert.Equal(world.WorldTick, Assert.Single(housing.Refusals!).Tick);
 
         // The other household can still be asked; the one that refused waits out its cooldown.
         provider.Choices[agent] = "household_ask:";
-        await AdvanceUntil(world, () => world.Inhabitants.Single(person => person.InhabitantId == agent).Housing?.Request is not null);
+        await AdvanceUntil(world, () => world.Agents.Single(person => person.AgentId == agent).Housing?.Request is not null);
         Assert.DoesNotContain("household_ask:" + Alpha, provider.Offered[agent].Keys);
-        Assert.Equal(Beta, world.Inhabitants.Single(person => person.InhabitantId == agent).Housing!.Request!.HouseholdId);
-        Assert.Equal("no_household", world.Inhabitants.Single(person => person.InhabitantId == agent).Housing!.Blocker);
+        Assert.Equal(Beta, world.Agents.Single(person => person.AgentId == agent).Housing!.Request!.HouseholdId);
+        Assert.Equal("no_household", world.Agents.Single(person => person.AgentId == agent).Housing!.Blocker);
         world.Validate();
         _ = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
     }
@@ -447,7 +447,7 @@ public sealed class HouseholdJoinRequestTests
             restored.Resume();
             var step = await restored.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
-            Assert.Equal(mayJoin ? Alpha : null, restored.Society.GetInhabitant(agent).HouseholdId);
+            Assert.Equal(mayJoin ? Alpha : null, restored.Society.GetAgent(agent).HouseholdId);
             Assert.Null(Housing(restored, agent)?.Request);
             if (mayJoin)
             {
@@ -477,14 +477,14 @@ public sealed class HouseholdJoinRequestTests
         for (var tick = 0; tick < 5; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        Assert.Equal(Alpha, world.Society.GetInhabitant(agent).HouseholdId);
+        Assert.Equal(Alpha, world.Society.GetAgent(agent).HouseholdId);
         Assert.DoesNotContain(provider.Offered[agent].Keys, id => id.StartsWith("household_ask:", StringComparison.Ordinal));
         Assert.Contains("household_leave", provider.Offered[agent].Keys);
         Assert.Contains("House: 3/3 permanent places (is full)", provider.HousingNotes[agent], StringComparison.Ordinal);
         Assert.Contains("inside; absences still count", provider.HousingNotes[agent], StringComparison.Ordinal);
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == agent).Housing);
+        Assert.Null(world.Agents.Single(person => person.AgentId == agent).Housing);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind.StartsWith("housing_", StringComparison.Ordinal));
-        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == agent);
+        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == agent);
         Assert.DoesNotContain(visible.DecisionFactors, factor => factor.Key == "housing");
     }
 
@@ -508,14 +508,14 @@ public sealed class HouseholdJoinRequestTests
         var houseDefinition = world.WorldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId);
         var footprint = BuildingStorageRules.EffectiveDefinition(houseDefinition, house);
         var initial = HouseResidentCapacityRules.Calculate(
-            world.Society.Inhabitants.Where(person => person.HouseholdId == Alpha), footprint.Width, footprint.Height);
+            world.Society.Agents.Where(person => person.HouseholdId == Alpha), footprint.Width, footprint.Height);
         Assert.Equal(2, initial.ResidentCount);
         Assert.Equal(3, initial.Limit);
 
         var first = "agent:" + Guid.NewGuid().ToString("N");
         Assert.Equal(Alpha, world.AddAgent(first, house.Position));
         var full = HouseResidentCapacityRules.Calculate(
-            world.Society.Inhabitants.Where(person => person.HouseholdId == Alpha), footprint.Width, footprint.Height);
+            world.Society.Agents.Where(person => person.HouseholdId == Alpha), footprint.Width, footprint.Height);
         Assert.Equal(3, full.ResidentCount);
         Assert.Equal(3, full.Limit);
         Assert.False(full.IsOvercrowded);
@@ -532,14 +532,14 @@ public sealed class HouseholdJoinRequestTests
         var occupiedTiles = awayState.WorldSimulation!.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(awayState.WorldContent!.Buildings.Single(definition =>
                 definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
-        var householdMember = awayState.Inhabitants.Single(person => person.InhabitantId == first);
+        var householdMember = awayState.Agents.Single(person => person.AgentId == first);
         var awayTile = awayState.Map.Tiles.Select(tile => tile.Position).First(position =>
             awayState.Map.IsBuildable(position) && !occupiedTiles.Contains(position) &&
-            !awayState.Inhabitants.Any(person => person.InhabitantId != householdMember.InhabitantId &&
+            !awayState.Agents.Any(person => person.AgentId != householdMember.AgentId &&
                 person.Position == position));
         awayState = awayState with
         {
-            Inhabitants = awayState.Inhabitants.Select(person => person.InhabitantId == householdMember.InhabitantId
+            Agents = awayState.Agents.Select(person => person.AgentId == householdMember.AgentId
                 ? person with { Position = awayTile }
                 : person).ToArray(),
         };
@@ -553,9 +553,9 @@ public sealed class HouseholdJoinRequestTests
         Assert.Equal(3, visible.PermanentResidentCount);
         Assert.False(visible.HasDominantFamily);
         Assert.False(visible.IsOvercrowded);
-        Assert.Equal(restored.Society.GetInhabitant(guest).Name, Assert.Single(visible.InvitedGuests!));
-        Assert.True(restored.Inhabitants.Count(person =>
-            restored.Society.GetInhabitant(person.InhabitantId).HouseholdId == Alpha &&
+        Assert.Equal(restored.Society.GetAgent(guest).Name, Assert.Single(visible.InvitedGuests!));
+        Assert.True(restored.Agents.Count(person =>
+            restored.Society.GetAgent(person.AgentId).HouseholdId == Alpha &&
             WorldContentSimulationRules.Footprint(restored.WorldContent.Buildings.Single(definition =>
                 definition.CanonicalId == house.DefinitionId), house).Contains(person.Position)) < visible.PermanentResidentCount,
             "A resident who is away still takes a permanent House place.");
@@ -567,8 +567,8 @@ public sealed class HouseholdJoinRequestTests
         Assert.Contains("no free resident place", rejected.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(before, restored.Society.GetHousehold(Alpha).MemberIds);
         Assert.Equal(beforeState, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal(3, restored.Society.Inhabitants.Count(person => person.HouseholdId == Alpha &&
-            person.Status == SocietyInhabitantStatus.Active));
+        Assert.Equal(3, restored.Society.Agents.Count(person => person.HouseholdId == Alpha &&
+            person.Status == SocietyAgentStatus.Active));
     }
 
     [Fact]
@@ -606,7 +606,7 @@ public sealed class HouseholdJoinRequestTests
         // With no House there are no resident places to fill, so the new agent joins as before.
         var agent = "agent:" + Guid.NewGuid().ToString("N");
         Assert.Equal(Alpha, world.AddAgent(agent, property));
-        Assert.Equal(Alpha, world.Society.GetInhabitant(agent).HouseholdId);
+        Assert.Equal(Alpha, world.Society.GetAgent(agent).HouseholdId);
         world.Validate();
     }
 
@@ -629,7 +629,7 @@ public sealed class HouseholdJoinRequestTests
         {
             Society = state.Society.Society with
             {
-                Inhabitants = state.Society.Society.Inhabitants.Select(person =>
+                Agents = state.Society.Society.Agents.Select(person =>
                     existing.Contains(person.Id, StringComparer.Ordinal)
                         ? person with { DomesticFamilyUnitId = familyId }
                         : person).ToArray(),
@@ -641,7 +641,7 @@ public sealed class HouseholdJoinRequestTests
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => provider);
         var current = HouseResidentCapacityRules.Calculate(
-            world.Society.Inhabitants.Where(person => person.HouseholdId == Alpha), 1, 1);
+            world.Society.Agents.Where(person => person.HouseholdId == Alpha), 1, 1);
         Assert.Equal(3, current.ResidentCount);
         Assert.Equal(4, current.Limit);
         Assert.True(current.HasFreePlace);
@@ -652,7 +652,7 @@ public sealed class HouseholdJoinRequestTests
 
         Assert.DoesNotContain("household_ask:" + Alpha, provider.Offered[applicant].Keys);
         Assert.Contains("household_ask:" + Beta, provider.Offered[applicant].Keys);
-        Assert.Null(world.Society.GetInhabitant(applicant).HouseholdId);
+        Assert.Null(world.Society.GetAgent(applicant).HouseholdId);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "housing_request_made" &&
             item.Detail == $"{applicant}:{Alpha}");
     }
@@ -685,7 +685,7 @@ public sealed class HouseholdJoinRequestTests
             {
                 Households = society.Households.Append(new SocietyHousehold(householdId, "Newcomers", [agent], []))
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-                Inhabitants = society.Inhabitants.Select(person => person.Id == agent ? person with { HouseholdId = householdId } : person).ToArray(),
+                Agents = society.Agents.Select(person => person.Id == agent ? person with { HouseholdId = householdId } : person).ToArray(),
                 Relationships = society.Relationships.Append(new SocietyRelationship($"{householdId}:membership:{agent}", 1,
                         SocietyRelationshipType.HouseholdMembership, householdId, agent, SocietyRelationshipState.Accepted,
                         SocietyConsentState.ProtectedLifecycle, tick, tick, "household", householdId,
@@ -700,7 +700,7 @@ public sealed class HouseholdJoinRequestTests
             Assert.DoesNotContain(provider.Offered.GetValueOrDefault(agent)?.Keys.ToArray() ?? [],
                 id => id.StartsWith("household_ask:", StringComparison.Ordinal));
             Assert.Contains(unstocked.ExportState().Events, item => item.Kind == "housing_blocked" && item.Detail == $"{agent}:missing_materials");
-            Assert.Contains("lacks the materials", new OwnerWorldObservationStore(unstocked).GetSnapshot().Inhabitants
+            Assert.Contains("lacks the materials", new OwnerWorldObservationStore(unstocked).GetSnapshot().Agents
                 .Single(person => person.Id == agent).DecisionFactors.Single(factor => factor.Key == "housing").Detail, StringComparison.Ordinal);
         }
 
@@ -729,7 +729,7 @@ public sealed class HouseholdJoinRequestTests
             InventoryAuthority.AddLot(inventory, "fill-" + cost.ResourceId, cost.ResourceId, Alpha, cost.Amount * 40));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == agent
+            Agents = state.Agents.Select(person => person.AgentId == agent
                 ? person with { Position = placed.Position } : person).ToArray(),
             Society = state.Society with { Society = state.Society.Society with { Inventory = fillStock } },
         };
@@ -744,7 +744,7 @@ public sealed class HouseholdJoinRequestTests
         Assert.Contains(crowded.ExportState().Events, item => item.Kind == "housing_blocked" && item.Detail == $"{agent}:no_legal_site");
         Assert.True((await crowded.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(provider.Offered[agent].Keys, id => id.StartsWith("build:building:", StringComparison.Ordinal));
-        var ownerHousing = new OwnerWorldObservationStore(crowded).GetSnapshot().Inhabitants
+        var ownerHousing = new OwnerWorldObservationStore(crowded).GetSnapshot().Agents
             .Single(person => person.Id == agent).DecisionFactors.Single(factor => factor.Key == "housing").Detail;
         Assert.Contains("no legal site", ownerHousing, StringComparison.Ordinal);
         Assert.Contains(HousingBlockers.LandRecoveryGuidance, ownerHousing, StringComparison.Ordinal);
@@ -778,8 +778,8 @@ public sealed class HouseholdJoinRequestTests
         // Null collection elements must be rejected as damaged checkpoint data,
         // rather than escaping as an argument exception about the save ID.
         var document = System.Text.Json.Nodes.JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
-        var savedApplicant = document["state"]!["inhabitants"]!.AsArray()
-            .Single(item => item!["inhabitantId"]!.GetValue<string>() == agent)!;
+        var savedApplicant = document["state"]!["agents"]!.AsArray()
+            .Single(item => item!["agentId"]!.GetValue<string>() == agent)!;
         savedApplicant["housing"]!["request"]!["members"]![0] = null;
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(
             System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())));
@@ -803,7 +803,7 @@ public sealed class HouseholdJoinRequestTests
             {
                 Society = state.Society.Society with
                 {
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == agent
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == agent
                         ? person with { HouseholdId = Beta } : person).ToArray(),
                 },
             },
@@ -844,17 +844,17 @@ public sealed class HouseholdJoinRequestTests
     }
 
     private static SettlementHousing? Housing(WorldRuntime world, string agent) =>
-        world.Inhabitants.Single(person => person.InhabitantId == agent).Housing;
+        world.Agents.Single(person => person.AgentId == agent).Housing;
 
     private static SettlementHousing? Housing(WorldRuntimeState state, string agent) =>
-        state.Inhabitants.Single(person => person.InhabitantId == agent).Housing;
+        state.Agents.Single(person => person.AgentId == agent).Housing;
 
     private static WorldRuntimeState WithHousing(WorldRuntimeState state, string agent,
         Func<SettlementHousing, SettlementHousing> change)
     {
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == agent
+            Agents = state.Agents.Select(person => person.AgentId == agent
                 ? person with { Housing = change(person.Housing!) } : person).ToArray(),
         };
     }
@@ -906,7 +906,7 @@ public sealed class HouseholdJoinRequestTests
         return map.Tiles.Select(tile => tile.Position)
             .Where(point => map.IsBuildable(point) && !footprints.Contains(point) && !roads.Contains(point) &&
                 !map.MapObjects.Any(item => item.Position == point) && !map.Resources.Any(item => item.Position == point) &&
-                !state.Inhabitants.Any(person => person.Position == point))
+                !state.Agents.Any(person => person.Position == point))
             .OrderBy(point => point.Y).ThenBy(point => point.X)
             .ToArray();
     }
@@ -931,9 +931,9 @@ public sealed class HouseholdJoinRequestTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            Offered[observation.InhabitantId] = observation.Candidates.ToDictionary(item => item.Id, item => item.Description, StringComparer.Ordinal);
-            HousingNotes[observation.InhabitantId] = observation.Self?.HousingNote;
-            var prefix = Choices.GetValueOrDefault(observation.InhabitantId, "safe_idle");
+            Offered[observation.AgentId] = observation.Candidates.ToDictionary(item => item.Id, item => item.Description, StringComparer.Ordinal);
+            HousingNotes[observation.AgentId] = observation.Self?.HousingNote;
+            var prefix = Choices.GetValueOrDefault(observation.AgentId, "safe_idle");
             var candidates = prefix == AnythingButHousing
                 ? observation.Candidates.Where(item => !item.Id.StartsWith("household_", StringComparison.Ordinal)).ToArray()
                 : [observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal))

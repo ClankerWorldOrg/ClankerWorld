@@ -12,7 +12,7 @@ internal sealed partial class CivicSystem
     internal static InventoryLot[] LandSaleCarriedLots(ICivicTownWorld world, string actor, TownLandSalePrice price) =>
         world.SpendingGoods(actor, GoodsUse.Spend, [actor], price.ItemKind).Select(match => match.Lot)
             .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) &&
-                !PersonalEquipmentRules.IsSelected(world.Inhabitants[actor].Equipment, lot.Id))
+                !PersonalEquipmentRules.IsSelected(world.Agents[actor].Equipment, lot.Id))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
 
     internal static int LandSaleCarriedQuantity(ICivicTownWorld world, string actor, TownLandSalePrice price)
@@ -21,13 +21,13 @@ internal sealed partial class CivicSystem
         // Keep the food reserve once across all payment stacks, rather than
         // letting each stack count the others as the same retained reserve.
         var reserve = WorldRuntime.CivicSharedRules.IsEdibleFood(price.ItemKind)
-            ? Math.Max(2, world.CaregiverFoodCarryRequirement(actor, world.Inhabitants[actor])) : 0;
+            ? Math.Max(2, world.CaregiverFoodCarryRequirement(actor, world.Agents[actor])) : 0;
         return Math.Max(0, available - reserve);
     }
 
     internal InventoryLot? LandSaleStock(ICivicTownWorld world, string actor, TownRuntimeState town, TownLandSalePrice price) =>
             CivicBoard(world, town) is { } board && world.SharedItem(price.ItemKind, actor, board, WorldRuntime.CivicSharedRules.ResourceInteractionRange) is { } lot &&
-            lot.OwnerId == world.Society.GetInhabitant(actor).HouseholdId && lot.DeliveryBuildingId is null &&
+            lot.OwnerId == world.Society.GetAgent(actor).HouseholdId && lot.DeliveryBuildingId is null &&
             lot.ItemKind != "tool" && ToolProgressionRules.Find(lot.ItemKind) is null && world.MarketSurplus(actor, lot) > 0 &&
             (lot.ItemKind != "food" || MayCollectSharedFood(world, actor)) ? lot : null;
 
@@ -39,7 +39,7 @@ internal sealed partial class CivicSystem
     {
         if (request.Price is not { } price || town.Governance is not { } council ||
             !TownLandTransferRules.HasAllConsents(request, parties, council.Knowledge, world.WorldTick)) return;
-        var household = world.Society.GetInhabitant(actor).HouseholdId;
+        var household = world.Society.GetAgent(actor).HouseholdId;
         if (household == request.TargetHouseholdId)
         {
             var carried = LandSaleCarriedQuantity(world, actor, price);
@@ -58,7 +58,7 @@ internal sealed partial class CivicSystem
     internal void ContinueTownLandSaleWalk(ICivicTownWorld world, string actor, string candidate)
     {
         var parts = candidate.Split('|');
-        if (parts.Length != 5 || world.NeedsUrgentWarmth(world.Inhabitants[actor])) return;
+        if (parts.Length != 5 || world.NeedsUrgentWarmth(world.Agents[actor])) return;
         var town = towns.SingleOrDefault(item => item.Id == parts[1]);
         if (town is null) return;
         var candidates = new List<CognitionCandidate>();
@@ -68,8 +68,8 @@ internal sealed partial class CivicSystem
         var lot = parts[2] == "land_transfer_collect_payment" ? LandSaleStock(world, actor, town, request.Price!) : null;
         var destination = lot is not null ? world.HouseholdStockPosition(lot) : CivicBoard(world, town);
         var range = lot is not null ? WorldRuntime.CivicSharedRules.HouseholdStockInteractionRange(lot) : WorldRuntime.CivicSharedRules.ResourceInteractionRange;
-        if (destination is { } position && !world.IsWithinInteractionRange(world.Inhabitants[actor].Position, position, range))
-            world.MoveToward(actor, world.Inhabitants[actor], position, "land_sale", range);
+        if (destination is { } position && !world.IsWithinInteractionRange(world.Agents[actor].Position, position, range))
+            world.MoveToward(actor, world.Agents[actor], position, "land_sale", range);
     }
 
     internal void CollectLandSalePayment(ICivicTownWorld world, string actor, TownRuntimeState town, TownLandTransferRequest request)
@@ -79,9 +79,9 @@ internal sealed partial class CivicSystem
         if (missing <= 0 || LandSaleStock(world, actor, town, price) is not { } lot) return;
         var position = world.HouseholdStockPosition(lot);
         var range = WorldRuntime.CivicSharedRules.HouseholdStockInteractionRange(lot);
-        if (!world.IsWithinInteractionRange(world.Inhabitants[actor].Position, position, range))
+        if (!world.IsWithinInteractionRange(world.Agents[actor].Position, position, range))
         {
-            world.MoveToward(actor, world.Inhabitants[actor], position, "land_sale_payment", range);
+            world.MoveToward(actor, world.Agents[actor], position, "land_sale_payment", range);
             return;
         }
         var quantity = Math.Min(missing, Math.Min(LandSalePickupCapacity(world, actor, town, lot), world.MarketSurplus(actor, lot)));
@@ -97,7 +97,7 @@ internal sealed partial class CivicSystem
         var board = CivicBoard(world, town) ?? throw new InvalidOperationException("The sale needs its actual public notice place.");
         if (!NearCivicBoard(world, buyer, town))
         {
-            world.MoveToward(buyer, world.Inhabitants[buyer], board, "land_sale_payment", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+            world.MoveToward(buyer, world.Agents[buyer], board, "land_sale_payment", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
             return (council, town.LandHearings);
         }
         var price = request.Price!;

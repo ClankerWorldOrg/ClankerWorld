@@ -17,7 +17,7 @@ public sealed class AgentKnowledgeTests
     {
         using var seed = new WorldRuntime("personal-map-records");
         var initial = seed.ExportState();
-        var actor = initial.Inhabitants[0].InhabitantId;
+        var actor = initial.Agents[0].AgentId;
         var inventory = initial.Society.Society.Inventory with
         {
             Lots = initial.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != actor).ToArray(),
@@ -28,7 +28,7 @@ public sealed class AgentKnowledgeTests
         var provider = new CandidateProvider(actor, "explore");
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
+            Agents = initial.Agents.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
             Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
         }, _ => provider);
         for (var tick = 0; tick < 75; tick++)
@@ -65,9 +65,9 @@ public sealed class AgentKnowledgeTests
             society = SocietyRules.ProposeRelationship(society, new(relationshipId, 1,
                 SocietyRelationshipType.Partnership, parent, partner, society.WorldTick)).Checkpoint;
             society = SocietyRules.AcceptRelationship(society, relationshipId, 1, partner).Checkpoint;
-            var caregiverHousehold = society.GetInhabitant(parent).HouseholdId!;
+            var caregiverHousehold = society.GetAgent(parent).HouseholdId!;
             var caregivers = new[] { parent, partner }
-                .Where(id => society.GetInhabitant(id).HouseholdId == caregiverHousehold)
+                .Where(id => society.GetAgent(id).HouseholdId == caregiverHousehold)
                 .Append(parent).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
             var birth = SocietyRules.CommitBirth(society, new($"family:{parent}:{society.WorldTick}", 1,
                 parent, partner, caregiverHousehold, caregivers, [parent, partner],
@@ -79,7 +79,7 @@ public sealed class AgentKnowledgeTests
             var adultBirth = society.LifeTickAt(society.WorldTick) - 20 * society.Config.TicksPerLifecycleAge;
             society = society with
             {
-                Inhabitants = society.Inhabitants.Select(person => person.Id == parent ? person with
+                Agents = society.Agents.Select(person => person.Id == parent ? person with
                 {
                     BirthTick = adultBirth,
                     BirthLifeTick = society.LifeClock is null ? null : adultBirth,
@@ -88,12 +88,12 @@ public sealed class AgentKnowledgeTests
                 } : person).ToArray(),
             };
             var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-                state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point) &&
+                state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point) &&
                 state.Map.FootNeighbors(point).Any(state.Map.IsPassable));
             state = state with
             {
                 Society = state.Society with { Society = society },
-                Inhabitants = state.Inhabitants.Append(new InhabitantState(parent, position,
+                Agents = state.Agents.Append(new AgentState(parent, position,
                     9_500, 0, "curious", "explore")).ToArray(),
             };
         }
@@ -141,19 +141,19 @@ public sealed class AgentKnowledgeTests
     {
         using var seed = new WorldRuntime("inherited-natural-record");
         var initial = seed.ExportState();
-        var creator = initial.Inhabitants[0].InhabitantId;
+        var creator = initial.Agents[0].AgentId;
         initial = WithWritingPaper(initial, creator);
         var provider = new CandidateProvider(creator, "explore");
         using var scout = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
+            Agents = initial.Agents.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
         }, _ => provider);
         for (var tick = 0; tick < 75 && scout.ExportState().Knowledge!.Artifacts.Count == 0; tick++)
             _ = await scout.AdvanceOneTickAsync();
         await WriteFieldRecord(scout, provider, creator);
         var state = scout.ExportState();
         var artifact = Assert.Single(state.Knowledge!.Artifacts);
-        var physical = state.Inhabitants.Single(person => person.InhabitantId == creator);
+        var physical = state.Agents.Single(person => person.AgentId == creator);
         var dead = SocietyRules.Kill(state.Society.Society, creator, SocietyDeathCause.Accident).Checkpoint;
         var estate = Assert.Single(dead.Estates);
         // A raw society death does not know the physical tile. Preserve the
@@ -169,7 +169,7 @@ public sealed class AgentKnowledgeTests
         dead = dead with { Inventory = inventory };
         // Bounded test clock: accelerate only this valid fixture's escrow deadline.
         dead = dead with { Estates = [estate with { ExpiryTick = state.Society.Society.WorldTick + 1 }] };
-        var heir = dead.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active).Last().Id;
+        var heir = dead.Agents.Where(person => person.Status == SocietyAgentStatus.Active).Last().Id;
         if (selectedHeir)
         {
             dead = SocietyRules.MarkWillStarted(dead, estate.Id).Checkpoint;
@@ -178,9 +178,9 @@ public sealed class AgentKnowledgeTests
         state = state with
         {
             Society = state.Society with { Society = dead },
-            Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != creator).ToArray(),
-            DeceasedInhabitants = [new DeceasedInhabitantState(creator, state.Society.Society.WorldTick,
-                dead.AgeAt(dead.GetInhabitant(creator), state.Society.Society.WorldTick), physical)],
+            Agents = state.Agents.Where(person => person.AgentId != creator).ToArray(),
+            DeceasedAgents = [new DeceasedAgentState(creator, state.Society.Society.WorldTick,
+                dead.AgeAt(dead.GetAgent(creator), state.Society.Society.WorldTick), physical)],
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new CandidateProvider("nobody", "never"));
@@ -202,7 +202,7 @@ public sealed class AgentKnowledgeTests
             file.Save(world);
             using var restored = file.LoadOrCreate(state.WorldSeed);
             var snapshot = new OwnerWorldObservationStore(restored).GetSnapshot();
-            Assert.Single(snapshot.Inhabitants.Single(person => person.Id == inherited.OwnerId).KnowledgeArtifacts);
+            Assert.Single(snapshot.Agents.Single(person => person.Id == inherited.OwnerId).KnowledgeArtifacts);
             Assert.Equal(artifact.CreatorId, restored.ExportState().Knowledge!.Artifacts.Single().CreatorId);
         }
         finally { directory.Delete(recursive: true); }
@@ -213,12 +213,12 @@ public sealed class AgentKnowledgeTests
     {
         using var seed = new WorldRuntime("personal-map-records");
         var initial = seed.ExportState();
-        var explorerId = initial.Inhabitants[0].InhabitantId;
+        var explorerId = initial.Agents[0].AgentId;
         initial = WithWritingPaper(initial, explorerId);
         var provider = new CandidateProvider(explorerId, "explore");
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
+            Agents = initial.Agents.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
         }, _ => provider);
 
         for (var tick = 0; tick < 75; tick++)
@@ -234,8 +234,8 @@ public sealed class AgentKnowledgeTests
         Assert.All(artifacts, artifact => Assert.InRange(artifact.Facts.Count, 1, 9));
         Assert.DoesNotContain(saved.Knowledge.Facts, fact => fact.OwnerId != explorerId);
         Assert.NotEmpty(provider.KnownMapFactsByAgent[explorerId]);
-        Assert.All(saved.Inhabitants.Where(person => person.InhabitantId != explorerId), person =>
-            Assert.Empty(provider.KnownMapFactsByAgent.GetValueOrDefault(person.InhabitantId) ?? []));
+        Assert.All(saved.Agents.Where(person => person.AgentId != explorerId), person =>
+            Assert.Empty(provider.KnownMapFactsByAgent.GetValueOrDefault(person.AgentId) ?? []));
         Assert.All(artifacts, artifact => Assert.Equal(artifact.Kind,
             saved.Society.Society.Inventory.GetLot(artifact.LotId).ItemKind));
 
@@ -251,17 +251,17 @@ public sealed class AgentKnowledgeTests
     {
         using var seed = new WorldRuntime("shared-field-record");
         var state = seed.ExportState();
-        var sourceId = state.Inhabitants[0].InhabitantId;
-        var recipientId = state.Inhabitants[1].InhabitantId;
-        var otherId = state.Inhabitants[2].InhabitantId;
-        state = WithArtifact(state, sourceId, state.Inhabitants[0].Position);
-        var sourcePosition = state.Inhabitants.Single(person => person.InhabitantId == sourceId).Position;
+        var sourceId = state.Agents[0].AgentId;
+        var recipientId = state.Agents[1].AgentId;
+        var otherId = state.Agents[2].AgentId;
+        state = WithArtifact(state, sourceId, state.Agents[0].Position);
+        var sourcePosition = state.Agents.Single(person => person.AgentId == sourceId).Position;
         var recipientPosition = state.Map.FootNeighbors(sourcePosition)
             .Where(state.Map.IsPassable)
-            .First(point => !state.Inhabitants.Any(person => person.InhabitantId != recipientId && person.Position == point));
+            .First(point => !state.Agents.Any(person => person.AgentId != recipientId && person.Position == point));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == recipientId
+            Agents = state.Agents.Select(person => person.AgentId == recipientId
                 ? person with { Position = recipientPosition } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, id => new CandidateProvider(
@@ -284,8 +284,8 @@ public sealed class AgentKnowledgeTests
             Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_knowledge_shared");
 
             var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-            var source = snapshot.Inhabitants.Single(item => item.Id == sourceId);
-            var recipient = snapshot.Inhabitants.Single(item => item.Id == recipientId);
+            var source = snapshot.Agents.Single(item => item.Id == sourceId);
+            var recipient = snapshot.Agents.Single(item => item.Id == recipientId);
             Assert.Single(source.KnowledgeArtifacts);
             Assert.Contains(recipient.RecentKnowledgeFacts, fact => fact.Acquisition == "shared" && fact.SourceAgentName == source.DisplayName);
             Assert.Empty(recipient.KnowledgeArtifacts);
@@ -308,17 +308,17 @@ public sealed class AgentKnowledgeTests
     {
         using var seed = new WorldRuntime("traded-field-map");
         var state = seed.ExportState();
-        var sellerId = state.Inhabitants[0].InhabitantId;
-        var buyerId = state.Inhabitants[1].InhabitantId;
-        var otherId = state.Inhabitants[2].InhabitantId;
-        state = WithArtifact(state, sellerId, state.Inhabitants[0].Position, kind);
+        var sellerId = state.Agents[0].AgentId;
+        var buyerId = state.Agents[1].AgentId;
+        var otherId = state.Agents[2].AgentId;
+        state = WithArtifact(state, sellerId, state.Agents[0].Position, kind);
         var artifact = Assert.Single(state.Knowledge!.Artifacts);
         state = SettlementTradeTests.AtTradeMeeting(state, sellerId, buyerId);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "trade-clothing-for-map", "clothing", buyerId, 2);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
             Society = state.Society with
             {
                 Society = state.Society.Society with { Inventory = inventory },
@@ -356,8 +356,8 @@ public sealed class AgentKnowledgeTests
     {
         using var seed = new WorldRuntime("knowledge-artifact-bound");
         var state = seed.ExportState();
-        var creatorId = state.Inhabitants[0].InhabitantId;
-        var position = state.Inhabitants[0].Position;
+        var creatorId = state.Agents[0].AgentId;
+        var position = state.Agents[0].Position;
         var terrain = state.Map.Tiles.Single(tile => tile.Position == position).Terrain.ToString();
         var fact = new AgentKnowledgeFact(
             $"knowledge-fact:{creatorId}:{position.X}:{position.Y}", creatorId, creatorId,
@@ -513,8 +513,8 @@ public sealed class AgentKnowledgeTests
             CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            KnownMapFactsByAgent[request.Observation.InhabitantId] = request.Observation.KnownMapFacts ?? [];
-            var selected = onlyTarget && request.Observation.InhabitantId != targetId
+            KnownMapFactsByAgent[request.Observation.AgentId] = request.Observation.KnownMapFacts ?? [];
+            var selected = onlyTarget && request.Observation.AgentId != targetId
                 ? null
                 : request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(PreferredPrefix, StringComparison.Ordinal))
                   ?? request.Observation.Candidates.FirstOrDefault(item => item.Id == "knowledge_continue");

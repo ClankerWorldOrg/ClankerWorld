@@ -13,11 +13,11 @@ public sealed class BuildingVariantRestaurantTests
         var fixture = await BuildingVariantTestWorld.BuildAsync("restaurant");
         var state = fixture.State;
         var restaurant = fixture.Building;
-        var buyer = state.Society.Society.Inhabitants.First(person =>
-            person.Status == SocietyInhabitantStatus.Active &&
+        var buyer = state.Society.Society.Agents.First(person =>
+            person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder &&
             person.HouseholdId != fixture.Household).Id;
-        var buyerHousehold = state.Society.Society.GetInhabitant(buyer).HouseholdId;
+        var buyerHousehold = state.Society.Society.GetAgent(buyer).HouseholdId;
         var recipe = state.WorldContent!.Recipes.Single(item =>
             item.WorkstationBuildingId == restaurant.DefinitionId &&
             item.Outputs.Any(output => output.ResourceId == "porridge"));
@@ -32,8 +32,8 @@ public sealed class BuildingVariantRestaurantTests
                 containerLotId: input.ResourceId == InventoryContainerRules.FreshWater ? jugId : null);
         inventory = InventoryAuthority.AddLot(inventory, paymentId, "wood", buyer, 1);
 
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != buyer &&
-                person.InhabitantId != fixture.Actor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != buyer &&
+                person.AgentId != fixture.Actor).Select(person => person.Position).ToHashSet();
         var footprints = state.WorldSimulation!.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(state.WorldContent!.Buildings.Single(definition =>
                 definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
@@ -42,11 +42,11 @@ public sealed class BuildingVariantRestaurantTests
             !occupied.Contains(point) && !footprints.Contains(point));
         state = BuildingVariantTestWorld.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == fixture.Actor ? restaurant.Position :
-                    person.InhabitantId == buyer ? buyerPosition : person.Position,
-                HungerBasisPoints = person.InhabitantId == buyer ? 6_000 : 10_000,
+                Position = person.AgentId == fixture.Actor ? restaurant.Position :
+                    person.AgentId == buyer ? buyerPosition : person.Position,
+                HungerBasisPoints = person.AgentId == buyer ? 6_000 : 10_000,
                 LastDecisionContext = null,
                 Project = null,
                 TravelCooldownTicks = 0,
@@ -71,7 +71,7 @@ public sealed class BuildingVariantRestaurantTests
 
         state = BuildingVariantTestWorld.Strict(cooking.ExportState()) with
         {
-            Inhabitants = cooking.ExportState().Inhabitants.Select(person =>
+            Agents = cooking.ExportState().Agents.Select(person =>
                 person with { LastDecisionContext = null }).ToArray(),
         };
         var buyerProvider = new VariantActionProvider(id => id == "business_shop:" + restaurant.InstanceId);
@@ -99,7 +99,7 @@ public sealed class BuildingVariantRestaurantTests
         Assert.Equal(saved, WorldRuntimeCodec.Encode(state));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         };
         var sellerProvider = new VariantActionProvider(id => id == "business_continue:" + offer.Id);
         using var settling = WorldRuntime.Restore(state, id =>
@@ -120,7 +120,7 @@ public sealed class BuildingVariantRestaurantTests
         foreach (var kind in new[] { "porridge", "wood" })
             Assert.Equal(beforeSale[kind], settling.Society.Inventory.Lots
                 .Where(lot => lot.ItemKind == kind).Sum(lot => lot.Quantity));
-        Assert.Equal(buyerHousehold, settling.Society.GetInhabitant(buyer).HouseholdId);
+        Assert.Equal(buyerHousehold, settling.Society.GetAgent(buyer).HouseholdId);
         settling.Validate();
     }
 }

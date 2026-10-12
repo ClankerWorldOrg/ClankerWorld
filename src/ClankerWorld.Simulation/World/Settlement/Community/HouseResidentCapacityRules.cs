@@ -20,7 +20,7 @@ public static class HouseResidentCapacityRules
     }
 
     public static Capacity Calculate(
-        IEnumerable<SocietyInhabitant> residents,
+        IEnumerable<SocietyAgent> residents,
         int footprintWidth,
         int footprintHeight)
     {
@@ -29,7 +29,7 @@ public static class HouseResidentCapacityRules
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(footprintHeight);
 
         var activeResidents = residents
-            .Where(person => person.Status == SocietyInhabitantStatus.Active)
+            .Where(person => person.Status == SocietyAgentStatus.Active)
             .ToArray();
         if (activeResidents.Any(person => string.IsNullOrWhiteSpace(person.DomesticFamilyUnitId)))
             throw new InvalidDataException("A House resident has no recorded domestic family unit.");

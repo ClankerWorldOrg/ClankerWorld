@@ -68,7 +68,7 @@ public sealed partial class WorldRuntime
                 {
                     foreach (var (id, pending) in pendingHosted.ToArray())
                     {
-                        if (!society.Checkpoint.Inhabitants.Any(person => person.Id == id && person.Status == SocietyInhabitantStatus.Active) ||
+                        if (!society.Checkpoint.Agents.Any(person => person.Id == id && person.Status == SocietyAgentStatus.Active) ||
                             society.CurrentProviderEpoch(id) != pending.Request.ProviderEpoch ||
                             !IsOrderDecisionObservationCurrent(pending.Request.Observation))
                         {
@@ -109,9 +109,9 @@ public sealed partial class WorldRuntime
                 ReconcilePendingConversationTurns();
                 ReconcileIdentityMoments();
                 completedIdentityMoments = pendingIdentityMoments.Values.Where(item => item.Task.IsCompleted).ToArray();
-                retainedIdentityIds = pendingIdentityMoments.Keys.Except(completedIdentityMoments.Select(item => item.Request.Observation.InhabitantId),
+                retainedIdentityIds = pendingIdentityMoments.Keys.Except(completedIdentityMoments.Select(item => item.Request.Observation.AgentId),
                     StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
-                retainedHostedIds = pendingHosted.Keys.Except(completed.Select(item => item.Request.Observation.InhabitantId),
+                retainedHostedIds = pendingHosted.Keys.Except(completed.Select(item => item.Request.Observation.AgentId),
                     StringComparer.Ordinal).ToHashSet(StringComparer.Ordinal);
                 completedConversationTurns = pendingConversationTurns.Values
                     .Where(item => item.Task.IsCompleted).ToArray();
@@ -131,8 +131,8 @@ public sealed partial class WorldRuntime
             var tickTimer = System.Diagnostics.Stopwatch.StartNew();
             if (replayRefusal is not null && (replayRefusal.RefusedTick != checked(baseline.Society.Society.WorldTick + 1) ||
                 replayRefusal.RetryAfterTick - replayRefusal.RefusedTick != baseline.WorldSystems!.Config.TicksPerDay ||
-                !baseline.Society.Society.Inhabitants.Any(person => person.Id == replayRefusal.InhabitantId &&
-                    person.Status == SocietyInhabitantStatus.Active)))
+                !baseline.Society.Society.Agents.Any(person => person.Id == replayRefusal.AgentId &&
+                    person.Status == SocietyAgentStatus.Active)))
                 throw new InvalidDataException("The replayed refusal does not belong to this tick.");
             var recorder = failurePolicy == WorldTickFailurePolicy.RefuseSingleAction
                 ? new TickInputRecorder(providerFactory) : null;
@@ -194,8 +194,8 @@ public sealed partial class WorldRuntime
                         if (refusal is not null)
                         {
                             if (replayRefusal is not null &&
-                                proposed.attemptedActions?.GetValueOrDefault(refusal.InhabitantId) != refusal.CandidateId &&
-                                !proposed.IsReplayChoice(refusal.InhabitantId, refusal.CandidateId))
+                                proposed.attemptedActions?.GetValueOrDefault(refusal.AgentId) != refusal.CandidateId &&
+                                !proposed.IsReplayChoice(refusal.AgentId, refusal.CandidateId))
                                 throw new InvalidDataException("The refused choice does not match this actor's action.");
                             proposed.RecordActionRefusal(refusal);
                         }
@@ -220,12 +220,12 @@ public sealed partial class WorldRuntime
             try
             {
                 preparedTick = await PrepareAttemptAsync(replayRefusal is null ? null :
-                    new HashSet<string>([replayRefusal.InhabitantId], StringComparer.Ordinal), replayRefusal).ConfigureAwait(false);
+                    new HashSet<string>([replayRefusal.AgentId], StringComparer.Ordinal), replayRefusal).ConfigureAwait(false);
             }
             catch (Exception exception) when (recorder is not null && exception is not (OutOfMemoryException or OperationCanceledException))
             {
                 var check = ActionFailureCheck(exception);
-                var actors = baseline.Society.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active)
+                var actors = baseline.Society.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active)
                     .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
                 WorldStepResult? interruption = null;
                 var differentFault = false;
@@ -296,7 +296,7 @@ public sealed partial class WorldRuntime
                     lastTickMilliseconds = Math.Round(tickTimer.Elapsed.TotalMilliseconds, 1);
                     foreach (var item in completedIdentityMoments)
                     {
-                        pendingIdentityMoments.Remove(item.Request.Observation.InhabitantId);
+                        pendingIdentityMoments.Remove(item.Request.Observation.AgentId);
                         item.Cancellation.Dispose();
                     }
                     if (writeFailure is null && (commitPermitted is null || commitPermitted()))
@@ -310,7 +310,7 @@ public sealed partial class WorldRuntime
                             CancelPendingWill(id);
                         foreach (var item in completed)
                         {
-                            pendingHosted.Remove(item.Request.Observation.InhabitantId);
+                            pendingHosted.Remove(item.Request.Observation.AgentId);
                             item.Cancellation.Dispose();
                         }
                         foreach (var item in completedWills)
@@ -328,7 +328,7 @@ public sealed partial class WorldRuntime
                             pendingWillCancellationReasons.Remove(id);
                         if (writeFailure is null && (commitPermitted is null || commitPermitted())) StartWillDecisions();
                         if (writeFailure is null && (commitPermitted is null || commitPermitted()))
-                            StartHostedDecisions(completed.Select(item => item.Request.Observation.InhabitantId));
+                            StartHostedDecisions(completed.Select(item => item.Request.Observation.AgentId));
                     }
                     else
                     {
@@ -357,7 +357,7 @@ public sealed partial class WorldRuntime
         // Applying a reply can change its actor's choices. Refresh any retained
         // work in the next prepared tick before spending another model call.
         var excluded = pendingHosted.Keys.Concat(pendingIdentityMoments.Keys).Concat(completedIds)
-            .Concat(inhabitants.Keys.Where(id => IsConversationBusy(id) && !ShouldDispatchConversationChoice(id)))
+            .Concat(agents.Keys.Where(id => IsConversationBusy(id) && !ShouldDispatchConversationChoice(id)))
             .ToHashSet(StringComparer.Ordinal);
         // A turn or another participant's decision can change the conversation
         // after this tick's observation was queued. Defer it before batching.
@@ -378,36 +378,36 @@ public sealed partial class WorldRuntime
                         CognitionProviderFailures.FromException(exception, cancellation.Token));
                 }
             });
-            pendingHosted.Add(preview.InhabitantId, new PendingHostedDecision(preview.Request, task, cancellation,
-                inhabitants[preview.InhabitantId].LastDecisionContext));
-            RecordModelAttempt(preview.InhabitantId, "waiting");
-            AppendEvent("hosted_decision_started", preview.InhabitantId);
+            pendingHosted.Add(preview.AgentId, new PendingHostedDecision(preview.Request, task, cancellation,
+                agents[preview.AgentId].LastDecisionContext));
+            RecordModelAttempt(preview.AgentId, "waiting");
+            AppendEvent("hosted_decision_started", preview.AgentId);
         }
     }
 
     // Queued work with no call in flight is rebuilt before dispatch, except an
     // order that finished before the model ever saw it: its exact message is still sent.
-    private bool IsQueuedObservationReady(InhabitantObservation observation) =>
+    private bool IsQueuedObservationReady(AgentObservation observation) =>
         IsUndeliveredFinishedOrderDecision(observation) ||
         observation.WorldTick == WorldTick &&
         string.Equals(observation.ConversationChoiceContext,
-            ConversationChoiceContextFor(observation.InhabitantId), StringComparison.Ordinal);
+            ConversationChoiceContextFor(observation.AgentId), StringComparison.Ordinal);
 
     /// <summary>
     /// For tests: whether each named agent's model call has finished, so the
     /// next tick admits all of them together.
     /// </summary>
-    internal bool HostedDecisionsFinished(params string[] inhabitantIds)
+    internal bool HostedDecisionsFinished(params string[] agentIds)
     {
         gate.Wait();
-        try { return inhabitantIds.All(id => pendingHosted.TryGetValue(id, out var pending) && pending.Task.IsCompleted); }
+        try { return agentIds.All(id => pendingHosted.TryGetValue(id, out var pending) && pending.Task.IsCompleted); }
         finally { gate.Release(); }
     }
 
-    private void CancelPendingHosted(string inhabitantId, bool underRuntimeGate = true)
+    private void CancelPendingHosted(string agentId, bool underRuntimeGate = true)
     {
-        if (!pendingHosted.Remove(inhabitantId, out var pending)) return;
-        RecordModelAttempt(inhabitantId, "canceled");
+        if (!pendingHosted.Remove(agentId, out var pending)) return;
+        RecordModelAttempt(agentId, "canceled");
         CancelProviderCall(pending.Cancellation, underRuntimeGate);
         _ = pending.Task.ContinueWith(_ => pending.Cancellation.Dispose(), TaskScheduler.Default);
     }
@@ -446,8 +446,8 @@ public sealed partial class WorldRuntime
         worldContent = proposed.worldContent;
         worldSimulation = proposed.worldSimulation;
         assetReservations = proposed.assetReservations;
-        inhabitants = proposed.inhabitants;
-        deceasedInhabitants = proposed.deceasedInhabitants;
+        agents = proposed.agents;
+        deceasedAgents = proposed.deceasedAgents;
         resources = proposed.resources;
         knowledge = proposed.knowledge;
         instructionsByIdempotency = proposed.instructionsByIdempotency;
@@ -680,10 +680,10 @@ public sealed partial class WorldRuntime
             if (deferHosted)
             {
                 foreach (var item in completed.OrderBy(
-                             item => item.Request.Observation.InhabitantId, StringComparer.Ordinal))
+                             item => item.Request.Observation.AgentId, StringComparer.Ordinal))
                 {
-                    var id = item.Request.Observation.InhabitantId;
-                    if (!inhabitants.TryGetValue(id, out var physical)) continue;
+                    var id = item.Request.Observation.AgentId;
+                    if (!agents.TryGetValue(id, out var physical)) continue;
                     var outcome = await item.Task.ConfigureAwait(false);
                     var request = item.Request;
                     var completedRequestedOrder = IsFinishedOrderDecisionAwaitingReply(request.Observation);
@@ -715,12 +715,12 @@ public sealed partial class WorldRuntime
                             {
                                 Provider: DecisionProviderKind.LargeLanguageModel,
                                 PrivateThought: { } thought
-                            } && inhabitants.TryGetValue(id, out var thinking))
+                            } && agents.TryGetValue(id, out var thinking))
                         {
-                            inhabitants[id] = thinking with
+                            agents[id] = thinking with
                             {
                                 RecentThoughts = (thinking.RecentThoughts ?? [])
-                                    .Append(new InhabitantThought(targetTick, thought))
+                                    .Append(new AgentThought(targetTick, thought))
                                     .TakeLast(MaximumRecentThoughts).ToArray(),
                             };
                             checkpointSchemaVersion = StateSchemaVersion;
@@ -728,7 +728,7 @@ public sealed partial class WorldRuntime
                         if (outcome.Response is { } response)
                             ApplyChosenNameOutcome(item.Request, response, decision.Admission);
                         CloseUnresolvedNameRetry(item.Request);
-                        if (physical.IdentityChoicePending && inhabitants[id] is { IdentityChoicePending: false } identified)
+                        if (physical.IdentityChoicePending && agents[id] is { IdentityChoicePending: false } identified)
                             society.CompleteQueuedIdentityChoice(id, identified.Personality, identified.Aspiration);
                         deferredDecisions.Add(decision);
                         AppendEvent("hosted_decision_completed", $"{id}:{decision.Admission.Outcome}");
@@ -742,23 +742,23 @@ public sealed partial class WorldRuntime
             }
             var dispatch = deferHosted
                 ? await society.DispatchDeterministicCognitionAsync(
-                    activeHostedIds.Concat(inhabitants.Keys.Where(id =>
+                    activeHostedIds.Concat(agents.Keys.Where(id =>
                             IsConversationBusy(id) && !ShouldDispatchConversationChoice(id)))
                         .ToHashSet(StringComparer.Ordinal), IsQueuedObservationReady, cancellationToken).ConfigureAwait(false)
                 : await society.DispatchCognitionAsync(cancellationToken).ConfigureAwait(false);
             var decisions = deferredDecisions.Concat(dispatch.Decisions)
-                .OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray();
+                .OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray();
             foreach (var decision in decisions)
             {
                 ApplyDecision(decision);
             }
-            var waiting = deferHosted ? society.PendingHostedInhabitantIds() : new HashSet<string>(StringComparer.Ordinal);
+            var waiting = deferHosted ? society.PendingHostedAgentIds() : new HashSet<string>(StringComparer.Ordinal);
             var orderActorsHandledThisTick = ApplyContinuingIntentions(
-                decisions.Select(item => item.InhabitantId), waiting);
+                decisions.Select(item => item.AgentId), waiting);
             AdvanceMedicalTreatments();
             ReconcileMedicalSupplyTrips();
             // An agent whose reply was accepted this tick already acted, even if newer work stays queued.
-            if (deferHosted) ApplySafeRoutinesWhileWaiting(waiting.Except(decisions.Select(item => item.InhabitantId), StringComparer.Ordinal), orderActorsHandledThisTick);
+            if (deferHosted) ApplySafeRoutinesWhileWaiting(waiting.Except(decisions.Select(item => item.AgentId), StringComparer.Ordinal), orderActorsHandledThisTick);
             ReconcileGuardianPlacements();
             AdvanceGuardianPlacementFollowers(orderActorsHandledThisTick);
             AdvanceBridgeTraffic();

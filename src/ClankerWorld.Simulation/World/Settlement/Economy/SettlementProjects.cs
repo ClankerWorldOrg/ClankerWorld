@@ -329,28 +329,28 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private bool CanContinueProject(InhabitantState state, bool waitingForModel = false) =>
-        AdultResident(state.InhabitantId) &&
+    private bool CanContinueProject(AgentState state, bool waitingForModel = false) =>
+        AdultResident(state.AgentId) &&
         state.Project is { Stage: not ("completed" or "cancelled") } project &&
         state.Exploration is not { OutingPath.Count: > 0, Goal: not null } &&
         project.OrderInstructionId is null &&
         !project.RequiresFreshChoice &&
         (project.Stage != "blocked" || WorldTick - project.LastTransitionTick < BlockedProjectRetryDelayTicks) &&
         !NeedsUrgentFood(state) &&
-        (waitingForModel || !HasTradeResponse(state.InhabitantId) &&
-        !HasCouncilDecision(state.InhabitantId) &&
-        !HasHousingDecision(state.InhabitantId) &&
-        !HasFamilyDecision(state.InhabitantId) &&
-        !HasParenthoodDecision(state.InhabitantId) &&
-        !HasDependentCareDecision(state.InhabitantId) &&
-        !HasLearningDecision(state.InhabitantId) &&
-        !inhabitants.Keys.Any(other => TradeOpportunity(state.InhabitantId, other) is not null)) &&
+        (waitingForModel || !HasTradeResponse(state.AgentId) &&
+        !HasCouncilDecision(state.AgentId) &&
+        !HasHousingDecision(state.AgentId) &&
+        !HasFamilyDecision(state.AgentId) &&
+        !HasParenthoodDecision(state.AgentId) &&
+        !HasDependentCareDecision(state.AgentId) &&
+        !HasLearningDecision(state.AgentId) &&
+        !agents.Keys.Any(other => TradeOpportunity(state.AgentId, other) is not null)) &&
         (!NeedsUrgentWarmth(state) || IsProtectiveProject(state.Project)) &&
-        PendingInstructionFor(state.InhabitantId) is null;
+        PendingInstructionFor(state.AgentId) is null;
 
-    private bool PauseExpiredUnfillableHouseholdRecipeProject(string inhabitantId)
+    private bool PauseExpiredUnfillableHouseholdRecipeProject(string agentId)
     {
-        if (inhabitants[inhabitantId].Project is not
+        if (agents[agentId].Project is not
             {
                 Stage: "blocked",
                 JobId: null,
@@ -360,14 +360,14 @@ public sealed partial class WorldRuntime
             return false;
 
         var recipe = worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selection.DefinitionId);
-        if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out _, inhabitantId) ||
+        if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out _, agentId) ||
             worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == siteId) is not
             { HouseholdId: { } householdId } building ||
             !worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
                 definition.Tags.Any(IsHouseholdBuildingTag)) ||
             HasIngredientsAtBuilding(recipe.Inputs, householdId, building.InstanceId) ||
             worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? []).Any(job =>
-                job.WorkerId == inhabitantId && job.RecipeId == recipe.CanonicalId &&
+                job.WorkerId == agentId && job.RecipeId == recipe.CanonicalId &&
                 job.State == WorldProductionJobState.Running))
             return false;
 
@@ -379,7 +379,7 @@ public sealed partial class WorldRuntime
         if (HasActionableProjectInputSupply(householdId, building, missingKinds))
             return false;
 
-        SetProject(inhabitantId, project with
+        SetProject(agentId, project with
         {
             Stage = "paused",
             Blocker = FreshChoicePauseBlocker,
@@ -392,12 +392,12 @@ public sealed partial class WorldRuntime
         HashSet<string> missingKinds)
     {
         if (missingKinds.Count == 0) return false;
-        var residents = society.Checkpoint.Inhabitants.Where(person => person.HouseholdId == householdId &&
-                person.Status == SocietyInhabitantStatus.Active && AdultResident(person.Id))
+        var residents = society.Checkpoint.Agents.Where(person => person.HouseholdId == householdId &&
+                person.Status == SocietyAgentStatus.Active && AdultResident(person.Id))
             .Select(person => person.Id).ToArray();
         foreach (var resident in residents)
         {
-            foreach (var candidate in CreateCandidates(resident, inhabitants[resident]))
+            foreach (var candidate in CreateCandidates(resident, agents[resident]))
             {
                 if (candidate.Id.StartsWith(SupplyWorkstationPrefix, StringComparison.Ordinal) &&
                     candidate.DestinationId == building.InstanceId &&
@@ -429,7 +429,7 @@ public sealed partial class WorldRuntime
         return false;
     }
 
-    private void BeginProject(string inhabitantId, InhabitantState state, string candidateId, string? toolMakingRequestId = null)
+    private void BeginProject(string agentId, AgentState state, string candidateId, string? toolMakingRequestId = null)
     {
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selected))
             return;
@@ -451,8 +451,8 @@ public sealed partial class WorldRuntime
                         RequiresFreshChoice = false,
                     },
                 };
-                inhabitants[inhabitantId] = state;
-                AppendEvent("project_fresh_choice_resumed", $"{inhabitantId}:{candidateId}");
+                agents[agentId] = state;
+                AppendEvent("project_fresh_choice_resumed", $"{agentId}:{candidateId}");
             }
             else if (existing.CandidateId != candidateId)
             {
@@ -466,15 +466,15 @@ public sealed partial class WorldRuntime
                         LastTransitionTick = WorldTick,
                     },
                 };
-                inhabitants[inhabitantId] = state;
-                AppendEvent("project_site_reselected", $"{inhabitantId}:{selected.DefinitionId}");
+                agents[agentId] = state;
+                AppendEvent("project_site_reselected", $"{agentId}:{selected.DefinitionId}");
             }
             else if (existing.Stage == "blocked")
             {
                 state = state with { Project = existing with { LastTransitionTick = WorldTick } };
-                inhabitants[inhabitantId] = state;
+                agents[agentId] = state;
             }
-            ContinueProject(inhabitantId, state);
+            ContinueProject(agentId, state);
             return;
         }
 
@@ -483,10 +483,10 @@ public sealed partial class WorldRuntime
         if (selected.IsBuilding &&
             worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == definitionId) is { } planned &&
             HouseholdBuildingKind(planned) is { } plannedKind &&
-            society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId is { } planningHousehold &&
+            society.Checkpoint.GetAgent(agentId).HouseholdId is { } planningHousehold &&
             HouseholdBuildingProjectInProgress(planningHousehold, plannedKind))
         {
-            AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:household_plan_in_progress");
+            AppendEvent("build_rejected", $"{agentId}:{candidateId}:household_plan_in_progress");
             return;
         }
         var label = selected.IsBuilding
@@ -495,20 +495,20 @@ public sealed partial class WorldRuntime
         if (label is null)
             return;
         state = state with { Project = new SettlementProject(candidateId, label, WorldTick, "acquiring", LastTransitionTick: WorldTick, ToolMakingRequestId: toolMakingRequestId) };
-        inhabitants[inhabitantId] = state;
-        AppendEvent("project_chosen", $"{inhabitantId}:{candidateId}");
-        ContinueProject(inhabitantId, state);
+        agents[agentId] = state;
+        AppendEvent("project_chosen", $"{agentId}:{candidateId}");
+        ContinueProject(agentId, state);
     }
 
-    private void ContinueProject(string inhabitantId, InhabitantState state)
+    private void ContinueProject(string agentId, AgentState state)
     {
         var project = state.Project!;
-        RecordAttemptedAction(inhabitantId, project.CandidateId);
+        RecordAttemptedAction(agentId, project.CandidateId);
         if (project.JobId is not null)
         {
             var job = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
                 .FirstOrDefault(item => item.JobId == project.JobId);
-            SetProject(inhabitantId, project with
+            SetProject(agentId, project with
             {
                 Stage = job?.State switch { WorldProductionJobState.Running => "waiting", WorldProductionJobState.Completed => "completed", _ => "cancelled" },
                 Blocker = job is null || job.State == WorldProductionJobState.Cancelled ? "Production was removed or cancelled" : null,
@@ -518,7 +518,7 @@ public sealed partial class WorldRuntime
 
         if (!TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection))
         {
-            SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "The construction choice is invalid" });
+            SetProject(agentId, project with { Stage = "cancelled", Blocker = "The construction choice is invalid" });
             return;
         }
         var definitionId = selection.DefinitionId;
@@ -526,49 +526,49 @@ public sealed partial class WorldRuntime
         var recipe = selection.IsBuilding ? null : worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == definitionId);
         if (building is null && recipe is null)
         {
-            SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "Content is no longer active" });
+            SetProject(agentId, project with { Stage = "cancelled", Blocker = "Content is no longer active" });
             return;
         }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)
         {
-            var householdId = society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId;
+            var householdId = society.Checkpoint.GetAgent(agentId).HouseholdId;
             if (householdId is null)
             {
-                SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "A household is required to own a House." });
+                SetProject(agentId, project with { Stage = "cancelled", Blocker = "A household is required to own a House." });
                 return;
             }
             if (HouseForHousehold(householdId) is not null)
             {
-                SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "This household already has a House." });
+                SetProject(agentId, project with { Stage = "cancelled", Blocker = "This household already has a House." });
                 return;
             }
         }
         if (building is not null && HouseholdBuildingKind(building) is { } kind && kind != "house")
         {
-            var householdId = society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId;
+            var householdId = society.Checkpoint.GetAgent(agentId).HouseholdId;
             if (householdId is null)
             {
-                SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "A household is required to hold this building." });
+                SetProject(agentId, project with { Stage = "cancelled", Blocker = "A household is required to hold this building." });
                 return;
             }
             if (HouseholdBuildingWithTag(householdId, kind) is not null)
             {
-                SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = $"This household already holds a {building.DisplayName}." });
+                SetProject(agentId, project with { Stage = "cancelled", Blocker = $"This household already holds a {building.DisplayName}." });
                 return;
             }
             if (kind == "silo" && FarmhouseForHousehold(householdId) is null)
             {
-                SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "Only the household holding a Farmhouse builds a Silo." });
+                SetProject(agentId, project with { Stage = "cancelled", Blocker = "Only the household holding a Farmhouse builds a Silo." });
                 return;
             }
         }
         if (building?.Tags.Contains("warehouse", StringComparer.Ordinal) == true &&
-            (TownForResident(inhabitantId) is not { } townId ||
+            (TownForResident(agentId) is not { } townId ||
              worldSimulation.Buildings.Any(placed => placed.TownId == townId &&
                  worldContent.Buildings.Any(definition => definition.CanonicalId == placed.DefinitionId &&
                      definition.Tags.Contains("warehouse", StringComparer.Ordinal)))))
         {
-            SetProject(inhabitantId, project with
+            SetProject(agentId, project with
             {
                 Stage = "cancelled",
                 Blocker = "This Town already has a Warehouse, or the builder is no longer a resident.",
@@ -580,44 +580,44 @@ public sealed partial class WorldRuntime
         GridPoint? inputWorkSite = selection.SitePosition;
         if (recipe is not null)
         {
-            if (!TryFindRecipeSite(recipe, out var recipeSite, out var recipePosition, inhabitantId))
+            if (!TryFindRecipeSite(recipe, out var recipeSite, out var recipePosition, agentId))
             {
-                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
+                SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
                 return;
             }
             recipeBuilding = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == recipeSite);
             inputWorkSite = recipePosition;
         }
-        var constructionOwner = recipe is not null ? IsHandcartRecipe(recipe) ? inhabitantId : ProductionOwnerFor(recipeBuilding, inhabitantId)
-            : BuildingConstructionOwner(inhabitantId, building!);
+        var constructionOwner = recipe is not null ? IsHandcartRecipe(recipe) ? agentId : ProductionOwnerFor(recipeBuilding, agentId)
+            : BuildingConstructionOwner(agentId, building!);
         if (recipe is not null && !IsHandcartRecipe(recipe) && recipeBuilding?.HouseholdId is not null &&
             worldContent.Buildings.Any(definition => definition.CanonicalId == recipeBuilding.DefinitionId &&
                 definition.Tags.Any(IsHouseholdBuildingTag)) &&
             !HasIngredientsAtBuilding(recipe.Inputs, constructionOwner, recipeBuilding.InstanceId))
         {
-            if (FinishProjectHouseholdDelivery(inhabitantId, state))
+            if (FinishProjectHouseholdDelivery(agentId, state))
                 return;
-            SetProject(inhabitantId, project with { Stage = "blocked", Blocker = MissingProductionIngredients(recipe, constructionOwner, recipeBuilding.InstanceId) });
+            SetProject(agentId, project with { Stage = "blocked", Blocker = MissingProductionIngredients(recipe, constructionOwner, recipeBuilding.InstanceId) });
             return;
         }
         var missing = inputs.FirstOrDefault(input => !HasAvailableQuantities([input], constructionOwner));
         if (missing.Amount > 0)
         {
-            if (FinishProjectHouseholdDelivery(inhabitantId, state))
+            if (FinishProjectHouseholdDelivery(agentId, state))
                 return;
-            if (constructionOwner == inhabitantId && inputWorkSite is null && building is not null)
+            if (constructionOwner == agentId && inputWorkSite is null && building is not null)
             {
                 var rankedInputSites = TownLayoutService.RankConstructionSites(
-                    CreateTownLayoutContext(inhabitantId, null, building), building);
+                    CreateTownLayoutContext(agentId, null, building), building);
                 if (rankedInputSites.Count > 0) inputWorkSite = rankedInputSites[0].Position;
             }
-            AcquireProjectInput(inhabitantId, state, missing, constructionOwner, inputWorkSite);
+            AcquireProjectInput(agentId, state, missing, constructionOwner, inputWorkSite);
             return;
         }
         GridPoint position;
         if (building is not null)
         {
-            var layout = CreateTownLayoutContext(inhabitantId, selection.SitePosition, building);
+            var layout = CreateTownLayoutContext(agentId, selection.SitePosition, building);
             if (selection.SitePosition is { } selectedSite)
             {
                 if (!TownLayoutService.TryEvaluateConstructionSite(layout, building, selectedSite, out _))
@@ -626,7 +626,7 @@ public sealed partial class WorldRuntime
                         ? "The selected site is no longer legal; fresh ranked choices return after 60 ticks."
                         : "The ordered construction site is no longer legal.";
                     var newlyRejected = project.Stage != "blocked" || project.Blocker != blocker;
-                    SetProject(inhabitantId, project with
+                    SetProject(agentId, project with
                     {
                         Stage = "blocked",
                         Blocker = blocker,
@@ -634,7 +634,7 @@ public sealed partial class WorldRuntime
                     if (newlyRejected)
                     {
                         AppendEvent("town_layout_site_rejected",
-                            $"{TownForResident(inhabitantId) ?? "none"}|{inhabitantId}|{building.CanonicalId}|{selectedSite.X}|{selectedSite.Y}|site_unavailable");
+                            $"{TownForResident(agentId) ?? "none"}|{agentId}|{building.CanonicalId}|{selectedSite.X}|{selectedSite.Y}|site_unavailable");
                     }
                     return;
                 }
@@ -646,62 +646,62 @@ public sealed partial class WorldRuntime
                 // included a site. Preserve them by assigning the current top
                 // legal option once, then persist that exact choice.
                 project = project with { CandidateId = TownConstructionCandidateIds.Building(building.CanonicalId, rankedSites[0].Position) };
-                SetProject(inhabitantId, project);
+                SetProject(agentId, project);
                 position = rankedSites[0].Position;
             }
             else
             {
-                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = "No legal Town construction site is currently available. " + HousingBlockers.LandRecoveryGuidance });
+                SetProject(agentId, project with { Stage = "blocked", Blocker = "No legal Town construction site is currently available. " + HousingBlockers.LandRecoveryGuidance });
                 return;
             }
         }
-        else if (!TryFindRecipeSite(recipe!, out _, out position, inhabitantId))
+        else if (!TryFindRecipeSite(recipe!, out _, out position, agentId))
         {
-            SetProject(inhabitantId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
+            SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
             return;
         }
         if (state.Position != position)
         {
-            SetProject(inhabitantId, project with { Stage = "travelling", Blocker = null });
-            MoveToward(inhabitantId, inhabitants[inhabitantId], position, "project");
+            SetProject(agentId, project with { Stage = "travelling", Blocker = null });
+            MoveToward(agentId, agents[agentId], position, "project");
             return;
         }
         if (project.WorkDone < ProjectWorkTicks)
         {
-            if (!SettlementIllnessRules.AllowsWork(inhabitantId, WorldTick,
+            if (!SettlementIllnessRules.AllowsWork(agentId, WorldTick,
                     state.Survival?.IllnessBasisPoints ?? 0))
             {
-                SetProject(inhabitantId, project with { Stage = "working", Blocker = null });
+                SetProject(agentId, project with { Stage = "working", Blocker = null });
                 return;
             }
             var hammer = ToolProgressionRules.PlanWork(society.Checkpoint.Inventory,
-                inhabitantId, ToolFamily.Hammer);
+                agentId, ToolFamily.Hammer);
             var work = (hammer?.WorkUnits ?? 1) + ProjectPracticeBonus(state, project);
             if (hammer is not null)
-                ApplyToolWork(inhabitantId, hammer);
-            var done = SkilledWorkProgress(inhabitantId,
+                ApplyToolWork(agentId, hammer);
+            var done = SkilledWorkProgress(agentId,
                 building is not null ? SettlementSkillKind.Building : SkillForRecipe(recipe!), project.WorkDone, work);
-            SetProject(inhabitantId, project with { Stage = "working", WorkDone = Math.Min(ProjectWorkTicks, done), Blocker = null });
+            SetProject(agentId, project with { Stage = "working", WorkDone = Math.Min(ProjectWorkTicks, done), Blocker = null });
             return;
         }
-        ApplyBuildDecision(inhabitantId, state, project.CandidateId);
+        ApplyBuildDecision(agentId, state, project.CandidateId);
         if (building is not null && (project.OrderInstructionId is { } orderId
                 ? (worldSimulation.ConstructionReceipts ?? []).Any(receipt => receipt.InstructionId == orderId)
-                : worldSimulation.Buildings.Any(item => item.InstanceId == BuildInstanceId(inhabitantId, building))))
+                : worldSimulation.Buildings.Any(item => item.InstanceId == BuildInstanceId(agentId, building))))
         {
-            SetProject(inhabitantId, project with { Stage = "completed", Blocker = null });
+            SetProject(agentId, project with { Stage = "completed", Blocker = null });
         }
         else if (recipe is not null)
         {
             var job = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
-                .FirstOrDefault(item => item.WorkerId == inhabitantId && item.StartedTick == WorldTick && item.RecipeId == definitionId && (project.ToolMakingRequestId is null || item.ToolMakingRequestId == project.ToolMakingRequestId));
+                .FirstOrDefault(item => item.WorkerId == agentId && item.StartedTick == WorldTick && item.RecipeId == definitionId && (project.ToolMakingRequestId is null || item.ToolMakingRequestId == project.ToolMakingRequestId));
             if (job is not null)
             {
-                SetProject(inhabitantId, project with { Stage = "waiting", JobId = job.JobId, Blocker = null });
+                SetProject(agentId, project with { Stage = "waiting", JobId = job.JobId, Blocker = null });
             }
             else
             {
-                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = "Production could not start; waiting to retry" });
+                SetProject(agentId, project with { Stage = "blocked", Blocker = "Production could not start; waiting to retry" });
             }
         }
     }
@@ -712,15 +712,15 @@ public sealed partial class WorldRuntime
     /// keep their turn instead of losing it to new starts every time it frees.
     /// </summary>
     private bool AnotherAgentWaitsForWorkSite(string actor, RecipeDefinition recipe) =>
-        inhabitants.Values.Any(other => other.InhabitantId != actor &&
+        agents.Values.Any(other => other.AgentId != actor &&
             other.Project is { Stage: "blocked", Blocker: WaitingForWorkSiteBlocker } waiting &&
             TownConstructionCandidateIds.TryParse(waiting.CandidateId, out var selection) && !selection.IsBuilding &&
             worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selection.DefinitionId) is { } queued &&
             (queued.IsCrop ? recipe.IsCrop : !recipe.IsCrop && queued.WorkstationBuildingId == recipe.WorkstationBuildingId));
 
-    private bool FinishProjectHouseholdDelivery(string actor, InhabitantState state)
+    private bool FinishProjectHouseholdDelivery(string actor, AgentState state)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             CarriedHouseDelivery(actor) is not { } carried || carried.OwnerId != actor ||
             worldSimulation.Buildings.SingleOrDefault(building => building.InstanceId == carried.DeliveryBuildingId &&
                 building.HouseholdId == householdId) is not { } destination)
@@ -738,92 +738,92 @@ public sealed partial class WorldRuntime
             FindUnoccupiedRoute(actor, state.Position, destination.Position, 0).Count == 0)
             return false;
         SetProject(actor, state.Project! with { Stage = "delivering", Blocker = "Completing the household supply delivery" });
-        HaulHouseholdStock(actor, inhabitants[actor]);
+        HaulHouseholdStock(actor, agents[actor]);
         return true;
     }
 
-    private void AcquireProjectInput(string inhabitantId, InhabitantState state,
+    private void AcquireProjectInput(string agentId, AgentState state,
         ContentQuantity input, string constructionOwner, GridPoint? personalWorkSite)
     {
         var project = state.Project!;
         // Only the agent's own goods; borrowed household goods are not theirs to give.
-        var carried = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.OwnerId == inhabitantId &&
-            PersonalEquipmentRules.IsCarried(lot, inhabitantId) &&
+        var carried = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.OwnerId == agentId &&
+            PersonalEquipmentRules.IsCarried(lot, agentId) &&
             lot.ContainerLotId is null && lot.ItemKind == input.ResourceId && lot.DeliveryBuildingId is null &&
             AvailableLotQuantity(lot) > 0);
-        if (carried is not null && constructionOwner != inhabitantId)
+        if (carried is not null && constructionOwner != agentId)
         {
-            var house = society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId == constructionOwner
+            var house = society.Checkpoint.GetAgent(agentId).HouseholdId == constructionOwner
                 ? HouseForHousehold(constructionOwner) : null;
             var store = house?.Position ?? SettlementStoragePosition;
             var interactionRange = house is null ? ResourceInteractionRange : 0;
-            SetProject(inhabitantId, project with { Stage = "delivering", Blocker = $"Taking {input.ResourceId} to household storage" });
+            SetProject(agentId, project with { Stage = "delivering", Blocker = $"Taking {input.ResourceId} to household storage" });
             if (!IsWithinInteractionRange(state.Position, store, interactionRange))
             {
-                MoveToward(inhabitantId, inhabitants[inhabitantId], store, "deliver", interactionRange);
+                MoveToward(agentId, agents[agentId], store, "deliver", interactionRange);
                 return;
             }
             var deliveryQuantity = Math.Min(input.Amount, AvailableLotQuantity(carried));
             if (house is not null) deliveryQuantity = Math.Min(deliveryQuantity, DestinationRoom(house.InstanceId));
             if (deliveryQuantity == 0)
             {
-                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = "House storage is full; expand it before delivering more." });
+                SetProject(agentId, project with { Stage = "blocked", Blocker = "House storage is full; expand it before delivering more." });
                 return;
             }
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"project-delivery:{WorldTick}:{inhabitantId}", inhabitantId, constructionOwner, carried.Id,
+                $"project-delivery:{WorldTick}:{agentId}", agentId, constructionOwner, carried.Id,
                 deliveryQuantity, "project_contribution", house?.InstanceId,
                 destinationGroundPosition: house is null ? new InventoryGroundPosition(store.X, store.Y) : null));
-            AppendEvent("project_material_delivered", $"{inhabitantId}:{input.ResourceId}");
+            AppendEvent("project_material_delivered", $"{agentId}:{input.ResourceId}");
             return;
         }
 
         var returnHouse = HouseForHousehold(constructionOwner);
-        var returnTo = constructionOwner == inhabitantId ? personalWorkSite : returnHouse?.Position ?? SettlementStoragePosition;
-        var returnRange = constructionOwner == inhabitantId || returnHouse is not null ? 0 : ResourceInteractionRange;
+        var returnTo = constructionOwner == agentId ? personalWorkSite : returnHouse?.Position ?? SettlementStoragePosition;
+        var returnRange = constructionOwner == agentId || returnHouse is not null ? 0 : ResourceInteractionRange;
         if (returnTo is null)
         {
-            SetProject(inhabitantId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
+            SetProject(agentId, project with { Stage = "blocked", Blocker = WaitingForWorkSiteBlocker });
             return;
         }
-        if (WarehouseMaterialSource(inhabitantId, input.ResourceId, returnTo.Value, returnRange) is { } warehouseSource)
+        if (WarehouseMaterialSource(agentId, input.ResourceId, returnTo.Value, returnRange) is { } warehouseSource)
         {
             var warehouse = warehouseSource.Warehouse;
-            SetProject(inhabitantId, project with { Stage = "gathering", Blocker = $"Collecting {input.ResourceId} from the Town Warehouse" });
+            SetProject(agentId, project with { Stage = "gathering", Blocker = $"Collecting {input.ResourceId} from the Town Warehouse" });
             if (state.Position != warehouse.Position)
             {
-                MoveToward(inhabitantId, inhabitants[inhabitantId], warehouse.Position, "warehouse_materials", 0);
+                MoveToward(agentId, agents[agentId], warehouse.Position, "warehouse_materials", 0);
                 return;
             }
-            if (!MayCollectWarehouseStock(inhabitantId, warehouse))
+            if (!MayCollectWarehouseStock(agentId, warehouse))
             {
-                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = "This Town Warehouse is no longer available to you." });
+                SetProject(agentId, project with { Stage = "blocked", Blocker = "This Town Warehouse is no longer available to you." });
                 return;
             }
-            var request = new GoodsRequest(GoodsUse.Collect, inhabitantId, GoodsOwners.One(warehouse.TownId!),
+            var request = new GoodsRequest(GoodsUse.Collect, agentId, GoodsOwners.One(warehouse.TownId!),
                 GoodsKinds.One(input.ResourceId), AtBuilding: warehouse.InstanceId);
             if (RecheckGoods(request, warehouseSource.Source.Lot.Id) is not { } match) return;
             var communal = match.Lot;
             var quantity = Math.Min(WarehouseLoadQuantity,
                 Math.Min(input.Amount, match.Quantity));
-            quantity = Math.Min(quantity, PickupCarryCapacity(inhabitantId, communal, returnTo.Value, returnRange));
+            quantity = Math.Min(quantity, PickupCarryCapacity(agentId, communal, returnTo.Value, returnRange));
             if (quantity == 0) return;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory,
-                $"warehouse-pickup:{WorldTick}:{inhabitantId}", warehouse.TownId!, inhabitantId,
+                $"warehouse-pickup:{WorldTick}:{agentId}", warehouse.TownId!, agentId,
                 communal.Id, quantity, "town_resource_collected"));
-            AppendEvent("town_resource_collected", $"{inhabitantId}:{communal.Id}:{quantity}:{warehouse.InstanceId}");
+            AppendEvent("town_resource_collected", $"{agentId}:{communal.Id}:{quantity}:{warehouse.InstanceId}");
             return;
         }
 
-        var source = MaterialSource(input.ResourceId, inhabitantId, returnTo, returnRange, useHarvestBonus: false);
+        var source = MaterialSource(input.ResourceId, agentId, returnTo, returnRange, useHarvestBonus: false);
         if (source is null)
         {
-            SetProject(inhabitantId, project with { Stage = "blocked", Blocker = $"No available source of {input.ResourceId}" });
+            SetProject(agentId, project with { Stage = "blocked", Blocker = $"No available source of {input.ResourceId}" });
             return;
         }
-        SetProject(inhabitantId, project with { Stage = "gathering", Blocker = $"Need {input.Amount} {input.ResourceId}" });
-        var useHarvestBonus = UseHarvestBonusForBuildingMaterial(inhabitantId, input.ResourceId, source, returnTo, returnRange);
-        GatherProjectMaterial(inhabitantId, state, input.ResourceId, source, useHarvestBonus, returnTo: returnTo, returnRange: returnRange);
+        SetProject(agentId, project with { Stage = "gathering", Blocker = $"Need {input.Amount} {input.ResourceId}" });
+        var useHarvestBonus = UseHarvestBonusForBuildingMaterial(agentId, input.ResourceId, source, returnTo, returnRange);
+        GatherProjectMaterial(agentId, state, input.ResourceId, source, useHarvestBonus, returnTo: returnTo, returnRange: returnRange);
     }
 
     private ToolGatheringPlan? ProjectMaterialHarvest(string actor, string itemKind, MapResource source,
@@ -836,7 +836,7 @@ public sealed partial class WorldRuntime
             return plan;
         // The required tool remains carried. A bonus that cannot fit even
         // after setting down other cargo must use the existing smaller harvest.
-        var capacity = PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) +
+        var capacity = PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, agents[actor].Equipment) +
             HorseCargoCapacity(actor);
         if (useHarvestBonus && checked(plan.Quantity + plan.TreeSeedQuantity + 1) <= capacity)
             return plan;
@@ -850,28 +850,28 @@ public sealed partial class WorldRuntime
         return plan is null ? int.MaxValue : checked(plan.Quantity + plan.TreeSeedQuantity);
     }
 
-    private MaterialGatherEffect? GatherProjectMaterial(string inhabitantId, InhabitantState state, string itemKind,
+    private MaterialGatherEffect? GatherProjectMaterial(string agentId, AgentState state, string itemKind,
         MapResource source, bool useHarvestBonus = true, string? deliveryBuildingId = null,
         GridPoint? returnTo = null, int returnRange = 0)
     {
         var ecology = worldSystems.Ecology.GetResource(source.Id);
-        var plan = ProjectMaterialHarvest(inhabitantId, itemKind, source, useHarvestBonus);
+        var plan = ProjectMaterialHarvest(agentId, itemKind, source, useHarvestBonus);
         returnTo ??= worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == deliveryBuildingId)?.Position;
-        if (returnTo is { } destination && !CanReturnWithHarvest(inhabitantId, itemKind, source,
+        if (returnTo is { } destination && !CanReturnWithHarvest(agentId, itemKind, source,
             destination, returnRange, useHarvestBonus)) return null;
         if (plan is null)
         {
-            CollectToolForGathering(inhabitantId, state, itemKind, source);
+            CollectToolForGathering(agentId, state, itemKind, source);
             return null;
         }
         if (!IsWithinInteractionRange(state.Position, source.Position, ResourceInteractionRange))
         {
-            MoveToward(inhabitantId, inhabitants[inhabitantId], source.Position, "materials", ResourceInteractionRange);
+            MoveToward(agentId, agents[agentId], source.Position, "materials", ResourceInteractionRange);
             return null;
         }
-        if (FreeCarryCapacity(inhabitantId) < checked(plan.Quantity + plan.TreeSeedQuantity))
+        if (FreeCarryCapacity(agentId) < checked(plan.Quantity + plan.TreeSeedQuantity))
         {
-            AppendEvent("carrying_full", inhabitantId);
+            AppendEvent("carrying_full", agentId);
             return null;
         }
         var harvest = EcologyRules.Harvest(ecology, 1);
@@ -890,21 +890,21 @@ public sealed partial class WorldRuntime
         // together with the output before reducing the finite ecology stock.
         // A failed inventory/capacity transition therefore leaves the source
         // untouched and does not wear a tool.
-        ApplyGatheringInventory(inhabitantId, itemKind, plan, deliveryBuildingId);
+        ApplyGatheringInventory(agentId, itemKind, plan, deliveryBuildingId);
         environmentSystem.ReplaceEcologyResource(source.Id, harvested);
         SyncEcologyResourceStates();
-        RecordNonviolentConduct(inhabitantId, plan.FellTree ? "fell_tree" : "gather_material", source.Position,
-            source.Id, itemKind, plan.Quantity, $"gather-material:{WorldTick}:{inhabitantId}:{nextEventId}");
-        AppendEvent("material_gathered", $"{inhabitantId}:{itemKind}:{plan.Quantity}");
+        RecordNonviolentConduct(agentId, plan.FellTree ? "fell_tree" : "gather_material", source.Position,
+            source.Id, itemKind, plan.Quantity, $"gather-material:{WorldTick}:{agentId}:{nextEventId}");
+        AppendEvent("material_gathered", $"{agentId}:{itemKind}:{plan.Quantity}");
         if (plan.FellTree)
-            AppendEvent("tree_harvested", $"{inhabitantId}:{source.Id}:{source.TreeKind}:stump");
+            AppendEvent("tree_harvested", $"{agentId}:{source.Id}:{source.TreeKind}:stump");
         if (plan.TreeSeedQuantity > 0)
         {
             // A felled tree also gives a seed that can replant a stump or
             // start a new tree elsewhere.
-            AppendEvent("tree_seed_collected", $"{inhabitantId}:{source.Id}:{plan.TreeSeedQuantity}");
+            AppendEvent("tree_seed_collected", $"{agentId}:{source.Id}:{plan.TreeSeedQuantity}");
         }
-        return new MaterialGatherEffect(MaterialLotId(WorldTick, inhabitantId), itemKind, plan.Quantity, source.Id);
+        return new MaterialGatherEffect(MaterialLotId(WorldTick, agentId), itemKind, plan.Quantity, source.Id);
     }
 
     private static InventoryCheckpoint MarkBuildingMaterialDelivery(InventoryCheckpoint inventory, string lotId,
@@ -915,9 +915,9 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<(string Requester, ContentQuantity Input, string OwnerId)> ProjectRequests(string helperId)
     {
-        foreach (var person in inhabitants.Values.OrderBy(person => person.InhabitantId, StringComparer.Ordinal))
+        foreach (var person in agents.Values.OrderBy(person => person.AgentId, StringComparer.Ordinal))
         {
-            if (person.InhabitantId == helperId ||
+            if (person.AgentId == helperId ||
                 person.Project is not { Stage: not ("completed" or "cancelled" or "waiting") } project ||
                 !TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection))
             {
@@ -929,21 +929,21 @@ public sealed partial class WorldRuntime
                 ? building!.BuildCosts
                 : worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == selection.DefinitionId)?.Inputs;
             var constructionOwner = selection.IsBuilding
-                ? BuildingConstructionOwner(person.InhabitantId, building!)
+                ? BuildingConstructionOwner(person.AgentId, building!)
                 : worldContent.Recipes.Any(item =>
                     item.CanonicalId == selection.DefinitionId &&
                     (item.Tags.Contains("grain", StringComparer.Ordinal) ||
                      item.WorkstationBuildingId is { } workstationId && worldContent.Buildings.Any(definition =>
                          definition.CanonicalId == workstationId &&
                          definition.Tags.Any(IsHouseholdBuildingTag))))
-                ? HouseholdFor(person.InhabitantId) :
-                    society.Checkpoint.GetInhabitant(person.InhabitantId).HouseholdId is null
-                        ? person.InhabitantId : HouseholdId;
+                ? HouseholdFor(person.AgentId) :
+                    society.Checkpoint.GetAgent(person.AgentId).HouseholdId is null
+                        ? person.AgentId : HouseholdId;
             foreach (var input in inputs ?? [])
             {
                 if (!HasAvailableQuantities([input], constructionOwner))
                 {
-                    yield return (person.InhabitantId, input, constructionOwner);
+                    yield return (person.AgentId, input, constructionOwner);
                 }
             }
         }
@@ -962,13 +962,13 @@ public sealed partial class WorldRuntime
             .Where(resource =>
                 (resource.Kind == itemKind || (itemKind == "wood" && resource.Kind == "construction")) &&
                 resources.GetValueOrDefault(resource.Id) == ResourceState.Available)
-            .OrderBy(resource => map.FootDistance(inhabitants[actor].Position, resource.Position))
+            .OrderBy(resource => map.FootDistance(agents[actor].Position, resource.Position))
             .ThenBy(resource => resource.Id, StringComparer.Ordinal)
             .FirstOrDefault(resource =>
                 CanGatherFromSource(actor, itemKind, resource, reachableToolCache) &&
-                CanReachByFootOrSwimming(actor, inhabitants[actor].Position, resource.Position) &&
-                (IsWithinInteractionRange(inhabitants[actor].Position, resource.Position, ResourceInteractionRange) ||
-                 FindUnoccupiedRoute(actor, inhabitants[actor].Position, resource.Position, ResourceInteractionRange).Count > 0) &&
+                CanReachByFootOrSwimming(actor, agents[actor].Position, resource.Position) &&
+                (IsWithinInteractionRange(agents[actor].Position, resource.Position, ResourceInteractionRange) ||
+                 FindUnoccupiedRoute(actor, agents[actor].Position, resource.Position, ResourceInteractionRange).Count > 0) &&
                 (returnTo is null || CanReturnWithHarvest(actor, itemKind, resource, returnTo.Value, returnRange, useHarvestBonus)));
     }
 
@@ -978,7 +978,7 @@ public sealed partial class WorldRuntime
         Lazy<PlacedBuilding[]>? accessibleWarehouses = null)
     {
         // Candidate evaluation is a read-only snapshot. Reuse a shared tool's route
-        // result within one inhabitant's candidate query. Other callers start
+        // result within one agent's candidate query. Other callers start
         // fresh, and actions revalidate before gathering.
         reachableToolCache ??= new Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>();
         accessibleWarehouses ??= residentId is null ? null : new Lazy<PlacedBuilding[]>(
@@ -986,7 +986,7 @@ public sealed partial class WorldRuntime
         return inputs.All(input =>
         {
             var stored = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == input.ResourceId &&
-                    (lot.OwnerId == (ownerId ?? HouseholdId) || inhabitants.ContainsKey(lot.OwnerId) &&
+                    (lot.OwnerId == (ownerId ?? HouseholdId) || agents.ContainsKey(lot.OwnerId) &&
                         (ownerId is null || HouseholdFor(lot.OwnerId) == ownerId)))
                 .Sum(lot => (long)AvailableLotQuantity(lot));
             var communal = residentId is null ? 0 : accessibleWarehouses!.Value
@@ -1000,7 +1000,7 @@ public sealed partial class WorldRuntime
             if (residentId is null)
                 return false;
 
-            var position = inhabitants[residentId].Position;
+            var position = agents[residentId].Position;
             foreach (var resource in map.Resources)
             {
                 // Most sources cannot supply this input. Check the cheap kind
@@ -1037,12 +1037,12 @@ public sealed partial class WorldRuntime
                     lot.OwnerId == helperId && PersonalEquipmentRules.IsCarried(lot, helperId) && lot.ContainerLotId is null &&
                     lot.ItemKind == itemKind && lot.DeliveryBuildingId is null &&
                     AvailableLotQuantity(lot) > 0);
-            if (hasCarriedMaterial || MaterialSource(itemKind, helperId, HouseForHousehold(request.OwnerId)?.Position ?? inhabitants[request.Requester].Position,
+            if (hasCarriedMaterial || MaterialSource(itemKind, helperId, HouseForHousehold(request.OwnerId)?.Position ?? agents[request.Requester].Position,
                 HouseForHousehold(request.OwnerId) is not null && HouseholdFor(helperId) == request.OwnerId ? 0 : ResourceInteractionRange) is { } source &&
                 FreeCarryCapacity(helperId) >= ProjectMaterialCarryUnits(helperId, itemKind, source))
             {
                 candidates.Add(new CognitionCandidate("assist:" + itemKind,
-                    $"Help {society.Checkpoint.GetInhabitant(request.Requester).Name}: gather and share {itemKind} for their project.", 15));
+                    $"Help {society.Checkpoint.GetAgent(request.Requester).Name}: gather and share {itemKind} for their project.", 15));
             }
         }
     }
@@ -1055,7 +1055,7 @@ public sealed partial class WorldRuntime
             : DestinationRoom(house.InstanceId) > 0;
     }
 
-    private void AssistProject(string helperId, InhabitantState state, string itemKind)
+    private void AssistProject(string helperId, AgentState state, string itemKind)
     {
         var request = ProjectRequests(helperId).FirstOrDefault(request =>
             request.Input.ResourceId == itemKind && CanReceiveProjectAssistance(request));
@@ -1071,10 +1071,10 @@ public sealed partial class WorldRuntime
         if (carried is null)
         {
             var returnRange = HouseForHousehold(request.OwnerId) is not null && HouseholdFor(helperId) == request.OwnerId ? 0 : ResourceInteractionRange;
-            if (MaterialSource(itemKind, helperId, HouseForHousehold(request.OwnerId)?.Position ?? inhabitants[request.Requester].Position, returnRange) is { } source)
+            if (MaterialSource(itemKind, helperId, HouseForHousehold(request.OwnerId)?.Position ?? agents[request.Requester].Position, returnRange) is { } source)
             {
                 GatherProjectMaterial(helperId, state, itemKind, source,
-                    returnTo: HouseForHousehold(request.OwnerId)?.Position ?? inhabitants[request.Requester].Position,
+                    returnTo: HouseForHousehold(request.OwnerId)?.Position ?? agents[request.Requester].Position,
                     returnRange: returnRange);
             }
             return;
@@ -1084,8 +1084,8 @@ public sealed partial class WorldRuntime
         // recipient household's stock. Before a House exists, that handoff needs real carry room.
         if (house is null && FreeCarryCapacity(request.Requester) == 0) return;
         var recipient = house is null ? request.Requester : request.OwnerId;
-        var store = house?.Position ?? inhabitants[request.Requester].Position;
-        var interactionRange = house is not null && society.Checkpoint.GetInhabitant(helperId).HouseholdId == request.OwnerId
+        var store = house?.Position ?? agents[request.Requester].Position;
+        var interactionRange = house is not null && society.Checkpoint.GetAgent(helperId).HouseholdId == request.OwnerId
             ? 0 : ResourceInteractionRange;
         if (!IsWithinInteractionRange(state.Position, store, interactionRange))
         {
@@ -1107,7 +1107,7 @@ public sealed partial class WorldRuntime
         {
             society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
                 memoryId, request.Requester, helperId,
-                $"Grateful for {society.Checkpoint.GetInhabitant(helperId).Name}'s help with project materials.", "public", WorldTick)
+                $"Grateful for {society.Checkpoint.GetAgent(helperId).Name}'s help with project materials.", "public", WorldTick)
             { Kind = SocietyMemoryKind.Relationship }));
         }
         AppendEvent("project_request_fulfilled", $"{helperId}:{request.Requester}:{itemKind}:{quantity}");
@@ -1119,14 +1119,14 @@ public sealed partial class WorldRuntime
         lot.FreshnessBasisPoints == 0 || lot.ConditionBasisPoints == 0 ? 0 :
             InventoryRules.UnreservedQuantity(InventoryIndex.For(inventory), lot);
 
-    private void SetProject(string inhabitantId, SettlementProject project)
+    private void SetProject(string agentId, SettlementProject project)
     {
-        var state = inhabitants[inhabitantId];
+        var state = agents[agentId];
         if (state.Project?.Stage != project.Stage || state.Project?.Blocker != project.Blocker)
         {
             project = project with { LastTransitionTick = WorldTick };
-            AppendEvent("project_progress", $"{inhabitantId}:{project.Stage}:{project.Blocker ?? project.Label}");
+            AppendEvent("project_progress", $"{agentId}:{project.Stage}:{project.Blocker ?? project.Label}");
         }
-        inhabitants[inhabitantId] = state with { Project = project };
+        agents[agentId] = state with { Project = project };
     }
 }

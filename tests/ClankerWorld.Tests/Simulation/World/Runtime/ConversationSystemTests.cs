@@ -100,7 +100,7 @@ public sealed class ConversationSystemTests
 
     private sealed class FakeWorld : IConversationWorld
     {
-        private readonly Dictionary<string, InhabitantState> people = new(StringComparer.Ordinal)
+        private readonly Dictionary<string, AgentState> people = new(StringComparer.Ordinal)
         {
             ["agent-a"] = new("agent-a", new(0, 0), 10_000, 0, "patient", "build a home"),
             ["agent-b"] = new("agent-b", new(1, 0), 10_000, 0, "kind", "share a life"),
@@ -112,7 +112,7 @@ public sealed class ConversationSystemTests
         { RunEpoch = 1 };
         public long WorldTick => Society.WorldTick;
         public string WorldSeed => "conversation-system-test";
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants => people;
+        public IReadOnlyDictionary<string, AgentState> Agents => people;
         public HashSet<string> Urgent { get; } = new(StringComparer.Ordinal);
         public List<WorldEventEntry> Events { get; } = [];
         public void AdvanceTo(long tick) => Society = Society with
@@ -122,8 +122,8 @@ public sealed class ConversationSystemTests
         };
         public void Move(string id, GridPoint position) => people[id] = people[id] with { Position = position };
         public long WorldDayAt(long tick) => tick / 360;
-        public bool NeedsUrgentFood(InhabitantState person) => Urgent.Contains(person.InhabitantId);
-        public bool NeedsUrgentWarmth(InhabitantState person) => false;
+        public bool NeedsUrgentFood(AgentState person) => Urgent.Contains(person.AgentId);
+        public bool NeedsUrgentWarmth(AgentState person) => false;
         public bool IsAboardBoat(string agentId) => false;
         public int FootDistance(GridPoint from, GridPoint destination) => Math.Abs(from.X - destination.X) + Math.Abs(from.Y - destination.Y);
         public bool IsWithinInteractionRange(GridPoint from, GridPoint destination, int range) => FootDistance(from, destination) <= range;

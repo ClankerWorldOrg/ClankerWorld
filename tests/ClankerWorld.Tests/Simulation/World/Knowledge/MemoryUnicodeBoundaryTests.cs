@@ -21,13 +21,13 @@ public sealed class MemoryUnicodeBoundaryTests
     public async Task NativeRecallAndSalienceKeepWholeCharactersAndSavedSources(int prefixLength, int expectedLength, bool helper)
     {
         var state = WorldRuntimeCodec.Decode(await Baseline.Value);
-        var owner = state.Society.Society.Inhabitants[0].Id;
-        var subject = state.Society.Society.Inhabitants[1].Id;
+        var owner = state.Society.Society.Agents[0].Id;
+        var subject = state.Society.Society.Agents[1].Id;
         var text = new string('a', prefixLength) + "😀tail";
         var memory = new SocietySocialMemory("unicode-experience", owner, subject, text, "private", state.Society.Society.WorldTick);
         var society = SocietyRules.RecordSocialMemory(state.Society.Society, memory).Checkpoint;
         var belief = new SocietyAgentBelief("unicode-belief", owner, text, SocietyBeliefProvenance.Hearsay,
-            4_200, state.Society.Society.WorldTick, SourceAgentId: subject, AboutInhabitantId: subject);
+            4_200, state.Society.Society.WorldTick, SourceAgentId: subject, AboutAgentId: subject);
         society = SocietyRules.RecordAgentBelief(society, belief);
         for (var index = 0; index < 2; index++)
             society = SocietyRules.RecordSocialMemory(society, new("unicode-padding-" + index, owner, subject,
@@ -37,7 +37,7 @@ public sealed class MemoryUnicodeBoundaryTests
             JevEnabled = helper,
             RoutineHelper = helper ? RoutineHelperSettings.Jev : RoutineHelperSettings.Off,
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = person.Survival is { } survival ? survival with
@@ -47,12 +47,12 @@ public sealed class MemoryUnicodeBoundaryTests
                 TravelCooldownTicks = 0,
             }).ToArray(),
         };
-        var observed = new ConcurrentQueue<InhabitantObservation>();
+        var observed = new ConcurrentQueue<AgentObservation>();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new CapturingIdleProvider(observed, helper));
-        for (var tick = 0; tick < 4 && !observed.Any(item => item.InhabitantId == owner); tick++)
+        for (var tick = 0; tick < 4 && !observed.Any(item => item.AgentId == owner); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var observation = observed.First(item => item.InhabitantId == owner);
+        var observation = observed.First(item => item.AgentId == owner);
         foreach (var id in new[] { memory.Id, belief.Id })
         {
             var recalled = Assert.Single(observation.RetrievedMemories!, item => item.Id == id);
@@ -89,7 +89,7 @@ public sealed class MemoryUnicodeBoundaryTests
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
 
-    private sealed class CapturingIdleProvider(ConcurrentQueue<InhabitantObservation> observed, bool helper = false) : IDecisionProvider
+    private sealed class CapturingIdleProvider(ConcurrentQueue<AgentObservation> observed, bool helper = false) : IDecisionProvider
     {
         public DecisionProviderKind Kind => helper ? DecisionProviderKind.Jev : DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -97,7 +97,7 @@ public sealed class MemoryUnicodeBoundaryTests
         {
             observed.Enqueue(request.Observation);
             var selected = request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle").Id;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

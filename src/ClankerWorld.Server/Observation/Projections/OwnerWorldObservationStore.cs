@@ -54,7 +54,7 @@ public sealed partial class OwnerWorldObservationStore
     private static TownLandHearingView[] ProjectLandHearings(WorldRuntimeState state, TownRuntimeState town)
     {
         var cases = town.LandHearings?.Cases ?? [];
-        string AgentName(string id) => state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == id)?.Name ?? "Unknown adult";
+        string AgentName(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ?? "Unknown adult";
         string HouseholdName(string id) => state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ?? "Unknown household";
         HashSet<string> Awareness(string noticeId, long tick) => (town.Governance?.Knowledge ?? [])
             .Where(receipt => receipt.NoticeId == noticeId && receipt.LearnedTick <= tick)
@@ -66,7 +66,7 @@ public sealed partial class OwnerWorldObservationStore
             party.RepresentativeId is { } representative ? AgentName(representative) : null,
             party.AdultIds.Where(aware.Contains).Concat(party.RepresentativeId is { } agent && aware.Contains(agent) ? [agent] : [])
                 .Distinct(StringComparer.Ordinal).ToArray());
-        var names = state.Society.Society.Inhabitants.Select(person => (Id: person.Id, Name: person.Name))
+        var names = state.Society.Society.Agents.Select(person => (Id: person.Id, Name: person.Name))
             .Concat(state.Society.Society.Households.Select(household => (Id: household.Id, Name: household.Name)))
             .Concat((state.Towns ?? []).Select(other => (Id: other.Id, Name: other.Name)))
             .Concat((state.WorldContent?.Buildings ?? []).Select(building => (Id: building.CanonicalId, Name: building.DisplayName)))
@@ -165,7 +165,7 @@ public sealed partial class OwnerWorldObservationStore
                             (property.Request.TargetHouseholdId is { } recipient ? HouseholdName(recipient) : town.Name) + "." } : [])
                         .ToArray() : [],
                     CurrentParties = item.Status == "pending" ? TownLandCasePartyRules.CurrentParties(town, revision.Tiles,
-                        state.HouseholdLandUseRights ?? [], state.HouseholdLandUseRequests ?? [], state.Society.Society.Inhabitants,
+                        state.HouseholdLandUseRights ?? [], state.HouseholdLandUseRequests ?? [], state.Society.Society.Agents,
                         state.Society.Society.WorldTick, item).Select(party => Party(party, aware)).ToArray() : [],
                     Reads = item.Reads.Select(read => new LandHearingReadView(read.Revision, read.AgentId, AgentName(read.AgentId),
                         read.ReadTick, read.EvidenceIds.ToArray(), read.SourceAgentId,
@@ -181,9 +181,9 @@ public sealed partial class OwnerWorldObservationStore
     {
         var transfers = town.LandHearings?.Transfers ?? [];
         var receipts = town.Governance?.Knowledge ?? [];
-        var adultHouseholds = state.Society.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var adultHouseholds = state.Society.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
-        string AgentName(string id) => state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == id)?.Name ?? "Unknown adult";
+        string AgentName(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ?? "Unknown adult";
         string HouseholdName(string id) => state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ?? "Unknown household";
         return transfers.Where(request => request.Status == "pending")
             .Concat(transfers.Where(request => request.Status != "pending").OrderBy(request => request.SettledTick)
@@ -219,7 +219,7 @@ public sealed partial class OwnerWorldObservationStore
     private static LandHearingProposalView ProjectLandHearingProposal(WorldRuntimeState state, TownLandFilingRequest request)
     {
         var statement = request.Statement;
-        var names = state.Society.Society.Inhabitants.Select(person => (Id: person.Id, Name: person.Name))
+        var names = state.Society.Society.Agents.Select(person => (Id: person.Id, Name: person.Name))
             .Concat(state.Society.Society.Households.Select(household => (Id: household.Id, Name: household.Name)))
             .Concat((state.Towns ?? []).Select(town => (Id: town.Id, Name: town.Name))).OrderByDescending(item => item.Id.Length);
         foreach (var name in names) statement = statement.Replace(name.Id, name.Name, StringComparison.Ordinal);
@@ -233,8 +233,8 @@ public sealed partial class OwnerWorldObservationStore
     {
         if (request.Status != "pending") return request.Status == "hearing_resolved"
             ? "Use request resolved by a recorded land ruling" : "Household request " + request.Status.Replace('_', ' ');
-        var adults = state.Society.Society.Inhabitants.Where(p => p.HouseholdId == request.HouseholdId &&
-            p.Status == SocietyInhabitantStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).ToArray();
+        var adults = state.Society.Society.Agents.Where(p => p.HouseholdId == request.HouseholdId &&
+            p.Status == SocietyAgentStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).ToArray();
         var accepted = adults.Count(p => request.Consents.Any(c => c.AgentId == p.Id && c.Accepted));
         var proposal = state.Towns?.Single(t => t.Id == request.TownId).Governance?.Proposals.SingleOrDefault(p => p.Id == request.CouncilProposalId);
         var council = proposal?.Status == "passed" ? "Council approved" : proposal is null ? "Awaiting Council consideration" :
@@ -256,14 +256,14 @@ public sealed partial class OwnerWorldObservationStore
         "event-history-reset.read.v1",
         "reconnect-baseline.read.v1",
         "seeded-map.read.v1",
-        "inhabitant-inspection.read.v1",
+        "agent-inspection.read.v1",
         "spatial-knowledge.read.v1",
         "owner-map-layer-delta.v1",
         "owner-device-pairing.v1",
         "owner-observation.read.v1",
         "owner-control.request.v1",
         "owner-provider-configuration.v1",
-        "owner-inhabitant-provider-configuration.v1",
+        "owner-agent-provider-configuration.v1",
         "paused-authoring.request.v1",
         "content-governance.read.v1",
         "content-governance.write.v1",
@@ -408,7 +408,7 @@ public sealed partial class OwnerWorldObservationStore
             actor,
             state.LatestGlobalEventId)
         {
-            Inhabitants = CreateInhabitants(state),
+            Agents = CreateAgents(state),
             Authoring = new AuthoringStateView(
                 state.IsPaused,
                 state.RunEpoch,
@@ -426,7 +426,7 @@ public sealed partial class OwnerWorldObservationStore
                 .OrderBy(instruction => instruction.SubmissionSequence)
                 .Select(instruction => new InstructionView(
                     instruction.InstructionId,
-                    instruction.TargetInhabitantId,
+                    instruction.TargetAgentId,
                     ToWireValue(instruction.Kind),
                     instruction.Text,
                     ToWireValue(instruction.State),
@@ -461,8 +461,8 @@ public sealed partial class OwnerWorldObservationStore
         // when its founders or buildings have since been removed.
         return state.Geography is null &&
             state.FounderSetup is { Started: false, FounderIds.Count: 0 } &&
-            state.Society.Society is { WorldTick: 0, IsPaused: true, Inhabitants.Count: 0, EventHistoryFloor: 0 } &&
-            state.Inhabitants.Count == 0 && state.DeceasedInhabitants is null or { Count: 0 } &&
+            state.Society.Society is { WorldTick: 0, IsPaused: true, Agents.Count: 0, EventHistoryFloor: 0 } &&
+            state.Agents.Count == 0 && state.DeceasedAgents is null or { Count: 0 } &&
             state.Content is { Packages.Count: 0, Events.Count: 0 } &&
             state.WorldContent is { Buildings.Count: 0, Recipes.Count: 0 } &&
             state.WorldSimulation is { Buildings.Count: 0, ProductionJobs.Count: 0 } simulation &&
@@ -498,23 +498,23 @@ public sealed partial class OwnerWorldObservationStore
             .ToLookup(recipe => recipe.WorkstationBuildingId!, recipe => productionRecipes![recipe.CanonicalId], StringComparer.Ordinal);
         var inventoryLots = state.Society.Society.Inventory.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
         var inventoryReservations = state.Society.Society.Inventory.Reservations.ToDictionary(reservation => reservation.Id, StringComparer.Ordinal);
-        var activeInhabitants = state.Society.Society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        var activeAgents = state.Society.Society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .OrderBy(item => item.Id, StringComparer.Ordinal)
             .ToArray();
-        var inhabitantsById = state.Society.Society.Inhabitants
+        var agentsById = state.Society.Society.Agents
             .ToDictionary(item => item.Id, StringComparer.Ordinal);
         TownElectionView ProjectElection(TownElection election) => new(election.Id, election.Kind, election.Stage,
             election.Seats, election.DeadlineTick, election.Candidates.Select(id => new CivicCandidateView(
-                id, inhabitantsById.GetValueOrDefault(id)?.Name ?? id,
+                id, agentsById.GetValueOrDefault(id)?.Name ?? id,
                 election.Ballots.Count(ballot => ballot.Choices.Contains(id, StringComparer.Ordinal)))).ToArray(),
-            election.SettledSeats.Select(id => inhabitantsById.GetValueOrDefault(id)?.Name ?? id).ToArray());
+            election.SettledSeats.Select(id => agentsById.GetValueOrDefault(id)?.Name ?? id).ToArray());
         TownProjectPlanView ProjectPlan(TownProjectPayload plan, string proposerId)
         {
             var definition = buildingDefinitions?.GetValueOrDefault(plan.DefinitionId) ??
                 TownProjectRules.DefinitionFor(plan.DefinitionId) ?? throw new InvalidDataException("Unsupported Town project definition.");
             return new TownProjectPlanView(plan.Name, proposerId,
-                inhabitantsById.GetValueOrDefault(proposerId)?.Name ?? proposerId,
+                agentsById.GetValueOrDefault(proposerId)?.Name ?? proposerId,
                 plan.DefinitionId, plan.BoatPortId is null ? definition.DisplayName : "Communal boat", ToPosition(plan.BoatPortId is null ? plan.Site : TownProjectRules.WorkSite(plan)), ToPosition(plan.Entrance),
                 plan.BoatPortId is null ? definition.Width : 1, plan.BoatPortId is null ? definition.Height : 1,
                 plan.Budget.Select(q => new TownProjectBudgetView(q.ResourceId, q.Amount)).ToArray())
@@ -547,7 +547,7 @@ public sealed partial class OwnerWorldObservationStore
                 RemovedTick = project.RemovedTick,
             };
         }
-        string MarketOwnerName(string id) => inhabitantsById.GetValueOrDefault(id)?.Name ??
+        string MarketOwnerName(string id) => agentsById.GetValueOrDefault(id)?.Name ??
             state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ??
             state.Towns?.FirstOrDefault(town => town.Id == id)?.Name ?? id;
         MarketView ProjectMarket(TownMarketState market)
@@ -587,12 +587,12 @@ public sealed partial class OwnerWorldObservationStore
             return new MarketView(market.Id, market.ProjectId, market.HallBuildingId, ToPosition(market.Site),
                 ToPosition(plaza), MarketContent.PlazaWidth, MarketContent.PlazaHeight, stalls, market.RemovedTick);
         }
-        var physicalById = state.Inhabitants.ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
-        var deceasedById = (state.DeceasedInhabitants ?? []).ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
+        var physicalById = state.Agents.ToDictionary(item => item.AgentId, StringComparer.Ordinal);
+        var deceasedById = (state.DeceasedAgents ?? []).ToDictionary(item => item.AgentId, StringComparer.Ordinal);
         var resourceStates = state.Resources.ToDictionary(item => item.ResourceId, item => item.State, StringComparer.Ordinal);
         var completedInstructionIds = (state.CompletedInstructionIds ?? []).ToHashSet(StringComparer.Ordinal);
         var visibleInstructions = ProjectPrivateInstructions(state, completedInstructionIds);
-        var first = activeInhabitants.FirstOrDefault();
+        var first = activeAgents.FirstOrDefault();
         ActorView? actor = null;
         if (first is not null)
         {
@@ -682,15 +682,15 @@ public sealed partial class OwnerWorldObservationStore
                 : null,
             LastTickMilliseconds = diagnostics.LastTickMilliseconds,
             RefusedActionCount = state.RefusedActionCount,
-            Inhabitants = activeInhabitants
-                .Select(inhabitant => ToInhabitantView(state, inhabitant, physicalById[inhabitant.Id], map) with
+            Agents = activeAgents
+                .Select(agent => ToAgentView(state, agent, physicalById[agent.Id], map) with
                 {
-                    PlannedRoute = ToPlannedRoute(diagnostics.PlannedRoutes.GetValueOrDefault(inhabitant.Id)),
+                    PlannedRoute = ToPlannedRoute(diagnostics.PlannedRoutes.GetValueOrDefault(agent.Id)),
                 })
-                .Concat(state.Society.Society.Inhabitants
-                    .Where(inhabitant => inhabitant.Status == SocietyInhabitantStatus.Dead && deceasedById.ContainsKey(inhabitant.Id))
-                    .Select(inhabitant => ToDeceasedInhabitant(state, inhabitant, deceasedById[inhabitant.Id])))
-                .OrderBy(inhabitant => inhabitant.Id, StringComparer.Ordinal)
+                .Concat(state.Society.Society.Agents
+                    .Where(agent => agent.Status == SocietyAgentStatus.Dead && deceasedById.ContainsKey(agent.Id))
+                    .Select(agent => ToDeceasedAgent(state, agent, deceasedById[agent.Id])))
+                .OrderBy(agent => agent.Id, StringComparer.Ordinal)
                 .ToArray(),
             Conversations = (state.Conversations ?? [])
                 .Where(conversation => conversation.Status != AgentConversationStatus.Closed)
@@ -704,9 +704,9 @@ public sealed partial class OwnerWorldObservationStore
                 .Select(conversation => new ConversationView(
                     conversation.Id,
                     conversation.InitiatorId,
-                    inhabitantsById.GetValueOrDefault(conversation.InitiatorId)?.Name ?? conversation.InitiatorId,
+                    agentsById.GetValueOrDefault(conversation.InitiatorId)?.Name ?? conversation.InitiatorId,
                     conversation.InviteeId,
-                    inhabitantsById.GetValueOrDefault(conversation.InviteeId)?.Name ?? conversation.InviteeId,
+                    agentsById.GetValueOrDefault(conversation.InviteeId)?.Name ?? conversation.InviteeId,
                     ConversationStatus(conversation.Status),
                     conversation.Interruption == AgentConversationInterruption.None
                         ? null : ConversationInterruption(conversation.Interruption),
@@ -718,7 +718,7 @@ public sealed partial class OwnerWorldObservationStore
                         .Select(turn => new ConversationTurnView(
                             turn.Id,
                             turn.SpeakerId,
-                            inhabitantsById.GetValueOrDefault(turn.SpeakerId)?.Name ?? turn.SpeakerId,
+                            agentsById.GetValueOrDefault(turn.SpeakerId)?.Name ?? turn.SpeakerId,
                             turn.Text,
                             turn.WorldTick,
                             turn.ListenerIds.Take(AgentConversationRules.MaximumListenersPerTurn).ToArray(),
@@ -737,7 +737,7 @@ public sealed partial class OwnerWorldObservationStore
                     _ => household.Name,
                 }, InventoryFor(state, household.Id))).ToArray(),
             Council = state.Council is { } council ? new CouncilView(
-                state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == council.StewardId)?.Name,
+                state.Society.Society.Agents.FirstOrDefault(person => person.Id == council.StewardId)?.Name,
                 council.FoodPolicy, council.Ballot?.Policy, council.Ballot?.Approvals.Count ?? 0,
                 council.Ballot?.Rejections.Count ?? 0, council.Ballot?.Electorate.Count ?? 0) : null,
             LifePaceRate = state.Society.Society.LifeClock?.Rate ?? 1,
@@ -769,11 +769,11 @@ public sealed partial class OwnerWorldObservationStore
                     LandTransfers = ProjectLandTransfers(state, item),
                     LandTransferCount = item.LandHearings?.Transfers.Count ?? 0,
                     Government = item.Government is { } government ? ProjectGovernment(government,
-                        id => inhabitantsById.GetValueOrDefault(id)?.Name ?? id, state.Society.Society.WorldTick) : null,
+                        id => agentsById.GetValueOrDefault(id)?.Name ?? id, state.Society.Society.WorldTick) : null,
                     Governance = item.Governance is { } civic ? new TownGovernanceView(
-                        civic.Form, civic.Fallback, civic.Members.Select(id => inhabitantsById.GetValueOrDefault(id)?.Name ?? id).ToArray(),
+                        civic.Form, civic.Fallback, civic.Members.Select(id => agentsById.GetValueOrDefault(id)?.Name ?? id).ToArray(),
                         civic.TermEndTick, civic.RetryTick, civic.Candidates.Select(c =>
-                            (inhabitantsById.GetValueOrDefault(c.AgentId)?.Name ?? c.AgentId) + (c.FullTerm ? " (full term)" : " (current vacancy only)")).ToArray(),
+                            (agentsById.GetValueOrDefault(c.AgentId)?.Name ?? c.AgentId) + (c.FullTerm ? " (full term)" : " (current vacancy only)")).ToArray(),
                         civic.Proposals.TakeLast(RecentCivicProposalLimit).Select(p => new CivicProposalView(p.Id, p.Kind,
                             item.Government?.LawDrafts.SingleOrDefault(d => d.ProposalId == p.Id) is { } draft ? TownLawRules.VoteText(draft) :
                                 p.Text + (p.LandClaimTiles is { } tiles ? " Exact tiles: " + TownLandClaimRules.DescribeTiles(tiles) + "." :
@@ -859,7 +859,7 @@ public sealed partial class OwnerWorldObservationStore
             Instructions = visibleInstructions
                 .Select(instruction => new InstructionView(
                     instruction.InstructionId,
-                    instruction.TargetInhabitantId,
+                    instruction.TargetAgentId,
                     ToWireValue(instruction.Kind),
                     instruction.Text,
                     completedInstructionIds.Contains(instruction.InstructionId)
@@ -895,7 +895,7 @@ public sealed partial class OwnerWorldObservationStore
                     package.ManifestDigest,
                     package.Manifest.Definitions.Count == 0 ? null : package.Manifest.Definitions[0].DisplayName,
                     state.Content.Events.LastOrDefault(item => item.PackageId == package.Manifest.PackageId &&
-                        item.Kind == "package_proposed_by_inhabitant")?.Detail))
+                        item.Kind == "package_proposed_by_agent")?.Detail))
                 .ToArray() ?? [],
             ContentEvents = state.Content?.Events
                 .OrderBy(item => item.EventId)
@@ -950,7 +950,7 @@ public sealed partial class OwnerWorldObservationStore
                     var residentCapacity = item.HouseholdId is { } residentHousehold &&
                         definition?.Tags.Contains("house", StringComparer.Ordinal) == true
                             ? HouseResidentCapacityRules.Calculate(
-                                state.Society.Society.Inhabitants.Where(person => person.HouseholdId == residentHousehold),
+                                state.Society.Society.Agents.Where(person => person.HouseholdId == residentHousehold),
                                 width, height)
                             : null;
                     return new PlacedBuildingView(
@@ -975,7 +975,7 @@ public sealed partial class OwnerWorldObservationStore
                     state.Society.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == item.InstanceId).Sum(lot => lot.Quantity),
                     item.Footprint?.Revision ?? 0,
                     (state.WorldSimulation.GuestInvitations ?? []).Where(invitation => invitation.HouseInstanceId == item.InstanceId && invitation.Active)
-                        .Select(invitation => state.Society.Society.Inhabitants.Single(person => person.Id == invitation.GuestId).Name).ToArray(),
+                        .Select(invitation => state.Society.Society.Agents.Single(person => person.Id == invitation.GuestId).Name).ToArray(),
                     (state.WorldSimulation.BuildingExpansions ?? []).LastOrDefault(job => job.BuildingInstanceId == item.InstanceId)?.State.ToString().ToLowerInvariant(),
                     (state.WorldSimulation.BuildingExpansions ?? []).LastOrDefault(job => job.BuildingInstanceId == item.InstanceId)?.Failure,
                     residentCapacity?.Limit,
@@ -1027,7 +1027,7 @@ public sealed partial class OwnerWorldObservationStore
         WorldRuntimeState state,
         HashSet<string> completedInstructionIds) =>
         (state.Instructions ?? [])
-            .GroupBy(instruction => (instruction.TargetInhabitantId, instruction.Kind))
+            .GroupBy(instruction => (instruction.TargetAgentId, instruction.Kind))
             .SelectMany(group =>
             {
                 var pending = group.Where(instruction => !completedInstructionIds.Contains(instruction.InstructionId));
@@ -1112,19 +1112,19 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static List<InhabitantView> CreateInhabitants(OwnerWorldSnapshot state)
+    private static List<AgentView> CreateAgents(OwnerWorldSnapshot state)
     {
-        var inhabitants = new List<InhabitantView>
+        var agents = new List<AgentView>
         {
             ToProtectedActor(state),
         };
-        inhabitants.AddRange(state.FounderDrafts
+        agents.AddRange(state.FounderDrafts
             .OrderBy(draft => draft.Id, StringComparer.Ordinal)
             .Select(ToFounderDraft));
-        return inhabitants;
+        return agents;
     }
 
-    private static InhabitantView ToProtectedActor(OwnerWorldSnapshot state)
+    private static AgentView ToProtectedActor(OwnerWorldSnapshot state)
     {
         var world = state.World;
         var actor = world.Actor;
@@ -1148,7 +1148,7 @@ public sealed partial class OwnerWorldObservationStore
             decisionFactors.Add(new DecisionFactorView("intention-provider", intention.Provider.ToString().ToLowerInvariant()));
         }
 
-        return new InhabitantView(
+        return new AgentView(
             actor.Id,
             "Scout",
             "active_fixture",
@@ -1169,7 +1169,7 @@ public sealed partial class OwnerWorldObservationStore
         };
     }
 
-    private static InhabitantView ToFounderDraft(OwnerFounderDraft draft) => new(
+    private static AgentView ToFounderDraft(OwnerFounderDraft draft) => new(
         draft.Id,
         draft.DisplayName,
         "authoring_draft",
@@ -1184,70 +1184,70 @@ public sealed partial class OwnerWorldObservationStore
         new SpatialKnowledgeView(ToPosition(draft.Position), [ToPosition(draft.Position)], [ToPosition(draft.Position)]),
         IsDraft: true);
 
-    private static InhabitantView ToInhabitantView(
+    private static AgentView ToAgentView(
         WorldRuntimeState state,
-        SocietyInhabitant inhabitant,
-        InhabitantState physical, WorldMap travelMap)
+        SocietyAgent agent,
+        AgentState physical, WorldMap travelMap)
     {
         // A handcart and the goods inside it stay with the cart, not in its owner's hands.
         var cartIds = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart)
             .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         var inventory = state.Society.Society.Inventory.Lots.Where(lot =>
-                PersonalEquipmentRules.IsPhysicallyCarried(state.Society.Society.Inventory, lot, inhabitant.Id) && !cartIds.Contains(lot.Id))
+                PersonalEquipmentRules.IsPhysicallyCarried(state.Society.Society.Inventory, lot, agent.Id) && !cartIds.Contains(lot.Id))
             .GroupBy(lot => lot.ItemKind).Select(group => new InventoryEntryView(group.Key, group.Sum(lot => lot.Quantity))).ToArray();
         var route = DetermineWorldRoute(state, physical, inventory, travelMap);
         var perceived = KnownNearby(state.Map, physical.Position).ToArray();
         var known = KnownFixtureTopology(physical.Position, perceived, route);
         var household = state.Society.Society.Households
-            .FirstOrDefault(item => item.Id == inhabitant.HouseholdId);
+            .FirstOrDefault(item => item.Id == agent.HouseholdId);
         var decisionFactors = new List<DecisionFactorView>
         {
             new("personality", physical.Personality),
             new("aspiration", physical.Aspiration),
-            new("age-band", inhabitant.AgeBand.ToString().ToLowerInvariant()),
+            new("age-band", agent.AgeBand.ToString().ToLowerInvariant()),
             new(state.Society.Society.Config.DayLifecycle is null ? "age-years" : "age-days",
-                state.Society.Society.AgeAt(inhabitant, state.Society.Society.WorldTick).ToString(System.Globalization.CultureInfo.InvariantCulture)),
-            new("role", inhabitant.CurrentRole.ToString().ToLowerInvariant()),
+                state.Society.Society.AgeAt(agent, state.Society.Society.WorldTick).ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            new("role", agent.CurrentRole.ToString().ToLowerInvariant()),
             new("household", household?.Name ?? "unhoused"),
             new("hunger", $"{physical.HungerBasisPoints} basis points"),
         };
-        var personalStored = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == inhabitant.Id &&
-            !PersonalEquipmentRules.IsPhysicallyCarried(state.Society.Society.Inventory, lot, inhabitant.Id) &&
+        var personalStored = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == agent.Id &&
+            !PersonalEquipmentRules.IsPhysicallyCarried(state.Society.Society.Inventory, lot, agent.Id) &&
             !cartIds.Contains(lot.Id) && (lot.ContainerLotId is null || !cartIds.Contains(lot.ContainerLotId))).Sum(lot => lot.Quantity);
-        var borrowed = state.Society.Society.Inventory.Lots.Where(lot => lot.CarrierId == inhabitant.Id && lot.OwnerId != inhabitant.Id).Sum(lot => lot.Quantity);
+        var borrowed = state.Society.Society.Inventory.Lots.Where(lot => lot.CarrierId == agent.Id && lot.OwnerId != agent.Id).Sum(lot => lot.Quantity);
         decisionFactors.Add(new("personal-goods-awaiting-collection", $"{personalStored} units; ownership stays personal"));
         decisionFactors.Add(new("borrowed-goods", $"{borrowed} units; ownership stays with the lender"));
         if (physical.Departures?.Any(departure => departure.SharedProject is not null) == true)
             decisionFactors.Add(new("departed-household-work", "Previous work stays recorded with its original household."));
-        var ownedBuildings = state.WorldSimulation!.Buildings.Where(building => building.HouseholdId == inhabitant.HouseholdId && inhabitant.HouseholdId is not null)
+        var ownedBuildings = state.WorldSimulation!.Buildings.Where(building => building.HouseholdId == agent.HouseholdId && agent.HouseholdId is not null)
             .Select(building => building.InstanceId).ToHashSet(StringComparer.Ordinal);
         var pausedWork = state.WorldSimulation.ProductionJobs.Count(job => job.State == WorldProductionJobState.Paused && ownedBuildings.Contains(job.BuildingInstanceId)) +
             (state.WorldSimulation.BuildingExpansions ?? []).Count(job => job.State == WorldProductionJobState.Paused && ownedBuildings.Contains(job.BuildingInstanceId));
         if (pausedWork > 0) decisionFactors.Add(new("paused-household-work", $"{pausedWork} jobs; members can take over at the site when the committed inputs are available to them."));
-        if (inhabitant.PrimaryCaregiverId is { } primary)
-            decisionFactors.Add(new("primary-caregiver", state.Society.Society.GetInhabitant(primary).Name));
-        var dependents = SocietyRules.MovingCareGroup(state.Society.Society, inhabitant.Id).Where(id => id != inhabitant.Id)
-            .Select(id => state.Society.Society.GetInhabitant(id).Name).ToArray();
+        if (agent.PrimaryCaregiverId is { } primary)
+            decisionFactors.Add(new("primary-caregiver", state.Society.Society.GetAgent(primary).Name));
+        var dependents = SocietyRules.MovingCareGroup(state.Society.Society, agent.Id).Where(id => id != agent.Id)
+            .Select(id => state.Society.Society.GetAgent(id).Name).ToArray();
         if (dependents.Length > 0) decisionFactors.Add(new("dependent-care", string.Join(", ", dependents)));
-        var guardianNotes = GuardianCareNotes(state, inhabitant, physical).ToArray();
+        var guardianNotes = GuardianCareNotes(state, agent, physical).ToArray();
         decisionFactors.AddRange(guardianNotes.Select(note => new DecisionFactorView("guardian-care", note)));
-        if (HousingDetail(state, inhabitant, physical.Housing) is { } housingDetail)
+        if (HousingDetail(state, agent, physical.Housing) is { } housingDetail)
             decisionFactors.Add(new DecisionFactorView("housing", housingDetail));
-        if (state.Knowledge?.WritingProjects.SingleOrDefault(project => project.ActorId == inhabitant.Id) is { } writing)
+        if (state.Knowledge?.WritingProjects.SingleOrDefault(project => project.ActorId == agent.Id) is { } writing)
         {
             var kind = writing.Kind.Replace('_', ' ');
             var action = writing.SourceArtifactId is not null ? "Copying" : writing.Kind == "field_map" ? "Drawing" : "Writing";
             decisionFactors.Add(new DecisionFactorView("knowledge-writing",
                 $"{action} a {kind} · {writing.WorkDone}/{writing.WorkRequired}"));
         }
-        if (TownMembershipText.Describe(state.Towns ?? [], state.Society.Society, inhabitant.Id,
+        if (TownMembershipText.Describe(state.Towns ?? [], state.Society.Society, agent.Id,
                 state.WorldSystems!.Config.TicksPerDay,
                 TownMembershipText.TownsWithWarehouse(state.WorldSimulation, state.WorldContent!),
                 calendarOffsetTicks: state.WorldSystems.Config.CalendarOffsetTicks) is { } townMembership)
             decisionFactors.Add(new DecisionFactorView("town-membership", townMembership)
             {
                 AcceptanceDeadlineTick = TownMembershipText.AcceptanceDeadline(state.Towns ?? [],
-                    state.Society.Society, inhabitant.Id, state.WorldSystems!.Config.TicksPerDay),
+                    state.Society.Society, agent.Id, state.WorldSystems!.Config.TicksPerDay),
             });
         decisionFactors.AddRange(IdentityMomentFactors(physical));
         if (physical.ChildModelSelection is { Provider: { } birthProvider } birthModel)
@@ -1257,7 +1257,7 @@ public sealed partial class OwnerWorldObservationStore
                 decisionFactors.Add(new DecisionFactorView("birth-model-id", modelId));
         }
         var runtime = state.Society.Cognition.Runtimes
-            .FirstOrDefault(item => item.InhabitantId == inhabitant.Id);
+            .FirstOrDefault(item => item.AgentId == agent.Id);
         var modelStatus = physical.LastModelAttempt?.Status ?? "ready";
         if (modelStatus == "waiting" && state.Society.Society.IsPaused) modelStatus = "canceled";
         decisionFactors.Add(new DecisionFactorView("model-status", modelStatus));
@@ -1265,7 +1265,7 @@ public sealed partial class OwnerWorldObservationStore
             decisionFactors.Add(new DecisionFactorView("last-model-choice", acceptedCandidate));
         if (physical.LastModelAttempt?.SetupBlocker is { } setupBlocker)
             decisionFactors.Add(new DecisionFactorView("model-setup-blocker", setupBlocker));
-        if (state.Society.Cognition.Queue.Any(item => item.InhabitantId == inhabitant.Id))
+        if (state.Society.Cognition.Queue.Any(item => item.AgentId == agent.Id))
             decisionFactors.Add(new DecisionFactorView("decision-pending", "true"));
         if (runtime?.CurrentIntention is { } intention)
         {
@@ -1273,10 +1273,10 @@ public sealed partial class OwnerWorldObservationStore
             decisionFactors.Add(new DecisionFactorView("intention-provider", intention.Provider.ToString().ToLowerInvariant()));
         }
 
-        return new InhabitantView(
-            inhabitant.Id,
-            inhabitant.Name,
-            inhabitant.Status.ToString().ToLowerInvariant(),
+        return new AgentView(
+            agent.Id,
+            agent.Name,
+            agent.Status.ToString().ToLowerInvariant(),
             ToPosition(physical.Position),
             physical.HungerBasisPoints,
             inventory,
@@ -1289,43 +1289,43 @@ public sealed partial class OwnerWorldObservationStore
                 ? ToPublicIntention(publicIntention.CandidateId, publicIntention.Provider.ToString().ToLowerInvariant(), publicIntention.WorldTick,
                     OrderExplorationPurpose(state, physical))
                 : null,
-            Relationships = RelationshipsFor(state, inhabitant.Id),
+            Relationships = RelationshipsFor(state, agent.Id),
             RecentPrivateThoughts = (physical.RecentThoughts ?? [])
                 .Select(thought => new PrivateThoughtView(thought.WorldTick, thought.Text)).ToArray(),
-            RecentMemories = MemoriesFor(state, inhabitant.Id),
-            RecentBeliefs = BeliefsFor(state, inhabitant.Id),
-            RecentKnowledgeFacts = KnowledgeFactsFor(state, inhabitant.Id),
-            KnownRecipes = RecipesFor(state, inhabitant.Id),
-            KnowledgeArtifacts = KnowledgeArtifactsFor(state, inhabitant.Id),
+            RecentMemories = MemoriesFor(state, agent.Id),
+            RecentBeliefs = BeliefsFor(state, agent.Id),
+            RecentKnowledgeFacts = KnowledgeFactsFor(state, agent.Id),
+            KnownRecipes = RecipesFor(state, agent.Id),
+            KnowledgeArtifacts = KnowledgeArtifactsFor(state, agent.Id),
             Project = physical.Project is { } project
                 ? new ProjectView(project.Label, project.Stage, project.WorkDone, 10, project.Blocker, project.StartedTick)
                 : null,
             Survival = physical.Survival is { } survival
                 ? new SurvivalView(survival.WarmthBasisPoints, survival.IllnessBasisPoints,
-                    PersonalEquipmentRules.EquippedUnit(state.Society.Society.Inventory, inhabitant.Id, physical.Equipment?.ClothingLotId) is
+                    PersonalEquipmentRules.EquippedUnit(state.Society.Society.Inventory, agent.Id, physical.Equipment?.ClothingLotId) is
                     { ConditionBasisPoints: > 0 },
                     inventory.Any(item => item.Kind == "tool" && item.Quantity > 0), survival.NutritionBasisPoints, survival.LastMealKind) : null,
             Equipment = EquipmentFor(state, physical),
-            MedicalCareNote = inhabitant.Status == SocietyInhabitantStatus.Active ? MedicalCareRules.Note(physical) : null,
-            ToolMakingRequestNote = inhabitant.Status == SocietyInhabitantStatus.Active
-                ? ToolMakingRequestRules.Note(state.ToolMakingRequests ?? [], inhabitant.Id, inhabitant.HouseholdId) : null,
+            MedicalCareNote = agent.Status == SocietyAgentStatus.Active ? MedicalCareRules.Note(physical) : null,
+            ToolMakingRequestNote = agent.Status == SocietyAgentStatus.Active
+                ? ToolMakingRequestRules.Note(state.ToolMakingRequests ?? [], agent.Id, agent.HouseholdId) : null,
             Lesson = physical.Lesson is { } lesson ? new LessonView(
-                state.Society.Society.GetInhabitant(lesson.TeacherId).Name, lesson.Skill.ToString().ToLowerInvariant(),
+                state.Society.Society.GetAgent(lesson.TeacherId).Name, lesson.Skill.ToString().ToLowerInvariant(),
                 lesson.Stage, lesson.Progress, 20) : null,
             Proficiency = physical.Proficiency is { } practice
                 ? new ProficiencyView(practice.Building, practice.Farming, practice.Crafting) : null,
             Skills = ProjectSkills(physical, state.Society.Society),
-            SocialStanding = SocialStandingFor(state, inhabitant.Id, physical),
+            SocialStanding = SocialStandingFor(state, agent.Id, physical),
             SocialNotes = state.Society.Society.Inventory.Offers.Where(offer => offer.State == DirectBarterState.Open &&
-                    (offer.FirstPartyId == inhabitant.Id || offer.SecondPartyId == inhabitant.Id))
-                .Select(offer => offer.AcceptedBy.Contains(inhabitant.Id, StringComparer.Ordinal)
-                    ? "Waiting for the other inhabitant to accept or decline an exchange."
+                    (offer.FirstPartyId == agent.Id || offer.SecondPartyId == agent.Id))
+                .Select(offer => offer.AcceptedBy.Contains(agent.Id, StringComparer.Ordinal)
+                    ? "Waiting for the other agent to accept or decline an exchange."
                     : "An exchange is offered; acceptance or refusal is still undecided.")
-                .Concat(BusinessTradeNotes(state, inhabitant))
-                .Concat(MarriageNotes(state, inhabitant.Id))
-                .Concat(state.Inhabitants.Where(person => person.Parenthood is { } plan &&
-                    (person.InhabitantId == inhabitant.Id || plan.PartnerId == inhabitant.Id)).Select(person =>
-                    person.Parenthood!.Stage == "preparing" ? ContinuityPlanDue(state, person.InhabitantId, person.Parenthood.PartnerId)
+                .Concat(BusinessTradeNotes(state, agent))
+                .Concat(MarriageNotes(state, agent.Id))
+                .Concat(state.Agents.Where(person => person.Parenthood is { } plan &&
+                    (person.AgentId == agent.Id || plan.PartnerId == agent.Id)).Select(person =>
+                    person.Parenthood!.Stage == "preparing" ? ContinuityPlanDue(state, person.AgentId, person.Parenthood.PartnerId)
                         ? "Preparing for parenthood under the continuity rule. " +
                             WorldRuntime.ParenthoodFoodNote(state.Society.Society, person.Parenthood.PrimaryCaregiverId!, state.Towns ?? [])
                         : "Preparing for parenthood. " +
@@ -1334,7 +1334,7 @@ public sealed partial class OwnerWorldObservationStore
                     : person.Parenthood.Stage == "postponed" ? "Parenthood put off for now."
                     : person.Parenthood.Stage == "completed" ? "Caring for a child in the household." : "Parenthood plan withdrawn."))
                 .Concat(guardianNotes)
-                .Concat(HousingRequestNotes(state, inhabitant))
+                .Concat(HousingRequestNotes(state, agent))
                 .ToArray(),
         };
     }
@@ -1350,7 +1350,7 @@ public sealed partial class OwnerWorldObservationStore
             .OrderBy(request => ToolMakingRequestRules.IsTerminal(request.Status))
             .ThenByDescending(request => request.LastTransitionTick).ThenBy(request => request.Id, StringComparer.Ordinal).Take(8)
             .Select(request => new ToolMakingRequestView(request.Id,
-                state.Society.Society.GetInhabitant(request.RequesterId).Name, request.RecipeId,
+                state.Society.Society.GetAgent(request.RequesterId).Name, request.RecipeId,
                 state.WorldContent?.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == request.RecipeId)?.DisplayName
                     ?? request.ItemKind.Replace('_', ' '),
                 request.ItemKind, request.Status.ToString().ToLowerInvariant(), request.Blocker, request.OfferId)).ToArray();
@@ -1361,12 +1361,12 @@ public sealed partial class OwnerWorldObservationStore
             .Take(8).Select(trade =>
             {
                 var offer = state.Society.Society.Inventory.GetOffer(trade.OfferId);
-                return new BusinessTradeView(trade.OfferId, state.Society.Society.GetInhabitant(trade.BuyerId).Name,
+                return new BusinessTradeView(trade.OfferId, state.Society.Society.GetAgent(trade.BuyerId).Name,
                     trade.GoodsKind, offer.FirstQuantity, trade.PaymentKind, offer.SecondQuantity,
                     offer.State.ToString().ToLowerInvariant(), trade.CancellationReason);
             }).ToArray();
 
-    private static IEnumerable<string> BusinessTradeNotes(WorldRuntimeState state, SocietyInhabitant person)
+    private static IEnumerable<string> BusinessTradeNotes(WorldRuntimeState state, SocietyAgent person)
     {
         foreach (var trade in (state.BusinessTrades ?? []).Where(trade =>
                      trade.BuyerId == person.Id || trade.SellerHouseholdId == person.HouseholdId)
@@ -1388,23 +1388,23 @@ public sealed partial class OwnerWorldObservationStore
 
     /// <summary>Accepted care and a pending move are separate from needing a guardian.</summary>
     private static IEnumerable<string> GuardianCareNotes(
-        WorldRuntimeState state, SocietyInhabitant inhabitant, InhabitantState physical)
+        WorldRuntimeState state, SocietyAgent agent, AgentState physical)
     {
         if (physical.GuardianSearch is not null)
             yield return "Needs a guardian. No adult has accepted care yet; nearby adults may still feed them.";
-        else if (inhabitant.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
+        else if (agent.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
             !state.Society.Society.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
-                edge.State == SocietyRelationshipState.Accepted && edge.TargetId == inhabitant.Id &&
-                state.Society.Society.GetInhabitant(edge.ProposerId).Status == SocietyInhabitantStatus.Active))
+                edge.State == SocietyRelationshipState.Accepted && edge.TargetId == agent.Id &&
+                state.Society.Society.GetAgent(edge.ProposerId).Status == SocietyAgentStatus.Active))
             yield return "No active caregiver; household adults may offer support.";
 
-        foreach (var child in state.Inhabitants.OrderBy(person => person.InhabitantId, StringComparer.Ordinal))
+        foreach (var child in state.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal))
         {
             if (child.GuardianPlacement is not { } placement ||
-                child.InhabitantId != inhabitant.Id && placement.CaregiverId != inhabitant.Id)
+                child.AgentId != agent.Id && placement.CaregiverId != agent.Id)
                 continue;
-            var guardianName = state.Society.Society.GetInhabitant(placement.CaregiverId).Name;
-            var childName = state.Society.Society.GetInhabitant(child.InhabitantId).Name;
+            var guardianName = state.Society.Society.GetAgent(placement.CaregiverId).Name;
+            var childName = state.Society.Society.GetAgent(child.AgentId).Name;
             var hasBlocker = !string.IsNullOrWhiteSpace(placement.Blocker);
             var progress = hasBlocker ? "The move is waiting."
                 : placement.HouseId is null ? "Waiting for a suitable home."
@@ -1417,11 +1417,11 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     /// <summary>The current housing need, including overcrowding and a saved move-out notice.</summary>
-    private static string? HousingDetail(WorldRuntimeState state, SocietyInhabitant inhabitant,
+    private static string? HousingDetail(WorldRuntimeState state, SocietyAgent agent,
         SettlementHousing? housing)
     {
         if (housing is not null && (housing.Relocation is not null || housing.Blocker == HousingBlockers.Overcrowded))
-            return OvercrowdedHousingDetail(state, inhabitant, housing);
+            return OvercrowdedHousingDetail(state, agent, housing);
         if (housing?.Blocker is not { } blocker)
             return null;
         var asked = housing.Request is { } request
@@ -1439,12 +1439,12 @@ public sealed partial class OwnerWorldObservationStore
         };
     }
 
-    private static string OvercrowdedHousingDetail(WorldRuntimeState state, SocietyInhabitant inhabitant,
+    private static string OvercrowdedHousingDetail(WorldRuntimeState state, SocietyAgent agent,
         SettlementHousing housing)
     {
         var society = state.Society.Society;
         var house = state.WorldSimulation!.Buildings.FirstOrDefault(building =>
-            inhabitant.HouseholdId is not null && building.HouseholdId == inhabitant.HouseholdId &&
+            agent.HouseholdId is not null && building.HouseholdId == agent.HouseholdId &&
             state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
                 definition.Tags.Contains("house", StringComparer.Ordinal)));
         var counts = "Housing need.";
@@ -1452,8 +1452,8 @@ public sealed partial class OwnerWorldObservationStore
         if (house is not null)
         {
             var definition = state.WorldContent!.Buildings.Single(item => item.CanonicalId == house.DefinitionId);
-            var capacity = HouseResidentCapacityRules.Calculate(society.Inhabitants.Where(person =>
-                    person.HouseholdId == inhabitant.HouseholdId),
+            var capacity = HouseResidentCapacityRules.Calculate(society.Agents.Where(person =>
+                    person.HouseholdId == agent.HouseholdId),
                 house.Footprint?.Width ?? definition.Width, house.Footprint?.Height ?? definition.Height);
             counts = $"{(capacity.IsOvercrowded ? "House overcrowded" : "House")}: {capacity.ResidentCount} residents, {capacity.Limit} places.";
             construction = (state.WorldSimulation.BuildingExpansions ?? [])
@@ -1481,24 +1481,24 @@ public sealed partial class OwnerWorldObservationStore
             return $"{counts} Move-out notice: about {hours} world {(hours == 1 ? "hour" : "hours")} left. {reason}." +
                 next + construction;
         }
-        var notices = state.Inhabitants.Count(person => person.Housing?.Relocation is { } relocation &&
-            relocation.HouseholdId == inhabitant.HouseholdId);
+        var notices = state.Agents.Count(person => person.Housing?.Relocation is { } relocation &&
+            relocation.HouseholdId == agent.HouseholdId);
         return counts + (notices > 0
             ? $" {notices} {(notices == 1 ? "adult has" : "adults have")} notice to move out; completed expansion may let them stay."
             : " Nobody has notice to move out. Seek a feasible expansion or a voluntary household split that preserves dependent care.") + construction;
     }
 
     /// <summary>Requests to live in this adult's House that they must answer, or have answered.</summary>
-    private static IEnumerable<string> HousingRequestNotes(WorldRuntimeState state, SocietyInhabitant member)
+    private static IEnumerable<string> HousingRequestNotes(WorldRuntimeState state, SocietyAgent member)
     {
         if (member.HouseholdId is null)
             yield break;
-        foreach (var applicant in state.Inhabitants.OrderBy(person => person.InhabitantId, StringComparer.Ordinal))
+        foreach (var applicant in state.Agents.OrderBy(person => person.AgentId, StringComparer.Ordinal))
         {
             if (applicant.Housing?.Request is not { } request || request.HouseholdId != member.HouseholdId ||
                 !request.Members.Contains(member.Id, StringComparer.Ordinal))
                 continue;
-            var name = state.Society.Society.GetInhabitant(applicant.InhabitantId).Name;
+            var name = state.Society.Society.GetAgent(applicant.AgentId).Name;
             yield return request.Approvals.Contains(member.Id, StringComparer.Ordinal)
                 ? $"Agreed to let {name} live in the House; waiting for the other adults."
                 : request.Rejections.Contains(member.Id, StringComparer.Ordinal)
@@ -1507,22 +1507,22 @@ public sealed partial class OwnerWorldObservationStore
         }
     }
 
-    private static SkillView[] ProjectSkills(InhabitantState physical, SocietyCheckpoint society) =>
+    private static SkillView[] ProjectSkills(AgentState physical, SocietyCheckpoint society) =>
         (physical.Skills ?? []).Select(skill => new SkillView(skill.Kind.ToString().ToLowerInvariant(),
             skill.LearnedTick, skill.TeacherId,
-            skill.TeacherId is { } teacher ? society.GetInhabitant(teacher).Name : null)).ToArray();
+            skill.TeacherId is { } teacher ? society.GetAgent(teacher).Name : null)).ToArray();
 
-    private static InhabitantView ToDeceasedInhabitant(
+    private static AgentView ToDeceasedAgent(
         WorldRuntimeState state,
-        SocietyInhabitant inhabitant,
-        DeceasedInhabitantState archived)
+        SocietyAgent agent,
+        DeceasedAgentState archived)
     {
         var lastPhysical = archived.LastPhysical;
         var position = ToPosition(lastPhysical.Position);
-        var estate = state.Society.Society.Estates.FirstOrDefault(item => item.DeceasedId == inhabitant.Id);
-        return new InhabitantView(
-            inhabitant.Id,
-            inhabitant.Name,
+        var estate = state.Society.Society.Estates.FirstOrDefault(item => item.DeceasedId == agent.Id);
+        return new AgentView(
+            agent.Id,
+            agent.Name,
             "dead",
             position,
             lastPhysical.HungerBasisPoints,
@@ -1531,31 +1531,31 @@ public sealed partial class OwnerWorldObservationStore
             {
                 new("personality", lastPhysical.Personality),
                 new("aspiration", lastPhysical.Aspiration),
-                new("age-band", inhabitant.AgeBand.ToString().ToLowerInvariant()),
+                new("age-band", agent.AgeBand.ToString().ToLowerInvariant()),
                 new(state.Society.Society.Config.DayLifecycle is null ? "age-years" : "age-days",
                     archived.AgeAtDeath.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                new("role", inhabitant.CurrentRole.ToString().ToLowerInvariant()),
+                new("role", agent.CurrentRole.ToString().ToLowerInvariant()),
                 new("death-tick", archived.DeathTick.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                new("death-cause", inhabitant.DeathCause?.ToString().ToLowerInvariant() ?? "unknown"),
+                new("death-cause", agent.DeathCause?.ToString().ToLowerInvariant() ?? "unknown"),
                 new("will-status", estate?.WillStatus ?? "not_requested"),
             }.Concat(IdentityMomentFactors(lastPhysical)).ToArray(),
             new RouteView("deceased", null, null, [], string.Empty),
             new SpatialKnowledgeView(position, [position], [position]),
             IsDraft: false)
         {
-            Relationships = RelationshipsFor(state, inhabitant.Id),
+            Relationships = RelationshipsFor(state, agent.Id),
             RecentPrivateThoughts = (lastPhysical.RecentThoughts ?? [])
                 .Select(thought => new PrivateThoughtView(thought.WorldTick, thought.Text)).ToArray(),
-            RecentMemories = MemoriesFor(state, inhabitant.Id),
-            RecentBeliefs = BeliefsFor(state, inhabitant.Id),
-            RecentKnowledgeFacts = KnowledgeFactsFor(state, inhabitant.Id),
-            KnownRecipes = RecipesFor(state, inhabitant.Id),
-            KnowledgeArtifacts = KnowledgeArtifactsFor(state, inhabitant.Id),
+            RecentMemories = MemoriesFor(state, agent.Id),
+            RecentBeliefs = BeliefsFor(state, agent.Id),
+            RecentKnowledgeFacts = KnowledgeFactsFor(state, agent.Id),
+            KnownRecipes = RecipesFor(state, agent.Id),
+            KnowledgeArtifacts = KnowledgeArtifactsFor(state, agent.Id),
             Proficiency = lastPhysical.Proficiency is { } practice
                 ? new ProficiencyView(practice.Building, practice.Farming, practice.Crafting) : null,
             Skills = ProjectSkills(lastPhysical, state.Society.Society),
-            SocialStanding = SocialStandingFor(state, inhabitant.Id, lastPhysical),
-            SocialNotes = MarriageNotes(state, inhabitant.Id).ToArray(),
+            SocialStanding = SocialStandingFor(state, agent.Id, lastPhysical),
+            SocialNotes = MarriageNotes(state, agent.Id).ToArray(),
             FinalWill = estate is { WillStatus: { } status } ? FinalWillFor(state, estate, status) : null,
         };
     }
@@ -1573,14 +1573,14 @@ public sealed partial class OwnerWorldObservationStore
                 .Select(group => new InventoryEntryView(group.Key, group.Sum(item => item.Quantity)))
                 .ToArray();
             return new WillHeirView(heirId,
-                town?.Name ?? state.Society.Society.Inhabitants.FirstOrDefault(item => item.Id == heirId)?.Name ?? heirId,
+                town?.Name ?? state.Society.Society.Agents.FirstOrDefault(item => item.Id == heirId)?.Name ?? heirId,
                 town is not null, items);
         }).ToArray();
         return new FinalWillView(status, estate.WillSplit, heirs, estate.FinalWords);
     }
 
     private static AgentMemoryView[] MemoriesFor(WorldRuntimeState state, string ownerId) =>
-        (state.Society.Society.GetInhabitant(ownerId).Status == SocietyInhabitantStatus.Dead
+        (state.Society.Society.GetAgent(ownerId).Status == SocietyAgentStatus.Dead
             ? state.Society.Society.AllMemories() : state.Society.Society.Memories)
             .Where(memory => memory.OwnerId == ownerId && memory.TombstonedTick is null)
             .OrderByDescending(memory => memory.Permanent)
@@ -1591,14 +1591,14 @@ public sealed partial class OwnerWorldObservationStore
             .Select(memory => new AgentMemoryView(
                 memory.SourceTick,
                 memory.SubjectId,
-                state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == memory.SubjectId)?.Name ?? memory.SubjectId,
+                state.Society.Society.Agents.FirstOrDefault(person => person.Id == memory.SubjectId)?.Name ?? memory.SubjectId,
                 memory.Summary,
                 memory.Visibility,
                 memory.Permanent))
             .ToArray();
 
     private static AgentBeliefView[] BeliefsFor(WorldRuntimeState state, string ownerId) =>
-        (state.Society.Society.GetInhabitant(ownerId).Status == SocietyInhabitantStatus.Dead
+        (state.Society.Society.GetAgent(ownerId).Status == SocietyAgentStatus.Dead
             ? state.Society.Society.AllBeliefs() : state.Society.Society.Beliefs ?? [])
             .Where(belief => belief.OwnerId == ownerId)
             .OrderByDescending(belief => belief.FormedTick)
@@ -1611,17 +1611,17 @@ public sealed partial class OwnerWorldObservationStore
                 belief.ConfidenceBasisPoints,
                 belief.SourceAgentId,
                 belief.SourceAgentId is { } sourceId
-                    ? state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == sourceId)?.Name ?? sourceId
+                    ? state.Society.Society.Agents.FirstOrDefault(person => person.Id == sourceId)?.Name ?? sourceId
                     : null,
                 belief.SourceEventId,
-                belief.AboutInhabitantId,
+                belief.AboutAgentId,
                 belief.SupersededByBeliefId is not null,
                 belief.SupersededTick))
             .ToArray();
 
     private static AgentKnowledgeFactView[] KnowledgeFactsFor(WorldRuntimeState state, string ownerId)
     {
-        var names = state.Society.Society.Inhabitants.ToDictionary(item => item.Id, item => item.Name, StringComparer.Ordinal);
+        var names = state.Society.Society.Agents.ToDictionary(item => item.Id, item => item.Name, StringComparer.Ordinal);
         return (state.Knowledge?.Facts ?? []).Where(fact => fact.OwnerId == ownerId)
             .OrderByDescending(fact => fact.LearnedTick)
             .ThenBy(fact => fact.Id, StringComparer.Ordinal)
@@ -1643,11 +1643,11 @@ public sealed partial class OwnerWorldObservationStore
             .OrderByDescending(item => item.LearnedTick).ThenBy(item => item.RecipeId, StringComparer.Ordinal).Take(16)
             .Select(item => new AgentRecipeView(item.LearnedTick,
                 state.WorldContent!.Recipes.Single(recipe => recipe.CanonicalId == item.RecipeId).DisplayName, item.Acquisition,
-                item.SourceAgentId is { } source ? state.Society.Society.GetInhabitant(source).Name : null)).ToArray();
+                item.SourceAgentId is { } source ? state.Society.Society.GetAgent(source).Name : null)).ToArray();
 
     private static AgentKnowledgeArtifactView[] KnowledgeArtifactsFor(WorldRuntimeState state, string ownerId)
     {
-        var names = state.Society.Society.Inhabitants.ToDictionary(item => item.Id, item => item.Name, StringComparer.Ordinal);
+        var names = state.Society.Society.Agents.ToDictionary(item => item.Id, item => item.Name, StringComparer.Ordinal);
         var heldLotIds = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == ownerId)
             .Select(lot => lot.Id).ToHashSet(StringComparer.Ordinal);
         return (state.Knowledge?.Artifacts ?? []).Where(artifact => heldLotIds.Contains(artifact.LotId))
@@ -1675,10 +1675,10 @@ public sealed partial class OwnerWorldObservationStore
     private static SocialStandingView[] SocialStandingFor(
         WorldRuntimeState state,
         string ownerId,
-        InhabitantState physical)
+        AgentState physical)
     {
         var saved = (physical.SocialStanding ?? []).ToDictionary(item => item.SubjectId, item => item.Trust, StringComparer.Ordinal);
-        return state.Society.Society.Inhabitants.Where(subject => subject.Id != ownerId)
+        return state.Society.Society.Agents.Where(subject => subject.Id != ownerId)
             .Select(subject => new SocialStandingView(subject.Id, subject.Name,
                 saved.GetValueOrDefault(subject.Id, LegacyTrustScore(state, ownerId, subject.Id))))
             .Where(item => item.Trust > 0)
@@ -1692,23 +1692,23 @@ public sealed partial class OwnerWorldObservationStore
                 : memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
                 : memory.Id.StartsWith("settlement-trust:", StringComparison.Ordinal) ? 1 : 0));
 
-    private static InhabitantRelationshipView[] RelationshipsFor(
+    private static AgentRelationshipView[] RelationshipsFor(
         WorldRuntimeState state,
-        string inhabitantId) => state.Society.Society.Relationships
+        string agentId) => state.Society.Society.Relationships
         .Where(relationship =>
-            (relationship.ProposerId == inhabitantId || relationship.TargetId == inhabitantId) &&
+            (relationship.ProposerId == agentId || relationship.TargetId == agentId) &&
             relationship.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted or SocietyRelationshipState.EndedByDeath)
         .OrderBy(relationship => relationship.Type)
         .ThenBy(relationship => relationship.Id, StringComparer.Ordinal)
-        .Select(relationship => new InhabitantRelationshipView(
+        .Select(relationship => new AgentRelationshipView(
             relationship.Id,
-            relationship.ProposerId == inhabitantId ? relationship.TargetId : relationship.ProposerId,
+            relationship.ProposerId == agentId ? relationship.TargetId : relationship.ProposerId,
             ToWireValue(relationship.Type),
             ToWireValue(relationship.State),
             relationship.PrivacyClass,
             relationship.EffectiveTick,
             relationship.Type == SocietyRelationshipType.BiologicalParentage
-                ? relationship.ProposerId == inhabitantId ? "parent" : "child"
+                ? relationship.ProposerId == agentId ? "parent" : "child"
                 : relationship.Type == SocietyRelationshipType.Partnership ? "partner" : null))
         .ToArray();
 
@@ -1717,14 +1717,14 @@ public sealed partial class OwnerWorldObservationStore
             .Select(marriage => AgentMarriageRules.Note(marriage, agentId, state.Society.Society));
 
     private static string? OrderExplorationPurpose(WorldRuntimeState state,
-        InhabitantState physical)
+        AgentState physical)
     {
         if (physical.Exploration is not
             { Returning: false, OutingPath.Count: > 0, Goal: { Kind: "resource", OrderInstructionId: { } id } goal } exploration ||
             exploration.OutingPath[^1] != physical.Position)
             return null;
         var instruction = (state.Instructions ?? []).Where(item =>
-                item.TargetInhabitantId == physical.InhabitantId && item.Kind == OwnerInstructionKind.MustDo &&
+                item.TargetAgentId == physical.AgentId && item.Kind == OwnerInstructionKind.MustDo &&
                 item.Order is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" } &&
                 !(state.CompletedInstructionIds ?? []).Contains(item.InstructionId, StringComparer.Ordinal))
             .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
@@ -1794,7 +1794,7 @@ public sealed partial class OwnerWorldObservationStore
         _ => throw new ArgumentOutOfRangeException(nameof(state)),
     };
 
-    private static IEnumerable<DecisionFactorView> IdentityMomentFactors(InhabitantState physical) =>
+    private static IEnumerable<DecisionFactorView> IdentityMomentFactors(AgentState physical) =>
         (physical.IdentityMoments ?? []).Where(moment => moment.Outcome == "accepted")
             .Select(moment => new DecisionFactorView("identity-change", moment.Reason + ": " +
                 string.Join("; ", new[]
@@ -1803,16 +1803,16 @@ public sealed partial class OwnerWorldObservationStore
                     moment.Aspiration is null ? null : "Aspiration: " + moment.Aspiration,
                 }.Where(text => text is not null))));
 
-    private static EquipmentView EquipmentFor(WorldRuntimeState state, InhabitantState person)
+    private static EquipmentView EquipmentFor(WorldRuntimeState state, AgentState person)
     {
         var inventory = state.Society.Society.Inventory;
-        var garment = PersonalEquipmentRules.EquippedUnit(inventory, person.InhabitantId, person.Equipment?.ClothingLotId);
-        var aid = PersonalEquipmentRules.EquippedUnit(inventory, person.InhabitantId, person.Equipment?.CarryAidLotId);
-        var ornament = PersonalEquipmentRules.EquippedUnit(inventory, person.InhabitantId, person.Equipment?.OrnamentLotId);
+        var garment = PersonalEquipmentRules.EquippedUnit(inventory, person.AgentId, person.Equipment?.ClothingLotId);
+        var aid = PersonalEquipmentRules.EquippedUnit(inventory, person.AgentId, person.Equipment?.CarryAidLotId);
+        var ornament = PersonalEquipmentRules.EquippedUnit(inventory, person.AgentId, person.Equipment?.OrnamentLotId);
         var repair = person.Equipment?.Repair;
-        return new(PersonalEquipmentRules.CarriedQuantity(inventory, person.InhabitantId, person.Equipment),
-            PersonalEquipmentRules.Capacity(inventory, person.InhabitantId, person.Equipment) +
-                (state.AnimalWorld.Animals.Any(animal => animal.RiderId == person.InhabitantId && AnimalRules.HasCare(animal, state.Society.Society.WorldTick)) ? AnimalRules.RidingCargo : 0),
+        return new(PersonalEquipmentRules.CarriedQuantity(inventory, person.AgentId, person.Equipment),
+            PersonalEquipmentRules.Capacity(inventory, person.AgentId, person.Equipment) +
+                (state.AnimalWorld.Animals.Any(animal => animal.RiderId == person.AgentId && AnimalRules.HasCare(animal, state.Society.Society.WorldTick)) ? AnimalRules.RidingCargo : 0),
             garment?.ItemKind, garment is null ? null : ShownConditionPercent(garment.ConditionBasisPoints),
             aid?.ItemKind, aid is null ? null : ShownConditionPercent(aid.ConditionBasisPoints),
             inventory.Lots.FirstOrDefault(lot => lot.Id == repair?.LotId)?.ItemKind,
@@ -1820,7 +1820,7 @@ public sealed partial class OwnerWorldObservationStore
     }
 
     private static string BoatPassengerName(WorldRuntimeState state, string id) =>
-        state.Society.Society.Inhabitants.Single(person => person.Id == id).Name;
+        state.Society.Society.Agents.Single(person => person.Id == id).Name;
 
     private static BoatView[] ProjectBoats(WorldRuntimeState state) => state.BoatTransport.Boats.Select(boat =>
     {
@@ -1849,7 +1849,7 @@ public sealed partial class OwnerWorldObservationStore
 
     private static HandcartView[] ProjectHandcarts(WorldRuntimeState state)
     {
-        string Name(string id) => state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == id)?.Name ??
+        string Name(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ??
             state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ??
             (id == "settlement:communal" ? "Communal property" : "Estate property");
         var inventory = state.Society.Society.Inventory;
@@ -1908,15 +1908,15 @@ public sealed partial class OwnerWorldObservationStore
                 tiles.Max(tile => tile.X) - left + 1, tiles.Max(tile => tile.Y) - top + 1,
                 entrance is { } door ? ToPosition(door) : null, done, required, stage, town, household);
         }
-        foreach (var person in state.Inhabitants.OrderBy(item => item.InhabitantId, StringComparer.Ordinal))
+        foreach (var person in state.Agents.OrderBy(item => item.AgentId, StringComparer.Ordinal))
         {
             if (person.Project is not { Stage: not ("completed" or "cancelled") } project ||
                 !TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection) || !selection.IsBuilding ||
                 selection.SitePosition is not { } position ||
                 content.Buildings.FirstOrDefault(definition => definition.CanonicalId == selection.DefinitionId) is not { } planned)
                 continue;
-            var household = state.Society.Society.Inhabitants.FirstOrDefault(item => item.Id == person.InhabitantId)?.HouseholdId;
-            sites.Add(Site("household:" + person.InhabitantId, planned, position, null, project.WorkDone, 10, project.Stage, null, household));
+            var household = state.Society.Society.Agents.FirstOrDefault(item => item.Id == person.AgentId)?.HouseholdId;
+            sites.Add(Site("household:" + person.AgentId, planned, position, null, project.WorkDone, 10, project.Stage, null, household));
         }
         foreach (var town in (state.Towns ?? []).OrderBy(item => item.Id, StringComparer.Ordinal))
             foreach (var project in town.Projects.Where(item => item.Stage is "supplying" or "working" or "blocked" &&
@@ -1931,7 +1931,7 @@ public sealed partial class OwnerWorldObservationStore
     {
         var tick = state.Society.Society.WorldTick;
         var day = state.WorldSystems!.Config.TicksPerDay;
-        string Name(string id) => state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == id)?.Name ?? id;
+        string Name(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ?? id;
         return state.AnimalWorld.Animals.Select(animal => new AnimalView(animal.Id, animal.Name, animal.Species, animal.Sex,
             (int)((tick - animal.BornTick) / day), animal.DiedTick is not null ? "deceased" : AnimalRules.IsAdult(animal, tick, day) ? "adult" : "young",
             ToPosition(animal.Position), animal.HouseholdId, state.Society.Society.Households.FirstOrDefault(home => home.Id == animal.HouseholdId)?.Name,
@@ -1972,10 +1972,10 @@ public sealed partial class OwnerWorldObservationStore
 
     private static RouteView DetermineWorldRoute(
         WorldRuntimeState state,
-        InhabitantState physical,
+        AgentState physical,
         IReadOnlyList<InventoryEntryView> inventory, WorldMap travelMap)
     {
-        if (state.BoatTransport.Boats.FirstOrDefault(boat => boat.Journey?.PassengerId == physical.InhabitantId) is { Journey: { } journey })
+        if (state.BoatTransport.Boats.FirstOrDefault(boat => boat.Journey?.PassengerId == physical.AgentId) is { Journey: { } journey })
             return new RouteView(journey.WaitingSinceTick is not null ? "boat_waiting" : journey.Returning ? "boat_returning" : "boat_travel",
                 journey.Returning ? journey.OriginPortId : journey.DestinationPortId, ToPosition(journey.ReservedDock),
                 journey.WaterPath.Skip(journey.PathIndex + 1).Select(ToPosition).ToArray(), state.Map.ManifestDigest);
@@ -2063,7 +2063,7 @@ public sealed partial class OwnerWorldObservationStore
     /// knowledge is therefore limited to the current local perception and the
     /// route/destination it has already committed to follow. The server still
     /// owns the full map for routing, but must not accidentally project that
-    /// omniscience as inhabitant knowledge.
+    /// omniscience as agent knowledge.
     /// </summary>
     private static PositionView[] KnownFixtureTopology(
         GridPoint currentPosition,
@@ -2106,7 +2106,7 @@ public sealed partial class OwnerWorldObservationStore
     private static CognitionView ToCognition(WorldRuntimeState state)
     {
         var runtimes = state.Society.Cognition.Runtimes
-            .OrderBy(runtime => runtime.InhabitantId, StringComparer.Ordinal)
+            .OrderBy(runtime => runtime.AgentId, StringComparer.Ordinal)
             .ToArray();
         var current = runtimes
             .Select(runtime => runtime.CurrentIntention)
@@ -2132,8 +2132,8 @@ public sealed partial class OwnerWorldObservationStore
                 .Select(runtime =>
                 {
                     var intention = runtime.CurrentIntention!;
-                    return new InhabitantDecisionView(
-                        runtime.InhabitantId, intention.Usage?.ProviderId ?? intention.Provider.ToString().ToLowerInvariant(),
+                    return new AgentDecisionView(
+                        runtime.AgentId, intention.Usage?.ProviderId ?? intention.Provider.ToString().ToLowerInvariant(),
                         intention.CandidateId, intention.WorldTick, intention.Confidence,
                         intention.Usage?.ModelId, intention.Usage?.InputTokens, intention.Usage?.OutputTokens,
                         intention.Usage?.Role, intention.Usage?.LatencyMilliseconds,

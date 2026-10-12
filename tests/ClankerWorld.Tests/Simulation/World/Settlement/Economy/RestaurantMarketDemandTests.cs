@@ -33,12 +33,12 @@ public sealed class RestaurantMarketDemandTests
             placing.Validate();
             state = placing.ExportState();
         }
-        var beta = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == Beta &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Select(person => person.Id).ToArray();
+        var beta = state.Society.Society.Agents.Where(person => person.HouseholdId == Beta &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Select(person => person.Id).ToArray();
         var seller = beta[0];
         var buyer = beta[1];
-        var miller = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
+        var miller = state.Society.Society.Agents.First(person => person.HouseholdId == Alpha &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         inventory = state.Society.Society.Inventory with
         {
@@ -82,7 +82,7 @@ public sealed class RestaurantMarketDemandTests
             new(farmhouse.Position.X + 1, farmhouse.Position.Y));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Project = null,

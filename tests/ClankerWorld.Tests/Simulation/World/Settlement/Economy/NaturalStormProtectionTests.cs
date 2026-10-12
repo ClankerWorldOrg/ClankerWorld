@@ -36,11 +36,11 @@ public sealed class NaturalStormProtectionTests
         state = At(state, actor, position);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Survival = new(5_000) } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Survival = new(5_000) } : person).ToArray(),
         };
         using var world = Restore(state);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        return world.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.WarmthBasisPoints;
+        return world.Agents.Single(person => person.AgentId == actor).Survival!.WarmthBasisPoints;
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state, string? seeker = null) =>

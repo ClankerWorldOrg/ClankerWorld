@@ -13,7 +13,7 @@ public sealed partial class AnimalPipelineTests
     {
         var (state, actor, home, yard) = CreateYard("animal-horse-cargo");
         var tiles = WorldContentSimulationRules.Footprint(state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == yard.DefinitionId), yard)
-            .Where(point => !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point)).ToArray();
+            .Where(point => !state.Agents.Any(person => person.AgentId != actor && person.Position == point)).ToArray();
         Assert.Contains(yard.Position, tiles);
         var horsePosition = tiles.First(point => point != yard.Position);
         var cowPosition = tiles.First(point => point != yard.Position && point != horsePosition);
@@ -47,7 +47,7 @@ public sealed partial class AnimalPipelineTests
                 containerLotId: "supply-personal-jug");
         }
         state = At(state, actor, horsePosition, inventory, [horse, sheep, cow]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         using var preparing = RestoreYardCareSupply(state, actor);
         preparing.SubmitInstruction(new("supply-saddle", "owner", actor, OwnerInstructionKind.MustDo, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
@@ -78,7 +78,7 @@ public sealed partial class AnimalPipelineTests
                 reloadedNext = null;
             }
             if (!carryInputs && !careAtStock && current.Events.Any(item => item.EventId > previousEvent &&
-                item.Kind == "inhabitant_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
+                item.Kind == "agent_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
                 item.Detail.EndsWith(":animal_care", StringComparison.Ordinal)))
             {
                 sawCareApproach = true;

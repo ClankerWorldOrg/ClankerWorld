@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         CancellationTokenSource Cancellation);
 
     private sealed record WillRequestContext(
-        InhabitantObservation Observation,
+        AgentObservation Observation,
         IReadOnlyDictionary<string, string> HeirKeys,
         IReadOnlyDictionary<string, string> ItemKeys);
 
@@ -101,8 +101,8 @@ public sealed partial class WorldRuntime
     private WillRequestContext CreateWillRequestContext(SocietyEstate estate)
     {
         var checkpoint = society.Checkpoint;
-        var deceased = checkpoint.GetInhabitant(estate.DeceasedId);
-        var archived = deceasedInhabitants.GetValueOrDefault(estate.DeceasedId);
+        var deceased = checkpoint.GetAgent(estate.DeceasedId);
+        var archived = deceasedAgents.GetValueOrDefault(estate.DeceasedId);
         var snapshot = (estate.FrozenLots ?? []).OrderBy(item => item.LotId, StringComparer.Ordinal).ToArray();
         // A vessel's contents go with the vessel, so only top-level lots are offered.
         var containedIn = checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == estate.Id && lot.ContainerLotId is not null)
@@ -119,8 +119,8 @@ public sealed partial class WorldRuntime
                 contents.Length is > 0 and <= 128 ? contents : null));
         }
 
-        var people = checkpoint.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active && item.Id != deceased.Id)
+        var people = checkpoint.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active && item.Id != deceased.Id)
             .Select(item => (Person: item, Relation: WillRelation(checkpoint, deceased, item)))
             .OrderBy(item => item.Relation is null ? 1 : 0)
             .ThenBy(item => item.Person.Id, StringComparer.Ordinal)
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
             string.Join("|", heirs.Select(item => $"{item.Key}:{heirKeys[item.Key]}:{item.Relation}")) + "|" +
             string.Join("|", memories.Select(item => item.Id));
         var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(digestInput)));
-        var observation = new InhabitantObservation(estate.DeceasedId, estate.CreatedTick,
+        var observation = new AgentObservation(estate.DeceasedId, estate.CreatedTick,
             checkpoint.RunEpoch, 0, digest, 0, candidates, RequiresPersonalProvider: true,
             RetrievedMemories: memories, Self: self, Will: new CognitionWillContext(items, heirs));
         return new WillRequestContext(observation, heirKeys, itemKeys);
@@ -201,7 +201,7 @@ public sealed partial class WorldRuntime
     }
 
     /// <summary>A short label of how a living person was related to the dead agent, if at all.</summary>
-    private static string? WillRelation(SocietyCheckpoint checkpoint, SocietyInhabitant deceased, SocietyInhabitant person)
+    private static string? WillRelation(SocietyCheckpoint checkpoint, SocietyAgent deceased, SocietyAgent person)
     {
         bool Between(SocietyRelationship item) =>
             item.ProposerId == deceased.Id && item.TargetId == person.Id ||
@@ -249,7 +249,7 @@ public sealed partial class WorldRuntime
 
     private SocietyDefaultEstateDivision[] DefaultEstateDivisionsForDueEstates(long targetTick) =>
         society.Checkpoint.Estates.Where(estate => !estate.Settled && estate.WillStatus != "pending" && estate.ExpiryTick <= targetTick)
-            .Select(estate => deceasedInhabitants.TryGetValue(estate.DeceasedId, out var deceased) && deceased.TownId is { } townId &&
+            .Select(estate => deceasedAgents.TryGetValue(estate.DeceasedId, out var deceased) && deceased.TownId is { } townId &&
                 towns.FirstOrDefault(town => town.Id == townId) is { } town
                 ? new SocietyDefaultEstateDivision(estate.Id, townId,
                     TownEstateDefaultRules.AtDeath(town.Government, estate.CreatedTick)?.Version.EstateDefault?.TownSharePercent ?? 0)
@@ -282,7 +282,7 @@ public sealed partial class WorldRuntime
                     {
                         response.Validate();
                         valid = response.RequestId == pending.Request.RequestId &&
-                            response.InhabitantId == estate.DeceasedId &&
+                            response.AgentId == estate.DeceasedId &&
                             response.Provider == DecisionProviderKind.LargeLanguageModel &&
                             response.ProviderEpoch == pending.Request.ProviderEpoch &&
                             providerIsCurrent(pending) &&
@@ -332,7 +332,7 @@ public sealed partial class WorldRuntime
     {
         try
         {
-            var provider = providerFactory?.Invoke(pending.Request.Observation.InhabitantId);
+            var provider = providerFactory?.Invoke(pending.Request.Observation.AgentId);
             return provider is not null &&
                 provider.KindFor(pending.Request.Observation) == DecisionProviderKind.LargeLanguageModel &&
                 provider.ProviderEpoch == pending.Request.ProviderEpoch;

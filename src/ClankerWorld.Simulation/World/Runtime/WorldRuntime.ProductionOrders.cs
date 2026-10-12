@@ -8,26 +8,26 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private CognitionCandidate? ProductionOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? ProductionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order!;
         var recipe = WorldProductionOrderCatalog.Find(worldContent, order.TargetRecipeId)?.Recipe;
-        if (recipe is null || !ReadyForBriefInteraction(instruction.TargetInhabitantId)) return null;
+        if (recipe is null || !ReadyForBriefInteraction(instruction.TargetAgentId)) return null;
         if (BoundProductionJob(instruction) is { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job)
             return ProductionOrderBuilding(instruction, recipe) is null ? null :
                 new("produce_item", "Continue the ordered production at its reserved workstation.", 0, job.BuildingInstanceId);
-        if (!TryFindRecipeSite(recipe, out var buildingId, out _, instruction.TargetInhabitantId)) return null;
+        if (!TryFindRecipeSite(recipe, out var buildingId, out _, instruction.TargetAgentId)) return null;
         return new("produce_item", "Prepare and complete the requested recipe using real workstation inputs.", 0, buildingId);
     }
 
     private PlacedBuilding? ProductionOrderBuilding(OwnerQueuedInstruction instruction, RecipeDefinition recipe)
     {
         var order = instruction.Order!;
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var building = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == order.ProductionBuildingId);
         if (building is null || building.DefinitionId != recipe.WorkstationBuildingId ||
             order.TargetPosition is { } target && building.Position != target ||
-            building.HouseholdId is { } household && society.Checkpoint.GetInhabitant(actor).HouseholdId != household)
+            building.HouseholdId is { } household && society.Checkpoint.GetAgent(actor).HouseholdId != household)
             return null;
         var definition = worldContent.Buildings.FirstOrDefault(item => item.CanonicalId == building.DefinitionId);
         return definition is null || building.HouseholdId is null && definition.Tags.Any(IsHouseholdBuildingTag)
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
         instruction.Order is { Action: "produce_item", ProductionJobId: { } id } order
             ? worldSimulation.ProductionJobs.FirstOrDefault(job => job.JobId == id &&
                 job.OrderInstructionId == instruction.InstructionId &&
-                job.WorkerId == instruction.TargetInhabitantId && job.RecipeId == order.TargetRecipeId &&
+                job.WorkerId == instruction.TargetAgentId && job.RecipeId == order.TargetRecipeId &&
                 job.BuildingInstanceId == order.ProductionBuildingId && job.StartedTick >= order.ProductionProjectStartedTick)
             : null;
 
@@ -48,9 +48,9 @@ public sealed partial class WorldRuntime
         project.CandidateId == "build:recipe:" + order.TargetRecipeId &&
         (order.ProductionJobId is null || project.JobId == order.ProductionJobId);
 
-    private void ExecuteProductionOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteProductionOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         instruction = instructionsByIdempotency[instruction.IdempotencyKey];
         var order = instruction.Order!;
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
@@ -103,14 +103,14 @@ public sealed partial class WorldRuntime
             order = order with { ProductionBuildingId = buildingId, ProductionJobId = null, ProductionProjectStartedTick = WorldTick };
             instruction = instruction with { Order = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
-            inhabitants[actor] = person with { Project = project };
+            agents[actor] = person with { Project = project };
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent("project_chosen", $"{actor}:{project.CandidateId}");
         }
-        if (inhabitants[actor].Project is { RequiresFreshChoice: true } pausedProject)
+        if (agents[actor].Project is { RequiresFreshChoice: true } pausedProject)
             SetProject(actor, pausedProject with { Stage = "acquiring", RequiresFreshChoice = false, Blocker = null });
-        ContinueProject(actor, inhabitants[actor]);
-        var currentProject = inhabitants[actor].Project!;
+        ContinueProject(actor, agents[actor]);
+        var currentProject = agents[actor].Project!;
         if (currentProject.JobId is { } startedJobId && worldSimulation.ProductionJobs.Any(job =>
                 job.JobId == startedJobId && job.OrderInstructionId == instruction.InstructionId &&
                 job.WorkerId == actor && job.RecipeId == order.TargetRecipeId &&
@@ -128,12 +128,12 @@ public sealed partial class WorldRuntime
 
     private string ProductionOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        if (!AgePermitsCandidate(instruction.TargetInhabitantId, "produce_item"))
+        if (!AgePermitsCandidate(instruction.TargetAgentId, "produce_item"))
             return "This agent is too young to do workstation production.";
         if (WorldProductionOrderCatalog.Find(worldContent, instruction.Order!.TargetRecipeId) is null)
             return "The requested recipe is not active.";
-        if (IsProductionOrderProject(instruction, inhabitants[instruction.TargetInhabitantId].Project) &&
-            inhabitants[instruction.TargetInhabitantId].Project?.Blocker is { } blocker)
+        if (IsProductionOrderProject(instruction, agents[instruction.TargetAgentId].Project) &&
+            agents[instruction.TargetAgentId].Project?.Blocker is { } blocker)
             return blocker;
         return "The requested workstation is unavailable, full, outside this household's access, or cannot be reached.";
     }
@@ -148,8 +148,8 @@ public sealed partial class WorldRuntime
             var job = BoundProductionJob(instruction);
             if (job is not { State: WorldProductionJobState.Running or WorldProductionJobState.Paused }) continue;
             var recipe = worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == job.RecipeId);
-            if (!inhabitants.TryGetValue(instruction.TargetInhabitantId, out var person) || recipe is null ||
-                !AdultResident(instruction.TargetInhabitantId) || ProductionOrderBuilding(instruction, recipe) is not { } building ||
+            if (!agents.TryGetValue(instruction.TargetAgentId, out var person) || recipe is null ||
+                !AdultResident(instruction.TargetAgentId) || ProductionOrderBuilding(instruction, recipe) is not { } building ||
                 !IsProductionOrderProject(instruction, person.Project))
             {
                 CancelProductionForOrder(instruction);
@@ -161,7 +161,7 @@ public sealed partial class WorldRuntime
                 PauseProductionOrderJob(instruction, job);
                 SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
             }
-            else if (person.Position != building.Position || IsConversationBusy(person.InhabitantId) ||
+            else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
                      instruction.Order!.WaitForDecisionAfterFailure)
                 PauseProductionOrderJob(instruction, job);
         }
@@ -203,16 +203,16 @@ public sealed partial class WorldRuntime
             };
             AppendEvent("recipe_cancelled", $"{job.JobId}:{job.RecipeId}");
         }
-        if (inhabitants.TryGetValue(instruction.TargetInhabitantId, out var person) &&
+        if (agents.TryGetValue(instruction.TargetAgentId, out var person) &&
             IsProductionOrderProject(instruction, person.Project))
-            SetProject(person.InhabitantId, person.Project! with { Stage = "cancelled", Blocker = "The production order stopped." });
+            SetProject(person.AgentId, person.Project! with { Stage = "cancelled", Blocker = "The production order stopped." });
     }
 
     private void CreditProductionOrderJob(WorldProductionJob job, RecipeDefinition recipe)
     {
         var instruction = PendingInstructionFor(job.WorkerId);
         if (instruction?.Order is not { Action: "produce_item" } order || BoundProductionJob(instruction)?.JobId != job.JobId ||
-            !inhabitants.TryGetValue(job.WorkerId, out var person) || !IsProductionOrderProject(instruction, person.Project)) return;
+            !agents.TryGetValue(job.WorkerId, out var person) || !IsProductionOrderProject(instruction, person.Project)) return;
         var units = order.ProgressUnit == "production_batches" ? 1 :
             recipe.Outputs.Where(output => output.ResourceId == order.TargetOutputKind).Sum(output => output.Amount);
         var receipt = ProductionOrderReceipt(job.JobId);
@@ -224,7 +224,7 @@ public sealed partial class WorldRuntime
         DerivedId.Hash(jobId, "produce:job:");
 
     private static void ValidateProductionOrderBindings(WorldContentSimulationState simulation,
-        DeclarativeWorldContentState content, IEnumerable<InhabitantState> physical,
+        DeclarativeWorldContentState content, IEnumerable<AgentState> physical,
         IEnumerable<OwnerQueuedInstruction> instructions)
     {
         var productionInstructions = instructions.Where(instruction => instruction.Order?.Action == "produce_item").ToArray();
@@ -232,12 +232,12 @@ public sealed partial class WorldRuntime
             productionInstructions.Length)
             throw new InvalidDataException("Production order identities are not unique.");
         var orders = productionInstructions.ToDictionary(instruction => instruction.InstructionId, StringComparer.Ordinal);
-        var people = physical.ToDictionary(person => person.InhabitantId, StringComparer.Ordinal);
+        var people = physical.ToDictionary(person => person.AgentId, StringComparer.Ordinal);
         var jobs = simulation.ProductionJobs.ToDictionary(job => job.JobId, StringComparer.Ordinal);
         foreach (var job in simulation.ProductionJobs.Where(job => job.OrderInstructionId is not null))
         {
             if (!orders.TryGetValue(job.OrderInstructionId!, out var instruction) ||
-                job.WorkerId != instruction.TargetInhabitantId || job.RecipeId != instruction.Order!.TargetRecipeId ||
+                job.WorkerId != instruction.TargetAgentId || job.RecipeId != instruction.Order!.TargetRecipeId ||
                 job.BuildingInstanceId != instruction.Order.ProductionBuildingId || job.StartedTick < instruction.SubmittedTick)
                 throw new InvalidDataException("A production job does not belong to its recorded order.");
             if (job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused &&

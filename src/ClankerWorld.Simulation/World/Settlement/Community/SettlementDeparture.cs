@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
         var definition = BuildingStorageRules.EffectiveDefinition(
             worldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId), house);
         var group = MovingCareGroup(actor).ToHashSet(StringComparer.Ordinal);
-        var residents = society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var residents = society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             (person.HouseholdId == householdId || group.Contains(person.Id)));
         return !HouseResidentCapacityRules.Calculate(residents, definition.Width, definition.Height).IsOvercrowded;
     }
@@ -29,20 +29,20 @@ public sealed partial class WorldRuntime
     public bool DisplaceAdult(string actor)
     {
         gate.Wait();
-        try { return inhabitants.ContainsKey(actor) && !HasDependentInPrimaryCare(actor) && DepartHousehold(actor, "displaced"); }
+        try { return agents.ContainsKey(actor) && !HasDependentInPrimaryCare(actor) && DepartHousehold(actor, "displaced"); }
         finally { gate.Release(); }
     }
 
     private bool DepartHousehold(string actor, string cause)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId)
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId)
             return false;
         if (cause == "displaced" && (HasDependentInPrimaryCare(actor) ||
             HoldsRelocationNotice(actor) && !MayRelocateFromHousehold(actor)))
             return false;
         var group = MovingCareGroup(actor);
-        var sharedProject = inhabitants[actor].Project;
-        if (group.Any(id => society.Checkpoint.GetInhabitant(id).HouseholdId != householdId)) return false;
+        var sharedProject = agents[actor].Project;
+        if (group.Any(id => society.Checkpoint.GetAgent(id).HouseholdId != householdId)) return false;
         var allowanceIds = new List<string>();
         var allowance = 0;
         // Ownership changes now, location does not. Collection remains a separate physical action.
@@ -54,7 +54,7 @@ public sealed partial class WorldRuntime
             var available = PersonalEquipmentRules.AvailableQuantity(nextInventory, lot);
             var quantity = Math.Min(2 - allowance, available);
             if (quantity <= 0) continue;
-            var transferId = DepartureTransferId(actor, WorldTick, inhabitants[actor].Departures?.Count ?? 0, lot.Id);
+            var transferId = DepartureTransferId(actor, WorldTick, agents[actor].Departures?.Count ?? 0, lot.Id);
             InventoryGroundPosition? ground = lot.StorageBuildingId is null
                 ? lot.GroundPosition ?? new InventoryGroundPosition(SettlementStoragePosition.X, SettlementStoragePosition.Y)
                 : null;
@@ -84,8 +84,8 @@ public sealed partial class WorldRuntime
         }
         foreach (var id in group)
         {
-            var person = inhabitants[id];
-            inhabitants[id] = person with
+            var person = agents[id];
+            agents[id] = person with
             {
                 Project = null,
                 // A move-out notice ends with membership; a pending request elsewhere stays open.
@@ -95,9 +95,9 @@ public sealed partial class WorldRuntime
                 LastDecisionContext = null,
             };
         }
-        inhabitants[actor] = inhabitants[actor] with
+        agents[actor] = agents[actor] with
         {
-            Departures = (inhabitants[actor].Departures ?? []).Append(
+            Departures = (agents[actor].Departures ?? []).Append(
                 new SettlementDeparture(householdId, WorldTick, cause, group, allowanceIds, allowance, sharedProject)).ToArray(),
         };
         var ownedBuildings = worldSimulation.Buildings.Where(building => building.HouseholdId == householdId)
@@ -168,8 +168,8 @@ public sealed partial class WorldRuntime
     // Children leave in the caregiver's recorded care group. That saved move
     // still authorizes their own belongings after adulthood or the caregiver's
     // death; the surrounding collection checks grant no access to shared goods.
-    private bool HasCareGroupDepartureFrom(string actor, string householdId) => inhabitants.Values
-        .Concat(deceasedInhabitants.Values.Select(person => person.LastPhysical))
+    private bool HasCareGroupDepartureFrom(string actor, string householdId) => agents.Values
+        .Concat(deceasedAgents.Values.Select(person => person.LastPhysical))
         .Any(person => person.Departures?.Any(departure => departure.HouseholdId == householdId &&
             departure.CareGroup.Contains(actor, StringComparer.Ordinal)) == true);
 
@@ -192,7 +192,7 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<(string Id, string BuildingId, string Worker, long Completion, long PausedAt, IReadOnlyList<string> Reservations)> PausedHouseholdWork(string actor)
     {
-        var household = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (household is null) yield break;
         foreach (var job in worldSimulation.ProductionJobs.Where(job => job.State == WorldProductionJobState.Paused &&
                      !IsActiveProductionOrderJob(job.JobId) &&
@@ -240,9 +240,9 @@ public sealed partial class WorldRuntime
         var job = matches[0];
         if (!CanResumeHeldInputs(actor, job.BuildingId, job.Reservations) || !TryResumeKnife(actor, jobId, out var knifeId)) return;
         var building = worldSimulation.Buildings.Single(item => item.InstanceId == job.BuildingId);
-        if (inhabitants[actor].Position != building.Position)
+        if (agents[actor].Position != building.Position)
         {
-            MoveToward(actor, inhabitants[actor], building.Position, "resume_household_work");
+            MoveToward(actor, agents[actor], building.Position, "resume_household_work");
             return;
         }
         var expansion = (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(item => item.JobId == jobId);
@@ -305,12 +305,12 @@ public sealed partial class WorldRuntime
             if (CanResumeHeldInputs(actor, job.BuildingId, job.Reservations) && TryResumeKnife(actor, job.Id, out _))
                 candidates.Add(new("household_resume_work:" + job.Id,
                     "Go to your household's building and take over its paused work using the same committed materials.", 17, job.BuildingId));
-        var home = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var home = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (home is not null)
             candidates.Add(new("household_leave", "Leave your household without a vote; keep responsibility for your dependent children and collect your personal belongings physically.", 115));
         // Built-in rules never give up a home early: the notice period is time to find room
         // or finish an expansion, and the deadline moves the adult out when neither happens.
-        if (inhabitants[actor].Housing?.Request is null && MayFoundHousehold(actor) && !AskableHouseholds(actor).Any())
+        if (agents[actor].Housing?.Request is null && MayFoundHousehold(actor) && !AskableHouseholds(actor).Any())
             candidates.Add(new("household_found", home is null
                     ? "Start your own household with your dependent children. A House still needs a legal site, materials and work."
                     : "Move out of your overcrowded House and start your own household with your dependent children. A House still needs a legal site, materials and work.",
@@ -323,7 +323,7 @@ public sealed partial class WorldRuntime
                 var knowledgeAtHome = KeptAtHomeByRoutine(lot.ItemKind) &&
                     lot.StorageBuildingId is { } storageId &&
                     worldSimulation.Buildings.Any(building => building.InstanceId == storageId &&
-                        building.HouseholdId == society.Checkpoint.GetInhabitant(actor).HouseholdId);
+                        building.HouseholdId == society.Checkpoint.GetAgent(actor).HouseholdId);
                 // Knowledge safely stored at home is not a recovery errand.
                 // Keep collection available to a deliberate choice without
                 // making the built-in chooser undo its own storage next tick.
@@ -333,7 +333,7 @@ public sealed partial class WorldRuntime
             }
         }
         foreach (var lot in BorrowedGoods(actor).OrderBy(lot => lot.Id, StringComparer.Ordinal))
-            if (lot.OwnerId != society.Checkpoint.GetInhabitant(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
+            if (lot.OwnerId != society.Checkpoint.GetAgent(actor).HouseholdId && HouseForHousehold(lot.OwnerId) is { } ownerHouse &&
                 DestinationRoom(ownerHouse.InstanceId) > 0 &&
                 VesselFits(lot, DestinationRoom(ownerHouse.InstanceId)))
                 candidates.Add(new("household_return:" + lot.Id, $"Physically return borrowed {lot.ItemKind.Replace('_', ' ')} to its owning household.", 22));
@@ -350,9 +350,9 @@ public sealed partial class WorldRuntime
                     // so it puts away only what it then leaves at home.
                     KeptAtHomeByRoutine(lot.ItemKind) ? 95 : 110));
         }
-        foreach (var child in society.Checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        foreach (var child in society.Checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
                      person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
-                     person.HouseholdId is not null && person.HouseholdId == society.Checkpoint.GetInhabitant(actor).HouseholdId &&
+                     person.HouseholdId is not null && person.HouseholdId == society.Checkpoint.GetAgent(actor).HouseholdId &&
                      person.PrimaryCaregiverId != actor &&
                      // A child with no living caregiver is placed through the guardian search instead.
                      SocietyRules.HasActivePrimaryCaregiver(society.Checkpoint, person.Id)))
@@ -367,7 +367,7 @@ public sealed partial class WorldRuntime
     /// </summary>
     private bool MayFoundHousehold(string actor)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } home) return true;
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } home) return true;
         if (MayRelocateFromHousehold(actor)) return true;
         return HouseResidentCapacity(home) is { IsOvercrowded: true } && HouseForHousehold(home) is { } house &&
             !HouseCanExpandFurther(house);
@@ -419,16 +419,16 @@ public sealed partial class WorldRuntime
         if (candidate == "household_found")
         {
             if (!AdultResident(actor) || !MayFoundHousehold(actor) ||
-                inhabitants[actor].Housing?.Request is not null || AskableHouseholds(actor).Any()) return;
+                agents[actor].Housing?.Request is not null || AskableHouseholds(actor).Any()) return;
             // Splitting from an overcrowded House is an ordinary departure first.
-            if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
+            if (society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
                 !DepartHousehold(actor, MayRelocateFromHousehold(actor) ? "displaced" : "voluntary")) return;
             var householdId = SoloHouseholdId(actor, WorldTick);
             var group = MovingCareGroup(actor);
             society.Apply(checkpoint => SocietyRules.CreateHousehold(checkpoint, householdId,
-                society.Checkpoint.GetInhabitant(actor).Name + "'s household", group));
+                society.Checkpoint.GetAgent(actor).Name + "'s household", group));
             foreach (var id in group)
-                inhabitants[id] = inhabitants[id] with { Housing = new(Blocker: HousingBlocker(id)), LastDecisionContext = null };
+                agents[id] = agents[id] with { Housing = new(Blocker: HousingBlocker(id)), LastDecisionContext = null };
             AppendEvent("household_founded", $"{actor}|{householdId}");
             return;
         }
@@ -453,9 +453,9 @@ public sealed partial class WorldRuntime
             ReturnBorrowedGoods(actor, candidate["household_return:".Length..]);
     }
 
-    private static void ValidateDepartures(IEnumerable<InhabitantState> physical, SocietyCheckpoint society, int schemaVersion)
+    private static void ValidateDepartures(IEnumerable<AgentState> physical, SocietyCheckpoint society, int schemaVersion)
     {
-        var people = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var people = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var households = society.Households.Select(home => home.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var person in physical)
         {
@@ -465,7 +465,7 @@ public sealed partial class WorldRuntime
             if (schemaVersion < 39 || departures.Count == 0 || departures.Any(item => item is null ||
                 !households.Contains(item.HouseholdId) || item.Tick < 0 || item.Tick > society.WorldTick ||
                 item.Cause is not ("voluntary" or "displaced") || item.AllowancePortions is < 0 or > 2 ||
-                item.CareGroup is null || !item.CareGroup.Contains(person.InhabitantId, StringComparer.Ordinal) ||
+                item.CareGroup is null || !item.CareGroup.Contains(person.AgentId, StringComparer.Ordinal) ||
                 item.CareGroup.Distinct(StringComparer.Ordinal).Count() != item.CareGroup.Count ||
                 item.CareGroup.Any(id => !people.Contains(id)) || item.AllowanceLotIds is null ||
                 item.AllowanceLotIds.Count > item.AllowancePortions ||
@@ -489,11 +489,11 @@ public sealed partial class WorldRuntime
 
     private void MaintainMovingCareGroups()
     {
-        foreach (var adult in inhabitants.Values.Where(person => person.Departures is { Count: > 0 }).ToArray())
+        foreach (var adult in agents.Values.Where(person => person.Departures is { Count: > 0 }).ToArray())
         {
-            foreach (var childId in MovingCareGroup(adult.InhabitantId).Where(id => id != adult.InhabitantId))
+            foreach (var childId in MovingCareGroup(adult.AgentId).Where(id => id != adult.AgentId))
             {
-                if (!inhabitants.TryGetValue(childId, out var child) || child.GuardianPlacement is not null ||
+                if (!agents.TryGetValue(childId, out var child) || child.GuardianPlacement is not null ||
                     IsWithinInteractionRange(child.Position, adult.Position, 1)) continue;
                 MoveToward(childId, child, adult.Position, "follow_caregiver", 1);
             }

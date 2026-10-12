@@ -106,7 +106,7 @@ public sealed partial class ServerHttpTests
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
-            Assert.True(rename ? runtime.Society.GetInhabitant(founderId).Name == "Durable Name" : runtime.Society.IsPaused);
+            Assert.True(rename ? runtime.Society.GetAgent(founderId).Name == "Durable Name" : runtime.Society.IsPaused);
             if (!rename)
             {
                 var action = new OwnerReconnectAction(0);
@@ -123,7 +123,7 @@ public sealed partial class ServerHttpTests
             using var retry = await SendMutation();
             Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
             using var restored = file.LoadOrCreate(runtime.ExportState().WorldSeed);
-            Assert.True(rename ? restored.Society.GetInhabitant(founderId).Name == "Durable Name" : restored.Society.IsPaused);
+            Assert.True(rename ? restored.Society.GetAgent(founderId).Name == "Durable Name" : restored.Society.IsPaused);
         }
         finally { directory.Delete(recursive: true); }
     }

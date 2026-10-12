@@ -5,11 +5,11 @@ namespace ClankerWorld.Tests;
 public sealed class RuntimeWriterBoundaryTests
 {
     [Fact]
-    public void InhabitantComponentsHaveOnlyTheirRecordedWriterFiles()
+    public void AgentComponentsHaveOnlyTheirRecordedWriterFiles()
     {
         var root = RuntimeWriterScan.RepositoryRoot;
         var recorded = JsonSerializer.Deserialize<SortedDictionary<string, string[]>>(File.ReadAllText(Path.Combine(root,
-            "tests/ClankerWorld.Tests/Architecture/inhabitant-writers.json")))!;
+            "tests/ClankerWorld.Tests/Architecture/agent-writers.json")))!;
         var actual = RuntimeWriterScan.FindWriters(root);
         Assert.Equal(actual.Keys, recorded.Keys);
         foreach (var (component, files) in actual)

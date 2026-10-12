@@ -20,9 +20,9 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         var household = blacksmith.HouseholdId!;
         var recipe = setup.WorldContent.Recipes.Single(item => item.LocalId == "wooden-axe");
         var candidateId = "build:recipe:" + recipe.CanonicalId;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household &&
             person.AgeBand == SocietyAgeBand.Adult).Id;
-        var members = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == household)
+        var members = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var inventory = state.Society.Society.Inventory;
         var removedWood = inventory.Lots.Where(lot => lot.ItemKind == "wood")
@@ -41,14 +41,14 @@ public sealed class ExpiredBlockedHouseholdBuildTests
                     .Tags.Contains("house", StringComparer.Ordinal));
             inventory = InventoryAuthority.AddLot(inventory, "uncollectable-axe-wood", "wood", household, 1,
                 storageBuildingId: house.InstanceId);
-            foreach (var person in state.Inhabitants.Where(person => members.Contains(person.InhabitantId)))
+            foreach (var person in state.Agents.Where(person => members.Contains(person.AgentId)))
             {
-                var cargo = PersonalEquipmentRules.CarriedQuantity(inventory, person.InhabitantId, person.Equipment);
-                var capacity = PersonalEquipmentRules.Capacity(inventory, person.InhabitantId, person.Equipment);
+                var cargo = PersonalEquipmentRules.CarriedQuantity(inventory, person.AgentId, person.Equipment);
+                var capacity = PersonalEquipmentRules.Capacity(inventory, person.AgentId, person.Equipment);
                 Assert.InRange(cargo, 0, capacity);
                 if (cargo < capacity)
-                    inventory = InventoryAuthority.AddLot(inventory, "full-carrier:" + person.InhabitantId, "clay",
-                        person.InhabitantId, capacity - cargo);
+                    inventory = InventoryAuthority.AddLot(inventory, "full-carrier:" + person.AgentId, "clay",
+                        person.AgentId, capacity - cargo);
             }
         }
         state = state with
@@ -89,7 +89,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
                             : resource).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = blacksmith.Position,
@@ -100,19 +100,19 @@ public sealed class ExpiredBlockedHouseholdBuildTests
                         "Waiting for ingredients at this household building",
                         LastTransitionTick: projectStartedTick),
                 }
-                : members.Contains(person.InhabitantId)
+                : members.Contains(person.AgentId)
                     ? person with { HungerBasisPoints = 9_500 }
                     : person).ToArray(),
         };
 
         var recorder = new ActionCoverageRecorder(chooseIdle: true);
         using var blocked = WorldRuntime.Restore(state, _ => recorder);
-        var original = blocked.Inhabitants.Single(item => item.InhabitantId == actor).Project!;
+        var original = blocked.Agents.Single(item => item.AgentId == actor).Project!;
         for (var tick = 0; tick < 75 &&
-             !blocked.Inhabitants.Single(item => item.InhabitantId == actor).Project!.RequiresFreshChoice; tick++)
+             !blocked.Agents.Single(item => item.AgentId == actor).Project!.RequiresFreshChoice; tick++)
             Assert.True((await blocked.AdvanceOneTickAsync()).Advanced);
 
-        var paused = blocked.Inhabitants.Single(item => item.InhabitantId == actor).Project!;
+        var paused = blocked.Agents.Single(item => item.AgentId == actor).Project!;
         Assert.Equal("paused", paused.Stage);
         Assert.True(paused.RequiresFreshChoice);
         Assert.Equal("Materials for this work are unavailable. Choose another task for now.", paused.Blocker);
@@ -131,24 +131,24 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         var encodedPaused = WorldRuntimeCodec.Encode(blocked.ExportState());
         var savedPaused = WorldRuntimeCodec.Decode(encodedPaused);
         Assert.Equal(encodedPaused, WorldRuntimeCodec.Encode(savedPaused));
-        Assert.Equal(paused, savedPaused.Inhabitants.Single(item => item.InhabitantId == actor).Project);
+        Assert.Equal(paused, savedPaused.Agents.Single(item => item.AgentId == actor).Project);
         var invalidFlagState = savedPaused with
         {
-            Inhabitants = savedPaused.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = savedPaused.Agents.Select(person => person.AgentId == actor
                 ? person with { Project = paused with { Stage = "blocked" } }
                 : person).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalidFlagState, _ => new IdleProvider()));
         var urgentPauseState = savedPaused with
         {
-            Inhabitants = savedPaused.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = savedPaused.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 1_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
         using (var urgentPause = WorldRuntime.Restore(urgentPauseState, _ => new IdleProvider()))
         {
             Assert.True((await urgentPause.AdvanceOneTickAsync()).Advanced);
-            var urgentProject = urgentPause.Inhabitants.Single(item => item.InhabitantId == actor).Project!;
+            var urgentProject = urgentPause.Agents.Single(item => item.AgentId == actor).Project!;
             Assert.True(urgentProject.RequiresFreshChoice);
             Assert.Equal("Meeting food needs", urgentProject.Blocker);
         }
@@ -160,7 +160,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             {
                 Society = savedPaused.Society.Society with { Inventory = replenishedInventory },
             },
-            Inhabitants = savedPaused.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = savedPaused.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -172,7 +172,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
 
         Assert.Contains(candidateId, resumeProvider.SelectedCandidateIds);
-        var resumedProject = resumed.Inhabitants.Single(item => item.InhabitantId == actor).Project!;
+        var resumedProject = resumed.Agents.Single(item => item.AgentId == actor).Project!;
         Assert.False(resumedProject.RequiresFreshChoice);
         Assert.Equal(original.CandidateId, resumedProject.CandidateId);
         Assert.Equal(original.StartedTick, resumedProject.StartedTick);
@@ -189,7 +189,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         var state = setup.ExportState();
         var farmhouse = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-farmhouse");
         var household = farmhouse.HouseholdId!;
-        var members = state.Society.Society.Inhabitants.Where(item => item.HouseholdId == household &&
+        var members = state.Society.Society.Agents.Where(item => item.HouseholdId == household &&
                 item.AgeBand == SocietyAgeBand.Adult)
             .Select(item => item.Id).Order(StringComparer.Ordinal).ToArray();
         Assert.True(members.Length >= 2);
@@ -211,29 +211,29 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor || person.InhabitantId == sibling
+            Agents = state.Agents.Select(person => person.AgentId == actor || person.AgentId == sibling
                 ? person with { HungerBasisPoints = 9_500, LastDecisionContext = null, Project = null }
                 : person).ToArray(),
         };
         using var observing = WorldRuntime.Restore(state, _ => provider);
         for (var tick = 0; tick < 120 && (provider.InitialCandidateId is null ||
-                 observing.Inhabitants.Single(item => item.InhabitantId == actor).Project?.CandidateId != provider.InitialCandidateId); tick++)
+                 observing.Agents.Single(item => item.AgentId == actor).Project?.CandidateId != provider.InitialCandidateId); tick++)
         {
             Assert.True((await observing.AdvanceOneTickAsync()).Advanced);
         }
 
         var originallyOffered = provider.InitialCandidateId;
         Assert.NotNull(originallyOffered);
-        var project = observing.Inhabitants.Single(item => item.InhabitantId == actor).Project;
+        var project = observing.Agents.Single(item => item.AgentId == actor).Project;
         Assert.NotNull(project);
         Assert.Equal(originallyOffered, project.CandidateId);
-        for (var tick = 0; tick < 120 && observing.Inhabitants.Single(item => item.InhabitantId == actor)
+        for (var tick = 0; tick < 120 && observing.Agents.Single(item => item.AgentId == actor)
                  .Project!.WorkDone < 4; tick++)
         {
             Assert.True((await observing.AdvanceOneTickAsync()).Advanced);
         }
 
-        project = observing.Inhabitants.Single(item => item.InhabitantId == actor).Project;
+        project = observing.Agents.Single(item => item.AgentId == actor).Project;
         Assert.NotNull(project);
         Assert.InRange(project.WorkDone, 4, 9);
         Assert.True(TownConstructionCandidateIds.TryParse(originallyOffered, out var blockedSelection));
@@ -243,7 +243,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         var occupied = observing.PlaceBuilding("retry-blocked-site", blocker.CanonicalId, blockedSite);
         Assert.True(occupied.Applied, occupied.Failure);
         Assert.True((await observing.AdvanceOneTickAsync()).Advanced);
-        project = observing.Inhabitants.Single(item => item.InhabitantId == actor).Project;
+        project = observing.Agents.Single(item => item.AgentId == actor).Project;
         Assert.NotNull(project);
         Assert.Equal("blocked", project.Stage);
         Assert.Equal(workBeforeBlock, project.WorkDone);
@@ -253,18 +253,18 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         var retainedWork = project.WorkDone;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     HungerBasisPoints = 9_500,
                 }
-                : person.InhabitantId == sibling ? person with { LastDecisionContext = null } : person).ToArray(),
+                : person.AgentId == sibling ? person with { LastDecisionContext = null } : person).ToArray(),
         };
         var householdMaterialsBeforeRetry = MaterialTotals(state.Society.Society.Inventory, household);
         provider.Arm(actor, silo.CanonicalId, blockedSite);
         using var world = WorldRuntime.Restore(state, _ => provider);
 
-        for (var tick = 0; tick < 75 && world.Inhabitants.Single(item => item.InhabitantId == actor)
+        for (var tick = 0; tick < 75 && world.Agents.Single(item => item.AgentId == actor)
                  .Project?.CandidateId == originallyOffered; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -282,7 +282,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             TownConstructionCandidateIds.TryParse(id, out var selection) && selection.IsBuilding &&
             selection.DefinitionId == silo.CanonicalId);
 
-        var retriedPerson = world.Inhabitants.Single(item => item.InhabitantId == actor);
+        var retriedPerson = world.Agents.Single(item => item.AgentId == actor);
         Assert.NotNull(retriedPerson.Project);
         Assert.NotEqual(originallyOffered, retriedPerson.Project.CandidateId);
         Assert.InRange(retriedPerson.Project.WorkDone, retainedWork, 10);
@@ -291,7 +291,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             item.Detail.StartsWith(actor + ":" + silo.CanonicalId, StringComparison.Ordinal));
         Assert.Contains(world.WorldSimulation.Buildings, item => item.InstanceId == "retry-blocked-site" &&
             item.Position == blockedSite);
-        Assert.Null(world.Inhabitants.Single(item => item.InhabitantId == sibling).Project);
+        Assert.Null(world.Agents.Single(item => item.AgentId == sibling).Project);
         world.Validate();
     }
 
@@ -317,8 +317,8 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
 
-        public CapturedRequest[] RequestsFor(string inhabitantId) =>
-            requests.TryGetValue(inhabitantId, out var captured) ? captured.ToArray() : [];
+        public CapturedRequest[] RequestsFor(string agentId) =>
+            requests.TryGetValue(agentId, out var captured) ? captured.ToArray() : [];
 
         public void Arm(string targetActor, string targetDefinitionId, GridPoint oldSite)
         {
@@ -343,10 +343,10 @@ public sealed class ExpiredBlockedHouseholdBuildTests
         {
             var observation = request.Observation;
             var candidates = observation.Candidates;
-            requests.GetOrAdd(observation.InhabitantId, _ => new ConcurrentQueue<CapturedRequest>())
+            requests.GetOrAdd(observation.AgentId, _ => new ConcurrentQueue<CapturedRequest>())
                 .Enqueue(new CapturedRequest(observation.WorldTick, candidates.Select(item => item.Id).ToArray()));
             var selected = candidates.Single(item => item.Id == "safe_idle");
-            if (observation.InhabitantId == actor)
+            if (observation.AgentId == actor)
             {
                 var matchingBuilding = candidates.FirstOrDefault(item => TownConstructionCandidateIds.TryParse(item.Id, out var selection) &&
                     selection.IsBuilding && selection.DefinitionId == definitionId &&
@@ -364,7 +364,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             }
             var probabilities = candidates.ToDictionary(item => item.Id,
                 item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration,
                 observation.ObservationDigest, selected.Id, 1, probabilities));
         }
@@ -401,7 +401,7 @@ public sealed class ExpiredBlockedHouseholdBuildTests
             var probabilities = candidates.ToDictionary(item => item.Id,
                 item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal);
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 selected.Id, 1, probabilities));
         }

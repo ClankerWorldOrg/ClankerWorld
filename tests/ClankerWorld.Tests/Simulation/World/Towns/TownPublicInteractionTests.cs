@@ -18,7 +18,7 @@ public sealed class TownPublicInteractionTests
         var actor = town.ResidentIds[0];
         var blocker = town.ResidentIds[1];
         var start = state.Map.FootNeighbors(warehouse.Position).First(point =>
-            state.Map.IsBuildable(point) && state.Inhabitants.All(person => person.Position != point));
+            state.Map.IsBuildable(point) && state.Agents.All(person => person.Position != point));
         var inventory = state.Society.Society.Inventory;
         if (action == "store_town_resources")
             inventory = InventoryAuthority.AddLot(inventory, "public-wood", "wood", actor, 8);
@@ -30,9 +30,9 @@ public sealed class TownPublicInteractionTests
         }
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = start, HungerBasisPoints = 9_000, LastDecisionContext = null }
-                : person.InhabitantId == blocker
+                : person.AgentId == blocker
                     ? person with { Position = warehouse.Position, HungerBasisPoints = 9_000, LastDecisionContext = null }
                     : person).ToArray(),
         };
@@ -48,8 +48,8 @@ public sealed class TownPublicInteractionTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.Contains(world.ExportState().Events, item => item.Kind == eventKind && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
-        Assert.Equal(warehouse.Position, world.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
-        Assert.Equal(warehouse.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(warehouse.Position, world.Agents.Single(person => person.AgentId == blocker).Position);
+        Assert.Equal(warehouse.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         if (action == "store_town_resources")
         {
             Assert.Equal(4, world.Society.Inventory.GetLot("public-wood").Quantity);
@@ -75,7 +75,7 @@ public sealed class TownPublicInteractionTests
         var site = scenario.Project.Plan.Site;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == blocker
+            Agents = state.Agents.Select(person => person.AgentId == blocker
                 ? person with { Position = site, HungerBasisPoints = 9_000, LastDecisionContext = null }
                 : person).ToArray(),
         };
@@ -85,7 +85,7 @@ public sealed class TownPublicInteractionTests
         for (var tick = 0; tick < 80 && world.Towns[0].Projects[0].Deliveries.Count == 0; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.NotEmpty(world.Towns[0].Projects[0].Deliveries);
-        Assert.Equal(site, world.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
+        Assert.Equal(site, world.Agents.Single(person => person.AgentId == blocker).Position);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "town_project_material_picked_up");
         Assert.Equal(44, TownProjectScenario.MaterialQuantity(world.Society.Inventory, state.Towns[0].Id));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
@@ -96,7 +96,7 @@ public sealed class TownPublicInteractionTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            Assert.Equal(site, world.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
+            Assert.Equal(site, world.Agents.Single(person => person.AgentId == blocker).Position);
         }
         var completed = world.Towns[0].Projects[0];
         Assert.Equal("completed", completed.Stage);
@@ -118,7 +118,7 @@ public sealed class TownPublicInteractionTests
             var observation = request.Observation;
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id == action)
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1, observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

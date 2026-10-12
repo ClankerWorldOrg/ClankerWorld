@@ -38,7 +38,7 @@ public sealed partial class WorldRuntime
     /// </summary>
     private RecipeDefinition? HandcartToBuild(string actor)
     {
-        var household = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         var recipe = HouseholdHandcartRecipe(household);
         if (recipe is null || household is null || !AdultResident(actor) ||
             society.Checkpoint.Inventory.Lots.Any(lot => lot.ItemKind == InventoryContainerRules.Handcart && lot.OwnerId == actor) ||
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
     private int SpareCarriedQuantity(string actor, InventoryLot lot)
     {
         var kept = lot.OwnerId == actor && ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) &&
-            HouseholdHandcartRecipe(society.Checkpoint.GetInhabitant(actor).HouseholdId) is { } cart
+            HouseholdHandcartRecipe(society.Checkpoint.GetAgent(actor).HouseholdId) is { } cart
             ? cart.Inputs.Where(input => input.ResourceId == lot.ItemKind).Sum(input => input.Amount) : 0;
         if (kept == 0 || HandcartToBuild(actor) is null) return AvailableLotQuantity(lot);
         return Math.Min(AvailableLotQuantity(lot), Math.Max(0, CarriedMaterialQuantity(actor, lot.ItemKind) - kept));
@@ -144,13 +144,13 @@ public sealed partial class WorldRuntime
         foreach (var hitch in handcartHitches.ToArray())
         {
             var cart = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == hitch.CartLotId);
-            if (!inhabitants.ContainsKey(hitch.PullerId) || cart?.OwnerId != hitch.PullerId ||
+            if (!agents.ContainsKey(hitch.PullerId) || cart?.OwnerId != hitch.PullerId ||
                 cart.ConditionBasisPoints == 0)
                 ParkHandcart(hitch.PullerId, "ownership_changed");
         }
     }
 
-    private bool CanLoadCartLot(string actor, InhabitantState person, InventoryLot lot) =>
+    private bool CanLoadCartLot(string actor, AgentState person, InventoryLot lot) =>
         lot.ContainerLotId is null && lot.DeliveryBuildingId is null &&
         !OnBorrowedMarketStall(lot) && (lot.OwnerId != actor || !OnMarketStall(lot)) &&
         RecheckGoods(new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(lot.OwnerId), GoodsKinds.One(lot.ItemKind)), lot.Id) is not null &&
@@ -160,12 +160,12 @@ public sealed partial class WorldRuntime
         (lot.OwnerId == actor && lot.CarrierId is null && (ToolProgressionRules.IsTopLevelCarriedLot(lot, actor) ||
              lot.GroundPosition == new InventoryGroundPosition(person.Position.X, person.Position.Y)) ||
          // Household stock someone is borrowing stays the household's.
-         lot.OwnerId == society.Checkpoint.GetInhabitant(actor).HouseholdId && lot.CarrierId is null &&
+         lot.OwnerId == society.Checkpoint.GetAgent(actor).HouseholdId && lot.CarrierId is null &&
              (!IsEdibleFood(lot.ItemKind) || MayCollectSharedFood(actor)) &&
              person.Position == HouseholdStockPosition(lot));
 
     private void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
-        InhabitantState person)
+        AgentState person)
     {
         var inventory = society.Checkpoint.Inventory;
         if (HandcartToBuild(actor) is { } craftRecipe && HouseholdFor(actor) is { } home &&
@@ -239,14 +239,14 @@ public sealed partial class WorldRuntime
             }
         }
         if (AttachedHandcart(actor) is null && !HasActiveContainerReservation(inventory, nearby.Id))
-            foreach (var recipient in inhabitants.Values.Where(item => item.InhabitantId != actor &&
-                         AdultResident(item.InhabitantId) && IsWithinInteractionRange(person.Position, item.Position, 1))
-                         .OrderBy(item => item.InhabitantId, StringComparer.Ordinal))
-                candidates.Add(new(TransferCartPrefix + recipient.InhabitantId,
-                    $"Give your parked handcart and its cargo to {society.Checkpoint.GetInhabitant(recipient.InhabitantId).Name} here.", UnassignedCartPriority));
+            foreach (var recipient in agents.Values.Where(item => item.AgentId != actor &&
+                         AdultResident(item.AgentId) && IsWithinInteractionRange(person.Position, item.Position, 1))
+                         .OrderBy(item => item.AgentId, StringComparer.Ordinal))
+                candidates.Add(new(TransferCartPrefix + recipient.AgentId,
+                    $"Give your parked handcart and its cargo to {society.Checkpoint.GetAgent(recipient.AgentId).Name} here.", UnassignedCartPriority));
     }
 
-    private bool ApplyHandcartCandidate(string actor, InhabitantState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue)
+    private bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue)
     {
         if (candidateId.StartsWith(CollectCartMaterialPrefix, StringComparison.Ordinal))
         {
@@ -379,7 +379,7 @@ public sealed partial class WorldRuntime
         else if (isTransfer && AttachedHandcart(actor) is null)
         {
             var recipient = candidateId[TransferCartPrefix.Length..];
-            if (!inhabitants.TryGetValue(recipient, out var other) || !AdultResident(recipient) ||
+            if (!agents.TryGetValue(recipient, out var other) || !AdultResident(recipient) ||
                 !IsWithinInteractionRange(person.Position, other.Position, 1)) return true;
             ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{WorldTick}:{actor}",
                 actor, recipient, cartHere.Id, 1, "handcart_given", destinationGroundPosition: cartHere.GroundPosition));
@@ -389,7 +389,7 @@ public sealed partial class WorldRuntime
     }
 
     private static void ValidateHandcarts(IReadOnlyList<HandcartHitch> hitches, InventoryCheckpoint inventory,
-        IReadOnlyList<InhabitantState> people, WorldMap travelMap)
+        IReadOnlyList<AgentState> people, WorldMap travelMap)
     {
         if (hitches.Any(item => item is null) || hitches.Select(item => item.CartLotId).Distinct(StringComparer.Ordinal).Count() != hitches.Count ||
             hitches.Select(item => item.PullerId).Distinct(StringComparer.Ordinal).Count() != hitches.Count)
@@ -400,7 +400,7 @@ public sealed partial class WorldRuntime
         foreach (var hitch in hitches)
         {
             var cart = inventory.Lots.FirstOrDefault(lot => lot.Id == hitch.CartLotId);
-            var person = people.FirstOrDefault(item => item.InhabitantId == hitch.PullerId);
+            var person = people.FirstOrDefault(item => item.AgentId == hitch.PullerId);
             if (cart is null || cart.ItemKind != InventoryContainerRules.Handcart || cart.OwnerId != hitch.PullerId ||
                 cart.ConditionBasisPoints <= 0 || person is null ||
                 cart.GroundPosition != new InventoryGroundPosition(person.Position.X, person.Position.Y))

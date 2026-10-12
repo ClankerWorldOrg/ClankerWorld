@@ -75,7 +75,7 @@ public sealed class TownGovernanceProjectionTests
             var site = setup.Towns![0].BorderTiles.First(point => setup.Map.IsBuildable(point) &&
                 !setup.Map.Resources.Any(resource => resource.Position == point) &&
                 !setup.Map.MapObjects.Any(item => item.Position == point) &&
-                !setup.Inhabitants.Any(person => person.Position == point));
+                !setup.Agents.Any(person => person.Position == point));
             generated.AddAgent($"agent:{ordinal:D32}", site);
         }
         var initial = generated.ExportState();
@@ -97,7 +97,7 @@ public sealed class TownGovernanceProjectionTests
                 Society = initial.Society.Society with
                 {
                     Config = initial.Society.Society.Config with { TicksPerWorldDay = day },
-                    Inhabitants = initial.Society.Society.Inhabitants.Select(person => person with
+                    Agents = initial.Society.Society.Agents.Select(person => person with
                     {
                         BirthTick = person.BirthTick / oldDay * day,
                         BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * day : null,
@@ -158,7 +158,7 @@ public sealed class TownGovernanceProjectionTests
         Assert.NotNull(projected.LatestElection);
         Assert.NotNull(received.Election);
         Assert.NotNull(received.LatestElection);
-        var people = checkpoint.Society.Society.Inhabitants.ToDictionary(person => person.Id, person => person.Name);
+        var people = checkpoint.Society.Society.Agents.ToDictionary(person => person.Id, person => person.Name);
         Assert.Equal((active.Id, active.Kind, active.Stage, active.Seats, active.DeadlineTick),
             (projected.Election.Id, projected.Election.Kind, projected.Election.Stage,
                 projected.Election.Seats, projected.Election.DeadlineTick));

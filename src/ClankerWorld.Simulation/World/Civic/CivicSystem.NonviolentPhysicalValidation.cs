@@ -10,7 +10,7 @@ internal sealed partial class CivicSystem
         IReadOnlyList<HouseholdLandUseRight> rights)
     {
         var tick = society.WorldTick;
-        var agents = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var agents = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var households = society.Households.Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
         var townIds = towns.Select(town => town.Id).ToHashSet(StringComparer.Ordinal);
         var nativeReceipts = new HashSet<string>(StringComparer.Ordinal);

@@ -19,13 +19,13 @@ public sealed partial class WorldRuntime
         FarmingSystem.IsPlantedTree(resource);
 
     private void AddForestryCandidates(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state) =>
+        AgentState state) =>
         FarmingSystem.AddForestryCandidates(farmingWorld, candidates, actor, state);
 
     private MapResource? ReplantableTree(string actor, GridPoint origin) =>
         FarmingSystem.ReplantableTree(farmingWorld, actor, origin);
 
-    private void ReplantTree(string actor, InhabitantState state) =>
+    private void ReplantTree(string actor, AgentState state) =>
         FarmingSystem.ReplantTree(farmingWorld, actor, state);
 
     public TreePlantingResult PlantTree(string planterId, string species, string seedLotId, GridPoint destination)
@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
     private TreePlantingResult PlantTreeCore(string planterId, string species, string seedLotId, GridPoint destination) =>
         FarmingSystem.PlantTreeCore(farmingWorld, planterId, species, seedLotId, destination);
 
-    private void PlantTreeNearby(string actor, InhabitantState state, bool orchard = false) =>
+    private void PlantTreeNearby(string actor, AgentState state, bool orchard = false) =>
         FarmingSystem.PlantTreeNearby(farmingWorld, actor, state, orchard);
 
     private GridPoint? PlantingSite(string actor, GridPoint origin) =>

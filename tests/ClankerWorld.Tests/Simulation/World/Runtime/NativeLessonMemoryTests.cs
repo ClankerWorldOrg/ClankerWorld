@@ -17,13 +17,13 @@ public sealed partial class GrownAgentHelperMemoryTests
         // Existing fixture grows genuine births and adults with explicit calendar,
         // birth food and lifespan preparation. Keep their skills and positions.
         var state = WorldRuntimeCodec.Decode(await LaterAdult.Value);
-        var teacher = state.Inhabitants.Single(person => (person.Skills ?? [])
-            .Any(skill => skill.Kind == SettlementSkillKind.Crafting)).InhabitantId;
+        var teacher = state.Agents.Single(person => (person.Skills ?? [])
+            .Any(skill => skill.Kind == SettlementSkillKind.Crafting)).AgentId;
         var student = nativeBorn ? state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId :
-            state.Inhabitants.First(person => person.InhabitantId != teacher && (person.Skills ?? []).Count == 0 &&
-                person.InhabitantId.StartsWith("founder:", StringComparison.Ordinal)).InhabitantId;
+            state.Agents.First(person => person.AgentId != teacher && (person.Skills ?? []).Count == 0 &&
+                person.AgentId.StartsWith("founder:", StringComparison.Ordinal)).AgentId;
         Assert.InRange(student.Length, 1, DerivedId.MaximumLength);
-        var beforeTrust = state.Inhabitants.Single(person => person.InhabitantId == student)
+        var beforeTrust = state.Agents.Single(person => person.AgentId == student)
             .SocialStanding?.SingleOrDefault(item => item.SubjectId == teacher)?.Trust ?? 0;
         state = state with { RoutineHelper = RoutineHelperSettings.Off };
         var learning = new NativeLessonChoices(true);
@@ -32,9 +32,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             id => id == student ? learning : id == teacher ? teaching : new QuietProvider());
         world.Resume();
         using var host = new NativeLessonCheckpointHost(world);
-        for (var tick = 0; tick < 200 && world.Inhabitants.Single(person => person.InhabitantId == student)
+        for (var tick = 0; tick < 200 && world.Agents.Single(person => person.AgentId == student)
                  .Lesson?.Stage != "completed"; tick++) await host.Step();
-        var completed = world.Inhabitants.Single(person => person.InhabitantId == student);
+        var completed = world.Agents.Single(person => person.AgentId == student);
         Assert.Equal("completed", completed.Lesson?.Stage);
         Assert.Equal(20, completed.Lesson!.Progress);
         Assert.Contains(learning.Choices, choice => choice == "learn:crafting:" + teacher);
@@ -45,7 +45,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(beforeTrust + 2, completed.SocialStanding!.Single(item => item.SubjectId == teacher).Trust);
         var memory = Assert.Single(world.Society.Memories, item => item.OwnerId == student && item.SubjectId == teacher &&
             item.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
-        Assert.Equal("Learned crafting with " + world.Society.GetInhabitant(teacher).Name + ".", memory.Summary);
+        Assert.Equal("Learned crafting with " + world.Society.GetAgent(teacher).Name + ".", memory.Summary);
         Assert.Equal("public", memory.Visibility);
         Assert.Equal(SocietyMemoryKind.Skill, memory.Kind);
         Assert.Equal(skill.LearnedTick, memory.SourceTick);
@@ -87,7 +87,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             await replayHost.Step();
             Assert.Equal(reloadHost.Saved(), replayHost.Saved());
         }
-        var continued = reload.Inhabitants.Single(person => person.InhabitantId == student);
+        var continued = reload.Agents.Single(person => person.AgentId == student);
         Assert.Equal(completed.Skills, continued.Skills);
         Assert.Equal(beforeTrust + 2, continued.SocialStanding!.Single(item => item.SubjectId == teacher).Trust);
         Assert.Equal(memory, Assert.Single(reload.Society.Memories, item => item.Id == memory.Id));
@@ -99,7 +99,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public ConcurrentQueue<string> Choices { get; } = new();
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
@@ -112,7 +112,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     item.Id.StartsWith("lesson_teach:", StringComparison.Ordinal));
             choice ??= observation.Candidates.Single(item => item.Id == "safe_idle");
             Choices.Enqueue(choice.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 choice.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d)));
         }

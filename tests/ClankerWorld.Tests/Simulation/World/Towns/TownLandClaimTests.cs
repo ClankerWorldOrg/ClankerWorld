@@ -19,7 +19,7 @@ public sealed class TownLandClaimTests
         choices.Plot = plot;
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = town.OriginSite!.Value }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = town.OriginSite!.Value }).ToArray(),
         }, _ => new ClaimProvider(choices));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -162,7 +162,7 @@ public sealed class TownLandClaimTests
         var reader = new DescribedPlotProvider(town.ResidentIds[0]);
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = origin }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = origin }).ToArray(),
         }, _ => reader);
         await Until(world, () => world.Towns[0].Governance!.Proposals.Count == 1);
         var description = reader.Description!;
@@ -232,11 +232,11 @@ public sealed class TownLandClaimTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var o = request.Observation;
-            var claim = o.InhabitantId == author && Description is null
+            var claim = o.AgentId == author && Description is null
                 ? o.Candidates.FirstOrDefault(c => c.Id.Contains("|claim_land|", StringComparison.Ordinal)) : null;
             var selected = claim ?? o.Candidates.Single(c => c.Id == "safe_idle");
             Description ??= claim?.Description;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: claim is null ? null : [.. ListedTiles(claim.Description).Take(1).Select(tile => new CognitionLandTile(tile.X, tile.Y))]));
@@ -251,13 +251,13 @@ public sealed class TownLandClaimTests
         {
             var o = request.Observation;
             var selected = o.Candidates.FirstOrDefault(c => c.Id.Contains("|read|", StringComparison.Ordinal)) ??
-                (choices.Voters.Contains(o.InhabitantId) ? o.Candidates.FirstOrDefault(c =>
+                (choices.Voters.Contains(o.AgentId) ? o.Candidates.FirstOrDefault(c =>
                     c.Id.Contains("|yes|", StringComparison.Ordinal) && (choices.ProposalId is null || c.Id.Contains(choices.ProposalId, StringComparison.Ordinal))) : null) ??
-                (choices.Author == o.InhabitantId && choices.Plot is not null
+                (choices.Author == o.AgentId && choices.Plot is not null
                     ? o.Candidates.FirstOrDefault(c => c.Id.Contains("|claim_land|", StringComparison.Ordinal)) : null) ??
                 o.Candidates.Single(c => c.Id == "safe_idle");
-            choices.Selected.Enqueue(o.WorldTick + "|" + o.InhabitantId + "|" + selected.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            choices.Selected.Enqueue(o.WorldTick + "|" + o.AgentId + "|" + selected.Id);
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: selected.Id.Contains("|claim_land|", StringComparison.Ordinal)

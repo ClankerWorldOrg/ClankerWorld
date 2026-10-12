@@ -22,7 +22,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             checkpoint.Births.Any(birth => birth.ChildId == item.ProposerId)).ProposerId;
         Assert.Equal(2, checkpoint.Births.Count);
         Assert.InRange(heir.Length, 1, DerivedId.MaximumLength);
-        var physical = Assert.Single(state.Inhabitants, item => item.InhabitantId == parent);
+        var physical = Assert.Single(state.Agents, item => item.AgentId == parent);
         checkpoint = checkpoint with
         {
             Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "final-words-wood", "wood", parent, 4,
@@ -39,21 +39,21 @@ public sealed partial class GrownAgentHelperMemoryTests
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Where(item => item.InhabitantId != parent).ToArray(),
-            DeceasedInhabitants = (state.DeceasedInhabitants ?? []).Append(new DeceasedInhabitantState(
-                parent, checkpoint.WorldTick, checkpoint.AgeAt(checkpoint.GetInhabitant(parent), checkpoint.WorldTick),
+            Agents = state.Agents.Where(item => item.AgentId != parent).ToArray(),
+            DeceasedAgents = (state.DeceasedAgents ?? []).Append(new DeceasedAgentState(
+                parent, checkpoint.WorldTick, checkpoint.AgeAt(checkpoint.GetAgent(parent), checkpoint.WorldTick),
                 physical)).ToArray(),
             Towns = state.Towns!.Select(town =>
             {
                 var residents = town.ResidentIds.Where(id => id != parent).ToArray();
-                var adults = residents.Where(id => checkpoint.GetInhabitant(id).Status == SocietyInhabitantStatus.Active &&
-                    checkpoint.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+                var adults = residents.Where(id => checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active &&
+                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
                 var advanced = TownGovernmentRules.Advance(town.Governance!, town.Government!, town.Id,
                     town.Name, state.WorldSeed, adults, checkpoint.WorldTick, state.WorldSystems!.Config.TicksPerDay);
                 return town with { ResidentIds = residents, Governance = advanced.Council, Government = advanced.Government };
             }).ToArray(),
         };
-        var provider = new FinalWordsRecallProvider(checkpoint.GetInhabitant(heir).Name);
+        var provider = new FinalWordsRecallProvider(checkpoint.GetAgent(heir).Name);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => provider);
         world.Resume();
@@ -66,7 +66,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(FinalWordsRecallProvider.Words, accepted.FinalWords);
         var offered = Assert.Single(provider.Observations, item => item.Will is not null);
         offered.Validate();
-        Assert.Contains(offered.Will!.Heirs, item => item.Name == checkpoint.GetInhabitant(heir).Name);
+        Assert.Contains(offered.Will!.Heirs, item => item.Name == checkpoint.GetAgent(heir).Name);
         Assert.DoesNotContain(world.Society.Memories, item => item.Id.StartsWith("final-words:", StringComparison.Ordinal) &&
             item.SubjectId == parent);
 
@@ -76,7 +76,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             await AdvanceFinalWordsTick(world);
         var held = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(held),
-            _ => new FinalWordsRecallProvider(checkpoint.GetInhabitant(heir).Name));
+            _ => new FinalWordsRecallProvider(checkpoint.GetAgent(heir).Name));
         Assert.Equal(held, WorldRuntimeCodec.Encode(replay.ExportState()));
         for (var tick = 0; tick < 2; tick++)
         {
@@ -92,19 +92,19 @@ public sealed partial class GrownAgentHelperMemoryTests
         var memory = Assert.Single(world.Society.Memories, item => item.OwnerId == heir &&
             item.Id.StartsWith("final-words:", StringComparison.Ordinal) && item.SubjectId == parent);
         Assert.Equal((heir, parent, "private", SocietyMemoryKind.LifeEvent,
-                $"{checkpoint.GetInhabitant(parent).Name}'s final words were: '{FinalWordsRecallProvider.Words}'"),
+                $"{checkpoint.GetAgent(parent).Name}'s final words were: '{FinalWordsRecallProvider.Words}'"),
             (memory.OwnerId, memory.SubjectId, memory.Visibility, memory.Kind, memory.Summary));
         Assert.True(SocietyMemoryArchiveRules.IsPermanent(memory));
 
         var settled = WorldRuntimeCodec.Encode(world.ExportState());
-        var recall = new FinalWordsRecallProvider(checkpoint.GetInhabitant(heir).Name, heir);
+        var recall = new FinalWordsRecallProvider(checkpoint.GetAgent(heir).Name, heir);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(settled), _ => recall);
         Assert.Equal(settled, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.SubmitInstruction(new("recall-final-words", "owner:test", heir, OwnerInstructionKind.Suggestive,
             "Remember the final words about keeping the trees growing."));
-        for (var tick = 0; tick < 20 && !recall.Observations.Any(item => item.InhabitantId == heir); tick++)
+        for (var tick = 0; tick < 20 && !recall.Observations.Any(item => item.AgentId == heir); tick++)
             await AdvanceFinalWordsTick(restored);
-        var observation = Assert.Single(recall.Observations.Where(item => item.InhabitantId == heir).Take(1));
+        var observation = Assert.Single(recall.Observations.Where(item => item.AgentId == heir).Take(1));
         observation.Validate();
         Assert.True(observation.WorldTick > memory.SourceTick);
         var excerpt = Assert.Single(observation.RetrievedMemories!, item => item.Id == memory.Id);
@@ -137,11 +137,11 @@ public sealed partial class GrownAgentHelperMemoryTests
     private sealed class FinalWordsRecallProvider(string heirName, string? recallOwner = null) : IDecisionProvider
     {
         public const string Words = "Keep the trees growing.";
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
-        public DecisionProviderKind KindFor(InhabitantObservation observation) =>
-            observation.Will is not null || observation.InhabitantId == recallOwner
+        public DecisionProviderKind KindFor(AgentObservation observation) =>
+            observation.Will is not null || observation.AgentId == recallOwner
                 ? DecisionProviderKind.LargeLanguageModel : DecisionProviderKind.Deterministic;
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
@@ -154,7 +154,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var will = observation.Will is null ? null : new CognitionWillChoice(
                 [observation.Will.Heirs.Single(item => item.Name == heirName).Key], CognitionWillContext.EqualSplit,
                 FinalWords: Words);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, KindFor(observation),
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, KindFor(observation),
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected, 1, observation.Candidates.ToDictionary(item => item.Id,
                     item => item.Id == selected ? 1d : 0d, StringComparer.Ordinal), Will: will));

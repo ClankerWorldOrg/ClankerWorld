@@ -25,8 +25,8 @@ public sealed class TownGovernanceRuntimeTests
             _ => new ActionCoverageRecorder(chooseIdle: true));
         var initial = world.ExportState();
         var town = Assert.Single(initial.Towns!);
-        var adults = initial.Society.Society.Inhabitants.Where(person =>
-            town.ResidentIds.Contains(person.Id) && person.Status == SocietyInhabitantStatus.Active &&
+        var adults = initial.Society.Society.Agents.Where(person =>
+            town.ResidentIds.Contains(person.Id) && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Select(person => person.Id).Order().ToArray();
         Assert.Equal(4, adults.Length);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -71,7 +71,7 @@ public sealed class TownGovernanceRuntimeTests
         using var world = WorldRuntime.Restore(initial with
         {
             Towns = [town with { Governance = governance }],
-            Inhabitants = initial.Inhabitants.Select(actor => actor with { Position = town.OriginSite!.Value }).ToArray(),
+            Agents = initial.Agents.Select(actor => actor with { Position = town.OriginSite!.Value }).ToArray(),
         }, _ => provider);
         var fellBack = false;
         for (var tick = 0; tick < 4; tick++)
@@ -116,9 +116,9 @@ public sealed class TownGovernanceRuntimeTests
         var split = initial with
         {
             Towns = [first with { ResidentIds = ids[..2], Governance = TownGovernanceState.Create(ids[..2]) }, second],
-            Inhabitants = initial.Inhabitants.Select(p => p with
+            Agents = initial.Agents.Select(p => p with
             {
-                Position = ids.AsSpan(0, 2).Contains(p.InhabitantId) ? first.OriginSite!.Value : secondSite,
+                Position = ids.AsSpan(0, 2).Contains(p.AgentId) ? first.OriginSite!.Value : secondSite,
                 HungerBasisPoints = 8_000,
             }).ToArray(),
         };
@@ -147,7 +147,7 @@ public sealed class TownGovernanceRuntimeTests
             });
             foreach (var provider in providers.Values)
             {
-                if (provider.Observations.First().InhabitantId is not (FirstAuthor or SecondAuthor))
+                if (provider.Observations.First().AgentId is not (FirstAuthor or SecondAuthor))
                     Assert.Contains(provider.Observations, o => o.Candidates.Any(c => c.Id.Contains("|read|", StringComparison.Ordinal)));
                 Assert.Contains(provider.Observations, o => o.Self?.CivicNote?.Contains("Town", StringComparison.Ordinal) == true);
                 Assert.DoesNotContain(provider.Observations, o => o.Self?.CivicNote?.Contains("tick ", StringComparison.Ordinal) == true);
@@ -181,7 +181,7 @@ public sealed class TownGovernanceRuntimeTests
     [InlineData(true)]
     public async Task NormalTurnsRegisterCandidatesAndCastStructuredBallotsWhoseConsentAndChoicesReload(bool longDescendantId)
     {
-        var observed = new ConcurrentQueue<InhabitantObservation>();
+        var observed = new ConcurrentQueue<AgentObservation>();
         using var source = NormalPathWorld.CreateGenerated("council-normal-election", _ => new ElectionProvider(observed));
         var firstCandidate = longDescendantId ? "child:" + FirstAuthor + ":" + new string('a', 250) : FirstAuthor;
         // Descendant IDs retain ancestry and may be longer than a model action token.
@@ -198,7 +198,7 @@ public sealed class TownGovernanceRuntimeTests
         var positioned = generated.ExportState();
         using var world = WorldRuntime.Restore(positioned with
         {
-            Inhabitants = positioned.Inhabitants.Select(p => p with { Position = positioned.Towns![0].OriginSite!.Value }).ToArray(),
+            Agents = positioned.Agents.Select(p => p with { Position = positioned.Towns![0].OriginSite!.Value }).ToArray(),
         }, _ => new ElectionProvider(observed));
         for (var tick = 0; tick < 40 && world.Towns[0].Governance!.Election!.Ballots.Count < 4; tick++)
             await world.AdvanceOneTickAsync();
@@ -226,7 +226,7 @@ public sealed class TownGovernanceRuntimeTests
             var setup = generated.ExportState();
             var site = setup.Towns![0].BorderTiles.First(p => setup.Map.IsBuildable(p) &&
                 !setup.Map.Resources.Any(r => r.Position == p) && !setup.Map.MapObjects.Any(o => o.Position == p) &&
-                !setup.Inhabitants.Any(i => i.Position == p));
+                !setup.Agents.Any(i => i.Position == p));
             generated.AddAgent($"agent:{ordinal:D32}", site);
         }
         var initial = generated.ExportState();
@@ -253,7 +253,7 @@ public sealed class TownGovernanceRuntimeTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = shortDay },
-                    Inhabitants = society.Inhabitants.Select(p => p with
+                    Agents = society.Agents.Select(p => p with
                     {
                         BirthTick = p.BirthTick / oldDay * shortDay,
                         BirthLifeTick = p.BirthLifeTick is { } birth ? birth / oldDay * shortDay : null,
@@ -289,7 +289,7 @@ public sealed class TownGovernanceRuntimeTests
         using var world = WorldRuntime.Restore(initial with
         {
             Towns = [town with { Governance = governance }],
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = far }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = far }).ToArray(),
         }, _ => recorder);
         await world.AdvanceOneTickAsync();
         Assert.All(recorder.OfferedByAgent.Values, offered => Assert.DoesNotContain(offered.Keys, id =>
@@ -337,7 +337,7 @@ public sealed class TownGovernanceRuntimeTests
         var state = generated.ExportState();
         var site = state.Towns![0].BorderTiles.First(p => state.Map.IsBuildable(p) &&
             !state.Map.Resources.Any(r => r.Position == p) && !state.Map.MapObjects.Any(o => o.Position == p) &&
-            !state.Inhabitants.Any(i => i.Position == p));
+            !state.Agents.Any(i => i.Position == p));
         generated.AddAgent("agent:00000000000000000000000000000099", site);
         Assert.Equal("cancelled", generated.Towns[0].Governance!.Proposals[0].Status);
         provider.ReleaseVote.TrySetResult(true);
@@ -361,11 +361,11 @@ public sealed class TownGovernanceRuntimeTests
         using var handler = new BallotHandler(ballot);
         using var client = new HttpClient(handler);
         var provider = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
-        var observation = new InhabitantObservation("a", 0, 0, 0, "digest", 8_000, [new("safe_idle", "Wait safely.")]);
+        var observation = new AgentObservation("a", 0, 0, 0, "digest", 8_000, [new("safe_idle", "Wait safely.")]);
         await Assert.ThrowsAsync<InvalidDataException>(async () => await provider.DecideAsync(new("request", provider.ProviderEpoch, observation)));
     }
 
-    private sealed class ElectionProvider(ConcurrentQueue<InhabitantObservation> observed) : IDecisionProvider
+    private sealed class ElectionProvider(ConcurrentQueue<AgentObservation> observed) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -379,7 +379,7 @@ public sealed class TownGovernanceRuntimeTests
                 o.Candidates.Single(c => c.Id == "safe_idle");
             var choices = selected.Id.Contains("|ballot|", StringComparison.Ordinal)
                 ? o.Candidates.Where(c => c.Id.Contains("|single|", StringComparison.Ordinal)).Select(c => c.Id.Split('|')[4]).Take(3).ToArray() : null;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal), CivicBallot: choices));
         }
@@ -387,7 +387,7 @@ public sealed class TownGovernanceRuntimeTests
 
     private sealed class CivicBoundaryProvider(string mode) : IDecisionProvider
     {
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public DecisionProviderKind Kind => mode.StartsWith("built_in", StringComparison.Ordinal)
             ? DecisionProviderKind.Deterministic : DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -400,7 +400,7 @@ public sealed class TownGovernanceRuntimeTests
             var action = mode == "built_in_yes" ? "|yes|" : mode == "built_in_register" ? "|register|" : null;
             var selected = observation.Candidates.FirstOrDefault(candidate => action is not null && candidate.Id.Contains(action, StringComparison.Ordinal)) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }
@@ -420,7 +420,7 @@ public sealed class TownGovernanceRuntimeTests
 
     private sealed class CivicProvider(string actor, bool holdVote = false, string? proposalOverride = null) : IDecisionProvider
     {
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public TaskCompletionSource<bool> VoteStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> ReleaseVote { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
@@ -444,7 +444,7 @@ public sealed class TownGovernanceRuntimeTests
                 // Ignore cancellation deliberately: delayed provider replies must still be rejected by authority checks.
                 await ReleaseVote.Task;
             }
-            return new(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1, observation.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicProposal: selected.Id.Contains("|propose|", StringComparison.Ordinal) ? text : null);

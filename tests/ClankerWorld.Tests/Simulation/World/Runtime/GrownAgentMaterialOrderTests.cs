@@ -117,8 +117,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             var choice = observation.Candidates.FirstOrDefault(item => item.Id is "inspect_material_site" or "gather_material")
                 ?? observation.Candidates.FirstOrDefault(item => item.Id == "safe_idle")
                 ?? observation.Candidates.Single(item => item.Id == "identity_optional");
-            Selected.Enqueue((observation.InhabitantId, observation.OperativeOrderInstructionId, choice.Id));
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,
+            Selected.Enqueue((observation.AgentId, observation.OperativeOrderInstructionId, choice.Id));
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, 0,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 new Dictionary<string, double> { [choice.Id] = 1 }));
         }

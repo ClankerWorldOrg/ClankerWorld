@@ -11,11 +11,11 @@ public sealed class ExplorationBridgeTimingTests
     public async Task ABridgePlacedAfterTheFirstActualStepInTheSameTickKeepsThatStepSaveable()
     {
         using var world = ExplorationBridgeSaveTests.CreateScoutingWorld();
-        var actor = world.Inhabitants[0].InhabitantId;
-        for (var tick = 0; tick < 400 && world.Inhabitants[0].Exploration!.OutingPath.Count < 2; tick++)
+        var actor = world.Agents[0].AgentId;
+        for (var tick = 0; tick < 400 && world.Agents[0].Exploration!.OutingPath.Count < 2; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var before = world.ExportState();
-        var exploration = before.Inhabitants.Single(person => person.InhabitantId == actor).Exploration!;
+        var exploration = before.Agents.Single(person => person.AgentId == actor).Exploration!;
         Assert.Equal([Start, Water], exploration.OutingPath);
         Assert.Equal(world.WorldTick, exploration.LastOutingTick);
         Assert.True(before.Map.CanFootStep(Start, Water));
@@ -30,7 +30,7 @@ public sealed class ExplorationBridgeTimingTests
         Assert.Equal("bridge-0-102-ew-2", bridge.Id);
         Assert.Equal(exploration.LastOutingTick, bridge.BuiltTick);
         var after = world.ExportState();
-        Assert.Equal(exploration, after.Inhabitants.Single(person => person.InhabitantId == actor).Exploration);
+        Assert.Equal(exploration, after.Agents.Single(person => person.AgentId == actor).Exploration);
         Assert.Equal(before.Knowledge!.Facts, after.Knowledge!.Facts);
         Assert.False(after.Map.CanFootStep(Start, Water));
         foreach (var cost in workshop.BuildCosts)
@@ -60,10 +60,10 @@ public sealed class ExplorationBridgeTimingTests
         };
         Assert.False(state.Map.CanFootStep(Start, destination));
         if (scenario != "out_of_bounds") Assert.True(state.Map.IsPassable(destination));
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var tampered = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Exploration = new SettlementExploration([Start], [Start, destination], 0, true, []),
             } : person).ToArray(),

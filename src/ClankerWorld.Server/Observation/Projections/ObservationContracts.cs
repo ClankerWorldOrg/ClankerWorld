@@ -111,7 +111,7 @@ public sealed record SpatialKnowledgeView(
     IReadOnlyList<PositionView> KnownTiles);
 
 /// <summary>
-/// A safe owner-facing summary of what an inhabitant is currently trying to
+/// A safe owner-facing summary of what an agent is currently trying to
 /// do. This is an intention label, never private model chain-of-thought.
 /// </summary>
 public sealed record PublicIntentionView(
@@ -120,7 +120,7 @@ public sealed record PublicIntentionView(
     string Provider,
     long WorldTick);
 
-public sealed record InhabitantRelationshipView(
+public sealed record AgentRelationshipView(
     string RelationshipId,
     string OtherPartyId,
     string Type,
@@ -139,7 +139,7 @@ public sealed record AgentBeliefView(
     string? SourceAgentId,
     string? SourceAgentName,
     long? SourceEventId,
-    string? AboutInhabitantId,
+    string? AboutAgentId,
     bool IsCorrected,
     long? CorrectedTick);
 public sealed record AgentKnowledgeFactView(
@@ -180,7 +180,7 @@ public sealed record CalendarPaceView(
 /// An inspection projection, never an editable actor record. A founder draft
 /// is visible as such but is not a living simulation actor yet.
 /// </summary>
-public sealed record InhabitantView(
+public sealed record AgentView(
     string Id,
     string DisplayName,
     string Lifecycle,
@@ -209,7 +209,7 @@ public sealed record InhabitantView(
 
     public IReadOnlyList<string> SocialNotes { get; init; } = [];
 
-    public IReadOnlyList<InhabitantRelationshipView> Relationships { get; init; } = [];
+    public IReadOnlyList<AgentRelationshipView> Relationships { get; init; } = [];
 
     public IReadOnlyList<PrivateThoughtView> RecentPrivateThoughts { get; init; } = [];
 
@@ -250,7 +250,7 @@ public sealed record SocialStandingView(string SubjectId, string SubjectName, in
 
 public sealed record InstructionView(
     string InstructionId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     string State,
@@ -290,8 +290,8 @@ public sealed record InstructionOrderView(
 
 public sealed record CognitionEventView(long EventId, long WorldTick, string Kind, string Detail);
 
-public sealed record InhabitantDecisionView(
-    string InhabitantId, string Provider, string CandidateId, long WorldTick,
+public sealed record AgentDecisionView(
+    string AgentId, string Provider, string CandidateId, long WorldTick,
     double Confidence, string? Model, int? InputTokens, int? OutputTokens,
     string? Role = null, long? LatencyMilliseconds = null, bool FellBack = false);
 
@@ -302,7 +302,7 @@ public sealed record CognitionView(
     string? CurrentCandidateId,
     string? CurrentDecisionProvider,
     IReadOnlyList<CognitionEventView> Events,
-    IReadOnlyList<InhabitantDecisionView>? Decisions = null);
+    IReadOnlyList<AgentDecisionView>? Decisions = null);
 
 public sealed record ContentPackageView(
     string PackageId,
@@ -315,7 +315,7 @@ public sealed record ContentPackageView(
     long? ActivationTick,
     string? ManifestDigest = null,
     string? DisplayName = null,
-    string? ProposedByInhabitantId = null);
+    string? ProposedByAgentId = null);
 
 public sealed record ContentGovernanceEventView(
     long EventId,
@@ -701,7 +701,7 @@ public sealed record WorldSnapshotView(
     /// The inspectable population projection. <see cref="Actor"/> remains for
     /// older diagnostic clients.
     /// </summary>
-    public IReadOnlyList<InhabitantView> Inhabitants { get; init; } = [];
+    public IReadOnlyList<AgentView> Agents { get; init; } = [];
 
     /// <summary>Recent public dialogue only; private thoughts never enter this projection.</summary>
     public IReadOnlyList<ConversationView> Conversations { get; init; } = [];

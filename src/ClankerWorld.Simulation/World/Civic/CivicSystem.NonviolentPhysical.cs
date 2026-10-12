@@ -27,7 +27,7 @@ internal sealed partial class CivicSystem
     internal void RecordNonviolentConduct(ICivicTownWorld world, string actor, string kind, GridPoint position, string? targetId,
         string? itemKind, int quantity, string nativeActId)
     {
-        if (!world.Inhabitants.ContainsKey(actor)) return;
+        if (!world.Agents.ContainsKey(actor)) return;
         nativeActId = DerivedId.Create(nativeActId);
         var actorTownId = TownForResident(world, actor);
         foreach (var town in world.Towns.ToArray())
@@ -48,12 +48,12 @@ internal sealed partial class CivicSystem
             var record = new TownConductRecord(nativeActId, actor, kind, position, world.WorldTick, actorTownId,
                 targetId, itemKind, quantity, laws, "");
             record = record with { Version = NonviolentDigest(record) };
-            var observations = world.Inhabitants.Values.Where(person => person.InhabitantId == actor ||
-                    CanObserveNonviolentAct(world, person.InhabitantId, actor, position))
-                .OrderBy(person => person.InhabitantId, StringComparer.Ordinal)
-                .Select(person => new TownConductAcquisition(WorldRuntime.CivicSharedRules.ConductSeenId(nativeActId, person.InhabitantId),
-                    nativeActId, person.InhabitantId, "firsthand", world.WorldTick, person.Position,
-                    DescribeNonviolentConduct(record), ObserverHouseholdId: world.HouseholdFor(person.InhabitantId),
+            var observations = world.Agents.Values.Where(person => person.AgentId == actor ||
+                    CanObserveNonviolentAct(world, person.AgentId, actor, position))
+                .OrderBy(person => person.AgentId, StringComparer.Ordinal)
+                .Select(person => new TownConductAcquisition(WorldRuntime.CivicSharedRules.ConductSeenId(nativeActId, person.AgentId),
+                    nativeActId, person.AgentId, "firsthand", world.WorldTick, person.Position,
+                    DescribeNonviolentConduct(record), ObserverHouseholdId: world.HouseholdFor(person.AgentId),
                     PrivateSiteHouseholdId: NonviolentPrivateSite(world, position)?.HouseholdId)).ToArray();
             SetTown(world, town with
             {
@@ -97,7 +97,7 @@ internal sealed partial class CivicSystem
 
     internal static bool CanObserveNonviolentAct(ICivicTownWorld world, string observer, string actor, GridPoint position)
     {
-        if (!world.Inhabitants.TryGetValue(observer, out var person) ||
+        if (!world.Agents.TryGetValue(observer, out var person) ||
             !world.IsWithinInteractionRange(person.Position, position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)) return false;
         // Being beside a private worksite does not grant access to its contents or work inside it.
         var privateSite = NonviolentPrivateSite(world, position);
@@ -144,7 +144,7 @@ internal sealed partial class CivicSystem
         record.Id, record.Version, acquired.Tick, actor, world.WorldTick, acquired.Text);
     internal static TownNonviolentState AcquireNonviolentInspectedSources(ICivicTownWorld world, TownRuntimeState town, TownViolationCase file, string actor)
     {
-        if (!world.Inhabitants.TryGetValue(actor, out var reader) || !TownNonviolentRules.ReadCurrent(file, actor, world.WorldTick))
+        if (!world.Agents.TryGetValue(actor, out var reader) || !TownNonviolentRules.ReadCurrent(file, actor, world.WorldTick))
             return town.Nonviolent;
         var state = town.Nonviolent;
         foreach (var evidence in file.Evidence.Where(item => item.Kind is "observation" or "record" &&
@@ -164,7 +164,7 @@ internal sealed partial class CivicSystem
     internal bool RelayNonviolentKnownReport(ICivicTownWorld world, TownRuntimeState town, string source, string recipient,
         string incidentId, string statement)
     {
-        if (!world.Inhabitants.TryGetValue(source, out var speaker) || !world.Inhabitants.TryGetValue(recipient, out var listener) ||
+        if (!world.Agents.TryGetValue(source, out var speaker) || !world.Agents.TryGetValue(recipient, out var listener) ||
             source == recipient || !world.IsWithinInteractionRange(speaker.Position, listener.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) ||
             string.IsNullOrWhiteSpace(statement) || statement.Length > TownGovernanceRules.MaximumProposalText || statement.Any(char.IsControl)) return false;
         town = world.Towns.Single(item => item.Id == town.Id);
@@ -185,20 +185,20 @@ internal sealed partial class CivicSystem
         if (term.TargetId is null) return true;
         if (term.Kind == "public_service_goods") return world.WorldSimulation.Buildings.Any(building =>
             building.InstanceId == term.TargetId && building.TownId == town.Id &&
-            (TownForResident(world, actor) == town.Id || world.Inhabitants.TryGetValue(actor, out var person) && world.IsWithinInteractionRange(person.Position, building.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)));
+            (TownForResident(world, actor) == town.Id || world.Agents.TryGetValue(actor, out var person) && world.IsWithinInteractionRange(person.Position, building.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)));
         var lot = world.Society.Inventory.Lots.FirstOrDefault(item => item.Id == term.TargetId);
         if (lot is null) return false;
         if (lot.OwnerId == actor || lot.OwnerId == world.HouseholdFor(actor)) return true;
-        return world.Inhabitants.TryGetValue(actor, out var observer) && world.Inhabitants.TryGetValue(term.ContributorId, out var contributor) && world.IsWithinInteractionRange(observer.Position, contributor.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
+        return world.Agents.TryGetValue(actor, out var observer) && world.Agents.TryGetValue(term.ContributorId, out var contributor) && world.IsWithinInteractionRange(observer.Position, contributor.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
             ToolProgressionRules.IsTopLevelCarriedLot(lot, term.ContributorId) &&
             CanObserveNonviolentAct(world, actor, term.ContributorId, contributor.Position);
     }
 
-    internal static bool NonviolentWorkAllowed(ICivicTownWorld world, string actor) => world.AdultResident(actor) && world.Inhabitants.TryGetValue(actor, out var person) &&
+    internal static bool NonviolentWorkAllowed(ICivicTownWorld world, string actor) => world.AdultResident(actor) && world.Agents.TryGetValue(actor, out var person) &&
         !WorldRuntime.CivicSharedRules.NeedsUrgentFood(person) && !world.NeedsUrgentWarmth(person) && !world.IllDependentsNeedingCare(actor).Any() &&
         !world.ChildrenNeedingCare(actor).Any() &&
         SettlementIllnessRules.AllowsWork(actor, world.WorldTick, person.Survival?.IllnessBasisPoints ?? 0);
-    internal static bool NonviolentEquipmentRepairPaused(ICivicTownWorld world, string actor) => world.Inhabitants[actor].Equipment?.Repair is { } repair && world.Towns.Any(town => town.Nonviolent.Agreements.Any(agreement => agreement.Status is "pending" or "overdue" &&
+    internal static bool NonviolentEquipmentRepairPaused(ICivicTownWorld world, string actor) => world.Agents[actor].Equipment?.Repair is { } repair && world.Towns.Any(town => town.Nonviolent.Agreements.Any(agreement => agreement.Status is "pending" or "overdue" &&
             !TownRemedyRules.IsSuperseded(town.Nonviolent, agreement.Id) && agreement.Terms.Any(term =>
                 term.Kind == "repair_equipment" && term.ContributorId == actor && term.TargetId == repair.LotId &&
                 NonviolentRemaining(town.Nonviolent, agreement, term) > 0))) &&
@@ -207,15 +207,15 @@ internal sealed partial class CivicSystem
         .Where(lot => lot.OwnerId == term.ContributorId && ToolProgressionRules.IsTopLevelCarriedLot(lot, term.ContributorId) &&
             lot.DeliveryBuildingId is null && lot.ItemKind == term.ItemKind && (term.TargetId is null || lot.Id == term.TargetId) &&
             !InventoryContainerRules.IsContainer(lot.ItemKind) &&
-            !PersonalEquipmentRules.IsSelected(world.Inhabitants[term.ContributorId].Equipment, lot.Id) && world.AvailableLotQuantity(lot) >= term.Quantity)
+            !PersonalEquipmentRules.IsSelected(world.Agents[term.ContributorId].Equipment, lot.Id) && world.AvailableLotQuantity(lot) >= term.Quantity)
         .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     internal static bool NonviolentRemedyFeasible(ICivicTownWorld world, TownRuntimeState town, TownRemedyTerm term)
     {
         if (term.Quantity <= 0 || !NonviolentWorkAllowed(world, term.ContributorId)) return false;
         var actor = term.ContributorId;
-        var person = world.Inhabitants[actor];
+        var person = world.Agents[actor];
         if (term.Kind == "return_goods")
-            return term.BeneficiaryId is { } recipient && recipient != actor && world.Inhabitants.TryGetValue(recipient, out var beneficiary) && world.IsWithinInteractionRange(person.Position, beneficiary.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
+            return term.BeneficiaryId is { } recipient && recipient != actor && world.Agents.TryGetValue(recipient, out var beneficiary) && world.IsWithinInteractionRange(person.Position, beneficiary.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
                 CanObserveNonviolentAct(world, actor, recipient, beneficiary.Position) &&
                 NonviolentReturnLot(world, term) is { } lot && world.AvailableLotQuantity(lot) >= term.Quantity &&
                 (!WorldRuntime.CivicSharedRules.IsEdibleFood(lot.ItemKind) || person.HungerBasisPoints >= 6_500 && world.PreferredFood(actor, actor).Sum(world.AvailableLotQuantity) - term.Quantity >= 2) && world.FreeCarryCapacity(recipient) >= term.Quantity;
@@ -256,7 +256,7 @@ internal sealed partial class CivicSystem
         foreach (var group in terms.GroupBy(term => term.ContributorId, StringComparer.Ordinal))
         {
             var actor = group.Key;
-            var person = world.Inhabitants[actor];
+            var person = world.Agents[actor];
             var position = person.Position;
             long needed = 0;
             var used = new Dictionary<string, long>(StringComparer.Ordinal);
@@ -296,7 +296,7 @@ internal sealed partial class CivicSystem
                     used[term.ItemKind!] = used.GetValueOrDefault(term.ItemKind!) + term.Quantity;
                     if (term.Kind == "return_goods" && term.TargetId is { } source)
                         namedReturns[source] = namedReturns.GetValueOrDefault(source) + term.Quantity;
-                    destination = term.Kind == "return_goods" ? world.Inhabitants[term.BeneficiaryId!].Position : world.WarehouseForResident(actor)!.Position;
+                    destination = term.Kind == "return_goods" ? world.Agents[term.BeneficiaryId!].Position : world.WarehouseForResident(actor)!.Position;
                     work = term.Kind == "return_goods" ? 1 : ((long)term.Quantity + WorldRuntime.CivicSharedRules.WarehouseLoadQuantity - 1) / WorldRuntime.CivicSharedRules.WarehouseLoadQuantity;
                 }
                 var range = term.Kind == "return_goods" ? WorldRuntime.CivicSharedRules.ResourceInteractionRange : 0;
@@ -335,7 +335,7 @@ internal sealed partial class CivicSystem
     {
         foreach (var returns in terms.Where(term => term.Kind == "return_goods")
                      .GroupBy(term => term.BeneficiaryId!, StringComparer.Ordinal))
-            if (!world.Inhabitants.ContainsKey(returns.Key) || returns.Sum(term => (long)term.Quantity) > world.FreeCarryCapacity(returns.Key)) return false;
+            if (!world.Agents.ContainsKey(returns.Key) || returns.Sum(term => (long)term.Quantity) > world.FreeCarryCapacity(returns.Key)) return false;
         var deliveries = terms.Where(term => term.Kind == "public_service_goods")
             .Select(term => (Term: term, Warehouse: world.WarehouseForResident(term.ContributorId))).ToArray();
         if (deliveries.Any(delivery => delivery.Warehouse is null)) return false;
@@ -350,14 +350,14 @@ internal sealed partial class CivicSystem
         term.Quantity - state.Effects.Where(effect => effect.AgreementId == agreement.Id && effect.TermId == term.Id).Sum(effect => effect.Quantity);
     internal static void AddNonviolentRemedyCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
-        if (world.Inhabitants.TryGetValue(actor, out var speaker))
+        if (world.Agents.TryGetValue(actor, out var speaker))
             foreach (var record in town.Nonviolent.ConductRecords.Where(record =>
                          town.Nonviolent.Acquisitions.Any(item => item.ConductId == record.Id && item.AgentId == actor)))
-                foreach (var listener in world.Inhabitants.Values.Where(person => person.InhabitantId != actor && world.IsWithinInteractionRange(speaker.Position, person.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
-                             !town.Nonviolent.Acquisitions.Any(item => item.ConductId == record.Id && item.AgentId == person.InhabitantId)))
-                    candidates.Add(new(NonviolentRelayCandidateId(town, record, listener.InhabitantId),
+                foreach (var listener in world.Agents.Values.Where(person => person.AgentId != actor && world.IsWithinInteractionRange(speaker.Position, person.Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange) &&
+                             !town.Nonviolent.Acquisitions.Any(item => item.ConductId == record.Id && item.AgentId == person.AgentId)))
+                    candidates.Add(new(NonviolentRelayCandidateId(town, record, listener.AgentId),
                         "Tell this nearby person what you observed or were told about this act; it remains a report.",
-                        185, listener.InhabitantId));
+                        185, listener.AgentId));
         if (!NonviolentWorkAllowed(world, actor)) return;
         foreach (var agreement in town.Nonviolent.Agreements.Where(item => item.Status is "pending" or "overdue" &&
                      !TownRemedyRules.IsSuperseded(town.Nonviolent, item.Id))
@@ -376,7 +376,7 @@ internal sealed partial class CivicSystem
         if (candidateId.StartsWith(NonviolentRelayPrefix, StringComparison.Ordinal))
         {
             foreach (var record in town.Nonviolent.ConductRecords)
-                foreach (var listener in world.Inhabitants.Keys)
+                foreach (var listener in world.Agents.Keys)
                     if (candidateId == NonviolentRelayCandidateId(town, record, listener))
                     {
                         var known = town.Nonviolent.Acquisitions.FirstOrDefault(item => item.ConductId == record.Id && item.AgentId == actor);
@@ -411,7 +411,7 @@ internal sealed partial class CivicSystem
                         DeliverNonviolentTownGoods(world, actor, term, remaining);
                     else
                     {
-                        var person = world.Inhabitants[actor];
+                        var person = world.Agents[actor];
                         var target = world.Society.Inventory.GetLot(term.TargetId!);
                         if (target.ItemKind == InventoryContainerRules.Handcart)
                             world.ApplyHandcartCandidate(actor, person, WorldRuntime.CivicSharedRules.RepairCartPrefix + target.Id);
@@ -437,9 +437,9 @@ internal sealed partial class CivicSystem
     internal void DeliverNonviolentTownGoods(ICivicTownWorld world, string actor, TownRemedyTerm term, int remaining)
     {
         var warehouse = world.WarehouseForResident(actor)!;
-        if (world.Inhabitants[actor].Position != warehouse.Position)
+        if (world.Agents[actor].Position != warehouse.Position)
         {
-            world.MoveToward(actor, world.Inhabitants[actor], warehouse.Position, "voluntary_town_service", 0);
+            world.MoveToward(actor, world.Agents[actor], warehouse.Position, "voluntary_town_service", 0);
             return;
         }
         if (world.PersonalWarehouseSurplus(actor, term.ItemKind) is not { } surplus) return;
@@ -478,7 +478,7 @@ internal sealed partial class CivicSystem
         var result = world.Society.Inventory.GetLot(resultId);
         var receipt = new TownNativeRemedyReceipt(nativeReceiptId, kind, actor, world.WorldTick, recipientId,
             sourceLot.ItemKind, quantity, storageBuildingId ?? sourceLot.Id, sourceLot.Id, resultId,
-            sourceLot.OwnerId, result.OwnerId, world.Inhabitants[actor].Position,
+            sourceLot.OwnerId, result.OwnerId, world.Agents[actor].Position,
             sourceLot.ConditionBasisPoints, result.ConditionBasisPoints, "", world.HouseholdFor(actor), TownForResident(world, actor),
             sourceLot.Quantity, world.AvailableLotQuantity(sourceLot), [], carriedAvailableBefore);
         RecordNonviolentNativeReceipt(world, receipt);

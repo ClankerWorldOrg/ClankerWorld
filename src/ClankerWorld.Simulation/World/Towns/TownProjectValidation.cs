@@ -14,7 +14,7 @@ public static class TownProjectValidation
         IReadOnlyList<GridPoint> roads, IReadOnlyList<BridgeState> bridges)
     {
         var inventory = society.Inventory;
-        var known = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var known = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var projects = new HashSet<string>(StringComparer.Ordinal);
         var deliveries = new HashSet<string>(StringComparer.Ordinal);
         var reservations = new HashSet<string>(StringComparer.Ordinal);
@@ -113,8 +113,8 @@ public static class TownProjectValidation
                         inventory.Reservations.Any(receipt => receipt.LotId == lot.Id && receipt.State is
                             InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed) ||
                         !town.ResidentIds.Contains(delivery.ContributorId, StringComparer.Ordinal) ||
-                        !society.Inhabitants.Any(person => person.Id == delivery.ContributorId &&
-                            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
+                        !society.Agents.Any(person => person.Id == delivery.ContributorId &&
+                            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
                         throw Invalid("Incoming Town materials need actual adult resident custody.");
                 }
                 var allDelivered = project.Plan.Budget.All(cost => TownProjectRules.DeliveredQuantity(project, town.Id, inventory, cost.ResourceId) == cost.Amount);

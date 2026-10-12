@@ -18,7 +18,7 @@ public sealed class OrchardPlantingCapacityTests
         var original = generated.ExportState();
         var farm = Assert.Single(original.WorldSimulation!.Buildings, building => generated.WorldContent.Buildings
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("farmhouse"));
-        var actor = original.Society.Society.Inhabitants.First(person => person.HouseholdId == farm.HouseholdId).Id;
+        var actor = original.Society.Society.Agents.First(person => person.HouseholdId == farm.HouseholdId).Id;
         var inventory = original.Society.Society.Inventory;
         Assert.DoesNotContain(inventory.Lots, lot => PersonalEquipmentRules.IsCarried(lot, actor));
         inventory = InventoryAuthority.AddLot(inventory, "planting-stone", "stone", actor, stone);
@@ -27,9 +27,9 @@ public sealed class OrchardPlantingCapacityTests
         var initial = original with
         {
             Society = original.Society with { Society = original.Society.Society with { Inventory = inventory } },
-            Inhabitants = original.Inhabitants.Select(person => person with
+            Agents = original.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? farm.Position : person.Position,
+                Position = person.AgentId == actor ? farm.Position : person.Position,
                 HungerBasisPoints = 9000,
                 Survival = new(),
                 Project = null,
@@ -38,7 +38,7 @@ public sealed class OrchardPlantingCapacityTests
         };
         var choices = new Choices(true);
         using var world = Restore(initial, actor, choices);
-        var physical = world.Inhabitants.Single(person => person.InhabitantId == actor);
+        var physical = world.Agents.Single(person => person.AgentId == actor);
         Assert.Equal(canPlant && !carriedSeed ? 1 : 0,
             PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, actor, physical.Equipment));
         for (var tick = 0; tick < 3; tick++) await Tick(world);
@@ -76,7 +76,7 @@ public sealed class OrchardPlantingCapacityTests
             Assert.Equal(1, seed.Quantity);
             Assert.Equal(farm.HouseholdId, seed.OwnerId);
             Assert.Equal(farm.InstanceId, seed.StorageBuildingId);
-            Assert.Equal(farm.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            Assert.Equal(farm.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         }
         using var loaded = Restore(final, actor, new Choices(true));
         Assert.Equal(WorldRuntimeCodec.Encode(final), WorldRuntimeCodec.Encode(loaded.ExportState()));
@@ -113,7 +113,7 @@ public sealed class OrchardPlantingCapacityTests
             var selected = plant && offered ? "plant_orchard" : "safe_idle";
             if (selected == "plant_orchard") Selected++;
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, request.ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, request.ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
                 new Dictionary<string, double> { [selected] = 1 }));
         }

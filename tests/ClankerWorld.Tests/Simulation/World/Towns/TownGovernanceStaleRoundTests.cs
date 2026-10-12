@@ -19,7 +19,7 @@ public sealed class TownGovernanceStaleRoundTests
             var setup = generated.ExportState();
             var site = setup.Towns![0].BorderTiles.First(p => setup.Map.IsBuildable(p) &&
                 !setup.Map.Resources.Any(r => r.Position == p) && !setup.Map.MapObjects.Any(o => o.Position == p) &&
-                !setup.Inhabitants.Any(i => i.Position == p));
+                !setup.Agents.Any(i => i.Position == p));
             generated.AddAgent($"agent:{ordinal:D32}", site);
         }
         var initial = generated.ExportState();
@@ -42,7 +42,7 @@ public sealed class TownGovernanceStaleRoundTests
         var shortened = initial with
         {
             Towns = [town with { Governance = governance }],
-            Inhabitants = initial.Inhabitants.Select(p => p with
+            Agents = initial.Agents.Select(p => p with
             {
                 Position = town.OriginSite!.Value,
                 HungerBasisPoints = 8_000,
@@ -57,7 +57,7 @@ public sealed class TownGovernanceStaleRoundTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(p => p with
+                    Agents = society.Agents.Select(p => p with
                     {
                         BirthTick = p.BirthTick / oldDay * Day,
                         BirthLifeTick = p.BirthLifeTick is { } birth ? birth / oldDay * Day : null,
@@ -155,7 +155,7 @@ public sealed class TownGovernanceStaleRoundTests
                     vote ?? selected;
                 if (selected == vote) control.FreshAction = selected.Id;
             }
-            return new(request.RequestId, o.InhabitantId, Kind, ProviderEpoch, o.RunEpoch,
+            return new(request.RequestId, o.AgentId, Kind, ProviderEpoch, o.RunEpoch,
                 o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicBallot: control.Structured && selected.Id.Contains("|ballot|", StringComparison.Ordinal) ? [control.Target] : null);

@@ -32,12 +32,12 @@ public sealed partial class WorldRuntime
             edge.HouseholdId == householdId && edge.State == SocietyRelationshipState.Accepted)
         .Select(edge => Math.Max(edge.EffectiveTick, edge.ProposedTick)).DefaultIfEmpty(0).Max();
 
-    private IEnumerable<SocietyInhabitant> ActiveResidents(string householdId) => society.Checkpoint.Inhabitants
-        .Where(person => person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == householdId);
+    private IEnumerable<SocietyAgent> ActiveResidents(string householdId) => society.Checkpoint.Agents
+        .Where(person => person.Status == SocietyAgentStatus.Active && person.HouseholdId == householdId);
 
     // A guardian remains responsible even when their dependent lives in another House.
-    private bool HasDependentInPrimaryCare(string actor) => society.Checkpoint.Inhabitants.Any(person =>
-        person.Status == SocietyInhabitantStatus.Active && person.PrimaryCaregiverId == actor &&
+    private bool HasDependentInPrimaryCare(string actor) => society.Checkpoint.Agents.Any(person =>
+        person.Status == SocietyAgentStatus.Active && person.PrimaryCaregiverId == actor &&
         person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent);
 
     private HouseRelocationRules.Selection? RelocationSelection(string householdId, string? volunteerId = null)
@@ -47,10 +47,10 @@ public sealed partial class WorldRuntime
             worldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId), house);
         var residents = ActiveResidents(householdId).ToArray();
         var adults = residents.Where(person => person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder &&
-                inhabitants.ContainsKey(person.Id))
+                agents.ContainsKey(person.Id))
             .Select(person =>
             {
-                var notice = inhabitants[person.Id].Housing?.Relocation is { } relocation && relocation.HouseholdId == householdId
+                var notice = agents[person.Id].Housing?.Relocation is { } relocation && relocation.HouseholdId == householdId
                     ? relocation : null;
                 return person.Id == volunteerId && notice is null
                     ? new HouseRelocationRules.Adult(person.Id, AdmittedTick(person.Id, householdId),
@@ -62,13 +62,13 @@ public sealed partial class WorldRuntime
     }
 
     private IEnumerable<(string Id, SettlementRelocation Notice)> RelocationNotices(string? householdId = null) =>
-        inhabitants.Values.Where(person => person.Housing?.Relocation is { } notice &&
+        agents.Values.Where(person => person.Housing?.Relocation is { } notice &&
                 (householdId is null || notice.HouseholdId == householdId))
-            .Select(person => (person.InhabitantId, person.Housing!.Relocation!))
+            .Select(person => (person.AgentId, person.Housing!.Relocation!))
             .OrderBy(item => item.Item2.DeadlineTick).ThenBy(item => item.Item2.NoticeTick)
-            .ThenBy(item => item.InhabitantId, StringComparer.Ordinal);
+            .ThenBy(item => item.AgentId, StringComparer.Ordinal);
 
-    private bool HoldsRelocationNotice(string actor) => inhabitants.TryGetValue(actor, out var person) &&
+    private bool HoldsRelocationNotice(string actor) => agents.TryGetValue(actor, out var person) &&
         person.Housing?.Relocation is not null;
 
     /// <summary>
@@ -76,12 +76,12 @@ public sealed partial class WorldRuntime
     /// living in their House; other members leave first or start a household.
     /// </summary>
     private bool MayRelocateFromHousehold(string actor) =>
-        inhabitants.TryGetValue(actor, out var person) && person.Housing?.Relocation is { } notice &&
-        society.Checkpoint.GetInhabitant(actor).HouseholdId == notice.HouseholdId &&
+        agents.TryGetValue(actor, out var person) && person.Housing?.Relocation is { } notice &&
+        society.Checkpoint.GetAgent(actor).HouseholdId == notice.HouseholdId &&
         RelocationSelection(notice.HouseholdId)?.Chosen.Any(item => item.Id == actor) == true;
 
     private void SetRelocation(string actor, SettlementRelocation? notice) =>
-        SetHousing(actor, (inhabitants[actor].Housing ?? new()) with { Relocation = notice });
+        SetHousing(actor, (agents[actor].Housing ?? new()) with { Relocation = notice });
 
     /// <summary>
     /// Brings saved notices up to date with the actual residents, family units,
@@ -130,20 +130,20 @@ public sealed partial class WorldRuntime
             .Where(item => !chosen.ContainsKey(item.Id)).Select(item => item.Notice));
         foreach (var (id, notice) in RelocationNotices(householdId).ToArray())
         {
-            if (chosen.ContainsKey(id) && society.Checkpoint.GetInhabitant(id).HouseholdId == householdId) continue;
+            if (chosen.ContainsKey(id) && society.Checkpoint.GetAgent(id).HouseholdId == householdId) continue;
             var reason = selection is null ? "no_house"
                 : selection.Chosen.Count == 0 && !HouseResidentCapacity(householdId)!.IsOvercrowded ? "room"
                 : HasDependentInPrimaryCare(id) ? "care"
                 : notice.Reason != HouseRelocationRules.Volunteer &&
                   HouseRelocationRules.DominantFamily(ActiveResidents(householdId).ToArray()) is { } dominant &&
-                  society.Checkpoint.GetInhabitant(id).DomesticFamilyUnitId == dominant ? "family"
+                  society.Checkpoint.GetAgent(id).DomesticFamilyUnitId == dominant ? "family"
                 : selection.Chosen.Any(item => item.Reason == HouseRelocationRules.Volunteer) ? "replaced"
                 : HouseResidentCapacity(householdId) is { IsOvercrowded: false } ? "room" : "not_needed";
             CancelRelocation(id, notice, reason);
         }
         foreach (var item in selection?.Chosen ?? [])
         {
-            if (inhabitants[item.Id].Housing?.Relocation is not null) continue;
+            if (agents[item.Id].Housing?.Relocation is not null) continue;
             var deadline = replaced.TryDequeue(out var prior) ? prior.DeadlineTick : checked(WorldTick + RelocationNoticeTicks);
             if (item.Reason != HouseRelocationRules.Volunteer && deadline <= WorldTick)
                 deadline = checked(WorldTick + RelocationNoticeTicks);
@@ -159,8 +159,8 @@ public sealed partial class WorldRuntime
         SetRelocation(actor, null);
         AppendEvent("relocation_cancelled", $"{actor}|{notice.HouseholdId}|{reason}");
         // A member who no longer has to move stops asking elsewhere; someone who already left keeps asking.
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
-            inhabitants[actor].Housing?.Request is { } request)
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
+            agents[actor].Housing?.Request is { } request)
             EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
     }
 
@@ -170,7 +170,7 @@ public sealed partial class WorldRuntime
     /// </summary>
     private bool MayVolunteerToRelocate(string actor) =>
         AdultResident(actor) && !HoldsRelocationNotice(actor) &&
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is { } householdId &&
+        society.Checkpoint.GetAgent(actor).HouseholdId is { } householdId &&
         HouseResidentCapacity(householdId) is { IsOvercrowded: true } &&
         RelocationSelection(householdId, actor)?.Chosen.Any(item => item.Id == actor) == true;
 
@@ -184,7 +184,7 @@ public sealed partial class WorldRuntime
 
     private void ApplyVolunteerToRelocate(string actor)
     {
-        if (!MayVolunteerToRelocate(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId) return;
+        if (!MayVolunteerToRelocate(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId) return;
         var selection = RelocationSelection(householdId, actor)!;
         var kept = selection.Chosen.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         // Taking someone's place keeps their deadline, so volunteering never delays the move.
@@ -210,7 +210,7 @@ public sealed partial class WorldRuntime
             _ => string.Empty,
         };
         var counts = $"House overcrowded: {capacity.ResidentCount}/{capacity.Limit} places.";
-        if (inhabitants[actor].Housing?.Relocation is { } notice)
+        if (agents[actor].Housing?.Relocation is { } notice)
         {
             var why = notice.Reason switch
             {
@@ -218,7 +218,7 @@ public sealed partial class WorldRuntime
                 HouseRelocationRules.LatestUnrelatedArrival => "you were the latest arrival outside the majority family",
                 _ => "you were the latest arrival with no family majority",
             };
-            var nextStep = inhabitants[actor].Housing?.Request is not null
+            var nextStep = agents[actor].Housing?.Request is not null
                 ? "Waiting for a household's admission answers."
                 : "Ask a household with room or start your own.";
             return $"{counts} You must move out in about {HoursLeft(notice.DeadlineTick)} hours ({why}). " + nextStep + expansion;
@@ -241,13 +241,13 @@ public sealed partial class WorldRuntime
         return hours.ToString(CultureInfo.InvariantCulture);
     }
 
-    private static void ValidateRelocation(InhabitantState person, SettlementRelocation notice,
-        Dictionary<string, SocietyInhabitant> people, SocietyCheckpoint society, int schemaVersion)
+    private static void ValidateRelocation(AgentState person, SettlementRelocation notice,
+        Dictionary<string, SocietyAgent> people, SocietyCheckpoint society, int schemaVersion)
     {
         if (schemaVersion < RelocationSchemaVersion)
             throw new InvalidDataException($"Move-out notices require world schema {RelocationSchemaVersion}.");
         var day = (long)society.Config.TicksPerWorldDay;
-        if (!people.TryGetValue(person.InhabitantId, out var adult) || adult.Status != SocietyInhabitantStatus.Active ||
+        if (!people.TryGetValue(person.AgentId, out var adult) || adult.Status != SocietyAgentStatus.Active ||
             adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
             string.IsNullOrWhiteSpace(notice.HouseholdId) || adult.HouseholdId != notice.HouseholdId ||
             !HouseRelocationRules.Reasons.Contains(notice.Reason, StringComparer.Ordinal) ||

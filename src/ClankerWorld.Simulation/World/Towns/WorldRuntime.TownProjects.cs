@@ -43,9 +43,9 @@ public sealed partial class WorldRuntime
             delivery.ReleasedTick is null && delivery.DeliveredTick is null)));
 
     private bool ReadyForTownProject(string actor) => AdultResident(actor) &&
-        !NeedsUrgentFood(inhabitants[actor]) && !NeedsUrgentWarmth(inhabitants[actor]) &&
-        !IsConversationBusy(actor) && inhabitants[actor].Equipment?.Repair is null &&
-        inhabitants[actor].Project is not { Stage: not ("completed" or "cancelled") } &&
+        !NeedsUrgentFood(agents[actor]) && !NeedsUrgentWarmth(agents[actor]) &&
+        !IsConversationBusy(actor) && agents[actor].Equipment?.Repair is null &&
+        agents[actor].Project is not { Stage: not ("completed" or "cancelled") } &&
         !fields.Any(field => field.Work?.WorkerId == actor);
 
     private void SetTownProject(string townId, TownConstructionProject project)
@@ -223,11 +223,11 @@ public sealed partial class WorldRuntime
     private IEnumerable<TownProjectChoice> TownProjectChoices(string actor)
     {
         // Released cargo must not prevent its carrier from meeting urgent needs.
-        var urgent = NeedsUrgentFood(inhabitants[actor]) || NeedsUrgentWarmth(inhabitants[actor]);
+        var urgent = NeedsUrgentFood(agents[actor]) || NeedsUrgentWarmth(agents[actor]);
         if (urgent || ReadyForTownProject(actor))
             foreach (var choice in TownProjectReturnChoices(actor)) yield return choice;
         if (!ReadyForTownProject(actor)) yield break;
-        var person = inhabitants[actor];
+        var person = agents[actor];
         foreach (var (town, project) in KnownTownProjects(actor))
         {
             foreach (var delivery in project.Deliveries.Where(item => item.ContributorId == actor &&
@@ -277,14 +277,14 @@ public sealed partial class WorldRuntime
     private IEnumerable<InventoryLot> PersonalTownProjectDonationLots(string actor, string itemKind) =>
         SpendingGoods(actor, GoodsUse.Spend, [actor], itemKind).Select(match => match.Lot)
             .Where(lot => PersonalEquipmentRules.IsCarried(lot, actor) && lot.ContainerLotId is null &&
-                !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id))
+                !PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal);
 
     private IEnumerable<TownProjectChoice> TownProjectDonationChoices(string actor)
     {
         foreach (var (town, project) in KnownTownProjects(actor))
         {
-            if (!CanWalkForTownProject(actor, inhabitants[actor].Position, TownProjectRules.WorkSite(project.Plan))) continue;
+            if (!CanWalkForTownProject(actor, agents[actor].Position, TownProjectRules.WorkSite(project.Plan))) continue;
             foreach (var cost in project.Plan.Budget)
             {
                 var missing = TownProjectMissing(town, project, cost.ResourceId);
@@ -294,7 +294,7 @@ public sealed partial class WorldRuntime
                     var quantity = Math.Min(missing, AvailableLotQuantity(lot));
                     yield return new(TownProjectChoiceId(TownProjectDonatePrefix, project.Id, lot.Id,
                         quantity.ToString(CultureInfo.InvariantCulture),
-                        inhabitants[actor].Position == TownProjectRules.WorkSite(project.Plan) ? "at-site" : "travel"),
+                        agents[actor].Position == TownProjectRules.WorkSite(project.Plan) ? "at-site" : "travel"),
                         "donate", town, project, cost.ResourceId, lot, quantity);
                 }
             }
@@ -312,7 +312,7 @@ public sealed partial class WorldRuntime
                     if (lot is null || lot.OwnerId != town.Id || lot.ItemKind != delivery.ItemKind ||
                         lot.CarrierId != actor || lot.ContainerLotId is not null ||
                         lot.DeliveryBuildingId is not null || PhysicalUnreservedQuantity(lot) <= 0 || IsActiveTownProjectDelivery(lot.Id)) continue;
-                    var person = inhabitants[actor];
+                    var person = agents[actor];
                     // A temporary pedestrian obstruction should wait, not cause a drop/pickup loop.
                     var warehouse = NeedsUrgentFood(person) || NeedsUrgentWarmth(person) ? null :
                         WarehousesForTown(town.Id).FirstOrDefault(item => DestinationRoom(item.InstanceId) > 0 &&
@@ -354,7 +354,7 @@ public sealed partial class WorldRuntime
                 if (!ground.TryGetValue(delivery.LotId, out var lot) || lot.ItemKind != delivery.ItemKind ||
                     !seen.Add(delivery.LotId)) continue;
                 var position = HouseholdStockPosition(lot);
-                if (!CanWalkForTownProject(actor, inhabitants[actor].Position, position)) continue;
+                if (!CanWalkForTownProject(actor, agents[actor].Position, position)) continue;
                 var warehouse = WarehousesForTown(townId).FirstOrDefault(item =>
                     DestinationRoom(item.InstanceId) > inbound &&
                     CanWalkForTownProject(actor, position, item.Position) &&
@@ -387,7 +387,7 @@ public sealed partial class WorldRuntime
                     ? $"Set down the released Town-owned {choice.ItemKind} load at your actual position. It stays Town property."
                     : $"Return the released Town-owned {choice.ItemKind} load to its Town Warehouse.",
             };
-            candidates.Add(new(choice.Id, description, choice.Kind == "return" && (NeedsUrgentFood(inhabitants[actor]) || NeedsUrgentWarmth(inhabitants[actor]))
+            candidates.Add(new(choice.Id, description, choice.Kind == "return" && (NeedsUrgentFood(agents[actor]) || NeedsUrgentWarmth(agents[actor]))
                     ? FreeCarryCapacity(actor) == 0 ? 0 : 10
                     : choice.Kind is "deliver" or "return" ? 24 : choice.Kind == "recover" ? 40 : 36,
                 choice.Warehouse?.InstanceId ?? choice.Project.Id, choice.Project.Plan.Name));
@@ -402,7 +402,7 @@ public sealed partial class WorldRuntime
                 "The Town will own that exact contribution at the approved site.", 170, choice.Project.Id, choice.Project.Plan.Name));
     }
 
-    private bool ApplyTownProjectCandidate(string actor, InhabitantState state, string id)
+    private bool ApplyTownProjectCandidate(string actor, AgentState state, string id)
     {
         if (!IsTownProjectCandidate(id)) return false;
         var choice = TownProjectChoices(actor).FirstOrDefault(item => item.Id == id);
@@ -425,7 +425,7 @@ public sealed partial class WorldRuntime
         if (!IsTownProjectDonationCandidate(id)) return false;
         var choice = TownProjectDonationChoices(actor).FirstOrDefault(item => item.Id == id);
         if (choice is null) return true;
-        var person = inhabitants[actor];
+        var person = agents[actor];
         if (person.Position != TownProjectRules.WorkSite(choice.Project.Plan))
         {
             MoveToward(actor, person, TownProjectRules.WorkSite(choice.Project.Plan), "town_project_donation", 0);
@@ -452,8 +452,8 @@ public sealed partial class WorldRuntime
     {
         if (!IsTownProjectDonationCandidate(id)) return;
         var choice = TownProjectDonationChoices(actor).FirstOrDefault(item => item.Id == id);
-        if (choice is not null && inhabitants[actor].Position != TownProjectRules.WorkSite(choice.Project.Plan))
-            MoveToward(actor, inhabitants[actor], TownProjectRules.WorkSite(choice.Project.Plan), "town_project_donation", 0);
+        if (choice is not null && agents[actor].Position != TownProjectRules.WorkSite(choice.Project.Plan))
+            MoveToward(actor, agents[actor], TownProjectRules.WorkSite(choice.Project.Plan), "town_project_donation", 0);
     }
 
     private string NextTownProjectDeliveryId(TownConstructionProject project, string actor, string lotId) =>
@@ -464,7 +464,7 @@ public sealed partial class WorldRuntime
         delivery.ReservationId!, townId, delivery.LotId, delivery.Quantity,
         TownProjectRules.ReservationPurpose(project.Id), long.MaxValue);
 
-    private void PickUpTownProjectLoad(string actor, InhabitantState state, TownProjectChoice choice)
+    private void PickUpTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
     {
         var lot = choice.Lot!;
         var position = HouseholdStockPosition(lot);
@@ -488,7 +488,7 @@ public sealed partial class WorldRuntime
         AppendEvent("town_project_material_picked_up", $"{actor}:{choice.Project.Id}:{movedId}:{choice.Quantity}:{choice.ItemKind}", TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
-    private void DeliverTownProjectLoad(string actor, InhabitantState state, TownProjectChoice choice)
+    private void DeliverTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
     {
         if (state.Position != TownProjectRules.WorkSite(choice.Project.Plan))
         {
@@ -507,7 +507,7 @@ public sealed partial class WorldRuntime
         AppendEvent("town_project_material_delivered", $"{actor}:{choice.Project.Id}:{delivery.LotId}:{delivery.Quantity}:{delivery.ItemKind}", TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
-    private void RecoverTownProjectLoad(string actor, InhabitantState state, TownProjectChoice choice)
+    private void RecoverTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
     {
         var lot = choice.Lot!;
         var position = HouseholdStockPosition(lot);
@@ -531,7 +531,7 @@ public sealed partial class WorldRuntime
         AppendEvent("town_project_material_recovered", $"{actor}:{choice.Project.Id}:{movedId}:{choice.Quantity}:{choice.ItemKind}", position);
     }
 
-    private void ReturnTownProjectLoad(string actor, InhabitantState state, TownProjectChoice choice)
+    private void ReturnTownProjectLoad(string actor, AgentState state, TownProjectChoice choice)
     {
         if (choice.Warehouse is not { } warehouse)
         {
@@ -567,7 +567,7 @@ public sealed partial class WorldRuntime
         AppendEvent("town_project_material_returned", $"{actor}:{choice.Project.Id}:{choice.Lot!.Id}:{choice.Quantity}:{warehouse.InstanceId}", TownProjectRules.WorkSite(choice.Project.Plan));
     }
 
-    private void WorkOnTownProject(string actor, InhabitantState state, TownProjectChoice choice)
+    private void WorkOnTownProject(string actor, AgentState state, TownProjectChoice choice)
     {
         if (state.Position != TownProjectRules.WorkSite(choice.Project.Plan))
         {

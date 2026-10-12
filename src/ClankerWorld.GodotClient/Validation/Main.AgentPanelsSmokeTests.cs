@@ -53,8 +53,8 @@ public partial class Main
         {
             Relationships =
             [
-                new OwnerWorldInhabitantRelationship("partner:mira-rowan", rowan.Id, "partnership", "accepted", "family", 1),
-                new OwnerWorldInhabitantRelationship("birth:pip", pip.Id, "biological_parentage", "accepted", "family", 1, "parent"),
+                new OwnerWorldAgentRelationship("partner:mira-rowan", rowan.Id, "partnership", "accepted", "family", 1),
+                new OwnerWorldAgentRelationship("birth:pip", pip.Id, "biological_parentage", "accepted", "family", 1, "parent"),
             ],
             SocialStanding = [new OwnerWorldSocialStanding(rowan.Id, "Rowan", 8)],
             RecentPrivateThoughts =
@@ -71,56 +71,56 @@ public partial class Main
             RecentBeliefs = [new OwnerWorldAgentBelief(3, "Wren is saving seed for spring.", "hearsay", 6_000, "ash", "Ash", null, null, false, null)],
             RecentKnowledgeFacts = [new OwnerWorldKnowledgeFact(1, 0, 0, "meadow", ["clay"], "Mira", "firsthand", null)],
         };
-        rowan = rowan with { Relationships = [new OwnerWorldInhabitantRelationship("partner:mira-rowan", mira.Id, "partnership", "accepted", "family", 1)] };
-        pip = pip with { Relationships = [new OwnerWorldInhabitantRelationship("birth:pip", mira.Id, "biological_parentage", "accepted", "family", 1, "child")] };
+        rowan = rowan with { Relationships = [new OwnerWorldAgentRelationship("partner:mira-rowan", mira.Id, "partnership", "accepted", "family", 1)] };
+        pip = pip with { Relationships = [new OwnerWorldAgentRelationship("birth:pip", mira.Id, "biological_parentage", "accepted", "family", 1, "child")] };
         OwnerWorldCognition Decided(string provider) => new(provider, false, null, null, null, [],
-            [new OwnerWorldInhabitantDecision(mira.Id, provider, "gather", 2, 0.9, "test-model", null, null)]);
-        var snapshot = shown with { Inhabitants = [mira, rowan, pip], Cognition = Decided("openai") };
+            [new OwnerWorldAgentDecision(mira.Id, provider, "gather", 2, 0.9, "test-model", null, null)]);
+        var snapshot = shown with { Agents = [mira, rowan, pip], Cognition = Decided("openai") };
         RenderMap(snapshot);
-        selectedInhabitantId = mira.Id;
-        RenderSelectedInhabitantCard(snapshot);
+        selectedAgentId = mira.Id;
+        RenderSelectedAgentCard(snapshot);
         OpenAgentProfile(speak: false);
         try
         {
             for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!profileActivityLabel.Text.Contains("Model: OpenAI · Ready", StringComparison.Ordinal) ||
-                (profileActivityLabel.Text + inhabitantDetails.Text).Contains("hosen by", StringComparison.Ordinal))
+                (profileActivityLabel.Text + agentDetails.Text).Contains("hosen by", StringComparison.Ordinal))
                 throw new InvalidOperationException($"The Profile must name the model's provider on the Model line instead of \"chosen by\": {profileActivityLabel.Text}");
-            RenderSelectedInhabitantCard(snapshot with
+            RenderSelectedAgentCard(snapshot with
             {
-                Inhabitants = [mira with { DecisionFactors = [.. mira.DecisionFactors, new("knowledge-writing", "Writing a book · 4/12")] }, rowan, pip],
+                Agents = [mira with { DecisionFactors = [.. mira.DecisionFactors, new("knowledge-writing", "Writing a book · 4/12")] }, rowan, pip],
             });
-            if (!inhabitantDetails.GetParsedText().Contains("Writing a book · 4/12", StringComparison.Ordinal))
+            if (!agentDetails.GetParsedText().Contains("Writing a book · 4/12", StringComparison.Ordinal))
                 throw new InvalidOperationException("The Profile must show writing progress from the owner's observation.");
-            RenderSelectedInhabitantCard(snapshot with { Cognition = Decided("jev") });
-            if (inhabitantDetails.GetParsedText().Contains("Writing a book", StringComparison.Ordinal))
+            RenderSelectedAgentCard(snapshot with { Cognition = Decided("jev") });
+            if (agentDetails.GetParsedText().Contains("Writing a book", StringComparison.Ordinal))
                 throw new InvalidOperationException("Finished writing must disappear from the Profile when no writing project remains.");
             if (!profileActivityLabel.Text.Contains("Model: Ready", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Jev made their latest choice.", StringComparison.Ordinal))
-                throw new InvalidOperationException($"A choice Jev made must be said plainly: {profileActivityLabel.Text} / {inhabitantDetails.Text}");
+                !agentDetails.Text.Contains("Jev made their latest choice.", StringComparison.Ordinal))
+                throw new InvalidOperationException($"A choice Jev made must be said plainly: {profileActivityLabel.Text} / {agentDetails.Text}");
             var approvalDeadline = snapshot.WorldTick + (snapshot.CalendarPace?.TicksPerDay ?? 1_440);
             var approval = new OwnerWorldDecisionFactor("town-membership", "Town: none · First Town's council approved admission; not accepted yet")
             {
                 AcceptanceDeadlineTick = approvalDeadline,
             };
-            RenderSelectedInhabitantCard(snapshot with
+            RenderSelectedAgentCard(snapshot with
             {
-                Inhabitants = [mira with { DecisionFactors = [.. mira.DecisionFactors, approval] }, rowan, pip],
+                Agents = [mira with { DecisionFactors = [.. mira.DecisionFactors, approval] }, rowan, pip],
             });
             var (deadlineDate, deadlineTime) = SplitClock(DisplayWorldClock(approvalDeadline));
-            if (!inhabitantDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains(deadlineDate, StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains(deadlineTime, StringComparison.Ordinal) ||
-                !inhabitantDetails.Text.Contains("Paused time does not count", StringComparison.Ordinal))
+            if (!agentDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains(deadlineDate, StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains(deadlineTime, StringComparison.Ordinal) ||
+                !agentDetails.Text.Contains("Paused time does not count", StringComparison.Ordinal))
                 throw new InvalidOperationException("An admission approval must show its public acceptance deadline as a world date and time.");
-            RenderSelectedInhabitantCard(snapshot with
+            RenderSelectedAgentCard(snapshot with
             {
-                Inhabitants = [mira with { DecisionFactors = [.. mira.DecisionFactors,
+                Agents = [mira with { DecisionFactors = [.. mira.DecisionFactors,
                     new("town-membership", "Town: none · First Town's admission approval expired without acceptance; ask again")] }, rowan, pip],
             });
-            if (!inhabitantDetails.Text.Contains("expired without acceptance", StringComparison.Ordinal) ||
-                inhabitantDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
-                inhabitantDetails.Text.Contains("not accepted yet", StringComparison.Ordinal))
+            if (!agentDetails.Text.Contains("expired without acceptance", StringComparison.Ordinal) ||
+                agentDetails.Text.Contains("Acceptance deadline:", StringComparison.Ordinal) ||
+                agentDetails.Text.Contains("not accepted yet", StringComparison.Ordinal))
                 throw new InvalidOperationException("A lapsed admission must show its reason without a pending approval or acceptance deadline.");
             // Reuse the displayed agent to prove that projected care notes reach
             // the actual Profile controls and clear when the move is no longer pending.
@@ -130,15 +130,15 @@ public partial class Main
                 DecisionFactors = [.. mira.DecisionFactors, new("guardian-care", guardianNote)],
                 SocialNotes = [guardianNote],
             };
-            RenderSelectedInhabitantCard(snapshot with { Inhabitants = [pendingGuardian, rowan, pip] });
+            RenderSelectedAgentCard(snapshot with { Agents = [pendingGuardian, rowan, pip] });
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (!agentProfilePanel.IsVisibleInTree() || !inhabitantDetails.IsVisibleInTree() ||
-                !inhabitantDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
+            if (!agentProfilePanel.IsVisibleInTree() || !agentDetails.IsVisibleInTree() ||
+                !agentDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
                 !profilePeople.GetChildren().OfType<Label>().Any(label => label.IsVisibleInTree() &&
                     label.Text.Contains(guardianNote, StringComparison.Ordinal)))
                 throw new InvalidOperationException("Pending guardian care must reach the visible Profile details and People section from the observation.");
-            RenderSelectedInhabitantCard(snapshot);
-            if (inhabitantDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
+            RenderSelectedAgentCard(snapshot);
+            if (agentDetails.GetParsedText().Contains(guardianNote, StringComparison.Ordinal) ||
                 ProfilePeopleText().Contains(guardianNote, StringComparison.Ordinal))
                 throw new InvalidOperationException("Refreshing the same agent without pending guardian care must clear its old note from both Profile sections.");
             // At 200% on this small window, four messages make the Profile taller than the screen:
@@ -147,7 +147,7 @@ public partial class Main
             SetUiFactor(2);
             try
             {
-                RenderSelectedInhabitantCard(snapshot with
+                RenderSelectedAgentCard(snapshot with
                 {
                     Instructions = [.. Enumerable.Range(1, 4).Select(index => new OwnerWorldInstruction($"agent-panels-message-{index}", mira.Id,
                         "suggestive", $"Message {index}: please carry clay from the river bank to the kiln before dusk, and store the pots.",
@@ -165,7 +165,7 @@ public partial class Main
             {
                 SetUiFactor(factor);
             }
-            RenderSelectedInhabitantCard(snapshot);
+            RenderSelectedAgentCard(snapshot);
 
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!privateThoughtHistory.Text.Contains("The river bank has good clay.", StringComparison.Ordinal) ||
@@ -225,11 +225,11 @@ public partial class Main
             {
                 RecentBeliefs = [.. mira.RecentBeliefs, new OwnerWorldAgentBelief(4, "Keeps the spare axe by the door.", "firsthand", 9_000, null, null, null, rowan.Id, false, null)],
             };
-            RenderSelectedInhabitantCard(snapshot with { Inhabitants = [believer, rowan, pip] });
-            RenderSelectedInhabitantCard(snapshot with { Inhabitants = [believer, rowan with { DisplayName = "Rowan Ash" }, pip] });
+            RenderSelectedAgentCard(snapshot with { Agents = [believer, rowan, pip] });
+            RenderSelectedAgentCard(snapshot with { Agents = [believer, rowan with { DisplayName = "Rowan Ash" }, pip] });
             if (!MemoryCardsText().Contains("about Rowan Ash", StringComparison.Ordinal))
                 throw new InvalidOperationException($"A belief card must follow its subject's new name: {MemoryCardsText().ReplaceLineEndings(" / ")}");
-            RenderSelectedInhabitantCard(snapshot);
+            RenderSelectedAgentCard(snapshot);
             if (!GetViewportRect().Encloses(memoriesPanel.GetGlobalRect()))
                 throw new InvalidOperationException($"Memories must stay on screen: {memoriesPanel.GetGlobalRect()}");
 
@@ -250,8 +250,8 @@ public partial class Main
             familyTreePanel.Hide();
             memoriesPanel.Hide();
             agentProfileRequested = false;
-            selectedInhabitantId = null;
-            RenderSelectedInhabitantCard(shown);
+            selectedAgentId = null;
+            RenderSelectedAgentCard(shown);
             RenderMap(shown);
         }
     }

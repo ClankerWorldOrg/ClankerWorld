@@ -16,25 +16,25 @@ public sealed class SameKindKnowledgeTradeTests
         using var initial = NormalPathWorld.CreateGenerated("same-kind-record-trade", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
         var state = ShelterOrderTestFixture.WithClearWeather(initial.ExportState());
-        var adults = state.Society.Society.Inhabitants.Where(person => person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+        var adults = state.Society.Society.Agents.Where(person => person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .Take(2).Select(person => person.Id).ToArray();
         Assert.Equal(2, adults.Length);
         var first = adults[0];
         var second = adults[1];
-        var origin = state.Inhabitants.Single(person => person.InhabitantId == first).Position;
+        var origin = state.Agents.Single(person => person.AgentId == first).Position;
         var meeting = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse").Position;
         var blocked = state.Map.Resources.Select(resource => resource.Position)
             .Concat(state.Map.MapObjects.Select(item => item.Position))
             .Concat(state.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)))
-            .Concat(state.Inhabitants.Select(person => person.Position)).ToHashSet();
+            .Concat(state.Agents.Select(person => person.Position)).ToHashSet();
         var distant = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
                 !blocked.Contains(point) && state.Map.FootDistance(origin, point) >= 24 && state.Map.IsReachableOnFoot(point, meeting))
             .OrderBy(point => state.Map.FootDistance(origin, point)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
         state = ShelterOrderTestFixture.At(state, second, distant);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_500,
                 LastDecisionContext = null,
@@ -67,7 +67,7 @@ public sealed class SameKindKnowledgeTradeTests
             {
                 Assert.True((await exploring.AdvanceOneTickAsync()).Advanced);
                 foreach (var id in adults)
-                    if (exploring.Inhabitants.Single(person => person.InhabitantId == id).Exploration is
+                    if (exploring.Agents.Single(person => person.AgentId == id).Exploration is
                         { Returning: false, OutingPath.Count: > 8 } && returning.Add(id))
                         exploring.SubmitInstruction(new OwnerInstructionRequest("trade-record-return-" + id,
                             "owner:test", id, OwnerInstructionKind.Suggestive, "Please return from scouting."));
@@ -99,7 +99,7 @@ public sealed class SameKindKnowledgeTradeTests
         Assert.All(secondArtifact.Facts, fact => Assert.DoesNotContain(state.Knowledge.Facts, known => known.OwnerId == first && known.Position == fact.Position));
         state = ShelterOrderTestFixture.At(state, first, meeting);
         var neighboring = state.Map.FootNeighbors(meeting).First(point => state.Map.IsBuildable(point) &&
-            !state.Inhabitants.Any(person => person.Position == point));
+            !state.Agents.Any(person => person.Position == point));
         state = ShelterOrderTestFixture.At(state, second, neighboring);
         if (shareFirst)
         {

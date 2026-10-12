@@ -83,7 +83,7 @@ public sealed class CivicBallotProviderTests
     private static OpenAiCompatibleDecisionProvider Provider(HttpClient client) =>
         new(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
 
-    private static InhabitantObservation Observation(string selectedCandidate) =>
+    private static AgentObservation Observation(string selectedCandidate) =>
         new("actor", 0, 0, 0, "digest", 8_000,
             [new("safe_idle", "Continue safely.", 0), new(selectedCandidate, "Choose this legal action.", 10)]);
 

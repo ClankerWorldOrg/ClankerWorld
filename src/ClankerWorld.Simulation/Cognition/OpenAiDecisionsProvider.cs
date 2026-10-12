@@ -155,7 +155,7 @@ public sealed class OpenAiDecisionsProvider : IDecisionProvider
             var usage = root.TryGetProperty("usage", out var reportedUsage)
                 ? new CognitionUsage(modelId, reportedUsage.GetProperty("input_tokens").GetInt32(), reportedUsage.GetProperty("output_tokens").GetInt32())
                 : null;
-            return new(request.RequestId, request.Observation.InhabitantId, DecisionProviderKind.OpenAiDecisions,
+            return new(request.RequestId, request.Observation.AgentId, DecisionProviderKind.OpenAiDecisions,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, choice.GetProperty("confidence").GetDouble(), probabilities,
                 usage, MemoryCompactionScores: scores.Count == 0 ? null : scores, MemorySummaryChoice: summaryChoice);

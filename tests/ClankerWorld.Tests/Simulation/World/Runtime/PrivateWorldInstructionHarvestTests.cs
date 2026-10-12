@@ -18,7 +18,7 @@ public sealed partial class WorldRuntimeTests
         var provider = new OrderCandidateRecordingProvider("harvest_food");
         using var world = CreateHarvestInstructionWorld(orchard, provider, hungerBasisPoints: 3_000);
         var before = world.ExportState();
-        var actor = before.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var actor = before.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         var target = orchard
             ? before.Map.Resources.Where(resource => resource.TreeKind == "orchard")
                 .OrderBy(resource => before.Map.FootDistance(actor.Position, resource.Position))
@@ -43,7 +43,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal("finished", closedHarvest.Order!.Status);
         Assert.Equal("queued", Assert.Single(messages, item => item.InstructionId == eat.InstructionId).State);
         var harvestRequest = Assert.Single(provider.Requests, request =>
-            request.InhabitantId == HarvestInstructionActor);
+            request.AgentId == HarvestInstructionActor);
         Assert.Contains(harvestRequest.Candidates, candidate => candidate.Id == "harvest_food" &&
             candidate.DestinationId == target.Id);
         Assert.Single(state.Events, item => item.Kind == "instruction_applied" &&
@@ -76,7 +76,7 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(initialState, _ =>
             new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         var before = world.ExportState();
-        var actorBefore = before.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var actorBefore = before.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         var foodBefore = before.Society.Society.Inventory.Lots
             .Where(lot => lot.OwnerId == HarvestInstructionActor &&
                 (lot.ItemKind is "berries" or "fruit" or "wild_greens"))
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntimeTests
             .Select(lot => (lot.Id, lot.ItemKind, lot.Quantity)).ToArray();
         Assert.Equal(foodBefore, foodAfter);
         Assert.Equal(actorBefore.Position,
-            after.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor).Position);
+            after.Agents.Single(person => person.AgentId == HarvestInstructionActor).Position);
         var newEvents = after.Events.Where(item => !eventIdsBefore.Contains(item.EventId)).ToArray();
         Assert.DoesNotContain(newEvents, item => item.Kind is "food_harvested" or "food_consumed");
         Assert.DoesNotContain(newEvents, item => item.Kind == "instruction_applied" &&
@@ -160,7 +160,7 @@ public sealed partial class WorldRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { HungerBasisPoints = 6_000, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ =>
@@ -197,7 +197,7 @@ public sealed partial class WorldRuntimeTests
             _ => provider ?? new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         world.AddAgent(HarvestInstructionActor, orchard ? OrchardStand(world) : BerryStand(world));
         var state = world.ExportState();
-        var actorPosition = state.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor).Position;
+        var actorPosition = state.Agents.Single(item => item.AgentId == HarvestInstructionActor).Position;
         var target = orchard
             ? state.Map.Resources.Where(resource => resource.TreeKind == "orchard")
                 .OrderBy(resource => state.Map.FootDistance(actorPosition, resource.Position))
@@ -210,10 +210,10 @@ public sealed partial class WorldRuntimeTests
             state.Society.Society.WorldTick, "firsthand");
         state = state with
         {
-            Inhabitants = hungerBasisPoints is { } fullness
-                ? state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = hungerBasisPoints is { } fullness
+                ? state.Agents.Select(person => person.AgentId == HarvestInstructionActor
                     ? person with { HungerBasisPoints = fullness } : person).ToArray()
-                : state.Inhabitants,
+                : state.Agents,
             Knowledge = state.Knowledge! with { Facts = state.Knowledge.Facts.Append(knownSource).ToArray() },
         };
         if (orchard)
@@ -243,7 +243,7 @@ public sealed partial class WorldRuntimeTests
     private static GridPoint BerryStand(WorldRuntime world)
     {
         var map = world.ExportState().Map;
-        var occupied = world.Inhabitants.Select(person => person.Position).ToHashSet();
+        var occupied = world.Agents.Select(person => person.Position).ToHashSet();
         var berry = map.Resources.Single(item => item.Id == "berry-patch");
         return map.FootNeighbors(berry.Position).First(point => map.IsBuildable(point) &&
             !occupied.Contains(point) && map.Resources.All(item => item.Position != point) &&
@@ -255,7 +255,7 @@ public sealed partial class WorldRuntimeTests
     private static GridPoint OrchardStand(WorldRuntime world)
     {
         var map = world.ExportState().Map;
-        var occupied = world.Inhabitants.Select(person => person.Position).ToHashSet();
+        var occupied = world.Agents.Select(person => person.Position).ToHashSet();
         var food = map.Resources.Where(item => item.Kind == "food").Select(item => item.Position).ToArray();
         return map.Resources.Where(item => item.TreeKind == "orchard")
             .SelectMany(item => map.FootNeighbors(item.Position))

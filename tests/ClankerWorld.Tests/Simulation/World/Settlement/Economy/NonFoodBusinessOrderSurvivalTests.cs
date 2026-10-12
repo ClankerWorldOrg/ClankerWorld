@@ -23,7 +23,7 @@ public sealed partial class BusinessTradeTests
         }
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == buyer
+            Agents = state.Agents.Select(person => person.AgentId == buyer
                 ? person with { HungerBasisPoints = 1_500, LastDecisionContext = null } : person).ToArray(),
         };
         var candidate = openQuote ? "business_continue:" + Assert.Single(state.BusinessTrades!).OfferId : "business_shop:" + shopId;

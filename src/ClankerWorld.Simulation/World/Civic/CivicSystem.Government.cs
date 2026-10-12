@@ -20,7 +20,7 @@ internal sealed partial class CivicSystem
             $"Propose a law for everyone on {town.Name}'s claimed land, visitors included. {format}", 190));
         candidates.Add(new(CivicAction(world, town.Id, "propose", TownLawRules.ResidentDuty),
             $"Propose a duty for {town.Name}'s residents that applies wherever they are. {format}", 191));
-        var here = world.Inhabitants[actor].Position;
+        var here = world.Agents[actor].Position;
         if (TownLawRules.SiteAround(world.Map, here, town.Id, world.TownLandTitles).Length > 0)
             candidates.Add(new(CivicAction(world, town.Id, "propose", SiteToken(here)),
                 $"Propose a law for the claimed land within {TownLawRules.SiteRadius} tiles of where you stand in {town.Name}, visitors included. {format}", 192));

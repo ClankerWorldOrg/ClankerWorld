@@ -61,8 +61,8 @@ public sealed partial class WorldRuntime
         if (new[] { edit.AgentId, edit.Operation, edit.Value, edit.OtherAgentId ?? "" }
             .Any(value => value is null || value.Length > 512 || value.Any(char.IsControl)))
             throw new ArgumentException("Developer edit values must be short and contain no control characters.");
-        if (!inhabitants.TryGetValue(edit.AgentId, out var person) ||
-            society.Checkpoint.GetInhabitant(edit.AgentId).Status != SocietyInhabitantStatus.Active)
+        if (!agents.TryGetValue(edit.AgentId, out var person) ||
+            society.Checkpoint.GetAgent(edit.AgentId).Status != SocietyAgentStatus.Active)
             throw new InvalidOperationException("Select a living agent.");
         var actor = edit.AgentId;
         var id = $"developer-edit-{edit.ExpectedEventId + 1}";
@@ -88,7 +88,7 @@ public sealed partial class WorldRuntime
                     throw new ArgumentOutOfRangeException(nameof(edit), "Needs must be between 0 and 100 percent.");
                 var survival = person.Survival ?? new SurvivalCondition();
                 if (edit.Value != "fullness") survivalState ??= new SettlementSurvivalState(WorldTick, []);
-                inhabitants[actor] = edit.Value switch
+                agents[actor] = edit.Value switch
                 {
                     "fullness" => person with { HungerBasisPoints = edit.Amount * 100 },
                     "warmth" => person with { Survival = survival with { WarmthBasisPoints = edit.Amount * 100 } },
@@ -143,7 +143,7 @@ public sealed partial class WorldRuntime
                 var skills = (person.Skills ?? []).Where(item => item.Kind != skill).ToList();
                 if (edit.Operation == "add_skill")
                     skills.Add(person.Skills?.FirstOrDefault(item => item.Kind == skill) ?? new SettlementSkill(skill, WorldTick));
-                inhabitants[actor] = person with { Skills = skills.OrderBy(item => item.Kind).ToArray() };
+                agents[actor] = person with { Skills = skills.OrderBy(item => item.Kind).ToArray() };
                 break;
             case "start_partnership":
             case "end_partnership":
@@ -174,7 +174,7 @@ public sealed partial class WorldRuntime
             default:
                 throw new ArgumentException("Choose a supported developer edit.");
         }
-        inhabitants[actor] = inhabitants[actor] with { LastDecisionContext = null };
+        agents[actor] = agents[actor] with { LastDecisionContext = null };
         checkpointSchemaVersion = StateSchemaVersion;
     }
 }

@@ -10,7 +10,7 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     /// <summary>A small framed portrait: the agent's own map sprite on green, or on grey once they have died.</summary>
-    private static ImageTexture AgentPortrait(OwnerWorldInhabitant person, bool living)
+    private static ImageTexture AgentPortrait(OwnerWorldAgent person, bool living)
     {
         var age = person.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail;
         var sprite = AgentSprites.Sprite(AgentSprites.VariantFor(person.Id), AgentSprites.StageIndex(age), 16);

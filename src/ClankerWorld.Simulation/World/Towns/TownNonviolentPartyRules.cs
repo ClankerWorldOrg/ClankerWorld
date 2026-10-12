@@ -12,13 +12,13 @@ public static class TownNonviolentPartyRules
         IEnumerable<TownViolationFiling> filings, SocietyCheckpoint society, long tick)
     {
         var recorded = filings.ToArray();
-        bool Adult(string id) => society.Inhabitants.Any(person => person.Id == id && person.Status == SocietyInhabitantStatus.Active &&
+        bool Adult(string id) => society.Agents.Any(person => person.Id == id && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         var people = recorded.Where(filing => filing.Kind == "affected" && filing.AgentId != allegation.SubjectId)
             .Select(filing => (Id: filing.AgentId, Role: "affected")).Prepend((Id: allegation.SubjectId, Role: "subject")).Distinct();
         var parties = people.Select(entry =>
         {
-            var person = society.GetInhabitant(entry.Id);
+            var person = society.GetAgent(entry.Id);
             var adult = Adult(entry.Id);
             var care = !adult && person.PrimaryCaregiverId is { } caregiver && Adult(caregiver)
                 ? society.Relationships.FirstOrDefault(edge => edge.Type == SocietyRelationshipType.Caregiver &&
@@ -42,7 +42,7 @@ public static class TownNonviolentPartyRules
                     .OrderByDescending(filing => filing.Tick).ThenBy(filing => filing.AgentId, StringComparer.Ordinal)
                     .Select(filing => filing.AgentId).FirstOrDefault();
             parties.Add(new(TownRecordIds.TownParty(town.Id), "town", townFiling.AgentId, representative, null, null,
-                representative is null ? null : society.GetInhabitant(representative).HouseholdId));
+                representative is null ? null : society.GetAgent(representative).HouseholdId));
         }
         return parties.OrderBy(party => party.Id, StringComparer.Ordinal).ToArray();
     }

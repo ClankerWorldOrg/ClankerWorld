@@ -174,9 +174,9 @@ public sealed class MarketHistorySaveTests
             Choose = (actor, candidates) => actor == seller ? candidates.SingleOrDefault(candidate => candidate.Id == "household_leave") : null,
         };
         using var world = WorldRuntime.Restore(state, policy.CreateProvider);
-        for (var tick = 0; tick < 8 && world.Society.GetInhabitant(seller).HouseholdId is not null; tick++)
+        for (var tick = 0; tick < 8 && world.Society.GetAgent(seller).HouseholdId is not null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Null(world.Society.GetInhabitant(seller).HouseholdId);
+        Assert.Null(world.Society.GetAgent(seller).HouseholdId);
         Assert.Contains(policy.Chosen, choice => choice.Actor == seller && choice.Id == "household_leave");
         Assert.Equal(4, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == seller && lot.ItemKind == "wooden_axe").Sum(lot => lot.Quantity));
         policy.Choose = (_, _) => null;
@@ -194,7 +194,7 @@ public sealed class MarketHistorySaveTests
     {
         const string seller = "founder:00000000000000000000000000000001";
         var state = await MarketHistoryRuntimeTests.ClosedTradeStateAsync();
-        var physical = state.Inhabitants.Single(person => person.InhabitantId == seller);
+        var physical = state.Agents.Single(person => person.AgentId == seller);
         var checkpoint = SocietyRules.Kill(state.Society.Society, seller, SocietyDeathCause.Accident).Checkpoint;
         var estate = Assert.Single(checkpoint.Estates, item => item.DeceasedId == seller);
         // Apply the runtime's physical drop and council transition after the real death
@@ -210,14 +210,14 @@ public sealed class MarketHistorySaveTests
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != seller).ToArray(),
-            DeceasedInhabitants = (state.DeceasedInhabitants ?? []).Append(new(seller, checkpoint.WorldTick,
-                checkpoint.AgeAt(checkpoint.GetInhabitant(seller), checkpoint.WorldTick), physical)).ToArray(),
+            Agents = state.Agents.Where(person => person.AgentId != seller).ToArray(),
+            DeceasedAgents = (state.DeceasedAgents ?? []).Append(new(seller, checkpoint.WorldTick,
+                checkpoint.AgeAt(checkpoint.GetAgent(seller), checkpoint.WorldTick), physical)).ToArray(),
             Towns = state.Towns!.Select(town =>
             {
                 var residents = town.ResidentIds.Where(id => id != seller).ToArray();
-                var adults = residents.Where(id => checkpoint.Inhabitants.Any(person => person.Id == id &&
-                    person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder));
+                var adults = residents.Where(id => checkpoint.Agents.Any(person => person.Id == id &&
+                    person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder));
                 return town with
                 {
                     ResidentIds = residents,

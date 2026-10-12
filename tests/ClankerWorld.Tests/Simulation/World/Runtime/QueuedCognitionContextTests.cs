@@ -14,7 +14,7 @@ public sealed class QueuedCognitionContextTests
     {
         var provider = new HeldIdleProvider();
         var scheduler = new SocietyCognitionScheduler([SocietyRules.CreateFounder("alice", "Alice")], _ => provider);
-        var observation = new InhabitantObservation("alice", 0, 0, 0, "old", 8_000,
+        var observation = new AgentObservation("alice", 0, 0, 0, "old", 8_000,
             [new("safe_idle", "Wait", 0)]);
         Assert.True(scheduler.Enqueue(new("old", "alice", 1, 0, ["old"], observation)));
         var preview = Assert.Single(scheduler.PreviewHostedRequests(new HashSet<string>()));
@@ -51,7 +51,7 @@ public sealed class QueuedCognitionContextTests
             Assert.DoesNotContain(first.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
             for (var tick = 0; tick < 6; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             var held = world.ExportState();
-            var queued = Assert.Single(held.Society.Cognition.Queue, item => item.InhabitantId == Actor);
+            var queued = Assert.Single(held.Society.Cognition.Queue, item => item.AgentId == Actor);
             if (newFoodChoice)
                 Assert.Contains(queued.Observation.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
             Assert.Single(provider.Requests);
@@ -72,7 +72,7 @@ public sealed class QueuedCognitionContextTests
                 await AdvanceUntil(world, () => Accepted(world) == 2);
                 Assert.Equal(2, provider.Requests.Count);
             }
-            Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, entry => entry.InhabitantId == Actor);
+            Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == Actor);
             world.Validate();
         }
         finally { provider.Release.TrySetResult(true); }
@@ -96,7 +96,7 @@ public sealed class QueuedCognitionContextTests
                 OwnerInstructionKind.Suggestive, "Look for a grove after you eat."));
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             Assert.Contains(Assert.Single(world.ExportState().Society.Cognition.Queue,
-                entry => entry.InhabitantId == Actor).Observation.ObserverGuidance!,
+                entry => entry.AgentId == Actor).Observation.ObserverGuidance!,
                 item => item.InstructionId == message.InstructionId);
 
             provider.Release.TrySetResult(true);
@@ -113,7 +113,7 @@ public sealed class QueuedCognitionContextTests
                 world.Pause();
                 var bytes = WorldRuntimeCodec.Encode(world.ExportState());
                 var saved = WorldRuntimeCodec.Decode(bytes);
-                Assert.Contains(Assert.Single(saved.Society.Cognition.Queue, entry => entry.InhabitantId == Actor)
+                Assert.Contains(Assert.Single(saved.Society.Cognition.Queue, entry => entry.AgentId == Actor)
                     .Observation.ObserverGuidance!, item => item.InstructionId == message.InstructionId);
                 replacement = new HeldIdleProvider(replyText: "Reply after reload.");
                 restored = Restore(saved, replacement);
@@ -168,7 +168,7 @@ public sealed class QueuedCognitionContextTests
             await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
             for (var tick = 0; tick < 6; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             Assert.Contains(Assert.Single(world.ExportState().Society.Cognition.Queue,
-                entry => entry.InhabitantId == Actor).Observation.Candidates, candidate => candidate.Id == "seek_food");
+                entry => entry.AgentId == Actor).Observation.Candidates, candidate => candidate.Id == "seek_food");
             provider.Release.TrySetResult(true);
             await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
             var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -189,7 +189,7 @@ public sealed class QueuedCognitionContextTests
                         {
                             Assert.Equal(1, Accepted(proposed));
                             Assert.Contains(Assert.Single(proposed.ExportState().Society.Cognition.Queue,
-                                entry => entry.InhabitantId == Actor).Observation.Candidates, candidate => candidate.Id == "seek_food");
+                                entry => entry.AgentId == Actor).Observation.Candidates, candidate => candidate.Id == "seek_food");
                         }
                         permitted = false;
                         return [];
@@ -227,7 +227,7 @@ public sealed class QueuedCognitionContextTests
             provider.Release.TrySetResult(true);
             await AdvanceUntil(world, () => provider.SecondStarted.Task.IsCompleted);
             var fresh = provider.Requests.Last();
-            var person = world.Inhabitants.Single(item => item.InhabitantId == Actor);
+            var person = world.Agents.Single(item => item.AgentId == Actor);
             Assert.False(person.IdentityChoicePending);
             Assert.Equal("Patient and curious", person.Personality);
             Assert.Equal("Explore the riverbanks", person.Aspiration);
@@ -237,13 +237,13 @@ public sealed class QueuedCognitionContextTests
             Assert.NotNull(fresh.Self);
             Assert.Equal(person.Personality, fresh.Self.Personality);
             Assert.Equal(person.Aspiration, fresh.Self.Aspiration);
-            Assert.Equal(world.Society.GetInhabitant(Actor).Name, fresh.Self.Name);
+            Assert.Equal(world.Society.GetAgent(Actor).Name, fresh.Self.Name);
             Assert.Equal(message.InstructionId, Assert.Single(fresh.ObserverGuidance!).InstructionId);
             provider.ReleaseSecond.TrySetResult(true);
             await AdvanceUntil(world, () => Instruction(world, message.InstructionId).ObservedTick is not null);
             Assert.Equal(2, provider.Requests.Count);
             Assert.Single(provider.Requests, observation => observation.NeedsPersonality || observation.NeedsAspiration);
-            Assert.Equal("Patient and curious", world.Inhabitants.Single(item => item.InhabitantId == Actor).Personality);
+            Assert.Equal("Patient and curious", world.Agents.Single(item => item.AgentId == Actor).Personality);
             Assert.Single(world.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == Actor);
             world.Validate();
         }
@@ -325,7 +325,7 @@ public sealed class QueuedCognitionContextTests
         var state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { HungerBasisPoints = fullness, IdentityChoicePending = identityPending } : person).ToArray(),
             Society = state.Society with
             {
@@ -376,7 +376,7 @@ public sealed class QueuedCognitionContextTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public Func<bool> CanStart { get; set; } = () => true;
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -421,7 +421,7 @@ public sealed class QueuedCognitionContextTests
 
     private static CognitionDecisionResponse Reply(CognitionDecisionRequest request, DecisionProviderKind kind, long epoch,
         string selected = "safe_idle") =>
-        new(request.RequestId, request.Observation.InhabitantId, kind, epoch, request.Observation.RunEpoch,
+        new(request.RequestId, request.Observation.AgentId, kind, epoch, request.Observation.RunEpoch,
             request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
             request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected ? 1d : 0d));
 }

@@ -26,7 +26,7 @@ public sealed class SettlementGuardianPlacementTests
         await Accepted(world, scenario);
         Assert.Contains(choices.Selected, item => item.Actor == guardian && item.Choice == "guardian_accept:" + child);
         Assert.Equal(origin, Person(world, child).Position);
-        Assert.Equal(SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, TownOf(world, child));
         Assert.Equal("collecting", Person(world, child).GuardianPlacement!.Stage);
         AssertPlacementNote(world, child, guardian, "going to collect");
@@ -38,7 +38,7 @@ public sealed class SettlementGuardianPlacementTests
 
         Assert.Equal(scenario.House.Position, Person(world, child).Position);
         Assert.True(scenario.State.Map.FootDistance(Person(world, guardian).Position, scenario.House.Position) <= 1);
-        Assert.Equal(guardian, world.Society.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Equal(guardian, world.Society.GetAgent(child).PrimaryCaregiverId);
         Assert.Equal(birth, world.Society.Births.Single(item => item.ChildId == child));
         Assert.Equal(parentage, world.Society.Relationships.Where(item => item.Type == SocietyRelationshipType.BiologicalParentage &&
             item.TargetId == child).ToArray());
@@ -63,12 +63,12 @@ public sealed class SettlementGuardianPlacementTests
         using var initial = Restore(scenario.State, choices);
         await Accepted(initial, scenario);
         await Until(initial, () => Person(initial, child).GuardianPlacement?.Stage == "escorting" &&
-            Person(initial, child).Position != scenario.State.Inhabitants.Single(person => person.InhabitantId == child).Position);
+            Person(initial, child).Position != scenario.State.Agents.Single(person => person.AgentId == child).Position);
         // A legal saved movement delay isolates the non-moving action budget as well as the per-step movement checks.
         var state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child
+            Agents = state.Agents.Select(person => person.AgentId == child
             ? person with { TravelCooldownTicks = 2 } : person).ToArray()
         };
         using var world = Restore(state, choices);
@@ -114,7 +114,7 @@ public sealed class SettlementGuardianPlacementTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+                    Agents = society.Agents.Select(person => person.Id == child ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -128,11 +128,11 @@ public sealed class SettlementGuardianPlacementTests
         var social = "child_converse:" + scenario.Guardians[1];
         choices.Set(child, social);
         using var initial = Restore(state, choices);
-        Assert.Equal(SocietyAgeBand.Infant, initial.Society.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, initial.Society.GetAgent(child).AgeBand);
         await Step(initial);
-        Assert.Equal(SocietyAgeBand.Child, initial.Society.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Child, initial.Society.GetAgent(child).AgeBand);
         await Until(initial, () => initial.ExportState().Society.Cognition.Runtimes.Single(item =>
-            item.InhabitantId == child).CurrentIntention?.CandidateId == social, maximumTicks: 6);
+            item.AgentId == child).CurrentIntention?.CandidateId == social, maximumTicks: 6);
         Assert.Contains(choices.Selected, item => item.Actor == child && item.Choice == social);
         choices.Set(guardian, "guardian_accept:" + child, "guardian_relocate:" + child);
         initial.SubmitInstruction(new("accept-child-care", "owner:test", guardian, OwnerInstructionKind.Suggestive,
@@ -140,11 +140,11 @@ public sealed class SettlementGuardianPlacementTests
         await Accepted(initial, scenario);
         await Until(initial, () => Person(initial, child).GuardianPlacement?.Stage == "escorting");
         Assert.Equal(social, initial.ExportState().Society.Cognition.Runtimes.Single(item =>
-            item.InhabitantId == child).CurrentIntention?.CandidateId);
+            item.AgentId == child).CurrentIntention?.CandidateId);
         state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child
+            Agents = state.Agents.Select(person => person.AgentId == child
             ? person with { TravelCooldownTicks = 2 } : person).ToArray()
         };
         using var world = Restore(state, choices);
@@ -161,7 +161,7 @@ public sealed class SettlementGuardianPlacementTests
         var firstEscortTick = world.WorldTick;
         await Until(world, () => Placed(world, scenario, child), replay: replay);
         Assert.Contains(world.ExportState().Events, item => item.WorldTick > firstEscortTick &&
-            item.Kind == "inhabitant_moved" && item.Detail.StartsWith(child + ":", StringComparison.Ordinal) &&
+            item.Kind == "agent_moved" && item.Detail.StartsWith(child + ":", StringComparison.Ordinal) &&
             item.Detail.EndsWith(":follow_guardian", StringComparison.Ordinal));
     }
 
@@ -178,7 +178,7 @@ public sealed class SettlementGuardianPlacementTests
         var origin = Person(world, child).Position;
         for (var tick = 0; tick < 3; tick++) await Step(world);
         Assert.Equal(origin, Person(world, child).Position);
-        Assert.Equal(SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Contains("free resident place", Person(world, child).GuardianPlacement!.Blocker!, StringComparison.Ordinal);
         AssertPlacementNote(world, child, scenario.Guardians[0], "The move is waiting.");
 
@@ -207,10 +207,10 @@ public sealed class SettlementGuardianPlacementTests
         var placed = Assert.Single(scenario.Children, child => Placed(world, scenario, child));
         var waiting = Assert.Single(scenario.Children, child => child != placed);
         Assert.Equal(4, Capacity(world).ResidentCount);
-        Assert.Equal(SourceHousehold, world.Society.GetInhabitant(waiting).HouseholdId);
+        Assert.Equal(SourceHousehold, world.Society.GetAgent(waiting).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, TownOf(world, waiting));
         Assert.Contains("free resident place", Person(world, waiting).GuardianPlacement!.Blocker!, StringComparison.Ordinal);
-        Assert.NotNull(world.Society.GetInhabitant(waiting).PrimaryCaregiverId);
+        Assert.NotNull(world.Society.GetAgent(waiting).PrimaryCaregiverId);
         Assert.Single(world.ExportState().Events, item => item.Kind == "guardian_placement_completed");
         using var restored = Reload(world, choices.Copy());
         Assert.Equal(Person(world, waiting).GuardianPlacement, Person(restored, waiting).GuardianPlacement);
@@ -230,11 +230,11 @@ public sealed class SettlementGuardianPlacementTests
         choices.Set(guardian, "guardian_end:" + care);
         world.SubmitInstruction(new("end-accepted-care", "owner:test", guardian, OwnerInstructionKind.Suggestive,
             "Withdraw from this caregiving relationship."));
-        await Until(world, () => world.Society.GetInhabitant(child).PrimaryCaregiverId is null, maximumTicks: 12);
+        await Until(world, () => world.Society.GetAgent(child).PrimaryCaregiverId is null, maximumTicks: 12);
         Assert.Contains(choices.Selected, item => item.Actor == guardian && item.Choice == "guardian_end:" + care);
         Assert.Equal(SocietyRelationshipState.Revoked, world.Society.GetRelationship(care).State);
         Assert.Null(Person(world, child).GuardianPlacement);
-        Assert.Equal(SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, TownOf(world, child));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "guardian_placement_completed");
         var cancelled = Assert.Single(world.ExportState().Events, item => item.Kind == "guardian_placement_cancelled");
@@ -259,7 +259,7 @@ public sealed class SettlementGuardianPlacementTests
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.Equal(SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.Equal(scenario.OriginalTownId, TownOf(world, child));
         await Step(world);
         Assert.True(Placed(world, scenario, child));
@@ -289,24 +289,24 @@ public sealed class SettlementGuardianPlacementTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == child
+            Agents = state.Agents.Select(person => person.AgentId == child
                 ? person with { HungerBasisPoints = 100 } : person).ToArray(),
         };
         if (fullCarry)
         {
             // The longest name a child may hold: 48 characters ending in its parents' surname.
-            var surname = state.Society.Society.GetInhabitant(child).Name.Split(' ')[^1];
+            var surname = state.Society.Society.GetAgent(child).Name.Split(' ')[^1];
             state = state with
             {
                 Society = state.Society with
                 {
-                    Society = SocietyRules.RenameInhabitant(state.Society.Society, child,
+                    Society = SocietyRules.RenameAgent(state.Society.Society, child,
                         "Robin" + new string('r', 42 - surname.Length) + " " + surname).Checkpoint,
                 },
             };
         }
         using var world = Restore(state, choices);
-        if (fullCarry) Assert.Equal(48, world.Society.GetInhabitant(child).Name.Length);
+        if (fullCarry) Assert.Equal(48, world.Society.GetAgent(child).Name.Length);
         using var replay = Reload(world, choices.Copy());
         var childPosition = Person(world, child).Position;
         await Until(world, () => world.ExportState().Events.Any(item => item.Kind == "child_cared_for" && item.Detail == child),
@@ -318,23 +318,23 @@ public sealed class SettlementGuardianPlacementTests
                 world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
             Assert.Contains(world.Society.Inventory.Lots, lot => lot.ItemKind == "wood" &&
                 lot.OwnerId == DestinationHousehold && lot.StorageBuildingId == scenario.House.InstanceId);
-            Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+            Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" &&
                 item.Detail.StartsWith(guardian + ":", StringComparison.Ordinal) && item.Detail.EndsWith(":make_room", StringComparison.Ordinal));
         }
         Assert.True(Person(world, child).HungerBasisPoints > 100);
         Assert.Equal(childPosition, Person(world, child).Position);
-        Assert.Equal(SourceHousehold, world.Society.GetInhabitant(child).HouseholdId);
+        Assert.Equal(SourceHousehold, world.Society.GetAgent(child).HouseholdId);
         Assert.NotNull(Person(world, child).GuardianPlacement);
         await Until(world, () => Placed(world, scenario, child), replay: replay);
     }
 
     private static void AssertPlacementNote(WorldRuntime world, string child, string guardian, string progress)
     {
-        var prefix = $"{world.Society.GetInhabitant(guardian).Name} accepted care for {world.Society.GetInhabitant(child).Name}.";
+        var prefix = $"{world.Society.GetAgent(guardian).Name} accepted care for {world.Society.GetAgent(child).Name}.";
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         foreach (var actor in new[] { child, guardian })
         {
-            var person = snapshot.Inhabitants.Single(item => item.Id == actor);
+            var person = snapshot.Agents.Single(item => item.Id == actor);
             var note = Assert.Single(person.SocialNotes, text => text.StartsWith(prefix, StringComparison.Ordinal));
             Assert.Contains(progress, note, StringComparison.Ordinal);
             Assert.Contains(person.DecisionFactors, factor => factor.Key == "guardian-care" && factor.Detail == note);
@@ -346,7 +346,7 @@ public sealed class SettlementGuardianPlacementTests
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         foreach (var actor in new[] { child, guardian })
         {
-            var person = snapshot.Inhabitants.Single(item => item.Id == actor);
+            var person = snapshot.Agents.Single(item => item.Id == actor);
             Assert.DoesNotContain(person.SocialNotes, text => text.Contains("accepted care for", StringComparison.Ordinal));
             Assert.DoesNotContain(person.DecisionFactors, factor => factor.Key == "guardian-care");
         }

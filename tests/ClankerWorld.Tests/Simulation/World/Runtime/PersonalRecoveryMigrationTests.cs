@@ -64,7 +64,7 @@ public sealed partial class WorldCollectionOrderTests
         {
             var selected = request.Observation.Candidates.Any(candidate => candidate.Id == "household_collect:recover-property")
                 ? "household_collect:recover-property" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

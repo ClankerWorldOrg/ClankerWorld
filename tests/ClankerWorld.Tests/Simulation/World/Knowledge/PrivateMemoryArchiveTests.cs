@@ -12,7 +12,7 @@ public sealed class PrivateMemoryArchiveTests
     public async Task NativeRenameRemainsLiveAcrossTheDailyArchiveBoundaryAndReload()
     {
         using var renamed = Restore(WorldRuntimeCodec.Encode(NearBoundary(generated: true)));
-        var owner = renamed.Society.Inhabitants[0].Id;
+        var owner = renamed.Society.Agents[0].Id;
         Assert.True(renamed.RenameAgent(owner, "Archiveproof Vale"));
         var original = Assert.Single(renamed.Society.Memories, item => item.Id.StartsWith("player-rename:", StringComparison.Ordinal));
         Assert.True(original.Permanent);
@@ -41,15 +41,15 @@ public sealed class PrivateMemoryArchiveTests
         using var loaded = Restore(after);
         Assert.Equal(after, WorldRuntimeCodec.Encode(loaded.ExportState()));
         Assert.Contains(original, loaded.Society.Memories);
-        var observations = new List<InhabitantObservation>();
+        var observations = new List<AgentObservation>();
         using var recalling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(after), _ => new IdleProvider(observations));
         recalling.SubmitInstruction(new("recall-rename", "owner:test", owner, OwnerInstructionKind.Suggestive, "Remember my accepted name."));
-        for (var tick = 0; tick < 4 && observations.All(item => item.InhabitantId != owner); tick++)
+        for (var tick = 0; tick < 4 && observations.All(item => item.AgentId != owner); tick++)
             Assert.True((await recalling.AdvanceOneTickAsync()).Advanced);
-        var observed = Assert.Single(observations.Where(item => item.InhabitantId == owner).Take(1));
+        var observed = Assert.Single(observations.Where(item => item.AgentId == owner).Take(1));
         Assert.Contains(observed.RetrievedMemories ?? [], item => item.Id == original.Id && item.Summary == original.Summary);
         Assert.DoesNotContain(observed.RetrievedMemories ?? [], item => item.Id == ordinary.Id);
-        Assert.All(observations.Where(item => item.InhabitantId != owner), item =>
+        Assert.All(observations.Where(item => item.AgentId != owner), item =>
             Assert.DoesNotContain(item.RetrievedMemories ?? [], memory => memory.Id == original.Id));
     }
 
@@ -59,7 +59,7 @@ public sealed class PrivateMemoryArchiveTests
     public void StrictLoadingRefusesAnArchivedPlayerRenameWithEitherPermanentMarker(bool permanent)
     {
         using var world = Restore(WorldRuntimeCodec.Encode(NearBoundary(generated: true)));
-        Assert.True(world.RenameAgent(world.Society.Inhabitants[0].Id, "Archiveproof Vale"));
+        Assert.True(world.RenameAgent(world.Society.Agents[0].Id, "Archiveproof Vale"));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         var json = JsonNode.Parse(bytes)!;
         var society = json["state"]!["society"]!["society"]!;
@@ -77,8 +77,8 @@ public sealed class PrivateMemoryArchiveTests
     public async Task DailyNativeRuleWorksWithoutHelpersAndPreservesProtectedRecordsAcrossReplay()
     {
         var state = NearBoundary(generated: true);
-        var owner = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var owner = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var memories = new List<SocietySocialMemory>
         {
             new("old-low", owner, other, "An old private conversation.", "private", 0),
@@ -112,18 +112,18 @@ public sealed class PrivateMemoryArchiveTests
         Assert.All(memories.Where(item => item.Kind != SocietyMemoryKind.Experience), item => Assert.Contains(item, saved.Society.Society.Memories));
         Assert.Equal(JsonSerializer.Serialize(state.Society.Society.Relationships), JsonSerializer.Serialize(saved.Society.Society.Relationships));
         Assert.All(protectedBeliefs, item => Assert.Contains(item, saved.Society.Society.Beliefs!));
-        Assert.Equal(state.Inhabitants.Select(item => item.Skills), saved.Inhabitants.Select(item => item.Skills));
+        Assert.Equal(state.Agents.Select(item => item.Skills), saved.Agents.Select(item => item.Skills));
         Assert.Contains(saved.Events, item => item.Kind == "agent_memories_archived" && item.Detail == "2:1");
         Assert.DoesNotContain(saved.Events, item => item.Detail.Contains(rumor.Statement, StringComparison.Ordinal));
         var after = WorldRuntimeCodec.Encode(saved);
         using var loaded = Restore(after);
         Assert.Equal(after, WorldRuntimeCodec.Encode(loaded.ExportState()));
-        var observations = new List<InhabitantObservation>();
+        var observations = new List<AgentObservation>();
         using var recalling = WorldRuntime.Restore(WorldRuntimeCodec.Decode(after), _ => new IdleProvider(observations));
         recalling.SubmitInstruction(new("recall-now", "owner:test", owner, OwnerInstructionKind.Suggestive, "Remember the path."));
-        for (var tick = 0; tick < 4 && observations.All(item => item.InhabitantId != owner); tick++)
+        for (var tick = 0; tick < 4 && observations.All(item => item.AgentId != owner); tick++)
             Assert.True((await recalling.AdvanceOneTickAsync()).Advanced);
-        var observed = Assert.Single(observations.Where(item => item.InhabitantId == owner).Take(1));
+        var observed = Assert.Single(observations.Where(item => item.AgentId == owner).Take(1));
         Assert.DoesNotContain(observed.RetrievedMemories ?? [], item => item.Id is "old-low" or "old-rumor" or "foreign");
         Assert.Contains(observed.RetrievedMemories ?? [], item => item.Id == "old-cutoff");
         Assert.Equal(2, recalling.Society.ArchivedMemories.Count);
@@ -134,8 +134,8 @@ public sealed class PrivateMemoryArchiveTests
     public async Task AnOpenOwnerOrderPostponesArchivingWithoutResettingTheSavedAge()
     {
         var state = NearBoundary();
-        var owner = state.Inhabitants[0].InhabitantId;
-        state = WithSources(state, [new("open-task-memory", owner, state.Inhabitants[1].InhabitantId, "An unfinished task.", "private", 0)], []);
+        var owner = state.Agents[0].AgentId;
+        state = WithSources(state, [new("open-task-memory", owner, state.Agents[1].AgentId, "An unfinished task.", "private", 0)], []);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
         var receipt = world.SubmitInstruction(new("blocked-task", "owner:test", owner, OwnerInstructionKind.MustDo, "keep gathering wood"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -157,8 +157,8 @@ public sealed class PrivateMemoryArchiveTests
     public async Task AnArchivedHearsaySourceCanBeCorrectedWithoutLosingItsOriginalEvidence()
     {
         var state = NearBoundary();
-        var owner = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var owner = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var rumor = new SocietyAgentBelief("old-rumor", owner, "Mira said the tool was missing.", SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: other);
         state = WithSources(state, [], [rumor]);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
@@ -195,8 +195,8 @@ public sealed class PrivateMemoryArchiveTests
     public async Task StrictLoadingRefusesMalformedArchivesAndPreservesTheOriginalCheckpoint(string fault)
     {
         var state = NearBoundary();
-        var owner = state.Inhabitants[0].InhabitantId;
-        state = WithSources(state, [new("old-low", owner, state.Inhabitants[1].InhabitantId, "Private memory.", "private", 0)], []);
+        var owner = state.Agents[0].AgentId;
+        state = WithSources(state, [new("old-low", owner, state.Agents[1].AgentId, "Private memory.", "private", 0)], []);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -238,7 +238,7 @@ public sealed class PrivateMemoryArchiveTests
             Config = config,
             WorldTick = 5,
             Inventory = state.Society.Society.Inventory with { WorldTick = 5 },
-            Inhabitants = state.Society.Society.Inhabitants.Select(item => item with
+            Agents = state.Society.Society.Agents.Select(item => item with
             {
                 BirthTick = item.BirthTick * 2 / state.Society.Society.Config.TicksPerWorldDay,
                 BirthLifeTick = item.BirthLifeTick * 2 / state.Society.Society.Config.TicksPerWorldDay,
@@ -253,13 +253,13 @@ public sealed class PrivateMemoryArchiveTests
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = society },
             WorldSystems = systems,
-            Inhabitants = state.Inhabitants.Select(item => item with { LastDecisionContext = null, HungerBasisPoints = 10_000 }).ToArray(),
+            Agents = state.Agents.Select(item => item with { LastDecisionContext = null, HungerBasisPoints = 10_000 }).ToArray(),
         };
     }
 
     private static WorldRuntime Restore(byte[] bytes) => WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new IdleProvider());
 
-    private sealed class IdleProvider(List<InhabitantObservation>? observations = null) : IDecisionProvider
+    private sealed class IdleProvider(List<AgentObservation>? observations = null) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 1;
@@ -267,7 +267,7 @@ public sealed class PrivateMemoryArchiveTests
         {
             observations?.Add(request.Observation);
             const string selected = "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
                 new Dictionary<string, double> { [selected] = 1 }));
         }

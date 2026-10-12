@@ -13,10 +13,10 @@ public sealed class LongerExplorationTests
         using var seed = NormalPathWorld.CreateGenerated("longer-scouting", _ => new ScoutProvider("safe_idle"));
         Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
         var state = SettlementWeatherTestFixture.WithWeather(seed.ExportState(), WeatherKind.Clear);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_500,
                 Survival = new(),
@@ -51,7 +51,7 @@ public sealed class LongerExplorationTests
         // legal foot step. The real outing above was earned through movement.
         var looping = longState with
         {
-            Inhabitants = longState.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = longState.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Exploration = outing with { OutingPath = outing.OutingPath.Concat([outing.OutingPath[^2], outing.OutingPath[^1]]).ToArray() },
             } : person).ToArray(),
@@ -65,11 +65,11 @@ public sealed class LongerExplorationTests
                 .Where(edge => longState.Map.IsDiagonalFootStep(edge.First, edge.Second))
                 .SelectMany(edge => new[] { new GridPoint(edge.First.X, edge.Second.Y), new GridPoint(edge.Second.X, edge.First.Y) })
                 .Last(point => longState.Map.IsPassable(point) && !outing.OutingPath.Contains(point) &&
-                    longState.Inhabitants.All(person => person.Position != point));
-            var peer = longState.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+                    longState.Agents.All(person => person.Position != point));
+            var peer = longState.Agents.First(person => person.AgentId != actor).AgentId;
             longState = longState with
             {
-                Inhabitants = longState.Inhabitants.Select(person => person.InhabitantId == peer
+                Agents = longState.Agents.Select(person => person.AgentId == peer
                     ? person with { Position = corner, TravelCooldownTicks = 0 } : person).ToArray(),
             };
         }
@@ -124,8 +124,8 @@ public sealed class LongerExplorationTests
         world.Validate();
     }
 
-    private static InhabitantState Person(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static AgentState Person(WorldRuntime world, string actor) =>
+        world.Agents.Single(person => person.AgentId == actor);
 
     private sealed class ScoutProvider(string preferred) : IDecisionProvider
     {

@@ -65,7 +65,7 @@ public sealed partial class WorldRuntimeTests
             var selected = request.Observation.Candidates.Single(item => item.Id == "safe_idle");
             return new CognitionDecisionResponse(
                 request.RequestId,
-                request.Observation.InhabitantId,
+                request.Observation.AgentId,
                 Kind,
                 ProviderEpoch,
                 request.Observation.RunEpoch,

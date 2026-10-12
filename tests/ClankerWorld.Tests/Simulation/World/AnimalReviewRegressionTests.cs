@@ -18,7 +18,7 @@ public sealed partial class AnimalPipelineTests
         var (state, actor, home, yard) = CreateYard("animal-led-product-" + species);
         var day = state.WorldSystems!.Config.TicksPerDay;
         var position = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
-            state.Map.FootDistance(point, yard.Position) == 3 && !state.Inhabitants.Any(person => person.Position == point));
+            state.Map.FootDistance(point, yard.Position) == 3 && !state.Agents.Any(person => person.Position == point));
         var definition = AnimalRules.Definition(species);
         var animal = new AnimalState("led", "Moss", species, "female", -(long)definition.AdultDays * day,
             position, "household:" + home, home, yard.InstanceId, CareUntilTick: day,
@@ -49,10 +49,10 @@ public sealed partial class AnimalPipelineTests
     public async Task OutsiderCareProtectsTheAggregateReserveOfTheHouseholdSupplyingItsGreens(bool enough)
     {
         var (state, owner, home, yard) = CreateYard("animal-outsider-feed");
-        var outsider = state.Society.Society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var outsider = state.Society.Society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand == SocietyAgeBand.Adult && person.HouseholdId != home).Id;
-        var outsiderHome = state.Society.Society.GetInhabitant(outsider).HouseholdId!;
-        var family = state.Society.Society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var outsiderHome = state.Society.Society.GetAgent(outsider).HouseholdId!;
+        var family = state.Society.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId == outsiderHome).Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var inventory = state.Society.Society.Inventory with
         { Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != outsiderHome && !family.Contains(lot.OwnerId)).ToArray() };
@@ -90,7 +90,7 @@ public sealed partial class AnimalPipelineTests
         if (broken) inventory = inventory with
         { Lots = inventory.Lots.Select(lot => lot.Id == "milk-pot" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray() };
         state = At(state, actor, yard.Position, inventory, []) with
-        { Inhabitants = At(state, actor, yard.Position, inventory, []).Inhabitants.Select(person => person.InhabitantId == actor ? person with { HungerBasisPoints = 3000 } : person).ToArray() };
+        { Agents = At(state, actor, yard.Position, inventory, []).Agents.Select(person => person.AgentId == actor ? person with { HungerBasisPoints = 3000 } : person).ToArray() };
         using var world = WorldRuntime.Restore(state, id => id == actor ? new AnimalChooser("drink_milk") : new AnimalChooser());
         if (!broken) await Until(world, () => world.ExportState().Events.Any(item => item.Kind == "milk_drunk"));
         else for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);

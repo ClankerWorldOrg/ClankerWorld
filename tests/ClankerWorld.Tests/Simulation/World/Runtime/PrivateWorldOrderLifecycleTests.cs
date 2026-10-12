@@ -141,7 +141,7 @@ public sealed partial class WorldRuntimeTests
             wrongFoodId, "wild_greens", OrderedAgent, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
                 ? item with { HungerBasisPoints = 3_000 }
                 : item).ToArray(),
             Society = state.Society with
@@ -200,7 +200,7 @@ public sealed partial class WorldRuntimeTests
             survivalFoodId, "wild_greens", OrderedAgent, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
                 ? item with { HungerBasisPoints = 0 }
                 : item).ToArray(),
             Society = state.Society with
@@ -250,7 +250,7 @@ public sealed partial class WorldRuntimeTests
         using var genesis = new WorldRuntime("order-wild-greens-harvest");
         var state = genesis.ExportState();
         var source = Assert.Single(state.Map.Resources, item => item.NaturalObjectKind == "wild_greens");
-        var occupied = state.Inhabitants.Select(item => item.Position).ToHashSet();
+        var occupied = state.Agents.Select(item => item.Position).ToHashSet();
         var stand = state.Map.FootNeighbors(source.Position)
             .First(position => state.Map.IsPassable(position) && !occupied.Contains(position) &&
                 state.Map.Resources.All(resource => resource.Position != position));
@@ -260,7 +260,7 @@ public sealed partial class WorldRuntimeTests
             terrain, ["wild_greens"], state.Society.Society.WorldTick, "firsthand");
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
                 ? item with { Position = stand, HungerBasisPoints = 5_000 }
                 : item).ToArray(),
             Knowledge = state.Knowledge! with { Facts = state.Knowledge.Facts.Append(fact).ToArray() },
@@ -286,7 +286,7 @@ public sealed partial class WorldRuntimeTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 1;
-        public List<InhabitantObservation> Requests { get; } = [];
+        public List<AgentObservation> Requests { get; } = [];
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request,
@@ -298,7 +298,7 @@ public sealed partial class WorldRuntimeTests
             var selected = request.Observation.Candidates.SingleOrDefault(item => item.Id == preferredCandidate)
                 ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,

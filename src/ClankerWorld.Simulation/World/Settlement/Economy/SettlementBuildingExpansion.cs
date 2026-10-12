@@ -210,7 +210,7 @@ public sealed partial class WorldRuntime
             BuildingStorageRules.Capacity(definition, building) * BuildingStorageRules.NearlyFullPercent;
         if (definition.Tags.Contains("house", StringComparer.Ordinal))
         {
-            if (building.HouseholdId != society.Checkpoint.GetInhabitant(actor).HouseholdId) return false;
+            if (building.HouseholdId != society.Checkpoint.GetAgent(actor).HouseholdId) return false;
             var residentNeed = building.HouseholdId is { } householdId &&
                 HouseResidentCapacity(householdId) is { } capacity && capacity.ResidentCount >= capacity.Limit;
             if (!nearlyFull && !residentNeed)
@@ -343,7 +343,7 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyBuildingExpansionCandidate(string actor, InhabitantState state, string buildingId,
+    private void ApplyBuildingExpansionCandidate(string actor, AgentState state, string buildingId,
         OwnerQueuedInstruction? orderInstruction = null)
     {
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == buildingId);
@@ -442,7 +442,7 @@ public sealed partial class WorldRuntime
              ExpansionOrderBuilding(orderInstruction)?.InstanceId != buildingId))
             return ProductionStartResult.Rejected(buildingId, "The expansion order no longer matches this building.");
         if (!MayExpandBuilding(actor, building, out var failure)) return ProductionStartResult.Rejected(buildingId, failure);
-        if (inhabitants[actor].Position != building.Position)
+        if (agents[actor].Position != building.Position)
             return ProductionStartResult.Rejected(buildingId, "The worker must be at the building before expansion starts.");
         var shape = ExpansionShapeForOrder(building, orderInstruction);
         if (shape.Footprint is null)

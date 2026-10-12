@@ -25,8 +25,8 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("handcart-loop-audit", _ => new CartChooser("safe_idle"));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
                 HouseholdBuildingKinds.KindOf(definition) == "house"));
@@ -43,10 +43,10 @@ public sealed class HandcartRuntimeTests
             Council = new(actor, policy, state.Society.Society.WorldTick),
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
-                HungerBasisPoints = person.InhabitantId == actor ? fullness : 6_000,
+                Position = person.AgentId == actor ? house.Position : person.Position,
+                HungerBasisPoints = person.AgentId == actor ? fullness : 6_000,
                 Survival = new(),
                 LastDecisionContext = null,
                 Project = null,
@@ -93,8 +93,8 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("handcart-loop-audit", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var position = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var position = state.Agents[0].Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "audit-cart", "handcart", actor, 1,
             groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "audit-wood", "wood", actor, 4,
@@ -102,7 +102,7 @@ public sealed class HandcartRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_500,
                 LastDecisionContext = null,
@@ -146,7 +146,7 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("normal-visible-handcart", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var household = smith.HouseholdId!;
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "handcart");
         var inventory = state.Society.Society.Inventory;
@@ -199,7 +199,7 @@ public sealed class HandcartRuntimeTests
         var destination = world.WorldSimulation.Buildings.Where(building => building.Position != smith.Position)
             .OrderByDescending(building => state.Map.FootDistance(smith.Position, building.Position)).First();
         chooser.Preferred = "pull_handcart:" + destination.InstanceId;
-        await Until(world, () => world.Inhabitants.Single(person => person.InhabitantId == actor).Position != smith.Position);
+        await Until(world, () => world.Agents.Single(person => person.AgentId == actor).Position != smith.Position);
         var journey = world.ExportState();
         var before = WorldRuntimeCodec.Encode(journey);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before),
@@ -212,7 +212,7 @@ public sealed class HandcartRuntimeTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
-        await Until(world, () => world.Inhabitants.Single(person => person.InhabitantId == actor).Position == destination.Position, 140);
+        await Until(world, () => world.Agents.Single(person => person.AgentId == actor).Position == destination.Position, 140);
         Assert.Equal(new InventoryGroundPosition(destination.Position.X, destination.Position.Y), world.Society.Inventory.GetLot(cart.Id).GroundPosition);
         Assert.Equal(32, world.Society.Inventory.GetLot("cart-load").Quantity);
         Assert.True(world.Society.Inventory.GetLot(cart.Id).ConditionBasisPoints < 10_000);
@@ -230,8 +230,8 @@ public sealed class HandcartRuntimeTests
     {
         using var setup = NormalPathWorld.CreateGenerated("broken-visible-handcart", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var position = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var position = state.Agents[0].Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "broken-cart", "handcart", actor, 1,
             conditionBasisPoints: 0, groundPosition: new(position.X, position.Y));
         // Add the contents with the broken condition only after the group is created.
@@ -241,7 +241,7 @@ public sealed class HandcartRuntimeTests
         inventory = InventoryAuthority.AddLot(inventory, "repair-wood", "wood", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "repair-fittings", "iron_fittings", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "repair-rope", "rope", actor, 1);
-        var otherHousehold = state.Society.Society.Households.First(household => household.Id != state.Society.Society.GetInhabitant(actor).HouseholdId).Id;
+        var otherHousehold = state.Society.Society.Households.First(household => household.Id != state.Society.Society.GetAgent(actor).HouseholdId).Id;
         inventory = InventoryAuthority.AddLot(inventory, "unrelated", "wood", otherHousehold, 20,
             groundPosition: new(position.X, position.Y));
         state = AtPosition(state, actor, position, inventory);
@@ -259,7 +259,7 @@ public sealed class HandcartRuntimeTests
         await Until(world, () => world.Society.Inventory.GetLot("broken-cart").ConditionBasisPoints == 10_000);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id is "repair-wood" or "repair-fittings" or "repair-rope");
         Assert.Equal(7, world.Society.Inventory.GetLot("cart-food").Quantity);
-        Assert.Equal(position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(position, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Empty(world.ExportState().HandcartHitches!);
     }
 
@@ -269,16 +269,16 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("blocked-visible-handcart", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var owner = state.Society.Society.Inhabitants.First(person => person.HouseholdId != smith.HouseholdId).Id;
-        var obstacle = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
-        var obstacleOriginal = state.Inhabitants.Single(person => person.InhabitantId == obstacle).Position;
-        var position = state.Inhabitants.Single(person => person.InhabitantId == owner).Position;
+        var owner = state.Society.Society.Agents.First(person => person.HouseholdId != smith.HouseholdId).Id;
+        var obstacle = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var obstacleOriginal = state.Agents.Single(person => person.AgentId == obstacle).Position;
+        var position = state.Agents.Single(person => person.AgentId == owner).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "journey-cart", "handcart", owner, 1,
             groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "journey-cargo", "wood", owner, 32, containerLotId: "journey-cart");
         state = AtPosition(state, owner, position, inventory) with
         {
-            Inhabitants = AtPosition(state, owner, position, inventory).Inhabitants.Select(person => person.InhabitantId == obstacle
+            Agents = AtPosition(state, owner, position, inventory).Agents.Select(person => person.AgentId == obstacle
                 ? person with { Position = smith.Position } : person).ToArray(),
             HandcartHitches = [new("journey-cart", owner)],
         };
@@ -302,7 +302,7 @@ public sealed class HandcartRuntimeTests
                     },
                 },
             },
-            Inhabitants = released.Inhabitants.Select(person => person.InhabitantId == obstacle
+            Agents = released.Agents.Select(person => person.AgentId == obstacle
                 ? person with { Position = obstacleOriginal }
                 : person).ToArray(),
         };
@@ -310,7 +310,7 @@ public sealed class HandcartRuntimeTests
             id => new CartChooser(id == owner ? "pull_handcart:" + smith.InstanceId : "safe_idle"));
         await Until(breaking, () => breaking.Society.Inventory.GetLot("journey-cart").ConditionBasisPoints == 0);
         var broken = breaking.Society.Inventory.GetLot("journey-cart");
-        var ownerPosition = breaking.Inhabitants.Single(person => person.InhabitantId == owner).Position;
+        var ownerPosition = breaking.Agents.Single(person => person.AgentId == owner).Position;
         Assert.NotEqual(position, ownerPosition);
         Assert.Equal(new InventoryGroundPosition(ownerPosition.X, ownerPosition.Y), broken.GroundPosition);
         Assert.Empty(breaking.ExportState().HandcartHitches!);
@@ -326,12 +326,12 @@ public sealed class HandcartRuntimeTests
     {
         using var setup = new WorldRuntime("inherited-visible-handcart", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
-        var owner = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(owner).HouseholdId;
-        var heir = state.Society.Society.Inhabitants.First(person => person.Id != owner && person.HouseholdId == household).Id;
+        var owner = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(owner).HouseholdId;
+        var heir = state.Society.Society.Agents.First(person => person.Id != owner && person.HouseholdId == household).Id;
         // Another household member still cannot claim the heir's personal cart.
-        var outsider = state.Society.Society.Inhabitants.First(person => person.Id != owner && person.Id != heir).Id;
-        var position = state.Inhabitants.Single(person => person.InhabitantId == owner).Position;
+        var outsider = state.Society.Society.Agents.First(person => person.Id != owner && person.Id != heir).Id;
+        var position = state.Agents.Single(person => person.AgentId == owner).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "estate-cart", "handcart", owner, 1,
             conditionBasisPoints: 1, groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "estate-cargo", "stone", owner, 32, containerLotId: "estate-cart");
@@ -357,7 +357,7 @@ public sealed class HandcartRuntimeTests
                         BaseNaturalMortalityBasisPoints = 0,
                         NaturalMortalitySlopeBasisPoints = 0,
                     },
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     {
                         BirthTick = person.Id == owner ? -999 : -12,
                         BirthLifeTick = null,
@@ -372,13 +372,13 @@ public sealed class HandcartRuntimeTests
                 Config = state.WorldSystems.Config with
                 { TicksPerDay = 1, CalendarOffsetTicks = 0, DaysPerYear = 4, SpringDays = 1, SummerDays = 1, AutumnDays = 1, WinterDays = 1 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { HungerBasisPoints = 10_000, Project = null, LastDecisionContext = null }).ToArray(),
             HandcartHitches = [new("estate-cart", owner)],
         };
         using var dying = WorldRuntime.Restore(state, _ => new CartChooser("safe_idle"));
         Assert.True((await dying.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(SocietyInhabitantStatus.Dead, dying.Society.GetInhabitant(owner).Status);
+        Assert.Equal(SocietyAgentStatus.Dead, dying.Society.GetAgent(owner).Status);
         var estate = Assert.Single(dying.Society.Estates);
         Assert.Equal(estate.Id, dying.Society.Inventory.GetLot("estate-cart").OwnerId);
         Assert.Equal(estate.Id, dying.Society.Inventory.GetLot("estate-cargo").OwnerId);
@@ -405,7 +405,7 @@ public sealed class HandcartRuntimeTests
         Assert.Equal(new InventoryGroundPosition(position.X, position.Y), recovered.Society.Inventory.GetLot("estate-cart").GroundPosition);
         Assert.Equal(32, recovered.Society.Inventory.GetLot("estate-cargo").Quantity);
         await Until(recovered, () => recovered.Society.Inventory.GetLot("estate-cart").ConditionBasisPoints == 10_000);
-        Assert.Equal(position, recovered.Inhabitants.Single(person => person.InhabitantId == heir).Position);
+        Assert.Equal(position, recovered.Agents.Single(person => person.AgentId == heir).Position);
         Assert.DoesNotContain(recovered.Society.Inventory.Lots, lot => lot.Id is "heir-repair-wood" or "heir-repair-fittings" or "heir-repair-rope");
         Assert.DoesNotContain(outsiderChooser.Offered, id => id is "attach_handcart:estate-cart" or "repair_handcart:estate-cart" or "unload_handcart_ground:estate-cargo");
         chooser.Preferred = "unload_handcart_ground:estate-cargo";
@@ -427,13 +427,13 @@ public sealed class HandcartRuntimeTests
     {
         using var setup = new WorldRuntime("cart-condition-audit");
         var state = setup.ExportState();
-        var person = state.Inhabitants[0];
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart", "handcart", person.InhabitantId, 1,
+        var person = state.Agents[0];
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart", "handcart", person.AgentId, 1,
             groundPosition: new(person.Position.X, person.Position.Y), conditionBasisPoints: basisPoints);
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            HandcartHitches = attached ? [new("cart", person.InhabitantId)] : [],
+            HandcartHitches = attached ? [new("cart", person.AgentId)] : [],
         };
         using var world = WorldRuntime.Restore(state);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
@@ -450,28 +450,28 @@ public sealed class HandcartRuntimeTests
     {
         using var setup = new WorldRuntime("cart-observation");
         var state = setup.ExportState();
-        var person = state.Inhabitants[0];
-        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart", "handcart", person.InhabitantId, 1,
+        var person = state.Agents[0];
+        var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart", "handcart", person.AgentId, 1,
             groundPosition: new(person.Position.X, person.Position.Y));
-        inventory = InventoryAuthority.AddLot(inventory, "cargo", "wood", person.InhabitantId, 16, containerLotId: "cart");
+        inventory = InventoryAuthority.AddLot(inventory, "cargo", "wood", person.AgentId, 16, containerLotId: "cart");
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            HandcartHitches = [new("cart", person.InhabitantId)],
+            HandcartHitches = [new("cart", person.AgentId)],
         };
         using var world = WorldRuntime.Restore(state);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var cart = Assert.Single(snapshot.Handcarts);
-        Assert.Equal((16, 32, 100, person.InhabitantId), (cart.Cargo.Sum(item => item.Quantity), cart.Capacity, cart.ConditionPercent, cart.PullerId));
-        Assert.DoesNotContain(snapshot.Inhabitants.Single(item => item.Id == person.InhabitantId).Inventory, item => item.Kind == "handcart" || item.Kind == "wood");
+        Assert.Equal((16, 32, 100, person.AgentId), (cart.Cargo.Sum(item => item.Quantity), cart.Capacity, cart.ConditionPercent, cart.PullerId));
+        Assert.DoesNotContain(snapshot.Agents.Single(item => item.Id == person.AgentId).Inventory, item => item.Kind == "handcart" || item.Kind == "wood");
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         var text = GameUiText.HandcartDescription(Assert.Single(client.Handcarts));
         Assert.Contains("Pulled by", text, StringComparison.Ordinal);
         Assert.Contains("Cargo: 16/32", text, StringComparison.Ordinal);
         Assert.Contains(cart.OwnerName, text, StringComparison.Ordinal);
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { HandcartHitches = [new("cart", person.InhabitantId), new("cart", state.Inhabitants[1].InhabitantId)] }));
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { HandcartHitches = [new("cart", state.Inhabitants[1].InhabitantId)] }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { HandcartHitches = [new("cart", person.AgentId), new("cart", state.Agents[1].AgentId)] }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { HandcartHitches = [new("cart", state.Agents[1].AgentId)] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(state with { HandcartHitches = null }));
     }
 
@@ -481,7 +481,7 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("parked-cart-not-collected", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var parkedAt = new InventoryGroundPosition(smith.Position.X, smith.Position.Y);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "parked-cart", "handcart", actor, 1,
             groundPosition: parkedAt);
@@ -502,7 +502,7 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("leaving-cart-builder", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "handcart");
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "leaver-wood", "wood", actor, 4);
@@ -544,7 +544,7 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("cart-materials-kept", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "cart-wood", "wood", actor, 4 + extraWood);
         inventory = InventoryAuthority.AddLot(inventory, "cart-rope", "rope", actor, 1);
@@ -578,7 +578,7 @@ public sealed class HandcartRuntimeTests
         using var setup = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new CartChooser("safe_idle"));
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var site = new InventoryGroundPosition(smith.Position.X, smith.Position.Y);
         Assert.DoesNotContain(state.Society.Society.Inventory.Lots, lot => lot.ItemKind == "iron_fittings");
         var inventory = state.Society.Society.Inventory;
@@ -605,7 +605,7 @@ public sealed class HandcartRuntimeTests
         GridPoint position, InventoryCheckpoint inventory) => state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = position, HungerBasisPoints = 10_000, LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }
                 : person).ToArray(),
         };
@@ -632,7 +632,7 @@ public sealed class HandcartRuntimeTests
             Offered.UnionWith(candidates.Select(item => item.Id));
             var selected = candidates.FirstOrDefault(item => item.Id == Preferred) ??
                 candidates.FirstOrDefault(item => item.Id == "continue_project") ?? candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1,
                 candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d)));

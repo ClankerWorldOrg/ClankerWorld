@@ -21,7 +21,7 @@ public sealed class LandHearingEvidenceUnicodeTests
         var text = new string('a', prefix) + "😀tail";
         var statement = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == Source
+            Choose = observation => observation.AgentId == Source
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_statement|", StringComparison.Ordinal)) : null,
             LandPayload = (_, candidate) => candidate.Id.Contains("|hearing_statement|", StringComparison.Ordinal) ? new(Statement: text) : null,
         };
@@ -35,7 +35,7 @@ public sealed class LandHearingEvidenceUnicodeTests
         Assert.Equal("statement", evidence.Acquisition);
         var inspect = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == Judge
+            Choose = observation => observation.AgentId == Judge
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal)) : null,
         };
         using var inspected = NonviolentRuntimeFixture.Create(NonviolentRuntimeFixture.Strict(world.ExportState()), inspect);
@@ -45,9 +45,9 @@ public sealed class LandHearingEvidenceUnicodeTests
         var idle = new NonviolentTestProvider();
         using var captured = NonviolentRuntimeFixture.Create(NonviolentRuntimeFixture.Strict(inspected.ExportState()), idle);
         NonviolentRuntimeFixture.Wake(captured, Judge, "unicode-ruling-context");
-        await NonviolentRuntimeFixture.UntilAsync(captured, () => idle.Observations.Any(observation => observation.InhabitantId == Judge &&
+        await NonviolentRuntimeFixture.UntilAsync(captured, () => idle.Observations.Any(observation => observation.AgentId == Judge &&
             observation.Candidates.Any(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal))), 6);
-        var candidate = idle.Observations.Where(observation => observation.InhabitantId == Judge)
+        var candidate = idle.Observations.Where(observation => observation.AgentId == Judge)
             .SelectMany(observation => observation.Candidates).First(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal));
         var marker = evidence.Id + "=allegation from " + Source + ": ";
         var start = candidate.Description.IndexOf(marker, StringComparison.Ordinal);
@@ -95,12 +95,12 @@ public sealed class LandHearingEvidenceUnicodeTests
             await NonviolentRuntimeFixture.UntilAsync(clock, () => clock.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge && office.Mandates == "land"), NonviolentRuntimeFixture.Day + 3);
             state = clock.ExportState();
         }
-        var household = state.Society.Society.GetInhabitant(Source).HouseholdId;
+        var household = state.Society.Society.GetAgent(Source).HouseholdId;
         var permission = state.HouseholdLandUseRights!.First(right => right.HouseholdId == household);
         state = state with
         {
             HouseholdLandUseRights = state.HouseholdLandUseRights!.Select(right => right.Id == permission.Id ? right with { AgreedEndTick = state.Society.Society.WorldTick + 1 } : right).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Position = state.Towns![0].OriginSite!.Value,
                 HungerBasisPoints = 10_000,
@@ -131,7 +131,7 @@ public sealed class LandHearingEvidenceUnicodeTests
             }
         var inspect = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == Judge
+            Choose = observation => observation.AgentId == Judge
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal)) : null,
         };
         using var prepared = NonviolentRuntimeFixture.Create(state with { Towns = [town with { Governance = council, LandHearings = hearings }] }, inspect);

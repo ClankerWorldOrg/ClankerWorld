@@ -68,8 +68,8 @@ public sealed partial class WorldRuntime : IDisposable
     private DeclarativeWorldContentState worldContent;
     private WorldContentSimulationState worldSimulation;
     private WorldAssetReservationLedger assetReservations;
-    private Dictionary<string, InhabitantState> inhabitants = new(StringComparer.Ordinal);
-    private Dictionary<string, DeceasedInhabitantState> deceasedInhabitants = new(StringComparer.Ordinal);
+    private Dictionary<string, AgentState> agents = new(StringComparer.Ordinal);
+    private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
     private WorldKnowledgeState knowledge = WorldKnowledgeState.Empty;
     private Dictionary<string, OwnerQueuedInstruction> instructionsByIdempotency =
@@ -228,7 +228,7 @@ public sealed partial class WorldRuntime : IDisposable
         // Out-of-season orchard trees start without fruit.
         SyncEcologyResourceStates();
 
-        AppendEvent("world_created", $"{this.worldSeed}:inhabitants:{inhabitants.Count}");
+        AppendEvent("world_created", $"{this.worldSeed}:agents:{agents.Count}");
         if (towns.Count > 0) AppendEvent("town_founding_started", TownBorderRules.FirstTownId);
         StartContinuityRule();
     }
@@ -307,8 +307,8 @@ public sealed partial class WorldRuntime : IDisposable
 
     public WorldKnowledgeState Knowledge => knowledge;
 
-    public IReadOnlyList<InhabitantState> Inhabitants => inhabitants.Values
-        .OrderBy(item => item.InhabitantId, StringComparer.Ordinal)
+    public IReadOnlyList<AgentState> Agents => agents.Values
+        .OrderBy(item => item.AgentId, StringComparer.Ordinal)
         .ToArray();
 
     public WorldRuntimeState ExportState()
@@ -395,15 +395,15 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.council = state.Council;
         runtime.continuity = state.Continuity!;
         RegionalWeatherRules.ValidateMap(runtime.worldSystems, runtime.map);
-        runtime.inhabitants.Clear();
-        foreach (var inhabitant in state.Inhabitants)
+        runtime.agents.Clear();
+        foreach (var agent in state.Agents)
         {
-            runtime.inhabitants.Add(inhabitant.InhabitantId, inhabitant);
+            runtime.agents.Add(agent.AgentId, agent);
         }
-        runtime.deceasedInhabitants.Clear();
-        foreach (var inhabitant in state.DeceasedInhabitants ?? [])
+        runtime.deceasedAgents.Clear();
+        foreach (var agent in state.DeceasedAgents ?? [])
         {
-            runtime.deceasedInhabitants.Add(inhabitant.InhabitantId, inhabitant);
+            runtime.deceasedAgents.Add(agent.AgentId, agent);
         }
 
         runtime.resources.Clear();
@@ -526,7 +526,7 @@ public sealed partial class WorldRuntime : IDisposable
         worldSeed,
         map,
         society.ExportState(),
-        inhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
+        agents.Values.OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray(),
         resources.OrderBy(item => item.Key, StringComparer.Ordinal)
             .Select(item => new ResourceStateEntry(item.Key, item.Value)).ToArray(),
         events.ToArray(),
@@ -539,7 +539,7 @@ public sealed partial class WorldRuntime : IDisposable
         worldContent,
         worldSimulation,
         assetReservations.ExportState(), eventHistoryFloor, historyArchiveHead, survivalState, council,
-        deceasedInhabitants.Count == 0 ? null : deceasedInhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
+        deceasedAgents.Count == 0 ? null : deceasedAgents.Values.OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray(),
         jevPolicyRevision == 0 && jevEnabled ? null : jevEnabled, jevPolicyRevision, founderSetup,
         geographyOptions, towns.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
         RoadTiles, Bridges, bridgeTraffic, fields.ToArray(),

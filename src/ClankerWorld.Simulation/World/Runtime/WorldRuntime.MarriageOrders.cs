@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
 
     private string? MarriageOrderBlocker(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AdultResident(actor)) return MarriageAdultBlocker;
         var target = instruction.Order!.TargetAgentId ?? CurrentMarriageOrderPartner(actor);
         if (target is null) return MarriagePartnerBlocker;
@@ -74,7 +74,7 @@ public sealed partial class WorldRuntime
 
     private string? RequestedConversationActivity(AgentConversation conversation, string speaker) =>
         conversation.Kind == AgentConversationKind.Ordinary && instructionsByIdempotency.Values.Any(instruction =>
-            instruction.TargetInhabitantId == speaker && instruction.Order is { Action: "propose_marriage" } order &&
+            instruction.TargetAgentId == speaker && instruction.Order is { Action: "propose_marriage" } order &&
             IsActiveOrder(order.Status) && order.TalkConversationId == conversation.Id && MarriageOrderBlocker(instruction) is null)
                 ? "propose_marriage" : null;
 
@@ -91,7 +91,7 @@ public sealed partial class WorldRuntime
     {
         var order = instruction.Order!;
         return (order.TargetAgentId is null ? order.TalkConversationId is null && order.CompletedUnits == 0 :
-                people.Contains(order.TargetAgentId) && order.TargetAgentId != instruction.TargetInhabitantId) &&
+                people.Contains(order.TargetAgentId) && order.TargetAgentId != instruction.TargetAgentId) &&
             order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
             order.ProgressUnit == "marriage_attempts" && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
             order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&

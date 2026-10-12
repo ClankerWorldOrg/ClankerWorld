@@ -25,7 +25,7 @@ public sealed class BrokenVesselProductionTests
     public async Task BreadUsesHealthyIngredientsWhileLeavingBrokenVesselFamiliesUntouched(string damaged, bool alternative)
     {
         var state = WorldRuntimeCodec.Decode(await Generated.Value);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with
@@ -58,9 +58,9 @@ public sealed class BrokenVesselProductionTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
+                Position = person.AgentId == actor ? house.Position : person.Position,
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
@@ -111,7 +111,7 @@ public sealed class BrokenVesselProductionTests
         {
             request.Validate();
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "produce_item")?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

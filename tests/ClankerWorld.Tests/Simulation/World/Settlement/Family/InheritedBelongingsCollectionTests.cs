@@ -16,12 +16,12 @@ public sealed class InheritedBelongingsCollectionTests
             _ => new ActionCoverageRecorder(chooseIdle: true));
         var state = generated.ExportState();
         var checkpoint = state.Society.Society;
-        var deceased = state.Inhabitants[0].InhabitantId;
-        var household = checkpoint.GetInhabitant(deceased).HouseholdId!;
-        var heir = checkpoint.Inhabitants.First(person => person.Id != deceased &&
+        var deceased = state.Agents[0].AgentId;
+        var household = checkpoint.GetAgent(deceased).HouseholdId!;
+        var heir = checkpoint.Agents.First(person => person.Id != deceased &&
             (person.HouseholdId == household) == sameHousehold).Id;
-        var heirHousehold = checkpoint.GetInhabitant(heir).HouseholdId;
-        var heirName = checkpoint.GetInhabitant(heir).Name;
+        var heirHousehold = checkpoint.GetAgent(heir).HouseholdId;
+        var heirName = checkpoint.GetAgent(heir).Name;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         Assert.Equal(household, house.HouseholdId);
         var inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "bequest-wood", "wood", deceased, 4,
@@ -38,7 +38,7 @@ public sealed class InheritedBelongingsCollectionTests
                 Society = checkpoint with
                 {
                     Inventory = inventory,
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == deceased ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == deceased ? person with
                     {
                         BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -47,7 +47,7 @@ public sealed class InheritedBelongingsCollectionTests
                     } : person).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { HungerBasisPoints = 10_000, Project = null, LastDecisionContext = null }).ToArray(),
         };
         var will = new PostDeathWillTests.WillProvider(CognitionWillContext.HeirsCandidateId,
@@ -87,21 +87,21 @@ public sealed class InheritedBelongingsCollectionTests
         var pickup = settling.ExportState();
         inventory = InventoryAuthority.Reserve(pickup.Society.Society.Inventory, "heir-commitment", heir,
             wood.Id, 2, "work", long.MaxValue);
-        var equipment = pickup.Inhabitants.Single(person => person.InhabitantId == heir).Equipment;
+        var equipment = pickup.Agents.Single(person => person.AgentId == heir).Equipment;
         var room = PersonalEquipmentRules.FreeCapacity(inventory, heir, equipment);
         inventory = InventoryAuthority.AddLot(inventory, "heir-carried-ballast", "stone", heir, room - 1);
         pickup = pickup with
         {
             Society = pickup.Society with { Society = pickup.Society.Society with { Inventory = inventory } },
-            Inhabitants = pickup.Inhabitants.Select(person => person.InhabitantId == heir ? person with
+            Agents = pickup.Agents.Select(person => person.AgentId == heir ? person with
             { Position = house.Position, HungerBasisPoints = 10_000, Project = null, LastDecisionContext = null }
                 : person).ToArray(),
         };
         var entrance = pickup.Map.FootNeighbors(house.Position).First(point => pickup.Map.IsPassable(point) &&
-            pickup.Inhabitants.All(person => person.Position != point));
+            pickup.Agents.All(person => person.Position != point));
         pickup = pickup with
         {
-            Inhabitants = pickup.Inhabitants.Select(person => person.InhabitantId == heir
+            Agents = pickup.Agents.Select(person => person.AgentId == heir
                 ? person with { Position = entrance } : person).ToArray(),
         };
         var chooser = new CollectionChooser("household_collect:" + wood.Id);
@@ -119,8 +119,8 @@ public sealed class InheritedBelongingsCollectionTests
         Assert.Equal(1, collecting.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" &&
             PersonalEquipmentRules.IsCarried(lot, heir)).Sum(lot => lot.Quantity));
         Assert.Equal(InventoryReservationState.Reserved, collecting.Society.Inventory.GetReservation("heir-commitment").State);
-        Assert.Equal(heirHousehold, collecting.Society.GetInhabitant(heir).HouseholdId);
-        Assert.Empty(collecting.Inhabitants.Single(person => person.InhabitantId == heir).Departures ?? []);
+        Assert.Equal(heirHousehold, collecting.Society.GetAgent(heir).HouseholdId);
+        Assert.Empty(collecting.Agents.Single(person => person.AgentId == heir).Departures ?? []);
         Assert.DoesNotContain("household_collect:private-household-clay", chooser.Offered);
         Assert.Equal((household, house.InstanceId, 2),
             (collecting.Society.Inventory.GetLot("private-household-clay").OwnerId,
@@ -140,7 +140,7 @@ public sealed class InheritedBelongingsCollectionTests
                         "heir-carried-ballast", heir, room - 1, groundPosition: new(house.Position.X, house.Position.Y)),
                 },
             },
-            Inhabitants = groundPickup.Inhabitants.Select(person => person.InhabitantId == heir ? person with
+            Agents = groundPickup.Agents.Select(person => person.AgentId == heir ? person with
             { Position = new(ground.X, ground.Y), LastDecisionContext = null } : person).ToArray(),
         };
         chooser = new CollectionChooser("household_collect:" + stone.Id);
@@ -168,7 +168,7 @@ public sealed class InheritedBelongingsCollectionTests
         {
             foreach (var candidate in request.Observation.Candidates) Offered.Add(candidate.Id);
             var selected = request.Observation.Candidates.Any(candidate => candidate.Id == wanted) ? wanted : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

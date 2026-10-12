@@ -14,7 +14,7 @@ public sealed class EquipmentRepairSelectionTests
     {
         var (state, shopId) = TailorTestWorld.Create("repair-shadowed-by-basket", 0);
         var shop = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == shopId);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == shop.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == shop.HouseholdId).Id;
         var inventory = state.Society.Society.Inventory;
         foreach (var lot in inventory.Lots.Where(lot => lot.ItemKind == "rope").ToArray())
         {
@@ -32,7 +32,7 @@ public sealed class EquipmentRepairSelectionTests
         }
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = shop.Position,
                 HungerBasisPoints = 10_000,
@@ -47,15 +47,15 @@ public sealed class EquipmentRepairSelectionTests
         IDecisionProvider Provider(string id) => new ChooseRepair(id == actor);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Provider);
         world.Validate();
-        for (var tick = 0; tick < 30 && world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.Repair is null; tick++)
+        for (var tick = 0; tick < 30 && world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair is null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var work = Assert.IsType<EquipmentRepairWork>(world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.Repair);
+        var work = Assert.IsType<EquipmentRepairWork>(world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair);
         Assert.Equal(target, work.LotId);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(2, world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.Repair!.WorkDone);
+        Assert.Equal(2, world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!.WorkDone);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), Provider);
-        for (var tick = 0; tick < 10 && restored.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.Repair is not null; tick++)
+        for (var tick = 0; tick < 10 && restored.Agents.Single(person => person.AgentId == actor).Equipment!.Repair is not null; tick++)
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.InRange(restored.Society.Inventory.GetLot(target).ConditionBasisPoints, 8_900, 9_000);
         if (target == "selection-coat")
@@ -72,7 +72,7 @@ public sealed class EquipmentRepairSelectionTests
             Assert.Equal(1, restored.Society.Inventory.GetLot("selection-cloth").Quantity);
             Assert.DoesNotContain(restored.Society.Inventory.Lots, lot => lot.Id is "selection-fiber" or "selection-rope");
         }
-        var equipment = restored.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!;
+        var equipment = restored.Agents.Single(person => person.AgentId == actor).Equipment!;
         Assert.Equal("selection-coat", equipment.ClothingLotId);
         Assert.Equal("selection-basket", equipment.CarryAidLotId);
         Assert.All(work.MaterialReservationIds, id => Assert.Equal(InventoryReservationState.Completed, restored.Society.Inventory.GetReservation(id).State));
@@ -87,7 +87,7 @@ public sealed class EquipmentRepairSelectionTests
         {
             var observation = request.Observation;
             var selected = repair && observation.Candidates.Any(candidate => candidate.Id == "repair_equipment") ? "repair_equipment" : "safe_idle";
-            return new(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch,
+            return new(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected, 1,
                 new Dictionary<string, double> { [selected] = 1 }));
         }

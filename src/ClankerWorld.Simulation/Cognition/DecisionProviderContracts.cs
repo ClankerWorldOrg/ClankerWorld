@@ -261,7 +261,7 @@ public sealed record CognitionSelfContext(
 public sealed record CognitionObserverGuidance(
     string InstructionId,
     string IssuerId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     long SubmittedTick,
@@ -280,7 +280,7 @@ public sealed record CognitionObserverReply(string InstructionId, string Text);
 /// </summary>
 public sealed record CognitionObserverGuidanceResult(
     string WorldId,
-    string InhabitantId,
+    string AgentId,
     string RequestId,
     long RunEpoch,
     long DecisionGeneration,
@@ -292,8 +292,8 @@ public sealed record CognitionObserverGuidanceResult(
 /// Compact, provider-neutral state supplied to a decision provider. It is an
 /// observation, not a mutable world object or an omniscient world dump.
 /// </summary>
-public sealed record InhabitantObservation(
-    string InhabitantId,
+public sealed record AgentObservation(
+    string AgentId,
     long WorldTick,
     long RunEpoch,
     long DecisionGeneration,
@@ -342,7 +342,7 @@ public sealed record InhabitantObservation(
 
     public void Validate()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(InhabitantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(AgentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(ObservationDigest);
         if (WorldTick < 0 || RunEpoch < 0 || DecisionGeneration < 0)
         {
@@ -367,7 +367,7 @@ public sealed record InhabitantObservation(
             ArgumentNullException.ThrowIfNull(message);
             if (string.IsNullOrWhiteSpace(message.InstructionId) || message.InstructionId.Length > DerivedId.MaximumLength ||
                 string.IsNullOrWhiteSpace(message.IssuerId) || message.IssuerId.Length > DerivedId.MaximumLength ||
-                message.TargetInhabitantId != InhabitantId ||
+                message.TargetAgentId != AgentId ||
                 message.Kind is not ("suggestive" or "must_do") ||
                 string.IsNullOrWhiteSpace(message.Text) || message.Text.Length > MaximumObserverGuidanceTextLength ||
                 message.Text.Any(char.IsControl) ||
@@ -434,7 +434,7 @@ public sealed record InhabitantObservation(
             throw new ArgumentOutOfRangeException(nameof(HungerBasisPoints));
         }
 
-        if (Self is { } self && (self.OwnerId != InhabitantId ||
+        if (Self is { } self && (self.OwnerId != AgentId ||
             string.IsNullOrWhiteSpace(self.Name) || self.Name.Length > 128 ||
             string.IsNullOrWhiteSpace(self.LifeStage) || self.LifeStage.Length > 32 ||
             self.Personality is null || self.Personality.Length > 256 ||
@@ -460,11 +460,11 @@ public sealed record InhabitantObservation(
              surnames.Distinct(StringComparer.OrdinalIgnoreCase).Count() != surnames.Count))
             throw new ArgumentException("Child naming context must contain at most two bounded parental surnames.", nameof(Self));
 
-        // Parent references retain authoritative inhabitant IDs, including longer native-born IDs.
+        // Parent references retain authoritative agent IDs, including longer native-born IDs.
         if (Self?.FamilyBackground is { } parents &&
             (!NeedsPersonality && !NeedsAspiration || parents.Count > 2 ||
              parents.Any(parent => parent is null || string.IsNullOrWhiteSpace(parent.ParentId) ||
-                 parent.ParentId == InhabitantId || parent.ParentId.Any(char.IsControl) ||
+                 parent.ParentId == AgentId || parent.ParentId.Any(char.IsControl) ||
                  string.IsNullOrWhiteSpace(parent.Name) || parent.Name.Length > 128 || parent.Name.Any(char.IsControl) ||
                  parent.Personality is not null && CognitionDecisionResponse.NormalizeIdentityText(parent.Personality) != parent.Personality ||
                  parent.Aspiration is not null && CognitionDecisionResponse.NormalizeIdentityText(parent.Aspiration) != parent.Aspiration) ||
@@ -494,7 +494,7 @@ public sealed record InhabitantObservation(
         foreach (var memory in RetrievedMemories ?? [])
         {
             ArgumentNullException.ThrowIfNull(memory);
-            if (!string.Equals(memory.OwnerId, InhabitantId, StringComparison.Ordinal) ||
+            if (!string.Equals(memory.OwnerId, AgentId, StringComparison.Ordinal) ||
                 string.IsNullOrWhiteSpace(memory.Id) || string.IsNullOrWhiteSpace(memory.SubjectId) ||
                 memory.Id.Length > DerivedId.MaximumLength || memory.SubjectId.Length > DerivedId.MaximumLength ||
                 string.IsNullOrWhiteSpace(memory.Summary) || memory.Summary.Length > 160 ||
@@ -513,7 +513,7 @@ public sealed record InhabitantObservation(
         var summaryChoices = new HashSet<string>(StringComparer.Ordinal);
         foreach (var option in MemorySummaryOptions ?? [])
         {
-            if (option is null || option.OwnerId != InhabitantId || option.Choice is not ("recent" or "earliest" or "varied") ||
+            if (option is null || option.OwnerId != AgentId || option.Choice is not ("recent" or "earliest" or "varied") ||
                 !summaryChoices.Add(option.Choice) || string.IsNullOrWhiteSpace(option.Text) || option.Text.Length > 160)
                 throw new ArgumentException("Private summary choices must be bounded and owned by the actor.");
             ValidateSummarySources(option.Sources, WorldTick, required: true);
@@ -525,7 +525,7 @@ public sealed record InhabitantObservation(
         foreach (var candidate in MemoryCompactionCandidates ?? [])
         {
             ArgumentNullException.ThrowIfNull(candidate);
-            if (!string.Equals(candidate.OwnerId, InhabitantId, StringComparison.Ordinal) ||
+            if (!string.Equals(candidate.OwnerId, AgentId, StringComparison.Ordinal) ||
                 string.IsNullOrWhiteSpace(candidate.Id) || candidate.Id.Length > DerivedId.MaximumLength ||
                 !compactionIds.Add($"{candidate.Kind}:{candidate.Id}") ||
                 !IsMemoryKind(candidate.Kind) || string.IsNullOrWhiteSpace(candidate.SubjectId) ||
@@ -580,7 +580,7 @@ public sealed record InhabitantObservation(
 public sealed record CognitionDecisionRequest(
     string RequestId,
     long ProviderEpoch,
-    InhabitantObservation Observation)
+    AgentObservation Observation)
 {
     public void Validate()
     {
@@ -604,7 +604,7 @@ public sealed record CognitionLandTile(int X, int Y);
 
 public sealed record CognitionDecisionResponse(
     string RequestId,
-    string InhabitantId,
+    string AgentId,
     DecisionProviderKind Provider,
     long ProviderEpoch,
     long RunEpoch,
@@ -665,7 +665,7 @@ public sealed record CognitionDecisionResponse(
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(RequestId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(InhabitantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(AgentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(ObservationDigest);
         ArgumentException.ThrowIfNullOrWhiteSpace(SelectedCandidateId);
         if (ProviderEpoch < 0 || RunEpoch < 0 || DecisionGeneration < 0 ||
@@ -702,7 +702,7 @@ public sealed record CognitionDecisionResponse(
         if (CivicProposal is not null && NormalizeIdentityText(CivicProposal) != CivicProposal ||
             CivicBallot is { Count: > 3 } || CivicBallot?.Any(id => string.IsNullOrWhiteSpace(id) || id.Any(char.IsControl)) == true)
             throw new ArgumentOutOfRangeException(nameof(CivicProposal));
-        if (ObserverReplies is { Count: > InhabitantObservation.MaximumObserverGuidanceCount })
+        if (ObserverReplies is { Count: > AgentObservation.MaximumObserverGuidanceCount })
             throw new ArgumentOutOfRangeException(nameof(ObserverReplies));
         if (CivicLandTiles is { Count: 0 or > MaximumCivicLandTiles } || CivicLandTiles?.Any(tile => tile is null) == true)
             throw new ArgumentOutOfRangeException(nameof(CivicLandTiles));
@@ -776,7 +776,7 @@ public interface IDecisionProvider
 
     long ProviderEpoch { get; }
 
-    DecisionProviderKind KindFor(InhabitantObservation observation) => Kind;
+    DecisionProviderKind KindFor(AgentObservation observation) => Kind;
 
     ValueTask<CognitionDecisionResponse> DecideAsync(
         CognitionDecisionRequest request,
@@ -814,7 +814,7 @@ public sealed class DeterministicDecisionProvider : IDecisionProvider
 
         return ValueTask.FromResult(new CognitionDecisionResponse(
             request.RequestId,
-            request.Observation.InhabitantId,
+            request.Observation.AgentId,
             Kind,
             ProviderEpoch,
             request.Observation.RunEpoch,
@@ -989,7 +989,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
 
             return new CognitionDecisionResponse(
                 request.RequestId,
-                request.Observation.InhabitantId,
+                request.Observation.AgentId,
                 DecisionProviderKind.Jev,
                 request.ProviderEpoch,
                 request.Observation.RunEpoch,
@@ -1012,7 +1012,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
         }
     }
 
-    private static string? ReadMemorySummaryChoice(JsonElement answers, InhabitantObservation observation)
+    private static string? ReadMemorySummaryChoice(JsonElement answers, AgentObservation observation)
     {
         if (!answers.TryGetProperty("memory_summary", out var answer)) return null;
         if (observation.MemorySummaryOptions is not { Count: > 0 }) throw new InvalidDataException("Unrequested private summary.");
@@ -1026,7 +1026,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
 
     private static List<CognitionMemoryCompactionScore>? ReadMemoryCompactionScores(
         JsonElement answers,
-        InhabitantObservation observation)
+        AgentObservation observation)
     {
         var candidates = observation.MemoryCompactionCandidates;
         if (candidates is null || candidates.Count == 0) return null;
@@ -1058,11 +1058,11 @@ public sealed class JevDecisionProvider : IDecisionProvider
 
     private static string MemoryQuestionId(int index) => $"memory_salience_{index:D2}";
 
-    internal static object BuildState(InhabitantObservation observation, ModelNeedFormat needFormat)
+    internal static object BuildState(AgentObservation observation, ModelNeedFormat needFormat)
     {
         var state = new
         {
-            agent_id = observation.InhabitantId,
+            agent_id = observation.AgentId,
             hunger_basis_points = observation.HungerBasisPoints,
             warmth_basis_points = observation.Self?.WarmthBasisPoints,
             illness_basis_points = observation.Self?.IllnessBasisPoints,
@@ -1103,7 +1103,7 @@ public sealed class JevDecisionProvider : IDecisionProvider
         return needFormat == ModelNeedFormat.Words ? DescribeNeedsInWords(state, observation) : state;
     }
 
-    private static JsonObject DescribeNeedsInWords(object state, InhabitantObservation observation)
+    private static JsonObject DescribeNeedsInWords(object state, AgentObservation observation)
     {
         var described = JsonSerializer.SerializeToNode(state, JsonOptions)!.AsObject();
         ModelNeedWords.ReplaceNumber(described, "hunger_basis_points", "fullness",
@@ -1280,7 +1280,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                         "chosen_personality and chosen_aspiration respectively, in your own words, " +
                         "each at most 256 characters with no control characters. This is a one-time choice. " +
                         (request.Observation.NeedsName
-                            ? $"When naming this agent, prefer a given name starting with {NameInitial(request.Observation.InhabitantId)}; use a natural full name. "
+                            ? $"When naming this agent, prefer a given name starting with {NameInitial(request.Observation.AgentId)}; use a natural full name. "
                             : string.Empty) +
                         "Retrieved memories belong only to this actor. They are remembered experiences or private beliefs, " +
                         "not authoritative current facts; preserve any provenance and confidence exactly as labels, and do not " +
@@ -1294,7 +1294,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                         "This is dialogue-like fiction, not an explanation of your reasoning. Do not include reasoning.",
                     Input: SerializeInput(new
                     {
-                        agent_id = request.Observation.InhabitantId,
+                        agent_id = request.Observation.AgentId,
                         world_id = request.Observation.WorldId,
                         hunger_basis_points = request.Observation.HungerBasisPoints,
                         needs_name = request.Observation.NeedsName,
@@ -1444,7 +1444,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
                     "This is dialogue-like fiction, not an explanation of your reasoning. Do not include reasoning.",
                 Input: JsonSerializer.Serialize(new
                 {
-                    agent_id = request.Observation.InhabitantId,
+                    agent_id = request.Observation.AgentId,
                     self = request.Observation.Self is { } self ? new
                     {
                         name = self.Name,
@@ -1623,7 +1623,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
             if (answerRoot.TryGetProperty("observer_replies", out var observerRepliesProperty))
             {
                 if (observerRepliesProperty.ValueKind != JsonValueKind.Array ||
-                    observerRepliesProperty.GetArrayLength() > InhabitantObservation.MaximumObserverGuidanceCount)
+                    observerRepliesProperty.GetArrayLength() > AgentObservation.MaximumObserverGuidanceCount)
                     throw new InvalidDataException("The OpenAI-compatible provider returned invalid observer replies.");
                 observerReplies = observerRepliesProperty.EnumerateArray().Select(reply =>
                 {
@@ -1647,7 +1647,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
             var civicBallot = ParseCivicBallot(answerRoot);
             return new CognitionDecisionResponse(
                 request.RequestId,
-                request.Observation.InhabitantId,
+                request.Observation.AgentId,
                 DecisionProviderKind.LargeLanguageModel,
                 request.ProviderEpoch,
                 request.Observation.RunEpoch,
@@ -1715,7 +1715,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
         return ballot.EnumerateArray().Select(choice => choice.GetString()!).ToArray();
     }
 
-    private string SerializeInput(object input, InhabitantObservation observation)
+    private string SerializeInput(object input, AgentObservation observation)
     {
         if (needFormat != ModelNeedFormat.Words) return JsonSerializer.Serialize(input, JsonOptions);
         var described = JsonSerializer.SerializeToNode(input, JsonOptions)!.AsObject();

@@ -39,7 +39,7 @@ public sealed class TownHeirWillTests
         society = society with
         {
             Inventory = inventory,
-            Inhabitants = society.Inhabitants.Select(person => person.Id == deceasedId ? person with
+            Agents = society.Agents.Select(person => person.Id == deceasedId ? person with
             {
                 BirthTick = society.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -50,14 +50,14 @@ public sealed class TownHeirWillTests
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == deceasedId
+            Agents = state.Agents.Select(person => person.AgentId == deceasedId
                 ? person with { Equipment = null } : person).ToArray(),
         }, Provider);
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
         Assert.Equal(deceasedId, estate.DeceasedId);
-        Assert.Equal(TownBorderRules.FirstTownId, Assert.Single(world.ExportState().DeceasedInhabitants!).TownId);
+        Assert.Equal(TownBorderRules.FirstTownId, Assert.Single(world.ExportState().DeceasedAgents!).TownId);
         for (var attempt = 0; attempt < 40 && world.Society.GetEstate(estate.Id).WillStatus is null or "pending"; attempt++)
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -80,7 +80,7 @@ public sealed class TownHeirWillTests
             Assert.Null(RetiredWording.Find(prompt));
             Assert.DoesNotContain("will-wood", prompt, StringComparison.Ordinal);
         }
-        var profile = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(item => item.Id == deceasedId).FinalWill!;
+        var profile = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(item => item.Id == deceasedId).FinalWill!;
         Assert.Equal(expectedWords, profile.FinalWords);
         var town = profile.Heirs[0];
         Assert.Equal(("First Town", true), (town.Name, town.IsTown));
@@ -115,7 +115,7 @@ public sealed class TownHeirWillTests
             memory =>
             {
                 Assert.Equal("private", memory.Visibility);
-                Assert.Equal($"{settled.GetInhabitant(deceasedId).Name}'s final words were: '{expectedWords}'", memory.Summary);
+                Assert.Equal($"{settled.GetAgent(deceasedId).Name}'s final words were: '{expectedWords}'", memory.Summary);
             });
         var bytes = WorldRuntimeCodec.Encode(settling.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -139,7 +139,7 @@ public sealed class TownHeirWillTests
         var society = state.Society.Society;
         var lastDay = Assert.IsType<SocietyDayLifecycle>(society.Config.DayLifecycle).MaximumDay;
         var birth = society.LifeTickAt(society.WorldTick + 1) - lastDay * society.Config.TicksPerLifecycleAge;
-        var position = state.Inhabitants.Single(person => person.InhabitantId == deceasedId).Position;
+        var position = state.Agents.Single(person => person.AgentId == deceasedId).Position;
         var site = new InventoryGroundPosition(position.X, position.Y);
         var inventory = society.Inventory with
         {
@@ -153,7 +153,7 @@ public sealed class TownHeirWillTests
         society = society with
         {
             Inventory = inventory,
-            Inhabitants = society.Inhabitants.Select(person => person.Id == deceasedId ? person with
+            Agents = society.Agents.Select(person => person.Id == deceasedId ? person with
             {
                 BirthTick = society.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -164,7 +164,7 @@ public sealed class TownHeirWillTests
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == deceasedId
+            Agents = state.Agents.Select(person => person.AgentId == deceasedId
                 ? person with { Equipment = null } : person).ToArray(),
         }, Provider);
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);

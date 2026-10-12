@@ -33,8 +33,8 @@ public sealed class MultiHeirWillAdmissionTests
         var firstBirth = Assert.Single(world.Society.Births, birth => birth.PrimaryCaregiverId == Actor);
         var nativeHeirId = Assert.Single(world.Society.Births, birth => birth.PrimaryCaregiverId == firstBirth.ChildId).ChildId;
         Assert.InRange(nativeHeirId.Length, 1, DerivedId.MaximumLength);
-        var heirId = externalLongHeir ? world.Society.Inhabitants.Single(person => person.Name == "External Heir").Id : nativeHeirId;
-        handler.ExpectedHeirName = world.Society.GetInhabitant(heirId).Name;
+        var heirId = externalLongHeir ? world.Society.Agents.Single(person => person.Name == "External Heir").Id : nativeHeirId;
+        handler.ExpectedHeirName = world.Society.GetAgent(heirId).Name;
         Assert.Equal(externalLongHeir, heirId.Length > CognitionWillContext.MaximumHeirKeyLength);
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -54,7 +54,7 @@ public sealed class MultiHeirWillAdmissionTests
             "will:heir:sha256:"), handler.HeirKey);
         Assert.InRange(handler.HeirKey!.Length, 1, CognitionWillContext.MaximumHeirKeyLength);
         if (rawKeyCollision)
-            Assert.Equal("will:heir:" + world.Society.Inhabitants.Single(person => person.Name == "Hash Twin").Id,
+            Assert.Equal("will:heir:" + world.Society.Agents.Single(person => person.Name == "Hash Twin").Id,
                 handler.CollisionKey);
 
         var saved = world.ExportState();
@@ -64,7 +64,7 @@ public sealed class MultiHeirWillAdmissionTests
         var restoredEstate = Assert.Single(restored.Society.Estates);
         Assert.Equal([heirId], restoredEstate.WillHeirIds);
         Assert.Equal(estate.WillBequests, restoredEstate.WillBequests);
-        Assert.Contains(restored.Society.Inhabitants, person => person.Id == heirId);
+        Assert.Contains(restored.Society.Agents, person => person.Id == heirId);
         restored.Validate();
     }
 
@@ -75,7 +75,7 @@ public sealed class MultiHeirWillAdmissionTests
         using var client = new HttpClient(handler);
         var provider = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key",
             new Uri("https://model.invalid/v1/chat/completions"), "synthetic-model", providerEpoch: 42);
-        var observation = new InhabitantObservation(Actor, 10, 2, 0, "will-memory-digest", 0,
+        var observation = new AgentObservation(Actor, 10, 2, 0, "will-memory-digest", 0,
             [new(CognitionWillContext.HouseholdCandidateId, "Leave your belongings to your household.")],
             RequiresPersonalProvider: true,
             RetrievedMemories: [new CognitionMemoryExcerpt("old-belief", Actor, "family",
@@ -246,9 +246,9 @@ public sealed class MultiHeirWillAdmissionTests
                     SocietyRelationshipType.Partnership, parentId, partnerId, checkpoint.WorldTick)).Checkpoint;
                 checkpoint = SocietyRules.AcceptRelationship(checkpoint, partnershipId, 1, partnerId).Checkpoint;
                 checkpoint = ChosenBirthNameTestFixture.NameParent(checkpoint, parentId);
-                var householdId = checkpoint.GetInhabitant(parentId).HouseholdId!;
+                var householdId = checkpoint.GetAgent(parentId).HouseholdId!;
                 var caregivers = new[] { parentId, partnerId }
-                    .Where(id => checkpoint.GetInhabitant(id).HouseholdId == householdId)
+                    .Where(id => checkpoint.GetAgent(id).HouseholdId == householdId)
                     .Order(StringComparer.Ordinal).ToArray();
                 var birth = SocietyRules.CommitBirth(checkpoint, new($"family:{parentId}:{checkpoint.WorldTick}", 1,
                     parentId, partnerId, householdId, caregivers, [parentId, partnerId],
@@ -261,7 +261,7 @@ public sealed class MultiHeirWillAdmissionTests
                 var adultBirth = checkpoint.LifeTickAt(checkpoint.WorldTick) - 20 * checkpoint.Config.TicksPerLifecycleAge;
                 checkpoint = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == childId ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == childId ? person with
                     {
                         BirthTick = adultBirth,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : adultBirth,
@@ -270,11 +270,11 @@ public sealed class MultiHeirWillAdmissionTests
                     } : person).ToArray(),
                 };
                 var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-                    state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point) &&
+                    state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point) &&
                     state.Map.FootNeighbors(point).Any(state.Map.IsPassable));
                 state = state with
                 {
-                    Inhabitants = state.Inhabitants.Append(new InhabitantState(childId, position,
+                    Agents = state.Agents.Append(new AgentState(childId, position,
                         9_500, 0, "careful", "keep the orchard going")).ToArray(),
                 };
                 parentId = childId;
@@ -283,28 +283,28 @@ public sealed class MultiHeirWillAdmissionTests
             {
                 // A legal standalone identity is outside the derived-ID boundary. Keep it complete.
                 parentId = "external-heir:" + new string('h', 170);
-                checkpoint = SocietyRules.AddAdult(checkpoint, parentId, checkpoint.GetInhabitant(Actor).HouseholdId).Checkpoint;
-                checkpoint = SocietyRules.RenameInhabitant(checkpoint, parentId, "External Heir").Checkpoint;
+                checkpoint = SocietyRules.AddAdult(checkpoint, parentId, checkpoint.GetAgent(Actor).HouseholdId).Checkpoint;
+                checkpoint = SocietyRules.RenameAgent(checkpoint, parentId, "External Heir").Checkpoint;
                 var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-                    state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point) &&
+                    state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point) &&
                     state.Map.FootNeighbors(point).Any(state.Map.IsPassable));
                 state = state with
                 {
-                    Inhabitants = state.Inhabitants.Append(new InhabitantState(parentId,
+                    Agents = state.Agents.Append(new AgentState(parentId,
                     position, 9_500, 0, "careful", "keep the orchard going")).ToArray()
                 };
             }
             if (rawKeyCollision)
             {
                 var rawIdentity = DerivedId.Create("will:heir:" + parentId, "will:heir:sha256:")["will:heir:".Length..];
-                checkpoint = SocietyRules.AddAdult(checkpoint, rawIdentity, checkpoint.GetInhabitant(Actor).HouseholdId).Checkpoint;
-                checkpoint = SocietyRules.RenameInhabitant(checkpoint, rawIdentity, "Hash Twin").Checkpoint;
+                checkpoint = SocietyRules.AddAdult(checkpoint, rawIdentity, checkpoint.GetAgent(Actor).HouseholdId).Checkpoint;
+                checkpoint = SocietyRules.RenameAgent(checkpoint, rawIdentity, "Hash Twin").Checkpoint;
                 var position = state.Map.Tiles.Select(tile => tile.Position).First(point =>
-                    state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point) &&
+                    state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point) &&
                     state.Map.FootNeighbors(point).Any(state.Map.IsPassable));
                 state = state with
                 {
-                    Inhabitants = state.Inhabitants.Append(new InhabitantState(rawIdentity, position,
+                    Agents = state.Agents.Append(new AgentState(rawIdentity, position,
                         9_500, 0, "careful", "keep the orchard going")).ToArray(),
                 };
             }
@@ -314,8 +314,8 @@ public sealed class MultiHeirWillAdmissionTests
             Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "will-seed", "seed", Actor, 3),
         };
         checkpoint = SocietyRules.Kill(checkpoint, Actor, SocietyDeathCause.Accident).Checkpoint;
-        var physical = state.Inhabitants.Single(item => item.InhabitantId == Actor);
-        var deceased = checkpoint.GetInhabitant(Actor);
+        var physical = state.Agents.Single(item => item.AgentId == Actor);
+        var deceased = checkpoint.GetAgent(Actor);
         var estate = Assert.Single(checkpoint.Estates);
         checkpoint = checkpoint with
         {
@@ -325,8 +325,8 @@ public sealed class MultiHeirWillAdmissionTests
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Where(item => item.InhabitantId != Actor).ToArray(),
-            DeceasedInhabitants = [new DeceasedInhabitantState(Actor, 0,
+            Agents = state.Agents.Where(item => item.AgentId != Actor).ToArray(),
+            DeceasedAgents = [new DeceasedAgentState(Actor, 0,
                 checkpoint.AgeAt(deceased, 0), physical)],
         };
         return WorldRuntime.Restore(state,

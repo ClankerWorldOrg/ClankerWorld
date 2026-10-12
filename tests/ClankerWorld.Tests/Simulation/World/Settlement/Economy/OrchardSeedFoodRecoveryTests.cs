@@ -21,8 +21,8 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         var world = Restore(state, actor, choices);
         try
         {
-            var start = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
-            await AdvanceUntil(world, () => world.Inhabitants.Single(person => person.InhabitantId == actor).Position != start, 12);
+            var start = world.Agents.Single(person => person.AgentId == actor).Position;
+            await AdvanceUntil(world, () => world.Agents.Single(person => person.AgentId == actor).Position != start, 12);
             Assert.Contains("make_room_for_food", choices.Offered);
             Assert.Empty(Setdowns(world, actor));
             Assert.All(originalClaims, claim => Assert.Equal(claim, world.Society.Inventory.GetReservation(claim.Id)));
@@ -43,12 +43,12 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
             Assert.Equal(1, inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "orchard_seed").Sum(lot => lot.Quantity));
             Assert.Equal(5, inventory.Lots.Where(lot => lot.ItemKind == "orchard_seed").Sum(lot => lot.Quantity));
 
-            var fullness = world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints;
+            var fullness = world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints;
             await AdvanceUntil(world, () => world.ExportState().Events.Any(item => item.Kind == "food_consumed" &&
                 item.Detail == actor), 60, replay);
             Assert.Contains(world.ExportState().Events, item => item.Kind == "food_harvested" &&
                 item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
-            Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > fullness);
+            Assert.True(world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints > fullness);
             Assert.Equal(4, CarriedSeeds(world.Society.Inventory, actor));
             world.Validate();
         }
@@ -136,7 +136,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         var state = fixture.CreateState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 9_000 } : person).ToArray(),
         };
         var choices = new Choices(["make_room_for_food"]);
@@ -159,7 +159,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         var state = fixture.CreateState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 3_000 } : person).ToArray(),
         };
         var choices = new Choices(["make_room_for_food"]);
@@ -194,7 +194,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         var claims = inventory.Reservations.Where(item => item.Purpose == "orchard_replanting").ToArray();
         var choices = new Choices(["consume_food", "collect_shared_food", "make_room_for_food"]);
         using var world = Restore(WithInventory(state, inventory), actor, choices);
-        var fullness = world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints;
+        var fullness = world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints;
         await AdvanceUntil(world, () => world.ExportState().Events.Any(item => item.Kind == "food_consumed" &&
             item.Detail == actor), 60);
 
@@ -202,7 +202,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         Assert.Empty(Setdowns(world, actor));
         Assert.All(claims, claim => Assert.Equal(claim, world.Society.Inventory.GetReservation(claim.Id)));
         Assert.Equal(5, CarriedSeeds(world.Society.Inventory, actor));
-        Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > fullness);
+        Assert.True(world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints > fullness);
         if (inPot)
             Assert.Contains(world.Society.Inventory.Events, item => item.Kind == "container_contents_taken");
         world.Validate();
@@ -219,7 +219,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
             state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-warehouse").Position;
         var occupied = state.WorldSimulation.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position))
             .Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var isolated = state.Map.Resources.Where(resource => resource.Kind == "food" && resource.TreeKind is null &&
@@ -230,7 +230,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         Assert.NotEmpty(isolated);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = isolated[0], TravelCooldownTicks = 0, LastDecisionContext = null } : person).ToArray(),
         };
         var choices = new Choices(["make_room_for_food"]);
@@ -241,7 +241,7 @@ public sealed class OrchardSeedFoodRecoveryTests(OrchardSeedCargoFixture fixture
         Assert.Empty(Setdowns(world, actor));
         Assert.Equal(state.Society.Society.Inventory.Reservations, world.Society.Inventory.Reservations);
         Assert.Equal(5, CarriedSeeds(world.Society.Inventory, actor));
-        Assert.Equal(isolated[0], world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(isolated[0], world.Agents.Single(person => person.AgentId == actor).Position);
         world.Validate();
     }
 

@@ -19,7 +19,7 @@ public sealed class MarketSpoiledStockCollectionTests(ITestOutputHelper output)
     public async Task PhysicalCollectionRespectsStockAndReceivingAuthority(bool spoil, string boundary, int expectedCollected)
     {
         var state = await PaidMarketWorld.StateAsync();
-        var owner = state.Inhabitants[0].InhabitantId;
+        var owner = state.Agents[0].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "collection-starting-berries", "berries", owner, 6, freshnessBasisPoints: 140);
         state = PaidMarketWorld.At(PaidMarketWorld.WithInventory(state, inventory), owner,
@@ -70,13 +70,13 @@ public sealed class MarketSpoiledStockCollectionTests(ITestOutputHelper output)
         state = waiting.ExportState();
         if (boundary == "stranger")
         {
-            collector = state.Inhabitants.First(person => person.InhabitantId != owner).InhabitantId;
-            state = PaidMarketWorld.At(state, collector, state.Inhabitants.Single(person => person.InhabitantId == owner).Position);
+            collector = state.Agents.First(person => person.AgentId != owner).AgentId;
+            state = PaidMarketWorld.At(state, collector, state.Agents.Single(person => person.AgentId == owner).Position);
         }
         if (boundary is "full" or "room")
         {
             inventory = state.Society.Society.Inventory;
-            var equipment = state.Inhabitants.Single(person => person.InhabitantId == owner).Equipment;
+            var equipment = state.Agents.Single(person => person.AgentId == owner).Equipment;
             var room = PersonalEquipmentRules.Capacity(inventory, owner, equipment) -
                 PersonalEquipmentRules.CarriedQuantity(inventory, owner, equipment);
             Assert.True(room > 0);
@@ -85,7 +85,7 @@ public sealed class MarketSpoiledStockCollectionTests(ITestOutputHelper output)
         }
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == collector ? person with
+            Agents = state.Agents.Select(person => person.AgentId == collector ? person with
             {
                 LastDecisionContext = null,
                 HungerBasisPoints = boundary == "urgent" ? 1_000 : person.HungerBasisPoints,

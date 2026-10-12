@@ -106,9 +106,9 @@ public sealed partial class AnimalPipelineTests
         var (state, actor, _, _) = CreateYard("animal-developer");
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == state.Society.Society.GetInhabitant(person.InhabitantId).HouseholdId &&
+                Position = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == state.Society.Society.GetAgent(person.AgentId).HouseholdId &&
                 state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house"))).Position
             }).ToArray()
         };
@@ -215,7 +215,7 @@ public sealed partial class AnimalPipelineTests
         using var collection = WorldRuntime.Restore(At(state, actor, dead.Position,
             collectionInventory, [dead with { DiedTick = 0, WildFedUntilTick = 0, WildWaterUntilTick = 0 }]), id => id == actor ?
             new AnimalChooser("animal:collect_hide:") : new AnimalChooser());
-        Assert.Contains(collection.Inhabitants, person => person.InhabitantId == actor);
+        Assert.Contains(collection.Agents, person => person.AgentId == actor);
         var beforeCollection = WorldRuntimeCodec.Encode(collection.ExportState());
         Assert.False((await collection.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(beforeCollection, WorldRuntimeCodec.Encode(collection.ExportState()));
@@ -261,12 +261,12 @@ public sealed partial class AnimalPipelineTests
                 {
                     var previous = new GridPoint(rideOrigin.X + (point.X - rideOrigin.X) / 3 * (step - 1), rideOrigin.Y + (point.Y - rideOrigin.Y) / 3 * (step - 1));
                     var next = new GridPoint(rideOrigin.X + (point.X - rideOrigin.X) / 3 * step, rideOrigin.Y + (point.Y - rideOrigin.Y) / 3 * step);
-                    return state.Map.CanFootStep(previous, next) && !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == next);
+                    return state.Map.CanFootStep(previous, next) && !state.Agents.Any(person => person.AgentId != actor && person.Position == next);
                 }));
         chooser.Prefix = "move_to";
         world.SubmitInstruction(new("ride", "owner", actor, OwnerInstructionKind.MustDo, $"move to {destination.X},{destination.Y}"));
         await Until(world, () => world.Animals.Single().Position != rideOrigin);
-        Assert.Equal(2, world.ExportState().Events.Count(item => item.WorldTick == world.WorldTick && item.Kind == "inhabitant_moved" && item.Detail.StartsWith(actor, StringComparison.Ordinal)));
+        Assert.Equal(2, world.ExportState().Events.Count(item => item.WorldTick == world.WorldTick && item.Kind == "agent_moved" && item.Detail.StartsWith(actor, StringComparison.Ordinal)));
         Assert.Equal(new InventoryGroundPosition(world.Animals.Single().Position.X, world.Animals.Single().Position.Y), world.Society.Inventory.GetLot("saddle").GroundPosition);
         world.Pause();
         Assert.True(world.ApplyDeveloperEdit(DeveloperEditTests.Edit(world, "give_goods", "stone", 14, actor)).Applied);
@@ -277,7 +277,7 @@ public sealed partial class AnimalPipelineTests
         restored.Resume();
         restored.SubmitInstruction(new("dismount", "owner", actor, OwnerInstructionKind.MustDo, "dismount Moss"));
         await Until(restored, () => restored.Animals.Single().RiderId is null);
-        var person = restored.Inhabitants.Single(person => person.InhabitantId == actor);
+        var person = restored.Agents.Single(person => person.AgentId == actor);
         Assert.True(PersonalEquipmentRules.CarriedQuantity(restored.Society.Inventory, actor, person.Equipment) <=
             PersonalEquipmentRules.Capacity(restored.Society.Inventory, actor, person.Equipment));
         Assert.Equal(14, restored.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "stone").Sum(lot => lot.Quantity));
@@ -302,7 +302,7 @@ public sealed partial class AnimalPipelineTests
             id == actor ? new AnimalChooser("animal_order") : new AnimalChooser());
         world.SubmitInstruction(new("care", "owner", actor, OwnerInstructionKind.MustDo, "repeat care for Moss"));
         await Until(world, () => world.Animals.Single().CareUntilTick > world.WorldTick);
-        Assert.Equal(yard.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(yard.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Equal(3, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("supply-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
         Assert.Equal(3, world.Society.Inventory.GetLot("supply-water").Quantity);
         Assert.Equal(home, world.Society.Inventory.GetLot("supply-jug").OwnerId);
@@ -317,9 +317,9 @@ public sealed partial class AnimalPipelineTests
     public async Task ExactAnimalGiftOrSaleRequiresTwoFreshPersonalChoicesAndClearsOldPermissions(bool paid)
     {
         var (state, seller, home, yard) = CreateYard("animal-transfer-" + paid);
-        var buyer = state.Society.Society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var buyer = state.Society.Society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand == SocietyAgeBand.Adult && person.HouseholdId != home).Id;
-        var buyerHome = state.Society.Society.GetInhabitant(buyer).HouseholdId!;
+        var buyerHome = state.Society.Society.GetAgent(buyer).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "second-yard-wood", "wood", buyerHome, 8,
             groundPosition: new(yard.Position.X, yard.Position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "second-yard-rope", "rope", buyerHome, 2, groundPosition: new(yard.Position.X, yard.Position.Y));
@@ -336,7 +336,7 @@ public sealed partial class AnimalPipelineTests
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "payment", "wood", buyer, 2);
         state = At(state, seller, yard.Position, inventory, [animal]) with
         {
-            Inhabitants = At(state, seller, yard.Position, inventory, [animal]).Inhabitants.Select(person => person.InhabitantId == buyer ?
+            Agents = At(state, seller, yard.Position, inventory, [animal]).Agents.Select(person => person.AgentId == buyer ?
             person with { Position = new(yard.Position.X + 1, yard.Position.Y) } : person).ToArray()
         };
         var offerText = paid ? "Offer Moss to" : "Offer the specific animal Moss as a gift";
@@ -432,7 +432,7 @@ public sealed partial class AnimalPipelineTests
         var (state, actor, home, yard) = CreateYard("animal-taming");
         var day = state.WorldSystems!.Config.TicksPerDay;
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
-            state.Map.FootDistance(point, yard.Position) == 3 && !state.Inhabitants.Any(person => person.Position == point));
+            state.Map.FootDistance(point, yard.Position) == 3 && !state.Agents.Any(person => person.Position == point));
         var animal = new AnimalState("wild", "Moss", "chicken", "female", -3L * day, site, "wild-herd",
             WildFedUntilTick: day, WildWaterUntilTick: day, CareUntilTick: day);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "tame-feed", "grain", actor, 2);
@@ -447,7 +447,7 @@ public sealed partial class AnimalPipelineTests
         world.SubmitInstruction(new("lead", "owner", actor, OwnerInstructionKind.MustDo, "lead home Moss"));
         await Until(world, () => world.Animals.Single().LeaderId is null);
         var position = world.Animals.Single().Position;
-        Assert.Equal(position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(position, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.InRange(position.X - yard.Position.X, 0, 1);
         Assert.InRange(position.Y - yard.Position.Y, 0, 1);
         world.Validate();
@@ -460,9 +460,9 @@ public sealed partial class AnimalPipelineTests
     {
         using var generated = NormalPathWorld.CreateGenerated("animal-native-yard-2", _ => new AnimalChooser());
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
-        var position = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
+        var position = state.Agents[0].Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "native-yard-wood", "wood", home, 16,
             groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "native-yard-rope", "rope", home, 4, groundPosition: new(position.X, position.Y));
@@ -471,7 +471,7 @@ public sealed partial class AnimalPipelineTests
         var expandedDefinition = BuildingStorageRules.WithSize(yardDefinition, 2, 4);
         var town = state.Towns!.Single(town => town.ResidentIds.Contains(actor));
         var occupied = state.RoadTiles!.Concat(state.Fields!.Select(field => field.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position))
             .Concat(state.HouseholdLandUseRights!.Where(right => right.HouseholdId != home).SelectMany(right => right.Tiles))
             .Concat(state.HouseholdLandUseRequests!.Where(request => request.HouseholdId != home && request.Status == "pending")
                 .SelectMany(TownLandRightsRules.UnresolvedRequestTiles))
@@ -551,16 +551,16 @@ public sealed partial class AnimalPipelineTests
     {
         using var setup = NormalPathWorld.CreateGenerated(seed, _ => new AnimalChooser(), ticksPerDay: ticksPerDay);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "yard-wood", "wood", home, 8,
-            groundPosition: new(state.Inhabitants[0].Position.X, state.Inhabitants[0].Position.Y));
+            groundPosition: new(state.Agents[0].Position.X, state.Agents[0].Position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "yard-rope", "rope", home, 2,
-            groundPosition: new(state.Inhabitants[0].Position.X, state.Inhabitants[0].Position.Y));
+            groundPosition: new(state.Agents[0].Position.X, state.Agents[0].Position.Y));
         using var world = WorldRuntime.Restore(state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } },
             _ => new AnimalChooser());
         var definition = world.WorldContent.Buildings.Single(item => item.Tags.Contains("animal-yard"));
-        foreach (var tile in state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Inhabitants[0].Position)))
+        foreach (var tile in state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Agents[0].Position)))
         {
             var result = world.PlaceBuilding("test-yard", definition.CanonicalId, tile.Position, home);
             if (!result.Applied) continue;
@@ -580,9 +580,9 @@ public sealed partial class AnimalPipelineTests
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             AnimalWorld = new(true, animals.OrderBy(animal => animal.Id, StringComparer.Ordinal).ToArray(), []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
+                Position = person.AgentId == actor ? position : person.Position,
                 HungerBasisPoints = 9500,
                 LastDecisionContext = null,
                 Project = null
@@ -597,7 +597,7 @@ public sealed partial class AnimalPipelineTests
             {
                 world.Animals,
                 Instructions = world.ExportState().Instructions,
-                Actors = world.Inhabitants.Select(person => new { person.InhabitantId, person.Position }),
+                Actors = world.Agents.Select(person => new { person.AgentId, person.Position }),
                 Events = world.ExportState().Events.TakeLast(12)
             }));
     }
@@ -613,7 +613,7 @@ public sealed partial class AnimalPipelineTests
             var candidates = request.Observation.Candidates;
             var choice = candidates.FirstOrDefault(candidate => select?.Invoke(candidate) ?? candidate.Id.StartsWith(Prefix, StringComparison.Ordinal)) ??
                 candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 choice.Id, 1, candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d)));
         }

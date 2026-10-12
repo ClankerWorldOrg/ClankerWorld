@@ -88,7 +88,7 @@ public sealed partial class WorldExpansionOrderTests
             Household, 8, groundPosition: new(position.X, position.Y));
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = position,
                 HungerBasisPoints = 10_000,
@@ -102,7 +102,7 @@ public sealed partial class WorldExpansionOrderTests
     private static void AssertOrdinaryHousePayment(WorldRuntime world, string actor,
         PlacedBuilding house, string materialId)
     {
-        var project = world.Inhabitants.Single(person => person.InhabitantId == actor).Project!;
+        var project = world.Agents.Single(person => person.AgentId == actor).Project!;
         Assert.Equal("completed", project.Stage);
         Assert.Null(project.OrderInstructionId);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == materialId);

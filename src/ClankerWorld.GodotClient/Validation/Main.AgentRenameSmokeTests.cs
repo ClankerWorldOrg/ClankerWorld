@@ -21,10 +21,10 @@ public partial class Main
         var previousKey = deviceKey;
         var previousUrl = worldUrlInput.Text;
         var previousObservation = observationSession.Current;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousProfileRequested = agentProfileRequested;
         var previousProfileVisible = agentProfilePanel.Visible;
-        var previousQuickCardVisible = selectedInhabitantCard.Visible;
+        var previousQuickCardVisible = selectedAgentCard.Visible;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
         using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
@@ -35,19 +35,19 @@ public partial class Main
             deviceKey = signer;
             worldUrlInput.Text = host.Address;
             var position = new OwnerWorldPosition(1, 1);
-            OwnerWorldInhabitant Agent(string id, string name) => new(id, name, "active", position, 8_000, [], [],
+            OwnerWorldAgent Agent(string id, string name) => new(id, name, "active", position, 8_000, [], [],
                 new OwnerWorldRoute("idle", null, null, [], string.Empty),
                 new OwnerWorldSpatialKnowledge(position, [position], [position]), false);
             OwnerWorldReconnect World(string worldId, long tick, string rowanName = "Rowan Lake") => new(
                 new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1"], []),
                 new(new OwnerWorldSnapshot(worldId, tick, "rename-ui-map",
                     Enumerable.Range(0, 9).Select(index => new OwnerWorldTile(index % 3, index / 3, "meadow")).ToArray(),
                     [], [], null, 0)
                 {
                     PackedTerrain = new OwnerWorldPackedTerrain(3, 3, "terrain-kind-v1", Convert.ToBase64String(new byte[9])),
-                    Inhabitants = [Agent(asterId, "Aster Vale"), Agent(rowanId, rowanName)],
+                    Agents = [Agent(asterId, "Aster Vale"), Agent(rowanId, rowanName)],
                 }, new(tick, 0, [])));
             async Task RefreshFromHostAsync(OwnerWorldReconnect next)
             {
@@ -93,8 +93,8 @@ public partial class Main
             // This is an exact response fixture; the real HTTP tests exercise the host's name rule.
             host.TakenAgentNames.Add(refusedName);
             await RefreshFromHostAsync(World("rename-ui-smoke", 1));
-            selectedInhabitantId = null;
-            SelectInhabitant(rowanId);
+            selectedAgentId = null;
+            SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -120,8 +120,8 @@ public partial class Main
                 throw new InvalidOperationException("Closing the rename editor must discard the draft without sending it to the host.");
             renameAgentInput.Text = draftName;
             renameAgentInput.EmitSignal(LineEdit.SignalName.TextChanged, draftName);
-            SelectInhabitant(asterId);
-            SelectInhabitant(rowanId);
+            SelectAgent(asterId);
+            SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
             if (!renameRow.Visible || renameAgentInput.Text != "Rowan Lake" || !host.RenameRequests.IsEmpty)
                 throw new InvalidOperationException("Choosing another agent must discard the unsubmitted draft without sending it to the host.");
@@ -133,8 +133,8 @@ public partial class Main
                 quickCardNameLabel.Text != "Rowan Lake")
                 throw new InvalidOperationException($"An ordinary refresh with the field unfocused must keep the refused name for the player to change, while the Profile shows the name the host holds: field={renameAgentInput.Text}.");
 
-            SelectInhabitant(asterId);
-            SelectInhabitant(rowanId);
+            SelectAgent(asterId);
+            SelectAgent(rowanId);
             await RefreshFromHostAsync(World("rename-ui-smoke", 4));
             if (renameAgentInput.Text != "Rowan Lake")
                 throw new InvalidOperationException("Choosing another agent must drop the refused name.");
@@ -144,9 +144,9 @@ public partial class Main
             // world explicitly resets the client before its fresh baseline.
             observationSession.ResetAfterLoad();
             await RefreshFromHostAsync(World("rename-ui-other", 5));
-            if (selectedInhabitantId is not null || renameRow.Visible)
+            if (selectedAgentId is not null || renameRow.Visible)
                 throw new InvalidOperationException("Opening another world must close the old world's rename selection.");
-            SelectInhabitant(rowanId);
+            SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (renameAgentInput.Text != "Rowan Lake")
@@ -166,9 +166,9 @@ public partial class Main
             renameAgentInput.EmitSignal(LineEdit.SignalName.TextChanged, draftName);
             observationSession.ResetAfterLoad();
             await RefreshFromHostAsync(World("rename-ui-final", 7, rowanName: "Rowan Vale"));
-            if (selectedInhabitantId is not null || renameRow.Visible || !host.RenameRequests.IsEmpty)
+            if (selectedAgentId is not null || renameRow.Visible || !host.RenameRequests.IsEmpty)
                 throw new InvalidOperationException("Another world must discard the unsubmitted draft without sending it to either host.");
-            SelectInhabitant(rowanId);
+            SelectAgent(rowanId);
             OpenAgentProfile(speak: false);
             renameToggleButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (renameAgentInput.Text != "Rowan Vale")
@@ -186,10 +186,10 @@ public partial class Main
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             agentProfileRequested = previousProfileRequested;
             agentProfilePanel.Visible = previousProfileVisible;
-            selectedInhabitantCard.Visible = previousQuickCardVisible;
+            selectedAgentCard.Visible = previousQuickCardVisible;
             System.Environment.SetEnvironmentVariable("CI", previousCi);
             RefreshControlAvailability();
             statusToast.Hide();

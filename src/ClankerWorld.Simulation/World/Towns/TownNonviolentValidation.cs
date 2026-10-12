@@ -33,7 +33,7 @@ public static class TownNonviolentValidation
             .Concat(state.Agreements.Select(a => a.Id)).Concat(state.Effects.Select(e => e.Id)));
         Check(state.Sequence >= state.Cases.Count + state.Cases.Sum(c => c.Findings.Count + c.ReopenRequests.Count) +
             state.Offers.Count + state.Agreements.Count, "The nonviolent record sequence cannot precede its saved records.");
-        var people = society.Inhabitants.ToDictionary(p => p.Id, StringComparer.Ordinal);
+        var people = society.Agents.ToDictionary(p => p.Id, StringComparer.Ordinal);
         var households = society.Households.Select(h => h.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var item in state.Cases) ValidateCase(map, society, town, item, people, households, titles, day);
         foreach (var offer in state.Offers) ValidateOffer(state, town, offer, people, tick, day);
@@ -68,7 +68,7 @@ public static class TownNonviolentValidation
     }
 
     private static void ValidateCase(WorldMap map, SocietyCheckpoint society, TownRuntimeState town,
-        TownViolationCase item, Dictionary<string, SocietyInhabitant> people, HashSet<string> households,
+        TownViolationCase item, Dictionary<string, SocietyAgent> people, HashSet<string> households,
         IReadOnlyList<TownLandTitleRecord> titles, int day)
     {
         var tick = society.WorldTick;
@@ -154,7 +154,7 @@ public static class TownNonviolentValidation
             Check(town.Government is { Arrangement.NonLand: TownArrangementRules.Mayor } currentGovernment &&
                 (judge.Kind == "case_elected" || TownGovernmentRules.CurrentNonLandAuthority(currentGovernment, tick) is { } authority &&
                     authority.HolderId == judge.AgentId && authority.AuthorityId == judge.AuthorityId) &&
-                people[judge.AgentId].Status == SocietyInhabitantStatus.Active &&
+                people[judge.AgentId].Status == SocietyAgentStatus.Active &&
                 people[judge.AgentId].AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder && town.ResidentIds.Contains(judge.AgentId) &&
                 !TownNonviolentRules.JudgeConflict(judge.AgentId, people[judge.AgentId].HouseholdId,
                     TownNonviolentPartyRules.CurrentParties(town, item, society, tick), item.DirectStakeIds.ToHashSet(StringComparer.Ordinal)),
@@ -187,7 +187,7 @@ public static class TownNonviolentValidation
         }
     }
 
-    private static void ValidateParties(IReadOnlyList<TownCaseParty> parties, Dictionary<string, SocietyInhabitant> people,
+    private static void ValidateParties(IReadOnlyList<TownCaseParty> parties, Dictionary<string, SocietyAgent> people,
         HashSet<string> households, SocietyCheckpoint society)
     {
         Check(TownNonviolentRules.ValidParties(parties), "Case parties must be complete and unique.");
@@ -224,7 +224,7 @@ public static class TownNonviolentValidation
     }
 
     private static void ValidateFinding(TownRuntimeState town, TownViolationCase item, TownViolationFinding finding,
-        Dictionary<string, SocietyInhabitant> people, HashSet<string> households, SocietyCheckpoint society)
+        Dictionary<string, SocietyAgent> people, HashSet<string> households, SocietyCheckpoint society)
     {
         var revision = item.Revisions.SingleOrDefault(r => r.Number == finding.Revision);
         Check(revision is not null && finding.Tick >= revision.PublishedTick && finding.Tick <= society.WorldTick &&
@@ -253,7 +253,7 @@ public static class TownNonviolentValidation
     }
 
     private static void ValidateJudge(TownCaseJudge judge, TownViolationCase item, TownGovernmentState? government,
-        Dictionary<string, SocietyInhabitant> people, long at)
+        Dictionary<string, SocietyAgent> people, long at)
     {
         Check(Id(judge.AuthorityId) && Id(judge.AgentId) && people.ContainsKey(judge.AgentId) && judge.AssignedTick >= item.FiledTick && judge.AssignedTick <= at &&
             government is not null && TownGovernmentRules.NonLandScopeAt(government, at, includeEndingTick: true) &&
@@ -264,7 +264,7 @@ public static class TownNonviolentValidation
     }
 
     private static void ValidateContest(TownCaseJudgeContest contest, TownViolationCase item,
-        Dictionary<string, SocietyInhabitant> people, long tick, int day, bool live)
+        Dictionary<string, SocietyAgent> people, long tick, int day, bool live)
     {
         Check(TownHearingProcedure.DerivedIdentity(contest.Id) && contest.Stage is "waiting" or "voting" or "completed" or "failed" or "cancelled" &&
             live == (contest.Stage is "waiting" or "voting") && contest.OpenedTick >= item.FiledTick && contest.OpenedTick <= tick &&
@@ -296,7 +296,7 @@ public static class TownNonviolentValidation
     }
 
     private static void ValidateOffer(TownNonviolentState state, TownRuntimeState town, TownRemedyOffer offer,
-        Dictionary<string, SocietyInhabitant> people, long tick, int day)
+        Dictionary<string, SocietyAgent> people, long tick, int day)
     {
         var item = state.Cases.SingleOrDefault(c => c.Id == offer.CaseId);
         var finding = item?.Findings.SingleOrDefault(f => f.Id == offer.FindingId);

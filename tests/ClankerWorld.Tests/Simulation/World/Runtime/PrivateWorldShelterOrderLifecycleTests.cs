@@ -85,7 +85,7 @@ public sealed partial class WorldShelterOrderTests
         state = At(state, actor, Approach(state, tree.Position, 1));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { TravelCooldownTicks = 1 } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -134,7 +134,7 @@ public sealed partial class WorldShelterOrderTests
         state = AwayFromHouse(state, actor, home);
         state = WithCondition(state, actor, warmth: 3_000, fullness: 1_000);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "shelter-meal", "food", actor, 1));
-        var original = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var original = state.Agents.Single(person => person.AgentId == actor).Position;
         using var world = Restore(state);
         var receipt = Submit(world, actor, "hungry-cold-shelter", "shelter in my House");
         await Tick(world);
@@ -197,7 +197,7 @@ public sealed partial class WorldShelterOrderTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(step.Advanced);
-                admitted = step.Decisions.Any(item => item.InhabitantId == actor && item.Admission.Accepted);
+                admitted = step.Decisions.Any(item => item.AgentId == actor && item.Admission.Accepted);
                 if (!admitted) await Task.Delay(10);
             }
             Assert.True(admitted, "A post-release decision must actually be admitted before checking the cancelled order.");

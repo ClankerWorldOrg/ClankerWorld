@@ -45,7 +45,7 @@ public sealed partial class WorldCollectionOrderTests
         var lot = world.Society.Inventory.GetLot("equipment-source");
         Assert.Equal((actor, 2, 3_000), (lot.OwnerId, lot.Quantity, lot.ConditionBasisPoints));
         Assert.True(PersonalEquipmentRules.IsCarried(lot, actor));
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment);
+        Assert.Null(world.Agents.Single(person => person.AgentId == actor).Equipment);
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Order!;
         Assert.Equal(kind, projected.TargetEquipmentKind);
@@ -68,7 +68,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared();
         var actor = Actor(state);
-        var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != actor).AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "equipment-boundary",
             boundary == "wrong-kind" ? "stone_axe" : "stone_pickaxe", boundary == "household-owned" ? Household :
             boundary == "another-person" ? other : actor, 2,
@@ -101,7 +101,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "equipment-nearer", "stone_pickaxe", actor, 3,
             groundPosition: new(position.X, position.Y));
@@ -120,7 +120,7 @@ public sealed partial class WorldCollectionOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, first).CompletedUnits);
         Assert.Equal("queued", Order(world, second).Status);
-        Assert.NotEqual(position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(position, world.Agents.Single(person => person.AgentId == actor).Position);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         var sawPartial = false;
         for (var tick = 0; tick < 20 && Order(world, second).Status != "finished"; tick++)

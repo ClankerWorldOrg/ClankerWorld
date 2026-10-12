@@ -9,8 +9,8 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
-public sealed record InhabitantState(
-    string InhabitantId,
+public sealed record AgentState(
+    string AgentId,
     GridPoint Position,
     int HungerBasisPoints,
     int MoveWaitTicks,
@@ -23,7 +23,7 @@ public sealed record InhabitantState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementParenthood? Parenthood = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementProficiency? Proficiency = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SettlementSocialStanding>? SocialStanding = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<InhabitantThought>? RecentThoughts = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AgentThought>? RecentThoughts = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int TravelCooldownTicks = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementExploration? Exploration = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool IdentityChoicePending = false,
@@ -66,16 +66,16 @@ public sealed record ModelAttempt(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? LastAcceptedTick = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SetupBlocker = null);
 
-public sealed record InhabitantThought(long WorldTick, string Text);
+public sealed record AgentThought(long WorldTick, string Text);
 
 public sealed record ResourceStateEntry(string ResourceId, ResourceState State);
 
 /// <param name="TownId">The Town the agent lived in when they died, which their will may name as an heir.</param>
-public sealed record DeceasedInhabitantState(
-    string InhabitantId,
+public sealed record DeceasedAgentState(
+    string AgentId,
     long DeathTick,
     int AgeAtDeath,
-    InhabitantState LastPhysical,
+    AgentState LastPhysical,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TownId = null)
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -96,7 +96,7 @@ public sealed record WorldRuntimeState(
     string WorldSeed,
     WorldMap Map,
     SocietyWorldRuntimeState Society,
-    IReadOnlyList<InhabitantState> Inhabitants,
+    IReadOnlyList<AgentState> Agents,
     IReadOnlyList<ResourceStateEntry> Resources,
     IReadOnlyList<WorldEventEntry> Events,
     IReadOnlyList<OwnerQueuedInstruction>? Instructions = null,
@@ -110,7 +110,7 @@ public sealed record WorldRuntimeState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? HistoryArchiveHead = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementSurvivalState? Survival = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementCouncil? Council = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DeceasedInhabitantState>? DeceasedInhabitants = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DeceasedAgentState>? DeceasedAgents = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? JevEnabled = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long JevPolicyRevision = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FounderSetupState? FounderSetup = null,

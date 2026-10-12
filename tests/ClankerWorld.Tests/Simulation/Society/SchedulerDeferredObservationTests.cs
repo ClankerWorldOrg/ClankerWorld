@@ -152,7 +152,7 @@ public sealed class SchedulerDeferredObservationTests
 
         // The host closes naming after admitting the reply. This also applies
         // when the consumed retry trigger has already left the retained queue.
-        scheduler.SyncInhabitants([SocietyRules.CreateFounder(Actor, "Alice Vale") with { NeedsName = false }]);
+        scheduler.SyncAgents([SocietyRules.CreateFounder(Actor, "Alice Vale") with { NeedsName = false }]);
         Assert.False(Assert.Single(scheduler.ExportState().Queue).Observation.NeedsName);
         var next = Preview(scheduler);
         Assert.NotEqual(retry.RequestId, next.RequestId);
@@ -166,12 +166,12 @@ public sealed class SchedulerDeferredObservationTests
     private static SocietyCognitionScheduler CreateScheduler() => new(
         [SocietyRules.CreateFounder(Actor, "Alice")], _ => new PreviewProvider());
 
-    private static InhabitantObservation Observation(int generation) => new(
+    private static AgentObservation Observation(int generation) => new(
         Actor, generation, 0, generation, $"sha256:observation-{generation}", 100,
         [new("safe_idle", "Rest safely.")])
     { WorldId = "scheduler-new-information" };
 
-    private static SocietyCognitionScheduleEntry Entry(InhabitantObservation observation, string trigger) =>
+    private static SocietyCognitionScheduleEntry Entry(AgentObservation observation, string trigger) =>
         new($"tick:{observation.WorldTick}:{trigger}", Actor, 1, observation.WorldTick, [trigger], observation);
 
     private static CognitionObserverGuidance Guidance() => new(
@@ -180,7 +180,7 @@ public sealed class SchedulerDeferredObservationTests
     private static CognitionDecisionRequest Preview(SocietyCognitionScheduler scheduler) =>
         Assert.Single(scheduler.PreviewHostedRequests(NoExclusions)).Request;
 
-    private static HashSet<string> Legal(InhabitantObservation observation) =>
+    private static HashSet<string> Legal(AgentObservation observation) =>
         observation.Candidates.Select(candidate => candidate.Id).ToHashSet(StringComparer.Ordinal);
 
     private static CognitionDecisionResponse Reply(CognitionDecisionRequest request) => new(

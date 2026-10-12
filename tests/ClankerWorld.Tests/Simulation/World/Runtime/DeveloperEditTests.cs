@@ -11,7 +11,7 @@ public sealed class DeveloperEditTests
 {
     internal static WorldDeveloperEdit Edit(WorldRuntime world, string operation, string value,
         int amount = 0, string? actor = null, string? other = null) => new(world.Society.WorldId,
-        world.ExportState().Events[^1].EventId, actor ?? world.Inhabitants[0].InhabitantId, operation, value, amount, other);
+        world.ExportState().Events[^1].EventId, actor ?? world.Agents[0].AgentId, operation, value, amount, other);
 
     [Fact]
     public async Task NormalWorldEditsSurviveSaveAndReplayWithMatchingContinuation()
@@ -19,8 +19,8 @@ public sealed class DeveloperEditTests
         using var world = NormalPathWorld.CreateGenerated("developer-edits-normal", _ => new DeterministicDecisionProvider());
         world.Pause();
         var baseline = WorldRuntimeCodec.Encode(world.ExportState());
-        var actor = world.Inhabitants[0].InhabitantId;
-        var other = world.Inhabitants[1].InhabitantId;
+        var actor = world.Agents[0].AgentId;
+        var other = world.Agents[1].AgentId;
         void Apply(string operation, string value, int amount = 0, string? target = null)
         {
             var result = world.ApplyDeveloperEdit(Edit(world, operation, value, amount, actor, target));
@@ -39,7 +39,7 @@ public sealed class DeveloperEditTests
         Apply("start_partnership", "partnership", target: other);
         Assert.Contains(world.Society.Relationships, edge => edge.Type == SocietyRelationshipType.Partnership && edge.State == SocietyRelationshipState.Accepted);
         Apply("end_partnership", "partnership", target: other);
-        var person = world.Inhabitants.Single(item => item.InhabitantId == actor);
+        var person = world.Agents.Single(item => item.AgentId == actor);
         Assert.Equal(6200, person.HungerBasisPoints);
         Assert.Equal(8000, person.Survival!.WarmthBasisPoints);
         Assert.Equal(1000, person.Survival.IllnessBasisPoints);
@@ -150,8 +150,8 @@ public sealed class DeveloperEditTests
         using var original = new WorldRuntime("developer-family");
         original.Pause();
         var state = original.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var related = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage, (actor, other));
         using var relatives = WorldRuntime.Restore(related);
         Assert.NotNull(relatives.ApplyDeveloperEdit(Edit(relatives, "start_partnership", "partnership", actor: actor, other: other)).Failure);
@@ -160,7 +160,7 @@ public sealed class DeveloperEditTests
         using var bereaved = WorldRuntime.Restore(state with
         {
             Society = society.ExportState(),
-            Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != other).ToArray(),
+            Agents = state.Agents.Where(person => person.AgentId != other).ToArray(),
         });
         var before = WorldRuntimeCodec.Encode(bereaved.ExportState());
         Assert.NotNull(bereaved.ApplyDeveloperEdit(Edit(bereaved, "start_partnership", "partnership", actor: actor, other: other)).Failure);
@@ -173,7 +173,7 @@ public sealed class DeveloperEditTests
     {
         using var world = new WorldRuntime("developer-goods");
         world.Pause();
-        var actor = world.Inhabitants[0].InhabitantId;
+        var actor = world.Agents[0].AgentId;
         foreach (var kind in WorldRuntime.DeveloperGoods)
         {
             var added = world.ApplyDeveloperEdit(Edit(world, "give_goods", kind, 1));
@@ -210,8 +210,8 @@ public sealed class DeveloperEditTests
         using var original = new WorldRuntime("developer-protected-goods");
         original.Pause();
         var state = original.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "equipped", "clothing", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "reserved", "wood", actor, 2);
@@ -223,7 +223,7 @@ public sealed class DeveloperEditTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = new PersonalEquipment(ClothingLotId: "equipped") } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state);

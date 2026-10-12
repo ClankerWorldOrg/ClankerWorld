@@ -25,7 +25,7 @@ public sealed class BlacksmithGatherReachabilityTests
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var position = kind == "wood" ? new GridPoint(111, 62) : new GridPoint(60, 50);
         var remote = kind == "wood" ? new GridPoint(238, 85) : state.Map.Tiles.Select(tile => tile.Position)
             .First(point => state.Map.IsBuildable(point) && !SwimmingRules.IsReachable(state.Map, position, point));
@@ -55,7 +55,7 @@ public sealed class BlacksmithGatherReachabilityTests
         }
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = position,
                 HungerBasisPoints = 10_000,
@@ -130,7 +130,7 @@ public sealed class BlacksmithGatherReachabilityTests
                 request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "haul_smith_input") ??
                 request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "haul_household_stock") ??
                 request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1, new Dictionary<string, double> { [selected.Id] = 1 }));
         }

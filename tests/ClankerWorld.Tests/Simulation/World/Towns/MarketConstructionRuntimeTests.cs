@@ -24,7 +24,7 @@ public sealed class MarketConstructionRuntimeTests
         var townId = Assert.Single(initial.Towns!).Id;
         var ledger = new GatheringLedger(initial);
         Assert.Equal(0, scenario.World.WorldTick);
-        Assert.Equal(4, initial.Inhabitants.Count);
+        Assert.Equal(4, initial.Agents.Count);
         Assert.Empty(initial.Towns![0].Governance!.Proposals);
         Assert.Empty(initial.Towns[0].Projects);
         Assert.Empty(initial.Towns[0].Markets);
@@ -93,7 +93,7 @@ public sealed class MarketConstructionRuntimeTests
         }
         await policy.DonationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(scenario.Project.Plan.Site,
-            scenario.World.Inhabitants.Single(person => person.InhabitantId == traveler.Actor).Position);
+            scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         var freshChoice = policy.Choices.Last(choice => choice.Actor == traveler.Actor &&
             choice.Id.StartsWith("town_project_donate:", StringComparison.Ordinal));
         Assert.NotEqual(travelChoice.Id, freshChoice.Id);
@@ -239,7 +239,7 @@ public sealed class MarketConstructionRuntimeTests
                 if (kind is not ("wood" or "stone" or "fiber")) continue;
                 var actor = string.Join(':', parts[..^2]);
                 var quantity = int.Parse(parts[^1], CultureInfo.InvariantCulture);
-                var position = current.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+                var position = current.Agents.Single(person => person.AgentId == actor).Position;
                 Assert.Contains(previous.Map.Resources, source =>
                     (source.Kind == kind || kind == "wood" && source.Kind == "construction") &&
                     current.Map.FootDistance(position, source.Position) <= 1 &&

@@ -344,7 +344,7 @@ public static class GameUiText
             "field_prepared" or "field_planted" or "field_harvested" or
             "field_ready" or "field_work_interrupted" or "field_returned_to_grass" or "crop_weather_loss" or
             "crop_moisture_effect" or "tree_planted" or "tree_replanted" or "child_born" or
-            "inhabitant_removed" or "estate_will_accepted" or "estate_will_default" or
+            "agent_removed" or "estate_will_accepted" or "estate_will_default" or
             "partnership_accepted" or "partnership_ended" or "caregiver_assigned" or
             "guardian_needed" or "guardian_assigned" or "guardian_placement_pending" or
             "guardian_placement_completed" or "guardian_placement_cancelled" or
@@ -362,7 +362,7 @@ public static class GameUiText
             "tool_request_placed" or "tool_request_accepted" or "tool_request_refused" or "tool_request_withdrawn" or
             "tool_request_ready" or "tool_request_completed" or "tool_request_interrupted" or
             "ornament_worn" or "ornament_removed" or "ornament_given" or
-            "inhabitant_building_proposed" or "instruction_not_understood" or "town_founding_started" or
+            "agent_building_proposed" or "instruction_not_understood" or "town_founding_started" or
             "town_civic_council" or "town_civic_election" or "town_civic_runoff" or "town_civic_proposal" or "town_civic_result" or "town_civic_cancelled" or
             "town_civic_law" or "town_civic_government" or "town_civic_mayor" or
             "town_project_approved" or "town_project_blocked" or "town_project_resumed" or "town_project_cancelled" or
@@ -398,7 +398,7 @@ public static class GameUiText
     public static string PartyName(OwnerWorldSnapshot? snapshot, string id)
     {
         ArgumentNullException.ThrowIfNull(id);
-        return snapshot?.Inhabitants.FirstOrDefault(person => person.Id == id)?.DisplayName
+        return snapshot?.Agents.FirstOrDefault(person => person.Id == id)?.DisplayName
             ?? snapshot?.Stockpiles.FirstOrDefault(stockpile => stockpile.OwnerId == id)?.Name
             ?? snapshot?.Towns.FirstOrDefault(town => town.Id == id)?.Name
             ?? (id.StartsWith("household:", StringComparison.Ordinal) ? "a household" : HumanizeIdentifier(id));

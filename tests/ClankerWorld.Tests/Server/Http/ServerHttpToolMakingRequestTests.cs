@@ -33,7 +33,7 @@ public sealed partial class ServerHttpTests
             var building = Assert.Single(view.Baseline.Snapshot.PlacedBuildings, building => building.InstanceId == shop.InstanceId);
             var visible = Assert.Single(building.ToolMakingRequests);
             Assert.Equal(request.Id, visible.Id);
-            Assert.Equal(state.Society.Society.GetInhabitant(buyer).Name, visible.RequesterName);
+            Assert.Equal(state.Society.Society.GetAgent(buyer).Name, visible.RequesterName);
             Assert.Equal(request.RecipeId, visible.RecipeId);
             Assert.Equal(state.WorldContent!.Recipes.Single(recipe => recipe.CanonicalId == request.RecipeId).DisplayName, visible.RecipeName);
             Assert.Equal("wooden_axe", visible.ItemKind);
@@ -41,11 +41,11 @@ public sealed partial class ServerHttpTests
             Assert.Equal(request.Blocker, visible.Blocker);
             Assert.Null(visible.OfferId);
             Assert.Contains("wood", visible.Blocker!, StringComparison.Ordinal);
-            Assert.Equal(ToolMakingRequestRules.Note(state.ToolMakingRequests!, buyer, state.Society.Society.GetInhabitant(buyer).HouseholdId),
-                Assert.Single(view.Baseline.Snapshot.Inhabitants, person => person.Id == buyer).ToolMakingRequestNote);
-            Assert.NotNull(Assert.Single(view.Baseline.Snapshot.Inhabitants, person => person.Id == seller).ToolMakingRequestNote);
-            Assert.All(view.Baseline.Snapshot.Inhabitants.Where(person => person.Id != buyer &&
-                state.Society.Society.GetInhabitant(person.Id).HouseholdId != shop.HouseholdId), person => Assert.Null(person.ToolMakingRequestNote));
+            Assert.Equal(ToolMakingRequestRules.Note(state.ToolMakingRequests!, buyer, state.Society.Society.GetAgent(buyer).HouseholdId),
+                Assert.Single(view.Baseline.Snapshot.Agents, person => person.Id == buyer).ToolMakingRequestNote);
+            Assert.NotNull(Assert.Single(view.Baseline.Snapshot.Agents, person => person.Id == seller).ToolMakingRequestNote);
+            Assert.All(view.Baseline.Snapshot.Agents.Where(person => person.Id != buyer &&
+                state.Society.Society.GetAgent(person.Id).HouseholdId != shop.HouseholdId), person => Assert.Null(person.ToolMakingRequestNote));
         }
         finally { directory.Delete(recursive: true); }
     }

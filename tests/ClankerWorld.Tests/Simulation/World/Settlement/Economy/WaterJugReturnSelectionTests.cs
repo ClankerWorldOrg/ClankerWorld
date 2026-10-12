@@ -31,7 +31,7 @@ public sealed class WaterJugReturnSelectionTests
         Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => permitted, (proposed, events) =>
         {
             prepared = true;
-            Assert.Contains(events, item => item.Kind == (walk ? "inhabitant_moved" : "water_jug_returned") &&
+            Assert.Contains(events, item => item.Kind == (walk ? "agent_moved" : "water_jug_returned") &&
                 item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
             permitted = false;
             return [];
@@ -45,7 +45,7 @@ public sealed class WaterJugReturnSelectionTests
         if (!walk) Assert.Equal(House, world.Society.Inventory.GetLot(returned).StorageBuildingId);
         if (walk)
         {
-            Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
+            Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
             Assert.Equal(actor, world.Society.Inventory.GetLot(returned).OwnerId);
         }
         using var replay = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), actor, new ReturnChoices());
@@ -109,15 +109,15 @@ public sealed class WaterJugReturnSelectionTests
         using var setup = NormalPathWorld.CreateGenerated("jug-return-selection-audit", _ => new ReturnChoices(false));
         var state = ShelterOrderTestFixture.WithClearWeather(setup.ExportState());
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var origin = walk ? state.Map.FootNeighbors(house.Position).First(point =>
             (point.X == house.Position.X || point.Y == house.Position.Y) && state.Map.IsPassable(point) &&
-            state.Inhabitants.All(person => person.Position != point)) : house.Position;
-        var previous = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            state.Agents.All(person => person.Position != point)) : house.Position;
+        var previous = state.Agents.Single(person => person.AgentId == actor).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = origin,
                 HungerBasisPoints = 10_000,

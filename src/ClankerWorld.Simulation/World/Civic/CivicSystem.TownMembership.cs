@@ -43,12 +43,12 @@ internal sealed partial class CivicSystem
 
     internal bool MayVisitAsNewcomer(ICivicTownWorld world, string actor, TownRuntimeState town) =>
             world.AdultResident(actor) && TownForResident(world, actor) is var current && current != town.Id &&
-            (current is null || town.BorderTiles.Contains(world.Inhabitants[actor].Position)) && CanWalkToCivicBoard(world, actor, town);
+            (current is null || town.BorderTiles.Contains(world.Agents[actor].Position)) && CanWalkToCivicBoard(world, actor, town);
 
     internal static bool CanWalkToCivicBoard(ICivicTownWorld world, string actor, TownRuntimeState town)
     {
         if (CivicBoard(world, town) is not { } board) return false;
-        var position = world.Inhabitants[actor].Position;
+        var position = world.Agents[actor].Position;
         for (var dy = -WorldRuntime.CivicSharedRules.ResourceInteractionRange; dy <= WorldRuntime.CivicSharedRules.ResourceInteractionRange; dy++)
             for (var dx = -WorldRuntime.CivicSharedRules.ResourceInteractionRange; dx <= WorldRuntime.CivicSharedRules.ResourceInteractionRange; dx++)
             {
@@ -191,12 +191,12 @@ internal sealed partial class CivicSystem
 
     internal bool MoveDependentToGuardianTown(ICivicTownWorld world, string child, string guardian)
     {
-        var person = world.Society.GetInhabitant(child);
-        var caregiver = world.Society.GetInhabitant(guardian);
-        if (!world.Inhabitants.ContainsKey(child) || !world.Inhabitants.ContainsKey(guardian) ||
-            person.Status != SocietyInhabitantStatus.Active ||
+        var person = world.Society.GetAgent(child);
+        var caregiver = world.Society.GetAgent(guardian);
+        if (!world.Agents.ContainsKey(child) || !world.Agents.ContainsKey(guardian) ||
+            person.Status != SocietyAgentStatus.Active ||
             person.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent) ||
-            caregiver.Status != SocietyInhabitantStatus.Active ||
+            caregiver.Status != SocietyAgentStatus.Active ||
             caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
             person.PrimaryCaregiverId != guardian || !SocietyRules.HasActivePrimaryCaregiver(world.Society, child) ||
             TownForResident(world, guardian) is not { } destination)
@@ -239,8 +239,8 @@ internal sealed partial class CivicSystem
         });
     }
 
-    internal string[] TownCareGroup(ICivicTownWorld world, string adult, string? fromTownId) => world.Society.Inhabitants
-            .Where(person => person.Status == SocietyInhabitantStatus.Active && (person.Id == adult ||
+    internal string[] TownCareGroup(ICivicTownWorld world, string adult, string? fromTownId) => world.Society.Agents
+            .Where(person => person.Status == SocietyAgentStatus.Active && (person.Id == adult ||
                 person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
                 person.PrimaryCaregiverId == adult && TownForResident(world, person.Id) == fromTownId))
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
@@ -258,7 +258,7 @@ internal sealed partial class CivicSystem
 
     internal static void ValidateTownAdmissions(IReadOnlyList<TownRuntimeState> savedTowns, SocietyCheckpoint society, int schemaVersion)
     {
-        var people = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var people = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var townIds = savedTowns.Select(town => town.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var town in savedTowns)
         {

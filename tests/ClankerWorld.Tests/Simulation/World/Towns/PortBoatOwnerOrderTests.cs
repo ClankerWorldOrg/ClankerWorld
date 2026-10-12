@@ -60,7 +60,7 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Null(Assert.Single(scenario.World.BoatRequests).BoatId);
         if (replace)
         {
-            var person = scenario.World.Inhabitants.Single(person => person.InhabitantId == BoatPolicy.Author);
+            var person = scenario.World.Agents.Single(person => person.AgentId == BoatPolicy.Author);
             scenario.World.SubmitInstruction(new("replace-voyage", "owner:test", BoatPolicy.Author,
                 OwnerInstructionKind.MustDo, FormattableString.Invariant($"move to ({person.Position.X}, {person.Position.Y})")));
         }

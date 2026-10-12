@@ -18,7 +18,7 @@ public sealed partial class WorldConversationTests
             {
                 Config = state.WorldSystems.Config with { CalendarOffsetTicks = 358 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 9_500,
                 IdentityChoicePending = false,

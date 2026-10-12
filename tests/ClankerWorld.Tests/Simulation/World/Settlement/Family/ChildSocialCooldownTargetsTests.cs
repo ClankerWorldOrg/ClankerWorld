@@ -19,13 +19,13 @@ public sealed class ChildSocialCooldownTargetsTests
     {
         var state = WorldRuntimeCodec.Decode(await CooledChild.Value);
         var child = Assert.Single(state.Society.Society.Births).ChildId;
-        var adults = state.Inhabitants.Where(person => person.InhabitantId != child)
-            .Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray();
-        var center = state.Inhabitants.Single(person => person.InhabitantId == child).Position;
+        var adults = state.Agents.Where(person => person.AgentId != child)
+            .Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray();
+        var center = state.Agents.Single(person => person.AgentId == child).Position;
         if (moveCooledContact)
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == adults[2]
+                Agents = state.Agents.Select(person => person.AgentId == adults[2]
                 ? person with { Position = new(center.X, center.Y + 3) } : person).ToArray()
             };
         var bytes = WorldRuntimeCodec.Encode(state);
@@ -80,7 +80,7 @@ public sealed class ChildSocialCooldownTargetsTests
         var birthTime = society.LifeTickAt(society.WorldTick) - 4 * society.Config.TicksPerLifecycleAge;
         society = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = society.Agents.Select(person => person.Id == child ? person with
             {
                 BirthTick = birthTime,
                 BirthLifeTick = society.LifeClock is null ? null : birthTime,
@@ -93,17 +93,17 @@ public sealed class ChildSocialCooldownTargetsTests
         var center = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             Enumerable.Range(-3, 7).SelectMany(y => Enumerable.Range(-3, 7).Select(x => new GridPoint(point.X + x, point.Y + y)))
                 .All(tile => state.Map.IsBuildable(tile) && !taken.Contains(tile)));
-        var adults = state.Inhabitants.Select(person => person.InhabitantId).Order(StringComparer.Ordinal).ToArray();
+        var adults = state.Agents.Select(person => person.AgentId).Order(StringComparer.Ordinal).ToArray();
         var positions = new[] { new GridPoint(center.X - 1, center.Y), new(center.X, center.Y - 1),
             new(center.X, center.Y + 1), new(center.X + 2, center.Y) };
         state = state with
         {
             Society = state.Society with { Society = society },
             Survival = new(society.WorldTick, []),
-            Inhabitants = state.Inhabitants.Append(new(child, center, 10_000, 0, "curious", "grow with the household", Survival: new(10_000)))
+            Agents = state.Agents.Append(new(child, center, 10_000, 0, "curious", "grow with the household", Survival: new(10_000)))
                 .Select(person => person with
                 {
-                    Position = person.InhabitantId == child ? center : positions[Array.IndexOf(adults, person.InhabitantId)],
+                    Position = person.AgentId == child ? center : positions[Array.IndexOf(adults, person.AgentId)],
                     HungerBasisPoints = 10_000,
                     Survival = new(10_000),
                     LastDecisionContext = null,
@@ -127,9 +127,9 @@ public sealed class ChildSocialCooldownTargetsTests
         var cooled = world.ExportState();
         return WorldRuntimeCodec.Encode(cooled with
         {
-            Inhabitants = cooled.Inhabitants.Select(person => person with
+            Agents = cooled.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == child ? center : positions[Array.IndexOf(adults, person.InhabitantId)],
+                Position = person.AgentId == child ? center : positions[Array.IndexOf(adults, person.AgentId)],
                 LastDecisionContext = null,
                 TravelCooldownTicks = 0,
             }).ToArray()
@@ -149,7 +149,7 @@ public sealed class ChildSocialCooldownTargetsTests
             Assert.True(social.Select(candidate => candidate[(candidate.IndexOf(':') + 1)..]).Distinct().Count() <= 3);
             foreach (var candidate in social) ChildCandidates.Add(candidate);
             var chosen = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == Wanted)?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 chosen, 1, new Dictionary<string, double> { [chosen] = 1 }));
         }

@@ -105,10 +105,10 @@ public sealed partial class WorldRuntime
         DerivedId.Hash($"{rider}:{tick}:{eventId}:{lot}", "dismount-cargo-", 24);
     private static string AnimalOfferId(string actor, string animal, long tick, long eventId) =>
         DerivedId.Hash($"{actor}:{animal}:{tick}:{eventId}", "animal-offer-", 24);
-    private static string AutomaticBuildingId(string inhabitant, BuildingDefinition definition) =>
-        inhabitant.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
-            ? DerivedId.Create($"build-{inhabitant}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")
-            : DerivedId.Hash(inhabitant + "\n" + definition.CanonicalId, "build-v2-");
+    private static string AutomaticBuildingId(string agent, BuildingDefinition definition) =>
+        agent.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
+            ? DerivedId.Create($"build-{agent}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")
+            : DerivedId.Hash(agent + "\n" + definition.CanonicalId, "build-v2-");
     private static string ReplacementBuildingId(string original, int replacement) =>
         DerivedId.Hash(original + "\n" + replacement.ToString(CultureInfo.InvariantCulture), "build-replacement-");
     private static string TownSalvageOperationId(long tick, string actor, string candidate) =>

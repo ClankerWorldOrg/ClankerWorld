@@ -30,7 +30,7 @@ public sealed partial class ConcreteMealTests
         var inventory = state.Society.Society.Inventory;
         var originalInputs = recipe.Inputs.ToDictionary(input => input.ResourceId, input =>
             inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == input.ResourceId).Sum(lot => lot.Quantity));
-        var foreign = state.Society.Society.Inhabitants.First(person => person.HouseholdId != household).Id;
+        var foreign = state.Society.Society.Agents.First(person => person.HouseholdId != household).Id;
         using var startedWorld = Restore(state);
         var rejectedBytes = WorldRuntimeCodec.Encode(startedWorld.ExportState());
         var rejected = startedWorld.StartProduction(recipe.CanonicalId, site.InstanceId, foreign);
@@ -98,7 +98,7 @@ public sealed partial class ConcreteMealTests
         { Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != InventoryContainerRules.FreshWater).ToArray() };
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Project = new SettlementProject("build:recipe:" + recipe.CanonicalId,
@@ -107,15 +107,15 @@ public sealed partial class ConcreteMealTests
         };
         using var world = Restore(state);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var blocker = world.Inhabitants.Single(person => person.InhabitantId == actor).Project!.Blocker;
+        var blocker = world.Agents.Single(person => person.AgentId == actor).Project!.Blocker;
         Assert.Contains("1 fresh water", blocker, StringComparison.Ordinal);
         var observation = new OwnerWorldObservationStore(world).GetSnapshot();
         var json = System.Text.Json.JsonSerializer.Serialize(observation);
         Assert.Contains("1 fresh water", json, StringComparison.Ordinal);
         for (var tick = 0; tick < 60; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).Project!.RequiresFreshChoice);
+        Assert.True(world.Agents.Single(person => person.AgentId == actor).Project!.RequiresFreshChoice);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.True(restored.Inhabitants.Single(person => person.InhabitantId == actor).Project!.RequiresFreshChoice);
+        Assert.True(restored.Agents.Single(person => person.AgentId == actor).Project!.RequiresFreshChoice);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed partial class ConcreteMealTests
         inventory = InventoryAuthority.AddLot(inventory, "personal-meal", mealKind, actor, 1);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     HungerBasisPoints = 1_000,
@@ -163,14 +163,14 @@ public sealed partial class ConcreteMealTests
                 : person).ToArray(),
         };
         using var world = Restore(state, actor, "consume_food");
-        await AdvanceUntil(world, () => world.Inhabitants.Single(person => person.InhabitantId == actor)
+        await AdvanceUntil(world, () => world.Agents.Single(person => person.AgentId == actor)
             .Survival?.LastMealKind == mealKind, 20);
-        var fed = world.Inhabitants.Single(person => person.InhabitantId == actor);
+        var fed = world.Agents.Single(person => person.AgentId == actor);
         Assert.InRange(fed.HungerBasisPoints, 1_000 + nourishment - 200, 1_000 + nourishment);
         Assert.True(fed.Survival!.NutritionBasisPoints > 5_000);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "personal-meal");
         using var resumed = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.Equal(fed.Survival, resumed.Inhabitants.Single(person => person.InhabitantId == actor).Survival);
+        Assert.Equal(fed.Survival, resumed.Agents.Single(person => person.AgentId == actor).Survival);
         Assert.Throws<InvalidDataException>(() => Restore(world.ExportState() with { SchemaVersion = 39 }));
     }
 
@@ -247,20 +247,20 @@ public sealed partial class ConcreteMealTests
     public async Task ASingleLivingCookCanImproveTwoBreadIntoRestaurantMealsWithoutProvisioningTheDead()
     {
         var (state, actor, household, restaurant, _) = Prepared("porridge", true);
-        var other = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household && person.Id != actor).Id;
+        var other = state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != actor).Id;
         using var society = SocietyRuntime.Restore(state.Society);
         society.Apply(checkpoint => SocietyRules.Kill(checkpoint, other, SocietyDeathCause.Accident, checkpoint.WorldTick));
         state = state with
         {
             Society = society.ExportState(),
-            Inhabitants = state.Inhabitants.Where(person => person.InhabitantId != other).ToArray(),
+            Agents = state.Agents.Where(person => person.AgentId != other).ToArray(),
             Towns = state.Towns!.Select(town => town with
             {
                 ResidentIds = town.ResidentIds.Where(id => id != other).ToArray(),
                 Governance = town.Governance is { } governance ? TownGovernanceRules.Advance(governance,
                     town.Id, state.WorldSeed, town.ResidentIds.Where(id => id != other &&
-                        society.Checkpoint.Inhabitants.Any(person => person.Id == id &&
-                            person.Status == SocietyInhabitantStatus.Active &&
+                        society.Checkpoint.Agents.Any(person => person.Id == id &&
+                            person.Status == SocietyAgentStatus.Active &&
                             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
                         .Order(StringComparer.Ordinal).ToArray(), society.Checkpoint.WorldTick,
                     state.WorldSystems!.Config.TicksPerDay) : null,
@@ -288,15 +288,15 @@ public sealed partial class ConcreteMealTests
         var observer = new ActionCoverageRecorder(chooseIdle: true);
         state = FarmFieldTests.WithInventory(stocked, inventory) with
         {
-            Inhabitants = world.ExportState().Inhabitants.Select(person =>
-            person.InhabitantId == actor ? person with { LastDecisionContext = null } : person).ToArray()
+            Agents = world.ExportState().Agents.Select(person =>
+            person.AgentId == actor ? person with { LastDecisionContext = null } : person).ToArray()
         };
         using var completed = WorldRuntime.Restore(state, id => id == actor ? observer : new Chooser());
         for (var tick = 0; tick < 6; tick++) Assert.True((await completed.AdvanceOneTickAsync()).Advanced);
         Assert.NotEmpty(observer.FamiliesOfferedTo(actor, completed.WorldContent));
         Assert.DoesNotContain(observer.FamiliesOfferedTo(actor, completed.WorldContent), family =>
             family is "recipe:porridge" or "recipe:restaurant-meal");
-        Assert.Contains(completed.Society.Inhabitants, person => person.Id == other && person.Status != SocietyInhabitantStatus.Active);
+        Assert.Contains(completed.Society.Agents, person => person.Id == other && person.Status != SocietyAgentStatus.Active);
     }
 
     [Fact]
@@ -345,7 +345,7 @@ public sealed partial class ConcreteMealTests
             "harvest-cooking-jug", InventoryContainerRules.WaterJug, household, 1, storageBuildingId: house.InstanceId);
         waterState = FarmFieldTests.WithInventory(waterState, inventory) with
         {
-            Inhabitants = waterState.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = waterState.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 10_000, LastDecisionContext = null } : person).ToArray(),
         };
         var waterChoices = new Chooser("fill_water_jug", "return_water_jug", "collect_water_jug");
@@ -354,7 +354,7 @@ public sealed partial class ConcreteMealTests
         await AdvanceUntil(water, () => water.ExportState().Events.Any(item => item.Kind == "water_jug_returned" &&
             item.Detail.Contains("harvest-cooking-jug", StringComparison.Ordinal)), 300, () =>
             "offers=" + string.Join(",", waterChoices.OfferedCandidates.Distinct()) + " | " +
-            "position=" + water.Inhabitants.Single(person => person.InhabitantId == actor).Position +
+            "position=" + water.Agents.Single(person => person.AgentId == actor).Position +
             " | stock=" + System.Text.Json.JsonSerializer.Serialize(water.Society.Inventory.Lots.Where(lot =>
                 lot.OwnerId == actor || lot.OwnerId == household)) + " | jug events=" +
             string.Join(",", water.ExportState().Events.Where(item => item.Kind.StartsWith("water_jug", StringComparison.Ordinal))
@@ -376,17 +376,17 @@ public sealed partial class ConcreteMealTests
             (lot.OwnerId == household || lot.OwnerId == actor) && lot.ItemKind == "food");
         eatState = eatState with
         {
-            Inhabitants = eatState.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = eatState.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 1_000, LastDecisionContext = null } : person).ToArray(),
         };
         using var eating = Restore(eatState, actor, "consume_food", "collect_shared_food");
-        await AdvanceUntil(eating, () => eating.Inhabitants.Single(person => person.InhabitantId == actor)
+        await AdvanceUntil(eating, () => eating.Agents.Single(person => person.AgentId == actor)
             .Survival?.LastMealKind == "porridge", 60);
         Assert.Contains(eating.ExportState().Events, item => item.Kind == "household_food_collected" &&
             item.Detail.Contains(serving.Id, StringComparison.Ordinal));
         Assert.Equal(1, eating.Society.Inventory.Lots.Where(lot => lot.ItemKind == "porridge").Sum(lot => lot.Quantity));
         using var savedMeal = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(eating.ExportState())));
-        Assert.Equal("porridge", savedMeal.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.LastMealKind);
+        Assert.Equal("porridge", savedMeal.Agents.Single(person => person.AgentId == actor).Survival!.LastMealKind);
         Assert.Equal(InventoryReservationState.Reserved, savedMeal.Society.Inventory.GetReservation(reserve.Id).State);
     }
 
@@ -399,7 +399,7 @@ public sealed partial class ConcreteMealTests
             "wood", actor, 2);
         state = SettlementWeatherTestFixture.WithWeather(FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position, Survival = new SurvivalCondition(3_000) }
                 : person).ToArray(),
         }, ClankerWorld.Simulation.World.WeatherKind.Snow);
@@ -455,7 +455,7 @@ public sealed partial class ConcreteMealTests
         }
         state = SettlementWeatherTestFixture.WithWeather(FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 3_000, Survival = new SurvivalCondition(LastMealKind: "porridge") }
                 : person).ToArray(),
         }, ClankerWorld.Simulation.World.WeatherKind.Clear);
@@ -505,7 +505,7 @@ public sealed partial class ConcreteMealTests
             Assert.Equal(InventoryReservationState.Reserved,
                 world.Society.Inventory.GetReservation("order-protected-meals").State);
         else
-            Assert.Equal("porridge", world.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.LastMealKind);
+            Assert.Equal("porridge", world.Agents.Single(person => person.AgentId == actor).Survival!.LastMealKind);
         world.Validate();
     }
 
@@ -515,7 +515,7 @@ public sealed partial class ConcreteMealTests
         using var setup = NormalPathWorld.CreateGenerated("concrete-meal-" + localId, _ => new Chooser());
         var state = setup.ExportState();
         const string household = "household:camp-alpha";
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var site = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         if (restaurant)
         {
@@ -553,7 +553,7 @@ public sealed partial class ConcreteMealTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = site.Position,
@@ -574,7 +574,7 @@ public sealed partial class ConcreteMealTests
         if (actor is not null)
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { LastDecisionContext = null } : person).ToArray()
             };
         return WorldRuntime.Restore(state, id => new Chooser(id == actor ? choices : []));

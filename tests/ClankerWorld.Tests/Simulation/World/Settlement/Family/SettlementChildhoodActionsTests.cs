@@ -36,10 +36,10 @@ public sealed class SettlementChildhoodActionsTests
     public async Task IllnessDoesNotSuppressOrdinaryChildConversationOrChangePersonality()
     {
         var state = await ChildState();
-        var original = state.Inhabitants.Single(person => person.InhabitantId == Child);
+        var original = state.Agents.Single(person => person.AgentId == Child);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Child ? person with
+            Agents = state.Agents.Select(person => person.AgentId == Child ? person with
             {
                 Survival = new(10_000, 9_000),
                 LastDecisionContext = null,
@@ -57,11 +57,11 @@ public sealed class SettlementChildhoodActionsTests
 
             Assert.Contains(childProvider.SeenCandidates, id => id.StartsWith(choice, StringComparison.Ordinal));
             Assert.Contains(world.ExportState().Events, item => item.Kind == eventKind);
-            Assert.Equal(original.Personality, world.Inhabitants.Single(person => person.InhabitantId == Child).Personality);
+            Assert.Equal(original.Personality, world.Agents.Single(person => person.AgentId == Child).Personality);
             var memory = Assert.Single(world.Society.Memories, item =>
                 item.OwnerId == Child && item.Id.StartsWith("child-social:" + kind + ":", StringComparison.Ordinal));
             Assert.Equal($"child-social:{kind}:{Child}:{memory.SubjectId}:{memory.SourceTick}", memory.Id);
-            Assert.True(world.Inhabitants.Single(item => item.InhabitantId == Child).SocialStanding?.Any() == true);
+            Assert.True(world.Agents.Single(item => item.AgentId == Child).SocialStanding?.Any() == true);
             var saved = WorldRuntimeCodec.Encode(world.ExportState());
             using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new SelectProvider("safe_idle"));
             Assert.Equal(saved, WorldRuntimeCodec.Encode(reloaded.ExportState()));
@@ -81,7 +81,7 @@ public sealed class SettlementChildhoodActionsTests
             "eat food"));
         var admissions = new List<SocietyCognitionDispatchResult>();
         for (var tick = 0; tick < 4; tick++)
-            admissions.AddRange((await world.AdvanceOneTickAsync()).Decisions.Where(item => item.InhabitantId == Child));
+            admissions.AddRange((await world.AdvanceOneTickAsync()).Decisions.Where(item => item.AgentId == Child));
 
         Assert.True(provider.Calls > 0);
         Assert.DoesNotContain(forged, provider.SeenCandidates);
@@ -93,11 +93,11 @@ public sealed class SettlementChildhoodActionsTests
             Assert.Equal("candidate_not_legal", item.Admission.Outcome);
             Assert.Equal("safe_idle", item.Admission.Intention?.CandidateId);
         });
-        Assert.Null(world.Inhabitants.Single(item => item.InhabitantId == Child).Project);
+        Assert.Null(world.Agents.Single(item => item.AgentId == Child).Project);
         Assert.Empty(world.Society.Births);
         Assert.Empty(world.Society.Inventory.Offers);
         Assert.DoesNotContain(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Partnership);
-        Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetInhabitant(Child).CurrentRole);
+        Assert.Equal(SocietyWorkRole.Unassigned, world.Society.GetAgent(Child).CurrentRole);
         Assert.DoesNotContain(instruction.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
 
         var helpProvider = new SelectProvider("child_help_food");
@@ -108,7 +108,7 @@ public sealed class SettlementChildhoodActionsTests
         Assert.Contains(helpProvider.SeenCandidates, id => id == "child_help_food");
         Assert.Contains(helping.ExportState().Events, item => item.Kind == "child_helped_household");
         Assert.Equal(householdBefore + 1, helping.Society.Inventory.Lots.Where(item => item.OwnerId == "household:camp-alpha" && item.ItemKind == "food").Sum(item => item.Quantity));
-        Assert.Null(helping.Inhabitants.Single(item => item.InhabitantId == Child).Project);
+        Assert.Null(helping.Agents.Single(item => item.AgentId == Child).Project);
         var saved = WorldRuntimeCodec.Encode(helping.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -132,7 +132,7 @@ public sealed class SettlementChildhoodActionsTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == Child ? person with
+                    Agents = society.Agents.Select(person => person.Id == Child ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -143,7 +143,7 @@ public sealed class SettlementChildhoodActionsTests
                     Inventory = inventory,
                 }
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Child
+            Agents = state.Agents.Select(person => person.AgentId == Child
                 ? person with { LastDecisionContext = null, HungerBasisPoints = 9_000 } : person).ToArray(),
         };
     }
@@ -162,7 +162,7 @@ public sealed class SettlementChildhoodActionsTests
             var chosen = forge ? wanted : request.Observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id.StartsWith(wanted, StringComparison.Ordinal))?.Id ?? "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, chosen, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == chosen ? 1d : 0d, StringComparer.Ordinal)));

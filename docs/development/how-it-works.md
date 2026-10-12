@@ -187,7 +187,7 @@ floor and archive head. Its hot list is exposed read-only and every append
 replaces its `Version` token. Restore copies the saved events into a separate
 log; committing a prepared tick transfers the log with one assignment. Event
 positions still use an explicit point first, then the longest matching living
-or deceased inhabitant ID prefix. The sink receives the current world per call
+or deceased agent ID prefix. The sink receives the current world per call
 and retains no coordinator reference.
 
 `Runtime/ResidentQueries.cs` supplies resident age, household, interaction,
@@ -203,8 +203,8 @@ change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
 The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
-`SocietyInhabitantIndex` uses the immutable inhabitant-list identity for an
-ordinal ID dictionary behind the existing `SocietyCheckpoint.GetInhabitant`
+`SocietyAgentIndex` uses the immutable agent-list identity for an
+ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
 method. Inventory-only snapshot changes can reuse the index; identity, age,
 name or household writes replace its key. Missing and duplicate IDs retain
 the linear query's `Single` behavior, and malformed inputs still pass through
@@ -242,8 +242,8 @@ restore rebuilds them from saved inputs. Event handlers are live work too. They 
 the complete transfer list, and invoke the native commit with a prepared
 runtime to compare its encoded checkpoint and transferred values.
 
-The C# source scan records writer files for every inhabitant component in
-[`inhabitant-writers.json`](../../tests/ClankerWorld.Tests/Architecture/inhabitant-writers.json).
+The C# source scan records writer files for every agent component in
+[`agent-writers.json`](../../tests/ClankerWorld.Tests/Architecture/agent-writers.json).
 Construction writes all components, including defaults; collection replacement,
 insertion and removal have their own entry. New writer files fail the test.
 Removing a writer also fails until the baseline is lowered. Review a baseline
@@ -973,7 +973,7 @@ pending, including across reload. A recognized new order replaces outstanding
 orders unless `Queue` is true; queued orders run in submission order. Cancel
 retains an idempotent receipt, including a no-op cancellation of a closed order.
 Receipt-only owner changes supersede a concurrently prepared tick too.
-Cancellation matches the complete native inhabitant identity to its saved order,
+Cancellation matches the complete native agent identity to its saved order,
 including agents born in the world. The 128-character bounds apply to caller
 keys, issuer, world and order IDs, not native target identities; control
 characters are refused in every cancellation identity.
@@ -1406,9 +1406,9 @@ is separate from action admission: a valid name from a current legal-choice,
 low-confidence or rejected-action reply is kept, while malformed replies and
 stale replies cannot name the agent.
 
-Player renames reuse `InhabitantNameRules`, including NFC normalization,
+Player renames reuse `AgentNameRules`, including NFC normalization,
 collapsed Unicode whitespace and `OrdinalIgnoreCase` comparison. The runtime
-checks the first names of all other inhabitants with `HasChosenName`, living
+checks the first names of all other agents with `HasChosenName`, living
 or deceased, under the same world gate that commits the rename. Keeping one's
 own first name is allowed. A taken first name returns `name_taken` from
 the signed owner endpoint; the client translates only that refusal into a
@@ -1445,7 +1445,7 @@ rule includes deceased biological parents and does not substitute caregivers.
 An invalid surname follows the existing unusable-name outcome; only a taken
 first name earns the extra paid retry. Parent renames do not retroactively
 invalidate a child's name or saved state.
-`RenameInhabitant` refuses removal of a chosen parent's surname when the
+`RenameAgent` refuses removal of a chosen parent's surname when the
 proposed checkpoint would leave any minor biological child with no allowed
 surname. The check runs before commit, so player refusal publishes no name,
 event or permanent memory. Other chosen biological parents, including deceased
@@ -1553,7 +1553,7 @@ request and speaker; stale or malformed replies are not admitted. Public turns
 carry a bounded list of agents who were actually close enough to hear. A
 separate memory extraction gives those listeners hearsay claims tied to the
 turn ID, with duplicate and owner checks. Listener and belief-owner references
-retain complete native inhabitant IDs, including longer identities created by
+retain complete native agent IDs, including longer identities created by
 birth; they do not share the length bounds for caller-provided belief IDs and
 prose. Canonical identity and known-owner checks still apply.
 Personal-model memory subjects and belief reporters use the same stable hash
@@ -1576,7 +1576,7 @@ one accepted wrap-up), and each later provider request receives the committed
 public history so far. The wrap-up request receives the six public turns; a
 pending answer is never included or saved.
 
-Conversation participants and speakers retain their complete native inhabitant
+Conversation participants and speakers retain their complete native agent
 IDs too, through proposal, personal model routing, requests and saved history.
 These references use canonical identity and known-world participant checks
 instead of prose length limits, including for longer identities created by birth.
@@ -2415,7 +2415,7 @@ day-lifecycle worlds. `SocietyRules.FounderArrivalAge` orders that range once
 per world seed and gives the founder in each placement position its day, so
 the four founders never share a day, the same seed repeats their ages, and a
 founder placed after an undo gets the undone position's age. `AddAdult` draws
-an added adult's day from the world seed and the number of inhabitants already
+an added adult's day from the world seed and the number of agents already
 recorded, living or dead, not from the client's agent ID. The saved birth tick
 holds the result, so loading never draws again. Year-based development worlds
 keep the 18-year adult age.
@@ -2565,7 +2565,7 @@ adult. Physical relays carry only material their source learned. Owner inspectio
 does not supply agent knowledge or private memories.
 Notice revisions retain their published party snapshots. The shared pure
 `TownLandCasePartyRules.CurrentParties` derives current adult responders and Town
-representation from the same captured rights, request masks, inhabitants, civic
+representation from the same captured rights, request masks, agents, civic
 authority and clock used by the runtime. Death, departure and succession update
 current standing without rewriting the original notice. Owner views label these
 roles separately, and each ruling projects its actual closure party roster.
@@ -2684,7 +2684,7 @@ An explicitly chosen visit can continue moving locally; ballots may be revised
 on the agent's ordinary decision cadence.
 
 Long ancestry-based agent IDs use stable SHA-256 aliases in civic model action
-tokens. The runtime resolves these against current inhabitants before checking a
+tokens. The runtime resolves these against current agents before checking a
 ballot; saved candidates and choices retain the actual IDs.
 
 Land-hearing readers, evidence sources and submitters, judges, affected parties,
@@ -2896,7 +2896,7 @@ urgent needs or legal choices change. Weights and retry values are provisional.
 Material scoring searches at most five map tiles from a site, including the
 east-west seam; farther resources cannot change its rank. Recipe and expansion
 input checks share reachable-tool results and a lazily collected accessible
-Warehouse list only within one inhabitant's read-only candidate query. Stock
+Warehouse list only within one agent's read-only candidate query. Stock
 quantities and reservations are still read for each input. Project-input source
 scans check the required resource kind before looking up its availability by ID;
 wood still accepts construction sources. Matching sources keep their current

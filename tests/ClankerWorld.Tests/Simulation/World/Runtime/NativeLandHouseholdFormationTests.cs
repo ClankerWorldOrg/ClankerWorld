@@ -18,7 +18,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.InRange(native.Length, 1, DerivedId.MaximumLength);
         Assert.Equal(later ? 3 : 1, initial.Society.Society.Births.Count);
         var formed = await FormNativeLandHouseholdAsync(initial, native, quietFirstRefusal: true, heldIdentityReply, cancelFoundReply);
-        Assert.InRange(formed.Society.Society.GetInhabitant(native).HouseholdId!.Length, 1, DerivedId.MaximumLength);
+        Assert.InRange(formed.Society.Society.GetAgent(native).HouseholdId!.Length, 1, DerivedId.MaximumLength);
         var saved = WorldRuntimeCodec.Encode(formed);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietProvider());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));

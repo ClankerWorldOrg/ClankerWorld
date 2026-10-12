@@ -26,7 +26,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         for (var tick = 0; tick < 96 && recovered.Society.Inventory.GetLot(Pot).OwnerId == actor; tick++)
         {
             var discardHere = false;
-            var position = recovered.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var position = recovered.Agents.Single(person => person.AgentId == actor).Position;
             if (!discarded && state.Map.FootDistance(position, startingSite) <= 1)
             {
                 var before = WorldRuntimeCodec.Encode(recovered.ExportState());

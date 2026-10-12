@@ -20,7 +20,7 @@ internal sealed partial class CivicSystem
         if (action is "land_transfer_propose" or "land_transfer_sell")
         {
             var target = hearingChoice?.HouseholdId;
-            var source = world.Society.GetInhabitant(actor).HouseholdId;
+            var source = world.Society.GetAgent(actor).HouseholdId;
             var tiles = TownLandRightsRules.OrderTiles(landTiles?.Select(tile => new GridPoint(tile.X, tile.Y)) ?? []);
             if (source is null || target is null || target == source ||
                 !LandTransferKnownHouseholds(world, actor, currentTown).Any(household => household.Id == target) ||
@@ -58,7 +58,7 @@ internal sealed partial class CivicSystem
                 CollectLandSalePayment(world, actor, currentTown, request);
                 break;
             case "land_transfer_meet":
-                world.MoveToward(actor, world.Inhabitants[actor], CivicBoard(world, currentTown)!.Value, "land_sale", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+                world.MoveToward(actor, world.Agents[actor], CivicBoard(world, currentTown)!.Value, "land_sale", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
                 break;
             case "land_transfer_pay":
                 return SettleLandSale(world, currentTown, council, request, actor);

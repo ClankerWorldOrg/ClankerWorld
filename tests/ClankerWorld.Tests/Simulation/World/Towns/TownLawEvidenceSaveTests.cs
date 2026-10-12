@@ -27,7 +27,7 @@ public sealed class TownLawEvidenceSaveTests
         state = NonviolentRuntimeFixture.Strict(state with { Towns = [town with { Governance = council, Government = government }] });
         var conduct = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == NonviolentRuntimeFixture.Subject
+            Choose = observation => observation.AgentId == NonviolentRuntimeFixture.Subject
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal)) : null
         };
         using (var world = NonviolentRuntimeFixture.Create(state, conduct))
@@ -42,7 +42,7 @@ public sealed class TownLawEvidenceSaveTests
         }
         var inspector = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == NonviolentRuntimeFixture.Judge
+            Choose = observation => observation.AgentId == NonviolentRuntimeFixture.Judge
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) : null
         };

@@ -9,7 +9,7 @@ public partial class Main
     {
         var previous = renderedMapSnapshot!;
         var previousObservation = observationSession.Current;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousProcessing = IsProcessing();
         var visiblePanels = HudPanels().ToDictionary(panel => panel, panel => panel.Visible);
         SetProcess(false);
@@ -23,14 +23,14 @@ public partial class Main
         var map = new OwnerWorldSnapshot("gliding-markers-smoke", 1, "gliding-markers-map", [], [], [], null, 0)
         {
             PackedTerrain = new(256, 128, "terrain-kind-v1", Convert.ToBase64String(new byte[256 * 128])),
-            Inhabitants = [person],
+            Agents = [person],
             Animals = [cow],
             Handcarts = [cart],
             Boats = [boat],
             Authoring = new(false, 0, 0, 0, "gliding-markers-map", "gliding-markers-map", "clear", "spring", []),
         };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         void Show()
         {
@@ -45,13 +45,13 @@ public partial class Main
             cow = cow with { Position = new(x, 62) };
             cart = cart with { Position = new(x, 64) };
             boat = boat with { Position = new(x, 66) };
-            map = map with { WorldTick = map.WorldTick + 1, Inhabitants = [person], Animals = [cow], Handcarts = [cart], Boats = [boat] };
+            map = map with { WorldTick = map.WorldTick + 1, Agents = [person], Animals = [cow], Handcarts = [cart], Boats = [boat] };
             Show();
         }
         try
         {
             Show();
-            var agent = inhabitantVisuals[person.Id];
+            var agent = agentVisuals[person.Id];
             Control[] markers = [agent, mapObjectVisuals["animal:" + cow.Id], mapObjectVisuals["handcart:" + cart.Id], mapObjectVisuals["boat:" + boat.Id]];
             var origins = markers.Select(marker => marker.Position).ToArray();
             var stride = currentTileSize + TileGap;
@@ -105,11 +105,11 @@ public partial class Main
                 Pressed = false
             }, true);
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            if (selectedInhabitantId != person.Id || !agent.Selected || !agent.NameShown || !selectedInhabitantCard.Visible)
+            if (selectedAgentId != person.Id || !agent.Selected || !agent.NameShown || !selectedAgentCard.Visible)
                 throw new InvalidOperationException("Clicking a gliding figure must select it, show its name and open its card.");
-            var cardBefore = selectedInhabitantCard.Position;
+            var cardBefore = selectedAgentCard.Position;
             AdvanceMapMarkers(0.25);
-            if (selectedInhabitantCard.Position == cardBefore)
+            if (selectedAgentCard.Position == cardBefore)
                 throw new InvalidOperationException("The selected agent's quick card must follow the drawn position.");
             AdvanceMapMarkers(1);
             if (agent.Frame != AgentFrame.Still || animalSprite.Step != 0 ||
@@ -131,10 +131,10 @@ public partial class Main
             SetCameraAtImmediately(new(256.5f, 61));
             if (Math.Abs(agent.Position.X - beforePan.X) > 0.01f)
                 throw new InvalidOperationException("Equivalent camera copies must preserve the intermediate wrapped drawing.");
-            var normalized = inhabitantCanonicalXs[person.Id] / stride;
+            var normalized = agentCanonicalXs[person.Id] / stride;
             cameraZoom = Math.Max(minimumCameraZoom, cameraZoom / 2);
             RenderMap(map);
-            if (Math.Abs(inhabitantCanonicalXs[person.Id] / (currentTileSize + TileGap) - normalized) > 0.6f)
+            if (Math.Abs(agentCanonicalXs[person.Id] / (currentTileSize + TileGap) - normalized) > 0.6f)
                 throw new InvalidOperationException("Zoom must retain the in-progress tile, rather than jumping to its reported destination.");
             map = map with { WorldTick = 0 };
             Show();
@@ -154,7 +154,7 @@ public partial class Main
             {
                 WorldId = "gliding-crowd-smoke",
                 Authoring = map.Authoring! with { IsPaused = false },
-                Inhabitants = [person, neighbour],
+                Agents = [person, neighbour],
                 Animals = [],
                 Handcarts = [],
                 Boats = []
@@ -165,7 +165,7 @@ public partial class Main
                 var before = agent.Position;
                 var sizeBefore = agent.Size;
                 person = person with { Position = new(x, 60) };
-                map = map with { WorldTick = map.WorldTick + 1, Inhabitants = [person, neighbour] };
+                map = map with { WorldTick = map.WorldTick + 1, Agents = [person, neighbour] };
                 Show();
                 if (agent.Position != before || agent.Size != sizeBefore)
                     throw new InvalidOperationException("Entering or leaving a crowded tile must start at the current drawing and hit bounds, without a layout jump.");
@@ -177,7 +177,7 @@ public partial class Main
                     halfSize.DistanceTo(sizeBefore.Lerp(agent.Size, 0.5f)) > 0.01f || agent.Frame != AgentFrame.Still)
                     throw new InvalidOperationException("Crowd offsets and hit bounds must interpolate with the authoritative tile move and finish together.");
             }
-            map = map with { Inhabitants = [], Animals = [], Handcarts = [], Boats = [] };
+            map = map with { Agents = [], Animals = [], Handcarts = [], Boats = [] };
             Show();
             if (markerMotions.Count != 0)
                 throw new InvalidOperationException("Removed markers must release their local motion state.");
@@ -186,7 +186,7 @@ public partial class Main
         {
             observationSession.ResetAfterLoad();
             if (previousObservation is not null) observationSession.TryAccept(previousObservation, 0, out _);
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             Render(previous, []);
             foreach (var (panel, visible) in visiblePanels) panel.Visible = visible;
             SetProcess(previousProcessing);

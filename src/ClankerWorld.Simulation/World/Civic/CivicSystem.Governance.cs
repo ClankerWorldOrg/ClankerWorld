@@ -9,7 +9,7 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CivicSystem
 {
-    internal static string[] TownAdults(ICivicHistoryWorld world, TownRuntimeState town) => town.ResidentIds.Where(id => world.Society.Inhabitants.Any(p => p.Id == id && p.Status == SocietyInhabitantStatus.Active &&
+    internal static string[] TownAdults(ICivicHistoryWorld world, TownRuntimeState town) => town.ResidentIds.Where(id => world.Society.Agents.Any(p => p.Id == id && p.Status == SocietyAgentStatus.Active &&
             p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).Order(StringComparer.Ordinal).ToArray();
     internal static int CivicDay(ICivicHistoryWorld world) => world.CalendarConfig.TicksPerDay;
     internal static long CivicDayNumber(ICivicHistoryWorld world, long tick) => WorldCalendarRules.FromTick(tick, world.CalendarConfig).DayIndex + 1;
@@ -21,7 +21,7 @@ internal sealed partial class CivicSystem
             return history.Recent(actor).Select(k => (Receipt: k, Notice: history.Notices[k.NoticeId], Town: t.Name));
         })
             .OrderByDescending(n => n.Receipt.LearnedTick).ThenByDescending(n => n.Notice.PostedTick).Take(3)
-            .Select(n => (n.Receipt.SourceAgentId is { } source ? $"Heard from {world.Society.GetInhabitant(source).Name}: " : "Read Town notice: ") +
+            .Select(n => (n.Receipt.SourceAgentId is { } source ? $"Heard from {world.Society.GetAgent(source).Name}: " : "Read Town notice: ") +
                 n.Town + ": " + ReadableCivicNotice(world, n.Notice.Text)).ToArray();
         var excerpt = string.Join(" | ", learned);
         return learned.Length == 0 ? null : CivicExcerpt(excerpt, 1024);
@@ -32,7 +32,7 @@ internal sealed partial class CivicSystem
     internal static partial Regex CivicTickText();
     internal static string ReadableCivicNotice(ICivicHistoryWorld world, string text)
     {
-        foreach (var person in world.Society.Inhabitants.OrderByDescending(p => p.Id.Length))
+        foreach (var person in world.Society.Agents.OrderByDescending(p => p.Id.Length))
             text = text.Replace(person.Id, person.Name, StringComparison.Ordinal);
         text = CivicTickText().Replace(text, match =>
         {
@@ -99,19 +99,19 @@ internal sealed partial class CivicSystem
             .OrderBy(b => b.PlacedTick).ThenBy(b => b.InstanceId, StringComparer.Ordinal)
             .Select(b => (GridPoint?)(b.Entrance ?? TownHallContent.Entrance(b.Position))).FirstOrDefault() ?? town.OriginSite ?? world.WorldSimulation.Buildings.FirstOrDefault(b => b.TownId == town.Id && b.HouseholdId is null)?.Position ?? world.Map.MapObjects.FirstOrDefault(p => p.Kind == "storage" && town.BorderTiles.Contains(p.Position))?.Position ??
         town.BorderTiles.Where(world.Map.IsBuildable).OrderBy(p => p.Y).ThenBy(p => p.X).Select(p => (GridPoint?)p).FirstOrDefault();
-    internal static bool NearCivicBoard(ICivicTownWorld world, string actor, TownRuntimeState town) => CivicBoard(world, town) is { } board && world.IsWithinInteractionRange(world.Inhabitants[actor].Position, board, WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+    internal static bool NearCivicBoard(ICivicTownWorld world, string actor, TownRuntimeState town) => CivicBoard(world, town) is { } board && world.IsWithinInteractionRange(world.Agents[actor].Position, board, WorldRuntime.CivicSharedRules.ResourceInteractionRange);
     internal static string CivicAgentToken(string id) => id.Length == 0 ? id : DerivedId.Create(id, "agent-sha256:");
-    internal static string ResolveCivicAgentToken(ICivicHistoryWorld world, string token) => world.Society.Inhabitants.FirstOrDefault(p =>
+    internal static string ResolveCivicAgentToken(ICivicHistoryWorld world, string token) => world.Society.Agents.FirstOrDefault(p =>
         p.Id == token || CivicAgentToken(p.Id) == token)?.Id ?? token;
     internal static string CivicAction(ICivicHistoryWorld world, string town, string kind, string subject = "", string choice = "") =>
-        $"civic|{town}|{kind}|{(world.Society.Inhabitants.Any(p => p.Id == subject) ? CivicAgentToken(subject) : subject)}|{CivicAgentToken(choice)}";
+        $"civic|{town}|{kind}|{(world.Society.Agents.Any(p => p.Id == subject) ? CivicAgentToken(subject) : subject)}|{CivicAgentToken(choice)}";
     internal static string CivicRoundToken(TownElection election) =>
         DerivedId.Create($"{election.Id}:{election.Stage}:{election.OpenedTick.ToString(CultureInfo.InvariantCulture)}");
     internal void AddTownCivicCandidates(ICivicTownWorld world, List<CognitionCandidate> candidates, string actor,
         IReadOnlyList<string>? buildingsWithoutSites = null)
     {
         // Civic agreement and votes are explicit personal choices, never a built-in idle alternative.
-        if (world.NeedsUrgentWarmth(world.Inhabitants[actor])) return;
+        if (world.NeedsUrgentWarmth(world.Agents[actor])) return;
         var siteRecovery = buildingsWithoutSites is { Count: > 0 }
             ? $"No legal building site is available for {string.Join(", ", buildingsWithoutSites)}. "
             : string.Empty;
@@ -141,29 +141,29 @@ internal sealed partial class CivicSystem
                         $"Agree only to fill a vacancy until this council term ends in {town.Name}; this does not enter the next full-term contest.", 186));
                 if (state.Candidates.Any(c => c.AgentId == actor))
                     candidates.Add(new(CivicAction(world, town.Id, "withdraw_candidate"), $"Withdraw your willingness to stand in {town.Name}.", 190));
-                foreach (var nearby in world.Inhabitants.Values.Where(p => p.InhabitantId != actor && world.AdultResident(p.InhabitantId) && world.IsWithinInteractionRange(p.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+                foreach (var nearby in world.Agents.Values.Where(p => p.AgentId != actor && world.AdultResident(p.AgentId) && world.IsWithinInteractionRange(p.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
                 {
-                    var nominee = nearby.InhabitantId;
+                    var nominee = nearby.AgentId;
                     if (resident && adults.Contains(nominee, StringComparer.Ordinal) &&
                         !state.Candidates.Any(c => c.AgentId == nominee && c.FullTerm) &&
                         !state.Notices.Any(n => n.Kind == "nomination" && n.SubjectId == TownRecordIds.Nomination(actor, nominee)))
                         candidates.Add(new(CivicAction(world, town.Id, "nominate", nominee),
-                            $"Nominate {world.Society.GetInhabitant(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188));
+                            $"Nominate {world.Society.GetAgent(nominee).Name} for full council terms in {town.Name}; they must personally agree before becoming a candidate.", 188));
                     if (MayBeSponsoredForAdmission(world, nominee, town))
                         candidates.Add(new(CivicAction(world, town.Id, "request_admission", nominee),
-                            $"Ask {town.Name}'s council to approve admission of {world.Society.GetInhabitant(nominee).Name}, the adult nearby. A request grants no membership or Warehouse access.", 188));
+                            $"Ask {town.Name}'s council to approve admission of {world.Society.GetAgent(nominee).Name}, the adult nearby. A request grants no membership or Warehouse access.", 188));
                 }
                 AddTownLawCandidates(world, candidates, actor, town);
                 if (town.Government is not null) AddTownGovernmentCandidates(world, candidates, actor, town);
                 world.AddTownProjectProposalCandidates(candidates, actor, town);
                 world.AddBoatAccessCandidates(candidates, actor, town);
-                var here = world.Inhabitants[actor].Position;
+                var here = world.Agents[actor].Position;
                 // The model sees no map grid, so name real claimable tiles it can choose from.
                 if (TownLandClaimRules.ClaimableNear(world.Map, town, world.TownLandTitles, here, 6) is { Length: > 0 } nearest)
                     candidates.Add(new(CivicAction(world, town.Id, "claim_land"), siteRecovery + $"Ask {town.Name}'s council to claim a connected plot of adjoining unclaimed land; include its exact coordinates in civic_land_tiles. " +
                         FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); unclaimed tiles beside the Town's land nearest you: {string.Join("; ", nearest.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
                         "Existing titles, household rights, buildings and goods stay with their holders.", 190));
-                if (world.Society.GetInhabitant(actor).HouseholdId is not null && RequestableLandNear(world, town, here, 6) is { Length: > 0 } free)
+                if (world.Society.GetAgent(actor).HouseholdId is not null && RequestableLandNear(world, town, here, 6) is { Length: > 0 } free)
                     candidates.Add(new(CivicAction(world, town.Id, "request_land_use"), siteRecovery + $"Ask {town.Name}'s council for household use of a connected plot of Town-titled land; include exact coordinates in civic_land_tiles. " +
                         FormattableString.Invariant($"You stand at ({here.X}, {here.Y}); free Town land nearest you: {string.Join("; ", free.Select(tile => FormattableString.Invariant($"({tile.X}, {tile.Y})")))}. ") +
                         "Filing grants nothing and supplies no household acceptance.", 190));
@@ -201,16 +201,16 @@ internal sealed partial class CivicSystem
                 history.Knows(actor, election.Stage == "main" ? "election" : "runoff", election.Id))
             {
                 candidates.Add(new(CivicAction(world, town.Id, "ballot", CivicRoundToken(election)), $"Submit or revise your {election.Stage} ballot in {town.Name}; choose up to {election.Seats} distinct IDs via civic_ballot. " +
-                    $"Willing candidates: {string.Join(", ", election.Candidates.Select(id => world.Society.GetInhabitant(id).Name + " (" + CivicAgentToken(id) + ")"))}. Self-voting is allowed. " +
+                    $"Willing candidates: {string.Join(", ", election.Candidates.Select(id => world.Society.GetAgent(id).Name + " (" + CivicAgentToken(id) + ")"))}. Self-voting is allowed. " +
                     $"Voting closes on world day {CivicDayNumber(world, election.DeadlineTick)}.", 165));
                 foreach (var id in election.Candidates)
-                    candidates.Add(new(CivicAction(world, town.Id, "single", CivicRoundToken(election), id), $"Submit or revise your ballot to support only {world.Society.GetInhabitant(id).Name} in {town.Name}. Other previous choices are replaced.", 167));
+                    candidates.Add(new(CivicAction(world, town.Id, "single", CivicRoundToken(election), id), $"Submit or revise your ballot to support only {world.Society.GetAgent(id).Name} in {town.Name}. Other previous choices are replaced.", 167));
             }
-            foreach (var recipient in world.Inhabitants.Values.Where(p => p.InhabitantId != actor && world.IsWithinInteractionRange(p.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+            foreach (var recipient in world.Agents.Values.Where(p => p.AgentId != actor && world.IsWithinInteractionRange(p.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
             {
-                var recipientKnows = history.Known(recipient.InhabitantId);
+                var recipientKnows = history.Known(recipient.AgentId);
                 if (!known.Any(id => !recipientKnows.Contains(id))) continue;
-                candidates.Add(new(CivicAction(world, town.Id, "relay", recipient.InhabitantId), $"Relay the civic notices you actually learned in {town.Name} to {world.Society.GetInhabitant(recipient.InhabitantId).Name} nearby.", 180));
+                candidates.Add(new(CivicAction(world, town.Id, "relay", recipient.AgentId), $"Relay the civic notices you actually learned in {town.Name} to {world.Society.GetAgent(recipient.AgentId).Name} nearby.", 180));
             }
         }
     }
@@ -218,11 +218,11 @@ internal sealed partial class CivicSystem
     internal void ContinueTownCivicVisit(ICivicTownWorld world, string actor, string candidate)
     {
         var parts = candidate.Split('|');
-        if (parts.Length != 5 || parts[2] != "visit" || world.NeedsUrgentWarmth(world.Inhabitants[actor])) return;
+        if (parts.Length != 5 || parts[2] != "visit" || world.NeedsUrgentWarmth(world.Agents[actor])) return;
         var town = world.Towns.SingleOrDefault(t => t.Id == parts[1]);
         if (town?.Governance is null || !TownAdults(world, town).Contains(actor, StringComparer.Ordinal) && !MayVisitAsNewcomer(world, actor, town) && !MayVisitLandHearing(world, actor, town) && !MayVisitLandTransfer(world, actor, town) && !MayVisitNonviolentCase(world, actor, town) ||
-            CivicBoard(world, town) is not { } destination || world.IsWithinInteractionRange(world.Inhabitants[actor].Position, destination, WorldRuntime.CivicSharedRules.ResourceInteractionRange)) return;
-        world.MoveToward(actor, world.Inhabitants[actor], destination, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+            CivicBoard(world, town) is not { } destination || world.IsWithinInteractionRange(world.Agents[actor].Position, destination, WorldRuntime.CivicSharedRules.ResourceInteractionRange)) return;
+        world.MoveToward(actor, world.Agents[actor], destination, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
     }
 
     internal void ApplyTownCivicCandidate(ICivicTownWorld world, string actor, string candidate, string? proposalText = null, IReadOnlyList<string>? ballot = null,
@@ -289,7 +289,7 @@ internal sealed partial class CivicSystem
             {
                 case "visit":
                     if (CivicBoard(world, town) is { } destination)
-                        world.MoveToward(actor, world.Inhabitants[actor], destination, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
+                        world.MoveToward(actor, world.Agents[actor], destination, "town_notices", WorldRuntime.CivicSharedRules.ResourceInteractionRange);
                     break;
                 case "read":
                     state = TownGovernanceRules.LearnNotices(state, actor, state.Notices.Select(n => n.Id), world.WorldTick);
@@ -301,7 +301,7 @@ internal sealed partial class CivicSystem
                 case "nominate": state = TownGovernanceRules.Nominate(state, actor, parts[3], TownAdults(world, town), world.WorldTick); break;
                 case "request_admission":
                     state = TownGovernanceRules.SubmitProposal(state, town.Id, actor, "admission", parts[3],
-                        $"Admit {world.Society.GetInhabitant(parts[3]).Name} as a Town resident.", "council:" + state.Revision,
+                        $"Admit {world.Society.GetAgent(parts[3]).Name} as a Town resident.", "council:" + state.Revision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
                 case "register": state = TownGovernanceRules.Register(state, actor, true, null, TownAdults(world, town), world.WorldTick); break;
@@ -313,7 +313,7 @@ internal sealed partial class CivicSystem
                     break;
                 case "boat_access":
                     var visitorId = parts[3] == "all" ? null : ResolveCivicAgentToken(world, parts[3]);
-                    if (visitorId is not null && (!world.Inhabitants.ContainsKey(visitorId) || town.ResidentIds.Contains(visitorId, StringComparer.Ordinal))) return;
+                    if (visitorId is not null && (!world.Agents.ContainsKey(visitorId) || town.ResidentIds.Contains(visitorId, StringComparer.Ordinal))) return;
                     (state, government) = TownLawRules.ProposeBoatAccess(state, government, town.Id, actor,
                         visitorId, TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
@@ -348,7 +348,7 @@ internal sealed partial class CivicSystem
                     state = DecideHouseholdLandUse(world, state, actor, parts[3], parts[2]); break;
                 case "admission":
                     state = TownGovernanceRules.SubmitProposal(state, town.Id, actor, "admission", actor,
-                        $"Admit {world.Society.GetInhabitant(actor).Name} as a Town resident.", "council:" + state.Revision,
+                        $"Admit {world.Society.GetAgent(actor).Name} as a Town resident.", "council:" + state.Revision,
                         TownAdults(world, town), world.WorldTick, CivicDay(world));
                     break;
                 case "yes": case "no": state = TownGovernanceRules.VoteProposal(state, parts[3], actor, parts[2] == "yes", world.WorldTick); break;
@@ -368,7 +368,7 @@ internal sealed partial class CivicSystem
                 state.Notices.Skip(town.Governance.Notices.Count).Select(n => n.Id), world.WorldTick);
             SaveTownGovernance(world, town, state, government);
             world.MaintainTownProjects();
-            world.AppendEvent("town_civic_action", $"{town.Id}|{actor}|{parts[2]}", world.Inhabitants[actor].Position);
+            world.AppendEvent("town_civic_action", $"{town.Id}|{actor}|{parts[2]}", world.Agents[actor].Position);
             SettleTownAdmissions(world);
         }
         catch (InvalidOperationException)

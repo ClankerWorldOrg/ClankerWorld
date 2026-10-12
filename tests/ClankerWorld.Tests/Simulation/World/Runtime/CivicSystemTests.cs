@@ -226,8 +226,8 @@ public sealed class CivicSystemTests
             SocietyRules.CreateGenesis("civic-system-test",
                 [SocietyRules.CreateFounder("agent-a", "Aster Ash"), SocietyRules.CreateFounder("agent-b", "Rowan Reed")]),
             "household", "Home", ["agent-a", "agent-b"]).Checkpoint;
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; } =
-            new Dictionary<string, InhabitantState>(StringComparer.Ordinal)
+        public IReadOnlyDictionary<string, AgentState> Agents { get; } =
+            new Dictionary<string, AgentState>(StringComparer.Ordinal)
             {
                 ["agent-a"] = new("agent-a", new(0, 0), 10_000, 0, "patient", "build a home"),
                 ["agent-b"] = new("agent-b", new(1, 0), 10_000, 0, "kind", "share a life"),
@@ -236,10 +236,10 @@ public sealed class CivicSystemTests
         public List<(string Kind, string Detail)> Events { get; } = [];
         public bool IsEdibleFood(string kind) => false;
         public int AvailableLotQuantity(InventoryLot lot) => lot.Quantity;
-        public bool NeedsUrgentWarmth(InhabitantState person) => Urgent.Contains(person.InhabitantId);
+        public bool NeedsUrgentWarmth(AgentState person) => Urgent.Contains(person.AgentId);
         public void AppendEvent(string kind, string detail) => Events.Add((kind, detail));
-        public string[] HouseholdAdults(string householdId) => Society.Inhabitants
-            .Where(person => person.HouseholdId == householdId && person.Status == SocietyInhabitantStatus.Active &&
+        public string[] HouseholdAdults(string householdId) => Society.Agents
+            .Where(person => person.HouseholdId == householdId && person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
     }

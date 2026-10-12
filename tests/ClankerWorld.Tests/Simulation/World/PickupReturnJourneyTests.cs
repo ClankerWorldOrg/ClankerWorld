@@ -99,14 +99,14 @@ public sealed partial class PickupReturnJourneyTests
         var (state, shopId) = TailorTestWorld.Create("cart-set-unfinished", 0);
         var shop = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == shopId);
         var home = shop.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == home).Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == home).Id;
         var source = swim ? new GridPoint(105, 49) : state.Map.FootNeighbors(shop.Position).First(state.Map.IsBuildable);
         Routes(state, source, shop.Position, swim);
         var inventory = InventoryAuthority.AddLot(Empty(state), "pickup-stones", "stone", actor, stones);
         inventory = InventoryAuthority.WearSingleUnit(InventoryAuthority.AddLot(inventory, "pickup-coat", "padded_coat", actor, 1), "pickup-coat", 7_000);
         inventory = InventoryAuthority.AddLot(inventory, "pickup-cloth", "cloth", home, 1, groundPosition: new(source.X, source.Y));
         state = Prepare(state, inventory, actor, source) with
-        { Inhabitants = Prepare(state, inventory, actor, source).Inhabitants.Select(item => item.InhabitantId == actor ? item with { Equipment = new(ClothingLotId: "pickup-coat") } : item).ToArray() };
+        { Agents = Prepare(state, inventory, actor, source).Agents.Select(item => item.AgentId == actor ? item with { Equipment = new(ClothingLotId: "pickup-coat") } : item).ToArray() };
         using var world = Restore(state, actor, new Choices());
         var receipt = world.SubmitInstruction(new("return-coat", "owner:test", actor, OwnerInstructionKind.MustDo, "Repair 1 padded coat"));
         var blocked = swim && stones == 4;
@@ -187,7 +187,7 @@ public sealed partial class PickupReturnJourneyTests
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
         var home = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-blacksmith").HouseholdId!;
-        return (state, state.Society.Society.Inhabitants.First(item => item.HouseholdId == home).Id, home);
+        return (state, state.Society.Society.Agents.First(item => item.HouseholdId == home).Id, home);
     }
 
     private static InventoryCheckpoint Empty(WorldRuntimeState state) => state.Society.Society.Inventory with { Lots = [], Reservations = [] };
@@ -198,9 +198,9 @@ public sealed partial class PickupReturnJourneyTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(item => item with
+            Agents = state.Agents.Select(item => item with
             {
-                Position = item.InhabitantId == actor ? source : item.Position,
+                Position = item.AgentId == actor ? source : item.Position,
                 HungerBasisPoints = 10_000,
                 Survival = new(),
                 Project = null,
@@ -244,7 +244,7 @@ public sealed partial class PickupReturnJourneyTests
             foreach (var candidate in observation.Candidates) Offered.Enqueue(candidate.Id);
             var selected = prefixes.Select(prefix => observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)))
                 .FirstOrDefault(item => item is not null) ?? observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return new(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d)));
         }

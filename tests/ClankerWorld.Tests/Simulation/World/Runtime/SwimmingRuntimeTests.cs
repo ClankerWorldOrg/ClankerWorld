@@ -35,14 +35,14 @@ public sealed class SwimmingRuntimeTests
         }
         Assert.True(crossedWater, "The native movement order never entered the wide river or lake.");
         var swimming = world.ExportState();
-        var physical = swimming.Inhabitants.Single(person => person.InhabitantId == Actor);
+        var physical = swimming.Agents.Single(person => person.AgentId == Actor);
         Assert.True(physical.TravelCooldownTicks > 2, "Swimming must be much slower than two-tile wading.");
-        Assert.Equal("swim", new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == Actor).Route.Status);
+        Assert.Equal("swim", new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == Actor).Route.Status);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(firstWater, Position(world));
         swimming = world.ExportState();
         Assert.True(physical.Survival!.WarmthBasisPoints -
-            swimming.Inhabitants.Single(person => person.InhabitantId == Actor).Survival!.WarmthBasisPoints >= 75,
+            swimming.Agents.Single(person => person.AgentId == Actor).Survival!.WarmthBasisPoints >= 75,
             "The wait between slow swimming steps must also lose warmth.");
         var before = WorldRuntimeCodec.Encode(swimming);
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -68,7 +68,7 @@ public sealed class SwimmingRuntimeTests
             Assert.Equal("finished", order.Order!.Status);
             Assert.Equal(1, order.Order.CompletedUnits);
         });
-        Assert.Empty(world.ExportState().DeceasedInhabitants ?? []);
+        Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public sealed class SwimmingRuntimeTests
         var state = CrossingState(start);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { Survival = new(warmth, illness) } : person).ToArray(),
         };
         if (load > 0)
@@ -114,7 +114,7 @@ public sealed class SwimmingRuntimeTests
             Assert.True(world.ExportState().Map.IsPassable(Position(world)));
         }
         Assert.NotEqual("finished", Assert.Single(world.ExportState().Instructions!).Order!.Status);
-        Assert.Empty(world.ExportState().DeceasedInhabitants ?? []);
+        Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class SwimmingRuntimeTests
         Assert.NotEqual("finished", Assert.Single(state.Instructions!).Order!.Status);
         Assert.Throws<InvalidDataException>(() => Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { Position = sea } : person).ToArray(),
         }));
     }
@@ -155,7 +155,7 @@ public sealed class SwimmingRuntimeTests
         var state = setup.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { Survival = new(warmth, illness) } : person).ToArray(),
         };
         if (load > 0) state = WithLoad(state, load);
@@ -164,7 +164,7 @@ public sealed class SwimmingRuntimeTests
         for (var tick = 0; tick < 24 && !world.ExportState().Map.IsPassable(Position(world)); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(world.ExportState().Map.IsPassable(Position(world)));
-        Assert.Empty(world.ExportState().DeceasedInhabitants ?? []);
+        Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public sealed class SwimmingRuntimeTests
         // A real unhoused swimmer is urgently cold, with public cover one tile away.
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Survival = new SurvivalCondition(1_000) } : person).ToArray(),
         };
         state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Rain);
@@ -209,19 +209,19 @@ public sealed class SwimmingRuntimeTests
         }
         Assert.True(provider.ChoseWarmth, "The real personal decision must choose the offered native warmth action.");
         Assert.Equal(shore, Position(world, actor));
-        var warmth = world.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.WarmthBasisPoints;
+        var warmth = world.Agents.Single(person => person.AgentId == actor).Survival!.WarmthBasisPoints;
         for (var tick = 0; tick < 3; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).Survival!.WarmthBasisPoints > warmth);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" && item.Detail.EndsWith(":warmth", StringComparison.Ordinal));
+        Assert.True(world.Agents.Single(person => person.AgentId == actor).Survival!.WarmthBasisPoints > warmth);
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" && item.Detail.EndsWith(":warmth", StringComparison.Ordinal));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var loaded = Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(loaded.ExportState()));
-        Assert.Empty(world.ExportState().DeceasedInhabitants ?? []);
+        Assert.Empty(world.ExportState().DeceasedAgents ?? []);
     }
 
     private static WorldRuntimeState WithLoad(WorldRuntimeState state, int units) => state with
@@ -264,7 +264,7 @@ public sealed class SwimmingRuntimeTests
         return SettlementWeatherTestFixture.WithWeather(state with
         {
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 10_000),
@@ -274,7 +274,7 @@ public sealed class SwimmingRuntimeTests
 
     private static WorldRuntime Restore(WorldRuntimeState state, IDecisionProvider? provider = null) =>
         WorldRuntime.Restore(state, _ => provider ?? new IdleProvider());
-    private static GridPoint Position(WorldRuntime world, string actor = Actor) => world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+    private static GridPoint Position(WorldRuntime world, string actor = Actor) => world.Agents.Single(person => person.AgentId == actor).Position;
 
     private sealed class WarmthProvider(string actor) : IDecisionProvider
     {
@@ -285,7 +285,7 @@ public sealed class SwimmingRuntimeTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var choice = request.Observation.Candidates.Any(candidate => candidate.Id == "seek_warmth") ? "seek_warmth" : "safe_idle";
-            if (request.Observation.InhabitantId == actor && choice == "seek_warmth") ChoseWarmth = true;
+            if (request.Observation.AgentId == actor && choice == "seek_warmth") ChoseWarmth = true;
             return new DeterministicDecisionProvider().DecideAsync(request with
             {
                 Observation = request.Observation with { Candidates = request.Observation.Candidates.Where(candidate => candidate.Id == choice).ToArray() },

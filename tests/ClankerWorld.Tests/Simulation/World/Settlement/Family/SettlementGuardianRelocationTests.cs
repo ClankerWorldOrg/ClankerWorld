@@ -71,16 +71,16 @@ public sealed partial class SettlementParenthoodTests
             addedChildren.Add((Assert.IsType<string>(birth.CreatedId), destinationHouse.Position));
         }
 
-        var deceased = new List<DeceasedInhabitantState>(state.DeceasedInhabitants ?? []);
+        var deceased = new List<DeceasedAgentState>(state.DeceasedAgents ?? []);
         foreach (var parent in parents)
         {
             society = SocietyRules.Kill(society, parent, SocietyDeathCause.Accident).Checkpoint;
-            var person = society.GetInhabitant(parent);
+            var person = society.GetAgent(parent);
             deceased.Add(new(parent, person.DeathTick!.Value, society.AgeAt(person, person.DeathTick.Value),
-                state.Inhabitants.Single(item => item.InhabitantId == parent)));
+                state.Agents.Single(item => item.AgentId == parent)));
         }
-        Assert.Null(society.GetInhabitant(child).PrimaryCaregiverId);
-        var people = state.Inhabitants.Where(person => !parents.Contains(person.InhabitantId, StringComparer.Ordinal)).ToList();
+        Assert.Null(society.GetAgent(child).PrimaryCaregiverId);
+        var people = state.Agents.Where(person => !parents.Contains(person.AgentId, StringComparer.Ordinal)).ToList();
         foreach (var newborn in addedChildren)
         {
             var tile = state.Map.Tiles.Select(item => item.Position)
@@ -92,14 +92,14 @@ public sealed partial class SettlementParenthoodTests
             people.Add(new(newborn.Id, tile, 10_000, 0, "curious", "grow with the household",
                 Survival: new SurvivalCondition(WarmthBasisPoints: 10_000)));
         }
-        var activeIds = society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active)
+        var activeIds = society.Agents.Where(person => person.Status == SocietyAgentStatus.Active)
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
         state = state with
         {
             Society = state.Society with { Society = society },
             Survival = new SettlementSurvivalState(society.WorldTick, []),
-            DeceasedInhabitants = deceased.ToArray(),
-            Inhabitants = people.Select(person => person with
+            DeceasedAgents = deceased.ToArray(),
+            Agents = people.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 10_000),
@@ -113,7 +113,7 @@ public sealed partial class SettlementParenthoodTests
         {
             const string otherTownId = "town:guardian-other";
             var otherResidents = society.GetHousehold(destinationHousehold).MemberIds
-                .Where(id => society.GetInhabitant(id).Status == SocietyInhabitantStatus.Active)
+                .Where(id => society.GetAgent(id).Status == SocietyAgentStatus.Active)
                 .Order(StringComparer.Ordinal).ToArray();
             var otherBuildings = state.WorldSimulation.Buildings.Where(building => building.HouseholdId == destinationHousehold)
                 .Select(building => building.InstanceId).Order(StringComparer.Ordinal).ToArray();
@@ -144,8 +144,8 @@ public sealed partial class SettlementParenthoodTests
             };
         }
         state = SettlementWeatherTestFixture.WithWeather(WithAdultCouncils(state), WeatherKind.Clear);
-        var proposedResidents = society.GetHousehold(destinationHousehold).MemberIds.Select(society.GetInhabitant)
-            .Append(society.GetInhabitant(child) with { DomesticFamilyUnitId = society.GetInhabitant(adult).DomesticFamilyUnitId });
+        var proposedResidents = society.GetHousehold(destinationHousehold).MemberIds.Select(society.GetAgent)
+            .Append(society.GetAgent(child) with { DomesticFamilyUnitId = society.GetAgent(adult).DomesticFamilyUnitId });
         var capacity = HouseResidentCapacityRules.Calculate(proposedResidents, 1, 1);
         Assert.Equal(4, capacity.Limit);
         Assert.Equal(scenario == "full" ? 5 : 4, capacity.ResidentCount);
@@ -164,7 +164,7 @@ public sealed partial class SettlementParenthoodTests
             actor => actor == adult ? provider : new ParentProvider("safe_idle"));
         var beforeAcceptance = WorldRuntimeCodec.Encode(world.ExportState());
         var ticks = 0;
-        while (ticks < 40 && world.Society.GetInhabitant(child).PrimaryCaregiverId != adult)
+        while (ticks < 40 && world.Society.GetAgent(child).PrimaryCaregiverId != adult)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             ticks++;
@@ -173,7 +173,7 @@ public sealed partial class SettlementParenthoodTests
             Assert.Equal("finished", Assert.Single(world.ExportState().Instructions!).Order!.Status);
         else
             Assert.Contains(provider.SeenCandidates, candidate => candidate.Id == "guardian_accept:" + child);
-        var result = world.Society.GetInhabitant(child);
+        var result = world.Society.GetAgent(child);
         Assert.Equal(adult, result.PrimaryCaregiverId);
         Assert.Equal(scenario == "last_place" ? destinationHousehold : originHousehold, result.HouseholdId);
         Assert.Equal(parents[0], world.Society.Births.Single(birth => birth.ChildId == child).PrimaryCaregiverId);
@@ -184,7 +184,7 @@ public sealed partial class SettlementParenthoodTests
             edge.ProposerId == adult && edge.TargetId == child && edge.State == SocietyRelationshipState.Accepted);
         Assert.Equal(SocietyConsentState.Accepted, care.Consent);
         Assert.Equal([adult], care.AcceptedParties);
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == child).GuardianSearch);
+        Assert.Null(world.Agents.Single(person => person.AgentId == child).GuardianSearch);
         Assert.Single(world.ExportState().Events, item => item.Kind == "guardian_assigned" && item.Detail == child);
         if (scenario == "no_town")
             Assert.DoesNotContain(world.ExportState().Towns!, town => town.ResidentIds.Contains(child) || town.ResidentIds.Contains(adult));
@@ -197,8 +197,8 @@ public sealed partial class SettlementParenthoodTests
             Assert.DoesNotContain(child, careGroup);
             var left = SocietyRules.LeaveHousehold(world.Society, adult);
             Assert.Equal(adult, left.CreatedId);
-            Assert.Null(left.Checkpoint.GetInhabitant(adult).HouseholdId);
-            Assert.Equal(originHousehold, left.Checkpoint.GetInhabitant(child).HouseholdId);
+            Assert.Null(left.Checkpoint.GetAgent(adult).HouseholdId);
+            Assert.Equal(originHousehold, left.Checkpoint.GetAgent(child).HouseholdId);
         }
         var encoded = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Equal(encoded, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(encoded)));
@@ -214,8 +214,8 @@ public sealed partial class SettlementParenthoodTests
         Towns = state.Towns!.Select(town => town with
         {
             Governance = TownGovernanceState.Create(town.ResidentIds.Where(id =>
-                state.Society.Society.Inhabitants.Any(person => person.Id == id &&
-                    person.Status == SocietyInhabitantStatus.Active &&
+                state.Society.Society.Agents.Any(person => person.Id == id &&
+                    person.Status == SocietyAgentStatus.Active &&
                     person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))),
         }).ToArray(),
     };

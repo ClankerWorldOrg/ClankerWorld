@@ -18,7 +18,7 @@ public sealed class FarmFoodReserveTests
         state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
         {
             Survival = state.Survival ?? new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = (person.Survival ?? new SurvivalCondition()) with
@@ -56,7 +56,7 @@ public sealed class FarmFoodReserveTests
         }
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         };
         var candidate = $"farm:Plant:{point.X}:{point.Y}:grain";
         var choice = new PlantingChoice(actor, candidate);
@@ -111,10 +111,10 @@ public sealed class FarmFoodReserveTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var choice = observation.InhabitantId == actor ? observation.Candidates.FirstOrDefault(item => item.Id == candidateId) : null;
+            var choice = observation.AgentId == actor ? observation.Candidates.FirstOrDefault(item => item.Id == candidateId) : null;
             if (choice is not null) Offered = true;
             choice ??= observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 choice.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d)));
         }

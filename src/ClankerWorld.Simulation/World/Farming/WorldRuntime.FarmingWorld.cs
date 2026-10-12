@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
         public WorldMap Map => runtime.map;
         public SocietyCheckpoint Society => runtime.society.Checkpoint;
         public SocietyCognitionSchedulerState Cognition => runtime.society.Capture().Cognition;
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants => runtime.inhabitants;
+        public IReadOnlyDictionary<string, AgentState> Agents => runtime.agents;
         public IReadOnlyList<TownRuntimeState> Towns => runtime.towns;
         public WorldContentSimulationState Simulation => runtime.worldSimulation;
         public DeclarativeWorldContentState Content => runtime.worldContent;
@@ -21,8 +21,8 @@ public sealed partial class WorldRuntime
         public GroundOccupancy Ground => runtime.Ground;
         public bool AdultResident(string actor) => runtime.AdultResident(actor);
         public PlacedBuilding? FarmhouseForHousehold(string householdId) => runtime.FarmhouseForHousehold(householdId);
-        public bool NeedsUrgentFood(InhabitantState person) => WorldRuntime.NeedsUrgentFood(person);
-        public bool NeedsUrgentWarmth(InhabitantState person) => runtime.NeedsUrgentWarmth(person);
+        public bool NeedsUrgentFood(AgentState person) => WorldRuntime.NeedsUrgentFood(person);
+        public bool NeedsUrgentWarmth(AgentState person) => runtime.NeedsUrgentWarmth(person);
         public bool IsConversationBusy(string actor) => runtime.IsConversationBusy(actor);
         public string? HouseholdFor(string actor) => runtime.HouseholdFor(actor);
         public HashSet<GridPoint> HouseholdLandHeldByOthers(string householdId) => runtime.HouseholdLandHeldByOthers(householdId);
@@ -44,12 +44,12 @@ public sealed partial class WorldRuntime
         public int PickupCarryCapacity(string actor, InventoryLot stock, GridPoint destination, int destinationRange = 0) => runtime.PickupCarryCapacity(actor, stock, destination, destinationRange);
         public GridPoint HouseholdStockPosition(InventoryLot lot) => runtime.HouseholdStockPosition(lot);
         public bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) => runtime.CanWalkToFieldOrderSite(actor, from, destination, range);
-        public void MoveToward(string actor, InhabitantState state, GridPoint destination, string reason, int interactionRange = 0) => runtime.MoveToward(actor, state, destination, reason, interactionRange);
+        public void MoveToward(string actor, AgentState state, GridPoint destination, string reason, int interactionRange = 0) => runtime.MoveToward(actor, state, destination, reason, interactionRange);
         public bool HasCarriedOwnItem(string actor, string kind) => runtime.HasCarriedOwnItem(actor, kind);
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => runtime.SharedItem(kind, actor, returnTo, returnRange);
         public IReadOnlyList<GridPoint> FindUnoccupiedRoute(string actor, GridPoint from, GridPoint destination, int range = 0) => runtime.FindUnoccupiedRoute(actor, from, destination, range);
         public bool IsWithinInteractionRange(GridPoint from, GridPoint destination, int range) => runtime.IsWithinInteractionRange(from, destination, range);
-        public void CollectEquipment(string actor, InhabitantState person, string kind, GridPoint? returnTo = null, int returnRange = 0) => runtime.CollectEquipment(actor, person, kind, returnTo, returnRange);
+        public void CollectEquipment(string actor, AgentState person, string kind, GridPoint? returnTo = null, int returnRange = 0) => runtime.CollectEquipment(actor, person, kind, returnTo, returnRange);
         public void SyncEcologyResourceStates() => runtime.SyncEcologyResourceStates();
         public bool RecordKnowledgeFact(string actor, GridPoint position) => runtime.RecordKnowledgeFact(actor, position);
         public long EdibleFoodHoldings(IEnumerable<string> owners) => runtime.HoldingsTotal(owners, EdibleFoodGoods);

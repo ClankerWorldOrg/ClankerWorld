@@ -18,10 +18,10 @@ public sealed partial class WorldRuntime
             .FirstOrDefault(job => job.JobId == project.JobId) is not { State: WorldProductionJobState.Running or WorldProductionJobState.Paused };
     }
 
-    private CognitionCandidate? OrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? OrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order;
-        if (order is null || !IsActiveOrder(order.Status) || !AgePermitsCandidate(instruction.TargetInhabitantId, order.Action))
+        if (order is null || !IsActiveOrder(order.Status) || !AgePermitsCandidate(instruction.TargetAgentId, order.Action))
             return null;
         if (order.TargetPosition is { } requestedPosition && !map.Contains(requestedPosition))
             return null;
@@ -69,27 +69,27 @@ public sealed partial class WorldRuntime
             return MaterialOrderCandidateFor(instruction, person);
 
         if (order.Action == "move_to" && order.TargetPosition is { } destination)
-            return !MovementOrderNeedsHouseInvitation(instruction.TargetInhabitantId, destination) &&
+            return !MovementOrderNeedsHouseInvitation(instruction.TargetAgentId, destination) &&
                 (person.Position == destination ||
-                 (map.IsPassable(destination) || CanSwim(instruction.TargetInhabitantId) && SwimmingRules.IsSwimmingWater(map, destination)) &&
-                 FindUnoccupiedRoute(instruction.TargetInhabitantId, person.Position, destination, 0).Count > 0)
+                 (map.IsPassable(destination) || CanSwim(instruction.TargetAgentId) && SwimmingRules.IsSwimmingWater(map, destination)) &&
+                 FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, destination, 0).Count > 0)
                     ? new CognitionCandidate("move_to", $"Travel to tile ({destination.X}, {destination.Y}).", 0)
                     : null;
 
         if (order.Action == "accept_guardianship" && order.TargetAgentId is { } child)
-            return GuardianOrderCandidate(instruction.TargetInhabitantId, child);
+            return GuardianOrderCandidate(instruction.TargetAgentId, child);
 
         if (order.Action == "consume_food")
         {
             if (person.HungerBasisPoints >= ComfortableFullness)
                 return null;
 
-            var carried = PreferredFood(instruction.TargetInhabitantId, instruction.TargetInhabitantId)
+            var carried = PreferredFood(instruction.TargetAgentId, instruction.TargetAgentId)
                 .FirstOrDefault(lot => order.TargetFoodKind is null || lot.ItemKind == order.TargetFoodKind);
             if (carried is not null)
                 return new CognitionCandidate("consume_food", "Eat the requested carried food item.", 0);
-            if (AvailableSharedFood(instruction.TargetInhabitantId, order.TargetFoodKind) is { } shared &&
-                FreeCarryCapacity(instruction.TargetInhabitantId) > 0)
+            if (AvailableSharedFood(instruction.TargetAgentId, order.TargetFoodKind) is { } shared &&
+                FreeCarryCapacity(instruction.TargetAgentId) > 0)
                 return new CognitionCandidate("collect_shared_food", "Collect food that is available to this household.", 0, shared.Id);
             return null;
         }
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntime
         if (source is not null)
         {
             if (order.Action == "harvest_food" &&
-                FreeCarryCapacity(instruction.TargetInhabitantId) < FoodHarvestCarryUnits(source))
+                FreeCarryCapacity(instruction.TargetAgentId) < FoodHarvestCarryUnits(source))
                 return null;
             if (order.Action == "seek_food")
                 return new CognitionCandidate("seek_food", "Travel to the food site named by this order.", 0, source.Id);
@@ -133,7 +133,7 @@ public sealed partial class WorldRuntime
         return false;
     }
 
-    private MapResource? KnownFoodSourceForOrder(OwnerQueuedInstruction instruction, InhabitantState person)
+    private MapResource? KnownFoodSourceForOrder(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order!;
         return map.Resources
@@ -145,14 +145,14 @@ public sealed partial class WorldRuntime
                 (order.TargetFoodKind is null || FoodKnowledgeKind(resource) == order.TargetFoodKind) &&
                 (order.TargetPosition is null || resource.Position == order.TargetPosition.Value) &&
                 (IsWithinInteractionRange(person.Position, resource.Position, ResourceInteractionRange) ||
-                 knowledge.Facts.Any(fact => fact.OwnerId == instruction.TargetInhabitantId &&
+                 knowledge.Facts.Any(fact => fact.OwnerId == instruction.TargetAgentId &&
                     fact.Position == resource.Position &&
                     fact.ResourceKinds.Contains(FoodKnowledgeKind(resource), StringComparer.Ordinal))) &&
-                CanReachByFootOrSwimming(instruction.TargetInhabitantId, person.Position, resource.Position))
+                CanReachByFootOrSwimming(instruction.TargetAgentId, person.Position, resource.Position))
             .OrderBy(resource => map.FootDistance(person.Position, resource.Position))
             .ThenBy(resource => resource.Id, StringComparer.Ordinal)
             .FirstOrDefault(resource => IsWithinInteractionRange(person.Position, resource.Position, ResourceInteractionRange) ||
-                FindUnoccupiedRoute(instruction.TargetInhabitantId, person.Position, resource.Position, ResourceInteractionRange).Count > 0);
+                FindUnoccupiedRoute(instruction.TargetAgentId, person.Position, resource.Position, ResourceInteractionRange).Count > 0);
     }
 
     private bool KnownTargetIsUnavailable(OwnerQueuedInstruction instruction)
@@ -161,17 +161,17 @@ public sealed partial class WorldRuntime
         if (order.TargetResourceId is { } resourceId)
         {
             var resource = map.Resources.SingleOrDefault(item => item.Id == resourceId);
-            return resource is null || knowledge.Facts.Any(fact => fact.OwnerId == instruction.TargetInhabitantId &&
+            return resource is null || knowledge.Facts.Any(fact => fact.OwnerId == instruction.TargetAgentId &&
                 fact.Position == resource.Position &&
                 fact.ResourceKinds.Contains(FoodKnowledgeKind(resource), StringComparer.Ordinal));
         }
         if (order.TargetPosition is { } position)
             return !map.Contains(position) || knowledge.Facts.Any(fact =>
-                fact.OwnerId == instruction.TargetInhabitantId && fact.Position == position);
+                fact.OwnerId == instruction.TargetAgentId && fact.Position == position);
         return false;
     }
 
-    private bool CanExploreForOrder(InhabitantState person)
+    private bool CanExploreForOrder(AgentState person)
     {
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) return false;
         if (person.Exploration?.OutingPath.Count > 0)
@@ -181,13 +181,13 @@ public sealed partial class WorldRuntime
     }
 
     private bool ShouldInterruptOrder(
-        InhabitantState person,
+        AgentState person,
         OwnerQueuedInstruction instruction,
         CognitionCandidate? orderCandidate,
         CognitionCandidate? urgentCandidate)
     {
         if (IsShelterOrder(instruction.Order!.Action))
-            return NeedsUrgentFood(person) && urgentCandidate is not null && IsFoodSurvivalCandidate(person.InhabitantId, urgentCandidate.Id) ||
+            return NeedsUrgentFood(person) && urgentCandidate is not null && IsFoodSurvivalCandidate(person.AgentId, urgentCandidate.Id) ||
                 orderCandidate is null && urgentCandidate is not null;
         if (NeedsUrgentWarmth(person))
             return urgentCandidate is not null &&
@@ -199,17 +199,17 @@ public sealed partial class WorldRuntime
     }
 
     private CognitionCandidate? UrgentSurvivalCandidateFor(
-        string inhabitantId, InhabitantState person, OwnerQueuedInstruction? instruction = null) =>
-        SelectOrderSurvivalCandidate(CreateCandidates(inhabitantId, person, restrictForOrder: false), person, instruction);
+        string agentId, AgentState person, OwnerQueuedInstruction? instruction = null) =>
+        SelectOrderSurvivalCandidate(CreateCandidates(agentId, person, restrictForOrder: false), person, instruction);
 
     private CognitionCandidate? SelectOrderSurvivalCandidate(
-        IEnumerable<CognitionCandidate> candidates, InhabitantState person, OwnerQueuedInstruction? instruction)
+        IEnumerable<CognitionCandidate> candidates, AgentState person, OwnerQueuedInstruction? instruction)
     {
-        var available = candidates.Where(candidate => IsSurvivalCandidate(person.InhabitantId, candidate.Id))
+        var available = candidates.Where(candidate => IsSurvivalCandidate(person.AgentId, candidate.Id))
             .OrderBy(candidate => candidate.DeterministicPriority)
             .ThenBy(candidate => candidate.Id, StringComparer.Ordinal).ToArray();
         if (instruction?.Order is { } order && IsShelterOrder(order.Action) && NeedsUrgentFood(person) &&
-            available.FirstOrDefault(candidate => IsFoodSurvivalCandidate(person.InhabitantId, candidate.Id)) is { } food)
+            available.FirstOrDefault(candidate => IsFoodSurvivalCandidate(person.AgentId, candidate.Id)) is { } food)
             return food;
         return available.FirstOrDefault();
     }
@@ -217,7 +217,7 @@ public sealed partial class WorldRuntime
     private bool IsFoodSurvivalCandidate(string actor, string candidateId) => candidateId is
         "consume_food" or "drink_milk" or "collect_shared_food" or "take_food_from_pot" or "make_room_for_food" or
         "harvest_food" or "seek_food" || candidateId.StartsWith(TownProjectReturnPrefix, StringComparison.Ordinal) ||
-        NeedsUrgentFood(inhabitants[actor]) &&
+        NeedsUrgentFood(agents[actor]) &&
         (IsBusinessFoodCandidate(actor, candidateId) || IsMarketFoodCandidate(actor, candidateId));
 
     private bool IsSurvivalCandidate(string actor, string candidateId) =>
@@ -226,20 +226,20 @@ public sealed partial class WorldRuntime
 
     private void ExecuteOrderStep(
         OwnerQueuedInstruction instruction,
-        InhabitantState person,
+        AgentState person,
         CognitionCandidate candidate)
     {
         var order = instruction.Order!;
         SetOrderStatus(instruction, "doing", null, waitForDecision: false);
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         RecordAttemptedAction(actor, candidate.Id);
         if (candidate.Id != "explore" && person.Exploration?.Goal?.OrderInstructionId == instruction.InstructionId)
             person = CompleteExplorationGoal(actor, person);
         // An order step interrupts timed repair work, as any other chosen action does.
-        if (order.Action != "repair_equipment" && inhabitants[actor].Equipment?.Repair is not null)
+        if (order.Action != "repair_equipment" && agents[actor].Equipment?.Repair is not null)
         {
             CancelEquipmentRepair(actor);
-            person = inhabitants[actor];
+            person = agents[actor];
         }
         if (order.Action == "accept_guardianship")
         {
@@ -328,7 +328,7 @@ public sealed partial class WorldRuntime
                 // Only the tile reached joins the agent's small map memory. Recording
                 // every step of a long walk would fill it and leave no room for what
                 // exploration finds later.
-                if (inhabitants[actor].Position == destination)
+                if (agents[actor].Position == destination)
                 {
                     RecordKnowledgeFact(actor, destination);
                     CreditOrderEffect(instruction, MovementOrderEffectId(destination), 1);
@@ -347,18 +347,18 @@ public sealed partial class WorldRuntime
                 CollectSharedFood(actor, person, order.TargetFoodKind);
                 return;
             case "explore":
-                inhabitants[actor] = person;
+                agents[actor] = person;
                 Explore(actor, person, ExplorationGoalForOrder(instruction), replaceGoal: true);
                 return;
             case "seek_food":
                 {
-                    var target = KnownFoodSourceForOrder(instruction, inhabitants[actor]);
+                    var target = KnownFoodSourceForOrder(instruction, agents[actor]);
                     if (target is null)
                     {
-                        SetOrderStatus(instruction, "blocked", OrderBlockedReason(instruction, inhabitants[actor]));
+                        SetOrderStatus(instruction, "blocked", OrderBlockedReason(instruction, agents[actor]));
                         return;
                     }
-                    var current = inhabitants[actor];
+                    var current = agents[actor];
                     if (IsWithinInteractionRange(current.Position, target.Position, ResourceInteractionRange))
                     {
                         if (order.Action == "seek_food")
@@ -367,7 +367,7 @@ public sealed partial class WorldRuntime
                         return;
                     }
                     MoveToward(actor, current, target.Position, "owner_order_food", ResourceInteractionRange);
-                    current = inhabitants[actor];
+                    current = agents[actor];
                     if (order.Action == "seek_food" &&
                         IsWithinInteractionRange(current.Position, target.Position, ResourceInteractionRange))
                         CreditOrderEffect(instruction,
@@ -376,18 +376,18 @@ public sealed partial class WorldRuntime
                 }
             case "harvest_food":
                 {
-                    var source = KnownFoodSourceForOrder(instruction, inhabitants[actor]);
+                    var source = KnownFoodSourceForOrder(instruction, agents[actor]);
                     if (source is null)
                     {
-                        SetOrderStatus(instruction, "blocked", OrderBlockedReason(instruction, inhabitants[actor]));
+                        SetOrderStatus(instruction, "blocked", OrderBlockedReason(instruction, agents[actor]));
                         return;
                     }
-                    if (!IsWithinInteractionRange(inhabitants[actor].Position, source.Position, ResourceInteractionRange))
+                    if (!IsWithinInteractionRange(agents[actor].Position, source.Position, ResourceInteractionRange))
                     {
-                        MoveToward(actor, inhabitants[actor], source.Position, "owner_order_harvest", ResourceInteractionRange);
+                        MoveToward(actor, agents[actor], source.Position, "owner_order_harvest", ResourceInteractionRange);
                         return;
                     }
-                    if (HarvestFood(actor, inhabitants[actor], source) is { } effect &&
+                    if (HarvestFood(actor, agents[actor], source) is { } effect &&
                         (order.TargetFoodKind is null || effect.ItemKind == order.TargetFoodKind))
                         CreditOrderEffect(instruction, FoodHarvestReceipt(effect.LotId),
                             order.ProgressUnit == "harvests" ? 1 : effect.Quantity);
@@ -422,11 +422,11 @@ public sealed partial class WorldRuntime
         {
             completedInstructionIds.Add(current.InstructionId);
             AppendEvent("instruction_applied", $"{current.InstructionId}:{order.Action}");
-            AppendEvent("instruction_order_finished", $"{current.TargetInhabitantId}:{current.InstructionId}:{effectId}");
+            AppendEvent("instruction_order_finished", $"{current.TargetAgentId}:{current.InstructionId}:{effectId}");
         }
         else
         {
-            AppendEvent("instruction_order_progress", $"{current.TargetInhabitantId}:{current.InstructionId}:{completed}");
+            AppendEvent("instruction_order_progress", $"{current.TargetAgentId}:{current.InstructionId}:{completed}");
         }
         checkpointSchemaVersion = StateSchemaVersion;
     }
@@ -458,10 +458,10 @@ public sealed partial class WorldRuntime
             },
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("instruction_order_status", $"{current.TargetInhabitantId}:{current.InstructionId}:{status}");
+        AppendEvent("instruction_order_status", $"{current.TargetAgentId}:{current.InstructionId}:{status}");
     }
 
-    private string OrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string OrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
         if (instruction.Order?.Action == "travel_by_boat") return BoatOrderBlockedReason(instruction);
         if (instruction.Order?.Action == "read_knowledge")
@@ -502,23 +502,23 @@ public sealed partial class WorldRuntime
         if (instruction.Order?.Action == "move_to")
             return instruction.Order.TargetPosition is not { } destination || !map.Contains(destination)
                 ? "The requested tile is outside this world."
-                : MovementOrderNeedsHouseInvitation(instruction.TargetInhabitantId, destination)
+                : MovementOrderNeedsHouseInvitation(instruction.TargetAgentId, destination)
                     ? "Waiting for an invitation to enter another household's House."
                 : "No open walking or safe swimming route reaches the requested tile right now.";
         if (instruction.Order is { Action: "accept_guardianship", TargetAgentId: { } child })
-            return GuardianOrderBlockedReason(instruction.TargetInhabitantId, child);
+            return GuardianOrderBlockedReason(instruction.TargetAgentId, child);
         if (instruction.Order?.Action == "consume_food")
         {
             if (person.HungerBasisPoints >= ComfortableFullness)
                 return "Waiting until hungry enough to eat.";
-            if (FreeCarryCapacity(instruction.TargetInhabitantId) == 0 &&
-                AvailableSharedFood(instruction.TargetInhabitantId, instruction.Order.TargetFoodKind) is not null)
+            if (FreeCarryCapacity(instruction.TargetAgentId) == 0 &&
+                AvailableSharedFood(instruction.TargetAgentId, instruction.Order.TargetFoodKind) is not null)
                 return "Carrying space is full; make room before collecting food from the household store.";
             return "No matching food is available to eat right now.";
         }
         if (instruction.Order?.Action == "harvest_food" &&
             KnownFoodSourceForOrder(instruction, person) is { } source &&
-            FreeCarryCapacity(instruction.TargetInhabitantId) < FoodHarvestCarryUnits(source))
+            FreeCarryCapacity(instruction.TargetAgentId) < FoodHarvestCarryUnits(source))
             return "Carrying space is full; make room before gathering from the requested food site.";
         if (instruction.Order?.TargetPosition is not null || instruction.Order?.TargetResourceId is not null)
             return "The requested food site isn't known or reachable right now.";
@@ -532,7 +532,7 @@ public sealed partial class WorldRuntime
 
     private bool MovementOrderNeedsHouseInvitation(string actor, GridPoint destination) =>
         BuildingsWithTag("house").Any(house => house.HouseholdId is not null &&
-            house.HouseholdId != society.Checkpoint.GetInhabitant(actor).HouseholdId &&
+            house.HouseholdId != society.Checkpoint.GetAgent(actor).HouseholdId &&
             !HasHouseGuestInvitation(actor, house.InstanceId) &&
             WorldContentSimulationRules.Footprint(
                 worldContent.Buildings.Single(definition => definition.CanonicalId == house.DefinitionId), house).Contains(destination));

@@ -22,7 +22,7 @@ public sealed class CouncilBallotExpiryTests
     {
         var state = (await States.Value)[startingTick];
         var society = state.Society.Society;
-        var voters = society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var voters = society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId is not null && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(4, voters.Length);
@@ -38,7 +38,7 @@ public sealed class CouncilBallotExpiryTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => nonapproverDies && person.Id == dying
+                    Agents = society.Agents.Select(person => nonapproverDies && person.Id == dying
                         ? person with
                         {
                             BirthTick = birthTick,
@@ -49,7 +49,7 @@ public sealed class CouncilBallotExpiryTests
                         : person).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 LastDecisionContext = null,
                 HungerBasisPoints = 7_000,
@@ -64,7 +64,7 @@ public sealed class CouncilBallotExpiryTests
         world.Validate();
         Assert.Equal("open", world.ExportState().Council!.FoodPolicy);
         Assert.Equal(2, world.ExportState().Council!.Ballot!.Approvals.Count);
-        Assert.Equal(SocietyInhabitantStatus.Active, world.Society.GetInhabitant(dying).Status);
+        Assert.Equal(SocietyAgentStatus.Active, world.Society.GetAgent(dying).Status);
 
         var result = await world.AdvanceOneTickAsync();
         Assert.True(result.Advanced);
@@ -77,12 +77,12 @@ public sealed class CouncilBallotExpiryTests
         Assert.Equal(afterBytes, WorldRuntimeCodec.Encode(replay.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(afterBytes));
         Assert.Equal(afterBytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal(nonapproverDies ? SocietyInhabitantStatus.Dead : SocietyInhabitantStatus.Active,
-            world.Society.GetInhabitant(dying).Status);
+        Assert.Equal(nonapproverDies ? SocietyAgentStatus.Dead : SocietyAgentStatus.Active,
+            world.Society.GetAgent(dying).Status);
         if (nonapproverDies)
         {
-            Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetInhabitant(dying).DeathCause);
-            Assert.Equal(nextTick, world.Society.GetInhabitant(dying).DeathTick);
+            Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(dying).DeathCause);
+            Assert.Equal(nextTick, world.Society.GetAgent(dying).DeathTick);
         }
         var votes = result.Events.Where(item => item.Kind == "council_vote_recorded").ToArray();
         if (castThirdApproval) Assert.Equal(voters[2], Assert.Single(votes).Detail);

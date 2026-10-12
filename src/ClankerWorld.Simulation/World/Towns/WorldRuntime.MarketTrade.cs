@@ -32,12 +32,12 @@ public sealed partial class WorldRuntime
                 MarketContent.StallSite(market.Site, stall.SlotIndex) == new GridPoint(ground.X, ground.Y)))));
 
     private bool MarketAdult(string actor) => AdultResident(actor) &&
-        society.Checkpoint.GetInhabitant(actor).Status == SocietyInhabitantStatus.Active;
+        society.Checkpoint.GetAgent(actor).Status == SocietyAgentStatus.Active;
 
     private bool ReadyForMarket(string actor) => MarketAdult(actor) &&
-        !NeedsUrgentFood(inhabitants[actor]) && !NeedsUrgentWarmth(inhabitants[actor]) &&
-        !IsConversationBusy(actor) && inhabitants[actor].Equipment?.Repair is null &&
-        !(inhabitants[actor].Project is { Stage: not ("completed" or "cancelled") } project && !project.RequiresFreshChoice) &&
+        !NeedsUrgentFood(agents[actor]) && !NeedsUrgentWarmth(agents[actor]) &&
+        !IsConversationBusy(actor) && agents[actor].Equipment?.Repair is null &&
+        !(agents[actor].Project is { Stage: not ("completed" or "cancelled") } project && !project.RequiresFreshChoice) &&
         CarriedHouseDelivery(actor) is null && !fields.Any(field => field.Work?.WorkerId == actor);
 
     private void SetMarket(string townId, TownMarketState market)
@@ -66,15 +66,15 @@ public sealed partial class WorldRuntime
         MarketTradeRules.Identity("market_" + kind + ":", parts);
 
     private string MarketPlaceMode(string actor, GridPoint destination, int range) =>
-        IsWithinInteractionRange(inhabitants[actor].Position, destination, range) ? "at-site" : "walking";
+        IsWithinInteractionRange(agents[actor].Position, destination, range) ? "at-site" : "walking";
 
     private bool CanReachMarketPoint(string actor, GridPoint destination, int range) =>
-        IsWithinInteractionRange(inhabitants[actor].Position, destination, range) ||
-        FindUnoccupiedRoute(actor, inhabitants[actor].Position, destination, range).Count > 0;
+        IsWithinInteractionRange(agents[actor].Position, destination, range) ||
+        FindUnoccupiedRoute(actor, agents[actor].Position, destination, range).Count > 0;
 
     private string MarketTradeMode(string actor, MarketTradeState trade) =>
         MarketPlaceMode(actor, trade.Position, ResourceInteractionRange) == "walking" ? "walking" :
-        !IsWithinInteractionRange(inhabitants[trade.BuyerId].Position, trade.Position, ResourceInteractionRange)
+        !IsWithinInteractionRange(agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange)
             ? "waiting-for-buyer" : "at-site";
 
     private int MarketStockQuantity(TownMarketState market, MarketStallState stall, InventoryCheckpoint? inventory = null) =>
@@ -90,7 +90,7 @@ public sealed partial class WorldRuntime
         .Sum(offer => Math.Max(0, offer.SecondQuantity - offer.FirstQuantity));
 
     private bool OwnMarketGoods(string actor, InventoryLot lot) =>
-        lot.OwnerId == actor || society.Checkpoint.GetInhabitant(actor).HouseholdId is { } household && lot.OwnerId == household;
+        lot.OwnerId == actor || society.Checkpoint.GetAgent(actor).HouseholdId is { } household && lot.OwnerId == household;
 
     private sealed record MarketGoodsBasis(IReadOnlyList<GoodsMatch> Matches,
         IReadOnlyDictionary<string, int> Quantities, IReadOnlyDictionary<(string Owner, string Kind), long> KeptFood);
@@ -116,8 +116,8 @@ public sealed partial class WorldRuntime
         var available = goods.Quantities.GetValueOrDefault(lot.Id);
         if (!IsEdibleFood(lot.ItemKind)) return available;
         var reserve = lot.OwnerId == actor
-            ? Math.Max(2, CaregiverFoodCarryRequirement(actor, inhabitants[actor]))
-            : 2 * society.Checkpoint.GetHousehold(lot.OwnerId).MemberIds.Count(id => inhabitants.ContainsKey(id));
+            ? Math.Max(2, CaregiverFoodCarryRequirement(actor, agents[actor]))
+            : 2 * society.Checkpoint.GetHousehold(lot.OwnerId).MemberIds.Count(id => agents.ContainsKey(id));
         // Sum each owner's usable food once per synchronous query, across split
         // lots. A bound source limits the load, not which lots cover its reserve.
         var kept = goods.KeptFood.GetValueOrDefault((lot.OwnerId, lot.ItemKind)) -
@@ -134,7 +134,7 @@ public sealed partial class WorldRuntime
 
     private bool ProtectedMarketItem(string actor, InventoryLot lot) =>
         AgentKnowledgeRules.IsArtifactKind(lot.ItemKind) ||
-        PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id) ||
+        PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id) ||
         BestUsableToolIds(society.Checkpoint.Inventory, actor).Contains(lot.Id);
 
     private IEnumerable<InventoryLot> MarketLoadSources(string actor, MarketGoodsBasis goods)
@@ -159,8 +159,8 @@ public sealed partial class WorldRuntime
         var position = MarketContent.StallSite(market.Site, stall.SlotIndex);
         if (!MarketAdult(buyer) || buyer == occupancy.SellerAgentId || !ReadyForMarket(buyer) ||
             !MarketAdult(occupancy.SellerAgentId) ||
-            society.Checkpoint.GetInhabitant(occupancy.SellerAgentId).HouseholdId != occupancy.SellerHouseholdId ||
-            !MarketTradeRules.IsInside(market, inhabitants[occupancy.SellerAgentId].Position) ||
+            society.Checkpoint.GetAgent(occupancy.SellerAgentId).HouseholdId != occupancy.SellerHouseholdId ||
+            !MarketTradeRules.IsInside(market, agents[occupancy.SellerAgentId].Position) ||
             !CanReachMarketPoint(buyer, position, ResourceInteractionRange) ||
             inventory.Offers.Any(offer => offer.State == DirectBarterState.Open &&
                 (offer.FirstPartyId == buyer || offer.SecondPartyId == buyer)) ||
@@ -178,8 +178,8 @@ public sealed partial class WorldRuntime
                          !ProtectedMarketItem(buyer, lot) && !BusinessBuyerWants(buyer, lot) && MarketSurplus(buyer, lot, buyerGoods) > 0)
                          .OrderBy(lot => lot.Id, StringComparer.Ordinal))
                 // Trial exact barter gives and receives one physical unit, so neither receiving load grows.
-                if (PersonalEquipmentRules.CarriedQuantity(inventory, buyer, inhabitants[buyer].Equipment) +
-                    ReservedBusinessCarrySpace(buyer) <= PersonalEquipmentRules.Capacity(inventory, buyer, inhabitants[buyer].Equipment) + HorseCargoCapacity(buyer))
+                if (PersonalEquipmentRules.CarriedQuantity(inventory, buyer, agents[buyer].Equipment) +
+                    ReservedBusinessCarrySpace(buyer) <= PersonalEquipmentRules.Capacity(inventory, buyer, agents[buyer].Equipment) + HorseCargoCapacity(buyer))
                     return (goods, payment);
         }
         return null;
@@ -219,14 +219,14 @@ public sealed partial class WorldRuntime
                     {
                         if (inventory.GetOffer(trade.OfferId).State != DirectBarterState.Open) continue;
                         yield return new(MarketChoiceId("cancel", trade.OfferId), "cancel", town, market, stall, occupancy, Trade: trade);
-                        if (!NeedsUrgentWarmth(inhabitants[actor]))
+                        if (!NeedsUrgentWarmth(agents[actor]))
                             yield return new(MarketChoiceId("continue", trade.OfferId, MarketTradeMode(actor, trade)),
                                 "continue", town, market, stall, occupancy, Trade: trade);
                     }
                     if (occupancy?.SellerAgentId == actor)
                     {
                         yield return new(MarketChoiceId("leave", occupancy.Id), "leave", town, market, stall, occupancy);
-                        if (!ready || society.Checkpoint.GetInhabitant(actor).HouseholdId != occupancy.SellerHouseholdId ||
+                        if (!ready || society.Checkpoint.GetAgent(actor).HouseholdId != occupancy.SellerHouseholdId ||
                             !CanReachMarketPoint(actor, position, ResourceInteractionRange)) continue;
                         var room = MarketTradeRules.StallCapacity - MarketStockQuantity(market, stall) - MarketIncomingPayment(market, stall);
                         foreach (var lot in goods.Matches.Select(match => match.Lot).Where(lot => MarketTradeRules.IsLoose(lot) &&
@@ -245,7 +245,7 @@ public sealed partial class WorldRuntime
                             MarketPlaceMode(actor, position, ResourceInteractionRange)),
                             "buy", town, market, stall, occupancy, quote.Goods, 1, Payment: quote.Payment);
                     if (!ready || occupancy is not null || HasMarketOccupancy(actor) ||
-                        society.Checkpoint.GetInhabitant(actor).HouseholdId is null ||
+                        society.Checkpoint.GetAgent(actor).HouseholdId is null ||
                         !CanReachMarketPoint(actor, position, ResourceInteractionRange) ||
                         MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) >= MarketTradeRules.StallCapacity)
                         continue;
@@ -281,7 +281,7 @@ public sealed partial class WorldRuntime
 
     private void AddMarketCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        var urgentFood = NeedsUrgentFood(inhabitants[actor]);
+        var urgentFood = NeedsUrgentFood(agents[actor]);
         // Trade answers and leaving come first, so the limit never hides them behind stock choices.
         foreach (var choice in MarketChoices(actor)
                      .Where(item => !urgentFood || item.Kind == "collect" && IsEdibleFood(item.Lot!.ItemKind) &&
@@ -317,7 +317,7 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private bool ApplyMarketCandidate(string actor, InhabitantState state, string id)
+    private bool ApplyMarketCandidate(string actor, AgentState state, string id)
     {
         if (!IsMarketCandidate(id)) return false;
         var choice = MarketChoices(actor).SingleOrDefault(item => item.Id == id);
@@ -349,7 +349,7 @@ public sealed partial class WorldRuntime
                     choice.Market.Occupancies.Count.ToString(CultureInfo.InvariantCulture)),
                     choice.Stall.BuildingId, actor, WorldTick)
                 {
-                    SellerHouseholdId = society.Checkpoint.GetInhabitant(actor).HouseholdId!,
+                    SellerHouseholdId = society.Checkpoint.GetAgent(actor).HouseholdId!,
                 };
                 SetMarket(choice.Town.Id, choice.Market with { Occupancies = choice.Market.Occupancies.Append(occupancy).ToArray() });
                 AppendEvent("market_stall_borrowed", $"{choice.Town.Id}|{choice.Market.Id}|{choice.Stall.BuildingId}|{actor}|{occupancy.Id}", position);
@@ -380,8 +380,8 @@ public sealed partial class WorldRuntime
         var destination = choice.Kind == "load" ? HouseholdStockPosition(choice.Lot!) :
             MarketContent.StallSite(choice.Market.Site, choice.Stall.SlotIndex);
         var range = choice.Kind == "load" ? HouseholdStockInteractionRange(choice.Lot!) : ResourceInteractionRange;
-        if (!IsWithinInteractionRange(inhabitants[actor].Position, destination, range))
-            MoveToward(actor, inhabitants[actor], destination, "market_" + choice.Kind, range);
+        if (!IsWithinInteractionRange(agents[actor].Position, destination, range))
+            MoveToward(actor, agents[actor], destination, "market_" + choice.Kind, range);
     }
 
     private void DepositMarketStock(string actor, MarketChoice choice, GridPoint position)
@@ -442,8 +442,8 @@ public sealed partial class WorldRuntime
         var occupancy = market.Occupancies.Single(item => item.Id == trade.OccupancyId);
         if (!LiveMarketStall(town, market, stall) || occupancy.EndedTick is not null ||
             MarketOccupant(market, stall)?.Id != occupancy.Id || !MarketAdult(trade.SellerAgentId) ||
-            !MarketTradeRules.IsInside(market, inhabitants[trade.SellerAgentId].Position) ||
-            society.Checkpoint.GetInhabitant(trade.SellerAgentId).HouseholdId != trade.PaymentOwnerId)
+            !MarketTradeRules.IsInside(market, agents[trade.SellerAgentId].Position) ||
+            society.Checkpoint.GetAgent(trade.SellerAgentId).HouseholdId != trade.PaymentOwnerId)
             return "The named seller no longer borrows this stall or represents the receiving household.";
         if (!MarketAdult(trade.BuyerId)) return "The buyer is no longer available.";
         var inventory = society.Checkpoint.Inventory;
@@ -461,16 +461,16 @@ public sealed partial class WorldRuntime
             !MarketTradeValidation.HasExactOpenClaim(inventory, offer, false))
             return "The exact reserved goods are no longer usable at their agreed location.";
         if (MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) > MarketTradeRules.StallCapacity ||
-            PersonalEquipmentRules.CarriedQuantity(inventory, trade.BuyerId, inhabitants[trade.BuyerId].Equipment) +
-            ReservedBusinessCarrySpace(trade.BuyerId) > PersonalEquipmentRules.Capacity(inventory, trade.BuyerId, inhabitants[trade.BuyerId].Equipment) + HorseCargoCapacity(trade.BuyerId))
+            PersonalEquipmentRules.CarriedQuantity(inventory, trade.BuyerId, agents[trade.BuyerId].Equipment) +
+            ReservedBusinessCarrySpace(trade.BuyerId) > PersonalEquipmentRules.Capacity(inventory, trade.BuyerId, agents[trade.BuyerId].Equipment) + HorseCargoCapacity(trade.BuyerId))
             return "There is no longer enough physical receiving space.";
-        if (!IsWithinInteractionRange(inhabitants[trade.BuyerId].Position, trade.Position, ResourceInteractionRange) &&
-            FindUnoccupiedRoute(trade.BuyerId, inhabitants[trade.BuyerId].Position, trade.Position, ResourceInteractionRange).Count == 0)
+        if (!IsWithinInteractionRange(agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange) &&
+            FindUnoccupiedRoute(trade.BuyerId, agents[trade.BuyerId].Position, trade.Position, ResourceInteractionRange).Count == 0)
             return "The buyer can no longer reach the stall.";
         return null;
     }
 
-    private void ContinueMarketTrade(string actor, InhabitantState state, MarketChoice choice, bool cancel)
+    private void ContinueMarketTrade(string actor, AgentState state, MarketChoice choice, bool cancel)
     {
         var trade = choice.Trade!;
         var offer = society.Checkpoint.Inventory.GetOffer(trade.OfferId);
@@ -485,7 +485,7 @@ public sealed partial class WorldRuntime
             MoveToward(actor, state, trade.Position, "market_trade", ResourceInteractionRange);
             return;
         }
-        if (actor != trade.SellerAgentId || !IsWithinInteractionRange(inhabitants[trade.BuyerId].Position,
+        if (actor != trade.SellerAgentId || !IsWithinInteractionRange(agents[trade.BuyerId].Position,
                 trade.Position, ResourceInteractionRange)) return;
         // The named seller's own admitted choice accepts for personal goods or their current household.
         var goods = society.Checkpoint.Inventory.GetLot(offer.FirstLotId);
@@ -566,9 +566,9 @@ public sealed partial class WorldRuntime
                     var stall = market.Stalls.Single(item => item.BuildingId == occupancy.StallBuildingId);
                     var reason = !LiveMarketStall(originalTown, market, stall) ? "The paid Market stall is no longer available." :
                         !MarketAdult(occupancy.SellerAgentId) ? "The seller is no longer available." :
-                        society.Checkpoint.GetInhabitant(occupancy.SellerAgentId).HouseholdId != occupancy.SellerHouseholdId
+                        society.Checkpoint.GetAgent(occupancy.SellerAgentId).HouseholdId != occupancy.SellerHouseholdId
                             ? "The seller's household changed." :
-                        !MarketTradeRules.IsInside(market, inhabitants[occupancy.SellerAgentId].Position) ? "The seller left the Market." : null;
+                        !MarketTradeRules.IsInside(market, agents[occupancy.SellerAgentId].Position) ? "The seller left the Market." : null;
                     if (reason is null) continue;
                     EndMarketOccupancy(originalTown.Id, market, occupancy, reason);
                     market = towns.Single(town => town.Id == originalTown.Id).Markets.Single(item => item.Id == market.Id);

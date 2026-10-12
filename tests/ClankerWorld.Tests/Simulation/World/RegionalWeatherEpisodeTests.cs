@@ -18,7 +18,7 @@ public sealed class RegionalWeatherEpisodeTests
                 Society = initialState.Society.Society with
                 {
                     Config = initialState.Society.Society.Config with { TicksPerWorldDay = 16 },
-                    Inhabitants = initialState.Society.Society.Inhabitants.Select(person => person with
+                    Agents = initialState.Society.Society.Agents.Select(person => person with
                     { BirthTick = person.BirthTick / initialState.Society.Society.Config.TicksPerWorldDay * 16 }).ToArray(),
                 }
             },

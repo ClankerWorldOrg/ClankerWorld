@@ -38,7 +38,7 @@ public sealed partial class WorldConversationTests
         Assert.Equal(proposal.ProposalDeadlineTick, accepted.ProposalDeadlineTick);
         Assert.Equal(1, reloaded.ConversationBudgets.Single(item => item.AgentId == InitiatorId).Count);
         Assert.Equal(1, reloaded.ConversationBudgets.Single(item => item.AgentId == InviteeId).Count);
-        Assert.Contains(provider.PlanningRequests, request => request.Observation.InhabitantId == InviteeId &&
+        Assert.Contains(provider.PlanningRequests, request => request.Observation.AgentId == InviteeId &&
             request.Observation.Candidates.Any(candidate => candidate.Id == $"conversation_accept:{proposal.Id}"));
         Assert.DoesNotContain(provider.PlanningRequests, request =>
             request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)));
@@ -76,7 +76,7 @@ public sealed partial class WorldConversationTests
         Assert.Empty(provider.TurnRequests);
         Assert.Equal(AgentConversationRules.MaximumConversationsPerWorldDay,
             world.ConversationBudgets.Single(item => item.AgentId == InviteeId).Count);
-        Assert.DoesNotContain(provider.PlanningRequests, request => request.Observation.InhabitantId == InviteeId &&
+        Assert.DoesNotContain(provider.PlanningRequests, request => request.Observation.AgentId == InviteeId &&
             request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("conversation_accept:", StringComparison.Ordinal) ||
                 candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)));
     }
@@ -119,7 +119,7 @@ public sealed partial class WorldConversationTests
         Assert.Equal(AgentConversationStatus.Suspended, waitingForBoth.Status);
         Assert.Equal(InviteeId, Assert.Single(waitingForBoth.ResumeAcceptedBy));
         Assert.Empty(provider.TurnRequests);
-        Assert.Contains(provider.PlanningRequests, request => request.Observation.InhabitantId == InitiatorId &&
+        Assert.Contains(provider.PlanningRequests, request => request.Observation.AgentId == InitiatorId &&
             request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)));
 
         var consentingProvider = ConsentReviewProvider();
@@ -131,9 +131,9 @@ public sealed partial class WorldConversationTests
             await Task.Delay(3);
         }
         Assert.NotEmpty(Assert.Single(bothResume.Conversations).Turns);
-        Assert.Contains(consentingProvider.PlanningRequests, request => request.Observation.InhabitantId == InitiatorId &&
+        Assert.Contains(consentingProvider.PlanningRequests, request => request.Observation.AgentId == InitiatorId &&
             request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)));
-        Assert.Contains(consentingProvider.PlanningRequests, request => request.Observation.InhabitantId == InviteeId &&
+        Assert.Contains(consentingProvider.PlanningRequests, request => request.Observation.AgentId == InviteeId &&
             request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal)));
     }
 

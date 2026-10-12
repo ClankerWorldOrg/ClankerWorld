@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
 
     private IEnumerable<PlacedBuilding> WarehousesAccessibleTo(string actor)
     {
-        if (!inhabitants.ContainsKey(actor)) yield break;
+        if (!agents.ContainsKey(actor)) yield break;
         var residentTownId = TownForResident(actor);
         foreach (var town in towns.Where(item => item.Id == residentTownId || item.IsAbandoned)
                      .OrderBy(item => item.Id == residentTownId ? 0 : 1)
@@ -47,7 +47,7 @@ public sealed partial class WorldRuntime
     }
 
     private bool MayCollectWarehouseStock(string actor, PlacedBuilding warehouse) =>
-        inhabitants.ContainsKey(actor) && warehouse.TownId is { } townId &&
+        agents.ContainsKey(actor) && warehouse.TownId is { } townId &&
         towns.SingleOrDefault(item => item.Id == townId) is { } town &&
         (TownForResident(actor) == townId || town.IsAbandoned) &&
         WarehousesForTown(townId).Any(item => item.InstanceId == warehouse.InstanceId);
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntime
     }
 
     private void AddWarehouseStockCandidate(List<CognitionCandidate> candidates, string actor,
-        InhabitantState state)
+        AgentState state)
     {
         if (WarehouseForResident(actor) is not { } warehouse || DestinationRoom(warehouse.InstanceId) == 0 || PersonalWarehouseSurplus(actor) is not { } surplus ||
             state.Position != warehouse.Position &&
@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
             32, warehouse.InstanceId));
     }
 
-    private void StoreTownResources(string actor, InhabitantState state)
+    private void StoreTownResources(string actor, AgentState state)
     {
         if (!AdultResident(actor) || WarehouseForResident(actor) is not { } warehouse ||
             PersonalWarehouseSurplus(actor) is not { } surplus)
@@ -133,7 +133,7 @@ public sealed partial class WorldRuntime
         AppendEvent("town_resources_stored", $"{actor}:{surplus.Lot.Id}:{quantity}:{warehouse.InstanceId}");
     }
 
-    private DeliveryOrderPlan? GetTownOrderPlan(string actor, InhabitantState person,
+    private DeliveryOrderPlan? GetTownOrderPlan(string actor, AgentState person,
         OwnerInstructionOrder order, int maximumQuantity)
     {
         if (!AdultResident(actor) || TownForResident(actor) is not { } townId ||

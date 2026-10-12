@@ -22,7 +22,7 @@ public sealed partial class BusinessTradeTests
         inventory = InventoryAuthority.AddLot(inventory, "interrupt-cloth", "cloth", actor, 2);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null }).ToArray(),
         };
         var recipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "twist-rope");
         var candidate = "build:recipe:" + recipe.CanonicalId;
@@ -30,17 +30,17 @@ public sealed partial class BusinessTradeTests
         using var ordinary = WorldRuntime.Restore(state, id => id == actor ? choose : new ShopProvider("safe_idle"));
         Assert.True((await ordinary.AdvanceOneTickAsync()).Advanced);
         Assert.Contains(candidate, choose.Seen);
-        Assert.Equal(1, ordinary.Inhabitants.Single(person => person.InhabitantId == actor).Project!.WorkDone);
+        Assert.Equal(1, ordinary.Agents.Single(person => person.AgentId == actor).Project!.WorkDone);
         if (paidJob)
         {
-            for (var tick = 0; tick < 20 && ordinary.Inhabitants.Single(person => person.InhabitantId == actor).Project!.JobId is null; tick++)
+            for (var tick = 0; tick < 20 && ordinary.Agents.Single(person => person.AgentId == actor).Project!.JobId is null; tick++)
                 Assert.True((await ordinary.AdvanceOneTickAsync()).Advanced);
-            var jobId = ordinary.Inhabitants.Single(person => person.InhabitantId == actor).Project!.JobId!;
+            var jobId = ordinary.Agents.Single(person => person.AgentId == actor).Project!.JobId!;
             var job = Assert.Single(ordinary.WorldSimulation.ProductionJobs, item => item.JobId == jobId);
             Assert.Equal(WorldProductionJobState.Running, job.State);
             Assert.NotEmpty(job.InputReservationIds);
         }
-        var original = ordinary.Inhabitants.Single(person => person.InhabitantId == actor).Project!;
+        var original = ordinary.Agents.Single(person => person.AgentId == actor).Project!;
         ordinary.Pause();
         var bytes = WorldRuntimeCodec.Encode(ordinary.ExportState());
         IDecisionProvider ChoicesFor(string id) => id == actor ? new ShopProvider("deliver_stock", candidate) : new ShopProvider("safe_idle");
@@ -64,7 +64,7 @@ public sealed partial class BusinessTradeTests
         }
         Assert.Equal(1, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "rope").Sum(lot => lot.Quantity));
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == household && lot.ItemKind == "fiber");
-        var finished = world.Inhabitants.Single(person => person.InhabitantId == actor).Project!;
+        var finished = world.Agents.Single(person => person.AgentId == actor).Project!;
         Assert.Equal((original.CandidateId, original.StartedTick), (finished.CandidateId, finished.StartedTick));
         Assert.Equal("completed", finished.Stage);
         if (receipt is not null)

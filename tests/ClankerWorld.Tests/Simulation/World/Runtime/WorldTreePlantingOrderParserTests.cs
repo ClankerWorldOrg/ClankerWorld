@@ -15,7 +15,7 @@ public sealed class WorldTreePlantingOrderParserTests
     public void WholeTreeRequestsBecomeBoundedPersistentOrders(string text, string action, int quantity, bool repeat)
     {
         using var world = new WorldRuntime("tree-order-parser");
-        var actor = world.Inhabitants[0].InhabitantId;
+        var actor = world.Agents[0].AgentId;
         var receipt = world.SubmitInstruction(new("parse-tree", "owner:test", actor, OwnerInstructionKind.MustDo, text));
         var instruction = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
         Assert.Equal(text, instruction.Text);
@@ -36,7 +36,7 @@ public sealed class WorldTreePlantingOrderParserTests
     public void PartialOrUnsupportedTreeRequestsLeaveAnExistingOrderIntact(string text)
     {
         using var world = new WorldRuntime("tree-order-parser");
-        var actor = world.Inhabitants[0].InhabitantId;
+        var actor = world.Agents[0].AgentId;
         var current = world.SubmitInstruction(new("existing-tree", "owner:test", actor, OwnerInstructionKind.MustDo, "plant trees"));
         var receipt = world.SubmitInstruction(new("bad-tree", "owner:test", actor, OwnerInstructionKind.MustDo, text));
         var state = world.ExportState();

@@ -17,10 +17,10 @@ internal static class MarketAnimalMilkScenario
         market = market with { NextStockReceiptSequence = 40, RetiredStockReceiptThrough = 39 };
         var stall = market.Stalls[0];
         var site = MarketContent.StallSite(market.Site, stall.SlotIndex);
-        var seller = town.ResidentIds.First(id => boundary.Society.Society.GetInhabitant(id).AgeBand == SocietyAgeBand.Adult);
-        var home = boundary.Society.Society.GetInhabitant(seller).HouseholdId!;
-        var buyer = town.ResidentIds.First(id => boundary.Society.Society.GetInhabitant(id).AgeBand == SocietyAgeBand.Adult &&
-            boundary.Society.Society.GetInhabitant(id).HouseholdId != home);
+        var seller = town.ResidentIds.First(id => boundary.Society.Society.GetAgent(id).AgeBand == SocietyAgeBand.Adult);
+        var home = boundary.Society.Society.GetAgent(seller).HouseholdId!;
+        var buyer = town.ResidentIds.First(id => boundary.Society.Society.GetAgent(id).AgeBand == SocietyAgeBand.Adult &&
+            boundary.Society.Society.GetAgent(id).HouseholdId != home);
         var inventory = InventoryAuthority.AddLot(boundary.Society.Society.Inventory, "market-milk", "milk", home, 2);
         inventory = InventoryAuthority.Relocate(inventory, "milk-fixture-carried", "market-milk", home, 2, carrierId: seller);
         inventory = InventoryAuthority.AddLot(inventory, "market-milk-payment", "stone", buyer, 2);
@@ -32,10 +32,10 @@ internal static class MarketAnimalMilkScenario
         {
             Towns = boundary.Towns!.Select(item => item.Id == town.Id ? item with { Markets = [market] } : item).ToArray(),
             Society = boundary.Society with { Society = boundary.Society.Society with { Inventory = inventory } },
-            Inhabitants = boundary.Inhabitants.Select(person => person with
+            Agents = boundary.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == seller ? site : person.InhabitantId == buyer ? new(site.X + 1, site.Y) : person.Position,
-                HungerBasisPoints = person.InhabitantId == buyer ? 5000 : 9500,
+                Position = person.AgentId == seller ? site : person.AgentId == buyer ? new(site.X + 1, site.Y) : person.Position,
+                HungerBasisPoints = person.AgentId == buyer ? 5000 : 9500,
                 LastDecisionContext = null,
                 Project = null,
             }).ToArray(),
@@ -83,7 +83,7 @@ internal static class MarketAnimalMilkScenario
         {
             var observation = request.Observation;
             var candidates = observation.Candidates;
-            var choice = candidates.FirstOrDefault(candidate => observation.InhabitantId == seller && (Mode switch
+            var choice = candidates.FirstOrDefault(candidate => observation.AgentId == seller && (Mode switch
             {
                 "borrow" => candidate.Description.Contains("borrow this empty", StringComparison.Ordinal),
                 "stock" => candidate.Id.StartsWith("market_deposit:", StringComparison.Ordinal) && candidate.Description.Contains(" milk at your borrowed stall;", StringComparison.Ordinal),
@@ -91,9 +91,9 @@ internal static class MarketAnimalMilkScenario
                 "leave" => candidate.Description.StartsWith("Give up this stall", StringComparison.Ordinal),
                 "recover" => candidate.Id.StartsWith("market_collect:", StringComparison.Ordinal) && candidate.Description.Contains("milk", StringComparison.Ordinal),
                 _ => false,
-            }) || observation.InhabitantId == buyer && Mode == "sale" && candidate.Id.StartsWith("market_buy:", StringComparison.Ordinal) && candidate.Description.Contains(" for 1 milk;", StringComparison.Ordinal)) ??
+            }) || observation.AgentId == buyer && Mode == "sale" && candidate.Id.StartsWith("market_buy:", StringComparison.Ordinal) && candidate.Description.Contains(" for 1 milk;", StringComparison.Ordinal)) ??
                 candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, 0,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d)));
         }

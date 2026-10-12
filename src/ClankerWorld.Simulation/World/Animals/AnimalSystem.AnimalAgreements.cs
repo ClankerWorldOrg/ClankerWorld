@@ -19,26 +19,26 @@ internal sealed partial class AnimalSystem
         if (!world.AdultResident(actor)) yield break;
         foreach (var animal in State.Animals.Where(animal => AnimalHouseholdMember(world, actor, animal)))
         {
-            foreach (var recipient in world.Inhabitants.Values.Where(person => animal.DiedTick is null &&
-                         person.InhabitantId != actor && world.AdultResident(person.InhabitantId) &&
-                         world.HouseholdFor(person.InhabitantId) != animal.HouseholdId &&
-                         world.IsWithinInteractionRange(world.Inhabitants[actor].Position, person.Position, ResourceInteractionRange))
-                         .OrderBy(person => person.InhabitantId, StringComparer.Ordinal).Take(8))
+            foreach (var recipient in world.Agents.Values.Where(person => animal.DiedTick is null &&
+                         person.AgentId != actor && world.AdultResident(person.AgentId) &&
+                         world.HouseholdFor(person.AgentId) != animal.HouseholdId &&
+                         world.IsWithinInteractionRange(world.Agents[actor].Position, person.Position, ResourceInteractionRange))
+                         .OrderBy(person => person.AgentId, StringComparer.Ordinal).Take(8))
             {
-                yield return new(animal.CarePermissions.Contains(recipient.InhabitantId) ? "revoke_care" : "grant_care", animal.Id, recipient.InhabitantId);
-                if (animal.Species == "horse") yield return new(animal.RidingPermissions.Contains(recipient.InhabitantId) ? "revoke_ride" : "grant_ride", animal.Id, recipient.InhabitantId);
+                yield return new(animal.CarePermissions.Contains(recipient.AgentId) ? "revoke_care" : "grant_care", animal.Id, recipient.AgentId);
+                if (animal.Species == "horse") yield return new(animal.RidingPermissions.Contains(recipient.AgentId) ? "revoke_ride" : "grant_ride", animal.Id, recipient.AgentId);
                 if (animal.RiderId is not null || animal.LeaderId is not null || animal.ReadyProductLotId is not null ||
                     State.Offers.Any(offer => offer.AnimalId == animal.Id) ||
-                    world.HouseholdFor(recipient.InhabitantId) is not { } home || AnimalYard(world, home) is not { } yard ||
+                    world.HouseholdFor(recipient.AgentId) is not { } home || AnimalYard(world, home) is not { } yard ||
                     !HasAnimalTransferSpace(world, home, yard, animal) ||
-                    !world.IsWithinInteractionRange(world.Inhabitants[actor].Position, animal.Position, ResourceInteractionRange) ||
+                    !world.IsWithinInteractionRange(world.Agents[actor].Position, animal.Position, ResourceInteractionRange) ||
                     !world.IsWithinInteractionRange(recipient.Position, animal.Position, ResourceInteractionRange)) continue;
-                yield return new("offer_gift", animal.Id, recipient.InhabitantId);
-                foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.OwnerId == recipient.InhabitantId &&
-                             PersonalEquipmentRules.IsCarried(lot, recipient.InhabitantId) && lot.ContainerLotId is null &&
+                yield return new("offer_gift", animal.Id, recipient.AgentId);
+                foreach (var lot in world.Society.Inventory.Lots.Where(lot => lot.OwnerId == recipient.AgentId &&
+                             PersonalEquipmentRules.IsCarried(lot, recipient.AgentId) && lot.ContainerLotId is null &&
                              lot.DeliveryBuildingId is null && !InventoryContainerRules.IsContainer(lot.ItemKind) && world.AvailableLotQuantity(lot) > 0 &&
                              !PersonalEquipmentRules.IsSelected(recipient.Equipment, lot.Id)).OrderBy(lot => lot.Id, StringComparer.Ordinal).Take(4))
-                    yield return new("offer_sale", animal.Id, recipient.InhabitantId, lot.Id);
+                    yield return new("offer_sale", animal.Id, recipient.AgentId, lot.Id);
             }
             // Revocation stays available after the permitted adult moves away.
             foreach (var permission in animal.CarePermissions) yield return new("revoke_care", animal.Id, permission);
@@ -70,12 +70,12 @@ internal sealed partial class AnimalSystem
             !world.AdultResident(offer.BuyerId) || world.HouseholdFor(offer.BuyerId) != offer.ReceivingHouseholdId ||
             animal.HouseholdId == offer.ReceivingHouseholdId || world.WorldTick - offer.OfferedTick >= AnimalDayTicks(world) ||
             !HasAnimalTransferSpace(world, offer.ReceivingHouseholdId, yard, animal, offer.Id) ||
-            !world.IsWithinInteractionRange(world.Inhabitants[offer.SellerId].Position, animal.Position, ResourceInteractionRange) ||
-            !world.IsWithinInteractionRange(world.Inhabitants[offer.BuyerId].Position, animal.Position, ResourceInteractionRange)) return false;
+            !world.IsWithinInteractionRange(world.Agents[offer.SellerId].Position, animal.Position, ResourceInteractionRange) ||
+            !world.IsWithinInteractionRange(world.Agents[offer.BuyerId].Position, animal.Position, ResourceInteractionRange)) return false;
         return offer.PaymentLotId is null || world.Society.Inventory.Lots.Any(lot => lot.Id == offer.PaymentLotId &&
             lot.OwnerId == offer.BuyerId && lot.ItemKind == offer.PaymentKind && PersonalEquipmentRules.IsCarried(lot, offer.BuyerId) &&
             lot.ContainerLotId is null && lot.DeliveryBuildingId is null && world.AvailableLotQuantity(lot) >= offer.PaymentQuantity &&
-            !PersonalEquipmentRules.IsSelected(world.Inhabitants[offer.BuyerId].Equipment, lot.Id));
+            !PersonalEquipmentRules.IsSelected(world.Agents[offer.BuyerId].Equipment, lot.Id));
     }
 
     internal void AddAnimalPermissionAndTradeCandidates(IAnimalWorld world, List<CognitionCandidate> candidates, string actor)
@@ -83,7 +83,7 @@ internal sealed partial class AnimalSystem
         foreach (var agreement in AnimalAgreements(world, actor).DistinctBy(item => item.Id).Take(48))
         {
             var animal = Animal(agreement.AnimalId)!;
-            var name = world.Society.Inhabitants.FirstOrDefault(person => person.Id == agreement.OtherId)?.Name ?? agreement.OtherId;
+            var name = world.Society.Agents.FirstOrDefault(person => person.Id == agreement.OtherId)?.Name ?? agreement.OtherId;
             var offer = State.Offers.FirstOrDefault(offer => offer.Id == agreement.OtherId);
             var description = agreement.Action switch
             {
@@ -106,8 +106,8 @@ internal sealed partial class AnimalSystem
         var selected = decision.Admission.Intention;
         if (selected is null || !selected.CandidateId.StartsWith("animal:agreement:", StringComparison.Ordinal)) return false;
         if (!decision.Admission.Accepted || decision.Admission.FellBack || selected.Provider != DecisionProviderKind.LargeLanguageModel ||
-            selected.InhabitantId != decision.InhabitantId || world.PendingInstructionFor(decision.InhabitantId)?.Kind == OwnerInstructionKind.MustDo) return true;
-        var actor = decision.InhabitantId;
+            selected.AgentId != decision.AgentId || world.PendingInstructionFor(decision.AgentId)?.Kind == OwnerInstructionKind.MustDo) return true;
+        var actor = decision.AgentId;
         var agreement = AnimalAgreements(world, actor).FirstOrDefault(agreement => agreement.Id == selected.CandidateId);
         if (agreement is null) return true;
         var animal = Animal(agreement.AnimalId)!;
@@ -152,8 +152,8 @@ internal sealed partial class AnimalSystem
                     SaddleLotId = null,
                     SaddleReservationId = null,
                     TamingWork = null,
-                    LeaderId = world.Inhabitants[actor].Position == animal.Position && MayLeadAnimal(world, actor, animal) ? actor : null,
-                    LeadDestination = world.Inhabitants[actor].Position == animal.Position && MayLeadAnimal(world, actor, animal) ?
+                    LeaderId = world.Agents[actor].Position == animal.Position && MayLeadAnimal(world, actor, animal) ? actor : null,
+                    LeadDestination = world.Agents[actor].Position == animal.Position && MayLeadAnimal(world, actor, animal) ?
                         world.Simulation.Buildings.Single(yard => yard.InstanceId == offer.ReceivingYardId).Position : null
                 });
                 world.AppendEvent("animal_transferred", offer.Id + ":" + animal.Id + ":" + offer.ReceivingHouseholdId, animal.Position);

@@ -28,9 +28,9 @@ public sealed class FilledVesselHouseHaulingTests
         var leftHouse = false;
         for (var tick = 0; world.WorldTick - started < 40 && world.Society.Inventory.GetLot(Jug).StorageBuildingId != FoodCapacityTestFixture.House; tick++)
         {
-            var beforePosition = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var beforePosition = world.Agents.Single(person => person.AgentId == actor).Position;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var position = world.Agents.Single(person => person.AgentId == actor).Position;
             leftHouse |= position != housePosition;
             if (position != beforePosition) Assert.True(state.Map.CanFootStep(beforePosition, position));
             Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, null), 0, 8);
@@ -51,7 +51,7 @@ public sealed class FilledVesselHouseHaulingTests
 
         Assert.True(pickedUp, "The legal five-unit vessel family was never picked up.");
         Assert.True(leftHouse, "The carrier must actually leave the House to collect the camp vessel.");
-        Assert.Equal(housePosition, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(housePosition, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.InRange(world.WorldTick - started, 1, 40);
         Assert.Contains(choices.Offers, offer => offer.Contains("haul_household_stock", StringComparer.Ordinal));
         var result = world.Society.Inventory;
@@ -89,7 +89,7 @@ public sealed class FilledVesselHouseHaulingTests
                 room - (obstruction == "storage" ? 4 : 5), storageBuildingId: FoodCapacityTestFixture.House);
             if (obstruction == "incoming")
             {
-                var other = state.Society.Society.Inhabitants.First(person => person.HouseholdId == FoodCapacityTestFixture.Household &&
+                var other = state.Society.Society.Agents.First(person => person.HouseholdId == FoodCapacityTestFixture.Household &&
                     person.Id != actor).Id;
                 inventory = InventoryAuthority.AddLot(inventory, "promised-house-space", "stone",
                     FoodCapacityTestFixture.Household, 1);
@@ -101,7 +101,7 @@ public sealed class FilledVesselHouseHaulingTests
                         inventory.GetLot("promised-house-space").DeliveryBuildingId,
                         inventory.GetLot("promised-house-space").Quantity));
                 Assert.InRange(PersonalEquipmentRules.CarriedQuantity(inventory, other,
-                    state.Inhabitants.Single(person => person.InhabitantId == other).Equipment), 1, 8);
+                    state.Agents.Single(person => person.AgentId == other).Equipment), 1, 8);
             }
         }
         else if (obstruction == "reserved")

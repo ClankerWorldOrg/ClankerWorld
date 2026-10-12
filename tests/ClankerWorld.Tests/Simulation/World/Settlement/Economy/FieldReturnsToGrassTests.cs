@@ -23,7 +23,7 @@ public sealed class FieldReturnsToGrassTests
         halfway = FarmFieldTests.WithInventory(halfway, InventoryAuthority.AddLot(halfway.Society.Society.Inventory,
             "worked-field-seed", FarmFieldRules.GrainSeed, actor, 1)) with
         {
-            Inhabitants = halfway.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = halfway.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = worked, LastDecisionContext = null } : person).ToArray(),
         };
         var reloaded = FarmFieldTests.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(halfway)));
@@ -169,7 +169,7 @@ public sealed class FieldReturnsToGrassTests
         // abandoned field and complete first-harvest inventory history.
         abandoned = abandoned with
         {
-            Inhabitants = abandoned.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = abandoned.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     HungerBasisPoints = 10_000,
@@ -295,7 +295,7 @@ public sealed class FieldReturnsToGrassTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     {
                         BirthTick = person.BirthTick / old * day,
                         BirthLifeTick = person.BirthLifeTick is { } birth ? birth / old * day : null,

@@ -13,7 +13,7 @@ public sealed partial class WorldRuntime
     private AgentKnowledgeWritingProject? KnowledgeWritingFor(string actor) =>
         knowledge.WritingProjects.SingleOrDefault(project => project.ActorId == actor);
 
-    private bool MayMakeKnowledgeArtifact(string actor) => inhabitants.ContainsKey(actor) && AdultResident(actor) &&
+    private bool MayMakeKnowledgeArtifact(string actor) => agents.ContainsKey(actor) && AdultResident(actor) &&
         knowledge.Artifacts.Count < AgentKnowledgeRules.MaximumArtifactsInWorld &&
         knowledge.Artifacts.Count(item => item.CreatorId == actor) < AgentKnowledgeRules.MaximumArtifactsPerCreator;
 
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
 
     private bool CanSupplyWriting(string actor, string kind) => WritingCollectionPlan(actor, kind) is not null;
 
-    private void AddKnowledgeWritingCandidates(List<CognitionCandidate> candidates, string actor, InhabitantState person)
+    private void AddKnowledgeWritingCandidates(List<CognitionCandidate> candidates, string actor, AgentState person)
     {
         if (!AdultResident(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) return;
         if (KnowledgeWritingFor(actor) is { } project)
@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private void ApplyKnowledgeWritingCandidate(string actor, InhabitantState person, string candidate)
+    private void ApplyKnowledgeWritingCandidate(string actor, AgentState person, string candidate)
     {
         if (!AdultResident(actor) || NeedsUrgentFood(person) || NeedsUrgentWarmth(person)) return;
         if (candidate.StartsWith(KnowledgeReadPrefix, StringComparison.Ordinal))
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
         AppendEvent("agent_knowledge_writing_started", $"{actor}|{kind}|{id}");
     }
 
-    private void CollectKnowledgeMaterial(string actor, InhabitantState person, string kind, int missing, string plannedLotId)
+    private void CollectKnowledgeMaterial(string actor, AgentState person, string kind, int missing, string plannedLotId)
     {
         var item = SharedStockItems(kind, actor, GoodsUse.Collect).FirstOrDefault(lot => lot.Id == plannedLotId);
         if (item is null || item.DeliveryBuildingId is not null || item.ConditionBasisPoints <= 0 || item.FreshnessBasisPoints <= 0) return;
@@ -224,7 +224,7 @@ public sealed partial class WorldRuntime
             CancelKnowledgeWriting(project, "materials_or_source_unavailable");
             return;
         }
-        var person = inhabitants[actor];
+        var person = agents[actor];
         if (project.LastWorkedTick >= WorldTick || !SettlementIllnessRules.AllowsWork(actor, WorldTick, person.Survival?.IllnessBasisPoints ?? 0)) return;
         var work = project.WorkDone + 1;
         if (work < project.WorkRequired)

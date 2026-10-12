@@ -20,7 +20,7 @@ public sealed class MarketWritingPaperTests
         string boundary, int expectedJobs, int expectedSalePaper)
     {
         var state = WorldRuntimeCodec.Decode(await Prepared.Value);
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
         var writer = Writer(state, seller, household);
         var receipt = Assert.Single(PaidMarketWorld.Market(state).StockReceipts);
@@ -82,7 +82,7 @@ public sealed class MarketWritingPaperTests
     public async Task AvailableCollectedAndReservedSheetsStillPreventReplacementProduction(string reserve)
     {
         var state = WorldRuntimeCodec.Decode(await Prepared.Value);
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
         var writer = Writer(state, seller, household);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "writer-reserve-paper", "paper",
@@ -114,7 +114,7 @@ public sealed class MarketWritingPaperTests
     public async Task WritingDemandOnlyCountsCommittedSheetsInAUsableVessel(bool broken)
     {
         var state = WorldRuntimeCodec.Decode(await Prepared.Value);
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
         var writer = Writer(state, seller, household);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
@@ -155,7 +155,7 @@ public sealed class MarketWritingPaperTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         Assert.NotEmpty(choices.OfferedTo(writer));
-        Assert.False(world.ExportState().Inhabitants.Single(person => person.InhabitantId == writer).IdentityChoicePending);
+        Assert.False(world.ExportState().Agents.Single(person => person.AgentId == writer).IdentityChoicePending);
         Assert.Equal(broken, choices.OfferedTo(writer).Any(item => item.Id == candidate));
         Assert.Equal(broken, world.WorldSimulation.ProductionJobs.Any(item => item.RecipeId == recipe.CanonicalId));
         Assert.Equal(2, world.Society.Inventory.GetLot("writer-covered-sheets").Quantity);
@@ -189,7 +189,7 @@ public sealed class MarketWritingPaperTests
             if (request.Observation.IdentityMoment is not null)
             {
                 var candidate = request.Observation.Candidates.Single(item => item.Id == "identity_optional");
-                return new(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                return new(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                     request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                     candidate.Id, 1, new Dictionary<string, double> { [candidate.Id] = 1 });
             }
@@ -206,7 +206,7 @@ public sealed class MarketWritingPaperTests
     private static async Task<byte[]> PrepareAsync()
     {
         var state = await PaidMarketWorld.StateAsync();
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
         var writer = Writer(state, seller, household);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, SalePaper, "paper", household, 4);
@@ -242,11 +242,11 @@ public sealed class MarketWritingPaperTests
     }
 
     private static string Writer(WorldRuntimeState state, string seller, string household) =>
-        state.Society.Society.Inhabitants.First(person => person.HouseholdId == household && person.Id != seller).Id;
+        state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != seller).Id;
 
     private static WorldRuntimeState FreshDecisions(WorldRuntimeState state) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person with
+        Agents = state.Agents.Select(person => person with
         { HungerBasisPoints = 9_500, Survival = new SurvivalCondition(), LastDecisionContext = null, Project = null }).ToArray(),
     };
 

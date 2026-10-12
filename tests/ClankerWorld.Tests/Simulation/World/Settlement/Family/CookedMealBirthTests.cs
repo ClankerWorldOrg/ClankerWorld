@@ -15,10 +15,10 @@ public sealed class CookedMealBirthTests
             lot.OwnerId == prepared.Household && PersonalEquipmentRules.AvailableQuantity(
                 prepared.State.Society.Society.Inventory, lot) >= 4 && InventoryContainerRules.IsFood(lot.ItemKind));
         using var world = CookedBirthFixture.Restore(prepared);
-        for (var tick = 0; tick < 40 && world.Inhabitants.Single(person => person.InhabitantId == prepared.First)
+        for (var tick = 0; tick < 40 && world.Agents.Single(person => person.AgentId == prepared.First)
                  .Parenthood?.Stage != "preparing"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var plan = world.Inhabitants.Single(person => person.InhabitantId == prepared.First).Parenthood;
+        var plan = world.Agents.Single(person => person.AgentId == prepared.First).Parenthood;
         Assert.NotNull(plan);
         Assert.Equal("preparing", plan.Stage);
         Assert.Equal(prepared.First, plan.PrimaryCaregiverId);
@@ -36,11 +36,11 @@ public sealed class CookedMealBirthTests
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         var birth = Assert.Single(world.Society.Births);
-        var infant = world.Society.GetInhabitant(birth.ChildId);
+        var infant = world.Society.GetAgent(birth.ChildId);
         Assert.Equal(SocietyAgeBand.Infant, infant.AgeBand);
         Assert.Equal(prepared.First, infant.PrimaryCaregiverId);
         Assert.Equal(prepared.Household, infant.HouseholdId);
-        Assert.Equal(world.Society.GetInhabitant(prepared.First).DomesticFamilyUnitId, infant.DomesticFamilyUnitId);
+        Assert.Equal(world.Society.GetAgent(prepared.First).DomesticFamilyUnitId, infant.DomesticFamilyUnitId);
         var receipts = world.Society.Inventory.Reservations.Where(receipt => receipt.Purpose == "birth:" + birth.RequestId)
             .OrderBy(receipt => receipt.Id, StringComparer.Ordinal).ToArray();
         Assert.Equal(2, receipts.Length);

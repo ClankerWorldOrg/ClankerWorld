@@ -67,7 +67,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         state = MedicineInputs(state, boundary == "remote" ? House : Clinic);
         var position = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Clinic).Position;
         if (boundary == "other-household")
-            actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId != Alpha).Id;
+            actor = state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
         state = At(state, actor, position);
         if (boundary == "reserved-water")
             state = WithInventory(state, InventoryAuthority.Reserve(state.Society.Society.Inventory,
@@ -99,7 +99,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "care-supply-water",
             InventoryContainerRules.FreshWater, Alpha, 4, storageBuildingId: House,
             containerLotId: "care-supply-jug");
-        var equipment = state.Inhabitants.Single(person => person.InhabitantId == actor).Equipment;
+        var equipment = state.Agents.Single(person => person.AgentId == actor).Equipment;
         var free = PersonalEquipmentRules.FreeCapacity(inventory, actor, equipment);
         var remainingRoom = boundary == "carrying-room" ? 4 : 5;
         Assert.True(free > remainingRoom);
@@ -166,7 +166,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
                 world.Society.Inventory.GetLot("care-supply-water").ContainerLotId,
                 world.Society.Inventory.GetLot("care-supply-water").Quantity));
         Assert.Equal(8, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
+            world.Agents.Single(person => person.AgentId == actor).Equipment));
         var inTransit = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(inTransit), id => id == actor
             ? new Preferred(["supply_workstation:fresh_water", "haul_household_stock"]) : new Preferred([]));
@@ -220,7 +220,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
         var herbs = Assert.Single(state.Map.Resources, item => item.Kind == CareContent.MedicinalHerbs);
         var initialHerbs = state.WorldSystems!.Ecology.GetResource(herbs.Id).Quantity;
         Assert.True(initialHerbs > 0);
-        Assert.True(state.Map.IsReachableOnFoot(state.Inhabitants.Single(person => person.InhabitantId == actor).Position, herbs.Position));
+        Assert.True(state.Map.IsReachableOnFoot(state.Agents.Single(person => person.AgentId == actor).Position, herbs.Position));
         var medicineRecipe = state.WorldContent!.Recipes.Single(item => item.LocalId == "clinic-medicine");
         var choices = new Preferred(["collect_water_jug", "fill_water_jug:", "return_water_jug", "supply_workstation:",
             "build:recipe:" + medicineRecipe.CanonicalId, "haul_household_stock"]);
@@ -250,7 +250,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
                 if (tick % 60 == 59)
                 {
                     var snapshot = world.ExportState();
-                    var person = snapshot.Inhabitants.Single(item => item.InhabitantId == actor);
+                    var person = snapshot.Agents.Single(item => item.AgentId == actor);
                     output.WriteLine("Tick {0}: position={1}, hunger={2}, project={3}",
                         world.WorldTick, person.Position, person.HungerBasisPoints, person.Project);
                     foreach (var lot in snapshot.Society.Society.Inventory.Lots.Where(item =>
@@ -283,7 +283,7 @@ public sealed class CareProductionTests(ITestOutputHelper output)
                 (water.ItemKind, water.OwnerId, water.StorageBuildingId, water.Quantity));
             var completed = Assert.Single(world.WorldSimulation.ProductionJobs, job => job.RecipeId == medicineRecipe.CanonicalId &&
                 job.State == WorldProductionJobState.Completed);
-            Assert.Contains(world.Inhabitants.Single(person => person.InhabitantId == actor).Skills!,
+            Assert.Contains(world.Agents.Single(person => person.AgentId == actor).Skills!,
                 skill => skill.Kind == SettlementSkillKind.Crafting);
             Assert.Equal(12, completed.CompletionTick - completed.StartedTick);
             var inputs = completed.InputReservationIds.Select(world.Society.Inventory.GetReservation).ToArray();
@@ -364,14 +364,14 @@ public sealed class CareProductionTests(ITestOutputHelper output)
     }
 
     private static string AlphaActor(WorldRuntimeState state) =>
-        state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha).Id;
+        state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
 
     private static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position)
     {
-        var previous = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = state.Agents.Single(person => person.AgentId == actor).Position;
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = position, HungerBasisPoints = 9_000, LastDecisionContext = null }
                 : person.Position == position ? person with { Position = previous } : person).ToArray(),
         };

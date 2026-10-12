@@ -10,9 +10,9 @@ internal sealed partial class FarmingSystem
     internal static string FarmCandidate(FarmWorkKind kind, GridPoint point, string? crop = null) =>
         $"farm:{kind}:{point.X}:{point.Y}:{crop ?? "-"}";
 
-    internal void AddFieldCandidates(IFarmingWorld world, List<CognitionCandidate> candidates, string actor, InhabitantState state)
+    internal void AddFieldCandidates(IFarmingWorld world, List<CognitionCandidate> candidates, string actor, AgentState state)
     {
-        var householdId = world.Society.GetInhabitant(actor).HouseholdId;
+        var householdId = world.Society.GetAgent(actor).HouseholdId;
         if (householdId is null || world.FarmhouseForHousehold(householdId) is not { } farmhouse ||
             world.NeedsUrgentFood(state) || world.NeedsUrgentWarmth(state) ||
             (state.Project is { Stage: not ("completed" or "cancelled") } project && !project.RequiresFreshChoice)) return;
@@ -28,7 +28,7 @@ internal sealed partial class FarmingSystem
                 candidates.Add(new(FarmCandidate(FarmWorkKind.Tend, field.Position), "Tend the growing crop with a hoe.", 13));
             else if (field.Stage is FarmFieldStage.Prepared or FarmFieldStage.Harvested && demand.MissingMeals > 0)
             {
-                if (HasOtherInhabitantClaimedPlanting(world, field, actor)) continue;
+                if (HasOtherAgentClaimedPlanting(world, field, actor)) continue;
                 var priority = 14;
                 foreach (var crop in PlantableCrops(world, actor, field))
                     candidates.Add(new(FarmCandidate(FarmWorkKind.Plant, field.Position, crop),
@@ -62,28 +62,28 @@ internal sealed partial class FarmingSystem
             }
     }
 
-    internal static bool HasOtherInhabitantClaimedPlanting(IFarmingWorld world, FarmFieldState field, string actor)
+    internal static bool HasOtherAgentClaimedPlanting(IFarmingWorld world, FarmFieldState field, string actor)
     {
         var runtimes = world.Cognition.Runtimes;
-        foreach (var runtime in runtimes.Where(item => item.InhabitantId != actor))
+        foreach (var runtime in runtimes.Where(item => item.AgentId != actor))
         {
             if (runtime.CurrentIntention is not { } intention) continue;
             var crop = new[] { FarmFieldRules.Greens, FarmFieldRules.Grain, FarmFieldRules.Potatoes }
                 .FirstOrDefault(item => intention.CandidateId == FarmCandidate(FarmWorkKind.Plant, field.Position, item));
             if (crop is null) continue;
-            var eligible = world.Inhabitants.TryGetValue(runtime.InhabitantId, out var claimant) &&
-                world.AdultResident(runtime.InhabitantId) && world.HouseholdFor(runtime.InhabitantId) == field.HouseholdId &&
+            var eligible = world.Agents.TryGetValue(runtime.AgentId, out var claimant) &&
+                world.AdultResident(runtime.AgentId) && world.HouseholdFor(runtime.AgentId) == field.HouseholdId &&
                 !world.NeedsUrgentFood(claimant) && !world.NeedsUrgentWarmth(claimant) &&
-                ToolProgressionRules.PlanWork(world.Society.Inventory, runtime.InhabitantId, ToolFamily.Hoe) is not null &&
+                ToolProgressionRules.PlanWork(world.Society.Inventory, runtime.AgentId, ToolFamily.Hoe) is not null &&
                 (claimant.Project is not { Stage: not ("completed" or "cancelled") } project || project.RequiresFreshChoice) &&
                 FarmNeedsFood(world, field.HouseholdId);
-            var stock = eligible ? PlantingStock(world, runtime.InhabitantId, field, crop) : null;
+            var stock = eligible ? PlantingStock(world, runtime.AgentId, field, crop) : null;
             if (stock is not null) return true;
         }
         return false;
     }
 
-    // Other world.Inhabitants can briefly occupy a destination or route tile. Keep
+    // Other world.Agents can briefly occupy a destination or route tile. Keep
     // the field and seed choice legal while they pass so the selected task can
     // retry its physical route instead of being replaced by another crop.
     internal static bool CanReachField(IFarmingWorld world, string actor, GridPoint from, GridPoint destination) =>
@@ -96,7 +96,7 @@ internal sealed partial class FarmingSystem
         var checkpoint = world.Society;
         var townId = world.FarmhouseForHousehold(householdId)?.TownId;
         var town = world.Towns.SingleOrDefault(item => item.Id == townId);
-        var residents = checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var residents = checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
             (town is null ? person.HouseholdId == householdId : town.ResidentIds.Contains(person.Id, StringComparer.Ordinal)))
             .ToArray();
         var foodOwners = town is null ? new HashSet<string>(StringComparer.Ordinal) { householdId }
@@ -117,17 +117,17 @@ internal sealed partial class FarmingSystem
         var crop = new[] { FarmFieldRules.Greens, FarmFieldRules.Grain, FarmFieldRules.Potatoes }
             .FirstOrDefault(candidate => FarmFieldRules.PlantingItem(candidate) == itemKind);
         if (crop is null || !world.AdultResident(actor) ||
-            world.Society.GetInhabitant(actor).Status != SocietyInhabitantStatus.Active ||
-            world.Society.GetInhabitant(actor).HouseholdId is not { } householdId ||
+            world.Society.GetAgent(actor).Status != SocietyAgentStatus.Active ||
+            world.Society.GetAgent(actor).HouseholdId is not { } householdId ||
             world.FarmhouseForHousehold(householdId) is null || !FarmNeedsFood(world, householdId) ||
-            world.NeedsUrgentFood(world.Inhabitants[actor]) || world.NeedsUrgentWarmth(world.Inhabitants[actor]) ||
-            (world.Inhabitants[actor].Project is { Stage: not ("completed" or "cancelled") } project && !project.RequiresFreshChoice) ||
+            world.NeedsUrgentFood(world.Agents[actor]) || world.NeedsUrgentWarmth(world.Agents[actor]) ||
+            (world.Agents[actor].Project is { Stage: not ("completed" or "cancelled") } project && !project.RequiresFreshChoice) ||
             ToolProgressionRules.PlanWork(world.Society.Inventory, actor, ToolFamily.Hoe) is null)
             return false;
         return fields.Any(field => field.HouseholdId == householdId && field.Work is null &&
             field.Stage is FarmFieldStage.Prepared or FarmFieldStage.Harvested &&
-            CanReachField(world, actor, world.Inhabitants[actor].Position, field.Position) &&
-            !HasOtherInhabitantClaimedPlanting(world, field, actor) && PlantingStock(world, actor, field, crop) is null);
+            CanReachField(world, actor, world.Agents[actor].Position, field.Position) &&
+            !HasOtherAgentClaimedPlanting(world, field, actor) && PlantingStock(world, actor, field, crop) is null);
     }
 
     internal IEnumerable<string> PlantableCrops(IFarmingWorld world, string actor, FarmFieldState field) =>
@@ -155,12 +155,12 @@ internal sealed partial class FarmingSystem
             .ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => lot.OwnerId == actor ||
                 world.PickupCarryCapacity(actor, lot, field.Position, 1) >= 1 && (requirePickupRoute
-                    ? world.CanWalkToFieldOrderSite(actor, world.Inhabitants[actor].Position, world.HouseholdStockPosition(lot),
+                    ? world.CanWalkToFieldOrderSite(actor, world.Agents[actor].Position, world.HouseholdStockPosition(lot),
                         WorldRuntime.FarmingSharedRules.HouseholdStockInteractionRange(lot))
-                    : world.CanReachByFootOrSwimming(actor, world.Inhabitants[actor].Position, world.HouseholdStockPosition(lot))));
+                    : world.CanReachByFootOrSwimming(actor, world.Agents[actor].Position, world.HouseholdStockPosition(lot))));
     }
 
-    internal void ApplyFieldCandidate(IFarmingWorld world, string actor, InhabitantState state, string candidate, string? orderInstructionId = null)
+    internal void ApplyFieldCandidate(IFarmingWorld world, string actor, AgentState state, string candidate, string? orderInstructionId = null)
     {
         var parts = candidate.Split(':');
         if (parts.Length != 5 || !Enum.TryParse<FarmWorkKind>(parts[1], out var kind) ||

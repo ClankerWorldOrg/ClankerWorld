@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
 {
     private int TrustScore(string owner, string subject)
     {
-        var saved = inhabitants[owner].SocialStanding?.FirstOrDefault(item => item.SubjectId == subject);
+        var saved = agents[owner].SocialStanding?.FirstOrDefault(item => item.SubjectId == subject);
         if (saved is not null)
         {
             return saved.Trust;
@@ -26,7 +26,7 @@ public sealed partial class WorldRuntime
 
     private void IncreaseTrust(string owner, string subject, int amount, string reason)
     {
-        if (owner == subject || amount <= 0 || !inhabitants.TryGetValue(owner, out var person) || !inhabitants.ContainsKey(subject))
+        if (owner == subject || amount <= 0 || !agents.TryGetValue(owner, out var person) || !agents.ContainsKey(subject))
         {
             return;
         }
@@ -41,23 +41,23 @@ public sealed partial class WorldRuntime
         var standing = (person.SocialStanding ?? []).Where(item => item.SubjectId != subject)
             .Append(new SettlementSocialStanding(subject, next, WorldTick))
             .OrderBy(item => item.SubjectId, StringComparer.Ordinal).ToArray();
-        inhabitants[owner] = person with { SocialStanding = standing };
+        agents[owner] = person with { SocialStanding = standing };
         checkpointSchemaVersion = StateSchemaVersion;
         AppendEvent("social_standing_changed", $"{owner}:{subject}:{reason}");
     }
 
     private static void ValidateSocialStanding(
-        InhabitantState person,
-        IEnumerable<string> knownInhabitants,
+        AgentState person,
+        IEnumerable<string> knownAgents,
         long worldTick)
     {
         if (person.SocialStanding is null)
         {
             return;
         }
-        var known = knownInhabitants.ToHashSet(StringComparer.Ordinal);
+        var known = knownAgents.ToHashSet(StringComparer.Ordinal);
         if (person.SocialStanding.Select(item => item.SubjectId).Distinct(StringComparer.Ordinal).Count() != person.SocialStanding.Count ||
-            person.SocialStanding.Any(item => item.SubjectId == person.InhabitantId || !known.Contains(item.SubjectId) ||
+            person.SocialStanding.Any(item => item.SubjectId == person.AgentId || !known.Contains(item.SubjectId) ||
                 item.Trust is < 1 or > 10 || item.LastChangedTick < 0 || item.LastChangedTick > worldTick))
         {
             throw new InvalidDataException("The saved social standing is invalid.");

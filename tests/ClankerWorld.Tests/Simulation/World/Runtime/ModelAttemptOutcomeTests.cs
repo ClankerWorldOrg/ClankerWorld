@@ -46,14 +46,14 @@ public sealed class ModelAttemptOutcomeTests
         Assert.DoesNotContain(TargetId, description, StringComparison.Ordinal);
         Assert.DoesNotContain("sk-private-status", description, StringComparison.Ordinal);
         Assert.DoesNotContain("sk-private-status", JsonSerializer.Serialize(world.ExportState()), StringComparison.Ordinal);
-        Assert.Null(world.Inhabitants.Single(item => item.InhabitantId == TargetId).LastModelAttempt!.LastAcceptedCandidateId);
+        Assert.Null(world.Agents.Single(item => item.AgentId == TargetId).LastModelAttempt!.LastAcceptedCandidateId);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => fixture.Provider);
         Assert.Equal(expectedStatus, Status(restored));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.Equal(failureRows, ClientFailures(restored));
         if (mode == "unsupported")
-            Assert.Equal("unsupported_request", restored.Inhabitants.Single(item => item.InhabitantId == TargetId).LastModelAttempt!.SetupBlocker);
+            Assert.Equal("unsupported_request", restored.Agents.Single(item => item.AgentId == TargetId).LastModelAttempt!.SetupBlocker);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class ModelAttemptOutcomeTests
         Assert.False(accepted.Admission.FellBack);
         Assert.Equal(0.1, accepted.Admission.Intention!.Confidence);
         Assert.NotEqual("safe_idle", accepted.Admission.Intention.CandidateId);
-        Assert.Equal("Aster Vale", world.Society.GetInhabitant(TargetId).Name);
+        Assert.Equal("Aster Vale", world.Society.GetAgent(TargetId).Name);
         Assert.Equal("ready", Status(world));
         Assert.DoesNotContain("probabilities", fixture.Handler.SystemPrompt!, StringComparison.Ordinal);
         // No unmeasured output cap or temperature is imposed on models with
@@ -80,9 +80,9 @@ public sealed class ModelAttemptOutcomeTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => fixture.Provider);
         Assert.Equal(accepted.Admission.Intention.CandidateId,
-            restored.Inhabitants.Single(item => item.InhabitantId == TargetId).LastModelAttempt!.LastAcceptedCandidateId);
-        Assert.Equal("safe_idle", restored.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == TargetId).CurrentIntention!.CandidateId);
-        Assert.Contains(new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants.Single(item => item.Id == TargetId).DecisionFactors,
+            restored.Agents.Single(item => item.AgentId == TargetId).LastModelAttempt!.LastAcceptedCandidateId);
+        Assert.Equal("safe_idle", restored.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == TargetId).CurrentIntention!.CandidateId);
+        Assert.Contains(new OwnerWorldObservationStore(restored).GetSnapshot().Agents.Single(item => item.Id == TargetId).DecisionFactors,
             item => item.Key == "last-model-choice" && item.Detail == accepted.Admission.Intention.CandidateId);
     }
 
@@ -105,8 +105,8 @@ public sealed class ModelAttemptOutcomeTests
         Assert.Equal("canceled", Status(world));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => fixture.Provider);
         Assert.Equal("canceled", Status(restored));
-        Assert.True(restored.Society.GetInhabitant(TargetId).NeedsName);
-        Assert.Null(restored.Inhabitants.Single(item => item.InhabitantId == TargetId).LastModelAttempt!.LastAcceptedCandidateId);
+        Assert.True(restored.Society.GetAgent(TargetId).NeedsName);
+        Assert.Null(restored.Agents.Single(item => item.AgentId == TargetId).LastModelAttempt!.LastAcceptedCandidateId);
         Assert.Equal(1, fixture.Handler.Calls);
         Assert.Equal(1, fixture.Usage.Capture().Attempts);
     }
@@ -120,7 +120,7 @@ public sealed class ModelAttemptOutcomeTests
     }
 
     private static string Status(WorldRuntime world) =>
-        new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(item => item.Id == TargetId)
+        new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(item => item.Id == TargetId)
             .DecisionFactors.Single(item => item.Key == "model-status").Detail;
 
     private static async Task<ClankerWorld.Simulation.Society.SocietyCognitionDispatchResult> CompleteNext(WorldRuntime world)
@@ -128,7 +128,7 @@ public sealed class ModelAttemptOutcomeTests
         for (var tick = 0; tick < 400; tick++)
         {
             var step = await world.AdvanceOneTickNonBlockingAsync();
-            var decision = step.Decisions.FirstOrDefault(item => item.InhabitantId == TargetId);
+            var decision = step.Decisions.FirstOrDefault(item => item.AgentId == TargetId);
             if (decision is not null) return decision;
             await Task.Delay(5);
         }

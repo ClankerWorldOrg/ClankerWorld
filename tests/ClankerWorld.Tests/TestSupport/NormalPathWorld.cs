@@ -48,7 +48,7 @@ internal static class NormalPathWorld
                     Society = society with
                     {
                         Config = society.Config with { TicksPerWorldDay = day },
-                        Inhabitants = society.Inhabitants.Select(person => person with
+                        Agents = society.Agents.Select(person => person with
                         {
                             BirthTick = person.BirthTick / oldDay * day,
                             BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * day : null,
@@ -158,15 +158,15 @@ internal sealed class ActionCoverageRecorder(bool chooseIdle = false) : IDecisio
     public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
         CancellationToken cancellationToken = default)
     {
-        var offered = OfferedByAgent.GetOrAdd(request.Observation.InhabitantId,
+        var offered = OfferedByAgent.GetOrAdd(request.Observation.AgentId,
             _ => new ConcurrentDictionary<string, int>(StringComparer.Ordinal));
         foreach (var candidate in request.Observation.Candidates)
         {
             offered.AddOrUpdate(candidate.Id, 1, (_, count) => count + 1);
-            FirstOfferedTick.TryAdd((request.Observation.InhabitantId, candidate.Id), request.Observation.WorldTick);
+            FirstOfferedTick.TryAdd((request.Observation.AgentId, candidate.Id), request.Observation.WorldTick);
             if (candidate.Id.StartsWith("supply_workstation:", StringComparison.Ordinal) &&
                 candidate.DestinationId is { } destination)
-                WorkstationSupplyOffers.TryAdd((request.Observation.InhabitantId, destination), 0);
+                WorkstationSupplyOffers.TryAdd((request.Observation.AgentId, destination), 0);
         }
         var choice = chooseIdle
             ? request with

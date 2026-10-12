@@ -7,18 +7,18 @@ public sealed partial class WorldRuntime
 {
     private long GuardianStageTicks => Math.Max(1, worldSystems.Config.TicksPerDay);
 
-    private bool NeedsCaregiver(string child) => inhabitants.ContainsKey(child) &&
-        society.Checkpoint.GetInhabitant(child).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
+    private bool NeedsCaregiver(string child) => agents.ContainsKey(child) &&
+        society.Checkpoint.GetAgent(child).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
         !SocietyRules.HasActivePrimaryCaregiver(society.Checkpoint, child);
     private bool CanAcceptGuardian(string adult, string child) => AdultResident(adult) &&
         ReadyForBriefInteraction(adult) &&
-        NeedsCaregiver(child) && inhabitants[child].GuardianSearch is { } search &&
+        NeedsCaregiver(child) && agents[child].GuardianSearch is { } search &&
             search.OfferedAdultIds.Contains(adult, StringComparer.Ordinal) &&
             GuardianAdultsForStage(child, search.Stage).Contains(adult, StringComparer.Ordinal);
 
     private bool EligibleCaregiver(string adult, string child) => AdultResident(adult) && NeedsCaregiver(child) &&
-        society.Checkpoint.GetInhabitant(adult).HouseholdId is { } household &&
-        society.Checkpoint.GetInhabitant(child).HouseholdId == household;
+        society.Checkpoint.GetAgent(adult).HouseholdId is { } household &&
+        society.Checkpoint.GetAgent(child).HouseholdId == household;
 
     private IEnumerable<SocietyRelationship> CareProposals() => society.Checkpoint.Relationships.Where(edge =>
         edge.Type == SocietyRelationshipType.Caregiver && edge.State == SocietyRelationshipState.Proposed &&
@@ -27,13 +27,13 @@ public sealed partial class WorldRuntime
     private IEnumerable<string> IllDependentsNeedingCare(string adult) => society.Checkpoint.Relationships
         .Where(edge => edge.Type == SocietyRelationshipType.Caregiver && edge.ProposerId == adult &&
             edge.State == SocietyRelationshipState.Accepted && edge.EffectiveTick <= WorldTick &&
-            inhabitants.TryGetValue(edge.TargetId, out var recipient) &&
-            society.Checkpoint.GetInhabitant(edge.TargetId).AgeBand != SocietyAgeBand.Infant &&
+            agents.TryGetValue(edge.TargetId, out var recipient) &&
+            society.Checkpoint.GetAgent(edge.TargetId).AgeBand != SocietyAgeBand.Infant &&
             recipient.Survival is { IllnessBasisPoints: >= 2_500 } && !RecentlyCaredForIllness(edge.TargetId))
         .Select(edge => edge.TargetId);
 
     private bool CanOfferCare(string adult, string child) => EligibleCaregiver(adult, child) &&
-        inhabitants[child].GuardianSearch is null &&
+        agents[child].GuardianSearch is null &&
         !CareProposals().Any(edge => edge.TargetId == child) &&
         !society.Checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == adult && edge.TargetId == child && edge.State == SocietyRelationshipState.Accepted) &&
@@ -41,15 +41,15 @@ public sealed partial class WorldRuntime
             edge.ProposerId == adult && edge.TargetId == child && WorldTick - Math.Max(edge.ProposedTick, edge.EffectiveTick) < worldSystems.Config.TicksPerDay);
 
     private bool CanAssumePrimaryCare(string adult, string child) => AdultResident(adult) && NeedsCaregiver(child) &&
-        inhabitants[child].GuardianSearch is null &&
-        society.Checkpoint.GetInhabitant(adult).HouseholdId is { } household &&
-        society.Checkpoint.GetInhabitant(child).HouseholdId == household &&
+        agents[child].GuardianSearch is null &&
+        society.Checkpoint.GetAgent(adult).HouseholdId is { } household &&
+        society.Checkpoint.GetAgent(child).HouseholdId == household &&
         society.Checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == adult && edge.TargetId == child && edge.State == SocietyRelationshipState.Accepted);
 
     private bool HasDependentCareDecision(string actor) => ReadyForBriefInteraction(actor) &&
         (CareProposals().Any(edge => edge.TargetId == actor) ||
-         inhabitants.Keys.Any(child => CanOfferCare(actor, child) || CanAssumePrimaryCare(actor, child) ||
+         agents.Keys.Any(child => CanOfferCare(actor, child) || CanAssumePrimaryCare(actor, child) ||
              CanAcceptGuardian(actor, child)));
 
     private void MaintainDependentCare()
@@ -63,16 +63,16 @@ public sealed partial class WorldRuntime
             }
         }
 
-        foreach (var child in inhabitants.Keys.Order(StringComparer.Ordinal).ToArray())
+        foreach (var child in agents.Keys.Order(StringComparer.Ordinal).ToArray())
         {
             if (!NeedsCaregiver(child))
             {
-                if (inhabitants[child].GuardianSearch is not null)
+                if (agents[child].GuardianSearch is not null)
                     SetGuardianSearch(child, null);
                 continue;
             }
 
-            var search = inhabitants[child].GuardianSearch;
+            var search = agents[child].GuardianSearch;
             if (search is null)
             {
                 search = NewGuardianSearch(child, WorldTick);
@@ -82,7 +82,7 @@ public sealed partial class WorldRuntime
             }
 
             search = RefreshedGuardianSearch(child, search, WorldTick - search.StageStartedTick >= GuardianStageTicks);
-            if (search != inhabitants[child].GuardianSearch)
+            if (search != agents[child].GuardianSearch)
                 SetGuardianSearch(child, search);
         }
     }
@@ -93,9 +93,9 @@ public sealed partial class WorldRuntime
     /// </summary>
     private void SettleGuardianSearches()
     {
-        foreach (var child in inhabitants.Keys.Order(StringComparer.Ordinal).ToArray())
+        foreach (var child in agents.Keys.Order(StringComparer.Ordinal).ToArray())
         {
-            if (inhabitants[child].GuardianSearch is not { } search) continue;
+            if (agents[child].GuardianSearch is not { } search) continue;
             if (!NeedsCaregiver(child))
             {
                 SetGuardianSearch(child, null);
@@ -175,8 +175,8 @@ public sealed partial class WorldRuntime
         string stage)
     {
         var relatives = LivingAdultRelatives(checkpoint, child).ToHashSet(StringComparer.Ordinal);
-        var householdId = checkpoint.GetInhabitant(child).HouseholdId;
-        var householdAdults = householdId is null ? [] : checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var householdId = checkpoint.GetAgent(child).HouseholdId;
+        var householdAdults = householdId is null ? [] : checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder &&
                 person.HouseholdId == householdId)
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
@@ -198,8 +198,8 @@ public sealed partial class WorldRuntime
         if (townId is null)
             return [];
         return towns.Single(town => town.Id == townId).ResidentIds
-            .Where(id => id != child && checkpoint.Inhabitants.Any(person => person.Id == id &&
-                person.Status == SocietyInhabitantStatus.Active &&
+            .Where(id => id != child && checkpoint.Agents.Any(person => person.Id == id &&
+                person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
             .Order(StringComparer.Ordinal).ToArray();
     }
@@ -221,15 +221,15 @@ public sealed partial class WorldRuntime
         var auntsAndUncles = parentage.Where(edge => grandparents.Contains(edge.ProposerId))
             .Select(edge => edge.TargetId).Where(id => !parents.Contains(id));
         return parents.Concat(grandparents).Concat(adultSiblings).Concat(auntsAndUncles)
-            .Where(id => id != child && checkpoint.Inhabitants.Any(person => person.Id == id &&
-                person.Status == SocietyInhabitantStatus.Active &&
+            .Where(id => id != child && checkpoint.Agents.Any(person => person.Id == id &&
+                person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
     }
 
     private void SetGuardianSearch(string child, SettlementGuardianSearch? search)
     {
-        inhabitants[child] = inhabitants[child] with { GuardianSearch = search };
+        agents[child] = agents[child] with { GuardianSearch = search };
         checkpointSchemaVersion = StateSchemaVersion;
     }
 
@@ -243,32 +243,32 @@ public sealed partial class WorldRuntime
             candidates.Add(new("guardian_end:" + edge.Id, "Withdraw from this caregiving relationship or proposal.", 110));
         }
         foreach (var dependent in IllDependentsNeedingCare(actor).Where(dependent =>
-                     !NeedsUrgentFood(inhabitants[actor]) || IsWithinInteractionRange(inhabitants[actor].Position, inhabitants[dependent].Position, ResourceInteractionRange)))
+                     !NeedsUrgentFood(agents[actor]) || IsWithinInteractionRange(agents[actor].Position, agents[dependent].Position, ResourceInteractionRange)))
         {
             candidates.Add(new("guardian_tend:" + dependent,
                 "Offer warmth and practical care to your ill dependent.", 75));
         }
-        foreach (var child in inhabitants.Keys.Order(StringComparer.Ordinal).Where(child => CanAcceptGuardian(actor, child)))
+        foreach (var child in agents.Keys.Order(StringComparer.Ordinal).Where(child => CanAcceptGuardian(actor, child)))
         {
             if (candidates.Any(candidate => candidate.Id == "guardian_accept:" + child))
                 continue;
             candidates.Add(new("guardian_accept:" + child,
-                $"Accept primary care of {society.Checkpoint.GetInhabitant(child).Name}. If your House has room, accompany them there when a physical move is needed.", 3));
+                $"Accept primary care of {society.Checkpoint.GetAgent(child).Name}. If your House has room, accompany them there when a physical move is needed.", 3));
         }
         foreach (var edge in CareProposals().Where(edge => edge.TargetId == actor && EligibleCaregiver(edge.ProposerId, actor)))
         {
-            candidates.Add(new("guardian_accept:" + edge.Id, $"Accept care from {society.Checkpoint.GetInhabitant(edge.ProposerId).Name}.", 3));
+            candidates.Add(new("guardian_accept:" + edge.Id, $"Accept care from {society.Checkpoint.GetAgent(edge.ProposerId).Name}.", 3));
             candidates.Add(new("guardian_refuse:" + edge.Id, "Refuse this caregiver proposal.", 70));
         }
-        foreach (var child in inhabitants.Keys.Order(StringComparer.Ordinal).Where(child => CanOfferCare(actor, child)))
+        foreach (var child in agents.Keys.Order(StringComparer.Ordinal).Where(child => CanOfferCare(actor, child)))
         {
             candidates.Add(new("guardian_offer:" + child,
-                $"Offer to care for {society.Checkpoint.GetInhabitant(child).Name}, who has no surviving active caregiver. Older dependents may refuse.", 4));
+                $"Offer to care for {society.Checkpoint.GetAgent(child).Name}, who has no surviving active caregiver. Older dependents may refuse.", 4));
         }
-        foreach (var child in inhabitants.Keys.Order(StringComparer.Ordinal).Where(child => CanAssumePrimaryCare(actor, child)))
+        foreach (var child in agents.Keys.Order(StringComparer.Ordinal).Where(child => CanAssumePrimaryCare(actor, child)))
         {
             candidates.Add(new("guardian_primary:" + child,
-                $"Become {society.Checkpoint.GetInhabitant(child).Name}'s primary caregiver. The former primary caregiver is unavailable, and this child already recognizes you as a caregiver.", 4));
+                $"Become {society.Checkpoint.GetAgent(child).Name}'s primary caregiver. The former primary caregiver is unavailable, and this child already recognizes you as a caregiver.", 4));
         }
     }
 
@@ -282,7 +282,7 @@ public sealed partial class WorldRuntime
         }
         if (candidate.StartsWith("guardian_accept:", StringComparison.Ordinal))
         {
-            if (inhabitants.ContainsKey(target) && NeedsCaregiver(target))
+            if (agents.ContainsKey(target) && NeedsCaregiver(target))
             {
                 AcceptGuardian(actor, target, CanAcceptGuardian(actor, target));
                 return;
@@ -318,7 +318,7 @@ public sealed partial class WorldRuntime
         if (candidate.StartsWith("guardian_offer:", StringComparison.Ordinal))
         {
             if (!CanOfferCare(actor, target)) return;
-            if (society.Checkpoint.GetInhabitant(target).AgeBand == SocietyAgeBand.Infant)
+            if (society.Checkpoint.GetAgent(target).AgeBand == SocietyAgeBand.Infant)
             {
                 var result = society.Apply(checkpoint => SocietyRules.AssumeInfantCare(checkpoint, actor, target));
                 if (result.CreatedId is not null) AppendEvent("caregiver_assigned", target);
@@ -344,10 +344,10 @@ public sealed partial class WorldRuntime
     private void AcceptGuardian(string adult, string child, bool authorized)
     {
         if (!authorized || !AdultResident(adult) || !NeedsCaregiver(child)) return;
-        var adultHousehold = society.Checkpoint.GetInhabitant(adult).HouseholdId;
+        var adultHousehold = society.Checkpoint.GetAgent(adult).HouseholdId;
         var adultTown = TownForResident(adult);
         var childTown = TownForResident(child);
-        var destination = adultHousehold is not null && adultHousehold != society.Checkpoint.GetInhabitant(child).HouseholdId &&
+        var destination = adultHousehold is not null && adultHousehold != society.Checkpoint.GetAgent(child).HouseholdId &&
             adultTown is not null && adultTown == childTown &&
             CanFitGuardianHousehold(adultHousehold, adult, child)
             ? adultHousehold : null;
@@ -358,22 +358,22 @@ public sealed partial class WorldRuntime
             return;
         SetGuardianSearch(child, null);
         BeginGuardianPlacement(child, adult, result.CreatedId!);
-        SetHousing(child, (inhabitants[child].Housing ?? new()) with { Blocker = HousingBlocker(child) });
+        SetHousing(child, (agents[child].Housing ?? new()) with { Blocker = HousingBlocker(child) });
         AppendEvent("guardian_assigned", child);
     }
 
     private static void ValidateDependentCare(
-        IEnumerable<InhabitantState> physical,
+        IEnumerable<AgentState> physical,
         SocietyCheckpoint checkpoint,
         IReadOnlyList<TownRuntimeState> towns,
         int schemaVersion)
     {
-        var people = checkpoint.Inhabitants.ToDictionary(person => person.Id, StringComparer.Ordinal);
+        var people = checkpoint.Agents.ToDictionary(person => person.Id, StringComparer.Ordinal);
         foreach (var state in physical)
         {
             if (state.GuardianSearch is not { } search) continue;
-            if (schemaVersion < DependentGuardianSearchSchemaVersion || !people.TryGetValue(state.InhabitantId, out var child) ||
-                child.Status != SocietyInhabitantStatus.Active ||
+            if (schemaVersion < DependentGuardianSearchSchemaVersion || !people.TryGetValue(state.AgentId, out var child) ||
+                child.Status != SocietyAgentStatus.Active ||
                 child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent) ||
                 SocietyRules.HasActivePrimaryCaregiver(checkpoint, child.Id) ||
                 search.Stage is not ("relatives" or "household" or "town") ||
@@ -381,7 +381,7 @@ public sealed partial class WorldRuntime
                 search.StageStartedTick < search.StartedTick || search.StageStartedTick > checkpoint.WorldTick ||
                 search.OfferedAdultIds is null ||
                 search.OfferedAdultIds.Any(id => string.IsNullOrWhiteSpace(id) || !people.TryGetValue(id, out var adult) ||
-                    adult.Status != SocietyInhabitantStatus.Active || adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
+                    adult.Status != SocietyAgentStatus.Active || adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder)) ||
                 search.OfferedAdultIds.Distinct(StringComparer.Ordinal).Count() != search.OfferedAdultIds.Count ||
                 !search.OfferedAdultIds.SequenceEqual(search.OfferedAdultIds.Order(StringComparer.Ordinal)) ||
                 !search.OfferedAdultIds.SequenceEqual(GuardianAdultsForStage(checkpoint, towns, child.Id, search.Stage), StringComparer.Ordinal) ||
@@ -391,9 +391,9 @@ public sealed partial class WorldRuntime
     }
 
     private bool CanFitGuardianHousehold(string householdId, string adult, string child) =>
-        HouseResidentCapacity(householdId, society.Checkpoint.GetInhabitant(child) with
+        HouseResidentCapacity(householdId, society.Checkpoint.GetAgent(child) with
         {
-            DomesticFamilyUnitId = society.Checkpoint.GetInhabitant(adult).DomesticFamilyUnitId,
+            DomesticFamilyUnitId = society.Checkpoint.GetAgent(adult).DomesticFamilyUnitId,
         }) is { IsOvercrowded: false };
 
     private bool CanTendToIllDependent(string adult, string dependent) => AdultResident(adult) &&
@@ -402,8 +402,8 @@ public sealed partial class WorldRuntime
     private void TendToIllDependent(string adult, string dependent)
     {
         if (!ReadyForBriefInteraction(adult) || !CanTendToIllDependent(adult, dependent)) return;
-        var caregiver = inhabitants[adult];
-        var recipient = inhabitants[dependent];
+        var caregiver = agents[adult];
+        var recipient = agents[dependent];
         if (NeedsUrgentFood(caregiver) && !IsWithinInteractionRange(caregiver.Position, recipient.Position, ResourceInteractionRange)) return;
         if (!IsWithinInteractionRange(caregiver.Position, recipient.Position, ResourceInteractionRange))
         {
@@ -418,7 +418,7 @@ public sealed partial class WorldRuntime
                 IllnessBasisPoints = Math.Max(0, recipient.Survival.IllnessBasisPoints - IllnessCareReliefBasisPoints),
             },
         };
-        inhabitants[dependent] = recipient;
+        agents[dependent] = recipient;
         AppendEvent("dependent_cared_for", dependent);
     }
 }

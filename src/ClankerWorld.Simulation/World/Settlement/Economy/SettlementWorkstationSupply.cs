@@ -46,8 +46,8 @@ public sealed partial class WorldRuntime
     private int WorkstationIncomingQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string itemKind) =>
         building.HouseholdId is { } householdId ? inventory.Lots.Where(lot => lot.DeliveryBuildingId == building.InstanceId &&
                 lot.ItemKind == itemKind && (lot.OwnerId == householdId ||
-                    society.Checkpoint.Inhabitants.Any(person => person.Id == lot.OwnerId &&
-                        person.HouseholdId == householdId && person.Status == SocietyInhabitantStatus.Active)) &&
+                    society.Checkpoint.Agents.Any(person => person.Id == lot.OwnerId &&
+                        person.HouseholdId == householdId && person.Status == SocietyAgentStatus.Active)) &&
                 CanCreditWorkstationIncoming(inventory, lot))
             .Sum(lot => UsableWorkstationQuantity(inventory, lot)) : 0;
 
@@ -91,7 +91,7 @@ public sealed partial class WorldRuntime
     private IEnumerable<WorkstationSupplyNeed> WorkstationSupplyNeeds(string actor, string? itemKind = null,
         string? buildingId = null, int maximumResourceQuantity = int.MaxValue, string? sourceLotId = null)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId)
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId)
             yield break;
         var definitions = worldContent.BuildingDefinitions;
         foreach (var building in worldSimulation.Buildings.Where(item => item.HouseholdId == householdId &&
@@ -193,7 +193,7 @@ public sealed partial class WorldRuntime
 
     private bool CanReachWorkstation(string actor, PlacedBuilding building)
     {
-        var position = inhabitants[actor].Position;
+        var position = agents[actor].Position;
         return position == building.Position || FindUnoccupiedRoute(actor, position, building.Position, 0).Count > 0;
     }
 
@@ -207,9 +207,9 @@ public sealed partial class WorldRuntime
             24, need.Building.InstanceId));
     }
 
-    private void SupplyWorkstation(string actor, InhabitantState state, string itemKind)
+    private void SupplyWorkstation(string actor, AgentState state, string itemKind)
     {
-        if (!AdultResident(actor) || society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+        if (!AdultResident(actor) || society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             WorkstationSupplyNeeds(actor).FirstOrDefault(item => item.ItemKind == itemKind &&
                 CanReachWorkstation(actor, item.Building)) is not { } need)
             return;
@@ -257,7 +257,7 @@ public sealed partial class WorldRuntime
             GatherProjectMaterial(actor, state, itemKind, source, returnTo: building.Position);
     }
 
-    private DeliveryOrderPlan? GetWorkstationOrderPlan(string actor, InhabitantState person,
+    private DeliveryOrderPlan? GetWorkstationOrderPlan(string actor, AgentState person,
         OwnerInstructionOrder order, int maximumQuantity)
     {
         if (!AdultResident(actor) || HouseholdFor(actor) is not { } householdId) return null;

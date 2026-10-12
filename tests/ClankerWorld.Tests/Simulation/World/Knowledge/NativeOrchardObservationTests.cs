@@ -18,11 +18,11 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         var planter = actor;
         if (anotherPlanter)
         {
-            planter = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+            planter = state.Agents.First(person => person.AgentId != actor).AgentId;
             state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
                 "give-revisit-seed", actor, planter, "orchard-observation-seed", 1, "give planting seed")) with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == planter ? person with
+                Agents = state.Agents.Select(person => person.AgentId == planter ? person with
                 {
                     Position = state.Map.FootNeighbors(target).First(),
                     TravelCooldownTicks = 0,
@@ -97,7 +97,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         Func<WorldRuntimeState, GridPoint, bool>? chooseTarget = null)
     {
         var state = GeographyGeneratorTests.StartedGeneratedWorld(new GeographyOptions("orchard-knowledge-audit", WorldSizePreset.Small));
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var initial = Restore(state, actor);
         var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
@@ -105,14 +105,14 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(point => !blocked.Contains(point) &&
                 TreeGrowthRules.GroundRefusal(state.Map, point) is null &&
-                state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point) && (chooseTarget?.Invoke(state, point) ?? true))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
+                state.Map.IsReachableOnFoot(state.Agents[0].Position, point) && (chooseTarget?.Invoke(state, point) ?? true))
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
         var stand = state.Map.FootNeighbors(target).First(point =>
-            !state.Inhabitants.Skip(1).Any(person => person.Position == point));
+            !state.Agents.Skip(1).Any(person => person.Position == point));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "orchard-observation-seed", TreeGrowthRules.OrchardSeedItem, actor, 1);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
                 HungerBasisPoints = 9000,
@@ -199,7 +199,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         await Until(writing, () => writing.ExportState().Knowledge!.Artifacts.Count == 1);
         state = writing.ExportState();
         var source = Assert.Single(state.Knowledge!.Artifacts);
-        var reader = state.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
+        var reader = state.Agents.First(person => person.AgentId != author).AgentId;
         // The original physical record is transferred as setup; reading, copying,
         // planting and cancellation below run the ordinary gameplay actions.
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
@@ -214,7 +214,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
             "give-orchard-seed", author, reader, "orchard-observation-seed", 1, "give planting seed")) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == reader ? person with
+            Agents = state.Agents.Select(person => person.AgentId == reader ? person with
             {
                 Position = target,
                 TravelCooldownTicks = 0,
@@ -361,7 +361,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var candidates = request.Observation.Candidates;
-            var selected = request.Observation.InhabitantId == actor
+            var selected = request.Observation.AgentId == actor
                 ? candidates.FirstOrDefault(item => item.Id.StartsWith(Prefix, StringComparison.Ordinal))
                   ?? candidates.FirstOrDefault(item => item.Id == "knowledge_continue") : null;
             selected ??= candidates.Single(item => item.Id == "safe_idle");

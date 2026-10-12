@@ -4,23 +4,23 @@ namespace ClankerWorld.Simulation.World;
 
 internal sealed partial class CivicSystem
 {
-    internal static bool LandHearingAdult(ICivicTownWorld world, string actor) => world.Society.Inhabitants.Any(person =>
-            person.Id == actor && person.Status == SocietyInhabitantStatus.Active &&
+    internal static bool LandHearingAdult(ICivicTownWorld world, string actor) => world.Society.Agents.Any(person =>
+            person.Id == actor && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
 
     internal TownLandCaseParty[] LandHearingParties(ICivicTownWorld world, TownRuntimeState town,
             IReadOnlyList<GridPoint> tiles, TownLandCase? item = null, string? filingHousehold = null,
             string? townRepresentative = null) =>
             TownLandCasePartyRules.CurrentParties(town, tiles, householdLandUseRights, householdLandUseRequests,
-                world.Society.Inhabitants, world.WorldTick, item, filingHousehold, townRepresentative);
+                world.Society.Agents, world.WorldTick, item, filingHousehold, townRepresentative);
 
     internal static bool LandHearingTownFilingAuthority(ICivicTownWorld world, TownRuntimeState town, string actor, string? authorityId)
-            => TownLandCasePartyRules.TownFilingAuthority(town, actor, authorityId, world.Society.Inhabitants, world.WorldTick);
+            => TownLandCasePartyRules.TownFilingAuthority(town, actor, authorityId, world.Society.Agents, world.WorldTick);
 
     internal static HashSet<string> LandHearingDirectStakes(ICivicTownWorld world, TownLandCase item)
     {
         var tiles = TownLandHearingRules.CurrentRevision(item).Tiles;
-        var agents = world.Society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var agents = world.Society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var buildings = world.WorldSimulation.Buildings.Where(building => WorldContentSimulationRules.Footprint(
             world.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building).Any(tiles.Contains)).ToArray();
         var buildingIds = buildings.Select(building => building.InstanceId).ToHashSet(StringComparer.Ordinal);

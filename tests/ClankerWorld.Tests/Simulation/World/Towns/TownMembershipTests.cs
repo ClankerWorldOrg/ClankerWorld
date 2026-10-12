@@ -53,16 +53,16 @@ public sealed partial class TownMembershipTests
         {
             var step = await world.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
-            refused.AddRange(step.Decisions.Where(item => item.InhabitantId == traveler && item.Admission.FellBack)
+            refused.AddRange(step.Decisions.Where(item => item.AgentId == traveler && item.Admission.FellBack)
                 .Select(item => item.Admission.Outcome));
             Assert.Equal(firstResidents, world.Towns.Single(town => town.Id == First).ResidentIds);
             Assert.Equal(secondResidents, world.Towns.Single(town => town.Id == Second).ResidentIds);
-            Assert.Contains(world.Inhabitants.Single(person => person.InhabitantId == traveler).Position, second.BorderTiles);
+            Assert.Contains(world.Agents.Single(person => person.AgentId == traveler).Position, second.BorderTiles);
         }
 
         // The traveler walked to the notice place and read it; asking was offered but is a separate choice.
         var events = world.ExportState().Events;
-        Assert.True(world.ExportState().Map.FootDistance(board, world.Inhabitants.Single(person => person.InhabitantId == traveler).Position) <= 1);
+        Assert.True(world.ExportState().Map.FootDistance(board, world.Agents.Single(person => person.AgentId == traveler).Position) <= 1);
         var acts = events.Where(item => item.Kind == "town_civic_action" &&
             item.Detail.StartsWith($"{Second}|{traveler}|", StringComparison.Ordinal)).Select(item => item.Detail.Split('|')[2]).ToArray();
         Assert.Equal("visit", acts[0]);
@@ -93,7 +93,7 @@ public sealed partial class TownMembershipTests
         using var world = WorldRuntime.Restore(state, _ => new ScriptedModel());
         var second = world.Towns.Single(town => town.Id == Second);
         var site = second.BorderTiles.First(point => point != second.OriginSite &&
-            world.Inhabitants.All(person => person.Position != point));
+            world.Agents.All(person => person.Position != point));
         var agent = NewAgentId();
         world.ValidateAgentPlacement(agent, site, expectedHouseholdId: null, expectedTownId: Second);
         Assert.Null(world.AddAgent(agent, site, null, Second));
@@ -118,9 +118,9 @@ public sealed partial class TownMembershipTests
         foreach (var founder in Founders) model.Scripts[founder] = ["household_admit:" + applicant, Civic(First, "read")];
         var everyone = Founders.Append(applicant).ToArray();
         using var world = Reopen(Calm(At(state, Board(state, First), everyone)), model);
-        Assert.Null(world.Society.GetInhabitant(applicant).HouseholdId);
+        Assert.Null(world.Society.GetAgent(applicant).HouseholdId);
 
-        await AdvanceUntil(world, () => world.Society.GetInhabitant(applicant).HouseholdId == Alpha);
+        await AdvanceUntil(world, () => world.Society.GetAgent(applicant).HouseholdId == Alpha);
         var proposal = Assert.Single(world.Towns.Single(town => town.Id == First).Governance!.Proposals);
         Assert.Equal(("admission", applicant, applicant, "pending"), (proposal.Kind, proposal.AuthorId, proposal.SubjectId, proposal.Status));
         Assert.Empty(proposal.Votes);
@@ -144,7 +144,7 @@ public sealed partial class TownMembershipTests
         Assert.Equal([applicant], record.MemberIds!);
         Assert.Single(voting.ExportState().Events, item => item.Kind == "town_admission_accepted" &&
             item.Detail == $"{First}|{applicant}|none|1");
-        Assert.Equal(Alpha, voting.Society.GetInhabitant(applicant).HouseholdId);
+        Assert.Equal(Alpha, voting.Society.GetAgent(applicant).HouseholdId);
         Assert.Contains(applicant, first.Governance.Members);
         Assert.Equal("Town: resident of First Town · may sit and vote on its council and collect its Warehouse stock in person, housed or not",
             OwnerView(voting, applicant));
@@ -205,7 +205,7 @@ public sealed partial class TownMembershipTests
             Assert.Contains(admissionLines, line => line.Contains($"town={First} outcome=awaiting_acceptance previous_town=none members=0 residents=2", StringComparison.Ordinal));
             Assert.Contains(admissionLines, line => line.Contains($"town={First} outcome=admitted previous_town=none members=1 residents=3", StringComparison.Ordinal));
             Assert.Contains(admissionLines, line => line.Contains($"town={Second} outcome=lapsed:joined_elsewhere previous_town=none members=0 residents=2", StringComparison.Ordinal));
-            var names = world.Society.Inhabitants.Select(person => person.Name).Append(NewcomerName).ToArray();
+            var names = world.Society.Agents.Select(person => person.Name).Append(NewcomerName).ToArray();
             Assert.All(admissionLines, line =>
             {
                 Assert.DoesNotContain(names, name => line.Contains(name, StringComparison.Ordinal));
@@ -240,7 +240,7 @@ public sealed partial class TownMembershipTests
             {
                 var step = await refusing.AdvanceOneTickAsync();
                 Assert.True(step.Advanced);
-                chosen.AddRange(step.Decisions.Where(item => item.InhabitantId == newcomer).Select(item => item.Admission));
+                chosen.AddRange(step.Decisions.Where(item => item.AgentId == newcomer).Select(item => item.Admission));
             }
             Assert.Contains(chosen, admission => admission is { Accepted: true, FellBack: false } &&
                 admission.Intention?.Provider == DecisionProviderKind.Deterministic &&
@@ -265,7 +265,7 @@ public sealed partial class TownMembershipTests
         {
             var step = await world.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
-            refused.AddRange(step.Decisions.Where(item => item.InhabitantId == newcomer && item.Admission.FellBack)
+            refused.AddRange(step.Decisions.Where(item => item.AgentId == newcomer && item.Admission.FellBack)
                 .Select(item => item.Admission.Outcome));
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -296,7 +296,7 @@ public sealed partial class TownMembershipTests
         var model = new ScriptedModel();
         model.Scripts[caregiver] = [Civic(Second, "admission"), Civic(Second, "read")];
         foreach (var voter in Founders[2..]) model.Scripts[voter] = [Civic(Second, "read"), Civic(Second, "yes")];
-        var positions = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal);
+        var positions = state.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
         using var world = Reopen(Calm(At(state, Board(state, Second), caregiver, Founders[2], Founders[3])), model);
         var firstRevision = world.Towns.Single(town => town.Id == First).Governance!.Revision;
 
@@ -320,12 +320,12 @@ public sealed partial class TownMembershipTests
         Assert.Equal(new[] { caregiver, Founders[2], Founders[3] }.Order(StringComparer.Ordinal), second.Governance!.Members);
         foreach (var child in children)
         {
-            var person = world.Society.GetInhabitant(child);
+            var person = world.Society.GetAgent(child);
             Assert.Equal((Alpha, caregiver), (person.HouseholdId, person.PrimaryCaregiverId));
-            Assert.Equal(positions[child], world.Inhabitants.Single(item => item.InhabitantId == child).Position);
+            Assert.Equal(positions[child], world.Agents.Single(item => item.AgentId == child).Position);
             Assert.Equal("Town: resident of Second Town with their primary caregiver · council rights begin at adulthood", OwnerView(world, child));
         }
-        Assert.Equal(Alpha, world.Society.GetInhabitant(caregiver).HouseholdId);
+        Assert.Equal(Alpha, world.Society.GetAgent(caregiver).HouseholdId);
         Assert.Contains(model.ObservationsOf(caregiver), observation => observation.Candidates.Any(candidate =>
             candidate.Id == Civic(Second, "admission") + "|" &&
             candidate.Description.Contains("If approved, you leave First Town", StringComparison.Ordinal) &&
@@ -344,7 +344,7 @@ public sealed partial class TownMembershipTests
         state = state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == caregiver || person.InhabitantId == otherParent
+            Agents = state.Agents.Select(person => person.AgentId == caregiver || person.AgentId == otherParent
                 ? person with { Skills = [new(SettlementSkillKind.Building, society.WorldTick)] } : person).ToArray(),
         };
         state = WithTowns(state, Founders[1..], [caregiver]);
@@ -356,7 +356,7 @@ public sealed partial class TownMembershipTests
         await AdvanceUntil(world, () => world.Society.Births.Count == 1, 700);
 
         var child = Assert.Single(world.Society.Births).ChildId;
-        Assert.Equal(caregiver, world.Society.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Equal(caregiver, world.Society.GetAgent(child).PrimaryCaregiverId);
         Assert.Equal([caregiver, child], world.Towns.Single(town => town.Id == Second).ResidentIds.Order(StringComparer.Ordinal));
         Assert.Equal(Founders[1..], world.Towns.Single(town => town.Id == First).ResidentIds);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "town_resident_joined" &&
@@ -385,7 +385,7 @@ public sealed partial class TownMembershipTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with
+                    Agents = society.Agents.Select(person => person.Id == child ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -405,7 +405,7 @@ public sealed partial class TownMembershipTests
 
         await AdvanceUntil(world, () => model.ObservationsOf(child).Any(item => item.Self?.LifeStage == nameof(SocietyAgeBand.Adult)), 20);
 
-        Assert.Equal(SocietyAgeBand.Adult, world.Society.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(child).AgeBand);
         var first = world.Towns.Single(town => town.Id == First);
         Assert.Equal(residents, first.ResidentIds);
         Assert.Contains(child, first.Governance!.Members);
@@ -448,7 +448,7 @@ public sealed partial class TownMembershipTests
             Assert.True(setup.DisplaceAdult(actor));
             state = Paused(setup);
         }
-        Assert.Null(state.Society.Society.GetInhabitant(actor).HouseholdId);
+        Assert.Null(state.Society.Society.GetAgent(actor).HouseholdId);
         Assert.DoesNotContain(warehouse.Position, Town(state, Second).BorderTiles);
         var workshop = state.WorldContent!.Buildings.Single(item => item.LocalId == "workshop");
         var site = FreeTile(state, state.Map.Tiles.Select(tile => tile.Position));
@@ -594,7 +594,7 @@ public sealed partial class TownMembershipTests
             Assert.DoesNotContain(observation.Candidates, candidate => candidate.Id == "seek_warmth");
             Assert.DoesNotContain(observation.Candidates, candidate => candidate.Id.StartsWith(Civic(First, "visit"), StringComparison.Ordinal));
         });
-        Assert.Equal(stranded, world.Inhabitants.Single(person => person.InhabitantId == newcomer).Position);
+        Assert.Equal(stranded, world.Agents.Single(person => person.AgentId == newcomer).Position);
     }
 
     [Fact]
@@ -617,7 +617,7 @@ public sealed partial class TownMembershipTests
         using (var dying = Reopen(state, model))
         {
             Assert.True((await dying.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(SocietyInhabitantStatus.Dead, dying.Society.GetInhabitant(newcomer).Status);
+            Assert.Equal(SocietyAgentStatus.Dead, dying.Society.GetAgent(newcomer).Status);
             Assert.Equal("pending", dying.Towns.Single(item => item.Id == First).Governance!.Proposals.Single().Status);
             state = Paused(dying);
         }
@@ -686,7 +686,7 @@ public sealed partial class TownMembershipTests
         society = society with
         {
             WorldTick = 5,
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child
+            Agents = society.Agents.Select(person => person.Id == child
                 ? person with { AgeBand = SocietyAgeBand.Child, PrimaryCaregiverId = resident } : person).ToArray(),
         };
         var first = new TownRuntimeState(First, "First Town", "founded", 0, [child, resident], [], [new(0, 0)], new(0, 0),
@@ -712,14 +712,14 @@ public sealed partial class TownMembershipTests
         // A guardian from another Town does not move the child, so the line does not claim they share it.
         var guardedElsewhere = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == child ? person with { PrimaryCaregiverId = voter } : person).ToArray(),
+            Agents = society.Agents.Select(person => person.Id == child ? person with { PrimaryCaregiverId = voter } : person).ToArray(),
         };
         Assert.Equal("Town: resident of First Town · council rights begin at adulthood",
             TownMembershipText.Describe([first, second], guardedElsewhere, child, day, new HashSet<string>([First], StringComparer.Ordinal)));
         Assert.Null(Describe("agent:missing"));
         var homelessChild = society with
         {
-            Inhabitants = society.Inhabitants.Select(person => person.Id == outsider ? person with { AgeBand = SocietyAgeBand.Child } : person).ToArray(),
+            Agents = society.Agents.Select(person => person.Id == outsider ? person with { AgeBand = SocietyAgeBand.Child } : person).ToArray(),
         };
         Assert.Equal("Town: none · follows their primary caregiver's Town",
             TownMembershipText.Describe([first, second], homelessChild, outsider, day, new HashSet<string>(StringComparer.Ordinal)));
@@ -883,7 +883,7 @@ public sealed partial class TownMembershipTests
     private static WorldRuntimeState WithTowns(WorldRuntimeState state, IEnumerable<string> first, IEnumerable<string>? second)
     {
         var society = state.Society.Society;
-        string[] Adults(IEnumerable<string> ids) => ids.Where(id => society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+        string[] Adults(IEnumerable<string> ids) => ids.Where(id => society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .Order(StringComparer.Ordinal).ToArray();
         var original = Town(state, First);
         var towns = new List<TownRuntimeState>
@@ -922,7 +922,7 @@ public sealed partial class TownMembershipTests
     private static GridPoint FreeTile(WorldRuntimeState state, IEnumerable<GridPoint> within)
     {
         var taken = Taken(state);
-        taken.UnionWith(state.Inhabitants.Select(person => person.Position));
+        taken.UnionWith(state.Agents.Select(person => person.Position));
         return within.Where(point => state.Map.IsBuildable(point) && !taken.Contains(point))
             .OrderBy(point => point.Y).ThenBy(point => point.X).First();
     }
@@ -938,7 +938,7 @@ public sealed partial class TownMembershipTests
         string otherParent, int count)
     {
         var society = ChosenBirthNameTestFixture.NameParent(Partners(state.Society.Society, caregiver, otherParent), caregiver);
-        var household = society.GetInhabitant(caregiver).HouseholdId!;
+        var household = society.GetAgent(caregiver).HouseholdId!;
         var children = new List<string>();
         for (var index = 0; index < count; index++)
         {
@@ -949,19 +949,19 @@ public sealed partial class TownMembershipTests
             children.Add(Assert.IsType<string>(birth.CreatedId));
             society = birth.Checkpoint;
         }
-        var people = state.Inhabitants.ToList();
+        var people = state.Agents.ToList();
         foreach (var child in children)
         {
-            var tile = FreeTile(state with { Inhabitants = people }, state.Map.Tiles.Select(item => item.Position)
+            var tile = FreeTile(state with { Agents = people }, state.Map.Tiles.Select(item => item.Position)
                 .OrderBy(point => state.Map.FootDistance(point, Board(state, First))));
-            people.Add(new InhabitantState(child, tile, 9_000, 0, "curious", "grow with the household",
+            people.Add(new AgentState(child, tile, 9_000, 0, "curious", "grow with the household",
                 Survival: new SurvivalCondition(WarmthBasisPoints: 10_000)));
         }
         return (state with
         {
             Society = state.Society with { Society = society },
             Survival = new SettlementSurvivalState(society.WorldTick, []),
-            Inhabitants = people.Select(person => person with { Survival = person.Survival ?? new SurvivalCondition() }).ToArray(),
+            Agents = people.Select(person => person with { Survival = person.Survival ?? new SurvivalCondition() }).ToArray(),
         }, children.ToArray());
     }
 
@@ -978,7 +978,7 @@ public sealed partial class TownMembershipTests
         state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Clear);
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = person.Survival is null ? null : person.Survival with { WarmthBasisPoints = 10_000 },
@@ -1004,7 +1004,7 @@ public sealed partial class TownMembershipTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     {
                         BirthTick = person.BirthTick / old * day,
                         BirthLifeTick = person.BirthLifeTick is { } birth ? birth / old * day : null,
@@ -1028,7 +1028,7 @@ public sealed partial class TownMembershipTests
                 Society = society with
                 {
                     LifeClock = new SocietyLifeClock(society.LifeClock?.Rate ?? 1, society.WorldTick, nextLifeTick),
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthLifeTick = nextLifeTick + 1 - (days + 1) * society.Config.TicksPerLifecycleAge,
                         AgeBand = SocietyAgeBand.Elder,
@@ -1041,13 +1041,13 @@ public sealed partial class TownMembershipTests
 
     private static WorldRuntimeState At(WorldRuntimeState state, GridPoint point, params string[] ids) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => ids.Contains(person.InhabitantId, StringComparer.Ordinal)
+        Agents = state.Agents.Select(person => ids.Contains(person.AgentId, StringComparer.Ordinal)
             ? person with { Position = point } : person).ToArray(),
     };
 
     private static WorldRuntimeState WithProject(WorldRuntimeState state, string actor, SettlementProject? project) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+        Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Project = project, HungerBasisPoints = 10_000 } : person).ToArray(),
     };
 
@@ -1069,7 +1069,7 @@ public sealed partial class TownMembershipTests
     {
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
             Society = state.Society with { Cognition = state.Society.Cognition with { MaxDispatchPerCycle = 8 } },
         };
         var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => model,
@@ -1079,7 +1079,7 @@ public sealed partial class TownMembershipTests
     }
 
     private static string? OwnerView(WorldRuntime world, string id) =>
-        new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == id)
+        new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == id)
             .DecisionFactors.SingleOrDefault(factor => factor.Key == "town-membership")?.Detail;
 
     private static Func<Task> DirectSteps(WorldRuntime world) =>
@@ -1124,30 +1124,30 @@ public sealed partial class TownMembershipTests
     /// </summary>
     private sealed class ScriptedModel(DecisionProviderKind kind = DecisionProviderKind.LargeLanguageModel) : IDecisionProvider
     {
-        private readonly ConcurrentDictionary<string, ConcurrentQueue<InhabitantObservation>> seen = new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<AgentObservation>> seen = new(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<(string Agent, string Choice), byte> invented = new();
 
         public ConcurrentDictionary<string, string[]> Scripts { get; } = new(StringComparer.Ordinal);
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
 
-        public InhabitantObservation[] ObservationsOf(string id) => seen.TryGetValue(id, out var queue) ? queue.ToArray() : [];
+        public AgentObservation[] ObservationsOf(string id) => seen.TryGetValue(id, out var queue) ? queue.ToArray() : [];
 
         public int InventionsUsed(string id) => invented.Keys.Count(key => key.Agent == id);
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            seen.GetOrAdd(observation.InhabitantId, _ => new()).Enqueue(observation);
-            var script = Scripts.GetValueOrDefault(observation.InhabitantId, []);
+            seen.GetOrAdd(observation.AgentId, _ => new()).Enqueue(observation);
+            var script = Scripts.GetValueOrDefault(observation.AgentId, []);
             var selected = script.Where(entry => !entry.StartsWith('!')).Select(prefix => observation.Candidates
                 .FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal))?.Id).FirstOrDefault(id => id is not null);
             selected ??= script.Where(entry => entry.StartsWith('!')).Select(entry => entry[1..])
-                .FirstOrDefault(choice => invented.TryAdd((observation.InhabitantId, choice), 0));
+                .FirstOrDefault(choice => invented.TryAdd((observation.AgentId, choice), 0));
             selected ??= "safe_idle";
             var scores = observation.Candidates.ToDictionary(candidate => candidate.Id, _ => 0d, StringComparer.Ordinal);
             scores[selected] = 1d;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected, 1, scores));
         }
     }

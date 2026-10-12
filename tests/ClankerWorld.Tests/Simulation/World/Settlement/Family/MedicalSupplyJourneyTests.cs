@@ -19,8 +19,8 @@ public sealed class MedicalSupplyJourneyTests
         if (!doseAlreadyCarried)
         {
             Assert.Contains("medical_collect:medicine", choices.Offered);
-            Assert.NotEqual(state.Inhabitants.Single(person => person.InhabitantId == caregiver).Position,
-                world.Inhabitants.Single(person => person.InhabitantId == caregiver).Position);
+            Assert.NotEqual(state.Agents.Single(person => person.AgentId == caregiver).Position,
+                world.Agents.Single(person => person.AgentId == caregiver).Position);
             Assert.Equal((household, houseId, 2),
                 (world.Society.Inventory.GetLot("fetch-test-medicine").OwnerId,
                  world.Society.Inventory.GetLot("fetch-test-medicine").StorageBuildingId,
@@ -34,9 +34,9 @@ public sealed class MedicalSupplyJourneyTests
         }
         if (!doseAlreadyCarried)
         {
-            var trip = Assert.IsType<MedicalSupplyTrip>(world.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip);
+            var trip = Assert.IsType<MedicalSupplyTrip>(world.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip);
             Assert.Equal(patient, trip.PatientId);
-            Assert.Equal(state.Inhabitants.Single(person => person.InhabitantId == patient).Position, trip.LastSeenPosition);
+            Assert.Equal(state.Agents.Single(person => person.AgentId == patient).Position, trip.LastSeenPosition);
         }
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes), caregiver, new CareChooser());
@@ -48,7 +48,7 @@ public sealed class MedicalSupplyJourneyTests
         }
         Assert.Single(resumed.ExportState().Events, item => item.Kind == "medical_treatment_started" &&
             item.Detail.StartsWith(patient + ":medicine:" + caregiver + ":", StringComparison.Ordinal));
-        Assert.Null(resumed.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip);
+        Assert.Null(resumed.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip);
         for (var tick = 0; tick < 20 && !resumed.ExportState().Events.Any(item => item.Kind == "medical_treatment_completed"); tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -61,7 +61,7 @@ public sealed class MedicalSupplyJourneyTests
             (resumed.Society.Inventory.GetLot("fetch-test-medicine").OwnerId,
              resumed.Society.Inventory.GetLot("fetch-test-medicine").StorageBuildingId,
              resumed.Society.Inventory.GetLot("fetch-test-medicine").Quantity));
-        Assert.Contains(caregiver, resumed.Inhabitants.Single(person => person.InhabitantId == patient).MedicalConsent!.CaregiverIds);
+        Assert.Contains(caregiver, resumed.Agents.Single(person => person.AgentId == patient).MedicalConsent!.CaregiverIds);
         resumed.Validate();
     }
 
@@ -71,17 +71,17 @@ public sealed class MedicalSupplyJourneyTests
         var (state, caregiver, patient, household, houseId) = await CreateStateAsync(false);
         using var fetching = Restore(state, caregiver, new CareChooser());
         Assert.True((await fetching.AdvanceOneTickAsync()).Advanced);
-        Assert.NotNull(fetching.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip);
+        Assert.NotNull(fetching.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip);
         var chooser = new CareChooser();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(fetching.ExportState())),
             id => id == caregiver ? chooser : id == patient ? new ConsentRevoker(caregiver) : new ActionCoverageRecorder(chooseIdle: true));
         world.SubmitInstruction(new("withdraw-fetch-permission", "owner:test", patient, OwnerInstructionKind.Suggestive,
             "Withdraw permission for this caregiver."));
-        for (var tick = 0; tick < 20 && world.Inhabitants.Single(person => person.InhabitantId == patient).MedicalConsent is not null; tick++)
+        for (var tick = 0; tick < 20 && world.Agents.Single(person => person.AgentId == patient).MedicalConsent is not null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == patient).MedicalConsent);
+        Assert.Null(world.Agents.Single(person => person.AgentId == patient).MedicalConsent);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "medical_care_revoked");
-        Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip);
+        Assert.Null(world.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip);
         for (var tick = 0; tick < 20; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "medical_treatment_started");
         Assert.False(HasCarriedMedicine(world, caregiver));
@@ -99,24 +99,24 @@ public sealed class MedicalSupplyJourneyTests
         using var fetching = Restore(state, caregiver, new CareChooser());
         Assert.True((await fetching.AdvanceOneTickAsync()).Advanced);
         var saved = fetching.ExportState();
-        var lastSeen = Assert.IsType<MedicalSupplyTrip>(fetching.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip)
+        var lastSeen = Assert.IsType<MedicalSupplyTrip>(fetching.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip)
             .LastSeenPosition;
         var remote = saved.Map.Tiles.First(tile => saved.Map.IsPassable(tile.Position) &&
             Math.Abs(tile.Position.X - lastSeen.X) + Math.Abs(tile.Position.Y - lastSeen.Y) > 30 &&
-            saved.Inhabitants.All(person => person.Position != tile.Position)).Position;
+            saved.Agents.All(person => person.Position != tile.Position)).Position;
         saved = saved with
         {
-            Inhabitants = saved.Inhabitants.Select(person => person.InhabitantId == patient
+            Agents = saved.Agents.Select(person => person.AgentId == patient
                 ? person with { Position = remote } : person).ToArray(),
         };
         var chooser = new CareChooser();
         using var world = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(saved)), caregiver, chooser);
-        for (var tick = 0; tick < 140 && world.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip is not null; tick++)
+        for (var tick = 0; tick < 140 && world.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip is not null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var returned = world.Inhabitants.Single(person => person.InhabitantId == caregiver);
+        var returned = world.Agents.Single(person => person.AgentId == caregiver);
         Assert.Null(returned.MedicalSupplyTrip);
         Assert.InRange(saved.Map.FootDistance(returned.Position, lastSeen), 0, 1);
-        Assert.Equal(remote, world.Inhabitants.Single(person => person.InhabitantId == patient).Position);
+        Assert.Equal(remote, world.Agents.Single(person => person.AgentId == patient).Position);
         Assert.DoesNotContain("medical_treat:" + patient + ":medicine", chooser.Offered);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "medical_treatment_started");
         Assert.True(HasCarriedMedicine(world, caregiver));
@@ -134,17 +134,17 @@ public sealed class MedicalSupplyJourneyTests
         using var world = Restore(state, caregiver, new CareChooser());
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var saved = world.ExportState();
-        var trip = Assert.IsType<MedicalSupplyTrip>(world.Inhabitants.Single(person => person.InhabitantId == caregiver).MedicalSupplyTrip);
+        var trip = Assert.IsType<MedicalSupplyTrip>(world.Agents.Single(person => person.AgentId == caregiver).MedicalSupplyTrip);
         foreach (var changed in new[]
         {
             trip with { PatientId = "missing-patient" },
-            trip with { PatientId = state.Inhabitants.First(person => person.InhabitantId != caregiver && person.InhabitantId != patient).InhabitantId },
+            trip with { PatientId = state.Agents.First(person => person.AgentId != caregiver && person.AgentId != patient).AgentId },
             trip with { LastSeenPosition = new(-1, -1) },
             trip with { StartedTick = world.WorldTick + 1 },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(saved with
             {
-                Inhabitants = saved.Inhabitants.Select(person => person.InhabitantId == caregiver
+                Agents = saved.Agents.Select(person => person.AgentId == caregiver
                     ? person with { MedicalSupplyTrip = changed } : person).ToArray(),
             }));
     }
@@ -158,9 +158,9 @@ public sealed class MedicalSupplyJourneyTests
             _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var caregiver = state.Inhabitants[0].InhabitantId;
-        var patient = state.Inhabitants[1].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(caregiver).HouseholdId!;
+        var caregiver = state.Agents[0].AgentId;
+        var patient = state.Agents[1].AgentId;
+        var household = state.Society.Society.GetAgent(caregiver).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         Assert.Equal(household, house.HouseholdId);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "fetch-test-medicine", "medicine",
@@ -168,16 +168,16 @@ public sealed class MedicalSupplyJourneyTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == caregiver ? new(116, 46) :
-                    person.InhabitantId == patient ? new(116, 45) : person.Position,
+                Position = person.AgentId == caregiver ? new(116, 46) :
+                    person.AgentId == patient ? new(116, 45) : person.Position,
                 HungerBasisPoints = 9_500,
                 Project = null,
                 LastDecisionContext = null,
-                MedicalConsent = person.InhabitantId == patient ? new([caregiver]) : null,
+                MedicalConsent = person.AgentId == patient ? new([caregiver]) : null,
                 Survival = (person.Survival ?? new()) with
-                { IllnessBasisPoints = person.InhabitantId == patient ? 8_000 : 0 },
+                { IllnessBasisPoints = person.AgentId == patient ? 8_000 : 0 },
             }).ToArray(),
         };
         return (state, caregiver, patient, household, house.InstanceId);
@@ -196,7 +196,7 @@ public sealed class MedicalSupplyJourneyTests
         {
             var wanted = "medical_revoke:" + caregiver;
             var selected = request.Observation.Candidates.Any(candidate => candidate.Id == wanted) ? wanted : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }
@@ -214,7 +214,7 @@ public sealed class MedicalSupplyJourneyTests
             foreach (var candidate in request.Observation.Candidates) Offered.Add(candidate.Id);
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("medical_treat:", StringComparison.Ordinal))?.Id ??
                 request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("medical_collect:", StringComparison.Ordinal))?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

@@ -13,24 +13,24 @@ namespace ClankerWorld.Simulation.World;
 internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
 {
     void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
-    void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, InhabitantState person);
+    void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, AgentState person);
     void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
-            InhabitantState person);
+            AgentState person);
     void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor);
     void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     bool AdultResident(string actor);
     void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
-    bool ApplyHandcartCandidate(string actor, InhabitantState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
+    bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
     bool CanContinueEquipmentRepair(string actor);
-    bool CanPrepareEquipmentRepair(string actor, InhabitantState person, InventoryLot lot);
-    IEnumerable<InhabitantState> ChildrenNeedingCare(string actor);
+    bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot);
+    IEnumerable<AgentState> ChildrenNeedingCare(string actor);
     bool ChildResident(string actor);
     EquipmentRepairWork? ContinueEquipmentRepair(string actor);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot);
     List<GridPoint> FindUnoccupiedRoute(
-            string inhabitantId,
+            string agentId,
             GridPoint origin,
             GridPoint destination,
             int interactionRange,
@@ -47,8 +47,8 @@ internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void MaintainTownProjects();
     WorldMap Map { get; }
     void MoveToward(
-            string inhabitantId,
-            InhabitantState state,
+            string agentId,
+            AgentState state,
             GridPoint destination,
             string reason,
             int interactionRange = 0,
@@ -62,8 +62,8 @@ internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
             string? sourceLotId = null);
     PlacedBuilding? Port(string id);
     IEnumerable<InventoryLot> PreferredFood(string owner, string? actor = null);
-    void RepairEquipment(string actor, InhabitantState person, string? requestedLotId = null, string? orderInstructionId = null);
-    string? RepairTool(string actor, InhabitantState state, string lotId,
+    void RepairEquipment(string actor, AgentState person, string? requestedLotId = null, string? orderInstructionId = null);
+    string? RepairTool(string actor, AgentState state, string lotId,
             IReadOnlyList<string>? protectedToolIds = null);
     int SkilledWorkTicks(string actor, SettlementSkillKind skill, int ticks);
     IReadOnlyList<TownLandTitleRecord> TownLandTitles { get; }
@@ -89,7 +89,7 @@ internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     (TownGovernanceState Council, TownLandHearingState LandHearings) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownGovernanceState council, TownGovernmentState government);
     TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision);
     TownLandHearingState TransferCaseProperty(TownRuntimeState town, TownLandHearingState hearings, string caseId, TownPropertySnapshot prior);
-    int CaregiverFoodCarryRequirement(string actor, InhabitantState parent);
+    int CaregiverFoodCarryRequirement(string actor, AgentState parent);
     InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0);
     int MarketSurplus(string actor, InventoryLot lot);
     int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0);
@@ -101,7 +101,7 @@ internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding);
     bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination);
     PlacedBuilding? HouseForHousehold(string householdId);
-    bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident);
+    bool CanFitHouseResident(string householdId, SocietyAgent proposedResident);
     List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null);
     IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null);
     IReadOnlyList<FarmFieldState> Fields { get; }
@@ -112,7 +112,7 @@ internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
     ContentRegistryState ContentState { get; }
     void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> operation);
     void ResumeSociety();
-    void AddInhabitant(string id, InhabitantState person);
-    void SetInhabitant(string id, InhabitantState person);
-    void RemoveInhabitant(string id);
+    void AddAgent(string id, AgentState person);
+    void SetAgent(string id, AgentState person);
+    void RemoveAgent(string id);
 }

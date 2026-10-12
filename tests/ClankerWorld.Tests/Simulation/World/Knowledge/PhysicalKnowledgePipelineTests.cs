@@ -19,7 +19,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         using var setup = NormalPathWorld.CreateGenerated("physical-paper-house", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         // Unrelated starting wood would fill this one-tile House while the
         // writer fetches its jug. Leave space for the actual paper inputs.
         var inventory = state.Society.Society.Inventory with
@@ -30,8 +30,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
             household, 1, state.Society.Society.WorldTick, storageBuildingId: houseId);
         // Begin this paper-supply scenario with household tool needs met, so the
         // built-in chooser can reach the jug within the bounded observation window.
-        var adults = state.Society.Society.Inhabitants.Count(person => person.HouseholdId == household &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+        var adults = state.Society.Society.Agents.Count(person => person.HouseholdId == household &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         inventory = InventoryAuthority.AddLot(inventory, "paper-fixture-axes", "wooden_axe", household,
             adults, storageBuildingId: houseId);
         inventory = InventoryAuthority.AddLot(inventory, "paper-fixture-picks", "wooden_pickaxe", household,
@@ -40,7 +40,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var provider = new ChoosingProvider(actor, "explore");
         using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 9_500 } : person).ToArray(),
         }, _ => provider);
         var recipe = world.WorldContent.Recipes.Single(item => item.LocalId == "house-paper");
@@ -67,9 +67,9 @@ public sealed partial class PhysicalKnowledgePipelineTests
         {
             working.SchemaVersion,
             Tick = working.Society.Society.WorldTick,
-            Actor = working.Inhabitants.Single(person => person.InhabitantId == actor),
-            Resident = working.Society.Society.GetInhabitant(actor),
-            Cognition = working.Society.Cognition.Runtimes.Single(runtime => runtime.InhabitantId == actor),
+            Actor = working.Agents.Single(person => person.AgentId == actor),
+            Resident = working.Society.Society.GetAgent(actor),
+            Cognition = working.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == actor),
             Lots = working.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == household || lot.OwnerId == actor).ToArray(),
             working.Knowledge,
             Offered = provider.Offered.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
@@ -108,7 +108,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         });
         var replayProvider = new ChoosingProvider(actor) { UseBuiltIn = true };
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(working)), _ => replayProvider);
-        Assert.Contains(working.Inhabitants.Single(person => person.InhabitantId == actor).Skills!,
+        Assert.Contains(working.Agents.Single(person => person.AgentId == actor).Skills!,
             skill => skill.Kind == SettlementSkillKind.Crafting);
         Assert.Equal(12, job.CompletionTick - job.StartedTick);
         // Inspect the exact output commit before the ordinary chooser can
@@ -160,7 +160,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Equal(actor, stored.Society.Society.Inventory.GetLot(written.LotId).OwnerId);
         Assert.Contains(stored.Events, item => item.Kind == "agent_knowledge_artifact_stored" &&
             item.Detail.Contains(written.Id, StringComparison.Ordinal));
-        var foreignActor = stored.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var foreignActor = stored.Agents.First(person => person.AgentId != actor).AgentId;
         var foreignProvider = new ChoosingProvider(foreignActor, "knowledge_collect:" + written.Id);
         using (var foreign = WorldRuntime.Restore(stored, _ => foreignProvider))
         {
@@ -192,8 +192,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         using var setup = NormalPathWorld.CreateGenerated("physical-paper-private-stock", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
-        var outsider = state.Society.Society.Inhabitants.First(person => person.HouseholdId == otherHousehold).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
+        var outsider = state.Society.Society.Agents.First(person => person.HouseholdId == otherHousehold).Id;
         var house = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == houseId);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "paper-fiber", "fiber",
             household, 2, state.Society.Society.WorldTick, storageBuildingId: houseId);
@@ -203,7 +203,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
             otherHousehold, 1, inventory.WorldTick, storageBuildingId: otherHouseId, containerLotId: "private-water-jug");
         using var world = WorldRuntime.Restore(WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position } : person).ToArray(),
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         var recipe = world.WorldContent.Recipes.Single(item => item.LocalId == "house-paper");
@@ -245,14 +245,14 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.All(project.Facts, fact => Assert.Contains(knownBefore, known => FactIdentity(known) == FactIdentity(fact)));
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var expectedProgress = $"{(kind == "field_map" ? "Drawing" : "Writing")} a {kind.Replace('_', ' ')} · {project.WorkDone}/{project.WorkRequired}";
-        Assert.Equal(expectedProgress, Assert.Single(snapshot.Inhabitants.Single(person => person.Id == actor)
+        Assert.Equal(expectedProgress, Assert.Single(snapshot.Agents.Single(person => person.Id == actor)
             .DecisionFactors, factor => factor.Key == "knowledge-writing").Detail);
-        Assert.All(snapshot.Inhabitants.Where(person => person.Id != actor), person =>
+        Assert.All(snapshot.Agents.Where(person => person.Id != actor), person =>
             Assert.DoesNotContain(person.DecisionFactors, factor => factor.Key == "knowledge-writing"));
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
-        Assert.Equal(expectedProgress, Assert.Single(client.Inhabitants.Single(person => person.Id == actor)
+        Assert.Equal(expectedProgress, Assert.Single(client.Agents.Single(person => person.Id == actor)
             .DecisionFactors, factor => factor.Key == "knowledge-writing").Detail);
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(working with
         {
@@ -269,7 +269,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Equal(beforeDiscard, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(beforeDiscard), _ =>
             new ChoosingProvider(actor, "knowledge_write:" + kind, "knowledge_continue"));
-        Assert.Equal(expectedProgress, Assert.Single(new OwnerWorldObservationStore(restored).GetSnapshot().Inhabitants
+        Assert.Equal(expectedProgress, Assert.Single(new OwnerWorldObservationStore(restored).GetSnapshot().Agents
             .Single(person => person.Id == actor).DecisionFactors, factor => factor.Key == "knowledge-writing").Detail);
         for (var tick = 0; tick < 16; tick++)
         {
@@ -292,7 +292,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
             Assert.Equal(InventoryReservationState.Completed, final.Society.Society.Inventory.GetReservation(id).State));
         Assert.DoesNotContain(final.Knowledge.Facts, fact => fact.OwnerId != actor);
         Assert.Equal(WorldRuntimeCodec.Encode(final), WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.DoesNotContain(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == actor)
+        Assert.DoesNotContain(new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == actor)
             .DecisionFactors, factor => factor.Key == "knowledge-writing");
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(final with
         {
@@ -330,7 +330,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
     {
         var (state, actor) = await LearnByExploring("physical-writing-refusal-" + kind);
         var inventory = AddWritingSupplies(state, actor, paper, cloth);
-        var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != actor).AgentId;
         inventory = InventoryAuthority.AddLot(inventory, "foreign-writing-paper", "paper", other, 2);
         inventory = InventoryAuthority.AddLot(inventory, "foreign-writing-cloth", "cloth", other, 1);
         if (reserved)
@@ -365,8 +365,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         await AdvanceUntil(writing, () => writing.ExportState().Knowledge!.Artifacts.Count == 1, 64);
         var written = writing.ExportState();
         var original = Assert.Single(written.Knowledge!.Artifacts);
-        var reader = written.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
-        var untouched = written.Inhabitants.First(person => person.InhabitantId != author && person.InhabitantId != reader).InhabitantId;
+        var reader = written.Agents.First(person => person.AgentId != author).AgentId;
+        var untouched = written.Agents.First(person => person.AgentId != author && person.AgentId != reader).AgentId;
         // Transfer this actual, written quantity-one artifact through the inventory
         // contract. Reading and copying below use normal offered runtime actions.
         var transferred = InventoryAuthority.Transfer(written.Society.Society.Inventory, "give-written-record",
@@ -447,14 +447,14 @@ public sealed partial class PhysicalKnowledgePipelineTests
         await AdvanceUntil(writing, () => writing.ExportState().Knowledge!.Artifacts.Count == 1, 64);
         var written = writing.ExportState();
         var original = Assert.Single(written.Knowledge!.Artifacts);
-        var reader = written.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
-        var overlap = original.Facts.First(fact => written.Inhabitants.All(person =>
-            person.InhabitantId == reader || person.Position != fact.Position)).Position;
+        var reader = written.Agents.First(person => person.AgentId != author).AgentId;
+        var overlap = original.Facts.First(fact => written.Agents.All(person =>
+            person.AgentId == reader || person.Position != fact.Position)).Position;
         // Observe one of the same sites through a real outing, before receiving
         // the book. The reader's firsthand discovery must never be overwritten.
         using var exploring = WorldRuntime.Restore(written with
         {
-            Inhabitants = written.Inhabitants.Select(person => person.InhabitantId == reader
+            Agents = written.Agents.Select(person => person.AgentId == reader
                 ? person with { Position = overlap, HungerBasisPoints = 9_500 } : person).ToArray(),
         }, _ => new ChoosingProvider(reader, "explore"));
         _ = exploring.SubmitInstruction(new OwnerInstructionRequest("explore-copy-overlap", "owner:test", reader,
@@ -565,10 +565,10 @@ public sealed partial class PhysicalKnowledgePipelineTests
     {
         using var initial = new WorldRuntime(seed);
         var state = initial.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 9_500 }).ToArray(),
         }, _ => new ChoosingProvider(actor, "explore"));
         for (var tick = 0; tick < 75; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -620,7 +620,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            var isActor = request.Observation.InhabitantId == actor;
+            var isActor = request.Observation.AgentId == actor;
             if (isActor)
                 foreach (var candidate in request.Observation.Candidates)
                     Offered.Add(candidate.Id);

@@ -27,9 +27,9 @@ public sealed class ClinicTradeCareTests
         Assert.Equal(10, construction.Where(item => item.LotId != "clinic-build-stone").Sum(item => item.Quantity));
 
         state = funded.ExportState();
-        var seller = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha).Id;
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId != Alpha).Id;
-        var buyerHousehold = state.Society.Society.GetInhabitant(buyer).HouseholdId;
+        var seller = state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId != Alpha).Id;
+        var buyerHousehold = state.Society.Society.GetAgent(buyer).HouseholdId;
         var clinicPosition = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Clinic).Position;
         state = AddStock(state, "clinic-herbs", CareContent.MedicinalHerbs, Alpha, 4, Clinic);
         state = AddStock(state, "clinic-fuel", "wood", Alpha, 2, Clinic);
@@ -70,10 +70,10 @@ public sealed class ClinicTradeCareTests
         var sellerStart = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             state.Map.IsPassable(point) && state.Map.FootDistance(point, clinicPosition) is >= 4 and <= 6 &&
             state.Map.IsReachableOnFoot(point, clinicPosition) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         state = PutAt(state, seller, sellerStart) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == buyer
+            Agents = state.Agents.Select(person => person.AgentId == buyer
                 ? person with
                 {
                     Position = clinicPosition,
@@ -81,12 +81,12 @@ public sealed class ClinicTradeCareTests
                     Survival = new SurvivalCondition(IllnessBasisPoints: 5_000),
                     LastDecisionContext = null
                 }
-                : person.InhabitantId == seller
+                : person.AgentId == seller
                     ? person with { Position = sellerStart, HungerBasisPoints = 9_000, LastDecisionContext = null }
                     : person).ToArray(),
         };
         Assert.True(state.Map.FootDistance(sellerStart, clinicPosition) > 1);
-        Assert.Equal(clinicPosition, state.Inhabitants.Single(person => person.InhabitantId == buyer).Position);
+        Assert.Equal(clinicPosition, state.Agents.Single(person => person.AgentId == buyer).Position);
 
         var buyerChoices = new Choices(["business_shop:" + Clinic, "business_continue:"]);
         var sellerChoices = new Choices(["business_continue:"]);
@@ -114,7 +114,7 @@ public sealed class ClinicTradeCareTests
         Assert.All(barterReservations,
             item => Assert.Equal(InventoryReservationState.Reserved, item.State));
         Assert.False(world.TreatPatient(buyer, buyer, CareContent.Medicine).Applied);
-        Assert.Null(world.ExportState().Inhabitants.Single(person => person.InhabitantId == buyer).MedicalTreatment);
+        Assert.Null(world.ExportState().Agents.Single(person => person.AgentId == buyer).MedicalTreatment);
 
         var openBytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(openBytes), Provider);
@@ -126,11 +126,11 @@ public sealed class ClinicTradeCareTests
         }
         Assert.Equal(DirectBarterState.Settled, world.Society.Inventory.GetOffer(offer.Id).State);
         Assert.Equal(seller, Assert.Single(world.BusinessTrades).SellerActorId);
-        var physical = world.ExportState().Inhabitants;
-        Assert.NotEqual(sellerStart, physical.Single(person => person.InhabitantId == seller).Position);
-        Assert.True(state.Map.FootDistance(physical.Single(person => person.InhabitantId == seller).Position,
-            physical.Single(person => person.InhabitantId == buyer).Position) <= 1);
-        Assert.Equal(clinicPosition, physical.Single(person => person.InhabitantId == buyer).Position);
+        var physical = world.ExportState().Agents;
+        Assert.NotEqual(sellerStart, physical.Single(person => person.AgentId == seller).Position);
+        Assert.True(state.Map.FootDistance(physical.Single(person => person.AgentId == seller).Position,
+            physical.Single(person => person.AgentId == buyer).Position) <= 1);
+        Assert.Equal(clinicPosition, physical.Single(person => person.AgentId == buyer).Position);
         Assert.Contains("business_shop:" + Clinic, buyerChoices.Offered);
         Assert.Contains("business_continue:" + offer.Id, sellerChoices.Offered);
         var purchased = world.Society.Inventory.GetLot(offer.FirstLotId);
@@ -143,8 +143,8 @@ public sealed class ClinicTradeCareTests
         Assert.Equal((Alpha, Clinic, 2), (world.Society.Inventory.GetLot(privateRemainderId).OwnerId,
             world.Society.Inventory.GetLot(privateRemainderId).StorageBuildingId,
             world.Society.Inventory.GetLot(privateRemainderId).Quantity));
-        Assert.Equal(buyerHousehold, world.Society.GetInhabitant(buyer).HouseholdId);
-        Assert.Null(physical.Single(person => person.InhabitantId == buyer).MedicalConsent);
+        Assert.Equal(buyerHousehold, world.Society.GetAgent(buyer).HouseholdId);
+        Assert.Null(physical.Single(person => person.AgentId == buyer).MedicalConsent);
         var afterPurchase = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False(world.StartProduction(recipe.CanonicalId, Clinic, buyer).Applied);
         Assert.False(world.TreatPatient(seller, buyer, CareContent.Medicine).Applied);
@@ -152,14 +152,14 @@ public sealed class ClinicTradeCareTests
         Assert.Equal(afterPurchase, WorldRuntimeCodec.Encode(restored.ExportState()));
 
         buyerChoices.TreatmentCandidate = "medical_treat:" + buyer + ":medicine";
-        for (var tick = 0; tick < 40 && world.ExportState().Inhabitants.Single(person =>
-                 person.InhabitantId == buyer).MedicalTreatment is null; tick++)
+        for (var tick = 0; tick < 40 && world.ExportState().Agents.Single(person =>
+                 person.AgentId == buyer).MedicalTreatment is null; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         }
-        var treatment = Assert.IsType<MedicalTreatmentState>(world.ExportState().Inhabitants.Single(person =>
-            person.InhabitantId == buyer).MedicalTreatment);
+        var treatment = Assert.IsType<MedicalTreatmentState>(world.ExportState().Agents.Single(person =>
+            person.AgentId == buyer).MedicalTreatment);
         Assert.Equal((buyer, purchased.Id, buyer, CareContent.Medicine),
             (treatment.CaregiverId, treatment.SupplyLotId, treatment.SupplyOwnerId, treatment.Kind));
         var dose = world.Society.Inventory.GetReservation(treatment.DoseReservationId);
@@ -168,7 +168,7 @@ public sealed class ClinicTradeCareTests
         Assert.Contains("medical_treat:" + buyer + ":medicine", buyerChoices.Offered);
         Assert.Equal(1, world.Society.Inventory.GetLot(purchased.Id).Quantity);
         Assert.Equal(2, world.Society.Inventory.GetLot(privateRemainderId).Quantity);
-        Assert.Null(world.ExportState().Inhabitants.Single(person => person.InhabitantId == buyer).MedicalConsent);
+        Assert.Null(world.ExportState().Agents.Single(person => person.AgentId == buyer).MedicalConsent);
         var treatmentBytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Equal(treatmentBytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         using var resumedTreatment = WorldRuntime.Restore(WorldRuntimeCodec.Decode(treatmentBytes), Provider);
@@ -178,11 +178,11 @@ public sealed class ClinicTradeCareTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await resumedTreatment.AdvanceOneTickAsync()).Advanced);
         }
-        Assert.Null(world.ExportState().Inhabitants.Single(person => person.InhabitantId == buyer).MedicalTreatment);
+        Assert.Null(world.ExportState().Agents.Single(person => person.AgentId == buyer).MedicalTreatment);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "medical_treatment_completed" && item.Detail == buyer);
         Assert.Equal(1, world.Society.Inventory.GetLot(purchased.Id).Quantity);
         Assert.Equal(2, world.Society.Inventory.GetLot(privateRemainderId).Quantity);
-        Assert.Equal(buyerHousehold, world.Society.GetInhabitant(buyer).HouseholdId);
+        Assert.Equal(buyerHousehold, world.Society.GetAgent(buyer).HouseholdId);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
             WorldRuntimeCodec.Encode(resumedTreatment.ExportState()));
     }
@@ -196,10 +196,10 @@ public sealed class ClinicTradeCareTests
 
     private static WorldRuntimeState PutAt(WorldRuntimeState state, string actor, GridPoint position)
     {
-        var oldPosition = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var oldPosition = state.Agents.Single(person => person.AgentId == actor).Position;
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = position, HungerBasisPoints = 9_000, LastDecisionContext = null }
                 : person.Position == position ? person with { Position = oldPosition } : person).ToArray(),
         };

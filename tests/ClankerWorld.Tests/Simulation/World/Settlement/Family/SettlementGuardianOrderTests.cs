@@ -21,7 +21,7 @@ public sealed partial class SettlementParenthoodTests
     private static (string Child, string Adult) GuardianOrderPeople(WorldRuntimeState state)
     {
         var child = state.Society.Society.Births.Single().ChildId;
-        var search = state.Inhabitants.Single(person => person.InhabitantId == child).GuardianSearch!;
+        var search = state.Agents.Single(person => person.AgentId == child).GuardianSearch!;
         return (child, search.OfferedAdultIds[0]);
     }
 
@@ -39,8 +39,8 @@ public sealed partial class SettlementParenthoodTests
         var initial = await GuardianOrderState();
         var (child, adult) = GuardianOrderPeople(initial);
         using var named = SocietyRuntime.Restore(initial.Society);
-        var surname = InhabitantNameRules.SurnameKey(named.Checkpoint.GetInhabitant(child).Name);
-        named.Apply(checkpoint => SocietyRules.RenameInhabitant(checkpoint, child, storedFirstName + " " + surname));
+        var surname = AgentNameRules.SurnameKey(named.Checkpoint.GetAgent(child).Name);
+        named.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, child, storedFirstName + " " + surname));
         using var setup = WorldRuntime.Restore(initial with { Society = named.ExportState() }, _ => new ParentProvider("safe_idle"));
         var request = GuardianRequest("guardian-order", adult, useId ? child : firstName + " " + surname);
         var receipt = setup.SubmitInstruction(request);
@@ -48,8 +48,8 @@ public sealed partial class SettlementParenthoodTests
         var saved = setup.ExportState();
         Assert.Equal(child, Assert.Single(saved.Instructions!).Order!.TargetAgentId);
         using var renamed = SocietyRuntime.Restore(saved.Society);
-        renamed.Apply(checkpoint => SocietyRules.RenameInhabitant(checkpoint, child,
-            "Renamed " + InhabitantNameRules.SurnameKey(checkpoint.GetInhabitant(child).Name)));
+        renamed.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, child,
+            "Renamed " + AgentNameRules.SurnameKey(checkpoint.GetAgent(child).Name)));
         using var world = WorldRuntime.Restore(saved with { Society = renamed.ExportState() }, _ => new ParentProvider("safe_idle"));
         world.Pause();
         var directory = Directory.CreateTempSubdirectory("clankerworld-guardian-order-");
@@ -68,7 +68,7 @@ public sealed partial class SettlementParenthoodTests
                 Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
                 Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
             }
-            Assert.Equal(adult, restored.Society.GetInhabitant(child).PrimaryCaregiverId);
+            Assert.Equal(adult, restored.Society.GetAgent(child).PrimaryCaregiverId);
             var state = restored.ExportState();
             var instruction = Assert.Single(state.Instructions!);
             Assert.Equal(request.Text, instruction.Text);
@@ -106,7 +106,7 @@ public sealed partial class SettlementParenthoodTests
             _ => new ParentProvider("safe_idle"));
         if (!replace) Assert.True(restored.CancelOrder(cancel).Changed);
         for (var tick = 0; tick < 3; tick++) Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.Null(restored.Society.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Null(restored.Society.GetAgent(child).PrimaryCaregiverId);
         var order = restored.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
         Assert.Equal("cancelled", order.Status);
         Assert.Equal(0, order.CompletedUnits);
@@ -118,17 +118,17 @@ public sealed partial class SettlementParenthoodTests
     {
         var initial = await GuardianOrderState();
         var (child, adult) = GuardianOrderPeople(initial);
-        var other = initial.Inhabitants.Single(person => person.InhabitantId == child).GuardianSearch!.OfferedAdultIds
+        var other = initial.Agents.Single(person => person.AgentId == child).GuardianSearch!.OfferedAdultIds
             .First(id => id != adult);
         using var world = WorldRuntime.Restore(initial, _ => new ParentProvider("safe_idle"));
         var food = world.SubmitInstruction(new("food-first", "owner:test", adult, OwnerInstructionKind.MustDo, "keep eating berries"));
         var waiting = world.SubmitInstruction(GuardianRequest("waiting-guardian", adult, child, queue: true));
         world.SubmitInstruction(GuardianRequest("other-guardian", other, child));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.Equal(other, world.Society.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Equal(other, world.Society.GetAgent(child).PrimaryCaregiverId);
         world.CancelOrder(new("cancel-food", "owner:test", world.Society.WorldId, adult, food.InstructionId));
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.Equal(other, world.Society.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Equal(other, world.Society.GetAgent(child).PrimaryCaregiverId);
         var order = world.ExportState().Instructions!.Single(item => item.InstructionId == waiting.InstructionId).Order!;
         Assert.Equal("blocked", order.Status);
         Assert.Equal(0, order.CompletedUnits);
@@ -151,8 +151,8 @@ public sealed partial class SettlementParenthoodTests
         var initial = await GuardianOrderState();
         var (child, adult) = GuardianOrderPeople(initial);
         using var named = SocietyRuntime.Restore(initial.Society);
-        var childName = "Élodie " + InhabitantNameRules.SurnameKey(named.Checkpoint.GetInhabitant(child).Name);
-        named.Apply(checkpoint => SocietyRules.RenameInhabitant(checkpoint, child, childName));
+        var childName = "Élodie " + AgentNameRules.SurnameKey(named.Checkpoint.GetAgent(child).Name);
+        named.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, child, childName));
         using var world = WorldRuntime.Restore(initial with { Society = named.ExportState() }, _ => new ParentProvider("safe_idle"));
         var current = world.SubmitInstruction(new("existing", "owner:test", adult, OwnerInstructionKind.MustDo, "gather berries"));
         var rejected = world.SubmitInstruction(new("rejected", "owner:test", adult, OwnerInstructionKind.MustDo,

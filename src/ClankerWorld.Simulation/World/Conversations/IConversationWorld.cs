@@ -9,10 +9,10 @@ public interface IConversationWorld
     long WorldTick { get; }
     string WorldSeed { get; }
     SocietyCheckpoint Society { get; }
-    IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; }
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
     long WorldDayAt(long tick);
-    bool NeedsUrgentFood(InhabitantState person);
-    bool NeedsUrgentWarmth(InhabitantState person);
+    bool NeedsUrgentFood(AgentState person);
+    bool NeedsUrgentWarmth(AgentState person);
     bool IsAboardBoat(string agentId);
     int FootDistance(GridPoint from, GridPoint destination);
     bool IsWithinInteractionRange(GridPoint from, GridPoint destination, int range);

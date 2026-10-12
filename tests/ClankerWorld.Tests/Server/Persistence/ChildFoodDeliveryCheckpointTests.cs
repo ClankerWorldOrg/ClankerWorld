@@ -109,7 +109,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
                 Society = society with
                 {
                     Inventory = inventory,
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == Child ? person with
+                    Agents = society.Agents.Select(person => person.Id == Child ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -119,7 +119,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
                     } : person).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId is Child or Adult ? person with
+            Agents = state.Agents.Select(person => person.AgentId is Child or Adult ? person with
             {
                 Position = house.Position,
                 HungerBasisPoints = 9_000,

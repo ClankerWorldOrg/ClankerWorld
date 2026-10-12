@@ -24,7 +24,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
         (council, government) = TownGovernmentRules.Advance(council, government, town.Id, town.Name,
             state.WorldSeed, town.ResidentIds, tick, NonviolentRuntimeFixture.Day);
         Assert.Equal(TownArrangementRules.NoOffice, government.Arrangement.NonLand);
-        var households = state.Society.Society.Inhabitants.ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
+        var households = state.Society.Society.Agents.ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
         var (cases, notices) = TownCaseJudgeRules.Advance(town.Nonviolent, council, government, town.ResidentIds,
             households, tick, NonviolentRuntimeFixture.Day);
         Assert.Null(Assert.Single(cases.Cases).Judge);
@@ -49,7 +49,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
         // observed act, case, elected office, accepted extension and completed response window.
         state = NonviolentRuntimeFixture.Strict(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Position = town.OriginSite!.Value, LastDecisionContext = null }).ToArray()
         });
         var originalCase = Assert.Single(town.Nonviolent.Cases);
@@ -113,7 +113,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline);
                 Assert.True(step.Advanced);
-                if (step.Decisions.Any(decision => decision.InhabitantId == NonviolentRuntimeFixture.Judge) ||
+                if (step.Decisions.Any(decision => decision.AgentId == NonviolentRuntimeFixture.Judge) ||
                     step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == NonviolentRuntimeFixture.Judge))
                     admitted = step;
                 else await Task.Delay(10);
@@ -122,7 +122,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
             var file = Assert.Single(world.Towns[0].Nonviolent.Cases);
             if (repealWhileHeld)
             {
-                Assert.True(admitted.Decisions.Any(decision => decision.InhabitantId == NonviolentRuntimeFixture.Judge &&
+                Assert.True(admitted.Decisions.Any(decision => decision.AgentId == NonviolentRuntimeFixture.Judge &&
                         (!decision.Admission.Accepted || decision.Admission.FellBack)) ||
                     admitted.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == NonviolentRuntimeFixture.Judge));
                 Assert.Equal("pending", file.Status);
@@ -132,7 +132,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
             }
             else
             {
-                Assert.Contains(admitted.Decisions, decision => decision.InhabitantId == NonviolentRuntimeFixture.Judge &&
+                Assert.Contains(admitted.Decisions, decision => decision.AgentId == NonviolentRuntimeFixture.Judge &&
                     decision.Admission.Accepted && !decision.Admission.FellBack && decision.Admission.Intention!.CandidateId == held.CandidateId);
                 var finding = Assert.Single(file.Findings);
                 Assert.Equal("supported", finding.Result);
@@ -208,7 +208,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
             CognitionCandidate? choice = null;
             if (Enabled)
             {
-                if (!proposed && observation.InhabitantId == NonviolentRuntimeFixture.Subject)
+                if (!proposed && observation.AgentId == NonviolentRuntimeFixture.Subject)
                 {
                     choice = observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains(
                         "|government_propose|" + TownArrangementRules.Key(Target) + "|", StringComparison.Ordinal));
@@ -223,7 +223,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
     }
 
     private static CognitionDecisionResponse Reply(CognitionDecisionRequest request, CognitionCandidate candidate,
-        CognitionNonviolentChoice? payload = null) => new(request.RequestId, request.Observation.InhabitantId,
+        CognitionNonviolentChoice? payload = null) => new(request.RequestId, request.Observation.AgentId,
         DecisionProviderKind.LargeLanguageModel, 1, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
         request.Observation.ObservationDigest, candidate.Id, 1,
         request.Observation.Candidates.ToDictionary(item => item.Id, item => item.Id == candidate.Id ? 1d : 0d, StringComparer.Ordinal),

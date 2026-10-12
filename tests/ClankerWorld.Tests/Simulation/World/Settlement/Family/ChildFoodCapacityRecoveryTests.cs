@@ -21,7 +21,7 @@ public sealed class ChildFoodCapacityRecoveryTests
     {
         var state = WorldRuntimeCodec.Decode(await Born.Value);
         var child = Assert.Single(state.Society.Society.Births).ChildId;
-        var household = state.Society.Society.GetInhabitant(child).HouseholdId!;
+        var household = state.Society.Society.GetAgent(child).HouseholdId!;
         var adult = state.Society.Society.GetHousehold(household).MemberIds.First(id => id != child);
         var actor = stage == "adult" ? adult : child;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == FoodCapacityTestFixture.House);
@@ -47,18 +47,18 @@ public sealed class ChildFoodCapacityRecoveryTests
             inventory = InventoryAuthority.AddLot(inventory, "capacity-cloak", "rain_cloak", actor, 1);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
-                HungerBasisPoints = person.InhabitantId == actor ? 1_500 : 9_500,
+                Position = person.AgentId == actor ? house.Position : person.Position,
+                HungerBasisPoints = person.AgentId == actor ? 1_500 : 9_500,
                 LastDecisionContext = null,
-                Equipment = person.InhabitantId == actor ? protection == "equipped" ? new PersonalEquipment("capacity-cloak") : null : person.Equipment,
+                Equipment = person.AgentId == actor ? protection == "equipped" ? new PersonalEquipment("capacity-cloak") : null : person.Equipment,
             }).ToArray(),
         };
         var choices = new FoodCapacityTestFixture.Choices("make_room_for_food", "collect_shared_food", "consume_food");
         using var world = FoodCapacityTestFixture.Restore(state, actor, choices);
         Assert.Equal(cargo, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
+            world.Agents.Single(person => person.AgentId == actor).Equipment));
         var initialStone = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == cargoKind).Sum(lot => lot.Quantity);
         var initialHouseholdStone = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == cargoKind && lot.OwnerId == household).Sum(lot => lot.Quantity);
         var protectedLot = world.Society.Inventory.GetLot("capacity-stone");
@@ -84,7 +84,7 @@ public sealed class ChildFoodCapacityRecoveryTests
         Assert.Equal(canEat, meals > 0);
         Assert.InRange(carriedBread, 0, 1);
         Assert.Equal(8 - meals - carriedBread, world.Society.Inventory.GetLot("capacity-house-bread").Quantity);
-        Assert.Equal(canEat, world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > 1_500);
+        Assert.Equal(canEat, world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints > 1_500);
         Assert.Equal(makesRoom, choices.Offers.Any(offered => offered.Contains("make_room_for_food")));
         Assert.Equal(makesRoom ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "spare_cargo_stored" &&
             item.Detail == $"{actor}:{cargoKind}:1:{house.InstanceId}"));
@@ -109,7 +109,7 @@ public sealed class ChildFoodCapacityRecoveryTests
         if (protection == "equipped")
         {
             Assert.Equal((actor, 1), (world.Society.Inventory.GetLot("capacity-cloak").OwnerId, world.Society.Inventory.GetLot("capacity-cloak").Quantity));
-            Assert.Equal("capacity-cloak", world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.ClothingLotId);
+            Assert.Equal("capacity-cloak", world.Agents.Single(person => person.AgentId == actor).Equipment!.ClothingLotId);
         }
         if (stage != "infant") Assert.NotEmpty(choices.Offers);
     }
@@ -118,7 +118,7 @@ public sealed class ChildFoodCapacityRecoveryTests
     {
         var (state, parent, _) = await FoodCapacityTestFixture.Generated("child-carried-milk-audit");
         var checkpoint = state.Society.Society;
-        var household = checkpoint.GetHousehold(checkpoint.GetInhabitant(parent).HouseholdId!);
+        var household = checkpoint.GetHousehold(checkpoint.GetAgent(parent).HouseholdId!);
         var parents = household.MemberIds.Take(2).ToArray();
         checkpoint = SocietyRules.ProposeRelationship(checkpoint, new("capacity-parents", 1,
             SocietyRelationshipType.Partnership, parents[0], parents[1], checkpoint.WorldTick)).Checkpoint;
@@ -135,7 +135,7 @@ public sealed class ChildFoodCapacityRecoveryTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = birth.Checkpoint },
-            Inhabitants = state.Inhabitants.Append(new(child, house.Position, 9_500, 0, "curious", "grow with the household")).ToArray(),
+            Agents = state.Agents.Append(new(child, house.Position, 9_500, 0, "curious", "grow with the household")).ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(parent) ? town with
             { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() } : town).ToArray(),
         };
@@ -155,7 +155,7 @@ public sealed class ChildFoodCapacityRecoveryTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == child ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == child ? person with
                     { BirthTick = born, BirthLifeTick = checkpoint.LifeClock is null ? null : born, AgeBand = band, LastLifecycleYearChecked = age } : person).ToArray(),
                 }
             },

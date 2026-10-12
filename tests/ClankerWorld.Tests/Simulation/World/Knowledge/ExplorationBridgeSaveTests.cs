@@ -23,7 +23,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         IDecisionProvider ChooseProvider(string actor) => new ScoutProvider(
             actor == "founder:00000000000000000000000000000001", () => returnRequested);
         using var world = CreateScoutingWorld(ChooseProvider);
-        var actor = world.Inhabitants[0].InhabitantId;
+        var actor = world.Agents[0].AgentId;
         // The seeded visited memory starts at tick zero, so let the ordinary
         // scouting cooldown and idle admission expire without resetting them.
         for (var tick = 0; tick < 400 && Scout(world, actor).Exploration!.OutingPath.Count < 3; tick++)
@@ -143,8 +143,8 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         }
     }
 
-    private static InhabitantState Scout(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(item => item.InhabitantId == actor);
+    private static AgentState Scout(WorldRuntime world, string actor) =>
+        world.Agents.Single(item => item.AgentId == actor);
 
     internal static WorldRuntime CreateScoutingWorld(Func<string, IDecisionProvider>? chooseProvider = null)
     {
@@ -167,7 +167,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         for (var index = 0; index < founders.Length; index++) setup.PlaceFounder($"founder:{index + 1:D32}", founders[index]);
         setup.StartWorld();
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         Assert.True(RiverBridgeRules.TryResolve(map, BridgeId, out var crossing));
         Assert.Contains(FirstWater, crossing!.Span);
         var roadEnd = crossing.Entrances.Single(point => point.X == map.Width - 1);
@@ -184,7 +184,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         {
             RoadTiles = roads,
             Towns = [town with { BorderTiles = TownBorderRules.Expand(map, town, [roadEnd, WorkshopSite]) }],
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = Start,
                 HungerBasisPoints = 9_500,

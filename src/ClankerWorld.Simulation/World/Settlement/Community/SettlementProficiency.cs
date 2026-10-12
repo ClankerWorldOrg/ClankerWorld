@@ -8,7 +8,7 @@ public sealed record SettlementProficiency(int Building = 0, int Farming = 0, in
 
 public sealed partial class WorldRuntime
 {
-    private int ProjectPracticeBonus(InhabitantState person, SettlementProject project)
+    private int ProjectPracticeBonus(AgentState person, SettlementProject project)
     {
         var practice = person.Proficiency ?? new();
         var experience = project.CandidateId.StartsWith("build:building:", StringComparison.Ordinal)
@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
 
     private void CreditCompletedWork(string actor, string domain, SettlementSkillKind? skill = null)
     {
-        if (!inhabitants.TryGetValue(actor, out var person)) return;
+        if (!agents.TryGetValue(actor, out var person)) return;
         var previous = person.Proficiency ?? new();
         var next = domain switch
         {
@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
         };
         if (next != previous)
         {
-            inhabitants[actor] = person with { Proficiency = next };
+            agents[actor] = person with { Proficiency = next };
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent("work_practice_earned", actor);
         }
@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         });
     }
 
-    private static void ValidateProficiency(InhabitantState person)
+    private static void ValidateProficiency(AgentState person)
     {
         if (person.Proficiency is { } practice &&
             (practice.Building is < 0 or > 30 || practice.Farming is < 0 or > 30 || practice.Crafting is < 0 or > 30))

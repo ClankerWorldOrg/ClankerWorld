@@ -18,7 +18,7 @@ internal sealed partial class CivicSystem
         TownHearingProcedure.Digest(new { item.Evidence, item.Responses, item.Findings, item.Judge, item.ReopenRequests }));
     internal static TownCaseParty[] NonviolentParties(ICivicTownWorld world, TownRuntimeState town, TownViolationCase item) =>
         TownNonviolentPartyRules.CurrentParties(town, item, world.Society, world.WorldTick);
-    internal static bool NonviolentMayInspect(ICivicTownWorld world, TownRuntimeState town, TownViolationCase item, string actor) => world.Inhabitants.ContainsKey(actor) && world.Society.GetInhabitant(actor).AgeBand != SocietyAgeBand.Infant &&
+    internal static bool NonviolentMayInspect(ICivicTownWorld world, TownRuntimeState town, TownViolationCase item, string actor) => world.Agents.ContainsKey(actor) && world.Society.GetAgent(actor).AgeBand != SocietyAgeBand.Infant &&
         (TownAdults(world, town).Contains(actor, StringComparer.Ordinal) || item.Judge?.AgentId == actor ||
             item.Filings.Any(filing => filing.AgentId == actor) ||
             town.Nonviolent.Offers.Any(offer => offer.CaseId == item.Id && offer.Terms.Any(term => term.ContributorId == actor)) || NonviolentParties(world, town, item).Any(party =>
@@ -41,7 +41,7 @@ internal sealed partial class CivicSystem
     }
 
     internal static bool TownNonviolentElectionBusy(TownRuntimeState town) => town.Nonviolent.Cases.Any(item => item.Contest is { Stage: "voting" });
-    internal static bool MayVisitNonviolentCase(ICivicTownWorld world, string actor, TownRuntimeState town) => world.Inhabitants.ContainsKey(actor) && CanWalkToCivicBoard(world, actor, town) && (town.Nonviolent.Cases.Any(item => NonviolentMayInspect(world, town, item, actor) && NonviolentKnows(world, town, item, actor)) ||
+    internal static bool MayVisitNonviolentCase(ICivicTownWorld world, string actor, TownRuntimeState town) => world.Agents.ContainsKey(actor) && CanWalkToCivicBoard(world, actor, town) && (town.Nonviolent.Cases.Any(item => NonviolentMayInspect(world, town, item, actor) && NonviolentKnows(world, town, item, actor)) ||
             NonviolentKnownReports(world, town, actor).Length > 0);
     internal static (TownGovernanceState Council, TownNonviolentState Nonviolent) AdvanceTownNonviolent(ICivicTownWorld world, TownRuntimeState town,
         TownGovernanceState council, TownGovernmentState government)
@@ -94,7 +94,7 @@ internal sealed partial class CivicSystem
     internal static string NonviolentKnownAllegationText(ICivicTownWorld world, TownRuntimeState town, TownViolationAllegation allegation)
     {
         var version = town.Government!.Laws.Single(law => law.Id == allegation.LawId).Versions.Single(version => version.Version == allegation.LawVersion);
-        return NonviolentExcerpt(world.Society.GetInhabitant(allegation.SubjectId).Name, 80) + " allegedly " +
+        return NonviolentExcerpt(world.Society.GetAgent(allegation.SubjectId).Name, 80) + " allegedly " +
             allegation.ConductKind.Replace('_', ' ') + " at (" + allegation.Position.X + "," + allegation.Position.Y + ") at world tick " +
             allegation.ConductTick.ToString(CultureInfo.InvariantCulture) + ". Known source: " + NonviolentExcerpt(allegation.Statement, 256) +
             ". Applicable law version " + allegation.LawVersion.ToString(CultureInfo.InvariantCulture) + ": " +
@@ -111,7 +111,7 @@ internal sealed partial class CivicSystem
             " Inspected evidence: " + string.Join("; ", item.Evidence.Where(evidence => known.Contains(evidence.Id)).TakeLast(8)
             .Select(evidence => CivicAgentToken(evidence.Id) + " (" + evidence.Kind + ", " + evidence.Acquisition + "): " + NonviolentExcerpt(evidence.Text, 256))) +
             ". Inspected responses: " + string.Join("; ", item.Responses.Where(response => responses.Contains(TownNonviolentRules.ResponseToken(response))).TakeLast(8)
-                .Select(response => NonviolentExcerpt(world.Society.GetInhabitant(response.AgentId).Name, 80) + " " + response.Kind + ": " + NonviolentExcerpt(response.Text, 256))) +
+                .Select(response => NonviolentExcerpt(world.Society.GetAgent(response.AgentId).Name, 80) + " " + response.Kind + ": " + NonviolentExcerpt(response.Text, 256))) +
             ". Inspected prior findings: " + string.Join("; ", item.Findings.Where(finding => findings.Contains(finding.Id)).TakeLast(4)
                 .Select(finding => finding.Id + " " + finding.Result + "/" + finding.Consequence + ": " + NonviolentExcerpt(finding.Reasons, 256) +
                     "; uncertainty: " + NonviolentExcerpt(finding.Uncertainty, 160))) + ".";

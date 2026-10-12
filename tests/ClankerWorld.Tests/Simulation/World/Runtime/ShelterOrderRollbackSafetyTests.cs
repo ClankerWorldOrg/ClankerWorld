@@ -50,7 +50,7 @@ public sealed class ShelterOrderRollbackSafetyTests
             var completion = Assert.IsType<OwnerShelterCompletion>(finished.ShelterCompletion);
             Assert.Equal(world.WorldTick, completion.WorldTick);
             Assert.Equal(binding.Position, completion.Position);
-            Assert.Equal(binding.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            Assert.Equal(binding.Position, world.Agents.Single(person => person.AgentId == actor).Position);
             Assert.NotNull(finished.LastEffectId);
             if (command == "light a fire")
             {
@@ -90,7 +90,7 @@ public sealed class ShelterOrderRollbackSafetyTests
             cover = state.Map.Tiles.Where(tile => state.Map.IsPassable(tile.Position) &&
                     state.Map.VegetationAt(tile.Position) == VegetationCover.Forest &&
                     state.WorldSimulation!.Buildings.All(building => state.Map.FootDistance(building.Position, tile.Position) > 14) &&
-                    state.Inhabitants.All(person => person.Position != tile.Position))
+                    state.Agents.All(person => person.Position != tile.Position))
                 .OrderBy(tile => tile.Position.Y).ThenBy(tile => tile.Position.X).First().Position;
             state = At(WithStorm(state), actor, cover.Value);
         }
@@ -134,11 +134,11 @@ public sealed class ShelterOrderRollbackSafetyTests
         Assert.Contains(initial.WorldContent.Buildings, definition => definition.CanonicalId == CustomContent.Definition.CanonicalId);
         var state = initial.ExportState();
         var actor = Actor(state);
-        var origin = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var origin = state.Agents.Single(person => person.AgentId == actor).Position;
         var occupied = state.Map.MapObjects.Select(item => item.Position)
             .Concat(state.Map.Resources.Select(item => item.Position))
             .Concat(state.RoadTiles ?? [])
-            .Concat(state.Inhabitants.Select(person => person.Position)).ToHashSet();
+            .Concat(state.Agents.Select(person => person.Position)).ToHashSet();
         var site = state.Map.Tiles.Where(tile => state.Map.IsBuildable(tile.Position) && !occupied.Contains(tile.Position) &&
                 state.Map.FootDistance(origin, tile.Position) < int.MaxValue &&
                 state.WorldSimulation!.Buildings.All(building => state.Map.FootDistance(building.Position, tile.Position) > 2) &&
@@ -150,7 +150,7 @@ public sealed class ShelterOrderRollbackSafetyTests
         state = At(state, actor, approach);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { TravelCooldownTicks = 1 } : person).ToArray(),
         };
         using var placed = Restore(state);
@@ -175,7 +175,7 @@ public sealed class ShelterOrderRollbackSafetyTests
         Assert.Empty(world.WorldSimulation.CropBuilds ?? []);
         Assert.Empty(world.WorldSimulation.BuildingExpansions ?? []);
         Assert.Empty(world.WorldSimulation.ConstructionReceipts ?? []);
-        Assert.All(world.Inhabitants, person => Assert.Null(person.Project));
+        Assert.All(world.Agents, person => Assert.Null(person.Project));
     }
 
     private static (ContentPackageManifest, BuildingDefinition) CreatePackage()
@@ -208,7 +208,7 @@ public sealed class ShelterOrderRollbackSafetyTests
             var observation = request.Observation;
             var selected = observation.OperativeOrderInstructionId is null ? "safe_idle" :
                 observation.Candidates.FirstOrDefault(candidate => candidate.Id is "seek_shelter" or "tend_fire")?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 request.ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

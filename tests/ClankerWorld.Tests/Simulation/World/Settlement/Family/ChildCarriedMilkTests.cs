@@ -25,7 +25,7 @@ public sealed class ChildCarriedMilkTests
         var milk = scenario != "child-bread";
         var usable = scenario is "child-milk" or "adult-milk" or "child-bread";
         var inventory = state.Society.Society.Inventory;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var members = state.Society.Society.GetHousehold(home).MemberIds.ToHashSet(StringComparer.Ordinal);
         inventory = inventory with
         {
@@ -44,9 +44,9 @@ public sealed class ChildCarriedMilkTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = person.InhabitantId == actor ? 1_500 : 10_000,
+                HungerBasisPoints = person.AgentId == actor ? 1_500 : 10_000,
                 LastDecisionContext = null,
                 Project = null,
                 Survival = new(10_000),
@@ -71,7 +71,7 @@ public sealed class ChildCarriedMilkTests
         Assert.Equal(usable, choices.Seen.Contains(choices.Wanted));
         Assert.Equal(usable ? 1 : 2, world.Society.Inventory.GetLot("child-carried-food").Quantity);
         Assert.Equal(actor, world.Society.Inventory.GetLot("child-carried-food").OwnerId);
-        var fullness = world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints;
+        var fullness = world.Agents.Single(person => person.AgentId == actor).HungerBasisPoints;
         Assert.True(usable ? fullness > 4_000 : fullness < 1_500);
         if (milk)
         {
@@ -109,7 +109,7 @@ public sealed class ChildCarriedMilkTests
         var age = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == child ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == child ? person with
             {
                 BirthTick = age,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : age,
@@ -117,14 +117,14 @@ public sealed class ChildCarriedMilkTests
                 LastLifecycleYearChecked = 4,
             } : person).ToArray(),
         };
-        var position = state.Map.FootNeighbors(state.Inhabitants.Single(person => person.InhabitantId == parent).Position)
-            .First(point => state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point));
+        var position = state.Map.FootNeighbors(state.Agents.Single(person => person.AgentId == parent).Position)
+            .First(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point));
         state = state with
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Append(new(child, position, 10_000, 0, "curious", "grow")).ToArray(),
+            Agents = state.Agents.Append(new(child, position, 10_000, 0, "curious", "grow")).ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(parent)
                 ? town with { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() } : town).ToArray(),
         };
@@ -140,12 +140,12 @@ public sealed class ChildCarriedMilkTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var chosen = "safe_idle";
-            if (request.Observation.InhabitantId == actor)
+            if (request.Observation.AgentId == actor)
             {
                 foreach (var candidate in request.Observation.Candidates) Seen.Add(candidate.Id);
                 if (Seen.Contains(wanted) && request.Observation.Candidates.Any(candidate => candidate.Id == wanted)) chosen = wanted;
             }
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 chosen, 1, new Dictionary<string, double> { [chosen] = 1 }));
         }

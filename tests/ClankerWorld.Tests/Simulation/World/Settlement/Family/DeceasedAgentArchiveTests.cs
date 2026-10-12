@@ -5,7 +5,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class DeceasedInhabitantArchiveTests
+public sealed class DeceasedAgentArchiveTests
 {
     [Fact]
     public async Task DeathRemovesTheActiveActorButKeepsAnInspectableSavedRecord()
@@ -25,13 +25,13 @@ public sealed class DeceasedInhabitantArchiveTests
         society = society with
         {
             Config = config,
-            Memories = society.Inhabitants.Select(person => new SocietySocialMemory(
+            Memories = society.Agents.Select(person => new SocietySocialMemory(
                 $"last-memory:{person.Id}", person.Id, "founder-scout",
                 "I remember the first campfire.", "private", 0)).ToArray(),
-            Beliefs = society.Inhabitants.Select(person => new SocietyAgentBelief(
+            Beliefs = society.Agents.Select(person => new SocietyAgentBelief(
                 $"last-belief:{person.Id}", person.Id, person.Id + " saw the first campfire.",
                 SocietyBeliefProvenance.Firsthand, 7_000, 0)).ToArray(),
-            Inhabitants = society.Inhabitants.Select(person => person with
+            Agents = society.Agents.Select(person => person with
             {
                 BirthTick = -75,
                 BirthLifeTick = null,
@@ -56,11 +56,11 @@ public sealed class DeceasedInhabitantArchiveTests
                     WinterDays = 1,
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                RecentThoughts = [new InhabitantThought(0, "I hope the camp lasts.")],
+                RecentThoughts = [new AgentThought(0, "I hope the camp lasts.")],
                 Skills = [new(SettlementSkillKind.Building, 0,
-                    person.InhabitantId == "founder-ilya" ? "founder-scout" : "founder-ilya")],
+                    person.AgentId == "founder-ilya" ? "founder-scout" : "founder-ilya")],
             }).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());
@@ -69,18 +69,18 @@ public sealed class DeceasedInhabitantArchiveTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var archived = world.ExportState();
-        Assert.NotEmpty(archived.DeceasedInhabitants ?? []);
-        var deceased = archived.DeceasedInhabitants![0];
-        Assert.Equal(deceased.LastPhysical.InhabitantId, deceased.InhabitantId);
-        Assert.DoesNotContain(archived.Inhabitants, person => person.InhabitantId == deceased.InhabitantId);
+        Assert.NotEmpty(archived.DeceasedAgents ?? []);
+        var deceased = archived.DeceasedAgents![0];
+        Assert.Equal(deceased.LastPhysical.AgentId, deceased.AgentId);
+        Assert.DoesNotContain(archived.Agents, person => person.AgentId == deceased.AgentId);
 
-        Assert.DoesNotContain(archived.Society.Society.Memories, item => item.OwnerId == deceased.InhabitantId);
-        Assert.Contains(archived.Society.Society.ArchivedMemories, item => item.Memory.OwnerId == deceased.InhabitantId);
-        Assert.Contains(archived.Society.Society.ArchivedBeliefs, item => item.Belief.OwnerId == deceased.InhabitantId);
+        Assert.DoesNotContain(archived.Society.Society.Memories, item => item.OwnerId == deceased.AgentId);
+        Assert.Contains(archived.Society.Society.ArchivedMemories, item => item.Memory.OwnerId == deceased.AgentId);
+        Assert.Contains(archived.Society.Society.ArchivedBeliefs, item => item.Belief.OwnerId == deceased.AgentId);
         var bytes = WorldRuntimeCodec.Encode(archived);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         var projected = new OwnerWorldObservationStore(restored).GetSnapshot();
-        var historical = Assert.Single(projected.Inhabitants, person => person.Id == deceased.InhabitantId);
+        var historical = Assert.Single(projected.Agents, person => person.Id == deceased.AgentId);
         Assert.Equal("dead", historical.Lifecycle);
         Assert.Equal("deceased", historical.Route.Status);
         Assert.Equal(deceased.DeathTick.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -89,20 +89,20 @@ public sealed class DeceasedInhabitantArchiveTests
         Assert.Equal("I hope the camp lasts.", Assert.Single(historical.RecentPrivateThoughts).Text);
         Assert.Equal("I remember the first campfire.", Assert.Single(historical.RecentMemories).Summary);
         var belief = Assert.Single(historical.RecentBeliefs);
-        Assert.Equal(deceased.InhabitantId + " saw the first campfire.", belief.Statement);
+        Assert.Equal(deceased.AgentId + " saw the first campfire.", belief.Statement);
         Assert.Equal(("firsthand", 7_000), (belief.Provenance, belief.ConfidenceBasisPoints));
         var remembered = Assert.Single(historical.Skills);
         var savedSkill = Assert.Single(deceased.LastPhysical.Skills!);
         Assert.Equal("building", remembered.Kind);
         Assert.Equal(savedSkill.LearnedTick, remembered.LearnedTick);
         Assert.Equal(savedSkill.TeacherId, remembered.TeacherId);
-        Assert.Equal(restored.Society.GetInhabitant(savedSkill.TeacherId!).Name, remembered.TeacherName);
-        Assert.DoesNotContain(restored.Inhabitants, person => person.InhabitantId == deceased.InhabitantId);
+        Assert.Equal(restored.Society.GetAgent(savedSkill.TeacherId!).Name, remembered.TeacherName);
+        Assert.DoesNotContain(restored.Agents, person => person.AgentId == deceased.AgentId);
 
         var invalid = archived with
         {
-            DeceasedInhabitants = archived.DeceasedInhabitants!
-                .Select(person => person.InhabitantId == deceased.InhabitantId
+            DeceasedAgents = archived.DeceasedAgents!
+                .Select(person => person.AgentId == deceased.AgentId
                     ? person with { DeathTick = person.DeathTick + 1 }
                     : person).ToArray(),
         };
@@ -115,7 +115,7 @@ public sealed class DeceasedInhabitantArchiveTests
         {
             Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(archived with
             {
-                DeceasedInhabitants = archived.DeceasedInhabitants.Select(person => person.InhabitantId == deceased.InhabitantId
+                DeceasedAgents = archived.DeceasedAgents.Select(person => person.AgentId == deceased.AgentId
                     ? person with { LastPhysical = person.LastPhysical with { Skills = [forgedSkill] } } : person).ToArray(),
             }));
         }
@@ -145,9 +145,9 @@ public sealed class DeceasedInhabitantArchiveTests
             },
         };
         using var world = WorldRuntime.Restore(state);
-        var inhabitants = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants;
-        var scout = inhabitants.Single(person => person.Id == "founder-scout");
-        var mira = inhabitants.Single(person => person.Id == "founder-mira");
+        var agents = new OwnerWorldObservationStore(world).GetSnapshot().Agents;
+        var scout = agents.Single(person => person.Id == "founder-scout");
+        var mira = agents.Single(person => person.Id == "founder-mira");
         Assert.Equal("I hid a tool behind the storehouse.", Assert.Single(scout.RecentMemories).Summary);
         Assert.Equal("private", scout.RecentMemories[0].Visibility);
         Assert.Equal("Mira", scout.RecentMemories[0].SubjectName);

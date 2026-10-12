@@ -34,7 +34,7 @@ internal static class AgentMarriageValidation
             if (marriage.Id != AgentMarriageRules.Id(consent.Id) || marriage.SurnameConversationId != AgentMarriageRules.SurnameConversationId(marriage.Id) ||
                 marriage.AcceptedTick != consent.LastUpdatedTick || consent.Kind != AgentConversationKind.Ordinary ||
                 consent.Status != AgentConversationStatus.Closed || consent.Outcome != "agreed" || consent.WrapUpEffect != AgentConversationEffect.Marriage ||
-                !society.Inhabitants.Any(item => item.Id == consent.InitiatorId) || !society.Inhabitants.Any(item => item.Id == consent.InviteeId) ||
+                !society.Agents.Any(item => item.Id == consent.InitiatorId) || !society.Agents.Any(item => item.Id == consent.InviteeId) ||
                 !ValidOriginalName(marriage.InitiatorNameAtAcceptance) || !ValidOriginalName(marriage.InviteeNameAtAcceptance) ||
                 partnership.Type != SocietyRelationshipType.Partnership || partnership.State != SocietyRelationshipState.Accepted ||
                 partnership.Consent != SocietyConsentState.Accepted || partnership.ProposedTick < 0 || partnership.Revision < 1 ||
@@ -43,7 +43,7 @@ internal static class AgentMarriageValidation
                 !partnership.AcceptedParties.Order(StringComparer.Ordinal).SequenceEqual(parties) ||
                 recordedPartnership is null || recordedPartnership.Type != partnership.Type || recordedPartnership.Revision < partnership.Revision ||
                 recordedPartnership.ProposerId != partnership.ProposerId || recordedPartnership.TargetId != partnership.TargetId ||
-                consent.Turns.Any(turn => turn.ListenerIds.Any(id => !society.Inhabitants.Any(person => person.Id == id))))
+                consent.Turns.Any(turn => turn.ListenerIds.Any(id => !society.Agents.Any(person => person.Id == id))))
                 throw new InvalidDataException("A saved marriage lacks valid partnership and personal marriage consent.");
             if (conversations.SingleOrDefault(item => item.Id == consent.Id) is { } savedConsent && !SameConversation(savedConsent, consent))
                 throw new InvalidDataException("Marriage consent disagrees with its public conversation.");
@@ -65,7 +65,7 @@ internal static class AgentMarriageValidation
                     (marriage.SurnameReceipt is null || session.LastUpdatedTick > marriage.EndedTick))
                     throw new InvalidDataException("An ended marriage must retain its surname closure at or before the ending.");
                 if (marriage.SurnameReceipt is null && parties.Any(id =>
-                        !AgentMarriageRules.CanKeepSurnameChoices(marriage, society.GetInhabitant(id).Name)))
+                        !AgentMarriageRules.CanKeepSurnameChoices(marriage, society.GetAgent(id).Name)))
                     throw new InvalidDataException("An unfinished marriage's surname choices no longer fit both names.");
                 if (marriage.ChosenSurname is not null || marriage.UsedTieBreak || marriage.LatestPlayerRename is not null ||
                     marriage.SurnameReceipt is not null && session.Outcome != "participant_unavailable" ||
@@ -85,7 +85,7 @@ internal static class AgentMarriageValidation
                  rename.WorldTick > society.WorldTick || rename.WorldTick > marriage.EndedTick || !ValidSurname(rename.Surname)))
                 throw new InvalidDataException("A marriage's later player surname change is invalid.");
             if (marriage.CompletedTick > marriage.EndedTick ||
-                marriage.EndReceipt is null && parties.Any(id => InhabitantNameRules.SurnameKey(society.GetInhabitant(id).Name) != marriage.CurrentSurname))
+                marriage.EndReceipt is null && parties.Any(id => AgentNameRules.SurnameKey(society.GetAgent(id).Name) != marriage.CurrentSurname))
                 throw new InvalidDataException("Married agents do not share their recorded current surname.");
         }
         if (conversations.Any(conversation =>
@@ -103,8 +103,8 @@ internal static class AgentMarriageValidation
             return;
         }
         var original = marriage.PartnershipReceipt;
-        var deaths = new[] { society.GetInhabitant(marriage.InitiatorId).DeathTick,
-                society.GetInhabitant(marriage.InviteeId).DeathTick }.OfType<long>().ToArray();
+        var deaths = new[] { society.GetAgent(marriage.InitiatorId).DeathTick,
+                society.GetAgent(marriage.InviteeId).DeathTick }.OfType<long>().ToArray();
         if (ending.Id != original.Id || ending.Type != SocietyRelationshipType.Partnership ||
             ending.State is not (SocietyRelationshipState.Revoked or SocietyRelationshipState.EndedByDeath) ||
             ending.Consent != SocietyConsentState.Revoked || ending.State != recorded.State ||
@@ -120,10 +120,10 @@ internal static class AgentMarriageValidation
     }
 
     private static bool ValidOriginalName(string? name) => name is not null && name.Length <= 48 && !name.Any(char.IsControl) &&
-        InhabitantNameRules.CanonicalKey(name) is { Length: <= 48 } && InhabitantNameRules.SurnameKey(name) is not null;
+        AgentNameRules.CanonicalKey(name) is { Length: <= 48 } && AgentNameRules.SurnameKey(name) is not null;
 
     private static bool ValidSurname(string? name) => !string.IsNullOrWhiteSpace(name) && name.Length <= 48 &&
-        !name.Any(char.IsControl) && !name.Any(char.IsWhiteSpace) && InhabitantNameRules.CanonicalKey(name) == name;
+        !name.Any(char.IsControl) && !name.Any(char.IsWhiteSpace) && AgentNameRules.CanonicalKey(name) == name;
 
     private static bool SameConversation(AgentConversation first, AgentConversation second) =>
         first with

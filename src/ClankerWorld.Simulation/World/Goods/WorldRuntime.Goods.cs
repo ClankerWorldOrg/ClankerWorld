@@ -86,9 +86,9 @@ public sealed partial class WorldRuntime
                 DeliveryBuildingId: root.DeliveryBuildingId);
         if (root.GroundPosition is { } ground)
             return new(GoodsPlaceKind.Ground, Position: new GridPoint(ground.X, ground.Y), DeliveryBuildingId: root.DeliveryBuildingId);
-        var carrier = root.CarrierId ?? (inhabitants.ContainsKey(root.OwnerId) ? root.OwnerId : null);
+        var carrier = root.CarrierId ?? (agents.ContainsKey(root.OwnerId) ? root.OwnerId : null);
         return carrier is not null
-            ? new(GoodsPlaceKind.Carried, Position: inhabitants.GetValueOrDefault(carrier)?.Position,
+            ? new(GoodsPlaceKind.Carried, Position: agents.GetValueOrDefault(carrier)?.Position,
                 CarrierId: carrier, DeliveryBuildingId: root.DeliveryBuildingId)
             : new(GoodsPlaceKind.Unlocated, DeliveryBuildingId: root.DeliveryBuildingId);
     }

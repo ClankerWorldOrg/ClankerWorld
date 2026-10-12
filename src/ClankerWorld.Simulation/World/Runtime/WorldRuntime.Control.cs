@@ -30,11 +30,11 @@ public sealed partial class WorldRuntime
                 return instructionReceipts[idempotencyKey];
             }
 
-            var targetId = request.TargetInhabitantId.Trim();
-            var target = society.Checkpoint.Inhabitants.SingleOrDefault(item => item.Id == targetId);
-            if (target is null || target.Status != SocietyInhabitantStatus.Active)
+            var targetId = request.TargetAgentId.Trim();
+            var target = society.Checkpoint.Agents.SingleOrDefault(item => item.Id == targetId);
+            if (target is null || target.Status != SocietyAgentStatus.Active)
             {
-                throw new ArgumentException($"No active inhabitant with ID '{targetId}' exists.", nameof(request));
+                throw new ArgumentException($"No active agent with ID '{targetId}' exists.", nameof(request));
             }
             if (target.AgeBand == SocietyAgeBand.Infant)
             {
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntime
             var instruction = instructionsByIdempotency.Values.SingleOrDefault(item =>
                 item.InstructionId == request.OrderId.Trim());
             if (instruction is null || instruction.Kind != OwnerInstructionKind.MustDo ||
-                instruction.TargetInhabitantId != request.TargetInhabitantId.Trim())
+                instruction.TargetAgentId != request.TargetAgentId.Trim())
                 throw new ArgumentException("The order does not belong to this active agent in this world.", nameof(request));
 
             var changed = instruction.Order is { } order && IsActiveOrder(order.Status) &&
@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime
             var receipt = new OwnerOrderControlReceipt(
                 instruction.InstructionId, status, changed, WorldTick, nextEventId - 1);
             orderCancellations.Add(key, new OwnerOrderCancellation(
-                key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetInhabitantId.Trim(),
+                key, request.IssuerId.Trim(), request.WorldId.Trim(), request.TargetAgentId.Trim(),
                 request.OrderId.Trim(), receipt));
             checkpointSchemaVersion = StateSchemaVersion;
             return receipt;
@@ -292,19 +292,19 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private OwnerQueuedInstruction? PendingInstructionFor(string inhabitantId) =>
+    private OwnerQueuedInstruction? PendingInstructionFor(string agentId) =>
         instructionsByIdempotency.Values
-            .Where(item => item.TargetInhabitantId == inhabitantId &&
+            .Where(item => item.TargetAgentId == agentId &&
                 item.Kind == OwnerInstructionKind.MustDo &&
                 item.Order is not null && IsActiveOrder(item.Order.Status) &&
                 !completedInstructionIds.Contains(item.InstructionId))
             .OrderBy(item => item.SubmissionSequence)
             .FirstOrDefault();
 
-    private void ReplacePendingOrders(string inhabitantId)
+    private void ReplacePendingOrders(string agentId)
     {
         foreach (var instruction in instructionsByIdempotency.Values
-                     .Where(item => item.TargetInhabitantId == inhabitantId &&
+                     .Where(item => item.TargetAgentId == agentId &&
                          item.Kind == OwnerInstructionKind.MustDo && item.Order is { } order &&
                          IsActiveOrder(order.Status) && !completedInstructionIds.Contains(item.InstructionId))
                      .OrderBy(item => item.SubmissionSequence).ToArray())
@@ -335,27 +335,27 @@ public sealed partial class WorldRuntime
         CancelBoatTravelForOrder(instruction);
         CancelKnowledgeWritingForOrder(instruction);
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("instruction_order_cancelled", $"{instruction.TargetInhabitantId}:{instruction.InstructionId}:{cause}");
+        AppendEvent("instruction_order_cancelled", $"{instruction.TargetAgentId}:{instruction.InstructionId}:{cause}");
     }
 
     private static bool IsActiveOrder(string status) =>
         status is "queued" or "waiting" or "doing" or "interrupted" or "blocked";
 
-    private bool HasNewObserverGuidanceFor(string inhabitantId) =>
-        ObserverGuidanceInstructionsFor(inhabitantId).Any(item => item.GuidancePromptedTick is null);
+    private bool HasNewObserverGuidanceFor(string agentId) =>
+        ObserverGuidanceInstructionsFor(agentId).Any(item => item.GuidancePromptedTick is null);
 
-    private OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(string inhabitantId)
+    private OwnerQueuedInstruction[] ObserverGuidanceInstructionsFor(string agentId)
     {
         var messages = instructionsByIdempotency.Values
-            .Where(item => item.TargetInhabitantId == inhabitantId &&
+            .Where(item => item.TargetAgentId == agentId &&
                 !completedInstructionIds.Contains(item.InstructionId) &&
                 (item.Kind == OwnerInstructionKind.Suggestive ||
-                    item.InstructionId == PendingInstructionFor(inhabitantId)?.InstructionId))
+                    item.InstructionId == PendingInstructionFor(agentId)?.InstructionId))
             .OrderBy(item => item.SubmissionSequence)
             .ToList();
-        var selected = messages.Take(InhabitantObservation.MaximumObserverGuidanceCount).ToList();
+        var selected = messages.Take(AgentObservation.MaximumObserverGuidanceCount).ToList();
         if (messages.Count > selected.Count &&
-            PendingInstructionFor(inhabitantId) is { } operativeOrder &&
+            PendingInstructionFor(agentId) is { } operativeOrder &&
             selected.All(item => item.InstructionId != operativeOrder.InstructionId))
         {
             selected[^1] = operativeOrder;
@@ -365,12 +365,12 @@ public sealed partial class WorldRuntime
         return selected.ToArray();
     }
 
-    private CognitionObserverGuidance[] ObserverGuidanceFor(string inhabitantId) =>
-        ObserverGuidanceInstructionsFor(inhabitantId)
+    private CognitionObserverGuidance[] ObserverGuidanceFor(string agentId) =>
+        ObserverGuidanceInstructionsFor(agentId)
             .Select(item => new CognitionObserverGuidance(
                 item.InstructionId,
                 item.IssuerId,
-                item.TargetInhabitantId,
+                item.TargetAgentId,
                 ToWireValue(item.Kind),
                 item.Text,
                 item.SubmittedTick,
@@ -442,10 +442,10 @@ public sealed partial class WorldRuntime
 
     // A direct order that names no action the game can carry out is closed
     // at once. It never waits for a decision or holds up later instructions.
-    private void CloseOrdersNotUnderstood(string inhabitantId)
+    private void CloseOrdersNotUnderstood(string agentId)
     {
         foreach (var order in instructionsByIdempotency.Values
-                     .Where(item => item.TargetInhabitantId == inhabitantId &&
+                     .Where(item => item.TargetAgentId == agentId &&
                          item.Kind == OwnerInstructionKind.MustDo &&
                          !completedInstructionIds.Contains(item.InstructionId) &&
                          item.Order?.Action == "unknown")
@@ -457,14 +457,14 @@ public sealed partial class WorldRuntime
                 Order = order.Order! with { Status = "not_understood" },
             };
             completedInstructionIds.Add(order.InstructionId);
-            AppendEvent("instruction_not_understood", $"{inhabitantId}:{order.InstructionId}");
+            AppendEvent("instruction_not_understood", $"{agentId}:{order.InstructionId}");
         }
         checkpointSchemaVersion = StateSchemaVersion;
     }
 
     private static bool Matches(OwnerQueuedInstruction existing, OwnerInstructionRequest request) =>
         existing.IssuerId == request.IssuerId.Trim() &&
-        existing.TargetInhabitantId == request.TargetInhabitantId.Trim() &&
+        existing.TargetAgentId == request.TargetAgentId.Trim() &&
         existing.Kind == request.Kind &&
         existing.Text == request.Text.Trim() &&
         existing.Queue == request.Queue;
@@ -472,7 +472,7 @@ public sealed partial class WorldRuntime
     private static bool Matches(OwnerOrderCancellation existing, OwnerOrderCancelRequest request) =>
         existing.IssuerId == request.IssuerId.Trim() &&
         existing.WorldId == request.WorldId.Trim() &&
-        existing.TargetInhabitantId == request.TargetInhabitantId.Trim() &&
+        existing.TargetAgentId == request.TargetAgentId.Trim() &&
         existing.OrderId == request.OrderId.Trim();
 
     private static void ValidateOrderCancelRequest(OwnerOrderCancelRequest request)
@@ -480,13 +480,13 @@ public sealed partial class WorldRuntime
         ArgumentException.ThrowIfNullOrWhiteSpace(request.IdempotencyKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.IssuerId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.WorldId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.TargetInhabitantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TargetAgentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.OrderId);
         foreach (var value in new[] { request.IdempotencyKey, request.IssuerId, request.WorldId,
                      request.OrderId })
             if (value.Trim().Length > 128 || value.Any(char.IsControl))
                 throw new ArgumentOutOfRangeException(nameof(request), "Order cancellation identities must be bounded and contain no control characters.");
-        if (request.TargetInhabitantId.Any(char.IsControl))
+        if (request.TargetAgentId.Any(char.IsControl))
             throw new ArgumentOutOfRangeException(nameof(request), "Order cancellation target must contain no control characters.");
     }
 
@@ -496,7 +496,7 @@ public sealed partial class WorldRuntime
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.IdempotencyKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.IssuerId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.TargetInhabitantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TargetAgentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Text);
         if (!IsValidInstructionIdentifier(request.IdempotencyKey.Trim()))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction idempotency key must be at most 128 characters without control characters.");

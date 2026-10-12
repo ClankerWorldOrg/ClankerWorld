@@ -74,7 +74,7 @@ internal sealed partial class CivicSystem
             string actor, TownGovernanceState council)
     {
         var revision = TownLandHearingRules.CurrentRevision(item);
-        var visible = revision.Tiles.Where(tile => world.IsWithinInteractionRange(world.Inhabitants[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)).ToHashSet();
+        var visible = revision.Tiles.Where(tile => world.IsWithinInteractionRange(world.Agents[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)).ToHashSet();
         if (visible.Count == 0) throw new InvalidOperationException("A plot observation requires actual physical proximity.");
         var buildings = world.WorldSimulation.Buildings.Where(building => visible.Contains(building.Position)).OrderBy(building => building.InstanceId, StringComparer.Ordinal)
             .Select(building => $"{building.DefinitionId} at ({building.Position.X}, {building.Position.Y})");

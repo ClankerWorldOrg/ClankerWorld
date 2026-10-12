@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 internal sealed record BuildingVariantFixture(
     WorldRuntimeState State, string Actor, BuildingDefinition Definition)
 {
-    public string Household => State.Society.Society.GetInhabitant(Actor).HouseholdId!;
+    public string Household => State.Society.Society.GetAgent(Actor).HouseholdId!;
     public PlacedBuilding Building => State.WorldSimulation!.Buildings.Single(item => item.DefinitionId == Definition.CanonicalId);
 }
 
@@ -34,7 +34,7 @@ internal static class BuildingVariantTestWorld
         var definition = state.WorldContent!.Buildings.Single(item => item.Tags.Contains(family, StringComparer.Ordinal) &&
             item.Width == width && item.Height == height);
         var household = family == "farmhouse" ? "household:camp-beta" : "household:camp-alpha";
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == household).Id;
         var house = state.WorldSimulation!.Buildings.Single(item => item.HouseholdId == household &&
             state.WorldContent.Buildings.Single(building => building.CanonicalId == item.DefinitionId)
                 .Tags.Contains("house", StringComparer.Ordinal));
@@ -52,9 +52,9 @@ internal static class BuildingVariantTestWorld
                 cost.ResourceId, household, cost.Amount, storageBuildingId: house.InstanceId);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
+                Position = person.AgentId == actor ? house.Position : person.Position,
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null,
                 Project = null,
@@ -77,7 +77,7 @@ internal static class BuildingVariantTestWorld
         var fixture = await CreatePreparedAsync(family);
         var provider = new VariantActionProvider(id => IsBuildingCandidate(id, fixture.Definition.CanonicalId));
         using var world = Restore(fixture, provider);
-        await UntilAsync(world, () => world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor)
+        await UntilAsync(world, () => world.Agents.Single(person => person.AgentId == fixture.Actor)
             .Project is { Stage: "working", WorkDone: > 0 });
         Assert.DoesNotContain(world.WorldSimulation.Buildings, item => item.DefinitionId == fixture.Definition.CanonicalId);
         foreach (var cost in fixture.Definition.BuildCosts)
@@ -85,7 +85,7 @@ internal static class BuildingVariantTestWorld
                 lot.ItemKind == cost.ResourceId).Sum(lot => lot.Quantity));
         await UntilAsync(world, () => world.WorldSimulation.Buildings.Any(item => item.DefinitionId == fixture.Definition.CanonicalId));
         var building = Assert.Single(world.WorldSimulation.Buildings, item => item.DefinitionId == fixture.Definition.CanonicalId);
-        var project = world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Project!;
+        var project = world.Agents.Single(person => person.AgentId == fixture.Actor).Project!;
         Assert.Equal("completed", project.Stage);
         Assert.True(TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection));
         Assert.Equal(building.Position, selection.SitePosition);
@@ -128,7 +128,7 @@ internal static class BuildingVariantTestWorld
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True(complete(), string.Join("\n", world.ExportState().Events.TakeLast(16)
             .Select(item => item.Kind + ": " + item.Detail)) + "\n" + string.Join("\n",
-            world.Inhabitants.Select(person => person.InhabitantId + ": " + person.Project)));
+            world.Agents.Select(person => person.AgentId + ": " + person.Project)));
     }
 
     public static WorldRuntimeState Strict(WorldRuntimeState state) =>
@@ -154,7 +154,7 @@ internal sealed class VariantActionProvider(Predicate<string>? choose = null) : 
             request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
         Chosen.Add(selected.Id);
         return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-            request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+            request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
             request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
             request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                 candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

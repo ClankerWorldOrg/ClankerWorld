@@ -119,7 +119,7 @@ public sealed record OwnerWorldPublicIntention(
     string Provider,
     long WorldTick);
 
-public sealed record OwnerWorldInhabitantRelationship(
+public sealed record OwnerWorldAgentRelationship(
     string RelationshipId,
     string OtherPartyId,
     string Type,
@@ -138,7 +138,7 @@ public sealed record OwnerWorldAgentBelief(
     string? SourceAgentId,
     string? SourceAgentName,
     long? SourceEventId,
-    string? AboutInhabitantId,
+    string? AboutAgentId,
     bool IsCorrected,
     long? CorrectedTick);
 public sealed record OwnerWorldKnowledgeFact(
@@ -362,7 +362,7 @@ public sealed record OwnerWorldHouseholdLandUseRequest(string Id, string TownId,
     public string ApprovalDetail { get; init; } = "Awaiting approval";
 }
 
-public sealed record OwnerWorldInhabitant(
+public sealed record OwnerWorldAgent(
     string Id,
     string DisplayName,
     string Lifecycle,
@@ -391,7 +391,7 @@ public sealed record OwnerWorldInhabitant(
 
     public IReadOnlyList<string> SocialNotes { get; init; } = [];
 
-    public IReadOnlyList<OwnerWorldInhabitantRelationship> Relationships { get; init; } = [];
+    public IReadOnlyList<OwnerWorldAgentRelationship> Relationships { get; init; } = [];
 
     public IReadOnlyList<OwnerWorldPrivateThought> RecentPrivateThoughts { get; init; } = [];
 
@@ -427,7 +427,7 @@ public sealed record OwnerWorldSocialStanding(string SubjectId, string SubjectNa
 
 public sealed record OwnerWorldInstruction(
     string InstructionId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     string State,
@@ -467,8 +467,8 @@ public sealed record OwnerWorldInstructionOrder(
 
 public sealed record OwnerWorldCognitionEvent(long EventId, long WorldTick, string Kind, string Detail);
 
-public sealed record OwnerWorldInhabitantDecision(
-    string InhabitantId, string Provider, string CandidateId, long WorldTick,
+public sealed record OwnerWorldAgentDecision(
+    string AgentId, string Provider, string CandidateId, long WorldTick,
     double Confidence, string? Model, int? InputTokens, int? OutputTokens,
     string? Role = null, long? LatencyMilliseconds = null, bool FellBack = false);
 
@@ -479,7 +479,7 @@ public sealed record OwnerWorldCognition(
     string? CurrentCandidateId,
     string? CurrentDecisionProvider,
     IReadOnlyList<OwnerWorldCognitionEvent> Events,
-    IReadOnlyList<OwnerWorldInhabitantDecision>? Decisions = null);
+    IReadOnlyList<OwnerWorldAgentDecision>? Decisions = null);
 
 public sealed record OwnerWorldContentPackage(
     string PackageId,
@@ -492,7 +492,7 @@ public sealed record OwnerWorldContentPackage(
     long? ActivationTick,
     string? ManifestDigest = null,
     string? DisplayName = null,
-    string? ProposedByInhabitantId = null);
+    string? ProposedByAgentId = null);
 
 public sealed record OwnerWorldContentGovernanceEvent(
     long EventId,
@@ -681,7 +681,7 @@ public sealed record OwnerWorldSnapshot(
     /// <summary>Developer tools: how long the host took to work out the latest tick; null when not reported.</summary>
     public double? LastTickMilliseconds { get; init; }
     public long RefusedActionCount { get; init; }
-    public IReadOnlyList<OwnerWorldInhabitant> Inhabitants { get; init; } = [];
+    public IReadOnlyList<OwnerWorldAgent> Agents { get; init; } = [];
 
     public IReadOnlyList<OwnerWorldConversation> Conversations { get; init; } = [];
 
@@ -741,7 +741,7 @@ public sealed record OwnerWorldCreationAction(string Name, string Seed, string S
     int? CandidateAttempt = null, string? ExpectedManifestDigest = null,
     string? ExpectedMapLayersDigest = null, bool AcceptUnmetTargets = false);
 public sealed record CatalogWorld(string Id, string Name, string WorldId, string Seed,
-    DateTimeOffset UpdatedUtc, IReadOnlyList<InhabitantProviderAssignment> Assignments,
+    DateTimeOffset UpdatedUtc, IReadOnlyList<AgentProviderAssignment> Assignments,
     WorldAutosaveSettings? AutosaveSettings, string Compatibility = "unknown",
     string? CompatibilityReason = null, WorldThumbnail? Thumbnail = null,
     string? GameVersion = null, string? SourceRevision = null);
@@ -867,7 +867,7 @@ public sealed record OwnerProviderConfigurationAction(
     string? Model,
     string? ApiKey,
     bool ForgetCredential,
-    string? InhabitantId = null,
+    string? AgentId = null,
     string? CredentialSlotId = null,
     string? NewCredentialLabel = null,
     string? Thinking = null);
@@ -876,8 +876,8 @@ public sealed record OwnerProviderConfigurationAction(
 /// One agent's model for one role. <see cref="Thinking"/> is low, medium or
 /// high, or <see langword="null"/> for the model's own default.
 /// </summary>
-public sealed record InhabitantProviderAssignment(
-    string InhabitantId,
+public sealed record AgentProviderAssignment(
+    string AgentId,
     string Role,
     string Provider,
     string? Model = null,
@@ -918,12 +918,12 @@ public sealed record OwnerProviderConfigurationStatus(
     string PlanningProvider,
     long Revision,
     IReadOnlyList<OwnerProviderOptionStatus> Providers,
-    IReadOnlyList<InhabitantProviderAssignment>? Assignments = null,
+    IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<OwnerProviderCredentialStatus>? CredentialSlots = null);
 
 public sealed record OwnerInstructionAction(
     string IdempotencyKey,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     string WorldId,
@@ -931,7 +931,7 @@ public sealed record OwnerInstructionAction(
 
 public sealed record OwnerOrderCancelAction(
     string IdempotencyKey,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId,
     string WorldId);
 

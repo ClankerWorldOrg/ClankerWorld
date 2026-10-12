@@ -50,8 +50,8 @@ public sealed partial class WorldRuntime
     private bool CanProposePartnership(string actor, string other) => actor != other &&
         AvailablePartner(actor) && AvailablePartner(other) &&
         !CloseKin(actor, other) &&
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
-        society.Checkpoint.GetInhabitant(other).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(other).HouseholdId is not null &&
         !Partnerships(actor).Any(item => (item.ProposerId == other || item.TargetId == other) &&
             WorldTick - Math.Max(item.ProposedTick, item.EffectiveTick) < worldSystems.Config.TicksPerDay) &&
         TrustScore(actor, other) > 0;
@@ -79,7 +79,7 @@ public sealed partial class WorldRuntime
         foreach (var relationship in Partnerships(actor).Where(item => item.State is SocietyRelationshipState.Proposed or SocietyRelationshipState.Accepted))
         {
             var other = relationship.ProposerId == actor ? relationship.TargetId : relationship.ProposerId;
-            var name = society.Checkpoint.GetInhabitant(other).Name;
+            var name = society.Checkpoint.GetAgent(other).Name;
             if (relationship.State == SocietyRelationshipState.Proposed && relationship.TargetId == actor)
             {
                 candidates.Add(new("partner_accept:" + relationship.Id, $"Accept {name}'s partnership proposal. This does not consent to parenthood.", 19));
@@ -90,10 +90,10 @@ public sealed partial class WorldRuntime
                 candidates.Add(new("partner_leave:" + relationship.Id, $"Withdraw from the partnership or proposal with {name}.", 110));
             }
         }
-        foreach (var other in inhabitants.Keys.Order(StringComparer.Ordinal).Where(other => CanProposePartnership(actor, other)))
+        foreach (var other in agents.Keys.Order(StringComparer.Ordinal).Where(other => CanProposePartnership(actor, other)))
         {
             candidates.Add(new("partner_propose:" + other,
-                $"Propose a partnership with {society.Checkpoint.GetInhabitant(other).Name} after cooperating; they may refuse.", 65));
+                $"Propose a partnership with {society.Checkpoint.GetAgent(other).Name} after cooperating; they may refuse.", 65));
         }
     }
 

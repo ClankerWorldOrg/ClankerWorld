@@ -13,9 +13,9 @@ public sealed partial class WorldRuntime
         string? sourceLotId = null, bool allowOrdinaryProject = false)
     {
         if (!AdultResident(actor) || CarriedHouseDelivery(actor) is not null ||
-            inhabitants[actor].Project is { Stage: not ("completed" or "cancelled") } project &&
+            agents[actor].Project is { Stage: not ("completed" or "cancelled") } project &&
                 (!allowOrdinaryProject || !OrdinaryProjectCanYieldToOrder(project)) ||
-            society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId ||
+            society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId ||
             HouseholdBuildingWithTag(householdId, "store") is not { } store ||
             buildingId is not null && store.InstanceId != buildingId)
             return null;
@@ -31,7 +31,7 @@ public sealed partial class WorldRuntime
                       lot.OwnerId == householdId && lot.CarrierId is null &&
                          (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
                              building.InstanceId == lot.StorageBuildingId && building.HouseholdId == householdId))) &&
-                     !PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id))
+                     !PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id))
                      .OrderBy(lot => lot.OwnerId == actor ? 0 : 1).ThenBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
         var foodSurpluses = new Dictionary<(string OwnerId, string ItemKind), int>();
         foreach (var lot in sources)
@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
                 if (!foodSurpluses.TryGetValue(key, out var foodSurplus))
                 {
                     var reserve = lot.OwnerId == actor ? 2 : 2 * society.Checkpoint.GetHousehold(householdId)
-                        .MemberIds.Count(id => inhabitants.ContainsKey(id));
+                        .MemberIds.Count(id => agents.ContainsKey(id));
                     // A bound lot limits this load, not the stock that keeps the owner's reserve.
                     foodSurplus = Math.Max(0, sources.Where(source => source.OwnerId == lot.OwnerId &&
                         source.ItemKind == lot.ItemKind && CanStockFrom(source)).Sum(StockQuantity) - reserve);
@@ -70,10 +70,10 @@ public sealed partial class WorldRuntime
             (protectedToolIds.Contains(lot.Id) ? 1 : 0));
         bool CanStockFrom(InventoryLot lot)
         {
-            var source = lot.OwnerId == actor ? inhabitants[actor].Position : HouseholdStockPosition(lot);
+            var source = lot.OwnerId == actor ? agents[actor].Position : HouseholdStockPosition(lot);
             var range = lot.OwnerId == actor ? 0 : HouseholdStockInteractionRange(lot);
-            return (IsWithinInteractionRange(inhabitants[actor].Position, source, range) ||
-                FindUnoccupiedRoute(actor, inhabitants[actor].Position, source, range).Count > 0) &&
+            return (IsWithinInteractionRange(agents[actor].Position, source, range) ||
+                FindUnoccupiedRoute(actor, agents[actor].Position, source, range).Count > 0) &&
                 (source == store.Position || FindUnoccupiedRoute(actor, source, store.Position, 0).Count > 0);
         }
     }
@@ -86,7 +86,7 @@ public sealed partial class WorldRuntime
                 38, load.Store.InstanceId));
     }
 
-    private void StockStore(string actor, InhabitantState state)
+    private void StockStore(string actor, AgentState state)
     {
         if (NextStoreLoad(actor) is not { } load) return;
         var householdId = load.Store.HouseholdId!;
@@ -116,7 +116,7 @@ public sealed partial class WorldRuntime
         AppendEvent("store_stock_collected", $"{actor}:{load.Goods.Id}:{load.Quantity}:{load.Store.InstanceId}");
     }
 
-    private DeliveryOrderPlan? GetStoreOrderPlan(string actor, InhabitantState person,
+    private DeliveryOrderPlan? GetStoreOrderPlan(string actor, AgentState person,
         OwnerInstructionOrder order, int maximumQuantity)
     {
         if (NextStoreLoad(actor, order.TargetItemKind, order.TargetStorageBuildingId, order.DeliveryLotId,

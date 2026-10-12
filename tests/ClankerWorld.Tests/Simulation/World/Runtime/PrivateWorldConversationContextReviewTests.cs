@@ -17,7 +17,7 @@ public sealed partial class WorldConversationTests
         world.StartWorld();
 
         for (var tick = 0; tick < 100 && !new[] { InitiatorId, InviteeId }.All(id =>
-                 provider.PlanningRequests.Any(request => request.Observation.InhabitantId == id &&
+                 provider.PlanningRequests.Any(request => request.Observation.AgentId == id &&
                      request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith(
                          "conversation_wrapup_accept:", StringComparison.Ordinal)))); tick++)
         {
@@ -31,7 +31,7 @@ public sealed partial class WorldConversationTests
         foreach (var actor in new[] { InitiatorId, InviteeId })
         {
             var request = Assert.Single(provider.PlanningRequests.Where(item =>
-                item.Observation.InhabitantId == actor && item.Observation.Candidates.Any(candidate =>
+                item.Observation.AgentId == actor && item.Observation.Candidates.Any(candidate =>
                     candidate.Id == $"conversation_wrapup_accept:{conversation.Id}")).Take(1));
             var accept = Assert.Single(request.Observation.Candidates,
                 item => item.Id == $"conversation_wrapup_accept:{conversation.Id}");
@@ -107,7 +107,7 @@ public sealed partial class WorldConversationTests
         {
             Conversations = [accepted],
             ConversationBudgets = [new(InitiatorId, 0, 1), new(InviteeId, 0, 1)],
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId is InitiatorId or InviteeId or ListenerId
+            Agents = state.Agents.Select(person => person.AgentId is InitiatorId or InviteeId or ListenerId
                 ? person with
                 {
                     Position = startingSite,
@@ -115,8 +115,8 @@ public sealed partial class WorldConversationTests
                     Survival = person.Survival is { } survival ? survival with { WarmthBasisPoints = 9_000 } : null,
                     Project = null,
                     LastDecisionContext = null,
-                    Skills = person.InhabitantId == teacher ? [new(SettlementSkillKind.Building, setup.WorldTick)] : null,
-                    Lesson = person.InhabitantId == learner
+                    Skills = person.AgentId == teacher ? [new(SettlementSkillKind.Building, setup.WorldTick)] : null,
+                    Lesson = person.AgentId == learner
                         ? new(teacher, SettlementSkillKind.Building, "training", 3, setup.WorldTick, setup.WorldTick) : null,
                 } : person).ToArray(),
         };
@@ -131,15 +131,15 @@ public sealed partial class WorldConversationTests
             Assert.True((await world.AdvanceOneTickAsync(resumeDeadline.Token)).Advanced);
         }
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, world.Conversations.Single().Status);
-        var progress = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress;
+        var progress = world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress;
         Assert.InRange(progress, 3, 19);
         for (var tick = 0; tick < 3; tick++)
         {
             _ = await world.AdvanceOneTickNonBlockingAsync();
             await Task.Delay(2);
-            Assert.Equal(progress, world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!.Progress);
+            Assert.Equal(progress, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         }
-        Assert.Empty(world.Inhabitants.Single(person => person.InhabitantId == learner).Skills ?? []);
+        Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
 
         world.Pause();
         provider.EndSuspendedConversations = true;
@@ -158,7 +158,7 @@ public sealed partial class WorldConversationTests
                 if (world.Conversations.Single().Status == AgentConversationStatus.Closed)
                 {
                     conversationClosedAtTick ??= world.WorldTick;
-                    var lesson = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
+                    var lesson = world.Agents.Single(person => person.AgentId == learner).Lesson!;
                     if (lesson.Stage == "completed" || world.WorldTick - conversationClosedAtTick >= completionTickHorizon)
                         break;
                     // Await hosted decisions before spending the lesson tick budget.
@@ -180,13 +180,13 @@ public sealed partial class WorldConversationTests
         Assert.True(world.Conversations.Single().Status == AgentConversationStatus.Closed,
             $"Conversation did not close within {maxCompletionAttempts} attempts or 15 seconds; " +
             $"tick={world.WorldTick}, attempts={completionAttempts}.");
-        var completedLesson = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
+        var completedLesson = world.Agents.Single(person => person.AgentId == learner).Lesson!;
         Assert.True(completedLesson.Stage == "completed",
             $"Lesson did not complete within {completionTickHorizon} committed ticks after conversation closure; " +
             $"stage={completedLesson.Stage}, progress={completedLesson.Progress}, " +
             $"committedTicks={(conversationClosedAtTick is { } closedAt ? world.WorldTick - closedAt : 0)}, " +
             $"totalTicks={world.WorldTick - completionStartTick}, attempts={completionAttempts}.");
-        var skill = Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == learner).Skills!);
+        var skill = Assert.Single(world.Agents.Single(person => person.AgentId == learner).Skills!);
         Assert.Equal(SettlementSkillKind.Building, skill.Kind);
         Assert.Equal(teacher, skill.TeacherId);
     }

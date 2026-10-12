@@ -23,7 +23,7 @@ public sealed partial class RestaurantBusinessPipelineTests
             .Select(resource => resource.Id).ToHashSet();
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == fixture.Customer
+            Agents = initial.Agents.Select(person => person.AgentId == fixture.Customer
                 ? person with { HungerBasisPoints = 1_500, LastDecisionContext = null } : person).ToArray(),
             Resources = initial.Resources.Select(resource => foodSources.Contains(resource.ResourceId)
                 ? resource with { State = ResourceState.Depleted } : resource).ToArray(),
@@ -45,7 +45,7 @@ public sealed partial class RestaurantBusinessPipelineTests
         var sale = Assert.Single(world.BusinessTrades, trade => trade.BuyerId == fixture.Customer);
         Assert.Equal("porridge", sale.GoodsKind);
         Assert.Equal(DirectBarterState.Settled, world.Society.Inventory.GetOffer(sale.OfferId).State);
-        var customer = world.Inhabitants.Single(person => person.InhabitantId == fixture.Customer);
+        var customer = world.Agents.Single(person => person.AgentId == fixture.Customer);
         Assert.Equal("porridge", customer.Survival!.LastMealKind);
         Assert.True(customer.HungerBasisPoints > 1_500);
         var payment = world.Society.Inventory.GetLot("restaurant-customer-payment");

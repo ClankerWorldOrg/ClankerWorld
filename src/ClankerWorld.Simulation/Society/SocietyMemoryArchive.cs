@@ -22,7 +22,7 @@ public static class SocietyMemoryArchiveRules
         bool Eligible(string owner, string id, SocietyMemorySourceKind kind, long sourceTick) =>
             !protectedOwners.Contains(owner) && sourceTick >= 0 && sourceTick <= checkpoint.WorldTick - age &&
             importance.GetValueOrDefault((owner, kind, id)) < ImportanceCutoffBasisPoints;
-        var owners = checkpoint.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var owners = checkpoint.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         var memories = checkpoint.Memories.Where(memory => !IsPermanent(memory) &&
                 owners.Contains(memory.OwnerId) && owners.Contains(memory.SubjectId) &&
                 !string.IsNullOrWhiteSpace(memory.Summary) && !string.IsNullOrWhiteSpace(memory.Visibility) &&
@@ -63,7 +63,7 @@ public static partial class SocietyRules
             checkpoint.AllBeliefs().Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() !=
                 (checkpoint.Beliefs?.Count ?? 0) + checkpoint.ArchivedBeliefs.Count)
             throw new InvalidDataException("An agent source must be stored exactly once with a known kind.");
-        var owners = checkpoint.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var owners = checkpoint.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var item in checkpoint.ArchivedMemories)
             if (SocietyMemoryArchiveRules.IsPermanent(item.Memory) || item.Memory.SourceTick < 0 ||
                 item.ArchivedTick < item.Memory.SourceTick || item.ArchivedTick > checkpoint.WorldTick ||

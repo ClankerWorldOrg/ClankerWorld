@@ -18,7 +18,7 @@ public sealed class OrnamentProductionTests
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Smith);
         var owner = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var inventory = state.Society.Society.Inventory;
         foreach (var (kind, quantity) in new[] { ("wood", 6), ("stone", 4), ("iron_ore", 4), ("iron", 4),
                      ("gold_ore", 4), (OrnamentContent.Gold, 4), ("diamond", 2) })
@@ -27,7 +27,7 @@ public sealed class OrnamentProductionTests
         inventory = InventoryAuthority.AddLot(inventory, "smith-personal-ornament", OrnamentContent.GoldOrnament, actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = smith.Position,
                 HungerBasisPoints = 9_000,
@@ -50,14 +50,14 @@ public sealed class OrnamentProductionTests
             Assert.DoesNotContain("haul_smith_input", choices.Selected);
             Assert.Equal(actor, ornament.OwnerId);
             Assert.Null(ornament.StorageBuildingId);
-            Assert.Equal(ornament.Id, world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment!.OrnamentLotId);
+            Assert.Equal(ornament.Id, world.Agents.Single(person => person.AgentId == actor).Equipment!.OrnamentLotId);
             Assert.False(world.StartProduction(setting.CanonicalId, Smith, actor).Applied);
         }
         else
         {
             Assert.Contains("haul_smith_input", choices.Selected);
             Assert.Equal((owner, Smith), (ornament.OwnerId, ornament.StorageBuildingId));
-            Assert.Null(world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment?.OrnamentLotId);
+            Assert.Null(world.Agents.Single(person => person.AgentId == actor).Equipment?.OrnamentLotId);
             Assert.True(world.StartProduction(setting.CanonicalId, Smith, actor).Applied);
             Assert.Contains(world.Society.Inventory.Reservations, item => item.LotId == ornament.Id &&
                 item.OwnerId == owner && item.Quantity == 1 && item.State == InventoryReservationState.Reserved);
@@ -75,10 +75,10 @@ public sealed class OrnamentProductionTests
         var state = generated.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Smith);
         var owner = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var goldSource = state.Map.Resources.Where(source => source.Kind == "gold_ore" && !source.IsRenewable &&
                 state.Map.IsReachableOnFoot(smith.Position, source.Position) &&
-                !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == source.Position))
+                !state.Agents.Any(person => person.AgentId != actor && person.Position == source.Position))
             .OrderBy(source => state.Map.FootDistance(smith.Position, source.Position)).ThenBy(source => source.Id).First();
         var diamondSources = state.Map.Resources.Where(source => source.Kind == "diamond" && !source.IsRenewable &&
                 state.Map.IsReachableOnFoot(smith.Position, source.Position)).ToArray();
@@ -97,7 +97,7 @@ public sealed class OrnamentProductionTests
                         ? resource with { Quantity = 1 } : resource).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = goldSource.Position,
                 HungerBasisPoints = 10_000,
@@ -119,7 +119,7 @@ public sealed class OrnamentProductionTests
             mining.WorldSystems.Ecology.GetResource(goldSource.Id).State));
         Assert.Equal(9_000, mining.Society.Inventory.GetLot("ornament-pick").ConditionBasisPoints);
         choices.Preferences = ["haul_household_stock", "haul_smith_input"];
-        await Until(mining, () => mining.Inhabitants.Single(person => person.InhabitantId == actor).Position != goldSource.Position,
+        await Until(mining, () => mining.Agents.Single(person => person.AgentId == actor).Position != goldSource.Position,
             40);
         Assert.Equal((actor, 8), (mining.Society.Inventory.GetLot(rawGold.Id).OwnerId,
             mining.Society.Inventory.GetLot(rawGold.Id).Quantity));
@@ -136,7 +136,7 @@ public sealed class OrnamentProductionTests
         choices.Preferences = [];
         var firstGold = await Produce(resumed, actor, choices, "refine-gold", 24,
             [(deliveredGold.Id, 2), ("ornament-fuel", 1)]);
-        Assert.Contains(resumed.Inhabitants.Single(person => person.InhabitantId == actor).Skills!,
+        Assert.Contains(resumed.Agents.Single(person => person.AgentId == actor).Skills!,
             skill => skill.Kind == SettlementSkillKind.Smithing);
         var secondGold = await Produce(resumed, actor, choices, "refine-gold", 19,
             [(deliveredGold.Id, 2), ("ornament-fuel", 1)]);
@@ -151,7 +151,7 @@ public sealed class OrnamentProductionTests
         var promisedWood = Assert.Single(resumed.Society.Inventory.Lots, lot => lot.OwnerId == actor &&
             lot.ItemKind == "wood" && lot.DeliveryBuildingId == Smith);
         Assert.Equal(4, promisedWood.Quantity);
-        var miningPerson = resumed.Inhabitants.Single(person => person.InhabitantId == actor);
+        var miningPerson = resumed.Agents.Single(person => person.AgentId == actor);
         Assert.Equal(16, PersonalEquipmentRules.Capacity(resumed.Society.Inventory, actor, miningPerson.Equipment));
         Assert.Equal(9, PersonalEquipmentRules.CarriedQuantity(resumed.Society.Inventory, actor, miningPerson.Equipment));
         Assert.Equal(7, PersonalEquipmentRules.FreeCapacity(resumed.Society.Inventory, actor, miningPerson.Equipment));
@@ -169,7 +169,7 @@ public sealed class OrnamentProductionTests
         Assert.Equal(4, resumed.Society.Inventory.Lots.Where(lot => lot.ItemKind == "gold_ore").Sum(lot => lot.Quantity));
         Assert.Equal(storedWood, resumed.Society.Inventory.GetLot(promisedWood.Id) with
         { LastProcessedTick = storedWood.LastProcessedTick });
-        var readyMiner = resumed.Inhabitants.Single(person => person.InhabitantId == actor);
+        var readyMiner = resumed.Agents.Single(person => person.AgentId == actor);
         Assert.Equal("ornament-basket", readyMiner.Equipment!.CarryAidLotId);
         Assert.True(PersonalEquipmentRules.IsCarried(resumed.Society.Inventory.GetLot("ornament-pick"), actor));
         Assert.True(PersonalEquipmentRules.FreeCapacity(resumed.Society.Inventory, actor, readyMiner.Equipment) >= 8);
@@ -211,9 +211,9 @@ public sealed class OrnamentProductionTests
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Smith);
         var owner = smith.HouseholdId!;
-        var worker = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var worker = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var actor = boundary == "private"
-            ? state.Society.Society.Inhabitants.First(person => person.HouseholdId != owner).Id : worker;
+            ? state.Society.Society.Agents.First(person => person.HouseholdId != owner).Id : worker;
         var house = state.WorldSimulation.Buildings.Single(building => building.HouseholdId == owner &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "guarded-gold", OrnamentContent.Gold,
@@ -222,7 +222,7 @@ public sealed class OrnamentProductionTests
             owner, "guarded-gold", 1, "other_work", 120);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = smith.Position } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
@@ -250,7 +250,7 @@ public sealed class OrnamentProductionTests
         Assert.Contains(recipeCandidate, choices.Selected);
         Assert.Equal(Smith, job.BuildingInstanceId);
         Assert.Equal(world.WorldSimulation.Buildings.Single(building => building.InstanceId == Smith).Position,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Equal(WorldProductionJobState.Running, job.State);
         Assert.Equal(workTicks, job.CompletionTick - job.StartedTick);
         var reservations = job.InputReservationIds.Select(world.Society.Inventory.GetReservation).ToArray();
@@ -271,7 +271,7 @@ public sealed class OrnamentProductionTests
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.All(reservations, item => Assert.Equal(InventoryReservationState.Completed,
             world.Society.Inventory.GetReservation(item.Id).State));
-        Assert.All(reservations, item => Assert.Equal(world.Society.GetInhabitant(actor).HouseholdId, item.OwnerId));
+        Assert.All(reservations, item => Assert.Equal(world.Society.GetAgent(actor).HouseholdId, item.OwnerId));
         choices.Preferences = [];
         return job.JobId + ":output:00";
     }

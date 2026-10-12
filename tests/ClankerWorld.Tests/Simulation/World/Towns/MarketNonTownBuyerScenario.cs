@@ -31,7 +31,7 @@ internal static class MarketNonTownBuyerScenario
         Assert.Equal(seller, occupancy.SellerAgentId);
         Assert.NotNull(occupancy.SellerHouseholdId);
         Assert.Empty(market.Trades);
-        Assert.DoesNotContain(boundary.Society.Society.Inhabitants, person => person.Id == Buyer);
+        Assert.DoesNotContain(boundary.Society.Society.Agents, person => person.Id == Buyer);
         var stockReceipt = market.StockReceipts.Single(item => item.OccupancyId == occupancy.Id && item.ItemKind == "wooden_axe");
         var goodsBefore = boundary.Society.Society.Inventory.GetLot(stockReceipt.LotId);
         Assert.Equal(4, goodsBefore.Quantity);
@@ -47,7 +47,7 @@ internal static class MarketNonTownBuyerScenario
             Assert.Equal(household, adding.AddAgent(Buyer, start, household, expectedTownId: null));
             placed = adding.ExportState();
             AssertOutsideMembership(adding, household);
-            Assert.Equal(start, adding.Inhabitants.Single(person => person.InhabitantId == Buyer).Position);
+            Assert.Equal(start, adding.Agents.Single(person => person.AgentId == Buyer).Position);
             Assert.Contains(placed.Events, item => item.Kind == "agent_added" && item.Detail == Buyer);
             Assert.Contains(placed.Events, item => item.Kind == "town_membership_evaluated" && item.Detail == Buyer + ":unaffiliated");
         }
@@ -62,14 +62,14 @@ internal static class MarketNonTownBuyerScenario
         using var walking = WorldRuntime.Restore(WorldRuntimeCodec.Decode(setupBytes), policy.ProviderFor);
         if (walking.Society.IsPaused) walking.Resume();
         var visited = new HashSet<GridPoint> { start };
-        for (var step = 0; step < 80 && walking.Inhabitants.Single(person => person.InhabitantId == Buyer).IdentityChoicePending; step++)
+        for (var step = 0; step < 80 && walking.Agents.Single(person => person.AgentId == Buyer).IdentityChoicePending; step++)
         {
             Assert.True((await walking.AdvanceOneTickNonBlockingAsync()).Advanced);
             await Task.Delay(10);
-            visited.Add(walking.Inhabitants.Single(person => person.InhabitantId == Buyer).Position);
+            visited.Add(walking.Agents.Single(person => person.AgentId == Buyer).Position);
             AssertOutsideMembership(walking, household);
         }
-        Assert.False(walking.Inhabitants.Single(person => person.InhabitantId == Buyer).IdentityChoicePending);
+        Assert.False(walking.Agents.Single(person => person.AgentId == Buyer).IdentityChoicePending);
         var identityBytes = WorldRuntimeCodec.Encode(walking.ExportState());
         using var trading = WorldRuntime.Restore(WorldRuntimeCodec.Decode(identityBytes), policy.ProviderFor);
         Assert.Equal(identityBytes, WorldRuntimeCodec.Encode(trading.ExportState()));
@@ -84,18 +84,18 @@ internal static class MarketNonTownBuyerScenario
         {
             await Step(walking, visited);
             AssertOutsideMembership(walking, household);
-            var visitor = walking.Society.GetInhabitant(Buyer);
-            Assert.Equal(SocietyInhabitantStatus.Active, visitor.Status);
+            var visitor = walking.Society.GetAgent(Buyer);
+            Assert.Equal(SocietyAgentStatus.Active, visitor.Status);
             Assert.True(visitor.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         }
         var offeredMarket = CurrentMarket(walking, market.Id);
         Assert.True(offeredMarket.Trades.Any(item => item.BuyerId == Buyer),
             "Outside-Town buyer made no offer; selected: " + JsonSerializer.Serialize(policy.Selected.TakeLast(24)
                 .Select(item => new { item.Actor, item.Id })) +
-            "; physical: " + JsonSerializer.Serialize(walking.Inhabitants.Where(person => person.InhabitantId == Buyer ||
-                person.InhabitantId == seller).Select(person => new
+            "; physical: " + JsonSerializer.Serialize(walking.Agents.Where(person => person.AgentId == Buyer ||
+                person.AgentId == seller).Select(person => new
                 {
-                    person.InhabitantId,
+                    person.AgentId,
                     person.Position,
                     person.HungerBasisPoints,
                     person.Survival,
@@ -105,9 +105,9 @@ internal static class MarketNonTownBuyerScenario
                 })) + "; occupancy: " + JsonSerializer.Serialize(offeredMarket.Occupancies) +
             "; offered: " + JsonSerializer.Serialize(policy.Offered.TakeLast(16)) + "; intentions: " +
             JsonSerializer.Serialize(walking.ExportState().Society.Cognition.Runtimes.Where(runtime =>
-                runtime.InhabitantId == Buyer || runtime.InhabitantId == seller).Select(runtime => new
+                runtime.AgentId == Buyer || runtime.AgentId == seller).Select(runtime => new
                 {
-                    runtime.InhabitantId,
+                    runtime.AgentId,
                     runtime.CurrentIntention,
                 })));
         var trade = Assert.Single(offeredMarket.Trades, item => item.BuyerId == Buyer);
@@ -121,10 +121,10 @@ internal static class MarketNonTownBuyerScenario
         Assert.Equal(new[] { Buyer }, offer.AcceptedBy);
         Assert.True(visited.Count > 2, "The outside-Town buyer must walk through real local steps.");
         Assert.Contains(policy.Selected, item => item.Actor == Buyer && item.Id.StartsWith("market_buy:", StringComparison.Ordinal));
-        Assert.False(walking.Inhabitants.Single(person => person.InhabitantId == Buyer).IdentityChoicePending);
-        Assert.Equal("Curious and careful", walking.Inhabitants.Single(person => person.InhabitantId == Buyer).Personality);
-        Assert.Equal("Find useful goods through fair trade", walking.Inhabitants.Single(person => person.InhabitantId == Buyer).Aspiration);
-        if (policy.NameRequested) Assert.Equal(BuyerName, walking.Society.GetInhabitant(Buyer).Name);
+        Assert.False(walking.Agents.Single(person => person.AgentId == Buyer).IdentityChoicePending);
+        Assert.Equal("Curious and careful", walking.Agents.Single(person => person.AgentId == Buyer).Personality);
+        Assert.Equal("Find useful goods through fair trade", walking.Agents.Single(person => person.AgentId == Buyer).Aspiration);
+        if (policy.NameRequested) Assert.Equal(BuyerName, walking.Society.GetAgent(Buyer).Name);
         Assert.Equal(Buyer, walking.Society.Inventory.GetLot(Payment).OwnerId);
         Assert.True(PersonalEquipmentRules.IsCarried(walking.Society.Inventory.GetLot(Payment), Buyer));
         var claims = walking.Society.Inventory.Reservations.Where(item => item.Purpose == "barter:" + offer.Id).ToArray();
@@ -188,7 +188,7 @@ internal static class MarketNonTownBuyerScenario
 
     private static void AssertOutsideMembership(WorldRuntime world, string household)
     {
-        Assert.Equal(household, world.Society.GetInhabitant(Buyer).HouseholdId);
+        Assert.Equal(household, world.Society.GetAgent(Buyer).HouseholdId);
         Assert.DoesNotContain(world.Towns, town => town.ResidentIds.Contains(Buyer));
         Assert.DoesNotContain(world.Towns, town => town.Governance!.Members.Contains(Buyer));
     }
@@ -200,7 +200,7 @@ internal static class MarketNonTownBuyerScenario
             WorldContentSimulationRules.Footprint(definitions[building.DefinitionId], building)).ToHashSet();
         var candidates = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
             !footprints.Contains(point) && !state.Map.MapObjects.Any(item => item.Position == point) &&
-            !state.Map.Resources.Any(item => item.Position == point) && !state.Inhabitants.Any(person => person.Position == point) &&
+            !state.Map.Resources.Any(item => item.Position == point) && !state.Agents.Any(person => person.Position == point) &&
             !state.Fields!.Any(field => field.Position == point) &&
             !state.Towns!.Any(town => town.BorderTiles.Contains(point)) &&
             !state.TownLandTitles!.Any(title => title.Tiles.Contains(point)) &&
@@ -214,11 +214,11 @@ internal static class MarketNonTownBuyerScenario
 
     private static async Task Step(WorldRuntime world, HashSet<GridPoint>? visited)
     {
-        var before = world.Inhabitants.Single(person => person.InhabitantId == Buyer).Position;
+        var before = world.Agents.Single(person => person.AgentId == Buyer).Position;
         // Identity was admitted through actual hosted ticks above. Synchronous
         // admission keeps subsequent replay independent of background task timing.
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var after = world.Inhabitants.Single(person => person.InhabitantId == Buyer).Position;
+        var after = world.Agents.Single(person => person.AgentId == Buyer).Position;
         if (before != after) Assert.True(world.ExportState().Map.CanFootStep(before, after));
         visited?.Add(after);
     }

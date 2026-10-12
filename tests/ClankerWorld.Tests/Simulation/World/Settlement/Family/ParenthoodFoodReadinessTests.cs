@@ -16,19 +16,19 @@ public sealed partial class SettlementParenthoodTests
     public async Task ParenthoodCardsExplainTheActualFoodGateAndPreserveBirthPayment(bool enoughFood)
     {
         var state = WorldRuntimeCodec.Decode(await FoodReadinessCheckpoint.Value);
-        var owner = state.Inhabitants.Single(person => person.Parenthood is { Stage: "preparing" }).InhabitantId;
-        var plan = state.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!;
+        var owner = state.Agents.Single(person => person.Parenthood is { Stage: "preparing" }).AgentId;
+        var plan = state.Agents.Single(person => person.AgentId == owner).Parenthood!;
         var caregiver = plan.PrimaryCaregiverId!;
         state = FoodReadinessStock(state, caregiver, enoughFood);
         var observations = new ConcurrentQueue<CognitionDecisionRequest>();
         using var world = WorldRuntime.Restore(state, _ => new ParentProvider("safe_idle", observations.Enqueue));
         world.Validate();
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.Equal(4, world.Society.GetHousehold(world.Society.GetInhabitant(caregiver).HouseholdId!).MemberIds.Count);
+        Assert.Equal(4, world.Society.GetHousehold(world.Society.GetAgent(caregiver).HouseholdId!).MemberIds.Count);
         var expected = enoughFood ? "12/12 ready-to-eat portions" : "3/12 ready-to-eat portions";
         foreach (var parent in new[] { owner, plan.PartnerId })
         {
-            var notes = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == parent).SocialNotes;
+            var notes = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == parent).SocialNotes;
             Assert.Contains(notes, note => note.Contains(expected, StringComparison.Ordinal));
             Assert.DoesNotContain(notes, note => note.Contains("shelter", StringComparison.Ordinal) ||
                 note.Contains("consent", StringComparison.Ordinal));
@@ -52,7 +52,7 @@ public sealed partial class SettlementParenthoodTests
         else
         {
             Assert.Empty(world.Society.Births);
-            Assert.Equal("preparing", world.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!.Stage);
+            Assert.Equal("preparing", world.Agents.Single(person => person.AgentId == owner).Parenthood!.Stage);
             Assert.Equal(5, world.Society.Inventory.GetLot("readiness-food").Quantity);
             Assert.Contains(observations, request => request.Observation.Self?.ContinuityNote?.Contains(expected, StringComparison.Ordinal) == true);
             Assert.Contains(observations, request => request.Observation.Self?.ContinuityNote?.Contains("need 9 more", StringComparison.Ordinal) == true);
@@ -71,14 +71,14 @@ public sealed partial class SettlementParenthoodTests
         Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
         Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
         preparing.Pause();
-        var plan = preparing.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!;
+        var plan = preparing.Agents.Single(person => person.AgentId == initiator).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         Assert.Equal(partner, plan.PrimaryCaregiverId);
         var observations = new ConcurrentQueue<CognitionDecisionRequest>();
         using var world = WorldRuntime.Restore(FoodReadinessStock(preparing.ExportState(), partner, false),
             _ => new ParentProvider("safe_idle", observations.Enqueue));
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        Assert.All(snapshot.Inhabitants.Where(person => person.Id == initiator || person.Id == partner),
+        Assert.All(snapshot.Agents.Where(person => person.Id == initiator || person.Id == partner),
             person => Assert.Contains(person.SocialNotes, note => note.Contains("3/8 ready-to-eat portions", StringComparison.Ordinal)));
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -94,13 +94,13 @@ public sealed partial class SettlementParenthoodTests
     private static async Task<byte[]> BuildFoodReadinessCheckpoint()
     {
         var state = await PreparedState();
-        var first = state.Inhabitants[0].InhabitantId;
-        var second = state.Inhabitants[1].InhabitantId;
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
         using var world = WorldRuntime.Restore(state, id => new ParentProvider(id == first
             ? "parent_propose:" + second : id == second ? "parent_accept:" : "safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var plan = world.Inhabitants.Single(person => person.InhabitantId == first).Parenthood!;
+        var plan = world.Agents.Single(person => person.AgentId == first).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         // All preparation ticks run normally; stop one tick before the real birth gate.
         while (world.WorldTick < plan.LastTransitionTick + 599)
@@ -113,7 +113,7 @@ public sealed partial class SettlementParenthoodTests
     private static WorldRuntimeState FoodReadinessStock(WorldRuntimeState state, string caregiver, bool enoughFood)
     {
         var society = state.Society.Society;
-        var household = society.GetInhabitant(caregiver).HouseholdId!;
+        var household = society.GetAgent(caregiver).HouseholdId!;
         var other = society.GetHousehold(household).MemberIds.First(id => id != caregiver);
         // Controlled, validated starting stocks. Raw, spoiled, private, carried-by-another
         // and broken-pot food must not inflate the birth gate or its displayed amount.
@@ -136,7 +136,7 @@ public sealed partial class SettlementParenthoodTests
         return state with
         {
             Society = state.Society with { Society = society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { HungerBasisPoints = 10_000, LastDecisionContext = null }).ToArray(),
         };
     }
 }

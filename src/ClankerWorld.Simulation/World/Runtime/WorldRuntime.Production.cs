@@ -25,13 +25,13 @@ public sealed partial class WorldRuntime
     private TownLayoutBasis CreateTownLayoutBasis(string actor, GridPoint? selectedSite = null,
         BuildingDefinition? building = null, string? townProjectId = null)
     {
-        var origin = inhabitants[actor].Position;
+        var origin = agents[actor].Position;
         var town = towns.SingleOrDefault(item => item.ResidentIds.Contains(actor, StringComparer.Ordinal));
         var ground = Ground;
         var occupied = GroundOccupancy.Combine(ground.MapObjects, ground.Resources,
             ground.RoadsAndBridgeEntrances, ground.Fields, ground.ProtectedProjectSites(townProjectId),
             ground.MarketSites, ground.ExpansionSites, ground.CheckedBuildingFootprints,
-            inhabitants.Values.Where(person => person.InhabitantId != actor).Select(person => person.Position),
+            agents.Values.Where(person => person.AgentId != actor).Select(person => person.Position),
             // A household builds only on land no other household holds or has asked for; Town buildings avoid it all.
             HouseholdLandHeldByOthers(IsHouseholdLayout(building) ? HouseholdFor(actor) : null));
         return new(actor, selectedSite, IsHouseholdLayout(building), townProjectId,
@@ -78,20 +78,20 @@ public sealed partial class WorldRuntime
     /// <summary>A Silo stands near its household's Farmhouse; no Farmhouse means no legal Silo site.</summary>
     private GridPoint[] SiloNeighborTiles(string actor,
         System.Collections.ObjectModel.ReadOnlyDictionary<string, BuildingDefinition> definitions) =>
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is { } householdId &&
+        society.Checkpoint.GetAgent(actor).HouseholdId is { } householdId &&
         FarmhouseForHousehold(householdId) is { } farmhouse
             ? WorldContentSimulationRules.Footprint(definitions[farmhouse.DefinitionId], farmhouse.Position).ToArray()
             : [];
 
     private Dictionary<GridPoint, int> FindUnoccupiedFootCosts(
-        string inhabitantId, GridPoint origin, TownRuntimeState? town,
+        string agentId, GridPoint origin, TownRuntimeState? town,
         HashSet<GridPoint> occupiedSites, GridPoint? selectedSite)
     {
         if (selectedSite is { } invalidSite &&
             (!map.IsBuildable(invalidSite) || occupiedSites.Contains(invalidSite)))
             return new Dictionary<GridPoint, int> { [origin] = 0 };
-        var occupied = inhabitants.Values
-            .Where(item => item.InhabitantId != inhabitantId)
+        var occupied = agents.Values
+            .Where(item => item.AgentId != agentId)
             .Select(item => item.Position)
             .ToHashSet();
         // A Town has bounded construction anchors. Legacy worlds without a
@@ -185,7 +185,7 @@ public sealed partial class WorldRuntime
                 continue;
             if (placed.DefinitionId != recipe.WorkstationBuildingId ||
                 placed.HouseholdId is not null && (actorId is null ||
-                    placed.HouseholdId != society.Checkpoint.GetInhabitant(actorId).HouseholdId))
+                    placed.HouseholdId != society.Checkpoint.GetAgent(actorId).HouseholdId))
             {
                 continue;
             }
@@ -197,7 +197,7 @@ public sealed partial class WorldRuntime
             var activeJobs = worldSimulation.ProductionJobs.Count(item =>
                 item.BuildingInstanceId == placed.InstanceId && item.State is WorldProductionJobState.Running or WorldProductionJobState.Paused);
             if (activeJobs < definition.Capacity &&
-                (actorId is null || FindUnoccupiedRoute(actorId, inhabitants[actorId].Position, placed.Position, 0).Count > 0))
+                (actorId is null || FindUnoccupiedRoute(actorId, agents[actorId].Position, placed.Position, 0).Count > 0))
             {
                 siteId = placed.InstanceId;
                 position = placed.Position;
@@ -253,7 +253,7 @@ public sealed partial class WorldRuntime
 
     private string BuildingConstructionOwner(string actor, BuildingDefinition definition)
     {
-        var household = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var household = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (household is null) return actor;
         if (!definition.Tags.Any(IsHouseholdBuildingTag)) return HouseholdId;
         if (definition.Tags.Contains("house", StringComparer.Ordinal) && HouseForHousehold(household) is null &&
@@ -265,11 +265,11 @@ public sealed partial class WorldRuntime
         return household;
     }
 
-    private string BuildInstanceId(string inhabitantId, BuildingDefinition definition)
+    private string BuildInstanceId(string agentId, BuildingDefinition definition)
     {
         // Preserve valid legacy IDs; descendant identities contain separators
         // that are legal society IDs but invalid content instance IDs.
-        var original = AutomaticBuildingId(inhabitantId, definition);
+        var original = AutomaticBuildingId(agentId, definition);
         var candidate = original;
         // Historical order bindings keep their identity. Ordinary paid rebuilding
         // selects a stable replacement without changing those bindings or payments.
@@ -359,7 +359,7 @@ public sealed partial class WorldRuntime
         ArgumentNullException.ThrowIfNull(transition);
         society.Apply(checkpoint =>
         {
-            var equipmentBefore = inhabitants.Values.ToDictionary(person => person.InhabitantId,
+            var equipmentBefore = agents.Values.ToDictionary(person => person.AgentId,
                 person => person.Equipment, StringComparer.Ordinal);
             var updated = InventoryStorageHistory.RecordTransition(checkpoint.Inventory, transition(checkpoint.Inventory));
             foreach (var building in worldSimulation.Buildings)
@@ -373,13 +373,13 @@ public sealed partial class WorldRuntime
                 if (after > capacity && after > before)
                     throw new InvalidOperationException("The building's storage is full; carry the remaining stock or expand it first.");
             }
-            foreach (var person in inhabitants.Values)
+            foreach (var person in agents.Values)
             {
-                var before = PersonalEquipmentRules.CarriedQuantity(checkpoint.Inventory, person.InhabitantId, equipmentBefore[person.InhabitantId]) +
-                    ReservedBusinessCarrySpace(person.InhabitantId, checkpoint.Inventory);
-                var after = PersonalEquipmentRules.CarriedQuantity(updated, person.InhabitantId, person.Equipment) +
-                    ReservedBusinessCarrySpace(person.InhabitantId, updated);
-                if (after > before && after > PersonalEquipmentRules.Capacity(updated, person.InhabitantId, person.Equipment) + HorseCargoCapacity(person.InhabitantId))
+                var before = PersonalEquipmentRules.CarriedQuantity(checkpoint.Inventory, person.AgentId, equipmentBefore[person.AgentId]) +
+                    ReservedBusinessCarrySpace(person.AgentId, checkpoint.Inventory);
+                var after = PersonalEquipmentRules.CarriedQuantity(updated, person.AgentId, person.Equipment) +
+                    ReservedBusinessCarrySpace(person.AgentId, updated);
+                if (after > before && after > PersonalEquipmentRules.Capacity(updated, person.AgentId, person.Equipment) + HorseCargoCapacity(person.AgentId))
                     throw new InvalidOperationException("The person is carrying as much as they can; store or set down a load first.");
             }
             return new SocietyOperationResult(checkpoint with { Inventory = updated }, null, []);

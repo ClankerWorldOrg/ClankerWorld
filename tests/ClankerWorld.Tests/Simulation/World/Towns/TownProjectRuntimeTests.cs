@@ -50,7 +50,7 @@ public sealed class TownProjectRuntimeTests
             await Task.Delay(2);
         }
         await scenario.Policy.DonationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal(scenario.Project.Plan.Site, scenario.World.Inhabitants.Single(person => person.InhabitantId == traveler.Actor).Position);
+        Assert.Equal(scenario.Project.Plan.Site, scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         for (var tick = 0; tick < 3; tick++)
         {
             await scenario.World.AdvanceOneTickNonBlockingAsync();
@@ -210,7 +210,7 @@ public sealed class TownProjectRuntimeTests
         scenario.Policy.Supply = true;
         if (phase == "delivery")
             await scenario.UntilAsync(() => scenario.Project.Deliveries.Any(d => d.DeliveredTick is null &&
-                d.ReleasedTick is null && scenario.World.Inhabitants.Single(p => p.InhabitantId == d.ContributorId).Position == scenario.Project.Plan.Site), 120);
+                d.ReleasedTick is null && scenario.World.Agents.Single(p => p.AgentId == d.ContributorId).Position == scenario.Project.Plan.Site), 120);
         else
             await scenario.UntilAsync(() => scenario.Project.WorkDone == 9 && scenario.Project.Stage != "completed", 240);
         var before = WorldRuntimeCodec.Encode(scenario.World.ExportState());
@@ -293,7 +293,7 @@ public sealed class TownProjectRuntimeTests
         var hall = TownHallContent.Hall3x4();
         var taken = WorldContentSimulationRules.Footprint(hall, proposal.Project!.Site).Append(proposal.Project.Entrance).ToHashSet();
         bool Overlaps(GridPoint site) => WorldContentSimulationRules.Footprint(hall, site).Append(TownHallContent.Entrance(site)).Any(taken.Contains);
-        GridPoint[] OfferedSites(Func<InhabitantObservation, bool> include) => scenario.Policy.Observations.Where(include)
+        GridPoint[] OfferedSites(Func<AgentObservation, bool> include) => scenario.Policy.Observations.Where(include)
             .SelectMany(observation => observation.Candidates)
             // Only Hall sites: street lanterns are separate projects on Road edges.
             .Where(candidate => candidate.Id.Contains("|project|", StringComparison.Ordinal) &&
@@ -380,7 +380,7 @@ public sealed class TownProjectRuntimeTests
         var site = state.Towns![0].BorderTiles.First(point => state.Map.IsBuildable(point) &&
             !state.Map.Resources.Any(resource => resource.Position == point) &&
             !state.Map.MapObjects.Any(item => item.Position == point) &&
-            !state.Inhabitants.Any(person => person.Position == point) &&
+            !state.Agents.Any(person => person.Position == point) &&
             !state.WorldSimulation!.Buildings.Any(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building).Contains(point)));
         scenario.World.AddAgent("agent:00000000000000000000000000000099", site);
@@ -522,7 +522,7 @@ internal sealed class TownProjectScenario : IDisposable
         Policy = policy;
         policy.HallCompleted = () => World.Towns[0].Projects.Any(project => project.Stage == "completed");
         policy.ActorAtSite = actor => World.Towns[0].Projects.Count == 1 &&
-            World.Inhabitants.Single(person => person.InhabitantId == actor).Position == Project.Plan.Site;
+            World.Agents.Single(person => person.AgentId == actor).Position == Project.Plan.Site;
         policy.MaterialStillNeeded = material => World.Towns[0].Projects.Count == 1 &&
             Project.Plan.Budget.SingleOrDefault(cost => cost.ResourceId == material) is { } cost && cost.Amount >
             TownProjectRules.DeliveredQuantity(Project, World.Towns[0].Id, World.Society.Inventory, material);
@@ -586,15 +586,15 @@ internal sealed class TownProjectScenario : IDisposable
     {
         for (var tick = 0; tick < maximumTicks && !reached(); tick++)
         {
-            var before = World.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal);
+            var before = World.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
             Assert.True((await World.AdvanceOneTickAsync()).Advanced);
             var state = World.ExportState();
-            foreach (var person in state.Inhabitants)
+            foreach (var person in state.Agents)
             {
-                if (before.TryGetValue(person.InhabitantId, out var old) && old != person.Position)
+                if (before.TryGetValue(person.AgentId, out var old) && old != person.Position)
                     Assert.True(state.Map.CanFootStep(old, person.Position), "The project must move by lawful foot steps, without teleporting.");
-                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(state.Society.Society.Inventory, person.InhabitantId, person.Equipment),
-                    0, PersonalEquipmentRules.Capacity(state.Society.Society.Inventory, person.InhabitantId, person.Equipment));
+                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(state.Society.Society.Inventory, person.AgentId, person.Equipment),
+                    0, PersonalEquipmentRules.Capacity(state.Society.Society.Inventory, person.AgentId, person.Equipment));
             }
         }
         Assert.True(reached(), $"Phase not reached by tick {World.WorldTick}: " +
@@ -609,17 +609,17 @@ internal sealed class TownProjectScenario : IDisposable
                 project.Blocker,
             }), JsonOptions) + " Choices: " +
             string.Join(", ", Policy.Choices.TakeLast(12).Select(choice => choice.Id)) + " Offers: " +
-            string.Join("; ", Policy.Observations.TakeLast(4).Select(observation => observation.InhabitantId +
+            string.Join("; ", Policy.Observations.TakeLast(4).Select(observation => observation.AgentId +
                 $" fullness={observation.HungerBasisPoints} warmth={observation.Self?.WarmthBasisPoints}:" +
                 string.Join(",", observation.Candidates.Select(candidate => candidate.Id)))) + " Carry: " +
-            JsonSerializer.Serialize(World.Inhabitants.Select(person => new
+            JsonSerializer.Serialize(World.Agents.Select(person => new
             {
-                person.InhabitantId,
+                person.AgentId,
                 person.Position,
-                Quantity = PersonalEquipmentRules.CarriedQuantity(World.Society.Inventory, person.InhabitantId, person.Equipment),
-                Capacity = PersonalEquipmentRules.Capacity(World.Society.Inventory, person.InhabitantId, person.Equipment),
+                Quantity = PersonalEquipmentRules.CarriedQuantity(World.Society.Inventory, person.AgentId, person.Equipment),
+                Capacity = PersonalEquipmentRules.Capacity(World.Society.Inventory, person.AgentId, person.Equipment),
                 Lots = World.Society.Inventory.Lots.Where(lot =>
-                    PersonalEquipmentRules.IsPhysicallyCarried(World.Society.Inventory, lot, person.InhabitantId)).Select(lot => new
+                    PersonalEquipmentRules.IsPhysicallyCarried(World.Society.Inventory, lot, person.AgentId)).Select(lot => new
                     {
                         lot.Id,
                         lot.ItemKind,
@@ -636,7 +636,7 @@ internal sealed class TownProjectScenario : IDisposable
     {
         foreach (var choice in Policy.Choices.Reverse().Where(c => c.Id.StartsWith("town_project_donate:", StringComparison.Ordinal)))
         {
-            var person = World.Inhabitants.Single(p => p.InhabitantId == choice.Actor);
+            var person = World.Agents.Single(p => p.AgentId == choice.Actor);
             if (person.Position == Project.Plan.Site) continue;
             var lot = World.Society.Inventory.Lots.FirstOrDefault(l =>
                 l.OwnerId == choice.Actor && l.ItemKind is "wood" or "stone" &&
@@ -685,7 +685,7 @@ internal sealed class TownProjectPolicy
     internal TaskCompletionSource<bool> ReleaseVote { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal TaskCompletionSource<CognitionDecisionResponse> VoteReturned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal ConcurrentQueue<(string Actor, string Id, long Tick)> Choices { get; } = new();
-    internal ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+    internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
 
     internal IDecisionProvider CreateProvider(string actor) => new Provider(this, actor);
 
@@ -778,7 +778,7 @@ internal sealed class TownProjectPolicy
                 // Deliberately ignore cancellation so admission must reject the old Council reply.
                 await policy.ReleaseVote.Task;
             }
-            var response = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            var response = new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1, candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicProposal: text);

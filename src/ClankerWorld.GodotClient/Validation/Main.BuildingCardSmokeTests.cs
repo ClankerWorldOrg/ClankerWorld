@@ -14,11 +14,11 @@ public partial class Main
     /// </summary>
     private async Task VerifyBuildingCardsAsync(OwnerWorldSnapshot baseMap)
     {
-        var smith = new OwnerWorldInhabitant("agent:smith-ui-test", "Oren", "active", new(2, 2), 8_000, [], [],
+        var smith = new OwnerWorldAgent("agent:smith-ui-test", "Oren", "active", new(2, 2), 8_000, [], [],
             new OwnerWorldRoute("idle", null, null, [], string.Empty),
             new OwnerWorldSpatialKnowledge(new(2, 2), [new(2, 2)], [new(2, 2)]), false)
         {
-            Relationships = [new OwnerWorldInhabitantRelationship("home:oren", "household:one",
+            Relationships = [new OwnerWorldAgentRelationship("home:oren", "household:one",
                 "household_membership", "accepted", "household", 1)],
         };
         var house = new OwnerWorldPlacedBuilding("test-house", "sha256:test/house", new(2, 2), 0, "House", ["house"], 2, 1,
@@ -31,7 +31,7 @@ public partial class Main
         var buildingMap = baseMap with
         {
             WorldTick = 30,
-            Inhabitants = [smith],
+            Agents = [smith],
             PlacedBuildings = [.. baseMap.PlacedBuildings.Where(item => item.InstanceId != house.InstanceId), house],
             ProductionJobs = [new("job-ui-test", "sha256:test/wooden-axe", house.InstanceId, smith.Id, 10, 50, "running")
             {
@@ -337,11 +337,11 @@ public partial class Main
         filtersPanel.Visible = filtersWereOpen;
 
         SelectBuilding(house.InstanceId);
-        selectedInhabitantId = smith.Id;
-        RenderSelectedInhabitantCard(buildingMap);
-        if (buildingQuickCard.Visible || selectedBuildingId is not null || !selectedInhabitantCard.Visible)
+        selectedAgentId = smith.Id;
+        RenderSelectedAgentCard(buildingMap);
+        if (buildingQuickCard.Visible || selectedBuildingId is not null || !selectedAgentCard.Visible)
             throw new InvalidOperationException("Choosing an agent must replace a building's quick card with theirs.");
-        ClearInhabitantSelection();
+        ClearAgentSelection();
         SelectBuilding(house.InstanceId);
         RenderBuildingCard(baseMap with { PlacedBuildings = baseMap.PlacedBuildings.Where(item => item.InstanceId != house.InstanceId).ToArray() });
         if (buildingQuickCard.Visible || selectedBuildingId is not null)
@@ -422,7 +422,7 @@ public partial class Main
             PlacedBuildings = [hall, north, south],
             ProductionJobs = [],
             Towns = [town],
-            Inhabitants = [MarketPerson("seller:one", "Sam", north.Entrance!),
+            Agents = [MarketPerson("seller:one", "Sam", north.Entrance!),
                 MarketPerson("buyer:two", "Lina", south.Entrance!)],
         };
         ClearBuildingSelection();
@@ -514,7 +514,7 @@ public partial class Main
 
         string Facts() => string.Join('\n', buildingFacts.GetChildren().OfType<Label>().Select(label => label.Text));
 
-        static OwnerWorldInhabitant MarketPerson(string id, string name, OwnerWorldPosition position) =>
+        static OwnerWorldAgent MarketPerson(string id, string name, OwnerWorldPosition position) =>
             new(id, name, "active", position, 8_000, [], [], new("idle", null, null, [], string.Empty),
                 new(position, [position], [position]), false);
     }

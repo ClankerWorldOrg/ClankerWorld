@@ -10,7 +10,7 @@ public sealed partial class OwnerWorldObservationStore
     {
         var ledger = town.Nonviolent;
         var tick = state.Society.Society.WorldTick;
-        string Name(string id) => state.Society.Society.Inhabitants.FirstOrDefault(person => person.Id == id)?.Name ??
+        string Name(string id) => state.Society.Society.Agents.FirstOrDefault(person => person.Id == id)?.Name ??
             (state.Towns ?? []).FirstOrDefault(other => other.Id == id)?.Name ?? "An earlier participant";
         string? Household(string? id) => id is null ? null :
             state.Society.Society.Households.FirstOrDefault(household => household.Id == id)?.Name ?? "An earlier household";
@@ -19,7 +19,7 @@ public sealed partial class OwnerWorldObservationStore
             ((state.WorldSimulation?.Buildings ?? []).FirstOrDefault(building => building.InstanceId == id) is { } building
                 ? state.WorldContent?.Buildings.FirstOrDefault(definition => definition.CanonicalId == building.DefinitionId)?.DisplayName : null)
             ?? "the recorded target";
-        var names = state.Society.Society.Inhabitants.Select(person => (person.Id, person.Name))
+        var names = state.Society.Society.Agents.Select(person => (person.Id, person.Name))
             .Concat(state.Society.Society.Households.Select(household => (household.Id, household.Name)))
             .Concat((state.Towns ?? []).Select(other => (other.Id, other.Name)))
             .OrderByDescending(pair => pair.Id.Length).ToArray();

@@ -210,7 +210,7 @@ public static class TownLandRightsRules
 
         var townsById = towns.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var households = society.Households.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        var agents = society.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var agents = society.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (titles.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != titles.Count ||
             rights.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != rights.Count ||
             requests.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != requests.Count)

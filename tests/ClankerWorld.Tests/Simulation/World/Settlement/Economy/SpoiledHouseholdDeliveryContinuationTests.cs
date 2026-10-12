@@ -86,7 +86,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             potId, greensId, 1);
         Assert.Equal(3, inventory.Lots.Where(lot => lot.Id == potId || lot.ContainerLotId == potId).Sum(lot => lot.Quantity));
         Assert.Equal(0, PersonalEquipmentRules.CarriedQuantity(inventory, actor, null));
-        Assert.True(state.Map.FootDistance(state.Inhabitants.Single(person => person.InhabitantId == actor).Position, startingSite) >= 3);
+        Assert.True(state.Map.FootDistance(state.Agents.Single(person => person.AgentId == actor).Position, startingSite) >= 3);
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == Household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("farmhouse", StringComparer.Ordinal));
@@ -97,14 +97,14 @@ public sealed partial class SpoiledHouseholdDeliveryTests
             new DeliveryChoices("haul_farm_grain", "haul_household_stock", "recover_household_delivery"));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         var walked = false;
-        var previous = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = world.Agents.Single(person => person.AgentId == actor).Position;
         for (var tick = 0; tick < 120 && !GrainReachedFarmhouse(world); tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
                 WorldRuntimeCodec.Encode(replay.ExportState()));
-            var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var position = world.Agents.Single(person => person.AgentId == actor).Position;
             if (position != previous)
             {
                 Assert.True(state.Map.CanFootStep(previous, position));

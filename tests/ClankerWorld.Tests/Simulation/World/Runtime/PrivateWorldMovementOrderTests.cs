@@ -57,7 +57,7 @@ public sealed partial class WorldRuntimeTests
         var destination = MovementOrderDestination(initial);
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = initial.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { TravelCooldownTicks = 2 } : person).ToArray(),
         };
         using var world = RestoreMovementWorld(initial);
@@ -120,7 +120,7 @@ public sealed partial class WorldRuntimeTests
         var initial = MovementOrderState();
         var destination = scenario switch
         {
-            "occupied" => initial.Inhabitants.First(person => person.InhabitantId != HarvestInstructionActor).Position,
+            "occupied" => initial.Agents.First(person => person.AgentId != HarvestInstructionActor).Position,
             "impassable" => initial.Map.Tiles.First(tile => tile.Terrain is TerrainKind.Ocean or TerrainKind.Peak).Position,
             _ => new GridPoint(1_000_000, 1_000_000),
         };
@@ -144,10 +144,10 @@ public sealed partial class WorldRuntimeTests
     {
         var initial = MovementOrderState();
         var destination = MovementOrderDestination(initial);
-        var blocker = initial.Inhabitants.First(person => person.InhabitantId != HarvestInstructionActor);
+        var blocker = initial.Agents.First(person => person.AgentId != HarvestInstructionActor);
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == blocker.InhabitantId
+            Agents = initial.Agents.Select(person => person.AgentId == blocker.AgentId
                 ? person with { Position = destination } : person).ToArray(),
         };
         using var world = RestoreMovementWorld(initial);
@@ -157,7 +157,7 @@ public sealed partial class WorldRuntimeTests
         var waiting = world.ExportState();
         waiting = waiting with
         {
-            Inhabitants = waiting.Inhabitants.Select(person => person.InhabitantId == blocker.InhabitantId
+            Agents = waiting.Agents.Select(person => person.AgentId == blocker.AgentId
                 ? person with { Position = blocker.Position } : person).ToArray(),
         };
         using var restored = RestoreMovementWorld(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(waiting)));
@@ -177,7 +177,7 @@ public sealed partial class WorldRuntimeTests
             "movement-urgent-fruit", "fruit", HarvestInstructionActor, 2);
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = initial.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
             Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
         };
@@ -217,7 +217,7 @@ public sealed partial class WorldRuntimeTests
     public async Task MovementOrderWaitsForAHouseInvitationAndRetainsItAcrossReload()
     {
         var initial = MovementOrderState();
-        var actorHousehold = initial.Society.Society.GetInhabitant(HarvestInstructionActor).HouseholdId;
+        var actorHousehold = initial.Society.Society.GetAgent(HarvestInstructionActor).HouseholdId;
         var house = initial.WorldSimulation!.Buildings.First(building =>
             building.InstanceId.StartsWith("first-town-house-", StringComparison.Ordinal) && building.HouseholdId != actorHousehold);
         var inviter = initial.Society.Society.GetHousehold(house.HouseholdId!).MemberIds[0];
@@ -226,12 +226,12 @@ public sealed partial class WorldRuntimeTests
             initial.Map.IsPassable(point) && !otherBuildings.Contains(point));
         var free = initial.Map.Tiles.Select(tile => tile.Position).Where(point =>
             initial.Map.IsPassable(point) && !otherBuildings.Contains(point) && point != origin &&
-            initial.Map.FootDistance(point, house.Position) > 3).Take(initial.Inhabitants.Count).ToArray();
+            initial.Map.FootDistance(point, house.Position) > 3).Take(initial.Agents.Count).ToArray();
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select((person, index) => person with
+            Agents = initial.Agents.Select((person, index) => person with
             {
-                Position = person.InhabitantId == HarvestInstructionActor ? origin : free[index],
+                Position = person.AgentId == HarvestInstructionActor ? origin : free[index],
             }).ToArray(),
         };
         using var world = RestoreMovementWorld(initial);
@@ -247,7 +247,7 @@ public sealed partial class WorldRuntimeTests
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("finished", CancellationOrder(restored.ExportState(), receipt.InstructionId).Status);
         Assert.Equal(house.Position, CancellationActorPosition(restored.ExportState()));
-        Assert.Equal(actorHousehold, restored.Society.GetInhabitant(HarvestInstructionActor).HouseholdId);
+        Assert.Equal(actorHousehold, restored.Society.GetAgent(HarvestInstructionActor).HouseholdId);
         restored.Validate();
     }
 
@@ -264,7 +264,7 @@ public sealed partial class WorldRuntimeTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == HarvestInstructionActor
+                    Agents = checkpoint.Agents.Select(person => person.Id == HarvestInstructionActor
                         ? person with
                         {
                             BirthTick = birth,
@@ -280,7 +280,7 @@ public sealed partial class WorldRuntimeTests
             Towns = initial.Towns!.Select(town => town with
             {
                 Governance = TownGovernanceState.Create(town.ResidentIds.Where(id =>
-                    id != HarvestInstructionActor && checkpoint.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
+                    id != HarvestInstructionActor && checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
             }).ToArray(),
         };
         using var world = RestoreMovementWorld(initial);
@@ -311,7 +311,7 @@ public sealed partial class WorldRuntimeTests
             // Registration precedes background provider entry. Keep the first
             // physical frame fixed while waiting for this exact held call.
             var call = CaptureHeldHarvestCall(world);
-            Assert.Equal(HarvestInstructionActor, call.Request.Observation.InhabitantId);
+            Assert.Equal(HarvestInstructionActor, call.Request.Observation.AgentId);
             Assert.Equal(receipt.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
             Assert.False(call.Task.IsCompleted);
             var position = CancellationActorPosition(world.ExportState());
@@ -397,7 +397,7 @@ public sealed partial class WorldRuntimeTests
     private static GridPoint MovementOrderDestination(WorldRuntimeState state)
     {
         var origin = CancellationActorPosition(state);
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(person => person.AgentId != HarvestInstructionActor)
             .Select(person => person.Position).ToHashSet();
         occupied.UnionWith(state.WorldSimulation!.Buildings.Select(building => building.Position));
         return state.Map.Tiles.Select(tile => tile.Position)

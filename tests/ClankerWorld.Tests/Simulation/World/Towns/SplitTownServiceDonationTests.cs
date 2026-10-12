@@ -25,7 +25,7 @@ public sealed class SplitTownServiceDonationTests
         const string actor = NonviolentRuntimeFixture.Subject;
         var town = state.Towns![0];
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId;
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "stone" ||
@@ -36,14 +36,14 @@ public sealed class SplitTownServiceDonationTests
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         var equip = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == actor
+            Choose = observation => observation.AgentId == actor
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id == "equip_carry_aid") : null,
         };
         using (var setup = NonviolentRuntimeFixture.Create(state, equip))
         {
             NonviolentRuntimeFixture.Wake(setup, actor, "equip-service-sack");
-            await NonviolentRuntimeFixture.UntilAsync(setup, () => setup.Inhabitants.Single(person =>
-                person.InhabitantId == actor).Equipment?.CarryAidLotId == "split-service-sack", 4);
+            await NonviolentRuntimeFixture.UntilAsync(setup, () => setup.Agents.Single(person =>
+                person.AgentId == actor).Equipment?.CarryAidLotId == "split-service-sack", 4);
             state = NonviolentRuntimeFixture.Strict(setup.ExportState());
         }
         state = await NonviolentRuntimeFixture.AcceptRemedyAsync(state,
@@ -73,7 +73,7 @@ public sealed class SplitTownServiceDonationTests
         var prefix = ordinaryDonation ? "store_town_resources" : "nonviolent_remedy:";
         var completion = new NonviolentTestProvider
         {
-            Choose = observation => observation.InhabitantId == actor
+            Choose = observation => observation.AgentId == actor
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal)) : null,
         };
         using var world = NonviolentRuntimeFixture.Create(state, completion);
@@ -113,7 +113,7 @@ public sealed class SplitTownServiceDonationTests
             Assert.Equal("pending", Assert.Single(world.Towns[0].Nonviolent.Agreements).Status);
             Assert.Equal(8, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "stone").Sum(lot => lot.Quantity));
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("independent-stone-work").State);
-            Assert.DoesNotContain(completion.Observations.Where(observation => observation.InhabitantId == actor)
+            Assert.DoesNotContain(completion.Observations.Where(observation => observation.AgentId == actor)
                 .SelectMany(observation => observation.Candidates), candidate =>
                 candidate.Id == "store_town_resources" || candidate.Id.StartsWith("nonviolent_remedy:", StringComparison.Ordinal));
             NonviolentRuntimeFixture.Strict(world.ExportState());

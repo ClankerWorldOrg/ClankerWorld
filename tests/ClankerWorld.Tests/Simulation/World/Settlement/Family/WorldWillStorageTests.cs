@@ -12,7 +12,7 @@ public sealed class WorldWillStorageTests
     {
         var (state, actor, carrier, house) = DeathState();
         using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var ground = new InventoryGroundPosition(position.X, position.Y);
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -95,10 +95,10 @@ public sealed class WorldWillStorageTests
         using var generated = NormalPathWorld.CreateGenerated("will-physical-death",
             _ => new ActionCoverageRecorder(chooseIdle: true));
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var carrier = state.Inhabitants[1].InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var carrier = state.Agents[1].AgentId;
         var checkpoint = state.Society.Society;
-        var household = checkpoint.GetInhabitant(actor).HouseholdId;
+        var household = checkpoint.GetAgent(actor).HouseholdId;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("house", StringComparer.Ordinal)).InstanceId;
@@ -115,7 +115,7 @@ public sealed class WorldWillStorageTests
         checkpoint = checkpoint with
         {
             Inventory = inventory,
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+            Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
             {
                 BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = checkpoint.LifeClock is null ? null : birth,

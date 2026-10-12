@@ -8,9 +8,9 @@ internal interface ICivicWorld
     long WorldTick { get; }
     bool HasSurvivalState { get; }
     SocietyCheckpoint Society { get; }
-    IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; }
+    IReadOnlyDictionary<string, AgentState> Agents { get; }
     bool IsEdibleFood(string kind);
     int AvailableLotQuantity(InventoryLot lot);
-    bool NeedsUrgentWarmth(InhabitantState person);
+    bool NeedsUrgentWarmth(AgentState person);
     void AppendEvent(string kind, string detail);
 }

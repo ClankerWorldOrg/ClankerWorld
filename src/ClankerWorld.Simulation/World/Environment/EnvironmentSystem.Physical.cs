@@ -30,9 +30,9 @@ internal sealed partial class EnvironmentSystem
         for (var index = 0; index < profiles.Length; index++)
         {
             var profile = profiles[index];
-            world.AddInhabitant(
+            world.AddAgent(
                 profile.Id,
-                new InhabitantState(
+                new AgentState(
                     profile.Id,
                     startingPositions[index],
                     6_500,
@@ -44,9 +44,9 @@ internal sealed partial class EnvironmentSystem
 
     internal static void DrainNeeds(IEnvironmentResidentWorld world)
     {
-        foreach (var state in world.Inhabitants.Values.ToArray())
+        foreach (var state in world.Agents.Values.ToArray())
         {
-            world.SetInhabitant(state.InhabitantId, state with
+            world.SetAgent(state.AgentId, state with
             {
                 HungerBasisPoints = Math.Max(0, state.HungerBasisPoints - 4),
             });
@@ -55,11 +55,11 @@ internal sealed partial class EnvironmentSystem
 
     internal static void RemoveDeadPhysicalState(IEnvironmentResidentWorld world)
     {
-        var activeIds = world.Society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        var activeIds = world.Society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .Select(item => item.Id)
             .ToHashSet(StringComparer.Ordinal);
-        foreach (var id in world.Inhabitants.Keys.Where(id => !activeIds.Contains(id)).ToArray())
+        foreach (var id in world.Agents.Keys.Where(id => !activeIds.Contains(id)).ToArray())
         {
             if (world.PendingInstructionFor(id) is { Order.Action: "construct_building" or "expand_building" } buildingOrder)
             {
@@ -74,19 +74,19 @@ internal sealed partial class EnvironmentSystem
             }
             if (world.Society.Inventory.Lots.Any(lot => lot.CarrierId == id))
             {
-                var position = world.Inhabitants[id].Position;
+                var position = world.Agents[id].Position;
                 world.ApplyInventoryTransition(inventory => InventoryAuthority.DropCarrierGoods(inventory, id,
                     new InventoryGroundPosition(position.X, position.Y)));
             }
-            var deceased = world.Society.GetInhabitant(id);
-            var deathTick = deceased.DeathTick ?? throw new InvalidDataException("A removed inhabitant has no committed death.");
+            var deceased = world.Society.GetAgent(id);
+            var deathTick = deceased.DeathTick ?? throw new InvalidDataException("A removed agent has no committed death.");
             // Society escrows ownership at death. Goods that had no separate
             // custodian or storage were carried by their owner; keep their
             // physical position at the deceased's tile after that owner is gone.
             var estate = world.Society.Estates.SingleOrDefault(item => item.DeceasedId == id);
             if (estate is not null)
             {
-                var position = world.Inhabitants[id].Position;
+                var position = world.Agents[id].Position;
                 foreach (var lot in world.Society.Inventory.Lots.Where(item => item.OwnerId == estate.Id &&
                              item.ContainerLotId is null && item.CarrierId is null &&
                              item.StorageBuildingId is null && item.GroundPosition is null).ToArray())
@@ -94,23 +94,23 @@ internal sealed partial class EnvironmentSystem
                         $"death:{id}:{lot.Id}", lot.Id, estate.Id, lot.Quantity,
                         groundPosition: new InventoryGroundPosition(position.X, position.Y)));
             }
-            foreach (var moment in (world.Inhabitants[id].IdentityMoments ?? [])
+            foreach (var moment in (world.Agents[id].IdentityMoments ?? [])
                          .Where(item => item.Outcome is "waiting" or "requested").ToArray())
                 world.FinishIdentityMoment(id, moment.Kind, "interrupted");
-            world.AddDeceasedInhabitant(id, new DeceasedInhabitantState(
+            world.AddDeceasedAgent(id, new DeceasedAgentState(
                 id, deathTick, world.Society.AgeAt(deceased, deathTick),
-                world.Inhabitants[id] with
+                world.Agents[id] with
                 {
                     MedicalTreatment = null,
                     MedicalSupplyTrip = null,
                     GuardianPlacement = null,
-                    Equipment = world.Inhabitants[id].Equipment is { } equipment
+                    Equipment = world.Agents[id].Equipment is { } equipment
                         ? equipment with { OrnamentLotId = null } : null,
                 }, world.TownForResident(id))
             { BoatIdAtDeath = world.RecordBoatDeath(id) });
-            world.RemoveInhabitant(id);
+            world.RemoveAgent(id);
             world.RemoveTownResident(id);
-            world.AppendEvent("inhabitant_removed", id);
+            world.AppendEvent("agent_removed", id);
         }
     }
 }

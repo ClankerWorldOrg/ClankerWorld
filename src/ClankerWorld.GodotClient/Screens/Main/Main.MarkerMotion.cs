@@ -111,7 +111,7 @@ public partial class Main
         if (motion.Agent)
         {
             var personId = id["agent:".Length..];
-            inhabitantCanonicalXs[personId] = canonical.X;
+            agentCanonicalXs[personId] = canonical.X;
             ((AgentMarker)motion.Marker).ShowMotion(motion.Moving, motion.WalkingSeconds);
         }
         else
@@ -133,7 +133,7 @@ public partial class Main
             changed = true;
         }
         if (!changed) return;
-        PositionSelectedInhabitantCard(snapshot);
+        PositionSelectedAgentCard(snapshot);
         RefreshTileHoverAtMouse();
     }
 }

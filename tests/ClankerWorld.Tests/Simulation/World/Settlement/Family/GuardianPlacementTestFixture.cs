@@ -26,7 +26,7 @@ internal static class GuardianPlacementTestFixture
         var children = society.Births.Where(birth => birth.RequestId.StartsWith("guardian-placement-orphan-", StringComparison.Ordinal))
             .OrderBy(birth => birth.RequestId, StringComparer.Ordinal).Select(birth => birth.ChildId).ToArray();
         var guardians = society.GetHousehold(DestinationHousehold).MemberIds.Where(id =>
-            society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Order(StringComparer.Ordinal).ToArray();
+            society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Order(StringComparer.Ordinal).ToArray();
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var destination = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "guardian-placement-house");
         return new(state, children, guardians, source, destination, source.TownId!, DestinationTown);
@@ -55,42 +55,42 @@ internal static class GuardianPlacementTestFixture
         return choices;
     }
 
-    internal static InhabitantState Person(WorldRuntime world, string id) =>
-        world.Inhabitants.Single(person => person.InhabitantId == id);
+    internal static AgentState Person(WorldRuntime world, string id) =>
+        world.Agents.Single(person => person.AgentId == id);
 
     internal static string? TownOf(WorldRuntime world, string id) =>
         world.Towns.SingleOrDefault(town => town.ResidentIds.Contains(id, StringComparer.Ordinal))?.Id;
 
     internal static bool Placed(WorldRuntime world, GuardianPlacementScenario scenario, string child) =>
-        world.Society.GetInhabitant(child).HouseholdId == scenario.House.HouseholdId &&
+        world.Society.GetAgent(child).HouseholdId == scenario.House.HouseholdId &&
         TownOf(world, child) == scenario.DestinationTownId && Person(world, child).GuardianPlacement is null;
 
     internal static HouseResidentCapacityRules.Capacity Capacity(WorldRuntime world, string household = DestinationHousehold) =>
-        HouseResidentCapacityRules.Calculate(world.Society.Inhabitants.Where(person => person.HouseholdId == household), 1, 1);
+        HouseResidentCapacityRules.Calculate(world.Society.Agents.Where(person => person.HouseholdId == household), 1, 1);
 
     internal static async Task Step(WorldRuntime world)
     {
-        var before = world.Inhabitants.ToDictionary(person => person.InhabitantId);
+        var before = world.Agents.ToDictionary(person => person.AgentId);
         var result = await world.AdvanceOneTickAsync();
         Assert.True(result.Advanced);
         var map = world.ExportState().Map;
-        foreach (var person in world.Inhabitants)
+        foreach (var person in world.Agents)
         {
-            if (!before.TryGetValue(person.InhabitantId, out var previous)) continue;
-            var movement = result.Events.Where(item => item.Kind == "inhabitant_moved" &&
-                item.Detail.StartsWith(person.InhabitantId + ":", StringComparison.Ordinal)).ToArray();
-            Assert.True(movement.Length <= 1, $"{person.InhabitantId} moved more than once in world tick {world.WorldTick}.");
+            if (!before.TryGetValue(person.AgentId, out var previous)) continue;
+            var movement = result.Events.Where(item => item.Kind == "agent_moved" &&
+                item.Detail.StartsWith(person.AgentId + ":", StringComparison.Ordinal)).ToArray();
+            Assert.True(movement.Length <= 1, $"{person.AgentId} moved more than once in world tick {world.WorldTick}.");
             if (previous.Position != person.Position)
             {
                 Assert.True(map.CanFootStep(previous.Position, person.Position),
-                    $"{person.InhabitantId} made an illegal step from {previous.Position} to {person.Position}.");
+                    $"{person.AgentId} made an illegal step from {previous.Position} to {person.Position}.");
                 Assert.Single(movement);
                 Assert.Equal(0, previous.TravelCooldownTicks);
             }
             else if (previous.TravelCooldownTicks > 0)
             {
                 Assert.True(person.TravelCooldownTicks >= previous.TravelCooldownTicks - 1,
-                    $"{person.InhabitantId} spent more than one travel cooldown action in a tick.");
+                    $"{person.AgentId} spent more than one travel cooldown action in a tick.");
             }
         }
     }
@@ -112,7 +112,7 @@ internal static class GuardianPlacementTestFixture
 
     internal static async Task Accepted(WorldRuntime world, GuardianPlacementScenario scenario, bool both = false) =>
         await Until(world, () => scenario.Children.Take(both ? scenario.Children.Length : 1)
-            .All(child => world.Society.GetInhabitant(child).PrimaryCaregiverId is not null), maximumTicks: 12);
+            .All(child => world.Society.GetAgent(child).PrimaryCaregiverId is not null), maximumTicks: 12);
 
     private static byte[] CreateGenerated()
     {
@@ -168,15 +168,15 @@ internal static class GuardianPlacementTestFixture
                 SocietyRelationshipState.Accepted, SocietyConsentState.ProtectedLifecycle, society.WorldTick, society.WorldTick, "family")))
                 .OrderBy(edge => edge.Id, StringComparer.Ordinal).ToArray(),
         };
-        var deceased = new List<DeceasedInhabitantState>(state.DeceasedInhabitants ?? []);
+        var deceased = new List<DeceasedAgentState>(state.DeceasedAgents ?? []);
         foreach (var parent in parents)
         {
             society = SocietyRules.Kill(society, parent, SocietyDeathCause.Accident).Checkpoint;
-            var person = society.GetInhabitant(parent);
+            var person = society.GetAgent(parent);
             deceased.Add(new(parent, person.DeathTick!.Value, society.AgeAt(person, person.DeathTick.Value),
-                state.Inhabitants.Single(item => item.InhabitantId == parent)));
+                state.Agents.Single(item => item.AgentId == parent)));
         }
-        var people = state.Inhabitants.Where(person => !parents.Contains(person.InhabitantId, StringComparer.Ordinal)).ToList();
+        var people = state.Agents.Where(person => !parents.Contains(person.AgentId, StringComparer.Ordinal)).ToList();
         foreach (var (id, orphan) in newborns)
         {
             var near = orphan ? source.Position : oldDestination.Position;
@@ -187,7 +187,7 @@ internal static class GuardianPlacementTestFixture
             people.Add(new(id, position, 10_000, 0, "curious", "grow with the household", Survival: new(10_000)));
         }
         var first = state.Towns!.Single();
-        var residents = society.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active)
+        var residents = society.Agents.Where(person => person.Status == SocietyAgentStatus.Active)
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
         var destinationResidents = society.GetHousehold(DestinationHousehold).MemberIds.Order(StringComparer.Ordinal).ToArray();
         var occupied = state.Map.Resources.Select(resource => resource.Position).Concat(state.Map.MapObjects.Select(startingSite => startingSite.Position))
@@ -215,16 +215,16 @@ internal static class GuardianPlacementTestFixture
             // network deliberately connects the new House back to the original Town.
             RoadTiles = (state.RoadTiles ?? []).Append(localRoad).OrderBy(point => point.Y).ThenBy(point => point.X).ToArray(),
             Society = state.Society with { Society = society },
-            Inhabitants = people.Select(person => person with
+            Agents = people.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 Survival = new(10_000),
                 Project = null,
                 Equipment = null,
                 LastDecisionContext = null,
-                Position = destinationResidents.Contains(person.InhabitantId, StringComparer.Ordinal) ? center : person.Position,
+                Position = destinationResidents.Contains(person.AgentId, StringComparer.Ordinal) ? center : person.Position,
             }).ToArray(),
-            DeceasedInhabitants = deceased.ToArray(),
+            DeceasedAgents = deceased.ToArray(),
             Survival = new(society.WorldTick, []),
             Towns =
             [
@@ -264,11 +264,11 @@ internal sealed class GuardianPlacementChoices : IDecisionProvider
     public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
     {
         var observation = request.Observation;
-        var prefixes = scripts.GetValueOrDefault(observation.InhabitantId, []);
+        var prefixes = scripts.GetValueOrDefault(observation.AgentId, []);
         var candidate = prefixes.Select(prefix => observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)))
             .FirstOrDefault(item => item is not null) ?? observation.Candidates.Single(item => item.Id == "safe_idle");
-        Selected.Add((observation.InhabitantId, candidate.Id));
-        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+        Selected.Add((observation.AgentId, candidate.Id));
+        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
             observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, candidate.Id, 1,
             new Dictionary<string, double> { [candidate.Id] = 1 }));
     }

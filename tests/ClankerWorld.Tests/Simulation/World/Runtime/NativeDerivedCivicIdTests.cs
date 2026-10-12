@@ -85,7 +85,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var relative = births[^2].ChildId;
         Assert.Contains(state.Society.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
             edge.ProposerId == relative && edge.TargetId == actor);
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var householdName = "Household " + new string('h', 118);
         var society = state.Society.Society with
         {
@@ -161,9 +161,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             council = TownGovernanceRules.VoteProposal(council, authority.Id, relative, true, society.WorldTick);
             town = town with { Governance = council };
             Assert.True(TownLandCasePartyRules.TownFilingAuthority(town, actor, authority.Id,
-                society.Inhabitants, society.WorldTick));
+                society.Agents, society.WorldTick));
             var parties = TownLandCasePartyRules.CurrentParties(town, town.BorderTiles,
-                state.HouseholdLandUseRights!, [], society.Inhabitants, society.WorldTick, townRepresentative: actor);
+                state.HouseholdLandUseRights!, [], society.Agents, society.WorldTick, townRepresentative: actor);
             var party = Assert.Single(parties, party => party.Kind == "town");
             townPartyHandle = party.Id;
             Assert.Equal((town.Id, actor), (party.TownId, party.RepresentativeId));
@@ -182,7 +182,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Towns = state.Towns.Select(record =>
             {
                 var residents = record.ResidentIds.Except(new[] { actor, relative }, StringComparer.Ordinal).ToArray();
-                var adults = residents.Where(id => society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+                var adults = residents.Where(id => society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
                 return record with { ResidentIds = residents, Governance = TownGovernanceState.Create(adults) };
             }).Append(town).ToArray(),
             TownLandTitles = (state.TownLandTitles ?? []).Concat(TownLandRightsRules.InitialTitles(state.Map, town, society.WorldTick))
@@ -299,7 +299,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 Assert.Equal((id, town.Id, actor), (party.Id, party.TownId, party.RepresentativeId));
                 var filing = Assert.Single(hearing.Filings);
                 Assert.True(TownLandCasePartyRules.TownFilingAuthority(savedTown, actor, filing.AuthorityId,
-                    restored.Society.Inhabitants, restored.WorldTick));
+                    restored.Society.Agents, restored.WorldTick));
                 Assert.Contains(savedTown.Governance!.Notices, notice => notice.Id == hearing.Revisions[0].NoticeId &&
                     notice.SubjectId == TownLandHearingRules.RevisionToken(hearing));
             }
@@ -308,7 +308,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 null, actor, restored.WorldTick, candidates, restored.Society);
             var memory = Assert.Single(recalled, memory => memory.Id == id);
             Assert.Equal((actor, relative, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-            new InhabitantObservation(actor, restored.WorldTick, 0, 1, "sha256:civic-generator", 0,
+            new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:civic-generator", 0,
                 candidates, RetrievedMemories: recalled).Validate();
             Assert.Equal(householdName, restored.Society.GetHousehold(home).Name);
             Assert.Equal(town.Name, restored.Towns.Single(record => record.Id == town.Id).Name);

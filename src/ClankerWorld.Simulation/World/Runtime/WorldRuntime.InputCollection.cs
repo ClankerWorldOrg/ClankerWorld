@@ -16,7 +16,7 @@ public sealed partial class WorldRuntime
         if (inputs.Sum(input => input.CarryUnits) > FreeCarryCapacity(actor)) return null;
         var selected = new List<InputCollectionStep>(inputs.Count);
         var used = new bool[inputs.Count];
-        return Search(inhabitants[actor].Position, 0) ? selected : null;
+        return Search(agents[actor].Position, 0) ? selected : null;
 
         bool Search(GridPoint position, int addedUnits)
         {

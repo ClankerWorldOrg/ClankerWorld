@@ -12,7 +12,7 @@ namespace ClankerWorld.Server.Observation;
 /// </remarks>
 public sealed record CatalogWorld(
     string Id, string Name, string WorldId, string Seed, DateTimeOffset UpdatedUtc,
-    IReadOnlyList<InhabitantProviderAssignment> Assignments,
+    IReadOnlyList<AgentProviderAssignment> Assignments,
     WorldAutosaveSettings? AutosaveSettings,
     string Compatibility = "unknown", string? CompatibilityReason = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] WorldThumbnail? Thumbnail = null,
@@ -47,7 +47,7 @@ public sealed class WorldCatalogStore
     }
 
     public WorldCatalogStore(string activeSavePath, WorldRuntimeState activeState,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings autosaveSettings,
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings autosaveSettings,
         object? mutationGate = null)
     {
         gate = mutationGate ?? new object();
@@ -174,7 +174,7 @@ public sealed class WorldCatalogStore
     }
 
     public void ArchiveActive(WorldRuntimeState state,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings autosaveSettings)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings autosaveSettings)
     {
         lock (gate)
         {

@@ -26,10 +26,10 @@ public sealed partial class WorldConstructionOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "construction-gather-axe", "crude_wooden_axe", actor, 1);
         if (townStock) inventory = InventoryAuthority.AddLot(inventory, "blocked-town-wood", "wood", warehouse.TownId!, 10,
             storageBuildingId: warehouse.InstanceId);
-        var blockers = state.Inhabitants.Where(person => person.InhabitantId != actor).ToArray();
-        var positions = blockers.Select((person, index) => (person.InhabitantId, Position: approaches[index]))
-            .ToDictionary(item => item.InhabitantId, item => item.Position, StringComparer.Ordinal);
-        if (openApproach) positions[blockers[0].InhabitantId] = state.Map.FootNeighbors(setup.Site).First(point =>
+        var blockers = state.Agents.Where(person => person.AgentId != actor).ToArray();
+        var positions = blockers.Select((person, index) => (person.AgentId, Position: approaches[index]))
+            .ToDictionary(item => item.AgentId, item => item.Position, StringComparer.Ordinal);
+        if (openApproach) positions[blockers[0].AgentId] = state.Map.FootNeighbors(setup.Site).First(point =>
             point != warehouse.Position && !approaches.Contains(point) && point != setup.Site);
         var day = state.WorldSystems!.Config.TicksPerDay;
         var horses = approaches.Skip(3).Select((point, index) => new AnimalState("warehouse-blocker-" + index, "Ash",
@@ -39,9 +39,9 @@ public sealed partial class WorldConstructionOrderTests
         state = WithInventory(state, inventory) with
         {
             AnimalWorld = new(true, horses, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? setup.Site : positions[person.InhabitantId],
+                Position = person.AgentId == actor ? setup.Site : positions[person.AgentId],
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null,
                 Project = null

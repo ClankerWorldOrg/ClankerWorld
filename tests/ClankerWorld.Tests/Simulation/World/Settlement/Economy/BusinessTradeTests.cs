@@ -43,7 +43,7 @@ public sealed partial class BusinessTradeTests
         Assert.Equal(8, visible.Count);
         Assert.Equal(open.OfferId, visible[0].OfferId);
         Assert.Equal("open", visible[0].Status);
-        Assert.Contains(snapshot.Inhabitants.Single(person => person.Id == buyer).SocialNotes,
+        Assert.Contains(snapshot.Agents.Single(person => person.Id == buyer).SocialNotes,
             note => note.Contains("Both traders must meet there", StringComparison.Ordinal));
     }
 
@@ -67,7 +67,7 @@ public sealed partial class BusinessTradeTests
             var firstTown = Assert.Single(state.Towns!);
             var firstTownResidents = firstTown.ResidentIds.Where(id => id != buyer).ToArray();
             var firstTownAdults = firstTownResidents.Where(id =>
-                state.Society.Society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+                state.Society.Society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
             var visitorHome = state.Map.Tiles.Select(tile => tile.Position).First(position =>
                 state.Map.IsLand(position) && !firstTown.BorderTiles.Contains(position));
             state = state with
@@ -106,7 +106,7 @@ public sealed partial class BusinessTradeTests
         Assert.Equal("wood", displayed.PaymentKind);
         Assert.Equal(paymentUnits, displayed.PaymentQuantity);
         Assert.Equal("open", displayed.Status);
-        Assert.Contains(snapshot.Inhabitants.Single(person => person.Id == buyer).SocialNotes,
+        Assert.Contains(snapshot.Agents.Single(person => person.Id == buyer).SocialNotes,
             note => note.Contains("Both traders must meet there", StringComparison.Ordinal));
         var bytes = WorldRuntimeCodec.Encode(offering.ExportState());
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(WorldRuntimeCodec.Decode(bytes)));
@@ -115,7 +115,7 @@ public sealed partial class BusinessTradeTests
         {
             BusinessTrades = [.. state.BusinessTrades!, null!],
         }));
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         var woodBefore = TotalQuantity(state.Society.Society.Inventory, "wood");
         var goodsBefore = TotalQuantity(state.Society.Society.Inventory, goodsKind);
         using var settling = WorldRuntime.Restore(state, id => id == seller
@@ -139,7 +139,7 @@ public sealed partial class BusinessTradeTests
         Assert.Equal(6 - paymentUnits, settling.Society.Inventory.GetLot("buyer-payment").Quantity);
         Assert.Equal(woodBefore, TotalQuantity(settling.Society.Inventory, "wood"));
         Assert.Equal(goodsBefore, TotalQuantity(settling.Society.Inventory, goodsKind));
-        Assert.Equal(state.Society.Society.GetInhabitant(buyer).HouseholdId, settling.Society.GetInhabitant(buyer).HouseholdId);
+        Assert.Equal(state.Society.Society.GetAgent(buyer).HouseholdId, settling.Society.GetAgent(buyer).HouseholdId);
         Assert.Equal(visitorFromAnotherTown ? "town:visitor-home" : TownBorderRules.FirstTownId,
             settling.Towns.Single(town => town.ResidentIds.Contains(buyer)).Id);
         var recipe = settling.WorldContent.Recipes.Single(item => item.WorkstationBuildingId ==
@@ -171,7 +171,7 @@ public sealed partial class BusinessTradeTests
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId != shopId).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "upgrade-goods", goodsKind,
-            state.Society.Society.GetInhabitant(seller).HouseholdId!, 1, storageBuildingId: shopId);
+            state.Society.Society.GetAgent(seller).HouseholdId!, 1, storageBuildingId: shopId);
         inventory = InventoryAuthority.AddLot(inventory, "held-equipment", heldKind, buyer, 1,
             conditionBasisPoints: heldCondition);
         if (shopKind == "tailor")
@@ -205,7 +205,7 @@ public sealed partial class BusinessTradeTests
         Assert.Equal(1, offer.FirstQuantity);
         var totalBefore = world.Society.Inventory.Lots.Sum(lot => lot.Quantity);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         using var resumed = WorldRuntime.Restore(state, id => id == seller
             ? new ShopProvider("business_continue:") : new ShopProvider("safe_idle"));
         for (var step = 0; step < 40 && resumed.Society.Inventory.GetOffer(offer.Id).State == DirectBarterState.Open; step++)
@@ -231,7 +231,7 @@ public sealed partial class BusinessTradeTests
                 (hasMaterialPayment || lot.Id != "buyer-payment")).ToArray(),
         };
         inventory = InventoryAuthority.AddLot(inventory, "upgrade-goods", "iron_axe",
-            state.Society.Society.GetInhabitant(seller).HouseholdId!, 1, storageBuildingId: shopId);
+            state.Society.Society.GetAgent(seller).HouseholdId!, 1, storageBuildingId: shopId);
         inventory = InventoryAuthority.AddLot(inventory, "a-held-tool", heldKind, buyer, 1);
         state = WithInventory(state, inventory);
         var provider = new ShopProvider("business_shop:");
@@ -258,7 +258,7 @@ public sealed partial class BusinessTradeTests
         Assert.Equal(1, offer.SecondQuantity);
         var beforeSettlement = offering.Society.Inventory.Lots.Sum(lot => lot.Quantity);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(offering.ExportState()));
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         using var settling = WorldRuntime.Restore(state, actor => actor == seller
             ? new ShopProvider("business_continue:") : new ShopProvider("safe_idle"));
         for (var tick = 0; tick < 40 && settling.Society.Inventory.GetOffer(offer.Id).State == DirectBarterState.Open; tick++)
@@ -345,7 +345,7 @@ public sealed partial class BusinessTradeTests
         var binding = Assert.Single(world.BusinessTrades);
         var offer = world.Society.Inventory.GetOffer(binding.OfferId);
         state = world.ExportState();
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new ShopProvider("safe_idle"));
         while (restored.WorldTick <= offer.ExpiryTick) Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
@@ -386,7 +386,7 @@ public sealed partial class BusinessTradeTests
         state = WithInventory(state, inventory);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == seller ? person with
+            Agents = state.Agents.Select(person => person.AgentId == seller ? person with
             {
                 Position = house.Position,
                 Equipment = null,
@@ -406,7 +406,7 @@ public sealed partial class BusinessTradeTests
         Assert.Null(carried.StorageBuildingId);
         Assert.Equal(8, collecting.Society.Inventory.GetLot("store-source-cloth").Quantity);
         Assert.DoesNotContain(collecting.Society.Inventory.Lots, lot => lot.StorageBuildingId == "household-store");
-        Assert.NotEqual(position, collecting.Inhabitants.Single(person => person.InhabitantId == seller).Position);
+        Assert.NotEqual(position, collecting.Agents.Single(person => person.AgentId == seller).Position);
         state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(collecting.ExportState()));
         using var delivering = WorldRuntime.Restore(state, id => id == seller
             ? new ShopProvider("haul_household_stock", "business_stock_store") : new ShopProvider("safe_idle"));
@@ -416,7 +416,7 @@ public sealed partial class BusinessTradeTests
         Assert.Equal(household, delivered.OwnerId);
         Assert.Equal(4, delivered.Quantity);
         Assert.Null(delivered.DeliveryBuildingId);
-        Assert.Equal(position, delivering.Inhabitants.Single(person => person.InhabitantId == seller).Position);
+        Assert.Equal(position, delivering.Agents.Single(person => person.AgentId == seller).Position);
         Assert.Equal(8, delivering.Society.Inventory.GetLot("store-source-cloth").Quantity);
         Assert.Equal(12, delivering.Society.Inventory.Lots.Where(lot => lot.ItemKind == "cloth" &&
             (lot.Id == "store-source-cloth" || lot.ProvenanceLotId == "store-source-cloth")).Sum(lot => lot.Quantity));
@@ -434,7 +434,7 @@ public sealed partial class BusinessTradeTests
         inventory = InventoryAuthority.AddLot(inventory, "seller-best-pickaxe", "wooden_pickaxe", seller, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Equipment = null,
                 Project = null,
@@ -475,8 +475,8 @@ public sealed partial class BusinessTradeTests
 
         var delivered = delivering.Society.Inventory.Lots.FirstOrDefault(lot => lot.ItemKind == "wood" &&
             lot.StorageBuildingId == storeId);
-        Assert.True(delivered is not null, $"Wood delivery did not complete; actor={delivering.Inhabitants.Single(person =>
-            person.InhabitantId == seller).Position}, store={delivering.WorldSimulation.Buildings.Single(building =>
+        Assert.True(delivered is not null, $"Wood delivery did not complete; actor={delivering.Agents.Single(person =>
+            person.AgentId == seller).Position}, store={delivering.WorldSimulation.Buildings.Single(building =>
             building.InstanceId == storeId).Position}, choices={string.Join(',', deliveryProvider.Seen.Distinct().Order())}");
         Assert.Equal(household, delivered.OwnerId);
         Assert.Equal(4, delivered.Quantity);
@@ -515,7 +515,7 @@ public sealed partial class BusinessTradeTests
             building.DefinitionId == definition.CanonicalId && building.HouseholdId == household).InstanceId;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == seller
+            Agents = state.Agents.Select(person => person.AgentId == seller
                 ? person with
                 {
                     Position = house.Position,
@@ -539,7 +539,7 @@ public sealed partial class BusinessTradeTests
             Assert.True((await offering.AdvanceOneTickAsync()).Advanced);
         var binding = Assert.Single(offering.BusinessTrades);
         state = offering.ExportState();
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray() };
         using var declining = WorldRuntime.Restore(state, id => id == seller
             ? new ShopProvider("business_cancel:") : new ShopProvider("safe_idle"));
         for (var step = 0; step < 40 && declining.Society.Inventory.GetOffer(binding.OfferId).State == DirectBarterState.Open; step++)
@@ -570,9 +570,9 @@ public sealed partial class BusinessTradeTests
             Assert.True((await offering.AdvanceOneTickAsync()).Advanced);
         var firstOffer = Assert.Single(offering.BusinessTrades);
         state = offering.ExportState();
-        var otherBuyer = state.Society.Society.Inhabitants.First(person => person.Id != buyer &&
-            person.HouseholdId == state.Society.Society.GetInhabitant(buyer).HouseholdId).Id;
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != otherBuyer).Select(person => person.Position).ToHashSet();
+        var otherBuyer = state.Society.Society.Agents.First(person => person.Id != buyer &&
+            person.HouseholdId == state.Society.Society.GetAgent(buyer).HouseholdId).Id;
+        var occupied = state.Agents.Where(person => person.AgentId != otherBuyer).Select(person => person.Position).ToHashSet();
         var nearby = state.Map.Tiles.Select(tile => tile.Position).First(position => state.Map.IsPassable(position) &&
             Math.Abs(position.X - shop.Position.X) + Math.Abs(position.Y - shop.Position.Y) == 1 && !occupied.Contains(position));
         var inventory = state.Society.Society.Inventory with
@@ -583,7 +583,7 @@ public sealed partial class BusinessTradeTests
         state = WithInventory(state, inventory);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == otherBuyer ? person with
+            Agents = state.Agents.Select(person => person.AgentId == otherBuyer ? person with
             {
                 Position = nearby,
                 Equipment = null,
@@ -648,7 +648,7 @@ public sealed partial class BusinessTradeTests
         }
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == seller ? person with
+            Agents = state.Agents.Select(person => person.AgentId == seller ? person with
             {
                 Position = shop.Position,
                 Equipment = null,
@@ -754,8 +754,8 @@ public sealed partial class BusinessTradeTests
         var shop = state.WorldSimulation!.Buildings.Single(building =>
             state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains(kind));
         var seller = state.Society.Society.GetHousehold(shop.HouseholdId!).MemberIds[0];
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId != shop.HouseholdId).Id;
-        var taken = state.Inhabitants.Where(person => person.InhabitantId != buyer && person.InhabitantId != seller)
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId != shop.HouseholdId).Id;
+        var taken = state.Agents.Where(person => person.AgentId != buyer && person.AgentId != seller)
             .Select(person => person.Position).ToHashSet();
         var buyerPosition = state.Map.Tiles.Select(tile => tile.Position).First(position =>
             Math.Abs(position.X - shop.Position.X) + Math.Abs(position.Y - shop.Position.Y) == 1 &&
@@ -770,13 +770,13 @@ public sealed partial class BusinessTradeTests
         state = WithInventory(state, inventory);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == buyer ? buyerPosition : person.InhabitantId == seller ? shop.Position : person.Position,
+                Position = person.AgentId == buyer ? buyerPosition : person.AgentId == seller ? shop.Position : person.Position,
                 HungerBasisPoints = 7_500,
                 LastDecisionContext = null,
                 Project = null,
-                Equipment = person.InhabitantId == buyer ? null : person.Equipment,
+                Equipment = person.AgentId == buyer ? null : person.Equipment,
             }).ToArray(),
         };
         return (state, buyer, seller, shop.InstanceId);
@@ -789,7 +789,7 @@ public sealed partial class BusinessTradeTests
 
     private static WorldRuntimeState WithBuyerBlacksmith(WorldRuntimeState state, string buyer)
     {
-        var household = state.Society.Society.GetInhabitant(buyer).HouseholdId!;
+        var household = state.Society.Society.GetAgent(buyer).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var blacksmith = state.WorldContent!.Buildings.Single(item => item.LocalId == "blacksmith-1x2");

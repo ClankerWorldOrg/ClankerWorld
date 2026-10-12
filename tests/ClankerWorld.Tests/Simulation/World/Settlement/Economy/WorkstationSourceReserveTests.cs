@@ -86,7 +86,7 @@ public sealed class WorkstationSourceReserveTests
     public async Task OnlyActualUnclaimedIncomingWoodCanCoverPartOfTheHouseReserve(bool incomingClaimed, int moved)
     {
         var fixture = Prepared("wood", 2);
-        var deliverer = fixture.State.Society.Society.Inhabitants.Single(person =>
+        var deliverer = fixture.State.Society.Society.Agents.Single(person =>
             person.HouseholdId == fixture.Household && person.Id != fixture.Actor).Id;
         var inventory = InventoryAuthority.AddLot(fixture.State.Society.Society.Inventory,
             "actual-incoming-wood", "wood", fixture.Household, 1);
@@ -215,7 +215,7 @@ public sealed class WorkstationSourceReserveTests
         Assert.Equal((fixture.Household, fixture.House.InstanceId, 1),
             (returned.OwnerId, returned.StorageBuildingId, returned.Quantity));
         Assert.Equal(4, world.Society.Inventory.Lots.Where(lot => lot.ContainerLotId == returned.Id).Sum(lot => lot.Quantity));
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(fixture.Actor + ":", StringComparison.Ordinal));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "water_jug_filled" &&
             item.Detail.Contains(returned.Id, StringComparison.Ordinal));
@@ -233,10 +233,10 @@ public sealed class WorkstationSourceReserveTests
             storageBuildingId: fixture.House.InstanceId);
         var choices = new Choices("collect_water_jug");
         using var world = Restore(FarmFieldTests.WithInventory(fixture.State, inventory), fixture.Actor, choices);
-        Assert.Equal(fixture.House.Position, world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor).Position);
+        Assert.Equal(fixture.House.Position, world.Agents.Single(person => person.AgentId == fixture.Actor).Position);
         await AdvanceUntil(world, () => world.Society.Inventory.GetLot("at-source-empty-jug").OwnerId == fixture.Actor, 8);
         Assert.Contains(choices.Offered, item => item.Id == "collect_water_jug" && item.DestinationId == "at-source-empty-jug");
-        Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+        Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(fixture.Actor + ":", StringComparison.Ordinal));
         var jug = world.Society.Inventory.GetLot("at-source-empty-jug");
         Assert.Equal((fixture.Actor, 1, (string?)null), (jug.OwnerId, jug.Quantity, jug.StorageBuildingId));
@@ -331,7 +331,7 @@ public sealed class WorkstationSourceReserveTests
         bool spoiledSibling, bool expiredSiblingClaim, int moved)
     {
         var fixture = Prepared("grain", 2);
-        var deliverer = fixture.State.Society.Society.Inhabitants.Single(person =>
+        var deliverer = fixture.State.Society.Society.Agents.Single(person =>
             person.HouseholdId == fixture.Household && person.Id != fixture.Actor).Id;
         var inventory = InventoryAuthority.AddLot(fixture.State.Society.Society.Inventory,
             "incoming-family-pot", InventoryContainerRules.StoragePot, fixture.Household, 1);
@@ -415,7 +415,7 @@ public sealed class WorkstationSourceReserveTests
         using var generated = NormalPathWorld.CreateGenerated("concrete-meal-porridge", _ => new Choices());
         var state = generated.ExportState();
         const string household = "household:camp-alpha";
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var house = generated.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var definition = generated.WorldContent.Buildings.Single(building => building.LocalId == "restaurant-1x2");
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "restaurant-build-wood", "wood", household, 8);
@@ -445,8 +445,8 @@ public sealed class WorkstationSourceReserveTests
         }
         // These controls isolate cooking reserves. Give each adult usable shared
         // tools after the independent claims, so bootstrapping adds no wood demand.
-        var adults = state.Society.Society.Inhabitants.Count(person => person.HouseholdId == household &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+        var adults = state.Society.Society.Agents.Count(person => person.HouseholdId == household &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
         inventory = InventoryAuthority.AddLot(inventory, "reserve-fixture-axes", "wooden_axe", household, adults,
             storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "reserve-fixture-picks", "wooden_pickaxe", household, adults,
@@ -477,7 +477,7 @@ public sealed class WorkstationSourceReserveTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = house.Position,

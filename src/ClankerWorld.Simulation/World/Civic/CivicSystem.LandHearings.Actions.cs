@@ -19,7 +19,7 @@ internal sealed partial class CivicSystem
             var pending = hearings.Cases.Where(item => item.Status == "pending").SelectMany(item => TownLandHearingRules.CurrentRevision(item).Tiles).ToHashSet();
             var affected = householdLandUseRights.Where(right => right.TownId == town.Id && right.HouseholdId == household).SelectMany(right => right.Tiles)
                 .Concat(householdLandUseRequests.Where(request => request.TownId == town.Id && request.HouseholdId == household && request.Status == "pending").SelectMany(TownLandRightsRules.UnresolvedRequestTiles))
-                .Distinct().OrderBy(tile => world.Map.FootDistance(world.Inhabitants[actor].Position, tile)).ThenBy(tile => tile.Y).ThenBy(tile => tile.X)
+                .Distinct().OrderBy(tile => world.Map.FootDistance(world.Agents[actor].Position, tile)).ThenBy(tile => tile.Y).ThenBy(tile => tile.X)
                 .Where(tile => pending.Contains(tile) || TownLandHearingRules.FilingRefusal(hearings, town.Id, [tile], householdLandUseRights) is null).Take(6).ToArray();
             if (affected.Length > 0)
                 candidates.Add(new(CivicAction(world, town.Id, "hearing_file", choice: household),
@@ -77,7 +77,7 @@ internal sealed partial class CivicSystem
             // A party may still record a new physical fact on a settled plot: that is how material new evidence arises.
             // Seeing the same thing again adds nothing.
             if ((open && TownAdults(world, town).Contains(actor, StringComparer.Ordinal) || isParty) &&
-                revision.Tiles.Any(tile => world.IsWithinInteractionRange(world.Inhabitants[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+                revision.Tiles.Any(tile => world.IsWithinInteractionRange(world.Agents[actor].Position, tile, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
                 candidates.Add(new(CivicAction(world, town.Id, "hearing_observe", token),
                     "Record what you can physically see on the nearby disputed plot. This supplies no unseen events, building access or permission.", 181));
             foreach (var party in parties.Where(party => item.Status == "pending" &&
@@ -103,7 +103,7 @@ internal sealed partial class CivicSystem
                     notice.Kind == "land_hearing" && notice.SubjectId == TownLandCaseJudgeRules.RoundToken(contest))))
                 foreach (var candidate in contest.Candidates)
                     candidates.Add(new(CivicAction(world, town.Id, "hearing_judge_vote", token + "#" + TownLandCaseJudgeRules.RoundToken(contest), candidate),
-                        "Submit or revise your one-person ballot for " + world.Society.GetInhabitant(candidate).Name +
+                        "Submit or revise your one-person ballot for " + world.Society.GetAgent(candidate).Name +
                         " as judge of this case only. Self-voting is allowed; general offices are unchanged.", 167));
             if (item.Judge is { } adjudicator && adjudicator.AgentId == actor && LandHearingJudgeValid(world, town, item, adjudicator) && LandHearingReadCurrent(world, item, actor))
             {
@@ -137,11 +137,11 @@ internal sealed partial class CivicSystem
                 foreach (var grounds in new[] { "material_evidence", "procedural_error" })
                     candidates.Add(new(CivicAction(world, town.Id, "hearing_reopen", token, grounds),
                         "Request reopening for " + grounds.Replace('_', ' ') + "; identify actual inspected evidence_ids and state grounds in civic_land_hearing.grounds. A claim alone cannot reopen the case. " + LandHearingCaseChoices(world, town, item, actor), 184));
-            foreach (var recipient in world.Inhabitants.Values.Where(person => open && person.InhabitantId != actor &&
-                         world.IsWithinInteractionRange(person.Position, world.Inhabitants[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
-                if (LandHearingReadCurrent(world, item, actor) && LandHearingMayInspect(world, town, item, recipient.InhabitantId) && !LandHearingReadCurrent(world, item, recipient.InhabitantId))
-                    candidates.Add(new(CivicAction(world, town.Id, "hearing_relay", token, recipient.InhabitantId),
-                        "Tell " + world.Society.GetInhabitant(recipient.InhabitantId).Name + " the case material you actually read; newly unseen file contents are excluded.", 181));
+            foreach (var recipient in world.Agents.Values.Where(person => open && person.AgentId != actor &&
+                         world.IsWithinInteractionRange(person.Position, world.Agents[actor].Position, WorldRuntime.CivicSharedRules.ResourceInteractionRange)))
+                if (LandHearingReadCurrent(world, item, actor) && LandHearingMayInspect(world, town, item, recipient.AgentId) && !LandHearingReadCurrent(world, item, recipient.AgentId))
+                    candidates.Add(new(CivicAction(world, town.Id, "hearing_relay", token, recipient.AgentId),
+                        "Tell " + world.Society.GetAgent(recipient.AgentId).Name + " the case material you actually read; newly unseen file contents are excluded.", 181));
         }
     }
 
@@ -298,7 +298,7 @@ internal sealed partial class CivicSystem
                     ? world.CaptureProperty(currentTown, pendingProperty.Request, revision.Number + 1) : null;
                 if (reopenedProperty is not null)
                     parties = TownPropertyRules.Parties(parties, item.Property! with
-                    { Snapshots = item.Property.Snapshots.Append(reopenedProperty).ToArray() }, town.Id, world.Society.Inhabitants);
+                    { Snapshots = item.Property.Snapshots.Append(reopenedProperty).ToArray() }, town.Id, world.Society.Agents);
                 hearings = TownLandHearingRules.Reopen(hearings, item.Id, request.Id, item.Judge!, accept,
                     LandHearingText(hearingChoice?.Statement), householdLandUseRights, parties, world.WorldTick, CivicDay(world),
                     "notice:" + (council.Notices.Count + 1), item.Judge is { } reopeningJudge && LandHearingJudgeValid(world, currentTown, item, reopeningJudge));

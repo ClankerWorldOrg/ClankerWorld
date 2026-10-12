@@ -35,7 +35,7 @@ public sealed class ShelterSiteInspectionCheckpointTests
         using var host = new CheckpointHost(world);
         await host.AdvanceAndCheckSaved();
 
-        var reached = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var reached = world.Agents.Single(person => person.AgentId == actor).Position;
         Assert.NotEqual(origin, reached);
         Assert.True(state.Map.IsPassable(reached));
         Assert.InRange(state.Map.FootDistance(reached, target), 0, 1);
@@ -79,7 +79,7 @@ public sealed class ShelterSiteInspectionCheckpointTests
             var y = GeographyGenerator.PolarEdgeRows;
             var x = Enumerable.Range(0, state.Map.Width - 4).First(x =>
                 Enumerable.Range(1, 4).All(dx => state.Map.IsPassable(new(x + dx, y))) &&
-                state.Inhabitants.All(person => person.Position.Y != y || person.Position.X < x || person.Position.X > x + 4));
+                state.Agents.All(person => person.Position.Y != y || person.Position.X < x || person.Position.X > x + 4));
             var origin = new GridPoint(x + 2, y);
             if (site == "land") return (origin, new(x + 4, y));
             var target = new GridPoint(x, y - 1);
@@ -89,7 +89,7 @@ public sealed class ShelterSiteInspectionCheckpointTests
 
         // Use an actual generated non-Ocean obstacle and a free two-step
         // approach. Starting position/weather are controlled; terrain is untouched.
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor)
+        var occupied = state.Agents.Where(person => person.AgentId != actor)
             .Select(person => person.Position).ToHashSet();
         var buildings = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();

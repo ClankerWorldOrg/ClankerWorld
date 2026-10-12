@@ -46,14 +46,14 @@ public sealed partial class WorldRuntime
     }
 
     private IEnumerable<InventoryLot> ReturnOrderGoods(OwnerQueuedInstruction instruction) =>
-        ReturnableBorrowedGoods(instruction.TargetInhabitantId).Where(lot =>
+        ReturnableBorrowedGoods(instruction.TargetAgentId).Where(lot =>
             lot.ItemKind == instruction.Order!.TargetItemKind &&
             (instruction.Order.TargetLotId is null || lot.Id == instruction.Order.TargetLotId) &&
             (instruction.Order.TargetStorageOwnerId is null || lot.OwnerId == instruction.Order.TargetStorageOwnerId));
 
-    private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!ReadyForBriefInteraction(actor)) return null;
         foreach (var lot in ReturnOrderGoods(instruction).OrderBy(lot => lot.Id, StringComparer.Ordinal))
         {
@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         var candidate = ReturnOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
         var order = instruction.Order!;
         var remaining = order.QuantityIsExplicit && !order.RepeatUntilCancelled
             ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
-        if (ReturnBorrowedGoods(instruction.TargetInhabitantId, lotId, remaining,
+        if (ReturnBorrowedGoods(instruction.TargetAgentId, lotId, remaining,
                 order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is not { } effect) return;
         var receipt = BorrowedReturnReceipt(effect.MoveId);
         CreditOrderEffect(instruction, receipt, order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
@@ -89,9 +89,9 @@ public sealed partial class WorldRuntime
         instructionsByIdempotency[instruction.IdempotencyKey] = current with { Order = current.Order! with { TargetLotId = null } };
     }
 
-    private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         if (!AgePermitsCandidate(actor, order.Action)) return "This agent is too young to return borrowed goods.";
         if (order.TargetStorageOwnerId is { } owner && CustodyOrderHouse(instruction, owner) is null)

@@ -6,7 +6,7 @@ public sealed class WorldEventTextTests
 {
     private const string FounderId = "founder:00000000000000000000000000000001";
     private const string AgentId = "agent:00000000000000000000000000000099";
-    private const string ChildId = "world:inhabitant:birth:" + FounderId + ":" + AgentId + ":1";
+    private const string ChildId = "world:agent:birth:" + FounderId + ":" + AgentId + ":1";
     private const string Digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
     [Fact]
@@ -14,7 +14,7 @@ public sealed class WorldEventTextTests
     {
         var detail = System.Text.Json.JsonSerializer.Serialize(new
         {
-            InhabitantId = ChildId,
+            AgentId = ChildId,
             CandidateId = "milk_sale_offer:private-payload:/secret/path",
             Check = "HiddenDiagnostic.Check",
         });
@@ -249,10 +249,10 @@ public sealed class WorldEventTextTests
             ("child_delivered_household", id + ":food:4:first-town-house-a", "brought a small household load to their House"),
             ("tree_planted", id + ":planted-tree-12-7:broadleaf", "planted a tree"),
             ("tree_replanted", id + ":tree-8-16:conifer", "replanted a tree"),
-            ("inhabitant_slept", id, "slept"),
+            ("agent_slept", id, "slept"),
             ("child_born", id, "was born"),
-            ("inhabitant_removed", id, "died"),
-            ("inhabitant_building_proposed", id + ":house", "suggested a new building design"),
+            ("agent_removed", id, "died"),
+            ("agent_building_proposed", id + ":house", "suggested a new building design"),
             ("household_delivery_recovered", id + ":spoiled-greens:4:camp-alpha",
                 "brought back supplies they couldn't deliver and left them at their household's pile"),
             ("instruction_not_understood", id + ":private-instruction-0000000001",
@@ -263,7 +263,7 @@ public sealed class WorldEventTextTests
             var worldEvent = new OwnerWorldEvent(1, 1, kind, detail);
             Assert.Equal($"Aster {action}.", WorldEventText.Describe(worldEvent, snapshot));
             if (kind.StartsWith("child_", StringComparison.Ordinal)) Assert.True(GameUiText.IsPlayerFacingEvent(kind));
-            var renamed = snapshot with { Inhabitants = [Person(id, "Rowan", "dead")] };
+            var renamed = snapshot with { Agents = [Person(id, "Rowan", "dead")] };
             Assert.Equal($"Rowan {action}.", WorldEventText.Describe(worldEvent, renamed));
             Assert.Equal(detail, worldEvent.Detail);
         }
@@ -349,9 +349,9 @@ public sealed class WorldEventTextTests
                 new("town:first", "First Town", "founded", 0, [], [], [])],
         };
         Assert.Equal("Aster gathered food.", WorldEventText.Describe(new(1, 0, "food_harvested", AgentId + ":4"), snapshot));
-        Assert.Equal("Someone died.", WorldEventText.Describe(new(2, 0, "inhabitant_removed", AgentId + ":unknown-child"), snapshot));
+        Assert.Equal("Someone died.", WorldEventText.Describe(new(2, 0, "agent_removed", AgentId + ":unknown-child"), snapshot));
         Assert.Equal("Child suggested a new building design.", WorldEventText.Describe(
-            new(3, 0, "inhabitant_building_proposed", "legacy-parent:child:house"), snapshot));
+            new(3, 0, "agent_building_proposed", "legacy-parent:child:house"), snapshot));
         Assert.Equal("Child joined First Town.", WorldEventText.Describe(
             new(4, 0, "town_resident_joined", "town:first:legacy-parent:child:child_joined:residents:1"), snapshot));
     }
@@ -438,7 +438,7 @@ public sealed class WorldEventTextTests
     public void MissingSnapshotStillSupportsDelimiterFreeLegacyNamesAndSafeUnknownActors()
     {
         Assert.Equal("Scout ate.", WorldEventText.Describe(new(1, 0, "food_consumed", "scout"), null));
-        Assert.Equal("Someone died.", WorldEventText.Describe(new(2, 0, "inhabitant_removed", AgentId), null));
+        Assert.Equal("Someone died.", WorldEventText.Describe(new(2, 0, "agent_removed", AgentId), null));
         Assert.Equal("Someone ate.", WorldEventText.Describe(new(3, 0, "food_consumed", ""), null));
         Assert.Equal("Someone planted something new.", WorldEventText.Describe(new(4, 0, "field_planted", ""), null));
     }
@@ -489,7 +489,7 @@ public sealed class WorldEventTextTests
         var detail = $"{ChildId}:{projectId}:{payload}";
         Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, kind, detail), snapshot), StringComparison.Ordinal);
         Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, kind, detail),
-            snapshot with { Inhabitants = [Person(ChildId, "Aster", "dead")] }), StringComparison.Ordinal);
+            snapshot with { Agents = [Person(ChildId, "Aster", "dead")] }), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -505,21 +505,21 @@ public sealed class WorldEventTextTests
         Assert.Equal("Aster donated personal materials to Communal Hall.",
             WorldEventText.Describe(new(1, 4, "town_project_donated", detail), snapshot));
         Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, "town_project_donated", detail),
-            snapshot with { Inhabitants = [] }), StringComparison.Ordinal);
+            snapshot with { Agents = [] }), StringComparison.Ordinal);
         Assert.Contains("Communal Hall", WorldEventText.Describe(new(1, 4, "town_project_approved",
             $"town:first:{project.Id}:approved"), snapshot), StringComparison.Ordinal);
         Assert.Contains("a Town project", WorldEventText.Describe(new(1, 4, "town_project_worked",
-            $"{ChildId}:{project.Id}0:10"), snapshot with { Inhabitants = [] }), StringComparison.Ordinal);
+            $"{ChildId}:{project.Id}0:10"), snapshot with { Agents = [] }), StringComparison.Ordinal);
     }
 
     private static OwnerWorldTownProject EventProject(string id, string name) =>
         new(id, "proposal", name, FounderId, "Mira", "town-hall", "Town Hall", new(4, 4), new(5, 8),
             3, 4, [], 10, 10, "completed", null, "paid-hall", new("proposal", "town_project", name, "passed", 2, 0, 2, 0));
 
-    private static OwnerWorldSnapshot Snapshot(params OwnerWorldInhabitant[] people) =>
-        new("event-names", 1, "map", [], [], [], null, 1) { Inhabitants = people };
+    private static OwnerWorldSnapshot Snapshot(params OwnerWorldAgent[] people) =>
+        new("event-names", 1, "map", [], [], [], null, 1) { Agents = people };
 
-    private static OwnerWorldInhabitant Person(string id, string name, string lifecycle = "active") =>
+    private static OwnerWorldAgent Person(string id, string name, string lifecycle = "active") =>
         new(id, name, lifecycle, new(0, 0), 8_000, [], [],
             new("idle", null, null, [], ""), new(new(0, 0), [], []), false);
 }

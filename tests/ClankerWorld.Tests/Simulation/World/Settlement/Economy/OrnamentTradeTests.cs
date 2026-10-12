@@ -16,7 +16,7 @@ public sealed class OrnamentTradeTests
     public async Task SmithPaymentCanUseASpareSingletonOrnamentButNeverTheWornUnit(bool diamond, bool worn)
     {
         var (state, seller, buyer, made) = await MadeOrnament(diamond);
-        var owner = state.Society.Society.GetInhabitant(seller).HouseholdId!;
+        var owner = state.Society.Society.GetAgent(seller).HouseholdId!;
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "own-ornament-payment", owner,
             buyer, made, 1, "collect");
         inventory = InventoryAuthority.AddLot(inventory, "payment-smith-iron", "iron", owner, 2, storageBuildingId: Smith);
@@ -33,7 +33,7 @@ public sealed class OrnamentTradeTests
         state = At(state, seller, FreePlace(state, shop.Position, seller, 0, 1));
         if (worn) state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == buyer
+            Agents = state.Agents.Select(person => person.AgentId == buyer
                 ? person with { Equipment = (person.Equipment ?? new PersonalEquipment()) with { OrnamentLotId = made } } : person).ToArray(),
         };
         var choices = new Choices(["business_shop:" + Smith, "business_continue:"]);
@@ -47,7 +47,7 @@ public sealed class OrnamentTradeTests
             Assert.DoesNotContain("business_shop:" + Smith, choices.Offered);
             Assert.Empty(world.BusinessTrades);
             Assert.Equal(buyer, world.Society.Inventory.GetLot(made).OwnerId);
-            Assert.Equal(made, world.Inhabitants.Single(person => person.InhabitantId == buyer).Equipment!.OrnamentLotId);
+            Assert.Equal(made, world.Agents.Single(person => person.AgentId == buyer).Equipment!.OrnamentLotId);
             Assert.Equal(owner, world.Society.Inventory.GetLot(axe).OwnerId);
         }
         else
@@ -79,7 +79,7 @@ public sealed class OrnamentTradeTests
         var buyerPlace = FreePlace(state, shop.Position, buyer, 1, 1);
         var sellerPlace = FreePlace(state, shop.Position, seller, 4, 6);
         state = At(At(state, buyer, buyerPlace), seller, sellerPlace);
-        var buyerHousehold = state.Society.Society.GetInhabitant(buyer).HouseholdId;
+        var buyerHousehold = state.Society.Society.GetAgent(buyer).HouseholdId;
         var buyerChoices = new Choices(["business_shop:" + Smith, "business_continue:"]);
         var sellerChoices = new Choices(["business_continue:"]);
         IDecisionProvider Provider(string id) => id == buyer ? buyerChoices : id == seller ? sellerChoices : new Choices([]);
@@ -93,7 +93,7 @@ public sealed class OrnamentTradeTests
         var offer = world.Society.Inventory.GetOffer(trade.OfferId);
         Assert.Equal((DirectBarterState.Open, made, 1, "ornament-buyer-payment", 1),
             (offer.State, offer.FirstLotId, offer.FirstQuantity, offer.SecondLotId, offer.SecondQuantity));
-        Assert.True(world.ExportState().Map.FootDistance(world.Inhabitants.Single(person => person.InhabitantId == seller).Position,
+        Assert.True(world.ExportState().Map.FootDistance(world.Agents.Single(person => person.AgentId == seller).Position,
             shop.Position) > 1);
         Assert.Equal((owner, Smith, 1), (world.Society.Inventory.GetLot(made).OwnerId,
             world.Society.Inventory.GetLot(made).StorageBuildingId, world.Society.Inventory.GetLot(made).Quantity));
@@ -113,7 +113,7 @@ public sealed class OrnamentTradeTests
         var payment = Assert.Single(resumed.Society.Inventory.Lots, lot => lot.ProvenanceLotId == "ornament-buyer-payment");
         Assert.Equal((owner, Smith, 1), (payment.OwnerId, payment.StorageBuildingId, payment.Quantity));
         Assert.Equal(1, resumed.Society.Inventory.GetLot("ornament-buyer-payment").Quantity);
-        Assert.Equal(buyerHousehold, resumed.Society.GetInhabitant(buyer).HouseholdId);
+        Assert.Equal(buyerHousehold, resumed.Society.GetAgent(buyer).HouseholdId);
         Assert.False(resumed.StartProduction(setting.CanonicalId, Smith, buyer).Applied);
         Assert.Contains("business_shop:" + Smith, buyerChoices.Selected);
         Assert.Contains(sellerChoices.Selected, candidate => candidate.StartsWith("business_continue:", StringComparison.Ordinal));
@@ -129,7 +129,7 @@ public sealed class OrnamentTradeTests
     public async Task AOneUnitPersonalOrnamentBarterWalksBothPartiesToTheMeetingBeforeOwnershipChanges()
     {
         var (state, first, second, made) = await MadeOrnament(false);
-        var owner = state.Society.Society.GetInhabitant(first).HouseholdId!;
+        var owner = state.Society.Society.GetAgent(first).HouseholdId!;
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "personal-ornament", owner,
             first, made, 1, "collect");
         inventory = InventoryAuthority.AddLot(inventory, "ornament-barter-clothing", "clothing", second, 2);
@@ -146,13 +146,13 @@ public sealed class OrnamentTradeTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Empty(world.Society.Inventory.Offers);
         Assert.Equal(first, world.Society.Inventory.GetLot(made).OwnerId);
-        Assert.NotEqual(firstStart, world.Inhabitants.Single(person => person.InhabitantId == first).Position);
+        Assert.NotEqual(firstStart, world.Agents.Single(person => person.AgentId == first).Position);
         await Until(world, () => world.Society.Inventory.Offers.Count == 1, 60);
         var offer = Assert.Single(world.Society.Inventory.Offers);
         Assert.Equal((DirectBarterState.Open, made, 1, "ornament-barter-clothing", 1),
             (offer.State, offer.FirstLotId, offer.FirstQuantity, offer.SecondLotId, offer.SecondQuantity));
         Assert.Equal([first], offer.AcceptedBy);
-        Assert.InRange(state.Map.FootDistance(world.Inhabitants.Single(person => person.InhabitantId == first).Position, startingSite), 0, 1);
+        Assert.InRange(state.Map.FootDistance(world.Agents.Single(person => person.AgentId == first).Position, startingSite), 0, 1);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var resumed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Provider);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(resumed.ExportState()));
@@ -165,8 +165,8 @@ public sealed class OrnamentTradeTests
         Assert.Equal(DirectBarterState.Settled, resumed.Society.Inventory.GetOffer(offer.Id).State);
         Assert.Equal((second, 1), (resumed.Society.Inventory.GetLot(made).OwnerId,
             resumed.Society.Inventory.GetLot(made).Quantity));
-        Assert.InRange(state.Map.FootDistance(resumed.Inhabitants.Single(person => person.InhabitantId == first).Position, startingSite), 0, 1);
-        Assert.InRange(state.Map.FootDistance(resumed.Inhabitants.Single(person => person.InhabitantId == second).Position, startingSite), 0, 1);
+        Assert.InRange(state.Map.FootDistance(resumed.Agents.Single(person => person.AgentId == first).Position, startingSite), 0, 1);
+        Assert.InRange(state.Map.FootDistance(resumed.Agents.Single(person => person.AgentId == second).Position, startingSite), 0, 1);
         var clothes = Assert.Single(resumed.Society.Inventory.Lots, lot => lot.OwnerId == first &&
             lot.ProvenanceLotId == "ornament-barter-clothing");
         Assert.Equal(1, clothes.Quantity);
@@ -185,7 +185,7 @@ public sealed class OrnamentTradeTests
     public async Task PersonalBarterCannotTakeWornReservedPromisedOrOverCapacityOrnamentStock(string boundary)
     {
         var (state, first, second, made) = await MadeOrnament(false);
-        var owner = state.Society.Society.GetInhabitant(first).HouseholdId!;
+        var owner = state.Society.Society.GetAgent(first).HouseholdId!;
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "guarded-personal-ornament", owner,
             first, made, 1, "collect", destinationDeliveryBuildingId: boundary == "promised" ? Smith : null);
         inventory = InventoryAuthority.AddLot(inventory, "ornament-barter-clothing", "clothing", second, 2);
@@ -194,9 +194,9 @@ public sealed class OrnamentTradeTests
         if (boundary == "overloaded-recipient")
         {
             var carried = PersonalEquipmentRules.CarriedQuantity(inventory, second,
-                state.Inhabitants.Single(person => person.InhabitantId == second).Equipment);
+                state.Agents.Single(person => person.AgentId == second).Equipment);
             var capacity = PersonalEquipmentRules.Capacity(inventory, second,
-                state.Inhabitants.Single(person => person.InhabitantId == second).Equipment);
+                state.Agents.Single(person => person.AgentId == second).Equipment);
             inventory = InventoryAuthority.AddLot(inventory, "barter-capacity-ballast", "stone", second,
                 capacity - carried + 1);
         }
@@ -206,7 +206,7 @@ public sealed class OrnamentTradeTests
         state = At(state, second, FreePlace(state, startingSite, second, 0, 1));
         if (boundary == "worn") state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == first
+            Agents = state.Agents.Select(person => person.AgentId == first
                 ? person with { Equipment = (person.Equipment ?? new PersonalEquipment()) with { OrnamentLotId = made } } : person).ToArray(),
         };
         var choices = new Choices(["trade_propose:" + second]);
@@ -218,7 +218,7 @@ public sealed class OrnamentTradeTests
         Assert.Empty(world.Society.Inventory.Offers);
         Assert.Equal((first, 1), (world.Society.Inventory.GetLot(made).OwnerId, world.Society.Inventory.GetLot(made).Quantity));
         Assert.Equal(2, world.Society.Inventory.GetLot("ornament-barter-clothing").Quantity);
-        if (boundary == "worn") Assert.Equal(made, world.Inhabitants.Single(person => person.InhabitantId == first).Equipment!.OrnamentLotId);
+        if (boundary == "worn") Assert.Equal(made, world.Agents.Single(person => person.AgentId == first).Equipment!.OrnamentLotId);
         if (boundary == "reserved") Assert.Equal(InventoryReservationState.Reserved,
             world.Society.Inventory.GetReservation("ornament-reserved-other-task").State);
         if (boundary == "promised") Assert.Equal(Smith, world.Society.Inventory.GetLot(made).DeliveryBuildingId);
@@ -229,7 +229,7 @@ public sealed class OrnamentTradeTests
     public async Task FinalPersonalAcceptanceRechecksCapacityAfterAnOfferWasReserved()
     {
         var (state, first, second, made) = await MadeOrnament(false);
-        var owner = state.Society.Society.GetInhabitant(first).HouseholdId!;
+        var owner = state.Society.Society.GetAgent(first).HouseholdId!;
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "personal-capacity-ornament",
             owner, first, made, 1, "collect");
         inventory = InventoryAuthority.AddLot(inventory, "ornament-barter-clothing", "clothing", second, 2);
@@ -242,7 +242,7 @@ public sealed class OrnamentTradeTests
         await Until(offered, () => offered.Society.Inventory.Offers.Count == 1, 20);
         var offer = Assert.Single(offered.Society.Inventory.Offers);
         state = offered.ExportState();
-        var recipient = state.Inhabitants.Single(person => person.InhabitantId == second);
+        var recipient = state.Agents.Single(person => person.AgentId == second);
         inventory = state.Society.Society.Inventory;
         var capacity = PersonalEquipmentRules.Capacity(inventory, second, recipient.Equipment);
         var carried = PersonalEquipmentRules.CarriedQuantity(inventory, second, recipient.Equipment);
@@ -268,8 +268,8 @@ public sealed class OrnamentTradeTests
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == Smith);
         var owner = smith.HouseholdId!;
-        var seller = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId != owner).Id;
+        var seller = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId != owner).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "ornament-trade-gold", OrnamentContent.Gold,
             owner, 2, storageBuildingId: Smith);
         if (diamond) inventory = InventoryAuthority.AddLot(inventory, "ornament-trade-diamond", "diamond",
@@ -310,12 +310,12 @@ public sealed class OrnamentTradeTests
         state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
             state.Map.IsReachableOnFoot(point, destination) &&
             state.Map.FootDistance(point, destination) >= minimum && state.Map.FootDistance(point, destination) <= maximum &&
-            state.Inhabitants.All(person => person.InhabitantId == actor || person.Position != point))
+            state.Agents.All(person => person.AgentId == actor || person.Position != point))
         .OrderBy(point => point.Y).ThenBy(point => point.X).First();
 
     private static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+        Agents = state.Agents.Select(person => person.AgentId == actor ? person with
         { Position = position, HungerBasisPoints = 7_500, Project = null, LastDecisionContext = null, TravelCooldownTicks = 0 } : person).ToArray(),
     };
 

@@ -14,7 +14,7 @@ public sealed class WorldCartOrderTests
         var state = SettlementWeatherTestFixture.WithWeather(setup.ExportState(), WeatherKind.Clear);
         return WorldRuntimeCodec.Encode(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { HungerBasisPoints = 9_500, Survival = new(), LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }).ToArray(),
         });
     });
@@ -23,7 +23,7 @@ public sealed class WorldCartOrderTests
     public async Task NamedCartAttachmentAndQueuedParkingKeepTheirPhysicalTargetAcrossReplay()
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var attach = world.SubmitInstruction(Request("attach", actor, "Pull handcart z-cart"));
         world.SubmitInstruction(Request("park", actor, "Park handcart z-cart", queue: true));
@@ -37,10 +37,10 @@ public sealed class WorldCartOrderTests
         var sawAttachment = false;
         for (var tick = 0; tick < 16 && world.ExportState().Instructions!.Any(item => item.Order!.Status != "finished"); tick++)
         {
-            var before = world.Inhabitants[0].Position;
+            var before = world.Agents[0].Position;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
-            var after = world.Inhabitants[0].Position;
+            var after = world.Agents[0].Position;
             if (before != after) Assert.True(state.Map.CanFootStep(before, after));
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             if (world.ExportState().HandcartHitches!.Count > 0)
@@ -62,7 +62,7 @@ public sealed class WorldCartOrderTests
         Assert.Equal(state.Society.Society.Inventory.GetLot("a-cart") with { LastProcessedTick = final.Society.Society.WorldTick }, world.Society.Inventory.GetLot("a-cart"));
         Assert.Equal(state.Society.Society.Inventory.GetLot("cargo") with { LastProcessedTick = final.Society.Society.WorldTick }, world.Society.Inventory.GetLot("cargo"));
         Assert.Equal(actor, world.Society.Inventory.GetLot("z-cart").OwnerId);
-        Assert.Equal(new InventoryGroundPosition(world.Inhabitants[0].Position.X, world.Inhabitants[0].Position.Y),
+        Assert.Equal(new InventoryGroundPosition(world.Agents[0].Position.X, world.Agents[0].Position.Y),
             world.Society.Inventory.GetLot("z-cart").GroundPosition);
         using var loaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), _ => new IdleProvider());
         Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
@@ -77,12 +77,12 @@ public sealed class WorldCartOrderTests
     public async Task CartOrderReportsTheActualBlockerWithoutAttachingAnotherCart(string blocker, string reason)
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory;
         if (blocker is "foreign" or "broken") inventory = inventory with
         {
             Lots = inventory.Lots.Select(lot => lot.Id == "z-cart" || blocker == "foreign" && lot.Id == "cargo" ? lot with
-            { OwnerId = blocker == "foreign" ? state.Inhabitants[1].InhabitantId : actor, ConditionBasisPoints = blocker == "broken" && lot.Id == "z-cart" ? 0 : lot.ConditionBasisPoints } : lot).ToArray(),
+            { OwnerId = blocker == "foreign" ? state.Agents[1].AgentId : actor, ConditionBasisPoints = blocker == "broken" && lot.Id == "z-cart" ? 0 : lot.ConditionBasisPoints } : lot).ToArray(),
         };
         if (blocker == "reserved") inventory = InventoryAuthority.Reserve(inventory, "cart-reservation", actor, "cargo", 1,
             "other_work", inventory.WorldTick + 50);
@@ -90,7 +90,7 @@ public sealed class WorldCartOrderTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select((person, index) => blocker == "occupied" && index == 1
+            Agents = state.Agents.Select((person, index) => blocker == "occupied" && index == 1
                 ? person with { Position = new(site.X, site.Y) } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -112,7 +112,7 @@ public sealed class WorldCartOrderTests
     public async Task CancelOrReplaceCartOrderPreventsItsAttachmentButATypoDoesNotReplaceIt(bool replace)
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var receipt = world.SubmitInstruction(Request("pending-cart", actor, "Attach my handcart z-cart"));
         world.SubmitInstruction(Request("typo", actor, "Attach my handcart z-cart tomorrow"));
@@ -134,7 +134,7 @@ public sealed class WorldCartOrderTests
     public async Task UnspecifiedCartOrderKeepsItsChosenCartWhenOwnershipChangesDuringTravel()
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("choose-cart", actor, "Please pull my cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -144,7 +144,7 @@ public sealed class WorldCartOrderTests
         var inventory = walking.Society.Society.Inventory with
         {
             Lots = walking.Society.Society.Inventory.Lots.Select(lot => lot.Id == "a-cart"
-                ? lot with { OwnerId = state.Inhabitants[1].InhabitantId } : lot).ToArray(),
+                ? lot with { OwnerId = state.Agents[1].AgentId } : lot).ToArray(),
         };
         using var transferred = WorldRuntime.Restore(walking with
         { Society = walking.Society with { Society = walking.Society.Society with { Inventory = inventory } } }, _ => new IdleProvider());
@@ -161,7 +161,7 @@ public sealed class WorldCartOrderTests
     public async Task CartTargetsAndCompletionReceiptsRejectMalformedSavedOrders()
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("validate-cart", actor, "Attach cart z-cart"));
         var queued = world.ExportState();
@@ -192,7 +192,7 @@ public sealed class WorldCartOrderTests
     public async Task CartTileTargetBindsTheUniqueOwnedCartAndRefusesAmbiguousSelection(bool ambiguous)
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var position = state.Society.Society.Inventory.GetLot("z-cart").GroundPosition!.Value;
         if (!ambiguous) state = state with
         {
@@ -203,7 +203,7 @@ public sealed class WorldCartOrderTests
                     Inventory = state.Society.Society.Inventory with
                     {
                         Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id == "a-cart"
-                        ? lot with { GroundPosition = new(state.Inhabitants[0].Position.X, state.Inhabitants[0].Position.Y) } : lot).ToArray()
+                        ? lot with { GroundPosition = new(state.Agents[0].Position.X, state.Agents[0].Position.Y) } : lot).ToArray()
                     },
                 }
             },
@@ -229,12 +229,12 @@ public sealed class WorldCartOrderTests
     public async Task UrgentFoodInterruptsCartAttachmentThenResumesTheSameTarget()
     {
         var state = await CartState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart-emergency-food", "berries", actor, 4);
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { HungerBasisPoints = 0 } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
@@ -256,9 +256,9 @@ public sealed class WorldCartOrderTests
     private static async Task<WorldRuntimeState> CartState()
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var position = state.Map.FootNeighbors(state.Inhabitants[0].Position)
-            .First(point => state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point));
+        var actor = state.Agents[0].AgentId;
+        var position = state.Map.FootNeighbors(state.Agents[0].Position)
+            .First(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "a-cart", "handcart", actor, 1,
             groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "z-cart", "handcart", actor, 1,

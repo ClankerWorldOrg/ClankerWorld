@@ -46,7 +46,7 @@ public static class WorldHistory
         var scheduler = Window("scheduler", cognition.Events, item => item.EventId, cognition.EventHistoryFloor, archived);
         var runtimes = cognition.Runtimes.Select(runtime =>
         {
-            var window = Window($"cognition:{runtime.InhabitantId}", runtime.Events, item => item.EventId, runtime.EventHistoryFloor, archived);
+            var window = Window($"cognition:{runtime.AgentId}", runtime.Events, item => item.EventId, runtime.EventHistoryFloor, archived);
             return runtime with { Events = window.Events, EventHistoryFloor = window.Floor };
         }).ToArray();
         if (archived.Count == 0 && retired.Length == 0)

@@ -23,35 +23,35 @@ public sealed partial class WorldRuntime
         item.WorldTick > WorldTick - IllnessCareCooldownTicks);
 
     // Only adults can have children; elders cannot (the owner's answer of October 2).
-    private bool CanHaveChildren(string actor) => inhabitants.ContainsKey(actor) &&
-        society.Checkpoint.GetInhabitant(actor).AgeBand == SocietyAgeBand.Adult;
+    private bool CanHaveChildren(string actor) => agents.ContainsKey(actor) &&
+        society.Checkpoint.GetAgent(actor).AgeBand == SocietyAgeBand.Adult;
 
     // A couple who may plan a child, keep a plan going and be held by the continuity rule.
     private bool Partners(string actor, string other) => CanHaveChildren(actor) && CanHaveChildren(other) && !CloseKin(actor, other) &&
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
-        society.Checkpoint.GetInhabitant(other).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(other).HouseholdId is not null &&
         Partnerships(actor).Any(item => item.State == SocietyRelationshipState.Accepted &&
             (item.ProposerId == other || item.TargetId == other));
 
     private bool HasParenthoodDecision(string actor) => ReadyForLesson(actor) &&
-        (inhabitants.Values.Any(person => person.Parenthood is { Stage: "requested" } plan && plan.PartnerId == actor) ||
+        (agents.Values.Any(person => person.Parenthood is { Stage: "requested" } plan && plan.PartnerId == actor) ||
          ChildrenNeedingCare(actor).Any());
 
-    private IEnumerable<InhabitantState> ChildrenNeedingCare(string actor) => inhabitants.Values.Where(person =>
-        society.Checkpoint.GetInhabitant(person.InhabitantId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
+    private IEnumerable<AgentState> ChildrenNeedingCare(string actor) => agents.Values.Where(person =>
+        society.Checkpoint.GetAgent(person.AgentId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent &&
         (person.HungerBasisPoints < 7_000 || person.Survival is { WarmthBasisPoints: < 6_000 } ||
-         person.Survival is { IllnessBasisPoints: >= 2_500 } && !RecentlyCaredForIllness(person.InhabitantId)) &&
+         person.Survival is { IllnessBasisPoints: >= 2_500 } && !RecentlyCaredForIllness(person.AgentId)) &&
         (society.Checkpoint.Relationships.Any(item => item.Type == SocietyRelationshipType.Caregiver &&
              item.State == SocietyRelationshipState.Accepted && item.EffectiveTick <= WorldTick &&
-             item.ProposerId == actor && item.TargetId == person.InhabitantId) ||
-         NeedsCaregiver(person.InhabitantId) && inhabitants.TryGetValue(actor, out var caregiver) &&
+             item.ProposerId == actor && item.TargetId == person.AgentId) ||
+         NeedsCaregiver(person.AgentId) && agents.TryGetValue(actor, out var caregiver) &&
              IsWithinInteractionRange(caregiver.Position, person.Position, ResourceInteractionRange)));
 
     private bool FamilyResourcesReady(string actor) =>
         FamilyFoodReady(actor) && AccessibleShelters(actor, includeStormRefuge: false).Any();
 
     private bool FamilyFoodReady(string actor) =>
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is not null &&
+        society.Checkpoint.GetAgent(actor).HouseholdId is not null &&
         ParenthoodFoodReadiness(society.Checkpoint, actor, towns).IsReady &&
         BirthFood(actor) is not null;
 
@@ -59,9 +59,9 @@ public sealed partial class WorldRuntime
     public static SettlementParenthoodFood ParenthoodFoodReadiness(SocietyCheckpoint checkpoint, string caregiverId,
         IReadOnlyList<TownRuntimeState> townStates)
     {
-        if (checkpoint.GetInhabitant(caregiverId).HouseholdId is not { } householdId) return new(0, 4);
-        var required = checkpoint.Inhabitants.Count(person => person.HouseholdId == householdId &&
-            person.Status == SocietyInhabitantStatus.Active) * 2 + 4;
+        if (checkpoint.GetAgent(caregiverId).HouseholdId is not { } householdId) return new(0, 4);
+        var required = checkpoint.Agents.Count(person => person.HouseholdId == householdId &&
+            person.Status == SocietyAgentStatus.Active) * 2 + 4;
         return new(BirthFoodSources(checkpoint, caregiverId, townStates).Sum(match => match.Quantity), required);
     }
 
@@ -81,7 +81,7 @@ public sealed partial class WorldRuntime
     // allows for food in a usable storage pot as well as loose food.
     private static GoodsRequest? BirthFoodRequest(SocietyCheckpoint checkpoint, string actor)
     {
-        var household = checkpoint.GetInhabitant(actor).HouseholdId ?? actor;
+        var household = checkpoint.GetAgent(actor).HouseholdId ?? actor;
         var kinds = InventoryIndex.For(checkpoint.Inventory).OwnedBy(household)
             .Where(lot => IsEdibleFood(lot.ItemKind)).Select(lot => lot.ItemKind).Distinct(StringComparer.Ordinal).ToArray();
         return kinds.Length == 0 ? null : new(GoodsUse.ConsumeAt, actor, GoodsOwners.One(household), new GoodsKinds(kinds));
@@ -114,11 +114,11 @@ public sealed partial class WorldRuntime
     private static bool InUsableVesselOrLoose(InventoryCheckpoint inventory, InventoryLot lot) =>
         lot.ContainerLotId is not { } containerId || inventory.GetLot(containerId).ConditionBasisPoints > 0;
 
-    private bool CanReachDependent(string actor, InhabitantState parent, InhabitantState child) =>
+    private bool CanReachDependent(string actor, AgentState parent, AgentState child) =>
         IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange) ||
         FindUnoccupiedRoute(actor, parent.Position, child.Position, ResourceInteractionRange).Count > 0;
 
-    private int CaregiverFoodCarryRequirement(string actor, InhabitantState parent)
+    private int CaregiverFoodCarryRequirement(string actor, AgentState parent)
     {
         if (!AdultResident(actor) || !ReadyForBriefInteraction(actor) || NeedsUrgentFood(parent) ||
             PreferredFood(actor, actor).Any() ||
@@ -134,9 +134,9 @@ public sealed partial class WorldRuntime
             return;
         }
         foreach (var child in ChildrenNeedingCare(actor).Where(child =>
-                     !NeedsUrgentFood(inhabitants[actor]) || IsWithinInteractionRange(inhabitants[actor].Position, child.Position, ResourceInteractionRange)))
+                     !NeedsUrgentFood(agents[actor]) || IsWithinInteractionRange(agents[actor].Position, child.Position, ResourceInteractionRange)))
         {
-            var parent = inhabitants[actor];
+            var parent = agents[actor];
             if (child.HungerBasisPoints < 7_000 && !PreferredFood(actor, actor).Any())
             {
                 if (NeedsUrgentFood(parent) || !CanReachDependent(actor, parent, child))
@@ -150,57 +150,57 @@ public sealed partial class WorldRuntime
                     continue;
                 }
             }
-            candidates.Add(new("care:" + child.InhabitantId, "Bring food and warmth to your dependent child.", 2));
+            candidates.Add(new("care:" + child.AgentId, "Bring food and warmth to your dependent child.", 2));
         }
         if (!ReadyForLesson(actor)) return;
-        foreach (var person in inhabitants.Values.Where(person => ActiveParenthood(person.Parenthood) &&
-                     (person.InhabitantId == actor || person.Parenthood!.PartnerId == actor)))
+        foreach (var person in agents.Values.Where(person => ActiveParenthood(person.Parenthood) &&
+                     (person.AgentId == actor || person.Parenthood!.PartnerId == actor)))
         {
             // While the continuity rule holds a couple, "not yet" replaces refusal until their two days are up.
-            var rule = ContinuityCoupleFor(person.InhabitantId, person.Parenthood!.PartnerId);
+            var rule = ContinuityCoupleFor(person.AgentId, person.Parenthood!.PartnerId);
             var mayPostpone = rule is not null && ContinuityAllowsPostponement(rule);
-            if (person.Parenthood is { Stage: "requested" } && person.InhabitantId != actor)
+            if (person.Parenthood is { Stage: "requested" } && person.AgentId != actor)
             {
-                foreach (var option in ParenthoodCaregiverOptions(person.InhabitantId, actor))
+                foreach (var option in ParenthoodCaregiverOptions(person.AgentId, actor))
                 {
                     if (!FamilyResourcesReady(option.CaregiverId)) continue;
                     var household = society.Checkpoint.GetHousehold(option.HouseholdId);
-                    var caregiver = society.Checkpoint.GetInhabitant(option.CaregiverId);
-                    candidates.Add(new($"parent_accept:{person.InhabitantId}:{option.Selector}:{Uri.EscapeDataString(option.HouseholdId)}",
+                    var caregiver = society.Checkpoint.GetAgent(option.CaregiverId);
+                    candidates.Add(new($"parent_accept:{person.AgentId}:{option.Selector}:{Uri.EscapeDataString(option.HouseholdId)}",
                         $"Agree to parenthood with {caregiver.Name} as primary caregiver in the {household.Name} household ({household.Id}); this records the intended home before preparation, which takes time and needs food and shelter.", 25));
                 }
                 if (rule is null)
-                    candidates.Add(new("parent_decline:" + person.InhabitantId, "Decline the parenthood request.", 70));
+                    candidates.Add(new("parent_decline:" + person.AgentId, "Decline the parenthood request.", 70));
                 else if (mayPostpone)
-                    candidates.Add(new("parent_postpone:" + person.InhabitantId, $"Say not yet to having a child. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
+                    candidates.Add(new("parent_postpone:" + person.AgentId, $"Say not yet to having a child. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
                         "who are not close relatives are available you may not refuse; the plan goes ahead when your two days are up.", 70));
             }
             else if (rule is null)
             {
-                candidates.Add(new("parent_cancel:" + person.InhabitantId, "Withdraw consent before the planned birth.", 110));
+                candidates.Add(new("parent_cancel:" + person.AgentId, "Withdraw consent before the planned birth.", 110));
             }
             else if (mayPostpone)
             {
-                candidates.Add(new("parent_postpone:" + person.InhabitantId, $"Put off the child plan for now. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
+                candidates.Add(new("parent_postpone:" + person.AgentId, $"Put off the child plan for now. While fewer than {ContinuityEligibleCoupleThreshold} eligible adult couples " +
                     "who are not close relatives are available you may not refuse; the plan goes ahead when your two days are up.", 110));
             }
         }
         // A couple held by the continuity rule may start sooner even with an older child, as long as no infant.
         var continuityCouple = ContinuityCoupleOf(actor);
-        if (!FamilyResourcesReady(actor) || inhabitants.Values.Any(person => ActiveParenthood(person.Parenthood) &&
-                (person.InhabitantId == actor || person.Parenthood!.PartnerId == actor)) ||
+        if (!FamilyResourcesReady(actor) || agents.Values.Any(person => ActiveParenthood(person.Parenthood) &&
+                (person.AgentId == actor || person.Parenthood!.PartnerId == actor)) ||
             continuityCouple is null &&
             society.Checkpoint.Relationships.Any(item => item.Type == SocietyRelationshipType.Caregiver && item.ProposerId == actor &&
-                item.State == SocietyRelationshipState.Accepted && inhabitants.ContainsKey(item.TargetId) &&
-                society.Checkpoint.GetInhabitant(item.TargetId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child) ||
-            inhabitants.Values.Any(person => person.Parenthood is { } previous &&
-                (person.InhabitantId == actor || previous.PartnerId == actor) && WorldTick - previous.LastTransitionTick < worldSystems.Config.TicksPerDay))
+                item.State == SocietyRelationshipState.Accepted && agents.ContainsKey(item.TargetId) &&
+                society.Checkpoint.GetAgent(item.TargetId).AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child) ||
+            agents.Values.Any(person => person.Parenthood is { } previous &&
+                (person.AgentId == actor || previous.PartnerId == actor) && WorldTick - previous.LastTransitionTick < worldSystems.Config.TicksPerDay))
         {
             return;
         }
-        var partner = inhabitants.Keys.Order(StringComparer.Ordinal).FirstOrDefault(other => other != actor && Partners(actor, other) &&
-            !inhabitants.Values.Any(person => ActiveParenthood(person.Parenthood) &&
-                (person.InhabitantId == other || person.Parenthood!.PartnerId == other)));
+        var partner = agents.Keys.Order(StringComparer.Ordinal).FirstOrDefault(other => other != actor && Partners(actor, other) &&
+            !agents.Values.Any(person => ActiveParenthood(person.Parenthood) &&
+                (person.AgentId == other || person.Parenthood!.PartnerId == other)));
         if (partner is not null)
         {
             candidates.Add(new("parent_propose:" + partner, continuityCouple is null
@@ -223,8 +223,8 @@ public sealed partial class WorldRuntime
         if (candidate.StartsWith("parent_propose:", StringComparison.Ordinal))
         {
             if (Partners(actor, target) && FamilyResourcesReady(actor) &&
-                !inhabitants.Values.Any(person => ActiveParenthood(person.Parenthood) &&
-                    (person.InhabitantId == actor || person.InhabitantId == target || person.Parenthood!.PartnerId == actor || person.Parenthood.PartnerId == target)))
+                !agents.Values.Any(person => ActiveParenthood(person.Parenthood) &&
+                    (person.AgentId == actor || person.AgentId == target || person.Parenthood!.PartnerId == actor || person.Parenthood.PartnerId == target)))
             {
                 SetParenthood(actor, new(target, "requested", WorldTick, WorldTick,
                     PrimaryCaregiverId: actor, IntendedHouseholdId: HouseholdFor(actor)));
@@ -234,7 +234,7 @@ public sealed partial class WorldRuntime
         }
         var isAccept = TryParseParentAcceptance(candidate, out var acceptingPlanId, out var selector, out var intendedHomeId);
         if (!isAccept) acceptingPlanId = target;
-        if (!inhabitants.TryGetValue(acceptingPlanId, out var owner) || owner.Parenthood is not { } plan ||
+        if (!agents.TryGetValue(acceptingPlanId, out var owner) || owner.Parenthood is not { } plan ||
             !ActiveParenthood(plan) || (actor != target && actor != plan.PartnerId))
         {
             return;
@@ -303,19 +303,19 @@ public sealed partial class WorldRuntime
 
     private void MaintainParenthood()
     {
-        foreach (var person in inhabitants.Values.OrderBy(person => person.Parenthood?.RequestedTick ?? long.MaxValue)
-                     .ThenBy(person => person.InhabitantId, StringComparer.Ordinal).ToArray())
+        foreach (var person in agents.Values.OrderBy(person => person.Parenthood?.RequestedTick ?? long.MaxValue)
+                     .ThenBy(person => person.AgentId, StringComparer.Ordinal).ToArray())
         {
             if (person.Parenthood is not { } plan || !ActiveParenthood(plan))
             {
                 continue;
             }
             // A plan the continuity rule has sent ahead waits for food instead of expiring.
-            if (!Partners(person.InhabitantId, plan.PartnerId) ||
+            if (!Partners(person.AgentId, plan.PartnerId) ||
                 WorldTick - plan.LastTransitionTick > (plan.Stage == "requested" ? 120 : 2_400) &&
-                !ContinuityPlanDue(person.InhabitantId, plan.PartnerId))
+                !ContinuityPlanDue(person.AgentId, plan.PartnerId))
             {
-                SetParenthood(person.InhabitantId, plan with { Stage = "cancelled" });
+                SetParenthood(person.AgentId, plan with { Stage = "cancelled" });
                 continue;
             }
             if (plan.Stage != "preparing")
@@ -323,39 +323,39 @@ public sealed partial class WorldRuntime
             if (plan.PrimaryCaregiverId is not { } caregiverId || plan.IntendedHouseholdId is null ||
                 HouseholdFor(caregiverId) is not { } birthHouseholdId)
             {
-                SetParenthood(person.InhabitantId, plan with { Stage = "cancelled" });
+                SetParenthood(person.AgentId, plan with { Stage = "cancelled" });
                 continue;
             }
             if (WorldTick - plan.LastTransitionTick < 600 || !FamilyFoodReady(caregiverId) ||
-                !ReadyForLesson(person.InhabitantId) || !ReadyForLesson(plan.PartnerId))
+                !ReadyForLesson(person.AgentId) || !ReadyForLesson(plan.PartnerId))
             {
                 continue;
             }
             // Losing shelter after agreement creates a housing need, not a
             // blocked birth. Keep the child near their caregiver in that case.
-            var birthPosition = AccessibleShelters(caregiverId, includeStormRefuge: false).FirstOrDefault()?.Position ?? inhabitants[caregiverId].Position;
+            var birthPosition = AccessibleShelters(caregiverId, includeStormRefuge: false).FirstOrDefault()?.Position ?? agents[caregiverId].Position;
             var site = map.Tiles.Where(tile => map.IsBuildable(tile.Position) &&
                 IsWithinInteractionRange(tile.Position, birthPosition, ResourceInteractionRange) &&
-                !inhabitants.Values.Any(resident => resident.Position == tile.Position)).Select(tile => (GridPoint?)tile.Position).FirstOrDefault();
+                !agents.Values.Any(resident => resident.Position == tile.Position)).Select(tile => (GridPoint?)tile.Position).FirstOrDefault();
             if (site is null)
             {
                 continue;
             }
-            var requestId = ParenthoodRequestId(person.InhabitantId, plan.RequestedTick);
-            var householdCaregivers = new[] { person.InhabitantId, plan.PartnerId }
+            var requestId = ParenthoodRequestId(person.AgentId, plan.RequestedTick);
+            var householdCaregivers = new[] { person.AgentId, plan.PartnerId }
                 .Where(parent => HouseholdFor(parent) == birthHouseholdId)
                 .Append(caregiverId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
             var birthFood = BirthFood(caregiverId)!;
             society.Apply(checkpoint => SocietyRules.CommitBirth(checkpoint,
-                new(requestId, 1, person.InhabitantId, plan.PartnerId, birthHouseholdId,
-                    householdCaregivers, [person.InhabitantId, plan.PartnerId], birthFood[0].LotId, 4, WorldTick,
+                new(requestId, 1, person.AgentId, plan.PartnerId, birthHouseholdId,
+                    householdCaregivers, [person.AgentId, plan.PartnerId], birthFood[0].LotId, 4, WorldTick,
                     PrimaryCaregiverId: caregiverId, FoodContributions: birthFood)));
             var birth = society.Checkpoint.Births.FirstOrDefault(item => item.RequestId == requestId);
             if (birth is null)
             {
                 continue;
             }
-            inhabitants.Add(birth.ChildId, new(birth.ChildId, site.Value, 8_000, 0, "undecided", "find a purpose",
+            agents.Add(birth.ChildId, new(birth.ChildId, site.Value, 8_000, 0, "undecided", "find a purpose",
                 Survival: new SurvivalCondition(), IdentityChoicePending: true));
             var housingBlocker = HousingBlocker(birth.ChildId);
             if (housingBlocker is not null)
@@ -365,7 +365,7 @@ public sealed partial class WorldRuntime
             }
             if (TownForResident(caregiverId) is { } parentTownId)
                 AddTownResident(parentTownId, birth.ChildId, "child_joined");
-            SetParenthood(person.InhabitantId, plan with
+            SetParenthood(person.AgentId, plan with
             {
                 Stage = "completed",
                 ChildId = birth.ChildId,
@@ -377,12 +377,12 @@ public sealed partial class WorldRuntime
 
     private void CareForChild(string actor, string childId)
     {
-        if (!ReadyForBriefInteraction(actor) || !ChildrenNeedingCare(actor).Any(child => child.InhabitantId == childId))
+        if (!ReadyForBriefInteraction(actor) || !ChildrenNeedingCare(actor).Any(child => child.AgentId == childId))
         {
             return;
         }
-        var parent = inhabitants[actor];
-        var child = inhabitants[childId];
+        var parent = agents[actor];
+        var child = agents[childId];
         if (NeedsUrgentFood(parent) && !IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange)) return;
         if (child.HungerBasisPoints < 7_000 && PreferredFood(actor, actor).FirstOrDefault() is null)
         {
@@ -422,45 +422,45 @@ public sealed partial class WorldRuntime
                 IllnessBasisPoints = Math.Max(0, (child.Survival?.IllnessBasisPoints ?? 0) - IllnessCareReliefBasisPoints),
             }
         };
-        inhabitants[childId] = child;
+        agents[childId] = child;
         AppendEvent("child_cared_for", childId);
     }
 
     private void SetParenthood(string owner, SettlementParenthood plan)
     {
-        if (inhabitants[owner].Parenthood?.Stage != plan.Stage)
+        if (agents[owner].Parenthood?.Stage != plan.Stage)
         {
             plan = plan with { LastTransitionTick = WorldTick };
             AppendEvent("parenthood_" + plan.Stage, owner);
         }
-        inhabitants[owner] = inhabitants[owner] with { Parenthood = plan };
+        agents[owner] = agents[owner] with { Parenthood = plan };
     }
 
     private static void ValidateParenthood(WorldRuntimeState state)
     {
-        var known = state.Society.Society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var known = state.Society.Society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var participants = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var person in state.Inhabitants)
+        foreach (var person in state.Agents)
         {
             if (person.Parenthood is not { } plan) continue;
-            if (!known.Contains(plan.PartnerId) || plan.PartnerId == person.InhabitantId ||
+            if (!known.Contains(plan.PartnerId) || plan.PartnerId == person.AgentId ||
                 plan.Stage is not ("requested" or "preparing" or "completed" or "cancelled" or "postponed") || plan.RequestedTick < 0 ||
                 plan.LastTransitionTick < plan.RequestedTick || plan.LastTransitionTick > state.Society.Society.WorldTick ||
                 (ActiveParenthood(plan) || plan.Stage is "completed" or "postponed") &&
                     (plan.PrimaryCaregiverId is not { } caregiverId ||
-                     caregiverId != person.InhabitantId && caregiverId != plan.PartnerId ||
+                     caregiverId != person.AgentId && caregiverId != plan.PartnerId ||
                      plan.IntendedHouseholdId is not { } homeId ||
                      !state.Society.Society.Households.Any(household => household.Id == homeId)) ||
                 plan.Stage == "completed" && (plan.ChildId is null || !known.Contains(plan.ChildId) ||
                     plan.BirthHouseholdId is not { } birthHomeId ||
                     !state.Society.Society.Births.Any(birth => birth.ChildId == plan.ChildId &&
-                        birth.RequestId == ParenthoodRequestId(person.InhabitantId, plan.RequestedTick) &&
+                        birth.RequestId == ParenthoodRequestId(person.AgentId, plan.RequestedTick) &&
                         birth.PrimaryCaregiverId == plan.PrimaryCaregiverId &&
                         birth.HouseholdId == birthHomeId)) ||
                 plan.Stage != "completed" && (plan.ChildId is not null || plan.BirthHouseholdId is not null) ||
                 (ActiveParenthood(plan) || plan.Stage == "postponed") && state.Society.Society.Births.Any(birth =>
-                    birth.RequestId == ParenthoodRequestId(person.InhabitantId, plan.RequestedTick)) ||
-                ActiveParenthood(plan) && (!participants.Add(person.InhabitantId) || !participants.Add(plan.PartnerId)))
+                    birth.RequestId == ParenthoodRequestId(person.AgentId, plan.RequestedTick)) ||
+                ActiveParenthood(plan) && (!participants.Add(person.AgentId) || !participants.Add(plan.PartnerId)))
             {
                 throw new InvalidDataException("The saved parenthood plan is invalid.");
             }

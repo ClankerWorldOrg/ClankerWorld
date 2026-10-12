@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
     private bool DeliveryCanReach(string actor, GridPoint from, GridPoint destination, int range = 0) =>
         IsWithinInteractionRange(from, destination, range) || FindUnoccupiedRoute(actor, from, destination, range).Count > 0;
 
-    private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, InhabitantState person,
+    private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, AgentState person,
         OwnerInstructionOrder order, int maximumQuantity)
     {
         if (HouseholdFor(actor) is not { } householdId) return null;
@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
                 destination.HouseholdId != HouseholdFor(actor) || !DeliveryDestinationMatches(order, destination) ||
                 DeliveryRouteForCarried(order, destination) is not { } route ||
                 order.DeliveryRoute is not null && order.DeliveryRoute != route ||
-                PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id)) continue;
+                PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id)) continue;
             var vessel = InventoryContainerRules.IsContainer(lot.ItemKind);
             if (UnusableDeliveryStock(inventory, lot) || vessel && HasActiveContainerReservation(inventory, lot.Id)) continue;
             var available = vessel ? DeliveryResourceQuantity(lot, order.TargetItemKind!)
@@ -115,9 +115,9 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private DeliveryOrderPlan? DeliveryPlanFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private DeliveryOrderPlan? DeliveryPlanFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var order = instruction.Order!;
         if (!AdultResident(actor) || !ReadyForBriefInteraction(actor) || DeliveryOrderRemaining(order) <= 0) return null;
         var boundLot = order.DeliveryLotId is { } boundId
@@ -151,10 +151,10 @@ public sealed partial class WorldRuntime
     }
 
     private (PlacedBuilding Building, string Route, MapResource Source)? DeliveryGatherFor(
-        OwnerQueuedInstruction instruction, InhabitantState person)
+        OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order!;
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (order.DeliveryPurpose != "workstation_input" || order.DeliveryLotId is not null ||
             CarriedHouseDelivery(actor) is not null || !AdultResident(actor) || !ReadyForBriefInteraction(actor)) return null;
         if (order.DeliveryRoute is null or "blacksmith_input" && HouseholdFor(actor) is { } householdId &&
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
         return need?.Source is { } source ? (need.Building, "workstation_input", source) : null;
     }
 
-    private CognitionCandidate? DeliveryOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person) =>
+    private CognitionCandidate? DeliveryOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         DeliveryPlanFor(instruction, person) is { } plan
             ? new("deliver_stock", "Carry the requested goods to the selected building under its normal stocking rules.", 0, plan.Destination.InstanceId)
             : DeliveryGatherFor(instruction, person) is { } gather
@@ -208,7 +208,7 @@ public sealed partial class WorldRuntime
         return current;
     }
 
-    private DeliveryNativeEffect? ApplyDeliveryOrderPlan(string actor, InhabitantState person,
+    private DeliveryNativeEffect? ApplyDeliveryOrderPlan(string actor, AgentState person,
         DeliveryOrderPlan plan)
     {
         var destination = plan.DirectDelivery ? plan.Destination.Position : HouseholdStockPosition(plan.Carrier);
@@ -237,9 +237,9 @@ public sealed partial class WorldRuntime
         return new(operation, movedId, plan.ResourceQuantity, plan.DirectDelivery);
     }
 
-    private void ExecuteDeliveryOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteDeliveryOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (DeliveryPlanFor(instruction, person) is not { } plan)
         {
             if (DeliveryGatherFor(instruction, person) is { } gather)
@@ -269,10 +269,10 @@ public sealed partial class WorldRuntime
         };
     }
 
-    private string DeliveryOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string DeliveryOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
         var order = instruction.Order!;
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!AdultResident(actor)) return "An adult resident is needed to deliver goods.";
         if (order.TargetStorageBuildingId is { } bound &&
             (worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == bound) is not { } building ||

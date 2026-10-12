@@ -18,7 +18,7 @@ internal sealed partial class CivicSystem
         if (atNoticePlace && government.Arrangement.NonLand == "none")
             foreach (var office in government.Offices.Where(office => office.Mandates is "land" or "ordinary" && office.HolderId is not null && office.TermEndTick > world.WorldTick))
                 candidates.Add(new(CivicAction(world, town.Id, "government_extend_non_land", TownArrangementRules.Key(government.Arrangement with { NonLand = TownArrangementRules.Mayor }), NonLandExtensionToken(office)),
-                    "Propose adding nonviolent civil adjudication to " + world.Society.GetInhabitant(office.HolderId!).Name +
+                    "Propose adding nonviolent civil adjudication to " + world.Society.GetAgent(office.HolderId!).Name +
                     "'s existing " + TownArrangementRules.MandateLabel(office.Mandates) + " term. Resident majority and their separate personal consent are required; the existing term deadline stays unchanged.", 195));
         foreach (var change in government.Changes.Where(change => change.Status is "queued" or "voting" or "handover" &&
                      change.NonLandExtension is { ConsentTick: null } extension && extension.HolderId == actor &&
@@ -60,7 +60,7 @@ internal sealed partial class CivicSystem
             history.Knows(actor, TownGovernmentRules.RoundToken(contest)))
             foreach (var id in contest.Candidates)
                 candidates.Add(new(CivicAction(world, town.Id, "mayor_vote", TownGovernmentRules.RoundToken(contest), id),
-                    $"Submit or revise your mayoral ballot for {world.Society.GetInhabitant(id).Name} in {town.Name}, for {TownArrangementRules.MandateLabel(contest.Mandates)}. " +
+                    $"Submit or revise your mayoral ballot for {world.Society.GetAgent(id).Name} in {town.Name}, for {TownArrangementRules.MandateLabel(contest.Mandates)}. " +
                     $"Round {contest.Round} closes on world day {CivicDayNumber(world, closes)}. A tie requires another vote, never a draw.", 167));
     }
 

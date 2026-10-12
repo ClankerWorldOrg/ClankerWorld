@@ -13,9 +13,9 @@ public static partial class TownGovernanceValidation
             return;
         }
         var tick = society.WorldTick;
-        var known = society.Inhabitants.Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
-        var adults = town.ResidentIds.Where(id => society.Inhabitants.Any(p => p.Id == id &&
-            p.Status == SocietyInhabitantStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).ToHashSet(StringComparer.Ordinal);
+        var known = society.Agents.Select(p => p.Id).ToHashSet(StringComparer.Ordinal);
+        var adults = town.ResidentIds.Where(id => society.Agents.Any(p => p.Id == id &&
+            p.Status == SocietyAgentStatus.Active && p.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).ToHashSet(StringComparer.Ordinal);
         if (state.Members is null || state.Candidates is null || state.Proposals is null ||
             state.ElectionHistory is null || state.Notices is null || state.Knowledge is null ||
             state.Form is not ("all_adult" or "representative" or "leader") || state.Fallback is not ("initial" or "none" or "demographic" or "candidates" or "arrangement") ||

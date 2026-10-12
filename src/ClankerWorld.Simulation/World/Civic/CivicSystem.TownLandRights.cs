@@ -36,14 +36,14 @@ internal sealed partial class CivicSystem
             return (RejectedLandRequest("Choose a request ID, an adult Town resident, and one connected land plot."), governance);
 
         if (founderSetup is not { Started: true } ||
-            !world.Society.Inhabitants.Any(person => person.Id == requestedByAgentId &&
-                person.Status == SocietyInhabitantStatus.Active &&
+            !world.Society.Agents.Any(person => person.Id == requestedByAgentId &&
+                person.Status == SocietyAgentStatus.Active &&
                 (person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder) && person.HouseholdId is not null) ||
             !towns.Any(town => town.Id == townId &&
                 town.ResidentIds.Contains(requestedByAgentId, StringComparer.Ordinal)))
             return (RejectedLandRequest("Only an adult household member of this Town can file a use request."), governance);
 
-        var householdId = world.Society.GetInhabitant(requestedByAgentId).HouseholdId!;
+        var householdId = world.Society.GetAgent(requestedByAgentId).HouseholdId!;
         var tiles = TownLandRightsRules.OrderTiles(requestedTiles);
         if (TownLandRightsRules.ConnectedPlots(world.Map, tiles).Count != 1 ||
             tiles.Any(tile => !TownLandRightsRules.IsCoveredByTownTitle(tile, townId, townLandTitles)))

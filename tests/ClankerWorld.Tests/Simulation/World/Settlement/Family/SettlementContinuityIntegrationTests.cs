@@ -18,17 +18,17 @@ public sealed partial class SettlementParenthoodTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var couple = Assert.Single(world.ExportState().Continuity!.Couples);
         Assert.Equal(world.WorldTick + 2L * state.WorldSystems!.Config.TicksPerDay, couple.DeadlineTick);
-        Assert.All(world.Inhabitants, person => Assert.Null(person.Parenthood));
+        Assert.All(world.Agents, person => Assert.Null(person.Parenthood));
 
         PositionFamilyFixtureAt(world, couple.DeadlineTick - 2);
         await AdvanceContinuityIntegrationTo(world, couple.DeadlineTick - 1);
-        Assert.All(world.Inhabitants, person => Assert.Null(person.Parenthood));
+        Assert.All(world.Agents, person => Assert.Null(person.Parenthood));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var owner = couple.FirstPartnerId;
         var partner = owner == first ? second : first;
-        var home = world.Society.GetInhabitant(owner).HouseholdId!;
-        var plan = world.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!;
+        var home = world.Society.GetAgent(owner).HouseholdId!;
+        var plan = world.Agents.Single(person => person.AgentId == owner).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         Assert.Equal(partner, plan.PartnerId);
         Assert.Equal(owner, plan.PrimaryCaregiverId);
@@ -58,8 +58,8 @@ public sealed partial class SettlementParenthoodTests
         var birth = Assert.Single(restored.Society.Births);
         Assert.Equal(owner, birth.PrimaryCaregiverId);
         Assert.Equal(home, birth.HouseholdId);
-        Assert.Equal(SocietyAgeBand.Infant, restored.Society.GetInhabitant(birth.ChildId).AgeBand);
-        var completed = restored.Inhabitants.Single(person => person.InhabitantId == owner).Parenthood!;
+        Assert.Equal(SocietyAgeBand.Infant, restored.Society.GetAgent(birth.ChildId).AgeBand);
+        var completed = restored.Agents.Single(person => person.AgentId == owner).Parenthood!;
         Assert.Equal("completed", completed.Stage);
         Assert.Equal(birth.ChildId, completed.ChildId);
         Assert.Equal(home, completed.BirthHouseholdId);
@@ -76,8 +76,8 @@ public sealed partial class SettlementParenthoodTests
         {
             var (state, initiator, acceptor) = ContinuityIntegrationCouple("continuity-postponed-caregiver",
                 separateHouseholds: true);
-            var initiatorHome = state.Society.Society.GetInhabitant(initiator).HouseholdId!;
-            var acceptorHome = state.Society.Society.GetInhabitant(acceptor).HouseholdId!;
+            var initiatorHome = state.Society.Society.GetAgent(initiator).HouseholdId!;
+            var acceptorHome = state.Society.Society.GetAgent(acceptor).HouseholdId!;
             Assert.NotEqual(initiatorHome, acceptorHome);
             Assert.True(string.CompareOrdinal(acceptor, initiator) < 0);
             var initiate = new ParentProvider("parent_propose:" + acceptor);
@@ -89,9 +89,9 @@ public sealed partial class SettlementParenthoodTests
                 : new ParentProvider("safe_idle");
             using var world = WorldRuntime.Restore(state, ProviderFor);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal("requested", world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!.Stage);
+            Assert.Equal("requested", world.Agents.Single(person => person.AgentId == initiator).Parenthood!.Stage);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var agreed = world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!;
+            var agreed = world.Agents.Single(person => person.AgentId == initiator).Parenthood!;
             Assert.Equal("preparing", agreed.Stage);
             Assert.Equal(acceptor, agreed.PrimaryCaregiverId);
             Assert.Equal(acceptorHome, agreed.IntendedHouseholdId);
@@ -101,11 +101,11 @@ public sealed partial class SettlementParenthoodTests
 
             postponing = true;
             for (var tick = 0; tick < 40 &&
-                 world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!.Stage != "postponed"; tick++)
+                 world.Agents.Single(person => person.AgentId == initiator).Parenthood!.Stage != "postponed"; tick++)
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var postponed = world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!;
+            var postponed = world.Agents.Single(person => person.AgentId == initiator).Parenthood!;
             Assert.Equal("postponed", postponed.Stage);
-            Assert.Contains("Parenthood put off for now.", new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants
+            Assert.Contains("Parenthood put off for now.", new OwnerWorldObservationStore(world).GetSnapshot().Agents
                 .Single(person => person.Id == initiator).SocialNotes);
             Assert.Equal(acceptor, postponed.PrimaryCaregiverId);
             Assert.Equal(acceptorHome, postponed.IntendedHouseholdId);
@@ -115,19 +115,19 @@ public sealed partial class SettlementParenthoodTests
             var bytes = WorldRuntimeCodec.Encode(world.ExportState());
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
                 _ => new ParentProvider("safe_idle"));
-            Assert.Equal(postponed, restored.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood);
+            Assert.Equal(postponed, restored.Agents.Single(person => person.AgentId == initiator).Parenthood);
             restored.Resume();
             await AdvanceContinuityIntegrationTo(restored, deadline - 1);
-            Assert.Equal("postponed", restored.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!.Stage);
+            Assert.Equal("postponed", restored.Agents.Single(person => person.AgentId == initiator).Parenthood!.Stage);
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
 
-            var resumed = restored.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!;
+            var resumed = restored.Agents.Single(person => person.AgentId == initiator).Parenthood!;
             Assert.Equal("preparing", resumed.Stage);
             Assert.Equal(acceptor, resumed.PrimaryCaregiverId);
             Assert.Equal(acceptorHome, resumed.IntendedHouseholdId);
             Assert.Equal(agreed.RequestedTick, resumed.RequestedTick);
             Assert.Equal(deadline, resumed.LastTransitionTick);
-            Assert.Null(restored.Inhabitants.Single(person => person.InhabitantId == acceptor).Parenthood);
+            Assert.Null(restored.Agents.Single(person => person.AgentId == acceptor).Parenthood);
             restored.Validate();
             PositionFamilyFixtureAt(restored, deadline + 598);
             await AdvanceContinuityIntegrationTo(restored, deadline + 599);
@@ -152,22 +152,22 @@ public sealed partial class SettlementParenthoodTests
             Assert.Equal($"family:{initiator}:{agreed.RequestedTick}", birth.RequestId);
             Assert.Equal(acceptor, birth.PrimaryCaregiverId);
             Assert.Equal(acceptorHome, birth.HouseholdId);
-            Assert.Equal(acceptorHome, restored.Society.GetInhabitant(birth.ChildId).HouseholdId);
+            Assert.Equal(acceptorHome, restored.Society.GetAgent(birth.ChildId).HouseholdId);
             Assert.Equal(caregiverFood - 4, ContinuityHouseholdFood(restored, acceptorHome));
             Assert.Equal(initiatorFood, ContinuityHouseholdFood(restored, initiatorHome));
-            var completed = restored.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!;
+            var completed = restored.Agents.Single(person => person.AgentId == initiator).Parenthood!;
             Assert.Equal("completed", completed.Stage);
             Assert.Equal(acceptor, completed.PrimaryCaregiverId);
             Assert.Equal(acceptorHome, completed.IntendedHouseholdId);
             Assert.Equal(acceptorHome, completed.BirthHouseholdId);
-            var child = restored.Inhabitants.Single(person => person.InhabitantId == birth.ChildId);
+            var child = restored.Agents.Single(person => person.AgentId == birth.ChildId);
             Assert.Equal("openai", child.ChildModelSelection!.Provider);
             Assert.Equal("continuity-initiating-parent-model", child.ChildModelSelection.ModelId);
             Assert.Equal(WorldRuntime.ChildModelChoiceInitiatingParent, child.ChildModelSelection.ChoiceReason);
             using var reloadedBirth = stateFile.LoadOrCreate(state.WorldSeed);
             Assert.Equal(birth, Assert.Single(reloadedBirth.Society.Births));
             Assert.Equal(child.ChildModelSelection,
-                reloadedBirth.Inhabitants.Single(person => person.InhabitantId == child.InhabitantId).ChildModelSelection);
+                reloadedBirth.Agents.Single(person => person.AgentId == child.AgentId).ChildModelSelection);
         }
         finally
         {
@@ -191,17 +191,17 @@ public sealed partial class SettlementParenthoodTests
             : "safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("preparing", world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!.Stage);
+        Assert.Equal("preparing", world.Agents.Single(person => person.AgentId == initiator).Parenthood!.Stage);
         postponing = true;
         for (var tick = 0; tick < 40 &&
-             world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!.Stage != "postponed"; tick++)
+             world.Agents.Single(person => person.AgentId == initiator).Parenthood!.Stage != "postponed"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("postponed", world.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!.Stage);
+        Assert.Equal("postponed", world.Agents.Single(person => person.AgentId == initiator).Parenthood!.Stage);
         world.Pause();
         state = world.ExportState();
         var healthyBytes = WorldRuntimeCodec.Encode(state);
-        var plan = state.Inhabitants.Single(person => person.InhabitantId == initiator).Parenthood!;
-        var other = state.Inhabitants.First(person => person.InhabitantId != initiator && person.InhabitantId != acceptor).InhabitantId;
+        var plan = state.Agents.Single(person => person.AgentId == initiator).Parenthood!;
+        var other = state.Agents.First(person => person.AgentId != initiator && person.AgentId != acceptor).AgentId;
         var damagedPlan = damage switch
         {
             "missing-caregiver" => plan with { PrimaryCaregiverId = null },
@@ -212,12 +212,12 @@ public sealed partial class SettlementParenthoodTests
         };
         var damagedState = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == initiator
+            Agents = state.Agents.Select(person => person.AgentId == initiator
                 ? person with { Parenthood = damagedPlan } : person).ToArray(),
         };
         var document = JsonNode.Parse(healthyBytes)!;
-        var savedPlan = document["state"]!["inhabitants"]!.AsArray()
-            .Single(person => person!["inhabitantId"]!.GetValue<string>() == initiator)!["parenthood"]!;
+        var savedPlan = document["state"]!["agents"]!.AsArray()
+            .Single(person => person!["agentId"]!.GetValue<string>() == initiator)!["parenthood"]!;
         savedPlan["primaryCaregiverId"] = damagedPlan.PrimaryCaregiverId;
         savedPlan["intendedHouseholdId"] = damagedPlan.IntendedHouseholdId;
         var restoreFailure = Record.Exception(() =>
@@ -237,7 +237,7 @@ public sealed partial class SettlementParenthoodTests
         var (state, initiator, partner) = ContinuityIntegrationCouple("continuity-completed-birth-checkpoint",
             separateHouseholds: true);
         var society = state.Society.Society;
-        var home = society.GetInhabitant(partner).HouseholdId!;
+        var home = society.GetAgent(partner).HouseholdId!;
         var food = society.Inventory.Lots.First(lot => lot.OwnerId == home && lot.ItemKind == "food" && lot.Quantity >= 4);
         var committed = SocietyRules.CommitBirth(society, new SocietyBirthRequest(
             $"family:{initiator}:{society.WorldTick}", 1, initiator, partner, home, [partner], [initiator, partner],
@@ -245,7 +245,7 @@ public sealed partial class SettlementParenthoodTests
         var childId = Assert.IsType<string>(committed.CreatedId);
         var birth = Assert.Single(committed.Checkpoint.Births);
         var childPosition = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
-            !state.Inhabitants.Any(person => person.Position == point) &&
+            !state.Agents.Any(person => person.Position == point) &&
             !state.Map.Resources.Any(resource => resource.Position == point) &&
             !state.Map.MapObjects.Any(startingSite => startingSite.Position == point));
         var completed = new SettlementParenthood(partner, "completed", society.WorldTick, society.WorldTick,
@@ -253,9 +253,9 @@ public sealed partial class SettlementParenthoodTests
         state = state with
         {
             Society = state.Society with { Society = committed.Checkpoint },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == initiator
+            Agents = state.Agents.Select(person => person.AgentId == initiator
                 ? person with { Parenthood = completed } : person)
-                .Append(new InhabitantState(childId, childPosition, 8_000, 0, "curious", "grow with the household"))
+                .Append(new AgentState(childId, childPosition, 8_000, 0, "curious", "grow with the household"))
                 .ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(partner, StringComparer.Ordinal)
                 ? town with { ResidentIds = town.ResidentIds.Append(childId).Order(StringComparer.Ordinal).ToArray() }
@@ -271,12 +271,12 @@ public sealed partial class SettlementParenthoodTests
         var postponed = completed with { Stage = "postponed", ChildId = null, BirthHouseholdId = null };
         var damagedState = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == initiator
+            Agents = state.Agents.Select(person => person.AgentId == initiator
                 ? person with { Parenthood = postponed } : person).ToArray(),
         };
         var document = JsonNode.Parse(healthyBytes)!;
-        var savedPlan = document["state"]!["inhabitants"]!.AsArray()
-            .Single(person => person!["inhabitantId"]!.GetValue<string>() == initiator)!["parenthood"]!;
+        var savedPlan = document["state"]!["agents"]!.AsArray()
+            .Single(person => person!["agentId"]!.GetValue<string>() == initiator)!["parenthood"]!;
         savedPlan["stage"] = "postponed";
         savedPlan["childId"] = null;
         savedPlan["birthHouseholdId"] = null;
@@ -311,11 +311,11 @@ public sealed partial class SettlementParenthoodTests
         state = state with
         {
             Society = society.ExportState(),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 HungerBasisPoints = 10_000,
                 LastDecisionContext = null,
-                Skills = person.InhabitantId == initiator || person.InhabitantId == partner
+                Skills = person.AgentId == initiator || person.AgentId == partner
                     ? [new(SettlementSkillKind.Building, state.Society.Society.WorldTick)] : person.Skills,
             }).ToArray(),
             WorldSystems = state.WorldSystems! with

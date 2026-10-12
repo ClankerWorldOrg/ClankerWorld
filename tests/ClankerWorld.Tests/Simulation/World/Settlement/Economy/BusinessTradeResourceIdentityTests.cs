@@ -61,7 +61,7 @@ public sealed partial class BusinessTradeTests
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != "buyer-payment").ToArray() };
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
         };
         using var offering = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             actor => actor == buyer ? new ShopProvider("business_shop:" + shopId) : new ShopProvider("safe_idle"));
@@ -100,7 +100,7 @@ public sealed partial class BusinessTradeTests
             // The seller's changed test policy needs a fresh turn after the completed quote phase.
             using var restored = WorldRuntime.Restore(pendingState with
             {
-                Inhabitants = pendingState.Inhabitants.Select(person => person.InhabitantId == seller
+                Agents = pendingState.Agents.Select(person => person.AgentId == seller
                     ? person with { LastDecisionContext = null } : person).ToArray(),
             }, actor => actor == seller ? new ShopProvider("business_continue:") : new ShopProvider("safe_idle"));
             var pending = Assert.Single(restored.BusinessTrades);

@@ -27,9 +27,9 @@ public sealed partial class BusinessTradeTests
         var position = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == store).Position;
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
+                Position = person.AgentId == actor ? position : person.Position,
                 HungerBasisPoints = 10_000,
                 Project = null,
                 LastDecisionContext = null,

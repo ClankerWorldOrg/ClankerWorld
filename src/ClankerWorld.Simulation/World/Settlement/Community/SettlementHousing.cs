@@ -63,29 +63,29 @@ public sealed partial class WorldRuntime
     /// <summary>A refused or unanswered household is asked again only after two world days.</summary>
     private long HousingRefusalCooldownTicks => 2L * worldSystems.Config.TicksPerDay;
 
-    private string[] HouseholdAdults(string householdId) => society.Checkpoint.Inhabitants.Where(person =>
-            person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == householdId &&
+    private string[] HouseholdAdults(string householdId) => society.Checkpoint.Agents.Where(person =>
+            person.Status == SocietyAgentStatus.Active && person.HouseholdId == householdId &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
         .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 
     private bool HasHome(string actor) =>
-        society.Checkpoint.GetInhabitant(actor).HouseholdId is { } householdId && HouseForHousehold(householdId) is not null;
+        society.Checkpoint.GetAgent(actor).HouseholdId is { } householdId && HouseForHousehold(householdId) is not null;
 
     private HouseResidentCapacityRules.Capacity? HouseResidentCapacity(string householdId,
-        SocietyInhabitant? proposedResident = null)
+        SocietyAgent? proposedResident = null)
     {
         if (HouseForHousehold(householdId) is not { } house)
             return null;
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId);
         var effective = BuildingStorageRules.EffectiveDefinition(definition, house);
-        var residents = society.Checkpoint.Inhabitants.Where(person =>
-            person.HouseholdId == householdId && person.Status == SocietyInhabitantStatus.Active);
+        var residents = society.Checkpoint.Agents.Where(person =>
+            person.HouseholdId == householdId && person.Status == SocietyAgentStatus.Active);
         if (proposedResident is not null && !residents.Any(person => person.Id == proposedResident.Id))
             residents = residents.Append(proposedResident with { HouseholdId = householdId });
         return HouseResidentCapacityRules.Calculate(residents, effective.Width, effective.Height);
     }
 
-    private bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident) =>
+    private bool CanFitHouseResident(string householdId, SocietyAgent proposedResident) =>
         HouseResidentCapacity(householdId, proposedResident) is { IsOvercrowded: false };
 
     /// <summary>
@@ -102,10 +102,10 @@ public sealed partial class WorldRuntime
     {
         if (!AdultResident(actor))
             yield break;
-        var current = society.Checkpoint.GetInhabitant(actor).HouseholdId;
+        var current = society.Checkpoint.GetAgent(actor).HouseholdId;
         if (current is not null && !MayRelocateFromHousehold(actor))
             yield break;
-        var housing = inhabitants[actor].Housing;
+        var housing = agents[actor].Housing;
         if (housing?.Request is not null)
             yield break;
         var town = TownForResident(actor);
@@ -125,16 +125,16 @@ public sealed partial class WorldRuntime
     /// <summary>Applicants whose request this member has not answered yet, in a stable order.</summary>
     private IEnumerable<string> PendingHousingRequestsFor(string member)
     {
-        var householdId = society.Checkpoint.GetInhabitant(member).HouseholdId;
+        var householdId = society.Checkpoint.GetAgent(member).HouseholdId;
         if (householdId is null)
             yield break;
-        foreach (var applicant in inhabitants.Values.OrderBy(person => person.InhabitantId, StringComparer.Ordinal))
+        foreach (var applicant in agents.Values.OrderBy(person => person.AgentId, StringComparer.Ordinal))
         {
             if (applicant.Housing?.Request is { } request && request.HouseholdId == householdId &&
                 request.Members.Contains(member, StringComparer.Ordinal) &&
                 !request.Approvals.Contains(member, StringComparer.Ordinal) &&
                 !request.Rejections.Contains(member, StringComparer.Ordinal))
-                yield return applicant.InhabitantId;
+                yield return applicant.AgentId;
         }
     }
 
@@ -147,7 +147,7 @@ public sealed partial class WorldRuntime
         AddDepartureCandidates(candidates, actor);
         AddRelocationCandidates(candidates, actor);
         // Only a member with a move-out notice asks while still living in their House.
-        var member = society.Checkpoint.GetInhabitant(actor).HouseholdId is not null;
+        var member = society.Checkpoint.GetAgent(actor).HouseholdId is not null;
         foreach (var household in AskableHouseholds(actor))
         {
             candidates.Add(new(HousingAskPrefix + household.Id,
@@ -158,7 +158,7 @@ public sealed partial class WorldRuntime
         }
         foreach (var applicant in PendingHousingRequestsFor(actor))
         {
-            var name = society.Checkpoint.GetInhabitant(applicant).Name;
+            var name = society.Checkpoint.GetAgent(applicant).Name;
             candidates.Add(new(HousingAdmitPrefix + applicant,
                 $"Agree to let {name} live in your household's House as a member; every adult member must agree.", 16));
             candidates.Add(new(HousingRefusePrefix + applicant,
@@ -181,7 +181,7 @@ public sealed partial class WorldRuntime
             var householdId = candidate[HousingAskPrefix.Length..];
             if (AskableHouseholds(actor).All(household => household.Id != householdId))
                 return;
-            SetHousing(actor, (inhabitants[actor].Housing ?? new()) with
+            SetHousing(actor, (agents[actor].Housing ?? new()) with
             {
                 Request = new(householdId, WorldTick, WorldTick + HousingRequestTicks, HouseholdAdults(householdId), [], []),
             });
@@ -194,7 +194,7 @@ public sealed partial class WorldRuntime
             return;
         var applicant = candidate[(admit ? HousingAdmitPrefix : HousingRefusePrefix).Length..];
         if (!PendingHousingRequestsFor(actor).Contains(applicant, StringComparer.Ordinal) ||
-            inhabitants[applicant].Housing is not { Request: { } request } housing)
+            agents[applicant].Housing is not { Request: { } request } housing)
             return;
         SetHousing(applicant, housing with
         {
@@ -208,10 +208,10 @@ public sealed partial class WorldRuntime
 
     private void MaintainHousing()
     {
-        foreach (var actor in inhabitants.Keys.Order(StringComparer.Ordinal).ToArray())
+        foreach (var actor in agents.Keys.Order(StringComparer.Ordinal).ToArray())
         {
             ResolveHousingRequest(actor);
-            var housing = inhabitants[actor].Housing;
+            var housing = agents[actor].Housing;
             var refusals = housing?.Refusals?.Where(refusal => WorldTick - refusal.Tick < HousingRefusalCooldownTicks).ToArray();
             var blocker = HousingBlocker(actor);
             if (housing?.Blocker == blocker && (refusals?.Length ?? 0) == (housing?.Refusals?.Count ?? 0))
@@ -226,9 +226,9 @@ public sealed partial class WorldRuntime
     {
         // Care, family or a completed expansion can change between answers,
         // including earlier in this decision batch. Cancel stale notices first.
-        if (inhabitants.TryGetValue(actor, out var applicant) && applicant.Housing is { Request: not null, Relocation: { } notice })
+        if (agents.TryGetValue(actor, out var applicant) && applicant.Housing is { Request: not null, Relocation: { } notice })
             ReconcileRelocation(notice.HouseholdId);
-        if (!inhabitants.TryGetValue(actor, out var state) || state.Housing is not { Request: { } request } housing)
+        if (!agents.TryGetValue(actor, out var state) || state.Housing is not { Request: { } request } housing)
             return;
         var living = HouseholdAdults(request.HouseholdId);
         var members = request.Members.Union(living, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
@@ -240,7 +240,7 @@ public sealed partial class WorldRuntime
             housing = housing with { Request = request };
             SetHousing(actor, housing);
         }
-        var current = AdultResident(actor) ? society.Checkpoint.GetInhabitant(actor).HouseholdId : null;
+        var current = AdultResident(actor) ? society.Checkpoint.GetAgent(actor).HouseholdId : null;
         // A member's request ends with their move-out notice: the move is no longer needed.
         if (!AdultResident(actor) || current is not null && (current == request.HouseholdId || !MayRelocateFromHousehold(actor)) ||
             HouseForHousehold(request.HouseholdId) is null || living.Length == 0)
@@ -273,20 +273,20 @@ public sealed partial class WorldRuntime
                 return;
             }
             society.Apply(checkpoint => SocietyRules.JoinHouseholdCareGroup(checkpoint, actor, request.HouseholdId));
-            if (society.Checkpoint.GetInhabitant(actor).HouseholdId != request.HouseholdId)
+            if (society.Checkpoint.GetAgent(actor).HouseholdId != request.HouseholdId)
             {
                 EndHousingRequest(actor, request, "housing_request_cancelled", remember: false);
                 return;
             }
             foreach (var id in MovingCareGroup(actor))
-                SetHousing(id, (inhabitants[id].Housing ?? new()) with { Request = null, Refusals = null, Blocker = null });
+                SetHousing(id, (agents[id].Housing ?? new()) with { Request = null, Refusals = null, Blocker = null });
             AppendEvent("household_joined", $"{actor}:{request.HouseholdId}");
         }
     }
 
     private void EndHousingRequest(string actor, SettlementHousingRequest request, string eventKind, bool remember)
     {
-        var housing = inhabitants[actor].Housing!;
+        var housing = agents[actor].Housing!;
         var refusals = (housing.Refusals ?? []).Where(refusal => refusal.HouseholdId != request.HouseholdId);
         if (remember)
             refusals = refusals.Append(new SettlementHousingRefusal(request.HouseholdId, WorldTick));
@@ -297,7 +297,7 @@ public sealed partial class WorldRuntime
             Blocker = null,
         });
         // The blocker is recomputed now, so the owner never sees a stale "waiting" line.
-        SetHousing(actor, (inhabitants[actor].Housing ?? new()) with { Blocker = HousingBlocker(actor) });
+        SetHousing(actor, (agents[actor].Housing ?? new()) with { Blocker = HousingBlocker(actor) });
         AppendEvent(eventKind, $"{actor}:{request.HouseholdId}");
     }
 
@@ -305,7 +305,7 @@ public sealed partial class WorldRuntime
     {
         var empty = housing.Request is null && housing.Refusals is not { Count: > 0 } && housing.Blocker is null &&
             housing.Relocation is null;
-        inhabitants[actor] = inhabitants[actor] with
+        agents[actor] = agents[actor] with
         {
             Housing = empty ? null : housing with { Refusals = housing.Refusals is { Count: > 0 } ? housing.Refusals : null },
         };
@@ -320,10 +320,10 @@ public sealed partial class WorldRuntime
     /// </summary>
     private string? HousingBlocker(string actor)
     {
-        if (!inhabitants.TryGetValue(actor, out var physical))
+        if (!agents.TryGetValue(actor, out var physical))
             return null;
-        var person = society.Checkpoint.GetInhabitant(actor);
-        if (person.Status != SocietyInhabitantStatus.Active)
+        var person = society.Checkpoint.GetAgent(actor);
+        if (person.Status != SocietyAgentStatus.Active)
             return null;
         if (person.HouseholdId is { } currentHousehold && HouseForHousehold(currentHousehold) is not null)
             return HouseResidentCapacity(currentHousehold) is { IsOvercrowded: true }
@@ -350,7 +350,7 @@ public sealed partial class WorldRuntime
     /// <summary>What the agent's own model is told about its housing; null when it has a home.</summary>
     private string? HousingNote(string actor)
     {
-        var person = society.Checkpoint.GetInhabitant(actor);
+        var person = society.Checkpoint.GetAgent(actor);
         if (person.HouseholdId is { } householdId && HouseForHousehold(householdId) is { } house &&
             HouseResidentCapacity(householdId) is { } capacity)
         {
@@ -358,8 +358,8 @@ public sealed partial class WorldRuntime
                 return RelocationNote(actor, householdId, capacity);
             var definition = worldContent.Buildings.Single(item => item.CanonicalId == house.DefinitionId);
             var footprint = WorldContentSimulationRules.Footprint(definition, house).ToHashSet();
-            var inside = inhabitants.Values.Count(physical =>
-                society.Checkpoint.GetInhabitant(physical.InhabitantId).Status == SocietyInhabitantStatus.Active &&
+            var inside = agents.Values.Count(physical =>
+                society.Checkpoint.GetAgent(physical.AgentId).Status == SocietyAgentStatus.Active &&
                 footprint.Contains(physical.Position));
             var state = capacity.HasFreePlace ? "has room" : "is full";
             var family = capacity.HasDominantFamily
@@ -371,7 +371,7 @@ public sealed partial class WorldRuntime
             return $"House: {capacity.ResidentCount}/{capacity.Limit} permanent places ({state}); " +
                 $"{inside} inside; absences still count{family}{expansion}";
         }
-        if (inhabitants[actor].Housing is not { Blocker: { } blocker } housing)
+        if (agents[actor].Housing is not { Blocker: { } blocker } housing)
             return null;
         return blocker switch
         {
@@ -395,9 +395,9 @@ public sealed partial class WorldRuntime
     private string HouseholdNameFor(string householdId) =>
         society.Checkpoint.Households.FirstOrDefault(item => item.Id == householdId)?.Name ?? "other";
 
-    private static void ValidateHousing(IEnumerable<InhabitantState> physical, SocietyCheckpoint society, int schemaVersion)
+    private static void ValidateHousing(IEnumerable<AgentState> physical, SocietyCheckpoint society, int schemaVersion)
     {
-        var people = society.Inhabitants.ToDictionary(person => person.Id, StringComparer.Ordinal);
+        var people = society.Agents.ToDictionary(person => person.Id, StringComparer.Ordinal);
         var households = society.Households.Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var person in physical)
         {
@@ -415,8 +415,8 @@ public sealed partial class WorldRuntime
             if (housing.Relocation is { } notice)
                 ValidateRelocation(person, notice, people, society, schemaVersion);
             var hasAdultAdmissionState = housing.Request is not null || housing.Refusals is { Count: > 0 };
-            var isAdultResident = people.TryGetValue(person.InhabitantId, out var societyPerson) &&
-                societyPerson.Status == SocietyInhabitantStatus.Active &&
+            var isAdultResident = people.TryGetValue(person.AgentId, out var societyPerson) &&
+                societyPerson.Status == SocietyAgentStatus.Active &&
                 societyPerson.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
             if (hasAdultAdmissionState && !isAdultResident ||
                 housing.Blocker == HousingBlockers.AwaitingAnswer && housing.Request is null)
@@ -425,13 +425,13 @@ public sealed partial class WorldRuntime
                 continue;
             var answers = request.Approvals is null || request.Rejections is null ? null : request.Approvals.Concat(request.Rejections).ToArray();
             // A member asks only while holding a move-out notice from their current House.
-            if (!people.TryGetValue(person.InhabitantId, out var applicant) || applicant.HouseholdId == request.HouseholdId ||
+            if (!people.TryGetValue(person.AgentId, out var applicant) || applicant.HouseholdId == request.HouseholdId ||
                 applicant.HouseholdId is not null && housing.Relocation?.HouseholdId != applicant.HouseholdId ||
                 !households.Contains(request.HouseholdId) || request.RequestedTick < 0 || request.RequestedTick > society.WorldTick ||
                 request.ExpiryTick - request.RequestedTick != HousingRequestTicks ||
                 request.Members is null || answers is null || request.Members.Count == 0 ||
                 request.Members.Distinct(StringComparer.Ordinal).Count() != request.Members.Count ||
-                request.Members.Any(id => string.IsNullOrWhiteSpace(id) || !people.ContainsKey(id) || id == person.InhabitantId) ||
+                request.Members.Any(id => string.IsNullOrWhiteSpace(id) || !people.ContainsKey(id) || id == person.AgentId) ||
                 answers.Distinct(StringComparer.Ordinal).Count() != answers.Length ||
                 answers.Any(id => !request.Members.Contains(id, StringComparer.Ordinal)))
                 throw new InvalidDataException("The saved housing request is invalid.");

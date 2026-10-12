@@ -363,7 +363,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
         var actor = Actor(state);
         var owner = householdStock ? Household : actor;
         var reserve = householdStock ? 2 * state.Society.Society.GetHousehold(Household).MemberIds
-            .Count(id => state.Inhabitants.Any(person => person.InhabitantId == id)) : 2;
+            .Count(id => state.Agents.Any(person => person.AgentId == id)) : 2;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "reserve-berries", "berries", owner,
             reserve + 4, storageBuildingId: householdStock ? House : null);
         using var world = Restore(WithInventory(state, inventory));
@@ -521,7 +521,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
         var state = Prepared(House);
         var actor = Actor(state);
         var reserve = 2 * state.Society.Society.GetHousehold(Household).MemberIds
-            .Count(id => state.Inhabitants.Any(person => person.InhabitantId == id));
+            .Count(id => state.Agents.Any(person => person.AgentId == id));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "household-food-a", "berries", Household,
             reserve / 2 + 1, storageBuildingId: House);
         inventory = InventoryAuthority.AddLot(inventory, "household-food-b", "berries", Household,
@@ -561,7 +561,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
             inventory = InventoryAuthority.Reserve(inventory, "protected-food", actor, "z-unavailable-food", 2, "other_work", 1_000);
         if (boundary == "other-carrier")
             inventory = InventoryAuthority.Relocate(inventory, "lend-food", "z-unavailable-food", actor, 2,
-                carrierId: state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId);
+                carrierId: state.Agents.First(person => person.AgentId != actor).AgentId);
         if (boundary == "pot")
         {
             inventory = InventoryAuthority.AddLot(inventory, "personal-pot", InventoryContainerRules.StoragePot, actor, 1);
@@ -608,7 +608,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
         var state = WorldRuntimeCodec.Decode(Baseline.Value);
         var actor = Actor(state);
         var building = Building(state, buildingId);
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
         var position = adjacent ? state.Map.FootNeighbors(building.Position)
             .OrderBy(point => Math.Abs(point.X - building.Position.X) + Math.Abs(point.Y - building.Position.Y))
             .First(point => state.Map.IsPassable(point) && !occupied.Contains(point))
@@ -616,9 +616,9 @@ public sealed class WorldDeliveryPublicStockOrderTests
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [], Offers = [] };
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
+                Position = person.AgentId == actor ? position : person.Position,
                 Equipment = null,
                 Project = null,
                 LastDecisionContext = null,
@@ -666,7 +666,7 @@ public sealed class WorldDeliveryPublicStockOrderTests
             var selected = request.Observation.OperativeOrderInstructionId is not null
                 ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "deliver_stock")?.Id ?? "safe_idle"
                 : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

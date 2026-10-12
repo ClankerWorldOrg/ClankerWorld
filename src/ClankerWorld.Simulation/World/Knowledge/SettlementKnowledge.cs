@@ -40,7 +40,7 @@ public sealed partial class WorldRuntime
     private void AddKnowledgeCandidates(
         List<CognitionCandidate> candidates,
         string actor,
-        InhabitantState person)
+        AgentState person)
     {
         if (NeedsUrgentWarmth(person))
             return;
@@ -49,23 +49,23 @@ public sealed partial class WorldRuntime
         AddKnowledgeStorageCandidates(candidates, actor, person);
         foreach (var artifact in HeldKnowledgeArtifacts(actor))
         {
-            foreach (var target in inhabitants.Values
-                .Where(item => item.InhabitantId != actor && AdultResident(item.InhabitantId) &&
+            foreach (var target in agents.Values
+                .Where(item => item.AgentId != actor && AdultResident(item.AgentId) &&
                     IsWithinInteractionRange(person.Position, item.Position, 1))
-                 .OrderBy(item => item.InhabitantId, StringComparer.Ordinal))
+                 .OrderBy(item => item.AgentId, StringComparer.Ordinal))
             {
-                if (!HasUnknownArtifactContents(target.InhabitantId, artifact))
+                if (!HasUnknownArtifactContents(target.AgentId, artifact))
                     continue;
-                var targetName = society.Checkpoint.GetInhabitant(target.InhabitantId).Name;
+                var targetName = society.Checkpoint.GetAgent(target.AgentId).Name;
                 candidates.Add(new CognitionCandidate(
-                    KnowledgeSharePrefix + artifact.Id + "|" + target.InhabitantId,
+                    KnowledgeSharePrefix + artifact.Id + "|" + target.AgentId,
                     $"Share {artifact.Title} with {targetName}; they can learn the written sites and recipes they do not already know, and you keep the physical artifact.",
                     52));
             }
         }
     }
 
-    private void ApplyKnowledgeShare(string actor, InhabitantState person, string candidateId)
+    private void ApplyKnowledgeShare(string actor, AgentState person, string candidateId)
     {
         var encoded = candidateId[KnowledgeSharePrefix.Length..];
         var divider = encoded.LastIndexOf('|');
@@ -73,7 +73,7 @@ public sealed partial class WorldRuntime
             return;
         var artifactId = encoded[..divider];
         var recipientId = encoded[(divider + 1)..];
-        if (!inhabitants.TryGetValue(recipientId, out var recipient) || !AdultResident(recipientId) ||
+        if (!agents.TryGetValue(recipientId, out var recipient) || !AdultResident(recipientId) ||
             !IsWithinInteractionRange(person.Position, recipient.Position, 1))
             return;
         var artifact = HeldKnowledgeArtifacts(actor).FirstOrDefault(item => item.Id == artifactId);

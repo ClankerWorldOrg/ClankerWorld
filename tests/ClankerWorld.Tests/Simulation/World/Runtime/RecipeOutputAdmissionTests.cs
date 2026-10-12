@@ -109,7 +109,7 @@ public sealed class RecipeOutputAdmissionTests
         var (state, _, worker, shop) = ToolMakingRequestTests.Prepared();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker
+            Agents = state.Agents.Select(person => person.AgentId == worker
             ? person with { Position = shop.Position } : person).ToArray()
         };
         var version = ContentVersion.Parse("1.0.0");

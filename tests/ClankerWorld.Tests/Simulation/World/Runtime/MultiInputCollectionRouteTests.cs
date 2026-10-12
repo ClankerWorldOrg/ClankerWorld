@@ -11,11 +11,11 @@ public sealed class MultiInputCollectionRouteTests
         using var world = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new ActionCoverageRecorder(chooseIdle: true),
             size: WorldSizePreset.Small);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var actor = world.Inhabitants[0];
-        world.SubmitInstruction(new("learn-for-writing", "owner:test", actor.InhabitantId, OwnerInstructionKind.MustDo,
+        var actor = world.Agents[0];
+        world.SubmitInstruction(new("learn-for-writing", "owner:test", actor.AgentId, OwnerInstructionKind.MustDo,
             $"move to ({actor.Position.X},{actor.Position.Y})"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Contains(world.Knowledge.Facts, fact => fact.OwnerId == actor.InhabitantId);
+        Assert.Contains(world.Knowledge.Facts, fact => fact.OwnerId == actor.AgentId);
         return WorldRuntimeCodec.Encode(SettlementWeatherTestFixture.WithWeather(world.ExportState(), WeatherKind.Clear));
     });
 
@@ -43,19 +43,19 @@ public sealed class MultiInputCollectionRouteTests
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
         var building = task == "tool"
             ? state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-blacksmith")
-            : state.WorldSimulation!.Buildings.First(item => item.HouseholdId == state.Society.Society.GetInhabitant(
-                state.Inhabitants[0].InhabitantId).HouseholdId && state.WorldContent!.Buildings.Single(
+            : state.WorldSimulation!.Buildings.First(item => item.HouseholdId == state.Society.Society.GetAgent(
+                state.Agents[0].AgentId).HouseholdId && state.WorldContent!.Buildings.Single(
                 definition => definition.CanonicalId == item.DefinitionId).Tags.Contains("house"));
         var actor = task == "tool"
-            ? state.Society.Society.Inhabitants.First(person => person.HouseholdId == building.HouseholdId).Id
-            : state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+            ? state.Society.Society.Agents.First(person => person.HouseholdId == building.HouseholdId).Id
+            : state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var remote = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsPassable(point) &&
                 !state.Map.IsReachableOnFoot(point, building.Position) &&
                 SwimmingRules.IsReachable(state.Map, point, building.Position))
             .OrderBy(point => state.Map.FootDistance(point, building.Position)).First();
         var land = state.Map.FootNeighbors(building.Position).First(point => state.Map.IsPassable(point) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         var source = scenario == "land" ? land : remote;
         var start = task == "book" ? source : building.Position;
         Assert.Equal(scenario == "land", state.Map.IsReachableOnFoot(source, building.Position));
@@ -104,7 +104,7 @@ public sealed class MultiInputCollectionRouteTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = start,
                 HungerBasisPoints = 10_000,

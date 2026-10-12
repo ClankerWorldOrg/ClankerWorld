@@ -30,11 +30,11 @@ internal static class MarketTradeScenario
     private static async Task AssertPhysicalExchangeAsync(WorldRuntimeState boundary, bool personalStock)
     {
         var society = boundary.Society.Society;
-        var seller = society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var seller = society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId is not null && person.AgeBand == SocietyAgeBand.Adult).Id;
-        var household = society.GetInhabitant(seller).HouseholdId!;
+        var household = society.GetAgent(seller).HouseholdId!;
         var successor = society.GetHousehold(household).MemberIds.First(id => id != seller);
-        var buyer = society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var buyer = society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId != household && person.AgeBand == SocietyAgeBand.Adult).Id;
         var market = Assert.Single(boundary.Towns![0].Markets);
         var stall = market.Stalls.OrderBy(item => item.SlotIndex).First();
@@ -56,14 +56,14 @@ internal static class MarketTradeScenario
         var state = boundary with
         {
             Society = boundary.Society with { Society = society with { Inventory = inventory } },
-            Inhabitants = boundary.Inhabitants.Select(person => new[] { seller, buyer, successor }.Contains(person.InhabitantId)
+            Agents = boundary.Agents.Select(person => new[] { seller, buyer, successor }.Contains(person.AgentId)
                 ? person with
                 {
                     HungerBasisPoints = 9_500,
                     Survival = new SurvivalCondition(),
                     Project = null,
                     LastDecisionContext = null,
-                    Equipment = new PersonalEquipment("market-test-cloak:" + person.InhabitantId, "market-test-sack:" + person.InhabitantId),
+                    Equipment = new PersonalEquipment("market-test-cloak:" + person.AgentId, "market-test-sack:" + person.AgentId),
                 }
                 : person).ToArray(),
         };
@@ -119,7 +119,7 @@ internal static class MarketTradeScenario
         Assert.Null(offeredPayment.StorageBuildingId);
         Assert.True(MarketTradeRules.IsLoose(offeredPayment));
         Assert.True(offeredPayment.ConditionBasisPoints > 0 && offeredPayment.FreshnessBasisPoints > 0);
-        Assert.False(PersonalEquipmentRules.IsSelected(offering.Inhabitants.Single(person => person.InhabitantId == buyer).Equipment,
+        Assert.False(PersonalEquipmentRules.IsSelected(offering.Agents.Single(person => person.AgentId == buyer).Equipment,
             offeredPayment.Id));
         Assert.False(offeredPayment.ItemKind is "field_map" or "field_record");
         var paymentClaim = Assert.Single(offering.Society.Inventory.Reservations, claim => claim.LotId == offeredPayment.Id &&
@@ -253,14 +253,14 @@ internal static class MarketTradeScenario
         var movementMap = world.ExportState().Map;
         for (var tick = 0; tick < 160 && !reached(); tick++)
         {
-            var before = world.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position);
+            var before = world.Agents.ToDictionary(person => person.AgentId, person => person.Position);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            foreach (var person in world.Inhabitants)
+            foreach (var person in world.Agents)
             {
-                if (before[person.InhabitantId] != person.Position)
-                    Assert.True(movementMap.CanFootStep(before[person.InhabitantId], person.Position));
-                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.InhabitantId, person.Equipment),
-                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.InhabitantId, person.Equipment));
+                if (before[person.AgentId] != person.Position)
+                    Assert.True(movementMap.CanFootStep(before[person.AgentId], person.Position));
+                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.AgentId, person.Equipment),
+                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.AgentId, person.Equipment));
             }
         }
         if (!reached())
@@ -268,9 +268,9 @@ internal static class MarketTradeScenario
             var state = world.ExportState();
             Assert.Fail($"Market phase {policy.Mode} not reached at tick {world.WorldTick}; selected: " +
                 JsonSerializer.Serialize(policy.Selected.TakeLast(16).Select(item => new { item.Actor, item.Id, item.Tick })) + "; physical: " +
-                JsonSerializer.Serialize(world.Inhabitants.Select(person => new
+                JsonSerializer.Serialize(world.Agents.Select(person => new
                 {
-                    person.InhabitantId,
+                    person.AgentId,
                     person.Position,
                     person.HungerBasisPoints,
                     person.Survival,
@@ -280,7 +280,7 @@ internal static class MarketTradeScenario
                     lot.OwnerId == policy.Seller)) + "; occupancies: " +
                 JsonSerializer.Serialize(world.Towns.SelectMany(town => town.Markets).SelectMany(market => market.Occupancies)) +
                 "; intentions: " + JsonSerializer.Serialize(state.Society.Cognition.Runtimes.Select(runtime =>
-                    new { runtime.InhabitantId, runtime.CurrentIntention })) + "; events: " +
+                    new { runtime.AgentId, runtime.CurrentIntention })) + "; events: " +
                 JsonSerializer.Serialize(state.Events.TakeLast(12)));
         }
     }
@@ -304,7 +304,7 @@ internal static class MarketTradeScenario
             // stock journey is uninterrupted; this applies only at completed phase boundaries.
             World = WorldRuntime.Restore(retained with
             {
-                Inhabitants = retained.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+                Agents = retained.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
             }, policy.CreateProvider);
             return World;
         }

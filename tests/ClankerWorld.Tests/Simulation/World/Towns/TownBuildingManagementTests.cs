@@ -33,7 +33,7 @@ public sealed class TownBuildingManagementTests
         }
         var building = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "historic-tailor");
         var town = state.Towns!.Single(item => item.Id == TownBorderRules.FirstTownId);
-        var worker = state.Society.Society.Inhabitants.First(item => item.HouseholdId == building.HouseholdId).Id;
+        var worker = state.Society.Society.Agents.First(item => item.HouseholdId == building.HouseholdId).Id;
         var recipe = state.WorldContent!.Recipes.First(item => !item.IsCrop);
         var production = new WorldProductionJob("historic-production", recipe.CanonicalId,
             building.InstanceId, worker, 0, 1, WorldProductionJobState.Completed, []);
@@ -144,7 +144,7 @@ public sealed class TownBuildingManagementTests
         var (state, tailorId) = TailorTestWorld.Create("town-building-repair-work", 0);
         var tick = state.Society.Society.WorldTick;
         var tailor = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == tailorId);
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "repair-site-coat", "padded_coat", actor, 1);
         inventory = InventoryAuthority.WearSingleUnit(inventory, "repair-site-coat", 8_000);
         inventory = InventoryAuthority.AddLot(inventory, "repair-site-cloth", "cloth", actor, 1);
@@ -154,7 +154,7 @@ public sealed class TownBuildingManagementTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = tailor.Position,
@@ -245,7 +245,7 @@ public sealed class TownBuildingManagementTests
             },
         };
 
-        var workerId = reassignedState.Society.Society.Inhabitants.First(item =>
+        var workerId = reassignedState.Society.Society.Agents.First(item =>
             item.HouseholdId == "household:camp-alpha").Id;
         var occupied = reassignedState.WorldSimulation!.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(reassignedState.WorldContent!.Buildings.Single(definition =>
@@ -256,7 +256,7 @@ public sealed class TownBuildingManagementTests
             !reassignedState.Map.MapObjects.Any(item => item.Position == point));
         reassignedState = reassignedState with
         {
-            Inhabitants = reassignedState.Inhabitants.Select(person => person.InhabitantId == workerId
+            Agents = reassignedState.Agents.Select(person => person.AgentId == workerId
                 ? person with
                 {
                     Position = warehouse.Position,
@@ -294,7 +294,7 @@ public sealed class TownBuildingManagementTests
         var state = StartedState("review-expansion-history-reused-id");
         var house = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-house-b");
         state = WithoutBuildingStock(state, house.InstanceId);
-        var worker = state.Society.Society.Inhabitants.First(item => item.HouseholdId == house.HouseholdId).Id;
+        var worker = state.Society.Society.Agents.First(item => item.HouseholdId == house.HouseholdId).Id;
         var expansion = new BuildingExpansionJob("historic-expansion", house.InstanceId, worker,
             house.HouseholdId!, 0, house.Position, house.Position, new(1, 2, 1),
             0, 1, WorldProductionJobState.Completed, ["historic-reservation"]);

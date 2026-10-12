@@ -36,10 +36,10 @@ internal static class ChildModelSelectionResolver
 
     private static ChildPersonalModelSelection? PersonalChoice(
         RuntimeProviderConfiguration configuration,
-        string inhabitantId)
+        string agentId)
     {
         var assignment = configuration.Assignments?.FirstOrDefault(item =>
-            item.InhabitantId == inhabitantId && item.Role == PlayerDecisionProviders.PlanningRole);
+            item.AgentId == agentId && item.Role == PlayerDecisionProviders.PlanningRole);
         if (assignment is null) return null;
 
         var endpoint = assignment.Provider switch

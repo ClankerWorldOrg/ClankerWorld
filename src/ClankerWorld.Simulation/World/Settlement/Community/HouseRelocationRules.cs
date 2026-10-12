@@ -36,12 +36,12 @@ public static class HouseRelocationRules
 
     public sealed record SelectedAdult(string Id, string Reason);
 
-    public static Selection Select(IEnumerable<SocietyInhabitant> residents, IEnumerable<Adult> adults,
+    public static Selection Select(IEnumerable<SocietyAgent> residents, IEnumerable<Adult> adults,
         int footprintWidth, int footprintHeight)
     {
         ArgumentNullException.ThrowIfNull(residents);
         ArgumentNullException.ThrowIfNull(adults);
-        var remaining = residents.Where(person => person.Status == SocietyInhabitantStatus.Active).ToList();
+        var remaining = residents.Where(person => person.Status == SocietyAgentStatus.Active).ToList();
         var capacity = HouseResidentCapacityRules.Calculate(remaining, footprintWidth, footprintHeight);
         if (!capacity.IsOvercrowded) return new([], capacity);
 
@@ -75,11 +75,11 @@ public static class HouseRelocationRules
     }
 
     /// <summary>The one recorded domestic unit with at least two residents and a strict majority, if any.</summary>
-    public static string? DominantFamily(IReadOnlyCollection<SocietyInhabitant> residents) => residents
-        .Where(person => person.Status == SocietyInhabitantStatus.Active)
+    public static string? DominantFamily(IReadOnlyCollection<SocietyAgent> residents) => residents
+        .Where(person => person.Status == SocietyAgentStatus.Active)
         .GroupBy(person => person.DomesticFamilyUnitId ?? string.Empty, StringComparer.Ordinal)
         .Where(unit => unit.Key.Length > 0 && unit.Count() >= 2 && unit.Count() * 2 > residents.Count(person =>
-            person.Status == SocietyInhabitantStatus.Active))
+            person.Status == SocietyAgentStatus.Active))
         .Select(unit => unit.Key).SingleOrDefault();
 
     private static int Excess(HouseResidentCapacityRules.Capacity capacity) => capacity.ResidentCount - capacity.Limit;

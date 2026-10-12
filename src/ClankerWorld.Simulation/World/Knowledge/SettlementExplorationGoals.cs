@@ -22,7 +22,7 @@ public sealed partial class WorldRuntime
             : order.Action is "seek_food" or "harvest_food" ? new("resource", order.TargetFoodKind ?? "food", instruction.InstructionId)
             : null : null;
 
-    private string? NeededExplorationResource(string actor, InhabitantState person)
+    private string? NeededExplorationResource(string actor, AgentState person)
     {
         // Needs and recipe inputs identify a purpose. No unseen site's position
         // participates in this choice or in ranking the next scouting step.
@@ -52,7 +52,7 @@ public sealed partial class WorldRuntime
             .Select(input => input.ResourceId).FirstOrDefault();
     }
 
-    private IEnumerable<MapResource> KnownExplorationSources(string actor, InhabitantState person, string target)
+    private IEnumerable<MapResource> KnownExplorationSources(string actor, AgentState person, string target)
     {
         var projectReturn = ExplorationProjectReturn(actor, person, target);
         var positions = knowledge.Facts.Where(fact => fact.OwnerId == actor &&
@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
     }
 
     private (GridPoint? Destination, int Range)? ExplorationProjectReturn(string actor,
-        InhabitantState person, string target)
+        AgentState person, string target)
     {
         if (!WorldInstructionOrderParser.IsMaterialKind(target))
             return null;
@@ -114,7 +114,7 @@ public sealed partial class WorldRuntime
             owner == actor || house is not null ? 0 : ResourceInteractionRange);
     }
 
-    private bool ExplorationGoalReached(string actor, InhabitantState person, SettlementExplorationGoal goal)
+    private bool ExplorationGoalReached(string actor, AgentState person, SettlementExplorationGoal goal)
     {
         if (goal.OrderInstructionId is { } id)
         {
@@ -126,13 +126,13 @@ public sealed partial class WorldRuntime
         return KnownExplorationSources(actor, person, goal.Target).Any();
     }
 
-    private static void ValidateExplorationGoalBindings(IEnumerable<InhabitantState> people,
+    private static void ValidateExplorationGoalBindings(IEnumerable<AgentState> people,
         IEnumerable<OwnerQueuedInstruction> instructions)
     {
         var byId = instructions.ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
         foreach (var person in people)
             if (person.Exploration?.Goal is { OrderInstructionId: { } id } goal &&
-                (!byId.TryGetValue(id, out var instruction) || instruction.TargetInhabitantId != person.InhabitantId ||
+                (!byId.TryGetValue(id, out var instruction) || instruction.TargetAgentId != person.AgentId ||
                  ExplorationGoalForOrder(instruction) != goal))
                 throw new InvalidDataException("The saved exploration purpose does not match its gathering order.");
     }

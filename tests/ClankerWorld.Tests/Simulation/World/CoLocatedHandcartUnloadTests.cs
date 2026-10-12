@@ -22,12 +22,12 @@ public sealed class CoLocatedHandcartUnloadTests
     public async Task UnloadUsesTheReachedCargosOwnCartRegardlessOfAnEmptyCartSortingFirst(bool emptyFirst, string mode, int unloaded)
     {
         var state = WorldRuntimeCodec.Decode(Generated.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId;
         var position = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house")).Position;
         var loadedPosition = mode == "distant" ? state.Map.FootNeighbors(position).First() : position;
-        var owner = mode == "foreign" ? state.Inhabitants[1].InhabitantId : actor;
+        var owner = mode == "foreign" ? state.Agents[1].AgentId : actor;
         var emptyId = emptyFirst ? "a-empty-cart" : "z-empty-cart";
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, emptyId, "handcart", actor, 1, groundPosition: new(position.X, position.Y));
@@ -41,9 +41,9 @@ public sealed class CoLocatedHandcartUnloadTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
+                Position = person.AgentId == actor ? position : person.Position,
                 HungerBasisPoints = 9_500,
                 Equipment = null,
                 Project = null,
