@@ -104,6 +104,17 @@ the coordinator. Field and tree orders retain their existing adapters and
 private forwarders. Tree planting updates the coordinator's map and the
 EnvironmentSystem's ecology and chunks through those world services.
 
+`Animals/AnimalSystem.cs` owns animals, trade offers and physical supply trips
+in the existing immutable `AnimalWorldState`. Care, breeding, products, wild
+forage, permissions, trade, travel and animal orders run in this system. Writes
+replace the snapshot; trusted tick preparation gives each proposal a separate
+system sharing that snapshot until a write, and commit transfers the system
+with one assignment. `IAnimalWorld` supplies current residents, inventory,
+goods queries, routes, ecology and events per call through a coordinator
+adapter. The system retains no world or runtime reference. Existing runtime
+methods remain private forwarders, including animal-order entry points;
+checkpoint capture, identities and tick-phase ordering stay unchanged.
+
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
 value. The verification switch rebuilds and compares its terrain and rainfall
