@@ -83,7 +83,7 @@ python skills/test-audit/scripts/unique_coverage.py <evidence>/per-test --timing
 
 Judge what the assertions actually detect, not what the name suggests. Prefer a remaining real HTTP or runtime scenario only when it exercises the same input, effect and failure mode.
 
-Audit by production ownership, so parallel reviewers read distinct lanes: world, kernel, cognition and content in Simulation; the world runtime and settlement; Server HTTP, control, persistence and providers; the Godot protocol, pairing, client state and UI; documentation and architecture. Read whole test bodies and theory data, the owning implementation and its callers, overlapping suites, CI filters and the relevant Git history before choosing a removal.
+Audit by production ownership, so parallel reviewers read distinct lanes: world, kernel, cognition and content in Simulation; the world runtime with its community, economy and family code; Server HTTP, control, persistence and providers; the Godot protocol, pairing, client state and UI; documentation and architecture. Read whole test bodies and theory data, the owning implementation and its callers, overlapping suites, CI filters and the relevant Git history before choosing a removal.
 
 **Running the review with several reviewers:**
 - Find each candidate's file from its method declaration, not its class name: a class split across files (`partial`) puts its tests in several files. `remove_tests.py` locates them this way.
