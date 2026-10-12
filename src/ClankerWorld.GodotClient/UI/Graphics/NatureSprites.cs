@@ -132,7 +132,7 @@ public static partial class NatureSprites
     /// site's look: gathered wood is a log pile, the starting clay deposit by
     /// fresh water is a clay bank and grain seed grows like a wild seed patch.
     /// </summary>
-    public static NatureSprite? ForCampResource(string kind) => kind switch
+    public static NatureSprite? ForResourceKind(string kind) => kind switch
     {
         "food" => NatureSprite.BerryBush,
         "construction" => NatureSprite.WoodPile,
@@ -146,8 +146,8 @@ public static partial class NatureSprites
     };
 
     /// <summary>Uses the same spent-state art for kind-only resources on the map and tile card.</summary>
-    public static NatureSprite? ForCampResource(string kind, bool spent, bool renewable) =>
-        ForCampResource(kind) is { } available ? spent ? SpentSprite(available, renewable) : available : null;
+    public static NatureSprite? ForResourceKind(string kind, bool spent, bool renewable) =>
+        ForResourceKind(kind) is { } available ? spent ? SpentSprite(available, renewable) : available : null;
 
     public static int AtlasTileSize(int drawnTileSize) => drawnTileSize >= 24 ? 32 : 16;
 

@@ -1,5 +1,5 @@
 ; Engine configuration file.
-; The Phase 2 Godot client renders signed owner projections and submits paired
+; The Godot game client renders signed owner projections and submits paired
 ; owner requests. It never owns or directly mutates simulation state.
 config_version=5
 

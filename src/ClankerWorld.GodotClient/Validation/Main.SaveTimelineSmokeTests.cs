@@ -20,14 +20,14 @@ public partial class Main
         var second = new SaveBranch("b", 2, "flood", "Before the flood", 2 * Day);
         var third = new SaveBranch("c", 3, "camp", "First camp", Day);
         ManualWorldSave old = new("old", "Old save", start, Day / 2);
-        ManualWorldSave camp = new("camp", "First camp", start.AddMinutes(1), Day, false, first, BranchPosition: 1);
+        ManualWorldSave startingSite = new("camp", "First camp", start.AddMinutes(1), Day, false, first, BranchPosition: 1);
         ManualWorldSave flood = new("flood", "Before the flood", start.AddMinutes(2), 2 * Day, false, first, BranchPosition: 2);
         ManualWorldSave harvest = new("harvest", "Big harvest", start.AddMinutes(3), 9 * Day, false, first, BranchPosition: 3);
         ManualWorldSave winter = new("winter", "Hungry winter", start.AddMinutes(4), 6 * Day, false, second,
             ContinuedFromId: flood.Id, ContinuedFromCreatedUtc: flood.CreatedUtc, BranchPosition: 1);
         ManualWorldSave autosave = new("auto", "Autosave", start.AddMinutes(5), 4 * Day, true, third,
-            ContinuedFromId: camp.Id, ContinuedFromCreatedUtc: camp.CreatedUtc, BranchPosition: 1);
-        ManualWorldSave[] saves = [old, camp, flood, harvest, winter, autosave];
+            ContinuedFromId: startingSite.Id, ContinuedFromCreatedUtc: startingSite.CreatedUtc, BranchPosition: 1);
+        ManualWorldSave[] saves = [old, startingSite, flood, harvest, winter, autosave];
         var forking = new SaveTimelinePosition("flood", "a", true, NextBranchNumber: 4, ContinuedFromTick: 2 * Day);
 
         // Saves from before branches on top, then branch 1, each branch under the save it grew from:
@@ -59,7 +59,7 @@ public partial class Main
         // A slot can be overwritten after another branch grew from its old
         // contents. That branch must not attach to the replacement checkpoint.
         var replacement = flood with { Name = "Replacement world", CreatedUtc = start.AddMinutes(20), WorldTick = 8 * Day, BranchPosition = 4 };
-        var replacedOrigin = SaveTimelineLayout.Lanes([camp, replacement, winter], null).Single(lane => lane.Key == "b");
+        var replacedOrigin = SaveTimelineLayout.Lanes([startingSite, replacement, winter], null).Single(lane => lane.Key == "b");
         if (replacedOrigin.Parent is not null || replacedOrigin.ForkSave is not null || replacedOrigin.OriginTick != 2 * Day ||
             replacedOrigin.Title != "From Before the flood")
             throw new InvalidOperationException("A branch must retain its original fork time without attaching to an overwritten source slot.");

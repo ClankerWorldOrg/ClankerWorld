@@ -8,7 +8,7 @@ const Person = { login: 'compoodment' };
 const labeled = (name, actor = Bot) => ({ event: 'labeled', label: { name }, actor });
 const unlabeled = (name, actor = Bot) => ({ event: 'unlabeled', label: { name }, actor });
 
-function scenario({ live = {}, event = {}, action = 'edited', changes, files = ['src/ClankerWorld.Simulation/Kernel/InventoryFixture.cs'],
+function scenario({ live = {}, event = {}, action = 'edited', changes, files = ['src/ClankerWorld.Simulation/Kernel/InventoryAuthority.cs'],
   issueLabels = ['priority:p2', 'status:needs-pr', 'status:in-progress'], otherPrs = [], otherIssues = {},
   compareFiles = [], compareError = null, events, recordEvents = true, beforeRemove = () => {}, beforeAdd = () => {} } = {}) {
   const pr = {

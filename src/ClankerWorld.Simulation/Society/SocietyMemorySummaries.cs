@@ -82,7 +82,7 @@ public static class SocietyMemorySummaryRules
                     belief.SupersededByBeliefId is not null)));
 }
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     public static SocietyCheckpoint RecordAgentMemorySummary(SocietyCheckpoint checkpoint, string owner, SocietyMemorySummaryOption option)
     {

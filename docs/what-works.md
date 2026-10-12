@@ -20,7 +20,7 @@ full commit at `/api/v1/status`; client and host builds can differ.
 
 ## Status labels
 
-- **Available in the game:** connected to the normal private-world and Godot path.
+- **Available in the game:** connected to the normal world server and Godot path.
 - **Basic version:** connected, but the experience or rules are still limited.
 - **Built but not connected to normal play:** code and isolated tests exist,
   but players do not yet encounter the complete feature.
@@ -865,7 +865,7 @@ The food gate, parents' cards, caregiver guidance and four-portion payment all
 exclude that sale stock. Once borrowing ends, it can count and pay normally.
 Usable household food elsewhere can fund the birth while the stall stays stocked.
 
-Restaurant trading uses the normal private-world path; its
+Restaurant trading uses the normal game path; its
 [Windows playtest checklist](../playtest/alpha-1.md) is pending.
 Restaurant adults visit ingredient shops in any Town, and adult customers
 can visit another Town's Restaurants for meals. Exact goods and terms are checked

@@ -38,7 +38,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Start the game from the other folder. → Both copies open the same worlds.
   - While playing, search `logs\host.log` and the game folder for your key. → Your key appears nowhere.
   - While playing, run `netstat -ano | findstr 5188`. → The world server listens only on 127.0.0.1.
-  - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Viewer is left in Task Manager.
+  - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Server is left in Task Manager.
   - Start again and press **Continue**, once with the network to the private server blocked. → The same world reopens at the saved point, with your fullscreen and interface size settings kept.
 - [ ] **New World screen and preview.** ([#409](https://github.com/compoodment/ClankerWorld/issues/409), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#719](https://github.com/compoodment/ClankerWorld/issues/719), [#900](https://github.com/compoodment/ClankerWorld/issues/900), [#1023](https://github.com/compoodment/ClankerWorld/issues/1023))
   - Open New World, also straight after changing a Main Menu setting such as the model-call limit. → Name, seed and size sit in one box.
@@ -264,7 +264,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Repeat with no usable autosave. → Recovery is unavailable, Check again and Quit Game still work, and no new world is made.
   - Restore an autosave and choose Check again. → Recovery becomes available.
   - Drop the connection after choosing. → It offers Check again instead of repeating the choice.
-  - While playing, end the ClankerWorld.Viewer process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
+  - While playing, end the ClankerWorld.Server process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
   - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running.
   - Repeat while the PC is busy. → After at most a short delay it reconnects, without saying another program is using the port or starting a second server.
   - Start a different game build while that server is still running. → It refuses the server that doesn't match, and the original world keeps running.

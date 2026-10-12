@@ -93,10 +93,10 @@ Locked restore passed. The focused commands were:
 ```bash
 dotnet restore --locked-mode
 bash scripts/verify-godot-client.sh
-DOTNET_PROCESSOR_COUNT=2 dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false --filter 'FullyQualifiedName~SwimmingRuntimeTests|FullyQualifiedName~SaveBranchTests|FullyQualifiedName~ChunkValidationReuseTests|FullyQualifiedName~CachedTerrainObservationTests' --logger 'trx;LogFileName=autonomous-core.trx' --results-directory .evidence/keep
+DOTNET_PROCESSOR_COUNT=2 dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore -p:UseSharedCompilation=false --filter 'FullyQualifiedName~SwimmingRuntimeTests|FullyQualifiedName~SaveBranchTests|FullyQualifiedName~ChunkValidationReuseTests|FullyQualifiedName~CachedTerrainObservationTests' --logger 'trx;LogFileName=autonomous-core.trx' --results-directory .evidence/keep
 ```
 
-The HTTP run selected the 19 methods listed in `http-scenarios.json` plus `FullyQualifiedName~RecoveryCleanupDeletionTests`, with Release `--no-build --no-restore`, TRX `autonomous-http.trx`, and two processors. Selection is by method: most HTTP files belong to the shared partial `ViewerHttpTests` class, so their filenames alone are not valid filters. The exact filter is retained as `http-filter.txt`.
+The HTTP run selected the 19 methods listed in `http-scenarios.json` plus `FullyQualifiedName~RecoveryCleanupDeletionTests`, with Release `--no-build --no-restore`, TRX `autonomous-http.trx`, and two processors. Selection is by method: most HTTP files belong to the shared partial `ServerHttpTests` class, so their filenames alone are not valid filters. The exact filter is retained as `http-filter.txt`.
 
 Both scratch console projects retain their executed source. Each targets .NET 10 and references Simulation. They were run in Release with `BuildProjectReferences=false`, `UseSharedCompilation=false`, two processors and isolated output directories. No production test hooks were introduced. `git diff --check` passed and the worktree diff was empty.
 

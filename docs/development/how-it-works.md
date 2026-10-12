@@ -13,7 +13,7 @@ boundaries; [game design](../game-design/README.md) owns the intended experience
 | Component | Owns |
 | --- | --- |
 | `src/ClankerWorld.Simulation` | Rules, accepted world state, content, society, persistence and replay |
-| `src/ClankerWorld.Viewer` | Headless server, signed owner API, clock, provider adapters and private installation stores |
+| `src/ClankerWorld.Server` | Headless server, signed owner API, clock, provider adapters and private installation stores |
 | `src/ClankerWorld.GodotClient` | Windows game view, local preferences, observations and signed requests |
 
 The host references the simulation, never the reverse. The simulation runs and
@@ -75,7 +75,7 @@ aliases. Content package identifiers retain their import rules.
 
 ## Runtime systems
 
-`Runtime/PrivateWorldRuntime.AgentRegistrations.cs` binds choice sources and
+`Runtime/WorldRuntime.AgentRegistrations.cs` binds choice sources and
 action routes in explicit, read-only ordered tables. Animal, farming, civic and
 conversation adapters register their entries beside their existing private
 forwarders. Every binding receives the current coordinator per call; no entry
@@ -252,7 +252,7 @@ Every step preserves these contracts:
 8. Keep request Guids live-only and introduce no random values into world state.
 
 The architecture tests classify every runtime instance field in
-[`runtime-fields.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/runtime-fields.json)
+[`runtime-fields.json`](../../tests/ClankerWorld.Tests/Architecture/runtime-fields.json)
 as snapshot state transferred on commit, live work retained by the coordinator,
 or scratch/derived diagnostic state. The `saved` category also includes derived
 values transferred with that snapshot, such as fertility and Road bridge decks;
@@ -261,7 +261,7 @@ the complete transfer list, and invoke the native commit with a prepared
 runtime to compare its encoded checkpoint and transferred values.
 
 The C# source scan records writer files for every inhabitant component in
-[`inhabitant-writers.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/inhabitant-writers.json).
+[`inhabitant-writers.json`](../../tests/ClankerWorld.Tests/Architecture/inhabitant-writers.json).
 Construction writes all components, including defaults; collection replacement,
 insertion and removal have their own entry. New writer files fail the test.
 Removing a writer also fails until the baseline is lowered. Review a baseline
@@ -310,10 +310,10 @@ separate quantity helpers.
 goods selection: physical and usable quantities, usable parent vessels,
 reservation availability, free families and container ownership/location.
 Physical movement may preserve damaged or spoiled property. Consumption still
-requires usable inputs. `InventoryFixture` remains the authority for an actual
+requires usable inputs. `InventoryAuthority` remains the authority for an actual
 reservation, transfer, container operation or consumption.
 
-`Playtest/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
+`World/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
 for sale at a borrowed Market stall. `ConsumeAt` matches the inventory
 reservation boundary, including usable contained ingredients and partially
@@ -329,7 +329,7 @@ remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules
 Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
-[`goods-query-reads.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/goods-query-reads.json)
+[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
 is 244 references across 67 files, down from 245 before the remaining
 workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
 The guard binds C# property symbols, including aliases and conditional access;
@@ -516,7 +516,7 @@ its saved world systems. It does not generate a disposable initial ecology,
 chunk set or weather state. New worlds still generate those systems normally;
 ordinary loads still validate saved data and check deterministic map identity.
 
-The host supports only the private-world runtime. Configuring the removed
+The host supports only the world runtime. Configuring the removed
 `fixture` world mode refuses startup with a clear error. The scripted one-agent
 fixture and its persistence/projection branches are gone; map generators,
 terrain codecs and routing remain shared by the native world.
@@ -653,7 +653,7 @@ checks and urgent survival interruptions use the common order lifecycle.
 
 Storage orders reuse the material, equipment and goods catalogues and normal personal-storage
 eligibility. `StorePersonalGoods` serves both ordinary choices and orders: it
-walks to the House entrance, then uses `InventoryFixture.Relocate` to preserve
+walks to the House entrance, then uses `InventoryAuthority.Relocate` to preserve
 ownership, condition and provenance. Reserved goods, promised deliveries,
 container contents, food and selected equipment are excluded.
 House capacity already promised to collected inbound deliveries is unavailable
@@ -1926,7 +1926,7 @@ The reservation that brings the total to 80% of the cap, rounded up
 (`ProviderUsageStore.WarningMark`), raises `WarningReached` once at that
 installation-wide crossing. No additional durable warning marker is saved:
 totals only grow, one per reservation, and a changed cap sets a new mark that
-only later reservations can cross. In private-world mode the host acquires the
+only later reservations can cross. In game-world mode the host acquires the
 world mutation gate, then appends a player-facing `model_call_warning` event
 (`used:<count>:limit:<cap>`) to the world active at that time. A concurrent world
 switch can change which world receives it.
@@ -2029,7 +2029,7 @@ straight cardinal line from one dry bank to the opposite one, across one or two
 river tiles: never along the river and never diagonally into, through or out of
 the water. A river tile costs what its narrowest crossing costs: 200, half
 dry-ground speed, where one tile of water separates dry banks, and
-`SeededMap.TwoTileWadingFootCost` (300, a third of dry-ground speed) where it
+`WorldMap.TwoTileWadingFootCost` (300, a third of dry-ground speed) where it
 takes two. The two-tile speed is provisional. A third water tile in the line,
 or any lake or ocean tile, prevents wading. A two-tile line through a tile that also lies on
 a two-tile line across the other axis does not count either: that tile is a
@@ -2086,7 +2086,7 @@ action resolves its source and permission again. Tool repair retains its
 ordinary spare-cargo storage and gathering-tool preparation when those are
 needed before a complete collection plan can be formed. No plan is saved.
 
-Checkpoint map acceptance keeps a weak, derived camp-reachability cache for
+Checkpoint map acceptance keeps a weak, derived starting-site reachability cache for
 each map's current starting point. Before reuse it compares actual terrain,
 water, elevation, surface, wrapping and bridge-axis data with an owned topology
 snapshot. A changed origin or borrowed collection invalidates that result; a
@@ -2109,7 +2109,7 @@ other household food before gathering wild food; inaccessible stock is left
 untouched. This does not change household ownership or food-policy rules.
 Immutable map connectivity is cached once per map; movement rechecks
 occupancy before each step. An agent gathering for its own project, and the check
-that a project's inputs exist, still need a route from the original camp. Heating,
+that a project's inputs exist, still need a route from the starting site. Heating,
 helping another agent's project and Blacksmith ore use the actor's current
 reachable area (see [Material gathering](#material-gathering)). Boat transport uses physical Town assets and typed Council permission, as
 described in [Ports and communal boats](#ports-and-communal-boats). Trees and planting are described in
@@ -2140,7 +2140,7 @@ unchanged map data only when world and digests match. Initial/changed maps and
 some control receipts still send the whole map. Viewport/chunk transfer remains
 unfinished.
 
-Each private-world observation store retains one map-derived fertility index
+Each world observation store retains one map-derived fertility index
 and layer digest. A replacement committed map or a different world seed replaces
 that entry. Resources, fields, events and other dynamic observations are still
 projected from the captured state on every refresh; the cache stores no viewer
@@ -2200,7 +2200,7 @@ explain the approach; they do not settle open terrain design or performance.
 
 ### Terrain layers, sand, groves and hills
 
-`GeneratedCampMapGenerator` builds a map in four separate, deterministic passes,
+`GeneratedWorldMapGenerator` builds a map in four separate, deterministic passes,
 so each can be checked on its own
 ([#461](https://github.com/compoodment/ClankerWorld/issues/461)):
 
@@ -2256,7 +2256,7 @@ root of its tile count, from 3 tiles up to 8, so a 1,000-tile massif has a
 neighbours and wrap east/west only on a wrapped map. Hills are a visual layer
 only: nothing is saved for them, they keep their own surface, and they cost the
 same to walk and build on as grass. `TerrainPlacementRules.ClassifyHills`
-(used by `SeededMap.IsHillAt`) and the Godot client's `UI/Map/HillBand.cs`
+(used by `WorldMap.IsHillAt`) and the Godot client's `UI/Map/HillBand.cs`
 (used by `WorldTerrainMap.IsHillAt`) apply the same rule to the saved elevation
 and water layers; `MountainMassifTests` checks that they mark exactly the same
 tiles on generated maps. The client draws mountains, peaks and hills as one
@@ -2452,7 +2452,7 @@ not change it. A newborn joins its primary caregiver's Town; death removes the
 resident. Joining another existing Town later needs that Town's council (below), except deliberate resettlement of an abandoned Town. Owned-building placement establishes household membership.
 
 Founders and added adults arrive at a seeded age from day 15 to day 25 in
-day-lifecycle worlds. `SocietyFixture.FounderArrivalAge` orders that range once
+day-lifecycle worlds. `SocietyRules.FounderArrivalAge` orders that range once
 per world seed and gives the founder in each placement position its day, so
 the four founders never share a day, the same seed repeats their ages, and a
 founder placed after an undo gets the undone position's age. `AddAdult` draws
@@ -2500,7 +2500,7 @@ merge by subject identity; ordinary text requests merge after case/whitespace
 normalization. Roster changes or independently supplied material circumstances
 allow earlier proposal reconsideration.
 
-`PrivateWorldRuntime.Governance` advances each Town on the normal tick path and
+`WorldRuntime.Governance` advances each Town on the normal tick path and
 rechecks authority when applying choices. `civic|...` actions let actors visit
 the public notice place, read posted notices, relay them within interaction
 range, nominate another resident, register their own consent and choose proposals
@@ -3067,7 +3067,7 @@ action or player discard control is added.
 
 **Household departure and personal custody** (`SettlementDeparture`). Ordinary decision candidates allow an adult to leave without a vote, store or collect their own goods, return borrowed household tools, explicitly accept replacement care, and found a solo household only when no suitable existing home can currently be asked. Membership exits and admissions include the complete primary-care group. The same completed House-capacity calculation checks all incoming residents; children never apply alone. Forced displacement refuses sole caregivers, including a guardian whose dependent lives in another household. Voluntary departures keep the existing care-group rules.
 
-`InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryFixture.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
+`InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryAuthority.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
 
 Each departure allocates at most two unreserved ready-to-eat portions once. Ownership changes at allocation while the existing storage/ground location stays fixed. Saved departure records retain the allocation and collection right; retries with no current membership cannot allocate again. Caregiver IDs and ancestry stay unchanged. Dependents follow the caregiver in physical steps, and a traveling caregiver waits when a dependent falls behind. Housing, ownership, collection and care facts use normal personal-model observations and player inspection; no extra acknowledgement request is made.
 
@@ -3104,7 +3104,7 @@ reply is pending, an already chosen project or agreed lesson can continue under
 its normal physical and urgent-need checks. This records no housing answer and
 grants no membership; an ongoing lesson retains its progress and learned skills.
 One refusal by a living member ends the request; when every living
-member has agreed, `SocietyFixture.JoinHouseholdCareGroup` records the membership and
+member has agreed, `SocietyRules.JoinHouseholdCareGroup` records the membership and
 `household_joined` is appended. A refusal or an unanswered request is remembered
 as a refusal for the cooldown. The request grants nothing while pending: stock,
 shelter and route rules still check household membership. A resident with notice
@@ -3671,7 +3671,7 @@ cadence, rather than rounding their spoilage rate to zero.
 ### Wills
 
 An estate with frozen lots and an agent with a personal model gets exactly one
-post-death request (`PrivateWorldRuntime.Wills`). Its `CognitionWillContext`
+post-death request (`WorldRuntime.Wills`). Its `CognitionWillContext`
 offers the frozen lots as `item:1`… keys (at most 24, in lot-ID order) and up to
 sixteen living people as `will:heir:{id}` keys, family and household first, plus
 `will:town:{id}` for the archived Town when it has a Warehouse of its own. The
@@ -3682,7 +3682,7 @@ are bound into the request digest. The historical profile labels this outcome
 as default inheritance, since a Town law can change the household's share.
 The model's reply (`CognitionWillChoice`) is untrusted: the response must match
 the request, epochs and digest; the runtime maps only offered keys back to
-heirs and lots; and `SocietyFixture.ResolveWill` checks that every heir is a
+heirs and lots; and `SocietyRules.ResolveWill` checks that every heir is a
 living person other than the deceased or an offered Town, that there are one
 to three distinct heirs, and that every listed lot is still frozen in this
 estate. Anything else resolves to default inheritance.
@@ -3749,7 +3749,7 @@ Short keys stay unchanged. The saved owner and deceased subject keep their
 complete identities; text, privacy, kind and source tick stay unchanged.
 The owner sees
 the words on the historical profile through
-`ViewerFinalWill`; events, logs and telemetry carry only IDs, the split and heir
+`FinalWillView`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for
 pending-will restore behavior.
 
@@ -3880,7 +3880,7 @@ ID built from its position (for example `bridge-90-3-ew-2`), a design
 entrance tiles, its river tiles and the tick it was built. A Road bridge also
 names its route, `road:<Town>:<building>`. Movement does not read terrain
 alone: the runtime turns the saved bridges into passable decks on the map
-(`SeededMap.BridgeDecks`). A deck is walked end to end along the bridge, never
+(`WorldMap.BridgeDecks`). A deck is walked end to end along the bridge, never
 sideways into the river or diagonally, at dry-ground cost. A Road bridge's deck
 counts as Road for the Road speed factor; a traffic bridge's does not. The
 observation sends the same records, so Godot draws the deck and the tile card
@@ -3953,7 +3953,7 @@ mountain, can be waded but gives no evidence, since no bridge could land there.
 At the end of each tick, a crossing with six completed crossings by at least two
 agents gets a `traffic` bridge across its whole width (`plank_span_1` or
 `plank_span_2`). It is not built, and its evidence is cleared, if a bank holds
-a building, resource or camp object, or an existing bridge already joins the
+a building, resource or map object, or an existing bridge already joins the
 same banks. A traffic bridge adds no Road tiles. Wading only reads terrain, so
 a bridge laid across one tile of a two-tile crossing from the other direction
 leaves the other tile wadeable back to its own bank, but the deck cannot be
@@ -3989,7 +3989,7 @@ accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` diges
 a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
 The native authoring endpoint refuses submitted batches with
-`private_world_authoring_pending`; it does not apply them. The fixture's working
+`game_world_authoring_pending`; it does not apply them. The fixture's working
 authoring branch is retired. Catalog validation remains available for future
 native authoring and does not provide a complete art-generation pipeline.
 
@@ -4075,7 +4075,7 @@ fully validated, and persisted before the live runtime accepts them. Failed
 validation or persistence leaves the prior world unchanged.
 
 Needs use whole percentages from 0 to 100. Goods use the bounded list in
-`PrivateWorldRuntime.DeveloperGoods`, quantities from 1 to 100 and the existing
+`WorldRuntime.DeveloperGoods`, quantities from 1 to 100 and the existing
 carrying limit. Removal consumes unreserved personal carried goods, excluding
 equipped items, delivery goods, knowledge records and vessels with contents.
 Skills use the four existing learned skills. Relationship edits start or end
@@ -4155,7 +4155,7 @@ Its worn-item record refers to one exact personally carried ornament. Wearing
 does not exempt that unit from cargo or grant protection. Collection, removal,
 gifts, sale, storage and estate handling must keep ownership, reservations and
 location consistent; automatic storage or payment must protect the selected
-unit. Viewer and client descriptions show the worn kind, without a new sprite.
+unit. Server and client descriptions show the worn kind, without a new sprite.
 Wear, removal and gift candidates require a fresh accepted non-fallback
 LargeLanguageModel response whose exact offered target is still valid at
 admission. Jev, continuing intentions and MustDo cannot select them. Gift
@@ -4546,7 +4546,7 @@ are selected. A local build must include its bundled host. No save schema change
 Select World refuses an empty, missing or whitespace-only catalog ID with HTTP
 400 before authorization or mutation, using the same required-payload guard as
 the manual-save endpoints. Nonempty selections still require the signed owner
-request and the existing private-world, compatibility and restore checks.
+request and the existing world, compatibility and restore checks.
 
 Launcher handoffs carry the catalog entry ID with the requested game version.
 Both process boundaries use separate arguments; `--choose-world` accepts only

@@ -55,7 +55,7 @@ public partial class Main
         else if (resource.NaturalObjectKind is { } kind)
             sprite = NatureSprites.ForNaturalObject(kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
         else
-            sprite = NatureSprites.ForCampResource(resource.Kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
+            sprite = NatureSprites.ForResourceKind(resource.Kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
         return sprite is { } found ? NatureSprites.Sprite(found, 16, terrainLayer.Season) : null;
     }
 

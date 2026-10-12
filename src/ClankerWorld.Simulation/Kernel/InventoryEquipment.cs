@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Kernel;
 
-public static partial class InventoryFixture
+public static partial class InventoryAuthority
 {
     /// <summary>Wears one selected unreserved unit, retaining its quantity and identity.</summary>
     public static InventoryCheckpoint WearSingleUnit(InventoryCheckpoint checkpoint, string lotId,

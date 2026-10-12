@@ -1,0 +1,1 @@
+- The save format and save file name changed during a code cleanup, so the game no longer finds or opens saves from earlier builds and starts as if there were none. Older saves stay on disk; nothing is deleted.

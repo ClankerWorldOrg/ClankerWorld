@@ -2,7 +2,6 @@ using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Harness;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -238,7 +237,7 @@ public static class GeographyGenerator
                 if (scaled >= TerrainPlacementRules.HighlandFlattenStart)
                     scaled = TerrainPlacementRules.HighlandFlattenStart +
                         (scaled - TerrainPlacementRules.HighlandFlattenStart) *
-                        (SeededMap.MountainElevationThreshold - 1 - TerrainPlacementRules.HighlandFlattenStart) /
+                        (WorldMap.MountainElevationThreshold - 1 - TerrainPlacementRules.HighlandFlattenStart) /
                         (255 - TerrainPlacementRules.HighlandFlattenStart);
                 var index = y * width + x;
                 elevation[index] = (byte)scaled;
@@ -530,7 +529,7 @@ public static class GeographyGenerator
         var threshold = abundance switch { GenerationAmount.Low => 288, GenerationAmount.High => 72, _ => 144 };
         for (var index = 0; index < length; index++)
             if (water[index] == (byte)WaterKind.Land && flow[index] >= threshold &&
-                elevation[index] < SeededMap.MountainElevationThreshold)
+                elevation[index] < WorldMap.MountainElevationThreshold)
                 water[index] = (byte)WaterKind.River;
         return downstream;
     }

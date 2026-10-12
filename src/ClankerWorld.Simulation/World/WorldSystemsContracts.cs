@@ -6,7 +6,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
@@ -374,7 +373,7 @@ public static class WeatherRules
         return config.WeatherProfiles is null ? WorldSystemsConfig.ReduceDefaultPrecipitation(weights) : weights;
     }
 
-    public static ClimateZone? RegionClimate(SeededMap map, GridPoint position)
+    public static ClimateZone? RegionClimate(WorldMap map, GridPoint position)
     {
         ArgumentNullException.ThrowIfNull(map);
         if (!map.Contains(position)) return null;
@@ -864,7 +863,7 @@ public sealed record WorldSystemsState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] RegionalWeatherState? RegionalWeather = null);
 
 /// <summary>
-/// Saved environment owned by the private-world runtime.
+/// Saved environment owned by the world runtime.
 /// This state contains only serializable data and applies only deterministic,
 /// local rules; it does not own transport, providers, mods, or multiplayer.
 /// </summary>

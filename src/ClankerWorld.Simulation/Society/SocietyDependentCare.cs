@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     /// <summary>
     /// Records an adult's explicit acceptance of primary care for a dependent.

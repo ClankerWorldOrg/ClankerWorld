@@ -22,14 +22,14 @@ contents, private thoughts or raw model replies.
 1. Confirm the destination machine, service, OS account and authorized maintenance
    window. Record the running commit and the proposed commit. Inspect the actual
    service configuration privately; the checked-in
-   [systemd template](../../deploy/clankerworld-viewer.service) is a starting
+   [systemd template](../../deploy/clankerworld-server.service) is a starting
    point, not evidence of what is running. Its historical fresh-install comment
    is not permission to replace existing state or pairing authority.
 2. Build from a clean checkout at the proposed commit. Run the applicable
    [build and test checks](build-and-test.md#which-checks-to-run), including
    locked restore, formatting, Release tests, Godot checks and Windows export
    when distributing a matching client. Publish the server from that same
-   checkout with `dotnet publish src/ClankerWorld.Viewer -c Release`. Record the
+   checkout with `dotnet publish src/ClankerWorld.Server -c Release`. Record the
    publish directory, game version and SHA-256 hashes of the exact artifacts.
 3. Check save, generator and signed-action compatibility against the current
    host. During alpha an older save may be refused, but must be preserved.
@@ -51,7 +51,7 @@ versioned binary directories. The relevant configuration keys are:
 
 | Configuration key | What to preserve |
 | --- | --- |
-| `ClankerWorld:Runtime:StatePath` | Active private-world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
+| `ClankerWorld:Runtime:StatePath` | Active world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
 | `ClankerWorld:Pairing:StatePath` | Durable owner-device authority and revocations |
 | `ClankerWorld:Runtime:ProviderStatePath` | Installation model assignments and protected credentials |
 | `ClankerWorld:Runtime:ProviderUsagePath` | Installation-lifetime paid-attempt accounting |

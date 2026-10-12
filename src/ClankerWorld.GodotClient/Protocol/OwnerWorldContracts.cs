@@ -745,7 +745,7 @@ public sealed record CatalogWorld(string Id, string Name, string WorldId, string
 /// <summary>A small picture of a world's terrain for the Load World list, packed like the world's own terrain.</summary>
 public sealed record WorldThumbnail(int Width, int Height, string Encoding, string Data);
 public sealed record WorldCatalogSnapshot(string ActiveId, IReadOnlyList<CatalogWorld> Worlds);
-public sealed record OwnerWorldPreview(OwnerWorldPackedTerrain Terrain, OwnerWorldPosition Camp,
+public sealed record OwnerWorldPreview(OwnerWorldPackedTerrain Terrain, OwnerWorldPosition StartingSite,
     string ManifestDigest, int ResourceSites = 0)
 {
     public OwnerWorldPackedMapLayers? PackedMapLayers { get; init; }

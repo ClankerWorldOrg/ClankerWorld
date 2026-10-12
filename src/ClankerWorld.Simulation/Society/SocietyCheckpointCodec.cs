@@ -15,7 +15,7 @@ public static class SocietyCheckpointCodec
 
     public static byte[] Encode(SocietyCheckpoint checkpoint)
     {
-        SocietyFixture.Validate(checkpoint);
+        SocietyRules.Validate(checkpoint);
         return JsonSerializer.SerializeToUtf8Bytes(
             new SocietyDocument(Header, checkpoint),
             Options);
@@ -30,7 +30,7 @@ public static class SocietyCheckpointCodec
             throw new InvalidDataException("The society checkpoint format is not supported.");
         }
 
-        SocietyFixture.Validate(document.Checkpoint);
+        SocietyRules.Validate(document.Checkpoint);
         return document.Checkpoint;
     }
 

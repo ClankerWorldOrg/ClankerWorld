@@ -134,7 +134,7 @@ is the only player for now, so this waits until then.
 
 - **The world freezes when the game is closed.** It resumes from the saved
   state when reopened, without unattended catch-up simulation or provider
-  spending. The supported current private-world prototype already stops ticks
+  spending. The current game already stops ticks
   after the last authenticated client disconnects; a much older design-log
   direction for unattended simulation was superseded in the repository.
 - While the game is open, the **pause button and Pause Menu are the only

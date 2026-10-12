@@ -17,7 +17,7 @@ Fix a problem only if you are asked to; filing it is the job.
 ## Hunt in normal play
 
 Look for problems a player would meet. Play ordinary new worlds from the menu,
-or run seeded worlds through the normal private-world path, and watch what the
+or run seeded worlds through the normal game path, and watch what the
 agents actually do. A hand-built setup is fine for confirming and repeating a
 problem you saw, but not for inventing one. A problem that only a setup a
 normal game cannot produce can trigger, such as goods placed where no agent

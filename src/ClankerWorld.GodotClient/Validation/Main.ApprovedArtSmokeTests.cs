@@ -64,7 +64,7 @@ public partial class Main
                 var observed = kindOnly with { Quantity = spent ? 0 : 3 };
                 RenderMap(clean with { Resources = [observed] });
                 var expected = NatureSprites.Sprite(spent ? NatureSprite.HerbPatchPicked : NatureSprite.HerbPatch, 16).GetData();
-                if (terrainLayer.CampResourceSpriteCount != 1 || ResourceSpriteImage(observed) is not { } image ||
+                if (terrainLayer.ResourceKindSpriteCount != 1 || ResourceSpriteImage(observed) is not { } image ||
                     !image.GetData().SequenceEqual(expected))
                     throw new InvalidOperationException("A kind-only herb site must use the same approved available/picked art on the map and card.");
             }
