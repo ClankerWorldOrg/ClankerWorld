@@ -1720,7 +1720,7 @@ Save World before saving or overwriting, and clears when space recovers.
 Unknown space is shown separately. These checks never prevent a save or delay
 an emergency checkpoint; an actual disk-full write can still fail.
 
-A written [private-server deployment checklist](development/private-server-deployment.md)
+A written [remote world server deployment checklist](development/remote-server-deployment.md)
 is available for manual server updates. It covers staging a build, preserving
 installation state, checking the updated server while paused and rolling back
 if needed. The staged deployment command remains unfinished; the portable
