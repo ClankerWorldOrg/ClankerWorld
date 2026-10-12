@@ -34,7 +34,7 @@ public partial class Main
         var generation = snapshot?.Generation;
         generationSettingsRows.Visible = generation is not null;
         generationSettingsHint.Text = generation is null
-            ? "Generation choices are not available for this world from the connected host."
+            ? "This world server doesn't report how this world was generated."
             : "These choices were set when the world was created and cannot be changed.";
         // Clear the previous world's values even when the new host reports none.
         generationSize.Text = generation?.Size ?? string.Empty;

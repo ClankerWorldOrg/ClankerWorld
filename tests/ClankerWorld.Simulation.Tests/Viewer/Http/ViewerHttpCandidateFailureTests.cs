@@ -165,7 +165,7 @@ public sealed partial class ViewerHttpTests
             ExpectedManifestDigest: preview.ManifestDigest, ExpectedMapLayersDigest: preview.MapLayersDigest);
         var identityFailure = await Assert.ThrowsAsync<HttpRequestException>(() => api.CreateWorldAsync(uri,
             authority, device.DeviceId, wrongClientAttempt, signer, default));
-        Assert.Equal("the server's state changed. Try again", Client.GameUiText.FriendlyFailure(identityFailure));
+        Assert.Equal("something changed on the world server. Try again", Client.GameUiText.FriendlyFailure(identityFailure));
         AssertAttemptSequence(0, 1, 2);
         Assert.Equal(oldCatalog, JsonSerializer.SerializeToUtf8Bytes(catalog.Capture(), WebJsonOptions));
         Assert.Equal(oldBytes, PrivateWorldRuntimeCodec.Encode(oldWorld.ExportState()));

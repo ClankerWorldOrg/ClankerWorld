@@ -126,7 +126,7 @@ public partial class Main
             await response;
             if (!founderModelSetupCheckStatus.Text.Contains("matching updates", StringComparison.Ordinal) ||
                 !founderModelSetupCheckStatus.Text.Contains("Nothing was sent", StringComparison.Ordinal) ||
-                founderModelSetupCheckStatus.Text.Contains("Check paid-call usage", StringComparison.Ordinal) || registration is null)
+                founderModelSetupCheckStatus.Text.Contains("Check your model-call count", StringComparison.Ordinal) || registration is null)
                 throw new InvalidOperationException("Test model must explain the host update and that no paid request was sent, keeping pairing.");
         }
         finally
@@ -615,9 +615,9 @@ public partial class Main
             picker.ShowList(listed, "gpt-6-luna", PasteKeyNote, canRetry: false);
             if (picker.Problem != PasteKeyNote || picker.CanRetry)
                 throw new InvalidOperationException("Before a new key is pasted, the list must ask for it without offering Retry.");
-            picker.ShowError("Couldn't reach the game server.", "gpt-6-luna");
+            picker.ShowError("Couldn't reach the world server.", "gpt-6-luna");
             if (picker.Model != "gpt-6-luna" || !Items().Contains(ModelPicker.TypeOwnText, StringComparison.Ordinal))
-                throw new InvalidOperationException("Without a list from the game server, the current model and a typed name must stay usable.");
+                throw new InvalidOperationException("Without a list from the world server, the current model and a typed name must stay usable.");
             picker.ShowTypedOnly("jev-1.13.0");
             if (picker.Choice.Visible || !picker.TypedInput.Visible || picker.Model != "jev-1.13.0")
                 throw new InvalidOperationException("A provider without a model list must use a typed name.");
@@ -686,8 +686,8 @@ public partial class Main
             PopulateProviderChoices(ActiveProviderForSelectedRole());
             PopulateCredentialChoices();
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("No personal model selected for this child", StringComparison.Ordinal) ||
-                !cognitionConfigurationStatus.Text.Contains("world defaults are not used", StringComparison.Ordinal))
+            if (!cognitionConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
+                !cognitionConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
                 throw new InvalidOperationException("A child without a birth-time choice must remain explicitly unconfigured.");
 
             providerConfiguration = childConfiguration with
@@ -697,8 +697,8 @@ public partial class Main
             PopulateProviderChoices(ActiveProviderForSelectedRole());
             PopulateCredentialChoices();
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("No personal model selected for this child", StringComparison.Ordinal) ||
-                !cognitionConfigurationStatus.Text.Contains("world defaults are not used", StringComparison.Ordinal))
+            if (!cognitionConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
+                !cognitionConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
                 throw new InvalidOperationException("An explicit no-model choice must survive as a safe local child route.");
 
             providerConfiguration = childConfiguration with
@@ -732,7 +732,7 @@ public partial class Main
             if (!cognitionConfigurationStatus.Text.Contains("Model needs setup", StringComparison.Ordinal) ||
                 !cognitionConfigurationStatus.Text.Contains("frozen-before-save-model", StringComparison.Ordinal) ||
                 !cognitionConfigurationStatus.Text.Contains("waiting", StringComparison.Ordinal) ||
-                cognitionConfigurationStatus.Text.Contains("No personal model selected", StringComparison.Ordinal))
+                cognitionConfigurationStatus.Text.Contains("No personal model is chosen", StringComparison.Ordinal))
                 throw new InvalidOperationException("A saved birth choice awaiting provider storage must remain visible instead of appearing unconfigured.");
 
             providerConfiguration = childConfiguration with
@@ -740,7 +740,7 @@ public partial class Main
                 Assignments = [new(childId, "planning", "inherit")],
             };
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("Routine: OpenAI · frozen-before-save-model waiting", StringComparison.Ordinal) ||
+            if (!cognitionConfigurationStatus.Text.Contains("Routine: OpenAI · frozen-before-save-model needs setup", StringComparison.Ordinal) ||
                 !cognitionConfigurationStatus.Text.Contains("Planning: no personal model", StringComparison.Ordinal))
                 throw new InvalidOperationException("A pending birth route must remain visible alongside an explicit role-specific override.");
 
@@ -749,7 +749,7 @@ public partial class Main
                 Assignments = [new(childId, "routine", "inherit"), new(childId, "planning", "inherit")],
             };
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("No personal model selected", StringComparison.Ordinal) ||
+            if (!cognitionConfigurationStatus.Text.Contains("No personal model is chosen", StringComparison.Ordinal) ||
                 cognitionConfigurationStatus.Text.Contains("frozen-before-save-model", StringComparison.Ordinal))
                 throw new InvalidOperationException("An explicit no-model override must take precedence over the historical birth choice.");
         }
@@ -1327,8 +1327,8 @@ public partial class Main
                 throw new InvalidOperationException("Loading another world must replace its generation choices and wrap long seeds within the Settings width.");
             Render(generationSample with { Generation = null }, []);
             if (generationSettingsRows.Visible || generationSeed.Text.Length != 0 ||
-                !generationSettingsHint.Text.Contains("not available", StringComparison.Ordinal))
-                throw new InvalidOperationException("A host without generation choices must clear the previous world's values and explain their absence.");
+                !generationSettingsHint.Text.Contains("doesn't report how this world was generated", StringComparison.Ordinal))
+                throw new InvalidOperationException("A world server without generation choices must clear the previous world's values and explain their absence.");
             ShowPauseMenuButtons();
             menuQuitToMainButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!quitToMenuConfirmation.Visible)
@@ -1522,8 +1522,8 @@ public partial class Main
                         [new("candidate-1", "Nia Moss", 2)], null, null), null, 0),
             };
             Render(sample with { WorldTick = 3_600, Towns = [governmentTown] }, []);
-            foreach (var phrase in new[] { "Approved government:", "Mira Vale: land disputes", "handover due by",
-                         "Mayoral election: Voting", "round 2", "Law: Grove", "recorded site (5 land tiles)", "Version 2", "Non-land adjudication is not authorized" })
+            foreach (var phrase in new[] { "Approved government:", "Mira Vale: land disputes", "until the handover, due by",
+                         "Mayoral election: Voting", "round 2", "Law: Grove", "recorded site (5 land tiles)", "Version 2", "Residents haven't allowed non-land hearings" })
                 if (!TownListText().Contains(phrase, StringComparison.Ordinal))
                     throw new InvalidOperationException("The Town page must show actual law scope, government handovers and separate office authority: " + phrase);
             await RunNonviolentTownUiChecks(sample, governmentTown);
@@ -1534,7 +1534,7 @@ public partial class Main
                 Government = governmentTown.Government! with { Offices = [], Changes = [], Election = null },
             };
             Render(sample with { Towns = [abandonedTown] }, []);
-            foreach (var phrase in new[] { "Abandoned", "no living residents", "No active council", "resettle", "salvaged in person", "Private property", "Law: Grove" })
+            foreach (var phrase in new[] { "Abandoned", "no living residents", "No council", "resettle", "salvage shared stock", "Private property", "Law: Grove" })
                 if (!TownListText().Contains(phrase, StringComparison.Ordinal))
                     throw new InvalidOperationException("An abandoned Town must retain its laws and explain physical salvage and explicit resettlement: " + phrase);
             var resettledTown = abandonedTown with
@@ -1577,7 +1577,7 @@ public partial class Main
             foreach (var (stage, phrase) in new[]
                      {
                          ("completed", "Last election completed: Mira Vale, Ash Rowan"),
-                         ("failed", "The last election did not elect a supported council."),
+                         ("failed", "The last election didn't produce a council."),
                          ("cancelled", "The last election was cancelled."),
                      })
             {

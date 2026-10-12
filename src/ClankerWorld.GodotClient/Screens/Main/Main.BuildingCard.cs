@@ -107,7 +107,7 @@ public partial class Main
         buildingPeopleSection.AddChild(buildingPeopleText);
         buildingDetailsContent.AddChild(buildingPeopleSection);
         buildingManagementSection.AddThemeConstantOverride("separation", 5);
-        buildingManagementSection.AddChild(new Label { Text = "OWNER ACTIONS", ThemeTypeVariation = "SectionLabel" });
+        buildingManagementSection.AddChild(new Label { Text = "MANAGE BUILDING", ThemeTypeVariation = "SectionLabel" });
         buildingManagementNote.Text = "Empty stored items and wait for work and deliveries before changing ownership or removing this building. A Warehouse keeps its Town access record when moved.";
         buildingManagementSection.AddChild(buildingManagementNote);
         buildingManagementChoice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -465,7 +465,7 @@ public partial class Main
         {
             facts.Add(("Land hearing", LandHearingText.Summary(hearing)));
             if (hearing.Rulings.Count > 0)
-                facts.Add((hearing.Kind == "property" ? "Property outcome" : "Use permission",
+                facts.Add((hearing.Kind == "property" ? "Property outcome" : "Use right",
                     LandHearingText.Outcome(hearing.Rulings[^1].Outcome, DisplayWorldClock)));
             facts.Add(("Private property", hearing.Kind == "property"
                 ? "Property rulings can change ownership and access; the current owner is shown above"
@@ -475,12 +475,12 @@ public partial class Main
                      item.Tiles.Any(tile => tile.X >= building.Position.X && tile.X < building.Position.X + building.Width &&
                          tile.Y >= building.Position.Y && tile.Y < building.Position.Y + building.Height))))
         {
-            facts.Add(("Permission transfer", LandTransferText.Summary(transfer)));
+            facts.Add(("Use right transfer", LandTransferText.Summary(transfer)));
             facts.Add(("Household acceptance", LandTransferText.Acceptance(transfer)));
             facts.Add(("Proposed", DisplayWorldClock(transfer.ProposedTick)));
             foreach (var terms in LandTransferText.Terms(transfer, DisplayWorldClock))
-                facts.Add(("Exact permission terms", terms));
-            facts.Add(("Private property", "This permission transfer leaves the building's owner and access unchanged"));
+                facts.Add(("Exact transfer terms", terms));
+            facts.Add(("Private property", "This use right transfer leaves the building's owner and access unchanged"));
         }
         foreach (var request in building.ToolMakingRequests)
             facts.Add((request.RequesterName + " · " + request.RecipeName,
@@ -619,7 +619,7 @@ public partial class Main
         }
         else
         {
-            buildingManagementNote.Text = "This building has no household or Town reassignment rule.";
+            buildingManagementNote.Text = "This building can't be given to another household or Town.";
         }
 
         var selectedTarget = 0;

@@ -807,7 +807,7 @@ public partial class Main
             selected[0] < 0 || selected[0] >= listedManualSaves.Length || listedSaveWorldId is null) return;
         var save = listedManualSaves[selected[0]];
         pendingDeletion = new OwnerDeletionAction("save", save.Id, listedSaveWorldId, save.CreatedUtc);
-        deletionConfirmation.DialogText = $"Permanently delete \"{save.Name}\" (saved {save.CreatedUtc.ToLocalTime():g})? This removes only this snapshot, not the world or its other saves. There is no undo.";
+        deletionConfirmation.DialogText = $"Permanently delete \"{save.Name}\" (saved {save.CreatedUtc.ToLocalTime():g})? This removes only this save, not the world or its other saves. There is no undo.";
         PopupDialog(deletionConfirmation);
     }
 

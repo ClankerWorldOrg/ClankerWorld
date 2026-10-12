@@ -14,7 +14,7 @@ public static class LandHearingText
 
     public static string Summary(OwnerTownLandHearing hearing)
     {
-        var subject = hearing.Kind switch { "expiry" => "permission expiry", "property" => "household property", _ => "disputed permission" };
+        var subject = hearing.Kind switch { "expiry" => "use right expiry", "property" => "household property", _ => "disputed use right" };
         var status = hearing.SettledTick is null ? "awaiting a ruling" :
             hearing.ReopenRequests.Any(request => request.Status == "pending") ? "settled · rehearing awaiting assessment" : "settled";
         var parties = string.Join("; ", hearing.Parties.Select(party => party.Name));
@@ -30,14 +30,14 @@ public static class LandHearingText
     {
         var action = outcome.Kind switch
         {
-            "confirm" => "Confirm the current use permission",
-            "renew" => "Renew the use permission",
-            "amend" => "Change the use permission",
-            "end" => "End the use permission",
-            "reject" => "Reject the unsupported request; retain current rights",
+            "confirm" => "Confirm the current use right",
+            "renew" => "Renew the use right",
+            "amend" => "Change the use right",
+            "end" => "End the use right",
+            "reject" => "Turn down the unsupported request; keep current rights",
             "reclaim" => "Pass the agreed household property to the Town",
             "grant" => "Grant the recovered property",
-            _ => "Review the use permission",
+            _ => "Review the use right",
         };
         return action + (outcome.HouseholdName is { } household ? " for " + household : "") +
             (outcome.AgreedEndTick is { } end ? " · agreed end " + clock(end) : "");
@@ -58,7 +58,7 @@ public static class LandHearingText
             lines.Add((filing.AgentName is { } filer ? "Filed by " + filer : "Automatic expiry review") +
                 " · " + clock(filing.Tick) + ": " + filing.Text);
         foreach (var party in hearing.Parties)
-            lines.Add("At notice publication: " + PartyRoster(party));
+            lines.Add("When the notice was published: " + PartyRoster(party));
         if (hearing.Status == "pending") lines.Add("Current participants and responses to this notice:");
         foreach (var party in hearing.CurrentParties)
         {
@@ -67,7 +67,7 @@ public static class LandHearingText
                 : party.AdultIds.ToArray();
             if (required.Length == 0)
             {
-                lines.Add(party.Name + ": no current eligible adult representative; the full response period remains unwaived.");
+                lines.Add(party.Name + ": no eligible adult can answer for them now, so the full response period still applies.");
                 continue;
             }
             foreach (var adult in required)
@@ -77,11 +77,11 @@ public static class LandHearingText
                     : ordinal >= 0 && ordinal < party.AdultNames.Count ? party.AdultNames[ordinal] : "Household adult";
                 var response = hearing.Responses.LastOrDefault(item => item.Revision == hearing.Revision &&
                     item.PartyId == party.Id && item.AgentId == adult);
-                var state = response is { Kind: "waive" } ? "explicitly waived a response"
+                var state = response is { Kind: "waive" } ? "chose not to respond"
                     : response is not null ? "answered" : "has not answered";
                 lines.Add($"{party.Name} · {name}: {state}" +
                     (response is not null ? " · " + clock(response.Tick) + (response.Text.Length > 0 ? ": " + response.Text : "") :
-                        party.NoticeAwareAdultIds.Contains(adult, StringComparer.Ordinal) ? " · learned the formal notice" : " · has not learned the formal notice"));
+                        party.NoticeAwareAdultIds.Contains(adult, StringComparer.Ordinal) ? " · knows about the formal notice" : " · doesn't know about the formal notice yet"));
             }
         }
         foreach (var response in hearing.Responses.Where(response => hearing.Status != "pending" || response.Revision != hearing.Revision ||
@@ -89,17 +89,17 @@ public static class LandHearingText
                 (party.AdultIds.Contains(response.AgentId, StringComparer.Ordinal) || party.RepresentativeId == response.AgentId))))
         {
             var party = hearing.Parties.FirstOrDefault(party => party.Id == response.PartyId)?.Name ?? "An affected party";
-            lines.Add("Recorded notice " + response.Revision + " response · " + party + " · " + response.AgentName +
-                (response.Kind == "waive" ? " explicitly waived a response" : " answered") + " · " + clock(response.Tick) +
+            lines.Add("Response to notice " + response.Revision + " · " + party + " · " + response.AgentName +
+                (response.Kind == "waive" ? " chose not to respond" : " answered") + " · " + clock(response.Tick) +
                 (response.Text.Length > 0 ? ": " + response.Text : "."));
         }
-        lines.Add(hearing.Judge is { } judge ? "Adjudicator: " + Judge(judge) + " · assigned " + clock(judge.AssignedTick)
+        lines.Add(hearing.Judge is { } judge ? "Judge: " + Judge(judge) + " · assigned " + clock(judge.AssignedTick)
             : hearing.SettledTick is not null && !hearing.ReopenRequests.Any(request => request.Status == "pending")
-                ? "The hearing is settled; each ruling names its adjudicator."
-            : hearing.SettledTick is not null ? "Waiting for an eligible, willing adjudicator to assess the rehearing request; current rights remain in effect."
-            : "Waiting for an eligible, willing adjudicator; existing rights remain protected.");
+                ? "The hearing is settled; each ruling names its judge."
+            : hearing.SettledTick is not null ? "Waiting for an eligible judge who is willing to assess the rehearing request; current rights stay in effect."
+            : "Waiting for an eligible judge who is willing to hear the case; existing rights stay protected.");
         foreach (var term in hearing.JudgeHistory)
-            lines.Add("Former adjudicator: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + Words(term.Reason));
+            lines.Add("Former judge: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + Words(term.Reason));
         if (hearing.JudgeElection is { } election) AddElection(lines, election, clock, false);
         else if (hearing.LatestJudgeElection is { } latest) AddElection(lines, latest, clock, true);
 
@@ -114,7 +114,7 @@ public static class LandHearingText
             {
                 "firsthand" => "observed directly",
                 "record_inspection" => "inspected a public record",
-                "relay" => "relayed testimony",
+                "relay" => "passed on by someone",
                 _ => "submitted statement",
             };
             lines.Add($"{evidenceNames[evidence.Id]} · {kind}: {RecordText(hearing, evidence, clock)}");
@@ -137,7 +137,7 @@ public static class LandHearingText
             lines.Add($"Ruling {index + 1}" + (index > 0 ? " after reopening" : "") + ": " + Outcome(ruling.Outcome, clock) +
                 " · " + clock(ruling.Tick) + " · " + Judge(ruling.Judge));
             lines.Add("Exact plot: " + Tiles(ruling.Tiles) + ". Reason: " + ruling.Reasons);
-            foreach (var party in ruling.Parties) lines.Add("At this ruling: " + PartyRoster(party));
+            foreach (var party in ruling.Parties) lines.Add("Parties at this ruling: " + PartyRoster(party));
             if (ruling.EvidenceIds.Count > 0)
                 lines.Add("Evidence cited: " + string.Join(", ", ruling.EvidenceIds.Select(id => evidenceNames.GetValueOrDefault(id, "Earlier evidence"))) + ".");
             if (ruling.LawIds.Count > 0)
@@ -153,18 +153,18 @@ public static class LandHearingText
                     (request.Assessment is { } assessment ? ": " + assessment : "."));
         }
         lines.Add(hearing.Kind == "property" ? "Property transfers require living owners' agreement and an independent ruling. Town title, membership, crops and personal goods stay unchanged." :
-            "Use permission changes leave Town title, household membership, private buildings, crops and goods with their owners.");
+            "Use right changes leave Town title, household membership, private buildings, crops and goods with their owners.");
         return lines.Select(GameUiText.PlainEllipses).ToArray();
     }
 
     private static string PartyRoster(OwnerLandHearingParty party) => party.Name + (party.Kind == "town"
-        ? " · authorized representative: " + (party.RepresentativeName ?? "none")
+        ? " · representative: " + (party.RepresentativeName ?? "none")
         : " · adults: " + (party.AdultNames.Count > 0 ? string.Join(", ", party.AdultNames) : "none"));
 
     private static string RecordText(OwnerTownLandHearing hearing, OwnerLandHearingEvidence evidence, Func<long, string> clock)
     {
         if (evidence.PermissionRecord is { } permission)
-            return (evidence.RecordPartyName ?? "The household") + " has recorded use permission for " +
+            return (evidence.RecordPartyName ?? "The household") + " has a recorded use right for " +
                 Tiles(permission.Tiles) + " · granted " + clock(permission.GrantedTick) +
                 (permission.AgreedEndTick is { } end ? " · agreed end " + clock(end) : " · no agreed end") + ".";
         if (evidence.TitleRecord is { } title)
@@ -186,7 +186,7 @@ public static class LandHearingText
 
     private static void AddElection(List<string> lines, OwnerLandHearingElection election, Func<long, string> clock, bool latest)
     {
-        lines.Add((latest ? "Last case election: " : "Case election: ") + Words(election.Stage) + " · round " + election.Round);
+        lines.Add((latest ? "Last election of a judge for this case: " : "Election of a judge for this case: ") + Words(election.Stage) + " · round " + election.Round);
         if (election.Stage == "voting" && election.DeadlineTick is { } deadline) lines.Add("Voting closes " + clock(deadline));
         if (election.Stage == "waiting") lines.Add("Waiting for the Town's other election to finish.");
         if (election.Candidates.Count > 0) lines.Add(string.Join(" · ", election.Candidates.Select(candidate => $"{candidate.Name}: {candidate.Votes} votes")));

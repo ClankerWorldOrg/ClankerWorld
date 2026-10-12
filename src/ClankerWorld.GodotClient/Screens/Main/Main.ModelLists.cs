@@ -53,7 +53,7 @@ public partial class Main
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             if (IsCurrentWorldRequest(generation) && picker.IsLatest(lookup))
-                picker.ShowError("Couldn't reach the game server for the model list. Type a model name or try again.", defaultModel);
+                picker.ShowError("Couldn't reach the world server for the model list. Type a model name or try again.", defaultModel);
         }
     }
 

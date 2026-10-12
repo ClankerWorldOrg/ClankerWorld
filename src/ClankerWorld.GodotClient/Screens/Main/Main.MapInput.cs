@@ -323,13 +323,13 @@ public partial class Main
             if (hearing.Judge is { } judge)
             {
                 var authority = judge.AgentName + (judge.Kind == "case_elected" ? " · this case only" : " · land mayor");
-                landFacts.Add(("Adjudicator", authority));
-                lines.Add("Adjudicator: " + authority);
+                landFacts.Add(("Judge", authority));
+                lines.Add("Judge: " + authority);
             }
             else if (hearing.SettledTick is null || hearing.ReopenRequests.Any(request => request.Status == "pending"))
             {
-                landFacts.Add(("Adjudicator", "Waiting for a valid independent adjudicator"));
-                lines.Add("Adjudicator: waiting for a valid independent adjudicator");
+                landFacts.Add(("Judge", "Waiting for an independent judge"));
+                lines.Add("Judge: waiting for an independent judge");
             }
             if (hearing.Rulings.Count > 0)
             {
@@ -339,8 +339,8 @@ public partial class Main
             }
             if (hearing.Kind == "expiry" && hearing.SettledTick is null)
             {
-                landFacts.Add(("Use permission", "Previous permission remains provisional during review"));
-                lines.Add("Previous permission remains provisional during review");
+                landFacts.Add(("Use right", "The previous use right stays provisional during review"));
+                lines.Add("The previous use right stays provisional during review");
             }
         }
         foreach (var transfer in LandTransferText.ForInspection(snapshot.Towns.SelectMany(item => item.LandTransfers)
@@ -348,14 +348,14 @@ public partial class Main
         {
             var summary = LandTransferText.Summary(transfer);
             var acceptance = LandTransferText.Acceptance(transfer);
-            landFacts.Add(("Permission transfer", summary));
+            landFacts.Add(("Use right transfer", summary));
             landFacts.Add(("Household acceptance", acceptance));
             landFacts.Add(("Proposed", DisplayWorldClock(transfer.ProposedTick)));
             lines.Add(summary);
             lines.Add(acceptance);
             foreach (var terms in LandTransferText.Terms(transfer, DisplayWorldClock))
             {
-                landFacts.Add(("Exact permission terms", terms));
+                landFacts.Add(("Exact transfer terms", terms));
                 lines.Add(terms);
             }
         }

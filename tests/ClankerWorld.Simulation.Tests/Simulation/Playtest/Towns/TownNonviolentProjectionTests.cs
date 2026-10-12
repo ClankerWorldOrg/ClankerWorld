@@ -51,7 +51,7 @@ public sealed class TownNonviolentProjectionTests
             hearing.Reads.Select(read => (read.AgentId, read.Revision, read.ReadTick)));
         var text = string.Join("\n", NonviolentHearingText.Details(hearing, tick => "time " + tick));
         Assert.Contains("Allegation:", text, StringComparison.Ordinal);
-        Assert.Contains("no eligible willing adjudicator", text, StringComparison.Ordinal);
+        Assert.Contains("no eligible adult willing to judge", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Voluntary agreement", text, StringComparison.Ordinal);
         Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
 
