@@ -66,7 +66,7 @@ public partial class Main
         {
             observationSession.ResetAfterLoad();
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(0, 0, []))), 0, out var failure))
-                throw new InvalidOperationException("Roster input observation was refused: " + failure);
+                throw new InvalidOperationException("Agents list input observation was refused: " + failure);
         }
         try
         {
@@ -144,13 +144,13 @@ public partial class Main
             agentsPanel.Visible = wasVisible;
         }
         if (!string.IsNullOrEmpty(restorationFailure))
-            throw new InvalidOperationException("The previous roster observation could not be restored: " + restorationFailure);
+            throw new InvalidOperationException("The previous Agents list observation could not be restored: " + restorationFailure);
     }
 
-    /// <summary>Refreshing the roster preserves browsing position; changing the selection still reveals its card.</summary>
+    /// <summary>Refreshing the Agents list preserves browsing position; changing the selection still reveals its card.</summary>
     private async Task VerifyAgentListRefreshScrollAsync()
     {
-        var original = renderedMapSnapshot ?? throw new InvalidOperationException("Roster checks need a rendered world.");
+        var original = renderedMapSnapshot ?? throw new InvalidOperationException("Agents list checks need a rendered world.");
         var originalSelection = selectedInhabitantId;
         var wasVisible = agentsPanel.Visible;
         var people = Enumerable.Range(0, 30).Select(index =>
@@ -165,7 +165,7 @@ public partial class Main
             RenderInhabitantList(refresh);
             await LayoutAsync();
             if (Math.Abs(agentListCards.ScrollVertical - 500) > 1)
-                throw new InvalidOperationException($"{reason} must preserve roster browsing position: expected 500, got {agentListCards.ScrollVertical}.");
+                throw new InvalidOperationException($"{reason} must preserve Agents list browsing position: expected 500, got {agentListCards.ScrollVertical}.");
         }
         try
         {
@@ -176,7 +176,7 @@ public partial class Main
             agentListCards.ScrollVertical = 500;
             await LayoutAsync();
             if (agentListCards.ScrollVertical != 500)
-                throw new InvalidOperationException("The roster scroll check needs enough visible cards to browse lower rows.");
+                throw new InvalidOperationException("The Agents list scroll check needs enough visible cards to browse lower rows.");
             var existingCards = agentListCards.GetChild(0).GetChildren().OfType<PanelContainer>().ToArray();
             var cardIds = existingCards.Select(card => card.GetInstanceId()).ToArray();
             var portraitIds = existingCards.Select(card => card.FindChildren("*", nameof(TextureRect), recursive: true, owned: false)
@@ -191,7 +191,7 @@ public partial class Main
                 $"replacedCards={cardIds.Zip(refreshedCardIds).Count(pair => pair.First != pair.Second)} " +
                 $"replacedPortraits={portraitIds.Zip(refreshedPortraitIds).Count(pair => pair.First != pair.Second)}");
             if (!cardIds.SequenceEqual(refreshedCardIds) || !portraitIds.SequenceEqual(refreshedPortraitIds))
-                throw new InvalidOperationException("An unchanged hidden roster must retain its native cards and portrait textures.");
+                throw new InvalidOperationException("An unchanged hidden Agents list must retain its native cards and portrait textures.");
             agentsPanel.Show();
             await RefreshWithoutMovingAsync(snapshot, "An identical snapshot refresh");
             await RefreshWithoutMovingAsync(snapshot, "A repeated snapshot refresh");
@@ -259,7 +259,7 @@ public partial class Main
                 .OfType<Label>().Select(label => label is FittedLabel fitted ? fitted.FullText : label.Text));
             if (Card().GetInstanceId() == before || !text.Contains(expected, StringComparison.OrdinalIgnoreCase) ||
                 changedPixels && pixels.SequenceEqual(Pixels()))
-                throw new InvalidOperationException($"A changed roster presentation must show {expected}: text={text}; reusedCard={Card().GetInstanceId() == before}.");
+                throw new InvalidOperationException($"A changed Agents list presentation must show {expected}: text={text}; reusedCard={Card().GetInstanceId() == before}.");
         }
         Change(person with { PublicIntention = new("seek_food", "looking for food", "deterministic", 1) }, "Looking for food");
         Change(person with { DecisionFactors = [.. person.DecisionFactors, new("decision-pending", "waiting")] }, "Deciding what to do");
@@ -276,7 +276,7 @@ public partial class Main
             Inhabitants = snapshot.Inhabitants.Select(item => item with { Position = new(item.Position.X + 1, item.Position.Y) }).Reverse().ToArray(),
         });
         if (Card().GetInstanceId() != unchanged)
-            throw new InvalidOperationException("Clock, position and input array order alone must retain the sorted roster presentation.");
+            throw new InvalidOperationException("Clock, position and input array order alone must retain the sorted Agents list presentation.");
         var originalTheme = UiTheme.Current;
         var originalPixels = Pixels();
         try
@@ -284,7 +284,7 @@ public partial class Main
             UiTheme.Apply(GetTree().Root, originalTheme.Name == "dark" ? UiTheme.Light : UiTheme.Dark);
             RenderInhabitantList(snapshot);
             if (originalPixels.SequenceEqual(Pixels()))
-                throw new InvalidOperationException("A theme change must immediately recolor cached roster portraits.");
+                throw new InvalidOperationException("A theme change must immediately recolor cached Agents list portraits.");
         }
         finally
         {
