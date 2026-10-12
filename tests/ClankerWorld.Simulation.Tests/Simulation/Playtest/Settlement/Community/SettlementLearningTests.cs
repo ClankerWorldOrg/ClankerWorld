@@ -296,9 +296,10 @@ public sealed class SettlementLearningTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task APendingPersonalReplyContinuesAnAcceptedLessonWithoutAnsweringAPartnership(bool delayedStartup)
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(true, 4000)]
+    public async Task APendingPersonalReplyContinuesAnAcceptedLessonWithoutAnsweringAPartnership(bool delayedStartup, int entryDelayMilliseconds)
     {
         var state = await PreparedState();
         var learner = state.Society.Society.Inhabitants.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
@@ -317,24 +318,31 @@ public sealed class SettlementLearningTests
         state = state with { Society = state.Society with { Society = proposal.Checkpoint } };
         var provider = new HeldPhysicalTaskDecisionProvider();
         using var world = PrivateWorldRuntime.Restore(state,
-            actor => actor == teacher ? provider : new LessonProvider("safe_idle"));
+            actor => actor == teacher ? new DelayedLessonEntryProvider(provider, entryDelayMilliseconds) : new LessonProvider("safe_idle"));
         var startAfter = world.WorldTick + 3;
         provider.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
         world.SubmitInstruction(new("waiting-lesson-guidance", "owner:test", teacher,
             OwnerInstructionKind.Suggestive, "Think about your next task."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        // Scheduling a hosted request does not prove that its worker entered.
-        // Permit bounded native progress before measuring the held-reply frame;
-        // even six more ticks leave room for the three lesson steps below.
-        using (var startupDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
-        {
-            for (var tick = 0; tick < 6 && !provider.Started.Task.IsCompleted; tick++)
-            {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: startupDeadline.Token)).Advanced);
-                if (!provider.Started.Task.IsCompleted) await Task.Delay(5, startupDeadline.Token);
-            }
-            await provider.Started.Task.WaitAsync(startupDeadline.Token);
-        }
+        var hosted = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(PrivateWorldRuntime)
+            .GetField("pendingHosted", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .GetValue(world));
+        var call = hosted[teacher]!;
+        Assert.NotNull(call);
+        var request = Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call));
+        var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
+        // Keep the six-tick physical bound, then observe actual provider entry
+        // at a frozen checkpoint without spending lesson progress on scheduling.
+        for (var tick = 0; tick < 6 && !provider.Started.Task.IsCompleted; tick++)
+            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        var entering = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        await Task.WhenAny(provider.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.True(provider.Started.Task.IsCompleted, $"Held lesson request {request.RequestId} finished before provider entry.");
+        Assert.Same(call, hosted[teacher]);
+        Assert.Same(task, call.GetType().GetProperty("Task")!.GetValue(call));
+        Assert.False(task.IsCompleted);
+        Assert.Same(request.Observation, Assert.Single(provider.Requests));
+        Assert.Equal(entering, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         if (delayedStartup) Assert.True(world.WorldTick >= startAfter);
         Assert.Contains(Assert.Single(provider.Requests).Candidates, candidate => candidate.Id.StartsWith("partner_accept:", StringComparison.Ordinal));
         var before = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
@@ -349,10 +357,26 @@ public sealed class SettlementLearningTests
         Assert.Single(provider.Requests);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
         world.Validate();
+        Assert.False(task.IsCompleted);
         world.Pause();
         bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        await task.WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.False(hosted.Contains(teacher));
+        Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(restored.ExportState()));
+    }
+
+    private sealed class DelayedLessonEntryProvider(HeldPhysicalTaskDecisionProvider inner, int delayMilliseconds) : IDecisionProvider
+    {
+        public DecisionProviderKind Kind => inner.Kind;
+        public long ProviderEpoch => inner.ProviderEpoch;
+        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            while (inner.CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
+            if (delayMilliseconds > 0) await Task.Delay(delayMilliseconds, cancellationToken);
+            return await inner.DecideAsync(request, cancellationToken);
+        }
     }
 
     private static async Task<PrivateWorldRuntimeState> PreparedState()
