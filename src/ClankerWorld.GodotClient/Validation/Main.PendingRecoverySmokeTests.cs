@@ -1,0 +1,219 @@
+using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.UI;
+using System.Text.Json;
+
+namespace ClankerWorld.GodotClient;
+
+public partial class Main
+{
+    private async Task VerifyLostPendingSubmissionsAsync()
+    {
+        var previousRegistration = registration;
+        var previousKey = deviceKey;
+        var previousUrl = worldUrlInput.Text;
+        var previousObservation = observationSession.Current;
+        var previousPending = pendingSubmission;
+        var previousSelection = selectedInhabitantId;
+        var previousText = instructionText.Text;
+        var previousOrder = instructionOrderButton.ButtonPressed;
+        var previousQueue = instructionQueueToggle.ButtonPressed;
+        var previousProfile = agentProfilePanel.Visible;
+        var previousDeveloperMode = developerMode;
+        var previousCi = System.Environment.GetEnvironmentVariable("CI");
+        System.Environment.SetEnvironmentVariable("CI", "true");
+        using var signer = OwnerDeviceKey.CreateEphemeralForContinuousIntegration();
+        using var host = new WorldActionSmokeHost(signer.PublicKeySpkiBase64);
+        const string worldId = "lost-request-world";
+        const string agentId = "lost-request-agent";
+        var position = new OwnerWorldPosition(1, 1);
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "inhabitant-inspection.read.v1",
+            "spatial-knowledge.read.v1", "owner-control.request.v1", "paused-authoring.request.v1",
+            "owner-observation-timeline.v1"], []), new(
+            new(worldId, 0, "lost-request-map", [], [], [], null, 0)
+            {
+                PackedTerrain = new(3, 3, "terrain-kind-v1", Convert.ToBase64String(new byte[9])),
+                Inhabitants = [new(agentId, "Rowan Lake", "active", position, 8_000, [], [],
+                    new("idle", null, null, [], string.Empty), new(position, [position], [position]), false)],
+            }, new(0, 0, []), new("lost-request-host", 1)));
+        host.PendingSubmissionReceipt = (path, action) => path switch
+        {
+            OwnerPairingEndpoints.OwnerInstructions => new OwnerInstructionReceipt("accepted-order",
+                action.GetProperty("idempotencyKey").GetString()!, 0, 0, 1),
+            OwnerPairingEndpoints.OwnerOrderCancel => new OwnerOrderControlReceipt("accepted-order", "cancelled", true, 0, 0),
+            _ => new OwnerAuthoringBatchReceipt(action.GetProperty("batchId").GetString()!, true, null, 1, 1, "lost-request-map"),
+        };
+        try
+        {
+            await WaitForWorldPreviewSmokeAsync(() => !isRefreshing && !isOwnerAction, "pending recovery fixture setup");
+            developerMode = false;
+            registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
+            deviceKey = signer;
+            worldUrlInput.Text = host.Address;
+            observationSession.ReplaceRegistration(registration);
+            pendingSubmission = null;
+            if (!observationSession.TryAccept(host.Reconnect, 0, out var failure))
+                throw new InvalidOperationException($"The recovery fixture needs a confirmed baseline: {failure}");
+            Render(host.Reconnect.Baseline.Snapshot, []);
+            if (!TryCreatePendingSubmissionBinding(out var binding))
+                throw new InvalidOperationException("The recovery fixture needs its real paired binding.");
+            OwnerPendingSubmission[] requests =
+            [
+                OwnerPendingSubmission.ForInstruction(binding, new("lost-instruction", agentId, "must_do", "Rest.", worldId, true)),
+                OwnerPendingSubmission.ForOrderCancel(binding, new("lost-cancel", agentId, "accepted-order", worldId)),
+                OwnerPendingSubmission.ForAuthoring(binding, new("lost-authoring", [new("weather", null, "clear", null, 0, 0, false)])),
+            ];
+            foreach (var request in requests)
+            {
+                host.PendingSubmissionActions.Clear();
+                host.LoseNextSubmissionReply = true;
+                if (!TryRetainPendingSubmission(request)) throw new InvalidOperationException("Could not retain the recovery request.");
+                await RetryPendingSubmissionAsync();
+                if (!ReferenceEquals(pendingSubmission, request) || !saveApiKeyButton.Disabled || !buildingRemoveButton.Disabled ||
+                    JsonSerializer.Serialize(pendingSubmissionStore.TryLoad(binding)) != JsonSerializer.Serialize(request))
+                    throw new InvalidOperationException("A lost receipt must keep the exact request on disk and block conflicting controls.");
+                if (ReferenceEquals(request, requests[0]))
+                {
+                    var window = GetWindow();
+                    var oldSize = window.Size;
+                    var oldScaleSize = window.ContentScaleSize;
+                    try
+                    {
+                        foreach (var size in new[] { new Godot.Vector2I(1920, 1080), new Godot.Vector2I(1280, 720) })
+                        {
+                            window.Size = size;
+                            window.ContentScaleSize = size;
+                            ApplyResponsiveLayout();
+                            for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), Godot.SceneTree.SignalName.ProcessFrame);
+                            if (!GetViewportRect().Grow(1).Encloses(pendingSubmissionPanel.GetGlobalRect()) ||
+                                !pendingSubmissionPanel.GetGlobalRect().Encloses(retryPendingSubmissionButton.GetGlobalRect()) ||
+                                !pendingSubmissionPanel.GetGlobalRect().Encloses(forgetPendingSubmissionButton.GetGlobalRect()))
+                                throw new InvalidOperationException($"Normal recovery controls must fit the screen at {size}.");
+                        }
+                    }
+                    finally { window.Size = oldSize; window.ContentScaleSize = oldScaleSize; ApplyResponsiveLayout(); }
+                }
+                LoadPendingSubmission();
+                await RefreshAsync();
+                var sent = host.PendingSubmissionActions.ToArray();
+                if (sent.Length != 2 || sent[0] != sent[1] || pendingSubmission is not null ||
+                    pendingSubmissionStore.TryLoad(binding) is not null || saveApiKeyButton.Disabled || buildingRemoveButton.Disabled)
+                    throw new InvalidOperationException("#1812: reconnect must retry the identical request and restore normal owner controls without Developer mode.");
+                await RefreshAsync();
+                if (host.PendingSubmissionActions.Count != 2)
+                    throw new InvalidOperationException("A confirmed receipt must end recovery without sending another request.");
+            }
+            var ambiguous = OwnerPendingSubmission.ForInstruction(binding,
+                new("ambiguous-twice", agentId, "suggestive", "Rest.", worldId));
+            host.PendingSubmissionActions.Clear();
+            if (!TryRetainPendingSubmission(ambiguous)) throw new InvalidOperationException("Could not retain the ambiguous recovery request.");
+            host.LoseNextSubmissionReply = true;
+            await RetryPendingSubmissionAsync();
+            host.LoseNextSubmissionReply = true;
+            await RefreshAsync();
+            await RefreshAsync();
+            if (host.PendingSubmissionActions.Count != 2 || !ReferenceEquals(pendingSubmission, ambiguous) ||
+                !pendingSubmissionPanel.IsVisibleInTree() || retryPendingSubmissionButton.Disabled || forgetPendingSubmissionButton.Disabled)
+                throw new InvalidOperationException("A second lost reply must offer normal recovery without automatically retrying on every pulse.");
+            retryPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
+            await WaitForWorldPreviewSmokeAsync(() => pendingSubmission is null && !isOwnerAction, "explicit recovery after a second lost reply");
+            var manualReplies = host.PendingSubmissionActions.ToArray();
+            if (manualReplies.Length != 3 || manualReplies.Any(action => action != manualReplies[0]))
+                throw new InvalidOperationException("The normal retry button must preserve the same exact payload after automatic recovery fails.");
+
+            var originalReconnect = host.Reconnect;
+            foreach (var changed in new[] { "load", "restart", "switch" })
+                foreach (var review in new[] { false, true })
+                    foreach (var request in requests)
+                    {
+                        host.Reconnect = originalReconnect;
+                        observationSession.ReplaceRegistration(registration);
+                        await RefreshAsync();
+                        host.PendingSubmissionActions.Clear();
+                        if (!TryRetainPendingSubmission(request)) throw new InvalidOperationException("Could not retain the stale recovery request.");
+                        LoadPendingSubmission();
+                        var saved = JsonSerializer.Serialize(pendingSubmission);
+                        host.Reconnect = originalReconnect with
+                        {
+                            Baseline = originalReconnect.Baseline with
+                            {
+                                Timeline = new(changed == "restart" ? "restarted-host" : "lost-request-host", 2),
+                                Snapshot = originalReconnect.Baseline.Snapshot with
+                                {
+                                    WorldId = changed == "switch" ? "another-world" : worldId,
+                                },
+                            },
+                        };
+                        await RefreshAsync();
+                        await RefreshAsync();
+                        if (!host.PendingSubmissionActions.IsEmpty || !pendingSubmissionPanel.IsVisibleInTree() ||
+                            developerPanel.IsAncestorOf(pendingSubmissionPanel) || DeveloperMode ||
+                            retryPendingSubmissionButton.Visible || !retryPendingSubmissionButton.Disabled ||
+                            !reviewPendingSubmissionButton.IsVisibleInTree() || reviewPendingSubmissionButton.Disabled ||
+                            forgetPendingSubmissionButton.Disabled || JsonSerializer.Serialize(pendingSubmissionStore.TryLoadForRegistration(binding)) != saved)
+                            throw new InvalidOperationException("Changed worlds must keep the exact disk record without resending and offer ordinary review/discard controls.");
+                        if (review) reviewPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
+                        else forgetPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
+                        if (pendingSubmission is not null || pendingSubmissionStore.TryLoadForRegistration(binding) is not null ||
+                            pendingSubmissionPanel.Visible || saveApiKeyButton.Disabled || buildingRemoveButton.Disabled ||
+                            !host.PendingSubmissionActions.IsEmpty)
+                            throw new InvalidOperationException("Both ordinary recovery choices must unlock controls without sending a stale request.");
+                        if (review && changed != "switch" && request.Instruction is { } instruction)
+                        {
+                            if (instructionText.Text != instruction.Text || !instructionOrderButton.ButtonPressed || !instructionQueueToggle.ButtonPressed)
+                                throw new InvalidOperationException("Review must preserve the original instruction text, order kind and queue choice.");
+                            await SubmitInstructionAsync();
+                            using var sent = JsonDocument.Parse(host.PendingSubmissionActions.Single());
+                            if (sent.RootElement.GetProperty("idempotencyKey").GetString() == instruction.IdempotencyKey ||
+                                sent.RootElement.GetProperty("text").GetString() != instruction.Text || pendingSubmission is not null)
+                                throw new InvalidOperationException("Only the player's new Send may submit the reviewed text, with a fresh request key.");
+                        }
+                    }
+            // A legacy observation can support manual retries but cannot confirm a timeline for unattended recovery.
+            host.Reconnect = originalReconnect with
+            {
+                Handshake = originalReconnect.Handshake with
+                {
+                    ServerCapabilities = originalReconnect.Handshake.ServerCapabilities.Where(capability => capability != "owner-observation-timeline.v1").ToArray(),
+                },
+                Baseline = originalReconnect.Baseline with { Timeline = null },
+            };
+            observationSession.ReplaceRegistration(registration);
+            await RefreshAsync();
+            foreach (var request in requests)
+            {
+                host.PendingSubmissionActions.Clear();
+                var legacy = request with { Binding = binding with { Timeline = null } };
+                if (!TryRetainPendingSubmission(legacy)) throw new InvalidOperationException("Could not retain the legacy recovery request.");
+                await RefreshAsync();
+                if (!host.PendingSubmissionActions.IsEmpty || !ReferenceEquals(pendingSubmission, legacy) ||
+                    retryPendingSubmissionButton.Disabled || !pendingSubmissionPanel.IsVisibleInTree())
+                    throw new InvalidOperationException("An unconfirmed legacy timeline must require an explicit player retry.");
+                retryPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
+                await WaitForWorldPreviewSmokeAsync(() => pendingSubmission is null && !isOwnerAction, "explicit legacy recovery");
+                if (host.PendingSubmissionActions.Count != 1)
+                    throw new InvalidOperationException("The player may explicitly retry one exact legacy request.");
+            }
+        }
+        finally
+        {
+            pendingSubmissionStore.TryForget();
+            registration = previousRegistration;
+            deviceKey = previousKey;
+            worldUrlInput.Text = previousUrl;
+            observationSession.ReplaceRegistration(previousRegistration);
+            if (previousObservation is not null)
+                observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
+            pendingSubmission = previousPending;
+            selectedInhabitantId = previousSelection;
+            instructionText.Text = previousText;
+            instructionOrderButton.ButtonPressed = previousOrder;
+            instructionSuggestButton.ButtonPressed = !previousOrder;
+            instructionQueueToggle.ButtonPressed = previousQueue;
+            agentProfilePanel.Visible = previousProfile;
+            developerMode = previousDeveloperMode;
+            RefreshControlAvailability();
+            System.Environment.SetEnvironmentVariable("CI", previousCi);
+        }
+    }
+}

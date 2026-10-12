@@ -8,6 +8,78 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
+    private readonly PanelContainer pendingSubmissionPanel = new();
+    private readonly Button reviewPendingSubmissionButton = new();
+    private OwnerPendingSubmission? automaticallyRetriedSubmission;
+    private bool pendingRecoveryInProgress;
+
+    private void BuildPendingSubmissionRecovery(Control content)
+    {
+        var body = new VBoxContainer();
+        body.AddChild(new Label { Text = "Your last request", ThemeTypeVariation = "SectionLabel" });
+        pendingSubmissionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        pendingSubmissionLabel.CustomMinimumSize = new Vector2(420, 0);
+        body.AddChild(pendingSubmissionLabel);
+        var buttons = new HFlowContainer();
+        retryPendingSubmissionButton.Text = "Check and send again";
+        retryPendingSubmissionButton.Pressed += () => _ = RetryPendingSubmissionAsync();
+        reviewPendingSubmissionButton.Text = "Check and send again";
+        reviewPendingSubmissionButton.Pressed += ReviewPendingSubmission;
+        forgetPendingSubmissionButton.Text = "Discard it";
+        forgetPendingSubmissionButton.Pressed += ForgetPendingSubmission;
+        foreach (var button in new[] { retryPendingSubmissionButton, reviewPendingSubmissionButton, forgetPendingSubmissionButton })
+        {
+            StyleButton(button);
+            buttons.AddChild(button);
+        }
+        body.AddChild(buttons);
+        AddPanelContents(pendingSubmissionPanel, body);
+        pendingSubmissionPanel.ZIndex = 252;
+        content.AddChild(pendingSubmissionPanel);
+        body.MinimumSizeChanged += () => Callable.From(ApplyResponsiveLayout).CallDeferred();
+        RenderPendingSubmission();
+    }
+
+    private async Task RecoverPendingSubmissionAsync()
+    {
+        var pending = pendingSubmission;
+        // Only a confirmed, fully scoped timeline can authorize an unattended retry.
+        // One attempt per loaded record avoids resending on every observation pulse.
+        if (isOwnerAction || isRefreshing || pendingRecoveryInProgress || pending is null || ReferenceEquals(automaticallyRetriedSubmission, pending) ||
+            pending.Binding.Timeline is not { IsValid: true } || !CanRetryPendingSubmission(pending) ||
+            !TryCreatePendingSubmissionBinding(out var binding) || !pending.Binding.MatchesRegistration(binding)) return;
+        pendingRecoveryInProgress = true;
+        try
+        {
+            if (await RetryPendingSubmissionAsync()) automaticallyRetriedSubmission = pending;
+        }
+        finally { pendingRecoveryInProgress = false; }
+    }
+
+    private void ReviewPendingSubmission()
+    {
+        var pending = pendingSubmission;
+        if (pending is null || isOwnerAction || isRefreshing || observationSession.AwaitingFreshBaseline) return;
+        ForgetPendingSubmission();
+        if (pendingSubmission is not null) return;
+        // Review restores an instruction draft, never the old request's binding or key.
+        // A new world must be inspected and addressed independently.
+        if (pending.Instruction is { } instruction && observationSession.Current?.Baseline.Snapshot is { } world &&
+            instruction.CanRetryIn(world.WorldId) && world.Inhabitants.Any(agent => agent.Id == instruction.TargetInhabitantId))
+        {
+            if (selectedInhabitantId != instruction.TargetInhabitantId) SelectInhabitant(instruction.TargetInhabitantId);
+            instructionText.Text = instruction.Text;
+            instructionOrderButton.ButtonPressed = instruction.Kind == "must_do";
+            instructionSuggestButton.ButtonPressed = !instructionOrderButton.ButtonPressed;
+            instructionQueueToggle.ButtonPressed = instruction.Queue;
+            agentProfilePanel.Show();
+            SetStatus("Check this agent's Orders before sending again. Your earlier instruction is ready to review.", good: false);
+        }
+        else
+            SetStatus("Check whether your last request took effect before sending a new one.", good: false);
+        RefreshControlAvailability();
+    }
+
     private bool TryBeginPendingInstruction(
         OwnerInstructionAction action,
         out OwnerPendingSubmission pending)
@@ -15,7 +87,7 @@ public partial class Main
         pending = null!;
         if (!TryCreatePendingSubmissionBinding(out var binding))
         {
-            SetStatus("cannot retain an instruction until this paired device has a valid pinned server origin", good: false);
+            SetStatus("Connect to your paired server before sending an instruction.", good: false);
             return false;
         }
 
@@ -30,7 +102,7 @@ public partial class Main
         pending = null!;
         if (!TryCreatePendingSubmissionBinding(out var binding))
         {
-            SetStatus("cannot retain authoring until this paired device has a valid pinned server origin", good: false);
+            SetStatus("Connect to your paired server before editing the world.", good: false);
             return false;
         }
 
@@ -45,7 +117,7 @@ public partial class Main
         pending = null!;
         if (!TryCreatePendingSubmissionBinding(out var binding))
         {
-            SetStatus("cannot retain an order cancellation until this paired device has a valid pinned server origin", good: false);
+            SetStatus("Connect to your paired server before cancelling an order.", good: false);
             return false;
         }
         pending = OwnerPendingSubmission.ForOrderCancel(binding, action);
@@ -57,13 +129,13 @@ public partial class Main
         ArgumentNullException.ThrowIfNull(candidate);
         if (pendingSubmission is not null)
         {
-            SetStatus("a prior owner request is awaiting confirmation; retry it or explicitly forget it first", good: false);
+            SetStatus("Your last request is still awaiting confirmation. Check and send again, or discard it first.", good: false);
             return false;
         }
 
         if (!pendingSubmissionStore.TrySave(candidate))
         {
-            SetStatus("could not retain the owner request locally; retry or forget the existing local retry record first", good: false);
+            SetStatus("Your request could not be saved for recovery, so it was not sent. Resolve your last request before trying again.", good: false);
             return false;
         }
 
@@ -109,39 +181,41 @@ public partial class Main
         }
     }
 
-    private async Task RetryPendingSubmissionAsync()
+    private async Task<bool> RetryPendingSubmissionAsync()
     {
         var pending = pendingSubmission;
         if (pending is null)
         {
-            SetStatus("there is no loaded owner request to retry", good: false);
-            return;
+            SetStatus("There is no saved request to send again.", good: false);
+            return false;
         }
 
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
             !TryCreatePendingSubmissionBinding(out var binding) ||
             !pending.Binding.MatchesRegistration(binding) || !CanRetryPendingSubmission(pending))
         {
-            SetStatus("This retained request belongs to a previous world state or paired connection. Check the world, then explicitly forget it before sending a new request.", good: false);
-            return;
+            SetStatus("The world or connection has changed. Check your last request, then discard it before sending a new one.", good: false);
+            return false;
         }
 
         if (pending.Instruction is { } retainedInstruction &&
             !retainedInstruction.CanRetryIn(observationSession.Current?.Baseline.Snapshot.WorldId))
         {
-            SetStatus("This instruction belongs to a previous world state. Check the world, then explicitly forget it before sending a new request.", good: false);
-            return;
+            SetStatus("The world has changed. Check your last instruction, then discard it before sending a new one.", good: false);
+            return false;
         }
         if (pending.OrderCancel is { } retainedCancellation &&
             !retainedCancellation.CanRetryIn(observationSession.Current?.Baseline.Snapshot.WorldId))
         {
-            SetStatus("This cancellation belongs to a previous world state. Check the world, then explicitly forget it before sending a new request.", good: false);
-            return;
+            SetStatus("The world has changed. Check the order before discarding your last cancellation.", good: false);
+            return false;
         }
 
         var completed = false;
+        var attempted = false;
         await RunOwnerActionAsync(async () =>
         {
+            attempted = true;
             if (pending.Instruction is { } instruction)
             {
                 await AwaitCurrentWorldResultAsync(ownerApi.SubmitInstructionAsync(
@@ -156,8 +230,8 @@ public partial class Main
                     ResolveWorldUri(), authority, deviceId, authoring.ToAction(), signer, CancellationToken.None));
                 completed = true;
                 return receipt.Applied
-                    ? $"confirmed authoring batch {receipt.BatchId} at revision {receipt.Revision}"
-                    : $"authoring batch rejected · {receipt.Failure ?? "unknown validation failure"}";
+                    ? "World edit confirmed."
+                    : $"World edit refused · {receipt.Failure ?? "unknown validation failure"}";
             }
 
             if (pending.OrderCancel is { } cancellation)
@@ -175,6 +249,7 @@ public partial class Main
         {
             CompletePendingSubmission(pending);
         }
+        return attempted;
     }
 
     private void CompletePendingSubmission(OwnerPendingSubmission completed)
@@ -182,7 +257,7 @@ public partial class Main
         if (!CanRetryPendingSubmission(completed)) return;
         if (!pendingSubmissionStore.TryClear(completed))
         {
-            SetStatus("The host answered, but the local retry record could not be cleared. Check the world, then retry or forget the request.", good: false);
+            SetStatus("The server answered, but your saved request could not be cleared. Check the world, then try again or discard it.", good: false);
             return;
         }
 
@@ -199,34 +274,29 @@ public partial class Main
     {
         if (!pendingSubmissionStore.TryForget())
         {
-            SetStatus("could not discard the local retry record", good: false);
+            SetStatus("Your saved request could not be discarded. Try again.", good: false);
             return;
         }
 
         pendingSubmission = null;
         RenderPendingSubmission();
         RefreshControlAvailability();
-        SetStatus("discarded the local retry record; no server state was changed", good: false);
+        SetStatus("Discarded your saved request. This does not undo anything the server already accepted.", good: false);
     }
 
     private void RenderPendingSubmission()
     {
-        pendingSubmissionLabel.Text = pendingSubmission switch
-        {
-            { Instruction: { } instruction } =>
-                $"Retained instruction retry · {instruction.Kind} for {instruction.TargetInhabitantId} · ID {instruction.IdempotencyKey}" +
-                (CanRetryPendingSubmission(pendingSubmission)
-                    ? string.Empty : " · Previous world state: check the world, then forget this request before sending a new one."),
-            { Authoring: { } authoring } =>
-                $"Retained paused-authoring retry · batch {authoring.BatchId}" +
-                (CanRetryPendingSubmission(pendingSubmission)
-                    ? string.Empty : " · Previous world state: check the world, then forget this request before sending a new one."),
-            { OrderCancel: { } cancellation } =>
-                $"Retained order-cancellation retry · order {cancellation.OrderId} for {cancellation.TargetInhabitantId}" +
-                (CanRetryPendingSubmission(pendingSubmission)
-                    ? string.Empty : " · Previous world state: check the world, then forget this request before sending a new one."),
-            _ => "No retained owner request. A network failure keeps one instruction, order cancellation or authoring batch here for an exact retry.",
-        };
+        var retryable = CanRetryPendingSubmission(pendingSubmission);
+        pendingSubmissionPanel.Visible = pendingSubmission is not null;
+        retryPendingSubmissionButton.Visible = retryable;
+        reviewPendingSubmissionButton.Visible = !retryable;
+        pendingSubmissionLabel.Text = isOwnerAction
+            ? "Sending your request..."
+            : retryable
+                ? "The server has not confirmed your last request. Check and send again, or discard it to use other controls."
+                : "The world has changed since your last request. Check whether it took effect before sending it again.";
+        pendingSubmissionPanel.ResetSize();
+        ApplyResponsiveLayout();
     }
 
     private readonly OwnerActionGate ownerActionGate = new();
@@ -269,12 +339,12 @@ public partial class Main
             }
             catch (System.Net.Http.HttpRequestException exception) when (exception.StatusCode is not null)
             {
-                SetStatus($"The world host did not accept that request · {FriendlyFailure(exception)}", good: false);
+                var refused = (int)exception.StatusCode is >= 400 and < 500 &&
+                    exception.StatusCode != System.Net.HttpStatusCode.RequestTimeout;
+                SetStatus($"The server did not {(refused ? "accept" : "confirm")} your request · {FriendlyFailure(exception)}", good: false);
                 // A client refusal ends this request. A timeout or server error
                 // can follow a commit, so its exact retry must remain on disk.
-                if (retainedSubmission is not null && IsCurrentWorldRequest(generation) &&
-                    (int)exception.StatusCode is >= 400 and < 500 &&
-                    exception.StatusCode != System.Net.HttpStatusCode.RequestTimeout)
+                if (retainedSubmission is not null && IsCurrentWorldRequest(generation) && refused)
                     CompletePendingSubmission(retainedSubmission);
             }
             catch (System.Net.Http.HttpRequestException exception)
