@@ -55,7 +55,7 @@ the server. Your saves, keys and model-call count are kept in
 `logs\host.log` there, with the launch before it in `logs\host.previous.log`.
 If the server cannot start, the game says why and offers **Try Again** and
 **Report a problem**. If saving fails while quitting, the game stays open and
-offers **Try Again** after you fix the save problem; it keeps the host running.
+offers **Try Again** after you fix the save problem; it keeps the world server running.
 Until the first alpha release, this portable package is the
 `clankerworld-windows-11-x64-portable` build from CI
 ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)).
@@ -300,7 +300,7 @@ use an initial.
 
 Agents and animals glide to each reported position, changing walking frames
 with a small bob. Boats and handcarts glide too. Pausing holds their drawing
-in place; resuming continues it. Longer jumps and loaded checkpoints snap to
+in place; resuming continues it. Longer jumps and loaded saves snap to
 the reported position. Click the moving figure to select it; its name and
 quick card follow the drawing. This does not change how fast anyone travels
 in the world.
@@ -329,7 +329,7 @@ positive condition is shown as 1%; 0% means the item is fully broken.
 
 Agents learn building, farming, crafting or smithing by completing matching
 work or a practical lesson. A learned skill makes that kind of work finish
-sooner. The current bonus is 20%, rounded to whole ticks or progress units,
+sooner. The current bonus is 20%, rounded to whole steps of world time or progress units,
 for playtesting. Skills do not unlock recipes or replace tools and materials.
 Their model sees the skills they have learned.
 
@@ -414,7 +414,7 @@ partnership** also ends the pair's marriage and any unfinished surname choice.
 **Suggest** shares an idea with the agent's own planning model. **Order** gives
 it a task. A new suggestion or recognized order asks for one fresh planning
 decision; any short reply comes in that same response. Following an order does
-not add a model request for every step or tick.
+not add a model request for every step.
 
 Urgent hunger can pause an order to buy and eat food at a shop or Restaurant,
 using the adult's own payment and carrying space. The order remains pending.
@@ -569,7 +569,7 @@ goods back to their owning
 household's House. Its owner stays the same, and only goods actually put away
 count. The task keeps its chosen House; missing space, reserved goods or a
 blocked route leaves it waiting. **Queue**, **Cancel task** and save/reload
-retain the same quantities and destination rules.
+keep the same quantities and destination rules.
 
 To work on household fields, try **Till two fields**, **Plant grain**,
 **Plant two fields of potatoes**, **Tend cultivated greens**, or **Keep
@@ -626,7 +626,7 @@ cart** unhitches the cart where it stands, keeping its cargo and ownership.
 Use **Attach cart at (12, 4)** or **Park cart at (12, 4)** to name the unique
 owned cart on that tile. The order keeps that cart even if its location changes;
 an ambiguous tile is not understood. Exact cart identities are also accepted.
-Queue, replacement, cancellation, urgent interruptions and saves retain the
+Queue, replacement, cancellation, urgent interruptions and saves keep the
 task. Broken or reserved carts, another attached cart, riding or leading an
 animal, and blocked routes give a reason. Once attached, the cart follows normal movement.
 
@@ -675,7 +675,7 @@ house bandage** is not understood because that recipe makes two. **Make two batc
 house bandages** makes four. **Keep making rope** repeats until cancelled.
 Bandages name **house bandages** or **tailor bandages**.
 Add **at (12, 4)** to use only the work site at that tile. Missing stock or an
-unavailable work site leaves the task blocked with a reason. Goods retain
+unavailable work site leaves the task blocked with a reason. Goods keep
 the normal recipe ownership and storage; ordering them does not make them
 the agent's personal property. Queue, cancellation and save/reload preserve
 the remaining task. Urgent survival pauses unfinished production.
@@ -922,7 +922,7 @@ dates. These are social rules: they do not physically prevent violations or
 change who owns a building or its goods.
 
 A resident at the Town's notice place can propose changing government without
-the incumbent's permission.
+permission from whoever governs now.
 The one-day resident vote needs a majority of its opening adult electorate;
 death or departure removes a voter, while travel does not. Approval begins a
 handover of at most three days. The Towns page distinguishes an approved proposal
@@ -936,12 +936,12 @@ create the office; residents then elect the mayor. While it is empty, cases
 wait for a judge and the Council may mediate. Residents can remove the office
 or narrow its duties through the protected government-change vote.
 
-An elected mayor may hold the land mandate, ordinary governing authority, or
-the separate non-land hearing mandate. Candidates personally agree to those specific mandates.
+An elected mayor may hold the land duty, ordinary governing duties, or
+the separate non-land hearing duty. Candidates personally agree to those specific duties.
 Residents choose one candidate and may revise their ballot. A tie means another
 vote, never a draw. The term lasts twenty days, and a vacancy needs a new election.
-Pausing stops votes, terms and handovers. The page shows officeholders and vacant
-mandates. Giving an existing mayor the non-land duty needs their own acceptance
+Pausing stops votes, terms and handovers. The page shows officeholders and duties
+nobody holds. Giving an existing mayor the non-land duty needs their own acceptance
 as well as the resident vote; it keeps the end date of the named existing term.
 
 An adult in an affected household can propose transferring the recorded use
@@ -971,7 +971,7 @@ when that date passes; it remains provisional while the case is pending. The
 Towns page shows the plot, affected households, formal response deadline,
 evidence sources and who may decide the case. Publication does not mean a notice
 was read: adults learn it through actual reading or a relay. Each affected adult
-may answer or explicitly waive their own response; silence is neither agreement
+may answer or choose not to respond; silence is neither agreement
 nor evidence against them.
 The page separates the parties named when the notice was published from current
 adult responders and the Town's current authorized representative. Each ruling
@@ -1003,10 +1003,10 @@ work, deliveries and reserved goods must finish before a transfer can proceed.
 Witnesses, affected people and the legitimate Town government can report
 specific conduct under a law that applied when it happened. Visitors have the
 same response rights for local conduct. A report keeps its sources separate
-from the eventual finding. The non-land adjudicator must hear the parties,
+from the eventual finding. The non-land judge must hear the parties,
 inspect the evidence and record reasons and uncertainty; a conflicted holder
-stands aside for an independent case judge. Without lawful authority the case
-waits. A child's notice and response are supported by their caregiver, without
+stands aside for an independent case judge. Without someone lawfully able to
+decide, the case waits. A child's notice and response are supported by their caregiver, without
 making the household responsible for the child's conduct.
 
 The result can be an explanation, warning or censure. Restitution, repair and
@@ -1128,7 +1128,7 @@ world server refuses the change. Reopen World Settings before trying again. Thes
 controls need matching game and world server updates.
 
 Autosave Apply stays unavailable until the current world's settings have loaded.
-If the world changes before Apply reaches the host, its settings stay unchanged.
+If the world changes before Apply reaches the world server, its settings stay unchanged.
 Reopen World Settings before trying again.
 
 Press **F1** or **?** for the in-game controls list, with keys drawn as keycaps
@@ -1199,7 +1199,7 @@ autosaves and automatic recovery still try to save. If free space cannot be
 checked, the game says so. The initial warning level is below 1 GiB and may
 change after playtesting.
 
-If the host restarts with a saved state it cannot open, **Recover world**
+If the world server restarts with a saved world it cannot open, **Recover world**
 appears before you enter the world. It offers the last usable autosave from
 that world's current history and says when it was saved. Choose **Recover
 autosave** to open it paused. Progress since that autosave will be absent from
@@ -1225,7 +1225,7 @@ and confirm; typing the same name does not overwrite it. Autosaves can't be
 overwritten. When a long name makes the recovery copy's name reach the
 save-name limit, it is shortened between whole characters, including emoji.
 World Settings offers rotating
-autosaves as well as automatic recovery. If the host's clock moves backwards,
+autosaves as well as automatic recovery. If the world server's clock moves backwards,
 the next rotating save waits one configured interval from the corrected time.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
@@ -1292,7 +1292,7 @@ it never runs automatically or deletes by age.
 
 The latest verified recovery for each save is kept, along with any recovery the
 running world continues from. Manual saves, migration originals, older copies
-without recovery records and checkpoints the host cannot verify are kept. If
+without recovery records and saves the world server cannot verify are kept. If
 the saves change while the preview is open, preview again before confirming.
 
 ## Report what you notice
@@ -1376,8 +1376,8 @@ Water jugs hold fresh water only, including the water used for animal care.
 
 For a cared adult horse, use **Saddle Moss**, **Mount Moss** and **Dismount Moss**.
 A mount needs a real household saddle and gives twice walking speed plus eight
-cargo units. Dismounting puts excess unreserved cargo at the rider's actual
-position. Horses cannot accompany a boat or pull a handcart in this version.
+cargo units. Dismounting puts any unreserved cargo they can't carry on foot
+where the rider stopped. Horses cannot accompany a boat or pull a handcart in this version.
 Collecting another animal's ready product first dismounts the rider, then
 requires room to carry the product on foot.
 Saddling another horse also dismounts the rider before approaching it.
