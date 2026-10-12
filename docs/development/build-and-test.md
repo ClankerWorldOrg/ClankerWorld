@@ -240,7 +240,7 @@ lettering, Timber, is drawn in code in `UI/Theme/TimberFont.cs`.
 | Change | Check |
 | --- | --- |
 | Docs or wording only | Check links, headings and accuracy. Run existing documentation checks when files, metadata or links change. No new tests or full runtime suite are required. |
-| C# behavior | Format the changed code and run relevant tests; include the full Release suite for changes crossing simulation, host or save boundaries. |
+| C# behavior | Build and run the tests for the code you touched. Format the changed code and run the Godot client check when relevant. CI runs the full Release suite. Fix CI failures on the pull request: the author while it is a draft, or the reviewer once it is ready. |
 | Godot scripts, scenes or UI | Run the Godot client check and relevant automated tests; inspect the affected controls in the game. |
 | Windows export or device storage | Run the Windows export check and relevant native Windows checks. Test the actual bundle on Windows when claiming player usability. |
 | Saves, events or compatibility | Include the replay and rollback checks described in [Saves and replay](saves-and-replay.md). During alpha, older saves need not keep loading, so no old-save or migration checks are needed; a save that cannot load must still be refused visibly and preserved. |
