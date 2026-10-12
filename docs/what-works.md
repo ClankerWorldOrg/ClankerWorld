@@ -34,7 +34,7 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own host is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
+| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own local server is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Player-chosen supplies are unfinished. |
 | Move around and inspect the map | Available in the game | Zoom, overview, wrapped east/west movement, tile facts, building cards with stored items as icons, and separate filters for Town title, household use, disputes, building property and Town borders. The disputes filter shows contested tiles in pending household land requests. Building Details lists the workstation’s registered recipes with input/output quantities, and running work shows its recipe and the materials held for it. Details also lists recent recorded storage additions and removals. |
@@ -97,7 +97,7 @@ owner/server path; the current measurements are
 automated fixture evidence, not a Windows visual playtest or a final balance
 claim.
 
-World time and hosted calls stop after the last connected client's short grace
+World time and model calls stop after the last connected client's short grace
 period. Returning makes no offline progress; a manually paused world stays
 paused. New worlds use six-minute days and a 40-day year as the current playtest
 pace, subject to model/server load.

@@ -3,6 +3,7 @@ using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -196,19 +197,19 @@ public sealed class NativeActionRefusalTests
     }
 
     [Fact]
-    public async Task RecoveryAdmitsTheActualReceivedHostedRepliesOnceWithoutAnotherProviderCall()
+    public async Task RecoveryAdmitsTheActualReceivedModelRepliesOnceWithoutAnotherProviderCall()
     {
         var directory = Directory.CreateTempSubdirectory("native-hosted-refusal-");
         try
         {
-            var provider = new ExploringProvider(hosted: true);
+            var provider = new ExploringProvider(usesModel: true);
             using var world = NormalPathWorld.CreateGenerated("native-action-refusal", _ => provider);
             var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"), _ => provider);
             Assert.True((await world.AdvanceOneTickWithCheckpointAsync(file.PrepareSave,
                 failurePolicy: WorldTickFailurePolicy.RefuseSingleAction)).Advanced);
             var ids = world.Inhabitants.Select(person => person.InhabitantId).ToArray();
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            while (!world.HostedDecisionsFinished(ids)) await Task.Delay(10, deadline.Token);
+            while (!world.ModelDecisionsFinished(ids)) await Task.Delay(10, deadline.Token);
             Assert.Equal(4, provider.Calls);
             file.Save(world);
             var actor = world.Inhabitants.OrderBy(person => person.InhabitantId, StringComparer.Ordinal).First();
@@ -236,12 +237,12 @@ public sealed class NativeActionRefusalTests
         finally { directory.Delete(recursive: true); }
     }
 
-    private sealed class ExploringProvider(long epoch = 0, bool hosted = false, bool idleForOrder = false) : IDecisionProvider
+    private sealed class ExploringProvider(long epoch = 0, bool usesModel = false, bool idleForOrder = false) : IDecisionProvider
     {
         public int Calls { get; private set; }
         public List<string[]> Offered { get; } = [];
         public List<InhabitantObservation> Observations { get; } = [];
-        public DecisionProviderKind Kind => hosted ? DecisionProviderKind.LargeLanguageModel : DecisionProviderKind.Deterministic;
+        public DecisionProviderKind Kind => usesModel ? DecisionProviderKind.LargeLanguageModel : DecisionProviderKind.Deterministic;
         public long ProviderEpoch => epoch;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

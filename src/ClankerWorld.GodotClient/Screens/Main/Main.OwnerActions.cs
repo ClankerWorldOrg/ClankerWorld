@@ -468,7 +468,7 @@ public partial class Main
             lastObservedLifePace = rate;
             lastLifePaceWorldId = snapshot.WorldId;
         }
-        worldUrlInput.Editable = registration is null && pendingPairing is null && !isPairingOperation && !isOwnerAction && !isRefreshing;
+        serverUrlInput.Editable = registration is null && pendingPairing is null && !isPairingOperation && !isOwnerAction && !isRefreshing;
         connectButton.Disabled = registeredEndpointInvalid || pendingPairing is not null || isPairingOperation || isOwnerAction || isRefreshing;
         pairAgainButton.Visible = registration is not null;
         pairAgainButton.Disabled = isPairingOperation || isOwnerAction || isRefreshing;
@@ -542,7 +542,7 @@ public partial class Main
         saveCognitionProviderButton.Disabled = actionDisabled ||
             SelectedCognitionTarget() is not null && selectedProvider == "jev" ||
             SelectedCognitionTarget() is not null && selectedProviderStatus?.HasCredential != true &&
-                IsHostedProvider(selectedProvider) && SelectedCredentialChoice() == "default";
+                IsModelProvider(selectedProvider) && SelectedCredentialChoice() == "default";
         forgetCognitionCredentialButton.Disabled = actionDisabled || selectedProvider == "deterministic" ||
             selectedProviderStatus?.HasCredential != true;
         deleteCognitionCredentialSlotButton.Disabled = actionDisabled ||

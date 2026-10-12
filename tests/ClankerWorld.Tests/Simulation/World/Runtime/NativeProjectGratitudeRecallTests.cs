@@ -4,7 +4,8 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -14,7 +15,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(true)]
     [InlineData(false)]
     [InlineData(true, true)]
-    public async Task OfferedProjectHelpSurvivesHostedReloadAndPersonalRecall(bool nativeBorn, bool fullHouse = false)
+    public async Task OfferedProjectHelpSurvivesModelReloadAndPersonalRecall(bool nativeBorn, bool fullHouse = false)
     {
         var initial = WorldRuntimeCodec.Decode(await (nativeBorn ? LaterAdult : ConversationAdult).Value);
         var society = initial.Society.Society;
@@ -162,7 +163,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
             // Cancel actual external work before the checkpoint fork. Both
             // continuations use the same native blocking admission boundary.
-            restored.CancelPendingHostedDecisions();
+            restored.CancelPendingModelCalls();
             reloadFile.Save(restored);
             using var disk = reloadFile.LoadOrCreate(initial.WorldSeed);
             var saved = WorldRuntimeCodec.Encode(restored.ExportState());

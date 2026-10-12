@@ -398,7 +398,7 @@ public sealed partial class WorldFieldOrderTests
         var text = "plant grain" + (explicitLocation ? $" at ({Point.X}, {Point.Y})" : "");
         var receipt = Submit(world, "held", text);
         var startAfterTick = world.WorldTick + 3;
-        // A hosted request may need later committed ticks before it enters
+        // A model request may need later committed ticks before it enters
         // the provider. Make that scheduling boundary observable in one row.
         if (delayedStartup) provider.CanStart = () => world.WorldTick >= startAfterTick;
         try

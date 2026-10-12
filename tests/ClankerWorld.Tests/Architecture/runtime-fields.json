@@ -52,7 +52,7 @@
     "observerGeneration",
     "observerInstanceId",
     "pendingConversationTurns",
-    "pendingHosted",
+    "pendingModelCalls",
     "pendingIdentityMoments",
     "pendingWillCancellationReasons",
     "pendingWills",

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 

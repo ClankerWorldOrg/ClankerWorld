@@ -5,8 +5,9 @@ using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -18,7 +19,7 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task DuplicateNameIsRetriedOnceWithCanonicalComparisonAndASeparateProviderRequest()
     {
-        var provider = new SequencedHostedProvider(
+        var provider = new SequencedModelProvider(
             new NameReply("e\u0301LODIE\u00a0Lake", SelectedCandidateId: "unknown_action"),
             new NameReply("Maia Vale"));
         using var world = CreateNameTestWorld("duplicate-name-retry", provider);
@@ -53,7 +54,7 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task UniqueChosenFirstNameSurvivesARejectedActionWithoutAnotherNamingCall()
     {
-        var provider = new SequencedHostedProvider(new NameReply("Maia Vale", SelectedCandidateId: "unknown_action"));
+        var provider = new SequencedModelProvider(new NameReply("Maia Vale", SelectedCandidateId: "unknown_action"));
         using var world = CreateNameTestWorld("name-with-rejected-action", provider);
         world.StartWorld();
         var result = await AdvanceUntilAcceptedAsync(world, NameTargetId);
@@ -115,7 +116,7 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task MalformedReplyDoesNotApplyItsNameOrStartTheDuplicateNameRetry()
     {
-        var provider = new SequencedHostedProvider(new NameReply("Taken Lake", 1.2));
+        var provider = new SequencedModelProvider(new NameReply("Taken Lake", 1.2));
         // Peers must not take shared tools and create a real follow-up choice before this reply is admitted.
         using var world = CreateNameTestWorld("malformed-name-reply", provider, quietOthers: true);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
@@ -137,7 +138,7 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task FailedNameRetryKeepsPlaceholderAndClosesTheNamingAttempt()
     {
-        var provider = new SequencedHostedProvider(
+        var provider = new SequencedModelProvider(
             [new NameReply("Taken Lake")], false, false, true);
         using var world = CreateNameTestWorld("failed-name-retry", provider);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
@@ -171,7 +172,7 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task SecondDuplicateKeepsPlaceholderAndDoesNotStartAnotherNamingRequest()
     {
-        var provider = new SequencedHostedProvider(
+        var provider = new SequencedModelProvider(
             new NameReply("Taken Lake"),
             new NameReply("taken\u00a0Ridge"));
         using var world = CreateNameTestWorld("duplicate-name-exhausted", provider);
@@ -182,7 +183,7 @@ public sealed class WorldDeferredCognitionTests
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        // How many ticks a hosted reply takes depends on the runner, so an ordinary
+        // How many ticks a model reply takes depends on the runner, so an ordinary
         // re-evaluation may also start; only the two naming requests may ask for a name.
         Assert.Equal(2, provider.ObservedRequests.Count(request => request.NeedsName || request.IsNameRetry));
         Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
@@ -238,7 +239,7 @@ public sealed class WorldDeferredCognitionTests
             Assert.True(fromDisk.RenameAgent(NameOwnerId, "Founder Vale"));
             Assert.Equal(placeholder, fromDisk.Society.GetInhabitant(NameTargetId).Name);
 
-            var ordinaryProvider = new SequencedHostedProvider(new NameReply("Unexpected Replacement"));
+            var ordinaryProvider = new SequencedModelProvider(new NameReply("Unexpected Replacement"));
             using var resumed = WorldRuntime.Restore(
                 WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(fromDisk.ExportState())),
                 id => id == NameTargetId ? ordinaryProvider : new QuietDecisionProvider());
@@ -261,8 +262,8 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task SameTickDuplicateNamesGoToStableIdWinner()
     {
-        var firstProvider = new SequencedHostedProvider(new NameReply("Shared Vale"));
-        var secondProvider = new SequencedHostedProvider(
+        var firstProvider = new SequencedModelProvider(new NameReply("Shared Vale"));
+        var secondProvider = new SequencedModelProvider(
             new NameReply("SHARED Lake"),
             new NameReply("Second Name"));
         using var world = new WorldRuntime("same-tick-duplicate-names", id => id switch
@@ -284,7 +285,7 @@ public sealed class WorldDeferredCognitionTests
         // Each provider signals just before the runtime's call task finishes,
         // so wait for both calls to finish before the tick that admits them together.
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(3);
-        while (!world.HostedDecisionsFinished(NameTargetId, NameOwnerId))
+        while (!world.ModelDecisionsFinished(NameTargetId, NameOwnerId))
         {
             Assert.True(DateTime.UtcNow < deadline, "Both model calls should finish.");
             await Task.Delay(1);
@@ -305,7 +306,7 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task DuplicateNameRetryMarkerSurvivesPauseSaveRestoreAndIgnoresCanceledReply()
     {
-        var provider = new SequencedHostedProvider(
+        var provider = new SequencedModelProvider(
             [new NameReply("Taken Lake"), new NameReply("Restored Name")],
             holdSecond: true,
             ignoreSecondCancellation: true);
@@ -336,7 +337,7 @@ public sealed class WorldDeferredCognitionTests
             item.Kind == "hosted_decision_completed"));
         Assert.Equal(placeholder, world.Society.GetInhabitant(NameTargetId).Name);
 
-        var restoredProvider = new SequencedHostedProvider(new NameReply("Restored Name"));
+        var restoredProvider = new SequencedModelProvider(new NameReply("Restored Name"));
         using var restored = WorldRuntime.Restore(saved, id => id == NameTargetId
             ? restoredProvider
             : new DeterministicDecisionProvider());
@@ -354,7 +355,7 @@ public sealed class WorldDeferredCognitionTests
     [InlineData(true)]
     public async Task PlayerRenameCancelsQueuedNamingWorkAndPreservesOtherTriggers(bool otherWork)
     {
-        var provider = new SequencedHostedProvider(
+        var provider = new SequencedModelProvider(
             [new NameReply("Taken Lake"), new NameReply("Retry Name")], holdSecond: true);
         using var world = CreateNameTestWorld("rename-queued-name-retry", provider, quietOthers: true);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
@@ -380,7 +381,7 @@ public sealed class WorldDeferredCognitionTests
                 }
             }
         };
-        var freshProvider = new SequencedHostedProvider(new NameReply("Unexpected Retry"));
+        var freshProvider = new SequencedModelProvider(new NameReply("Unexpected Retry"));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(saved)),
             id => id == NameTargetId ? freshProvider : new QuietDecisionProvider());
         Assert.True(restored.RenameAgent(NameTargetId, "Player Name"));
@@ -398,10 +399,10 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task HelperSwitchPreservesMemoriesDiscardsLateRepliesAndReplaysItsSavedChoice()
     {
-        var hosted = new HeldHostedProvider(ignoreCancellation: true, kind: DecisionProviderKind.OpenAiDecisions);
-        using var world = new WorldRuntime("helper-switch", id => id == "founder-scout" ? hosted : new QuietDecisionProvider());
+        var modelProvider = new HeldModelProvider(ignoreCancellation: true, kind: DecisionProviderKind.OpenAiDecisions);
+        using var world = new WorldRuntime("helper-switch", id => id == "founder-scout" ? modelProvider : new QuietDecisionProvider());
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await hosted.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await modelProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         world.Pause();
         var memories = world.Society.Memories;
         Assert.True(world.SetRoutineHelper(new("decisions", "gpt-6-luna")));
@@ -413,8 +414,8 @@ public sealed class WorldDeferredCognitionTests
         var refused = Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(older));
         Assert.Contains("older than the minimum supported schema", refused.Message, StringComparison.Ordinal);
         var saved = WorldRuntimeCodec.Encode(checkpoint);
-        hosted.Release.TrySetResult(true);
-        await hosted.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        modelProvider.Release.TrySetResult(true);
+        await modelProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.False((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal(memories, world.Society.Memories);
@@ -437,18 +438,18 @@ public sealed class WorldDeferredCognitionTests
     }
 
     [Fact]
-    public async Task SlowHostedFounderDoesNotHoldWorldOrOtherFounders()
+    public async Task AFounderWithASlowModelDoesNotHoldWorldOrOtherFounders()
     {
-        var hosted = new HeldHostedProvider();
+        var modelProvider = new HeldModelProvider();
         // Keep the offered context unchanged while peers still complete their independent decisions.
         using var world = new WorldRuntime("deferred-founder", id =>
-            id == "founder-scout" ? hosted : new QuietDecisionProvider());
+            id == "founder-scout" ? modelProvider : new QuietDecisionProvider());
 
         var first = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
         Assert.True(first.Advanced);
         Assert.Equal(1, world.WorldTick);
         Assert.Contains(first.Decisions, item => item.InhabitantId != "founder-scout" && item.Admission.Accepted);
-        await hosted.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await modelProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Contains(world.ExportState().Society.Cognition.Queue, item => item.InhabitantId == "founder-scout");
         Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants
                 .Single(item => item.Id == "founder-scout").DecisionFactors,
@@ -459,8 +460,8 @@ public sealed class WorldDeferredCognitionTests
         Assert.Equal(4, world.WorldTick);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
 
-        hosted.Release.TrySetResult(true);
-        await hosted.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        modelProvider.Release.TrySetResult(true);
+        await modelProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var admitted = await AdvanceUntilAcceptedAsync(world, "founder-scout");
         Assert.Contains(admitted.Events, item => item.Kind == "hosted_decision_completed");
         Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.InhabitantId == "founder-scout");
@@ -469,17 +470,17 @@ public sealed class WorldDeferredCognitionTests
     [Fact]
     public async Task AcceptedPersonalModelThoughtIsSavedAndShownOnlyOnItsOwnersProfile()
     {
-        var hosted = new HeldHostedProvider(kind: DecisionProviderKind.LargeLanguageModel,
+        var modelProvider = new HeldModelProvider(kind: DecisionProviderKind.LargeLanguageModel,
             privateThought: "I should gather food before the others wake.", chosenName: "Aster Vale");
-        using var world = CreateNameTestWorld("private-thoughts", hosted);
+        using var world = CreateNameTestWorld("private-thoughts", modelProvider);
         world.StartWorld();
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await hosted.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        Assert.True(hosted.NeedsNameObserved);
+        await modelProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True(modelProvider.NeedsNameObserved);
         Assert.True(world.RenameAgent(NameTargetId, "Player-picked"));
         Assert.False(world.Society.IsPaused);
-        hosted.Release.TrySetResult(true);
-        await hosted.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        modelProvider.Release.TrySetResult(true);
+        await modelProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var admitted = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         Assert.False(Assert.Single(admitted.Decisions, item => item.InhabitantId == NameTargetId).Admission.FellBack);
         Assert.Equal("Player-picked", world.Society.GetInhabitant(NameTargetId).Name);
@@ -563,7 +564,7 @@ public sealed class WorldDeferredCognitionTests
 
     private static async Task<WorldStepResult> AdvanceUntilAcceptedAsync(WorldRuntime world, string inhabitantId)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted",
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         for (var tick = 0; tick < 20; tick++)
@@ -623,7 +624,7 @@ public sealed class WorldDeferredCognitionTests
         double Confidence = 1d,
         string SelectedCandidateId = "safe_idle");
 
-    private sealed class SequencedHostedProvider(
+    private sealed class SequencedModelProvider(
         IReadOnlyList<NameReply> replies,
         bool holdSecond = false,
         bool ignoreSecondCancellation = false,
@@ -635,7 +636,7 @@ public sealed class WorldDeferredCognitionTests
         private CognitionDecisionResponse? secondReply;
         private Task<CognitionDecisionResponse>? secondResponseTask;
 
-        public SequencedHostedProvider(params NameReply[] replies)
+        public SequencedModelProvider(params NameReply[] replies)
             : this((IReadOnlyList<NameReply>)replies)
         {
         }
@@ -750,7 +751,7 @@ public sealed class WorldDeferredCognitionTests
         }
     }
 
-    private sealed class HeldHostedProvider(
+    private sealed class HeldModelProvider(
         bool ignoreCancellation = false,
         DecisionProviderKind kind = DecisionProviderKind.Jev,
         string? privateThought = null,

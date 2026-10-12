@@ -72,7 +72,7 @@ public partial class Main
         var previousRefreshing = isRefreshing;
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousModel = founderModelPicker.Model;
         var previousCheckDisabled = founderModelSetupCheckButton.Disabled;
         var previousCheckText = founderModelSetupCheckStatus.Text;
@@ -93,7 +93,7 @@ public partial class Main
             var authority = new OwnerAuthorityIdentity("compatibility-smoke", "compatibility-world");
             registration = new(authority, "compatibility-device", signer.PublicKeyFingerprint, origin);
             deviceKey = signer;
-            worldUrlInput.Text = origin;
+            serverUrlInput.Text = origin;
             worldNameInput.Text = "Disposable";
             worldSeedInput.Text = "compatibility-smoke";
             var response = Task.Run(async () =>
@@ -134,7 +134,7 @@ public partial class Main
             isRefreshing = previousRefreshing;
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             founderModelPicker.SetModel(previousModel);
             founderModelSetupCheckButton.Disabled = previousCheckDisabled;
             founderModelSetupCheckStatus.Text = previousCheckText;

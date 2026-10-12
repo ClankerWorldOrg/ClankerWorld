@@ -10,7 +10,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         var previousMenuVisible = gameMenuPanel.Visible;
@@ -27,7 +27,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             gameMenuPanel.Show();
             settingsPanel.Show();
             gameSettingsContent.Hide();
@@ -114,7 +114,7 @@ public partial class Main
             CancelAutosaveSettingsRead();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

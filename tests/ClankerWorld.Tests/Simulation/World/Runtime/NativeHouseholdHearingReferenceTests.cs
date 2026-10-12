@@ -47,7 +47,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         // Reload restarts external calls. Start both continuations after the
         // public cancellation boundary, with identical fresh provider inputs.
         await AwaitConversationRequestsAsync(world);
-        world.CancelPendingHostedDecisions();
+        world.CancelPendingModelCalls();
         var bytes = host.Checkpoint();
         using var replay = RestoreHouseholdHearing(WorldRuntimeCodec.Decode(bytes), new NativeLandHearingChoices
         { Target = household, Consent = true, Rule = true });
@@ -104,7 +104,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Contains(settled.Responses, response => response.AgentId == actor);
         AssertInvalidHouseholdRuling(world.ExportState(), settled);
         await AwaitConversationRequestsAsync(world);
-        world.CancelPendingHostedDecisions();
+        world.CancelPendingModelCalls();
         var bytes = host.Checkpoint();
         using var replay = RestoreHouseholdHearing(WorldRuntimeCodec.Decode(bytes), new NativeHouseholdExpiryChoices(household, outcome));
         replay.Resume();

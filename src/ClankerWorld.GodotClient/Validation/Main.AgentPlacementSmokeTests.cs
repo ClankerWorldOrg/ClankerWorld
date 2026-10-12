@@ -10,7 +10,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousConfiguration = providerConfiguration;
         var previousRefreshing = isRefreshing;
@@ -33,7 +33,7 @@ public partial class Main
                 };
                 registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
                 deviceKey = signer;
-                worldUrlInput.Text = host.Address;
+                serverUrlInput.Text = host.Address;
                 observationSession.ResetAfterLoad();
                 var snapshot = new OwnerWorldSnapshot("placement-ui-smoke", 0, "placement-map",
                     Enumerable.Range(0, 9).Select(index => new OwnerWorldTile(index % 3, index / 3, "meadow")).ToArray(),
@@ -143,7 +143,7 @@ public partial class Main
             placingAddedAgent = false;
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             providerConfiguration = previousConfiguration;
             isRefreshing = previousRefreshing;
             observationSession.ResetAfterLoad();

@@ -50,11 +50,11 @@ public sealed partial class WorldRuntime
         {
             return ReadyForLesson(lesson.TeacherId) && AdultResident(lesson.TeacherId) &&
                 !IsConversationBusy(lesson.TeacherId) &&
-                (!HasHousingDecision(lesson.TeacherId) || society.PendingHostedInhabitantIds().Contains(lesson.TeacherId));
+                (!HasHousingDecision(lesson.TeacherId) || society.PendingModelInhabitantIds().Contains(lesson.TeacherId));
         }
         return ActiveStudent(actor) is { } student && AdultResident(student.InhabitantId) &&
             ReadyForLesson(student.InhabitantId) && !IsConversationBusy(student.InhabitantId) &&
-            (!HasHousingDecision(student.InhabitantId) || society.PendingHostedInhabitantIds().Contains(student.InhabitantId));
+            (!HasHousingDecision(student.InhabitantId) || society.PendingModelInhabitantIds().Contains(student.InhabitantId));
     }
 
     private void MaintainLessons()

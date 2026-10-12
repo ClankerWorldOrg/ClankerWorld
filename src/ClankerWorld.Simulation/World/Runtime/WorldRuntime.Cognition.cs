@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
     // Keep authoritative membership keys in saves; only model context needs a bounded alias.
     private static string? CognitionHouseholdId(string? id) => id is null ? null : DerivedId.Create(id, "household-sha256:");
 
-    private void EnqueueDueCognition(IReadOnlySet<string> activeHostedIds)
+    private void EnqueueDueCognition(IReadOnlySet<string> activeModelCallIds)
     {
         var cognitionState = society.Capture().Cognition;
         var runtimes = cognitionState.Runtimes
@@ -31,12 +31,12 @@ public sealed partial class WorldRuntime
         // Retained work has already advanced LastDecisionContext. Once its
         // earlier call ends, rebuild it even if the ordinary cadence is quiet.
         var awaitingDispatch = cognitionState.Queue
-            .Where(entry => !activeHostedIds.Contains(entry.InhabitantId))
+            .Where(entry => !activeModelCallIds.Contains(entry.InhabitantId))
             .Select(entry => entry.InhabitantId)
             .ToHashSet(StringComparer.Ordinal);
-        var waitingHosted = society.PendingHostedInhabitantIds();
+        var waitingForModelIds = society.PendingModelInhabitantIds();
         var waitingOrderDecisions = cognitionState.Queue
-            .Where(entry => waitingHosted.Contains(entry.InhabitantId) &&
+            .Where(entry => waitingForModelIds.Contains(entry.InhabitantId) &&
                 entry.Observation.OperativeOrderInstructionId is not null &&
                 IsOrderDecisionObservationCurrent(entry.Observation) &&
                 (!awaitingDispatch.Contains(entry.InhabitantId) ||
@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
             .Select(entry => entry.InhabitantId)
             .ToHashSet(StringComparer.Ordinal);
         var staleOrderDecisions = cognitionState.Queue
-            .Where(entry => waitingHosted.Contains(entry.InhabitantId) &&
+            .Where(entry => waitingForModelIds.Contains(entry.InhabitantId) &&
                 entry.Observation.OperativeOrderInstructionId is not null &&
                 !IsOrderDecisionObservationCurrent(entry.Observation))
             .Select(entry => entry.InhabitantId)
@@ -411,10 +411,10 @@ public sealed partial class WorldRuntime
 
     private HashSet<string> ApplyContinuingIntentions(
         IEnumerable<string> dispatchedInhabitantIds,
-        IEnumerable<string> pendingHostedInhabitantIds)
+        IEnumerable<string> pendingModelInhabitantIds)
     {
         var dispatched = dispatchedInhabitantIds.ToHashSet(StringComparer.Ordinal);
-        var pendingHosted = pendingHostedInhabitantIds.ToHashSet(StringComparer.Ordinal);
+        var pendingModelCalls = pendingModelInhabitantIds.ToHashSet(StringComparer.Ordinal);
         var orderActorsHandledThisTick = new HashSet<string>(StringComparer.Ordinal);
         var runtimes = society.Capture().Cognition.Runtimes
             .ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
@@ -431,13 +431,13 @@ public sealed partial class WorldRuntime
                 attemptedActions[inhabitant.Id] = attempted.CandidateId;
             if (PassengerBoat(inhabitant.Id) is not null)
             {
-                if ((!pendingHosted.Contains(inhabitant.Id) || PendingInstructionFor(inhabitant.Id) is not null) && NeedsUrgentFood(state) &&
+                if ((!pendingModelCalls.Contains(inhabitant.Id) || PendingInstructionFor(inhabitant.Id) is not null) && NeedsUrgentFood(state) &&
                     CreateCandidates(inhabitant.Id, state).Any(candidate => candidate.Id == "consume_food"))
                     ApplyCandidate(inhabitant.Id, state, "consume_food", reportIdle: false);
                 continue;
             }
             var order = PendingInstructionFor(inhabitant.Id);
-            var waitingForModel = pendingHosted.Contains(inhabitant.Id);
+            var waitingForModel = pendingModelCalls.Contains(inhabitant.Id);
             if (waitingForModel && (order is null || !NeedsUrgentFood(state) && !NeedsUrgentWarmth(state)))
             {
                 // A delayed reply supplies no new choice. Urgent survival and nearby

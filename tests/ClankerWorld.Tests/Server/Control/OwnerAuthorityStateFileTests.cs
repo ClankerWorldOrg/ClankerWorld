@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Tests;
 

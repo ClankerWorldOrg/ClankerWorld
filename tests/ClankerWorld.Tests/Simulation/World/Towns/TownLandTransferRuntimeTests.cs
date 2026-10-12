@@ -166,7 +166,7 @@ public sealed partial class TownLandTransferRuntimeTests
     }
 
     [Fact]
-    public async Task HostedOldAdultConsentCannotSupplyTheConsentOfANewAdultWhoMustActuallyVisitReadAndAccept()
+    public async Task AnOldAdultsModelConsentCannotSupplyTheConsentOfANewAdultWhoMustActuallyVisitReadAndAccept()
     {
         var provider = new TransferProvider { AllowPropose = true, HoldPartner = true, AllowNewcomer = false };
         using var world = NewWorld(provider);

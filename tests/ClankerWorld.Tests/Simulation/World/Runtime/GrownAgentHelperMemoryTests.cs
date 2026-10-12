@@ -234,7 +234,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 }
                 Assert.Equal(SocietyAgeBand.Adult, aging.Society.GetInhabitant(childId).AgeBand);
                 // Accelerated aging can cross several identity boundaries
-                // before a hosted reply is admitted. Finish the ordinary
+                // before a model reply is admitted. Finish the ordinary
                 // request at the normal rate before swapping to the helper.
                 aging.Pause();
                 aging.SetLifePace(1);
@@ -425,7 +425,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private static async Task WaitForRequests(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted", BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
         await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));

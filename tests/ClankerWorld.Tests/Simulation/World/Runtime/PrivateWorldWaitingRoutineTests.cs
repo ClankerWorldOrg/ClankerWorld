@@ -216,7 +216,7 @@ public sealed partial class WorldRuntimeTests
                 await release.Task.WaitAsync(cancellationToken);
             }
             Assert.Contains(request.Observation.Candidates, candidate => candidate.Id == firstChoice);
-            return HostedResponse(request, Kind, ProviderEpoch, firstChoice);
+            return ModelResponse(request, Kind, ProviderEpoch, firstChoice);
         }
     }
 }

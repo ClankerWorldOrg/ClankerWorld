@@ -160,7 +160,7 @@ public sealed partial class WorldRuntime
             // The first explicit selection activates helper routing even when
             // its values match the untouched installation-compatible defaults.
             if (routineHelper == settings && jevPolicyRevision > 0) return false;
-            foreach (var id in pendingHosted.Keys.ToArray()) CancelPendingHosted(id);
+            foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
             foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
             routineHelper = settings;
             jevEnabled = settings.Provider != "off";
@@ -238,7 +238,7 @@ public sealed partial class WorldRuntime
         var result = society.Pause();
         if (!wasPaused && result.Checkpoint.IsPaused)
         {
-            foreach (var id in pendingHosted.Keys.ToArray()) CancelPendingHosted(id);
+            foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id);
             foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id);
             CancelIdentityMoments();
             foreach (var id in pendingConversationTurns.Keys.ToArray())

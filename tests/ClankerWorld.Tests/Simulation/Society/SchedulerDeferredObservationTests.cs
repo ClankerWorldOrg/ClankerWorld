@@ -59,7 +59,7 @@ public sealed class SchedulerDeferredObservationTests
         Assert.True(completed.Admission.Accepted);
         if (guidance) Assert.Equal(Guidance(), Assert.Single(completed.Admission.ObserverGuidance!.Messages));
         Assert.Empty(scheduler.ExportState().Queue);
-        Assert.Empty(scheduler.PreviewHostedRequests(NoExclusions));
+        Assert.Empty(scheduler.PreviewModelRequests(NoExclusions));
         var durableRuntime = Assert.Single(scheduler.ExportState().Runtimes);
         Assert.Equal(3, durableRuntime.NextRequestSequence);
         Assert.Equal([first.RequestId, next.RequestId], durableRuntime.Events
@@ -92,7 +92,7 @@ public sealed class SchedulerDeferredObservationTests
         Assert.True(result.Admission.Accepted);
         Assert.Equal(first.Observation.ObservationDigest, result.Admission.Intention!.ObservationDigest);
         Assert.Empty(scheduler.ExportState().Queue);
-        Assert.Empty(scheduler.PreviewHostedRequests(NoExclusions));
+        Assert.Empty(scheduler.PreviewModelRequests(NoExclusions));
         Assert.Single(scheduler.CaptureRuntime(Actor).Requests);
         Assert.Equal(2, Assert.Single(scheduler.ExportState().Runtimes).NextRequestSequence);
     }
@@ -178,7 +178,7 @@ public sealed class SchedulerDeferredObservationTests
         "instruction-1", "owner:test", Actor, "suggestive", "Read the new proposal.", 2, 0, 1, null, true);
 
     private static CognitionDecisionRequest Preview(SocietyCognitionScheduler scheduler) =>
-        Assert.Single(scheduler.PreviewHostedRequests(NoExclusions)).Request;
+        Assert.Single(scheduler.PreviewModelRequests(NoExclusions)).Request;
 
     private static HashSet<string> Legal(InhabitantObservation observation) =>
         observation.Candidates.Select(candidate => candidate.Id).ToHashSet(StringComparer.Ordinal);

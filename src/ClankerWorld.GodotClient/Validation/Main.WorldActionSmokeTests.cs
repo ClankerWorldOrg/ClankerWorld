@@ -15,7 +15,7 @@ public partial class Main
     {
         var originalRegistration = registration;
         var originalKey = deviceKey;
-        var originalUrl = worldUrlInput.Text;
+        var originalUrl = serverUrlInput.Text;
         var originalCi = Environment.GetEnvironmentVariable("CI");
         var originalLauncher = launcherPath;
         var originalLauncherRead = launcherPathRead;
@@ -36,20 +36,20 @@ public partial class Main
             using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
             {
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
-                worldUrlInput.Text = host.Address;
+                serverUrlInput.Text = host.Address;
                 host.Catalog = WorldActionSmokeCatalog([handoffId]) with { ActiveId = handoffId };
                 if (await ReadCurrentWorldForLauncherAsync() != handoffId || host.PauseCount != 0 ||
                     host.SelectReceived.Task.IsCompleted || host.DeleteCount != 0 || host.SaveCreateCount != 0)
                     throw new InvalidOperationException("Quit to Launcher must read the actual active catalog ID without changing the world.");
                 host.RejectCatalogRead = true;
                 await QuitGameAsync(openLauncher: true, chooseCurrentWorld: true);
-                if (!localHostStopFailure.Visible || !retryChooseCurrentWorld || isQuittingGame || host.PauseCount != 0)
+                if (!localServerStopFailure.Visible || !retryChooseCurrentWorld || isQuittingGame || host.PauseCount != 0)
                     throw new InvalidOperationException("An unsuccessful current-world read must keep the game open with its read retry.");
                 host.RejectCatalogRead = false;
                 launcherPathRead = true;
                 launcherPath = Path.Combine(Path.GetTempPath(), "missing-launcher-" + Guid.NewGuid().ToString("N"));
-                localHostStopFailure.Hide();
-                localHostStopFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
+                localServerStopFailure.Hide();
+                localServerStopFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
                 var deadline = System.Diagnostics.Stopwatch.StartNew();
                 while (isQuittingGame && deadline.Elapsed < TimeSpan.FromSeconds(5))
                     await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -64,7 +64,7 @@ public partial class Main
             {
                 using var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64);
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
-                worldUrlInput.Text = host.Address;
+                serverUrlInput.Text = host.Address;
                 ShowWorldActionSmokeMenu();
                 var catalog = WorldActionSmokeCatalog(["A", "B", handoffId]);
                 host.Catalog = catalog with
@@ -103,7 +103,7 @@ public partial class Main
             {
                 using var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64);
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
-                worldUrlInput.Text = host.Address;
+                serverUrlInput.Text = host.Address;
                 ShowWorldActionSmokeMenu();
                 host.Catalog = WorldActionSmokeCatalog(removeChosen ? ["A", "B", "C"] : ["A", "B", "C", "D"]);
                 await RefreshWorldListAsync();
@@ -144,7 +144,7 @@ public partial class Main
             using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
             {
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
-                worldUrlInput.Text = host.Address;
+                serverUrlInput.Text = host.Address;
                 ShowWorldActionSmokeMenu();
                 host.Catalog = WorldActionSmokeCatalog(["A", "B", "C", "D"]);
                 await RefreshWorldListAsync();
@@ -181,7 +181,7 @@ public partial class Main
             using (var host = new WorldActionSmokeHost(key.PublicKeySpkiBase64))
             {
                 registration = new(host.Authority, "smoke-device", key.PublicKeyFingerprint, host.Address);
-                worldUrlInput.Text = host.Address;
+                serverUrlInput.Text = host.Address;
                 ShowWorldActionSmokeMenu();
                 var older = WorldActionSmokeCatalog(["A", handoffId]);
                 host.Catalog = older with
@@ -229,7 +229,7 @@ public partial class Main
             worldSelectionList.Clear();
             registration = originalRegistration;
             deviceKey = originalKey;
-            worldUrlInput.Text = originalUrl;
+            serverUrlInput.Text = originalUrl;
             Environment.SetEnvironmentVariable("CI", originalCi);
             RefreshControlAvailability();
             RefreshMainMenuAvailability();
@@ -244,7 +244,7 @@ public partial class Main
             retryLauncherVersion = originalRetryVersion;
             retryLauncherWorld = originalRetryWorld;
             retryChooseCurrentWorld = originalRetryChoice;
-            localHostStopFailure.Hide();
+            localServerStopFailure.Hide();
             openInVersionConfirmation.Hide();
             launcherStartFailure.Hide();
         }

@@ -4,8 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +20,7 @@ public sealed class ServerWebApplicationFactory : WebApplicationFactory<Program>
     private readonly bool gameWorld;
     private readonly bool legacyGameWorld;
     private readonly bool configureProviderUsagePath;
-    private readonly bool advanceScript;
+    private readonly bool runClock;
 
     public ServerWebApplicationFactory()
         : this(null)
@@ -34,7 +33,7 @@ public sealed class ServerWebApplicationFactory : WebApplicationFactory<Program>
         bool gameWorld = true,
         bool legacyGameWorld = true,
         bool configureProviderUsagePath = true,
-        bool advanceScript = false)
+        bool runClock = false)
     {
         ownsStateDirectory = persistedStateDirectory is null;
         stateDirectory = persistedStateDirectory ?? System.IO.Path.Combine(
@@ -44,7 +43,7 @@ public sealed class ServerWebApplicationFactory : WebApplicationFactory<Program>
         this.gameWorld = gameWorld;
         this.legacyGameWorld = legacyGameWorld;
         this.configureProviderUsagePath = configureProviderUsagePath;
-        this.advanceScript = advanceScript;
+        this.runClock = runClock;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -59,16 +58,16 @@ public sealed class ServerWebApplicationFactory : WebApplicationFactory<Program>
                 newWorldPace: WorldStartPace.Legacy).LoadOrCreate("camp-alpha");
         }
         // All protocol tests cross the actual world host boundary.
-        builder.UseSetting("ClankerWorld:Runtime:WorldMode", gameWorld ? "game" : "fixture");
-        builder.UseSetting("ClankerWorld:Runtime:AdvanceScript", advanceScript ? "true" : "false");
-        builder.UseSetting("ClankerWorld:Runtime:StrictTickFailures", "true");
-        builder.UseSetting("ClankerWorld:Pairing:StatePath", System.IO.Path.Combine(stateDirectory, "authority.json"));
-        builder.UseSetting("ClankerWorld:Runtime:StatePath", System.IO.Path.Combine(stateDirectory, "runtime.json"));
+        builder.UseSetting("ClankerWorld:World:Mode", gameWorld ? "game" : "fixture");
+        builder.UseSetting("ClankerWorld:Clock:Run", runClock ? "true" : "false");
+        builder.UseSetting("ClankerWorld:Clock:StrictTickFailures", "true");
+        builder.UseSetting("ClankerWorld:Pairing:AuthorityPath", System.IO.Path.Combine(stateDirectory, "authority.json"));
+        builder.UseSetting("ClankerWorld:World:SavePath", System.IO.Path.Combine(stateDirectory, "runtime.json"));
         builder.UseSetting(
-            "ClankerWorld:Runtime:ProviderStatePath",
+            "ClankerWorld:Providers:ConfigurationPath",
             System.IO.Path.Combine(stateDirectory, "provider-configuration.json"));
         if (configureProviderUsagePath)
-            builder.UseSetting("ClankerWorld:Runtime:ProviderUsagePath",
+            builder.UseSetting("ClankerWorld:Providers:UsagePath",
                 System.IO.Path.Combine(stateDirectory, "provider-usage.json"));
         builder.UseSetting("ClankerWorld:Pairing:ServerAuthorityId", "authority-http-tests");
         if (!string.IsNullOrWhiteSpace(approvedAssetCatalogPath))

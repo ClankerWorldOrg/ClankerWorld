@@ -1,7 +1,9 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Server.Endpoints;
 
@@ -31,17 +33,17 @@ internal static partial class OwnerEndpoints
             await next(context);
         });
 
-        // Prove that this listener is the companion holding the game's secret,
+        // Prove that this listener is the local server holding the game's secret,
         // without creating a pairing or changing the world.
-        app.MapGet("/api/v1/local/companion", (HttpContext context, OwnerPairingHostOptions options) =>
-            options.IsCompanionHost && options.IsLocalApprovalRequest(context)
+        app.MapGet("/api/v1/approval/launch-check", (HttpContext context, ApprovalListenerOptions options) =>
+            options.IsLocalServer && options.IsApprovalRequest(context)
                 ? Results.Ok() : Results.NotFound());
 
-        app.MapPost("/api/v1/local/pairings", (
-            StartOwnerPairingHttpRequest request, HttpContext context, OwnerPairingHostOptions options,
+        app.MapPost("/api/v1/approval/pairings", (
+            StartOwnerPairingHttpRequest request, HttpContext context, ApprovalListenerOptions options,
             OwnerAuthorityStore authority, OwnerAuthorityStateFile stateFile) =>
         {
-            if (!options.IsLocalApprovalRequest(context)) return Results.NotFound();
+            if (!options.IsApprovalRequest(context)) return Results.NotFound();
             var result = authority.StartPairingLocally(new OwnerPairingRequest(request?.PublicKeySpkiBase64 ?? string.Empty));
             stateFile.Save(authority);
             PairingRequestBudget.LogLocalRecovery(app.Logger, result.IsSuccess ? "created" : "refused");
@@ -103,15 +105,15 @@ internal static partial class OwnerEndpoints
         // This route is served only by the second loopback-only listener configured by
         // the deployment. Tailscale Serve forwards the normal viewer port, never this
         // approval port, so a remote client cannot bootstrap itself.
-        app.MapPost("/api/v1/local/pairings/{pairingId}/approve", (
+        app.MapPost("/api/v1/approval/pairings/{pairingId}/approve", (
             string pairingId,
-            LocalPairingApprovalHttpRequest request,
+            PairingApprovalHttpRequest request,
             HttpContext context,
-            OwnerPairingHostOptions options,
+            ApprovalListenerOptions options,
             OwnerAuthorityStore authority,
             OwnerAuthorityStateFile stateFile) =>
         {
-            if (!options.IsLocalApprovalRequest(context))
+            if (!options.IsApprovalRequest(context))
             {
                 return Results.NotFound();
             }
@@ -132,15 +134,15 @@ internal static partial class OwnerEndpoints
         // pairing approval. If every paired Windows device is lost or revoked, the
         // host can still revoke a stale public key before pairing a replacement; this
         // path is not forwarded by Tailscale Serve.
-        app.MapPost("/api/v1/local/devices/{deviceId}/revoke", (
+        app.MapPost("/api/v1/approval/devices/{deviceId}/revoke", (
             string deviceId,
-            LocalDeviceRevokeHttpRequest _,
+            DeviceRevokeHttpRequest _,
             HttpContext context,
-            OwnerPairingHostOptions options,
+            ApprovalListenerOptions options,
             OwnerAuthorityStore authority,
             OwnerAuthorityStateFile stateFile) =>
         {
-            if (!options.IsLocalApprovalRequest(context))
+            if (!options.IsApprovalRequest(context))
             {
                 return Results.NotFound();
             }
@@ -155,14 +157,14 @@ internal static partial class OwnerEndpoints
             return Results.Ok(result.Value);
         });
 
-        // The game that started a companion host stops it here when the player
+        // The game that started a local server stops it here when the player
         // quits. Keep it alive and paused if its last committed tick cannot be saved.
-        app.MapPost("/api/v1/local/shutdown", (
+        app.MapPost("/api/v1/approval/shutdown", (
             HttpContext context,
-            OwnerPairingHostOptions options,
+            ApprovalListenerOptions options,
             IHostApplicationLifetime lifetime) =>
         {
-            if (!options.IsCompanionShutdownRequest(context)) return Results.NotFound();
+            if (!options.IsLocalServerShutdownRequest(context)) return Results.NotFound();
             var recovery = context.RequestServices.GetService<WorldStartupRecovery>();
             if (recovery is null) return Results.NotFound();
             if (recovery.Pending) return Results.Conflict(new { message = "Choose world recovery before saving." });
@@ -172,7 +174,7 @@ internal static partial class OwnerEndpoints
                 return Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "The world could not be saved",
                     detail: "The host is still running and the world is paused. Try again.");
-            CompanionHostTelemetry.ShutdownRequested(app.Logger);
+            LocalServerTelemetry.ShutdownRequested(app.Logger);
             // Let Accepted finish using request services before host teardown.
             context.Response.OnCompleted(() =>
             {

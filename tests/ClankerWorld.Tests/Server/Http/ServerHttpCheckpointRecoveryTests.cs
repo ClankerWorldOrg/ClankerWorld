@@ -5,8 +5,9 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Worlds;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ClankerWorld.Tests;
@@ -17,7 +18,7 @@ public sealed partial class ServerHttpTests
     [InlineData("truncated", true)]
     [InlineData("history", false)]
     [InlineData("schema", false)]
-    public async Task DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(string damage, bool advanceScript)
+    public async Task DamagedStartupOffersAVerifiedAutosaveWithoutChangingTheDamagedCheckpoint(string damage, bool runClock)
     {
         var directory = Directory.CreateTempSubdirectory("checkpoint-recovery-");
         try
@@ -51,7 +52,7 @@ public sealed partial class ServerHttpTests
                 File.WriteAllText(SavedBuild.PathFor(path), """{"GameVersion":"0.0.9-alpha.1","SourceRevision":"abc"}""");
             File.WriteAllBytes(path, damaged);
 
-            using var restarted = new ServerWebApplicationFactory(directory.FullName, gameWorld: true, advanceScript: advanceScript);
+            using var restarted = new ServerWebApplicationFactory(directory.FullName, gameWorld: true, runClock: runClock);
             using var client = restarted.CreateClient();
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var device = await StartAndActivateAsync(restarted, client, key);
@@ -157,7 +158,7 @@ public sealed partial class ServerHttpTests
             var path = Path.Combine(directory.FullName, "runtime.json");
             var damaged = Encoding.UTF8.GetBytes("{damaged latest");
             File.WriteAllBytes(path, damaged);
-            using var restarted = new ServerWebApplicationFactory(directory.FullName, gameWorld: true, advanceScript: true);
+            using var restarted = new ServerWebApplicationFactory(directory.FullName, gameWorld: true, runClock: true);
             using var client = restarted.CreateClient();
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             var device = await StartAndActivateAsync(restarted, client, key);

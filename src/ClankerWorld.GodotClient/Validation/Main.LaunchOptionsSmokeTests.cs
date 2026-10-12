@@ -42,7 +42,7 @@ public partial class Main
 
     private async Task VerifyLaunchOptionsAsync()
     {
-        if (!NoMenuOverWorld() || developerPanel.Visible || localHost is not null)
+        if (!NoMenuOverWorld() || developerPanel.Visible || localServer is not null)
             throw new InvalidOperationException("Launch option checks need the unbundled world with no menu open.");
         var previousMode = developerMode;
         var previousLauncher = launcherPath;
@@ -81,9 +81,9 @@ public partial class Main
             launcherStartFailure.Hide();
 
             const string worldId = "0123456789abcdef0123456789abcdef";
-            ShowLocalHostStopFailure("0.0.1-older", worldId);
-            localHostStopFailure.Hide();
-            localHostStopFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
+            ShowLocalServerStopFailure("0.0.1-older", worldId);
+            localServerStopFailure.Hide();
+            localServerStopFailure.EmitSignal(ConfirmationDialog.SignalName.Confirmed);
             if (!launcherStartFailure.Visible || failedLauncherVersion != "0.0.1-older" ||
                 failedLauncherWorld != worldId || isQuittingGame)
                 throw new InvalidOperationException("A refused-stop retry must preserve the complete launcher target.");
@@ -117,7 +117,7 @@ public partial class Main
             launcherPath = previousLauncher;
             launcherPathRead = previousPathRead;
             launcherStartFailure.Hide();
-            localHostStopFailure.Hide();
+            localServerStopFailure.Hide();
             failedLauncherVersion = previousFailedVersion;
             failedLauncherWorld = previousFailedWorld;
             retryLauncherVersion = previousRetryVersion;

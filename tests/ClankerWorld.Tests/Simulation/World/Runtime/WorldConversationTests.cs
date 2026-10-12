@@ -6,8 +6,10 @@ using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -77,7 +79,7 @@ public sealed partial class WorldConversationTests
             Assert.Equal(InitiatorId, newerInvitation.InitiatorId);
             Assert.Equal(InviteeId, newerInvitation.InviteeId);
 
-            // The invitee's earlier hosted decision selected the now-stale
+            // The invitee's earlier model decision selected the now-stale
             // inverse proposal. It must be discarded, then refreshed against
             // the newer invitation's distinct ID before any consent is applied.
             handler.ReleaseStaleInviteeTalk();
@@ -696,7 +698,7 @@ public sealed partial class WorldConversationTests
         static Task WorkTask(object pending) =>
             Assert.IsAssignableFrom<Task>(pending.GetType().GetProperty("Task")!.GetValue(pending));
 
-        var decisions = PendingWork(world, "pendingHosted").Select(pending =>
+        var decisions = PendingWork(world, "pendingModelCalls").Select(pending =>
         {
             var request = Assert.IsType<CognitionDecisionRequest>(
                 pending.GetType().GetProperty("Request")!.GetValue(pending));

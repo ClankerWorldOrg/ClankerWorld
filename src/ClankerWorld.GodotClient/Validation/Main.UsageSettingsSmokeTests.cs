@@ -10,7 +10,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousUsage = usageStatus;
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
@@ -30,7 +30,7 @@ public partial class Main
         {
             deviceKey = signer;
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             ShowMainMenu();
             CloseGameMenu();
         }
@@ -175,7 +175,7 @@ public partial class Main
             if (previousRegistrationFile is null) registrationStore.Forget();
             else File.WriteAllBytes(registrationPath, previousRegistrationFile);
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             usageStatus = previousUsage;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)

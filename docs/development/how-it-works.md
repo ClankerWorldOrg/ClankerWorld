@@ -54,7 +54,7 @@ aliases. Content package identifiers retain their import rules.
   work. A failed or unusable reply uses only explicit `safe_idle`;
   it cannot execute a strategic candidate or complete an instruction.
 - **Time and spending require presence.** The host remains reachable while
-  paused. Ticks and hosted model calls require an authenticated presence lease;
+  paused. Ticks and model calls require an authenticated presence lease;
   the last disconnect closes the gate after about five seconds. Reconnecting
   performs no offline catch-up and does not clear a manual pause.
 - **Knowledge belongs to each agent.** The player's map and observations are
@@ -540,7 +540,7 @@ Its calendar pace includes the saved season lengths and clock offset, so the gam
 such as Autumn 2, Year 1 from the world's own calendar instead of a copy. With
 no season lengths, from an older host, the game shows numeric dates.
 
-Hosted requests are dispatched after a committed tick and resolved at a later
+Model requests are dispatched after a committed tick and resolved at a later
 tick boundary. The unresolved queue entry is saved; the HTTP task is not save
 authority. Admission checks the request ID, provider/run epochs and current
 candidate legality. An epoch is a generation marker that makes replies from
@@ -566,7 +566,7 @@ outside-observer label. The request contains only messages for its target
 agent. Guidance bypasses Jev's routine route, while adults still use their
 normal planning assignment or inherited world planning provider. A child
 without an explicit personal-model choice and an agent whose planning model is
-set to deterministic stay local; neither receives a forced hosted call.
+set to deterministic stay local; neither receives a forced model call.
 
 A submitted message is checked before it changes the world. Its idempotency key
 and issuer ID must each be at most 128 characters with no control characters,
@@ -1031,7 +1031,7 @@ every 30 ticks, and idle agents reevaluate when their legal choices change or
 after 300 ticks. A blocked order therefore cannot request a paid model call on
 every tick.
 
-When a hosted decision is still running, a newly queued choice or observer
+When a model decision is still running, a newly queued choice or observer
 message remains pending after its older reply is accepted. The next prepared
 tick refreshes that work against the resulting world before another request
 starts. Ordinary planning waits while the agent is busy talking; pending work
@@ -1052,7 +1052,7 @@ save/load and are refreshed for the resumed world before dispatch. The usual
 request, provider, conversation and legal-choice checks still reject stale
 replies.
 
-Local order steps can continue while a hosted reply is pending. An accepted
+Local order steps can continue while a model reply is pending. An accepted
 decision and a local continuation do not execute the same order twice in one
 tick. If local work finishes first, a valid reply to that exact original
 request can still record that the model heard the message. Its old action is
@@ -1108,7 +1108,7 @@ saved refusal blocks the same choice for that actor for one world day. The
 Event Log explains the refusal, Developer tools show the cumulative count,
 and the server records a bounded check name without exception text or paths.
 Healthy ticks make one attempt and one checkpoint preparation and write.
-The strict setting `ClankerWorld:Runtime:StrictTickFailures` keeps test and CI
+The strict setting `ClankerWorld:Clock:StrictTickFailures` keeps test and CI
 hosts halting on the first failure. Global faults or failures that cannot be
 isolated to one action hold the last good state and pause the world.
 Active checkpoint I/O/access failures retry only the retained save while paused;
@@ -1507,7 +1507,7 @@ or replace its last accepted intention.
 No adapter can turn provider prose directly into a world mutation.
 Jev has a separate, smaller routine payload; it is not a persona/dialogue adapter.
 
-Each queued decision makes one hosted attempt. Malformed replies, timeouts and
+Each queued decision makes one model attempt. Malformed replies, timeouts and
 transport failures do not trigger a repair call or an unstructured alternate
 request. Every billable attempt is reserved in the durable usage store before
 HTTP; an absent key or exhausted limit sends no request. Future world decisions
@@ -1533,7 +1533,7 @@ wider Jev role in this change.
 **Claude models.** An agent whose provider is Anthropic gets the same prompts
 and the same reply validation. `AnthropicModelClient` in the host sends them to
 Anthropic's Messages API through Anthropic's official C# client
-(`IHostedModelClient` is the seam in the simulation). The game's instructions
+(`IModelClient` is the seam in the simulation). The game's instructions
 are the system prompt, marked for prompt caching: calls that repeat them cost
 less once they are long enough for the model to cache, and a shorter prompt is
 simply not cached. The observation is the one user message. The Messages API
@@ -1559,11 +1559,11 @@ Markdown code fence is removed before the game reads the text.
   `claude-haiku-5-5`. Conversations use the same client and the same strict
   turn validation. Claude is not a routine helper.
 
-**Thinking.** Each hosted agent assignment can carry a thinking level: `low`,
+**Thinking.** Each agent model assignment can carry a thinking level: `low`,
 `medium` or `high` (`ModelThinking`), or none for the model's own default.
 OpenAI and Ollama Cloud receive it as `reasoning_effort`, and Anthropic as
 `output_config.effort`. With no level nothing is sent, so those requests are
-unchanged. The game offers only the levels every hosted provider accepts:
+unchanged. The game offers only the levels every model provider accepts:
 `none`, `xhigh` and `max` are refused by some current models, so there is no
 Off. A model that refuses the setting fails the call like any other
 unsupported request, and Test model then suggests Model default. The level is
@@ -1678,7 +1678,7 @@ relationship, skill and commitment records, records marked `Permanent`, durable 
 receipts and world-event-backed beliefs stay active. Active orders, projects,
 lessons (including their teachers), requested or preparing parenthood plans,
 relationship proposals, barter,
-conversations and outstanding hosted calls protect their owners; surname
+conversations and outstanding model calls protect their owners; surname
 conversation turns stay protected after closing. A completed, postponed or
 cancelled parenthood plan does not protect its owner's ordinary old records;
 other open work and protected kinds still do. Correction links and source
@@ -1905,7 +1905,7 @@ The response contains only a bounded result such as ready, missing key, usage
 limit, unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
 
-An installation-local usage file reserves every hosted attempt before HTTP work.
+An installation-local usage file reserves every model attempt before HTTP work.
 Concurrent requests share its optional lifetime attempt cap. Failure, retry and
 abandonment keep their spent allowance; only known token counts are added.
 Claude and chat-completions decisions and model checks keep reported counts
@@ -1951,7 +1951,7 @@ holding the runtime gate. That gate is not reentrant, so the runtime marks
 provider startup and cancellation under it
 (`IsInvokingProviderUnderGateOnThisThread`). On that thread the pause or warning
 moves to another task that waits for the world. Outside the runtime gate it
-runs at once, so a hosted decision's late reply cannot be admitted before the
+runs at once, so a model decision's late reply cannot be admitted before the
 pause. `provider_usage_limit_reached` logs `paused`, `paused_unsaved`,
 `superseded` or `failed`.
 
@@ -4025,22 +4025,22 @@ useful signal and absence of representative secrets.
 
 **Report a problem** (`Diagnostics/ProblemReport.cs` in the Godot client, with
 no Godot dependency so the launcher can compile the same file) zips `summary.txt` and the last 4 MB of each log it is given: the
-Godot log and the newest older one, plus `host.log` and `host.previous.log`
-when the game runs its own host. It reads only those files, never saves,
+Godot log and the newest older one, plus `server.log` and `server.previous.log`
+when the game runs its own local server. It reads only those files, never saves,
 settings or key stores. Each line passes through `ProblemReport.Redact`, which
-blanks the companion secret, values after names such as `api_key`,
+blanks the launch secret, values after names such as `api_key`,
 `Authorization`, `password` or `pairing_code`, bearer tokens, passwords in
 addresses, common provider key formats and any token of 32 or more characters
 mixing upper case, lower case and digits. Plain hex IDs and hashes stay so a
 request can be followed. The rule against logging secrets still applies; this
 pass is a safety net, not permission. Reports go to `reports/` in the player's
-data folder (or `user://reports` without a bundled host), keeping the five
+data folder (or `user://reports` without a local server), keeping the five
 newest.
 
 Event descriptions resolve complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. Food yields and Town membership
 fields are read separately. Existing entries use the current saved name, including
-deceased profiles. Hosted-decision and Town telemetry likewise keep complete IDs.
+deceased profiles. Model-decision and Town telemetry likewise keep complete IDs.
 These readers do not rewrite accepted event details or change save/replay formats.
 
 The owner snapshot projects the saved continuity rule's current on/off state.
@@ -4103,7 +4103,7 @@ read back by the simulation, so they cannot change a tick, a save or replay.
   and advance the latest committed tick, including synchronous reply admission,
   listener belief extraction, child-model selection preparation and world commit,
   rounded to 0.1 ms. The timer pauses for runtime-gate reacquisition. It leaves out
-  waiting for the runtime gate, hosted model calls between ticks and the
+  waiting for the runtime gate, model calls between ticks and the
   checkpoint save. It is null until the first tick after start, load or a
   world switch.
 
@@ -4523,7 +4523,7 @@ This is separate from the saved lesson record, which now stores a skill.
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under
 `%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; host saves, provider settings,
-usage, authority, companion secret and logs all derive from that root. Client
+usage, authority, launch secret and logs all derive from that root. Client
 preferences, registration and pending submissions use its `client/` folder,
 and the Windows signing key uses a separate `.TestData` name. Usual client
 storage and keys retain their existing locations. Folder buttons and saved-world
@@ -4533,13 +4533,13 @@ choice with the world/version hint.
 `GameStarter` uses separate process arguments for local and installed games.
 It sends `--test-data` and `--detailed-logs` only with `--developer-mode`.
 Godot's `--log-file` points at `logs/game.log` in the selected data root;
-`--verbose` applies only to a detailed run. The bundled host receives a
+`--verbose` applies only to a detailed run. The local server receives a
 per-process `Logging:LogLevel:ClankerWorld=Debug` override and records a bounded
 launch diagnostic. Framework logging, saved settings and the prohibition on
 private model payloads in logs stay unchanged. Problem reports read these
 selected logs through the existing redactor. A build without the manifest's
 launch-option capability marker is refused when test data or detailed logs
-are selected. A local build must include its bundled host. No save schema changes.
+are selected. A local build must include its local server. No save schema changes.
 
 ## World-list requests
 

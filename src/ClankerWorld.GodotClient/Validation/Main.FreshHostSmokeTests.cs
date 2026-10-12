@@ -12,7 +12,7 @@ public partial class Main
         var previousRequestedWorld = requestedWorldToSelect;
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousPendingPairing = pendingPairing;
         var previousPairingOrigin = pendingPairingOrigin;
@@ -48,7 +48,7 @@ public partial class Main
         try
         {
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             resumeWorldOnContinue = false;
             foreach (var loseReply in new[] { true, false })
             {
@@ -114,7 +114,7 @@ public partial class Main
             if (previousRegistrationFile is null) registrationStore.Forget();
             else File.WriteAllBytes(registrationPath, previousRegistrationFile);
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
@@ -136,7 +136,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
@@ -176,7 +176,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             host.SupportedActionPayloads = [OwnerWorldActionPayload.WorldCreationPayloadDomain];
             host.Preview = new(new(1, 1, "terrain-kind-v1", "AA=="), new(0, 0), "created-manifest")
             {
@@ -269,7 +269,7 @@ public partial class Main
             worldSelectionList.Clear();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
@@ -288,7 +288,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
@@ -315,7 +315,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             observationSession.ResetAfterLoad();
             ShowMainMenu();
             worldMenuOverlay.Hide();
@@ -390,7 +390,7 @@ public partial class Main
             CloseGameMenu();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

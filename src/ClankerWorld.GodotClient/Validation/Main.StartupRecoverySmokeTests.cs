@@ -10,7 +10,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousInWorld = isInWorld;
         var previousResume = resumeWorldOnContinue;
@@ -31,7 +31,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             ShowMainMenu();
             resumeWorldOnContinue = true;
             host.StartupRecovery = new(true, snapshot.WorldId, save);
@@ -100,7 +100,7 @@ public partial class Main
             startupRecoveryCard.Hide();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null &&
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _))

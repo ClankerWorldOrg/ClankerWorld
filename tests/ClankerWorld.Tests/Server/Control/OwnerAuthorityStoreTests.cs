@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Tests;
 

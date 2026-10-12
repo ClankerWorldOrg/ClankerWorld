@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -31,7 +31,7 @@ public sealed partial class AgentConversationProviderTests
             Assert.Equal(1, usage.Capture().Attempts);
             Assert.Equal(1, usage.Capture().Failed);
             Assert.Equal(0, usage.Capture().Completed);
-            Assert.Contains(logger.Messages, line => line.Contains("conversation_call status=failed", StringComparison.Ordinal));
+            Assert.Contains(logger.Messages, line => line.Contains("model_conversation_call status=failed", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, line =>
                 line.Contains("conversation-raw-secret", StringComparison.Ordinal) ||
                 line.Contains("private-utterance", StringComparison.Ordinal));
@@ -71,7 +71,7 @@ public sealed partial class AgentConversationProviderTests
             Assert.Equal(7, usage.Capture().InputTokens);
             Assert.Equal(3, usage.Capture().OutputTokens);
             Assert.Contains(logger.Messages, line => line.Contains(
-                "conversation_call status=completed purpose=wrap_up turn_count=7 latency_ms=", StringComparison.Ordinal));
+                "model_conversation_call status=completed purpose=wrap_up turn_count=7 latency_ms=", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, line =>
                 line.Contains("turn_count=8", StringComparison.Ordinal) ||
                 line.Contains("conversation-log-secret", StringComparison.Ordinal) ||

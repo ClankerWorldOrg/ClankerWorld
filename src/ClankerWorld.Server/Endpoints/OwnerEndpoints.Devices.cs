@@ -1,7 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Server.Endpoints;
 
@@ -128,7 +127,7 @@ internal static partial class OwnerEndpoints
         });
 
         // Provider status is owner-only even though it contains no key material. It
-        // reveals which hosted account integration is active and therefore uses the
+        // reveals which model account integration is active and therefore uses the
         // same one-use signed request boundary as every other world control.
     }
 }

@@ -15,7 +15,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousConfiguration = providerConfiguration;
         var previousRefreshing = isRefreshing;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
@@ -49,7 +49,7 @@ public partial class Main
             var authority = new OwnerAuthorityIdentity("newcomer-smoke", snapshot.WorldId);
             registration = new(authority, "newcomer-device", signer.PublicKeyFingerprint, origin);
             deviceKey = signer;
-            worldUrlInput.Text = origin;
+            serverUrlInput.Text = origin;
             // Hold observation refreshes so this check observes only the requests
             // made by opening the existing Add Agent controls.
             isRefreshing = true;
@@ -149,7 +149,7 @@ public partial class Main
             placingAddedAgent = false;
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             providerConfiguration = previousConfiguration;
             isRefreshing = previousRefreshing;
             System.Environment.SetEnvironmentVariable("CI", previousCi);

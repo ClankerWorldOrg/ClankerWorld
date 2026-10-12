@@ -7,7 +7,8 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -21,7 +22,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(false, true, false)]
     [InlineData(false, false, true, true)]
     [InlineData(false, false, true, false, true)]
-    public async Task NativeTransferPartiesSurviveHostedConsentAndCheckpointReload(bool laterGeneration,
+    public async Task NativeTransferPartiesSurviveModelConsentAndCheckpointReload(bool laterGeneration,
         bool formedHousehold = false, bool nativeBornHousehold = true, bool quietNoticeTurn = false, bool heldIdentityReply = false)
     {
         WorldRuntimeState state;
@@ -259,7 +260,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         // A native life-moment request defers that adult's ordinary choices.
         // Finish both local reply lanes before spending the next fixture tick.
         var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingHosted", "pendingIdentityMoments" })
+        foreach (var name in new[] { "pendingModelCalls", "pendingIdentityMoments" })
         {
             var field = typeof(WorldRuntime).GetField(name,
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);

@@ -207,7 +207,7 @@ public sealed partial class WorldRuntimeTests
                 .Where(item => item.ReplyAllowed)
                 .Select(item => new CognitionObserverReply(item.InstructionId, "On it."))
                 .ToArray();
-            return ValueTask.FromResult(HostedResponse(request, Kind, ProviderEpoch, "seek_food", replies));
+            return ValueTask.FromResult(ModelResponse(request, Kind, ProviderEpoch, "seek_food", replies));
         }
     }
 
@@ -224,7 +224,7 @@ public sealed partial class WorldRuntimeTests
             request.Validate();
             Started.TrySetResult(true);
             await Release.Task.WaitAsync(cancellationToken);
-            return HostedResponse(request, Kind, ProviderEpoch, "safe_idle");
+            return ModelResponse(request, Kind, ProviderEpoch, "safe_idle");
         }
     }
 
@@ -283,7 +283,7 @@ public sealed partial class WorldRuntimeTests
     {
         // A tick can admit the older reply without dispatching its retained work.
         // When the fresh call starts, finish its actual task before advancing again.
-        var field = typeof(WorldRuntime).GetField("pendingHosted",
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         if (pending.Contains(HarvestInstructionActor))
@@ -329,7 +329,7 @@ public sealed partial class WorldRuntimeTests
             {
                 Started.TrySetResult(true);
                 await Release.Task.WaitAsync(cancellationToken);
-                var response = HostedResponse(request, Kind, ProviderEpoch, firstChoice);
+                var response = ModelResponse(request, Kind, ProviderEpoch, firstChoice);
                 Returned.TrySetResult(true);
                 if (deferReturn) await ReturnAllowed.Task.WaitAsync(cancellationToken);
                 return response;
@@ -343,7 +343,7 @@ public sealed partial class WorldRuntimeTests
                 .Where(item => item.Kind == "suggestive" && item.ReplyAllowed)
                 .Select(item => new CognitionObserverReply(item.InstructionId, "I will rest."))
                 .ToArray();
-            return HostedResponse(request, Kind, ProviderEpoch, "safe_idle", replies);
+            return ModelResponse(request, Kind, ProviderEpoch, "safe_idle", replies);
         }
     }
 }

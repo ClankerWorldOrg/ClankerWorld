@@ -4,8 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -317,7 +319,7 @@ public sealed partial class ServerHttpTests
     }
 
     [Fact]
-    public async Task PairedOwnerCanConfigureHostedCognitionWithoutEchoingOrSavingTheKeyInTheWorld()
+    public async Task PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld()
     {
         var directory = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),

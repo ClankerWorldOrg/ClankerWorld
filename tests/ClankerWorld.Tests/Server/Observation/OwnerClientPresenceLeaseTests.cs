@@ -1,20 +1,21 @@
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
 public sealed class OwnerClientPresenceLeaseTests
 {
     [Fact]
-    public async Task DisconnectCancelsDeferredHostedCallButKeepsCommittedWorldAndQueue()
+    public async Task DisconnectCancelsDeferredModelCallButKeepsCommittedWorldAndQueue()
     {
         var directory = Path.Combine(Path.GetTempPath(), $"clankerworld-deferred-presence-{Guid.NewGuid():N}");
         try
         {
             var clock = new ManualTimeProvider();
             var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(5), clock);
-            var provider = new WaitingHostedProvider();
+            var provider = new WaitingModelProvider();
             using var runtime = new WorldRuntime("deferred-presence", id =>
                 id == "founder-scout" ? provider : new DeterministicDecisionProvider());
             using var service = new WorldRuntimeService(runtime,
@@ -36,7 +37,7 @@ public sealed class OwnerClientPresenceLeaseTests
         }
     }
 
-    private sealed class WaitingHostedProvider : IDecisionProvider
+    private sealed class WaitingModelProvider : IDecisionProvider
     {
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public CancellationToken ReceivedCancellation { get; private set; }
@@ -54,13 +55,13 @@ public sealed class OwnerClientPresenceLeaseTests
 
     [Theory]
     [InlineData("founder:00000000000000000000000000000001")]
-    public async Task HostedFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText(string actorId)
+    public async Task ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText(string actorId)
     {
         var directory = Path.Combine(Path.GetTempPath(), $"clankerworld-hosted-log-{Guid.NewGuid():N}");
         try
         {
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(1));
-            var provider = new ThrowingHostedProvider();
+            var provider = new ThrowingModelProvider();
             var logger = new RecordingLogger<WorldRuntimeService>();
             // Begin with the normal active content and idle peers, so startup
             // changes do not queue another decision while testing one failure.
@@ -72,17 +73,17 @@ public sealed class OwnerClientPresenceLeaseTests
             Assert.True(await service.TryAdvanceOnceAsync());
             await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
             for (var attempt = 0; attempt < 50 &&
-                 !logger.Messages.Any(message => message.Contains("hosted_decision", StringComparison.Ordinal) &&
+                 !logger.Messages.Any(message => message.Contains("model_decision_progress", StringComparison.Ordinal) &&
                      message.Contains("model_unavailable", StringComparison.Ordinal)); attempt++)
             {
                 await service.TryAdvanceOnceAsync();
                 await Task.Delay(10);
             }
-            Assert.Contains(logger.Messages, message => message.Contains("hosted_decision", StringComparison.Ordinal) &&
+            Assert.Contains(logger.Messages, message => message.Contains("model_decision_progress", StringComparison.Ordinal) &&
                 message.Contains("model_unavailable", StringComparison.Ordinal));
             Assert.Equal(1, provider.Calls);
-            Assert.All(logger.Messages.Where(message => message.Contains("hosted_decision tick=", StringComparison.Ordinal)),
-                message => Assert.Contains($"inhabitant={actorId} outcome=", message, StringComparison.Ordinal));
+            Assert.All(logger.Messages.Where(message => message.Contains("model_decision_progress tick=", StringComparison.Ordinal)),
+                message => Assert.Contains($"agent={actorId} outcome=", message, StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("super-secret-api-key", StringComparison.Ordinal));
         }
         finally
@@ -91,7 +92,7 @@ public sealed class OwnerClientPresenceLeaseTests
         }
     }
 
-    private sealed class ThrowingHostedProvider : IDecisionProvider
+    private sealed class ThrowingModelProvider : IDecisionProvider
     {
         public int Calls { get; private set; }
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -216,7 +217,7 @@ public sealed class OwnerClientPresenceLeaseTests
             Assert.Contains(logger.Messages, message =>
                 message.Contains("world_tick_gate state=paused", StringComparison.Ordinal));
             Assert.Contains(logger.Messages, message =>
-                message.Contains("cognition_decision tick=1", StringComparison.Ordinal));
+                message.Contains("model_decision tick=1", StringComparison.Ordinal));
 
             runtime.Resume();
             for (var tick = 0; tick < 20; tick++)

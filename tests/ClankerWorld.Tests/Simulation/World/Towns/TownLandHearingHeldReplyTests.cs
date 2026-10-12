@@ -41,9 +41,9 @@ public sealed class TownLandHearingHeldReplyTests
                     var call = await provider.Entered.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
                     // The provider cannot even select a reply until this gate opens. Waiting for
                     // real entry keeps background scheduling from consuming the hearing window.
-                    Assert.False(world.HostedDecisionsFinished(Actor));
+                    Assert.False(world.ModelDecisionsFinished(Actor));
                     call.Proceed.TrySetResult(true);
-                    if (!await call.ReplyHeld.Task.WaitAsync(Deadline)) await WaitForHostedCompletionAsync(world);
+                    if (!await call.ReplyHeld.Task.WaitAsync(Deadline)) await WaitForModelCompletionAsync(world);
                 }
             }
             Assert.True(provider.Started.Task.IsCompleted, "The actual posted notice and response were not offered within twenty hosted ticks.");
@@ -68,7 +68,7 @@ public sealed class TownLandHearingHeldReplyTests
             Assert.Equal(household, world.AddAgent(Newcomer, house.Position));
             Assert.Equal(household, world.Society.GetInhabitant(Newcomer).HouseholdId);
             await Task.Run(provider.Release).WaitAsync(Deadline);
-            await WaitForHostedCompletionAsync(world);
+            await WaitForModelCompletionAsync(world);
 
             WorldStepResult? completed = null;
             for (var attempt = 0; attempt < 10 && completed is null; attempt++)
@@ -121,12 +121,12 @@ public sealed class TownLandHearingHeldReplyTests
         finally { provider.Release(); }
     }
 
-    private static async Task WaitForHostedCompletionAsync(WorldRuntime world)
+    private static async Task WaitForModelCompletionAsync(WorldRuntime world)
     {
         using var timeout = new CancellationTokenSource(Deadline);
         // The provider's return signal precedes completion of the runtime's wrapping task.
         // Poll that completion without advancing simulation time or expiring the hearing.
-        while (!world.HostedDecisionsFinished(Actor)) await Task.Delay(1, timeout.Token);
+        while (!world.ModelDecisionsFinished(Actor)) await Task.Delay(1, timeout.Token);
     }
 
     private static WorldRuntime NewWorld(HeldReplyProvider provider)

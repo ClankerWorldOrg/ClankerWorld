@@ -4,7 +4,6 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
@@ -15,7 +14,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task NativeBarterMemoriesReachEachTraderAndContinueAfterHostedReload(bool nativeBorn, bool recallFirst)
+    public async Task NativeBarterMemoriesReachEachTraderAndContinueAfterModelReload(bool nativeBorn, bool recallFirst)
     {
         // Genuine births/adulthood use the existing calendar, food and lifespan
         // fixture. Keep participant IDs, ages, positions, kinship and skills.
@@ -78,7 +77,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(beforeTrust[memory.OwnerId] + 1, world.Inhabitants.Single(person => person.InhabitantId == memory.OwnerId)
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
-        world.CancelPendingHostedDecisions();
+        world.CancelPendingModelCalls();
         var bytes = host.Checkpoint();
         var nextFirst = new NativeBarterChoices(true, secondName);
         var nextSecond = new NativeBarterChoices(false, firstName);

@@ -149,7 +149,7 @@ const AreaRules = {
     'src/ClankerWorld.Simulation/World/Settlement/Community/',
     'src/ClankerWorld.Simulation/World/Settlement/Family/',
     'src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs',
-    'src/ClankerWorld.Server/Control/Providers/',
+    'src/ClankerWorld.Server/Providers/',
     'docs/game-design/agents-and-families.md',
   ],
   'area:towns': [
@@ -176,8 +176,8 @@ const AreaRules = {
   'area:saves': [
     'src/ClankerWorld.Simulation/Persistence/',
     'src/ClankerWorld.Simulation/World/Runtime/WorldHistory.cs',
-    'src/ClankerWorld.Server/Observation/Persistence/',
-    'src/ClankerWorld.Server/Observation/Worlds/',
+    'src/ClankerWorld.Server/Saves/',
+    'src/ClankerWorld.Server/Worlds/',
     'docs/development/saves-and-replay.md',
     'docs/game-design/saves.md',
   ],

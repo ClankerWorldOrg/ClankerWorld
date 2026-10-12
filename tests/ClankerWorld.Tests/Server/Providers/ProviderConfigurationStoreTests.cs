@@ -1,7 +1,8 @@
 using System.Net;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -869,7 +870,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal(new Uri("https://ollama.com/v1/chat/completions"), handler.LastUri);
             Assert.Equal("Bearer ollama-secret-123", handler.LastAuthorization);
             Assert.Contains(logger.Messages, message =>
-                message.Contains("cognition_provider_call status=completed", StringComparison.Ordinal) &&
+                message.Contains("model_call status=completed", StringComparison.Ordinal) &&
                 message.Contains("provider=ollama-cloud", StringComparison.Ordinal) &&
                 message.Contains("role=planning", StringComparison.Ordinal) &&
                 message.Contains("candidate=safe_idle", StringComparison.Ordinal));
@@ -981,7 +982,7 @@ public sealed partial class ProviderConfigurationStoreTests
                 await router.DecideAsync(Request(store.CaptureRuntimeConfiguration().Revision)));
 
             Assert.Contains(logger.Messages, message =>
-                message.Contains("cognition_provider_call status=failed", StringComparison.Ordinal) &&
+                message.Contains("model_call status=failed", StringComparison.Ordinal) &&
                 message.Contains("error_type=HttpRequestException", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message =>
                 message.Contains(apiKey, StringComparison.Ordinal) ||

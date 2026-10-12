@@ -10,7 +10,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousKeyboard = keyboardNavigation;
         var previousKeyboardKey = keyboardNavigationKey;
@@ -22,7 +22,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             observationSession.ReplaceRegistration(registration);
             var snapshot = new OwnerWorldSnapshot("cleanup-world", 0, "cleanup-map", [new(0, 0, "meadow")], [], [], null, 0)
             { Authoring = new(true, 0, 0, 0, "cleanup-map", "cleanup-map", "clear", "spring", []) };
@@ -93,7 +93,7 @@ public partial class Main
             pendingRecoveryCleanup = null;
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

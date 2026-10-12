@@ -1,5 +1,5 @@
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Content;
 
 namespace ClankerWorld.Tests;
 

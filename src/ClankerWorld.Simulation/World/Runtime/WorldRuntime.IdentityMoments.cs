@@ -54,7 +54,7 @@ public sealed partial class WorldRuntime
     private void StartIdentityMoments() => PrepareIdentityMoments(StartPreparedIdentityMoment);
 
     private void PrepareIdentityMoments(Action<PreparedIdentityMoment> prepare,
-        IReadOnlySet<string>? activeHostedIds = null, IReadOnlySet<string>? activeIdentityIds = null)
+        IReadOnlySet<string>? activeModelCallIds = null, IReadOnlySet<string>? activeIdentityIds = null)
     {
         // Bounded separately from ordinary decisions. The installation usage
         // store still reserves each potentially paid request before HTTP.
@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
             if (capacity == 0) break;
             var physical = inhabitants[person.Id];
             if (physical.IdentityChoicePending || (activeIdentityIds?.Contains(person.Id) ?? pendingIdentityMoments.ContainsKey(person.Id)) ||
-                (activeHostedIds?.Contains(person.Id) ?? pendingHosted.ContainsKey(person.Id)) || IsConversationBusy(person.Id) ||
+                (activeModelCallIds?.Contains(person.Id) ?? pendingModelCalls.ContainsKey(person.Id)) || IsConversationBusy(person.Id) ||
                 NeedsUrgentFood(physical) || NeedsUrgentWarmth(physical)) continue;
             var moment = (physical.IdentityMoments ?? []).FirstOrDefault(item => item.Outcome == "waiting");
             if (moment is null) continue;

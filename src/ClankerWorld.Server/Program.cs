@@ -2,41 +2,46 @@ using System.Text.Json;
 using System.Net;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Content;
 using ClankerWorld.Server.Endpoints;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Worlds;
 
 var builder = WebApplication.CreateBuilder(args);
-var runtimeSeed = builder.Configuration["ClankerWorld:Runtime:Seed"] ?? "camp-alpha";
-var configuredWorldMode = builder.Configuration["ClankerWorld:Runtime:WorldMode"] ?? "game";
+var runtimeSeed = builder.Configuration["ClankerWorld:World:Seed"] ?? "camp-alpha";
+var configuredWorldMode = builder.Configuration["ClankerWorld:World:Mode"] ?? "game";
 if (!string.Equals(configuredWorldMode, "game", StringComparison.OrdinalIgnoreCase))
 {
     throw new InvalidOperationException(
-        $"Unsupported ClankerWorld:Runtime:WorldMode '{configuredWorldMode}'. Only the game world is supported; fixture world mode has been removed.");
+        $"Unsupported ClankerWorld:World:Mode '{configuredWorldMode}'. Only the game world is supported; fixture world mode has been removed.");
 }
 
-var advanceRuntime = builder.Configuration.GetValue("ClankerWorld:Runtime:AdvanceScript", true);
+var runClock = builder.Configuration.GetValue("ClankerWorld:Clock:Run", true);
 var clientPresenceTimeoutSeconds = builder.Configuration.GetValue(
-    "ClankerWorld:Runtime:ClientPresenceTimeoutSeconds",
+    "ClankerWorld:Clock:ClientPresenceTimeoutSeconds",
     5);
 if (clientPresenceTimeoutSeconds is < 2 or > 60)
 {
     throw new InvalidOperationException(
-        "ClankerWorld:Runtime:ClientPresenceTimeoutSeconds must be between 2 and 60 seconds.");
+        "ClankerWorld:Clock:ClientPresenceTimeoutSeconds must be between 2 and 60 seconds.");
 }
-var configuredDecisionProvider = builder.Configuration["ClankerWorld:Runtime:DecisionProvider"] ?? "deterministic";
-var configuredJevModel = builder.Configuration["ClankerWorld:Runtime:JevModel"] ?? "jev-1.13.0";
-var configuredModel = builder.Configuration["ClankerWorld:Runtime:Model"];
-var configuredOpenAiModel = builder.Configuration["ClankerWorld:Runtime:OpenAiModel"] ??
+var configuredDecisionProvider = builder.Configuration["ClankerWorld:Providers:DecisionProvider"] ?? "deterministic";
+var configuredJevModel = builder.Configuration["ClankerWorld:Providers:JevModel"] ?? "jev-1.13.0";
+var configuredModel = builder.Configuration["ClankerWorld:Providers:Model"];
+var configuredOpenAiModel = builder.Configuration["ClankerWorld:Providers:OpenAiModel"] ??
     (configuredDecisionProvider.StartsWith("openai", StringComparison.OrdinalIgnoreCase) ? configuredModel : null);
-var configuredOllamaCloudModel = builder.Configuration["ClankerWorld:Runtime:OllamaCloudModel"] ??
+var configuredOllamaCloudModel = builder.Configuration["ClankerWorld:Providers:OllamaCloudModel"] ??
     (configuredDecisionProvider.StartsWith("ollama", StringComparison.OrdinalIgnoreCase) ? configuredModel : null);
-var configuredAnthropicModel = builder.Configuration["ClankerWorld:Runtime:AnthropicModel"] ??
+var configuredAnthropicModel = builder.Configuration["ClankerWorld:Providers:AnthropicModel"] ??
     (configuredDecisionProvider.StartsWith("anthropic", StringComparison.OrdinalIgnoreCase) ||
      configuredDecisionProvider.StartsWith("claude", StringComparison.OrdinalIgnoreCase) ? configuredModel : null);
 var publicPort = builder.Configuration.GetValue("ClankerWorld:Http:Port", 5188);
-var localApprovalPort = builder.Configuration.GetValue<int?>("ClankerWorld:Pairing:LocalApprovalPort") ?? 0;
-if (publicPort is <= 0 or > 65535 || localApprovalPort is < 0 or > 65535 || localApprovalPort == publicPort)
+var approvalPort = builder.Configuration.GetValue<int?>("ClankerWorld:Pairing:ApprovalPort") ?? 0;
+if (publicPort is <= 0 or > 65535 || approvalPort is < 0 or > 65535 || approvalPort == publicPort)
 {
     throw new InvalidOperationException("ClankerWorld HTTP ports must be distinct values between 1 and 65535.");
 }
@@ -48,24 +53,24 @@ builder.WebHost.ConfigureKestrel(options =>
     // for signed owner routes.
     options.Limits.MaxRequestBodySize = RequestBodyLimits.Unauthenticated;
     options.Listen(IPAddress.Loopback, publicPort);
-    if (localApprovalPort > 0)
+    if (approvalPort > 0)
     {
-        options.Listen(IPAddress.Loopback, localApprovalPort);
+        options.Listen(IPAddress.Loopback, approvalPort);
     }
 });
 
-var authorityStatePath = builder.Configuration["ClankerWorld:Pairing:StatePath"] ??
+var authorityStatePath = builder.Configuration["ClankerWorld:Pairing:AuthorityPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "saves", "owner-authority.json");
-var configuredRuntimeStatePath = builder.Configuration["ClankerWorld:Runtime:StatePath"];
+var configuredRuntimeStatePath = builder.Configuration["ClankerWorld:World:SavePath"];
 var runtimeStatePath = configuredRuntimeStatePath ??
     Path.Combine(
         builder.Environment.ContentRootPath,
         "saves",
         "world.json");
 var worldStatePath = runtimeStatePath;
-var providerConfigurationPath = builder.Configuration["ClankerWorld:Runtime:ProviderStatePath"] ??
+var providerConfigurationPath = builder.Configuration["ClankerWorld:Providers:ConfigurationPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "saves", "provider-configuration.json");
-var providerUsagePath = builder.Configuration["ClankerWorld:Runtime:ProviderUsagePath"] ??
+var providerUsagePath = builder.Configuration["ClankerWorld:Providers:UsagePath"] ??
     Path.Combine(Path.GetDirectoryName(Path.GetFullPath(providerConfigurationPath))!, "provider-usage.json");
 var approvedAssetCatalogPath = builder.Configuration["ClankerWorld:Assets:CatalogPath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "approved-assets.json");
@@ -176,17 +181,17 @@ builder.Services.AddSingleton<OwnerWorldObservationStore>(services =>
     new OwnerWorldObservationStore(services.GetRequiredService<WorldRuntime>()));
 builder.Services.AddSingleton(new OwnerAuthorityStateFile(authorityStatePath));
 // Set only when the game starts this host on the player's own PC.
-var companionSecretPath = builder.Configuration["ClankerWorld:Pairing:CompanionSecretPath"];
-if (companionSecretPath is not null && localApprovalPort == 0)
+var launchSecretPath = builder.Configuration["ClankerWorld:LocalServer:LaunchSecretPath"];
+if (launchSecretPath is not null && approvalPort == 0)
 {
     throw new InvalidOperationException(
-        "ClankerWorld:Pairing:CompanionSecretPath needs ClankerWorld:Pairing:LocalApprovalPort.");
+        "ClankerWorld:LocalServer:LaunchSecretPath needs ClankerWorld:Pairing:ApprovalPort.");
 }
-var pairingHostOptions = new OwnerPairingHostOptions(localApprovalPort,
-    companionSecretPath is null ? null : OwnerPairingHostOptions.ReadCompanionSecret(companionSecretPath));
-builder.Services.AddSingleton(pairingHostOptions);
+var approvalListenerOptions = new ApprovalListenerOptions(approvalPort,
+    launchSecretPath is null ? null : ApprovalListenerOptions.ReadLaunchSecret(launchSecretPath));
+builder.Services.AddSingleton(approvalListenerOptions);
 builder.Services.AddSingleton<PairingRequestBudget>();
-builder.Services.AddSingleton<HostRequestRefusals>();
+builder.Services.AddSingleton<RequestRefusals>();
 builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
 {
     var worldId = services.GetRequiredService<WorldStartupRecovery>().Pending
@@ -200,9 +205,9 @@ builder.Services.AddSingleton<OwnerRequestAuthorizer>();
 builder.Services.AddSingleton(new OwnerClientPresenceLease(
     TimeSpan.FromSeconds(clientPresenceTimeoutSeconds)));
 builder.Services.AddSingleton(services => ActivatorUtilities.CreateInstance<WorldRuntimeService>(services,
-    builder.Configuration.GetValue<bool>("ClankerWorld:Runtime:StrictTickFailures")
+    builder.Configuration.GetValue<bool>("ClankerWorld:Clock:StrictTickFailures")
         ? WorldTickFailurePolicy.Strict : WorldTickFailurePolicy.RefuseSingleAction));
-if (advanceRuntime)
+if (runClock)
 {
     builder.Services.AddHostedService<WorldStartupService>();
     builder.Services.AddHostedService(services => new WorldCatalogWarmUpService(services,

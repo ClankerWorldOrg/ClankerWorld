@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

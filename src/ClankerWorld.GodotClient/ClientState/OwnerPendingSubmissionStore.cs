@@ -96,7 +96,7 @@ public sealed record OwnerPendingSubmissionBinding(
     private static string CanonicalizeServerOrigin(Uri serverOrigin)
     {
         ArgumentNullException.ThrowIfNull(serverOrigin);
-        if (!WorldServerOrigin.TryResolve(serverOrigin.AbsoluteUri, out var canonicalOrigin))
+        if (!global::ClankerWorld.GodotClient.ClientState.ServerOrigin.TryResolve(serverOrigin.AbsoluteUri, out var canonicalOrigin))
         {
             throw new ArgumentException(
                 "The pending owner request must be bound to an absolute HTTPS origin (or literal loopback HTTP for local development).",

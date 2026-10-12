@@ -52,9 +52,9 @@ public partial class Main
         body.AddThemeConstantOverride("separation", 6);
         var controls = new HBoxContainer();
         controls.AddThemeConstantOverride("separation", 8);
-        worldUrlInput.PlaceholderText = "https://your-tailnet-host:8443";
-        worldUrlInput.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        controls.AddChild(worldUrlInput);
+        serverUrlInput.PlaceholderText = "https://your-tailnet-host:8443";
+        serverUrlInput.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        controls.AddChild(serverUrlInput);
         connectButton.Text = "Connect";
         connectButton.Pressed += () => _ = ConnectUsingCurrentUrlAsync();
         controls.AddChild(connectButton);

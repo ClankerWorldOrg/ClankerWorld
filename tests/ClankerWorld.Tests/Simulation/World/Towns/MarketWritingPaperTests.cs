@@ -168,7 +168,7 @@ public sealed class MarketWritingPaperTests
     private static async Task WaitForWritingReplies(WorldRuntime world)
     {
         var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingHosted", "pendingIdentityMoments" })
+        foreach (var name in new[] { "pendingModelCalls", "pendingIdentityMoments" })
         {
             var pending = (System.Collections.IDictionary)typeof(WorldRuntime)
                 .GetField(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(world)!;

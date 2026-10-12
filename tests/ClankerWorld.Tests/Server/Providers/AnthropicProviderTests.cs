@@ -2,7 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -361,7 +362,7 @@ public sealed class AnthropicProviderTests
     }
 
     [Fact]
-    public void ThinkingIsSavedWithTheAgentsModelAndOnlyForHostedAgents()
+    public void ThinkingIsSavedWithTheAgentsModelAndOnlyForAgentsWithAModel()
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-thinking-store-");
         try
@@ -492,7 +493,7 @@ public sealed class AnthropicProviderTests
     private static string Base64Url(string value) =>
         Convert.ToBase64String(Encoding.UTF8.GetBytes(value)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
-    private static HostedModelCall Call(string? thinking) =>
+    private static ModelCall Call(string? thinking) =>
         new("claude-haiku-5-5", "Return JSON only.", "{\"agent\":\"a\"}", thinking, TimeSpan.FromSeconds(30));
 
     private static string MessageReply(string text, bool thinkingFirst = false, string stopReason = "end_turn") =>

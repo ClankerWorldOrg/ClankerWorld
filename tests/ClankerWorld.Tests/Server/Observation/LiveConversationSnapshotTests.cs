@@ -4,6 +4,7 @@ using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
 using Client = ClankerWorld.GodotClient.UI;
 
 namespace ClankerWorld.Tests;
@@ -135,7 +136,7 @@ public sealed class LiveConversationSnapshotTests
 
     private static async Task WaitForRequests(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted", BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
         await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));

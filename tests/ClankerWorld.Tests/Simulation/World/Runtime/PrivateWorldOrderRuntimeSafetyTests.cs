@@ -50,7 +50,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task FullCarrierBlocksKnownFoodHarvestWithStableReasonAcrossReload()
     {
-        var provider = new CountingHostedOrderProvider();
+        var provider = new CountingModelOrderProvider();
         using var setup = CreateKnownBerryOrderWorld(id => id == HarvestInstructionActor
             ? provider
             : new DeterministicDecisionProvider());
@@ -112,7 +112,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task FullCarrierDoesNotCollectHouseholdFoodForAnEatOrder()
     {
-        var provider = new CountingHostedOrderProvider();
+        var provider = new CountingModelOrderProvider();
         using var setup = CreateOrderWorldWithoutFood("full-household-food-order", id => id == OrderedAgent
             ? provider
             : new DeterministicDecisionProvider());
@@ -519,7 +519,7 @@ public sealed partial class WorldRuntimeTests
             preparation.TrySetResult(true);
             provider.Release.TrySetResult(true);
             provider.ReturnAllowed.TrySetResult(true);
-            world.CancelPendingHostedDecisions();
+            world.CancelPendingModelCalls();
             await AwaitHarvestPhase(call.Task, "cancelled eating-check cleanup");
         }
     }
@@ -527,7 +527,7 @@ public sealed partial class WorldRuntimeTests
     [Fact]
     public async Task FailedOrderDecisionPersistsWaitAndRecoversAtTheNormalRetryInterval()
     {
-        var provider = new FailOnceHostedOrderProvider();
+        var provider = new FailOnceModelOrderProvider();
         using var world = CreateKnownBerryOrderWorld(id => id == HarvestInstructionActor
             ? provider
             : new DeterministicDecisionProvider());
@@ -611,7 +611,7 @@ public sealed partial class WorldRuntimeTests
         };
     }
 
-    private static CognitionDecisionResponse HostedResponse(
+    private static CognitionDecisionResponse ModelResponse(
         CognitionDecisionRequest request,
         DecisionProviderKind kind,
         long providerEpoch,
@@ -637,7 +637,7 @@ public sealed partial class WorldRuntimeTests
 
     private static (CognitionDecisionRequest Request, Task Task) CaptureHeldHarvestCall(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted",
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var call = pending[HarvestInstructionActor];
@@ -679,7 +679,7 @@ public sealed partial class WorldRuntimeTests
             Started.TrySetResult(true);
             await Release.Task.WaitAsync(cancellationToken);
             var message = request.Observation.ObserverGuidance!.Single();
-            var response = HostedResponse(request, Kind, ProviderEpoch, "seek_food",
+            var response = ModelResponse(request, Kind, ProviderEpoch, "seek_food",
                 [new CognitionObserverReply(message.InstructionId, "I will gather the berries.")]);
             Returned.TrySetResult(response);
             if (deferReturn) await ReturnAllowed.Task.WaitAsync(cancellationToken);
@@ -687,7 +687,7 @@ public sealed partial class WorldRuntimeTests
         }
     }
 
-    private sealed class CountingHostedOrderProvider : IDecisionProvider
+    private sealed class CountingModelOrderProvider : IDecisionProvider
     {
         private int callCount;
 
@@ -702,11 +702,11 @@ public sealed partial class WorldRuntimeTests
             request.Validate();
             cancellationToken.ThrowIfCancellationRequested();
             Interlocked.Increment(ref callCount);
-            return ValueTask.FromResult(HostedResponse(request, Kind, ProviderEpoch, "harvest_food"));
+            return ValueTask.FromResult(ModelResponse(request, Kind, ProviderEpoch, "harvest_food"));
         }
     }
 
-    private sealed class FailOnceHostedOrderProvider : IDecisionProvider
+    private sealed class FailOnceModelOrderProvider : IDecisionProvider
     {
         private int callCount;
 
@@ -723,7 +723,7 @@ public sealed partial class WorldRuntimeTests
             var call = Interlocked.Increment(ref callCount);
             if (call == 1)
                 throw new InvalidOperationException("temporary provider outage");
-            return ValueTask.FromResult(HostedResponse(request, Kind, ProviderEpoch, "harvest_food"));
+            return ValueTask.FromResult(ModelResponse(request, Kind, ProviderEpoch, "harvest_food"));
         }
     }
 }

@@ -49,7 +49,7 @@ public partial class Main : Control
     private readonly VBoxContainer gameSettingsContent = new();
     private readonly VBoxContainer worldSettingsContent = new();
     private readonly ScrollContainer settingsScroll = new();
-    private readonly LineEdit worldUrlInput = new();
+    private readonly LineEdit serverUrlInput = new();
     private readonly Button connectButton = new();
     private readonly Button pairAgainButton = new();
     private readonly Label connectionStatusLabel = new();
@@ -253,10 +253,10 @@ public partial class Main : Control
     public Main()
     {
         ownerApi = new OwnerWorldApi(httpClient);
-        localHost = FindBundledLocalHost();
-        // A game with its own host keeps that pairing apart from any server
+        localServer = FindBundledLocalServer();
+        // A game with its own local server keeps that pairing apart from any server
         // pairing an older client saved in the same user folder.
-        var prefix = localHost is null ? string.Empty : "local-";
+        var prefix = localServer is null ? string.Empty : "local-";
         registrationStore = new OwnerDeviceRegistrationStore(
             GameUserPath($"{prefix}owner-device-registration.json"));
         pendingSubmissionStore = new OwnerPendingSubmissionStore(
@@ -304,9 +304,9 @@ public partial class Main : Control
             _ = VerifyMenuLayoutAsync();
             return;
         }
-        _ = TryGetCommandLineWorldUrl(out var commandLineUrl);
-        worldUrlInput.Text = localHost?.Origin.AbsoluteUri ?? commandLineUrl ?? ConfiguredWorldUrl();
-        _ = localHost is null ? InitializeAsync() : StartLocalHostAsync();
+        _ = TryGetCommandLineServerUrl(out var commandLineUrl);
+        serverUrlInput.Text = localServer?.Origin.AbsoluteUri ?? commandLineUrl ?? ConfiguredServerUrl();
+        _ = localServer is null ? InitializeAsync() : StartLocalServerAsync();
 
         var timer = new Godot.Timer
         {

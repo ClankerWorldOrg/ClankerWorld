@@ -17,7 +17,7 @@ public sealed class QueuedCognitionContextTests
         var observation = new InhabitantObservation("alice", 0, 0, 0, "old", 8_000,
             [new("safe_idle", "Wait", 0)]);
         Assert.True(scheduler.Enqueue(new("old", "alice", 1, 0, ["old"], observation)));
-        var preview = Assert.Single(scheduler.PreviewHostedRequests(new HashSet<string>()));
+        var preview = Assert.Single(scheduler.PreviewModelRequests(new HashSet<string>()));
         var pending = preview.DecideAsync(default).AsTask();
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.True(scheduler.Enqueue(new("new", "alice", 2, 1, ["new"], observation with
@@ -32,7 +32,7 @@ public sealed class QueuedCognitionContextTests
             new HashSet<string> { "safe_idle", "read_proposal" });
         Assert.NotNull(admitted);
         Assert.True(admitted.Admission.Accepted);
-        var next = Assert.Single(scheduler.PreviewHostedRequests(new HashSet<string>()));
+        var next = Assert.Single(scheduler.PreviewModelRequests(new HashSet<string>()));
         Assert.Contains(next.Request.Observation.Candidates, candidate => candidate.Id == "read_proposal");
     }
 

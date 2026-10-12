@@ -117,14 +117,14 @@ public sealed partial class WorldRuntime : IDisposable
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
         SettlementStoragePosition;
     private long nextInstructionSequence = 1;
-    private readonly Dictionary<string, PendingHostedDecision> pendingHosted = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, PendingModelDecision> pendingModelCalls = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PendingConversationTurn> pendingConversationTurns = new(StringComparer.Ordinal);
     private readonly List<WorldMemoryCompactionTransition> memoryCompactionTransitions = [];
 
-    private sealed record HostedDecisionOutcome(CognitionDecisionResponse? Response, string? Failure);
-    private sealed record PendingHostedDecision(
+    private sealed record ModelDecisionOutcome(CognitionDecisionResponse? Response, string? Failure);
+    private sealed record PendingModelDecision(
         CognitionDecisionRequest Request,
-        Task<HostedDecisionOutcome> Task,
+        Task<ModelDecisionOutcome> Task,
         CancellationTokenSource Cancellation,
         string? DecisionContext);
     private sealed record ConversationTurnOutcome(AgentConversationTurnResponse? Response, Exception? Failure);
@@ -469,7 +469,7 @@ public sealed partial class WorldRuntime : IDisposable
     {
         // Disposal does not hold the runtime gate; its provider callbacks can
         // still apply their usage effects synchronously before the gate closes.
-        foreach (var id in pendingHosted.Keys.ToArray()) CancelPendingHosted(id, underRuntimeGate: false);
+        foreach (var id in pendingModelCalls.Keys.ToArray()) CancelPendingModelCall(id, underRuntimeGate: false);
         foreach (var id in pendingWills.Keys.ToArray()) CancelPendingWill(id, underRuntimeGate: false);
         CancelIdentityMoments(underRuntimeGate: false);
         foreach (var id in pendingConversationTurns.Keys.ToArray()) CancelPendingConversationTurn(id,

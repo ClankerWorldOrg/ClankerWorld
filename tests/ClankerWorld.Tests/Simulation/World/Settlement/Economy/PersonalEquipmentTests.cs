@@ -294,7 +294,7 @@ public sealed class PersonalEquipmentTests
     }
 
     [Fact]
-    public async Task WaitingForHostedInstructionCannotKeepAnExpiredRepairInTheCheckpoint()
+    public async Task WaitingForModelInstructionCannotKeepAnExpiredRepairInTheCheckpoint()
     {
         var (state, shopId) = TailorTestWorld.Create("held-planning-repair-probe", 0);
         var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha).Id;

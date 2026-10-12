@@ -57,7 +57,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
         System.Environment.SetEnvironmentVariable("CI", "true");
@@ -67,7 +67,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             // A freshly paired launch has its catalog, but has not entered a
             // world or accepted an observation. Exercise both real buttons and
             // the signed catalog/save-list transport before any baseline.
@@ -248,7 +248,7 @@ public partial class Main
             pendingOverwriteSaveId = null;
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

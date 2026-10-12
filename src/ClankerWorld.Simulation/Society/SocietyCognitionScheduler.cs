@@ -212,11 +212,11 @@ public sealed class SocietyCognitionScheduler
             runtimes[entry.InhabitantId].ProviderKindFor(entry.Observation) ==
             DecisionProviderKind.Deterministic, cancellationToken);
 
-    public IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(
+    public IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
         IReadOnlySet<string> excludedInhabitantIds) =>
-        PreviewHostedRequests(excludedInhabitantIds, null);
+        PreviewModelRequests(excludedInhabitantIds, null);
 
-    internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(
+    internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
         IReadOnlySet<string> excludedInhabitantIds, Func<InhabitantObservation, bool>? observationIsCurrent)
     {
         ArgumentNullException.ThrowIfNull(excludedInhabitantIds);
@@ -247,7 +247,7 @@ public sealed class SocietyCognitionScheduler
         return previews;
     }
 
-    public IReadOnlySet<string> PendingHostedInhabitantIds() => queue
+    public IReadOnlySet<string> PendingModelInhabitantIds() => queue
         .Where(entry => runtimes[entry.InhabitantId].ProviderKindFor(ObservationFor(entry)) != DecisionProviderKind.Deterministic)
         .Select(entry => entry.InhabitantId)
         .ToHashSet(StringComparer.Ordinal);
@@ -380,7 +380,7 @@ public sealed class SocietyCognitionScheduler
         }
 
         // Each inhabitant owns an independent cognition runtime, so the
-        // bounded selection may call hosted providers concurrently. Results
+        // bounded selection may call model providers concurrently. Results
         // are still committed in the deterministic scheduler order below.
         // If cancellation interrupts the batch, every selected queue entry
         // remains durable for a later retry.

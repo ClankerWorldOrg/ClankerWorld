@@ -1,7 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
 
 namespace ClankerWorld.Server.Endpoints;
 

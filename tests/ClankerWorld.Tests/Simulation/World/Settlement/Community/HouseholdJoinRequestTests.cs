@@ -861,7 +861,7 @@ public sealed class HouseholdJoinRequestTests
 
     private static (CognitionDecisionRequest Request, Task Task) CapturePendingHousingCall(WorldRuntime world, string member)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted",
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var call = pending[member];

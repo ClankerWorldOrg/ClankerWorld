@@ -8,7 +8,7 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -255,7 +255,7 @@ public sealed class ChildInitialIdentityTests
 
     private static async Task WaitForActualRequests(WorldRuntime world)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted", BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
         await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));

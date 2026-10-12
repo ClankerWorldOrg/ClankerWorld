@@ -189,21 +189,21 @@ public sealed class SocietyRuntime : IDisposable
         }
     }
 
-    public IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(IReadOnlySet<string> excludedIds) =>
-        PreviewHostedRequests(excludedIds, null);
+    public IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(IReadOnlySet<string> excludedIds) =>
+        PreviewModelRequests(excludedIds, null);
 
-    internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(
+    internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
         IReadOnlySet<string> excludedIds, Func<InhabitantObservation, bool>? observationIsCurrent)
     {
         gate.Wait();
-        try { return cognition.PreviewHostedRequests(excludedIds, observationIsCurrent); }
+        try { return cognition.PreviewModelRequests(excludedIds, observationIsCurrent); }
         finally { gate.Release(); }
     }
 
-    public IReadOnlySet<string> PendingHostedInhabitantIds()
+    public IReadOnlySet<string> PendingModelInhabitantIds()
     {
         gate.Wait();
-        try { return cognition.PendingHostedInhabitantIds(); }
+        try { return cognition.PendingModelInhabitantIds(); }
         finally { gate.Release(); }
     }
 

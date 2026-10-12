@@ -3,6 +3,8 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -557,7 +559,7 @@ public sealed class SettlementSurvivalTests
             Assert.True(await service.TryAdvanceOnceAsync());
 
             Assert.Contains(logger.Messages, message => message.Contains("survival_condition", StringComparison.Ordinal) &&
-                message.Contains("inhabitant=" + actor.InhabitantId + " ", StringComparison.Ordinal) &&
+                message.Contains("agent=" + actor.InhabitantId + " ", StringComparison.Ordinal) &&
                 message.Contains("illness_work_percent=50", StringComparison.Ordinal) &&
                 message.Contains("illness_travel_delay=1", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("private-illness-secret", StringComparison.Ordinal));

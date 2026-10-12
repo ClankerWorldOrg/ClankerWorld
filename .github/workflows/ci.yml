@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  ClankerWorld__Runtime__StrictTickFailures: 'true'
+  ClankerWorld__Clock__StrictTickFailures: 'true'
 
 # A newer push to a pull request stops its older run, so runners go to the current head.
 concurrency:
@@ -318,7 +318,7 @@ jobs:
       - name: Verify native protected storage and checkpoint recovery
         env:
           CLANKERWORLD_CHECKPOINT_DIAGNOSTICS: ${{ runner.temp }}/checkpoint-evidence
-        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~ProviderConfigurationStoreTests|FullyQualifiedName~PairedOwnerCanConfigureHostedCognitionWithoutEchoingOrSavingTheKeyInTheWorld|FullyQualifiedName~OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot|FullyQualifiedName~ManualSaveGenerationTests|FullyQualifiedName~ResumeRequiresDurableCheckpointEvenOnRetry|FullyQualifiedName~ResumeCheckpointTests|FullyQualifiedName~.WorldStateFileTests.|FullyQualifiedName~Deletion" --logger "trx;LogFileName=windows-storage.trx" --results-directory "${{ runner.temp }}/windows-storage-results"
+        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "FullyQualifiedName~ProviderConfigurationStoreTests|FullyQualifiedName~PairedOwnerCanConfigureModelCognitionWithoutEchoingOrSavingTheKeyInTheWorld|FullyQualifiedName~OnlySignedOwnerCanDeleteUnusedNamedCredentialSlot|FullyQualifiedName~ManualSaveGenerationTests|FullyQualifiedName~ResumeRequiresDurableCheckpointEvenOnRetry|FullyQualifiedName~ResumeCheckpointTests|FullyQualifiedName~.WorldStateFileTests.|FullyQualifiedName~Deletion" --logger "trx;LogFileName=windows-storage.trx" --results-directory "${{ runner.temp }}/windows-storage-results"
       - name: Upload native storage test results and checkpoint failure evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

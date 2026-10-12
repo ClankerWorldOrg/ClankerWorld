@@ -88,7 +88,7 @@ public sealed partial class WorldFireOrderTests
     }
 
     [Fact]
-    public async Task ALateHostedReplyCannotReviveACancelledFireOrder()
+    public async Task ALateModelReplyCannotReviveACancelledFireOrder()
     {
         var state = Prepared(walking: true);
         var actor = Actor(state);

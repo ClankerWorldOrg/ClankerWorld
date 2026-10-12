@@ -741,7 +741,7 @@ public sealed record CognitionDecisionResponse(
 
 /// <summary>
 /// Provider usage is telemetry only. It is retained with a request record so
-/// an owner can see that a hosted decision happened without storing secrets or
+/// an owner can see that a model decision happened without storing secrets or
 /// raw provider reasoning in world state.
 /// </summary>
 public sealed record CognitionUsage(
@@ -767,7 +767,7 @@ public sealed record CognitionUsage(
 }
 
 /// <summary>
-/// Provider implementations are intentionally small. A hosted provider can
+/// Provider implementations are intentionally small. A model provider can
 /// be plugged in later without changing the simulation or persistence model.
 /// </summary>
 public interface IDecisionProvider
@@ -1138,16 +1138,16 @@ public sealed class JevDecisionProvider : IDecisionProvider
 }
 
 /// <summary>
-/// Adapter for hosted language models. OpenAI and Ollama Cloud are sent as
+/// Adapter for language models. OpenAI and Ollama Cloud are sent as
 /// OpenAI-compatible chat completions; a provider with its own wire format,
-/// such as Anthropic, is sent through an <see cref="IHostedModelClient"/> the
+/// such as Anthropic, is sent through an <see cref="IModelClient"/> the
 /// host supplies. Both share these prompts and this reply validation. Endpoint,
 /// model, thinking level and credential are supplied by the server-side
 /// provider registry and never become world state.
 ///
 /// The model is asked for one small JSON object containing a legal candidate
 /// choice. The cognition runtime still validates the selected ID and executes
-/// the action, so a hosted model never gains simulation authority.
+/// the action, so a model never gains simulation authority.
 /// </summary>
 public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
 {
@@ -1155,7 +1155,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
     private readonly HttpClient? httpClient;
     private readonly Func<string?> apiKeyAccessor;
     private readonly Uri? endpoint;
-    private readonly IHostedModelClient? modelClient;
+    private readonly IModelClient? modelClient;
     private readonly string model;
     private readonly string? thinking;
     private readonly TimeSpan requestTimeout;
@@ -1186,7 +1186,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
 
     /// <summary>Sends the same prompts through a host-supplied client, such as Anthropic's Messages API.</summary>
     public OpenAiCompatibleDecisionProvider(
-        IHostedModelClient modelClient,
+        IModelClient modelClient,
         string model,
         string? thinking = null,
         TimeSpan? requestTimeout = null,
@@ -1232,7 +1232,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
 
         var apiKey = apiKeyAccessor()?.Trim();
         var words = needFormat == ModelNeedFormat.Words;
-        var prompt = request.Observation.Will is { } will ? CreateWillPrompt(request, will) : new HostedModelPrompt(
+        var prompt = request.Observation.Will is { } will ? CreateWillPrompt(request, will) : new ModelPrompt(
                     Instructions: request.Observation.IdentityMoment is not null
                         ? "You are one agent reflecting on the named life moment in identity_moment. " +
                             "Self contains your current saved personality and aspiration. You may keep both or change either, in character. " +
@@ -1385,7 +1385,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
         if (modelClient is not null)
         {
             var reply = await modelClient.CompleteAsync(
-                new HostedModelCall(model, prompt.Instructions, prompt.Input, thinking, requestTimeout),
+                new ModelCall(model, prompt.Instructions, prompt.Input, thinking, requestTimeout),
                 timeout.Token).ConfigureAwait(false);
             return ParseAnswer(request, reply.Text, () => new CognitionUsage(reply.Model ?? model, reply.InputTokens, reply.OutputTokens));
         }
@@ -1429,7 +1429,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
     /// The one post-death will request. Heir and item keys are server-minted;
     /// the server rejects any key, heir or item it did not offer.
     /// </summary>
-    private static HostedModelPrompt CreateWillPrompt(CognitionDecisionRequest request, CognitionWillContext will) => new(
+    private static ModelPrompt CreateWillPrompt(CognitionDecisionRequest request, CognitionWillContext will) => new(
                 Instructions: "You are an agent who has just died. This is your one final will, not an ordinary action, and it cannot be changed later. " +
                     "Your estate lists the belongings you personally owned. Return JSON only, with fields " +
                     "selected_candidate_id (\"will:household\" to use the default inheritance rules described by the offered choice, or \"will:heirs\" to name heirs) and confidence (number 0..1). " +
@@ -1570,7 +1570,7 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             if (usage is not null)
-                HostedModelUnusableReply.RetainTokens(exception, usage.InputTokens, usage.OutputTokens);
+                UnusableModelReply.RetainTokens(exception, usage.InputTokens, usage.OutputTokens);
             throw;
         }
     }
@@ -1783,5 +1783,5 @@ public sealed class OpenAiCompatibleDecisionProvider : IDecisionProvider
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    private sealed record HostedModelPrompt(string Instructions, string Input);
+    private sealed record ModelPrompt(string Instructions, string Input);
 }

@@ -13,12 +13,13 @@ public sealed class ProblemReportTests : IDisposable
     [Fact]
     public void ReportHoldsSummaryAndLogsWithSecretsBlanked()
     {
-        const string companionSecret = "q2Vb7nX0pL9sT4wY1zA8cD3eF6gH5jK2mN0rU7vW9xQ";
+        const string launchSecret = "q2Vb7nX0pL9sT4wY1zA8cD3eF6gH5jK2mN0rU7vW9xQ";
         const string requestId = "3f2a9c1be04d4e7fa6b81c2d3e4f5a6b";
-        var hostLog = Write("host.log",
+        var hostLog = Write("server.log",
             $"info: decision_accepted tick=5040 request={requestId} outcome=accepted latency_ms=812",
             "warn: provider_failed model=openai/gpt-5 key=sk-proj-AbCdEf0123456789XyZ outcome=fallback",
-            $"debug: companion header {companionSecret}",
+            $"debug: launch secret header {launchSecret}",
+            "debug: launch_secret=Lw3Xc9Vb1Nm7Qa5Sd2Fg8Hj4Kl6Zx0Pq companion-secret: Rt5Yu7Io9Pa1Sd3Fg5Hj7Kl9Zx1Cv3Bn",
             "debug: Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.payload.sig",
             "debug: {\"apiKey\":\"mistral-key-without-prefix\",\"pairing_code\":\"482913\"}",
             "debug: provider url https://player:hunter22@example.test/v1",
@@ -27,17 +28,18 @@ public sealed class ProblemReportTests : IDisposable
 
         var path = ProblemReport.Write(Path.Combine(root, "reports"),
             [new("Game version", "0.1.0-dev"), new("World", "Riverfold\n(day 12)")],
-            [new("host.log", hostLog), new("godot.log", gameLog), new("host.previous.log", Path.Combine(root, "missing.log"))],
-            [companionSecret], Now);
+            [new("server.log", hostLog), new("godot.log", gameLog), new("server.previous.log", Path.Combine(root, "missing.log"))],
+            [launchSecret], Now);
 
         Assert.Equal("ClankerWorld-report-2026-10-10-093000.zip", Path.GetFileName(path));
         using var archive = ZipFile.OpenRead(path);
-        Assert.Equal(["logs/host.log", "logs/godot.log", "summary.txt"], archive.Entries.Select(entry => entry.FullName));
-        var host = Read(archive, "logs/host.log");
+        Assert.Equal(["logs/server.log", "logs/godot.log", "summary.txt"], archive.Entries.Select(entry => entry.FullName));
+        var host = Read(archive, "logs/server.log");
         foreach (var secret in new[]
                  {
-                     companionSecret, "sk-proj-AbCdEf0123456789XyZ", "eyJhbGciOiJIUzI1NiJ9", "mistral-key-without-prefix",
-                     "482913", "hunter22", "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb",
+                     launchSecret, "sk-proj-AbCdEf0123456789XyZ", "eyJhbGciOiJIUzI1NiJ9", "mistral-key-without-prefix",
+                     "482913", "hunter22", "Zx81Qw7Er6Ty5Ui4Op3As2Df1Gh0JkLmNb", "Lw3Xc9Vb1Nm7Qa5Sd2Fg8Hj4Kl6Zx0Pq",
+                     "Rt5Yu7Io9Pa1Sd3Fg5Hj7Kl9Zx1Cv3Bn",
                  })
             Assert.DoesNotContain(secret, host);
         // What a bug report needs to follow a request survives.
@@ -49,7 +51,7 @@ public sealed class ProblemReportTests : IDisposable
         var summary = Read(archive, "summary.txt");
         Assert.Contains("Created: 2026-10-10 09:30:00 UTC", summary);
         Assert.Contains("World: Riverfold (day 12)", summary);
-        Assert.Contains("- host.previous.log: not found", summary);
+        Assert.Contains("- server.previous.log: not found", summary);
     }
 
     [Fact]
@@ -58,12 +60,12 @@ public sealed class ProblemReportTests : IDisposable
         var line = new string('a', 99);
         var lines = Enumerable.Range(0, ProblemReport.MaxBytesPerLog / 100 + 500).Select(_ => line).ToList();
         lines.Add("last line before the crash");
-        var log = Write("host.log", [.. lines]);
+        var log = Write("server.log", [.. lines]);
 
-        var path = ProblemReport.Write(root, [], [new("host.log", log)], [], Now);
+        var path = ProblemReport.Write(root, [], [new("server.log", log)], [], Now);
 
         using var archive = ZipFile.OpenRead(path);
-        var kept = Read(archive, "logs/host.log").Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var kept = Read(archive, "logs/server.log").Split('\n', StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal("[earlier lines left out]", kept[0]);
         Assert.All(kept[1..^1], item => Assert.Equal(line, item));
         Assert.Equal("last line before the crash", kept[^1]);

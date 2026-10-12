@@ -125,7 +125,7 @@ public sealed partial class WorldConversationTests
         world.Resume();
         using var resumeDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         // Await both fresh resume decisions before spending lesson ticks. The
-        // other participant may keep teaching while a hosted reply is pending.
+        // other participant may keep teaching while a model reply is pending.
         for (var tick = 0; tick < 30 && world.Conversations.Single().Status != AgentConversationStatus.AwaitingSpeaker; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync(resumeDeadline.Token)).Advanced);
@@ -161,7 +161,7 @@ public sealed partial class WorldConversationTests
                     var lesson = world.Inhabitants.Single(person => person.InhabitantId == learner).Lesson!;
                     if (lesson.Stage == "completed" || world.WorldTick - conversationClosedAtTick >= completionTickHorizon)
                         break;
-                    // Await hosted decisions before spending the lesson tick budget.
+                    // Await model decisions before spending the lesson tick budget.
                     _ = await world.AdvanceOneTickAsync(completionDeadline.Token);
                 }
                 else

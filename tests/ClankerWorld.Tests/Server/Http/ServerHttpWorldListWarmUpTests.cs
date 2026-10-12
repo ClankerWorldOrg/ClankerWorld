@@ -1,6 +1,7 @@
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Worlds;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -240,7 +241,7 @@ public sealed partial class ServerHttpTests
             using var factory = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
             using var running = factory.WithWebHostBuilder(builder =>
             {
-                builder.UseSetting("ClankerWorld:Runtime:AdvanceScript", "true");
+                builder.UseSetting("ClankerWorld:Clock:Run", "true");
                 builder.ConfigureLogging(logging =>
                     logging.AddProvider(new RecordingLoggerProvider<WorldSelectionCoordinator>(log)));
             });

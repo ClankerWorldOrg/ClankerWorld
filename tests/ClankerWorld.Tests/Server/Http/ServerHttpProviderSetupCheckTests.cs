@@ -5,15 +5,16 @@ using System.Text;
 using System.Text.Json;
 using ClankerWorld.GodotClient.UI;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ClientSetupCheckAction = ClankerWorld.GodotClient.UI.OwnerProviderSetupCheckAction;
-using ServerSetupCheckAction = ClankerWorld.Server.Control.OwnerProviderSetupCheckAction;
-using ServerSetupCheckResult = ClankerWorld.Server.Control.OwnerProviderSetupCheckResult;
+using ServerSetupCheckAction = ClankerWorld.Server.Pairing.OwnerProviderSetupCheckAction;
+using ServerSetupCheckResult = ClankerWorld.Server.Pairing.OwnerProviderSetupCheckResult;
 
 namespace ClankerWorld.Tests;
 

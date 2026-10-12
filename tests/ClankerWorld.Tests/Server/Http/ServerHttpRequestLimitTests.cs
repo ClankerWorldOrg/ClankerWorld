@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,12 +20,12 @@ public sealed partial class ServerHttpTests
     [InlineData("/API/V1/Owner/worlds/create", RequestBodyLimits.SignedOwnerAction)]
     [InlineData("/api/v1/owner/challenges", RequestBodyLimits.Unauthenticated)]
     [InlineData("/api/v1/handshake", RequestBodyLimits.Unauthenticated)]
-    [InlineData("/api/v1/local/devices/device_1/revoke", RequestBodyLimits.Unauthenticated)]
-    [InlineData("/api/v1/local/shutdown", RequestBodyLimits.Unauthenticated)]
+    [InlineData("/api/v1/approval/devices/device_1/revoke", RequestBodyLimits.Unauthenticated)]
+    [InlineData("/api/v1/approval/shutdown", RequestBodyLimits.Unauthenticated)]
     [InlineData("/api/v1/ownerx", RequestBodyLimits.Unauthenticated)]
     [InlineData("/", RequestBodyLimits.Unauthenticated)]
     [InlineData("/api/v1/pairings/activate", RequestBodyLimits.Pairing)]
-    [InlineData("/api/v1/local/pairings/pairing_1/approve", RequestBodyLimits.Pairing)]
+    [InlineData("/api/v1/approval/pairings/pairing_1/approve", RequestBodyLimits.Pairing)]
     public void OnlySignedOwnerRoutesGetTheLargerBodyLimit(string path, long limit) =>
         Assert.Equal(limit, RequestBodyLimits.For(path));
 
@@ -34,14 +34,14 @@ public sealed partial class ServerHttpTests
     {
         using var host = new ServerWebApplicationFactory();
         using var client = host.CreateClient();
-        var log = new RecordingLogger<HostRequestRefusals>();
-        host.Services.GetRequiredService<ILoggerFactory>().AddProvider(new RecordingLoggerProvider<HostRequestRefusals>(log));
+        var log = new RecordingLogger<RequestRefusals>();
+        host.Services.GetRequiredService<ILoggerFactory>().AddProvider(new RecordingLoggerProvider<RequestRefusals>(log));
 
         // Not JSON at all: a parsed body would be a 400, so a 413 shows nothing read it.
         using var malformed = await client.PostAsync("/api/v1/owner/challenges", Body(64));
         using var challenge = await client.PostAsync("/api/v1/owner/challenges",
             Body((int)RequestBodyLimits.Unauthenticated + 1));
-        using var recovery = await client.PostAsync("/api/v1/local/devices/device_not_real/revoke",
+        using var recovery = await client.PostAsync("/api/v1/approval/devices/device_not_real/revoke",
             Body((int)RequestBodyLimits.Unauthenticated + 1));
 
         Assert.Equal(HttpStatusCode.BadRequest, malformed.StatusCode);
@@ -94,24 +94,24 @@ public sealed partial class ServerHttpTests
         using var host = baseHost.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("ClankerWorld:Http:Port", publicPort.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            builder.UseSetting("ClankerWorld:Pairing:LocalApprovalPort",
+            builder.UseSetting("ClankerWorld:Pairing:ApprovalPort",
                 approvalPort.ToString(System.Globalization.CultureInfo.InvariantCulture));
         });
         host.UseKestrel();
         host.StartServer();
-        var log = new RecordingLogger<HostRequestRefusals>();
-        host.Services.GetRequiredService<ILoggerFactory>().AddProvider(new RecordingLoggerProvider<HostRequestRefusals>(log));
+        var log = new RecordingLogger<RequestRefusals>();
+        host.Services.GetRequiredService<ILoggerFactory>().AddProvider(new RecordingLoggerProvider<RequestRefusals>(log));
         using var client = new HttpClient { BaseAddress = new Uri($"http://127.0.0.1:{publicPort}/") };
         var approvalOrigin = new Uri($"http://127.0.0.1:{approvalPort}/");
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         using var start = await client.PostAsJsonAsync("/api/v1/pairings",
             new StartOwnerPairingHttpRequest(Convert.ToBase64String(key.ExportSubjectPublicKeyInfo())));
         var pairing = (await start.Content.ReadFromJsonAsync<OwnerPairingStart>())!;
-        var approvePath = new Uri(approvalOrigin, $"api/v1/local/pairings/{pairing.PairingId}/approve");
+        var approvePath = new Uri(approvalOrigin, $"api/v1/approval/pairings/{pairing.PairingId}/approve");
 
         using (var foreignName = new HttpRequestMessage(HttpMethod.Post, approvePath)
         {
-            Content = JsonContent.Create(new LocalPairingApprovalHttpRequest(pairing.PairingCode)),
+            Content = JsonContent.Create(new PairingApprovalHttpRequest(pairing.PairingCode)),
         })
         {
             foreignName.Headers.Host = $"example.test:{approvalPort}";
@@ -121,11 +121,11 @@ public sealed partial class ServerHttpTests
         var authority = host.Services.GetRequiredService<OwnerAuthorityStore>();
         Assert.Equal(OwnerPairingState.Pending, authority.GetPairingStatus(pairing.PairingId).Value!.State);
         // A fixed line that never repeats the name the request used.
-        Assert.Equal("local_approval outcome=refused reason=host_name skipped=0",
-            Assert.Single(log.Messages, message => message.StartsWith("local_approval", StringComparison.Ordinal)));
+        Assert.Equal("approval_listener outcome=refused reason=host_name skipped=0",
+            Assert.Single(log.Messages, message => message.StartsWith("approval_listener", StringComparison.Ordinal)));
 
         // The game's own call: HttpClient names the listener 127.0.0.1:<port>.
-        using var approved = await client.PostAsJsonAsync(approvePath, new LocalPairingApprovalHttpRequest(pairing.PairingCode));
+        using var approved = await client.PostAsJsonAsync(approvePath, new PairingApprovalHttpRequest(pairing.PairingCode));
         Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
         using var activated = await client.PostAsJsonAsync("/api/v1/pairings/activate", new ActivateOwnerPairingHttpRequest(
             pairing.PairingId, pairing.ActivationCanonicalProof, Sign(key, pairing.ActivationCanonicalProof)));
@@ -145,9 +145,9 @@ public sealed partial class ServerHttpTests
         // Valid JSON must be read through the body limit; an invalid prefix
         // can be rejected with 400 before the later oversized chunk arrives.
         using var oversized = new HttpRequestMessage(HttpMethod.Post,
-            new Uri(approvalOrigin, "api/v1/local/devices/device_not_real/revoke"))
+            new Uri(approvalOrigin, "api/v1/approval/devices/device_not_real/revoke"))
         {
-            Content = new StreamedJson(PaddedJsonBytes(new LocalDeviceRevokeHttpRequest(null), RequestBodyLimits.Unauthenticated + 1024)),
+            Content = new StreamedJson(PaddedJsonBytes(new DeviceRevokeHttpRequest(null), RequestBodyLimits.Unauthenticated + 1024)),
         };
         using var tooLarge = await client.SendAsync(oversized);
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, tooLarge.StatusCode);

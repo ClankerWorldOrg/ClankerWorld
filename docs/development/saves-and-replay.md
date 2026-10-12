@@ -624,7 +624,7 @@ retained completion effect. No historical stock is inferred or backfilled.
 Earlier alpha checkpoints are refused and preserved without migration.
 
 Schema 33 records a child's personal-model role at birth, provider endpoint, model
-ID, installation-local key-slot ID for a hosted model, and selection reason.
+ID, installation-local key-slot ID for a model, and selection reason.
 An Anthropic birth choice uses the endpoint identity `anthropic-messages-v1`
 in the same record, with no schema change. The birth record has no thinking
 level, so the child's model starts at its default.
@@ -1495,7 +1495,7 @@ The choice binds the current physical site and is rechecked when applied.
 Competing or delayed replies cannot claim another Town's land, move membership
 twice or supply free property. `TownFoundingTests` covers generated-world
 founding, care-group membership, existing owned and foreign Houses and fields, claimed
-land, competing and delayed hosted choices, exact replay/reload and discarded
+land, competing and delayed model choices, exact replay/reload and discarded
 prepared ticks. Routine Windows playtesting remains pending.
 
 ## Abandoned Towns and physical salvage
@@ -1530,7 +1530,7 @@ to collect more stock.
 
 `TownAbandonmentTests` exercises strict current-format roundtrips, identical
 live/restored continuations before and after membership or stock transfer,
-discarded prepared ticks, competing pickups and a delayed hosted reply after
+discarded prepared ticks, competing pickups and a delayed model reply after
 revival. No migration or inferred historical abandonment is added.
 
 ## Ports and communal boats

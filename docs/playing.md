@@ -52,7 +52,7 @@ instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
 it without a code and opens the Main Menu. Quitting saves the world and stops
 the server. Your saves, keys and model-call count are kept in
 `%LOCALAPPDATA%\ClankerWorld`, outside the game folder, and the server's log is
-`logs\host.log` there, with the launch before it in `logs\host.previous.log`.
+`logs\server.log` there, with the launch before it in `logs\server.previous.log`.
 If the server cannot start, the game says why and offers **Try Again** and
 **Report a problem**. If saving fails while quitting, the game stays open and
 offers **Try Again** after you fix the save problem; it keeps the host running.

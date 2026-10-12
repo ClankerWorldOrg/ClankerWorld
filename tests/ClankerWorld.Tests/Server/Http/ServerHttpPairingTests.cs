@@ -4,8 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +35,7 @@ public sealed partial class ServerHttpTests
         using var owner = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/reconnect",
             new OwnerReconnectAction(0), OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
         Assert.Equal(HttpStatusCode.OK, owner.StatusCode);
-        using var hidden = await client.PostAsJsonAsync("/api/v1/local/pairings", new StartOwnerPairingHttpRequest("invalid"));
+        using var hidden = await client.PostAsJsonAsync("/api/v1/approval/pairings", new StartOwnerPairingHttpRequest("invalid"));
         Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode);
         using var oversized = await client.PostAsJsonAsync("/api/v1/pairings", new StartOwnerPairingHttpRequest(new string('x', 17_000)));
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, oversized.StatusCode);
@@ -50,11 +52,11 @@ public sealed partial class ServerHttpTests
         using var reconnect = await client.GetAsync("/api/v1/reconnect?afterEventId=0");
         using var attemptedWrite = await client.PostAsync("/api/v1/world", content: null);
         using var remotePairingApproval = await client.PostAsJsonAsync(
-            "/api/v1/local/pairings/pairing_not_real/approve",
-            new LocalPairingApprovalHttpRequest("000000"));
+            "/api/v1/approval/pairings/pairing_not_real/approve",
+            new PairingApprovalHttpRequest("000000"));
         using var remoteRecoveryRevoke = await client.PostAsJsonAsync(
-            "/api/v1/local/devices/device_not_real/revoke",
-            new LocalDeviceRevokeHttpRequest(null));
+            "/api/v1/approval/devices/device_not_real/revoke",
+            new DeviceRevokeHttpRequest(null));
         using var unsignedDeviceList = await client.PostAsJsonAsync(
             "/api/v1/owner/devices/list",
             new { });

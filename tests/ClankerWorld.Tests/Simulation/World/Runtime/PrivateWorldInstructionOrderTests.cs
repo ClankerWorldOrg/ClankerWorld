@@ -244,25 +244,25 @@ public sealed partial class WorldRuntimeTests
     }
 
     [Fact]
-    public async Task BlockedDirectOrderDoesNotStartAHostedDecisionEveryTick()
+    public async Task BlockedDirectOrderDoesNotStartAModelDecisionEveryTick()
     {
-        var hosted = new CountingSelectingProvider(DecisionProviderKind.LargeLanguageModel, chooseIdle: true);
+        var modelProvider = new CountingSelectingProvider(DecisionProviderKind.LargeLanguageModel, chooseIdle: true);
         var local = new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true);
         // This founder carries no food here, so "eat food" cannot progress.
         using var world = CreateOrderWorldWithoutFood(
-            "must-do-illegal-review", id => id == OrderedAgent ? hosted : local);
+            "must-do-illegal-review", id => id == OrderedAgent ? modelProvider : local);
         for (var tick = 0; tick < 5; tick++)
-            await AdvanceWithHostedDecisionsAsync(world);
+            await AdvanceWithModelDecisionsAsync(world);
 
-        var callsBefore = hosted.CallCount;
+        var callsBefore = modelProvider.CallCount;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("hosted-eat", "owner:test",
             OrderedAgent, OwnerInstructionKind.MustDo, "eat food"));
         for (var tick = 0; tick < 60; tick++)
-            await AdvanceWithHostedDecisionsAsync(world);
+            await AdvanceWithModelDecisionsAsync(world);
 
-        var hostedCalls = hosted.CallCount - callsBefore;
+        var modelCalls = modelProvider.CallCount - callsBefore;
         Assert.DoesNotContain(order.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
-        Assert.InRange(hostedCalls, 1, 10);
+        Assert.InRange(modelCalls, 1, 10);
     }
 
     private static WorldRuntime CreateOrderWorldWithoutFood(
@@ -433,10 +433,10 @@ public sealed partial class WorldRuntimeTests
         }
     }
 
-    private static async Task AdvanceWithHostedDecisionsAsync(WorldRuntime world)
+    private static async Task AdvanceWithModelDecisionsAsync(WorldRuntime world)
     {
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        // Give a started hosted decision time to finish before the next tick.
+        // Give a started model decision time to finish before the next tick.
         await Task.Delay(5);
     }
 }

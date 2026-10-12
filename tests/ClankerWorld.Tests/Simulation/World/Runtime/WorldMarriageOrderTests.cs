@@ -332,7 +332,7 @@ public sealed class WorldMarriageOrderTests
     private static async Task WaitForWork(WorldRuntime world)
     {
         var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingHosted", "pendingConversationTurns" })
+        foreach (var name in new[] { "pendingModelCalls", "pendingConversationTurns" })
         {
             var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
                 .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(world));

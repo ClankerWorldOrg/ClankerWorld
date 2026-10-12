@@ -168,8 +168,8 @@ public partial class Main
         var role = SelectedRoleId();
         var provider = SelectedProviderId();
         var target = SelectedCognitionTarget();
-        var hostedAgent = target is not null && IsHostedProvider(provider);
-        var credentialChoice = hostedAgent ? SelectedCredentialChoice() : null;
+        var agentUsesModel = target is not null && IsModelProvider(provider);
+        var credentialChoice = agentUsesModel ? SelectedCredentialChoice() : null;
         var creatingSlot = credentialChoice == "new";
         if (creatingSlot && (string.IsNullOrWhiteSpace(cognitionCredentialLabelInput.Text) ||
             string.IsNullOrWhiteSpace(cognitionApiKeyInput.Text)))
@@ -186,13 +186,13 @@ public partial class Main
             role,
             provider,
             provider is "deterministic" or "inherit" ? null : EmptyToNull(cognitionModelPicker.Model),
-            provider is "deterministic" or "inherit" || hostedAgent && !creatingSlot
+            provider is "deterministic" or "inherit" || agentUsesModel && !creatingSlot
                 ? null : EmptyToNull(cognitionApiKeyInput.Text),
             ForgetCredential: false,
             InhabitantId: target,
             CredentialSlotId: creatingSlot ? Guid.NewGuid().ToString("N") : credentialChoice is null or "default" ? null : credentialChoice,
             NewCredentialLabel: creatingSlot ? EmptyToNull(cognitionCredentialLabelInput.Text) : null,
-            Thinking: hostedAgent ? SelectedThinking(cognitionThinkingChoice) : null);
+            Thinking: agentUsesModel ? SelectedThinking(cognitionThinkingChoice) : null);
         try
         {
             await RunOwnerActionAsync(async () =>
@@ -398,10 +398,10 @@ public partial class Main
     }
 
     /// <summary>Providers that host an agent's own paid model, with a key and a thinking setting.</summary>
-    private static bool IsHostedProvider([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] string? provider) =>
+    private static bool IsModelProvider([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] string? provider) =>
         provider is "openai" or "ollama-cloud" or "anthropic";
 
-    /// <summary>The thinking levels every hosted provider accepts; the model default sends nothing.</summary>
+    /// <summary>The thinking levels every model provider accepts; the model default sends nothing.</summary>
     private static void PopulateThinkingChoices(OptionButton choice)
     {
         choice.Clear();
@@ -434,22 +434,22 @@ public partial class Main
         var provider = SelectedProviderId();
         var option = providerConfiguration?.Providers.FirstOrDefault(item =>
             string.Equals(item.Provider, provider, StringComparison.Ordinal));
-        var hosted = provider is not ("deterministic" or "inherit");
+        var usesModel = provider is not ("deterministic" or "inherit");
         var personalSetupCheckAvailable = SelectedCognitionTarget() is not null && HasModelList(provider);
         cognitionRoleChoice.Visible = SelectedCognitionTarget() is null;
-        var agentCredential = hosted && SelectedCognitionTarget() is not null && IsHostedProvider(provider);
+        var agentCredential = usesModel && SelectedCognitionTarget() is not null && IsModelProvider(provider);
         var newCredential = agentCredential && SelectedCredentialChoice() == "new";
-        cognitionModelPicker.Visible = hosted;
+        cognitionModelPicker.Visible = usesModel;
         cognitionThinkingChoice.Visible = agentCredential;
         cognitionModelSetupCheckButton.Visible = personalSetupCheckAvailable;
         cognitionCredentialChoice.Visible = agentCredential;
         cognitionCredentialLabelInput.Visible = newCredential;
-        cognitionApiKeyInput.Visible = hosted && (!agentCredential || newCredential);
-        cognitionCredentialHint.Visible = hosted;
-        forgetCognitionCredentialButton.Visible = hosted && SelectedCognitionTarget() is null;
+        cognitionApiKeyInput.Visible = usesModel && (!agentCredential || newCredential);
+        cognitionCredentialHint.Visible = usesModel;
+        forgetCognitionCredentialButton.Visible = usesModel && SelectedCognitionTarget() is null;
         deleteCognitionCredentialSlotButton.Visible = agentCredential &&
             SelectedCredentialChoice() is not ("default" or "new");
-        if (hosted) SyncCognitionModelPicker();
+        if (usesModel) SyncCognitionModelPicker();
         ResetCognitionModelSetupCheckForCurrentChoice();
         cognitionModelSetupCheckStatus.Visible = personalSetupCheckAvailable && cognitionModelSetupCheckStatus.Text.Length > 0;
 
@@ -490,7 +490,7 @@ public partial class Main
         var child = observationSession.Current?.Baseline.Snapshot.Inhabitants.FirstOrDefault(item => item.Id == childId);
         var birthProvider = child?.DecisionFactors.FirstOrDefault(item => item.Key == "birth-model-provider")?.Detail;
         var birthModel = child?.DecisionFactors.FirstOrDefault(item => item.Key == "birth-model-id")?.Detail;
-        if ((routine is null || planning is null) && IsHostedProvider(birthProvider) &&
+        if ((routine is null || planning is null) && IsModelProvider(birthProvider) &&
             !string.IsNullOrWhiteSpace(birthModel))
         {
             var pendingModelName = $"{ProviderDisplayName(birthProvider)} · {birthModel}";

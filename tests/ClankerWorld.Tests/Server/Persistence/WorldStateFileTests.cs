@@ -1,5 +1,6 @@
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
 using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;

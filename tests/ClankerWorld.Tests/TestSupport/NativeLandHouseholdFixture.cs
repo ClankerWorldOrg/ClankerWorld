@@ -3,7 +3,8 @@ using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -20,8 +21,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         var identityWaitChecked = false;
         var foundCancellationChecked = false;
         using var world = WorldRuntime.Restore(state, _ => choices);
-        var hosted = cancelFoundReply ? Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-            .GetField("pendingHosted", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+        var modelCalls = cancelFoundReply ? Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
+            .GetField("pendingModelCalls", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .GetValue(world)) : null;
         world.Resume();
         world.SubmitInstruction(new("consider-native-household", "owner:test", actor, OwnerInstructionKind.Suggestive,
@@ -64,7 +65,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                             : "Consider the pending request to join your household and make your own choice."));
                 }
                 Assert.True(await host.TryAdvanceOnceAsync());
-                if (cancelFoundReply && !foundCancellationChecked && hosted![actor] is { } pending &&
+                if (cancelFoundReply && !foundCancellationChecked && modelCalls![actor] is { } pending &&
                     pending.GetType().GetProperty("Request")!.GetValue(pending) is CognitionDecisionRequest foundRequest &&
                     foundRequest.Observation.Candidates.Any(candidate => candidate.Id == "household_found"))
                 {

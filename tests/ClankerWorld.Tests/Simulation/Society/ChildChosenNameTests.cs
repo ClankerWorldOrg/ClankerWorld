@@ -333,7 +333,7 @@ public sealed class ChildChosenNameTests
             {
                 // As in the will/conversation fixtures, await the complete runtime handoff between
                 // controlled ticks; a provider-return signal alone can precede task completion.
-                var field = typeof(WorldRuntime).GetField("pendingHosted", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic)!;
                 var pending = Assert.IsAssignableFrom<IDictionary>(field.GetValue(world)).Values.Cast<object>();
                 var tasks = pending.Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item)));
                 await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(5));

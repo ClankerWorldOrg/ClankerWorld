@@ -436,7 +436,7 @@ public sealed class SocietyTests
     {
         var scheduler = new SocietyCognitionScheduler(
             [SocietyRules.CreateFounder("alice", "Alice", config: TestConfig())],
-            _ => new PreviewOnlyHostedProvider());
+            _ => new PreviewOnlyModelProvider());
         var entry = Entry("a", "alice", 1, 0);
         entry = entry with
         {
@@ -447,7 +447,7 @@ public sealed class SocietyTests
             }
         };
         Assert.True(scheduler.Enqueue(entry));
-        var request = Assert.Single(scheduler.PreviewHostedRequests(new HashSet<string>())).Request;
+        var request = Assert.Single(scheduler.PreviewModelRequests(new HashSet<string>())).Request;
         var response = new CognitionDecisionResponse(request.RequestId, "alice", DecisionProviderKind.LargeLanguageModel,
             request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
             request.Observation.ObservationDigest, "seek_food", 1,
@@ -457,7 +457,7 @@ public sealed class SocietyTests
         Assert.Null(scheduler.CaptureRuntime("alice").CurrentIntention);
     }
 
-    private sealed class PreviewOnlyHostedProvider : IDecisionProvider
+    private sealed class PreviewOnlyModelProvider : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;

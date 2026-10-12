@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldConversationTests
 {
-    private static readonly string[] PendingConversationFixtureFields = ["pendingHosted", "pendingConversationTurns"];
+    private static readonly string[] PendingConversationFixtureFields = ["pendingModelCalls", "pendingConversationTurns"];
 
     [Fact]
     public async Task NewGuidanceWaitsForCurrentChoicesAfterAnOlderReplyStartsAConversation()

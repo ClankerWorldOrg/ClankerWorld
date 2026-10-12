@@ -2,23 +2,23 @@
 set -euo pipefail
 
 # Builds the portable Windows 11 x64 package (#468): the Godot release export
-# from scripts/verify-godot-windows-export.sh plus a self-contained win-x64 host
+# from scripts/verify-godot-windows-export.sh plus a self-contained win-x64 world server
 # from the same commit, in one folder named for the version, zipped.
 #
 #   bash scripts/verify-godot-windows-export.sh
 #   bash scripts/package-windows.sh [export-dir] [output-dir]
 #
-# The game starts the host from its host/ folder and keeps the player's saves,
+# The game starts its world server from the server/ folder and keeps the player's saves,
 # keys and logs in %LOCALAPPDATA%\ClankerWorld, never in this folder.
 #
 # With --launcher it packages the launcher (#1566) instead, which has its own
-# version and no host:
+# version and no world server:
 #
 #   bash scripts/verify-godot-windows-export.sh --launcher
 #   bash scripts/package-windows.sh --launcher [export-dir] [output-dir]
 
-readonly HOST_EXE="ClankerWorld.Server.exe"
-readonly HOST_ASSEMBLY="ClankerWorld.Server.dll"
+readonly SERVER_EXE="ClankerWorld.Server.exe"
+readonly SERVER_ASSEMBLY="ClankerWorld.Server.dll"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 launcher=false
@@ -43,7 +43,7 @@ if [[ ! -f "${export_dir}/${game_exe}" || ! -f "${export_dir}/manifest.sha256" ]
     printf 'No verified Godot export in %s. Run scripts/verify-godot-windows-export.sh first.\n' "${export_dir}" >&2
     exit 1
 fi
-# The game and host must come from the same verified source revision.
+# The game and server must come from the same verified source revision.
 if ! grep -q -x -F "# Source commit: ${revision}" "${export_dir}/manifest.sha256"; then
     printf 'The Godot export in %s was not built from %s.\n' "${export_dir}" "${revision}" >&2
     exit 1
@@ -57,15 +57,15 @@ if [[ "${launcher}" == true ]]; then
     version="$(git -C "${repo_root}" show "${revision}:src/ClankerWorld.GodotClient/Launcher/Launcher.cs" |
         sed -n 's/^ *public const string Version = "\([^"]*\)";$/\1/p')"
 else
-    # Keep host source and version tied to the export's committed inputs.
+    # Keep server source and version tied to the export's committed inputs.
     staged_repo_root="${scratch_root}/repository"
     mkdir -p "${staged_repo_root}"
     git -C "${repo_root}" archive "${revision}" \
         global.json Directory.Build.props src/ClankerWorld.Server src/ClankerWorld.Simulation \
         src/ClankerWorld.Shared/BuildInformation.cs \
         src/ClankerWorld.Shared/AgentPlacementRules.cs | tar -C "${staged_repo_root}" -xf -
-    staged_host_project="${staged_repo_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj"
-    version="$(dotnet msbuild "${staged_host_project}" -nologo -getProperty:Version)"
+    staged_server_project="${staged_repo_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj"
+    version="$(dotnet msbuild "${staged_server_project}" -nologo -getProperty:Version)"
 fi
 if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
     printf 'Cannot determine the game version: %s\n' "${version}" >&2
@@ -98,21 +98,21 @@ unknown: this alpha is not signed.
 EOF
     sed -i 's/$/\r/' "${stage}/README.txt"
 else
-    printf 'Publishing the self-contained win-x64 host\n'
-    SourceRevisionId="${revision}" dotnet publish "${staged_host_project}" \
+    printf 'Publishing the self-contained win-x64 world server\n'
+    SourceRevisionId="${revision}" dotnet publish "${staged_server_project}" \
         --configuration Release --runtime win-x64 --self-contained -p:RestoreLockedMode=true \
-        --output "${stage}/host" --nologo
-    if [[ ! -f "${stage}/host/${HOST_EXE}" ]]; then
-        printf 'The host executable was not published.\n' >&2
+        --output "${stage}/server" --nologo
+    if [[ ! -f "${stage}/server/${SERVER_EXE}" ]]; then
+        printf 'The server executable was not published.\n' >&2
         exit 1
     fi
-    pe_description="$(file -b "${stage}/host/${HOST_EXE}")"
+    pe_description="$(file -b "${stage}/server/${SERVER_EXE}")"
     if [[ "${pe_description}" != *"PE32+"* || "${pe_description}" != *"x86-64"* ]]; then
-        printf 'The host is not a Windows x64 PE file: %s\n' "${pe_description}" >&2
+        printf 'The server is not a Windows x64 PE file: %s\n' "${pe_description}" >&2
         exit 1
     fi
-    if ! grep -a -F -q -- "${version}+${revision}" "${stage}/host/${HOST_ASSEMBLY}"; then
-        printf 'The host assembly does not carry %s+%s.\n' "${version}" "${revision}" >&2
+    if ! grep -a -F -q -- "${version}+${revision}" "${stage}/server/${SERVER_ASSEMBLY}"; then
+        printf 'The server assembly does not carry %s+%s.\n' "${version}" "${revision}" >&2
         exit 1
     fi
 
@@ -128,6 +128,11 @@ folder, so you can replace this folder with a newer version without losing
 them. Windows may warn that the publisher is unknown: this alpha is not signed.
 EOF
     sed -i 's/$/\r/' "${stage}/README.txt"
+fi
+
+if [[ "${launcher}" == false ]]; then
+    # The launcher reads each version's entry points from here (GameVersionStore).
+    printf '{"game": "%s", "server": "server/%s"}\n' "${game_exe}" "${SERVER_EXE}" > "${stage}/package.json"
 fi
 
 printf 'Writing the package manifest\n'

@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using ClankerWorld.GodotClient.Pairing;
 using ClankerWorld.GodotClient.UI;
-using HostBinding = ClankerWorld.Server.Control.OwnerHttpBinding;
+using HostBinding = ClankerWorld.Server.Pairing.OwnerHttpBinding;
 
 namespace ClankerWorld.Tests;
 

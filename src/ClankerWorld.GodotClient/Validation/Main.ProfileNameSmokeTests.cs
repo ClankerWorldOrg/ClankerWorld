@@ -13,7 +13,7 @@ public partial class Main
         var previousRenderSize = window.ContentScaleSize;
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousSelection = selectedInhabitantId;
         var previousCardSnapshot = agentCardSnapshot;
@@ -53,7 +53,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             mainMenuOverlay.Hide();
             // Both short-name sizes are controls before either wide name is checked.
             foreach (var name in new[] { "Rowan Lake", new string('界', 48), new string('W', 48) })
@@ -103,7 +103,7 @@ public partial class Main
             renameRow.Hide();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

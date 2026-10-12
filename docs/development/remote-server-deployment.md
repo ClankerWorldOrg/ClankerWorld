@@ -51,13 +51,13 @@ versioned binary directories. The relevant configuration keys are:
 
 | Configuration key | What to preserve |
 | --- | --- |
-| `ClankerWorld:Runtime:StatePath` | Active world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
-| `ClankerWorld:Pairing:StatePath` | Durable owner-device authority and revocations |
-| `ClankerWorld:Runtime:ProviderStatePath` | Installation model assignments and protected credentials |
-| `ClankerWorld:Runtime:ProviderUsagePath` | Installation-lifetime paid-attempt accounting |
+| `ClankerWorld:World:SavePath` | Active world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
+| `ClankerWorld:Pairing:AuthorityPath` | Durable owner-device authority and revocations |
+| `ClankerWorld:Providers:ConfigurationPath` | Installation model assignments and protected credentials |
+| `ClankerWorld:Providers:UsagePath` | Installation-lifetime paid-attempt accounting |
 | `ClankerWorld:Assets:CatalogPath` | Approved asset catalog and the assets it refers to |
 
-When `ProviderUsagePath` is unset, the current host uses `provider-usage.json`
+When `Providers:UsagePath` is unset, the current host uses `provider-usage.json`
 beside the provider configuration file. An older process or different working
 directory may have used another location. Identify all possible old and new
 meter locations before switching; a missing file is not proof that no calls

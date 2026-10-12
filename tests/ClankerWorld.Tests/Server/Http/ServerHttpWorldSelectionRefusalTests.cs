@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Worlds;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ClankerWorld.Tests;

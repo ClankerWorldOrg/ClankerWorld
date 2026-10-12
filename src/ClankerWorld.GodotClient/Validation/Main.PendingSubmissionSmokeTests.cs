@@ -12,7 +12,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousSelection = selectedInhabitantId;
         var previousText = instructionText.Text;
@@ -37,7 +37,7 @@ public partial class Main
             await WaitForWorldPreviewSmokeAsync(() => !isRefreshing && !isOwnerAction, "previous owner request cleanup");
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             pendingSubmission = null;
             if (!observationSession.TryAccept(host.Reconnect, 0, out var failure))
                 throw new InvalidOperationException($"The refusal fixture needs a valid baseline: {failure}");
@@ -80,7 +80,7 @@ public partial class Main
             pendingSubmissionStore.TryForget();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
             selectedInhabitantId = previousSelection;

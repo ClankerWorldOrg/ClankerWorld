@@ -12,7 +12,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousName = worldNameInput.Text;
         var previousSeed = worldSeedInput.Text;
         var previousUsage = usageStatus;
@@ -33,7 +33,7 @@ public partial class Main
         {
             deviceKey = signer;
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             var reroll = worldSeedInput.GetParent().GetChildren().OfType<Button>().Single(button => button.Text == "Reroll");
             for (var scenario = 0; scenario < 3; scenario++)
             {
@@ -109,7 +109,7 @@ public partial class Main
             worldListRequest.Cancel();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             worldNameInput.Text = previousName;
             worldSeedInput.Text = previousSeed;
             usageStatus = previousUsage;
@@ -126,7 +126,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousName = worldNameInput.Text;
         var previousSeed = worldSeedInput.Text;
         var previousOverlayVisible = worldMenuOverlay.Visible;
@@ -154,7 +154,7 @@ public partial class Main
             };
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             worldNameInput.Text = "Reroll smoke";
             worldSeedInput.Text = "initial-seed";
             worldMenuOverlay.Show();
@@ -230,7 +230,7 @@ public partial class Main
                 InvalidateWorldPreview(refresh: false);
                 registration = previousRegistration;
                 deviceKey = previousKey;
-                worldUrlInput.Text = previousUrl;
+                serverUrlInput.Text = previousUrl;
                 worldNameInput.Text = previousName;
                 worldSeedInput.Text = previousSeed;
                 worldMenuColumns.Visible = previousColumnsVisible;

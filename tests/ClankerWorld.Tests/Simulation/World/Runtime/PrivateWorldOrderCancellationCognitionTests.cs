@@ -277,7 +277,7 @@ public sealed partial class WorldRuntimeTests
                 await ReleaseFresh.Task;
                 FreshReturned.TrySetResult(true);
             }
-            return HostedResponse(request, Kind, ProviderEpoch,
+            return ModelResponse(request, Kind, ProviderEpoch,
                 request.Observation.OperativeOrderInstructionId is null ? "safe_idle" : orderCandidate);
         }
     }

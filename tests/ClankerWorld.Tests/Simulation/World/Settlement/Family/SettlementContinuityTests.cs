@@ -7,6 +7,8 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 using GodotOwnerWorldEvent = ClankerWorld.GodotClient.UI.OwnerWorldEvent;
 using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.UI.OwnerWorldSnapshot;
 
@@ -203,9 +205,9 @@ public sealed partial class SettlementParenthoodTests
 
         var handler = new ContinuityModelHandler();
         using var client = new HttpClient(handler);
-        using var hosted = WorldRuntime.Restore(state, _ => new OpenAiCompatibleDecisionProvider(client,
+        using var modelWorld = WorldRuntime.Restore(state, _ => new OpenAiCompatibleDecisionProvider(client,
             () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model"));
-        await hosted.AdvanceOneTickNonBlockingAsync();
+        await modelWorld.AdvanceOneTickNonBlockingAsync();
         for (var attempt = 0; attempt < 100 && handler.Bodies.Count < state.Inhabitants.Count; attempt++) await Task.Delay(10);
         var requests = handler.Bodies.Select(body =>
         {

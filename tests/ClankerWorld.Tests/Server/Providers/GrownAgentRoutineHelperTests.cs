@@ -1,6 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 

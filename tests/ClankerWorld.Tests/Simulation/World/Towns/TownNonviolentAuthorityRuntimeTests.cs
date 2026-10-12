@@ -66,7 +66,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
         using var world = WorldRuntime.Restore(state, actor => actor == NonviolentRuntimeFixture.Judge ? held : repeal);
         try
         {
-            await AdvanceHostedUntilAsync(world, () => held.Started.Task.IsCompleted, 12);
+            await AdvanceModelDecisionsUntilAsync(world, () => held.Started.Task.IsCompleted, 12);
             await held.Started.Task.WaitAsync(Deadline);
             Assert.Contains("|law_case_find|", held.CandidateId!, StringComparison.Ordinal);
             Assert.Equal(originalAuthority, TownGovernmentRules.CurrentNonLandAuthority(world.Towns[0].Government!, world.WorldTick));
@@ -77,17 +77,17 @@ public sealed class TownNonviolentAuthorityRuntimeTests
                 repeal.Enabled = true;
                 foreach (var actor in town.ResidentIds.Where(actor => actor != NonviolentRuntimeFixture.Judge))
                     NonviolentRuntimeFixture.Wake(world, actor, "consider-scope-repeal:" + actor);
-                await AdvanceHostedUntilAsync(world,
+                await AdvanceModelDecisionsUntilAsync(world,
                     () => world.Towns[0].Government!.Changes.Count > town.Government.Changes.Count, 6);
                 foreach (var actor in town.ResidentIds.Where(actor => actor != NonviolentRuntimeFixture.Judge))
                     NonviolentRuntimeFixture.Wake(world, actor, "read-scope-proposal:" + actor);
-                await AdvanceHostedUntilAsync(world, () => town.ResidentIds.Where(actor => actor != NonviolentRuntimeFixture.Judge)
+                await AdvanceModelDecisionsUntilAsync(world, () => town.ResidentIds.Where(actor => actor != NonviolentRuntimeFixture.Judge)
                     .All(actor => world.Towns[0].Governance!.Knowledge.Any(receipt => receipt.AgentId == actor &&
                         world.Towns[0].Governance!.Notices.Any(notice => notice.Id == receipt.NoticeId &&
                             notice.SubjectId == TownGovernmentRules.VoteNoticeToken(world.Towns[0].Government!.Changes[^1])))), 6);
                 foreach (var actor in town.ResidentIds.Where(actor => actor != NonviolentRuntimeFixture.Judge))
                     NonviolentRuntimeFixture.Wake(world, actor, "vote-scope-proposal:" + actor);
-                await AdvanceHostedUntilAsync(world,
+                await AdvanceModelDecisionsUntilAsync(world,
                     () => world.Towns[0].Government!.Arrangement.NonLand == TownArrangementRules.NoOffice, 6);
 
                 var government = world.Towns[0].Government!;
@@ -148,7 +148,7 @@ public sealed class TownNonviolentAuthorityRuntimeTests
         finally { held.Release(); }
     }
 
-    private static async Task AdvanceHostedUntilAsync(WorldRuntime world, Func<bool> complete, int limit)
+    private static async Task AdvanceModelDecisionsUntilAsync(WorldRuntime world, Func<bool> complete, int limit)
     {
         for (var attempt = 0; attempt < limit && !complete(); attempt++)
         {

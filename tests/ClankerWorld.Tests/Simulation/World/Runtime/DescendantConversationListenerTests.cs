@@ -184,7 +184,7 @@ public sealed class DescendantConversationListenerTests
         // conversation fixture, finish pending local tasks before advancing ticks
         // so scheduler timing cannot move the paired world's admission boundary.
         var tasks = new List<Task>();
-        foreach (var fieldName in new[] { "pendingHosted", "pendingConversationTurns", "pendingIdentityMoments" })
+        foreach (var fieldName in new[] { "pendingModelCalls", "pendingConversationTurns", "pendingIdentityMoments" })
         {
             var field = typeof(WorldRuntime).GetField(fieldName,
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);

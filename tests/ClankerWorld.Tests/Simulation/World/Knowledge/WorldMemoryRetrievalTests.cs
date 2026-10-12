@@ -2,7 +2,8 @@ using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -260,7 +261,7 @@ public sealed class WorldMemoryRetrievalTests
         };
         var observed = new List<InhabitantObservation>();
         using var world = WorldRuntime.Restore(state, id => id == "founder-scout"
-            ? new FailingHostedProvider(observed)
+            ? new FailingModelProvider(observed)
             : new CapturingProvider(observed));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         for (var attempt = 0; attempt < 20 &&
@@ -350,7 +351,7 @@ public sealed class WorldMemoryRetrievalTests
         }
     }
 
-    private sealed class FailingHostedProvider(List<InhabitantObservation> observed) : IDecisionProvider
+    private sealed class FailingModelProvider(List<InhabitantObservation> observed) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;

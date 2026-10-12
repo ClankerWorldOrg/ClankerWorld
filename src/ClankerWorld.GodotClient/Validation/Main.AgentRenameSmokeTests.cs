@@ -19,7 +19,7 @@ public partial class Main
         const string refusedName = "Aster Lake";
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousSelection = selectedInhabitantId;
         var previousProfileRequested = agentProfileRequested;
@@ -33,7 +33,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             var position = new OwnerWorldPosition(1, 1);
             OwnerWorldInhabitant Agent(string id, string name) => new(id, name, "active", position, 8_000, [], [],
                 new OwnerWorldRoute("idle", null, null, [], string.Empty),
@@ -182,7 +182,7 @@ public partial class Main
             renamingAgentId = null;
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

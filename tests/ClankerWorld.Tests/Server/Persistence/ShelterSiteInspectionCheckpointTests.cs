@@ -1,7 +1,8 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 using static ClankerWorld.Tests.ShelterOrderTestFixture;
 
 namespace ClankerWorld.Tests;

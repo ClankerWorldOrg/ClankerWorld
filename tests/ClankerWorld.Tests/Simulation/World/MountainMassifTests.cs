@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using ClankerWorld.GodotClient.UI;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Saves;
 using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;

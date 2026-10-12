@@ -182,7 +182,7 @@ public sealed partial class TownMembershipTests
                 if (world.Inhabitants.Single(person => person.InhabitantId == newcomer).LastModelAttempt?.Status == "waiting")
                 {
                     using var completionTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    while (!world.HostedDecisionsFinished(newcomer)) await Task.Delay(1, completionTimeout.Token);
+                    while (!world.ModelDecisionsFinished(newcomer)) await Task.Delay(1, completionTimeout.Token);
                 }
                 var completed = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(completed.Advanced);
@@ -343,7 +343,7 @@ public sealed partial class TownMembershipTests
     private static (CognitionDecisionRequest Request, Task Task) CaptureHeldAdmissionCall(
         WorldRuntime world, string newcomer)
     {
-        var field = typeof(WorldRuntime).GetField("pendingHosted",
+        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var call = pending[newcomer];

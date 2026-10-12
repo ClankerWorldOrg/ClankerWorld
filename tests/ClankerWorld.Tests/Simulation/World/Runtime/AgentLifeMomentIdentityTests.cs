@@ -6,7 +6,9 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -102,7 +104,7 @@ public sealed class AgentLifeMomentIdentityTests
         Assert.Equal("requested", world.Inhabitants.Single(item => item.InhabitantId == ActorId).IdentityMoments!.Single().Outcome);
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         if (interruption == "pause") world.Pause();
-        else if (interruption == "disconnect" || interruption == "reload") world.CancelPendingHostedDecisions();
+        else if (interruption == "disconnect" || interruption == "reload") world.CancelPendingModelCalls();
         else provider.Epoch++;
         provider.Release.TrySetResult(true);
         await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));

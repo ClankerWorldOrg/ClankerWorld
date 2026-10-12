@@ -2,7 +2,8 @@ using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -124,7 +125,7 @@ public sealed partial class BusinessTradeTests
         {
             // Compare the same admitted replies, rather than thread-pool timing.
             // The playable host intentionally runs personal calls between ticks.
-            foreach (var fieldName in new[] { "pendingHosted", "pendingIdentityMoments" })
+            foreach (var fieldName in new[] { "pendingModelCalls", "pendingIdentityMoments" })
             {
                 var field = typeof(WorldRuntime).GetField(fieldName,
                     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);

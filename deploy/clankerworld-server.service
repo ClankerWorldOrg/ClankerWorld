@@ -1,5 +1,5 @@
 [Unit]
-Description=ClankerWorld world host
+Description=ClankerWorld world server
 After=network-online.target
 Wants=network-online.target
 
@@ -12,15 +12,14 @@ Group=clanker
 WorkingDirectory=/opt/clankerworld-server
 EnvironmentFile=-/etc/clankerworld-server/provider.env
 Environment=ASPNETCORE_ENVIRONMENT=Production
-Environment=ClankerWorld__Runtime__WorldMode=game
-Environment=ClankerWorld__Runtime__AdvanceScript=true
-Environment=ClankerWorld__Runtime__ClientPresenceTimeoutSeconds=5
+Environment=ClankerWorld__World__Mode=game
+Environment=ClankerWorld__Clock__Run=true
+Environment=ClankerWorld__Clock__ClientPresenceTimeoutSeconds=5
 Environment=ClankerWorld__Http__Port=5188
-Environment=ClankerWorld__Pairing__LocalApprovalPort=5189
-Environment=ClankerWorld__Pairing__StatePath=/var/lib/clankerworld-server/private-owner-authority.json
-Environment=ClankerWorld__Runtime__StatePath=/var/lib/clankerworld-server/world.json
-Environment=ClankerWorld__Runtime__ProviderStatePath=/var/lib/clankerworld-server/provider-configuration.json
-Environment=ClankerWorld__Runtime__LegacyStatePath=/var/lib/clankerworld-server/phase-two-runtime.json
+Environment=ClankerWorld__Pairing__ApprovalPort=5189
+Environment=ClankerWorld__Pairing__AuthorityPath=/var/lib/clankerworld-server/private-owner-authority.json
+Environment=ClankerWorld__World__SavePath=/var/lib/clankerworld-server/world.json
+Environment=ClankerWorld__Providers__ConfigurationPath=/var/lib/clankerworld-server/provider-configuration.json
 Environment=ClankerWorld__Assets__CatalogPath=/etc/clankerworld-server/approved-assets.json
 Environment=DOTNET_NOLOGO=1
 StateDirectory=clankerworld-server

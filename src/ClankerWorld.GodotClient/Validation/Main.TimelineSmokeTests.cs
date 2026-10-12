@@ -11,7 +11,7 @@ public partial class Main
     {
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousSelection = selectedInhabitantId;
         var previousPendingSubmission = pendingSubmission;
@@ -75,7 +75,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             foreach (var lateFailure in new[] { false, true })
             {
                 observationSession.ReplaceRegistration(registration);
@@ -363,7 +363,7 @@ public partial class Main
             ResetDisplayedWorldContext();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observationSession.ReplaceRegistration(previousRegistration);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);

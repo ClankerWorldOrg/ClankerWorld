@@ -6,11 +6,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void ArchiveOldAgentMemories(IReadOnlySet<string> activeHostedIds)
+    private void ArchiveOldAgentMemories(IReadOnlySet<string> activeModelCallIds)
     {
         // Once per unpaused world day; loading never runs the rule or resets its deadline.
         if (WorldTick % society.Checkpoint.Config.TicksPerWorldDay != 0) return;
-        var protectedOwners = activeHostedIds.Concat(instructionsByIdempotency.Values
+        var protectedOwners = activeModelCallIds.Concat(instructionsByIdempotency.Values
                 .Where(item => item.Order is { } order && IsActiveOrder(order.Status))
                 .Select(item => item.TargetInhabitantId))
             .Concat(inhabitants.Values.Where(person =>

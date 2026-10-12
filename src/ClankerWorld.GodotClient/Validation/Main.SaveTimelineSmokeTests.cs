@@ -77,7 +77,7 @@ public partial class Main
 
         var previousRegistration = registration;
         var previousKey = deviceKey;
-        var previousUrl = worldUrlInput.Text;
+        var previousUrl = serverUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousPace = observedCalendarPace;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
@@ -88,7 +88,7 @@ public partial class Main
         {
             registration = new(host.Authority, "smoke-device", signer.PublicKeyFingerprint, host.Address);
             deviceKey = signer;
-            worldUrlInput.Text = host.Address;
+            serverUrlInput.Text = host.Address;
             observedCalendarPace = new OwnerWorldCalendarPace(Day, 40, 10, 10, 10, 10);
             var handshake = new OwnerWorldHandshake(new(1, 1),
                 ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
@@ -470,7 +470,7 @@ public partial class Main
             manualSaveList.Clear();
             registration = previousRegistration;
             deviceKey = previousKey;
-            worldUrlInput.Text = previousUrl;
+            serverUrlInput.Text = previousUrl;
             observedCalendarPace = previousPace;
             observationSession.ResetAfterLoad();
             if (previousObservation is not null)

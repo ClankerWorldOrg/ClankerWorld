@@ -12,7 +12,7 @@ public sealed class QueuedIdentityRoutingTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CompletingHostedIdentityDefersRetainedDeterministicWorkUntilAFreshTick(bool deferReturn)
+    public async Task CompletingModelIdentityDefersRetainedDeterministicWorkUntilAFreshTick(bool deferReturn)
     {
         using var initial = new WorldRuntime("queued-idle-context");
         var state = initial.ExportState();
@@ -38,7 +38,7 @@ public sealed class QueuedIdentityRoutingTests
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
-            var original = Assert.Single(provider.HostedRequests);
+            var original = Assert.Single(provider.ModelRequests);
             Assert.True(original.NeedsPersonality);
             Assert.True(original.NeedsAspiration);
             Assert.DoesNotContain(original.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
@@ -52,12 +52,12 @@ public sealed class QueuedIdentityRoutingTests
 
             var beforeCompletion = WorldRuntimeCodec.Encode(world.ExportState());
             provider.Release.TrySetResult(true);
-            var completion = WaitForHostedCompletion(world);
+            var completion = WaitForModelCompletion(world);
             if (deferReturn)
             {
                 await provider.Replied.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 Assert.False(completion.IsCompleted);
-                Assert.False(world.HostedDecisionsFinished(Actor));
+                Assert.False(world.ModelDecisionsFinished(Actor));
                 Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
                 provider.Complete.TrySetResult(true);
             }
@@ -109,8 +109,8 @@ public sealed class QueuedIdentityRoutingTests
                 Assert.Equal("Explore the riverbanks", fresh.Self.Aspiration);
                 Assert.Contains(fresh.Candidates, candidate => candidate.Id is "seek_food" or "harvest_food");
             }
-            Assert.Single(provider.HostedRequests);
-            Assert.Empty(restoredProvider.HostedRequests);
+            Assert.Single(provider.ModelRequests);
+            Assert.Empty(restoredProvider.ModelRequests);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
                 WorldRuntimeCodec.Encode(restored.ExportState()));
         }
@@ -121,10 +121,10 @@ public sealed class QueuedIdentityRoutingTests
         }
     }
 
-    private static async Task WaitForHostedCompletion(WorldRuntime world)
+    private static async Task WaitForModelCompletion(WorldRuntime world)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        while (!world.HostedDecisionsFinished(Actor)) await Task.Delay(1, deadline.Token);
+        while (!world.ModelDecisionsFinished(Actor)) await Task.Delay(1, deadline.Token);
     }
 
     private static WorldRuntime Restore(WorldRuntimeState state, IdentityPlanningProvider provider) =>
@@ -136,7 +136,7 @@ public sealed class QueuedIdentityRoutingTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> HostedRequests { get; } = new();
+        public ConcurrentQueue<InhabitantObservation> ModelRequests { get; } = new();
         public ConcurrentQueue<InhabitantObservation> RoutineRequests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -156,7 +156,7 @@ public sealed class QueuedIdentityRoutingTests
                 RoutineRequests.Enqueue(request.Observation);
                 return Reply(request, kind, ProviderEpoch);
             }
-            HostedRequests.Enqueue(request.Observation);
+            ModelRequests.Enqueue(request.Observation);
             Started.TrySetResult(true);
             await Release.Task.WaitAsync(cancellationToken);
             var reply = Reply(request, kind, ProviderEpoch) with

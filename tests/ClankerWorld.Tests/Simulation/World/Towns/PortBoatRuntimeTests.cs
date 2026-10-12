@@ -164,7 +164,7 @@ public sealed partial class PortBoatRuntimeTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task AContinuingOwnerOrderWaitsAboardWhileTheHostedReplyIsHeld(bool urgentlyHungry)
+    public async Task AContinuingOwnerOrderWaitsAboardWhileTheModelReplyIsHeld(bool urgentlyHungry)
     {
         var state = WorldRuntimeCodec.Decode(await Underway.Value);
         var boat = state.BoatTransport.Boats[0];

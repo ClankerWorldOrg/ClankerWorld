@@ -3,8 +3,9 @@ using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.GodotClient.UI;
-using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -351,7 +352,7 @@ public sealed class PostDeathWillTests
         Assert.True((await pending.AdvanceOneTickNonBlockingAsync()).Advanced);
         await held.Called.Task.WaitAsync(TimeSpan.FromSeconds(5));
         var bytes = WorldRuntimeCodec.Encode(pending.ExportState());
-        pending.CancelPendingHostedDecisions();
+        pending.CancelPendingModelCalls();
         await held.Cancelled.Task.WaitAsync(TimeSpan.FromSeconds(5));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
             id => id == "founder-scout" ? held : new DeterministicDecisionProvider());

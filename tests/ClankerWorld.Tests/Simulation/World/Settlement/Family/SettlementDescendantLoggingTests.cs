@@ -1,5 +1,6 @@
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -34,7 +35,7 @@ public sealed partial class SettlementParenthoodTests
             using var service = new WorldRuntimeService(world, new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
             Assert.True(await service.TryAdvanceOnceAsync());
             Assert.Contains(logger.Messages, message => message.Contains("survival_condition", StringComparison.Ordinal) &&
-                message.Contains("inhabitant=" + child + " ", StringComparison.Ordinal));
+                message.Contains("agent=" + child + " ", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("private-child-secret", StringComparison.Ordinal));
         }
         finally

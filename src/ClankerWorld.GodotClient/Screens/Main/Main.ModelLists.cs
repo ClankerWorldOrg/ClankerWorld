@@ -11,7 +11,7 @@ public partial class Main
     private string? cognitionModelContext;
     private string? cognitionModelLookup;
 
-    private static bool HasModelList(string provider) => IsHostedProvider(provider) || provider is "jev" or "decisions";
+    private static bool HasModelList(string provider) => IsModelProvider(provider) || provider is "jev" or "decisions";
 
     private const string PasteKeyNote = "Paste the key to check which of these it can use.";
 

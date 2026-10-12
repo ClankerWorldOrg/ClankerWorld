@@ -2,7 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 
@@ -128,7 +129,7 @@ public sealed partial class AgentConversationProviderTests
             Assert.Equal(7, usage.Capture().InputTokens);
             Assert.Equal(3, usage.Capture().OutputTokens);
             Assert.Contains(logger.Messages, message =>
-                message.Contains("conversation_call status=failed", StringComparison.Ordinal) &&
+                message.Contains("model_conversation_call status=failed", StringComparison.Ordinal) &&
                 message.Contains("purpose=public_turn", StringComparison.Ordinal) &&
                 message.Contains("input_tokens=7", StringComparison.Ordinal) &&
                 message.Contains("output_tokens=3", StringComparison.Ordinal));

@@ -2,11 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Server.Control;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Content;
+using ClankerWorld.Server.Saves;
 using Microsoft.Extensions.DependencyInjection;
-using ServerBuildingReassignmentAction = ClankerWorld.Server.Control.OwnerBuildingReassignmentAction;
-using ServerBuildingRemovalAction = ClankerWorld.Server.Control.OwnerBuildingRemovalAction;
+using ServerBuildingReassignmentAction = ClankerWorld.Server.Content.OwnerBuildingReassignmentAction;
+using ServerBuildingRemovalAction = ClankerWorld.Server.Content.OwnerBuildingRemovalAction;
 
 namespace ClankerWorld.Tests;
 

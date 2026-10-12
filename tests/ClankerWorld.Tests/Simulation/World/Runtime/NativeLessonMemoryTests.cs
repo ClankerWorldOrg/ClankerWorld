@@ -3,7 +3,8 @@ using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -12,7 +13,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CompletedNativeLessonReachesPersonalRecallAndContinuesAfterHostedReload(bool nativeBorn)
+    public async Task CompletedNativeLessonReachesPersonalRecallAndContinuesAfterModelReload(bool nativeBorn)
     {
         // Existing fixture grows genuine births and adults with explicit calendar,
         // birth food and lifespan preparation. Keep their skills and positions.
@@ -53,7 +54,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
         // Set both continuations at the public external-call cancellation boundary.
         // Nothing is filtered from the saved bytes or inserted into the memory ledger.
-        world.CancelPendingHostedDecisions();
+        world.CancelPendingModelCalls();
         var bytes = host.Checkpoint();
         var after = new NativeLessonChoices(true);
         var afterTeacher = new NativeLessonChoices(false);

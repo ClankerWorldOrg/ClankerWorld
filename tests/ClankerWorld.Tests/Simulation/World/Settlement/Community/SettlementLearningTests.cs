@@ -2,6 +2,8 @@ using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
 
 namespace ClankerWorld.Tests;
 
@@ -323,10 +325,10 @@ public sealed class SettlementLearningTests
         world.SubmitInstruction(new("waiting-lesson-guidance", "owner:test", teacher,
             OwnerInstructionKind.Suggestive, "Think about your next task."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var hosted = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-            .GetField("pendingHosted", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+        var modelCalls = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
+            .GetField("pendingModelCalls", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .GetValue(world));
-        var call = hosted[teacher]!;
+        var call = modelCalls[teacher]!;
         Assert.NotNull(call);
         var request = Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call));
         var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
@@ -337,7 +339,7 @@ public sealed class SettlementLearningTests
         var entering = WorldRuntimeCodec.Encode(world.ExportState());
         await Task.WhenAny(provider.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
         Assert.True(provider.Started.Task.IsCompleted, $"Held lesson request {request.RequestId} finished before provider entry.");
-        Assert.Same(call, hosted[teacher]);
+        Assert.Same(call, modelCalls[teacher]);
         Assert.Same(task, call.GetType().GetProperty("Task")!.GetValue(call));
         Assert.False(task.IsCompleted);
         Assert.Same(request.Observation, Assert.Single(provider.Requests));
@@ -360,7 +362,7 @@ public sealed class SettlementLearningTests
         world.Pause();
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
         await task.WaitAsync(TimeSpan.FromSeconds(30));
-        Assert.False(hosted.Contains(teacher));
+        Assert.False(modelCalls.Contains(teacher));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));

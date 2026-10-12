@@ -15,7 +15,7 @@ run/main_scene.launcher="res://Launcher/Launcher.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [clankerworld]
-world_url="http://127.0.0.1:5188"
+server_url="http://127.0.0.1:5188"
 
 [dotnet]
 project/assembly_name="ClankerWorld.GodotClient"

@@ -300,7 +300,7 @@ public sealed partial class WorldConversationTests
         // Await the work this fixture actually started, rather than advancing
         // invitation deadlines while a scheduled fake response has not run.
         var tasks = new List<Task>();
-        foreach (var name in new[] { "pendingHosted", "pendingConversationTurns" })
+        foreach (var name in new[] { "pendingModelCalls", "pendingConversationTurns" })
         {
             var field = typeof(WorldRuntime).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(field);

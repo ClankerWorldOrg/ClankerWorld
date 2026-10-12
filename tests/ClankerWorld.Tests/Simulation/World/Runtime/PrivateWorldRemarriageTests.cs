@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldConversationTests
 {
-    private static readonly string[] MarriagePendingFields = ["pendingHosted", "pendingConversationTurns"];
+    private static readonly string[] MarriagePendingFields = ["pendingModelCalls", "pendingConversationTurns"];
     [Fact]
     public async Task UnilateralSeparationAllowsANewMarriageProposalAndKeepsBothNames()
     {

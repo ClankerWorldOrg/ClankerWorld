@@ -2,7 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
 
 namespace ClankerWorld.Tests;
 

@@ -1,13 +1,13 @@
 using ClankerWorld.GodotClient.UI;
-using OwnerHttpBinding = ClankerWorld.Server.Control.OwnerHttpBinding;
-using ServerReconnectAction = ClankerWorld.Server.Control.OwnerReconnectAction;
-using ServerDeviceManagementAction = ClankerWorld.Server.Control.OwnerDeviceManagementAction;
-using ServerInstructionAction = ClankerWorld.Server.Control.OwnerInstructionAction;
-using ServerOrderCancelAction = ClankerWorld.Server.Control.OwnerOrderCancelAction;
-using ServerPairingApprovalAction = ClankerWorld.Server.Control.OwnerPairingApprovalAction;
-using ServerProviderConfigurationAction = ClankerWorld.Server.Control.OwnerProviderConfigurationAction;
-using ServerProviderModelListAction = ClankerWorld.Server.Control.OwnerProviderModelListAction;
-using ServerProviderSetupCheckAction = ClankerWorld.Server.Control.OwnerProviderSetupCheckAction;
+using OwnerHttpBinding = ClankerWorld.Server.Pairing.OwnerHttpBinding;
+using ServerReconnectAction = ClankerWorld.Server.Pairing.OwnerReconnectAction;
+using ServerDeviceManagementAction = ClankerWorld.Server.Pairing.OwnerDeviceManagementAction;
+using ServerInstructionAction = ClankerWorld.Server.Pairing.OwnerInstructionAction;
+using ServerOrderCancelAction = ClankerWorld.Server.Pairing.OwnerOrderCancelAction;
+using ServerPairingApprovalAction = ClankerWorld.Server.Pairing.OwnerPairingApprovalAction;
+using ServerProviderConfigurationAction = ClankerWorld.Server.Pairing.OwnerProviderConfigurationAction;
+using ServerProviderModelListAction = ClankerWorld.Server.Pairing.OwnerProviderModelListAction;
+using ServerProviderSetupCheckAction = ClankerWorld.Server.Pairing.OwnerProviderSetupCheckAction;
 
 namespace ClankerWorld.Tests;
 
@@ -171,7 +171,7 @@ public sealed class GodotOwnerWorldApiTests
     [InlineData(1_460)]
     public void LifePacePayloadMatchesTheHostExactly(int rate)
     {
-        Assert.Equal(OwnerHttpBinding.LifePacePayload(new ClankerWorld.Server.Control.OwnerLifePaceAction(rate, "world-é")),
+        Assert.Equal(OwnerHttpBinding.LifePacePayload(new ClankerWorld.Server.Pairing.OwnerLifePaceAction(rate, "world-é")),
             OwnerWorldActionPayload.LifePace(new OwnerLifePaceAction(rate, "world-é")));
     }
 
@@ -180,7 +180,7 @@ public sealed class GodotOwnerWorldApiTests
     [InlineData(false)]
     public void JevAssistancePayloadMatchesTheHostExactly(bool enabled)
     {
-        Assert.Equal(OwnerHttpBinding.JevAssistancePayload(new ClankerWorld.Server.Control.OwnerJevAssistanceAction(enabled, "world-é")),
+        Assert.Equal(OwnerHttpBinding.JevAssistancePayload(new ClankerWorld.Server.Pairing.OwnerJevAssistanceAction(enabled, "world-é")),
             OwnerWorldActionPayload.JevAssistance(new OwnerJevAssistanceAction(enabled, "world-é")));
     }
 

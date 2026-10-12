@@ -226,7 +226,7 @@ public sealed class CognitionRuntime
                 }
 
                 // An unusable answer to this decision is terminal, not a reason
-                // to spend another hosted call on the same queued decision.
+                // to spend another model call on the same queued decision.
                 if (rejection is "malformed_response" or "candidate_not_legal")
                     return ApplyFallbackLocked(request, rejection);
                 RetireInFlight(CognitionRequestState.Rejected, rejection, null);
