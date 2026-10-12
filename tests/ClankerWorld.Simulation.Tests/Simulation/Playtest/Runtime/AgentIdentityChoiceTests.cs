@@ -75,20 +75,46 @@ public sealed class AgentIdentityChoiceTests
         Assert.Single(restored.ExportState().Events, item => item.Kind == "agent_identity_kept" && item.Detail == AgentId);
     }
 
-    [Fact]
-    public async Task PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity()
+    [Theory]
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(true, 4_000)]
+    public async Task PausingDiscardsLateIdentityAndSavesTheUnconsumedOpportunity(bool deferEntry, int entryDelayMilliseconds)
     {
         var model = new HeldIdentityProvider();
-        using var world = NormalPathWorld.CreateGenerated("identity-pause", id => id == AgentId ? model : new DeterministicDecisionProvider());
-        await world.AdvanceOneTickNonBlockingAsync();
-        await model.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        var enter = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var provider = new DelayedIdentityEntryProvider(model, entryDelayMilliseconds, deferEntry ? enter.Task : null);
+        using var world = NormalPathWorld.CreateGenerated("identity-pause", id => id == AgentId ? provider : new DeterministicDecisionProvider());
+        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.Equal(AgentId, Assert.Single(world.ExportState().Events,
+            item => item.Kind == "hosted_decision_started").Detail);
+        // Snapshot the actual registered worker with the existing shared wait,
+        // before pause removes it from the runtime's live pending collection.
+        var task = GrownAgentHelperMemoryTests.WaitForRequests(world);
+        Assert.False(task.IsCompleted);
+        if (deferEntry) Assert.False(model.Started.Task.IsCompleted);
+        var entering = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        enter.TrySetResult(true);
+        await Task.WhenAny(model.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.True(model.Started.Task.IsCompleted, "The registered identity worker finished before provider entry.");
+        var request = Assert.IsType<CognitionDecisionRequest>(model.Request);
+        Assert.Equal(AgentId, request.Observation.InhabitantId);
+        Assert.True(request.Observation.NeedsPersonality);
+        Assert.True(request.Observation.NeedsAspiration);
+        Assert.False(task.IsCompleted);
+        Assert.Equal(entering, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         world.Pause();
-        var saved = PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.True(model.Cancellation.IsCancellationRequested);
+        var paused = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        var saved = PrivateWorldRuntimeCodec.Decode(paused);
         model.Release.TrySetResult(true);
-        await model.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await model.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        await task.WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.Equal(paused, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = PrivateWorldRuntime.Restore(saved);
         Assert.True(restored.Inhabitants.Single(item => item.InhabitantId == AgentId).IdentityChoicePending);
         Assert.Equal("undecided", world.Inhabitants.Single(item => item.InhabitantId == AgentId).Personality);
+        Assert.Equal("find a purpose", world.Inhabitants.Single(item => item.InhabitantId == AgentId).Aspiration);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind.StartsWith("agent_identity_", StringComparison.Ordinal));
     }
 
@@ -140,8 +166,22 @@ public sealed class AgentIdentityChoiceTests
         }
     }
 
+    private sealed class DelayedIdentityEntryProvider(IDecisionProvider inner, int delayMilliseconds, Task? entryGate = null) : IDecisionProvider
+    {
+        public DecisionProviderKind Kind => inner.Kind;
+        public long ProviderEpoch => inner.ProviderEpoch;
+        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            if (entryGate is not null) await entryGate.WaitAsync(cancellationToken);
+            if (delayMilliseconds > 0) await Task.Delay(delayMilliseconds, cancellationToken);
+            return await inner.DecideAsync(request, cancellationToken);
+        }
+    }
+
     private sealed class HeldIdentityProvider : IDecisionProvider
     {
+        public CognitionDecisionRequest? Request { get; private set; }
+        public CancellationToken Cancellation { get; private set; }
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -150,6 +190,8 @@ public sealed class AgentIdentityChoiceTests
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
+            Request = request;
+            Cancellation = cancellationToken;
             Started.TrySetResult(true);
             await Release.Task;
             Returned.TrySetResult(true);
