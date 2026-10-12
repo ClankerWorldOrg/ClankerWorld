@@ -39,7 +39,7 @@ internal static class MarketSeedTradeScenario
         foreach (var lot in inventory.Lots.Where(lot => lot.ItemKind == FarmFieldRules.GrainSeed &&
                      (lot.OwnerId == alpha || lot.OwnerId == buyer)).ToArray())
         {
-            var available = MarketTradeRules.AvailableQuantity(inventory, lot);
+            var available = InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot);
             if (available <= 0) continue;
             var hold = "seed-proof-hold:" + lot.Id;
             inventory = InventoryFixture.Reserve(inventory, hold, lot.OwnerId, lot.Id, available,

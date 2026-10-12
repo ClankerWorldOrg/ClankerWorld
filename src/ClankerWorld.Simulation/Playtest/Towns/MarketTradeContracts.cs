@@ -295,10 +295,6 @@ public static class MarketTradeRules
         depositedTick.ToString(System.Globalization.CultureInfo.InvariantCulture),
         ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture), tradeOfferId ?? "");
 
-    public static int AvailableQuantity(InventoryCheckpoint inventory, InventoryLot lot) =>
-        lot.ConditionBasisPoints <= 0 || lot.FreshnessBasisPoints <= 0 ? 0 :
-            InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot);
-
     public static bool IsAt(InventoryLot lot, GridPoint position) => lot.ContainerLotId is null &&
         lot.CarrierId is null && lot.StorageBuildingId is null && lot.DeliveryBuildingId is null &&
         lot.GroundPosition == new InventoryGroundPosition(position.X, position.Y);

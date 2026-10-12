@@ -61,7 +61,7 @@ public sealed partial class AnimalPipelineTests
         var lot = ready.Society.Inventory.GetLot(lotId);
         Assert.Equal((product, home, productQuantity), (lot.ItemKind, lot.OwnerId, lot.Quantity));
         Assert.Equal(new InventoryGroundPosition(position.X, position.Y), lot.GroundPosition);
-        Assert.Equal(0, PersonalEquipmentRules.AvailableQuantity(ready.Society.Inventory, lot));
+        Assert.Equal(0, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(ready.Society.Inventory), lot)));
         var bytes = PrivateWorldRuntimeCodec.Encode(ready.ExportState());
         using var reload = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(bytes), id => id == actor ? chooser : new AnimalChooser());
         Assert.Equal(bytes, PrivateWorldRuntimeCodec.Encode(reload.ExportState()));
@@ -253,7 +253,7 @@ public sealed partial class AnimalPipelineTests
         world.SubmitInstruction(new("saddle", "owner", actor, OwnerInstructionKind.MustDo, "saddle Moss"));
         await Until(world, () => world.Animals.Single().SaddleLotId is not null);
         Assert.Equal("saddle", world.Animals.Single().SaddleLotId);
-        Assert.Equal(0, PersonalEquipmentRules.AvailableQuantity(world.Society.Inventory, world.Society.Inventory.GetLot("saddle")));
+        Assert.Equal(0, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(world.Society.Inventory), world.Society.Inventory.GetLot("saddle"))));
         world.SubmitInstruction(new("mount", "owner", actor, OwnerInstructionKind.MustDo, "mount Moss"));
         await Until(world, () => world.Animals.Single().RiderId == actor);
         var rideOrigin = world.Animals.Single().Position;

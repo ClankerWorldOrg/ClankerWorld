@@ -75,7 +75,7 @@ public static class ToolProgressionRules
 
         return inventory.Lots
             .Where(lot => IsTopLevelCarriedLot(lot, actorId) && lot.ConditionBasisPoints > 0 &&
-                lot.FreshnessBasisPoints > 0 && AvailableQuantity(inventory, lot) > 0)
+                lot.FreshnessBasisPoints > 0 && InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot) > 0)
             .Select(lot => (Lot: lot, Definition: Find(lot.ItemKind)))
             .Where(item => item.Definition is { } definition && definition.Family == family)
             .OrderByDescending(item => item.Definition!.Tier)
@@ -104,7 +104,7 @@ public static class ToolProgressionRules
 
         var lot = inventory.Lots.FirstOrDefault(item => item.Id == toolLotId &&
             IsTopLevelCarriedLot(item, actorId) &&
-            item.ConditionBasisPoints > 0 && item.FreshnessBasisPoints > 0 && AvailableQuantity(inventory, item) > 0);
+            item.ConditionBasisPoints > 0 && item.FreshnessBasisPoints > 0 && InventoryRules.UsableQuantity(InventoryIndex.For(inventory), item) > 0);
         var definition = lot is null ? null : Find(lot.ItemKind);
         return definition is null || definition.Family != family
             ? null
@@ -150,7 +150,7 @@ public static class ToolProgressionRules
 
         var toolLot = inventory.Lots
             .Where(lot => IsTopLevelCarriedLot(lot, actorId) && lot.ConditionBasisPoints > 0 &&
-                lot.FreshnessBasisPoints > 0 && AvailableQuantity(inventory, lot) > 0)
+                lot.FreshnessBasisPoints > 0 && InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot) > 0)
             .Select(lot => (Lot: lot, Definition: Find(lot.ItemKind)))
             .Where(item => item.Definition is { } definition && definition.Family == required.Family &&
                 definition.Tier >= required.Tier)
@@ -195,9 +195,4 @@ public static class ToolProgressionRules
 
     private static bool IsLooseWood(MapResource source) =>
         source.Kind == "wood" || source.NaturalObjectKind == "fallen_wood";
-
-    private static int AvailableQuantity(InventoryCheckpoint inventory, InventoryLot lot)
-    {
-        return Math.Max(0, InventoryRules.UnreservedQuantity(InventoryIndex.For(inventory), lot));
-    }
 }

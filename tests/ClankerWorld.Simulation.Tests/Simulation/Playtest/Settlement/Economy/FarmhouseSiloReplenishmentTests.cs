@@ -334,7 +334,7 @@ public sealed class FarmhouseSiloReplenishmentTests
                          lot.ContainerLotId is null && (isolateStoredGrain || !FarmFieldRules.IsFarmStock(lot.ItemKind)) &&
                          !InventoryContainerRules.IsContainer(lot.ItemKind)).ToArray())
             {
-                var quantity = PersonalEquipmentRules.AvailableQuantity(inventory, stock);
+                var quantity = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), stock));
                 if (quantity > 0)
                     inventory = InventoryFixture.Reserve(inventory, UnrelatedHouseCargoClaimPrefix + stock.Id,
                         household, stock.Id, quantity, "unrelated-house-supply-claim", long.MaxValue);
@@ -448,7 +448,7 @@ public sealed class FarmhouseSiloReplenishmentTests
         var roots = inventory.Lots.Where(lot => lot.OwnerId == setup.Household && lot.ContainerLotId is null &&
                 lot.StorageBuildingId is null && lot.DeliveryBuildingId is null && FarmFieldRules.IsFarmStock(lot.ItemKind))
             .OrderBy(lot => lot.GroundPosition is not null ? 0 : 1).ThenBy(lot => lot.Id, StringComparer.Ordinal).ToArray();
-        var firstFitting = roots.FirstOrDefault(lot => PersonalEquipmentRules.AvailableQuantity(inventory, lot) > 0 &&
+        var firstFitting = roots.FirstOrDefault(lot => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)) > 0 &&
             freeCarry > 0 && (Room(setup.Farmhouse) > 0 || Room(setup.Silo) > 0));
         var loose = roots.Select(lot =>
         {
@@ -457,7 +457,7 @@ public sealed class FarmhouseSiloReplenishmentTests
             var destination = lot.ItemKind == FarmFieldRules.Grain
                 ? Room(setup.Farmhouse) > 0 ? farmhouse : silo
                 : Room(setup.Silo) > 0 ? silo : farmhouse;
-            return $"{lot.Id}:{lot.ItemKind}:qty={lot.Quantity}:available={PersonalEquipmentRules.AvailableQuantity(inventory, lot)}:" +
+            return $"{lot.Id}:{lot.ItemKind}:qty={lot.Quantity}:available={Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot))}:" +
                 $"source={source}:range={range}:in-range={state.Map.FootDistance(person.Position, source) <= range}:" +
                 $"pickup-route={HasUnoccupiedRoute(state, setup.Actor, person.Position, source, range)}:" +
                 $"destination={destination.InstanceId}@{destination.Position}:delivery-route={HasUnoccupiedRoute(state, setup.Actor, source, destination.Position)}";
@@ -476,7 +476,7 @@ public sealed class FarmhouseSiloReplenishmentTests
             $"first-fitting-loose-root={firstFitting?.Id}, titles={string.Join(",", titles)}, rights={string.Join(",", rights)}.\n" +
             "Loose farm roots: " + string.Join("; ", loose) + "\nStored farm stock: " +
             string.Join("; ", inventory.Lots.Where(lot => lot.StorageBuildingId == setup.Farmhouse || lot.StorageBuildingId == setup.Silo)
-                .Select(lot => $"{lot.Id}:{lot.ItemKind}:qty={lot.Quantity}:available={PersonalEquipmentRules.AvailableQuantity(inventory, lot)}:store={lot.StorageBuildingId}:pot={lot.ContainerLotId}")) +
+                .Select(lot => $"{lot.Id}:{lot.ItemKind}:qty={lot.Quantity}:available={Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot))}:store={lot.StorageBuildingId}:pot={lot.ContainerLotId}")) +
             "\nFH recipes: " + string.Join("; ", world.WorldContent.Recipes.Where(recipe => recipe.WorkstationBuildingId == farmhouse.DefinitionId)
                 .Select(recipe => recipe.CanonicalId + ":" + string.Join(",", recipe.Inputs.Select(input => input.ResourceId + "=" + input.Amount)))) +
             "\nPersonal stock: " + string.Join("; ", inventory.Lots.Where(lot => lot.OwnerId == setup.Actor)

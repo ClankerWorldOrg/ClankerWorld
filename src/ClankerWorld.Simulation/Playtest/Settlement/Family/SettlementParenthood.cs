@@ -110,11 +110,6 @@ public sealed partial class PrivateWorldRuntime
         return null;
     }
 
-    private bool InUsableVesselOrLoose(InventoryLot lot) => InUsableVesselOrLoose(society.Checkpoint.Inventory, lot);
-
-    private static bool InUsableVesselOrLoose(InventoryCheckpoint inventory, InventoryLot lot) =>
-        lot.ContainerLotId is not { } containerId || inventory.GetLot(containerId).ConditionBasisPoints > 0;
-
     private bool CanReachDependent(string actor, PlaytestInhabitantState parent, PlaytestInhabitantState child) =>
         IsWithinInteractionRange(parent.Position, child.Position, ResourceInteractionRange) ||
         FindUnoccupiedRoute(actor, parent.Position, child.Position, ResourceInteractionRange).Count > 0;

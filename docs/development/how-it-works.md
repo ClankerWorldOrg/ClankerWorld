@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # How the game works
@@ -271,8 +271,11 @@ destination and vessel, in stable ID order, plus active reserved quantities and
 reserved vessel families. Every inventory transition commits a new checkpoint,
 so its next query gets a new index; earlier checkpoints keep their own facts.
 These facts are never saved. Do not mutate a committed checkpoint's collections.
-The existing quantity helpers delegate to this index while keeping their
-original health checks and clamping behavior.
+Quantity rules live in `InventoryRules`: `UnreservedQuantity` is physical,
+`AvailableQuantity` excludes spoiled or damaged lots without clamping, and
+`UsableQuantity` clamps usable availability to zero. Runtime and system adapters
+delegate to these rules; Market, equipment and tool selection no longer keep
+separate quantity helpers.
 
 `Kernel/InventoryRules.cs` owns the predicates used by inventory authority and
 goods selection: physical and usable quantities, usable parent vessels,
@@ -293,6 +296,20 @@ Production, farm-food, animal-food, writing-paper, ornament-input and iron-reser
 demand use `Holdings`, keeping their existing owner groups and thresholds. These
 counts did not require a route before this migration and still do not. Food kinds
 remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules.
+
+`GoodsQueryBoundaryTests` keeps a per-file budget of direct references to
+`InventoryCheckpoint.Lots` and `InventoryIndex.Lots` outside `Goods/` and
+validation code. The recorded baseline in
+[`goods-query-reads.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/goods-query-reads.json)
+is 244 references across 67 files, down from 245 before the remaining
+workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
+The guard binds C# property symbols, including aliases and conditional access;
+comments, strings and unrelated `Lots` properties do not count. It exempts files
+ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.
+Existing physical accounting, inventory operations and state projections retain
+their recorded references. New selectors use the shared query. Lower a file's
+budget when references disappear; moving references requires reviewing the
+changed files' budgets, and cannot spend another file's spare allowance.
 
 `GoodsDemandCoverage.KnowledgeWriting` adds the named same-job coverage rule for
 writing demand. `CoveredTotal` includes available sheets plus active paper

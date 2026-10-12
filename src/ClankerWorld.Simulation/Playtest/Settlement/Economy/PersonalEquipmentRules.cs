@@ -42,10 +42,6 @@ public static class PersonalEquipmentRules
         return container is not null && container.ContainerLotId is null && IsCarried(container, actor);
     }
 
-    public static int AvailableQuantity(InventoryCheckpoint inventory, InventoryLot lot) =>
-        lot.ConditionBasisPoints == 0 || lot.FreshnessBasisPoints == 0 ? 0 :
-            Math.Max(0, InventoryRules.UnreservedQuantity(InventoryIndex.For(inventory), lot));
-
     public static InventoryLot? EquippedUnit(InventoryCheckpoint inventory, string actor, string? id) =>
         id is null ? null : inventory.Lots.FirstOrDefault(lot => lot.Id == id && lot.Quantity == 1 &&
             lot.OwnerId == actor && IsCarried(lot, actor) && lot.DeliveryBuildingId is null);
@@ -53,7 +49,7 @@ public static class PersonalEquipmentRules
     public static int Capacity(InventoryCheckpoint inventory, string actor, PersonalEquipment? equipment)
     {
         var aid = EquippedUnit(inventory, actor, equipment?.CarryAidLotId);
-        return aid is null || AvailableQuantity(inventory, aid) == 0 ? BaseCapacity : aid.ItemKind switch
+        return aid is null || Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), aid)) == 0 ? BaseCapacity : aid.ItemKind switch
         {
             "basket" => BasketCapacity,
             "sack" => SackCapacity,

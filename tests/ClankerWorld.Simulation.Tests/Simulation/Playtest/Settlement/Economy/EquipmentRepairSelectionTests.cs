@@ -18,7 +18,7 @@ public sealed class EquipmentRepairSelectionTests
         var inventory = state.Society.Society.Inventory;
         foreach (var lot in inventory.Lots.Where(lot => lot.ItemKind == "rope").ToArray())
         {
-            var available = PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+            var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot));
             if (available > 0) inventory = InventoryFixture.Reserve(inventory, "unavailable:" + lot.Id,
                 lot.OwnerId, lot.Id, available, "other_work", state.Society.Society.WorldTick + 1000);
         }
