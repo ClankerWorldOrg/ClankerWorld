@@ -124,6 +124,13 @@ Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
 
+The owner-action body-deadline fixture completes its stalled read directly from
+the actual read token's cancellation callback. It retains the initial partial
+JSON, both body locations and both cancellation sources, the 500 ms client
+setting and five-second diagnostic waits. The stream adds no asynchronous
+continuation between cancellation and read completion. The following real pause
+must still acquire the released action gate.
+
 The held collection-cancellation check keeps the first collected load fixed
 while waiting for actual provider invocation, the validated operative request
 and the constructed late reply. Its deferred-entry case opens a preparation
