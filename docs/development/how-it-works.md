@@ -75,6 +75,24 @@ aliases. Content package identifiers retain their import rules.
 
 ## Runtime systems
 
+`Runtime/PrivateWorldRuntime.AgentRegistrations.cs` binds choice sources and
+action routes in explicit, read-only ordered tables. Animal, farming, civic and
+conversation adapters register their entries beside their existing private
+forwarders. Every binding receives the current coordinator per call; no entry
+captures a world or a prepared system. Remaining areas bind their current rules
+in the same tables until their own extraction. Follow-up work is tracked in
+[#1830](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1830).
+
+Choice sources retain their original adult, child and urgent-needs groups,
+including both Market calls and their different gates. Exclusive boat and
+conversation choices, order restriction and refused-action filtering stay at
+their existing points. Construction sources share the same per-call tool,
+warehouse and rejected-site context. Action routes retain ordinal prefixes,
+exact identities and their order on either side of age validation, repair
+cancellation and continued field work. Registration tests pin both lists against
+the original coordinator order; native equivalence checks compare the resulting
+saved bytes, events and observation digests.
+
 `GroundOccupancy` is a read view over the current map, content, placed buildings,
 fields, roads, bridges, Town projects, Markets and animals. Its named layers
 retain each source's enumeration order. Callers combine the layers in their
