@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ClankerWorld.GodotClient.Pairing;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.GodotClient.ClientState;
 

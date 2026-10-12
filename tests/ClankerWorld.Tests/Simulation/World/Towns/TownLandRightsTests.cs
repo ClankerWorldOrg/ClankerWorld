@@ -1,9 +1,8 @@
 using System.Text.Json;
-using ClankerWorld.GodotClient.UI;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
-using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.UI.OwnerWorldSnapshot;
+using GodotOwnerWorldSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 

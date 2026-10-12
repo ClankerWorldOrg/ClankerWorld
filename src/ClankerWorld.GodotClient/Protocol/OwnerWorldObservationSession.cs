@@ -4,7 +4,7 @@ using System.Text;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Protocol;
 
 public sealed record OwnerObservationRequestContext(long Generation, long AfterEventId, bool RequiresFullBaseline);
 

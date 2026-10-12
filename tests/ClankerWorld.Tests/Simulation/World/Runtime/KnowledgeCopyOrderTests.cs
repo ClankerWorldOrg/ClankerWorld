@@ -62,7 +62,7 @@ public sealed class KnowledgeCopyOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Order!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(JsonSerializer.Serialize(projected, json), json)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldInstructionOrder>(JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal((kind, "copies", 1), (client.TargetKnowledgeKind, client.ProgressUnit, client.CompletedUnits));
         AssertReload(final);
     }

@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -23,7 +24,7 @@ public partial class Main
         storedStockLayer.SetPiles([]);
         buildingCompletionLayer.Reset();
         knownEvents.Clear();
-        eventsWorldId = null;
+        eventLogWorldId = null;
         lastSeenEventId = long.MinValue;
         newEventsAfter = long.MaxValue;
         unreadEvents = 0;
@@ -56,12 +57,12 @@ public partial class Main
         providerConfiguration = null;
         observedRoutineHelperContext = null;
         _ = routineHelperModelPicker.BeginLoading(string.Empty);
-        cognitionModelContext = null;
-        cognitionModelLookup = null;
+        agentModelContext = null;
+        agentModelLookup = null;
         founderKeyEdits++;
-        cognitionKeyEdits++;
+        agentModelKeyEdits++;
         ClearFounderModelSetupCheck();
-        ClearCognitionModelSetupCheck();
+        ClearAgentModelSetupCheck();
         menuPauseConfirmed = false;
         menuPausedWorld = false;
         renderedMapSnapshot = null;
@@ -74,7 +75,7 @@ public partial class Main
         usagePauseWorldId = null;
         lastLifePaceWorldId = null;
         renderedTownList = null;
-        renderedRosterPresentation = null;
+        renderedAgentListPresentation = null;
         foreach (var marker in inhabitantVisuals.Values) marker.QueueFree();
         inhabitantVisuals.Clear();
         inhabitantCanonicalXs.Clear();
@@ -93,8 +94,8 @@ public partial class Main
     private void Render(OwnerWorldSnapshot snapshot, IReadOnlyList<OwnerWorldEvent> appendedEvents)
     {
         var (mapWidth, mapHeight) = MapDimensions(snapshot);
-        authoringX.MaxValue = Math.Max(0, mapWidth - 1);
-        authoringY.MaxValue = Math.Max(0, mapHeight - 1);
+        worldEditX.MaxValue = Math.Max(0, mapWidth - 1);
+        worldEditY.MaxValue = Math.Max(0, mapHeight - 1);
         if (usagePauseWorldId != snapshot.WorldId)
         {
             usagePauseWorldId = snapshot.WorldId;
@@ -236,7 +237,7 @@ public partial class Main
             terrainPackedLayers = snapshot.PackedMapLayers;
             terrainTiles = snapshot.PackedTerrain is null ? snapshot.Tiles.ToArray() : [];
             terrainLayer.SetWorld(terrainMap);
-            worldOverview.SetWorld(terrainMap);
+            worldMapAtlas.SetWorld(terrainMap);
         }
         var observedSeason = snapshot.Authoring?.Season ?? snapshot.WorldSystems?.Season;
         terrainLayer.SetSeason(observedSeason);
@@ -247,7 +248,7 @@ public partial class Main
         terrainLayer.SetRoads(snapshot.RoadTiles);
         terrainLayer.SetBridges(snapshot.Bridges, snapshot.Towns);
         terrainLayer.SetFields(snapshot.Fields);
-        worldOverview.SetFields(snapshot.Fields);
+        worldMapAtlas.SetFields(snapshot.Fields);
         terrainLayer.SetMarkets(snapshot.Towns);
         terrainLayer.SetBuildings(snapshot.PlacedBuildings, snapshot.Objects, snapshot.Towns);
         graveLayer.SetGraves(GraveMarkers(snapshot, terrainMap!));
@@ -267,14 +268,14 @@ public partial class Main
                     .Select(animal => ("animal:" + animal.Id, new Vector2I(animal.Position.X, animal.Position.Y)))).ToArray(),
             snapshot.Authoring?.IsPaused == true);
         nightLightsLayer.SetLanternSites(StreetLanternSites(snapshot));
-        worldOverview.SetRoads([.. snapshot.RoadTiles, .. snapshot.Bridges.SelectMany(bridge => bridge.Span)]);
+        worldMapAtlas.SetRoads([.. snapshot.RoadTiles, .. snapshot.Bridges.SelectMany(bridge => bridge.Span)]);
         ApplyMapFilters(snapshot);
         var mapWidth = terrainMap.Width;
         var mapHeight = terrainMap.Height;
-        worldOverview.WrapsEastWest = snapshot.WrapsEastWest;
-        worldOverview.Backdrop = UiTheme.Current.Inset;
-        worldOverview.AtlasEdge = UiTheme.Current.WoodEdge;
-        worldOverview.SetMarkers(
+        worldMapAtlas.WrapsEastWest = snapshot.WrapsEastWest;
+        worldMapAtlas.Backdrop = UiTheme.Current.Inset;
+        worldMapAtlas.AtlasEdge = UiTheme.Current.WoodEdge;
+        worldMapAtlas.SetMarkers(
             snapshot.Towns.Where(town => town.BorderTiles.Count > 0).Select(town => TownMarkerTile(town, mapWidth, snapshot.WrapsEastWest)),
             snapshot.Inhabitants.Where(person => !person.IsDraft && IsLiving(person))
                 .Select(person => new Vector2(person.Position.X + 0.5f, person.Position.Y + 0.5f)));

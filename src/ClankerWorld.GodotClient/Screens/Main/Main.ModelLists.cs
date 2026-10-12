@@ -1,5 +1,9 @@
+using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
+using System.Globalization;
 
 namespace ClankerWorld.GodotClient;
 
@@ -7,9 +11,9 @@ public partial class Main
 {
     private const double PastedKeyPause = 0.8;
     private int founderKeyEdits;
-    private int cognitionKeyEdits;
-    private string? cognitionModelContext;
-    private string? cognitionModelLookup;
+    private int agentModelKeyEdits;
+    private string? agentModelContext;
+    private string? agentModelLookup;
 
     private static bool HasModelList(string provider) => IsHostedProvider(provider) || provider is "jev" or "decisions";
 
@@ -76,7 +80,7 @@ public partial class Main
     /// and key. The shown model is reset only when the agent or provider
     /// changes, so switching keys keeps the owner's pick.
     /// </summary>
-    private void SyncCognitionModelPicker(bool force = false)
+    private void SyncAgentModelPicker(bool force = false)
     {
         var provider = SelectedProviderId();
         if (provider is "deterministic" or "inherit" || providerConfiguration is null) return;
@@ -84,24 +88,24 @@ public partial class Main
         var assigned = SelectedAssignment() is { } assignment && assignment.Provider == provider
             ? assignment.Model ?? option?.Model : option?.Model;
         var model = assigned ?? DefaultProviderModel(provider);
-        var context = $"{SelectedCognitionTarget()}|{SelectedRoleId()}|{provider}|{model}";
-        if (context != cognitionModelContext)
+        var context = $"{SelectedAgentModelTarget()}|{SelectedRoleId()}|{provider}|{model}";
+        if (context != agentModelContext)
         {
-            cognitionModelContext = context;
-            cognitionModelPicker.SetModel(model);
+            agentModelContext = context;
+            agentModelPicker.SetModel(model);
             force = true;
         }
-        if (!cognitionSettingsPanel.IsVisibleInTree()) return;
+        if (!agentModelPanel.IsVisibleInTree()) return;
 
-        var agentCredential = SelectedCognitionTarget() is not null && HasModelList(provider);
+        var agentCredential = SelectedAgentModelTarget() is not null && HasModelList(provider);
         var credential = agentCredential ? SelectedCredentialChoice() : null;
-        var pasted = string.IsNullOrWhiteSpace(cognitionApiKeyInput.Text) ? null : cognitionApiKeyInput.Text;
+        var pasted = string.IsNullOrWhiteSpace(agentModelApiKeyInput.Text) ? null : agentModelApiKeyInput.Text;
         var lookup = $"{provider}|{credential}|{pasted?.GetHashCode(StringComparison.Ordinal)}";
-        if (!force && lookup == cognitionModelLookup) return;
-        cognitionModelLookup = lookup;
+        if (!force && lookup == agentModelLookup) return;
+        agentModelLookup = lookup;
         var slot = credential is null or "default" or "new" ? null : credential;
         var usePasted = credential == "new" || !agentCredential;
-        _ = LoadModelListAsync(cognitionModelPicker, provider, slot, usePasted ? pasted : null,
+        _ = LoadModelListAsync(agentModelPicker, provider, slot, usePasted ? pasted : null,
             checkKey: credential != "new" || pasted is not null);
     }
 
@@ -116,13 +120,13 @@ public partial class Main
         };
     }
 
-    private void OnCognitionKeyEdited()
+    private void OnAgentModelKeyEdited()
     {
-        ClearCognitionModelSetupCheck();
-        var stamp = ++cognitionKeyEdits;
+        ClearAgentModelSetupCheck();
+        var stamp = ++agentModelKeyEdits;
         GetTree().CreateTimer(PastedKeyPause).Timeout += () =>
         {
-            if (stamp == cognitionKeyEdits) SyncCognitionModelPicker();
+            if (stamp == agentModelKeyEdits) SyncAgentModelPicker();
         };
     }
     private string SelectedRoutineHelper() => routineHelperChoice.Selected switch { 0 => "off", 2 => "decisions", _ => "jev" };
@@ -213,4 +217,23 @@ public partial class Main
             if (routineHelperKeyChoice.GetItemMetadata(index).AsString() == (selectedSlotId ?? "")) routineHelperKeyChoice.Select(index);
     }
 
+    private async Task SaveRoutineHelperAsync()
+    {
+        if (observationSession.Current?.Baseline.Snapshot is not { } snapshot ||
+            !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
+        var provider = SelectedRoutineHelper();
+        var model = provider == "off" ? string.Empty : routineHelperModelPicker.Model;
+        if (provider != "off" && (model.Length is < 1 or > 128 || model.Any(char.IsControl)))
+        {
+            SetStatus("Choose a model name of 128 characters or fewer.", good: false);
+            return;
+        }
+        var action = new OwnerRoutineHelperAction(snapshot.WorldId, provider, model, provider == "decisions" ? SelectedRoutineHelperKey() : null);
+        await RunOwnerActionAsync(async () =>
+        {
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetRoutineHelperAsync(ResolveWorldUri(), authority, deviceId,
+                action, signer, CancellationToken.None));
+            return provider == "off" ? "Routine helper turned off for this world" : $"{ProviderDisplayName(provider)} will help in this world";
+        });
+    }
 }

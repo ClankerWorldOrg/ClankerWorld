@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using ClankerWorld.GodotClient.Pairing;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Protocol;
 
 // These client-owned DTOs mirror the public owner projection. Keeping them in
 // the Godot project prevents the renderer from taking a project reference on

@@ -38,7 +38,7 @@ public sealed partial class ServerHttpTests
         using var signer = new ActionCompatibilitySigner(key);
         var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
         var authority = new ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-        var api = new ClankerWorld.GodotClient.UI.OwnerWorldApi(client);
+        var api = new ClankerWorld.GodotClient.Networking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
         var clientStatus = await api.GetSaveDiskSpaceAsync(uri, authority, device.DeviceId, signer, default);
         Assert.Equal(status.State, clientStatus.State);

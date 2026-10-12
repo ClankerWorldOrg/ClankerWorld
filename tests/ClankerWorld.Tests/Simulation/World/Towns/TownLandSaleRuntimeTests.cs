@@ -4,6 +4,7 @@ using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Server.Observation;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using System.Text.Json;
 using System.Globalization;
 
@@ -412,7 +413,7 @@ public sealed partial class TownLandTransferRuntimeTests
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         return Assert.Single(Assert.Single(client.Towns).LandTransfers);
     }
 }

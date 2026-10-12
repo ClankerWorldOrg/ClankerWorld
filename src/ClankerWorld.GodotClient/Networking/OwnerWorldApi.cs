@@ -2,8 +2,9 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Networking;
 
 /// <summary>
 /// Uses an owner device key to issue a one-use challenge and sign every

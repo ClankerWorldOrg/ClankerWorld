@@ -5,8 +5,8 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
 using Microsoft.Extensions.DependencyInjection;
-using ClientAction = ClankerWorld.GodotClient.UI.OwnerDeveloperEditAction;
-using ClientPayload = ClankerWorld.GodotClient.UI.OwnerWorldActionPayload;
+using ClientAction = ClankerWorld.GodotClient.Protocol.OwnerDeveloperEditAction;
+using ClientPayload = ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload;
 
 namespace ClankerWorld.Tests;
 

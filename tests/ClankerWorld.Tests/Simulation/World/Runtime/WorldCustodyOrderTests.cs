@@ -68,7 +68,7 @@ public sealed class WorldCustodyOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == stored.InstructionId).Order!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldInstructionOrder>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal((kind, "goods_items", 2), (client.TargetItemKind, client.ProgressUnit, client.CompletedUnits));
         using var replay = Reload(world);

@@ -320,13 +320,13 @@ test('only a change made entirely of documentation skips the code checks and the
 });
 
 test('a change to client files the tests do not compile skips only the test suite', () => {
-  const compiled = new Set(['src/ClankerWorld.GodotClient/Protocol/WorldObservationProtocol.cs']);
+  const compiled = new Set(['src/ClankerWorld.GodotClient/Protocol/OwnerWorldContracts.cs']);
   const plan = files => planScope(files, compiled);
-  assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs', 'src/ClankerWorld.GodotClient/Main.tscn',
+  assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs', 'src/ClankerWorld.GodotClient/Screens/Main/Main.tscn',
     'playtest/700-agent-panel.md']), { code: true, tests: false });
   // A compiled client file, or anything outside the client folder, needs the test suite.
   assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs',
-    'src/ClankerWorld.GodotClient/Protocol/WorldObservationProtocol.cs']), { code: true, tests: true });
+    'src/ClankerWorld.GodotClient/Protocol/OwnerWorldContracts.cs']), { code: true, tests: true });
   assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs', 'src/ClankerWorld.Server/Program.cs']),
     { code: true, tests: true });
   assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs',
@@ -338,9 +338,9 @@ test('a change to client files the tests do not compile skips only the test suit
 
 test('the compiled client files come from the test project', () => {
   const project = `<Project><ItemGroup>
-    <Compile Include="..\\..\\src\\ClankerWorld.GodotClient\\UI\\Theme\\GameUiText.cs" Link="GodotClient\\UI\\Theme\\GameUiText.cs" />
+    <Compile Include="..\\..\\src\\ClankerWorld.GodotClient\\UI\\Text\\GameUiText.cs" Link="GodotClient\\UI\\Text\\GameUiText.cs" />
   </ItemGroup></Project>`;
-  assert.deepEqual([...compiledFiles(project)], ['src/ClankerWorld.GodotClient/UI/Theme/GameUiText.cs']);
+  assert.deepEqual([...compiledFiles(project)], ['src/ClankerWorld.GodotClient/UI/Text/GameUiText.cs']);
   assert.equal(compiledFiles('<Compile Include="..\\..\\src\\ClankerWorld.GodotClient\\**\\*.cs" />'), null);
 
   // The real project compiles a few client files, and each one exists.
@@ -357,8 +357,8 @@ test('the compiled client files come from the test project', () => {
 test('scope prints whether to run the code checks and the test suite', () => {
   assert.equal(main(['scope'], 'docs/playing.md\nCONTRIBUTING.md\n'), 'code=false\ntests=false');
   assert.equal(main(['scope'], 'docs/playing.md\nglobal.json\n'), 'code=true\ntests=true');
-  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/Main.tscn\n'), 'code=true\ntests=false');
-  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Theme/GameUiText.cs\n'), 'code=true\ntests=true');
+  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/Screens/Main/Main.tscn\n'), 'code=true\ntests=false');
+  assert.equal(main(['scope'], 'src/ClankerWorld.GodotClient/UI/Text/GameUiText.cs\n'), 'code=true\ntests=true');
 });
 
 test('the workflow also runs on merge-queue batches, which run everything', () => {

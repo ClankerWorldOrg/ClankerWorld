@@ -6,7 +6,7 @@ using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
-using GodotSnapshot = ClankerWorld.GodotClient.UI.OwnerWorldSnapshot;
+using GodotSnapshot = ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot;
 
 namespace ClankerWorld.Tests;
 
@@ -192,7 +192,7 @@ public sealed class TownProjectRuntimeTests
         Assert.All(projectedRemoval.Materials, material => Assert.Equal(material.Budget, material.Supplied));
         scenario.World.Validate();
 
-        ClankerWorld.GodotClient.UI.OwnerWorldTownProject ProjectedProject()
+        ClankerWorld.GodotClient.Protocol.OwnerWorldTownProject ProjectedProject()
         {
             var observation = new OwnerWorldObservationStore(scenario.World).GetSnapshot();
             var json = JsonSerializer.Serialize(observation, TownProjectScenario.JsonOptions);

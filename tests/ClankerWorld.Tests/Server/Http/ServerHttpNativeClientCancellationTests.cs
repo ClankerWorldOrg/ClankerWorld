@@ -3,15 +3,16 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
 using ClankerWorld.GodotClient.ClientState;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
 using Microsoft.Extensions.DependencyInjection;
-using ClientAction = ClankerWorld.GodotClient.UI.OwnerOrderCancelAction;
+using ClientAction = ClankerWorld.GodotClient.Protocol.OwnerOrderCancelAction;
 using ClientAuthority = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
-using OwnerInstructionReceipt = ClankerWorld.GodotClient.UI.OwnerInstructionReceipt;
+using OwnerInstructionReceipt = ClankerWorld.GodotClient.Protocol.OwnerInstructionReceipt;
 
 namespace ClankerWorld.Tests;
 

@@ -3,6 +3,7 @@ using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
 

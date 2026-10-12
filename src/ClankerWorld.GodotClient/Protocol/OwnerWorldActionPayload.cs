@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.GodotClient.Pairing;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Protocol;
 
 /// <summary>
 /// Canonical scalar payloads for every currently exposed owner operation.

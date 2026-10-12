@@ -1,5 +1,6 @@
 using System.Globalization;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ClankerWorld.GodotClient;
@@ -60,9 +61,9 @@ public partial class Main
         thoughtsPanel.Hide();
         ordersPanel.Hide();
         familyTreePanel.Hide();
-        rosterPanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
         filtersPanel.Hide();
         buildingDetailsPanel.Hide();

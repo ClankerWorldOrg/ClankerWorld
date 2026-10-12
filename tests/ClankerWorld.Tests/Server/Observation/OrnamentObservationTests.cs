@@ -2,7 +2,7 @@ using System.Text.Json;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
-using Client = ClankerWorld.GodotClient.UI;
+using ClientProtocol = ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.Tests;
 
@@ -40,7 +40,7 @@ public sealed class OrnamentObservationTests
         Assert.Equal(before.Capacity, equipment.Capacity);
 
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<Client.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
         var displayed = client.Inhabitants.Single(person => person.Id == actor).Equipment!;
         Assert.Equal("gold_ornament", displayed.OrnamentKind);

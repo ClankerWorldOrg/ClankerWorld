@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ClankerWorld.GodotClient.Pairing;
 using Client = ClankerWorld.GodotClient.UI;
+using ClientNetworking = ClankerWorld.GodotClient.Networking;
+using ClientProtocol = ClankerWorld.GodotClient.Protocol;
 using OwnerAuthorityIdentity = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
 
 namespace ClankerWorld.Tests;
@@ -60,7 +62,7 @@ public sealed partial class ServerHttpTests
         var authorityIdentity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
         var authority = new OwnerAuthorityIdentity(authorityIdentity.ServerAuthorityId, authorityIdentity.WorldId);
         using var signer = new ActionCompatibilitySigner(key);
-        var api = new Client.OwnerWorldApi(client);
+        var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
         foreach (var forestCover in new[] { "High", "Normal" })
         {
@@ -88,7 +90,7 @@ public sealed partial class ServerHttpTests
                 Assert.Equal("There is no room for a first Town with these settings.", failureBody.Detail);
                 AssertAttemptSequence(expectedAttempts);
             }
-            var unavailableClientAction = new Client.OwnerWorldCreationAction("No clearing", "controlled-no-clearing", "Small", 80, true,
+            var unavailableClientAction = new ClientProtocol.OwnerWorldCreationAction("No clearing", "controlled-no-clearing", "Small", 80, true,
                 LatitudeCooling: false, ForestCover: forestCover, MountainRelief: "High");
             var previewFailure = await Assert.ThrowsAsync<OwnerWorldGenerationException>(() =>
                 api.PreviewWorldAsync(uri, authority, device.DeviceId, unavailableClientAction, signer, default));
@@ -135,13 +137,13 @@ public sealed partial class ServerHttpTests
 
         // The real owner payload reaches the independent client DTO; older
         // previews without failure metadata remain readable with an empty list.
-        var ownerPreview = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldPreview>(response,
+        var ownerPreview = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPreview>(response,
             WebJsonOptions)!;
         Assert.Equal(2, Assert.Single(ownerPreview.FailedCandidates).Attempt);
         Assert.Equal(preview.ManifestDigest, ownerPreview.ManifestDigest);
         var legacyPayload = JsonNode.Parse(response)!.AsObject();
         Assert.True(legacyPayload.Remove("failedCandidates"));
-        var olderPreview = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldPreview>(
+        var olderPreview = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPreview>(
             legacyPayload.ToJsonString(), WebJsonOptions)!;
         Assert.Empty(olderPreview.FailedCandidates);
         Assert.Equal(ownerPreview.Coverage, olderPreview.Coverage);
@@ -158,7 +160,7 @@ public sealed partial class ServerHttpTests
             "/api/v1/owner/worlds/create", wrongAttempt, OwnerHttpBinding.WorldCreationPayload(wrongAttempt));
         Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
         AssertAttemptSequence(0, 1, 2);
-        var wrongClientAttempt = new Client.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 80, true,
+        var wrongClientAttempt = new ClientProtocol.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 80, true,
             LatitudeCooling: false, MountainRelief: "High", CandidateAttempt: failure.Attempt,
             ExpectedManifestDigest: preview.ManifestDigest, ExpectedMapLayersDigest: preview.MapLayersDigest);
         var identityFailure = await Assert.ThrowsAsync<HttpRequestException>(() => api.CreateWorldAsync(uri,

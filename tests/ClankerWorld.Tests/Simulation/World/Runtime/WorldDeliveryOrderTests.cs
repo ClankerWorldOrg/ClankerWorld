@@ -64,7 +64,7 @@ public sealed partial class WorldDeliveryOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Order!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldInstructionOrder>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal(("cloth", "house", "goods_items", 2),
             (client.TargetItemKind, client.TargetBuildingKind, client.ProgressUnit, client.CompletedUnits));

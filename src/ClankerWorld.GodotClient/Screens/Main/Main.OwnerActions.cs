@@ -1,11 +1,16 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 using System.Globalization;
 
 namespace ClankerWorld.GodotClient;
 
+/// <summary>
+/// Signed owner requests: pause, instructions, order cancellation and world
+/// edits, each guarded by the pending-submission store, and which controls
+/// are available while one is in flight.
+/// </summary>
 public partial class Main
 {
     private async Task<bool> SetPausedAsync(bool paused)
@@ -137,7 +142,7 @@ public partial class Main
         };
     }
 
-    private async Task SubmitAuthoringAsync()
+    private async Task SubmitWorldEditAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
             observationSession.Current?.Baseline.Snapshot.Authoring is not { IsPaused: true })
@@ -147,13 +152,13 @@ public partial class Main
         }
 
         var operation = new OwnerAuthoringOperationAction(
-            SelectedAuthoringKind(),
-            EmptyToNull(authoringId.Text),
-            EmptyToNull(authoringValue.Text),
-            EmptyToNull(authoringSecondaryValue.Text),
-            checked((int)authoringX.Value),
-            checked((int)authoringY.Value),
-            authoringRenewable.ButtonPressed);
+            SelectedWorldEditKind(),
+            EmptyToNull(worldEditId.Text),
+            EmptyToNull(worldEditValue.Text),
+            EmptyToNull(worldEditSecondaryValue.Text),
+            checked((int)worldEditX.Value),
+            checked((int)worldEditY.Value),
+            worldEditRenewable.ButtonPressed);
         var batch = new OwnerAuthoringBatchAction(
             $"authoring_{OwnerPairingProtocol.CreateRequestId()}",
             [operation]);
@@ -176,172 +181,6 @@ public partial class Main
         {
             CompletePendingSubmission(pending);
         }
-    }
-
-    private async Task ApprovePairingAsync()
-    {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer))
-        {
-            return;
-        }
-
-        var pairingId = pairingApprovalId.Text.Trim();
-        var pairingCode = pairingApprovalCode.Text.Trim();
-        if (string.IsNullOrWhiteSpace(pairingId) || string.IsNullOrWhiteSpace(pairingCode))
-        {
-            SetStatus("enter the pending pairing ID and comparison code", good: false);
-            return;
-        }
-
-        var action = new OwnerPairingApprovalAction(pairingId, pairingCode);
-        await RunOwnerActionAsync(async () =>
-        {
-            var approval = await AwaitCurrentWorldResultAsync(ownerApi.ApprovePairingAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
-            pairingApprovalCode.Text = string.Empty;
-            return $"approved pending device {approval.DeviceId}; it must still activate its own Windows key";
-        });
-    }
-
-    private async Task RevokeDeviceAsync()
-    {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer))
-        {
-            return;
-        }
-
-        var targetDeviceId = revokeDeviceId.Text.Trim();
-        if (string.IsNullOrWhiteSpace(targetDeviceId))
-        {
-            SetStatus("enter a paired device ID to revoke it", good: false);
-            return;
-        }
-
-        if (string.Equals(targetDeviceId, deviceId, StringComparison.Ordinal))
-        {
-            SetStatus("this client will not revoke its own active key; use host-local recovery if that is intentional", good: false);
-            return;
-        }
-
-        var action = new OwnerDeviceManagementAction(targetDeviceId);
-        await RunOwnerActionAsync(async () =>
-        {
-            var revoked = await AwaitCurrentWorldResultAsync(ownerApi.RevokeDeviceAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
-            revokeDeviceId.Text = string.Empty;
-            return $"revoked device {revoked.DeviceId}";
-        });
-        await RefreshDeviceRegistryAsync();
-    }
-
-    private async Task RefreshDeviceRegistryAsync()
-    {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer))
-        {
-            return;
-        }
-
-        await RunOwnerActionAsync(async () =>
-        {
-            pairedDevices = await AwaitCurrentWorldResultAsync(ownerApi.ListDevicesAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
-            RenderPairedDevices();
-            return $"loaded {pairedDevices.Length} paired device record(s)";
-        });
-    }
-
-    private void RenderPairedDevices()
-    {
-        pairedDeviceList.Clear();
-        foreach (var device in pairedDevices
-            .OrderBy(device => device.State == OwnerDeviceState.Active ? 0 : 1)
-            .ThenBy(device => device.DeviceId, StringComparer.Ordinal))
-        {
-            var self = string.Equals(device.DeviceId, registration?.DeviceId, StringComparison.Ordinal)
-                ? " · this Windows device"
-                : string.Empty;
-            pairedDeviceList.AddItem($"{device.State.ToString().ToLowerInvariant()} · {device.DeviceId}{self}");
-            pairedDeviceList.SetItemMetadata(pairedDeviceList.ItemCount - 1, device.DeviceId);
-        }
-    }
-
-    private async Task SaveLifePaceAsync()
-    {
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
-            observationSession.Current?.Baseline.Snapshot.WorldId is not { } worldId) return;
-        var rate = lifePaceChoice.GetSelectedId();
-        await RunOwnerActionAsync(async () =>
-        {
-            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetLifePaceAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
-            return "life pace saved; current ages preserved, future aging changed";
-        });
-    }
-
-    private async Task SaveRoutineHelperAsync()
-    {
-        if (observationSession.Current?.Baseline.Snapshot is not { } snapshot ||
-            !TryGetOwner(out var authority, out var deviceId, out var signer)) return;
-        var provider = SelectedRoutineHelper();
-        var model = provider == "off" ? string.Empty : routineHelperModelPicker.Model;
-        if (provider != "off" && (model.Length is < 1 or > 128 || model.Any(char.IsControl)))
-        {
-            SetStatus("Choose a model name of 128 characters or fewer.", good: false);
-            return;
-        }
-        var action = new OwnerRoutineHelperAction(snapshot.WorldId, provider, model, provider == "decisions" ? SelectedRoutineHelperKey() : null);
-        await RunOwnerActionAsync(async () =>
-        {
-            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetRoutineHelperAsync(ResolveWorldUri(), authority, deviceId,
-                action, signer, CancellationToken.None));
-            return provider == "off" ? "Routine helper turned off for this world" : $"{ProviderDisplayName(provider)} will help in this world";
-        });
-    }
-
-    private async Task RenameSelectedAgentAsync()
-    {
-        if (selectedInhabitantId is not { } agentId ||
-            observationSession.Current?.Baseline.Snapshot is not { } snapshot ||
-            snapshot.Inhabitants.All(person => person.Id != agentId))
-            return;
-        var attempted = renameAgentInput.Text;
-        var name = attempted.Trim();
-        if (name.Length is < 1 or > 48 || name.Any(char.IsControl))
-        {
-            SetStatus("Pick a name of 48 characters or fewer.", good: false);
-            return;
-        }
-        if (!TryGetOwner(out var authority, out var deviceId, out var signer)) return;
-        var worldId = snapshot.WorldId;
-        var generation = observationSession.RequestGeneration;
-        await RunOwnerActionAsync(async () =>
-        {
-            // Hold the attempt while the host decides: a refresh in the meantime
-            // must not reset the field before a refusal can keep it there.
-            refusedAgentRename.Remember(worldId, agentId, attempted);
-            try
-            {
-                var result = await AwaitCurrentWorldResultAsync(ownerApi.RenameAgentAsync(ResolveWorldUri(), authority, deviceId,
-                    new OwnerAgentRenameAction(agentId, name), signer, CancellationToken.None));
-                renamingAgentId = null;
-                refusedAgentRename.Forget();
-                renameRow.Hide();
-                return result.Changed ? $"Renamed to {result.Name}" : "Name unchanged";
-            }
-            catch (OwnerAgentNameTakenException) when (selectedInhabitantId == agentId &&
-                renamingAgentId == agentId && renameRow.Visible && renameAgentInput.Text == attempted &&
-                IsCurrentWorldRequest(generation) &&
-                observationSession.Current?.Baseline.Snapshot.WorldId == worldId)
-            {
-                // The field keeps the refused name until the player changes or
-                // cancels it; refreshes still show the host's name above it.
-                throw;
-            }
-            catch
-            {
-                if (IsCurrentWorldRequest(generation)) refusedAgentRename.Forget();
-                throw;
-            }
-        });
     }
 
     private bool TryGetOwner(
@@ -376,51 +215,6 @@ public partial class Main
         deviceId = string.Empty;
         signer = null!;
         return false;
-    }
-
-    private void AddAuthoringKinds()
-    {
-        AddAuthoringKind("set_terrain", "Set terrain — value: meadow, water, or mountain; x/y required");
-        AddAuthoringKind("place_resource", "Place resource — ID, value=kind, x/y, renewable required");
-        AddAuthoringKind("remove_resource", "Remove resource — ID required");
-        AddAuthoringKind("place_object", "Place object — ID, value=kind, x/y required");
-        AddAuthoringKind("remove_object", "Remove object — ID required");
-        AddAuthoringKind("place_building", "Place building — ID, value=building kind, x/y required");
-        AddAuthoringKind("remove_building", "Remove building — ID required");
-        AddAuthoringKind("place_plant", "Place plant — ID, value=plant kind, x/y required");
-        AddAuthoringKind("remove_plant", "Remove plant — ID required");
-        AddAuthoringKind("create_founder_draft", "Create founder draft — ID, value=display name, x/y required");
-        AddAuthoringKind("remove_founder_draft", "Remove founder draft — ID required");
-        AddAuthoringKind("set_weather", "Set weather — value required");
-        AddAuthoringKind("set_season", "Set season — value: spring, summer, autumn, or winter");
-        AddAuthoringKind("set_weather_season", "Set weather + season — value=weather, secondary value=season");
-        AddAuthoringKind("add_approved_asset_reference", "Add approved asset reference — ID and exact lowercase sha256 digest must already exist in the host catalog");
-        AddAuthoringKind("remove_approved_asset_reference", "Remove approved asset reference — ID required");
-    }
-
-    private void AddAuthoringKind(string kind, string description)
-    {
-        authoringKind.AddItem(kind);
-        authoringKind.SetItemMetadata(authoringKind.ItemCount - 1, description);
-    }
-
-    private void UpdateAuthoringHint()
-    {
-        if (authoringKind.ItemCount == 0)
-        {
-            return;
-        }
-
-        authoringHintLabel.Text = authoringKind.GetItemMetadata(authoringKind.Selected).AsString();
-    }
-
-    private static void ConfigureCoordinate(SpinBox box, string placeholder)
-    {
-        box.MinValue = 0;
-        box.MaxValue = 0;
-        box.Step = 1;
-        box.CustomMinimumSize = new Vector2(72, 0);
-        box.TooltipText = placeholder;
     }
 
     private void RefreshControlAvailability()
@@ -501,14 +295,14 @@ public partial class Main
         submitInstructionButton.TooltipText = deceasedSelected ? "Historical profiles cannot receive instructions." :
             infantSelected ? "Direct care through an adult caregiver." : "Send an instruction to this agent.";
         RenderDeveloperEdits(snapshot, actionDisabled);
-        submitAuthoringButton.Disabled = actionDisabled || !paused;
-        authoringKind.Disabled = actionDisabled || !paused;
-        authoringId.Editable = !actionDisabled && paused;
-        authoringValue.Editable = !actionDisabled && paused;
-        authoringSecondaryValue.Editable = !actionDisabled && paused;
-        authoringX.Editable = !actionDisabled && paused;
-        authoringY.Editable = !actionDisabled && paused;
-        authoringRenewable.Disabled = actionDisabled || !paused;
+        submitWorldEditButton.Disabled = actionDisabled || !paused;
+        worldEditKind.Disabled = actionDisabled || !paused;
+        worldEditId.Editable = !actionDisabled && paused;
+        worldEditValue.Editable = !actionDisabled && paused;
+        worldEditSecondaryValue.Editable = !actionDisabled && paused;
+        worldEditX.Editable = !actionDisabled && paused;
+        worldEditY.Editable = !actionDisabled && paused;
+        worldEditRenewable.Disabled = actionDisabled || !paused;
         instructionSuggestButton.Disabled = actionDisabled || deceasedSelected;
         instructionOrderButton.Disabled = actionDisabled || deceasedSelected;
         instructionQueueToggle.Disabled = actionDisabled || deceasedSelected || !instructionOrderButton.ButtonPressed;
@@ -523,15 +317,15 @@ public partial class Main
         refreshDevicesButton.Disabled = actionDisabled;
         revokeDeviceId.Editable = !actionDisabled;
         revokeDeviceButton.Disabled = actionDisabled;
-        cognitionRoleChoice.Disabled = actionDisabled;
-        cognitionProviderChoice.Disabled = actionDisabled;
-        cognitionCredentialChoice.Disabled = actionDisabled;
-        cognitionModelPicker.Editable = !actionDisabled && SelectedProviderId() != "deterministic";
-        cognitionThinkingChoice.Disabled = actionDisabled;
-        cognitionModelSetupCheckButton.Disabled = actionDisabled;
-        cognitionApiKeyInput.Editable = !actionDisabled && SelectedProviderId() != "deterministic";
-        cognitionCredentialLabelInput.Editable = !actionDisabled;
-        refreshCognitionProviderButton.Disabled = actionDisabled;
+        agentModelRoleChoice.Disabled = actionDisabled;
+        agentModelProviderChoice.Disabled = actionDisabled;
+        agentModelCredentialChoice.Disabled = actionDisabled;
+        agentModelPicker.Editable = !actionDisabled && SelectedProviderId() != "deterministic";
+        agentModelThinkingChoice.Disabled = actionDisabled;
+        agentModelSetupCheckButton.Disabled = actionDisabled;
+        agentModelApiKeyInput.Editable = !actionDisabled && SelectedProviderId() != "deterministic";
+        agentModelCredentialLabelInput.Editable = !actionDisabled;
+        refreshAgentModelProviderButton.Disabled = actionDisabled;
         applyUsageLimitButton.Disabled = actionDisabled || usageStatus?.AccountingError is not null;
         grantUsageCallsButton.Disabled = actionDisabled || usageStatus?.LimitReached != true;
         refreshUsageButton.Disabled = actionDisabled;
@@ -539,13 +333,13 @@ public partial class Main
         var selectedProvider = SelectedProviderId();
         var selectedProviderStatus = providerConfiguration?.Providers.FirstOrDefault(item =>
             string.Equals(item.Provider, selectedProvider, StringComparison.Ordinal));
-        saveCognitionProviderButton.Disabled = actionDisabled ||
-            SelectedCognitionTarget() is not null && selectedProvider == "jev" ||
-            SelectedCognitionTarget() is not null && selectedProviderStatus?.HasCredential != true &&
+        saveAgentModelProviderButton.Disabled = actionDisabled ||
+            SelectedAgentModelTarget() is not null && selectedProvider == "jev" ||
+            SelectedAgentModelTarget() is not null && selectedProviderStatus?.HasCredential != true &&
                 IsHostedProvider(selectedProvider) && SelectedCredentialChoice() == "default";
-        forgetCognitionCredentialButton.Disabled = actionDisabled || selectedProvider == "deterministic" ||
+        forgetAgentModelCredentialButton.Disabled = actionDisabled || selectedProvider == "deterministic" ||
             selectedProviderStatus?.HasCredential != true;
-        deleteCognitionCredentialSlotButton.Disabled = actionDisabled ||
+        deleteAgentModelCredentialSlotButton.Disabled = actionDisabled ||
             providerConfiguration?.Assignments?.Any(item =>
                 item.CredentialSlotId == SelectedCredentialChoice() && item.SelectionReason is null) == true;
         // A public key can have only one pending server pairing. Keep the

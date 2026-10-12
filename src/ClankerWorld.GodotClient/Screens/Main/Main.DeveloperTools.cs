@@ -1,3 +1,6 @@
+using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -78,7 +81,7 @@ public partial class Main
         BuildDeveloperEdits();
         BuildDeveloperLifePace();
         BuildDeveloperRecovery();
-        BuildDeveloperAuthoring();
+        BuildDeveloperWorldEdit();
         BuildDeveloperDevices();
 
         developerScroll.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -94,7 +97,7 @@ public partial class Main
         content.AddChild(developerPanel);
         // Readouts change length as they update; refit once the new text is laid out.
         developerBody.MinimumSizeChanged += () => Callable.From(PositionDeveloperTools).CallDeferred();
-        UpdateAuthoringHint();
+        UpdateWorldEditHint();
     }
 
     private void BuildDeveloperLifePace()
@@ -139,66 +142,6 @@ public partial class Main
         retryBody.AddChild(retryButtons);
         developerBody.AddChild(NewPanel("Response-loss recovery · exact server retry", retryBody));
         RenderPendingSubmission();
-    }
-
-    private void BuildDeveloperAuthoring()
-    {
-        var authoringBody = new VBoxContainer();
-        authoringKind.ItemSelected += _ => UpdateAuthoringHint();
-        AddAuthoringKinds();
-        authoringBody.AddChild(authoringKind);
-        authoringId.PlaceholderText = "ID (resource/object/draft/asset as required)";
-        authoringBody.AddChild(authoringId);
-        authoringValue.PlaceholderText = "Value (terrain, kind, name, weather, digest...)";
-        authoringBody.AddChild(authoringValue);
-        authoringSecondaryValue.PlaceholderText = "Secondary value (season for set_weather_season)";
-        authoringBody.AddChild(authoringSecondaryValue);
-        var coordinateRow = new HBoxContainer();
-        ConfigureCoordinate(authoringX, "x");
-        ConfigureCoordinate(authoringY, "y");
-        coordinateRow.AddChild(authoringX);
-        coordinateRow.AddChild(authoringY);
-        authoringRenewable.Text = "renewable resource";
-        coordinateRow.AddChild(authoringRenewable);
-        authoringBody.AddChild(coordinateRow);
-        authoringHintLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        authoringBody.AddChild(authoringHintLabel);
-        submitAuthoringButton.Text = "Apply one paused authoring operation";
-        submitAuthoringButton.Pressed += () => _ = SubmitAuthoringAsync();
-        authoringBody.AddChild(submitAuthoringButton);
-        developerBody.AddChild(NewPanel("Paused authoring · server validates atomically", authoringBody));
-    }
-
-    private void BuildDeveloperDevices()
-    {
-        var deviceManagementBody = new VBoxContainer();
-        pairingApprovalId.PlaceholderText = "Pending pairing ID from the new device";
-        deviceManagementBody.AddChild(pairingApprovalId);
-        pairingApprovalCode.PlaceholderText = "Six-digit comparison code";
-        pairingApprovalCode.Secret = true;
-        deviceManagementBody.AddChild(pairingApprovalCode);
-        approvePairingButton.Text = "Approve paired device";
-        approvePairingButton.Pressed += () => _ = ApprovePairingAsync();
-        deviceManagementBody.AddChild(approvePairingButton);
-        refreshDevicesButton.Text = "Refresh signed device list";
-        refreshDevicesButton.Pressed += () => _ = RefreshDeviceRegistryAsync();
-        deviceManagementBody.AddChild(refreshDevicesButton);
-        pairedDeviceList.CustomMinimumSize = new Vector2(0, 104);
-        pairedDeviceList.ItemSelected += index =>
-        {
-            var deviceId = pairedDeviceList.GetItemMetadata(checked((int)index)).AsString();
-            if (!string.IsNullOrWhiteSpace(deviceId))
-            {
-                revokeDeviceId.Text = deviceId;
-            }
-        };
-        deviceManagementBody.AddChild(pairedDeviceList);
-        revokeDeviceId.PlaceholderText = "Device ID to revoke";
-        deviceManagementBody.AddChild(revokeDeviceId);
-        revokeDeviceButton.Text = "Revoke other device";
-        revokeDeviceButton.Pressed += () => _ = RevokeDeviceAsync();
-        deviceManagementBody.AddChild(revokeDeviceButton);
-        developerBody.AddChild(NewPanel("Paired-device management · signed server requests", deviceManagementBody));
     }
 
     /// <summary>F12: opens or closes the panel. Time keeps running either way.</summary>
@@ -380,5 +323,17 @@ public partial class Main
         }
         var goal = new Vector2(x + Nearer(previous, route.Destination.X) + 0.5f, route.Destination.Y + 0.5f);
         plannedPathLayer.SetPath(points.Select(point => point * stride).ToArray(), goal * stride, currentTileSize);
+    }
+
+    private async Task SaveLifePaceAsync()
+    {
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
+            observationSession.Current?.Baseline.Snapshot.WorldId is not { } worldId) return;
+        var rate = lifePaceChoice.GetSelectedId();
+        await RunOwnerActionAsync(async () =>
+        {
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetLifePaceAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
+            return "life pace saved; current ages preserved, future aging changed";
+        });
     }
 }

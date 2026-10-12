@@ -184,11 +184,11 @@ public sealed class ProviderUsageStoreTests
     public void UsagePayloadMatchesGodotAndNeverContainsProviderSecrets()
     {
         var server = new ProviderUsageLimitAction(30, 0);
-        var client = new ClankerWorld.GodotClient.UI.OwnerUsageLimitAction(30, 0);
+        var client = new ClankerWorld.GodotClient.Protocol.OwnerUsageLimitAction(30, 0);
         Assert.Equal(OwnerHttpBinding.UsageLimitPayload(server),
-            ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.UsageLimit(client));
+            ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.UsageLimit(client));
         Assert.Equal(OwnerHttpBinding.UsageStatusPayload(),
-            ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.UsageStatus());
+            ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.UsageStatus());
         Assert.DoesNotContain("api-key", OwnerHttpBinding.UsageLimitPayload(server));
     }
 

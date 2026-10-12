@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Client = ClankerWorld.GodotClient.UI;
+using ClientNetworking = ClankerWorld.GodotClient.Networking;
+using ClientProtocol = ClankerWorld.GodotClient.Protocol;
 using OwnerAuthorityIdentity = ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity;
 
 namespace ClankerWorld.Tests;
@@ -33,10 +35,10 @@ public sealed partial class ServerHttpTests
         runtime.Pause();
         var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-        var api = new Client.OwnerWorldApi(client);
+        var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
         var before = await api.GetAutosaveSettingsAsync(uri, authority, device.DeviceId, signer, default);
-        var action = new Client.OwnerAutosaveConfigurationAction(false, 1, 0, before.WorldId);
+        var action = new ClientProtocol.OwnerAutosaveConfigurationAction(false, 1, 0, before.WorldId);
         if (supported)
         {
             var updated = await api.ConfigureAutosaveAsync(uri, authority, device.DeviceId, action, signer, default);
@@ -71,7 +73,7 @@ public sealed partial class ServerHttpTests
         var device = await StartAndActivateAsync(host, client, key);
         var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-        var api = new Client.OwnerWorldApi(client);
+        var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = client.BaseAddress!;
         // Literal loopback is the production client's explicit test/development exception.
         uri = new UriBuilder(uri) { Host = "127.0.0.1" }.Uri;
@@ -86,7 +88,7 @@ public sealed partial class ServerHttpTests
         Assert.Equal(HttpStatusCode.Unauthorized, failedAction.StatusCode);
         Assert.Equal(1, legacy.WorldActionRequests);
 
-        var clientAction = new Client.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 50, false);
+        var clientAction = new ClientProtocol.OwnerWorldCreationAction(action.Name, action.Seed, action.Size, 50, false);
         var previewFailure = await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
             api.PreviewWorldAsync(uri, authority, device.DeviceId, clientAction, signer, default));
         await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
@@ -98,8 +100,8 @@ public sealed partial class ServerHttpTests
         Assert.Equal(1, legacy.WorldActionRequests); // Neither client action was posted or downgraded.
 
         var agentId = "agent:" + Guid.NewGuid().ToString("N");
-        var placement = new Client.OwnerAgentPlacementAction(agentId, 4, 2,
-            new Client.OwnerProviderConfigurationAction("personal", "openai", "gpt-5-mini", null,
+        var placement = new ClientProtocol.OwnerAgentPlacementAction(agentId, 4, 2,
+            new ClientProtocol.OwnerProviderConfigurationAction("personal", "openai", "gpt-5-mini", null,
                 false, agentId, null), null, null);
         var placementFailure = await Assert.ThrowsAsync<OwnerActionCompatibilityException>(() =>
             api.PlaceAgentAsync(uri, authority, device.DeviceId, placement, signer, default));
@@ -119,9 +121,9 @@ public sealed partial class ServerHttpTests
         var device = await StartAndActivateAsync(host, client, key);
         var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-        var api = new Client.OwnerWorldApi(client);
+        var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
-        var action = new Client.OwnerWorldCreationAction("Disposable", "compatible-advanced", "Small", 50, false,
+        var action = new ClientProtocol.OwnerWorldCreationAction("Disposable", "compatible-advanced", "Small", 50, false,
             "Dominant", "Temperate", false, "Abundant", "High", "Low", "High");
         var preview = await api.PreviewWorldAsync(uri, authority, device.DeviceId, action, signer, default);
         var createAction = action with
@@ -144,8 +146,8 @@ public sealed partial class ServerHttpTests
         using var refused = await SendSignedAsync(host, client, key, device.DeviceId,
             OwnerPairingEndpoints.OwnerWorldPreview, serverAction, downgrade);
         Assert.Equal(HttpStatusCode.Unauthorized, refused.StatusCode);
-        Assert.Equal(OwnerHttpBinding.WorldCreationPayloadDomain, Client.OwnerWorldActionPayload.WorldCreationPayloadDomain);
-        Assert.Equal(OwnerHttpBinding.AgentPlacementPayloadDomain, Client.OwnerWorldActionPayload.AgentPlacementPayloadDomain);
+        Assert.Equal(OwnerHttpBinding.WorldCreationPayloadDomain, ClientProtocol.OwnerWorldActionPayload.WorldCreationPayloadDomain);
+        Assert.Equal(OwnerHttpBinding.AgentPlacementPayloadDomain, ClientProtocol.OwnerWorldActionPayload.AgentPlacementPayloadDomain);
     }
 
     [Fact]
@@ -160,7 +162,7 @@ public sealed partial class ServerHttpTests
         Assert.True(authorityStore.RevokeDeviceLocally(device.DeviceId).IsSuccess);
         var identity = authorityStore.Identity;
         var authority = new OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-        var api = new Client.OwnerWorldApi(client);
+        var api = new ClientNetworking.OwnerWorldApi(client);
         var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
         var failure = await Assert.ThrowsAsync<HttpRequestException>(() => api.PreviewWorldAsync(uri,
             authority, device.DeviceId, new("Disposable", "seed", "Small", 50, false), signer, default));

@@ -1,7 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
-using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
 
@@ -43,7 +42,7 @@ public partial class Main
 
             pairingPanel.Hide();
             settingsPanel.Hide();
-            CloseGameMenu();
+            ClosePauseMenu();
             RefreshMainMenuAvailability();
             SetStatus("This device is paired. Choose Continue to enter your world.", good: true);
             await CheckStartupRecoveryAsync();
@@ -178,7 +177,7 @@ public partial class Main
                         pendingPairingOrigin = null;
                         pairingPanel.Hide();
                         settingsPanel.Hide();
-                        CloseGameMenu();
+                        ClosePauseMenu();
                         ShowMainMenu();
                         SetStatus("Device paired. Choose Continue to enter your world.", good: true);
                         await CheckStartupRecoveryAsync();
@@ -238,7 +237,7 @@ public partial class Main
             pendingPairingOrigin = null;
             pairingPanel.Hide();
             settingsPanel.Hide();
-            CloseGameMenu();
+            ClosePauseMenu();
             ShowMainMenu();
             SetStatus("Device paired. Choose Continue to enter your world.", good: true);
             await CheckStartupRecoveryAsync();

@@ -3,7 +3,8 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Networking;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Control;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ClientSetupCheckAction = ClankerWorld.GodotClient.UI.OwnerProviderSetupCheckAction;
+using ClientSetupCheckAction = ClankerWorld.GodotClient.Protocol.OwnerProviderSetupCheckAction;
 using ServerSetupCheckAction = ClankerWorld.Server.Control.OwnerProviderSetupCheckAction;
 using ServerSetupCheckResult = ClankerWorld.Server.Control.OwnerProviderSetupCheckResult;
 

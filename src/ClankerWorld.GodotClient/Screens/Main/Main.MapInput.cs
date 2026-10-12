@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -103,7 +104,7 @@ public partial class Main
             Math.Clamp((mapCanvas.Size.X - mapStage.Position.X) / stride, 0, mapWidth);
         var bottom = Math.Clamp((mapCanvas.Size.Y - mapStage.Position.Y) / stride, 0, mapHeight);
         var visible = new Rect2(left, top, right - left, bottom - top);
-        worldOverview.SetVisibleTiles(visible);
+        worldMapAtlas.SetVisibleTiles(visible);
         terrainLayer.SetCamera(visible, currentTileSize, TileGap, wrapsEastWest);
     }
 
@@ -134,7 +135,7 @@ public partial class Main
 
     private void HandleMapInput(InputEvent @event)
     {
-        if (gameMenuPanel.Visible ||
+        if (pauseMenuPanel.Visible ||
             renderedMapSnapshot is not { } snapshot || !HasMap(snapshot))
         {
             return;
@@ -388,7 +389,7 @@ public partial class Main
     private void UpdateTileHover(Vector2 canvasPosition, bool keyboard = false)
     {
         if (renderedMapSnapshot is not { } snapshot || !HasMap(snapshot) ||
-            gameMenuPanel.Visible ||
+            pauseMenuPanel.Visible ||
             canvasPosition.X < 0 || canvasPosition.Y < 0 ||
             canvasPosition.X >= mapCanvas.Size.X || canvasPosition.Y >= mapCanvas.Size.Y)
         {

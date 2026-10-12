@@ -284,8 +284,8 @@ public sealed partial class WorldConversationTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "instruction_order_finished");
     }
 
-    private static ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder ReceivedTalkOrder(WorldRuntime world) =>
-        Assert.Single(JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstruction[]>(
+    private static ClankerWorld.GodotClient.Protocol.OwnerWorldInstructionOrder ReceivedTalkOrder(WorldRuntime world) =>
+        Assert.Single(JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldInstruction[]>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
                 TalkHostJson), TalkGameJson)!, item => item.Order?.Action == "talk_to").Order!;
 

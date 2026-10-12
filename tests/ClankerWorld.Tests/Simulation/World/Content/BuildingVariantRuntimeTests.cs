@@ -35,7 +35,7 @@ public sealed class BuildingVariantRuntimeTests
         // The real host-to-game contract must show this exact variant's paid work,
         // rather than the original size or the world's full recipe catalogue.
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var displayed = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
+        var displayed = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot(), options), options)!;
         var displayedBuilding = displayed.PlacedBuildings.Single(item => item.InstanceId == building.InstanceId);
         Assert.Contains(displayedBuilding.AvailableRecipes!, item => item.Id == recipe.CanonicalId);

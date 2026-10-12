@@ -1,3 +1,5 @@
+using ClankerWorld.GodotClient.Protocol;
+
 namespace ClankerWorld.GodotClient.UI;
 
 public partial class WorldTerrainLayer

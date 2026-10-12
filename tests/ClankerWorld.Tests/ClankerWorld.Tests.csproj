@@ -28,15 +28,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\Protocol\WorldObservationProtocol.cs" Link="GodotClient\Protocol\WorldObservationProtocol.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerPairingProtocol.cs" Link="GodotClient\Pairing\OwnerPairingProtocol.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerDeviceKey.cs" Link="GodotClient\Pairing\OwnerDeviceKey.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Pairing\OwnerPairingClient.cs" Link="GodotClient\Pairing\OwnerPairingClient.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Theme\GameUiText.cs" Link="GodotClient\UI\Theme\GameUiText.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Theme\LandHearingText.cs" Link="GodotClient\UI\Theme\LandHearingText.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Theme\LandTransferText.cs" Link="GodotClient\UI\Theme\LandTransferText.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Theme\NonviolentHearingText.cs" Link="GodotClient\UI\Theme\NonviolentHearingText.cs" />
-    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Theme\WorldEventText.cs" Link="GodotClient\UI\Theme\WorldEventText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\GameUiText.cs" Link="GodotClient\UI\Text\GameUiText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\LandHearingText.cs" Link="GodotClient\UI\Text\LandHearingText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\LandTransferText.cs" Link="GodotClient\UI\Text\LandTransferText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\NonviolentHearingText.cs" Link="GodotClient\UI\Text\NonviolentHearingText.cs" />
+    <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Text\WorldEventText.cs" Link="GodotClient\UI\Text\WorldEventText.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\UI\Map\HillBand.cs" Link="GodotClient\UI\Map\HillBand.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Networking\OwnerWorldApi.cs" Link="GodotClient\Networking\OwnerWorldApi.cs" />
     <Compile Include="..\..\src\ClankerWorld.GodotClient\Networking\LocalHostCompanion.cs" Link="GodotClient\Networking\LocalHostCompanion.cs" />

@@ -67,7 +67,7 @@ public sealed partial class ServerHttpTests
             var latest = saves.Overwrite(selected.Id, runtime, []).BackupId;
             var previewAction = new OwnerRecoveryCleanupAction("preview", runtime.Society.WorldId, 1);
             Assert.Equal(OwnerHttpBinding.RecoveryCleanup(previewAction),
-                ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.RecoveryCleanup(
+                ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.RecoveryCleanup(
                     new("preview", previewAction.WorldId, 1)));
             using var response = await SendSignedAsync(host, client, key, device.DeviceId,
                 "/api/v1/owner/saves/recovery-cleanup", previewAction, OwnerHttpBinding.RecoveryCleanup(previewAction));

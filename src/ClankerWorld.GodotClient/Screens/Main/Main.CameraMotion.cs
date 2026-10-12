@@ -21,7 +21,7 @@ public partial class Main
     private void BeginCameraMotion()
     {
         cameraPinnedCards.Clear();
-        if (selectedInhabitantCard.Visible) cameraPinnedCards.Add(selectedInhabitantCard);
+        if (agentQuickCard.Visible) cameraPinnedCards.Add(agentQuickCard);
         if (buildingQuickCard.Visible) cameraPinnedCards.Add(buildingQuickCard);
     }
 

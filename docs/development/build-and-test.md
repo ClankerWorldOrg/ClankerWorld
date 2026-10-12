@@ -448,7 +448,7 @@ data paths and logging switches. These controls still need the listed Windows
 playtest.
 
 The program icon, `src/ClankerWorld.GodotClient/icon.ico`, is generated from
-the logo art in `UI/MenuLogo.cs` and embedded in the exported `.exe`. After
+the logo art in `UI/Menu/MenuLogo.cs` and embedded in the exported `.exe`. After
 changing that art, rebuild the icon with
 `godot --headless --path src/ClankerWorld.GodotClient -- --write-app-icon`.
 The UI smoke test fails if the committed icon no longer matches the art.

@@ -83,8 +83,8 @@ public sealed partial class ServerHttpTests
         var action = new OwnerWorldCreationAction("Advanced", "advanced-http", "Small", 50, false,
             "Dominant", "Temperate", false, "Abundant", "High", "Low", "High");
         var payload = OwnerHttpBinding.WorldCreationPayload(action);
-        Assert.Equal(payload, ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.WorldCreation(
-            new ClankerWorld.GodotClient.UI.OwnerWorldCreationAction(action.Name, action.Seed, action.Size,
+        Assert.Equal(payload, ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.WorldCreation(
+            new ClankerWorld.GodotClient.Protocol.OwnerWorldCreationAction(action.Name, action.Seed, action.Size,
                 action.WaterPercent, action.WrapEastWest, action.ClimateMode, action.SelectedClimate, action.LatitudeCooling,
                 action.ResourceAbundance, action.ForestCover, action.MountainRelief, action.RiverAbundance)));
         var signed = await CreateSignedRequestAsync(host, client, key, device.DeviceId, "/api/v1/owner/worlds/preview", action, payload);

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
 

@@ -4,7 +4,7 @@ using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Tests;
 
-public sealed partial class NativeOrchardObservationTests
+public sealed partial class OrchardObservationTests
 {
     [Theory]
     [InlineData("outward")]

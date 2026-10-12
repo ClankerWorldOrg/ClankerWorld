@@ -7,6 +7,8 @@ using ClankerWorld.Server.Control;
 using ClankerWorld.Server.Observation;
 using Microsoft.Extensions.DependencyInjection;
 using Client = ClankerWorld.GodotClient.UI;
+using ClientNetworking = ClankerWorld.GodotClient.Networking;
+using ClientProtocol = ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.Tests;
 
@@ -27,7 +29,7 @@ public sealed partial class ServerHttpTests
             var device = await StartAndActivateAsync(host, client, key);
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
             var authority = new ClankerWorld.GodotClient.Pairing.OwnerAuthorityIdentity(identity.ServerAuthorityId, identity.WorldId);
-            var api = new Client.OwnerWorldApi(client);
+            var api = new ClientNetworking.OwnerWorldApi(client);
             var uri = new UriBuilder(client.BaseAddress!) { Host = "127.0.0.1" }.Uri;
             var runtime = host.Services.GetRequiredService<WorldRuntime>();
             const string first = "founder:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -35,25 +37,25 @@ public sealed partial class ServerHttpTests
             runtime.PlaceFounder(first, new(0, 0));
             runtime.PlaceFounder(second, new(1, 2));
             await api.RenameAgentAsync(uri, authority, device.DeviceId,
-                new Client.OwnerAgentRenameAction(first, "Élodie Vale"), signer, default);
+                new ClientProtocol.OwnerAgentRenameAction(first, "Élodie Vale"), signer, default);
             var before = WorldRuntimeCodec.Encode(runtime.ExportState());
             var file = host.Services.GetRequiredService<WorldStateFile>();
             var diskBefore = File.ReadAllBytes(file.Path);
             var failure = await Assert.ThrowsAsync<OwnerAgentNameTakenException>(() => api.RenameAgentAsync(
-                uri, authority, device.DeviceId, new Client.OwnerAgentRenameAction(second, duplicate), signer, default));
+                uri, authority, device.DeviceId, new ClientProtocol.OwnerAgentRenameAction(second, duplicate), signer, default));
             Assert.Equal(HttpStatusCode.Conflict, failure.StatusCode);
             Assert.Contains("another agent", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
             Assert.Contains("Choose a different first name", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.Equal(diskBefore, File.ReadAllBytes(file.Path));
             var renamed = await api.RenameAgentAsync(uri, authority, device.DeviceId,
-                new Client.OwnerAgentRenameAction(second, "Marin Lake"), signer, default);
+                new ClientProtocol.OwnerAgentRenameAction(second, "Marin Lake"), signer, default);
             Assert.True(renamed.Changed);
             var remembered = Assert.Single(runtime.Society.Memories, item => item.OwnerId == second);
             Assert.True(remembered.Permanent);
             Assert.Equal("I was renamed on day 1 to Marin Lake.", remembered.Summary);
             var retry = await api.RenameAgentAsync(uri, authority, device.DeviceId,
-                new Client.OwnerAgentRenameAction(second, "Marin Lake"), signer, default);
+                new ClientProtocol.OwnerAgentRenameAction(second, "Marin Lake"), signer, default);
             Assert.False(retry.Changed);
             using var restored = file.LoadOrCreate(runtime.ExportState().WorldSeed);
             Assert.Equal("Marin Lake", restored.Society.GetInhabitant(second).Name);

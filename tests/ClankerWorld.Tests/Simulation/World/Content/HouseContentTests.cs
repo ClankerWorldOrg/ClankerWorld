@@ -198,7 +198,7 @@ public sealed class HouseContentTests
             .Single(building => building.InstanceId == "meal-home-beta");
         Assert.Contains(projected.StoredItems!, item => item.Kind == "simple_meal" && item.Quantity == 2);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldPlacedBuilding>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPlacedBuilding>(
             JsonSerializer.Serialize(projected, options), options)!;
         Assert.Contains(client.StoredItems!, item => item.Kind == "simple_meal" && item.Quantity == 2);
 
@@ -470,7 +470,7 @@ public sealed class HouseContentTests
             .Single(building => building.InstanceId == "home-alpha");
         Assert.Equal("household:camp-alpha", projected.HouseholdId);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldPlacedBuilding>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldPlacedBuilding>(
             JsonSerializer.Serialize(projected, options), options)!;
         Assert.Equal(projected.HouseholdId, client.HouseholdId);
 

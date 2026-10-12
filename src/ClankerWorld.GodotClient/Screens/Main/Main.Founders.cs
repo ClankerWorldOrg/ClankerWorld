@@ -1,4 +1,5 @@
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.AgentPlacement;
 using Godot;
 

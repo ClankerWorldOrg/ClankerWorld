@@ -250,7 +250,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.All(snapshot.Inhabitants.Where(person => person.Id != actor), person =>
             Assert.DoesNotContain(person.DecisionFactors, factor => factor.Key == "knowledge-writing"));
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
         Assert.Equal(expectedProgress, Assert.Single(client.Inhabitants.Single(person => person.Id == actor)
             .DecisionFactors, factor => factor.Key == "knowledge-writing").Detail);

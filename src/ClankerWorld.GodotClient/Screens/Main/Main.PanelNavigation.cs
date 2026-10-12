@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -10,25 +11,25 @@ public partial class Main
 {
     private void ToggleInhabitants()
     {
-        var show = !rosterPanel.Visible;
+        var show = !agentsPanel.Visible;
         filtersPanel.Hide();
         familyTreePanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
-        rosterPanel.Visible = show;
+        agentsPanel.Visible = show;
         if (show) QueueHudListsFit();
     }
 
     private void ToggleEvents()
     {
-        var show = !eventsPanel.Visible;
+        var show = !eventLogPanel.Visible;
         filtersPanel.Hide();
         familyTreePanel.Hide();
-        rosterPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
-        eventsPanel.Visible = show;
+        eventLogPanel.Visible = show;
         if (show) QueueHudListsFit();
         if (show) MarkEventsSeen();
     }
@@ -38,9 +39,9 @@ public partial class Main
         var show = !worldInfoPanel.Visible;
         filtersPanel.Hide();
         familyTreePanel.Hide();
-        rosterPanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Visible = show;
     }
 
@@ -59,9 +60,9 @@ public partial class Main
         conversationPanel.Hide();
         familyTreeView.SetPeople(snapshot.WorldId, snapshot.Inhabitants, id);
         UpdateFamilyTreeStatus();
-        rosterPanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
         filtersPanel.Hide();
         familyTreePanel.Show();
@@ -91,9 +92,9 @@ public partial class Main
     {
         if (selectedInhabitantId is null) return;
         familyTreePanel.Hide();
-        rosterPanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
         thoughtsPanel.Hide();
         ordersPanel.Hide();
@@ -108,17 +109,17 @@ public partial class Main
         await SetPausedAsync(!paused);
     }
 
-    private async Task ToggleGameMenuAsync()
+    private async Task TogglePauseMenuAsync()
     {
-        if (gameMenuPanel.Visible)
+        if (pauseMenuPanel.Visible)
         {
-            await CloseGameMenuAsync();
+            await ClosePauseMenuAsync();
             return;
         }
 
         draggingMap = false;
-        rosterPanel.Hide();
-        eventsPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
         familyTreePanel.Hide();
         memoriesPanel.Hide();
         thoughtsPanel.Hide();
@@ -134,7 +135,7 @@ public partial class Main
         StyleIconButton(menuCloseButton, PixelGlyph.Close);
         menuCloseButton.TooltipText = "Return to the world";
         worldInfoPanel.Hide();
-        gameMenuPanel.Show();
+        pauseMenuPanel.Show();
         menuShade.Show();
         ApplyResponsiveLayout();
 
@@ -155,7 +156,7 @@ public partial class Main
     }
 
     /// <summary>Whether Settings or the Mod Library covers the pause menu's buttons.</summary>
-    private bool PauseMenuPageOpen => !returnToMainMenu && gameMenuPanel.Visible && !menuActions.Visible;
+    private bool PauseMenuPageOpen => !returnToMainMenu && pauseMenuPanel.Visible && !menuActions.Visible;
 
     /// <summary>
     /// Settings and the Mod Library open in place of the pause menu's buttons,
@@ -164,7 +165,7 @@ public partial class Main
     /// </summary>
     private void ShowPauseMenuPage(string title)
     {
-        if (returnToMainMenu || !gameMenuPanel.Visible) return;
+        if (returnToMainMenu || !pauseMenuPanel.Visible) return;
         menuActions.Hide();
         menuHeadingLabel.Text = title;
         StyleIconButton(menuCloseButton, PixelGlyph.Back);
@@ -183,16 +184,16 @@ public partial class Main
         ApplyResponsiveLayout();
     }
 
-    private async Task CloseGameMenuAsync()
+    private async Task ClosePauseMenuAsync()
     {
         if (returnToMainMenu)
         {
-            CloseGameMenu();
+            ClosePauseMenu();
             ShowMainMenu();
             return;
         }
         var resumeWorld = menuPausedWorld;
-        CloseGameMenu();
+        ClosePauseMenu();
         if (resumeWorld)
         {
             var generation = observationSession.RequestGeneration;
@@ -213,10 +214,10 @@ public partial class Main
         }
     }
 
-    private void CloseGameMenu()
+    private void ClosePauseMenu()
     {
-        cognitionApiKeyInput.Text = string.Empty;
-        gameMenuPanel.Hide();
+        agentModelApiKeyInput.Text = string.Empty;
+        pauseMenuPanel.Hide();
         menuShade.Hide();
         settingsPanel.Hide();
         modLibraryPanel.Hide();
@@ -243,7 +244,7 @@ public partial class Main
             if (HandleEscape()) GetViewport().SetInputAsHandled();
             return;
         }
-        if (@event is not InputEventKey { Pressed: true } key || mainMenuOverlay.Visible || gameMenuPanel.Visible ||
+        if (@event is not InputEventKey { Pressed: true } key || mainMenuOverlay.Visible || pauseMenuPanel.Visible ||
             GetViewport().GuiGetFocusOwner() is LineEdit or TextEdit)
         {
             return;
@@ -274,7 +275,7 @@ public partial class Main
 
     private void PanCameraForFrame(Vector2 direction, double delta)
     {
-        if (direction == Vector2.Zero || mainMenuOverlay.Visible || gameMenuPanel.Visible ||
+        if (direction == Vector2.Zero || mainMenuOverlay.Visible || pauseMenuPanel.Visible ||
             worldMenuOverlay.Visible || GetViewport().GuiGetFocusOwner() is not null) return;
         PanCamera(direction.Normalized() * (float)(15 * Math.Clamp(delta, 0, 0.1)));
     }
@@ -301,10 +302,10 @@ public partial class Main
             if (!worldMenuBusy) worldMenuOverlay.Hide();
             return true;
         }
-        if (gameMenuPanel.Visible)
+        if (pauseMenuPanel.Visible)
         {
             if (PauseMenuPageOpen) ShowPauseMenuButtons();
-            else _ = CloseGameMenuAsync();
+            else _ = ClosePauseMenuAsync();
             return true;
         }
         if (mainMenuOverlay.Visible || !isInWorld) return false;
@@ -341,7 +342,7 @@ public partial class Main
             ClearTileSelection();
             return true;
         }
-        var overlays = new Control[] { rosterPanel, eventsPanel, worldInfoPanel, filtersPanel, worldOverviewPanel };
+        var overlays = new Control[] { agentsPanel, eventLogPanel, worldInfoPanel, filtersPanel, worldMapPanel };
         if (overlays.Any(panel => panel.Visible))
         {
             foreach (var panel in overlays) panel.Hide();
@@ -362,7 +363,7 @@ public partial class Main
             AgentProfileBack();
             return true;
         }
-        if (selectedInhabitantCard.Visible)
+        if (agentQuickCard.Visible)
         {
             ClearInhabitantSelection();
             return true;
@@ -373,7 +374,7 @@ public partial class Main
             CloseDeveloperTools();
             return true;
         }
-        _ = ToggleGameMenuAsync();
+        _ = TogglePauseMenuAsync();
         return true;
     }
 

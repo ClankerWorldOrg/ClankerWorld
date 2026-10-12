@@ -1,5 +1,7 @@
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
+using System.Globalization;
 
 namespace ClankerWorld.GodotClient;
 
@@ -105,9 +107,9 @@ public partial class Main
         familyTreePanel.Hide();
         thoughtsPanel.Hide();
         conversationPanel.Hide();
-        rosterPanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
         ordersPanel.Show();
         renderedOrdersReader = null;
@@ -176,4 +178,174 @@ public partial class Main
         }
         FitTextPanel(ordersReaderText);
     }
+
+    private static OwnerWorldInstruction? PendingOrderToCancel(OwnerWorldSnapshot snapshot, string? inhabitantId) =>
+        snapshot.Instructions.Where(item => item.TargetInhabitantId == inhabitantId &&
+                item.Order is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" })
+            .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+
+    /// <summary>
+    /// One order's state as the host reports it, such as "Blocked · Eating food ·
+    /// 0/3 food items" followed by why it is held up or was replaced.
+    /// </summary>
+    private static string InstructionOrderSummary(OwnerWorldInstruction instruction, bool includeHeard = true)
+    {
+        var order = instruction.Order;
+        if (order is null)
+            return instruction.State == "completed"
+                ? instruction.ObservedTick is null ? "Order closed · not reported as heard" : "Heard by their personal model · order closed"
+                : instruction.ObservedTick is null ? "Order pending · waiting for their personal model" : "Heard by their personal model · order pending";
+
+        var task = order.Action switch
+        {
+            "consume_food" => "Eating food",
+            "read_knowledge" => "Reading " + (order.TargetItemKind is { } writtenKind
+                ? GameUiText.ItemName(writtenKind).ToLowerInvariant() : "a written item"),
+            "harvest_food" => "Gathering food",
+            "gather_material" => "Gathering " + (order.TargetMaterialKind?.Replace('_', ' ') ?? "materials"),
+            "till_field" => "Tilling household fields",
+            "plant_field" => "Planting " + (order.TargetCropKind?.Replace('_', ' ') ?? "crops"),
+            "tend_field" => "Tending " + (order.TargetCropKind?.Replace('_', ' ') ?? "household fields"),
+            "harvest_field" => "Harvesting " + (order.TargetCropKind?.Replace('_', ' ') ?? "household fields"),
+            "repair_equipment" or "repair_tool" => "Repairing " + (order.TargetEquipmentKind?.Replace('_', ' ') ?? "equipment"),
+            "collect_material" => "Collecting " + (order.TargetMaterialKind?.Replace('_', ' ') ?? "materials"),
+            "collect_food" => "Collecting " + (order.TargetFoodKind?.Replace('_', ' ') ?? "food"),
+            "collect_equipment" => "Collecting " + (order.TargetEquipmentKind?.Replace('_', ' ') ?? "equipment"),
+            "collect_goods" => "Collecting " + OrderItemName(order.TargetItemKind),
+            "store_material" => "Storing " + (order.TargetMaterialKind?.Replace('_', ' ') ?? "materials"),
+            "store_equipment" => "Storing " + (order.TargetEquipmentKind?.Replace('_', ' ') ?? "equipment"),
+            "store_goods" => "Storing " + OrderItemName(order.TargetItemKind),
+            "return_borrowed" => "Returning borrowed " + OrderItemName(order.TargetItemKind),
+            "deliver_stock" => "Delivering " + OrderItemName(order.TargetItemKind) + " to " + OrderBuildingName(order.TargetBuildingKind),
+            "construct_building" => "Building " + OrderBuildingName(order.TargetBuildingKind),
+            "expand_building" => "Expanding " + OrderBuildingName(order.TargetBuildingKind),
+            "seek_shelter" => order.TargetBuildingKind == "house" ? "Seeking shelter in their House" : "Seeking shelter",
+            "tend_fire" => order.TargetBuildingKind == "house" ? "Lighting a fire in their House" : "Lighting a fire",
+            "produce_item" => "Making " + (order.TargetOutputKind is { } output
+                ? GameUiText.ItemName(output).ToLowerInvariant() : "goods"),
+            "write_knowledge" => "Writing " + OrderItemName(order.TargetKnowledgeKind),
+            "copy_knowledge" => "Copying " + OrderItemName(order.TargetKnowledgeKind),
+            "seek_food" => "Going to a food site",
+            "move_to" => "Going to a tile",
+            "travel_by_boat" => "Traveling to a Port by boat",
+            "accept_guardianship" => "Becoming a guardian",
+            "load_handcart" => "Loading " + OrderItemName(order.TargetItemKind),
+            "unload_handcart" or "unload_handcart_ground" => "Unloading " + OrderItemName(order.TargetItemKind),
+            "talk_to" => "Talking with the named person",
+            "propose_marriage" => "Proposing marriage to their partner",
+            "attach_handcart" => "Attaching a handcart",
+            "park_handcart" => "Parking a handcart",
+            "repair_handcart" => "Repairing a handcart",
+            "animal_care" => "Caring for an animal",
+            "animal_collect" => "Collecting animal products",
+            "animal_tame" => "Taming an animal",
+            "animal_lead_home" => "Leading an animal home",
+            "animal_saddle" => "Fitting a horse's saddle",
+            "animal_mount" => "Mounting a horse",
+            "animal_dismount" => "Dismounting a horse",
+            _ => "Order",
+        };
+        var units = order.RepeatUntilCancelled
+            ? $" · {order.CompletedUnits} {ProgressUnitLabel(order.ProgressUnit)} so far, repeats until cancelled"
+            : order.Status is "doing" or "interrupted" or "blocked" or "finished"
+                ? $" · {Math.Min(order.CompletedUnits, order.RequestedUnits)}/{order.RequestedUnits} {ProgressUnitLabel(order.ProgressUnit)}"
+                : string.Empty;
+        // Blocked and interrupted orders say why; a cancelled one says if a newer order replaced it.
+        var reason = order.Status is "blocked" or "interrupted" or "cancelled" && !string.IsNullOrWhiteSpace(order.BlockedReason)
+            ? $" · {order.BlockedReason}"
+            : string.Empty;
+        var conversation = order.Action is not ("talk_to" or "propose_marriage") ? string.Empty : " · " + (order.TalkOutcome switch
+        {
+            "married" => "Marriage and surname completed",
+            "proposal_declined" => "Marriage proposal declined",
+            "not_proposed" => "Marriage not proposed",
+            "agreed" => "Conversation completed",
+            "refused" => "Invitation refused",
+            "deadline" => "Invitation expired",
+            "daily_limit" => "Conversation allowance reached",
+            "disagreed" => "Conversation ended without agreement",
+            "withdrawn" => "Conversation ended",
+            "participant_unavailable" => "Person unavailable",
+            _ => order.TalkStatus switch
+            {
+                "surname_ready" or "surname_awaiting_speaker" => "Marriage agreed; choosing a shared surname",
+                "surname_suspended" => "Marriage agreed; surname conversation stopped",
+                "surname_closed" or "surname_pending" => "Marriage agreed; surname remains unfinished",
+                "proposed" => "Invitation awaiting their choice",
+                "ready" or "awaiting_speaker" => "Invitation accepted; talking",
+                "wrap_up" => "Waiting for both people's wrap-up choices",
+                "suspended" => "Stopped; both people must choose to resume",
+                _ => "Attempting an invitation",
+            },
+        });
+        var heard = !includeHeard || instruction.ObservedTick is null ? string.Empty : " · Heard by their personal model";
+        var state = order.Status switch
+        {
+            "queued" => "Queued",
+            "waiting" => "Waiting",
+            "doing" => "Doing",
+            "interrupted" => "Interrupted",
+            "blocked" => "Blocked",
+            "finished" => "Finished",
+            "cancelled" => "Cancelled",
+            "not_understood" => "Not understood",
+            _ => "Waiting",
+        };
+        // The game understood no task in an order it could not act on, so there is none to name.
+        return order.Status == "not_understood" && order.Action == "unknown"
+            ? $"{state}{heard}"
+            : $"{state} · {task}{units}{conversation}{reason}{heard}";
+    }
+
+    private static string OrderItemName(string? kind) => kind switch
+    {
+        null => "goods",
+        "iron" => "refined iron",
+        "tool" => "workshop tool",
+        _ => GameUiText.ItemName(kind).ToLowerInvariant(),
+    };
+
+    private static string ProgressUnitLabel(string unit) => unit switch
+    {
+        "food_items" => "food items",
+        "knowledge_reads" => "items read",
+        "conversations" => "talk attempts completed",
+        "marriage_attempts" => "marriage attempts completed",
+        "material_items" => "items",
+        "equipment_items" => "equipment items",
+        "goods_items" => "items",
+        "output_items" => "items made",
+        "production_batches" => "batches completed",
+        "artifacts" => "items written",
+        "copies" => "copies made",
+        "repairs" => "items repaired",
+        "fields" => "fields completed",
+        "collection_loads" => "loads collected",
+        "storage_loads" => "loads stored",
+        "return_loads" => "loads returned",
+        "delivery_loads" => "loads delivered",
+        "buildings" => "buildings finished",
+        "expansions" => "expansions finished",
+        "shelters" => "shelters reached",
+        "fires" => "fires lit",
+        "arrivals" => "sites reached",
+        "harvests" => "harvest batches",
+        "guardianships" => "care assignments",
+        "cart_tasks" => "cart tasks completed",
+        "animal_tasks" => "animal tasks completed",
+        _ => unit,
+    };
+
+    private static string OrderBuildingName(string? kind) => kind switch
+    {
+        "house" => "House",
+        "farmhouse" => "Farmhouse",
+        "silo" => "Silo",
+        "blacksmith" => "Blacksmith",
+        "tailor" => "Tailor Shop",
+        "clinic" => "Clinic",
+        "store" => "Store",
+        "warehouse" => "Town Warehouse",
+        _ => "the requested building",
+    };
 }

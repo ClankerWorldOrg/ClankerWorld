@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -203,16 +204,16 @@ public partial class Main
         BuildAgentCards();
         BuildBuildingCards();
 
-        worldOverview.CenterRequested += tileCenter => CenterKeyboardCameraAt(tileCenter, immediately: true);
+        worldMapAtlas.CenterRequested += tileCenter => CenterKeyboardCameraAt(tileCenter, immediately: true);
         var overviewBody = new VBoxContainer();
         overviewBody.AddThemeConstantOverride("separation", 6);
-        overviewBody.AddChild(worldOverview);
+        overviewBody.AddChild(worldMapAtlas);
         overviewBody.AddChild(OverviewLegend());
-        AddClosablePanelContents(worldOverviewPanel, "World Map", overviewBody);
-        worldOverviewPanel.Position = new Vector2(14, 14);
-        worldOverviewPanel.ZIndex = 80;
-        worldOverviewPanel.Hide();
-        uiLayer.AddChild(worldOverviewPanel);
+        AddClosablePanelContents(worldMapPanel, "World Map", overviewBody);
+        worldMapPanel.Position = new Vector2(14, 14);
+        worldMapPanel.ZIndex = 80;
+        worldMapPanel.Hide();
+        uiLayer.AddChild(worldMapPanel);
         mapCanvas.GuiInput += HandleMapInput;
         mapCanvas.FocusMode = FocusModeEnum.All;
         mapCanvas.FocusEntered += BeginKeyboardMapSelection;
@@ -234,36 +235,36 @@ public partial class Main
     private void BuildInspectorColumn(Control content)
     {
         BuildMapFiltersPanel(content);
-        var rosterBody = new VBoxContainer();
-        rosterBody.AddThemeConstantOverride("separation", 6);
-        rosterSummaryLabel.Text = "Waiting for the world...";
-        rosterSummaryLabel.ThemeTypeVariation = "DimLabel";
-        rosterSummaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        rosterBody.AddChild(rosterSummaryLabel);
+        var agentsBody = new VBoxContainer();
+        agentsBody.AddThemeConstantOverride("separation", 6);
+        agentsSummaryLabel.Text = "Waiting for the world...";
+        agentsSummaryLabel.ThemeTypeVariation = "DimLabel";
+        agentsSummaryLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        agentsBody.AddChild(agentsSummaryLabel);
 
-        inhabitantList.CustomMinimumSize = new Vector2(380, 40);
-        inhabitantList.ItemSelected += index => SelectInhabitantFromList(index);
-        inhabitantList.TooltipText = "Choose someone to find them in the world.";
-        rosterBody.AddChild(inhabitantList);
-        BuildRosterCards(rosterBody);
-        AddClosablePanelContents(rosterPanel, "Agents", rosterBody);
-        rosterPanel.CustomMinimumSize = new Vector2(410, 0);
-        rosterPanel.ZIndex = 80;
-        rosterPanel.Hide();
-        content.AddChild(rosterPanel);
+        agentList.CustomMinimumSize = new Vector2(380, 40);
+        agentList.ItemSelected += index => SelectInhabitantFromList(index);
+        agentList.TooltipText = "Choose someone to find them in the world.";
+        agentsBody.AddChild(agentList);
+        BuildAgentListCards(agentsBody);
+        AddClosablePanelContents(agentsPanel, "Agents", agentsBody);
+        agentsPanel.CustomMinimumSize = new Vector2(410, 0);
+        agentsPanel.ZIndex = 80;
+        agentsPanel.Hide();
+        content.AddChild(agentsPanel);
 
         ConfigureTextPanel(eventLog, 300);
         eventLog.MetaClicked += meta => _ = HandleEventLogActionAsync(meta.AsString());
         eventLog.TooltipText = "Click a located event to jump to where it happened.";
-        var eventsBody = new VBoxContainer();
+        var eventLogBody = new VBoxContainer();
         eventLog.Hide();
-        eventsBody.AddChild(eventLog);
-        BuildEventRows(eventsBody);
-        AddClosablePanelContents(eventsPanel, "Event Log", eventsBody);
-        eventsPanel.CustomMinimumSize = new Vector2(430, 0);
-        eventsPanel.ZIndex = 80;
-        eventsPanel.Hide();
-        content.AddChild(eventsPanel);
+        eventLogBody.AddChild(eventLog);
+        BuildEventRows(eventLogBody);
+        AddClosablePanelContents(eventLogPanel, "Event Log", eventLogBody);
+        eventLogPanel.CustomMinimumSize = new Vector2(430, 0);
+        eventLogPanel.ZIndex = 80;
+        eventLogPanel.Hide();
+        content.AddChild(eventLogPanel);
 
         var familyBody = new VBoxContainer();
         familyBody.AddThemeConstantOverride("separation", 8);
@@ -341,7 +342,7 @@ public partial class Main
         menuCloseButton.Pressed += () =>
         {
             if (PauseMenuPageOpen) ShowPauseMenuButtons();
-            else _ = CloseGameMenuAsync();
+            else _ = ClosePauseMenuAsync();
         };
         menuHeading.AddChild(menuCloseButton);
         body.AddChild(menuHeading);
@@ -349,7 +350,7 @@ public partial class Main
         menuActions.AddThemeConstantOverride("separation", 6);
         menuResumeButton.Text = "Resume";
         StyleMenuChoice(menuResumeButton, primary: true);
-        menuResumeButton.Pressed += () => _ = CloseGameMenuAsync();
+        menuResumeButton.Pressed += () => _ = ClosePauseMenuAsync();
         menuResumeButton.Hide();
         menuActions.AddChild(menuResumeButton);
 
@@ -442,8 +443,8 @@ public partial class Main
 
         BuildRoutineHelperSettings();
 
-        BuildCognitionSettingsPanel();
-        worldSettingsContent.AddChild(cognitionSettingsPanel);
+        BuildAgentModelPanel();
+        worldSettingsContent.AddChild(agentModelPanel);
 
         BuildApiKeysPanel();
         // One call count and limit covers every world, so it is a Game setting.
@@ -488,9 +489,9 @@ public partial class Main
         body.AddChild(settingsPanel);
         BuildModLibrary(body);
 
-        AddPanelContents(gameMenuPanel, body);
-        gameMenuPanel.ZIndex = 100;
-        gameMenuPanel.Hide();
+        AddPanelContents(pauseMenuPanel, body);
+        pauseMenuPanel.ZIndex = 100;
+        pauseMenuPanel.Hide();
         var menuCenter = new CenterContainer
         {
             MouseFilter = Control.MouseFilterEnum.Ignore,
@@ -498,7 +499,7 @@ public partial class Main
         };
         menuCenter.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         content.AddChild(menuCenter);
-        menuCenter.AddChild(gameMenuPanel);
+        menuCenter.AddChild(pauseMenuPanel);
     }
 
     private void BuildStatusToast(Control content)
@@ -522,8 +523,6 @@ public partial class Main
         statusToast.Hide();
         content.AddChild(statusToast);
     }
-
-    private string SelectedAuthoringKind() => authoringKind.GetItemText(authoringKind.Selected);
 
     private static string? EmptyToNull(string value)
     {

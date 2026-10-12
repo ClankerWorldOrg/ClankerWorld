@@ -40,7 +40,7 @@ public sealed partial class ServerHttpTests
             const string endpoint = "/api/v1/owner/providers/slots/create";
             var payload = OwnerHttpBinding.CredentialSlotCreationPayload(action);
             Assert.DoesNotContain(secret, payload, StringComparison.Ordinal);
-            Assert.Equal(payload, ClankerWorld.GodotClient.UI.OwnerWorldActionPayload.CredentialSlotCreation(
+            Assert.Equal(payload, ClankerWorld.GodotClient.Protocol.OwnerWorldActionPayload.CredentialSlotCreation(
                 new(action.CredentialSlotId, provider, action.Label, secret)));
             foreach (var changed in new[]
             {
@@ -57,7 +57,7 @@ public sealed partial class ServerHttpTests
             }
             var identity = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
             using var signer = new SettingsKeySigner(key);
-            var api = new ClankerWorld.GodotClient.UI.OwnerWorldApi(client);
+            var api = new ClankerWorld.GodotClient.Networking.OwnerWorldApi(client);
             var savedStatus = await api.CreateCredentialSlotAsync(client.BaseAddress!,
                 new(identity.ServerAuthorityId, identity.WorldId), device.DeviceId,
                 new(action.CredentialSlotId, provider, action.Label, secret), signer, CancellationToken.None);

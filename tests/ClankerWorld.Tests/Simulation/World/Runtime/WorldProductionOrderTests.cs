@@ -71,7 +71,7 @@ public sealed class WorldProductionOrderTests
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Order!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldInstructionOrder>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal(("sack", "output_items", 2, 2),
             (client.TargetOutputKind, client.ProgressUnit, client.RequestedUnits, client.CompletedUnits));

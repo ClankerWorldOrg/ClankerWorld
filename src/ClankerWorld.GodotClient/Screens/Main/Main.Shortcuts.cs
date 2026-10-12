@@ -1,4 +1,7 @@
+using ClankerWorld.GodotClient.Protocol;
+using ClankerWorld.GodotClient.UI;
 using Godot;
+using System.Globalization;
 
 namespace ClankerWorld.GodotClient;
 
@@ -11,6 +14,47 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     private readonly PanelContainer controlsPanel = new();
+
+    private static readonly (string Section, bool Right, (string[] Keys, string Action)[] Rows)[] ControlGroups =
+    [
+        ("Map", false, [
+            (["W", "A", "S", "D"], "Move the map (or the arrows)"),
+            (["+", "−"], "Zoom in or out"),
+            (["H"], "Back to the first Town"),
+            (["M"], "World Map"),
+            (["K"], "Focus a tile: arrows move, Enter selects"),
+        ]),
+        ("Time and agents", false, [
+            (["Space"], "Pause or resume (or P)"),
+            (["N"], "Next agent"),
+            (["Shift", "N"], "Previous agent"),
+            (["C"], "Center on the selected agent"),
+        ]),
+        ("Mouse", true, [
+            (["Click"], "Select an agent or inspect a tile"),
+            (["Wheel"], "Zoom toward the pointer"),
+            (["Middle-drag"], "Move the map"),
+        ]),
+        ("Keyboard focus", false, [
+            (["Tab"], "Next control"),
+            (["Shift", "Tab"], "Previous control"),
+            (["Enter"], "Use the focused control"),
+        ]),
+        ("Panels", true, [
+            (["F"], "Map filters"),
+            (["I"], "World Info"),
+            (["T"], "Towns"),
+            (["R"], "Agents"),
+            (["E"], "Event Log"),
+            (["F12"], "Developer tools"),
+            (["F1"], "This list (or ?)"),
+            (["Esc"], "Close a panel, or open the Pause Menu"),
+        ]),
+    ];
+
+    /// <summary>The controls list's two columns of grouped keycaps.</summary>
+    private readonly HBoxContainer controlsColumns = new();
+    private string? renderedControlsTheme;
 
     private void BuildControlsPanel(Control content) => BuildControlsGroups(content);
 
@@ -33,7 +77,7 @@ public partial class Main
         NoMenuOverWorld() && GetViewport().GuiGetFocusOwner() is not (LineEdit or TextEdit);
 
     private bool NoMenuOverWorld() =>
-        isInWorld && !mainMenuOverlay.Visible && !gameMenuPanel.Visible && !topBarShade.Visible &&
+        isInWorld && !mainMenuOverlay.Visible && !pauseMenuPanel.Visible && !topBarShade.Visible &&
         !worldMenuOverlay.Visible && !manualSaveOverlay.Visible;
 
     /// <summary>
@@ -88,13 +132,13 @@ public partial class Main
                 PressTopBarAction(worldInfoButton);
                 return true;
             case Key.R:
-                PressTopBarAction(inhabitantsButton);
+                PressTopBarAction(agentsButton);
                 return true;
             case Key.T:
                 ToggleTowns();
                 return true;
             case Key.E:
-                PressTopBarAction(eventsButton);
+                PressTopBarAction(eventLogButton);
                 return true;
             case Key.N:
                 CycleSelectedAgent(key.ShiftPressed ? -1 : 1);
@@ -165,5 +209,63 @@ public partial class Main
         cameraZoomTo = nextZoom;
         cameraZoomElapsed = 0;
         cameraZooming = Math.Abs(cameraZoomTo - cameraZoomFrom) > 0.001f;
+    }
+
+    private void BuildControlsGroups(Control content)
+    {
+        controlsColumns.AddThemeConstantOverride("separation", 24);
+        FillControlsGroups();
+        AddClosablePanelContents(controlsPanel, "Controls", controlsColumns);
+        controlsPanel.ZIndex = 85;
+        controlsPanel.Resized += PositionControlsPanel;
+        controlsPanel.Hide();
+        content.AddChild(controlsPanel);
+    }
+
+    /// <summary>The keycaps carry the theme's button colours, so the list is redrawn when the theme changes.</summary>
+    private void FillControlsGroups()
+    {
+        if (renderedControlsTheme == UiTheme.Current.Name) return;
+        renderedControlsTheme = UiTheme.Current.Name;
+        foreach (var child in controlsColumns.GetChildren())
+        {
+            controlsColumns.RemoveChild(child);
+            child.QueueFree();
+        }
+        var columns = controlsColumns;
+        VBoxContainer Column()
+        {
+            var column = new VBoxContainer { SizeFlagsVertical = Control.SizeFlags.ShrinkBegin };
+            column.AddThemeConstantOverride("separation", 4);
+            columns.AddChild(column);
+            return column;
+        }
+        var left = Column();
+        var right = Column();
+        foreach (var (section, onRight, rows) in ControlGroups)
+        {
+            var column = onRight ? right : left;
+            if (column.GetChildCount() > 0) column.AddChild(new Control { CustomMinimumSize = new Vector2(0, 6) });
+            column.AddChild(new Label { Text = section.ToUpperInvariant(), ThemeTypeVariation = "SectionLabel" });
+            var grid = new GridContainer { Columns = 2 };
+            grid.AddThemeConstantOverride("h_separation", 12);
+            grid.AddThemeConstantOverride("v_separation", 4);
+            foreach (var (keys, action) in rows)
+            {
+                // F12 does nothing outside Developer mode, so the list doesn't offer it.
+                if (keys is ["F12"] && !DeveloperMode) continue;
+                var caps = new HBoxContainer();
+                caps.AddThemeConstantOverride("separation", 3);
+                for (var index = 0; index < keys.Length; index++)
+                {
+                    if (index > 0 && keys[index - 1] == "Shift")
+                        caps.AddChild(new Label { Text = "+", ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+                    caps.AddChild(Keycap(keys[index]));
+                }
+                grid.AddChild(caps);
+                grid.AddChild(new Label { Text = action, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+            }
+            column.AddChild(grid);
+        }
     }
 }

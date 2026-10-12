@@ -2,6 +2,7 @@ using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Launcher;
 using Godot;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using System.Globalization;
 
 namespace ClankerWorld.GodotClient;
@@ -53,7 +54,7 @@ public partial class Main
     private readonly OptionButton worldClimateFamilyChoice = new();
     private readonly CheckBox worldWrapChoice = new();
     private readonly CheckBox worldLatitudeChoice = new();
-    private readonly WorldOverview worldPreview = new();
+    private readonly WorldMapAtlas worldPreview = new();
     private readonly Label worldPreviewStatus = new();
     private readonly CheckBox worldAcceptUnmetTargets = new();
     private readonly Button worldPreviewButton = new();
@@ -167,7 +168,7 @@ public partial class Main
         mainMenuLogo.Show();
         startupRecoveryCard.Hide();
         menuShade.ZIndex = 90;
-        gameMenuPanel.ZIndex = 100;
+        pauseMenuPanel.ZIndex = 100;
         mainMenuOverlay.Show();
         RefreshMainMenuAvailability();
     }
@@ -252,15 +253,15 @@ public partial class Main
         mainMenuBackground.MouseFilter = MouseFilterEnum.Ignore;
         mainMenuCenter.MouseFilter = MouseFilterEnum.Ignore;
         menuShade.ZIndex = 190;
-        gameMenuPanel.ZIndex = 200;
+        pauseMenuPanel.ZIndex = 200;
         menuHeadingLabel.Text = "Settings";
         StyleIconButton(menuCloseButton, PixelGlyph.Back);
         menuCloseButton.TooltipText = "Back to Main Menu";
         SetWorldMenuActionsVisible(false);
         menuResumeButton.Hide();
-        gameMenuPanel.Show();
-        var panelIndex = keyboardPanels.FindLastIndex(item => item.Panel == gameMenuPanel);
-        if (panelIndex >= 0) keyboardPanels[panelIndex] = (gameMenuPanel, keyboardOpener);
+        pauseMenuPanel.Show();
+        var panelIndex = keyboardPanels.FindLastIndex(item => item.Panel == pauseMenuPanel);
+        if (panelIndex >= 0) keyboardPanels[panelIndex] = (pauseMenuPanel, keyboardOpener);
         menuShade.Show();
         ShowSettingsSection(worldSpecific: false);
         ApplyResponsiveLayout();
@@ -294,10 +295,10 @@ public partial class Main
                     return;
                 }
                 // The owner may have closed the menu while this request waited.
-                if (!gameMenuPanel.Visible) return;
+                if (!pauseMenuPanel.Visible) return;
             }
             resumeWorldOnContinue = menuPausedWorld;
-            CloseGameMenu();
+            ClosePauseMenu();
             ShowMainMenu();
         }
         finally { isQuittingToMenu = false; }
@@ -708,7 +709,7 @@ public partial class Main
             return null;
         try
         {
-            return WorldOverview.Thumbnail(WorldTerrainMap.FromPacked(
+            return WorldMapAtlas.Thumbnail(WorldTerrainMap.FromPacked(
                 new OwnerWorldPackedTerrain(thumbnail.Width, thumbnail.Height, thumbnail.Encoding, thumbnail.Data)));
         }
         catch (Exception exception) when (exception is InvalidDataException or FormatException or OverflowException)

@@ -7,6 +7,7 @@ using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
 using Client = ClankerWorld.GodotClient.UI;
+using ClientProtocol = ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.Tests;
 
@@ -67,7 +68,7 @@ public sealed partial class PortBoatRuntimeTests
             scenario.World.WorldSimulation.Buildings.Single(port => port.InstanceId == boat.Journey.DestinationPortId).Position).DockingTiles);
         var snapshot = new OwnerWorldObservationStore(scenario.World).GetSnapshot();
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<Client.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
+        var client = JsonSerializer.Deserialize<ClientProtocol.OwnerWorldSnapshot>(JsonSerializer.Serialize(snapshot, options), options)!;
         var displayed = Assert.Single(client.Boats);
         Assert.Equal((boat.Id, boat.TownId, boat.Position.X, boat.Position.Y, traveler),
             (displayed.Id, displayed.TownId, displayed.Position.X, displayed.Position.Y, displayed.PassengerId));

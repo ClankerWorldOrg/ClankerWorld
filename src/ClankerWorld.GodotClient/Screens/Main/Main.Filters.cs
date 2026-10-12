@@ -1,4 +1,4 @@
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ClankerWorld.GodotClient;
@@ -57,8 +57,8 @@ public partial class Main
     private void ToggleMapFilters()
     {
         var show = !filtersPanel.Visible;
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         familyTreePanel.Hide();
         filtersPanel.Visible = show;
     }

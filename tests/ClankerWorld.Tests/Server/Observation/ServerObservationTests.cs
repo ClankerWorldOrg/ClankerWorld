@@ -20,7 +20,7 @@ public sealed class ServerObservationTests
         Assert.NotNull(initial.PackedMapLayers);
         Assert.Equal(MapLayerManifestCodec.Digest(runtime.ExportState().Map), initial.MapLayersDigest);
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
+        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(initial, options), options)!;
         Assert.Equal(initial.PackedMapLayers!.Width, client.PackedMapLayers!.Width);
         Assert.Equal(initial.PackedMapLayers.Height, client.PackedMapLayers.Height);
@@ -55,7 +55,7 @@ public sealed class ServerObservationTests
         using var runtime = new WorldRuntime("night-projection");
         var store = new OwnerWorldObservationStore(runtime);
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        int? ClientDarkness() => System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
+        int? ClientDarkness() => System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(store.GetSnapshot(), options), options)!.DarknessBasisPoints;
 
         // A world's clock starts at midnight.
@@ -75,7 +75,7 @@ public sealed class ServerObservationTests
         using var runtime = new WorldRuntime("ecology-projection");
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
         var options = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web);
-        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
+        var client = System.Text.Json.JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             System.Text.Json.JsonSerializer.Serialize(snapshot, options), options)!;
         foreach (var resource in runtime.WorldSystems.Ecology.Resources)
         {
@@ -113,7 +113,7 @@ public sealed class ServerObservationTests
         var beforeInspection = WorldRuntimeCodec.Encode(runtime.ExportState());
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldSnapshot>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.Protocol.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
         var displayedJob = Assert.Single(client.ProductionJobs);
         Assert.Equal("Mill grain into flour", displayedJob.Recipe!.Name);
