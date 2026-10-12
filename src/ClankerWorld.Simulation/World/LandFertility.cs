@@ -1,16 +1,14 @@
-using ClankerWorld.Simulation.Harness;
-
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>Seeded land fertility; it needs no saved value per tile. Numbers are provisional.</summary>
 public sealed class LandFertility
 {
-    private readonly SeededMap map;
+    private readonly WorldMap map;
     private readonly TerrainKind[] terrain;
     private readonly Func<int, int, float> rainfall;
     private readonly string rainfallSeed;
 
-    public LandFertility(SeededMap map, string worldSeed)
+    public LandFertility(WorldMap map, string worldSeed)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentException.ThrowIfNullOrWhiteSpace(worldSeed);

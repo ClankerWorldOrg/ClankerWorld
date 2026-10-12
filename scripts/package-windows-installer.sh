@@ -73,7 +73,7 @@ for files in "${game_files}" "${launcher_files}"; do
     (cd "${files}" && sha256sum --check --quiet --strict manifest.sha256)
 done
 test -f "${game_files}/ClankerWorld.exe"
-test -f "${game_files}/host/ClankerWorld.Viewer.exe"
+test -f "${game_files}/server/ClankerWorld.Server.exe"
 test -f "${launcher_files}/ClankerWorldLauncher.exe"
 staged_repo_root="${scratch_root}/repository"
 mkdir -p "${staged_repo_root}"

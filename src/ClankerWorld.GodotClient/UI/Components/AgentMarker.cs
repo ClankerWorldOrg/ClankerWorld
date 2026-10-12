@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ClankerWorld.GodotClient.UI;
@@ -52,7 +53,7 @@ public partial class AgentMarker : Control
     // Talking with someone: offers, answers, lessons and shared knowledge.
     private static readonly string[] ConversationIntentions =
     [
-        "child_converse:", "child_learn:", "knowledge_share:", "trade_", "partner_", "parent_", "council_", "learn:",
+        "child_converse:", "child_learn:", "knowledge_share:", "trade_", "partner_", "parent_", "food_policy_", "learn:",
         "lesson_", "guardian_offer:", "guardian_accept:", "guardian_refuse:", "guardian_end:",
     ];
 
@@ -262,17 +263,17 @@ public partial class AgentMarker : Control
     /// carries: illness, the current intention, carried goods and the stage of
     /// their project. Anything not recognized shows the still frame.
     /// </summary>
-    public static AgentFrame ActivityFor(OwnerWorldInhabitant inhabitant)
+    public static AgentFrame ActivityFor(OwnerWorldAgent agent)
     {
-        if (inhabitant.Survival?.IllnessBasisPoints >= HurtIllnessBasisPoints) return AgentFrame.Hurt;
-        var intention = inhabitant.PublicIntention?.CandidateId ?? string.Empty;
+        if (agent.Survival?.IllnessBasisPoints >= HurtIllnessBasisPoints) return AgentFrame.Hurt;
+        var intention = agent.PublicIntention?.CandidateId ?? string.Empty;
         if (Matches(intention, HaulingIntentions) &&
-            inhabitant.Inventory.Any(item => item.Quantity > 0 && !EquipmentKinds.Contains(item.Kind)))
+            agent.Inventory.Any(item => item.Quantity > 0 && !EquipmentKinds.Contains(item.Kind)))
             return AgentFrame.Carry;
         if (Matches(intention, ConversationIntentions)) return AgentFrame.Talk;
         if (Matches(intention, WorkIntentions) ||
             (intention.StartsWith("build:", StringComparison.Ordinal) &&
-             string.Equals(inhabitant.Project?.Stage, "working", StringComparison.Ordinal)))
+             string.Equals(agent.Project?.Stage, "working", StringComparison.Ordinal)))
             return AgentFrame.Work;
         return AgentFrame.Still;
     }

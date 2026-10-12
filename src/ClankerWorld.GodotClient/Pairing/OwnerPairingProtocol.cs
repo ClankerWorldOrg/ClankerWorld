@@ -243,7 +243,7 @@ public static class OwnerPairingProtocol
         // This binding is deliberately not made with CreateCanonicalDocument:
         // payload-sha256 is already an encoded digest, whereas the other
         // fields are UTF-8 values that must be base64url encoded exactly once.
-        // Keep this byte-for-byte aligned with Viewer.Control.OwnerHttpBinding.
+        // Keep this byte-for-byte aligned with Server.Control.OwnerHttpBinding.
         return string.Join(
             '\n',
             HttpActionBindingDomain,

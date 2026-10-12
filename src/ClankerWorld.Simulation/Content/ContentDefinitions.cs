@@ -265,7 +265,7 @@ public sealed class RecipeDefinition
 
 /// <summary>
 /// The small declarative world-content projection that can later be composed
-/// into the private runtime. It contains definitions only; activation and
+/// into the world runtime. It contains definitions only; activation and
 /// simulation behavior remain outside this bounded lane.
 /// </summary>
 [JsonConverter(typeof(DeclarativeWorldContentStateJsonConverter))]

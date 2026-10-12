@@ -242,7 +242,7 @@ static class Baseline
         var menu = new List<Entry>();
         foreach (var night in new[] { false, true })
         {
-            var scene = MenuScene.Create(night);
+            var scene = MenuValleyArt.Create(night);
             var composed = scene.Sky.Duplicate();
             Sheet.Blend(composed, scene.Land, 0, 0);
             foreach (var cloud in scene.Clouds) Sheet.Blend(composed, cloud.Image, (int)cloud.X, (int)cloud.Y);

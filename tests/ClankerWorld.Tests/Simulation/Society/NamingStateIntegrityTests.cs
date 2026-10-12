@@ -1,0 +1,183 @@
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
+using ClankerWorld.Server.Saves;
+
+namespace ClankerWorld.Tests;
+
+public sealed class NamingStateIntegrityTests
+{
+    private const string FirstFounder = "founder:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    private const string SecondFounder = "founder:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ChosenFirstNamesRemainUniqueInSocietyIncludingDeceasedPeople(bool deceased)
+    {
+        var state = SocietyRules.CreateGenesis("chosen-first-integrity",
+            [SocietyRules.CreateFounder("first", "Élodie Vale"), SocietyRules.CreateFounder("second", "Maia Lake")]);
+        if (deceased) state = SocietyRules.Kill(state, "first", SocietyDeathCause.Accident).Checkpoint;
+        var before = SocietyCheckpointCodec.Encode(state);
+        Assert.Throws<AgentNameTakenException>(() =>
+            SocietyRules.RenameAgent(state, "second", "e\u0301LODIE\u00a0Ridge"));
+        Assert.Equal(before, SocietyCheckpointCodec.Encode(state));
+
+        var corrupt = state with
+        {
+            Agents = state.Agents.Select(person => person.Id == "second"
+                ? person with { Name = "e\u0301LODIE\u00a0Ridge" } : person).ToArray(),
+        };
+        Assert.Throws<InvalidDataException>(() => SocietyRules.Validate(corrupt));
+        Assert.Throws<InvalidDataException>(() => SocietyCheckpointCodec.Encode(corrupt));
+        var document = JsonNode.Parse(before)!;
+        document["checkpoint"]!["agents"]!.AsArray()
+            .Single(person => person!["id"]!.GetValue<string>() == "second")!["name"] = "e\u0301LODIE\u00a0Ridge";
+        Assert.Throws<InvalidDataException>(() => SocietyCheckpointCodec.Decode(Encoding.UTF8.GetBytes(document.ToJsonString())));
+
+        var legal = SocietyRules.RenameAgent(state, "second", "Maia Grove").Checkpoint;
+        Assert.Equal("Maia Grove", SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(legal)).GetAgent("second").Name);
+        Assert.Equal(deceased ? SocietyAgentStatus.Dead : SocietyAgentStatus.Active,
+            legal.GetAgent("first").Status);
+    }
+
+    [Fact]
+    public void ClosingNamingKeepsAPlaceholderFreeUntilItsTextIsDeliberatelyChosen()
+    {
+        var state = SocietyRules.CreateGenesis("closed-placeholder",
+            [Placeholder("first"), Placeholder("second")]);
+        state = SocietyRules.CloseNaming(state, "first").Checkpoint;
+        state = SocietyRules.CloseNaming(state, "second").Checkpoint;
+        Assert.All(state.Agents, person =>
+        {
+            Assert.False(person.NeedsName);
+            Assert.False(person.HasChosenName);
+        });
+        state = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(state));
+        state = SocietyRules.RenameAgent(state, "first", "New agent").Checkpoint;
+        Assert.True(state.GetAgent("first").HasChosenName);
+        Assert.False(state.GetAgent("second").HasChosenName);
+        state = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(state));
+        Assert.Throws<AgentNameTakenException>(() => SocietyRules.RenameAgent(state, "second", "NEW Lake"));
+        var renamed = SocietyRules.RenameAgent(state, "first", "New Vale").Checkpoint;
+        Assert.True(renamed.GetAgent("first").HasChosenName);
+        Assert.Equal("New agent", renamed.GetAgent("second").Name);
+    }
+
+    [Fact]
+    public void WorldRejectsDuplicateChosenFirstNamesBeforeRestoreOrSerialization()
+    {
+        using var world = NamedWorld();
+        var state = world.ExportState();
+        var corrupt = state with
+        {
+            Society = state.Society with
+            {
+                Society = state.Society.Society with
+                {
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == SecondFounder
+                        ? person with { Name = "ÉLODIE Grove" } : person).ToArray(),
+                },
+            },
+        };
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(corrupt));
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(corrupt));
+        var document = JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
+        document["state"]!["society"]!["society"]!["agents"]!.AsArray()
+            .Single(person => person!["id"]!.GetValue<string>() == SecondFounder)!["name"] = "ÉLODIE Grove";
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(Encoding.UTF8.GetBytes(document.ToJsonString())));
+        world.Validate();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MissingChosenStateAndPreviousPrivateSchemaRefuseWithoutReplacingTheFile(bool previousSchema)
+    {
+        using var world = NamedWorld();
+        var document = JsonNode.Parse(WorldRuntimeCodec.Encode(world.ExportState()))!;
+        if (previousSchema) document["state"]!["schemaVersion"] = WorldRuntime.StateSchemaVersion - 1;
+        else
+        {
+            foreach (var person in document["state"]!["society"]!["society"]!["agents"]!.AsArray())
+                Assert.True(person!.AsObject().Remove("hasChosenName"));
+        }
+        var bytes = Encoding.UTF8.GetBytes(document.ToJsonString());
+        var directory = Directory.CreateTempSubdirectory("chosen-name-schema-");
+        try
+        {
+            var path = Path.Combine(directory.FullName, "world.json");
+            File.WriteAllBytes(path, bytes);
+            Assert.Throws<InvalidDataException>(() => new WorldStateFile(path).LoadOrCreate(world.ExportState().WorldSeed));
+            Assert.Equal(bytes, File.ReadAllBytes(path));
+            Assert.Equal([path], Directory.GetFiles(directory.FullName));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public void StandaloneSocietyRequiresExplicitChosenStateAndRefusesItsPreviousEnvelope()
+    {
+        var society = SocietyRules.CreateGenesis("chosen-society-format", [Placeholder("first")]);
+        var current = SocietyCheckpointCodec.Encode(society);
+        var missing = JsonNode.Parse(current)!;
+        Assert.True(missing["checkpoint"]!["agents"]![0]!.AsObject().Remove("hasChosenName"));
+        var error = Record.Exception(() => SocietyCheckpointCodec.Decode(Encoding.UTF8.GetBytes(missing.ToJsonString())));
+        Assert.True(error is InvalidDataException or JsonException, error?.ToString() ?? "The chosen-name distinction must be required.");
+
+        var old = JsonNode.Parse(current)!;
+        old["format"] = "clankerworld.society/v1";
+        Assert.Throws<InvalidDataException>(() => SocietyCheckpointCodec.Decode(Encoding.UTF8.GetBytes(old.ToJsonString())));
+        Assert.Equal(current, SocietyCheckpointCodec.Encode(SocietyCheckpointCodec.Decode(current)));
+    }
+
+    [Fact]
+    public void SocietyRuntimePreservesChosenStateAndRefusesItsPreviousEnvelopeAndSchema()
+    {
+        var society = SocietyRules.CreateGenesis("chosen-runtime-format",
+            [SocietyRules.CreateFounder("first", "Élodie Vale"), Placeholder("second")]);
+        society = SocietyRules.CloseNaming(society, "second").Checkpoint;
+        using var runtime = new SocietyRuntime(society);
+        var state = runtime.ExportState();
+        var current = SocietyRuntimeCodec.Encode(state);
+        var decoded = SocietyRuntimeCodec.Decode(current);
+        using var restored = SocietyRuntime.Restore(decoded);
+        Assert.Equal(current, SocietyRuntimeCodec.Encode(restored.ExportState()));
+        Assert.True(restored.Checkpoint.GetAgent("first").HasChosenName);
+        Assert.False(restored.Checkpoint.GetAgent("second").HasChosenName);
+        Assert.False(restored.Checkpoint.GetAgent("second").NeedsName);
+
+        var oldHeader = JsonNode.Parse(current)!;
+        oldHeader["format"] = "clankerworld.society-runtime/v1";
+        Assert.Throws<InvalidDataException>(() => SocietyRuntimeCodec.Decode(Encoding.UTF8.GetBytes(oldHeader.ToJsonString())));
+
+        var oldState = state with { SchemaVersion = SocietyRuntime.StateSchemaVersion - 1 };
+        Assert.Throws<InvalidDataException>(() => SocietyRuntime.Restore(oldState));
+        Assert.Throws<InvalidDataException>(() => SocietyRuntimeCodec.Encode(oldState));
+        var oldSchema = JsonNode.Parse(current)!;
+        oldSchema["state"]!["schemaVersion"] = oldState.SchemaVersion;
+        Assert.Throws<InvalidDataException>(() => SocietyRuntimeCodec.Decode(Encoding.UTF8.GetBytes(oldSchema.ToJsonString())));
+
+        var missing = JsonNode.Parse(current)!;
+        Assert.True(missing["state"]!["society"]!["agents"]![0]!.AsObject().Remove("hasChosenName"));
+        Assert.Throws<JsonException>(() => SocietyRuntimeCodec.Decode(Encoding.UTF8.GetBytes(missing.ToJsonString())));
+    }
+
+    private static SocietyAgent Placeholder(string id) => SocietyRules.CreateFounder(id, "New agent") with
+    {
+        NeedsName = true,
+        HasChosenName = false,
+    };
+
+    private static WorldRuntime NamedWorld()
+    {
+        var world = new WorldRuntime("chosen-state-integrity", startPace: WorldStartPace.FounderSetup);
+        world.PlaceFounder(FirstFounder, new GridPoint(0, 0));
+        world.PlaceFounder(SecondFounder, new GridPoint(1, 2));
+        Assert.True(world.RenameAgent(FirstFounder, "Élodie Vale"));
+        Assert.True(world.RenameAgent(SecondFounder, "Maia Lake"));
+        return world;
+    }
+}

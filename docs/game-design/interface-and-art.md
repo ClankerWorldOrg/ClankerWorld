@@ -263,7 +263,7 @@ everything that is available in the current build. See [what works today](../wha
     - Save names sit in small tags below the line, or above it when the space
       below is taken. The chosen save's tag turns orange, with corner marks
       around its point.
-    - **You are here** is an orange camp marker at the end of a dotted line.
+    - **You are here** is an orange marker with a person at the end of a dotted line.
     - The row above the timeline holds a key to the points (newest on its
       branch, save, autosave) beside the switch, instead of a line of counts.
     - **Agreed later on October 2:** Save World shows the same timeline under

@@ -2,7 +2,7 @@ using Godot;
 
 namespace ClankerWorld.GodotClient.UI;
 
-/// <summary>Visual family of a placed building or legacy camp object.</summary>
+/// <summary>Visual family of a placed building or map object.</summary>
 public enum BuildingKind : byte
 {
     House,
@@ -68,7 +68,7 @@ public readonly record struct BuildingDoor(DoorSide Side, int? Tile = null)
 /// ridge follows its long side, and a door or doorstep marks the side the
 /// building faces its Road from. Every current kind uses the drawing the
 /// owner approved in the art review (<see cref="ApprovedArt"/>); only the
-/// retired camp objects keep their earlier provisional drawing.
+/// map objects keep their earlier provisional drawing.
 /// </summary>
 public static partial class BuildingSprites
 {
@@ -101,10 +101,10 @@ public static partial class BuildingSprites
         return BuildingKind.Generic;
     }
 
-    /// <summary>Legacy camp objects that have a building look; others keep their text marker.</summary>
+    /// <summary>Map objects that have a building look; others keep their text marker.</summary>
     public static BuildingKind? KindForObject(string kind) => kind switch
     {
-        "campfire" or "cooking" => BuildingKind.Hearth,
+        "cooking" => BuildingKind.Hearth,
         "path" => BuildingKind.Path,
         "bedroll" => BuildingKind.Bedroll,
         "shelter" => BuildingKind.Shelter,
@@ -185,7 +185,7 @@ public static partial class BuildingSprites
         _ => (new Color("8D8577"), new Color("6E675C"), new Color("3F3A33"), new Color("AAA293")),
     };
 
-    /// <summary>The earlier provisional drawing, kept for the retired camp objects.</summary>
+    /// <summary>The earlier provisional drawing, kept for map objects.</summary>
     private static void Paint(PixelCanvas canvas, BuildingKind kind, int width, int height, BuildingDoor door)
     {
         switch (kind)

@@ -157,7 +157,7 @@ everything that is available in the current build. See [what works today](../wha
   mechanic/code is a **late-development phase**:
   first establish a functioning simulation and broader base asset set, then
   build the invention/mod loop on that foundation. This is staging, not removal
-  from the intended finished game. Remove separate Cooking fire/Campfire and
+  from the intended finished game. Remove separate Cooking fire and
   Stone hearth buildings; House handles cooking. Remove Weaving frame and
   bed/bedroll content.
 - **Tailor Shop** is a household-held building, **1×1 or 2×2**. It turns plant
@@ -1900,7 +1900,7 @@ detailed actions. See [combat](agents-and-families.md#combat) and
 This stage makes, stores and trades bandages, but does not create injuries or
 apply bandages to a patient. Medicine uses the existing illness system and
 supports recovery gradually. The Clinic implements this scope in the normal
-private-world path; its Windows playtest is pending, and the injury stage is
+world path; its Windows playtest is pending, and the injury stage is
 agreed below. See
 [current availability](../what-works.md#life-work-and-society).
 

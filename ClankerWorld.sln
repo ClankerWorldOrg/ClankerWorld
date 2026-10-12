@@ -7,13 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClankerWorld.Simulation", "src\ClankerWorld.Simulation\ClankerWorld.Simulation.csproj", "{18ED9924-9E34-449F-9579-C031F9E9DD0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClankerWorld.Viewer", "src\ClankerWorld.Viewer\ClankerWorld.Viewer.csproj", "{D38D12AC-5F09-45B5-9798-B10EDE097A3B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClankerWorld.Server", "src\ClankerWorld.Server\ClankerWorld.Server.csproj", "{D38D12AC-5F09-45B5-9798-B10EDE097A3B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClankerWorld.GodotClient", "src\ClankerWorld.GodotClient\ClankerWorld.GodotClient.csproj", "{934EAAFD-EB77-4D03-93A1-258308E9A4B3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClankerWorld.Simulation.Tests", "tests\ClankerWorld.Simulation.Tests\ClankerWorld.Simulation.Tests.csproj", "{7742B439-F852-4F81-90EA-AA74D9A8DDB1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClankerWorld.Tests", "tests\ClankerWorld.Tests\ClankerWorld.Tests.csproj", "{7742B439-F852-4F81-90EA-AA74D9A8DDB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

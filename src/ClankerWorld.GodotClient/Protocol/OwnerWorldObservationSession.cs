@@ -4,7 +4,7 @@ using System.Text;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Protocol;
 
 public sealed record OwnerObservationRequestContext(long Generation, long AfterEventId, bool RequiresFullBaseline);
 
@@ -22,7 +22,7 @@ public sealed class OwnerWorldObservationSession
     private static readonly string[] RequiredCapabilities =
     [
         "owner-observation.read.v1",
-        "inhabitant-inspection.read.v1",
+        "agent-inspection.read.v1",
         "spatial-knowledge.read.v1",
         "owner-control.request.v1",
         "paused-authoring.request.v1",

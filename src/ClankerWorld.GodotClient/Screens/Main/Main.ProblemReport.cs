@@ -43,10 +43,10 @@ public partial class Main
 
     private string WriteProblemReport(string directory) =>
         ProblemReport.Write(directory, ProblemReportSummary(), ProblemReportLogs(),
-            localHost?.SecretsToHide() ?? [], DateTimeOffset.UtcNow);
+            localServer?.SecretsToHide() ?? [], DateTimeOffset.UtcNow);
 
     private string ProblemReportDirectory() =>
-        localHost?.Layout.ReportDirectory ?? ProjectSettings.GlobalizePath("user://reports");
+        localServer?.Layout.ReportDirectory ?? ProjectSettings.GlobalizePath("user://reports");
 
     private List<ProblemReportLog> ProblemReportLogs()
     {
@@ -60,10 +60,10 @@ public partial class Main
         // crash is in the newest older log.
         var previousGameLog = PreviousGameLog(gameLog);
         if (previousGameLog is not null) logs.Add(new("game.previous.log", previousGameLog));
-        if (localHost is not null)
+        if (localServer is not null)
         {
-            logs.Add(new("host.log", localHost.Layout.LogPath));
-            logs.Add(new("host.previous.log", localHost.Layout.PreviousLogPath));
+            logs.Add(new("server.log", localServer.Layout.LogPath));
+            logs.Add(new("server.previous.log", localServer.Layout.PreviousLogPath));
         }
         return logs;
     }
@@ -92,7 +92,7 @@ public partial class Main
             new("Screen", SizeText(DisplayServer.ScreenGetSize(window.CurrentScreen))),
             new("Window", SizeText(window.Size) +
                 (DisplayServer.WindowGetMode() == DisplayServer.WindowMode.Fullscreen ? " (fullscreen)" : string.Empty)),
-            new("World server", localHost is null ? "another computer" : "this PC"),
+            new("World server", localServer is null ? "another computer" : "this PC"),
         };
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         if (snapshot is null)

@@ -11,8 +11,8 @@ This page is for contributors building the code. Players use the Windows
 bundle; they do not need the Godot editor or a development SDK.
 See [Playing](../playing.md).
 
-The host supports only private worlds. Protocol tests default to a populated
-native private world with automatic advancement disabled; tests can also use
+The host supports only the game world. Protocol tests default to a populated
+native world with automatic advancement disabled; tests can also use
 fresh founder setup. `fixture` world mode is rejected at actual host startup.
 The unused-code cleanup retires checks of the scripted fixture, its
 authoring/persistence branches, the test-only PNG normalizer and prototype
@@ -22,10 +22,10 @@ knowledge and replay checks remain. Mod import and approved-asset catalog
 validation keep their existing paths.
 
 Protocol checks obtain world and resident identities from the authenticated
-baseline. Native before/after checks encode `PrivateWorldRuntime.ExportState()`
-with `PrivateWorldRuntimeCodec`; instruction IDs and issuer IDs come from the
+baseline. Native before/after checks encode `WorldRuntime.ExportState()`
+with `WorldRuntimeCodec`; instruction IDs and issuer IDs come from the
 host's receipt and saved native instruction. These checks exercise the
-private-world authorization and persistence boundary used by the game.
+world authorization and persistence boundary used by the game.
 
 Fixture-retirement replay checks cover both native starting paces. The
 pre-retirement baseline writes world-systems schema 2 for legacy-map starts and
@@ -55,7 +55,7 @@ that historical check does not verify every later build.
 xUnit is the test framework. External packages have committed NuGet lock files.
 Use `--locked-mode` so an unexpected dependency change fails visibly.
 
-The companion relaunch fixture separates request timeout from caller cancellation.
+The local server relaunch fixture separates request timeout from caller cancellation.
 Its timeout rows keep the caller token live and bound observation separately;
 the cancellation row cancels only after the held relaunch request starts.
 A controlled row delays delivery of the actual two-second request timeout beyond
@@ -92,7 +92,7 @@ deadline, stale-generation, thought exclusion, physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
 
 The held quantified-harvest fixture captures the actor's exact outstanding
-hosted request and task. After one native harvest finishes, it releases the
+model request and task. After one native harvest finishes, it releases the
 provider and waits for that task to complete before the admission tick. A
 provider's response-construction signal can precede task completion. A private
 deferred-return row holds this boundary explicitly; complete checkpoint bytes
@@ -115,7 +115,7 @@ preserving checkpoint bytes and the same registered request and task. A controll
 row delays validated entry for four seconds, beyond the former startup deadline.
 Entry, actual task completion and cancellation cleanup reuse the shared
 thirty-second harvest-phase diagnostic bound. After releasing
-the reply, it waits for the captured hosted task rather than only the provider's
+the reply, it waits for the captured model task rather than only the provider's
 response-construction signal. The original five admission ticks and finished-order,
 single-harvest, stale-response, observer-reply and reload checks remain. Its
 finally block opens held gates, cancels pending calls and awaits the captured task.
@@ -152,7 +152,7 @@ intended cancellation boundary; orders that can already complete physical work
 must keep the world at that boundary while waiting for provider entry.
 
 The held lesson-continuation fixture captures the actual registered request
-and hosted task, permits at most six additional native ticks, then observes
+and model task, permits at most six additional native ticks, then observes
 provider entry at a frozen checkpoint with a thirty-second diagnostic bound.
 Its deferred-entry cases hold preparation until two more ticks commit; one also
 delays worker entry by four seconds. The same registered call must stay pending,
@@ -160,7 +160,7 @@ and waiting must leave checkpoint bytes unchanged. The progress baseline is
 captured only after entry, with room for three further lesson steps. The offered
 partnership answer stays held throughout; denied-tick bytes, continued training,
 unanswered partnership and strict reload remain checked. Pause must finish the
-actual cancelled hosted task without changing the paused checkpoint.
+actual cancelled model task without changing the paused checkpoint.
 
 The initial identity-pause fixture snapshots its registered worker through the
 existing shared hosted-request wait after one committed native tick. It observes
@@ -173,14 +173,14 @@ late personality, aspiration or identity event applied. Immediate, deferred and
 four-second entry cases use thirty-second phase diagnostic bounds; no extra
 native tick is spent on scheduling.
 
-The held identity-routing fixture waits for the runtime's hosted task to finish
+The held identity-routing fixture waits for the runtime's model task to finish
 before polling admission. Its deferred-return case holds the provider after
 constructing the reply and checks that the wait keeps the complete checkpoint
 unchanged. The completion wait has a five-second bound; the three-second startup,
 twenty admission ticks, retained-work checks and next-tick reload comparison remain.
 
 Paired native host checkpoint fixtures must finish matching external inputs
-before advancing either continuation. Ordinary hosted decisions, life-moment
+before advancing either continuation. Ordinary model decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native
 household formation also finishes ordinary and life-moment replies before
 counting its next bounded tick, using the shared land-transfer wait. Formation
@@ -335,12 +335,12 @@ work changes no saved state; runtime-gate exclusion is checked separately.
 To time tests locally, or list what a job would run under the fixed split:
 
 ```bash
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --logger "trx;LogFileName=timings.trx"
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --no-build --list-tests --filter "$(node .github/scripts/ci-plan.js filter 1)"
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --logger "trx;LogFileName=timings.trx"
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-build --list-tests --filter "$(node .github/scripts/ci-plan.js filter 1)"
 ```
 
 The first command records each test's duration in
-`tests/ClankerWorld.Simulation.Tests/TestResults/timings.trx`; the second lists
+`tests/ClankerWorld.Tests/TestResults/timings.trx`; the second lists
 the tests job 1 would run without timings.
 
 The native Windows storage job also runs the repeated checkpoint-compaction
@@ -357,7 +357,7 @@ from an unexpected stress-test failure.
 
 To retain the same evidence for a local persistence test, set
 `CLANKERWORLD_CHECKPOINT_DIAGNOSTICS` to an empty disposable directory before
-running `FullyQualifiedName~PrivateWorldStateFileTests`. On I/O failure, the
+running `FullyQualifiedName~WorldStateFileTests`. On I/O failure, the
 tests copy evidence from their uniquely named temporary worlds there. A
 passing rerun does not explain an earlier intermittent access refusal; retain
 the failed report and its diagnostics when investigating one.
@@ -373,7 +373,7 @@ runs the existing three intentional overwrite-refusal controls to check the
 native trace, including an access-denied operation completion for each
 synthetic fixture in the test process. It builds once, uses four test processors
 and records all six
-Simulation/Viewer/test DLL and PDB hashes before and after the unchanged tests.
+Simulation/Server/test DLL and PDB hashes before and after the unchanged tests.
 
 On an administrator Windows machine with PowerShell 7 and the pinned .NET SDK:
 
@@ -460,13 +460,17 @@ export; they do not replace playing the bundle on Windows.
 portable alpha package ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)):
 `export/package/ClankerWorld-<version>-windows-x64.zip` and its `.sha256`. The
 zip holds one folder named for the version with the Godot export, a
-self-contained `win-x64` host in `host/` (`dotnet publish`, no .NET install
-needed on the player's PC), a short `README.txt` and a `manifest.sha256` of
-every file. The script refuses an export that was not built from the current
+self-contained `win-x64` world server in `server/` (`dotnet publish`, no .NET install
+needed on the player's PC), a short `README.txt`, a `package.json` naming its entry points
+(`{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}`)
+and a `manifest.sha256` of every file. The launcher and the game read the
+entry points from the version they check or start, so a newer package can
+move its programs without making an installed version look damaged; a
+version without `package.json` is older, with its server in `host/`. The script refuses an export that was not built from the current
 commit, stages the host and version from committed inputs (excluding local
 edits), and checks that the host assembly carries the same version and commit,
 since the game reuses only a host of its own exact build
-([Device pairing](device-pairing.md#host-started-by-the-game)). The Viewer and
+([Device pairing](device-pairing.md#local-server-started-by-the-game)). The server and
 Simulation projects list `win-x64` in `RuntimeIdentifiers` so this publish
 restores in locked mode. CI uploads the zip as the
 `clankerworld-windows-11-x64-portable` artifact. It is unsigned, and a built
@@ -492,15 +496,15 @@ portable build picker. Build a local portable game with the game export and
 package commands above, unpack its zip, then choose its `ClankerWorld.exe`.
 The game and package manifests carry `# Launcher options: developer-data-v1`;
 the launcher refuses the new run options on a build without that marker so an
-older game cannot silently ignore test isolation. Local builds need their
-bundled `host/ClankerWorld.Viewer.exe` too. Normal installs retain the existing
+older game cannot silently ignore test isolation. Local builds need the world
+server their `package.json` names too. Normal installs retain the existing
 download and manifest checks; local builds are files the developer chooses.
 See [Launcher developer runs](how-it-works.md#launcher-developer-runs) for the
 data paths and logging switches. These controls still need the listed Windows
 playtest.
 
 The program icon, `src/ClankerWorld.GodotClient/icon.ico`, is generated from
-the logo art in `UI/MenuLogo.cs` and embedded in the exported `.exe`. After
+the logo art in `UI/Menu/MenuLogo.cs` and embedded in the exported `.exe`. After
 changing that art, rebuild the icon with
 `godot --headless --path src/ClankerWorld.GodotClient -- --write-app-icon`.
 The UI smoke test fails if the committed icon no longer matches the art.
@@ -581,8 +585,8 @@ describe the state and ordering contracts that every refactor step keeps.
 ## Focused documentation checks
 
 ```bash
-dotnet restore tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --locked-mode
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~DocumentationTests
+dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~DocumentationTests
 ```
 
 These checks cover front matter on pages under `docs/`, local links and linked

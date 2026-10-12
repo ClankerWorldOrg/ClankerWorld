@@ -1,0 +1,173 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Worlds;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace ClankerWorld.Tests;
+
+public sealed partial class ServerHttpTests
+{
+    [Fact]
+    public async Task WorldDeletionSucceedsWithAnotherWorldsUnreadableNamedSave()
+    {
+        var directory = Directory.CreateTempSubdirectory("foreign-unreadable-deletion-response-");
+        try
+        {
+            using var host = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
+            using var client = host.CreateClient();
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var device = await StartAndActivateAsync(host, client, key);
+            var runtime = host.Services.GetRequiredService<WorldRuntime>();
+            runtime.Pause();
+            var file = host.Services.GetRequiredService<WorldStateFile>();
+            file.Save(runtime);
+            var activeBytes = File.ReadAllBytes(file.Path);
+            var saves = host.Services.GetRequiredService<ManualWorldSaveStore>();
+            var keep = saves.Create("Keep", runtime, []);
+            var keepPath = Path.Combine(file.Path + ".manual", keep.Id + ".save");
+            var keepBytes = File.ReadAllBytes(keepPath);
+            var unreadable = saves.Create("Unreadable", runtime, []);
+            var unreadablePath = Path.Combine(file.Path + ".manual", unreadable.Id + ".save");
+            File.WriteAllText(unreadablePath, "damaged checkpoint");
+            using var target = new WorldRuntime("foreign-unreadable-deletion-target");
+            target.Pause();
+            var catalog = host.Services.GetRequiredService<WorldCatalogStore>();
+            var entry = catalog.Add("Delete", target.ExportState());
+            saves.Create("Delete", target, []);
+            Directory.CreateDirectory(file.Path + ".history");
+            var action = new OwnerDeletionAction("world", entry.Id, entry.WorldId);
+
+            using var result = await SendSignedAsync(host, client, key, device.DeviceId,
+                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+
+            Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+            var receipt = (await result.Content.ReadFromJsonAsync<OwnerDeletionReceipt>())!;
+            Assert.Equal(entry.Id, receipt.Id);
+            // The world is removed; unverifiable remaining roots defer history cleanup.
+            Assert.False(receipt.CleanupComplete);
+            Assert.DoesNotContain(catalog.Capture().Worlds, world => world.Id == entry.Id);
+            Assert.False(File.Exists(Path.Combine(file.Path + ".worlds", entry.Id + ".save")));
+            Assert.Empty(saves.List(target.Society.WorldId));
+            catalog.RecoverDeletions(saves.DeleteWorldSnapshots);
+            Assert.Equal("damaged checkpoint", File.ReadAllText(unreadablePath));
+            Assert.Equal(keepBytes, File.ReadAllBytes(keepPath));
+            Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public void PendingWorldDeletionWithCorruptOrphanDoesNotPreventHostRestart()
+    {
+        var directory = Directory.CreateTempSubdirectory("corrupt-deletion-restart-");
+        try
+        {
+            string activeWorld;
+            string targetId;
+            string corruptPath;
+            using (var host = new ServerWebApplicationFactory(directory.FullName, gameWorld: true))
+            using (var client = host.CreateClient())
+            {
+                var runtime = host.Services.GetRequiredService<WorldRuntime>();
+                runtime.Pause();
+                activeWorld = runtime.Society.WorldId;
+                var file = host.Services.GetRequiredService<WorldStateFile>();
+                file.Save(runtime);
+                var catalog = host.Services.GetRequiredService<WorldCatalogStore>();
+                using var other = new WorldRuntime("corrupt-deletion-other");
+                other.Pause();
+                targetId = catalog.Add("Delete", other.ExportState()).Id;
+                corruptPath = WriteCorruptOrphan(file.Path);
+                var saves = host.Services.GetRequiredService<ManualWorldSaveStore>();
+                Assert.Throws<InvalidDataException>(() =>
+                    catalog.Delete(targetId, other.Society.WorldId, saves.DeleteWorldSnapshots));
+            }
+            using (var restarted = new ServerWebApplicationFactory(directory.FullName, gameWorld: true))
+            using (var client = restarted.CreateClient())
+            {
+                var catalog = restarted.Services.GetRequiredService<WorldCatalogStore>();
+                Assert.Equal(activeWorld, catalog.Active().WorldId);
+                Assert.DoesNotContain(catalog.Capture().Worlds, world => world.Id == targetId);
+                Assert.Equal("{}", File.ReadAllText(corruptPath));
+                var runtime = restarted.Services.GetRequiredService<WorldRuntime>();
+                Assert.Equal(activeWorld, runtime.Society.WorldId);
+                runtime.Validate();
+                restarted.Services.GetRequiredService<WorldStateFile>().Save(runtime);
+            }
+            // Repair only the disposable orphan, then retry recovery naturally.
+            using var repaired = new WorldRuntime("unrelated-orphan");
+            File.WriteAllBytes(corruptPath, WorldRuntimeCodec.Encode(repaired.ExportState()));
+            using var recovered = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
+            using var recoveredClient = recovered.CreateClient();
+            Assert.Equal(activeWorld, recovered.Services.GetRequiredService<WorldCatalogStore>().Active().WorldId);
+            var activePath = recovered.Services.GetRequiredService<WorldStateFile>().Path;
+            Assert.False(File.Exists(Path.Combine(activePath + ".worlds", targetId + ".save")));
+            Assert.True(File.Exists(corruptPath));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Theory]
+    [InlineData("world")]
+    [InlineData("save")]
+    public async Task SignedDeletionReportsCorruptCleanupWithoutLosingOtherFiles(string kind)
+    {
+        var directory = Directory.CreateTempSubdirectory("corrupt-deletion-response-");
+        try
+        {
+            using var host = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
+            using var client = host.CreateClient();
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var device = await StartAndActivateAsync(host, client, key);
+            var runtime = host.Services.GetRequiredService<WorldRuntime>();
+            runtime.Pause();
+            var file = host.Services.GetRequiredService<WorldStateFile>();
+            file.Save(runtime);
+            var activeBytes = File.ReadAllBytes(file.Path);
+            var saves = host.Services.GetRequiredService<ManualWorldSaveStore>();
+            var keep = saves.Create("Keep", runtime, []);
+            var keepPath = Path.Combine(file.Path + ".manual", keep.Id + ".save");
+            var keepBytes = File.ReadAllBytes(keepPath);
+            OwnerDeletionAction action;
+            if (kind == "world")
+            {
+                using var other = new WorldRuntime("corrupt-delete-target");
+                other.Pause();
+                var entry = host.Services.GetRequiredService<WorldCatalogStore>().Add("Delete", other.ExportState());
+                action = new("world", entry.Id, entry.WorldId);
+            }
+            else
+            {
+                var selected = saves.Create("Delete", runtime, []);
+                action = new("save", selected.Id, runtime.Society.WorldId, selected.CreatedUtc);
+                Directory.CreateDirectory(file.Path + ".history");
+            }
+            var corruptPath = WriteCorruptOrphan(file.Path);
+            using var result = await SendSignedAsync(host, client, key, device.DeviceId,
+                "/api/v1/owner/delete", action, OwnerHttpBinding.Deletion(action));
+            Assert.Equal(kind == "world" ? HttpStatusCode.Conflict : HttpStatusCode.OK, result.StatusCode);
+            if (kind == "save")
+            {
+                Assert.False((await result.Content.ReadFromJsonAsync<OwnerDeletionReceipt>())!.CleanupComplete);
+                Assert.Throws<FileNotFoundException>(() => saves.Read(action.Id));
+            }
+            Assert.Equal("{}", File.ReadAllText(corruptPath));
+            Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
+            Assert.Equal(keepBytes, File.ReadAllBytes(keepPath));
+            Assert.Equal(runtime.Society.WorldId, saves.Read(keep.Id).Society.Society.WorldId);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    private static string WriteCorruptOrphan(string activePath)
+    {
+        Directory.CreateDirectory(activePath + ".manual");
+        var path = Path.Combine(activePath + ".manual", Guid.NewGuid().ToString("N") + ".save");
+        File.WriteAllText(path, "{}");
+        return path;
+    }
+}

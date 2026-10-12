@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 
@@ -15,7 +16,7 @@ public partial class Main
     /// </summary>
     private static List<BuildingLight> BuildingLights(OwnerWorldSnapshot snapshot)
     {
-        var people = snapshot.Inhabitants
+        var people = snapshot.Agents
             .Where(person => !person.IsDraft && IsLiving(person))
             .Select(person => new Vector2I(person.Position.X, person.Position.Y)).ToArray();
         var working = snapshot.ProductionJobs

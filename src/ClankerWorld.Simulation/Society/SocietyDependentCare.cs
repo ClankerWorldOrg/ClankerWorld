@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     /// <summary>
     /// Records an adult's explicit acceptance of primary care for a dependent.
@@ -14,11 +14,11 @@ public static partial class SocietyFixture
         string? destinationHouseholdId = null)
     {
         Validate(checkpoint);
-        var adult = checkpoint.GetInhabitant(adultId);
-        var child = checkpoint.GetInhabitant(childId);
-        if (adult.Status != SocietyInhabitantStatus.Active ||
+        var adult = checkpoint.GetAgent(adultId);
+        var child = checkpoint.GetAgent(childId);
+        if (adult.Status != SocietyAgentStatus.Active ||
             adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
-            child.Status != SocietyInhabitantStatus.Active || !IsYoungerDependent(child) ||
+            child.Status != SocietyAgentStatus.Active || !IsYoungerDependent(child) ||
             HasActivePrimaryCaregiver(checkpoint, childId) ||
             destinationHouseholdId is not null &&
                 (destinationHouseholdId != adult.HouseholdId ||
@@ -67,9 +67,9 @@ public static partial class SocietyFixture
         string destinationHouseholdId)
     {
         Validate(checkpoint);
-        var adult = checkpoint.GetInhabitant(adultId);
-        var child = checkpoint.GetInhabitant(childId);
-        if (adult.Status != SocietyInhabitantStatus.Active ||
+        var adult = checkpoint.GetAgent(adultId);
+        var child = checkpoint.GetAgent(childId);
+        if (adult.Status != SocietyAgentStatus.Active ||
             adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
             !IsYoungerDependent(child) || child.PrimaryCaregiverId != adultId ||
             !HasActivePrimaryCaregiver(checkpoint, childId) ||
@@ -89,7 +89,7 @@ public static partial class SocietyFixture
     private static SocietyCheckpoint? MoveDependentHousehold(
         SocietyCheckpoint checkpoint, string adultId, string childId, string newHome)
     {
-        var child = checkpoint.GetInhabitant(childId);
+        var child = checkpoint.GetAgent(childId);
         if (child.HouseholdId == newHome) return checkpoint;
         var oldHome = child.HouseholdId is { } oldId
             ? checkpoint.Households.FirstOrDefault(household => household.Id == oldId)
@@ -119,7 +119,7 @@ public static partial class SocietyFixture
             .Append(membership).OrderBy(edge => edge.Id, StringComparer.Ordinal).ToArray();
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == childId
+            Agents = checkpoint.Agents.Select(person => person.Id == childId
                 ? person with { HouseholdId = newHome }
                 : person).OrderBy(person => person.Id, StringComparer.Ordinal).ToArray(),
             Households = checkpoint.Households.Select(household => household.Id == newHome
@@ -141,10 +141,10 @@ public static partial class SocietyFixture
     {
         ArgumentNullException.ThrowIfNull(checkpoint);
         ArgumentException.ThrowIfNullOrWhiteSpace(childId);
-        var child = checkpoint.GetInhabitant(childId);
+        var child = checkpoint.GetAgent(childId);
         if (child.PrimaryCaregiverId is not { } primaryCaregiverId ||
-            !checkpoint.Inhabitants.Any(person => person.Id == primaryCaregiverId &&
-                person.Status == SocietyInhabitantStatus.Active && IsAdult(person)))
+            !checkpoint.Agents.Any(person => person.Id == primaryCaregiverId &&
+                person.Status == SocietyAgentStatus.Active && IsAdult(person)))
             return false;
         return checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.State == SocietyRelationshipState.Accepted && edge.ProposerId == primaryCaregiverId && edge.TargetId == childId);
@@ -154,9 +154,9 @@ public static partial class SocietyFixture
     public static SocietyOperationResult AssumeInfantCare(SocietyCheckpoint checkpoint, string adultId, string childId)
     {
         Validate(checkpoint);
-        var adult = checkpoint.GetInhabitant(adultId);
-        var child = checkpoint.GetInhabitant(childId);
-        if (adult.Status != SocietyInhabitantStatus.Active || child.Status != SocietyInhabitantStatus.Active ||
+        var adult = checkpoint.GetAgent(adultId);
+        var child = checkpoint.GetAgent(childId);
+        if (adult.Status != SocietyAgentStatus.Active || child.Status != SocietyAgentStatus.Active ||
             adult.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) || child.AgeBand != SocietyAgeBand.Infant ||
             adult.HouseholdId is null || adult.HouseholdId != child.HouseholdId ||
             HasActivePrimaryCaregiver(checkpoint, childId))
@@ -184,9 +184,9 @@ public static partial class SocietyFixture
     public static SocietyOperationResult AssumePrimaryCare(SocietyCheckpoint checkpoint, string adultId, string childId)
     {
         Validate(checkpoint);
-        var adult = checkpoint.GetInhabitant(adultId);
-        var child = checkpoint.GetInhabitant(childId);
-        if (!IsAdult(adult) || child.Status != SocietyInhabitantStatus.Active || !IsYoungerDependent(child) ||
+        var adult = checkpoint.GetAgent(adultId);
+        var child = checkpoint.GetAgent(childId);
+        if (!IsAdult(adult) || child.Status != SocietyAgentStatus.Active || !IsYoungerDependent(child) ||
             adult.HouseholdId is null || adult.HouseholdId != child.HouseholdId ||
             HasActivePrimaryCaregiver(checkpoint, childId) ||
             !checkpoint.Relationships.Any(edge => edge.Type == SocietyRelationshipType.Caregiver &&
@@ -199,11 +199,11 @@ public static partial class SocietyFixture
 
     private static SocietyCheckpoint SetPrimaryCaregiver(SocietyCheckpoint checkpoint, string adultId, string childId)
     {
-        var unitId = checkpoint.GetInhabitant(adultId).DomesticFamilyUnitId
+        var unitId = checkpoint.GetAgent(adultId).DomesticFamilyUnitId
             ?? throw new InvalidDataException("A primary caregiver needs a recorded domestic family unit.");
         return checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == childId
+            Agents = checkpoint.Agents.Select(person => person.Id == childId
                 ? person with { PrimaryCaregiverId = adultId, DomesticFamilyUnitId = unitId }
                 : person).ToArray(),
         };

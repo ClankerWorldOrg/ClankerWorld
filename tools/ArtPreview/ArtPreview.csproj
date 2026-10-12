@@ -26,7 +26,7 @@
     <Compile Include="../../src/ClankerWorld.GodotClient/UI/Map/WeatherStreaks.cs" Link="Game/Map/WeatherStreaks.cs" />
     <Compile Include="../../src/ClankerWorld.GodotClient/UI/Map/TerrainTransitions.cs" Link="Game/Map/TerrainTransitions.cs" />
     <Compile Include="../../src/ClankerWorld.GodotClient/UI/Map/WorldTerrainMap.cs" Link="Game/Map/WorldTerrainMap.cs" />
-    <Compile Include="../../src/ClankerWorld.GodotClient/UI/MenuLogo.cs" Link="Game/MenuLogo.cs" />
-    <Compile Include="../../src/ClankerWorld.GodotClient/UI/MenuScene.cs" Link="Game/MenuScene.cs" />
+    <Compile Include="../../src/ClankerWorld.GodotClient/UI/Menu/MenuLogo.cs" Link="Game/Menu/MenuLogo.cs" />
+    <Compile Include="../../src/ClankerWorld.GodotClient/UI/Menu/MenuValleyArt.cs" Link="Game/Menu/MenuValleyArt.cs" />
   </ItemGroup>
 </Project>

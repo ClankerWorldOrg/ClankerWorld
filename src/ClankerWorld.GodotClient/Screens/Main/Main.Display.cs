@@ -66,7 +66,7 @@ public partial class Main
     private void ScaleMapText(int factor)
     {
         AgentMarker.TextScale = factor;
-        foreach (var marker in inhabitantVisuals.Values)
+        foreach (var marker in agentVisuals.Values)
             marker.QueueRedraw();
         foreach (var label in mapObjectVisuals.Values)
             label.AddThemeFontSizeOverride("font_size", UiFonts.Body * factor);
@@ -189,7 +189,7 @@ public partial class Main
 
     public override void _Notification(int what)
     {
-        if (what == NotificationWMCloseRequest && localHost is not null) QuitGame();
+        if (what == NotificationWMCloseRequest && localServer is not null) QuitGame();
         if (what == NotificationApplicationFocusOut) draggingMap = false;
         // Match system picks up a change made while the game was in the background.
         if (what == NotificationApplicationFocusIn && UiTheme.Parse(displayPreferences.Theme) == UiThemeChoice.System)
@@ -215,7 +215,7 @@ public partial class Main
         FillFamilyLegend();
         RefreshHudIcons();
         renderedTownList = null;
-        renderedRosterPresentation = null;
+        renderedAgentListPresentation = null;
         renderedEventLog = null;
         if (observationSession.Current is { } current)
             Render(current.Baseline.Snapshot, []);

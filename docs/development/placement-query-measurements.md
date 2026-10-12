@@ -56,7 +56,7 @@ or its behavior and latency.
 ## What changed
 
 Each proposal query gathers physical placement obstacles once, when a legal
-site first needs them. This includes resources, camp objects, fields, Roads,
+site first needs them. This includes resources, map objects, fields, Roads,
 bridge ends, protected project sites, active expansions, placed footprints and
 Port docks. Market tiles stay separate: an extra stall may occupy its own slot,
 but that exception never removes another object's protection. Ordinary owner

@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 
@@ -9,11 +10,11 @@ public partial class Main
 {
     private readonly Button founderModelSetupCheckButton = new();
     private readonly Label founderModelSetupCheckStatus = new();
-    private readonly Button cognitionModelSetupCheckButton = new();
-    private readonly Label cognitionModelSetupCheckStatus = new();
-    private string? cognitionModelSetupCheckContext;
+    private readonly Button agentModelSetupCheckButton = new();
+    private readonly Label agentModelSetupCheckStatus = new();
+    private string? agentModelSetupCheckContext;
     private int founderModelSetupCheckRevision;
-    private int cognitionModelSetupCheckRevision;
+    private int agentModelSetupCheckRevision;
 
     private async Task RunFounderModelSetupCheckAsync()
     {
@@ -45,35 +46,35 @@ public partial class Main
             () => founderModelSetupCheckRevision);
     }
 
-    private async Task RunCognitionModelSetupCheckAsync()
+    private async Task RunAgentModelSetupCheckAsync()
     {
-        ResetCognitionModelSetupCheckForCurrentChoice();
+        ResetAgentModelSetupCheckForCurrentChoice();
         var provider = SelectedProviderId();
-        var model = EmptyToNull(cognitionModelPicker.Model);
+        var model = EmptyToNull(agentModelPicker.Model);
         var credentialChoice = SelectedCredentialChoice();
-        var apiKey = credentialChoice == "new" ? EmptyToNull(cognitionApiKeyInput.Text) : null;
+        var apiKey = credentialChoice == "new" ? EmptyToNull(agentModelApiKeyInput.Text) : null;
         if (credentialChoice == "new" && apiKey is null)
         {
-            cognitionModelSetupCheckStatus.Text = "Add the new key first. Nothing was sent.";
-            cognitionModelSetupCheckStatus.Show();
+            agentModelSetupCheckStatus.Text = "Add the new key first. Nothing was sent.";
+            agentModelSetupCheckStatus.Show();
             return;
         }
         if (model is null)
         {
-            cognitionModelSetupCheckStatus.Text = "Choose a model before testing it.";
-            cognitionModelSetupCheckStatus.Show();
+            agentModelSetupCheckStatus.Text = "Choose a model before testing it.";
+            agentModelSetupCheckStatus.Show();
             return;
         }
 
         var slotId = credentialChoice is "default" or "new" ? null : credentialChoice;
-        var action = new OwnerProviderSetupCheckAction(provider, model, slotId, apiKey, SelectedThinking(cognitionThinkingChoice));
+        var action = new OwnerProviderSetupCheckAction(provider, model, slotId, apiKey, SelectedThinking(agentModelThinkingChoice));
         await RunModelSetupCheckAsync(
-            cognitionModelSetupCheckButton,
-            cognitionModelSetupCheckStatus,
+            agentModelSetupCheckButton,
+            agentModelSetupCheckStatus,
             provider,
             model,
             action,
-            () => cognitionModelSetupCheckRevision);
+            () => agentModelSetupCheckRevision);
     }
 
     private async Task RunModelSetupCheckAsync(
@@ -133,13 +134,13 @@ public partial class Main
         }
     }
 
-    private void ResetCognitionModelSetupCheckForCurrentChoice()
+    private void ResetAgentModelSetupCheckForCurrentChoice()
     {
-        var context = $"{SelectedCognitionTarget()}|{SelectedProviderId()}|{cognitionModelPicker.Model}|{SelectedCredentialChoice()}|{SelectedThinking(cognitionThinkingChoice)}";
-        if (context == cognitionModelSetupCheckContext)
+        var context = $"{SelectedAgentModelTarget()}|{SelectedProviderId()}|{agentModelPicker.Model}|{SelectedCredentialChoice()}|{SelectedThinking(agentModelThinkingChoice)}";
+        if (context == agentModelSetupCheckContext)
             return;
-        cognitionModelSetupCheckContext = context;
-        ClearCognitionModelSetupCheck();
+        agentModelSetupCheckContext = context;
+        ClearAgentModelSetupCheck();
     }
 
     private void ClearFounderModelSetupCheck()
@@ -149,35 +150,35 @@ public partial class Main
         founderModelSetupCheckStatus.Hide();
     }
 
-    private void ClearCognitionModelSetupCheck()
+    private void ClearAgentModelSetupCheck()
     {
-        ++cognitionModelSetupCheckRevision;
-        cognitionModelSetupCheckStatus.Text = string.Empty;
-        cognitionModelSetupCheckStatus.Hide();
+        ++agentModelSetupCheckRevision;
+        agentModelSetupCheckStatus.Text = string.Empty;
+        agentModelSetupCheckStatus.Hide();
     }
 
     private void VerifyModelSetupCheckControls()
     {
         if (founderModelSetupCheckButton.GetParent() != founderModelPicker.GetParent() ||
-            cognitionModelSetupCheckButton.GetParent() != cognitionModelPicker.GetParent() ||
+            agentModelSetupCheckButton.GetParent() != agentModelPicker.GetParent() ||
             founderModelSetupCheckButton.Text != "Test model · 1 paid call" ||
-            cognitionModelSetupCheckButton.Text != "Test model · 1 paid call" ||
+            agentModelSetupCheckButton.Text != "Test model · 1 paid call" ||
             !founderModelSetupCheckButton.TooltipText.Contains("counts toward your model-call limit", StringComparison.OrdinalIgnoreCase) ||
-            !cognitionModelSetupCheckButton.TooltipText.Contains("counts toward your model-call limit", StringComparison.OrdinalIgnoreCase))
+            !agentModelSetupCheckButton.TooltipText.Contains("counts toward your model-call limit", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Add Agent and an agent's Model panel must expose the same explicit one-paid-call setup check beside the model picker.");
 
         try
         {
             VerifySetupCheckInvalidation(founderModelPicker, founderApiKeyInput, founderModelSetupCheckStatus,
                 founderCredentialChoice, () => founderModelSetupCheckRevision, isNewAgent: true);
-            VerifySetupCheckInvalidation(cognitionModelPicker, cognitionApiKeyInput, cognitionModelSetupCheckStatus,
-                cognitionCredentialChoice, () => cognitionModelSetupCheckRevision);
+            VerifySetupCheckInvalidation(agentModelPicker, agentModelApiKeyInput, agentModelSetupCheckStatus,
+                agentModelCredentialChoice, () => agentModelSetupCheckRevision);
         }
         finally
         {
             // The smoke edits must not start delayed model-list lookups.
             ++founderKeyEdits;
-            ++cognitionKeyEdits;
+            ++agentModelKeyEdits;
         }
     }
 
