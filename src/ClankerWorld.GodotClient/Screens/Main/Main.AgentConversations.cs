@@ -197,7 +197,7 @@ public partial class Main
         "urgent_need" => "urgent need",
         "provider_unavailable" => "a speaker's model is unavailable",
         "provider_timed_out" => "a model reply timed out",
-        "provider_rejected" => "a model refused the request",
+        "provider_rejected" => "a model reply couldn't be used",
         "restored" => "world reloaded; both people must choose to resume",
         _ => "interrupted",
     };

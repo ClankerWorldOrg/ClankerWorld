@@ -1376,7 +1376,7 @@ Water jugs hold fresh water only, including the water used for animal care.
 
 For a cared adult horse, use **Saddle Moss**, **Mount Moss** and **Dismount Moss**.
 A mount needs a real household saddle and gives twice walking speed plus eight
-cargo units. Dismounting puts any unreserved cargo they can't carry on foot
+cargo units. Dismounting puts spare, unreserved cargo they can't carry on foot
 where the rider stopped. Horses cannot accompany a boat or pull a handcart in this version.
 Collecting another animal's ready product first dismounts the rider, then
 requires room to carry the product on foot.

@@ -532,7 +532,7 @@ public partial class Main
         if (town.IsAbandoned) lines.Add("Adults who come here can salvage shared stock that isn't set aside. Private property and existing laws remain.");
         if (council.TermEndTick is { } termEnd) lines.Add("Term ends " + DisplayWorldClock(termEnd));
         if (council.Fallback == "candidates") lines.Add("All adults decide together until enough adults agree to stand for the council.");
-        if (council.Fallback == "demographic") lines.Add("An elected council returns once the Town has four adult residents.");
+        if (council.Fallback == "demographic") lines.Add("At four adult residents, the Town can elect a council again.");
         if (council.Election is { } election)
         {
             var stage = election.Stage switch
