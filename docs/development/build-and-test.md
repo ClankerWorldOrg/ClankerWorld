@@ -194,6 +194,15 @@ bound while checkpoint bytes and position stay fixed. Cancellation still
 keeps the order cancelled with zero progress and the agent stationary through
 the original bounded post-cancellation polling.
 
+The held field-cancellation fixture stops at its first working frame, or after
+the deliberate two additional ticks in its deferred-entry row. It captures the
+existing shared hosted-task wait before cancelling the order, then waits for
+actual provider entry without advancing the world. The deferred row also delays
+entry by one second. Waiting for entry and releasing the cancelled reply must
+keep checkpoint bytes unchanged; the original eight subsequent ticks still
+check the cancelled order, unspent seed, released reservation and absent planting
+event. Polling additional ticks for entry could finish planting before cancellation.
+
 The long-recipe tool-request fixture admits its request through the personal
 provider and saves it through the real host. For byte-for-byte continuation,
 it pauses that world, captures one checkpoint, and restores both compared
