@@ -3266,6 +3266,12 @@ can use it with cargo room, receiving space and the required routes. This also
 applies to ore mining, harvest preparation and supply orders. Disconnected stock
 keeps its owner and position while the adult gathers reachable local inputs.
 
+Material harvest planning keeps room for the required carried tool as well as
+the gathered goods and any tree seed. If a tool's full bonus exceeds the actor's
+total carrying capacity even after other cargo is set down, it uses the existing
+four-unit harvest instead. Bonuses that fit keep their full yield; current free
+space, reservations and loaded return routes still govern the actual harvest.
+
 If an unpaid household recipe remains blocked for 60 ticks and no household
 member has an actionable way to supply its missing ingredients, the runtime
 pauses its saved plan and stops trying to continue it automatically. The adult

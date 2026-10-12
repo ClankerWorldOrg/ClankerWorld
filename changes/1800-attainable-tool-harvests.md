@@ -1,0 +1,1 @@
+- Agents using better tools can gather Blacksmith supplies without getting stuck on a harvest that exceeds their carrying limit. Larger loads still use the full tool bonus when they fit.

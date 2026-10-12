@@ -834,7 +834,13 @@ public sealed partial class PrivateWorldRuntime
         var ecology = worldSystems.Ecology.GetResource(source.Id);
         var plan = ToolProgressionRules.PlanGather(itemKind, source, society.Checkpoint.Inventory, actor,
             ecology.Quantity);
-        if (plan is null || useHarvestBonus || plan.ToolLotId is null)
+        if (plan is null || plan.ToolLotId is null)
+            return plan;
+        // The required tool remains carried. A bonus that cannot fit even
+        // after setting down other cargo must use the existing smaller harvest.
+        var capacity = PersonalEquipmentRules.Capacity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment) +
+            HorseCargoCapacity(actor);
+        if (useHarvestBonus && checked(plan.Quantity + plan.TreeSeedQuantity + 1) <= capacity)
             return plan;
         return plan with { Quantity = Math.Min(plan.Quantity, 4) };
     }

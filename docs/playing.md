@@ -143,6 +143,8 @@ wear out sooner than the Blacksmith's wooden tools. Agents collect and use a
 better usable tool when one is available. Inventory and plot details name the
 crude tools, and the Event Log records completed work; their item pictures
 still use the generic icon.
+Agents take a smaller harvest when the tool and its full load would exceed
+their carrying limit, keeping any tree seed with the gathered wood.
 
 When a House is overcrowded, inspect a resident's housing details to see who
 has notice to move out, why, how much time remains and whether expansion is
