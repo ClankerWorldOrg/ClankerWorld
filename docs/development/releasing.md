@@ -130,7 +130,11 @@ Before publishing:
    [portable Windows zip](build-and-test.md#portable-windows-package) and its
    `.sha256` built from the tagged commit, keeping their file names: the
    launcher finds a game release by its `v<version>` tag and those two assets,
-   and refuses a package whose SHA-256 differs from the `.sha256` file.
+   and refuses a package whose SHA-256 differs from the `.sha256` file. For a
+   later alpha that includes the installer, also attach the
+   [per-user setup](build-and-test.md#windows-installer) and its `.sha256` from
+   the same tagged commit. The setup includes that game's
+   current launcher and game; keep the portable zip for launcher downloads.
 7. The launcher has its own releases, tagged `launcher-v<launcher version>`
    with the [launcher zip](build-and-test.md#windows-launcher). Publish one only
    when the launcher changed. Players download it themselves: the launcher

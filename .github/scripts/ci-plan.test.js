@@ -379,7 +379,7 @@ test('a push of a commit the merge queue already passed runs nothing but scope a
   assert.match(job('scope'), /\n        if: github\.event_name == 'push'\n/);
   assert.match(job('scope'), /runs\?event=merge_group&status=success&head_sha=\$\{GITHUB_SHA\}/);
   assert.match(job('scope'), /queue-run: \$\{\{ steps\.queue\.outputs\.run \}\}/);
-  for (const name of ['checks', 'tests', 'windows-documentation', 'windows-provider-storage']) {
+  for (const name of ['checks', 'tests', 'windows-documentation', 'windows-provider-storage', 'windows-installer']) {
     assert.match(job(name), /^    if: [^\n]*needs\.scope\.outputs\.queue-run == ''$/m, name);
   }
   assert.match(job('windows-documentation'), /^    needs: scope$/m);
