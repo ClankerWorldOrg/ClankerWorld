@@ -270,7 +270,7 @@ public sealed partial class WorldRuntime
             return OpenShopTrades().Any(pair => pair.Trade.BuyerId == actor &&
                 candidateId == "shop_continue:" + pair.Offer.Id && IsEdibleFood(pair.Trade.GoodsKind));
         if (!candidateId.StartsWith("shop_buy:", StringComparison.Ordinal)) return false;
-        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId[14..]);
+        var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidateId["shop_buy:".Length..]);
         if (building is null) return false;
         if (ShopOpportunity(actor, building) is { } quote)
             return IsEdibleFood(quote.Goods.ItemKind) && WantsTradeFoodKind(actor, quote.Goods.ItemKind);
@@ -318,7 +318,7 @@ public sealed partial class WorldRuntime
         }
         if (candidate.StartsWith("shop_buy:", StringComparison.Ordinal))
         {
-            var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidate[14..]);
+            var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == candidate["shop_buy:".Length..]);
             if (building is null) return;
             if (!IsWithinInteractionRange(state.Position, building.Position, ResourceInteractionRange))
             {
@@ -331,7 +331,7 @@ public sealed partial class WorldRuntime
             return;
         }
         var cancel = candidate.StartsWith("shop_cancel:", StringComparison.Ordinal);
-        var offerId = candidate[(cancel ? 16 : 18)..];
+        var offerId = candidate[(cancel ? "shop_cancel:".Length : "shop_continue:".Length)..];
         var trade = shopTrades.SingleOrDefault(item => item.OfferId == offerId);
         var offer = society.Checkpoint.Inventory.Offers.SingleOrDefault(item => item.Id == offerId);
         if (trade is null || offer is not { State: DirectBarterState.Open } ||

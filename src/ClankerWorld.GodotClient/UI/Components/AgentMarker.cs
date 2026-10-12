@@ -52,7 +52,7 @@ public partial class AgentMarker : Control
     // Talking with someone: offers, answers, lessons and shared knowledge.
     private static readonly string[] ConversationIntentions =
     [
-        "child_converse:", "child_learn:", "knowledge_share:", "trade_", "partner_", "parent_", "council_", "learn:",
+        "child_converse:", "child_learn:", "knowledge_share:", "trade_", "partner_", "parent_", "food_policy_", "learn:",
         "lesson_", "guardian_offer:", "guardian_accept:", "guardian_refuse:", "guardian_end:",
     ];
 

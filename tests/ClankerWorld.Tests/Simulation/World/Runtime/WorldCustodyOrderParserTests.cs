@@ -179,7 +179,7 @@ public sealed class WorldCustodyOrderParserTests
             (original.Action, original.TargetItemKind, original.RequestedUnits));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         var saved = JsonNode.Parse(bytes)!;
-        var savedOrder = Assert.Single(saved["state"]!["instructions"]!.AsArray())!["order"]!.AsObject();
+        var savedOrder = Assert.Single(saved["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
         foreach (var member in new[] { "targetStorageBuildingId", "targetStorageOwnerId", "targetStoragePosition", "targetLotId" })
             Assert.False(savedOrder.ContainsKey(member));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -209,7 +209,7 @@ public sealed class WorldCustodyOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            var order = Assert.Single(document["state"]!["instructions"]!.AsArray())!["order"]!;
+            var order = Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!;
             order[member] = value;
             Assert.Throws<InvalidDataException>(() =>
                 WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));

@@ -13,7 +13,7 @@ public sealed class WorldOrderCancellationSaveValidationTests
         var document = JsonNode.Parse(checkpoint.Bytes)!.AsObject();
         var state = document["state"]!.AsObject();
         var instruction = Assert.Single(state["instructions"]!.AsArray())!.AsObject();
-        instruction["order"]!["status"] = "waiting";
+        instruction["task"]!["status"] = "waiting";
         state["completedInstructionIds"] = new JsonArray();
         var cancellation = Assert.Single(state["orderCancellations"]!.AsArray())!.AsObject();
         cancellation["receipt"]!["status"] = "waiting";

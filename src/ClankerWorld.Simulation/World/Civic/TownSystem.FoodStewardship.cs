@@ -115,7 +115,7 @@ internal sealed partial class TownSystem
     {
         if (candidate.StartsWith("food_policy_propose:", StringComparison.Ordinal))
         {
-            var policy = candidate[16..];
+            var policy = candidate["food_policy_propose:".Length..];
             if (policy != ProposedFoodPolicy(world, actor) || foodStewardship is null)
             {
                 return;

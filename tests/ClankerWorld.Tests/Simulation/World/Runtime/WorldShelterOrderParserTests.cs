@@ -54,7 +54,7 @@ public sealed class WorldShelterOrderParserTests
         var order = Submit(world, "location", text);
         Assert.Equal((action, buildingKind, new GridPoint(2, 1)), (order.Action, order.TargetBuildingKind, order.TargetPosition!.Value));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var json = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["order"]!.AsObject();
+        var json = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
         Assert.False(json.ContainsKey("shelterBinding"));
         Assert.False(json.ContainsKey("shelterCompletion"));
         Assert.False(json.ContainsKey("quantityIsExplicit"));
@@ -149,7 +149,7 @@ public sealed class WorldShelterOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["order"]![member] = value;
+            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = value;
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -165,7 +165,7 @@ public sealed class WorldShelterOrderParserTests
         foreach (var member in new[] { "shelterBinding", "shelterCompletion" })
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["order"]![member] = member == "shelterBinding"
+            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = member == "shelterBinding"
                 ? JsonNode.Parse("""{"kind":"natural","position":{"x":2,"y":1}}""")
                 : JsonNode.Parse("""{"worldTick":0,"position":{"x":2,"y":1}}""");
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));

@@ -211,7 +211,7 @@ public sealed partial class WorldProductionOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            var order = Assert.Single(document["state"]!["instructions"]!.AsArray())!["order"]!;
+            var order = Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]!;
             order[member] = value;
             var damaged = JsonSerializer.SerializeToUtf8Bytes(document);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(damaged));

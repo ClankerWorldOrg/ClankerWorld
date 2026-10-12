@@ -139,7 +139,7 @@ public sealed class WorldBuildingOrderParserTests
         Assert.Equal((action, 1, progress, new GridPoint(2, 1)),
             (original.Action, original.RequestedUnits, original.ProgressUnit, original.TargetPosition!.Value));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["order"]!.AsObject();
+        var orderJson = Assert.Single(JsonNode.Parse(bytes)!["state"]!["instructions"]!.AsArray())!["task"]!.AsObject();
         foreach (var member in new[]
         {
             "constructionOwnerId", "constructionPosition", "constructionStartedTick", "constructionInstanceId", "expansionBinding",
@@ -184,7 +184,7 @@ public sealed class WorldBuildingOrderParserTests
         foreach (var (member, value) in corruptions)
         {
             var document = JsonNode.Parse(bytes)!;
-            Assert.Single(document["state"]!["instructions"]!.AsArray())!["order"]![member] = value;
+            Assert.Single(document["state"]!["instructions"]!.AsArray())!["task"]![member] = value;
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));

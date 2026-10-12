@@ -102,7 +102,7 @@ public sealed partial class WorldRuntime
     {
         return IsMarketCandidate(action.CandidateId);
     }),
-        RegisterCouncilActions(),
+        RegisterFoodPolicyActions(),
         new(ActionPhase.Ordinary, "trade_", ["trade_"], [], static (runtime, action) =>
     {
         runtime.ApplyTradeCandidate(action.AgentId, action.State, action.CandidateId);
@@ -394,7 +394,7 @@ public sealed partial class WorldRuntime
         new(ChoiceGroup.UnhurriedAdult, "AddProjectAssistanceCandidates", static (runtime, context) => runtime.AddProjectAssistanceCandidates(context.Candidates, context.AgentId), null),
         RegisterTreePlantingChoices(),
         new(ChoiceGroup.UnhurriedAdult, "AddTradeCandidates", static (runtime, context) => runtime.AddTradeCandidates(context.Candidates, context.AgentId), null),
-        RegisterCouncilChoices(),
+        RegisterFoodPolicyChoices(),
         RegisterTownCivicChoices(),
         new(ChoiceGroup.UnhurriedAdult, "AddTownProjectDonationCandidates", static (runtime, context) => runtime.AddTownProjectDonationCandidates(context.Candidates, context.AgentId), null),
         new(ChoiceGroup.UnhurriedAdult, "AddMarketCandidates", static (runtime, context) => runtime.AddMarketCandidates(context.Candidates, context.AgentId), null),
