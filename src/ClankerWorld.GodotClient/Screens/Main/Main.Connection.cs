@@ -262,6 +262,7 @@ public partial class Main
         pairedDeviceList.Clear();
         pendingSubmission = null;
         _ = pendingSubmissionStore.TryForget();
+        unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
         RenderPendingSubmission();
         knownEvents.Clear();
         pairingPanel.Show();
@@ -285,6 +286,7 @@ public partial class Main
         isRefreshing = true;
         using var refresh = new CancellationTokenSource();
         refreshCancellation = refresh;
+        var confirmed = false;
         try
         {
             var request = observationSession.CaptureRequest();
@@ -345,6 +347,7 @@ public partial class Main
                     ExpireStatusToast(refreshSucceeded: true);
                 }
             }
+            confirmed = true;
         }
         catch (OperationCanceledException) when (refresh.IsCancellationRequested)
         {
@@ -365,6 +368,7 @@ public partial class Main
             isRefreshing = false;
             RefreshControlAvailability();
         }
+        if (confirmed) await RecoverPendingSubmissionAsync();
     }
 
     private bool IsCurrentWorldRequest(long generation) =>

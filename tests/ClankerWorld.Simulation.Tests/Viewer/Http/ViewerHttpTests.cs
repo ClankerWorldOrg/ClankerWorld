@@ -24,9 +24,6 @@ public sealed partial class ViewerHttpTests : IDisposable
     private static readonly System.Text.Json.JsonSerializerOptions WebJsonOptions =
         new(System.Text.Json.JsonSerializerDefaults.Web);
 
-    private const string ApprovedAssetDigest =
-        "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-
     private async Task<OwnerDevice> StartAndActivateAsync(HttpClient client, ECDsa key, string publicKey)
     {
         using var start = await client.PostAsJsonAsync("/api/v1/pairings", new StartOwnerPairingHttpRequest(publicKey));

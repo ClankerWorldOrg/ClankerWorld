@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # How the game works
@@ -74,6 +74,24 @@ aliases. Content package identifiers retain their import rules.
   [Saves and replay](saves-and-replay.md) owns formats, migration and backup rules.
 
 ## Runtime systems
+
+`Runtime/PrivateWorldRuntime.AgentRegistrations.cs` binds choice sources and
+action routes in explicit, read-only ordered tables. Animal, farming, civic and
+conversation adapters register their entries beside their existing private
+forwarders. Every binding receives the current coordinator per call; no entry
+captures a world or a prepared system. Remaining areas bind their current rules
+in the same tables until their own extraction. Follow-up work is tracked in
+[#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
+
+Choice sources retain their original adult, child and urgent-needs groups,
+including both Market calls and their different gates. Exclusive boat and
+conversation choices, order restriction and refused-action filtering stay at
+their existing points. Construction sources share the same per-call tool,
+warehouse and rejected-site context. Action routes retain ordinal prefixes,
+exact identities and their order on either side of age validation, repair
+cancellation and continued field work. Registration tests pin both lists against
+the original coordinator order; native equivalence checks compare the resulting
+saved bytes, events and observation digests.
 
 `GroundOccupancy` is a read view over the current map, content, placed buildings,
 fields, roads, bridges, Town projects, Markets and animals. Its named layers
@@ -282,8 +300,11 @@ destination and vessel, in stable ID order, plus active reserved quantities and
 reserved vessel families. Every inventory transition commits a new checkpoint,
 so its next query gets a new index; earlier checkpoints keep their own facts.
 These facts are never saved. Do not mutate a committed checkpoint's collections.
-The existing quantity helpers delegate to this index while keeping their
-original health checks and clamping behavior.
+Quantity rules live in `InventoryRules`: `UnreservedQuantity` is physical,
+`AvailableQuantity` excludes spoiled or damaged lots without clamping, and
+`UsableQuantity` clamps usable availability to zero. Runtime and system adapters
+delegate to these rules; Market, equipment and tool selection no longer keep
+separate quantity helpers.
 
 `Kernel/InventoryRules.cs` owns the predicates used by inventory authority and
 goods selection: physical and usable quantities, usable parent vessels,
@@ -304,6 +325,20 @@ Production, farm-food, animal-food, writing-paper, ornament-input and iron-reser
 demand use `Holdings`, keeping their existing owner groups and thresholds. These
 counts did not require a route before this migration and still do not. Food kinds
 remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules.
+
+Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
+of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
+outside `Goods/` and validation code. The recorded baseline in
+[`goods-query-reads.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/goods-query-reads.json)
+is 244 references across 67 files, down from 245 before the remaining
+workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
+The guard binds C# property symbols, including aliases and conditional access;
+comments, strings and unrelated `Lots` properties do not count. It exempts files
+ending in `Validation.cs` and methods beginning with `Validate` or `Ensure`.
+Existing physical accounting, inventory operations and state projections retain
+their recorded references. New selectors use the shared query. Lower a file's
+budget when references disappear; moving references requires reviewing the
+changed files' budgets, and cannot spend another file's spare allowance.
 
 `GoodsDemandCoverage.KnowledgeWriting` adds the named same-job coverage rule for
 writing demand. `CoveredTotal` includes available sheets plus active paper
@@ -481,11 +516,17 @@ its saved world systems. It does not generate a disposable initial ecology,
 chunk set or weather state. New worlds still generate those systems normally;
 ordinary loads still validate saved data and check deterministic map identity.
 
-New worlds start with no currency definitions, accounts or transfers. The
-legacy faction-law list is empty too: genesis creates no `camp-no-theft` rule
-or money fine. Physical goods, ownership/access checks and actual Town laws
-use their existing systems. The generic currency and faction contracts remain
-available to the kernel, but native world creation supplies no money or fines.
+The host supports only the private-world runtime. Configuring the removed
+`fixture` world mode refuses startup with a clear error. The scripted one-agent
+fixture and its persistence/projection branches are gone; map generators,
+terrain codecs and routing remain shared by the native world.
+
+Saved world systems contain weather, ecology and chunks. The unused prototype
+faction/law, currency and culture records are removed. Physical goods,
+ownership/access checks and actual Town laws keep their existing systems.
+Currency and culture remain intended features to build against those systems.
+The test-only PNG asset normalizer is also removed; mod import, canonical asset
+IDs, reservation budgets and the host-owned approved-asset catalog remain.
 
 The current host aims for one tick per real second. New worlds save 360 ticks
 per day and a 40-day year with four ten-day seasons; lifecycle thresholds are
@@ -1082,7 +1123,7 @@ handcart marker. Each short reported move retargets a one-second linear glide
 from its current drawing; it never predicts a future tile. A separate local
 quarter-second phase selects the approved walk frames and one-pixel bob for
 agents/animals. The same `WalkingMotion` code feeds the implemented reference
-animation. Pausing freezes elapsed glide and pose time; a paused authoring
+animation. Pausing freezes elapsed glide and pose time; a paused
 relocation, a move longer than three tiles, a new world or a checkpoint rewind
 snaps and clears the phase. Wrapped targets use the nearest world copy and
 camera/zoom changes retain intermediate tile coordinates. Pointer targets,
@@ -1227,7 +1268,7 @@ camera. A new placed building must replace a previously observed construction
 site with the same definition and footprint, with its placement tick between
 the last and current observations. Only a visible close/mid-zoom completion
 starts the local three-second effect. Cancelled sites, existing buildings,
-paused authoring insertions and off-screen completions never queue a moment.
+buildings first observed while paused and off-screen completions never queue a moment.
 The first observation is a quiet baseline. World, map or observer timeline
 changes, rewind and gaps over a game hour clear display history; removal
 clears that building's active effect.
@@ -1933,7 +1974,7 @@ saved state, events or movement effects.
 
 Short observed outdoor agent and animal moves leave pressed footprints on
 that cover, using the shortest east-west path on wrapped maps. Spawns, moves
-over three tiles, repeated observations and paused authoring moves make no
+over three tiles, repeated observations and moves while paused make no
 trail. Prints fade in one game hour; at most 4,096 are held, and small overview
 zooms keep their positions without drawing tiny marks. The visible ground
 pass draws the approved snow colours after Roads and before bridges,
@@ -1954,7 +1995,7 @@ snowy side does not whiten a dry neighbour. At most 256 textures are cached;
 cover changes reuse them. No extra node, host field, event or saved state is added.
 
 Small and Medium generated maps are connected to the normal world path. The
-older tiny map remains a compatibility fixture/world; generation is no longer
+older tiny map remains a populated native test setup; generation is no longer
 merely a separate primitive. Large/Huge/Mega generator outputs do not imply
 playable storage, observation or performance support.
 
@@ -3943,11 +3984,14 @@ and a visible fitting can be selected for its paid project details.
 
 ## Approved authored assets
 
-Paused authoring can reference only an exact normalized `assetId` and lowercase
-`sha256:<64-hex>` digest in the immutable host-approved catalog loaded at startup.
-A missing catalog denies all references. Malformed, ambiguous or unknown-schema
+The immutable host-approved catalog is loaded at startup. Its reference policy
+accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` digest;
+a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
-This is a narrow reference rule, not the future complete art-generation pipeline.
+The native authoring endpoint refuses submitted batches with
+`private_world_authoring_pending`; it does not apply them. The fixture's working
+authoring branch is retired. Catalog validation remains available for future
+native authoring and does not provide a complete art-generation pipeline.
 
 ## Building storage history
 
@@ -4061,7 +4105,7 @@ read back by the simulation, so they cannot change a tick, a save or replay.
   rounded to 0.1 ms. The timer pauses for runtime-gate reacquisition. It leaves out
   waiting for the runtime gate, hosted model calls between ticks and the
   checkpoint save. It is null until the first tick after start, load or a
-  world switch, and the legacy fixture host never reports it.
+  world switch.
 
 The client draws only the reported route; it never plans one. Frame time is
 measured in the client.

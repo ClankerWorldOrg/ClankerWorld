@@ -9,9 +9,9 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapRuntimeControl(WebApplication app, bool isPrivateWorld)
+    private static void MapRuntimeControl(WebApplication app)
     {
-        MapDeveloperEdits(app, isPrivateWorld);
+        MapDeveloperEdits(app);
 
         app.MapPost("/api/v1/owner/control/life-pace", (
             OwnerSignedHttpRequest<OwnerLifePaceAction> request,
@@ -29,7 +29,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "Read the current world's settings before changing life pace." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/life-pace", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Life pacing requires a private world." });
             lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();
@@ -66,7 +65,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "Read the current world's settings before changing Jev assistance." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/jev-assistance", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Jev assistance requires a private world." });
             lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();
@@ -105,7 +103,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/routine-helper",
                 OwnerHttpBinding.RoutineHelperPayload(action));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Routine helpers require a private world." });
             lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();
@@ -146,29 +143,19 @@ internal static partial class OwnerEndpoints
                 return OwnerFailures.ToHttpResult(authorization.Failure);
             }
 
-            if (isPrivateWorld)
-            {
-                var privateRuntime = services.GetRequiredService<PrivateWorldRuntime>();
-                var privateStateFile = services.GetRequiredService<PrivateWorldStateFile>();
-                var wasPaused = privateRuntime.Society.IsPaused;
-                privateRuntime.Pause();
-                var changed = !wasPaused && privateRuntime.Society.IsPaused;
-                // A prior failed write may already have changed memory. Even a no-op
-                // retry must durably acknowledge the requested pause.
-                privateStateFile.Save(privateRuntime);
 
-                return Results.Ok(OwnerControlReceipt.From("pause", changed, privateRuntime.ExportState()));
-            }
+            var privateRuntime = services.GetRequiredService<PrivateWorldRuntime>();
+            var privateStateFile = services.GetRequiredService<PrivateWorldStateFile>();
+            var wasPaused = privateRuntime.Society.IsPaused;
+            privateRuntime.Pause();
+            var changed = !wasPaused && privateRuntime.Society.IsPaused;
+            // A prior failed write may already have changed memory. Even a no-op
+            // retry must durably acknowledge the requested pause.
+            privateStateFile.Save(privateRuntime);
 
-            var runtime = services.GetRequiredService<OwnerWorldRuntime>();
-            var stateFile = services.GetRequiredService<OwnerWorldStateFile>();
-            var legacyChanged = runtime.Pause($"owner-device:{authorization.Value!.DeviceId}");
-            if (legacyChanged)
-            {
-                stateFile.Save(runtime);
-            }
+            return Results.Ok(OwnerControlReceipt.From("pause", changed, privateRuntime.ExportState()));
 
-            return Results.Ok(OwnerControlReceipt.From("pause", legacyChanged, runtime.Capture().Snapshot));
+
         });
 
         app.MapPost("/api/v1/owner/control/resume", (
@@ -194,34 +181,24 @@ internal static partial class OwnerEndpoints
                 return OwnerFailures.ToHttpResult(authorization.Failure);
             }
 
-            if (isPrivateWorld)
-            {
-                var privateRuntime = services.GetRequiredService<PrivateWorldRuntime>();
-                if (privateRuntime.FounderSetup is { Started: false })
-                    return Results.Conflict(new { message = "Place four configured founders, then select Start World." });
-                if (services.GetRequiredService<ProviderUsageStore>().Capture().AccountingError is { } accountingError)
-                    return Results.Conflict(new { message = accountingError });
-                if (services.GetRequiredService<ProviderUsageStore>().Capture().LimitReached)
-                    return Results.Conflict(new { message = "The model-call limit is reached. Raise the limit or allow more calls in Settings → Game, then resume." });
-                var privateStateFile = services.GetRequiredService<PrivateWorldStateFile>();
-                var wasPaused = privateRuntime.Society.IsPaused;
-                // Persist every acknowledgement, including an already-running
-                // retry. A paused live world resumes only after the write succeeds.
-                privateStateFile.Save(privateRuntime, resumeOnSuccess: true);
-                var changed = wasPaused && !privateRuntime.Society.IsPaused;
 
-                return Results.Ok(OwnerControlReceipt.From("resume", changed, privateRuntime.ExportState()));
-            }
+            var privateRuntime = services.GetRequiredService<PrivateWorldRuntime>();
+            if (privateRuntime.FounderSetup is { Started: false })
+                return Results.Conflict(new { message = "Place four configured founders, then select Start World." });
+            if (services.GetRequiredService<ProviderUsageStore>().Capture().AccountingError is { } accountingError)
+                return Results.Conflict(new { message = accountingError });
+            if (services.GetRequiredService<ProviderUsageStore>().Capture().LimitReached)
+                return Results.Conflict(new { message = "The model-call limit is reached. Raise the limit or allow more calls in Settings → Game, then resume." });
+            var privateStateFile = services.GetRequiredService<PrivateWorldStateFile>();
+            var wasPaused = privateRuntime.Society.IsPaused;
+            // Persist every acknowledgement, including an already-running
+            // retry. A paused live world resumes only after the write succeeds.
+            privateStateFile.Save(privateRuntime, resumeOnSuccess: true);
+            var changed = wasPaused && !privateRuntime.Society.IsPaused;
 
-            var runtime = services.GetRequiredService<OwnerWorldRuntime>();
-            var stateFile = services.GetRequiredService<OwnerWorldStateFile>();
-            var legacyChanged = runtime.Resume($"owner-device:{authorization.Value!.DeviceId}");
-            if (legacyChanged)
-            {
-                stateFile.Save(runtime);
-            }
+            return Results.Ok(OwnerControlReceipt.From("resume", changed, privateRuntime.ExportState()));
 
-            return Results.Ok(OwnerControlReceipt.From("resume", legacyChanged, runtime.Capture().Snapshot));
+
         });
     }
 }

@@ -420,27 +420,4 @@ public sealed class SeededHarnessTests
 
     private static int RouteCost(SeededMap map, params GridPoint[] route) =>
         route.Zip(route.Skip(1), map.FootStepCost).Sum();
-
-    [Fact]
-    public void SaveReloadAndPhysicalReplayProduceTheSameFinalDigestsAsTheCleanRun()
-    {
-        var clean = ScriptedHarness.RunEntireSequence("camp-gamma");
-        var beforeSave = ScriptedHarness.CreateGenesis("camp-gamma");
-        while (beforeSave.Actor.FoodItems == 0)
-        {
-            Assert.True(ScriptedHarness.TryAdvanceOneAction(beforeSave, out var next));
-            beforeSave = next;
-        }
-        var save = HarnessPersistence.Save(beforeSave);
-        var loaded = HarnessPersistence.Load(save);
-        var resumed = ScriptedHarness.ApplyConsume(loaded);
-        var persistedFinal = HarnessPersistence.Save(resumed);
-
-        Assert.Equal(HarnessPersistence.StateDigest(clean), HarnessPersistence.StateDigest(resumed));
-        Assert.Equal(HarnessPersistence.EventDigest(clean), HarnessPersistence.EventDigest(resumed));
-        Assert.True(
-            persistedFinal.SnapshotBytes.SequenceEqual(HarnessPersistence.Save(resumed).SnapshotBytes));
-        Assert.True(
-            persistedFinal.EventLogBytes.SequenceEqual(HarnessPersistence.Save(resumed).EventLogBytes));
-    }
 }

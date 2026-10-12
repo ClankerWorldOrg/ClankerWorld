@@ -108,7 +108,7 @@ public partial class Main
                     throw new InvalidOperationException("A refused placement must not refresh provider settings.");
                 if (refused)
                 {
-                    if (!statusLabel.Text.Contains("The world host did not accept that request", StringComparison.Ordinal) ||
+                    if (!statusLabel.Text.Contains("The server did not confirm your request", StringComparison.Ordinal) ||
                         statusLabel.Text.Contains("Agent placed", StringComparison.Ordinal))
                         throw new InvalidOperationException("A placement refusal must remain visible.");
                     continue;

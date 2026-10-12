@@ -34,7 +34,7 @@ revision.
 ## Matching client and host builds
 
 For an owner-authorized private-server update, follow the
-[deployment checklist](private-server-deployment.md). It covers staging,
+[deployment checklist](remote-server-deployment.md). It covers staging,
 paused backups, accounting, credentials and rollback; a private update does
 not require a public release or tag.
 

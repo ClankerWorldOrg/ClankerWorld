@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Device pairing
@@ -160,11 +160,13 @@ observation refreshes cannot silently authorize a different ownership change.
 
 ## Response-loss recovery
 
-Instructions, order cancellations and paused-authoring batches are
-server-idempotent, but a client can still lose the response after the server
-commits one. Before sending any of these three kinds of request, the Godot
-client may atomically retain one non-secret pending record. It is bound to the
-authority identity, device ID, public-key fingerprint, and canonical server
+Instructions and order cancellations are server-idempotent, but a client can
+still lose the response after the server commits one. The Godot client's retry
+protocol also retains authoring batches, which the native host currently refuses
+with `private_world_authoring_pending` without applying them. Before sending
+any of these requests, the client may atomically retain one non-secret pending
+record. It is bound to the authority identity, device ID, public-key fingerprint,
+and canonical server
 origin, and preserves the exact instruction or cancellation idempotency key, or
 authoring batch ID.
 
@@ -204,9 +206,33 @@ bounds for the caller's idempotency key, order ID and world ID, and refuses
 blank or control-character identities. Persistence, reload and retry keep the
 same target; they never shorten or replace it.
 
-The user can explicitly retry that one record. The retry obtains a new one-use
-challenge and signature, then submits the same logical request so the server
-returns the original receipt rather than creating a duplicate. Private-world
+After a successful reconnect confirms the same world and observer timeline,
+the client automatically retries that exact record once. It requires the
+original pairing, device key and origin as well as a valid, matching timeline;
+legacy observations without a timeline require an explicit player retry.
+Recovery runs after the observation refresh finishes, through the existing
+owner-action gate. An owner action's own refresh cannot recursively retry it.
+A second lost reply keeps the record and offers manual recovery instead of
+resending on every observation pulse.
+
+The ordinary **Your last request** panel offers **Check and send again** and
+**Discard it**, without Developer mode. On the original confirmed world,
+Check and send again retries the exact request. After a load, switch or host
+restart, it instead discards the old local retry and asks the player to inspect
+the world before issuing a new request. An instruction for the same world's
+existing agent becomes an editable draft with its original text, kind and
+queue choice; only a new Send creates a new key. A different world gets no
+retargeted instruction or automatic submission. Cancellations and authoring
+must be reviewed and issued again through their normal controls. Discarding
+never undoes a request the server already accepted. An unreadable or
+connection-mismatched record also offers explicit discard; its contents are
+not exposed or automatically submitted.
+
+Each exact retry obtains a new one-use challenge and signature. For an
+instruction or order cancellation, it submits the same logical request so the
+server returns the original receipt rather than creating a duplicate. The
+native host continues to refuse authoring batches without applying them.
+Private-world
 instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the host still returns its accepted receipt after the recipient dies,
 including after saving and restarting the host. The client's stricter timeline
@@ -226,8 +252,9 @@ world context cannot clear a retained request in the current world.
 ## Current scope
 
 Every paired device has the sole `owner` scope: world observation,
-pause/resume, instruction submission, order cancellation, authoring-batch
-submission, and device management. There are no viewer, operator, or multiplayer roles yet. A revoked
+pause/resume, instruction submission, order cancellation and device management.
+The retained authoring-batch protocol is disabled on the native host, as described
+above. There are no viewer, operator, or multiplayer roles yet. A revoked
 device immediately loses access. Authority state retains non-secret public-key
 fingerprints and device IDs; world-side control events retain a non-secret
 server-derived issuer string, never a private key or comparison code.

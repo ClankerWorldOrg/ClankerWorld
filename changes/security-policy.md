@@ -1,0 +1,1 @@
+- The security policy now explains private vulnerability reporting, supported builds and which problems are in scope.

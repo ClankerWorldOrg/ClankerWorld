@@ -305,6 +305,9 @@ public sealed class OwnerPendingSubmissionStore
         this.path = path;
     }
 
+    /// <summary>A saved record may require explicit discard even when it cannot be loaded for this connection.</summary>
+    public bool HasRecord => File.Exists(path);
+
     /// <summary>
     /// Returns the one validated pending submission bound to
     /// <paramref name="expectedBinding"/>. Missing, corrupt, stale, or

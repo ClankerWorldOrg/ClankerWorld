@@ -515,7 +515,9 @@ public partial class Main
         instructionCancelButton.Disabled = actionDisabled || deceasedSelected;
         instructionText.Editable = !actionDisabled && !deceasedSelected;
         RenderPendingSubmission();
-        retryPendingSubmissionButton.Disabled = !paired || isOwnerAction || !CanRetryPendingSubmission(pendingSubmission);
+        retryPendingSubmissionButton.Disabled = !paired || isOwnerAction || isRefreshing || !CanRetryPendingSubmission(pendingSubmission);
+        reviewPendingSubmissionButton.Disabled = !paired || isOwnerAction || isRefreshing ||
+            observationSession.AwaitingFreshBaseline || snapshot is null;
         forgetPendingSubmissionButton.Disabled = isPairingOperation || isOwnerAction || isRefreshing;
         pairingApprovalId.Editable = !actionDisabled;
         pairingApprovalCode.Editable = !actionDisabled;

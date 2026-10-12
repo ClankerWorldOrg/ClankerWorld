@@ -98,7 +98,7 @@ public sealed class AnimalSystemTests
         var product = world.Society.Inventory.GetLot(ready.ReadyProductLotId!);
         Assert.Equal(("milk", "household", 2), (product.ItemKind, product.OwnerId, product.Quantity));
         Assert.Equal(new InventoryGroundPosition(animal.Position.X, animal.Position.Y), product.GroundPosition);
-        Assert.Equal(0, PersonalEquipmentRules.AvailableQuantity(world.Society.Inventory, product));
+        Assert.Equal(0, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(world.Society.Inventory), product)));
         Assert.Equal(InventoryReservationState.Reserved, Assert.Single(world.Society.Inventory.Reservations).State);
         Assert.Same(initial, discarded.State);
 
@@ -165,7 +165,7 @@ public sealed class AnimalSystemTests
         public string HouseholdFor(string actor) => Society.GetInhabitant(actor).HouseholdId!;
         public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => Events.Add((kind, detail, eventPosition));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => Society = Society with { Inventory = transition(Society.Inventory) };
-        public int AvailableLotQuantity(InventoryLot lot) => PersonalEquipmentRules.AvailableQuantity(Society.Inventory, lot);
+        public int AvailableLotQuantity(InventoryLot lot) => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(Society.Inventory), lot));
         public InventoryLot? AttachedHandcart(string actor) => null;
         public BoatState? PassengerBoat(string actor) => null;
         public GoodsAnswer FindGoods(GoodsRequest request) => GoodsInventoryQuery.FindConsumableGoods(Society.Inventory, request, (_, _) => null);

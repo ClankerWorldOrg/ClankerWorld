@@ -114,7 +114,7 @@ internal static class MarketPausedPlanTradeScenario
             Assert.True(MarketTradeRules.IsLoose(offeredPayment));
             Assert.False(PersonalEquipmentRules.IsSelected(offering.Inhabitants.Single(person => person.InhabitantId == buyer).Equipment,
                 offeredPayment.Id));
-            Assert.Equal(3, MarketTradeRules.AvailableQuantity(offering.Society.Inventory, offering.Society.Inventory.GetLot(receipt.LotId)));
+            Assert.Equal(3, InventoryRules.UsableQuantity(InventoryIndex.For(offering.Society.Inventory), offering.Society.Inventory.GetLot(receipt.LotId)));
             clothBefore = Quantity(offering, "cloth");
             paymentBefore = Quantity(offering, trade.PaymentKind);
             pending = AssertReplay(offering, buyer, paused, recipe.CanonicalId);

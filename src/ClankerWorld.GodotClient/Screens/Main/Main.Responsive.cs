@@ -80,6 +80,11 @@ public partial class Main
         statusToast.Position = new Vector2(
             Math.Max(14, (viewport.X - toastSize.X) / 2),
             Math.Max(14, viewport.Y - toastSize.Y - 18));
+        pendingSubmissionPanel.ResetSize();
+        var recoverySize = pendingSubmissionPanel.GetCombinedMinimumSize();
+        pendingSubmissionPanel.Position = new Vector2(
+            Math.Max(14, (viewport.X - recoverySize.X) / 2),
+            Math.Max(14, statusToast.Position.Y - recoverySize.Y - 10));
     }
 
     private void PositionFamilyTreePanel(Vector2 viewport, float hudTop)

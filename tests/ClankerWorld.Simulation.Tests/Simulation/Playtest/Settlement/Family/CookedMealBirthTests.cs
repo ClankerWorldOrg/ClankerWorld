@@ -12,8 +12,8 @@ public sealed class CookedMealBirthTests
         var prepared = await CookedBirthFixture.PrepareAsync(inPot: true);
         Assert.All(prepared.OutputIds, id => Assert.Equal(2, prepared.State.Society.Society.Inventory.GetLot(id).Quantity));
         Assert.DoesNotContain(prepared.State.Society.Society.Inventory.Lots, lot =>
-            lot.OwnerId == prepared.Household && PersonalEquipmentRules.AvailableQuantity(
-                prepared.State.Society.Society.Inventory, lot) >= 4 && InventoryContainerRules.IsFood(lot.ItemKind));
+            lot.OwnerId == prepared.Household && Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(
+                prepared.State.Society.Society.Inventory), lot)) >= 4 && InventoryContainerRules.IsFood(lot.ItemKind));
         using var world = CookedBirthFixture.Restore(prepared);
         for (var tick = 0; tick < 40 && world.Inhabitants.Single(person => person.InhabitantId == prepared.First)
                  .Parenthood?.Stage != "preparing"; tick++)
