@@ -71,8 +71,10 @@ public sealed class PrivateWorldDeferredCognitionTests
         Assert.True(restored.Society.GetInhabitant(NameTargetId).HasChosenName);
     }
 
-    [Fact]
-    public async Task DuplicateNameRetryConsumesASecondConfiguredProviderAllowance()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(4000)]
+    public async Task DuplicateNameRetryConsumesASecondConfiguredProviderAllowance(int firstReplyDelayMilliseconds)
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-name-retry-meter-");
         try
@@ -84,7 +86,7 @@ public sealed class PrivateWorldDeferredCognitionTests
             _ = configuration.Configure(new("planning", "openai", "retry-meter-model", "retry-meter-key", false));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             _ = usage.Configure(new ProviderUsageLimitAction(2));
-            var handler = new SequencedNameResponseHandler("Taken Lake", "Maia Vale");
+            var handler = new SequencedNameResponseHandler(firstReplyDelayMilliseconds, "Taken Lake", "Maia Vale");
             var router = new ConfigurableDecisionProvider(configuration,
                 new FixedHttpClientFactory(handler), usageStore: usage);
             using var world = CreateNameTestWorld("duplicate-name-retry-meter", router);
@@ -562,18 +564,28 @@ public sealed class PrivateWorldDeferredCognitionTests
 
     private static async Task<PrivateWorldStepResult> AdvanceUntilAcceptedAsync(PrivateWorldRuntime world, string inhabitantId)
     {
-        // Hosted completion runs between ticks and can be delayed by runner load.
-        // Keep admitting through native ticks under a wall-clock deadline.
-        var waiting = System.Diagnostics.Stopwatch.StartNew();
-        while (waiting.Elapsed < TimeSpan.FromSeconds(3))
+        var field = typeof(PrivateWorldRuntime).GetField("pendingHosted",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
+        for (var tick = 0; tick < 20; tick++)
         {
+            // Finish the registered wrapper task, including provider metering,
+            // without spending native ticks on thread-pool scheduling.
+            if (pending.Contains(inhabitantId))
+            {
+                var call = pending[inhabitantId]!;
+                var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
+                var checkpoint = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+                await task.WaitAsync(TimeSpan.FromSeconds(30));
+                Assert.Same(call, pending[inhabitantId]);
+                Assert.Equal(checkpoint, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+            }
             var step = await world.AdvanceOneTickNonBlockingAsync();
             Assert.True(step.Advanced);
             if (step.Decisions.Any(item => item.InhabitantId == inhabitantId && item.Admission.Accepted))
                 return step;
-            await Task.Delay(10);
         }
-        throw new TimeoutException($"The completed hosted decision for {inhabitantId} was not admitted within 3 seconds.");
+        throw new TimeoutException($"The completed hosted decision for {inhabitantId} was not admitted within 20 ticks.");
     }
 
     private static PrivateWorldRuntime CreateNameTestWorld(
@@ -706,7 +718,7 @@ public sealed class PrivateWorldDeferredCognitionTests
         public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
-    private sealed class SequencedNameResponseHandler(params string[] names) : HttpMessageHandler
+    private sealed class SequencedNameResponseHandler(int firstReplyDelayMilliseconds, params string[] names) : HttpMessageHandler
     {
         private int requestCount;
 
@@ -718,6 +730,8 @@ public sealed class PrivateWorldDeferredCognitionTests
         {
             var call = Interlocked.Increment(ref requestCount);
             _ = await request.Content!.ReadAsStringAsync(cancellationToken);
+            // The delayed row outlives the former three-second admission poll.
+            if (call == 1) await Task.Delay(firstReplyDelayMilliseconds, cancellationToken);
             var answer = JsonSerializer.Serialize(new
             {
                 selected_candidate_id = "safe_idle",

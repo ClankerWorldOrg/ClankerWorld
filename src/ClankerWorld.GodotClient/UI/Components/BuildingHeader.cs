@@ -35,7 +35,7 @@ public partial class BuildingHeader : HBoxContainer
         SizeFlagsVertical = SizeFlags.ShrinkBegin,
     };
 
-    public Label NameLabel { get; } = new() { ThemeTypeVariation = "HeadingLabel", ClipText = true };
+    public Label NameLabel { get; } = new() { ThemeTypeVariation = "HeadingLabel", ClipText = true, MouseFilter = MouseFilterEnum.Pass };
 
     public Label OwnerLabel { get; } = new() { ThemeTypeVariation = "DimLabel", AutowrapMode = TextServer.AutowrapMode.WordSmart };
 

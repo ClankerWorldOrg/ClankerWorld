@@ -143,6 +143,8 @@ wear out sooner than the Blacksmith's wooden tools. Agents collect and use a
 better usable tool when one is available. Inventory and plot details name the
 crude tools, and the Event Log records completed work; their item pictures
 still use the generic icon.
+Agents take a smaller harvest when the tool and its full load would exceed
+their carrying limit, keeping any tree seed with the gathered wood.
 
 When a House is overcrowded, inspect a resident's housing details to see who
 has notice to move out, why, how much time remains and whether expansion is
@@ -743,7 +745,8 @@ has the details.
 
 Click a building to outline it and open a small card beside it: who owns it,
 what is being made there or who is inside, and what it stores, shown as item
-icons with the amount in the corner. **Details** opens the rest on the left:
+icons with the amount in the corner. Hover over a clipped building name on
+either card to read it in full. **Details** opens the rest on the left:
 who may use it, when it was built, which side its door faces, the work in
 progress, a larger storage grid with each item's name, and who is inside or
 lives there. Long item names fit within their slots; hover to read the full
