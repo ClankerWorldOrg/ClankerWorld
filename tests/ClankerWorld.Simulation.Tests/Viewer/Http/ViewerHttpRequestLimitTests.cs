@@ -142,10 +142,12 @@ public sealed partial class ViewerHttpTests
         using var large = await client.SendAsync(streamed);
         Assert.Equal(HttpStatusCode.OK, large.StatusCode);
 
+        // Valid JSON must be read through the body limit; an invalid prefix
+        // can be rejected with 400 before the later oversized chunk arrives.
         using var oversized = new HttpRequestMessage(HttpMethod.Post,
             new Uri(approvalOrigin, "api/v1/local/devices/device_not_real/revoke"))
         {
-            Content = new StreamedJson(Encoding.ASCII.GetBytes(new string('x', (int)RequestBodyLimits.Unauthenticated + 1024))),
+            Content = new StreamedJson(PaddedJsonBytes(new LocalDeviceRevokeHttpRequest(null), RequestBodyLimits.Unauthenticated + 1024)),
         };
         using var tooLarge = await client.SendAsync(oversized);
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, tooLarge.StatusCode);
