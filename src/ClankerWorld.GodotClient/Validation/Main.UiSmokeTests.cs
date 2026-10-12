@@ -126,7 +126,7 @@ public partial class Main
             await response;
             if (!founderModelSetupCheckStatus.Text.Contains("matching updates", StringComparison.Ordinal) ||
                 !founderModelSetupCheckStatus.Text.Contains("Nothing was sent", StringComparison.Ordinal) ||
-                founderModelSetupCheckStatus.Text.Contains("Check paid-call usage", StringComparison.Ordinal) || registration is null)
+                founderModelSetupCheckStatus.Text.Contains("Check your model-call count", StringComparison.Ordinal) || registration is null)
                 throw new InvalidOperationException("Test model must explain the host update and that no paid request was sent, keeping pairing.");
         }
         finally
@@ -686,8 +686,8 @@ public partial class Main
             PopulateProviderChoices(ActiveProviderForSelectedRole());
             PopulateCredentialChoices();
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("No personal model selected for this child", StringComparison.Ordinal) ||
-                !cognitionConfigurationStatus.Text.Contains("world defaults are not used", StringComparison.Ordinal))
+            if (!cognitionConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
+                !cognitionConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
                 throw new InvalidOperationException("A child without a birth-time choice must remain explicitly unconfigured.");
 
             providerConfiguration = childConfiguration with
@@ -697,8 +697,8 @@ public partial class Main
             PopulateProviderChoices(ActiveProviderForSelectedRole());
             PopulateCredentialChoices();
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("No personal model selected for this child", StringComparison.Ordinal) ||
-                !cognitionConfigurationStatus.Text.Contains("world defaults are not used", StringComparison.Ordinal))
+            if (!cognitionConfigurationStatus.Text.Contains("No personal model is chosen for this child", StringComparison.Ordinal) ||
+                !cognitionConfigurationStatus.Text.Contains("default models are not used", StringComparison.Ordinal))
                 throw new InvalidOperationException("An explicit no-model choice must survive as a safe local child route.");
 
             providerConfiguration = childConfiguration with
@@ -732,7 +732,7 @@ public partial class Main
             if (!cognitionConfigurationStatus.Text.Contains("Model needs setup", StringComparison.Ordinal) ||
                 !cognitionConfigurationStatus.Text.Contains("frozen-before-save-model", StringComparison.Ordinal) ||
                 !cognitionConfigurationStatus.Text.Contains("waiting", StringComparison.Ordinal) ||
-                cognitionConfigurationStatus.Text.Contains("No personal model selected", StringComparison.Ordinal))
+                cognitionConfigurationStatus.Text.Contains("No personal model is chosen", StringComparison.Ordinal))
                 throw new InvalidOperationException("A saved birth choice awaiting provider storage must remain visible instead of appearing unconfigured.");
 
             providerConfiguration = childConfiguration with
@@ -740,7 +740,7 @@ public partial class Main
                 Assignments = [new(childId, "planning", "inherit")],
             };
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("Routine: OpenAI · frozen-before-save-model waiting", StringComparison.Ordinal) ||
+            if (!cognitionConfigurationStatus.Text.Contains("Routine: OpenAI · frozen-before-save-model needs setup", StringComparison.Ordinal) ||
                 !cognitionConfigurationStatus.Text.Contains("Planning: no personal model", StringComparison.Ordinal))
                 throw new InvalidOperationException("A pending birth route must remain visible alongside an explicit role-specific override.");
 
@@ -749,7 +749,7 @@ public partial class Main
                 Assignments = [new(childId, "routine", "inherit"), new(childId, "planning", "inherit")],
             };
             RenderProviderConfiguration();
-            if (!cognitionConfigurationStatus.Text.Contains("No personal model selected", StringComparison.Ordinal) ||
+            if (!cognitionConfigurationStatus.Text.Contains("No personal model is chosen", StringComparison.Ordinal) ||
                 cognitionConfigurationStatus.Text.Contains("frozen-before-save-model", StringComparison.Ordinal))
                 throw new InvalidOperationException("An explicit no-model override must take precedence over the historical birth choice.");
         }

@@ -202,7 +202,7 @@ public partial class Main
         body.AddChild(FieldCaption("Thinking", founderThinkingChoice));
         body.AddChild(founderThinkingChoice);
         founderModelSetupCheckButton.Text = "Test model · 1 paid call";
-        founderModelSetupCheckButton.TooltipText = "Sends one request with this model and key. It counts toward your paid-call limit.";
+        founderModelSetupCheckButton.TooltipText = "Sends one request with this model and key. It counts toward your model-call limit.";
         StyleButton(founderModelSetupCheckButton);
         founderModelSetupCheckButton.Pressed += () => _ = RunFounderModelSetupCheckAsync();
         body.AddChild(founderModelSetupCheckButton);
