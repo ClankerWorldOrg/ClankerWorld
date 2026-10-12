@@ -1,6 +1,6 @@
 {
   "$collection": [
-    "src/ClankerWorld.Simulation/Playtest/Animals/PrivateWorldRuntime.AnimalActions.cs",
+    "src/ClankerWorld.Simulation/Playtest/Animals/PrivateWorldRuntime.AnimalWorld.cs",
     "src/ClankerWorld.Simulation/Playtest/Civic/PrivateWorldRuntime.CivicTownWorld.cs",
     "src/ClankerWorld.Simulation/Playtest/Environment/PrivateWorldRuntime.EnvironmentWorld.cs",
     "src/ClankerWorld.Simulation/Playtest/Knowledge/SettlementExploration.cs",
@@ -85,7 +85,7 @@
     "src/ClankerWorld.Simulation/Playtest/Settlement/Family/SettlementParenthood.cs"
   ],
   "HungerBasisPoints": [
-    "src/ClankerWorld.Simulation/Playtest/Animals/PrivateWorldRuntime.AnimalActions.cs",
+    "src/ClankerWorld.Simulation/Playtest/Animals/AnimalSystem.AnimalActions.cs",
     "src/ClankerWorld.Simulation/Playtest/Civic/CivicSystem.Towns.cs",
     "src/ClankerWorld.Simulation/Playtest/Environment/EnvironmentSystem.Physical.cs",
     "src/ClankerWorld.Simulation/Playtest/Runtime/PrivateWorldRuntime.Actions.cs",

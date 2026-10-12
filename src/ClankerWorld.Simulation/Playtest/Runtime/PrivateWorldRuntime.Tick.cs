@@ -438,7 +438,7 @@ public sealed partial class PrivateWorldRuntime
         farmingSystem = proposed.farmingSystem;
         handcartHitches = proposed.handcartHitches;
         boatTransport = proposed.boatTransport;
-        animalWorld = proposed.animalWorld;
+        animalSystem = proposed.animalSystem;
         geographyOptions = proposed.geographyOptions;
         contentRegistry = proposed.contentRegistry;
         environmentSystem = proposed.environmentSystem;

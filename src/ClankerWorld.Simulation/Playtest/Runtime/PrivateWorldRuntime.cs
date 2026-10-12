@@ -98,7 +98,9 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => civicSystem.State.HouseholdLandUseRights; set => civicSystem.RestoreHouseholdLandUseRights(value); }
     private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => civicSystem.State.HouseholdLandUseRequests; set => civicSystem.RestoreHouseholdLandUseRequests(value); }
     private HashSet<GridPoint> roadTiles = [];
-    private AnimalWorldState animalWorld = AnimalWorldState.Empty;
+    private AnimalSystem animalSystem = new(AnimalWorldState.Empty);
+    private AnimalWorldState animalWorld => animalSystem.State;
+    private readonly IAnimalWorld animalWorldAdapter;
     public IReadOnlyList<AnimalState> Animals => animalWorld.Animals;
     private List<HandcartHitch> handcartHitches = [];
     private ConversationSystem conversationSystem = new(new([], [], []));
@@ -164,6 +166,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         environmentWorld = new EnvironmentWorldAdapter(this);
         civicWorld = new CivicWorldAdapter(this);
         farmingWorld = new FarmingWorldAdapter(this);
+        animalWorldAdapter = new AnimalWorldAdapter(this);
         if (geographyOptions is not null &&
             (startPace != WorldStartPace.FounderSetup ||
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
@@ -365,7 +368,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         runtime.jevPolicyRevision = state.JevPolicyRevision;
         runtime.handcartHitches = state.HandcartHitches!.ToList();
         runtime.boatTransport = state.BoatTransport;
-        runtime.animalWorld = state.AnimalWorld;
+        runtime.animalSystem = new(state.AnimalWorld);
         runtime.farmingSystem = trustedPreparedState && preparedFarming is not null
             ? preparedFarming.Fork() : new(new(state.Fields!.OrderBy(field => field.Position.Y)
                 .ThenBy(field => field.Position.X)), state.WorldSeed);
