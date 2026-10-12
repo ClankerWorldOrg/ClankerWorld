@@ -4068,11 +4068,13 @@ measured in the client.
 
 ## Development and finished distribution
 
-Development currently uses the private server. The intended first finished
-release runs the same authoritative simulation on the player's Windows PC,
-with local saves and keys, using a bundled companion host process
-([#468](https://github.com/compoodment/ClankerWorld/issues/468)).
-See [where the game runs](../game-design/world.md#where-the-game-runs).
+The world server runs the authoritative simulation; the game draws it and
+sends the player's choices. By default the game starts its own world server on
+the player's Windows PC, with local saves and keys, as a separate bundled
+process ([#468](https://github.com/compoodment/ClankerWorld/issues/468)). The
+game can also connect to a world server on another machine, such as the
+development VPS, whose logs the agent there reads. Both ways run the same
+server. See [where the game runs](../game-design/world.md#where-the-game-runs).
 
 ## Material gathering
 
