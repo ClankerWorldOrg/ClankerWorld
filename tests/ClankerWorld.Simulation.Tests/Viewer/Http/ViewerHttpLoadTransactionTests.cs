@@ -11,8 +11,10 @@ namespace ClankerWorld.Simulation.Tests;
 
 public sealed partial class ViewerHttpTests
 {
-    [Fact]
-    public async Task ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ConcurrentLoadAndSelectionArchiveOneCompleteCheckpointAndSettings(bool cancelWait)
     {
         var directory = Directory.CreateTempSubdirectory("load-selection-");
         try
@@ -54,16 +56,32 @@ public sealed partial class ViewerHttpTests
             var load = Task.Run(() => client.PostAsJsonAsync("/api/v1/owner/saves/load", loadEnvelope));
             Task<HttpResponseMessage>? selection = null;
             string? worldDuringLoad = null;
-            try
+            var waitFailure = await Record.ExceptionAsync(async () =>
             {
-                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                while (!runtime.JevEnabled) await Task.Delay(10, deadline.Token);
-                selection = Task.Run(() => client.PostAsJsonAsync("/api/v1/owner/worlds/select", selectEnvelope));
-                await Task.Delay(1000, deadline.Token);
-                worldDuringLoad = runtime.Society.WorldId;
-            }
-            finally { release.Set(); }
-            await held;
+                try
+                {
+                    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    while (!runtime.JevEnabled) await Task.Delay(10, deadline.Token);
+                    selection = Task.Run(() => client.PostAsJsonAsync("/api/v1/owner/worlds/select", selectEnvelope));
+                    if (cancelWait)
+                    {
+                        worldDuringLoad = runtime.Society.WorldId;
+                        deadline.Cancel();
+                    }
+                    await Task.Delay(1000, deadline.Token);
+                    worldDuringLoad = runtime.Society.WorldId;
+                }
+                finally
+                {
+                    release.Set();
+                    // Released requests can still write until their handlers finish.
+                    await Task.WhenAll(held, load, (Task?)selection ?? Task.CompletedTask);
+                }
+            });
+            if (cancelWait) Assert.IsAssignableFrom<OperationCanceledException>(waitFailure);
+            else Assert.Null(waitFailure);
+            Assert.True(held.IsCompleted && load.IsCompleted && selection?.IsCompleted == true,
+                "All concurrent work must finish before teardown, including after a canceled wait.");
             using var loaded = await load;
             using var selected = await selection!;
             Assert.Equal(worldA, worldDuringLoad);
