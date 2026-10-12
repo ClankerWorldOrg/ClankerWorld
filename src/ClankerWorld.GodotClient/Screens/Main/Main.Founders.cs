@@ -202,7 +202,7 @@ public partial class Main
         body.AddChild(FieldCaption("Thinking", founderThinkingChoice));
         body.AddChild(founderThinkingChoice);
         founderModelSetupCheckButton.Text = "Test model · 1 paid call";
-        founderModelSetupCheckButton.TooltipText = "Sends one request with this model and key. It counts toward your paid-call limit.";
+        founderModelSetupCheckButton.TooltipText = "Sends one request with this model and key. It counts toward your model-call limit.";
         StyleButton(founderModelSetupCheckButton);
         founderModelSetupCheckButton.Pressed += () => _ = RunFounderModelSetupCheckAsync();
         body.AddChild(founderModelSetupCheckButton);
@@ -401,7 +401,7 @@ public partial class Main
                 catch (Exception exception) when (exception is not OutOfMemoryException &&
                     exception is not ObsoleteWorldRequestException)
                 {
-                    return $"{detail} · Model settings could not be refreshed. Reopen Game Settings to refresh them.";
+                    return $"{detail} · Model settings could not be refreshed. Open World Settings to refresh them.";
                 }
                 return detail;
             }, conflictMessage: "The placement changed. Check the tile and try again.");

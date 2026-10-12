@@ -131,7 +131,7 @@ public partial class Main
         mainMenuSettingsButton.Pressed += OpenMainMenuSettings;
         body.AddChild(mainMenuSettingsButton);
 
-        mainMenuConnectButton.Text = "Connect / Pair development host";
+        mainMenuConnectButton.Text = "Connect to a world server";
         StyleMenuChoice(mainMenuConnectButton);
         mainMenuConnectButton.Pressed += () => _ = OpenMainMenuConnectionAsync();
         body.AddChild(mainMenuConnectButton);
@@ -290,7 +290,7 @@ public partial class Main
                 menuPauseConfirmed = confirmed;
                 if (!menuPauseConfirmed)
                 {
-                    SetStatus("Could not confirm the pause. Try Quit to Menu again when the host is reachable.", good: false);
+                    SetStatus("Could not confirm the pause. Try Quit to Menu again when the world server is reachable.", good: false);
                     return;
                 }
                 // The owner may have closed the menu while this request waited.
@@ -990,7 +990,7 @@ public partial class Main
         if (!CanCreatePreview(action))
         {
             worldPreviewStatus.Text = previewedWorldResult?.Coverage is { TargetsApplicable: true, MeetsTargets: false }
-                ? "Tick Keep this map anyway, or choose a new seed, before creating the world."
+                ? "Turn on Keep this map anyway, or choose a new seed, before creating the world."
                 : "Preview the map before creating the world.";
             RefreshWorldMenuAvailability();
             return;

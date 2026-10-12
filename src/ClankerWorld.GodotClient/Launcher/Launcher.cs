@@ -305,7 +305,7 @@ public partial class Launcher : Control
             catch (GameInstallException exception) { SetStatus(exception.Message); }
             catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or IOException or UnauthorizedAccessException)
             {
-                SetStatus("The local build couldn't start. Check its game and host files, then try again. Your saves are safe.");
+                SetStatus("The local build couldn't start. Check its game files and its host folder, then try again. Your saves are safe.");
             }
         };
         chooser.Canceled += () => chooser.QueueFree();

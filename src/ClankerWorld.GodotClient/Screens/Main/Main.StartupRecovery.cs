@@ -63,12 +63,12 @@ public partial class Main
         mainMenuCard.Hide();
         mainMenuLogo.Hide();
         startupRecoveryExplanation.Text = status.Reason == "different_save_format"
-            ? "This saved state uses a different save format that this alpha build cannot open. Your other saves are unchanged, and the refused file is kept." +
+            ? "This saved world uses a save format this version of the game can't open. Your other saves are unchanged, and the file is kept." +
                 (status.SavedByVersion is { } version ? $" Version {version} last saved it." : string.Empty)
-            : "The latest saved state could not be opened. Your other saves are unchanged, and the damaged file is kept.";
+            : "The world's latest save could not be opened. Your other saves are unchanged, and the damaged file is kept.";
         startupRecoverySave.Text = status.Autosave is { } save
             ? $"Last usable autosave: {save.CreatedUtc.ToLocalTime():g}.\nProgress since this autosave will be missing from the recovered world. The world will open paused."
-            : "No usable autosave was found for this history. Quit and keep the saved files for recovery, or check again after restoring an autosave.";
+            : "No usable autosave was found in this world's history. Quit to keep the saved files for recovery, or check again after restoring an autosave.";
         startupRecoveryButton.Disabled = startupRecoveryBusy || status.Autosave is null;
         startupRecoveryRetry.Disabled = startupRecoveryBusy;
         startupRecoveryCard.Show();

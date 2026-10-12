@@ -91,21 +91,21 @@ public sealed class OwnerWorldObservationSession
         }
         if (response.Handshake?.Protocol is null || response.Handshake.Protocol.Major != 1)
         {
-            failure = "The owner observation protocol major is unsupported.";
+            failure = "The world server uses a connection format this game doesn't support. Update the game and the world server so they match.";
             return false;
         }
 
         var capabilities = (response.Handshake.ServerCapabilities ?? []).ToHashSet(StringComparer.Ordinal);
         if (RequiredCapabilities.Any(capability => !capabilities.Contains(capability)))
         {
-            failure = "The server did not advertise the required paired-owner capabilities.";
+            failure = "The world server doesn't offer everything this game needs. Update the world server to match the game.";
             return false;
         }
 
         var baseline = response.Baseline;
         if (baseline?.Snapshot is null || baseline.Events is null)
         {
-            failure = "The owner reconnect baseline is internally inconsistent.";
+            failure = "The world server sent an update that doesn't fit together. Keeping the last confirmed view.";
             return false;
         }
 
@@ -113,7 +113,7 @@ public sealed class OwnerWorldObservationSession
         if (capabilities.Contains(TimelineCapability) != (timeline is not null) ||
             timeline is { IsValid: false } || (Timeline is not null || pendingTimeline is not null) && timeline is null)
         {
-            failure = "The host sent an incomplete world update. Keeping the last confirmed view.";
+            failure = "The world server sent an incomplete world update. Keeping the last confirmed view.";
             return false;
         }
         var expectedTimeline = pendingTimeline ?? Timeline;
@@ -152,7 +152,7 @@ public sealed class OwnerWorldObservationSession
             baseline.Events.EventHistoryFloor > baseline.Snapshot.LatestEventId ||
             baseline.Events.ResetRequired != (requestedAfterEventId < baseline.Events.EventHistoryFloor))
         {
-            failure = "The owner reconnect baseline is internally inconsistent.";
+            failure = "The world server sent an update that doesn't fit together. Keeping the last confirmed view.";
             return false;
         }
 
@@ -163,7 +163,7 @@ public sealed class OwnerWorldObservationSession
                 worldEvent.EventId > baseline.Snapshot.LatestEventId ||
                 worldEvent.WorldTick > baseline.Snapshot.WorldTick)
             {
-                failure = "The owner reconnect event suffix is not ordered against its snapshot.";
+                failure = "The world server sent events out of order. Keeping the last confirmed view.";
                 return false;
             }
 
@@ -172,7 +172,7 @@ public sealed class OwnerWorldObservationSession
 
         if (previousEventId != baseline.Snapshot.LatestEventId)
         {
-            failure = "The owner reconnect event suffix is incomplete for its snapshot.";
+            failure = "The world server sent an incomplete world update: some events are missing. Keeping the last confirmed view.";
             return false;
         }
 
@@ -181,7 +181,7 @@ public sealed class OwnerWorldObservationSession
              baseline.Snapshot.LatestEventId < current.Baseline.Snapshot.LatestEventId ||
              baseline.Snapshot.WorldId != current.Baseline.Snapshot.WorldId))
         {
-            failure = "The owner reconnect response regresses the held world state.";
+            failure = "The world server sent an older view of the world than the one shown. Keeping the last confirmed view.";
             return false;
         }
 
@@ -200,7 +200,7 @@ public sealed class OwnerWorldObservationSession
                 !string.Equals(cached.WorldId, baseline.Snapshot.WorldId, StringComparison.Ordinal) ||
                 !string.Equals(cached.MapManifestDigest, baseline.Snapshot.MapManifestDigest, StringComparison.Ordinal))
             {
-                failure = "The owner terrain cache cannot satisfy this reconnect baseline.";
+                failure = "The game's saved copy of this map doesn't match the update. Keeping the last confirmed view.";
                 return false;
             }
             var merged = baseline.Snapshot with
@@ -223,7 +223,7 @@ public sealed class OwnerWorldObservationSession
                 !string.Equals(cached.WorldId, baseline.Snapshot.WorldId, StringComparison.Ordinal) ||
                 !string.Equals(cached.MapLayersDigest, expectedLayersDigest, StringComparison.Ordinal))
             {
-                failure = "The owner map-layer cache cannot satisfy this reconnect baseline.";
+                failure = "The game's saved copy of the map overlays doesn't match the update. Keeping the last confirmed view.";
                 return false;
             }
             var merged = baseline.Snapshot with { PackedMapLayers = cached.PackedMapLayers };

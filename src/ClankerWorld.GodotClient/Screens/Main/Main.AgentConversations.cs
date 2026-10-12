@@ -195,10 +195,10 @@ public partial class Main
         "owner_paused" => "world paused",
         "disconnected" => "people moved apart",
         "urgent_need" => "urgent need",
-        "provider_unavailable" => "assigned model unavailable",
-        "provider_timed_out" => "model timed out",
-        "provider_rejected" => "model response rejected",
-        "restored" => "world reloaded; resume requires both people",
+        "provider_unavailable" => "a speaker's model is unavailable",
+        "provider_timed_out" => "a model reply timed out",
+        "provider_rejected" => "a model reply couldn't be used",
+        "restored" => "world reloaded; both people must choose to resume",
         _ => "interrupted",
     };
 

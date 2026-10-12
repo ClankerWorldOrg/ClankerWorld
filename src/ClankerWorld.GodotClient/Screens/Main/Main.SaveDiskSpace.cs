@@ -29,7 +29,7 @@ public partial class Main
     {
         var text = status.State switch
         {
-            "low" => "Disk space is low on the server. Make room soon; saving may fail, but automatic recovery keeps trying.",
+            "low" => "Disk space is low on the world server. Make room soon: saving may fail, though automatic recovery keeps trying.",
             "unknown" => "Free disk space could not be checked. Saving and automatic recovery will still be attempted.",
             "ok" => string.Empty,
             _ => "Free disk space could not be checked. Saving and automatic recovery will still be attempted.",
