@@ -7,7 +7,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapRecoveryCleanup(WebApplication app, bool isPrivateWorld)
+    private static void MapRecoveryCleanup(WebApplication app)
     {
         app.MapPost("/api/v1/owner/saves/recovery-cleanup", (
             OwnerSignedHttpRequest<OwnerRecoveryCleanupAction> request,
@@ -22,7 +22,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/recovery-cleanup",
                 OwnerHttpBinding.RecoveryCleanup(action));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Recovery cleanup requires a private world." });
             lock (providers.WorldMutationGate)
             {
                 if (!runtime.Society.IsPaused || runtime.Society.WorldId != action.WorldId)

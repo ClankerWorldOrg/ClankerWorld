@@ -1,62 +1,11 @@
 using System.Net;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
-using ClankerWorld.Simulation.Harness;
 
 namespace ClankerWorld.Simulation.Tests;
 
 public sealed class CognitionTests
 {
-    [Fact]
-    public async Task CognitionAndWorldStateSurviveAValidatedRestart()
-    {
-        var runtime = new OwnerWorldRuntime("camp-alpha");
-        var first = await runtime.AdvanceOneActionAsync();
-        Assert.True(first.Advanced);
-        Assert.False(first.Cognition?.FellBack);
-        Assert.Equal("seek_food", first.CandidateId);
-        Assert.Equal("moved", Assert.Single(first.MovementEvents).Kind);
-        var state = JsonSerializer.Deserialize<OwnerWorldRuntimeState>(
-            JsonSerializer.Serialize(runtime.ExportState())) ?? throw new InvalidDataException();
-
-        var restored = OwnerWorldRuntime.Restore(state, "camp-alpha");
-
-        Assert.Equal(
-            runtime.Capture().Snapshot.Cognition?.CurrentIntention,
-            restored.Capture().Snapshot.Cognition?.CurrentIntention);
-        Assert.Equal(
-            runtime.Capture().Snapshot.World.Actor,
-            restored.Capture().Snapshot.World.Actor);
-        Assert.Equal(
-            runtime.Capture().Snapshot.World.Events,
-            restored.Capture().Snapshot.World.Events);
-        Assert.Equal(
-            runtime.Capture().Snapshot.World.Map.ManifestDigest,
-            restored.Capture().Snapshot.World.Map.ManifestDigest);
-        Assert.True((await restored.AdvanceOneActionAsync()).Advanced);
-        Assert.Equal(2, restored.Capture().Snapshot.World.Identity.WorldTick);
-    }
-
-    [Fact]
-    public async Task RepeatedHostedProviderFailureKeepsTheWorldRunningSafely()
-    {
-        var runtime = new OwnerWorldRuntime("camp-alpha", decisionProvider: new ThrowingProvider());
-
-        var first = await runtime.AdvanceOneActionAsync();
-        var second = await runtime.AdvanceOneActionAsync();
-        var third = await runtime.AdvanceOneActionAsync();
-
-        Assert.True(first.Advanced);
-        Assert.True(first.Cognition?.FellBack);
-        Assert.True(second.Advanced);
-        Assert.True(third.Advanced);
-        Assert.Equal("safe_idle", first.CandidateId);
-        Assert.False(third.PausedForProviderOutage);
-        Assert.False(runtime.Capture().Snapshot.IsPaused);
-        Assert.Equal(3, runtime.Capture().Snapshot.World.Identity.WorldTick);
-        Assert.True((await runtime.AdvanceOneActionAsync()).Advanced);
-    }
-
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

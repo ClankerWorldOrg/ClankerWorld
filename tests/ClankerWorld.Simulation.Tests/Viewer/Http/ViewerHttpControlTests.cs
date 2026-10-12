@@ -306,7 +306,7 @@ public sealed partial class ViewerHttpTests
         Assert.Contains("owner-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-inhabitant-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
         Assert.True(factory.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
-        Assert.Single(reconnect.Baseline.Snapshot.Inhabitants);
+        Assert.Equal(PrivateWorldRuntime.RequiredFounders, reconnect.Baseline.Snapshot.Inhabitants.Count);
         Assert.NotNull(reconnect.Baseline.Snapshot.Authoring);
 
         using var pause = await SendSignedAsync(
@@ -321,9 +321,19 @@ public sealed partial class ViewerHttpTests
         Assert.True(pauseReceipt!.Changed);
         Assert.True(pauseReceipt.IsPaused);
 
+        var runtime = factory.Services.GetRequiredService<PrivateWorldRuntime>();
+        var beforeInvalidInstruction = PrivateWorldRuntimeCodec.Encode(runtime.ExportState());
+        var invalidAction = new OwnerInstructionAction("instruction-http-invalid", "missing-agent",
+            "must_do", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
+        using var invalidInstruction = await SendSignedAsync(client, key, pairing.DeviceId,
+            "/api/v1/owner/instructions", invalidAction, OwnerHttpBinding.InstructionPayload(invalidAction));
+        Assert.Equal(HttpStatusCode.BadRequest, invalidInstruction.StatusCode);
+        Assert.Contains("No active inhabitant", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(beforeInvalidInstruction, PrivateWorldRuntimeCodec.Encode(runtime.ExportState()));
+
         var instructionAction = new OwnerInstructionAction(
             "instruction-http-1",
-            "actor-scout",
+            reconnect.Baseline.Snapshot.Inhabitants[0].Id,
             "must_do",
             "Gather food.",
             reconnect.Baseline.Snapshot.WorldId);
@@ -337,21 +347,12 @@ public sealed partial class ViewerHttpTests
         var instructionReceipt = await instruction.Content.ReadFromJsonAsync<OwnerInstructionReceipt>();
         Assert.Equal(HttpStatusCode.OK, instruction.StatusCode);
         Assert.NotNull(instructionReceipt);
-        Assert.Equal("instruction-0000000001", instructionReceipt.InstructionId);
+        Assert.Equal("private-instruction-0000000001", instructionReceipt.InstructionId);
 
-        var runtime = factory.Services.GetRequiredService<OwnerWorldRuntime>();
-        var beforeAuthoring = runtime.Capture();
-        var water = beforeAuthoring.Snapshot.CurrentMap.Tiles.Single(tile => tile.Terrain == TerrainKind.Water).Position;
+        var beforeAuthoring = PrivateWorldRuntimeCodec.Encode(runtime.ExportState());
         var authoringAction = new OwnerAuthoringBatchAction(
             "authoring-http-1",
-            [new OwnerAuthoringOperationAction(
-                "set_terrain",
-                null,
-                "mountain",
-                null,
-                water.X,
-                water.Y,
-                null)]);
+            [new OwnerAuthoringOperationAction("set_terrain", null, "mountain", null, 0, 0, null)]);
         using var authoring = await SendSignedAsync(
             client,
             key,
@@ -359,26 +360,14 @@ public sealed partial class ViewerHttpTests
             "/api/v1/owner/authoring",
             authoringAction,
             OwnerHttpBinding.AuthoringPayload(authoringAction));
-        var authoringReceipt = await authoring.Content.ReadFromJsonAsync<OwnerAuthoringBatchReceipt>();
-        var afterAuthoring = runtime.Capture();
+        var failure = await authoring.Content.ReadFromJsonAsync<OwnerControlFailure>();
 
-        Assert.Equal(HttpStatusCode.OK, authoring.StatusCode);
-        Assert.True(authoringReceipt!.Applied, authoringReceipt.Failure);
-        Assert.NotEqual(beforeAuthoring.Snapshot.CurrentMapManifestDigest, afterAuthoring.Snapshot.CurrentMapManifestDigest);
-        Assert.Equal(beforeAuthoring.Snapshot.InitialMapManifestDigest, afterAuthoring.Snapshot.InitialMapManifestDigest);
-        Assert.Equal(beforeAuthoring.Snapshot.World.Identity.InitialMapManifestDigest, afterAuthoring.Snapshot.InitialMapManifestDigest);
-        Assert.Equal(beforeAuthoring.Snapshot.TopologyRevision + 1, afterAuthoring.Snapshot.TopologyRevision);
-        Assert.Equal(beforeAuthoring.Snapshot.World.Map.ManifestDigest, afterAuthoring.Snapshot.World.Map.ManifestDigest);
-        Assert.Equal(TerrainKind.Mountain, afterAuthoring.Snapshot.CurrentMap.Tiles.Single(tile => tile.Position == water).Terrain);
-        var queued = Assert.Single(afterAuthoring.Snapshot.Instructions);
+        Assert.Equal(HttpStatusCode.Conflict, authoring.StatusCode);
+        Assert.Equal("private_world_authoring_pending", failure!.Code);
+        Assert.Equal(beforeAuthoring, PrivateWorldRuntimeCodec.Encode(runtime.ExportState()));
+        var queued = Assert.Single(runtime.ExportState().Instructions!);
         Assert.Equal($"owner-device:{pairing.DeviceId}", queued.IssuerId);
-        Assert.Contains(
-            $"issuer:owner-device:{pairing.DeviceId}",
-            afterAuthoring.Events.Single(worldEvent => worldEvent.Kind == "paused").Detail,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            $"issuer=owner-device:{pairing.DeviceId}",
-            afterAuthoring.Events[^1].Detail,
-            StringComparison.Ordinal);
+        Assert.Equal(instructionReceipt.InstructionId, queued.InstructionId);
+        Assert.Equal(instructionAction.TargetInhabitantId, queued.TargetInhabitantId);
     }
 }

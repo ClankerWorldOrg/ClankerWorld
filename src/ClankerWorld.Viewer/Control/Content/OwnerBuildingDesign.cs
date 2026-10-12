@@ -25,7 +25,7 @@ public static partial class OwnerBuildingDesign
             "wood-cost=" + action.WoodCost.ToString(CultureInfo.InvariantCulture));
     }
 
-    public static void MapBuildingDesign(this WebApplication app, bool isPrivateWorld)
+    public static void MapBuildingDesign(this WebApplication app)
     {
         app.MapPost("/api/v1/owner/content/building-preview", async (
             OwnerSignedHttpRequest<OwnerBuildingDesignAction> request, OwnerRequestAuthorizer authorizer,
@@ -36,7 +36,6 @@ public static partial class OwnerBuildingDesign
             catch (ArgumentException) { return Results.BadRequest(new { error = "A building design is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/building-preview", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Building design requires a private world." });
             try
             {
                 var preview = await PreviewAsync(request.Action, cancellationToken);
@@ -59,7 +58,6 @@ public static partial class OwnerBuildingDesign
             catch (ArgumentException) { return Results.BadRequest(new { error = "A package ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/content/building-review", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Building design requires a private world." });
             var record = services.GetRequiredService<PrivateWorldRuntime>().ExportState().Content?.Packages
                 .SingleOrDefault(package => package.Manifest.PackageId == request.Action.PackageId);
             if (record is null) return Results.NotFound(new { error = "The design was not found." });

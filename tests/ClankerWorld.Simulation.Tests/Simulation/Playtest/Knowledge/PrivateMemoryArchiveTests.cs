@@ -247,7 +247,7 @@ public sealed class PrivateMemoryArchiveTests
             }).ToArray(),
         };
         var systems = WorldSystemsRules.CreateGenesis(state.WorldSeed, state.WorldSystems!.Config with { TicksPerDay = 2, CalendarOffsetTicks = 0 },
-            state.WorldSystems.Ecology.Resources, state.WorldSystems.Factions, state.WorldSystems.Currency, state.WorldSystems.Culture, state.WorldSystems.Chunks);
+            state.WorldSystems.Ecology.Resources, state.WorldSystems.Chunks);
         for (var tick = 0; tick < 5; tick++) systems = WorldSystemsRules.AdvanceOneTick(systems);
         return state with
         {

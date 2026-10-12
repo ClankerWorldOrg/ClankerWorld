@@ -6,7 +6,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapDeveloperEdits(WebApplication app, bool isPrivateWorld)
+    private static void MapDeveloperEdits(WebApplication app)
     {
         app.MapPost("/api/v1/owner/developer-edit", (
             OwnerSignedHttpRequest<OwnerDeveloperEditAction> request,
@@ -21,7 +21,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/developer-edit",
                 OwnerHttpBinding.DeveloperEditPayload(action));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Developer edits require a private world." });
             lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();

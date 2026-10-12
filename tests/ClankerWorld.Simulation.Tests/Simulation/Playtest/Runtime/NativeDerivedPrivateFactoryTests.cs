@@ -135,7 +135,6 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("BoatTripId")]
     [InlineData("NonviolentRemedyChoiceId")]
     [InlineData("NonviolentRelayChoiceId")]
-    [InlineData("ViolationId")]
     [InlineData("AnimalSupplyTripId")]
     [InlineData("AnimalPickupId")]
     [InlineData("AnimalOrderReceiptId")]
@@ -214,7 +213,6 @@ public sealed partial class GrownAgentHelperMemoryTests
         var owner = factory switch
         {
             "CognitionAgentId" => typeof(PrivateWorldMemoryRetrieval),
-            "ViolationId" => typeof(FactionRules),
             "ConversationId" or "ConversationMemoryClaimId" or "ConversationChoiceContextId" => typeof(ConversationSystem),
             "ConversationTurnId" or "ConversationWrapUpId" => typeof(AgentConversationRules),
             "GuardianCareId" or "GuardianMembershipId" or "GuardianMembershipId-collision" or "DependentCareId" or
@@ -344,7 +342,6 @@ public sealed partial class GrownAgentHelperMemoryTests
             "BoatTripId" => [townId, building, cartId],
             "NonviolentRemedyChoiceId" => [townId, sourceLot, cartId],
             "NonviolentRelayChoiceId" => [townId, sourceLot, relative],
-            "ViolationId" => [sourceLot, cartId],
             "AnimalSupplyTripId" => [actor],
             "AnimalPickupId" => [actor, society.WorldTick, long.MaxValue],
             "AnimalOrderReceiptId" => [instruction.InstructionId, animalId, sourceLot],
