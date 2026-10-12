@@ -257,11 +257,13 @@ public sealed partial class PrivateWorldRuntimeTests
         public TaskCompletionSource<bool> FreshStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> ReleaseFresh { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> FreshReturned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Func<bool>? CanStart { get; set; }
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
             request.Validate();
+            while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
             Requests.Enqueue(request.Observation);
             if (holdFirstOrder && Requests.Count == 1 && request.Observation.OperativeOrderInstructionId is not null)
             {

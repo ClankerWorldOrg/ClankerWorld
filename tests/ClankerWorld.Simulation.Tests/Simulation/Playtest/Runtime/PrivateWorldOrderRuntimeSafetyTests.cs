@@ -653,7 +653,7 @@ public sealed partial class PrivateWorldRuntimeTests
     private static async Task AwaitHarvestPhase(Task signal, string phase)
     {
         try { await signal.WaitAsync(TimeSpan.FromSeconds(30)); }
-        catch (TimeoutException) { Assert.Fail("Timed out waiting for held harvest " + phase + "."); }
+        catch (TimeoutException) { Assert.Fail("Timed out waiting for held order " + phase + "."); }
     }
 
     private sealed class HeldOrderReplyProvider(bool deferReturn = false) : IDecisionProvider

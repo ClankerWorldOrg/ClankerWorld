@@ -154,6 +154,14 @@ this wait could store another load before cancellation, because chosen work
 continues while a model waits. The check retains one stored load, the untouched
 second load and exact checkpoint reload after releasing the cancelled reply.
 
+The held movement-cancellation fixture captures the actual registered request
+and task after its first committed tick, before waiting for provider entry.
+Its deferred-entry row keeps preparation held until that pending call is
+checked. Entry and reply signals use the shared thirty-second diagnostic
+bound while checkpoint bytes and position stay fixed. Cancellation still
+keeps the order cancelled with zero progress and the agent stationary through
+the original bounded post-cancellation polling.
+
 The long-recipe tool-request fixture admits its request through the personal
 provider and saves it through the real host. For byte-for-byte continuation,
 it pauses that world, captures one checkpoint, and restores both compared
