@@ -619,7 +619,7 @@ public partial class Main
         }
         else
         {
-            buildingManagementNote.Text = "This building has no household or Town reassignment rule.";
+            buildingManagementNote.Text = "This building can't be given to another household or Town.";
         }
 
         var selectedTarget = 0;

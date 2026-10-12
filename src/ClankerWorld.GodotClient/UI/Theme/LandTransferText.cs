@@ -20,7 +20,7 @@ public static class LandTransferText
 
     public static string Acceptance(OwnerLandTransfer transfer) => string.Join("; ", transfer.Parties.Select(party =>
         party.HouseholdName + ": " + party.AcceptedAdultIds.Count + "/" + party.AdultIds.Count + " " +
-        Roster(party.RosterKind) + " adults accepted"));
+        Roster(party.RosterKind) + " accepted"));
 
     public static IReadOnlyList<string> Terms(OwnerLandTransfer transfer, Func<long, string> clock) =>
         transfer.RightVersions.Select(version =>
@@ -38,7 +38,7 @@ public static class LandTransferText
         {
             Summary(transfer),
             "Exact plot: " + Tiles(transfer.Tiles),
-            "Proposed by " + transfer.FilerName + " · " + clock(transfer.ProposedTick) + ". Proposing supplies no acceptance.",
+            "Proposed by " + transfer.FilerName + " · " + clock(transfer.ProposedTick) + ". Proposing it is not the same as accepting it.",
             Acceptance(transfer),
         };
         if (transfer.Price is { } price)
@@ -59,14 +59,14 @@ public static class LandTransferText
                 var accepted = party.AcceptedAdultIds.Contains(adult, StringComparer.Ordinal);
                 var name = index < party.AdultNames.Count ? party.AdultNames[index] : "Household adult";
                 lines.Add(party.HouseholdName + " · " + name + ": " + (accepted ? "personally accepted" : response is { Kind: "decline" }
-                        ? "declined" : "has not supplied a valid acceptance") +
+                        ? "declined" : "has not accepted yet") +
                     (response is not null ? " · " + clock(response.Tick) : party.NoticeAwareAdultIds.Contains(adult, StringComparer.Ordinal)
-                        ? " · learned the published terms" : " · has not learned the published terms"));
+                        ? " · knows the published terms" : " · doesn't know the published terms yet"));
             }
         }
         if (transfer.SettledTick is { } settled) lines.Add("Closed " + clock(settled) + " · " + Status(transfer.Status));
         if (transfer.Reason is { } reason) lines.Add(Reason(reason));
-        lines.Add("Every current adult in every source and receiving household must accept. No routine mayor or Council approval is needed.");
+        lines.Add("Every current adult in every giving and receiving household must accept. No mayor or Council approval is needed for an ordinary transfer.");
         lines.Add("The use right and any agreed goods payment move; Town title, membership, buildings, crops, other goods and private-building access stay unchanged.");
         return lines.Select(GameUiText.PlainEllipses).ToArray();
     }
@@ -79,7 +79,7 @@ public static class LandTransferText
         "withdrawn" => "withdrawn",
         _ => "terms no longer eligible",
     };
-    private static string Roster(string kind) => kind switch { "current" => "current", "settlement" => "settlement", _ => "published" };
+    private static string Roster(string kind) => kind switch { "current" => "current adults", "settlement" => "adults at completion", _ => "adults named at publication" };
     private static string Reason(string reason) => reason switch
     {
         "adult_declined" => "An affected adult declined; the use right did not move.",

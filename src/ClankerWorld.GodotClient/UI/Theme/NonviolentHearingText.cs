@@ -37,11 +37,11 @@ public static class NonviolentHearingText
                     : party.Role == "town" ? "Town representative: " + party.RespondingAdultName
                     : party.RespondingAdultId == party.SubjectId ? "responds personally" : "caregiver support: " + party.RespondingAdultName;
                 lines.Add($"At this notice: {party.SubjectName} · {Words(party.Role)} · {support}. " +
-                    (party.NoticeAware ? "The responding adult learned the notice." : "No receipt of this notice is recorded for the responding adult."));
+                    (party.NoticeAware ? "The responding adult knows about the notice." : "There's no record that the responding adult received this notice."));
             }
             foreach (var response in item.Responses.Where(response => response.Revision == revision.Number))
                 lines.Add(response.AgentName + (response.AgentId != response.RepresentedAgentId ? " supporting " + response.RepresentedAgentName : "") +
-                    (response.Kind == "waive" ? " explicitly waived the response" : " answered") + " · " + clock(response.Tick) +
+                    (response.Kind == "waive" ? " chose not to respond" : " answered") + " · " + clock(response.Tick) +
                     (response.Text.Length > 0 ? ": " + response.Text : "."));
         }
         if (item.Status == "pending") lines.Add("Current required responders:");
@@ -58,15 +58,15 @@ public static class NonviolentHearingText
                 response.PartyId == party.Id && response.AgentId == responder);
             var duty = party.Role == "town" ? "Town representative" : responder == party.SubjectId ? "personal response" : "caregiver support";
             lines.Add(party.SubjectName + " · " + duty + ": " + party.RespondingAdultName + " · " +
-                (response?.Kind == "waive" ? "explicitly waived this response" : response is not null ? "answered this notice"
-                    : party.NoticeAware ? "learned this notice; has not answered" : "has not learned this notice") + ".");
+                (response?.Kind == "waive" ? "chose not to respond" : response is not null ? "answered this notice"
+                    : party.NoticeAware ? "knows about this notice; has not answered" : "doesn't know about this notice yet") + ".");
         }
-        lines.Add("Publication alone is not receipt. Silence is not consent or proof of a violation.");
-        lines.Add(item.Judge is { } judge ? "Adjudicator: " + Judge(judge) + " · assigned " + clock(judge.AssignedTick) + "."
-            : item.Status == "pending" ? "Formal hearing pending: no eligible willing adjudicator is assigned. Council mediation remains voluntary."
-            : "Each recorded finding names its adjudicator.");
+        lines.Add("Posting a notice doesn't mean anyone has read it. Saying nothing is neither agreement nor proof of wrongdoing.");
+        lines.Add(item.Judge is { } judge ? "Judge: " + Judge(judge) + " · assigned " + clock(judge.AssignedTick) + "."
+            : item.Status == "pending" ? "Waiting for a judge: no eligible adult willing to judge has been assigned yet. Council mediation is still voluntary."
+            : "Each recorded finding names its judge.");
         foreach (var term in item.JudgeHistory)
-            lines.Add("Former adjudicator: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + Words(term.Reason));
+            lines.Add("Former judge: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + Words(term.Reason));
         if (item.JudgeElection is { } election) Election(lines, election, clock, false);
         else if (item.LatestJudgeElection is { } latest) Election(lines, latest, clock, true);
         var evidenceNames = item.Evidence.Select((evidence, index) => (evidence.Id, Name: "Evidence " + (index + 1)))
@@ -88,7 +88,7 @@ public static class NonviolentHearingText
             var finding = item.Findings[index];
             lines.Add($"Finding {index + 1} · " + (finding.Result == "supported" ? "violation supported" : "violation not supported") +
                 " · " + clock(finding.Tick) + " · " + Judge(finding.Judge) + ".");
-            lines.Add("Standard: " + Words(finding.Standard) + ". This is the adjudicator's assessment of the evidence.");
+            lines.Add("Standard: " + Words(finding.Standard) + ". This is the judge's view of the evidence.");
             lines.Add("Reasons: " + finding.Reasons);
             lines.Add("Uncertainty: " + (finding.Uncertainty.Length > 0 ? finding.Uncertainty : "none recorded") + ".");
             lines.Add("Social outcome: " + Words(finding.Consequence) + ".");
@@ -116,15 +116,15 @@ public static class NonviolentHearingText
             foreach (var term in offer.Terms) lines.Add("Offered: " + Term(term));
             foreach (var contributor in offer.Terms.DistinctBy(term => term.ContributorId))
                 lines.Add(contributor.ContributorName + (offer.NoticeAwareContributorIds.Contains(contributor.ContributorId, StringComparer.Ordinal)
-                    ? " learned these offer terms." : " has no recorded receipt of these offer terms."));
+                    ? " knows these offer terms." : " has no record of receiving these offer terms."));
             foreach (var response in offer.Responses)
                 lines.Add(response.AgentName + " · " + Response(response.Kind) + $" terms {response.Revision} · " + clock(response.Tick) +
                     (response.Reason is { } reason ? ": " + reason : "."));
-            if (offer.Status != "accepted") lines.Add("An offer does not reserve goods or authorize work. Each contributor decides personally.");
+            if (offer.Status != "accepted") lines.Add("An offer doesn't set goods aside or approve any work. Each contributor decides for themselves.");
         }
         foreach (var agreement in item.Agreements)
         {
-            lines.Add("Voluntary agreement · " + (agreement.Superseded ? "superseded by a later agreement; retained history" : agreement.Status switch
+            lines.Add("Voluntary agreement · " + (agreement.Superseded ? "replaced by a later agreement; kept for the record" : agreement.Status switch
             {
                 "completed" => "completed through recorded work",
                 "overdue" => "overdue; incomplete work remains voluntary",
@@ -175,7 +175,7 @@ public static class NonviolentHearingText
         _ => Words(kind),
     };
     private static string Judge(OwnerCaseJudge judge) => judge.AgentName + (judge.Kind == "case_elected"
-        ? " · independently elected for this case" : " · separately authorized non-land adjudicator");
+        ? " · independently elected for this case" : " · the Town's judge for non-land cases");
     private static void Election(List<string> lines, OwnerCaseElection election, Func<long, string> clock, bool latest)
     {
         lines.Add((latest ? "Last non-land case election: " : "Non-land case election: ") + Words(election.Stage) + " · round " + election.Round);

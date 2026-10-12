@@ -1521,8 +1521,8 @@ public partial class Main
                         [new("candidate-1", "Nia Moss", 2)], null, null), null, 0),
             };
             Render(sample with { WorldTick = 3_600, Towns = [governmentTown] }, []);
-            foreach (var phrase in new[] { "Approved government:", "Mira Vale: land disputes", "handover due by",
-                         "Mayoral election: Voting", "round 2", "Law: Grove", "recorded site (5 land tiles)", "Version 2", "Non-land adjudication is not authorized" })
+            foreach (var phrase in new[] { "Approved government:", "Mira Vale: land disputes", "until the handover, due by",
+                         "Mayoral election: Voting", "round 2", "Law: Grove", "recorded site (5 land tiles)", "Version 2", "Residents haven't allowed non-land hearings" })
                 if (!TownListText().Contains(phrase, StringComparison.Ordinal))
                     throw new InvalidOperationException("The Town page must show actual law scope, government handovers and separate office authority: " + phrase);
             await RunNonviolentTownUiChecks(sample, governmentTown);
@@ -1533,7 +1533,7 @@ public partial class Main
                 Government = governmentTown.Government! with { Offices = [], Changes = [], Election = null },
             };
             Render(sample with { Towns = [abandonedTown] }, []);
-            foreach (var phrase in new[] { "Abandoned", "no living residents", "No active council", "resettle", "salvaged in person", "Private property", "Law: Grove" })
+            foreach (var phrase in new[] { "Abandoned", "no living residents", "No council", "resettle", "salvage shared stock", "Private property", "Law: Grove" })
                 if (!TownListText().Contains(phrase, StringComparison.Ordinal))
                     throw new InvalidOperationException("An abandoned Town must retain its laws and explain physical salvage and explicit resettlement: " + phrase);
             var resettledTown = abandonedTown with
@@ -1576,7 +1576,7 @@ public partial class Main
             foreach (var (stage, phrase) in new[]
                      {
                          ("completed", "Last election completed: Mira Vale, Ash Rowan"),
-                         ("failed", "The last election did not elect a supported council."),
+                         ("failed", "The last election didn't produce a council."),
                          ("cancelled", "The last election was cancelled."),
                      })
             {

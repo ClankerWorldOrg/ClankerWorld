@@ -53,9 +53,9 @@ public partial class Main
                 .OfType<Label>().Where(label => label.IsVisibleInTree()).Select(label => label.Text));
             var published = VisibleText();
             foreach (var phrase in new[] { "Non-land hearing", "Allegation:", "Law at the reported time:", "version 1",
-                         "caregiver support: Sol Reed", "No receipt of this notice", "firsthand observation", "Finding 1",
+                         "caregiver support: Sol Reed", "no record that the responding adult received this notice", "firsthand observation", "Finding 1",
                          "more likely than not", "The amount taken is uncertain.", "awaiting personal responses",
-                         "has no recorded receipt of these offer terms", "Non-land authority: Tess Rowan" })
+                         "has no record of receiving these offer terms", "Judge for non-land cases: Tess Rowan" })
                 if (!published.Contains(phrase, StringComparison.Ordinal))
                     throw new InvalidOperationException("Visible Town hearing controls lost a public record or confused its status: " + phrase);
             if (published.Contains("Voluntary agreement", StringComparison.Ordinal) || published.Contains("Actual delivery", StringComparison.Ordinal) ||
@@ -85,7 +85,7 @@ public partial class Main
             var supported = VisibleText();
             if (!supported.Contains("At this notice: Ash Vale · affected · caregiver support: Sol Reed", StringComparison.Ordinal) ||
                 !supported.Contains("Current required responders:", StringComparison.Ordinal) ||
-                !supported.Contains("Ash Vale · caregiver support: Tess Rowan · has not learned this notice", StringComparison.Ordinal))
+                !supported.Contains("Ash Vale · caregiver support: Tess Rowan · doesn't know about this notice yet", StringComparison.Ordinal))
                 throw new InvalidOperationException("Current caregiver response authority must not overwrite the historical notice or inherit another caregiver's receipt.");
 
             // Same Town, tick and membership: only personal consent changes. The real list cache must refresh.
@@ -124,7 +124,7 @@ public partial class Main
             }]
             };
             Render(sample with { Towns = [replacedTown], WorldTick = 5_000 }, []);
-            if (!VisibleText().Contains("superseded by a later agreement; retained history", StringComparison.Ordinal) ||
+            if (!VisibleText().Contains("replaced by a later agreement; kept for the record", StringComparison.Ordinal) ||
                 VisibleText().Contains("Voluntary agreement · accepted; work still pending", StringComparison.Ordinal))
                 throw new InvalidOperationException("A replaced agreement must remain inspectable without presenting its old obligations as current work.");
             foreach (var (status, expected) in new[] { ("declined", "declined"), ("unanswered", "unanswered when the response period ended"),

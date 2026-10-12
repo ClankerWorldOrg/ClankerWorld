@@ -323,13 +323,13 @@ public partial class Main
             if (hearing.Judge is { } judge)
             {
                 var authority = judge.AgentName + (judge.Kind == "case_elected" ? " · this case only" : " · land mayor");
-                landFacts.Add(("Adjudicator", authority));
-                lines.Add("Adjudicator: " + authority);
+                landFacts.Add(("Judge", authority));
+                lines.Add("Judge: " + authority);
             }
             else if (hearing.SettledTick is null || hearing.ReopenRequests.Any(request => request.Status == "pending"))
             {
-                landFacts.Add(("Adjudicator", "Waiting for a valid independent adjudicator"));
-                lines.Add("Adjudicator: waiting for a valid independent adjudicator");
+                landFacts.Add(("Judge", "Waiting for an independent judge"));
+                lines.Add("Judge: waiting for an independent judge");
             }
             if (hearing.Rulings.Count > 0)
             {
