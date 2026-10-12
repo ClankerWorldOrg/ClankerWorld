@@ -343,6 +343,9 @@ public partial class Main
         public TaskCompletionSource? ReleaseRename { get; set; }
         public bool FailAgentPlacement { get; set; }
         public HttpStatusCode SubmissionStatus { get; set; } = HttpStatusCode.BadRequest;
+        public Func<string, JsonElement, object>? PendingSubmissionReceipt { get; set; }
+        public bool LoseNextSubmissionReply { get; set; }
+        public System.Collections.Concurrent.ConcurrentQueue<string> PendingSubmissionActions { get; } = new();
         public bool FailPlacementProviderStatus { get; set; }
         public System.Collections.Concurrent.ConcurrentQueue<OwnerAgentPlacementAction> AgentPlacements { get; } = new();
 
@@ -421,6 +424,21 @@ public partial class Main
                 case OwnerPairingEndpoints.OwnerInstructions:
                 case OwnerPairingEndpoints.OwnerOrderCancel:
                 case OwnerPairingEndpoints.OwnerAuthoring:
+                    if (PendingSubmissionReceipt is { } receipt)
+                    {
+                        var action = envelope.GetProperty("action");
+                        PendingSubmissionActions.Enqueue(action.GetRawText());
+                        response = receipt(path, action);
+                        if (LoseNextSubmissionReply)
+                        {
+                            LoseNextSubmissionReply = false;
+                            context.Response.ContentType = "application/json";
+                            await context.Response.OutputStream.WriteAsync("{"u8.ToArray()).ConfigureAwait(false);
+                            context.Response.Close();
+                            return;
+                        }
+                        break;
+                    }
                     context.Response.StatusCode = (int)SubmissionStatus;
                     if (SubmissionStatus == HttpStatusCode.OK)
                     {

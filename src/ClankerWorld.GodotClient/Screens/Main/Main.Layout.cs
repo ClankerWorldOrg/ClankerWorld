@@ -30,6 +30,7 @@ public partial class Main
         FitFloatingPanelsToContents();
         BuildStatusToast(uiLayer);
         BuildSaveDiskWarning(uiLayer);
+        BuildPendingSubmissionRecovery(uiLayer);
         AddChild(menuLayer);
         BuildMainMenu();
         BuildManualSavesPanel();

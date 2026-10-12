@@ -90,6 +90,20 @@ installed version. Until the first alpha release, it is the
 `clankerworld-launcher-windows-11-x64` build from CI
 ([#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566)).
 
+### If a request loses its reply
+
+If an instruction, cancellation or world edit loses its reply, the game keeps
+it and checks it automatically after reconnecting to the same running world.
+Other owner controls wait until the server confirms or refuses that request.
+
+**Your last request** offers **Check and send again** or **Discard it** without
+Developer mode. If a save was loaded, a different world opened or the server
+restarted, check whether your request already took effect before sending it
+again. Check and send again then releases the old saved request; an instruction
+for the same agent and world is ready to review in their Profile before you
+press Send. Discard it restores the other controls but does not undo anything
+the server already accepted.
+
 ### Report a problem
 
 **Settings > Build > Report a problem** saves a zip to send with a bug report

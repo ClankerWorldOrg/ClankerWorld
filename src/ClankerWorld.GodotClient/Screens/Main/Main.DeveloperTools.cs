@@ -9,7 +9,7 @@ namespace ClankerWorld.GodotClient;
 /// shows the tile under the pointer, frame time, the host's tick time and
 /// the agent count; jumps the camera to any agent and draws their planned
 /// path as the server reports it; and holds the older testing tools (life
-/// speed, lost-reply recovery, paused world editing and paired devices).
+/// speed, paused world editing and paired devices).
 /// </summary>
 public partial class Main
 {
@@ -77,7 +77,6 @@ public partial class Main
         });
         BuildDeveloperEdits();
         BuildDeveloperLifePace();
-        BuildDeveloperRecovery();
         BuildDeveloperAuthoring();
         BuildDeveloperDevices();
 
@@ -122,23 +121,6 @@ public partial class Main
         });
         prototypePaceBody.AddChild(lifePaceRow);
         developerBody.AddChild(NewPanel("Prototype aging override", prototypePaceBody));
-    }
-
-    private void BuildDeveloperRecovery()
-    {
-        var retryBody = new VBoxContainer();
-        pendingSubmissionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        retryBody.AddChild(pendingSubmissionLabel);
-        var retryButtons = new HBoxContainer();
-        retryPendingSubmissionButton.Text = "Retry retained request";
-        retryPendingSubmissionButton.Pressed += () => _ = RetryPendingSubmissionAsync();
-        retryButtons.AddChild(retryPendingSubmissionButton);
-        forgetPendingSubmissionButton.Text = "Forget retained request";
-        forgetPendingSubmissionButton.Pressed += ForgetPendingSubmission;
-        retryButtons.AddChild(forgetPendingSubmissionButton);
-        retryBody.AddChild(retryButtons);
-        developerBody.AddChild(NewPanel("Response-loss recovery · exact server retry", retryBody));
-        RenderPendingSubmission();
     }
 
     private void BuildDeveloperAuthoring()

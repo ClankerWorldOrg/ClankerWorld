@@ -109,7 +109,7 @@ public partial class Main
             var tools = new Control[]
             {
                 developerEditKind, developerEditValue, developerEditAmount, developerEditOther, developerEditApply,
-                lifePaceChoice, applyLifePaceButton, retryPendingSubmissionButton, forgetPendingSubmissionButton,
+                lifePaceChoice, applyLifePaceButton,
                 authoringKind, authoringId, submitAuthoringButton, pairingApprovalId, approvePairingButton,
                 refreshDevicesButton, pairedDeviceList, revokeDeviceButton,
             };

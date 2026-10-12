@@ -2,7 +2,7 @@
 title: Device pairing
 type: development-reference
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Device pairing
@@ -206,10 +206,33 @@ bounds for the caller's idempotency key, order ID and world ID, and refuses
 blank or control-character identities. Persistence, reload and retry keep the
 same target; they never shorten or replace it.
 
-The user can explicitly retry that one record. For an instruction or order
-cancellation, the retry obtains a new one-use challenge and signature, then
-submits the same logical request so the server returns the original receipt
-rather than creating a duplicate. Private-world
+After a successful reconnect confirms the same world and observer timeline,
+the client automatically retries that exact record once. It requires the
+original pairing, device key and origin as well as a valid, matching timeline;
+legacy observations without a timeline require an explicit player retry.
+Recovery runs after the observation refresh finishes, through the existing
+owner-action gate. An owner action's own refresh cannot recursively retry it.
+A second lost reply keeps the record and offers manual recovery instead of
+resending on every observation pulse.
+
+The ordinary **Your last request** panel offers **Check and send again** and
+**Discard it**, without Developer mode. On the original confirmed world,
+Check and send again retries the exact request. After a load, switch or host
+restart, it instead discards the old local retry and asks the player to inspect
+the world before issuing a new request. An instruction for the same world's
+existing agent becomes an editable draft with its original text, kind and
+queue choice; only a new Send creates a new key. A different world gets no
+retargeted instruction or automatic submission. Cancellations and authoring
+must be reviewed and issued again through their normal controls. Discarding
+never undoes a request the server already accepted. An unreadable or
+connection-mismatched record also offers explicit discard; its contents are
+not exposed or automatically submitted.
+
+Each exact retry obtains a new one-use challenge and signature. For an
+instruction or order cancellation, it submits the same logical request so the
+server returns the original receipt rather than creating a duplicate. The
+native host continues to refuse authoring batches without applying them.
+Private-world
 instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the host still returns its accepted receipt after the recipient dies,
 including after saving and restarting the host. The client's stricter timeline
