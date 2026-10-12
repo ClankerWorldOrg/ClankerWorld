@@ -175,6 +175,7 @@ Use the [documentation guide](docs/README.md) to choose the right page.
 | Change game rules or intended features | [Game design](docs/game-design/README.md) and the relevant chapter |
 | Describe what a player can do now | [What works today](docs/what-works.md) and [Playing](docs/playing.md) |
 | Change simulation, model handling or logging | [How it works](docs/development/how-it-works.md) |
+| Write new game code, or refactor it | [Code structure](docs/development/code-structure.md): the rules that prevent the common bugs |
 | Change saved state, events or compatibility | [Saves and replay](docs/development/saves-and-replay.md) |
 | Change owner access or device credentials | [Device pairing](docs/development/device-pairing.md) |
 | Build, check or package a change | [Build and test](docs/development/build-and-test.md) |

@@ -340,6 +340,8 @@ them.
 
 ### Change and verification rules
 
+- Follow the [rules for new code](docs/development/code-structure.md#rules-for-new-code),
+  which prevent the bugs that keep coming back.
 - Follow the [code boundaries](docs/development/how-it-works.md#core-rules):
   the server decides world changes, and model output is untrusted input.
 - Keep credentials and private data out of code, saves, logs and reports, and
