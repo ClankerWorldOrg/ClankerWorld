@@ -2,16 +2,16 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Playing the current game
 
 This guide covers the private alpha. You need Windows 11 x64 and the setup file
 or portable game bundle. The game runs its own world server on your PC; you
-can also connect to a world server on another machine that you have been given. There is no public
-server or multiplayer mode. [What works today](what-works.md)
-explains the current limits.
+can also connect to an approved world server on another machine. There is no
+public server or multiplayer mode. [What works today](what-works.md) explains
+the current limits.
 
 ## Install or remove the launcher
 
@@ -32,8 +32,8 @@ version is reused.
 
 Start the game through the launcher, or start `ClankerWorld.exe` from the
 extracted portable bundle. For an approved remote server, use the connection
-and pairing screen to connect to the world server you have been given. Your device
-must be able to reach it through its private network.
+and pairing screen to connect to the world server you have been given. Your
+device must be able to reach it through its private network.
 
 A new device needs approval. Compare the game's code with the person approving
 the device on the server, then complete pairing. Do not post the code, keys or
