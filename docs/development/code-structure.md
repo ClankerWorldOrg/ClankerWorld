@@ -138,4 +138,4 @@ final names. [#1814](https://github.com/compoodment/ClankerWorld/issues/1814) tr
 
 The shared goods query ([#1366](https://github.com/compoodment/ClankerWorld/issues/1366)) and the runtime split ([#1377](https://github.com/compoodment/ClankerWorld/issues/1377)) continue as
 planned; these steps build on them rather than replacing them. Removing the
-old fixture world ([#1708](https://github.com/compoodment/ClankerWorld/issues/1708)) is already in progress.
+old fixture world is covered separately by [#1708](https://github.com/compoodment/ClankerWorld/issues/1708).
