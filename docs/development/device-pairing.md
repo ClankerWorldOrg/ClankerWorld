@@ -222,7 +222,9 @@ existing agent becomes an editable draft with its original text, kind and
 queue choice; only a new Send creates a new key. A different world gets no
 retargeted instruction or automatic submission. Cancellations and authoring
 must be reviewed and issued again through their normal controls. Discarding
-never undoes a request the server already accepted.
+never undoes a request the server already accepted. An unreadable or
+connection-mismatched record also offers explicit discard; its contents are
+not exposed or automatically submitted.
 
 Each exact retry obtains a new one-use challenge and signature, then submits
 the same logical request so the server returns the original receipt rather

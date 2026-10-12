@@ -12,6 +12,7 @@ public partial class Main
     private readonly Button reviewPendingSubmissionButton = new();
     private OwnerPendingSubmission? automaticallyRetriedSubmission;
     private bool pendingRecoveryInProgress;
+    private bool unloadedPendingSubmission;
 
     private void BuildPendingSubmissionRecovery(Control content)
     {
@@ -135,11 +136,14 @@ public partial class Main
 
         if (!pendingSubmissionStore.TrySave(candidate))
         {
+            unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
+            RefreshControlAvailability();
             SetStatus("Your request could not be saved for recovery, so it was not sent. Resolve your last request before trying again.", good: false);
             return false;
         }
 
         pendingSubmission = candidate;
+        unloadedPendingSubmission = false;
         RenderPendingSubmission();
         RefreshControlAvailability();
         return true;
@@ -150,6 +154,7 @@ public partial class Main
         pendingSubmission = TryCreatePendingSubmissionBinding(out var binding)
             ? pendingSubmissionStore.TryLoadForRegistration(binding)
             : null;
+        unloadedPendingSubmission = pendingSubmission is null && pendingSubmissionStore.HasRecord;
         RenderPendingSubmission();
         RefreshControlAvailability();
     }
@@ -279,6 +284,7 @@ public partial class Main
         }
 
         pendingSubmission = null;
+        unloadedPendingSubmission = false;
         RenderPendingSubmission();
         RefreshControlAvailability();
         SetStatus("Discarded your saved request. This does not undo anything the server already accepted.", good: false);
@@ -287,10 +293,12 @@ public partial class Main
     private void RenderPendingSubmission()
     {
         var retryable = CanRetryPendingSubmission(pendingSubmission);
-        pendingSubmissionPanel.Visible = pendingSubmission is not null;
+        pendingSubmissionPanel.Visible = pendingSubmission is not null || unloadedPendingSubmission;
         retryPendingSubmissionButton.Visible = retryable;
-        reviewPendingSubmissionButton.Visible = !retryable;
-        pendingSubmissionLabel.Text = isOwnerAction
+        reviewPendingSubmissionButton.Visible = pendingSubmission is not null && !retryable;
+        pendingSubmissionLabel.Text = pendingSubmission is null
+            ? "A saved request could not be loaded for this connection. Discarding it only clears it from this device."
+            : isOwnerAction
             ? "Sending your request..."
             : retryable
                 ? "The server has not confirmed your last request. Check and send again, or discard it to use other controls."

@@ -262,6 +262,7 @@ public partial class Main
         pairedDeviceList.Clear();
         pendingSubmission = null;
         _ = pendingSubmissionStore.TryForget();
+        unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
         RenderPendingSubmission();
         knownEvents.Clear();
         pairingPanel.Show();

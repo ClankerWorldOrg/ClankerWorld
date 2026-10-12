@@ -14,6 +14,7 @@ public partial class Main
         var previousUrl = worldUrlInput.Text;
         var previousObservation = observationSession.Current;
         var previousPending = pendingSubmission;
+        var previousUnloadedPending = unloadedPendingSubmission;
         var previousSelection = selectedInhabitantId;
         var previousText = instructionText.Text;
         var previousOrder = instructionOrderButton.ButtonPressed;
@@ -194,6 +195,18 @@ public partial class Main
                 if (host.PendingSubmissionActions.Count != 1)
                     throw new InvalidOperationException("The player may explicitly retry one exact legacy request.");
             }
+            var foreign = requests[0] with { Binding = binding with { DeviceId = "another-device" } };
+            if (!pendingSubmissionStore.TrySave(foreign)) throw new InvalidOperationException("Could not save the mismatched recovery record.");
+            host.PendingSubmissionActions.Clear();
+            LoadPendingSubmission();
+            await RefreshAsync();
+            if (pendingSubmission is not null || !pendingSubmissionStore.HasRecord || !pendingSubmissionPanel.IsVisibleInTree() ||
+                retryPendingSubmissionButton.Visible || reviewPendingSubmissionButton.Visible || forgetPendingSubmissionButton.Disabled ||
+                !host.PendingSubmissionActions.IsEmpty || pendingSubmissionStore.TryLoad(foreign.Binding) is null)
+                throw new InvalidOperationException("An unloadable record must stay on disk and offer ordinary discard without exposing or sending it.");
+            forgetPendingSubmissionButton.EmitSignal(Godot.BaseButton.SignalName.Pressed);
+            if (pendingSubmissionStore.HasRecord || pendingSubmissionPanel.Visible || !host.PendingSubmissionActions.IsEmpty)
+                throw new InvalidOperationException("Ordinary discard must also release an unloadable saved record.");
         }
         finally
         {
@@ -205,6 +218,7 @@ public partial class Main
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
             pendingSubmission = previousPending;
+            unloadedPendingSubmission = previousUnloadedPending;
             selectedInhabitantId = previousSelection;
             instructionText.Text = previousText;
             instructionOrderButton.ButtonPressed = previousOrder;
