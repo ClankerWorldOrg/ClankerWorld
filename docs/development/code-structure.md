@@ -47,7 +47,7 @@ Follow these now. A refactor step that lands turns a rule into a check.
 1. **Never build an ID or cut text by hand.** Build IDs only through the
    derived-identity helpers ([Derived identities](derived-identities.md)).
    Don't add another length check, character check or excerpt function; until
-   step 4 gives them one home, reuse the one the area already has.
+   step 5 gives them one home, reuse the one the area already has.
 2. **One definition per action.** An action's offer works out its plan once:
    which goods, target, route and quantity. Its execution checks that same plan
    again instead of choosing again. Apply candidate caps only after filtering.
@@ -60,7 +60,7 @@ Follow these now. A refactor step that lands turns a rule into a check.
    only. Never catch an exception just to treat it as a bad model reply.
 5. **Promises live on the stock.** Goods lent to a stall, promised to a
    delivery or held for a trip must not be taken by code that skips a filter.
-   Until step 6 marks them on the stock itself, read goods only through the
+   Until step 7 marks them on the stock itself, read goods only through the
    shared goods query, never from lots directly.
 6. **The server decides what things mean.** The game shows what the server
    sends. It doesn't work out its own thresholds, activity names or event text
