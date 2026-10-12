@@ -164,20 +164,20 @@ public static class GameUiText
         Pairing.OwnerWorldGenerationException =>
             "there is no room for a first Town with these settings. Choose another seed or change the terrain settings",
         Pairing.OwnerActionCompatibilityException =>
-            "this client and world server need matching updates before making this change. Update both; your device pairing can stay as it is",
+            "the game and world server need matching updates before making this change. Update both; your device pairing can stay as it is",
         System.Net.Http.HttpRequestException { StatusCode: { } code } => code switch
         {
             System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden =>
                 "this device is not allowed in. Try connecting it again",
-            System.Net.HttpStatusCode.NotFound => "the server does not know about that",
-            System.Net.HttpStatusCode.Conflict => "the server's state changed. Try again",
-            System.Net.HttpStatusCode.TooManyRequests => "the server is busy. Try again later",
-            >= System.Net.HttpStatusCode.InternalServerError => "the server had a problem. Try again",
-            _ => "the server could not accept that request",
+            System.Net.HttpStatusCode.NotFound => "the world server doesn't know about that",
+            System.Net.HttpStatusCode.Conflict => "something changed on the world server. Try again",
+            System.Net.HttpStatusCode.TooManyRequests => "the world server is busy. Try again later",
+            >= System.Net.HttpStatusCode.InternalServerError => "the world server had a problem. Try again",
+            _ => "the world server could not accept that request",
         },
         System.Net.Http.HttpRequestException => "cannot reach the world server",
-        OperationCanceledException => "the server took too long to answer",
-        System.Text.Json.JsonException or InvalidDataException => "the server sent something unexpected",
+        OperationCanceledException => "the world server took too long to answer",
+        System.Text.Json.JsonException or InvalidDataException => "the world server sent something unexpected",
         UnauthorizedAccessException => "the game could not access a needed file. Check its access permissions",
         System.Security.Cryptography.CryptographicException => "the device key could not be used. Try connecting this device again",
         IOException => "the game could not read or save a needed file. Check storage and try again",

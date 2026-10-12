@@ -420,9 +420,9 @@ public partial class Main
         catch (Exception exception)
         {
             var failure = FriendlyFailure(exception);
-            connectionStatusLabel.Text = $"World URL is invalid · {failure}";
+            connectionStatusLabel.Text = $"That world server address can't be used · {failure}";
             connectionStatusLabel.Show();
-            SetStatus($"world URL is invalid · {failure}", good: false);
+            SetStatus($"That world server address can't be used · {failure}", good: false);
             return;
         }
 

@@ -158,15 +158,15 @@ public partial class Main
         ConfigureCoordinate(authoringY, "y");
         coordinateRow.AddChild(authoringX);
         coordinateRow.AddChild(authoringY);
-        authoringRenewable.Text = "renewable resource";
+        authoringRenewable.Text = "Renewable resource";
         coordinateRow.AddChild(authoringRenewable);
         authoringBody.AddChild(coordinateRow);
         authoringHintLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         authoringBody.AddChild(authoringHintLabel);
-        submitAuthoringButton.Text = "Apply one paused authoring operation";
+        submitAuthoringButton.Text = "Apply this edit";
         submitAuthoringButton.Pressed += () => _ = SubmitAuthoringAsync();
         authoringBody.AddChild(submitAuthoringButton);
-        developerBody.AddChild(NewPanel("Paused authoring · server validates atomically", authoringBody));
+        developerBody.AddChild(NewPanel("Paused world editing", authoringBody));
     }
 
     private void BuildDeveloperDevices()
@@ -177,10 +177,10 @@ public partial class Main
         pairingApprovalCode.PlaceholderText = "Six-digit comparison code";
         pairingApprovalCode.Secret = true;
         deviceManagementBody.AddChild(pairingApprovalCode);
-        approvePairingButton.Text = "Approve paired device";
+        approvePairingButton.Text = "Approve new device";
         approvePairingButton.Pressed += () => _ = ApprovePairingAsync();
         deviceManagementBody.AddChild(approvePairingButton);
-        refreshDevicesButton.Text = "Refresh signed device list";
+        refreshDevicesButton.Text = "Refresh device list";
         refreshDevicesButton.Pressed += () => _ = RefreshDeviceRegistryAsync();
         deviceManagementBody.AddChild(refreshDevicesButton);
         pairedDeviceList.CustomMinimumSize = new Vector2(0, 104);
@@ -198,7 +198,7 @@ public partial class Main
         revokeDeviceButton.Text = "Revoke other device";
         revokeDeviceButton.Pressed += () => _ = RevokeDeviceAsync();
         deviceManagementBody.AddChild(revokeDeviceButton);
-        developerBody.AddChild(NewPanel("Paired-device management · signed server requests", deviceManagementBody));
+        developerBody.AddChild(NewPanel("Paired-device management", deviceManagementBody));
     }
 
     /// <summary>F12: opens or closes the panel. Time keeps running either way.</summary>

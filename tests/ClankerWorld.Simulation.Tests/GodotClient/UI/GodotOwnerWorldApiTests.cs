@@ -153,7 +153,7 @@ public sealed class GodotOwnerWorldApiTests
                 Snapshot = delta.Baseline.Snapshot with { MapLayersDigest = new string('c', 64) },
             },
         }, 5, out var layersFailure));
-        Assert.Contains("map-layer cache", layersFailure, StringComparison.Ordinal);
+        Assert.Contains("saved copy of the map overlays", layersFailure, StringComparison.Ordinal);
         Assert.Same(packedLayers, session.Current.Baseline.Snapshot.PackedMapLayers);
         Assert.False(session.TryAccept(delta with
         {
@@ -228,7 +228,7 @@ public sealed class GodotOwnerWorldApiTests
         var wasAccepted = session.TryAccept(missingCapability, requestedAfterEventId: 3, out var failure);
 
         Assert.False(wasAccepted);
-        Assert.Contains("required paired-owner capabilities", failure, StringComparison.Ordinal);
+        Assert.Contains("doesn't offer everything this game needs", failure, StringComparison.Ordinal);
         Assert.Same(accepted, session.Current);
     }
 
