@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using ArtPreview;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ArtPreview.Proposed.Relief;

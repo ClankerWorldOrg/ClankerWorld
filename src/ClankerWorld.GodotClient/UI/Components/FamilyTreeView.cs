@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ClankerWorld.GodotClient.UI;
@@ -21,13 +22,13 @@ public partial class FamilyTreeView : Control
     public event Action<string>? PersonRequested;
 
     /// <summary>Draws a person's small portrait for their box; the flag is whether they are alive.</summary>
-    public Func<OwnerWorldInhabitant, bool, Texture2D>? Portrait { get; set; }
+    public Func<OwnerWorldAgent, bool, Texture2D>? Portrait { get; set; }
 
     public IReadOnlyCollection<string> VisiblePersonIds => buttons.Keys.ToArray();
     public int ParentEdgeCount => parentEdges.Count;
     public int PartnerEdgeCount => partnerEdges.Count;
 
-    public void SetPeople(string worldId, IReadOnlyList<OwnerWorldInhabitant> people, string centerId)
+    public void SetPeople(string worldId, IReadOnlyList<OwnerWorldAgent> people, string centerId)
     {
         ArgumentNullException.ThrowIfNull(people);
         var signature = worldId + ":" + centerId + ":" + UiTheme.Current.Name + ":" + string.Join('|', people

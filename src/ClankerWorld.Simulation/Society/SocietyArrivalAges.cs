@@ -2,11 +2,11 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     /// <summary>
     /// Founders and added adults in day-lifecycle worlds arrive up to this many
-    /// days past the adult threshold: day 15 to day 25 in playtest worlds.
+    /// days past the adult threshold: day 15 to day 25 in worlds on the game calendar.
     /// </summary>
     public const int ArrivalAgeSpreadDays = 10;
 
@@ -46,7 +46,7 @@ public static partial class SocietyFixture
     {
         var youngest = checkpoint.Config.FounderStartingAge;
         var random = Pcg32XshRrV1.Create(checkpoint.WorldId,
-            FormattableString.Invariant($"society/adult-arrival-age:{checkpoint.Inhabitants.Count}"));
+            FormattableString.Invariant($"society/adult-arrival-age:{checkpoint.Agents.Count}"));
         return youngest + (int)(random.NextUInt() % (uint)(LatestArrivalAge(checkpoint.Config) - youngest + 1));
     }
 }

@@ -65,7 +65,7 @@ everything that is available in the current build. See [what works today](../wha
   world server. The player-facing Godot client should not become the
   authority merely because the host runs locally. Closing the game still
   freezes the world, without offline catch-up.
-- **On a player's computer, the host is a bundled companion process.** The game
+- **On a player's computer, the local server is a separate process bundled with the game.** The game
   starts it, and it listens only on the loopback address, which means only
   programs on that same computer can connect to it. It is not embedded inside
   the game process.
@@ -75,9 +75,9 @@ everything that is available in the current build. See [what works today](../wha
   ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)):** the
   first alpha, `v0.1.0-alpha.1`, is the portable zip together with the
   launcher below, and it is the first release whose changelog carries a
-  version. The game itself, `ClankerWorld.exe`, starts the bundled host in the
+  version. The game itself, `ClankerWorld.exe`, starts the local server in the
   background, waits until it is ready and opens the main menu, so it also runs
-  on its own without the launcher. If the host cannot start, the game says so
+  on its own without the launcher. If the local server cannot start, the game says so
   and offers to try again. The game files sit in a folder named for their
   version, and the player's saves, keys and model-call count sit in their own
   Windows user folder, so replacing or adding a version never touches them.
@@ -121,7 +121,7 @@ everything that is available in the current build. See [what works today](../wha
 
 Performance requirements and packaging tests are still open. They are
 implementation choices to prove, not reasons to reopen the agreed player-local
-distribution goal, the companion-process host or the first package.
+distribution goal, the local server process or the first package.
 
 **Parked until ClankerWorld becomes a public, versioned alpha (October 8):**
 a world between a world server on another machine and a player's PC
@@ -134,7 +134,7 @@ is the only player for now, so this waits until then.
 
 - **The world freezes when the game is closed.** It resumes from the saved
   state when reopened, without unattended catch-up simulation or provider
-  spending. The supported current private-world prototype already stops ticks
+  spending. The current game already stops ticks
   after the last authenticated client disconnects; a much older design-log
   direction for unattended simulation was superseded in the repository.
 - While the game is open, the **pause button and Pause Menu are the only

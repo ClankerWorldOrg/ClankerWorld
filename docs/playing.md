@@ -37,7 +37,7 @@ device must be able to reach it through its private network.
 
 A new device needs approval. Compare the game's code with the person approving
 the device on the server, then complete pairing. Do not post the code, keys or
-private world data in an issue. Once paired, reconnecting uses the saved
+private save data in an issue. Once paired, reconnecting uses the saved
 connection; normal play does not need approval every time.
 
 After pairing, choose **Continue** from the Main Menu to enter your world.
@@ -52,7 +52,7 @@ instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
 it without a code and opens the Main Menu. Quitting saves the world and stops
 the server. Your saves, keys and model-call count are kept in
 `%LOCALAPPDATA%\ClankerWorld`, outside the game folder, and the server's log is
-`logs\host.log` there, with the launch before it in `logs\host.previous.log`.
+`logs\server.log` there, with the launch before it in `logs\server.previous.log`.
 If the server cannot start, the game says why and offers **Try Again** and
 **Report a problem**. If saving fails while quitting, the game stays open and
 offers **Try Again** after you fix the save problem; it keeps the world server running.
@@ -465,7 +465,7 @@ the pot and remaining food together. Eating a serving needs no extra carrying
 space; food reserved for other work or being delivered is unavailable.
 
 A hungry child whose load is full can put spare unreserved supplies at their
-household House or camp to make room for food. Worn equipment, maps, held work
+household House or storage pile at the first Town's Warehouse to make room for food. Worn equipment, maps, held work
 supplies and delivery loads stay with them. Infants still need their caregivers.
 
 Material orders can gather wood, stone, plant fiber, clay, iron ore, gold ore

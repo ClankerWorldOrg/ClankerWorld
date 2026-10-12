@@ -27,13 +27,13 @@ const SuiteSlowerSeconds = 120;
 // earlier shard already names; "Class.Method" names one test method, or several that start with that
 // text. Normally `plan` splits the tests from measured timings.
 const PinnedShards = [
-  ['RestaurantBusinessPipelineTests', 'NativeOrchardObservationTests', 'PortBoatRuntimeTests', 'OrnamentTradeTests'],
-  ['PrivateWorldConstructionOrderTests', 'PersonalEquipmentTests', 'PrivateWorldFieldOrderTests', 'OrnamentProductionTests'],
-  ['ConcreteMealTests', 'PrivateWorldDeliveryOrderTests', 'FarmFieldTests', 'HandcartRuntimeTests'],
-  ['SettlementParenthoodTests', 'PrivateWorldCollectionOrderTests', 'PotteryContentTests', 'ExplorationBridgeSaveTests'],
-  ['BusinessTradeTests', 'PrivateWorldExpansionOrderTests', 'ToolMakingRequestTests', 'BuildingExpansionTests'],
-  ['PrivateWorldRuntimeTests', 'NewbornModelBindingCheckpointTests', 'CookedMealBirthTests', 'TownReleasedMaterialRecoveryTests'],
-  ['AnimalPipelineTests', 'TownMembershipTests', 'MarketConstructionRuntimeTests', 'PrivateWorldProductionOrderTests'],
+  ['RestaurantShopPipelineTests', 'OrchardObservationTests', 'PortBoatRuntimeTests', 'OrnamentTradeTests'],
+  ['WorldConstructionOrderTests', 'PersonalEquipmentTests', 'WorldFieldOrderTests', 'OrnamentProductionTests'],
+  ['ConcreteMealTests', 'WorldDeliveryOrderTests', 'FarmFieldTests', 'HandcartRuntimeTests'],
+  ['ParenthoodTests', 'WorldCollectionOrderTests', 'PotteryContentTests', 'ExplorationBridgeSaveTests'],
+  ['ShopTradeTests', 'WorldExpansionOrderTests', 'ToolMakingRequestTests', 'BuildingExpansionTests'],
+  ['WorldRuntimeTests', 'NewbornModelBindingCheckpointTests', 'CookedMealBirthTests', 'TownReleasedMaterialRecoveryTests'],
+  ['AnimalPipelineTests', 'TownMembershipTests', 'MarketConstructionRuntimeTests', 'WorldProductionOrderTests'],
 ];
 
 const EntryPattern = /^[A-Za-z_]\w*(\.[A-Za-z_]\w*)?$/;
@@ -135,15 +135,16 @@ function median(values) {
 // Each test's median seconds over main's runs in `dir`, one folder per run named by its run ID, how
 // many runs had timings and their IDs. One run's times swing too much to split the tests by, or to
 // compare a change with.
-function readMainTimings(dir) {
+function readMainTimings(dir, namespace) {
   const folders = dir && fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).filter(item => item.isDirectory()) : [];
   const samples = {};
   const ids = [];
   for (const folder of folders.sort((a, b) => (a.name < b.name ? -1 : 1))) {
-    const times = readTimings(path.join(dir, folder.name));
-    if (Object.keys(times).length === 0) continue;
+    const entries = Object.entries(readTimings(path.join(dir, folder.name)))
+      .filter(([name]) => !namespace || name.startsWith(namespace));
+    if (entries.length === 0) continue;
     ids.push(folder.name);
-    for (const [name, seconds] of Object.entries(times)) (samples[name] ??= []).push(seconds);
+    for (const [name, seconds] of entries) (samples[name] ??= []).push(seconds);
   }
   const times = Object.fromEntries(Object.entries(samples).map(([name, values]) => [name, median(values)]));
   return { times, runs: ids.length, ids };
@@ -211,8 +212,12 @@ function planShards(times, count = shardCount(), cores = Cores) {
 }
 
 // The filters for every test job, from main's timings in `dir`, or the fixed split when there are none.
-function planFilters(dir) {
-  const { times, runs } = readMainTimings(dir);
+// Timings under another namespace, such as main's from before the test project
+// was renamed, match no test here, so the plan leaves them out.
+const TestNamespace = 'ClankerWorld.Tests.';
+
+function planFilters(dir, namespace = TestNamespace) {
+  const { times, runs } = readMainTimings(dir, namespace);
   const plan = planShards(times);
   const shards = plan ? plan.named : PinnedShards;
   const lines = [`source=${plan ? 'timings' : 'fixed'}`];
@@ -271,7 +276,7 @@ function compareTimings(main, run, { runs = 1, top = 10 } = {}) {
 }
 
 // The test project, and the client folder it compiles a few files from.
-const TestProject = 'tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj';
+const TestProject = 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj';
 const ClientFolder = 'src/ClankerWorld.GodotClient/';
 
 // The repository paths of the files the test project compiles from outside its folder, or null
@@ -343,7 +348,7 @@ if (require.main === module) {
 }
 
 module.exports = {
-  PinnedShards, Cores, SlowTestSeconds, SuiteSlowerRatio, SuiteSlowerSeconds, namePart,
+  PinnedShards, TestNamespace, Cores, SlowTestSeconds, SuiteSlowerRatio, SuiteSlowerSeconds, namePart,
   clause, shardCount, testFilter, parseTrx, readTimings, median, readMainTimings, planShards, planFilters, slowReport, compareTimings,
   compiledFiles, planScope, main,
 };

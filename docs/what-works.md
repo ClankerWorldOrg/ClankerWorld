@@ -20,7 +20,7 @@ full commit at `/api/v1/status`; client and host builds can differ.
 
 ## Status labels
 
-- **Available in the game:** connected to the normal private-world and Godot path.
+- **Available in the game:** connected to the normal world server and Godot path.
 - **Basic version:** connected, but the experience or rules are still limited.
 - **Built but not connected to normal play:** code and isolated tests exist,
   but players do not yet encounter the complete feature.
@@ -34,7 +34,7 @@ test alone does not make it available in the game.
 
 | Feature | Status | Current limits |
 | --- | --- | --- |
-| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own host is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
+| Create, select, save and load worlds | Available in the game | Small/Medium maps; larger playable worlds are unfinished. The portable Windows package with its own local server is built in CI but not yet playtested. So is the launcher that installs, repairs and starts published versions. Quit to Launcher and Open in another version keep the world's selection in Load World after Play; opening it remains your choice. Default Balanced Small/Medium previews try up to three candidates for the Normal forest and mountain targets. |
 | Wooded forests, patchy beaches and reduced wet weather | Available in newly created worlds | Forest grass has many trees, forest-floor tiles always have trees, and cacti stay on desert sand. Default rain, storm and snow weights are one quarter lower across climates. Density and Windows performance still need owner playtesting. |
 | Choose the first Town and place four founders before starting | Available in the game | On-map, guidance-only hints for nearby food, fertile ground, wood, stone and open space for Roads; exact factor tuning remains provisional. Player-chosen supplies are unfinished. |
 | Move around and inspect the map | Available in the game | Zoom, overview, wrapped east/west movement, tile facts, building cards with stored items as icons, and separate filters for Town title, household use, disputes, building property and Town borders. The disputes filter shows contested tiles in pending household land requests. Building Details lists the workstation’s registered recipes with input/output quantities, and running work shows its recipe and the materials held for it. Details also lists recent recorded storage additions and removals. |
@@ -64,15 +64,15 @@ with how many people are inside; hovering it names them, and the building's
 card lists them. People in an open yard, on a pier or at a Market stall stay
 on the map.
 
-On a fresh server, Continue opens New World instead of entering the retired
-test camp. The normal map preview and acceptance steps still apply, and saved
+On a fresh server, Continue opens New World instead of entering the
+empty world the server starts with. The normal map preview and acceptance steps still apply, and saved
 worlds with founders or other progress keep opening normally.
 
 Generated maps always end in polar sea at the north and south edges, two rows
 deep, whatever the climate settings, so agents never walk into the map's edge.
 Earlier worlds whose maps differ from regeneration no longer load; their saves are kept.
 
-New worlds open paused with no old camp. Choosing the first Town lays a winding
+New worlds open paused with nothing built. Choosing the first Town lays a winding
 main road with side streets, then places two Houses, a Warehouse, Farmhouse and
 Blacksmith along them, each with its door facing its packed-dirt Road and a short
 doorstep path joining it. Streets run on a few tiles past the last building,
@@ -98,7 +98,7 @@ game and world server path; the current measurements are
 automated fixture evidence, not a Windows visual playtest or a final balance
 claim.
 
-World time and hosted calls stop after the last connected client's short grace
+World time and model calls stop after the last connected client's short grace
 period. Returning makes no offline progress; a manually paused world stays
 paused. New worlds use six-minute days and a 40-day year as the current playtest
 pace, subject to model/server load.
@@ -866,7 +866,7 @@ The food gate, parents' cards, caregiver guidance and four-portion payment all
 exclude that sale stock. Once borrowing ends, it can count and pay normally.
 Usable household food elsewhere can fund the birth while the stall stays stocked.
 
-Restaurant trading uses the normal private-world path; its
+Restaurant trading uses the normal game path; its
 [Windows playtest checklist](../playtest/alpha-1.md) is pending.
 Restaurant adults visit ingredient shops in any Town, and adult customers
 can visit another Town's Restaurants for meals. Exact goods and terms are checked
@@ -1472,7 +1472,7 @@ room for the whole yield, including orchard seeds. A hungry adult can make room
 for one permitted household serving when spare supplies can be set down. An
 accepted caregiver can also make room to feed a hungry infant, even when
 already well fed. The spare supplies go to the House if it has room or to the
-camp pile otherwise, with tools set down after other ordinary supplies. Maps,
+household's storage pile at the first Town's Warehouse otherwise, with tools set down after other ordinary supplies. Maps,
 field records, books, worn gear, gear being repaired and reserved goods stay
 carried. If urgent hunger leaves no other way to make enough room, an adult may
 set down some of their own reserved orchard seeds too. Only the seeds actually
@@ -1485,12 +1485,12 @@ Broken or spoiled spare cargo can also be set down without losing it.
 A filled jug moves home as one load when the adult has room for the jug and
 all its contents and the House has space. Loose household deliveries keep
 their four-unit batches. If a delivery spoils while carried, an adult can
-walk it back to camp and set down the same goods for the household. This
+walk it back to the storage pile and set down the same goods for the household. This
 frees carrying space and clears the old delivery promise. Other stock, work
 or deliveries can still prevent removing or reassigning its destination.
 
 Hungry children can free carrying room for household food by putting aside only
-spare unreserved supplies, using the same physical House or camp storage as
+spare unreserved supplies, using the same physical House or storage pile as
 adults. Worn equipment, maps, work reservations and delivery loads stay protected.
 The adult emergency exception for reserved orchard seeds does not apply to
 children. Infants do not perform this recovery action.
@@ -1500,8 +1500,8 @@ pots automatically, and there is no discard control. Raw grain, potatoes and
 flour keep their freshness and need separate cooking work before they become
 meals. Bread and other cooked food spoil; storage pots slow that loss.
 
-Before the first House, builders carry their construction materials to the camp
-pile in loads. A helper meets the adult who requested materials and transfers only
+Before the first House, builders carry their construction materials to the
+household's storage pile in loads. A helper meets the adult who requested materials and transfers only
 what that adult has room to carry. Once a House exists, helpers can deliver to its
 storage. Newly received help remains available to the requester's personal
 memory recall after saving and reopening, including for native-born descendants.

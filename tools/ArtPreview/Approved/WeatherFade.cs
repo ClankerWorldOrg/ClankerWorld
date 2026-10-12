@@ -1,6 +1,5 @@
 using ArtPreview.Proposed.Polish;
 using ArtPreview.Proposed.Weather;
-using ClankerWorld.GodotClient.UI;
 using Godot;
 
 namespace ArtPreview.Approved;

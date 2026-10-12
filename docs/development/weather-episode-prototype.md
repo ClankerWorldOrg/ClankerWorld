@@ -38,7 +38,7 @@ half-day storm-free window. Pausing or observing the map does not reroll weather
 Reproduce with:
 
 ```sh
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --filter FullyQualifiedName~ReportPrototypeDistributionAgainstDailyBaseline --logger 'console;verbosity=detailed'
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --filter FullyQualifiedName~ReportPrototypeDistributionAgainstDailyBaseline --logger 'console;verbosity=detailed'
 ```
 
 The sample uses six seeds (`episode-distribution-0` through `-5`), all five climate

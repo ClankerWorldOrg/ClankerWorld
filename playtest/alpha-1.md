@@ -23,9 +23,9 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Pair and continue into the right world.** ([#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973), [#1021](https://github.com/compoodment/ClankerWorld/issues/1021))
   - Pair the device with the host. → The Main Menu shows the logo with Continue, Settings and Quit Game.
   - Open Settings, then leave it. → Settings returns you to the Main Menu.
-  - Press Continue. → It enters the paired world.
+  - Press Continue. → It enters the world on the remote server.
   - Restart the game, also once after pairing was interrupted after the host accepted it. → It reuses the saved pairing and recovers to the same menu.
-  - Press Continue on a fresh server with an empty saves folder. → New World opens with no old camp or start time.
+  - Press Continue on a fresh server with an empty saves folder. → New World opens with no old world or start time.
   - Work through New World. → You can preview, create, pick the first Town site and place founders.
   - Leave New World, restart the server and reconnect before creating; press Continue or the first entry in Load World. → Each brings you back to New World until you create.
   - Get a preview that missed its targets. → It still needs your OK before you can create.
@@ -34,12 +34,12 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Press Continue again. → A fresh Continue enters normally.
 - [ ] **Save, quit and continue.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1683))
   - Unzip the portable Windows package into two folders and start `ClankerWorld.exe`. → The Main Menu opens without asking for a server address or comparison code.
-  - Add a key, create and start a world, and make a visible change. → Saves, settings and `logs\host.log` live in `%LOCALAPPDATA%\ClankerWorld`, not the game folder.
+  - Add a key, create and start a world, and make a visible change. → Saves, settings and `logs\server.log` live in `%LOCALAPPDATA%\ClankerWorld`, not the game folder.
   - Start the game from the other folder. → Both copies open the same worlds.
-  - While playing, search `logs\host.log` and the game folder for your key. → Your key appears nowhere.
+  - While playing, search `logs\server.log` and the game folder for your key. → Your key appears nowhere.
   - While playing, run `netstat -ano | findstr 5188`. → The world server listens only on 127.0.0.1.
-  - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Viewer is left in Task Manager.
-  - Start again and press **Continue**, once with the network to the private server blocked. → The same world reopens at the saved point, with your fullscreen and interface size settings kept.
+  - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Server is left in Task Manager.
+  - Start again and press **Continue**, once with the network to the remote world server blocked. → The same world reopens at the saved point, with your fullscreen and interface size settings kept.
 - [ ] **New World screen and preview.** ([#409](https://github.com/compoodment/ClankerWorld/issues/409), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#719](https://github.com/compoodment/ClankerWorld/issues/719), [#900](https://github.com/compoodment/ClankerWorld/issues/900), [#1023](https://github.com/compoodment/ClankerWorld/issues/1023))
   - Open New World, also straight after changing a Main Menu setting such as the model-call limit. → Name, seed and size sit in one box.
   - Change the name, seed and size, and press Reset these options. → Any change updates the preview.
@@ -60,7 +60,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Create a world and found the first Town.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#424](https://github.com/compoodment/ClankerWorld/issues/424), [#523](https://github.com/compoodment/ClankerWorld/issues/523), [#525](https://github.com/compoodment/ClankerWorld/issues/525), [#667](https://github.com/compoodment/ClankerWorld/issues/667), [#718](https://github.com/compoodment/ClankerWorld/issues/718), [#764](https://github.com/compoodment/ClankerWorld/issues/764), [#1388](https://github.com/compoodment/ClankerWorld/issues/1388), [#1441](https://github.com/compoodment/ClankerWorld/issues/1441))
   - Create a Small world with a seed and climate. → The same options give the same map.
   - Refresh the preview, reroll, select the shown candidate and confirm the pause. → The world matches the preview.
-  - Before choosing a site, look around. → There is no old camp or Town border, and the clock reads Spring 1, Year 1, 06:00 in full daylight.
+  - Before choosing a site, look around. → There are no buildings and no Town border, and the clock reads Spring 1, Year 1, 06:00 in full daylight.
   - Check the first view and the buttons. → The view shows dry land, not open sea, and Start World, Play/Pause and the founder buttons are shaded.
   - Hover over possible first Town sites. → Better land is tinted greener, and hovering describes nearby food, fertile ground, wood, stone and room for Roads.
   - Try sites on good land, on poorer land and near the east or west edge of a wrapped world. → Poorer land is still selectable.
@@ -264,7 +264,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Repeat with no usable autosave. → Recovery is unavailable, Check again and Quit Game still work, and no new world is made.
   - Restore an autosave and choose Check again. → Recovery becomes available.
   - Drop the connection after choosing. → It offers Check again instead of repeating the choice.
-  - While playing, end the ClankerWorld.Viewer process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
+  - While playing, end the ClankerWorld.Server process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
   - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running.
   - Repeat while the PC is busy. → After at most a short delay it reconnects, without saying another program is using the port or starting a second server.
   - Start a different game build while that server is still running. → It refuses the server that doesn't match, and the original world keeps running.
@@ -354,7 +354,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Click one while it moves. → It is selected, with its name and quick card following it.
   - Watch occupied and empty Houses and working and idle forges. → Smoke rises only from occupied Houses and working forges.
   - Watch a building being finished. → It shows settling dust and roof twinkles once.
-  - Plant and fell trees, harvest natural sites and let them regrow, and use camp supplies. → The pictures update at once.
+  - Plant and fell trees, harvest natural sites and let them regrow, and use the Town's starting supplies. → The pictures update at once.
   - Add and remove goods at a House or Warehouse. → Logs, sacks and crates show on clear ground beside the door, and grow, shrink and vanish with the stock.
   - Try a building with no clear tile beside its door. → No piles show, but the building's details still list its goods.
   - Look at the piles by day and night. → They never cover Roads, doorsteps or buildings, darken at night and stay under agents and weather.
@@ -512,7 +512,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Full hands: making room to eat.** ([#560](https://github.com/compoodment/ClankerWorld/issues/560), [#563](https://github.com/compoodment/ClankerWorld/issues/563), [#712](https://github.com/compoodment/ClankerWorld/issues/712), [#713](https://github.com/compoodment/ClankerWorld/issues/713), [#720](https://github.com/compoodment/ClankerWorld/issues/720), [#742](https://github.com/compoodment/ClankerWorld/issues/742), [#1353](https://github.com/compoodment/ClankerWorld/issues/1353), [#1389](https://github.com/compoodment/ClankerWorld/issues/1389))
   - With bread stored at their House, give a hungry child a full load of spare stone. → They set down just enough spare supplies to collect and eat a household serving, keeping the rest.
   - Try it with wild food nearby. → They still make room and eat a household serving.
-  - Do the same with a hungry adult while the House is full. → They put things on the camp pile, with an Event Log line.
+  - Do the same with a hungry adult while the House is full. → They put things on the household's storage pile, with an Event Log line.
   - Watch a hungry adult carrying a filled jug. → They set down the filled jug to make room to eat.
   - Watch an adult with no room for water. → They leave the empty jug at home.
   - Watch a caregiver with a hungry infant and full hands. → They make room the same way to feed the infant, without taking another household's food.
@@ -669,7 +669,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Make an ordinary request over another household's field. → It is refused.
   - Give one household farmland by request or grant. → Farmers from other households leave it untouched, but still work free land and their own plots.
   - Let the Town add Roads near the granted farmland. → New Roads, streets and bridge ends steer round it, while existing Roads and bridges stay usable.
-  - Have a new household with no House order an animal yard at a legal campsite with sixteen wood and two rope. → The order waits for a House, building and spending nothing.
+  - Have a new household with no House order an animal yard at a legal site with sixteen wood and two rope. → The order waits for a House, building and spending nothing.
   - Reload while it waits, then let the household build a House. → The order keeps its reason through the reload, and the yard is built once the House is.
 - [ ] **Land offers and household votes.** ([#633](https://github.com/compoodment/ClankerWorld/issues/633), [#726](https://github.com/compoodment/ClankerWorld/issues/726), [#1327](https://github.com/compoodment/ClankerWorld/issues/1327), [#1630](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1630), `1634-native-transfer-parties.md`)
   - In a Town with two adult households, suggest offering the use of a plot for 2 wood. → The Town and plot details show the exact terms, price, acceptance counts and who accepted.
@@ -826,8 +826,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Order an adult partway through building a Clinic to build the Clinic. → One Clinic is built and paid for once, with no two jobs stuck waiting on each other.
   - Order a Store owner who is crafting to stock spare goods in their Store. → They first finish production that already holds its inputs, then deliver the amount.
   - Watch the Store owner after the delivery. → They return to their project with its progress.
-  - Let food spoil while an adult carries a household delivery. → It is brought back to camp and set down, still the household's, freeing the load and clearing the old delivery.
-  - Leave a filled water jug at camp because the House was full. → It is later carried home with all its water once someone can carry it whole, never splitting or vanishing.
+  - Let food spoil while an adult carries a household delivery. → It is brought back to the storage pile and set down, still the household's, freeing the load and clearing the old delivery.
+  - Leave a filled water jug at the storage pile because the House was full. → It is later carried home with all its water once someone can carry it whole, never splitting or vanishing.
   - Save and reload mid-trip throughout. → Each load is delivered once, with ownership and amounts intact and nothing lost or doubled.
 - [ ] **Fetching real goods within reach.** (`1261-reachable-cart-materials.md`, [#1281](https://github.com/compoodment/ClankerWorld/issues/1281), [#1282](https://github.com/compoodment/ClankerWorld/issues/1282), [#1286](https://github.com/compoodment/ClankerWorld/issues/1286), [#1370](https://github.com/compoodment/ClankerWorld/issues/1370), [#1596](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1596), `1617-owned-tool-collection.md`)
   - Leave household wood, ore, iron fittings or personal belongings on land nobody can reach. → Agents gather local wood or ore for a Blacksmith instead.
@@ -1218,7 +1218,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Open each proposal in Towns. → It shows the name, proposer, site, entrance or Road tile, provisional budget and votes.
   - Read each budget. → A Hall needs 24 wood and 12 stone; a lantern needs 4 stone, or 4 wood plus 1 refined iron.
   - Let the council vote. → Approval needs a majority of the whole council, and silence approves nothing.
-  - Include a councillor on a hosted personal model, then load a save. → They vote once, and the vote still counts after loading.
+  - Include a councillor on a personal model, then load a save. → They vote once, and the vote still counts after loading.
   - Watch how residents learn of the proposal. → They learn of it only by reading the notice or being told.
   - Approve the project. → Approval adds no building or materials.
   - Watch residents carry materials from the Warehouse in several loads. → Towns counts only what has arrived, the Warehouse loses exactly what was picked up, and household stock is never taken.
@@ -1408,7 +1408,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - In the launcher's Settings, turn on **Developer mode** and leave **Use test data folder** on. Play a build that supports test data, create and save a test world, then choose **Quit to Launcher** and **Play** again. → The test world is selected.
   - Turn **Use test data folder** off and play. → Your usual worlds and model settings are unchanged.
   - Use **Open saves folder** and **Open logs folder** with test data on and off. → Each opens the folder for the data you chose.
-  - Turn **Detailed logs** on, play, then open the logs folder. → `game.log` has extra engine detail, and `host.log` has a line saying it was a detailed launch.
+  - Turn **Detailed logs** on, play, then open the logs folder. → `game.log` has extra engine detail, and `server.log` has a line saying it was a detailed launch.
   - Quit, turn **Detailed logs** off and play again. → The new logs are back to normal detail.
   - Choose **Report a problem**. → The report includes the current run's logs.
   - Choose **Run a local build** and pick an unzipped portable `ClankerWorld.exe` with its `host` folder beside it. → It starts with the data folder and log options you chose.

@@ -1,5 +1,3 @@
-using ClankerWorld.Simulation.Harness;
-
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>Why a tree could not be planted. <see cref="TreeGrowthRules.Reason"/> gives a short explanation.</summary>
@@ -136,7 +134,7 @@ public static class TreeGrowthRules
     /// forest ground, never in water, on sand, on rock, snow, dry scrub or
     /// mountains. Buildings, Roads and other objects are checked separately.
     /// </summary>
-    public static TreePlantingRefusal? GroundRefusal(SeededMap map, GridPoint point)
+    public static TreePlantingRefusal? GroundRefusal(WorldMap map, GridPoint point)
     {
         ArgumentNullException.ThrowIfNull(map);
         if (!map.Contains(point)) return TreePlantingRefusal.OutsideMap;
@@ -168,7 +166,7 @@ public static class TreeGrowthRules
     }
 
     /// <summary>Whether a saved planted tree is a legal result of planting on this map's ground.</summary>
-    public static bool IsValidPlantedTree(SeededMap map, MapResource tree)
+    public static bool IsValidPlantedTree(WorldMap map, MapResource tree)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(tree);

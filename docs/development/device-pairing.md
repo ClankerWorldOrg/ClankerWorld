@@ -32,8 +32,8 @@ rollback backup. This is the approved pre-release exception described in
 3. A host-local bootstrap administrator approves the matching pairing ID and
    code through a separate loopback-only listener. There is no bootstrap
    password or reusable approval secret in the client, a URL, or deployment
-   configuration. A host the game starts on the player's own PC also needs a
-   one-launch secret ([companion host](#host-started-by-the-game)). Once an owner device exists, it may approve or revoke further
+   configuration. The local server, which the game starts on the player's own PC, also needs a
+   launch secret ([local server](#local-server-started-by-the-game)). Once an owner device exists, it may approve or revoke further
    devices through signed owner-device-management requests. It may also request
    the signed registry of paired-device lifecycle records. The registry exposes
    only public device IDs, public-key fingerprints, and lifecycle state; it
@@ -118,7 +118,7 @@ starts at cursor zero, so a younger world can be entered without restarting the
 client. Tick/event regression and terrain identity checks still apply within the
 new observation timeline.
 
-Life-pace and Jev actions additionally bind the selected world ID into their
+Aging-override and Jev actions additionally bind the selected world ID into their
 version-2 signed payloads. The host advertises both formats on challenge
 issuance; the client refuses to submit them to a host without that support.
 Both endpoints check the target world under the same mutation gate used by
@@ -163,7 +163,7 @@ observation refreshes cannot silently authorize a different ownership change.
 Instructions and order cancellations are server-idempotent, but a client can
 still lose the response after the server commits one. The Godot client's retry
 protocol also retains authoring batches, which the native host currently refuses
-with `private_world_authoring_pending` without applying them. Before sending
+with `game_world_authoring_pending` without applying them. Before sending
 any of these requests, the client may atomically retain one non-secret pending
 record. It is bound to the authority identity, device ID, public-key fingerprint,
 and canonical server
@@ -232,7 +232,7 @@ Each exact retry obtains a new one-use challenge and signature. For an
 instruction or order cancellation, it submits the same logical request so the
 server returns the original receipt rather than creating a duplicate. The
 native host continues to refuse authoring batches without applying them.
-Private-world
+World
 instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the host still returns its accepted receipt after the recipient dies,
 including after saving and restarting the host. The client's stricter timeline
@@ -297,7 +297,7 @@ the declared length log `request_body_limit` at most once a minute, with the rou
 kind and limit only.
 
 If unauthenticated requests fill the eight pending slots, the existing separate
-loopback approval listener also accepts POST /api/v1/local/pairings with the same
+loopback approval listener also accepts POST /api/v1/approval/pairings with the same
 public-key-only body as public pairing creation. It bypasses the public creation
 budget and, only when necessary, expires the oldest **unapproved** pending request
 to admit the operator's new request. It never expires an approved pairing or
@@ -306,57 +306,57 @@ already active keys must not displace a pending request. Approval and signed
 activation still follow their existing checks. The ordinary forwarded listener
 returns 404 for this recovery endpoint. Never forward the approval listener.
 
-Every `/api/v1/local/*` route also needs the request's host name to be
+Every `/api/v1/approval/*` route also needs the request's host name to be
 `127.0.0.1`, `[::1]` or `localhost`, with or without a port. Address the
 approval listener that way, as the game does; any other name gets the same 404
-and one `local_approval outcome=refused reason=host_name` line at most once a
+and one `approval_listener outcome=refused reason=host_name` line at most once a
 minute. The public listener has no such check, because Tailscale Serve reaches
 it under its own name.
 
 This is an operator recovery path, not automatic queue eviction on behalf of an
 untrusted remote client. The game's own host also uses it for the game's first
-pairing ([Host started by the game](#host-started-by-the-game)). Keep the
+pairing ([Local server started by the game](#local-server-started-by-the-game)). Keep the
 returned code and proof local/private. Tests cover capacity recovery and signed
 owner availability. Bodies without a declared length and the host-name check are
 tested on a real Kestrel server, not only through TestServer.
 
-## Host started by the game
+## Local server started by the game
 
 For the local Windows package ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468)),
-the game starts its own host on the player's PC. Every program on that PC can
+the game starts its own world server, the local server, on the player's PC. Every program on that PC can
 reach a loopback listener, so loopback alone cannot prove the request came from
-the game. Before starting the host, the game writes a fresh random value of at
+the game. Before starting it, the game writes a fresh random value of at
 least 32 characters to a file in the player's own data folder and starts the
-host with:
+server with:
 
-- `ClankerWorld:Pairing:LocalApprovalPort`, the separate approval listener, and
-- `ClankerWorld:Pairing:CompanionSecretPath`, the path of that file. The path
+- `ClankerWorld:Pairing:ApprovalPort`, the separate approval listener, and
+- `ClankerWorld:LocalServer:LaunchSecretPath`, the path of that file. The path
   is not secret; the value is never passed in arguments, logged or saved by the
   host. A missing, short or unreadable file stops startup, and the setting is
   refused without an approval port.
 
 The game passes on the player's environment without the provider key variables
-a standalone host saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+a server started on its own saves on first start (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
 `OLLAMA_API_KEY`, `TYPESAFE_API_KEY`) or any `ClankerWorld__` setting override,
-so its host takes keys only from **Settings → Game → API keys**. A server host
+so its local server takes keys only from **Settings → Game → API keys**. A server
 started on its own still reads both.
 
-On such a companion host, every `/api/v1/local/*` request must also carry the
-value in the `X-ClankerWorld-Companion-Secret` header, compared in constant
+On such a local server, every `/api/v1/approval/*` request must also carry the
+value in the `X-ClankerWorld-Launch-Secret` header, compared in constant
 time. Without it the routes return 404, exactly as on the forwarded listener.
-The game uses it to start its own pairing with `POST /api/v1/local/pairings` and
+The game uses it to start its own pairing with `POST /api/v1/approval/pairings` and
 approve it with the comparison code, so the player sees no code to copy and the
 public route's shared budget and pending slots do not hold it up. Status and
 activation stay on the pinned public origin. Pairing with any other server uses
 the public route.
 
-The game does this itself when its folder has `host/ClankerWorld.Viewer.exe`
-and no `--world-url` argument (`LocalHostCompanion`). It uses the fixed origin
+The game does this itself when the `package.json` in its folder names a world
+server that is there, and no `--server-url` argument is given (`LocalServer`). It uses the fixed origin
 `http://127.0.0.1:5188/`, because a paired origin is pinned, and the approval
 port 5189. It stores this pairing in `user://local-owner-device-registration.json`,
 apart from a server pairing. Before starting the host it checks the port: a
 running host of the exact same version and source revision, started by an
-earlier launch, is reused only after a side-effect-free `GET /api/v1/local/companion`
+earlier launch, is reused only after a side-effect-free `GET /api/v1/approval/launch-check`
 confirms the secret already in its file on the approval listener. Anything else on
 the port is refused with a message and never stopped. Discovery or proof requests
 that time out are retried within the existing startup window, retaining their
@@ -364,21 +364,21 @@ two-second request deadlines; an explicit build mismatch, invalid response or
 secret refusal ends the attempt immediately. An unresponsive existing host is
 reported as timed out, without starting a second process or replacing its secret.
 Caller cancellation also leaves that host and secret intact. The host's output goes to
-`logs/host.log` in the player's data folder, and each start first moves the
-previous one to `logs/host.previous.log` so a crash can still be reported.
+`logs/server.log` in the player's data folder, and each start first moves the
+previous one to `logs/server.previous.log` so a crash can still be reported.
 Saves, the owner authority and the provider files sit in separate folders
 there, never in the game folder.
 
-`POST /api/v1/local/shutdown` exists only on a private-world companion host. It
-pauses the world, cancels hosted model work and writes its checkpoint before
+`POST /api/v1/approval/shutdown` exists only on a local server. It
+pauses the world, cancels model work and writes its checkpoint before
 returning 202. The response completion callback requests process exit, so host
 teardown follows the acknowledgement. If writing fails, it returns 503 and
 keeps the host alive and paused so the game can retry. Pending startup recovery
-returns 409 without rewriting the refused checkpoint. Whenever a private-world
+returns 409 without rewriting the refused checkpoint. Whenever a world
 host stops, it waits for the tick loop to finish and writes a final checkpoint
-(`host_shutdown` in the log). Ctrl+C or a service stop also pauses a companion
-world; a failed final write is logged and sets a nonzero process exit status.
-A world halted for inspection is left untouched. The server host
+(`server_shutdown` in the log). Ctrl+C or a service stop also pauses a local
+server's world; a failed final write is logged and sets a nonzero process exit status.
+A world halted for inspection is left untouched. A server
 started without these settings behaves as before and cannot be stopped over
 HTTP.
 

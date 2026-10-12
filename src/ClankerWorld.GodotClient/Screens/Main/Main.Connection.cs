@@ -1,7 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
-using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
 
@@ -27,7 +26,7 @@ public partial class Main
             // Once paired, this device is pinned to the server origin that
             // issued the registration. A command-line URL is useful only for
             // a first pairing; it must never silently retarget an owner key.
-            if (!WorldServerOrigin.TryResolve(registration.WorldUrl, out var storedWorldUri))
+            if (!ServerOrigin.TryResolve(registration.WorldUrl, out var storedWorldUri))
             {
                 registeredEndpointInvalid = true;
                 pairingPanel.Show();
@@ -38,12 +37,12 @@ public partial class Main
                 return;
             }
 
-            worldUrlInput.Text = storedWorldUri.AbsoluteUri;
+            serverUrlInput.Text = storedWorldUri.AbsoluteUri;
             LoadPendingSubmission();
 
             pairingPanel.Hide();
             settingsPanel.Hide();
-            CloseGameMenu();
+            ClosePauseMenu();
             RefreshMainMenuAvailability();
             SetStatus("This device is paired. Choose Continue to enter your world.", good: true);
             await CheckStartupRecoveryAsync();
@@ -90,12 +89,12 @@ public partial class Main
             var origin = ResolveWorldUri();
             // The game's own host pairs on its local listener with this
             // launch's secret; any other server keeps the public route.
-            var ownHost = localHost is not null && localHost.Serves(origin);
-            pendingPairing = ownHost
-                ? await localHost!.StartPairingAsync(deviceKey, CancellationToken.None)
+            var ownServer = localServer is not null && localServer.Serves(origin);
+            pendingPairing = ownServer
+                ? await localServer!.StartPairingAsync(deviceKey, CancellationToken.None)
                 : await ownerApi.StartPairingAsync(origin, deviceKey, CancellationToken.None);
             pendingPairingOrigin = origin;
-            if (ownHost && await ApproveLocalPairingAsync(pendingPairing)) return;
+            if (ownServer && await ApproveLocalPairingAsync(pendingPairing)) return;
             pairingPanel.Show();
             pairingInstructionLabel.Text = "Give the person who runs the world server the pairing ID and comparison code below. They approve this device on the server's own computer. The code is not a password.";
             pairingCodeLabel.Text = pendingPairing.PairingCode;
@@ -178,7 +177,7 @@ public partial class Main
                         pendingPairingOrigin = null;
                         pairingPanel.Hide();
                         settingsPanel.Hide();
-                        CloseGameMenu();
+                        ClosePauseMenu();
                         ShowMainMenu();
                         SetStatus("Device paired. Choose Continue to enter your world.", good: true);
                         await CheckStartupRecoveryAsync();
@@ -238,7 +237,7 @@ public partial class Main
             pendingPairingOrigin = null;
             pairingPanel.Hide();
             settingsPanel.Hide();
-            CloseGameMenu();
+            ClosePauseMenu();
             ShowMainMenu();
             SetStatus("Device paired. Choose Continue to enter your world.", good: true);
             await CheckStartupRecoveryAsync();
@@ -469,7 +468,7 @@ public partial class Main
 
     private Uri ResolveWorldUri()
     {
-        if (!WorldServerOrigin.TryResolve(worldUrlInput.Text, out var configuredWorldUri))
+        if (!ServerOrigin.TryResolve(serverUrlInput.Text, out var configuredWorldUri))
         {
             throw new InvalidOperationException("World URL must be an absolute HTTPS origin (or loopback HTTP for local development).");
         }
@@ -478,7 +477,7 @@ public partial class Main
         {
             if (pendingPairingOrigin is not null)
             {
-                if (!WorldServerOrigin.Same(configuredWorldUri, pendingPairingOrigin))
+                if (!ServerOrigin.Same(configuredWorldUri, pendingPairingOrigin))
                 {
                     throw new InvalidOperationException("This pending pairing is pinned to the server that created it. Wait for it to expire or forget the local registration before changing servers.");
                 }
@@ -489,8 +488,8 @@ public partial class Main
             return configuredWorldUri;
         }
 
-        if (!WorldServerOrigin.TryResolve(registration.WorldUrl, out var pinnedWorldUri) ||
-            !WorldServerOrigin.Same(configuredWorldUri, pinnedWorldUri))
+        if (!ServerOrigin.TryResolve(registration.WorldUrl, out var pinnedWorldUri) ||
+            !ServerOrigin.Same(configuredWorldUri, pinnedWorldUri))
         {
             throw new InvalidOperationException("This paired device is pinned to its original server origin. Forget the local registration before pairing it with a different server.");
         }
@@ -498,16 +497,16 @@ public partial class Main
         return pinnedWorldUri;
     }
 
-    private static string ConfiguredWorldUrl() => ProjectSettings
-        .GetSetting("clankerworld/world_url", "http://127.0.0.1:5188")
+    private static string ConfiguredServerUrl() => ProjectSettings
+        .GetSetting("clankerworld/server_url", "http://127.0.0.1:5188")
         .AsString();
 
-    private static bool TryGetCommandLineWorldUrl(out string? worldUrl)
+    private static bool TryGetCommandLineServerUrl(out string? serverUrl)
     {
         var argument = OS.GetCmdlineUserArgs()
-            .FirstOrDefault(value => value.StartsWith("--world-url=", StringComparison.Ordinal));
-        worldUrl = argument is null ? null : argument["--world-url=".Length..];
-        return !string.IsNullOrWhiteSpace(worldUrl);
+            .FirstOrDefault(value => value.StartsWith("--server-url=", StringComparison.Ordinal));
+        serverUrl = argument is null ? null : argument["--server-url=".Length..];
+        return !string.IsNullOrWhiteSpace(serverUrl);
     }
 
     private enum StatusToastKind

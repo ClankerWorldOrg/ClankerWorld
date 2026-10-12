@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Kernel;
 
-public static partial class InventoryFixture
+public static partial class InventoryAuthority
 {
     /// <summary>The runtime checks the owner's physical proximity before loading carried or co-located goods.</summary>
     public static InventoryCheckpoint LoadHandcart(InventoryCheckpoint checkpoint, string operationId,

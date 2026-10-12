@@ -1,0 +1,34 @@
+using ClankerWorld.Simulation.World;
+
+namespace ClankerWorld.Tests;
+
+public sealed partial class WorldRuntimeTests
+{
+    [Theory]
+    [InlineData(" retry-key ")]
+    public void PrivateInstructionRetriesNormalizeKeysWithoutChangingStateOrSequence(string key)
+    {
+        using var world = new WorldRuntime("instruction-key-retry");
+        var request = new OwnerInstructionRequest(key, "owner:test", "founder-mira",
+            OwnerInstructionKind.Suggestion, "wait safely");
+        var receipt = world.SubmitInstruction(request);
+        Assert.Equal("retry-key", receipt.IdempotencyKey);
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+
+        Assert.Equal(receipt, world.SubmitInstruction(request));
+        Assert.Equal(receipt, world.SubmitInstruction(request with { IdempotencyKey = "retry-key" }));
+        foreach (var conflicting in new[]
+        {
+            request with { IssuerId = "owner:other" },
+            request with { TargetAgentId = "missing-agent" },
+            request with { Kind = OwnerInstructionKind.Order },
+            request with { Text = "gather food" },
+        })
+            Assert.Throws<InvalidOperationException>(() => world.SubmitInstruction(conflicting));
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+
+        var next = world.SubmitInstruction(request with { IdempotencyKey = "next-key" });
+        Assert.Equal("private-instruction-0000000002", next.InstructionId);
+        world.Validate();
+    }
+}

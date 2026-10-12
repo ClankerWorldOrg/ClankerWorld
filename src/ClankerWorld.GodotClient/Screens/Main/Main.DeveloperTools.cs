@@ -1,3 +1,6 @@
+using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -76,8 +79,8 @@ public partial class Main
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         BuildDeveloperEdits();
-        BuildDeveloperLifePace();
-        BuildDeveloperAuthoring();
+        BuildDeveloperAgingOverride();
+        BuildDeveloperWorldEdit();
         BuildDeveloperDevices();
 
         developerScroll.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
@@ -93,94 +96,34 @@ public partial class Main
         content.AddChild(developerPanel);
         // Readouts change length as they update; refit once the new text is laid out.
         developerBody.MinimumSizeChanged += () => Callable.From(PositionDeveloperTools).CallDeferred();
-        UpdateAuthoringHint();
+        UpdateWorldEditHint();
     }
 
-    private void BuildDeveloperLifePace()
+    private void BuildDeveloperAgingOverride()
     {
-        var lifePaceRow = new HBoxContainer();
-        lifePaceRow.AddChild(new Label { Text = "Speed" });
-        lifePaceChoice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        lifePaceChoice.AddItem("Calendar", 1);
-        lifePaceChoice.AddItem("Generations", 365);
-        lifePaceChoice.AddItem("Fast generations", 1_460);
-        lifePaceChoice.SetItemTooltip(0, "Original aging: one biological year per 365 world days.");
-        lifePaceChoice.SetItemTooltip(1, "One biological year per world day.");
-        lifePaceChoice.SetItemTooltip(2, "One biological year per quarter of a world day.");
-        lifePaceChoice.TooltipText = "A testing control that changes how fast agents age from now on, without changing the calendar, seasons or how often models are called; it is not the planned 40-day year or six-hour lifespan.";
-        lifePaceRow.AddChild(lifePaceChoice);
-        applyLifePaceButton.Text = "Apply";
-        StyleButton(applyLifePaceButton);
-        applyLifePaceButton.Pressed += () => _ = SaveLifePaceAsync();
-        lifePaceRow.AddChild(applyLifePaceButton);
+        var agingOverrideRow = new HBoxContainer();
+        agingOverrideRow.AddChild(new Label { Text = "Speed" });
+        agingOverrideChoice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        agingOverrideChoice.AddItem("Calendar", 1);
+        agingOverrideChoice.AddItem("Generations", 365);
+        agingOverrideChoice.AddItem("Fast generations", 1_460);
+        agingOverrideChoice.SetItemTooltip(0, "Original aging: one biological year per 365 world days.");
+        agingOverrideChoice.SetItemTooltip(1, "One biological year per world day.");
+        agingOverrideChoice.SetItemTooltip(2, "One biological year per quarter of a world day.");
+        agingOverrideChoice.TooltipText = "A testing control that changes how fast agents age from now on, without changing the calendar, seasons or how often models are called; it is not the planned 40-day year or six-hour lifespan.";
+        agingOverrideRow.AddChild(agingOverrideChoice);
+        applyAgingOverrideButton.Text = "Apply";
+        StyleButton(applyAgingOverrideButton);
+        applyAgingOverrideButton.Pressed += () => _ = SaveAgingOverrideAsync();
+        agingOverrideRow.AddChild(applyAgingOverrideButton);
         var prototypePaceBody = new VBoxContainer();
         prototypePaceBody.AddChild(new Label
         {
             Text = "For testing only. This does not set the world's planned calendar or lifespan.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
-        prototypePaceBody.AddChild(lifePaceRow);
+        prototypePaceBody.AddChild(agingOverrideRow);
         developerBody.AddChild(NewPanel("Aging override", prototypePaceBody));
-    }
-
-    private void BuildDeveloperAuthoring()
-    {
-        var authoringBody = new VBoxContainer();
-        authoringKind.ItemSelected += _ => UpdateAuthoringHint();
-        AddAuthoringKinds();
-        authoringBody.AddChild(authoringKind);
-        authoringId.PlaceholderText = "ID (resource/object/draft/asset as required)";
-        authoringBody.AddChild(authoringId);
-        authoringValue.PlaceholderText = "Value (terrain, kind, name, weather, digest...)";
-        authoringBody.AddChild(authoringValue);
-        authoringSecondaryValue.PlaceholderText = "Secondary value (season for set_weather_season)";
-        authoringBody.AddChild(authoringSecondaryValue);
-        var coordinateRow = new HBoxContainer();
-        ConfigureCoordinate(authoringX, "x");
-        ConfigureCoordinate(authoringY, "y");
-        coordinateRow.AddChild(authoringX);
-        coordinateRow.AddChild(authoringY);
-        authoringRenewable.Text = "Renewable resource";
-        coordinateRow.AddChild(authoringRenewable);
-        authoringBody.AddChild(coordinateRow);
-        authoringHintLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        authoringBody.AddChild(authoringHintLabel);
-        submitAuthoringButton.Text = "Apply this edit";
-        submitAuthoringButton.Pressed += () => _ = SubmitAuthoringAsync();
-        authoringBody.AddChild(submitAuthoringButton);
-        developerBody.AddChild(NewPanel("Paused world editing", authoringBody));
-    }
-
-    private void BuildDeveloperDevices()
-    {
-        var deviceManagementBody = new VBoxContainer();
-        pairingApprovalId.PlaceholderText = "Pending pairing ID from the new device";
-        deviceManagementBody.AddChild(pairingApprovalId);
-        pairingApprovalCode.PlaceholderText = "Six-digit comparison code";
-        pairingApprovalCode.Secret = true;
-        deviceManagementBody.AddChild(pairingApprovalCode);
-        approvePairingButton.Text = "Approve new device";
-        approvePairingButton.Pressed += () => _ = ApprovePairingAsync();
-        deviceManagementBody.AddChild(approvePairingButton);
-        refreshDevicesButton.Text = "Refresh device list";
-        refreshDevicesButton.Pressed += () => _ = RefreshDeviceRegistryAsync();
-        deviceManagementBody.AddChild(refreshDevicesButton);
-        pairedDeviceList.CustomMinimumSize = new Vector2(0, 104);
-        pairedDeviceList.ItemSelected += index =>
-        {
-            var deviceId = pairedDeviceList.GetItemMetadata(checked((int)index)).AsString();
-            if (!string.IsNullOrWhiteSpace(deviceId))
-            {
-                revokeDeviceId.Text = deviceId;
-            }
-        };
-        deviceManagementBody.AddChild(pairedDeviceList);
-        revokeDeviceId.PlaceholderText = "Device ID to revoke";
-        deviceManagementBody.AddChild(revokeDeviceId);
-        revokeDeviceButton.Text = "Revoke other device";
-        revokeDeviceButton.Pressed += () => _ = RevokeDeviceAsync();
-        deviceManagementBody.AddChild(revokeDeviceButton);
-        developerBody.AddChild(NewPanel("Paired-device management", deviceManagementBody));
     }
 
     /// <summary>F12: opens or closes the panel. Time keeps running either way.</summary>
@@ -229,9 +172,9 @@ public partial class Main
     private void RenderDeveloperTools(OwnerWorldSnapshot snapshot)
     {
         if (!developerPanel.Visible) return;
-        var living = snapshot.Inhabitants.Count(person => !person.IsDraft && IsLiving(person));
+        var living = snapshot.Agents.Count(person => !person.IsDraft && IsLiving(person));
         developerRefusedActionLabel.Text = snapshot.RefusedActionCount.ToString("N0", CultureInfo.InvariantCulture);
-        var died = snapshot.Inhabitants.Count(person => !person.IsDraft && !IsLiving(person));
+        var died = snapshot.Agents.Count(person => !person.IsDraft && !IsLiving(person));
         developerAgentCountLabel.Text = died == 0 ? $"{living} living" : $"{living} living · {died} died";
         developerTickLabel.Text = snapshot.LastTickMilliseconds is { } milliseconds
             ? $"{milliseconds.ToString("0.0", CultureInfo.InvariantCulture)} ms on the world server · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}"
@@ -243,7 +186,7 @@ public partial class Main
 
     private void RenderDeveloperAgentList(OwnerWorldSnapshot snapshot)
     {
-        var people = snapshot.Inhabitants.Where(person => !person.IsDraft && IsLiving(person))
+        var people = snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person))
             .OrderBy(person => person.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(person => person.Id, StringComparer.Ordinal)
             .ToArray();
@@ -264,7 +207,7 @@ public partial class Main
         developerAgentList.DeselectAll();
         for (var index = 0; index < developerAgentList.ItemCount; index++)
         {
-            if (string.Equals(developerAgentList.GetItemMetadata(index).AsString(), selectedInhabitantId, StringComparison.Ordinal))
+            if (string.Equals(developerAgentList.GetItemMetadata(index).AsString(), selectedAgentId, StringComparison.Ordinal))
                 developerAgentList.Select(index);
         }
     }
@@ -275,8 +218,8 @@ public partial class Main
         if (index < 0 || index >= developerAgentList.ItemCount) return;
         var id = developerAgentList.GetItemMetadata((int)index).AsString();
         if (string.IsNullOrEmpty(id)) return;
-        if (!string.Equals(id, selectedInhabitantId, StringComparison.Ordinal)) SelectInhabitant(id);
-        CenterOnInhabitant(id);
+        if (!string.Equals(id, selectedAgentId, StringComparison.Ordinal)) SelectAgent(id);
+        CenterOnAgent(id);
         RenderDeveloperRoute();
     }
 
@@ -319,8 +262,8 @@ public partial class Main
 
     private void RenderDeveloperRoute()
     {
-        var person = renderedMapSnapshot?.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
+        var person = renderedMapSnapshot?.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
         developerRouteLabel.Text = person is null ? "Select an agent to see their route." :
             person.PlannedRoute is not { } route ? $"{person.DisplayName} is not walking anywhere right now." :
             $"{person.DisplayName}: {route.StepCount} {(route.StepCount == 1 ? "step" : "steps")} left toward " +
@@ -336,8 +279,8 @@ public partial class Main
     private void RenderPlannedPath()
     {
         var snapshot = renderedMapSnapshot;
-        var person = snapshot?.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
+        var person = snapshot?.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
         if (!developerPanel.Visible || !developerPathToggle.ButtonPressed || snapshot is null || terrainMap is null ||
             person is null || person.IsDraft || !IsLiving(person) || person.PlannedRoute is not { } route)
         {
@@ -362,5 +305,17 @@ public partial class Main
         }
         var goal = new Vector2(x + Nearer(previous, route.Destination.X) + 0.5f, route.Destination.Y + 0.5f);
         plannedPathLayer.SetPath(points.Select(point => point * stride).ToArray(), goal * stride, currentTileSize);
+    }
+
+    private async Task SaveAgingOverrideAsync()
+    {
+        if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
+            observationSession.Current?.Baseline.Snapshot.WorldId is not { } worldId) return;
+        var rate = agingOverrideChoice.GetSelectedId();
+        await RunOwnerActionAsync(async () =>
+        {
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetAgingOverrideAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
+            return "Aging override saved. Current ages stay the same; agents age at the new speed from now on.";
+        });
     }
 }

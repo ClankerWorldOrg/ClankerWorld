@@ -13,7 +13,7 @@ boundaries; [game design](../game-design/README.md) owns the intended experience
 | Component | Owns |
 | --- | --- |
 | `src/ClankerWorld.Simulation` | Rules, accepted world state, content, society, persistence and replay |
-| `src/ClankerWorld.Viewer` | Headless server, signed owner API, clock, provider adapters and private installation stores |
+| `src/ClankerWorld.Server` | Headless server, signed owner API, clock, provider adapters and private installation stores |
 | `src/ClankerWorld.GodotClient` | Windows game view, local preferences, observations and signed requests |
 
 The host references the simulation, never the reverse. The simulation runs and
@@ -54,7 +54,7 @@ aliases. Content package identifiers retain their import rules.
   work. A failed or unusable reply uses only explicit `safe_idle`;
   it cannot execute a strategic candidate or complete an instruction.
 - **Time and spending require presence.** The host remains reachable while
-  paused. Ticks and hosted model calls require an authenticated presence lease;
+  paused. Ticks and model calls require an authenticated presence lease;
   the last disconnect closes the gate after about five seconds. Reconnecting
   performs no offline catch-up and does not clear a manual pause.
 - **Knowledge belongs to each agent.** The player's map and observations are
@@ -75,7 +75,7 @@ aliases. Content package identifiers retain their import rules.
 
 ## Runtime systems
 
-`Runtime/PrivateWorldRuntime.AgentRegistrations.cs` binds choice sources and
+`Runtime/WorldRuntime.AgentRegistrations.cs` binds choice sources and
 action routes in explicit, read-only ordered tables. Animal, farming, civic and
 conversation adapters register their entries beside their existing private
 forwarders. Every binding receives the current coordinator per call; no entry
@@ -141,7 +141,7 @@ current-world queries; no fertility or cache data enters saves or digests.
 
 `Environment/EnvironmentSystem.cs` owns the immutable `WorldSystemsState`
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
-animal forage, tree planting and settlement resources. Weather advances at its
+animal forage, tree planting and starting resources. Weather advances at its
 existing tick phase, and the runtime commits the system with one assignment.
 Map, declarative content and world-content simulation snapshots remain owned by
 the coordinator. Trusted tick preparation shares all four snapshots by reference
@@ -150,13 +150,13 @@ regeneration checks. Restore initializes saved services directly instead of
 creating founders, physical state or genesis events first.
 
 Environment operations receive `IEnvironmentWorld` or
-`IEnvironmentResidentWorld` per call. A live coordinator adapter supplies the
+`IEnvironmentAgentWorld` per call. A live coordinator adapter supplies the
 current map, weather anchor, resource availability, resident state, inventory,
 order cancellation, death recording and event sink. The system retains no
 runtime reference, and its adapter stays on the committed coordinator. Existing
 private environment and exposure methods remain forwarders.
 
-`Civic/CivicSystem.cs` owns the settlement council, complete Town records,
+`Civic/TownSystem.cs` owns the food stewardship, complete Town records,
 Town land titles, household land-use rights and requests, and founder setup in
 one immutable `CivicState`. Membership, abandonment, admission, first-Town setup,
 land grants, hearings, transfers and sales run in this system alongside Town
@@ -174,7 +174,7 @@ keep their public coordinator locks. Existing private methods remain forwarders.
 Town writes need only the clock and event sink; land consent needs those services
 and current household adults through `ICivicLandConsentWorld`. Other operations
 query current physical state or request inventory, society, road, construction
-and property transitions through `ICivicTownWorld`. No system retains the adapter
+and property transitions through `ITownWorld`. No system retains the adapter
 or a runtime reference.
 The civic-history index uses `Derived` with the immutable governance snapshot
 as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
@@ -205,10 +205,10 @@ floor and archive head. Its hot list is exposed read-only and every append
 replaces its `Version` token. Restore copies the saved events into a separate
 log; committing a prepared tick transfers the log with one assignment. Event
 positions still use an explicit point first, then the longest matching living
-or deceased inhabitant ID prefix. The sink receives the current world per call
+or deceased agent ID prefix. The sink receives the current world per call
 and retains no coordinator reference.
 
-`Runtime/ResidentQueries.cs` supplies resident age, household, interaction,
+`Runtime/AgentQueries.cs` supplies resident age, household, interaction,
 stock-position and urgent-need rules. Its live adapter supplies the current
 society, positions, distance, building storage and warmth calculation. The
 adapter stays on the coordinator across tick commits; physical queries are
@@ -221,8 +221,8 @@ change committed caches. Positions, reservations and occupancy remain live
 query overlays.
 
 The shared `Derived.cs` helper weakly caches a pure value by snapshot identity.
-`SocietyInhabitantIndex` uses the immutable inhabitant-list identity for an
-ordinal ID dictionary behind the existing `SocietyCheckpoint.GetInhabitant`
+`SocietyAgentIndex` uses the immutable agent-list identity for an
+ordinal ID dictionary behind the existing `SocietyCheckpoint.GetAgent`
 method. Inventory-only snapshot changes can reuse the index; identity, age,
 name or household writes replace its key. Missing and duplicate IDs retain
 the linear query's `Single` behavior, and malformed inputs still pass through
@@ -252,7 +252,7 @@ Every step preserves these contracts:
 8. Keep request Guids live-only and introduce no random values into world state.
 
 The architecture tests classify every runtime instance field in
-[`runtime-fields.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/runtime-fields.json)
+[`runtime-fields.json`](../../tests/ClankerWorld.Tests/Architecture/runtime-fields.json)
 as snapshot state transferred on commit, live work retained by the coordinator,
 or scratch/derived diagnostic state. The `saved` category also includes derived
 values transferred with that snapshot, such as fertility and Road bridge decks;
@@ -260,8 +260,8 @@ restore rebuilds them from saved inputs. Event handlers are live work too. They 
 the complete transfer list, and invoke the native commit with a prepared
 runtime to compare its encoded checkpoint and transferred values.
 
-The C# source scan records writer files for every inhabitant component in
-[`inhabitant-writers.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/inhabitant-writers.json).
+The C# source scan records writer files for every agent component in
+[`agent-writers.json`](../../tests/ClankerWorld.Tests/Architecture/agent-writers.json).
 Construction writes all components, including defaults; collection replacement,
 insertion and removal have their own entry. New writer files fail the test.
 Removing a writer also fails until the baseline is lowered. Review a baseline
@@ -310,10 +310,10 @@ separate quantity helpers.
 goods selection: physical and usable quantities, usable parent vessels,
 reservation availability, free families and container ownership/location.
 Physical movement may preserve damaged or spoiled property. Consumption still
-requires usable inputs. `InventoryFixture` remains the authority for an actual
+requires usable inputs. `InventoryAuthority` remains the authority for an actual
 reservation, transfer, container operation or consumption.
 
-`Playtest/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
+`World/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
 for sale at a borrowed Market stall. `ConsumeAt` matches the inventory
 reservation boundary, including usable contained ingredients and partially
@@ -329,7 +329,7 @@ remain the same; house-tool demand and `SharedFoodQuantity` keep their own rules
 Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
-[`goods-query-reads.json`](../../tests/ClankerWorld.Simulation.Tests/Architecture/goods-query-reads.json)
+[`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
 is 244 references across 67 files, down from 245 before the remaining
 workstation parent-vessel lookup moved to `InventoryRules.HasUsableContainer`.
 The guard binds C# property symbols, including aliases and conditional access;
@@ -516,7 +516,7 @@ its saved world systems. It does not generate a disposable initial ecology,
 chunk set or weather state. New worlds still generate those systems normally;
 ordinary loads still validate saved data and check deterministic map identity.
 
-The host supports only the private-world runtime. Configuring the removed
+The host supports only the world runtime. Configuring the removed
 `fixture` world mode refuses startup with a clear error. The scripted one-agent
 fixture and its persistence/projection branches are gone; map generators,
 terrain codecs and routing remain shared by the native world.
@@ -540,7 +540,7 @@ Its calendar pace includes the saved season lengths and clock offset, so the gam
 such as Autumn 2, Year 1 from the world's own calendar instead of a copy. With
 no season lengths, from an older host, the game shows numeric dates.
 
-Hosted requests are dispatched after a committed tick and resolved at a later
+Model requests are dispatched after a committed tick and resolved at a later
 tick boundary. The unresolved queue entry is saved; the HTTP task is not save
 authority. Admission checks the request ID, provider/run epochs and current
 candidate legality. An epoch is a generation marker that makes replies from
@@ -560,13 +560,13 @@ not guess a subject, a nonempty choice or multiple missing fields, and the usual
 epoch and candidate-legality checks still admit the completed reply.
 
 Owner instructions are suggestions (**Suggest** on the agent card,
-`Suggestive`) or orders (**Order**, `MustDo`). The next ordinary personal
+`Suggestion`) or orders (**Order**, `Order`). The next ordinary personal
 planning request for that agent can include the exact original words with an
 outside-observer label. The request contains only messages for its target
 agent. Guidance bypasses Jev's routine route, while adults still use their
 normal planning assignment or inherited world planning provider. A child
 without an explicit personal-model choice and an agent whose planning model is
-set to deterministic stay local; neither receives a forced hosted call.
+set to deterministic stay local; neither receives a forced model call.
 
 A submitted message is checked before it changes the world. Its idempotency key
 and issuer ID must each be at most 128 characters with no control characters,
@@ -576,7 +576,7 @@ error; the world, its message numbering and its save stay unchanged. These are
 the same limits a save applies, so an accepted message cannot leave the world
 unable to save.
 
-`ParseInstructionOrder` reads a complete, bounded grammar for eating food,
+`ParseOrderTask` reads a complete, bounded grammar for eating food,
 seeking a food source, harvesting food, gathering supported raw materials,
 storing personal raw materials or equipment, collecting personal raw materials,
 ready-to-eat food or equipment, repairing supported personal
@@ -653,7 +653,7 @@ checks and urgent survival interruptions use the common order lifecycle.
 
 Storage orders reuse the material, equipment and goods catalogues and normal personal-storage
 eligibility. `StorePersonalGoods` serves both ordinary choices and orders: it
-walks to the House entrance, then uses `InventoryFixture.Relocate` to preserve
+walks to the House entrance, then uses `InventoryAuthority.Relocate` to preserve
 ownership, condition and provenance. Reserved goods, promised deliveries,
 container contents, food and selected equipment are excluded.
 House capacity already promised to collected inbound deliveries is unavailable
@@ -852,7 +852,7 @@ mixed fields. No order fields, receipts or checkpoint layout change.
 Building orders use separate construction and expansion adapters. A
 `construct_building` order selects one active household building definition,
 then binds its household, exact site, project start and unique instance
-identity. Its own settlement project performs normal material acquisition,
+identity. Its own agent project performs normal material acquisition,
 travel and work. The catalogue includes the exact shipped 1×2 Restaurant,
 using its normal 8 wood and 2 stone cost and household ownership rules.
 Only successful placement creates the retained construction
@@ -933,7 +933,7 @@ recipe-yield multiples; `production_batches` counts one task by default or an
 explicit number of batches. A named site constrains the same normal access and
 workstation checks. Unavailable inputs or sites block the saved task.
 
-The order advances its bound settlement project through ordinary preparation,
+The order advances its bound agent project through ordinary preparation,
 travel and production, even though ordinary project continuation yields to an
 active instruction. Starting or waiting for a job earns no progress. Only a
 committed completion of the exact bound job credits its physical outputs, with
@@ -952,12 +952,12 @@ including cancelled history, against the remaining definitions before changing
 the registry. Retired generic cooking recipes are excluded; the catalogue uses
 the exact active named-meal recipes described above.
 
-A MustDo with no recognized action is closed when it is submitted: it is added
+An order with no recognized action is closed when it is submitted: it is added
 to the completed instructions with an `instruction_not_understood` event
 (`<agent ID>:<instruction ID>`), which the Event Log shows. This preserves the
 active and queued recognized orders. A closed unsupported order requests no
-decision and does not block later instructions. Suggestive interpretation stays
-separate from the strict MustDo grammar.
+decision and does not block later instructions. Suggestion interpretation stays
+separate from the strict order grammar.
 
 `read_knowledge` uses the native held-artifact read. `TargetItemKind` may
 constrain records, maps or books; `TargetKnowledgeArtifactId` binds an exact
@@ -982,7 +982,7 @@ binds `TalkConversationId` only after normal range, route, provider and
 allowance checks. The task holds queued work until that exact conversation
 closes, then records its outcome and one attempt with a deterministic receipt.
 Refusal is a finished attempt, not consent. Linked orders preserve ordinary
-model choices for wrap-up, ending and mutual resumption; a MustDo never forces
+model choices for wrap-up, ending and mutual resumption; an order never forces
 an affirmative choice. A replacement talk task also lets an already active
 conversation finish before sending its own invitation. Urgent survival remains available. Active links keep
 closed history from being pruned before completion is credited. The owner
@@ -1004,7 +1004,7 @@ the original consent conversation until credit. The owner projection follows
 surname status while consent is accepted but incomplete. Cancellation removes
 the task without undoing consent, renaming anyone or forcing resumption.
 
-Recognized MustDo instructions complete only when their requested legal action
+Recognized orders complete only when their requested legal action
 actually progresses. Default gathering counts one harvest; explicit quantities
 count goods acquired or food consumed. Food-source travel finishes on arrival within
 interaction range of the requested food site; exact-tile travel requires the
@@ -1014,7 +1014,7 @@ pending, including across reload. A recognized new order replaces outstanding
 orders unless `Queue` is true; queued orders run in submission order. Cancel
 retains an idempotent receipt, including a no-op cancellation of a closed order.
 Receipt-only owner changes supersede a concurrently prepared tick too.
-Cancellation matches the complete native inhabitant identity to its saved order,
+Cancellation matches the complete native agent identity to its saved order,
 including agents born in the world. The 128-character bounds apply to caller
 keys, issuer, world and order IDs, not native target identities; control
 characters are refused in every cancellation identity.
@@ -1031,7 +1031,7 @@ every 30 ticks, and idle agents reevaluate when their legal choices change or
 after 300 ticks. A blocked order therefore cannot request a paid model call on
 every tick.
 
-When a hosted decision is still running, a newly queued choice or observer
+When a model decision is still running, a newly queued choice or observer
 message remains pending after its older reply is accepted. The next prepared
 tick refreshes that work against the resulting world before another request
 starts. Ordinary planning waits while the agent is busy talking; pending work
@@ -1052,7 +1052,7 @@ save/load and are refreshed for the resumed world before dispatch. The usual
 request, provider, conversation and legal-choice checks still reject stale
 replies.
 
-Local order steps can continue while a hosted reply is pending. An accepted
+Local order steps can continue while a model reply is pending. An accepted
 decision and a local continuation do not execute the same order twice in one
 tick. If local work finishes first, a valid reply to that exact original
 request can still record that the model heard the message. Its old action is
@@ -1108,7 +1108,7 @@ saved refusal blocks the same choice for that actor for one world day. The
 Event Log explains the refusal, Developer tools show the cumulative count,
 and the server records a bounded check name without exception text or paths.
 Healthy ticks make one attempt and one checkpoint preparation and write.
-The strict setting `ClankerWorld:Runtime:StrictTickFailures` keeps test and CI
+The strict setting `ClankerWorld:Clock:StrictTickFailures` keeps test and CI
 hosts halting on the first failure. Global faults or failures that cannot be
 isolated to one action hold the last good state and pause the world.
 Active checkpoint I/O/access failures retry only the retained save while paused;
@@ -1326,7 +1326,7 @@ A personal-model request selects one legal candidate, not a free-form dialogue
 turn. It now includes bounded actor-owned self context: name, life stage,
 personality, aspiration, household, available warmth/illness and the latest
 private thought. Absent fields remain unknown. Need scales are explained;
-`hunger_basis_points` measures fullness (0 starving, 10,000 full).
+`fullness_basis_points` measures fullness (0 starving, 10,000 full).
 Self context is included in the queued-observation digest. Nearby relationships,
 carried inventory and current activity are not provided. During a world-born
 child's pending first identity choice, self context also contains at most two
@@ -1353,7 +1353,7 @@ family background. Later ordinary replies cannot overwrite the chosen fields;
 the existing bounded life-moment opportunities remain separate.
 
 Jev's routine request
-sends the same three needs as flat fields after `hunger_basis_points`:
+sends the same three needs as flat fields after `fullness_basis_points`:
 `warmth_basis_points` and `illness_basis_points`, `null` when unknown, with
 their scales explained in its instructions.
 
@@ -1417,7 +1417,7 @@ The offline bounded test reaches all five moments, observes exactly five
 requests, and confirms that more ticks and a reload add none.
 
 Request text uses the game's own words (*agent*, *Town*, *House*), not the older
-*inhabitant*, *settlement* and *camp*, including plurals. Both adapters omit the
+*inhabitant* and *settlement*, including plurals. Both adapters omit the
 clock and run/decision counters; admission uses them on the server. Households
 and Towns use their recorded names. Candidate destinations use a readable name
 where one is available, while the legal option IDs remain unchanged. Jev stays
@@ -1447,9 +1447,9 @@ is separate from action admission: a valid name from a current legal-choice,
 low-confidence or rejected-action reply is kept, while malformed replies and
 stale replies cannot name the agent.
 
-Player renames reuse `InhabitantNameRules`, including NFC normalization,
+Player renames reuse `AgentNameRules`, including NFC normalization,
 collapsed Unicode whitespace and `OrdinalIgnoreCase` comparison. The runtime
-checks the first names of all other inhabitants with `HasChosenName`, living
+checks the first names of all other agents with `HasChosenName`, living
 or deceased, under the same world gate that commits the rename. Keeping one's
 own first name is allowed. A taken first name returns `name_taken` from
 the signed owner endpoint; the client translates only that refusal into a
@@ -1486,7 +1486,7 @@ rule includes deceased biological parents and does not substitute caregivers.
 An invalid surname follows the existing unusable-name outcome; only a taken
 first name earns the extra paid retry. Parent renames do not retroactively
 invalidate a child's name or saved state.
-`RenameInhabitant` refuses removal of a chosen parent's surname when the
+`RenameAgent` refuses removal of a chosen parent's surname when the
 proposed checkpoint would leave any minor biological child with no allowed
 surname. The check runs before commit, so player refusal publishes no name,
 event or permanent memory. Other chosen biological parents, including deceased
@@ -1507,7 +1507,7 @@ or replace its last accepted intention.
 No adapter can turn provider prose directly into a world mutation.
 Jev has a separate, smaller routine payload; it is not a persona/dialogue adapter.
 
-Each queued decision makes one hosted attempt. Malformed replies, timeouts and
+Each queued decision makes one model attempt. Malformed replies, timeouts and
 transport failures do not trigger a repair call or an unstructured alternate
 request. Every billable attempt is reserved in the durable usage store before
 HTTP; an absent key or exhausted limit sends no request. Future world decisions
@@ -1533,7 +1533,7 @@ wider Jev role in this change.
 **Claude models.** An agent whose provider is Anthropic gets the same prompts
 and the same reply validation. `AnthropicModelClient` in the host sends them to
 Anthropic's Messages API through Anthropic's official C# client
-(`IHostedModelClient` is the seam in the simulation). The game's instructions
+(`IModelClient` is the seam in the simulation). The game's instructions
 are the system prompt, marked for prompt caching: calls that repeat them cost
 less once they are long enough for the model to cache, and a shorter prompt is
 simply not cached. The observation is the one user message. The Messages API
@@ -1559,11 +1559,11 @@ Markdown code fence is removed before the game reads the text.
   `claude-haiku-5-5`. Conversations use the same client and the same strict
   turn validation. Claude is not a routine helper.
 
-**Thinking.** Each hosted agent assignment can carry a thinking level: `low`,
+**Thinking.** Each agent model assignment can carry a thinking level: `low`,
 `medium` or `high` (`ModelThinking`), or none for the model's own default.
 OpenAI and Ollama Cloud receive it as `reasoning_effort`, and Anthropic as
 `output_config.effort`. With no level nothing is sent, so those requests are
-unchanged. The game offers only the levels every hosted provider accepts:
+unchanged. The game offers only the levels every model provider accepts:
 `none`, `xhigh` and `max` are refused by some current models, so there is no
 Off. A model that refuses the setting fails the call like any other
 unsupported request, and Test model then suggests Model default. The level is
@@ -1594,7 +1594,7 @@ request and speaker; stale or malformed replies are not admitted. Public turns
 carry a bounded list of agents who were actually close enough to hear. A
 separate memory extraction gives those listeners hearsay claims tied to the
 turn ID, with duplicate and owner checks. Listener and belief-owner references
-retain complete native inhabitant IDs, including longer identities created by
+retain complete native agent IDs, including longer identities created by
 birth; they do not share the length bounds for caller-provided belief IDs and
 prose. Canonical identity and known-owner checks still apply.
 Personal-model memory subjects and belief reporters use the same stable hash
@@ -1617,7 +1617,7 @@ one accepted wrap-up), and each later provider request receives the committed
 public history so far. The wrap-up request receives the six public turns; a
 pending answer is never included or saved.
 
-Conversation participants and speakers retain their complete native inhabitant
+Conversation participants and speakers retain their complete native agent
 IDs too, through proposal, personal model routing, requests and saved history.
 These references use canonical identity and known-world participant checks
 instead of prose length limits, including for longer identities created by birth.
@@ -1678,7 +1678,7 @@ relationship, skill and commitment records, records marked `Permanent`, durable 
 receipts and world-event-backed beliefs stay active. Active orders, projects,
 lessons (including their teachers), requested or preparing parenthood plans,
 relationship proposals, barter,
-conversations and outstanding hosted calls protect their owners; surname
+conversations and outstanding model calls protect their owners; surname
 conversation turns stay protected after closing. A completed, postponed or
 cancelled parenthood plan does not protect its owner's ordinary old records;
 other open work and protected kinds still do. Correction links and source
@@ -1823,7 +1823,7 @@ interrupt either leg.
 from the agent's food needs or missing inputs of an unpaid, unbound project.
 Supported material needs can offer Forest for wood or Mountain for ore; no
 unseen resource location chooses the purpose or ranks neighboring steps.
-Curiosity remains available outside active projects. `SettlementExploration.Goal`
+Curiosity remains available outside active projects. `ExplorationState.Goal`
 saves the bounded purpose and, for untargeted food/material orders, the exact
 instruction ID. Strict loading checks supported targets and the matching
 owner, action and requested kind; an explicit resource or coordinate keeps
@@ -1905,7 +1905,7 @@ The response contains only a bounded result such as ready, missing key, usage
 limit, unsupported format, timed out, unavailable, or unusable reply. It does
 not include provider error text or response bodies.
 
-An installation-local usage file reserves every hosted attempt before HTTP work.
+An installation-local usage file reserves every model attempt before HTTP work.
 Concurrent requests share its optional lifetime attempt cap. Failure, retry and
 abandonment keep their spent allowance; only known token counts are added.
 Claude and chat-completions decisions and model checks keep reported counts
@@ -1926,7 +1926,7 @@ The reservation that brings the total to 80% of the cap, rounded up
 (`ProviderUsageStore.WarningMark`), raises `WarningReached` once at that
 installation-wide crossing. No additional durable warning marker is saved:
 totals only grow, one per reservation, and a changed cap sets a new mark that
-only later reservations can cross. In private-world mode the host acquires the
+only later reservations can cross. In game-world mode the host acquires the
 world mutation gate, then appends a player-facing `model_call_warning` event
 (`used:<count>:limit:<cap>`) to the world active at that time. A concurrent world
 switch can change which world receives it.
@@ -1951,7 +1951,7 @@ holding the runtime gate. That gate is not reentrant, so the runtime marks
 provider startup and cancellation under it
 (`IsInvokingProviderUnderGateOnThisThread`). On that thread the pause or warning
 moves to another task that waits for the world. Outside the runtime gate it
-runs at once, so a hosted decision's late reply cannot be admitted before the
+runs at once, so a model decision's late reply cannot be admitted before the
 pause. `provider_usage_limit_reached` logs `paused`, `paused_unsaved`,
 `superseded` or `failed`.
 
@@ -1962,6 +1962,10 @@ writes do not increment the in-memory total or dispatch a model call. This does
 not promise directory-fsync power-loss durability or provider-invoice parity.
 
 ## Maps, movement and terrain
+
+The *starting site* is where a world's founders begin: the first storage,
+shelters and paths. Code names it `StartingSite`; walking reachability from
+it (`IsReachableFromStartingSiteOnFoot`) bounds the first Town's ground.
 
 The client's `WorldTerrainLayer` keeps unsaved regional ground-snow cover
 from accepted owner observations. Only regions seen snowing get an entry;
@@ -2029,7 +2033,7 @@ straight cardinal line from one dry bank to the opposite one, across one or two
 river tiles: never along the river and never diagonally into, through or out of
 the water. A river tile costs what its narrowest crossing costs: 200, half
 dry-ground speed, where one tile of water separates dry banks, and
-`SeededMap.TwoTileWadingFootCost` (300, a third of dry-ground speed) where it
+`WorldMap.TwoTileWadingFootCost` (300, a third of dry-ground speed) where it
 takes two. The two-tile speed is provisional. A third water tile in the line,
 or any lake or ocean tile, prevents wading. A two-tile line through a tile that also lies on
 a two-tile line across the other axis does not count either: that tile is a
@@ -2086,14 +2090,14 @@ action resolves its source and permission again. Tool repair retains its
 ordinary spare-cargo storage and gathering-tool preparation when those are
 needed before a complete collection plan can be formed. No plan is saved.
 
-Checkpoint map acceptance keeps a weak, derived camp-reachability cache for
+Checkpoint map acceptance keeps a weak, derived starting-site reachability cache for
 each map's current starting point. Before reuse it compares actual terrain,
 water, elevation, surface, wrapping and bridge-axis data with an owned topology
 snapshot. A changed origin or borrowed collection invalidates that result; a
 fresh traversal uses owned data so an old terrain index cannot hide tile edits.
 Placement, layer and manifest checks still run on every acceptance. No route
 rules change. See [Saves and replay](saves-and-replay.md) for the load boundary
-and [Camp reachability measurements](camp-reachability-measurements.md) for native
+and [Starting-site reachability measurements](starting-site-reachability-measurements.md) for native
 save, allocation and exact continuation evidence.
 
 Resources are placed in bounded 16×16 cells with climate and cover biases, then
@@ -2109,7 +2113,7 @@ other household food before gathering wild food; inaccessible stock is left
 untouched. This does not change household ownership or food-policy rules.
 Immutable map connectivity is cached once per map; movement rechecks
 occupancy before each step. An agent gathering for its own project, and the check
-that a project's inputs exist, still need a route from the original camp. Heating,
+that a project's inputs exist, still need a route from the starting site. Heating,
 helping another agent's project and Blacksmith ore use the actor's current
 reachable area (see [Material gathering](#material-gathering)). Boat transport uses physical Town assets and typed Council permission, as
 described in [Ports and communal boats](#ports-and-communal-boats). Trees and planting are described in
@@ -2140,7 +2144,7 @@ unchanged map data only when world and digests match. Initial/changed maps and
 some control receipts still send the whole map. Viewport/chunk transfer remains
 unfinished.
 
-Each private-world observation store retains one map-derived fertility index
+Each world observation store retains one map-derived fertility index
 and layer digest. A replacement committed map or a different world seed replaces
 that entry. Resources, fields, events and other dynamic observations are still
 projected from the captured state on every refresh; the cache stores no viewer
@@ -2200,7 +2204,7 @@ explain the approach; they do not settle open terrain design or performance.
 
 ### Terrain layers, sand, groves and hills
 
-`GeneratedCampMapGenerator` builds a map in four separate, deterministic passes,
+`GeneratedWorldMapGenerator` builds a map in four separate, deterministic passes,
 so each can be checked on its own
 ([#461](https://github.com/compoodment/ClankerWorld/issues/461)):
 
@@ -2231,7 +2235,7 @@ so each can be checked on its own
 The running world places starter clay on unoccupied, reachable buildable dry
 ground beside a river or lake. A rocky mountain shore can be walkable but is
 not a valid clay resource site. If no valid bank exists, the runtime records
-`settlement_resource_blocked` for clay and keeps advancing and saving.
+`starting_resource_blocked` for clay and keeps advancing and saving.
 
 Generated sites use at most 1,016 of a chunk's 1,024 resource slots; the validated
 configuration ceiling is 2,048. The remaining eight slots stay
@@ -2256,7 +2260,7 @@ root of its tile count, from 3 tiles up to 8, so a 1,000-tile massif has a
 neighbours and wrap east/west only on a wrapped map. Hills are a visual layer
 only: nothing is saved for them, they keep their own surface, and they cost the
 same to walk and build on as grass. `TerrainPlacementRules.ClassifyHills`
-(used by `SeededMap.IsHillAt`) and the Godot client's `UI/Map/HillBand.cs`
+(used by `WorldMap.IsHillAt`) and the Godot client's `UI/Map/HillBand.cs`
 (used by `WorldTerrainMap.IsHillAt`) apply the same rule to the saved elevation
 and water layers; `MountainMassifTests` checks that they mark exactly the same
 tiles on generated maps. The client draws mountains, peaks and hills as one
@@ -2452,16 +2456,16 @@ not change it. A newborn joins its primary caregiver's Town; death removes the
 resident. Joining another existing Town later needs that Town's council (below), except deliberate resettlement of an abandoned Town. Owned-building placement establishes household membership.
 
 Founders and added adults arrive at a seeded age from day 15 to day 25 in
-day-lifecycle worlds. `SocietyFixture.FounderArrivalAge` orders that range once
+day-lifecycle worlds. `SocietyRules.FounderArrivalAge` orders that range once
 per world seed and gives the founder in each placement position its day, so
 the four founders never share a day, the same seed repeats their ages, and a
 founder placed after an undo gets the undone position's age. `AddAdult` draws
-an added adult's day from the world seed and the number of inhabitants already
+an added adult's day from the world seed and the number of agents already
 recorded, living or dead, not from the client's agent ID. The saved birth tick
 holds the result, so loading never draws again. Year-based development worlds
 keep the 18-year adult age.
 
-`CivicSystem.TownFounding` offers an explicit personal `found` civic
+`TownSystem.TownFounding` offers an explicit personal `found` civic
 choice to a living adult on buildable unclaimed land. The stable candidate ID
 binds the world seed and current site. Execution rechecks the adult, location,
 other Town borders and titles, and private property after earlier choices.
@@ -2473,7 +2477,7 @@ building, Road or inventory lot. The adult's Town care group moves under the
 one-Town rule, and governance starts from its living adult residents. Later
 visitors use ordinary admission. A built House alone never founds a Town.
 
-Each `TownRuntimeState` carries its own `TownGovernanceState`. `TownGovernanceRules`
+Each `TownRuntimeState` carries its own `TownCouncilState`. `TownCouncilRules`
 implements all-adult and representative councils from recorded living adult
 residents, independently of geometry and household affiliation. Automatic
 representation starts at four adults, so the ordinary four-founder Town opens
@@ -2481,7 +2485,7 @@ its first election on day 1. At three or fewer adults, representation and an
 initial all-adult election end; the all-adult council governs until it has four
 adults again. Candidate-failure retries use the same four-adult minimum and the
 ordinary day-or-material-improvement wait. A separate
-`SettlementCouncil` remains the household-food steward prototype.
+`FoodStewardship` remains the household-food steward prototype.
 
 Household food-policy ballots last 120 ticks and can pass through their saved
 `ExpiryTick`, inclusive, with a strict majority of the remaining eligible
@@ -2500,7 +2504,7 @@ merge by subject identity; ordinary text requests merge after case/whitespace
 normalization. Roster changes or independently supplied material circumstances
 allow earlier proposal reconsideration.
 
-`PrivateWorldRuntime.Governance` advances each Town on the normal tick path and
+`WorldRuntime.Governance` advances each Town on the normal tick path and
 rechecks authority when applying choices. `civic|...` actions let actors visit
 the public notice place, read posted notices, relay them within interaction
 range, nominate another resident, register their own consent and choose proposals
@@ -2606,7 +2610,7 @@ adult. Physical relays carry only material their source learned. Owner inspectio
 does not supply agent knowledge or private memories.
 Notice revisions retain their published party snapshots. The shared pure
 `TownLandCasePartyRules.CurrentParties` derives current adult responders and Town
-representation from the same captured rights, request masks, inhabitants, civic
+representation from the same captured rights, request masks, agents, civic
 authority and clock used by the runtime. Death, departure and succession update
 current standing without rewriting the original notice. Owner views label these
 roles separately, and each ruling projects its actual closure party roster.
@@ -2725,7 +2729,7 @@ An explicitly chosen visit can continue moving locally; ballots may be revised
 on the agent's ordinary decision cadence.
 
 Long ancestry-based agent IDs use stable SHA-256 aliases in civic model action
-tokens. The runtime resolves these against current inhabitants before checking a
+tokens. The runtime resolves these against current agents before checking a
 ballot; saved candidates and choices retain the actual IDs.
 
 Land-hearing readers, evidence sources and submitters, judges, affected parties,
@@ -2750,7 +2754,7 @@ powers. Bounded civic lifecycle telemetry records Town identity and
 council/vote/status counts without proposal text, notices, names or per-read
 polling noise.
 
-**Town admission** (`CivicSystem.TownMembership`). `TownRuntimeState.ResidentIds`
+**Town admission** (`TownSystem.TownMembership`). `TownRuntimeState.ResidentIds`
 is the only record of Town membership; household, House and position alone never
 change it. After every saved council decision, every Town roster change and on
 every tick, `SettleTownAdmissions` reads each Town's passed admission proposals
@@ -2937,7 +2941,7 @@ urgent needs or legal choices change. Weights and retry values are provisional.
 Material scoring searches at most five map tiles from a site, including the
 east-west seam; farther resources cannot change its rank. Recipe and expansion
 input checks share reachable-tool results and a lazily collected accessible
-Warehouse list only within one inhabitant's read-only candidate query. Stock
+Warehouse list only within one agent's read-only candidate query. Stock
 quantities and reservations are still read for each input. Project-input source
 scans check the required resource kind before looking up its availability by ID;
 wood still accepts construction sources. Matching sources keep their current
@@ -3058,16 +3062,16 @@ An unusable carried
 delivery leaves ordinary hauling and can offer `recover_household_delivery`.
 Candidate and action both check the current household-owned destination,
 physical load, selected or repaired gear, active family reservations and a
-route to camp. Recovery moves the same stock through the inventory authority,
+route to the shared storage spot. Recovery moves the same stock through the inventory authority,
 clears its delivery pointers and records `household_delivery_recovered`.
 Spoiled contents may be physically withdrawn from an owned usable pot, with
 the existing family, quantity, destination and reservation guards. They
 remain unusable for eating, recipes and new reservations. No agent disposal
 action or player discard control is added.
 
-**Household departure and personal custody** (`SettlementDeparture`). Ordinary decision candidates allow an adult to leave without a vote, store or collect their own goods, return borrowed household tools, explicitly accept replacement care, and found a solo household only when no suitable existing home can currently be asked. Membership exits and admissions include the complete primary-care group. The same completed House-capacity calculation checks all incoming residents; children never apply alone. Forced displacement refuses sole caregivers, including a guardian whose dependent lives in another household. Voluntary departures keep the existing care-group rules.
+**Household departure and personal custody** (`HouseholdDeparture`). Ordinary decision candidates allow an adult to leave without a vote, store or collect their own goods, return borrowed household tools, explicitly accept replacement care, and found a solo household only when no suitable existing home can currently be asked. Membership exits and admissions include the complete primary-care group. The same completed House-capacity calculation checks all incoming residents; children never apply alone. Forced displacement refuses sole caregivers, including a guardian whose dependent lives in another household. Voluntary departures keep the existing care-group rules.
 
-`InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryFixture.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
+`InventoryLot.OwnerId` records property; optional `CarrierId` records physical custody without donation. Personal goods may remain in House storage after departure. The once-only food allowance also remains at its source when allocated from a household Store; its departure record permits only those portions to remain personal Store stock until collection. Exact frozen lot and settlement IDs preserve that physical allowance through death and successive inheritances, including household fallback when a named will heir is unavailable. The total portions remaining in Stores cannot exceed the recorded departure allocation. If a Town reclaims the empty household’s Store or grants it onward, its validated prior-building transfer history retains the original household binding and the former owner’s limited collection right. `InventoryAuthority.Relocate` preserves ownership, condition, provenance and reservations while moving an unreserved quantity. A stored personal lot is collected physically at its building's entrance, with carrying limits, under current household membership, a recorded departure's limited collection right, or a settled will's bequest to the actor. A child who moved in a caregiver's care group uses that recorded departure too once old enough to collect, including after the caregiver dies. The lookup reads living and archived departure records; it creates no child departure or additional food allowance. The bequest must match the lot's ID or provenance, kind and frozen storage location. This lets an heir retrieve inherited goods from another household without granting membership, House entry or access to shared stock. Recovery from the ground or a former household remains a routine errand. Collecting a map or field record from the current home stays available as a deliberate choice, but ranks below idle for the built-in chooser so it does not immediately retrieve knowledge goods it has just stored. Other goods retain their normal collection priority, so the built-in chooser stores only maps and field records; storing other belongings is a deliberate choice, because routine collection would fetch them straight back. Borrowed tools retain the lender's owner ID while carried and are returned physically. Shared delivery loads retain their owning household on departure. Shared buildings, stock and job records are never reassigned to the new household. A departing worker's private production and expansion jobs pause with their existing owners and reservations, except work for the worker's own goods, such as building their handcart, which nobody else may finish: it is cancelled and its reserved materials are released and stay with the worker; their previous work plan is retained on the departure record instead of resuming under a new household. A remaining member can take over paused work at its physical site, using the same still-available committed inputs and remaining work time. Private materials held by the former worker are not reassigned; these keep the task blocked. Held reservations keep their exact owner and stock, receive a new deadline only on resumption, and are released if the materials become unusable; canceled job records retain the original property owner.
 
 Each departure allocates at most two unreserved ready-to-eat portions once. Ownership changes at allocation while the existing storage/ground location stays fixed. Saved departure records retain the allocation and collection right; retries with no current membership cannot allocate again. Caregiver IDs and ancestry stay unchanged. Dependents follow the caregiver in physical steps, and a traveling caregiver waits when a dependent falls behind. Housing, ownership, collection and care facts use normal personal-model observations and player inspection; no extra acknowledgement request is made.
 
@@ -3080,7 +3084,7 @@ and carrying room at the source.
 
 Production jobs capture their owner when the original inputs are reserved. Completion uses that saved owner, including at a public workstation when the worker leaves or forms a household during the job; membership changes cannot redirect the finished goods.
 
-**Housing requests** (`SettlementHousing`). An agent's saved `Housing` record
+**Housing requests** (`HousingState`). An agent's saved `Housing` record
 holds its current blocker and, for an adult, any pending request, recent refusals
 or move-out notice. Each tick `MaintainHousing` resolves
 requests, then recomputes the blocker and appends `housing_blocked` when it
@@ -3104,7 +3108,7 @@ reply is pending, an already chosen project or agreed lesson can continue under
 its normal physical and urgent-need checks. This records no housing answer and
 grants no membership; an ongoing lesson retains its progress and learned skills.
 One refusal by a living member ends the request; when every living
-member has agreed, `SocietyFixture.JoinHouseholdCareGroup` records the membership and
+member has agreed, `SocietyRules.JoinHouseholdCareGroup` records the membership and
 `household_joined` is appended. A refusal or an unanswered request is remembered
 as a refusal for the cooldown. The request grants nothing while pending: stock,
 shelter and route rules still check household membership. A resident with notice
@@ -3147,7 +3151,7 @@ Ending borrowing makes the stock eligible again. The reserve remains two
 ready-to-eat portions per active household member plus four, and the transaction
 still spends four actual portions. No collection or trade is performed by birth.
 
-**Overcrowding relocation** (`HouseRelocationRules`, `SettlementRelocation`).
+**Overcrowding relocation** (`HouseRelocationRules`, `RelocationNotice`).
 Selection uses the completed House footprint and active permanent residents.
 Volunteers come first, then existing notices and the latest eligible arrivals,
 with ordinal agent IDs breaking equal arrival times. Forced selection protects
@@ -3188,7 +3192,7 @@ counts, notice reason and time, pending requests and expansion state.
 `relocation_notice` and `relocation_cancelled` record changes without
 repeating them on reload.
 
-**Guardian placement** (`SettlementGuardianPlacement`). An adult's explicit
+**Guardian placement** (`GuardianPlacementState`). An adult's explicit
 acceptance records primary care separately from the child's move. When a child
 cannot yet join that adult's household, their physical state keeps a pending
 placement tied to the exact accepted care relationship and its revision. The
@@ -3219,7 +3223,7 @@ The guardian's model housing note keeps the accepted task and current blocker
 within a 256-unit text budget without splitting Unicode characters. The complete
 child name and accepted care and House references stay saved.
 
-**Continuity rule** (`SettlementContinuity`). The owner's answer on
+**Continuity rule** (`PopulationContinuity`). The owner's answer on
 [#1266](https://github.com/compoodment/ClankerWorld/issues/1266) replaces the
 original headcount trigger with eligible couples. The provisional threshold
 is four couples, retaining the original scale of eight adult partners for
@@ -3260,7 +3264,7 @@ Each partner's self context carries a `continuity` note saying the rule and
 the hours left; a single agent's stays empty. Loading checks the flag and
 couples: known partner IDs in order, no couples while the rule is off, and no
 deadline more than two world days ahead. These events are logged as
-`settlement_family`; the two transitions are also Event Log lines.
+`family_activity`; the two transitions are also Event Log lines.
 
 A recipe project that finds its work site busy waits with the blocker "Waiting
 for a free work site". While anyone waits, no one else is offered a new recipe
@@ -3347,14 +3351,14 @@ named lot, and settlement requires both parties' independent acceptance.
 
 A completed personal barter records a public relationship memory for each
 trader about the other, alongside the usual trust increase. New memory keys
-retain `settlement-trust:` and use a SHA-256 digest of the complete directional
+retain `trust-memory:` and use a SHA-256 digest of the complete directional
 key when it would exceed personal recall's 128-character limit. Short keys
 remain unchanged; saved owners, subjects and summaries retain their complete
 values, so native-born traders can recall the exchange too. Later trades retain
 one memory per direction, recognizing both original and bounded saved keys.
 
 **Household shops** bind an inventory barter offer to its actual business and
-holding household in `BusinessTradeState`. Offers use unreserved goods in that
+holding household in `ShopTradeState`. Offers use unreserved goods in that
 building and payment already carried by the adult customer. The inventory
 remains the only authority for quantities, acceptance and lot reservations;
 the business binding keeps the transaction location and readable outcome.
@@ -3671,7 +3675,7 @@ cadence, rather than rounding their spoilage rate to zero.
 ### Wills
 
 An estate with frozen lots and an agent with a personal model gets exactly one
-post-death request (`PrivateWorldRuntime.Wills`). Its `CognitionWillContext`
+post-death request (`WorldRuntime.Wills`). Its `CognitionWillContext`
 offers the frozen lots as `item:1`… keys (at most 24, in lot-ID order) and up to
 sixteen living people as `will:heir:{id}` keys, family and household first, plus
 `will:town:{id}` for the archived Town when it has a Warehouse of its own. The
@@ -3682,7 +3686,7 @@ are bound into the request digest. The historical profile labels this outcome
 as default inheritance, since a Town law can change the household's share.
 The model's reply (`CognitionWillChoice`) is untrusted: the response must match
 the request, epochs and digest; the runtime maps only offered keys back to
-heirs and lots; and `SocietyFixture.ResolveWill` checks that every heir is a
+heirs and lots; and `SocietyRules.ResolveWill` checks that every heir is a
 living person other than the deceased or an offered Town, that there are one
 to three distinct heirs, and that every listed lot is still frozen in this
 estate. Anything else resolves to default inheritance.
@@ -3749,7 +3753,7 @@ Short keys stay unchanged. The saved owner and deceased subject keep their
 complete identities; text, privacy, kind and source tick stay unchanged.
 The owner sees
 the words on the historical profile through
-`ViewerFinalWill`; events, logs and telemetry carry only IDs, the split and heir
+`FinalWillView`; events, logs and telemetry carry only IDs, the split and heir
 counts, never the words. See [saves and replay](saves-and-replay.md) for
 pending-will restore behavior.
 
@@ -3857,7 +3861,7 @@ equipment, knowledge goods and delivery loads. If that cannot free enough room,
 urgent adult food recovery may also select the actor's own orchard propagation
 seeds. Their selected planting reservations are released in the same inventory
 transition that stores the seeds with the household, after reaching the House
-or camp pile. Walking, an unavailable destination or a refused transfer does
+or storage pile. Walking, an unavailable destination or a refused transfer does
 not release them. Other reservations, delivery loads and borrowed goods remain
 protected; crafting does not use this exception.
 
@@ -3880,7 +3884,7 @@ ID built from its position (for example `bridge-90-3-ew-2`), a design
 entrance tiles, its river tiles and the tick it was built. A Road bridge also
 names its route, `road:<Town>:<building>`. Movement does not read terrain
 alone: the runtime turns the saved bridges into passable decks on the map
-(`SeededMap.BridgeDecks`). A deck is walked end to end along the bridge, never
+(`WorldMap.BridgeDecks`). A deck is walked end to end along the bridge, never
 sideways into the river or diagonally, at dry-ground cost. A Road bridge's deck
 counts as Road for the Road speed factor; a traffic bridge's does not. The
 observation sends the same records, so Godot draws the deck and the tile card
@@ -3953,7 +3957,7 @@ mountain, can be waded but gives no evidence, since no bridge could land there.
 At the end of each tick, a crossing with six completed crossings by at least two
 agents gets a `traffic` bridge across its whole width (`plank_span_1` or
 `plank_span_2`). It is not built, and its evidence is cleared, if a bank holds
-a building, resource or camp object, or an existing bridge already joins the
+a building, resource or map object, or an existing bridge already joins the
 same banks. A traffic bridge adds no Road tiles. Wading only reads terrain, so
 a bridge laid across one tile of a two-tile crossing from the other direction
 leaves the other tile wadeable back to its own bank, but the deck cannot be
@@ -3989,7 +3993,7 @@ accepts only an exact normalized `assetId` and lowercase `sha256:<64-hex>` diges
 a missing catalog approves no references. Malformed, ambiguous or unknown-schema
 catalogs prevent startup. Device requests cannot edit it or upload asset bytes.
 The native authoring endpoint refuses submitted batches with
-`private_world_authoring_pending`; it does not apply them. The fixture's working
+`game_world_authoring_pending`; it does not apply them. The fixture's working
 authoring branch is retired. Catalog validation remains available for future
 native authoring and does not provide a complete art-generation pipeline.
 
@@ -4025,22 +4029,22 @@ useful signal and absence of representative secrets.
 
 **Report a problem** (`Diagnostics/ProblemReport.cs` in the Godot client, with
 no Godot dependency so the launcher can compile the same file) zips `summary.txt` and the last 4 MB of each log it is given: the
-Godot log and the newest older one, plus `host.log` and `host.previous.log`
-when the game runs its own host. It reads only those files, never saves,
+Godot log and the newest older one, plus `server.log` and `server.previous.log`
+when the game runs its own local server. It reads only those files, never saves,
 settings or key stores. Each line passes through `ProblemReport.Redact`, which
-blanks the companion secret, values after names such as `api_key`,
+blanks the launch secret, values after names such as `api_key`,
 `Authorization`, `password` or `pairing_code`, bearer tokens, passwords in
 addresses, common provider key formats and any token of 32 or more characters
 mixing upper case, lower case and digits. Plain hex IDs and hashes stay so a
 request can be followed. The rule against logging secrets still applies; this
 pass is a safety net, not permission. Reports go to `reports/` in the player's
-data folder (or `user://reports` without a bundled host), keeping the five
+data folder (or `user://reports` without a local server), keeping the five
 newest.
 
 Event descriptions resolve complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. Food yields and Town membership
 fields are read separately. Existing entries use the current saved name, including
-deceased profiles. Hosted-decision and Town telemetry likewise keep complete IDs.
+deceased profiles. Model-decision and Town telemetry likewise keep complete IDs.
 These readers do not rewrite accepted event details or change save/replay formats.
 
 The owner snapshot projects the saved continuity rule's current on/off state.
@@ -4075,7 +4079,7 @@ fully validated, and persisted before the live runtime accepts them. Failed
 validation or persistence leaves the prior world unchanged.
 
 Needs use whole percentages from 0 to 100. Goods use the bounded list in
-`PrivateWorldRuntime.DeveloperGoods`, quantities from 1 to 100 and the existing
+`WorldRuntime.DeveloperGoods`, quantities from 1 to 100 and the existing
 carrying limit. Removal consumes unreserved personal carried goods, excluding
 equipped items, delivery goods, knowledge records and vessels with contents.
 Skills use the four existing learned skills. Relationship edits start or end
@@ -4103,7 +4107,7 @@ read back by the simulation, so they cannot change a tick, a save or replay.
   and advance the latest committed tick, including synchronous reply admission,
   listener belief extraction, child-model selection preparation and world commit,
   rounded to 0.1 ms. The timer pauses for runtime-gate reacquisition. It leaves out
-  waiting for the runtime gate, hosted model calls between ticks and the
+  waiting for the runtime gate, model calls between ticks and the
   checkpoint save. It is null until the first tick after start, load or a
   world switch.
 
@@ -4155,10 +4159,10 @@ Its worn-item record refers to one exact personally carried ornament. Wearing
 does not exempt that unit from cargo or grant protection. Collection, removal,
 gifts, sale, storage and estate handling must keep ownership, reservations and
 location consistent; automatic storage or payment must protect the selected
-unit. Viewer and client descriptions show the worn kind, without a new sprite.
+unit. Server and client descriptions show the worn kind, without a new sprite.
 Wear, removal and gift candidates require a fresh accepted non-fallback
 LargeLanguageModel response whose exact offered target is still valid at
-admission. Jev, continuing intentions and MustDo cannot select them. Gift
+admission. Jev, continuing intentions and orders cannot select them. Gift
 recipients come from locally observable people rather than a remote world scan.
 Living adults in interaction range with free carrying space are filtered before
 the eight-recipient limit, in stable agent-ID order. Full-handed neighbors cannot
@@ -4200,7 +4204,7 @@ one-tile docking spaces. A Port footprint fits inside the map; its water routes
 may cross the east/west seam. Foot construction and supply target the land end,
 not the water anchor of a north- or west-facing drawing.
 
-Ports and boats use the same Council-approved `TownConstructionProject` ledger
+Ports and boats use the same Council-approved `TownProject` ledger
 as Halls and Markets. A boat plan pins its completed launch Port and exact
 wood/rope/refined-iron budget. Actual delivered lots and completed consumption
 receipts pay for one physical `BoatState`; direct unpaid Port placement is
@@ -4485,7 +4489,7 @@ rules, independently of work roles. A mentor cannot be working on an active
 project, carrying out an operative Must Do order, handling another social
 decision, or reserved for another lesson. Cancelling or finishing the order
 allows lesson requests and replies again; a pending request keeps its normal
-consent and expiry rules. Suggestive guidance does not reserve the teacher.
+consent and expiry rules. Suggestion guidance does not reserve the teacher.
 Both participants must be able to reach the common lesson site when a request
 is offered or executed and when the teacher accepts. Mentor selection keeps
 its stable identity order but skips adults without a physical route, so an
@@ -4523,7 +4527,7 @@ This is separate from the saved lesson record, which now stores a skill.
 `LauncherSettings` remembers test-data and detailed-log choices. They apply
 only with Developer mode on. Test data defaults on and lives under
 `%LOCALAPPDATA%\\ClankerWorld\\launcher\\test-data`; host saves, provider settings,
-usage, authority, companion secret and logs all derive from that root. Client
+usage, authority, launch secret and logs all derive from that root. Client
 preferences, registration and pending submissions use its `client/` folder,
 and the Windows signing key uses a separate `.TestData` name. Usual client
 storage and keys retain their existing locations. Folder buttons and saved-world
@@ -4533,20 +4537,20 @@ choice with the world/version hint.
 `GameStarter` uses separate process arguments for local and installed games.
 It sends `--test-data` and `--detailed-logs` only with `--developer-mode`.
 Godot's `--log-file` points at `logs/game.log` in the selected data root;
-`--verbose` applies only to a detailed run. The bundled host receives a
+`--verbose` applies only to a detailed run. The local server receives a
 per-process `Logging:LogLevel:ClankerWorld=Debug` override and records a bounded
 launch diagnostic. Framework logging, saved settings and the prohibition on
 private model payloads in logs stay unchanged. Problem reports read these
 selected logs through the existing redactor. A build without the manifest's
 launch-option capability marker is refused when test data or detailed logs
-are selected. A local build must include its bundled host. No save schema changes.
+are selected. A local build must include its local server. No save schema changes.
 
 ## World-list requests
 
 Select World refuses an empty, missing or whitespace-only catalog ID with HTTP
 400 before authorization or mutation, using the same required-payload guard as
 the manual-save endpoints. Nonempty selections still require the signed owner
-request and the existing private-world, compatibility and restore checks.
+request and the existing world, compatibility and restore checks.
 
 Launcher handoffs carry the catalog entry ID with the requested game version.
 Both process boundaries use separate arguments; `--choose-world` accepts only

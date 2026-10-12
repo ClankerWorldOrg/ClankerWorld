@@ -2,8 +2,9 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Networking;
 
 /// <summary>
 /// Uses an owner device key to issue a one-use challenge and sign every
@@ -328,13 +329,13 @@ public sealed class OwnerWorldApi
             OwnerPairingEndpoints.OwnerDeveloperEdit, OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.DeveloperEdit(action),
             action, signer, cancellationToken);
 
-    public Task<OwnerControlReceipt> SetLifePaceAsync(Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
+    public Task<OwnerControlReceipt> SetAgingOverrideAsync(Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
         int rate, string worldId, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
     {
-        var action = new OwnerLifePaceAction(rate, worldId);
-        return pairing.SendSignedActionAsync<OwnerLifePaceAction, OwnerControlReceipt>(serverUri, authority, deviceId,
-            OwnerPairingEndpoints.OwnerLifePace, OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.LifePace(action),
-            action, deviceKey, cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.LifePacePayloadDomain);
+        var action = new OwnerAgingOverrideAction(rate, worldId);
+        return pairing.SendSignedActionAsync<OwnerAgingOverrideAction, OwnerControlReceipt>(serverUri, authority, deviceId,
+            OwnerPairingEndpoints.OwnerAgingOverride, OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.AgingOverride(action),
+            action, deviceKey, cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.AgingOverridePayloadDomain);
     }
 
     public Task<OwnerControlReceipt> SetRoutineHelperAsync(Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,

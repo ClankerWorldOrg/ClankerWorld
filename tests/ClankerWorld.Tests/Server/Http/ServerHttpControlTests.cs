@@ -1,0 +1,376 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
+using ClankerWorld.Simulation.Content;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Pairing;
+using ClankerWorld.Server.Providers;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
+using ClankerWorld.Server.Worlds;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace ClankerWorld.Tests;
+
+public sealed partial class ServerHttpTests
+{
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DelayedWorldSettingsPreserveTheOtherSelectedWorldAndItsCheckpoint(bool jev)
+    {
+        var directory = Directory.CreateTempSubdirectory("delayed-world-settings-");
+        try
+        {
+            using var host = new ServerWebApplicationFactory(directory.FullName, gameWorld: true);
+            using var client = host.CreateClient();
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var device = await StartAndActivateAsync(host, client, key);
+            var runtime = host.Services.GetRequiredService<WorldRuntime>();
+            runtime.Pause();
+            var catalog = host.Services.GetRequiredService<WorldCatalogStore>();
+            var selection = host.Services.GetRequiredService<WorldSelectionCoordinator>();
+            var file = host.Services.GetRequiredService<WorldStateFile>();
+            var entryA = catalog.Active();
+            using var other = new WorldRuntime("delayed-world-settings-B");
+            other.Pause();
+            var entryB = catalog.Add("Other", other.ExportState());
+            var path = jev ? "/api/v1/owner/control/jev-assistance" : "/api/v1/owner/control/aging-override";
+            object Action(string worldId) => jev ? new OwnerJevAssistanceAction(false, worldId) : new OwnerAgingOverrideAction(365, worldId);
+            string Payload(object action) => action is OwnerJevAssistanceAction helper
+                ? OwnerHttpBinding.JevAssistancePayload(helper) : OwnerHttpBinding.AgingOverridePayload((OwnerAgingOverrideAction)action);
+            var actionA = Action(runtime.Society.WorldId);
+            // Obtain real authorization while A is active; delay only delivery.
+            var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, actionA, Payload(actionA));
+            selection.Select(entryB.Id);
+            var activeBytes = File.ReadAllBytes(file.Path);
+            var runtimeBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
+            using var refused = await client.PostAsJsonAsync(path, held);
+            Assert.Equal(HttpStatusCode.Conflict, refused.StatusCode);
+            Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
+            Assert.Equal(runtimeBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
+            selection.Select(entryA.Id);
+            Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
+            selection.Select(entryB.Id);
+            Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
+
+            // Changing just the target world cannot retarget an already signed proof.
+            activeBytes = File.ReadAllBytes(file.Path);
+            runtimeBytes = WorldRuntimeCodec.Encode(runtime.ExportState());
+            var signedA = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, actionA, Payload(actionA));
+            using var tampered = await client.PostAsJsonAsync(path, signedA with { Action = Action(runtime.Society.WorldId) });
+            Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
+            var legacyPayload = jev ? "clankerworld.owner-jev-assistance.v1\nenabled=false" : "clankerworld.owner-aging-override.v1\nrate=365";
+            var unscoped = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, Action(null!), legacyPayload);
+            using var missingWorld = await client.PostAsJsonAsync(path, unscoped);
+            Assert.Equal(HttpStatusCode.BadRequest, missingWorld.StatusCode);
+            Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
+            Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
+            Assert.Equal(runtimeBytes, WorldRuntimeCodec.Encode(runtime.ExportState()));
+
+            // Fresh settings still apply to B and survive selecting away and back.
+            var current = Action(runtime.Society.WorldId);
+            using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, current, Payload(current));
+            Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+            selection.Select(entryA.Id);
+            Assert.Equal((1, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
+            selection.Select(entryB.Id);
+            Assert.Equal(jev ? (1, false) : (365, true), (runtime.Society.LifeClock?.Rate ?? 1, runtime.JevEnabled));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public async Task RoutineHelperSignsWorldProviderAndModelAndPersistsAcrossHostRestart()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-helper-http-");
+        try
+        {
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            string deviceId;
+            byte[] checkpoint;
+            byte[] credentials;
+            using (var host = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true))
+            using (var client = host.CreateClient())
+            {
+                deviceId = (await StartAndActivateAsync(host, client, key)).DeviceId;
+                var runtime = host.Services.GetRequiredService<WorldRuntime>();
+                var action = new OwnerRoutineHelperAction(runtime.ExportState().Society.Society.WorldId, "decisions", "gpt-6-luna");
+                const string path = "/api/v1/owner/control/routine-helper";
+                using var resume = await SendSignedAsync(host, client, key, deviceId, "/api/v1/owner/control/resume",
+                    new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                using var running = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
+                using var pause = await SendSignedAsync(host, client, key, deviceId, "/api/v1/owner/control/pause",
+                    new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
+                foreach (var changed in new[] { action with { WorldId = "other-world" }, action with { Provider = "jev" }, action with { Model = "other-model" } })
+                {
+                    var envelope = await CreateSignedRequestAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                    using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = changed });
+                    Assert.False(tampered.IsSuccessStatusCode);
+                    Assert.Equal(RoutineHelperSettings.Jev, runtime.RoutineHelper);
+                }
+                var staleWorld = action with { WorldId = "other-world" };
+                using var wrongWorld = await SendSignedAsync(host, client, key, deviceId, path, staleWorld, OwnerHttpBinding.RoutineHelperPayload(staleWorld));
+                Assert.Equal(HttpStatusCode.Conflict, wrongWorld.StatusCode);
+                var defaultJev = action with { Provider = "jev", Model = RoutineHelperSettings.Jev.Model };
+                Assert.Equal(0, runtime.JevPolicyRevision);
+                using var activated = await SendSignedAsync(host, client, key, deviceId, path, defaultJev, OwnerHttpBinding.RoutineHelperPayload(defaultJev));
+                Assert.Equal(HttpStatusCode.OK, activated.StatusCode);
+                Assert.True((await activated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
+                Assert.Equal(1, runtime.JevPolicyRevision);
+                Assert.Equal(1, host.Services.GetRequiredService<WorldJevPolicy>().Capture().Revision);
+                credentials = File.ReadAllBytes(host.Services.GetRequiredService<ProviderConfigurationStore>().Path);
+                using var configured = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
+                Assert.Equal(new RoutineHelperSettings("decisions", "gpt-6-luna"), runtime.RoutineHelper);
+                var snapshot = host.Services.GetRequiredService<OwnerWorldObservationStore>().GetSnapshot();
+                Assert.Equal("decisions", snapshot.RoutineHelperProvider);
+                Assert.Equal("gpt-6-luna", snapshot.RoutineHelperModel);
+                Assert.Contains("owner-routine-helper.v1", host.Services.GetRequiredService<OwnerWorldObservationStore>().GetOwnerHandshake().ServerCapabilities);
+                using var repeated = await SendSignedAsync(host, client, key, deviceId, path, action, OwnerHttpBinding.RoutineHelperPayload(action));
+                Assert.False((await repeated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
+                checkpoint = WorldRuntimeCodec.Encode(runtime.ExportState());
+                using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(checkpoint));
+                Assert.Equal(checkpoint, WorldRuntimeCodec.Encode(restored.ExportState()));
+                Assert.Equal(credentials, File.ReadAllBytes(host.Services.GetRequiredService<ProviderConfigurationStore>().Path));
+            }
+            using var restarted = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true);
+            using var restartedClient = restarted.CreateClient();
+            var loaded = restarted.Services.GetRequiredService<WorldRuntime>();
+            Assert.Equal(checkpoint, WorldRuntimeCodec.Encode(loaded.ExportState()));
+            Assert.Equal(loaded.RoutineHelper, restarted.Services.GetRequiredService<WorldJevPolicy>().Capture().Helper);
+            Assert.Equal(credentials, File.ReadAllBytes(restarted.Services.GetRequiredService<ProviderConfigurationStore>().Path));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Fact]
+    public async Task JevAssistanceIsSignedPauseOnlyAndSurvivesReloadWithoutChangingProviderCredentials()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-jev-world-");
+        try
+        {
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            long savedProviderEpoch;
+            string pairedDeviceId;
+            byte[] providerBytes;
+            using (var host = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true))
+            using (var client = host.CreateClient())
+            {
+                var device = await StartAndActivateAsync(host, client, key);
+                using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
+                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
+                pairedDeviceId = device.DeviceId;
+                var runtime = host.Services.GetRequiredService<WorldRuntime>();
+                var initialProviderEpoch = host.Services.GetRequiredService<ConfigurableDecisionProvider>().ProviderEpoch;
+                var providerPath = host.Services.GetRequiredService<ProviderConfigurationStore>().Path;
+                providerBytes = File.ReadAllBytes(providerPath);
+                var action = new OwnerJevAssistanceAction(false, runtime.Society.WorldId);
+                const string path = "/api/v1/owner/control/jev-assistance";
+                using var running = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
+                    OwnerHttpBinding.JevAssistancePayload(action));
+                Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
+                Assert.True(runtime.JevEnabled);
+
+                using var pause = await SendSignedAsync(host, client, key, device.DeviceId,
+                    "/api/v1/owner/control/pause", new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
+                Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
+                var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action,
+                    OwnerHttpBinding.JevAssistancePayload(action));
+                using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = action with { Enabled = true } });
+                Assert.False(tampered.IsSuccessStatusCode);
+                Assert.True(runtime.JevEnabled);
+
+                using var configured = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
+                    OwnerHttpBinding.JevAssistancePayload(action));
+                Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
+                Assert.True((await configured.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
+                Assert.False(runtime.JevEnabled);
+                Assert.Equal(WorldRuntime.StateSchemaVersion, runtime.ExportState().SchemaVersion);
+                Assert.Equal(1, runtime.JevPolicyRevision);
+                savedProviderEpoch = host.Services.GetRequiredService<ConfigurableDecisionProvider>().ProviderEpoch;
+                Assert.Equal(initialProviderEpoch + 1, savedProviderEpoch);
+                Assert.False(host.Services.GetRequiredService<WorldJevPolicy>().Capture().Enabled);
+                Assert.False(host.Services.GetRequiredService<OwnerWorldObservationStore>().GetSnapshot().JevEnabled);
+                Assert.Equal(providerBytes, File.ReadAllBytes(providerPath));
+                Assert.Contains("owner-jev-assistance.v2",
+                    host.Services.GetRequiredService<OwnerWorldObservationStore>().GetOwnerHandshake().ServerCapabilities);
+                using var repeated = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
+                    OwnerHttpBinding.JevAssistancePayload(action));
+                Assert.False((await repeated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
+            }
+
+            using var restarted = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true);
+            using var restartedClient = restarted.CreateClient();
+            var restored = restarted.Services.GetRequiredService<WorldRuntime>();
+            Assert.False(restored.JevEnabled);
+            Assert.Equal(1, restored.JevPolicyRevision);
+            Assert.False(restarted.Services.GetRequiredService<WorldJevPolicy>().Capture().Enabled);
+            Assert.Equal(savedProviderEpoch, restarted.Services.GetRequiredService<ConfigurableDecisionProvider>().ProviderEpoch);
+            Assert.True(restored.Society.IsPaused);
+            Assert.Equal(0, restored.WorldTick);
+            var reenable = new OwnerJevAssistanceAction(true, restored.Society.WorldId);
+            using var restoredRequest = await SendSignedAsync(restarted, restartedClient, key, pairedDeviceId,
+                "/api/v1/owner/control/jev-assistance", reenable, OwnerHttpBinding.JevAssistancePayload(reenable));
+            Assert.Equal(HttpStatusCode.OK, restoredRequest.StatusCode);
+            Assert.True(restored.JevEnabled);
+            Assert.Equal(2, restored.JevPolicyRevision);
+            Assert.True(restarted.Services.GetRequiredService<WorldJevPolicy>().Capture().Enabled);
+            Assert.Equal(savedProviderEpoch + 1, restarted.Services.GetRequiredService<ConfigurableDecisionProvider>().ProviderEpoch);
+            Assert.Equal(providerBytes, File.ReadAllBytes(restarted.Services.GetRequiredService<ProviderConfigurationStore>().Path));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-life-http-");
+        try
+        {
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            using (var host = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true))
+            using (var client = host.CreateClient())
+            {
+                var device = await StartAndActivateAsync(host, client, key);
+                using var resume = await SendSignedAsync(host, client, key, device.DeviceId,
+                    "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
+                Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
+                var runtime = host.Services.GetRequiredService<WorldRuntime>();
+                var births = runtime.Society.Agents.Select(person => person.BirthTick).ToArray();
+                var action = new OwnerAgingOverrideAction(1_460, runtime.Society.WorldId);
+                const string path = "/api/v1/owner/control/aging-override";
+                using var running = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
+                Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
+                Assert.Null(runtime.Society.LifeClock);
+                using var pause = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/control/pause",
+                    new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
+                Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
+                var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
+                using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = action with { Rate = 365 } });
+                Assert.False(tampered.IsSuccessStatusCode);
+                Assert.Null(runtime.Society.LifeClock);
+                using var configured = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
+                Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
+                Assert.True((await configured.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
+                using var repeated = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
+                Assert.False((await repeated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
+                Assert.Equal(births, runtime.Society.Agents.Select(person => person.BirthTick));
+                Assert.Equal(0, runtime.WorldTick);
+                Assert.True(runtime.Society.IsPaused);
+                var observation = host.Services.GetRequiredService<OwnerWorldObservationStore>();
+                Assert.Equal(1_460, observation.GetSnapshot().AgingOverrideRate);
+                Assert.Contains("owner-aging-override.v2", observation.GetOwnerHandshake().ServerCapabilities);
+            }
+            using var restarted = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true);
+            using var restartedClient = restarted.CreateClient();
+            var restored = restarted.Services.GetRequiredService<WorldRuntime>();
+            Assert.Equal(1_460, restored.Society.LifeClock!.Rate);
+            Assert.Equal(0, restored.WorldTick);
+            Assert.True(restored.Society.IsPaused);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task PairedDeviceCanObserveThenIssueServerValidatedControlAndPausedAuthoringRequests()
+    {
+        using var client = factory.CreateClient();
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var publicKey = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+        var pairing = await StartAndActivateAsync(client, key, publicKey);
+
+        using var observation = await SendSignedAsync(
+            client,
+            key,
+            pairing.DeviceId,
+            "/api/v1/owner/reconnect",
+            new OwnerReconnectAction(0),
+            OwnerHttpBinding.ReconnectPayload(new OwnerReconnectAction(0)));
+        var reconnect = await observation.Content.ReadFromJsonAsync<OwnerReconnectView>();
+
+        Assert.Equal(HttpStatusCode.OK, observation.StatusCode);
+        Assert.NotNull(reconnect);
+        Assert.Contains("owner-observation.read.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.Contains("owner-control.request.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.Contains("owner-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.Contains("owner-agent-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.True(factory.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
+        Assert.Equal(WorldRuntime.RequiredFounders, reconnect.Baseline.Snapshot.Agents.Count);
+        Assert.NotNull(reconnect.Baseline.Snapshot.Authoring);
+
+        using var pause = await SendSignedAsync(
+            client,
+            key,
+            pairing.DeviceId,
+            "/api/v1/owner/control/pause",
+            new OwnerControlAction("pause"),
+            OwnerHttpBinding.EmptyPayload("pause"));
+        var pauseReceipt = await pause.Content.ReadFromJsonAsync<OwnerControlReceipt>();
+        Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
+        Assert.True(pauseReceipt!.Changed);
+        Assert.True(pauseReceipt.IsPaused);
+
+        var runtime = factory.Services.GetRequiredService<WorldRuntime>();
+        var beforeInvalidInstruction = WorldRuntimeCodec.Encode(runtime.ExportState());
+        var invalidAction = new OwnerInstructionAction("instruction-http-invalid", "missing-agent",
+            "order", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
+        using var invalidInstruction = await SendSignedAsync(client, key, pairing.DeviceId,
+            "/api/v1/owner/instructions", invalidAction, OwnerHttpBinding.InstructionPayload(invalidAction));
+        Assert.Equal(HttpStatusCode.BadRequest, invalidInstruction.StatusCode);
+        Assert.Contains("No active agent", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(beforeInvalidInstruction, WorldRuntimeCodec.Encode(runtime.ExportState()));
+
+        var instructionAction = new OwnerInstructionAction(
+            "instruction-http-1",
+            reconnect.Baseline.Snapshot.Agents[0].Id,
+            "order",
+            "Gather food.",
+            reconnect.Baseline.Snapshot.WorldId);
+        using var instruction = await SendSignedAsync(
+            client,
+            key,
+            pairing.DeviceId,
+            "/api/v1/owner/instructions",
+            instructionAction,
+            OwnerHttpBinding.InstructionPayload(instructionAction));
+        var instructionReceipt = await instruction.Content.ReadFromJsonAsync<OwnerInstructionReceipt>();
+        Assert.Equal(HttpStatusCode.OK, instruction.StatusCode);
+        Assert.NotNull(instructionReceipt);
+        Assert.Equal("private-instruction-0000000001", instructionReceipt.InstructionId);
+
+        var beforeAuthoring = WorldRuntimeCodec.Encode(runtime.ExportState());
+        var authoringAction = new OwnerAuthoringBatchAction(
+            "authoring-http-1",
+            [new OwnerAuthoringOperationAction("set_terrain", null, "mountain", null, 0, 0, null)]);
+        using var authoring = await SendSignedAsync(
+            client,
+            key,
+            pairing.DeviceId,
+            "/api/v1/owner/authoring",
+            authoringAction,
+            OwnerHttpBinding.AuthoringPayload(authoringAction));
+        var failure = await authoring.Content.ReadFromJsonAsync<OwnerControlFailure>();
+
+        Assert.Equal(HttpStatusCode.Conflict, authoring.StatusCode);
+        Assert.Equal("game_world_authoring_pending", failure!.Code);
+        Assert.Equal(beforeAuthoring, WorldRuntimeCodec.Encode(runtime.ExportState()));
+        var queued = Assert.Single(runtime.ExportState().Instructions!);
+        Assert.Equal($"owner-device:{pairing.DeviceId}", queued.IssuerId);
+        Assert.Equal(instructionReceipt.InstructionId, queued.InstructionId);
+        Assert.Equal(instructionAction.TargetAgentId, queued.TargetAgentId);
+    }
+}

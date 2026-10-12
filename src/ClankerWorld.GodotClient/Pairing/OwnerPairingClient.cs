@@ -33,12 +33,12 @@ public static class OwnerPairingEndpoints
     public const string Pairings = "/api/v1/pairings";
     public const string PairingActivation = "/api/v1/pairings/activate";
     /// <summary>Pairing start on a host's separate local approval listener, not the forwarded port.</summary>
-    public const string LocalPairings = "/api/v1/local/pairings";
+    public const string ApprovalPairings = "/api/v1/approval/pairings";
     public const string ChallengeIssue = "/api/v1/owner/challenges";
     public const string OwnerReconnect = "/api/v1/owner/reconnect";
     public const string OwnerPause = "/api/v1/owner/control/pause";
     public const string OwnerDeveloperEdit = "/api/v1/owner/developer-edit";
-    public const string OwnerLifePace = "/api/v1/owner/control/life-pace";
+    public const string OwnerAgingOverride = "/api/v1/owner/control/aging-override";
     public const string OwnerRoutineHelper = "/api/v1/owner/control/routine-helper";
     public const string OwnerJevAssistance = "/api/v1/owner/control/jev-assistance";
     public const string OwnerResume = "/api/v1/owner/control/resume";

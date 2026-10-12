@@ -22,14 +22,14 @@ contents, private thoughts or raw model replies.
 1. Confirm the destination machine, service, OS account and authorized maintenance
    window. Record the running commit and the proposed commit. Inspect the actual
    service configuration privately; the checked-in
-   [systemd template](../../deploy/clankerworld-viewer.service) is a starting
+   [systemd template](../../deploy/clankerworld-server.service) is a starting
    point, not evidence of what is running. Its historical fresh-install comment
    is not permission to replace existing state or pairing authority.
 2. Build from a clean checkout at the proposed commit. Run the applicable
    [build and test checks](build-and-test.md#which-checks-to-run), including
    locked restore, formatting, Release tests, Godot checks and Windows export
    when distributing a matching client. Publish the server from that same
-   checkout with `dotnet publish src/ClankerWorld.Viewer -c Release`. Record the
+   checkout with `dotnet publish src/ClankerWorld.Server -c Release`. Record the
    publish directory, game version and SHA-256 hashes of the exact artifacts.
 3. Check save, generator and signed-action compatibility against the current
    host. During alpha an older save may be refused, but must be preserved.
@@ -51,13 +51,13 @@ versioned binary directories. The relevant configuration keys are:
 
 | Configuration key | What to preserve |
 | --- | --- |
-| `ClankerWorld:Runtime:StatePath` | Active private-world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
-| `ClankerWorld:Pairing:StatePath` | Durable owner-device authority and revocations |
-| `ClankerWorld:Runtime:ProviderStatePath` | Installation model assignments and protected credentials |
-| `ClankerWorld:Runtime:ProviderUsagePath` | Installation-lifetime paid-attempt accounting |
+| `ClankerWorld:World:SavePath` | Active world checkpoint and its adjacent `.history`, `.manual`, `.autosave.json` and `.worlds` storage |
+| `ClankerWorld:Pairing:AuthorityPath` | Durable owner-device authority and revocations |
+| `ClankerWorld:Providers:ConfigurationPath` | Installation model assignments and protected credentials |
+| `ClankerWorld:Providers:UsagePath` | Installation-lifetime paid-attempt accounting |
 | `ClankerWorld:Assets:CatalogPath` | Approved asset catalog and the assets it refers to |
 
-When `ProviderUsagePath` is unset, the current host uses `provider-usage.json`
+When `Providers:UsagePath` is unset, the current host uses `provider-usage.json`
 beside the provider configuration file. An older process or different working
 directory may have used another location. Identify all possible old and new
 meter locations before switching; a missing file is not proof that no calls
@@ -147,3 +147,63 @@ A future command can automate plan, stage, apply, verify and rollback after the
 local Windows package works. Its remaining contract is tracked in
 [#267](https://github.com/compoodment/ClankerWorld/issues/267); no such command
 is implied by this guide.
+
+## Installing this build on a remote server
+
+Builds from [#1364](https://github.com/compoodment/ClankerWorld/issues/1364) on
+rename the host, its service and its files, and keep nothing from the earlier
+service. Install them fresh rather than updating the old service:
+
+1. Stop and disable the old service:
+   `sudo systemctl disable --now clankerworld-viewer.service`.
+2. Install the new host files and the new
+   [systemd template](../../deploy/clankerworld-server.service) from `deploy/`
+   as `/etc/systemd/system/clankerworld-server.service`, then run
+   `sudo systemctl daemon-reload`.
+3. Start it: `sudo systemctl enable --now clankerworld-server.service`.
+4. Pair each device again and add the API keys again in the game. Worlds saved
+   by earlier builds do not open in this build, so the server starts a new one.
+5. Optionally, delete the old `/var/lib/clankerworld-viewer` folder once the new
+   server works.
+
+The world server names (#1364). A new unit sets these environment
+variables, as the [systemd template](../../deploy/clankerworld-server.service) does:
+
+- `ClankerWorld__World__Mode`
+- `ClankerWorld__Clock__Run`
+- `ClankerWorld__Clock__ClientPresenceTimeoutSeconds`
+- `ClankerWorld__Http__Port`
+- `ClankerWorld__Pairing__ApprovalPort`
+- `ClankerWorld__Pairing__AuthorityPath`
+- `ClankerWorld__World__SavePath`
+- `ClankerWorld__Providers__ConfigurationPath`
+- `ClankerWorld__Assets__CatalogPath`
+
+The server also reads these settings, which a unit sets only when needed:
+
+- `ClankerWorld:Clock:StrictTickFailures`
+- `ClankerWorld:LocalServer:LaunchSecretPath`
+- `ClankerWorld:Pairing:ServerAuthorityId`
+- `ClankerWorld:Providers:AnthropicModel`
+- `ClankerWorld:Providers:DecisionProvider`
+- `ClankerWorld:Providers:JevModel`
+- `ClankerWorld:Providers:Model`
+- `ClankerWorld:Providers:OllamaCloudModel`
+- `ClankerWorld:Providers:OpenAiModel`
+- `ClankerWorld:Providers:UsagePath`
+- `ClankerWorld:World:Seed`
+
+The approval listener, on `ClankerWorld:Pairing:ApprovalPort` and never
+forwarded, serves `POST /api/v1/approval/pairings`,
+`POST /api/v1/approval/pairings/{pairingId}/approve` and
+`POST /api/v1/approval/devices/{deviceId}/revoke`. Only a local server, which
+the game starts, also serves `POST /api/v1/approval/shutdown` and
+`GET /api/v1/approval/launch-check`, and needs the `X-ClankerWorld-Launch-Secret`
+header and `ClankerWorld:LocalServer:LaunchSecretPath`.
+
+Log lines name the agent with `agent=`. The server's events include
+`server_shutdown`, `approval_listener`, `model_decision`,
+`model_decision_progress`, `model_call` and `model_conversation_call`. Older
+logs used `host_shutdown`, `local_approval`, `cognition_decision`,
+`hosted_decision`, `cognition_provider_call`, `conversation_call` and
+`inhabitant=` for these.

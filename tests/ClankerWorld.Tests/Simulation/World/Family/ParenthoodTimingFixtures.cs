@@ -1,0 +1,54 @@
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
+
+namespace ClankerWorld.Tests;
+
+public sealed partial class ParenthoodTests
+{
+    // These tests exercise the next real runtime transition. Move only the fixture
+    // clock past idle waiting; do not manufacture a birth, plan transition or action.
+    private static void PositionFamilyFixtureAt(WorldRuntime world, long targetTick)
+    {
+        Assert.True(targetTick >= world.WorldTick);
+        var resume = !world.Society.IsPaused;
+        world.Pause();
+        var state = world.ExportState();
+        var society = SocietyRules.AdvanceTo(SocietyRules.Resume(state.Society.Society).Checkpoint,
+            targetTick).Checkpoint;
+        var systems = state.WorldSystems!;
+        world.LoadPausedCheckpoint(state with
+        {
+            Society = state.Society with { Society = SocietyRules.Pause(society).Checkpoint },
+            WorldSystems = systems with
+            {
+                WorldTick = targetTick,
+                RegionalWeather = RegionalWeatherRules.Advance(systems, targetTick),
+                Climate = WeatherRules.Advance(systems.Climate, targetTick, state.WorldSeed, systems.Config),
+            },
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
+        });
+        if (resume) world.Resume();
+    }
+
+    private static void PositionChildBeforeAge(WorldRuntime world, string childId, int age)
+    {
+        var resume = !world.Society.IsPaused;
+        world.Pause();
+        var state = world.ExportState();
+        var society = state.Society.Society;
+        var child = society.GetAgent(childId);
+        var rate = society.LifeClock!.Rate;
+        var before = (child.BirthLifeTick ?? child.BirthTick) + age * society.Config.TicksPerLifecycleAge - 2L * rate;
+        Assert.True(before >= society.LifeTickAt(society.WorldTick));
+        world.LoadPausedCheckpoint(state with
+        {
+            Society = state.Society with
+            {
+                Society = society with { LifeClock = new(rate, society.WorldTick, before) },
+            },
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
+        });
+        if (resume) world.Resume();
+    }
+
+}

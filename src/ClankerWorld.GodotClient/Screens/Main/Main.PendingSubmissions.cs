@@ -1,6 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 using System.Globalization;
 
@@ -66,11 +66,11 @@ public partial class Main
         // Review restores an instruction draft, never the old request's binding or key.
         // A new world must be inspected and addressed independently.
         if (pending.Instruction is { } instruction && observationSession.Current?.Baseline.Snapshot is { } world &&
-            instruction.CanRetryIn(world.WorldId) && world.Inhabitants.Any(agent => agent.Id == instruction.TargetInhabitantId))
+            instruction.CanRetryIn(world.WorldId) && world.Agents.Any(agent => agent.Id == instruction.TargetAgentId))
         {
-            if (selectedInhabitantId != instruction.TargetInhabitantId) SelectInhabitant(instruction.TargetInhabitantId);
+            if (selectedAgentId != instruction.TargetAgentId) SelectAgent(instruction.TargetAgentId);
             instructionText.Text = instruction.Text;
-            instructionOrderButton.ButtonPressed = instruction.Kind == "must_do";
+            instructionOrderButton.ButtonPressed = instruction.Kind == "order";
             instructionSuggestButton.ButtonPressed = !instructionOrderButton.ButtonPressed;
             instructionQueueToggle.ButtonPressed = instruction.Queue;
             agentProfilePanel.Show();

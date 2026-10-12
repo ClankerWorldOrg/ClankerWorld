@@ -11,7 +11,7 @@
 //   so a total near the budget doesn't open and close an issue every week.
 // - With timings from fewer than MinRuns runs, do nothing.
 // To change the budget, edit BudgetSeconds in a pull request that says why.
-const { readMainTimings } = require('./ci-plan.js');
+const { readMainTimings, TestNamespace } = require('./ci-plan.js');
 
 // About a fifth above main's 7,650 seconds in October 2026, after #946 made Town decisions faster.
 const BudgetSeconds = 9000;
@@ -39,7 +39,7 @@ function issueBody({ times, runs, ids }, { repoUrl, now = new Date() }) {
     classes.set(owner, { count: entry.count + 1, seconds: entry.seconds + value });
   }
   const heaviest = [...classes].sort((a, b) => b[1].seconds - a[1].seconds || (a[0] < b[0] ? -1 : 1)).slice(0, 10);
-  const short = name => name.replace(/^ClankerWorld\.Simulation\.Tests\./, '');
+  const short = name => name.replace(/^ClankerWorld\.Tests\./, '');
   const newest = ids.map(Number).sort((a, b) => b - a)[0];
   const docs = `${repoUrl}/blob/main/docs/development/build-and-test.md#how-ci-runs`;
   return [
@@ -73,7 +73,9 @@ function issueBody({ times, runs, ids }, { repoUrl, now = new Date() }) {
 async function checkTestTimeBudget({ github, context, core, dir, now = new Date(), dryRun = false }) {
   const repo = context.repo;
   const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
-  const timings = readMainTimings(dir);
+  // Only timings in the current test namespace count. After the test project was renamed, main's
+  // older runs named the same tests under the old namespace, and counting both would double them.
+  const timings = readMainTimings(dir, TestNamespace);
   if (timings.runs < MinRuns) {
     core.warning(`Only ${timings.runs} of main's green runs had test timings; at least ${MinRuns} are needed.`);
     return { action: 'none' };

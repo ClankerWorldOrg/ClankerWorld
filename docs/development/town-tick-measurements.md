@@ -86,7 +86,7 @@ Houses. Paid construction, eligibility, routing and placement validation
 remain native. Extra household Blacksmiths grow the Road network through
 normal placement and Road generation; reserved Market and project tiles
 remain protected. Growth sites are limited to buildable ground connected to the
-existing Roads, excluding building footprints, resources and camp objects.
+existing Roads, excluding building footprints, resources and map objects.
 This avoids spending the fixture budget on distant disconnected land. Native
 placement and Road validation remain authoritative; the connectivity filter
 does not promise that every selected site will create a street.

@@ -1,4 +1,4 @@
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.GodotClient.ClientState;
 

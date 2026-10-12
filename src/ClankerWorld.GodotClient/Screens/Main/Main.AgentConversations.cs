@@ -1,5 +1,6 @@
 using System.Globalization;
 using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ClankerWorld.GodotClient;
@@ -60,9 +61,9 @@ public partial class Main
         thoughtsPanel.Hide();
         ordersPanel.Hide();
         familyTreePanel.Hide();
-        rosterPanel.Hide();
-        eventsPanel.Hide();
-        worldOverviewPanel.Hide();
+        agentsPanel.Hide();
+        eventLogPanel.Hide();
+        worldMapPanel.Hide();
         worldInfoPanel.Hide();
         filtersPanel.Hide();
         buildingDetailsPanel.Hide();
@@ -124,7 +125,7 @@ public partial class Main
         var isParticipant = conversation.InitiatorId == agentId || conversation.InviteeId == agentId;
         if (isParticipant)
         {
-            var ownName = snapshot.Inhabitants.FirstOrDefault(item => item.Id == agentId)?.DisplayName ??
+            var ownName = snapshot.Agents.FirstOrDefault(item => item.Id == agentId)?.DisplayName ??
                 (conversation.InitiatorId == agentId ? conversation.InitiatorName : conversation.InviteeName);
             var otherName = conversation.InitiatorId == agentId ? conversation.InviteeName : conversation.InitiatorName;
             conversationReaderTitle.Text = $"{ownName} and {otherName}";
@@ -248,20 +249,20 @@ public partial class Main
 
     private void RefreshConversationBadges(OwnerWorldSnapshot snapshot)
     {
-        foreach (var inhabitant in snapshot.Inhabitants)
+        foreach (var agent in snapshot.Agents)
         {
-            if (!inhabitantVisuals.TryGetValue(inhabitant.Id, out var marker)) continue;
-            if (LatestConversationFor(snapshot, inhabitant.Id) is not { } conversation)
+            if (!agentVisuals.TryGetValue(agent.Id, out var marker)) continue;
+            if (LatestConversationFor(snapshot, agent.Id) is not { } conversation)
             {
                 marker.ConversationBadgeVisible = false;
                 marker.ConversationUnread = false;
                 continue;
             }
             marker.ConversationBadgeVisible = true;
-            marker.ConversationUnread = ConversationUnreadCount(snapshot.WorldId, conversation, inhabitant.Id) > 0;
-            marker.TooltipText = $"{inhabitant.DisplayName} · {Pretty(inhabitant.Lifecycle)} · " +
-                (inhabitant.PublicIntention?.Summary ?? "taking in the world") + "\n" +
-                ConversationTooltipSummary(inhabitant.Id, conversation);
+            marker.ConversationUnread = ConversationUnreadCount(snapshot.WorldId, conversation, agent.Id) > 0;
+            marker.TooltipText = $"{agent.DisplayName} · {Pretty(agent.Lifecycle)} · " +
+                (agent.PublicIntention?.Summary ?? "taking in the world") + "\n" +
+                ConversationTooltipSummary(agent.Id, conversation);
         }
     }
 

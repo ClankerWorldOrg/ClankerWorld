@@ -1,4 +1,5 @@
 using ClankerWorld.GodotClient.ClientState;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -26,7 +27,7 @@ public partial class Main
     private readonly Label seasonLabel = new();
     private readonly TextureRect weatherIcon = new();
     private readonly Label weatherLabel = new();
-    private readonly PixelBadge eventsBadge = new();
+    private readonly PixelBadge eventLogBadge = new();
     private readonly PixelBadge agentsWarning = new() { Diameter = 7, Warning = true };
     private readonly Button worldInfoTownsTab = new();
     private readonly Button worldInfoWorldTab = new();
@@ -37,7 +38,7 @@ public partial class Main
     private readonly VBoxContainer townsPage = new();
     private readonly VBoxContainer townList = new();
     private string? renderedTownList;
-    private string? eventsWorldId;
+    private string? eventLogWorldId;
     private long lastSeenEventId = long.MinValue;
     private long newEventsAfter = long.MaxValue;
     private int unreadEvents;
@@ -65,13 +66,13 @@ public partial class Main
         StyleButton(mapButton);
         mapButton.Pressed += () =>
         {
-            var show = !worldOverviewPanel.Visible;
-            rosterPanel.Hide();
-            eventsPanel.Hide();
+            var show = !worldMapPanel.Visible;
+            agentsPanel.Hide();
+            eventLogPanel.Hide();
             familyTreePanel.Hide();
             worldInfoPanel.Hide();
             filtersPanel.Hide();
-            worldOverviewPanel.Visible = show;
+            worldMapPanel.Visible = show;
         };
         hudLeft.AddChild(mapButton);
         BuildFiltersButton();
@@ -101,11 +102,11 @@ public partial class Main
 
         topBar.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore });
 
-        inhabitantsButton.Text = "0";
-        StyleButton(inhabitantsButton);
-        inhabitantsButton.Pressed += ToggleInhabitants;
-        AttachCorner(inhabitantsButton, agentsWarning, new Vector2(-12, 4));
-        hudRight.AddChild(inhabitantsButton);
+        agentsButton.Text = "0";
+        StyleButton(agentsButton);
+        agentsButton.Pressed += ToggleAgents;
+        AttachCorner(agentsButton, agentsWarning, new Vector2(-12, 4));
+        hudRight.AddChild(agentsButton);
 
         worldInfoButton.Text = "Info";
         worldInfoButton.TooltipText = "World Info: Towns and the world (I). T opens Towns.";
@@ -113,12 +114,12 @@ public partial class Main
         worldInfoButton.Pressed += ToggleWorldInfo;
         hudRight.AddChild(worldInfoButton);
 
-        eventsButton.Text = "Events";
-        eventsButton.TooltipText = "Event Log (E)";
-        StyleButton(eventsButton);
-        eventsButton.Pressed += ToggleEvents;
-        AttachCorner(eventsButton, eventsBadge, new Vector2(-12, -6));
-        hudRight.AddChild(eventsButton);
+        eventLogButton.Text = "Events";
+        eventLogButton.TooltipText = "Event Log (E)";
+        StyleButton(eventLogButton);
+        eventLogButton.Pressed += ToggleEvents;
+        AttachCorner(eventLogButton, eventLogBadge, new Vector2(-12, -6));
+        hudRight.AddChild(eventLogButton);
 
         townSiteButton.Text = "Choose Town site";
         StyleButton(townSiteButton);
@@ -159,7 +160,7 @@ public partial class Main
         menuButton.Text = "Menu";
         menuButton.TooltipText = "Pause Menu (Esc)";
         StyleButton(menuButton);
-        menuButton.Pressed += () => _ = ToggleGameMenuAsync();
+        menuButton.Pressed += () => _ = TogglePauseMenuAsync();
         hudRight.AddChild(menuButton);
         topBar.AddChild(HudGroup(hudRight));
 
@@ -227,7 +228,7 @@ public partial class Main
     private void CompactHud(bool compact)
     {
         if (hudButtonLabels.Count == 0)
-            foreach (var button in new[] { mapButton, filtersButton, worldInfoButton, eventsButton, addAgentButton, menuButton })
+            foreach (var button in new[] { mapButton, filtersButton, worldInfoButton, eventLogButton, addAgentButton, menuButton })
                 hudButtonLabels[button] = button.Text;
         foreach (var (button, label) in hudButtonLabels)
             button.Text = compact ? string.Empty : label;
@@ -255,19 +256,19 @@ public partial class Main
 
     private void PlaceHudPanels()
     {
-        PlaceUnderButton(worldOverviewPanel, mapButton);
+        PlaceUnderButton(worldMapPanel, mapButton);
         PlaceUnderButton(filtersPanel, filtersButton);
-        PlaceUnderButton(rosterPanel, inhabitantsButton);
+        PlaceUnderButton(agentsPanel, agentsButton);
         PlaceUnderButton(worldInfoPanel, worldInfoButton);
         // The Event Log often stays open while playing, so it sits flush with the right edge.
-        if (eventsPanel.Visible)
-            eventsPanel.Position = new Vector2(
-                Math.Max(14, UiSize.X - Math.Max(eventsPanel.Size.X, eventsPanel.CustomMinimumSize.X) - 14), HudTop);
+        if (eventLogPanel.Visible)
+            eventLogPanel.Position = new Vector2(
+                Math.Max(14, UiSize.X - Math.Max(eventLogPanel.Size.X, eventLogPanel.CustomMinimumSize.X) - 14), HudTop);
         PlaceUnderButton(founderSetupPanel, placingAddedAgent && addAgentButton.IsVisibleInTree() ? addAgentButton : founderSetupButton);
     }
 
     /// <summary>Panels opened from the top bar; the agent card keeps clear of them.</summary>
-    private Control[] HudPanels() => [worldOverviewPanel, filtersPanel, rosterPanel, worldInfoPanel, eventsPanel, founderSetupPanel];
+    private Control[] HudPanels() => [worldMapPanel, filtersPanel, agentsPanel, worldInfoPanel, eventLogPanel, founderSetupPanel];
 
     private IEnumerable<Button> HudButtons() =>
         new[] { hudLeft, hudTime, hudRight, hudFounders }.SelectMany(row => row.GetChildren().OfType<Button>());
@@ -281,9 +282,9 @@ public partial class Main
         var green = palette.Name == "dark" ? new Color("8DBA6A") : palette.Primary;
         mapButton.Icon = PixelIcons.Themed(PixelGlyph.Map, green, scale);
         filtersButton.Icon = PixelIcons.Themed(PixelGlyph.Filter, accent, scale);
-        inhabitantsButton.Icon = PixelIcons.Themed(PixelGlyph.Person, accent, scale);
+        agentsButton.Icon = PixelIcons.Themed(PixelGlyph.Person, accent, scale);
         worldInfoButton.Icon = PixelIcons.Themed(PixelGlyph.Info, green, scale);
-        eventsButton.Icon = PixelIcons.Themed(PixelGlyph.Scroll, accent, scale);
+        eventLogButton.Icon = PixelIcons.Themed(PixelGlyph.Scroll, accent, scale);
         addAgentButton.Icon = PixelIcons.Themed(PixelGlyph.PersonPlus, green, scale);
         menuButton.Icon = PixelIcons.Themed(PixelGlyph.Menu, palette.Ink, scale);
         var paused = renderedMapSnapshot?.Authoring?.IsPaused == true;
@@ -308,11 +309,11 @@ public partial class Main
         pauseButton.ThemeTypeVariation = paused ? "EmberButton" : string.Empty;
         pauseButton.TooltipText = paused ? "Time is stopped. Resume the world (Space)" : "Pause the world (Space)";
 
-        var living = snapshot.Inhabitants.Where(person => !person.IsDraft && IsLiving(person)).ToArray();
-        var hungry = living.Where(person => GameUiText.FullnessState(person.HungerBasisPoints) is "hungry" or "very hungry")
+        var living = snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person)).ToArray();
+        var hungry = living.Where(person => GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry")
             .Select(person => person.DisplayName).OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
-        inhabitantsButton.Text = living.Length.ToString(CultureInfo.InvariantCulture);
-        inhabitantsButton.TooltipText = $"Agents (R) · {living.Length} living" +
+        agentsButton.Text = living.Length.ToString(CultureInfo.InvariantCulture);
+        agentsButton.TooltipText = $"Agents (R) · {living.Length} living" +
             (hungry.Length == 0 ? string.Empty : $" · hungry: {string.Join(", ", hungry)}") +
             ". N selects the next agent.";
         agentsWarning.Visible = hungry.Length > 0;
@@ -344,24 +345,24 @@ public partial class Main
         var ids = GameUiText.PlayerEvents(knownEvents.Values)
             .Select(worldEvent => worldEvent.EventId).ToArray();
         var newest = ids.Length == 0 ? long.MinValue : ids.Max();
-        if (!string.Equals(eventsWorldId, worldId, StringComparison.Ordinal))
+        if (!string.Equals(eventLogWorldId, worldId, StringComparison.Ordinal))
         {
-            eventsWorldId = worldId;
+            eventLogWorldId = worldId;
             lastSeenEventId = newest;
             newEventsAfter = long.MaxValue;
         }
-        if (eventsPanel.Visible) lastSeenEventId = Math.Max(lastSeenEventId, newest);
+        if (eventLogPanel.Visible) lastSeenEventId = Math.Max(lastSeenEventId, newest);
         unreadEvents = ids.Count(id => id > lastSeenEventId);
-        eventsBadge.Text = unreadEvents > 9 ? "9+" : unreadEvents.ToString(CultureInfo.InvariantCulture);
-        eventsBadge.Visible = unreadEvents > 0;
-        eventsButton.TooltipText = unreadEvents == 0 ? "Event Log (E)" : $"Event Log (E) · {unreadEvents} new";
+        eventLogBadge.Text = unreadEvents > 9 ? "9+" : unreadEvents.ToString(CultureInfo.InvariantCulture);
+        eventLogBadge.Visible = unreadEvents > 0;
+        eventLogButton.TooltipText = unreadEvents == 0 ? "Event Log (E)" : $"Event Log (E) · {unreadEvents} new";
     }
 
     /// <summary>Opening the log marks everything read; the rows that were new keep a dot while it stays open.</summary>
     private void MarkEventsSeen()
     {
         newEventsAfter = lastSeenEventId;
-        UpdateUnreadEvents(eventsWorldId);
+        UpdateUnreadEvents(eventLogWorldId);
         renderedEventLog = null;
         RenderEventLog();
     }
@@ -469,7 +470,7 @@ public partial class Main
             };
             text.AddChild(facts);
             text.AddChild(ResidentPortraits(snapshot, town));
-            if (town.Governance is not null)
+            if (town.Council is not null)
                 text.AddChild(new Label
                 {
                     Text = TownCivicText(town, snapshot.WorldTick),
@@ -521,7 +522,7 @@ public partial class Main
 
     private string TownCivicText(OwnerWorldTown town, long tick)
     {
-        if (town.Governance is not { } council) return "";
+        if (town.Council is not { } council) return "";
         var lines = new List<string>
         {
             town.IsAbandoned ? "No council: nobody lives here. An adult who comes here can choose to resettle the Town." :
@@ -586,10 +587,10 @@ public partial class Main
             lines.Add($"Showing {town.LandHearings.Count} active or recent land hearings of {town.LandHearingCount}.");
         foreach (var hearing in town.LandHearings)
             lines.AddRange(LandHearingText.Details(hearing, DisplayWorldClock, town.Government?.Laws));
-        if (town.NonviolentCaseCount > town.NonviolentCases.Count)
-            lines.Add($"Showing {town.NonviolentCases.Count} active or recent non-land hearings of {town.NonviolentCaseCount}.");
-        foreach (var hearing in town.NonviolentCases)
-            lines.AddRange(NonviolentHearingText.Details(hearing, DisplayWorldClock, observedCalendarPace?.TicksPerDay ?? 1_440));
+        if (town.NonLandCaseCount > town.NonLandCases.Count)
+            lines.Add($"Showing {town.NonLandCases.Count} active or recent non-land hearings of {town.NonLandCaseCount}.");
+        foreach (var hearing in town.NonLandCases)
+            lines.AddRange(NonLandHearingText.Details(hearing, DisplayWorldClock, observedCalendarPace?.TicksPerDay ?? 1_440));
         if (town.LandTransferCount > town.LandTransfers.Count)
             lines.Add($"Showing {town.LandTransfers.Count} pending or recent use right transfers of {town.LandTransferCount}.");
         foreach (var transfer in town.LandTransfers)

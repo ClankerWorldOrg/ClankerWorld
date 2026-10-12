@@ -35,9 +35,9 @@ function timings(t, runs) {
 // Three runs whose tests add up to `total` seconds at their medians; the middle run is the median.
 function runsTotalling(total) {
   const scaled = factor => ({
-    'ClankerWorld.Simulation.Tests.HugeTests.Slowest': Math.round(total * 0.6 * factor),
-    'ClankerWorld.Simulation.Tests.HugeTests.Second': Math.round(total * 0.3 * factor),
-    'ClankerWorld.Simulation.Tests.SmallTests.Quick': Math.round(total * 0.1 * factor),
+    'ClankerWorld.Tests.HugeTests.Slowest': Math.round(total * 0.6 * factor),
+    'ClankerWorld.Tests.HugeTests.Second': Math.round(total * 0.3 * factor),
+    'ClankerWorld.Tests.SmallTests.Quick': Math.round(total * 0.1 * factor),
   });
   return { 3001: scaled(0.8), 3002: scaled(1), 3003: scaled(1.3) };
 }
@@ -127,6 +127,19 @@ test('a held issue, a total just under the budget or no issue at all changes not
   assert.deepEqual(await none.run(timings(t, runsTotalling(BudgetSeconds * 0.5))), { action: 'none' });
 });
 
+test('timings under another test namespace, such as main\'s from before a rename, are not counted', async t => {
+  const { writes, logs, run } = world();
+  const runs = runsTotalling(BudgetSeconds - 1000);
+  for (const times of Object.values(runs)) {
+    for (const [name, seconds] of Object.entries(times)) {
+      times[name.replace(/^ClankerWorld\.Tests\./, 'ClankerWorld.Simulation.Tests.')] = seconds;
+    }
+  }
+  await run(timings(t, runs));
+  assert.deepEqual(writes, []);
+  assert.ok(logs.some(line => line.includes(`${(BudgetSeconds - 1000).toLocaleString('en-US')} s`)), logs.join('\n'));
+});
+
 test('with too few runs, or in a dry run, nothing is written', async t => {
   const few = world();
   const runs = runsTotalling(BudgetSeconds * 2);
@@ -138,6 +151,42 @@ test('with too few runs, or in a dry run, nothing is written', async t => {
   assert.deepEqual(await dry.run(timings(t, runsTotalling(BudgetSeconds * 2)), true), { action: 'updated', number: 7 });
   assert.deepEqual(dry.writes, []);
   assert.match(dry.logs.join('\n'), /Would refresh #7\./);
+});
+
+test('old-only namespace histories leave an existing budget issue open', async t => {
+  const prior = Object.fromEntries(Object.entries(runsTotalling(BudgetSeconds * 2)).map(([id, times]) => [id,
+    Object.fromEntries(Object.entries(times).map(([name, value]) =>
+      [name.replace('ClankerWorld.Tests.', 'ClankerWorld.Simulation.Tests.'), value])),
+  ]));
+  const { records, writes, logs, run } = world([{ number: 7, body: Marker }]);
+  assert.deepEqual(await run(timings(t, prior)), { action: 'none' });
+  assert.deepEqual(writes, []);
+  assert.equal(records[0].state, 'open');
+  assert.match(logs.join('\n'), /Only 0 of main's green runs had test timings/);
+});
+
+test('old-only runs cannot fill the minimum alongside one or two current runs', async t => {
+  for (const count of [1, 2]) {
+    const runs = Object.fromEntries(Object.entries(runsTotalling(BudgetSeconds * 0.5)).slice(0, count));
+    runs[4001] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+    runs[4002] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+    runs[4003] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+    const { records, writes, logs, run } = world([{ number: 7, body: Marker }]);
+    assert.deepEqual(await run(timings(t, runs)), { action: 'none' });
+    assert.deepEqual(writes, []);
+    assert.equal(records[0].state, 'open');
+    assert.ok(logs.some(line => line.includes(`Only ${count} of main's green runs had test timings`)));
+  }
+});
+
+test('budget decisions cite only the three runs that measured current tests', async t => {
+  const runs = runsTotalling(BudgetSeconds + 600);
+  runs[4001] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+  runs[4002] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+  runs[4003] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+  const { writes, run } = world();
+  assert.deepEqual(await run(timings(t, runs)), { action: 'opened', number: 900 });
+  assert.match(writes[0][1].body, /median over main's last 3 green CI runs, the newest of them \[run 3003\]/);
 });
 
 test('the workflow runs weekly on main with main\'s timings and copy of the script', () => {

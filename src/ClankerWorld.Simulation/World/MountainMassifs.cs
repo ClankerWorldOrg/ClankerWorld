@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
@@ -50,8 +49,8 @@ internal static class MountainMassifs
     // The furthest a roughened outline can reach, in plain-ellipse units.
     private const double OutlineLimit = 1 / (1 - EdgeRoughness);
 
-    private const byte Mountain = SeededMap.MountainElevationThreshold;
-    private const byte Peak = SeededMap.PeakElevationThreshold;
+    private const byte Mountain = WorldMap.MountainElevationThreshold;
+    private const byte Peak = WorldMap.PeakElevationThreshold;
 
     private sealed record Massif(int X, int Y, double AxisX, double AxisY, double Long, double Short, double Bend);
 

@@ -21,7 +21,7 @@ stays open. There is no approved target action share.
 ## Method and limitations
 
 `SurvivalPriorityPrototypeTests.ReportFixedSeedSurvivalPriorities` uses the normal
-private-world decision and survival code with the real deterministic provider.
+world decision and survival code with the real deterministic provider.
 Three compatibility-map worlds use seeds `survival-priority-0`, `-1`, and `-2`.
 After three idle-provider setup ticks, each starts with identical food stock (32),
 45% fullness and 55% warmth. Each runs 360 ticks with fixed clear, rain or storm

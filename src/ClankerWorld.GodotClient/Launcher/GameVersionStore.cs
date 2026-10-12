@@ -7,7 +7,8 @@ namespace ClankerWorld.GodotClient.Launcher;
 /// <summary>An installed game version, with its folder's size on disk.</summary>
 public sealed record InstalledVersion(GameVersionName Version, string Directory, long SizeBytes, string? SourceRevision)
 {
-    public string Executable => Path.Combine(Directory, LauncherLayout.GameExecutable);
+    public string Executable => Path.Combine(Directory,
+        PackageEntryPoints.ReadInstalled(Directory)?.Game ?? LauncherLayout.GameExecutable);
 }
 
 /// <summary>Why an install or repair stopped. Nothing is half-installed after any of these.</summary>
@@ -49,8 +50,10 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
         {
             manifest = ReadManifest(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).ToArray();
             var names = manifest.Select(item => item.Relative).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            if (!names.Contains(LauncherLayout.GameExecutable) ||
-                !names.Contains(Path.Combine("host", "ClankerWorld.Viewer.exe")))
+            // This version's own entry points, so another version's layout never looks damaged.
+            if (PackageEntryPoints.Read(version.Directory, names.Contains) is not { } entryPoints)
+                return [PackageEntryPoints.FileName];
+            if (!names.Contains(entryPoints.Game) || !names.Contains(entryPoints.Server))
                 return [LauncherLayout.PackageManifest];
             foreach (var path in Directory.EnumerateFiles(version.Directory, "*", SearchOption.AllDirectories))
             {
@@ -116,7 +119,8 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
         try
         {
             Extract(zipPath, GameReleaseFeed.PackageName(version) + "/", staging);
-            if (!File.Exists(Path.Combine(staging, LauncherLayout.GameExecutable)))
+            if (PackageEntryPoints.ReadInstalled(staging) is not { } entryPoints ||
+                !File.Exists(Path.Combine(staging, entryPoints.Game)))
                 throw new GameInstallException("This download isn't a ClankerWorld game package, so it wasn't installed.");
             var staged = new InstalledVersion(version, staging, 0, null);
             if (Verify(staged).Count > 0)
@@ -269,7 +273,7 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
         }
     }
 
-    private static bool IsSafeRelativePath(string relative) =>
+    internal static bool IsSafeRelativePath(string relative) =>
         relative.Length is > 0 and < 260 && !relative.StartsWith('/') && !relative.Contains(':', StringComparison.Ordinal) &&
         !relative.Contains('\\', StringComparison.Ordinal) &&
         relative.Split('/').All(part => part.Length > 0 && part != "." && part != "..");

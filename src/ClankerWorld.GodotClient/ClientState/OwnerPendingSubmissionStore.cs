@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ClankerWorld.GodotClient.Pairing;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.GodotClient.ClientState;
 
@@ -96,7 +96,7 @@ public sealed record OwnerPendingSubmissionBinding(
     private static string CanonicalizeServerOrigin(Uri serverOrigin)
     {
         ArgumentNullException.ThrowIfNull(serverOrigin);
-        if (!WorldServerOrigin.TryResolve(serverOrigin.AbsoluteUri, out var canonicalOrigin))
+        if (!global::ClankerWorld.GodotClient.ClientState.ServerOrigin.TryResolve(serverOrigin.AbsoluteUri, out var canonicalOrigin))
         {
             throw new ArgumentException(
                 "The pending owner request must be bound to an absolute HTTPS origin (or literal loopback HTTP for local development).",
@@ -113,7 +113,7 @@ public sealed record OwnerPendingSubmissionBinding(
 /// </summary>
 public sealed record OwnerPendingInstructionSubmission(
     string IdempotencyKey,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     string WorldId,
@@ -122,20 +122,20 @@ public sealed record OwnerPendingInstructionSubmission(
     internal bool IsValid =>
         !string.IsNullOrWhiteSpace(WorldId) &&
         !string.IsNullOrWhiteSpace(IdempotencyKey) &&
-        !string.IsNullOrWhiteSpace(TargetInhabitantId) &&
+        !string.IsNullOrWhiteSpace(TargetAgentId) &&
         !string.IsNullOrWhiteSpace(Kind) &&
         !string.IsNullOrWhiteSpace(Text);
 
     public bool CanRetryIn(string? worldId) => !string.IsNullOrWhiteSpace(WorldId) && WorldId == worldId;
 
-    public OwnerInstructionAction ToAction() => new(IdempotencyKey, TargetInhabitantId, Kind, Text, WorldId, Queue);
+    public OwnerInstructionAction ToAction() => new(IdempotencyKey, TargetAgentId, Kind, Text, WorldId, Queue);
 
     public static OwnerPendingInstructionSubmission FromAction(OwnerInstructionAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
         return new OwnerPendingInstructionSubmission(
             action.IdempotencyKey,
-            action.TargetInhabitantId,
+            action.TargetAgentId,
             action.Kind,
             action.Text,
             action.WorldId,
@@ -146,25 +146,25 @@ public sealed record OwnerPendingInstructionSubmission(
 /// <summary>A world-bound order cancellation whose idempotency key survives a lost response.</summary>
 public sealed record OwnerPendingOrderCancelSubmission(
     string IdempotencyKey,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId,
     string WorldId)
 {
     // Native target identities keep their full length, as in the server cancellation.
     internal bool IsValid =>
-        !string.IsNullOrWhiteSpace(TargetInhabitantId) && !TargetInhabitantId.Any(char.IsControl) &&
+        !string.IsNullOrWhiteSpace(TargetAgentId) && !TargetAgentId.Any(char.IsControl) &&
         new[] { IdempotencyKey, OrderId, WorldId }
             .All(value => !string.IsNullOrWhiteSpace(value) && value.Length <= 128 && !value.Any(char.IsControl));
 
     public bool CanRetryIn(string? worldId) => !string.IsNullOrWhiteSpace(WorldId) && WorldId == worldId;
 
-    public OwnerOrderCancelAction ToAction() => new(IdempotencyKey, TargetInhabitantId, OrderId, WorldId);
+    public OwnerOrderCancelAction ToAction() => new(IdempotencyKey, TargetAgentId, OrderId, WorldId);
 
     public static OwnerPendingOrderCancelSubmission FromAction(OwnerOrderCancelAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
         return new OwnerPendingOrderCancelSubmission(
-            action.IdempotencyKey, action.TargetInhabitantId, action.OrderId, action.WorldId);
+            action.IdempotencyKey, action.TargetAgentId, action.OrderId, action.WorldId);
     }
 }
 

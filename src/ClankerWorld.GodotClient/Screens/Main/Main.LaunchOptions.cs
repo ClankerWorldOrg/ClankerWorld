@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using ClankerWorld.GodotClient.Launcher;
-using ClankerWorld.GodotClient.UI;
+using ClankerWorld.GodotClient.Protocol;
 using Godot;
 
 namespace ClankerWorld.GodotClient;

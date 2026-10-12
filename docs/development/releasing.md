@@ -33,7 +33,7 @@ revision.
 
 ## Matching client and host builds
 
-For an owner-authorized private-server update, follow the
+For an owner-authorized remote world server update, follow the
 [deployment checklist](remote-server-deployment.md). It covers staging,
 paused backups, accounting, credentials and rollback; a private update does
 not require a public release or tag.
@@ -145,7 +145,7 @@ Before publishing:
 Before each release, the owner checks the actual Windows bundle on an approved
 test device and disposable world:
 
-- Start the game. From the portable zip, it starts its own host and pairs
+- Start the game. From the portable zip, it starts its own local server and pairs
   without a code; otherwise pair with the matching host.
 - Create a New World.
 - Load a saved World.

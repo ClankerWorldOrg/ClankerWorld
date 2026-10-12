@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     private static string GuardianCareId(string child, string adult, long tick) => DerivedId.Create($"guardian-care:{child}:{adult}:{tick}");
     private static string GuardianMembershipId(string household, string child, long tick, int suffix) =>

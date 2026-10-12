@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -23,7 +24,7 @@ public partial class Main
         storedStockLayer.SetPiles([]);
         buildingCompletionLayer.Reset();
         knownEvents.Clear();
-        eventsWorldId = null;
+        eventLogWorldId = null;
         lastSeenEventId = long.MinValue;
         newEventsAfter = long.MaxValue;
         unreadEvents = 0;
@@ -36,7 +37,7 @@ public partial class Main
         familyTreePanel.Hide();
         memoriesPanel.Hide();
         thoughtsPanel.Hide();
-        selectedInhabitantId = null;
+        selectedAgentId = null;
         renamingAgentId = null;
         refusedAgentRename.Forget();
         renameRow.Hide();
@@ -56,12 +57,12 @@ public partial class Main
         providerConfiguration = null;
         observedRoutineHelperContext = null;
         _ = routineHelperModelPicker.BeginLoading(string.Empty);
-        cognitionModelContext = null;
-        cognitionModelLookup = null;
+        agentModelContext = null;
+        agentModelLookup = null;
         founderKeyEdits++;
-        cognitionKeyEdits++;
+        agentModelKeyEdits++;
         ClearFounderModelSetupCheck();
-        ClearCognitionModelSetupCheck();
+        ClearAgentModelSetupCheck();
         menuPauseConfirmed = false;
         menuPausedWorld = false;
         renderedMapSnapshot = null;
@@ -72,12 +73,12 @@ public partial class Main
         terrainTiles = [];
         cameraWorldId = null;
         usagePauseWorldId = null;
-        lastLifePaceWorldId = null;
+        lastAgingOverrideWorldId = null;
         renderedTownList = null;
-        renderedRosterPresentation = null;
-        foreach (var marker in inhabitantVisuals.Values) marker.QueueFree();
-        inhabitantVisuals.Clear();
-        inhabitantCanonicalXs.Clear();
+        renderedAgentListPresentation = null;
+        foreach (var marker in agentVisuals.Values) marker.QueueFree();
+        agentVisuals.Clear();
+        agentCanonicalXs.Clear();
         foreach (var visual in mapObjectVisuals.Values) visual.QueueFree();
         mapObjectVisuals.Clear();
         foreach (var badge in occupancyBadges.Values) badge.QueueFree();
@@ -93,8 +94,8 @@ public partial class Main
     private void Render(OwnerWorldSnapshot snapshot, IReadOnlyList<OwnerWorldEvent> appendedEvents)
     {
         var (mapWidth, mapHeight) = MapDimensions(snapshot);
-        authoringX.MaxValue = Math.Max(0, mapWidth - 1);
-        authoringY.MaxValue = Math.Max(0, mapHeight - 1);
+        worldEditX.MaxValue = Math.Max(0, mapWidth - 1);
+        worldEditY.MaxValue = Math.Max(0, mapHeight - 1);
         if (usagePauseWorldId != snapshot.WorldId)
         {
             usagePauseWorldId = snapshot.WorldId;
@@ -125,17 +126,17 @@ public partial class Main
             knownEvents.Remove(expiredId);
         }
 
-        RenderInhabitantList(snapshot);
+        RenderAgentList(snapshot);
         RenderMap(snapshot);
         RenderWorldHud(snapshot);
         if (checkUsagePause && registration is not null) _ = ObserveUsagePauseAsync();
         RenderFounderSetup(snapshot);
         RenderWorldInfo(snapshot);
-        RenderSelectedInhabitantCard(snapshot);
+        RenderSelectedAgentCard(snapshot);
         RenderBuildingCard(snapshot);
-        if (familyTreePanel.Visible && selectedInhabitantId is { } center)
+        if (familyTreePanel.Visible && selectedAgentId is { } center)
         {
-            familyTreeView.SetPeople(snapshot.WorldId, snapshot.Inhabitants, center);
+            familyTreeView.SetPeople(snapshot.WorldId, snapshot.Agents, center);
             UpdateFamilyTreeStatus();
         }
         RenderTownExtras(snapshot);
@@ -216,9 +217,9 @@ public partial class Main
             handcartFacings.Clear();
             animalFacings.Clear();
             boatFacings.Clear();
-            foreach (var visual in inhabitantVisuals.Values) visual.QueueFree();
-            inhabitantVisuals.Clear();
-            inhabitantCanonicalXs.Clear();
+            foreach (var visual in agentVisuals.Values) visual.QueueFree();
+            agentVisuals.Clear();
+            agentCanonicalXs.Clear();
             markerMotions.Clear();
             terrainLayer.SetHoveredTile(null);
             UpdateTownSiteGuidance(null);
@@ -236,7 +237,7 @@ public partial class Main
             terrainPackedLayers = snapshot.PackedMapLayers;
             terrainTiles = snapshot.PackedTerrain is null ? snapshot.Tiles.ToArray() : [];
             terrainLayer.SetWorld(terrainMap);
-            worldOverview.SetWorld(terrainMap);
+            worldMapAtlas.SetWorld(terrainMap);
         }
         var observedSeason = snapshot.Authoring?.Season ?? snapshot.WorldSystems?.Season;
         terrainLayer.SetSeason(observedSeason);
@@ -247,7 +248,7 @@ public partial class Main
         terrainLayer.SetRoads(snapshot.RoadTiles);
         terrainLayer.SetBridges(snapshot.Bridges, snapshot.Towns);
         terrainLayer.SetFields(snapshot.Fields);
-        worldOverview.SetFields(snapshot.Fields);
+        worldMapAtlas.SetFields(snapshot.Fields);
         terrainLayer.SetMarkets(snapshot.Towns);
         terrainLayer.SetBuildings(snapshot.PlacedBuildings, snapshot.Objects, snapshot.Towns);
         graveLayer.SetGraves(GraveMarkers(snapshot, terrainMap!));
@@ -261,22 +262,22 @@ public partial class Main
         var indoors = peopleInside.Values.SelectMany(people => people).Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var riders = snapshot.Animals.Where(animal => animal.RiderId is not null).Select(animal => animal.RiderId).ToHashSet(StringComparer.Ordinal);
         terrainLayer.ObserveGroundSnow(snapshot.WorldTick, snapshot.CalendarPace?.TicksPerDay ?? 1440,
-            snapshot.Inhabitants.Where(person => !person.IsDraft && IsLiving(person) && !indoors.Contains(person.Id) && !riders.Contains(person.Id))
+            snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person) && !indoors.Contains(person.Id) && !riders.Contains(person.Id))
                 .Select(person => ("agent:" + person.Id, new Vector2I(person.Position.X, person.Position.Y)))
                 .Concat(snapshot.Animals.Where(animal => animal.LifeStage != "dead")
                     .Select(animal => ("animal:" + animal.Id, new Vector2I(animal.Position.X, animal.Position.Y)))).ToArray(),
             snapshot.Authoring?.IsPaused == true);
         nightLightsLayer.SetLanternSites(StreetLanternSites(snapshot));
-        worldOverview.SetRoads([.. snapshot.RoadTiles, .. snapshot.Bridges.SelectMany(bridge => bridge.Span)]);
+        worldMapAtlas.SetRoads([.. snapshot.RoadTiles, .. snapshot.Bridges.SelectMany(bridge => bridge.Span)]);
         ApplyMapFilters(snapshot);
         var mapWidth = terrainMap.Width;
         var mapHeight = terrainMap.Height;
-        worldOverview.WrapsEastWest = snapshot.WrapsEastWest;
-        worldOverview.Backdrop = UiTheme.Current.Inset;
-        worldOverview.AtlasEdge = UiTheme.Current.WoodEdge;
-        worldOverview.SetMarkers(
+        worldMapAtlas.WrapsEastWest = snapshot.WrapsEastWest;
+        worldMapAtlas.Backdrop = UiTheme.Current.Inset;
+        worldMapAtlas.AtlasEdge = UiTheme.Current.WoodEdge;
+        worldMapAtlas.SetMarkers(
             snapshot.Towns.Where(town => town.BorderTiles.Count > 0).Select(town => TownMarkerTile(town, mapWidth, snapshot.WrapsEastWest)),
-            snapshot.Inhabitants.Where(person => !person.IsDraft && IsLiving(person))
+            snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person))
                 .Select(person => new Vector2(person.Position.X + 0.5f, person.Position.Y + 0.5f)));
         nightLayer.Darkness = NightLayer.FromBasisPoints(snapshot.DarknessBasisPoints);
         goldenHourLayer.Observe(snapshot.WorldId, snapshot.WorldTick, snapshot.CalendarPace?.TicksPerDay ?? 1440,
@@ -302,7 +303,7 @@ public partial class Main
                 // Natural sites are drawn as terrain sprites; their marker only
                 // adds hover help and a caption, not a second symbol.
                 WorldTerrainMap.NaturalObjectName(resource.NaturalObjectKind) is null &&
-                    (resource.NaturalObjectKind is not null || NatureSprites.ForCampResource(resource.Kind) is null)
+                    (resource.NaturalObjectKind is not null || NatureSprites.ForResourceKind(resource.Kind) is null)
                     ? ResourceGlyph(resource.Kind, resource.NaturalObjectKind) : string.Empty,
                 GameUiText.ResourceMapCaption(resource, currentTileSize),
                 GameUiText.ResourceTooltip(resource));
@@ -440,9 +441,9 @@ public partial class Main
 
         // People inside a building are hidden; the building shows how many instead.
         var hiddenInside = peopleInside.Values.SelectMany(people => people).Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        foreach (var group in snapshot.Inhabitants
-            .Where(inhabitant => !inhabitant.IsDraft && string.Equals(inhabitant.Lifecycle, "active", StringComparison.OrdinalIgnoreCase))
-            .GroupBy(inhabitant => PositionKey(inhabitant.Position)))
+        foreach (var group in snapshot.Agents
+            .Where(agent => !agent.IsDraft && string.Equals(agent.Lifecycle, "active", StringComparison.OrdinalIgnoreCase))
+            .GroupBy(agent => PositionKey(agent.Position)))
         {
             var occupants = group.ToArray();
             var columns = Math.Max(1, (int)Math.Ceiling(Math.Sqrt(occupants.Length)));
@@ -451,7 +452,7 @@ public partial class Main
             var cellHeight = (float)currentTileSize / rows;
             for (var index = 0; index < occupants.Length; index++)
             {
-                var inhabitant = occupants[index];
+                var agent = occupants[index];
                 var stride = currentTileSize + TileGap;
                 var inset = Math.Min(3f, Math.Min(cellWidth, cellHeight) / 8f);
                 var visualLimit = Math.Min(78f, currentTileSize * 0.55f);
@@ -460,77 +461,77 @@ public partial class Main
                 var offsetX = (index % columns) * cellWidth + (cellWidth - markerSize.X) / 2;
                 var offsetY = (index / columns) * cellHeight + (cellHeight - markerSize.Y) / 2;
                 var targetPosition = new Vector2(
-                    inhabitant.Position.X * stride + offsetX,
-                    inhabitant.Position.Y * stride + offsetY);
-                if (!inhabitantVisuals.TryGetValue(inhabitant.Id, out var actorMarker))
+                    agent.Position.X * stride + offsetX,
+                    agent.Position.Y * stride + offsetY);
+                if (!agentVisuals.TryGetValue(agent.Id, out var actorMarker))
                 {
                     actorMarker = new AgentMarker { Position = targetPosition };
                     actorMarker.Activated += () =>
                     {
                         if (placingAddedAgent && founderSetupPanel.Visible)
                         {
-                            var currentPosition = renderedMapSnapshot?.Inhabitants
-                                .FirstOrDefault(item => item.Id == inhabitant.Id)?.Position;
+                            var currentPosition = renderedMapSnapshot?.Agents
+                                .FirstOrDefault(item => item.Id == agent.Id)?.Position;
                             if (currentPosition is { } position)
                                 _ = PlaceAgentAtAsync(new Vector2I(position.X, position.Y));
                         }
                         else
-                            SelectInhabitant(inhabitant.Id);
+                            SelectAgent(agent.Id);
                     };
-                    actorMarker.ConversationActivated += () => OpenAgentConversation(inhabitant.Id);
+                    actorMarker.ConversationActivated += () => OpenAgentConversation(agent.Id);
                     actorMarker.MouseEntered += RefreshTileHoverAtMouse;
                     actorMarker.MouseExited += RefreshTileHoverAtMouse;
                     entityLayer.AddChild(actorMarker);
-                    inhabitantVisuals.Add(inhabitant.Id, actorMarker);
+                    agentVisuals.Add(agent.Id, actorMarker);
                 }
-                actorMarker.Caption = GameUiText.ActorMapLabel(inhabitant.DisplayName);
-                actorMarker.Variant = AgentSprites.VariantFor(inhabitant.Id);
-                actorMarker.Visible = !snapshot.Animals.Any(animal => animal.RiderId == inhabitant.Id) && !hiddenInside.Contains(inhabitant.Id);
+                actorMarker.Caption = GameUiText.ActorMapLabel(agent.DisplayName);
+                actorMarker.Variant = AgentSprites.VariantFor(agent.Id);
+                actorMarker.Visible = !snapshot.Animals.Any(animal => animal.RiderId == agent.Id) && !hiddenInside.Contains(agent.Id);
                 actorMarker.Stage = AgentSprites.StageIndex(
-                    inhabitant.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail);
+                    agent.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail);
                 // Facing and frame only present what the observation says:
                 // the tile the host reports and what the agent is doing there.
-                actorMarker.ObserveTile(snapshot.WorldId, new Vector2I(inhabitant.Position.X, inhabitant.Position.Y),
+                actorMarker.ObserveTile(snapshot.WorldId, new Vector2I(agent.Position.X, agent.Position.Y),
                     mapWidth, snapshot.WrapsEastWest);
-                actorMarker.Activity = AgentMarker.ActivityFor(inhabitant);
-                actorMarker.Swimming = inhabitant.Route.Status == "swim";
+                actorMarker.Activity = AgentMarker.ActivityFor(agent);
+                actorMarker.Swimming = agent.Route.Status == "swim";
                 actorMarker.ObserveModelWait(snapshot.WorldId,
-                    inhabitant.DecisionFactors.FirstOrDefault(factor => factor.Key == "model-status")?.Detail == "waiting",
+                    agent.DecisionFactors.FirstOrDefault(factor => factor.Key == "model-status")?.Detail == "waiting",
                     snapshot.Authoring?.IsPaused == true);
-                var actorTooltip = $"{inhabitant.DisplayName} · {Pretty(inhabitant.Lifecycle)} · " +
-                    (inhabitant.PublicIntention?.Summary ?? "taking in the world");
+                var actorTooltip = $"{agent.DisplayName} · {Pretty(agent.Lifecycle)} · " +
+                    (agent.PublicIntention?.Summary ?? "taking in the world");
                 if (actorMarker.Swimming) actorTooltip += "\nSwimming";
-                var conversation = LatestConversationFor(snapshot, inhabitant.Id);
+                var conversation = LatestConversationFor(snapshot, agent.Id);
                 actorMarker.ConversationBadgeVisible = conversation is not null;
                 actorMarker.ConversationUnread = conversation is not null &&
-                    ConversationUnreadCount(snapshot.WorldId, conversation, inhabitant.Id) > 0;
+                    ConversationUnreadCount(snapshot.WorldId, conversation, agent.Id) > 0;
                 if (conversation is not null)
-                    actorTooltip += "\n" + ConversationTooltipSummary(inhabitant.Id, conversation);
+                    actorTooltip += "\n" + ConversationTooltipSummary(agent.Id, conversation);
                 if (actorMarker.TooltipText != actorTooltip) actorMarker.TooltipText = actorTooltip;
-                actorMarker.Selected = string.Equals(inhabitant.Id, selectedInhabitantId, StringComparison.Ordinal);
+                actorMarker.Selected = string.Equals(agent.Id, selectedAgentId, StringComparison.Ordinal);
                 actorMarker.Size = markerSize;
-                PresentMovingMarker("agent:" + inhabitant.Id, actorMarker, inhabitant.Position,
+                PresentMovingMarker("agent:" + agent.Id, actorMarker, agent.Position,
                     new(offsetX, offsetY), snapshot, agent: true, bob: true, snap: !actorMarker.Visible);
 
             }
         }
 
-        var visibleInhabitantIds = snapshot.Inhabitants
-            .Where(inhabitant => !inhabitant.IsDraft && string.Equals(inhabitant.Lifecycle, "active", StringComparison.OrdinalIgnoreCase))
-            .Select(inhabitant => inhabitant.Id)
+        var visibleAgentIds = snapshot.Agents
+            .Where(agent => !agent.IsDraft && string.Equals(agent.Lifecycle, "active", StringComparison.OrdinalIgnoreCase))
+            .Select(agent => agent.Id)
             .ToHashSet(StringComparer.Ordinal);
-        foreach (var removedId in inhabitantVisuals.Keys.Where(id => !visibleInhabitantIds.Contains(id)).ToArray())
+        foreach (var removedId in agentVisuals.Keys.Where(id => !visibleAgentIds.Contains(id)).ToArray())
         {
-            inhabitantVisuals[removedId].QueueFree();
-            inhabitantVisuals.Remove(removedId);
-            inhabitantCanonicalXs.Remove(removedId);
+            agentVisuals[removedId].QueueFree();
+            agentVisuals.Remove(removedId);
+            agentCanonicalXs.Remove(removedId);
             markerMotions.Remove("agent:" + removedId);
         }
 
         RenderOccupancyBadges(snapshot, peopleInside);
         RenderTileInspection(snapshot);
         RenderAgentConversationReader(snapshot);
-        PositionSelectedInhabitantCard(snapshot);
+        PositionSelectedAgentCard(snapshot);
         PositionBuildingQuickCard(snapshot);
         RefreshTileHoverAtMouse();
     }
@@ -584,7 +585,7 @@ public partial class Main
     /// <summary>
     /// Opens a world on its settlement rather than the geometric map center,
     /// which on generated maps is often open water: the first Town, then the
-    /// living agents, then camp objects. A new world has none of these yet,
+    /// living agents, then map objects. A new world has none of these yet,
     /// so it opens near dry land instead of possibly over open water.
     /// </summary>
     private static Vector2 InitialCameraCenter(OwnerWorldSnapshot snapshot, WorldTerrainMap terrain)
@@ -595,7 +596,7 @@ public partial class Main
             snapshot.Towns.FirstOrDefault(town => town.BorderTiles.Count > 0)?.BorderTiles ?? [];
         if (focus.Count == 0)
         {
-            focus = snapshot.Inhabitants
+            focus = snapshot.Agents
                 .Where(person => !person.IsDraft &&
                     string.Equals(person.Lifecycle, "active", StringComparison.OrdinalIgnoreCase))
                 .Select(person => person.Position).ToArray();
@@ -696,8 +697,8 @@ public partial class Main
         menuResumeButton.Text = menuPausedWorld ? "Resume" : "Close menu";
     }
 
-    private static int LivingPopulation(OwnerWorldSnapshot snapshot) => snapshot.Inhabitants.Count(inhabitant =>
-        !inhabitant.IsDraft && string.Equals(inhabitant.Lifecycle, "active", StringComparison.OrdinalIgnoreCase));
+    private static int LivingPopulation(OwnerWorldSnapshot snapshot) => snapshot.Agents.Count(agent =>
+        !agent.IsDraft && string.Equals(agent.Lifecycle, "active", StringComparison.OrdinalIgnoreCase));
 
     private OwnerWeatherRegion? WeatherRegionAtCamera(OwnerWorldSnapshot snapshot)
     {
