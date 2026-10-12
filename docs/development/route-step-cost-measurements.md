@@ -2,10 +2,16 @@
 title: Route step cost measurements
 type: experiment-report
 status: active
-updated: 2026-10-09
+updated: 2026-10-11
 ---
 
 # Route step cost measurements
+
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
 
 Layout and shared route searches receive legal edges from `FootNeighbors`.
 Their Road cost calculation now reuses that immediately established legality,
@@ -125,7 +131,8 @@ The sampler attaches after setup and warmup at a ready/go gate and samples only 
 9,081.7 → 6,806.4 ms (20.97% → 17.14%); shared route search spans
 5,017.5 → 3,863.5 ms (11.58% → 9.73%). These intervals overlap and may include
 waits or GC; they cannot be added or read as exact CPU costs. Candidate creation
-still spans about 96.6% of sampled tick time. The wider workload remains in #998.
+still spans about 96.6% of sampled tick time. The wider workload was tracked in #998 at
+measurement time.
 
 ## Tested-main integration
 

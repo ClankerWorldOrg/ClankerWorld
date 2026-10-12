@@ -48,7 +48,7 @@ public sealed partial class PrivateWorldRuntime
                 lot.OwnerId == actor && IsValidInstructionIdentifier(lot.Id) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id) &&
                 (order.Action == "load_handcart" ? CanPullHandcart(lot) && CargoQuantity(lot.Id) < InventoryContainerRules.HandcartCapacity :
-                    society.Checkpoint.Inventory.Lots.Any(cargo => cargo.ContainerLotId == lot.Id && cargo.ItemKind == order.TargetItemKind)))
+                    CartCargoLots(actor, lot.Id).Any(cargo => cargo.ItemKind == order.TargetItemKind)))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
     }
@@ -58,9 +58,9 @@ public sealed partial class PrivateWorldRuntime
         var order = instruction.Order!;
         var inventory = society.Checkpoint.Inventory;
         if (order.TargetLotId is { } bound) return inventory.Lots.FirstOrDefault(lot => lot.Id == bound);
-        return inventory.Lots.Where(lot => lot.ItemKind == order.TargetItemKind &&
-                (order.Action == "load_handcart" ? CanLoadCartLot(instruction.TargetInhabitantId, person, lot) :
-                    lot.OwnerId == instruction.TargetInhabitantId && lot.ContainerLotId == cart.Id))
+        var lots = order.Action == "load_handcart" ? inventory.Lots.Where(lot =>
+            CanLoadCartLot(instruction.TargetInhabitantId, person, lot)) : CartCargoLots(instruction.TargetInhabitantId, cart.Id);
+        return lots.Where(lot => lot.ItemKind == order.TargetItemKind)
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
     }
 
@@ -91,7 +91,7 @@ public sealed partial class PrivateWorldRuntime
             ? new(instruction.Order!.Action, "Reach the selected cart and move only the requested authorized loose goods through its native inventory action.", 0,
                 CartForOrder(instruction, person)!.Id) : null;
 
-    private int CargoQuantity(string cartId) => society.Checkpoint.Inventory.Lots.Where(lot => lot.ContainerLotId == cartId).Sum(lot => lot.Quantity);
+    private int CargoQuantity(string cartId) => ContainerContentsQuantity(society.Checkpoint.Inventory, cartId);
 
     private void ExecuteCartCargoOrderStep(OwnerQueuedInstruction instruction, PlaytestInhabitantState person)
     {

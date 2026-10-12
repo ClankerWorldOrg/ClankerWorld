@@ -172,7 +172,10 @@ public sealed partial class PrivateWorldRuntime
     private IEnumerable<InventoryLot> AnimalSuppliesAtHand(string actor, AnimalState animal)
     {
         var inventory = society.Checkpoint.Inventory;
-        return inventory.Lots.Where(lot => lot.DeliveryBuildingId is null && AvailableLotQuantity(lot) > 0 &&
+        var owners = new GoodsOwners(animal.HouseholdId is { } home ? [actor, home] : [actor]);
+        var kinds = new GoodsKinds(["grain", "wild_greens", "cultivated_greens", "saddle", InventoryContainerRules.FreshWater]);
+        return FindGoods(new(GoodsUse.ConsumeAt, actor, owners, kinds)).Matches.Select(match => match.Lot)
+            .Where(lot => lot.DeliveryBuildingId is null &&
             (lot.OwnerId == actor && PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor) ||
              lot.OwnerId == animal.HouseholdId && MayCareForAnimal(actor, animal) &&
              (PersonalEquipmentRules.IsPhysicallyCarried(inventory, lot, actor) ||
@@ -212,8 +215,7 @@ public sealed partial class PrivateWorldRuntime
             return needed == 0;
         }
         return Take(lot => AnimalRules.IsFeed(lot.ItemKind) && lot.ContainerLotId is null, feed) &&
-            Take(lot => lot.ItemKind == InventoryContainerRules.FreshWater && lot.ContainerLotId is { } container &&
-                society.Checkpoint.Inventory.GetLot(container).ConditionBasisPoints > 0, water) &&
+            Take(lot => lot.ItemKind == InventoryContainerRules.FreshWater && lot.ContainerLotId is not null, water) &&
             result.Where(input => IsEdibleFood(input.Item1.ItemKind))
                 .GroupBy(input => FoodHousehold(input.Item1))
                 .All(group => AnimalFoodReserveRemaining(actor, group.Sum(input => input.Item2), group.Key)) ? result : null;
@@ -248,12 +250,8 @@ public sealed partial class PrivateWorldRuntime
             return next;
         });
     }
-    private InventoryLot? CarriedMilk(string actor) => society.Checkpoint.Inventory.Lots.FirstOrDefault(lot =>
-        lot.ItemKind == "milk" && lot.DeliveryBuildingId is null &&
-        (lot.ContainerLotId is null || society.Checkpoint.Inventory.GetLot(lot.ContainerLotId) is
-        { ConditionBasisPoints: > 0, DeliveryBuildingId: null }) && AvailableLotQuantity(lot) > 0 &&
-        PersonalEquipmentRules.IsPhysicallyCarried(society.Checkpoint.Inventory, lot, actor) &&
-        (lot.OwnerId == actor || lot.OwnerId == HouseholdFor(actor)));
+    private InventoryLot? CarriedMilk(string actor) => FindGoods(new(GoodsUse.Eat, actor,
+        new GoodsOwners(HouseholdFor(actor) is { } home ? [actor, home] : [actor]), GoodsKinds.One("milk"))).First?.Lot;
 
     private InventoryLot? WildAnimalHide(AnimalState animal) => animal.DiedTick is not null && animal.HouseholdId is null ?
         society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == AnimalHideId(animal.Id) &&

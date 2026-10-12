@@ -81,6 +81,7 @@ public partial class Main
         quickCardNameLabel.ThemeTypeVariation = "HeadingLabel";
         quickCardNameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         quickCardNameLabel.ClipText = true;
+        quickCardNameLabel.MouseFilter = Control.MouseFilterEnum.Pass;
         heading.AddChild(quickCardNameLabel);
         StyleIconButton(findAgentButton, PixelGlyph.Find);
         findAgentButton.TooltipText = "Center the map on this agent (C)";
@@ -151,6 +152,7 @@ public partial class Main
         selectedActorNameLabel.MaxLinesVisible = 2;
         selectedActorNameLabel.TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
         selectedActorNameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        selectedActorNameLabel.MouseFilter = Control.MouseFilterEnum.Pass;
         nameRow.AddChild(selectedActorNameLabel);
         // A small pencil beside the name renames; it opens a field only when wanted.
         StyleIconButton(renameToggleButton, PixelGlyph.Pencil);
@@ -611,7 +613,7 @@ public partial class Main
             renamingAgentId = null;
             refusedAgentRename.Forget();
             renameRow.Hide();
-            quickCardNameLabel.Text = string.Empty;
+            quickCardNameLabel.Text = quickCardNameLabel.TooltipText = string.Empty;
             selectedActorNameLabel.Text = string.Empty;
             selectedActorSummaryLabel.Text = string.Empty;
             selectedActorConditionLabel.Text = string.Empty;
@@ -643,7 +645,7 @@ public partial class Main
             CloseAgentModelEditor();
 
         // Name, age and one plain sentence for what they are doing, shared by both cards.
-        quickCardNameLabel.Text = inhabitant.DisplayName;
+        quickCardNameLabel.Text = quickCardNameLabel.TooltipText = inhabitant.DisplayName;
         selectedActorNameLabel.Text = inhabitant.DisplayName;
         // Draft and refused names stay in the open field for the player to change,
         // while the labels above keep showing the name the host holds.

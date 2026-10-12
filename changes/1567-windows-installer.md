@@ -1,0 +1,1 @@
+- Install ClankerWorld with a per-user Windows setup, including the launcher, current game and shortcuts; uninstalling keeps your game versions, worlds, keys and model-call count.

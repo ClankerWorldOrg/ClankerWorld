@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Footprint query measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Construction-site evaluation rejects an illegal origin before allocating its
 full footprint. The origin belongs to every rectangular footprint; custom
 shapes that omit it keep their earlier evaluation path. Permitted Market Roads

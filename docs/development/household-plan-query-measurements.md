@@ -2,17 +2,23 @@
 title: Household plan query measurements
 type: performance-report
 status: complete
-updated: 2026-10-08
+updated: 2026-10-11
 ---
 
 # Household plan query measurements
+
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
 
 Household planning now computes a proposed building's identity once per design,
 before scanning placed buildings for it. Previously the scan recomputed the same
 identity for every building, including name hashing and reserved-identity checks.
 This is a bounded follow-up to [#998](https://github.com/compoodment/ClankerWorld/issues/998).
 The wider construction, layout and input-query cost remains above the experiment's
-rough guidance and needs fresh profiling after this change merges.
+rough guidance and needed fresh profiling at the time of this report.
 
 ## Source and workload
 

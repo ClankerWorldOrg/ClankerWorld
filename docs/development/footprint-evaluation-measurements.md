@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Footprint evaluation measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Construction site evaluation enumerates its existing placement footprint lazily,
 so a blocked tile can reject a site without translating and allocating the
 remaining tiles. Custom offsets, land, entrances, neighbor distance, border,
@@ -114,6 +120,6 @@ baseline and candidate source both define `StateSchemaVersion = 125`.
 record ordinary, repeat and state-change equivalence.
 Original samples, complete captures, traces, probe sources and source/configuration
 hashes are retained outside Git under `.evidence/keep/998-ff19ed5a/`.
-Broader construction/layout/route/input cost remains in
+Broader construction/layout/route/input cost was tracked in
 [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
 Windows/F12 hands-on checks remain pending.

@@ -18,12 +18,13 @@ public sealed partial class PrivateWorldRuntime
             return null;
 
         var inventory = society.Checkpoint.Inventory;
-        foreach (var vessel in inventory.Lots.Where(lot => lot.OwnerId == householdId &&
+        foreach (var vessel in FindGoods(new(GoodsUse.VesselFor, actor, GoodsOwners.One(householdId),
+                     new GoodsKinds([InventoryContainerRules.StoragePot, InventoryContainerRules.WaterJug, InventoryContainerRules.Handcart])))
+                     .Matches.Select(match => match.Lot).Where(lot =>
                      (selectedLotId is null || lot.Id == selectedLotId) &&
-                     InventoryContainerRules.IsContainer(lot.ItemKind) && lot.ConditionBasisPoints > 0 &&
-                     lot.ContainerLotId is null && lot.GroundPosition is null && lot.DeliveryBuildingId is null &&
+                     lot.GroundPosition is null &&
                      lot.StorageBuildingId is not null && lot.StorageBuildingId != house.InstanceId &&
-                     ContainerContentsQuantity(inventory, lot.Id) == 0 && !HasActiveContainerReservation(inventory, lot.Id))
+                     ContainerContentsQuantity(inventory, lot.Id) == 0)
                      .OrderBy(lot => lot.Id, StringComparer.Ordinal))
         {
             // A household knows its own held workplace; foreign or unclaimed buildings grant no access.

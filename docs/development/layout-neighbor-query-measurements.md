@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Layout neighbor query measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Layout foot-cost searches use a value-type neighbor enumerator instead of
 allocating the public iterator for each visited tile. Both paths share the
 same offset order, narrow-wrap duplicate suppression and live `CanFootStep`
@@ -19,7 +25,7 @@ The fresh matched dataset is in git history at commit `afbc35e8` as
 It records lower allocations in all ten ordinary/repeat pairs, by about
 1.1–2.2%. Timing changes are mixed, so retain this bounded allocation reduction
 without claiming a consistent latency improvement. Wider construction and
-layout costs remain in [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
+layout costs were tracked in [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
 
 ## Fresh matched inputs and method
 
@@ -161,4 +167,5 @@ logs are retained under `.evidence/keep/998-current/effee-matched/` in Codex
 session e0f464b8's workspace. Earlier records remain under the parent evidence
 directory. Existing [Windows/F12 checks](../../playtest/alpha-1.md)
 remain pending. These Linux records establish no Windows frame-performance
-or hosted-model speedup; broader construction/layout work stays open in #998.
+or hosted-model speedup; broader construction/layout work was still open when these
+measurements were made.
