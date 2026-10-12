@@ -401,7 +401,7 @@ public partial class Main
                 catch (Exception exception) when (exception is not OutOfMemoryException &&
                     exception is not ObsoleteWorldRequestException)
                 {
-                    return $"{detail} · Model settings could not be refreshed. Reopen Game Settings to refresh them.";
+                    return $"{detail} · Model settings could not be refreshed. Open World Settings to refresh them.";
                 }
                 return detail;
             }, conflictMessage: "The placement changed. Check the tile and try again.");

@@ -12,7 +12,7 @@ public static class LandTransferText
             .OrderBy(transfer => transfer.ProposedTick).ThenBy(transfer => transfer.Id, StringComparer.Ordinal).ToArray();
     }
 
-    public static string Summary(OwnerLandTransfer transfer) => "Permission transfer " +
+    public static string Summary(OwnerLandTransfer transfer) => "Use right transfer " +
         transfer.Id[(transfer.Id.LastIndexOf(':') + 1)..] + " · " + (transfer.Status == "pending" && transfer.Price is not null && transfer.Parties.All(party => party.AdultIds.Count > 0 && party.AcceptedAdultIds.Count == party.AdultIds.Count)
             ? "awaiting goods payment" : Status(transfer.Status)) + " · " +
         string.Join("; ", transfer.Parties.Where(party => party.Kind == "source").Select(party => party.HouseholdName)) +
@@ -46,7 +46,7 @@ public static class LandTransferText
             lines.Add("Goods price: " + price.Quantity + " " + price.ItemKind + " to " + price.SellerHouseholdName + ". No money price.");
             lines.Add(transfer.Payment is { } payment
                 ? "Paid by " + payment.BuyerName + " to " + payment.SellerName + " for the household at (" + payment.Position.X + ", " + payment.Position.Y + ") · " + clock(payment.Tick) + "."
-                : "Payment has not been made. The buyer must carry the agreed goods to meet a seller adult at the notice place before permission moves.");
+                : "Payment has not been made. The buyer must carry the agreed goods to meet a seller adult at the notice place before the use right moves.");
         }
         lines.AddRange(Terms(transfer, clock));
         foreach (var party in transfer.Parties)
@@ -67,7 +67,7 @@ public static class LandTransferText
         if (transfer.SettledTick is { } settled) lines.Add("Closed " + clock(settled) + " · " + Status(transfer.Status));
         if (transfer.Reason is { } reason) lines.Add(Reason(reason));
         lines.Add("Every current adult in every source and receiving household must accept. No routine mayor or Council approval is needed.");
-        lines.Add("Use permission and any agreed goods payment move; Town title, membership, buildings, crops, other goods and private-building access stay unchanged.");
+        lines.Add("The use right and any agreed goods payment move; Town title, membership, buildings, crops, other goods and private-building access stay unchanged.");
         return lines.Select(GameUiText.PlainEllipses).ToArray();
     }
 
@@ -82,10 +82,10 @@ public static class LandTransferText
     private static string Roster(string kind) => kind switch { "current" => "current", "settlement" => "settlement", _ => "published" };
     private static string Reason(string reason) => reason switch
     {
-        "adult_declined" => "An affected adult declined; permission did not move.",
-        "filer_withdrew" => "The proposer withdrew the transfer; permission did not move.",
-        "rights_changed" => "The recorded source permission changed; fresh terms and acceptance are required.",
-        "permission_expired" => "A source permission reached its agreed end; it requires expiry review.",
+        "adult_declined" => "An affected adult declined; the use right did not move.",
+        "filer_withdrew" => "The proposer withdrew the transfer; the use right did not move.",
+        "rights_changed" => "The giving household's recorded use right changed; the transfer needs fresh terms and acceptance.",
+        "permission_expired" => "The giving household's use right reached its agreed end; it needs an expiry review first.",
         "plot_disputed" => "The plot has competing claims; the voluntary transfer cannot settle them.",
         "hearing_open" => "The plot is under review; a voluntary transfer cannot bypass the hearing.",
         _ => "The published terms no longer allow this transfer.",

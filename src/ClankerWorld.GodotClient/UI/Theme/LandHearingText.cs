@@ -14,7 +14,7 @@ public static class LandHearingText
 
     public static string Summary(OwnerTownLandHearing hearing)
     {
-        var subject = hearing.Kind switch { "expiry" => "permission expiry", "property" => "household property", _ => "disputed permission" };
+        var subject = hearing.Kind switch { "expiry" => "use right expiry", "property" => "household property", _ => "disputed use right" };
         var status = hearing.SettledTick is null ? "awaiting a ruling" :
             hearing.ReopenRequests.Any(request => request.Status == "pending") ? "settled · rehearing awaiting assessment" : "settled";
         var parties = string.Join("; ", hearing.Parties.Select(party => party.Name));
@@ -30,14 +30,14 @@ public static class LandHearingText
     {
         var action = outcome.Kind switch
         {
-            "confirm" => "Confirm the current use permission",
-            "renew" => "Renew the use permission",
-            "amend" => "Change the use permission",
-            "end" => "End the use permission",
+            "confirm" => "Confirm the current use right",
+            "renew" => "Renew the use right",
+            "amend" => "Change the use right",
+            "end" => "End the use right",
             "reject" => "Reject the unsupported request; retain current rights",
             "reclaim" => "Pass the agreed household property to the Town",
             "grant" => "Grant the recovered property",
-            _ => "Review the use permission",
+            _ => "Review the use right",
         };
         return action + (outcome.HouseholdName is { } household ? " for " + household : "") +
             (outcome.AgreedEndTick is { } end ? " · agreed end " + clock(end) : "");
@@ -153,7 +153,7 @@ public static class LandHearingText
                     (request.Assessment is { } assessment ? ": " + assessment : "."));
         }
         lines.Add(hearing.Kind == "property" ? "Property transfers require living owners' agreement and an independent ruling. Town title, membership, crops and personal goods stay unchanged." :
-            "Use permission changes leave Town title, household membership, private buildings, crops and goods with their owners.");
+            "Use right changes leave Town title, household membership, private buildings, crops and goods with their owners.");
         return lines.Select(GameUiText.PlainEllipses).ToArray();
     }
 
@@ -164,7 +164,7 @@ public static class LandHearingText
     private static string RecordText(OwnerTownLandHearing hearing, OwnerLandHearingEvidence evidence, Func<long, string> clock)
     {
         if (evidence.PermissionRecord is { } permission)
-            return (evidence.RecordPartyName ?? "The household") + " has recorded use permission for " +
+            return (evidence.RecordPartyName ?? "The household") + " has a recorded use right for " +
                 Tiles(permission.Tiles) + " · granted " + clock(permission.GrantedTick) +
                 (permission.AgreedEndTick is { } end ? " · agreed end " + clock(end) : " · no agreed end") + ".";
         if (evidence.TitleRecord is { } title)

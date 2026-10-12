@@ -457,13 +457,13 @@ public partial class Main
             ? "Leave blank to keep saved key"
             : "API key";
         cognitionCredentialHint.Text = newCredential
-            ? "A new key is stored privately on the host and can be reused for other agents."
+            ? "A new key is stored privately on the world server and can be reused for other agents."
             : agentCredential && SelectedCredentialChoice() != "default"
-            ? "This key is saved on the host."
+            ? "This key is saved on the world server."
             : agentCredential && option?.HasCredential != true
             ? "No provider default key. Select Add another API key to give this agent one."
             : option?.HasCredential == true
-            ? "The key is saved on the host."
+            ? "The key is saved on the world server."
             : "No saved key";
         cognitionConfigurationStatus.Text = providerConfiguration is null
             ? "Loading..."
@@ -676,7 +676,7 @@ public partial class Main
         cognitionCredentialHint.ThemeTypeVariation = "DimLabel";
         body.AddChild(cognitionCredentialHint);
 
-        cognitionCredentialHint.TooltipText = "Keys are sent securely and stay on the game server. They are never shown again, logged, or saved in world files.";
+        cognitionCredentialHint.TooltipText = "Keys are sent securely and stay on the world server. They are never shown again, logged, or saved in world files.";
 
         cognitionConfigurationStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(cognitionConfigurationStatus);

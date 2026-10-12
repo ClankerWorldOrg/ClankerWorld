@@ -1,0 +1,1 @@
+- Menus, the pairing screen and building details now use clearer, consistent words. The Main Menu offers **Connect to a world server**, pairing explains each step without technical terms, Building Details calls its section **Manage building**, land details always say **use right**, and Developer tools calls its aging control **Aging override**.

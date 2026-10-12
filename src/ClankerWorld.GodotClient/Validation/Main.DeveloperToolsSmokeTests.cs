@@ -136,12 +136,12 @@ public partial class Main
             if (!developerTileLabel.Text.StartsWith($"1, 2\n{HoverSummary(world, terrainMap!, new Vector2I(1, 2))}", StringComparison.Ordinal) ||
                 !developerTileLabel.Text.Contains("Elevation 123/255", StringComparison.Ordinal) ||
                 !developerFrameLabel.Text.Contains(" ms", StringComparison.Ordinal) ||
-                !developerTickLabel.Text.StartsWith("4.2 ms on the host · tick 77", StringComparison.Ordinal) ||
+                !developerTickLabel.Text.StartsWith("4.2 ms on the world server · tick 77", StringComparison.Ordinal) ||
                 developerAgentCountLabel.Text != "2 living" || developerRefusedActionLabel.Text != "12")
                 throw new InvalidOperationException($"Developer tools must read out the last tile, frame time, tick time and agents: {developerTileLabel.Text} | {developerFrameLabel.Text} | {developerTickLabel.Text} | {developerAgentCountLabel.Text}.");
             RenderDeveloperTools(world with { LastTickMilliseconds = null });
             if (!developerTickLabel.Text.StartsWith("Not reported", StringComparison.Ordinal))
-                throw new InvalidOperationException("A host that reports no tick time must say so instead of showing a number.");
+                throw new InvalidOperationException("A world server that reports no tick time must say so instead of showing a number.");
 
             // Choosing an agent selects them and moves the camera to them.
             cameraZoom = maximumCameraZoom;

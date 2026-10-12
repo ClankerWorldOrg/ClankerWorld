@@ -339,8 +339,8 @@ public partial class Main
             }
             if (hearing.Kind == "expiry" && hearing.SettledTick is null)
             {
-                landFacts.Add(("Use permission", "Previous permission remains provisional during review"));
-                lines.Add("Previous permission remains provisional during review");
+                landFacts.Add(("Use right", "The previous use right stays provisional during review"));
+                lines.Add("The previous use right stays provisional during review");
             }
         }
         foreach (var transfer in LandTransferText.ForInspection(snapshot.Towns.SelectMany(item => item.LandTransfers)
@@ -348,14 +348,14 @@ public partial class Main
         {
             var summary = LandTransferText.Summary(transfer);
             var acceptance = LandTransferText.Acceptance(transfer);
-            landFacts.Add(("Permission transfer", summary));
+            landFacts.Add(("Use right transfer", summary));
             landFacts.Add(("Household acceptance", acceptance));
             landFacts.Add(("Proposed", DisplayWorldClock(transfer.ProposedTick)));
             lines.Add(summary);
             lines.Add(acceptance);
             foreach (var terms in LandTransferText.Terms(transfer, DisplayWorldClock))
             {
-                landFacts.Add(("Exact permission terms", terms));
+                landFacts.Add(("Exact transfer terms", terms));
                 lines.Add(terms);
             }
         }

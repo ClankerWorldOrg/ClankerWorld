@@ -113,7 +113,7 @@ public sealed class OwnerWorldObservationSession
         if (capabilities.Contains(TimelineCapability) != (timeline is not null) ||
             timeline is { IsValid: false } || (Timeline is not null || pendingTimeline is not null) && timeline is null)
         {
-            failure = "The host sent an incomplete world update. Keeping the last confirmed view.";
+            failure = "The world server sent an incomplete update. Keeping the last confirmed view.";
             return false;
         }
         var expectedTimeline = pendingTimeline ?? Timeline;

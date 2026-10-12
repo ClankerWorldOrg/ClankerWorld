@@ -615,9 +615,9 @@ public partial class Main
             picker.ShowList(listed, "gpt-6-luna", PasteKeyNote, canRetry: false);
             if (picker.Problem != PasteKeyNote || picker.CanRetry)
                 throw new InvalidOperationException("Before a new key is pasted, the list must ask for it without offering Retry.");
-            picker.ShowError("Couldn't reach the game server.", "gpt-6-luna");
+            picker.ShowError("Couldn't reach the world server.", "gpt-6-luna");
             if (picker.Model != "gpt-6-luna" || !Items().Contains(ModelPicker.TypeOwnText, StringComparison.Ordinal))
-                throw new InvalidOperationException("Without a list from the game server, the current model and a typed name must stay usable.");
+                throw new InvalidOperationException("Without a list from the world server, the current model and a typed name must stay usable.");
             picker.ShowTypedOnly("jev-1.13.0");
             if (picker.Choice.Visible || !picker.TypedInput.Visible || picker.Model != "jev-1.13.0")
                 throw new InvalidOperationException("A provider without a model list must use a typed name.");
@@ -1326,8 +1326,8 @@ public partial class Main
                 throw new InvalidOperationException("Loading another world must replace its generation choices and wrap long seeds within the Settings width.");
             Render(generationSample with { Generation = null }, []);
             if (generationSettingsRows.Visible || generationSeed.Text.Length != 0 ||
-                !generationSettingsHint.Text.Contains("not available", StringComparison.Ordinal))
-                throw new InvalidOperationException("A host without generation choices must clear the previous world's values and explain their absence.");
+                !generationSettingsHint.Text.Contains("doesn't report how this world was generated", StringComparison.Ordinal))
+                throw new InvalidOperationException("A world server without generation choices must clear the previous world's values and explain their absence.");
             ShowPauseMenuButtons();
             menuQuitToMainButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!quitToMenuConfirmation.Visible)

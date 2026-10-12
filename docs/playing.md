@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Playing the current game
@@ -38,11 +38,11 @@ must be able to reach it through its private network.
 A new device needs approval. Compare the game's code with the person approving
 the device on the server, then complete pairing. Do not post the code, keys or
 private world data in an issue. Once paired, reconnecting uses the saved
-registration; normal play does not need approval every time.
+connection; normal play does not need approval every time.
 
 After pairing, choose **Continue** from the Main Menu to enter your world.
-If the activation reply was lost, the next pairing check can recover the
-registration and return you to the same menu.
+If the server's last pairing reply was lost, the next pairing check can still
+finish pairing and return you to the same menu.
 
 For an already paired device, **Connect** checks the saved server connection
 and shows the result below the address. It does not start a new pairing.
@@ -92,7 +92,7 @@ installed version. Until the first alpha release, it is the
 
 ### Report a problem
 
-**Settings > Build > Report a problem** saves a zip to send with a bug report
+**Report a problem**, in **Settings → Game → Build**, saves a zip to send with a bug report
 and shows it in your file manager. It holds the game's latest logs, the world
 server's logs when the server runs on your PC, and a summary of the game
 version, Windows version, graphics card, screen and open world. It never
@@ -101,7 +101,9 @@ a log that looks like a key is blanked. Reports go in a `reports` folder (in
 `%LOCALAPPDATA%\ClankerWorld` when the game runs its own server), and only the
 five newest are kept. Nothing is uploaded; you choose where to send the file.
 
-If the server changes, forget the old registration and pair again.
+If the server changes, choose **Pair again** in **Settings → Game → World
+connection**: it forgets this device's saved connection so you can pair with
+the new server.
 [Device pairing](development/device-pairing.md) has the operator instructions.
 
 If New World asks for matching updates, update the game and have the server
@@ -737,7 +739,7 @@ supported. Urgent food can pause either task; urgent cold does not stop the
 agent from seeking protection. Queue, cancellation and save/reload preserve
 the task and its selected destination.
 
-An instruction the game cannot understand leaves the current order running.
+An order the game cannot understand leaves the current one running.
 Unsupported requests, such as "build a castle" or "gather cloth," close as not
 understood and appear in the Event Log. Recognized orders follow normal access
 and survival rules. [What works today](what-works.md#agents-and-their-models)
@@ -811,7 +813,7 @@ soft grey smoke that rises and drifts east. Empty Houses and idle forges give
 off none. Smoke freezes while the world is paused.
 
 Click bare ground to inspect the recorded facts there. Agents take priority
-when they overlap the pointer. **Event Log** shows important events under a
+when they overlap the pointer. **Events** opens the **Event Log**, which shows important events under a
 heading for each day, each with an icon for its kind. Lines name who was
 involved: births, deaths, partnerships, marriages, skills learned, animals and
 scouting trips all appear. Building and crafting entries name the building or
@@ -828,8 +830,8 @@ stays open. While the continuity rule
 is on, the top of the log offers **Add a newcomer**, which opens Add Agent.
 The rule counts eligible adult partnerships, so adding an unpartnered newcomer
 does not itself turn it off. Opening the offer adds nobody and makes no paid
-model call. **Agents** lists
-everyone with their portrait and what they are doing, and tags anyone
+model call. The button showing how many agents are alive opens **Agents**,
+which lists everyone with their portrait and what they are doing, and tags anyone
 **Hungry**, **Cold** or **Ill**. Click a row to find that agent, or
 double-click it to open their Profile. With the list focused, use **Up** and
 **Down** to browse its rows and **Enter** to open the chosen Profile. The list
@@ -844,9 +846,9 @@ choose another tile. The preview does not reserve the land: the server checks
 the current ownership and borders again when you place the adult, and asks you
 to choose again if they changed. Walking later does not change membership.
 Once placement succeeds, Add Agent closes. If model settings cannot refresh,
-the message still confirms the placement; reopen Game Settings to refresh them.
+the message still confirms the placement; open World Settings to refresh them.
 
-**World Info** has two pages. **Towns** lists each Town with its residents'
+**Info** opens **World Info**, which has two pages. **Towns** lists each Town with its residents'
 portraits, its council, its current and latest settled election, eight recent
 proposal results and a **Show** button that moves the map there. Below the list
 are each household's stores, the projects under way and how far they have got,
@@ -942,29 +944,29 @@ Pausing stops votes, terms and handovers. The page shows officeholders and vacan
 mandates. Giving an existing mayor the non-land duty needs their own acceptance
 as well as the resident vote; it keeps the end date of the named existing term.
 
-An adult in an affected household can propose transferring an exact plot of
-recorded use permission to another household. Every current adult in all giving
+An adult in an affected household can propose transferring the recorded use
+right for an exact plot to another household. Every current adult in all giving
 and receiving households must learn the published terms and personally accept;
 proposing, reading and silence supply no acceptance. A new adult joining while
 it is pending must accept too. This ordinary transfer needs no Council or mayor
 approval. It preserves the original grant date and any agreed end date, and
-moves use permission and any agreed goods payment. Town title, membership,
+moves the use right and any agreed goods payment. Town title, membership,
 buildings, crops, other goods and private-building access stay unchanged. Expired, disputed or under-review land
 cannot use this route. Town, plot and property details show the exact terms,
 names, dates and each household's acceptance progress.
 
-A household can also offer that exact use permission for a named quantity of
+A household can also offer that exact use right for a named quantity of
 goods. Every affected adult accepts the published price as well as the plot.
-Permission waits until a buyer adult brings their own usable, unreserved loose
-goods to meet a seller adult at the Town's notice place. The payment becomes
-seller household stock there as the permission moves; no money price is used.
+The use right moves only when a buyer adult brings their own usable, unreserved
+loose goods to meet a seller adult at the Town's notice place. The payment
+becomes seller household stock there as the use right moves; no money price is used.
 Household work tools stay borrowed, and reserved goods, vessel contents, full
 hands or a blocked route cannot supply payment. Town and plot details show the
 price, whether payment is still needed, and who completed it. A decline or
-withdrawal leaves permissions and unpaid goods with their owners.
+withdrawal leaves use rights and unpaid goods with their owners.
 
 An affected household can ask for a land hearing, and the Town can file through
-its legitimate government. A permission with an agreed end date enters review
+its legitimate government. A use right with an agreed end date enters review
 when that date passes; it remains provisional while the case is pending. The
 Towns page shows the plot, affected households, formal response deadline,
 evidence sources and who may decide the case. Publication does not mean a notice
@@ -975,13 +977,13 @@ The page separates the parties named when the notice was published from current
 adult responders and the Town's current authorized representative. Each ruling
 keeps the parties who were represented when it was made.
 
-The land mayor may confirm, renew, change or end use permission, recording the
-evidence and reasons. A permission past its agreed end must be renewed, changed
-or ended; renewing renews every lapsed permission on the plot for its own household. A mayor with a personal or household conflict stands aside;
+The land mayor may confirm, renew, change or end a use right, recording the
+evidence and reasons. A use right past its agreed end must be renewed, changed
+or ended; renewing renews every lapsed use right on the plot for its own household. A mayor with a personal or household conflict stands aside;
 residents can elect a willing, independent adult for that case only. A case waits
 if nobody qualifies. A rehearing requires material new evidence or a demonstrated
 procedural error. The old ruling remains recorded and current rights stay in
-effect until a valid correction. These permission decisions leave Town title, household
+effect until a valid correction. These use-right decisions leave Town title, household
 membership, buildings, crops and goods with their holders; they neither evict
 occupants nor grant entry to private buildings. Plot and building details show
 the hearing, and the disputed-land filter marks plots still under review.
@@ -1120,10 +1122,10 @@ the routine helper and agent model settings. **World generation** shows the worl
 size, climate, east/west wrapping and seed as chosen at creation; these are
 read-only. Main Menu Settings exposes Game Settings only.
 
-Life pace and routine helper changes apply to the world shown when you submit them.
+Aging override and routine helper changes apply to the world shown when you submit them.
 If another device opens a different world before your request arrives, the
-host refuses the change. Reopen World Settings before trying again. These
-controls need matching client and host updates.
+world server refuses the change. Reopen World Settings before trying again. These
+controls need matching game and world server updates.
 
 Autosave Apply stays unavailable until the current world's settings have loaded.
 If the world changes before Apply reaches the host, its settings stay unchanged.
@@ -1271,10 +1273,10 @@ last client stops time and model work after about five seconds. Returning makes
 no offline progress or change to a manual pause. An unfinished model call can
 be cancelled and retried later; the provider may charge for both attempts.
 
-To remove one snapshot, choose it in **Load a save...** or Save World and choose
+To remove one save, choose it in **Load a save...** or Save World and choose
 **Delete**.
 The confirmation also opens when you manage the current world's saves straight
-after starting the client. It names the snapshot; deletion is permanent and
+after starting the game. It names the save; deletion is permanent and
 leaves its world
 and other saves alone. In Load World, **Delete World** removes that
 world and all its saves. Open or create another world first if the target is
@@ -1337,7 +1339,7 @@ and the load limit are provisional for playtesting.
 
 Adults with a House can **Build an animal yard** and **Expand my animal yard**
 using eight wood and two rope for each stage. The larger footprint needs clear
-land and the household's required use permission. The fenced yard has four places,
+land and the household's required use right. The fenced yard has four places,
 or eight when expanded; young animals and expected births use places.
 Households receive no starting animals. Look for wild chickens, sheep, cows or
 horses near wild greens and fresh water.

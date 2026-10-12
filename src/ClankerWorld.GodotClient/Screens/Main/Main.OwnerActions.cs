@@ -34,7 +34,7 @@ public partial class Main
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
             observationSession.Current is not { } current)
         {
-            SetStatus("Wait for the world to load before giving an instruction.", good: false);
+            SetStatus("Wait for the world to load before sending a message.", good: false);
             return;
         }
 
@@ -47,7 +47,7 @@ public partial class Main
         }
         if (selected.DecisionFactors.Any(factor => factor.Key == "age-band" && factor.Detail == "infant"))
         {
-            SetStatus("Infants need an adult to look after them. They can't take work instructions.", good: false);
+            SetStatus("Infants need an adult to look after them. You can't send them messages.", good: false);
             return;
         }
 
@@ -142,7 +142,7 @@ public partial class Main
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
             observationSession.Current?.Baseline.Snapshot.Authoring is not { IsPaused: true })
         {
-            SetStatus("paused authoring is disabled until the server reports an atomic paused boundary", good: false);
+            SetStatus("World editing works only once the world server shows the world as paused. Pause it, then try again.", good: false);
             return;
         }
 
@@ -169,8 +169,8 @@ public partial class Main
                 ResolveWorldUri(), authority, deviceId, batch, signer, CancellationToken.None));
             completed = true;
             return receipt.Applied
-                ? $"applied {operation.Kind} at revision {receipt.Revision}"
-                : $"authoring rejected · {receipt.Failure ?? "unknown validation failure"}";
+                ? $"World edit applied: {operation.Kind.Replace('_', ' ')}."
+                : $"World edit refused; nothing changed · {receipt.Failure ?? "the world server did not say why"}";
         }, retainedSubmission: pending);
         if (completed)
         {
@@ -189,7 +189,7 @@ public partial class Main
         var pairingCode = pairingApprovalCode.Text.Trim();
         if (string.IsNullOrWhiteSpace(pairingId) || string.IsNullOrWhiteSpace(pairingCode))
         {
-            SetStatus("enter the pending pairing ID and comparison code", good: false);
+            SetStatus("Enter the new device's pairing ID and comparison code.", good: false);
             return;
         }
 
@@ -199,7 +199,7 @@ public partial class Main
             var approval = await AwaitCurrentWorldResultAsync(ownerApi.ApprovePairingAsync(
                 ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
             pairingApprovalCode.Text = string.Empty;
-            return $"approved pending device {approval.DeviceId}; it must still activate its own Windows key";
+            return $"Approved device {approval.DeviceId}. That device still has to finish pairing itself.";
         });
     }
 
@@ -213,13 +213,13 @@ public partial class Main
         var targetDeviceId = revokeDeviceId.Text.Trim();
         if (string.IsNullOrWhiteSpace(targetDeviceId))
         {
-            SetStatus("enter a paired device ID to revoke it", good: false);
+            SetStatus("Enter the ID of the paired device to revoke.", good: false);
             return;
         }
 
         if (string.Equals(targetDeviceId, deviceId, StringComparison.Ordinal))
         {
-            SetStatus("this client will not revoke its own active key; use host-local recovery if that is intentional", good: false);
+            SetStatus("This device can't revoke its own pairing. If you mean to, use recovery on the world server's own computer.", good: false);
             return;
         }
 
@@ -229,7 +229,7 @@ public partial class Main
             var revoked = await AwaitCurrentWorldResultAsync(ownerApi.RevokeDeviceAsync(
                 ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
             revokeDeviceId.Text = string.Empty;
-            return $"revoked device {revoked.DeviceId}";
+            return $"Revoked device {revoked.DeviceId}.";
         });
         await RefreshDeviceRegistryAsync();
     }
@@ -246,7 +246,7 @@ public partial class Main
             pairedDevices = await AwaitCurrentWorldResultAsync(ownerApi.ListDevicesAsync(
                 ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
             RenderPairedDevices();
-            return $"loaded {pairedDevices.Length} paired device record(s)";
+            return pairedDevices.Length == 1 ? "Loaded 1 paired device." : $"Loaded {pairedDevices.Length} paired devices.";
         });
     }
 
@@ -258,7 +258,7 @@ public partial class Main
             .ThenBy(device => device.DeviceId, StringComparer.Ordinal))
         {
             var self = string.Equals(device.DeviceId, registration?.DeviceId, StringComparison.Ordinal)
-                ? " · this Windows device"
+                ? " · this device"
                 : string.Empty;
             pairedDeviceList.AddItem($"{device.State.ToString().ToLowerInvariant()} · {device.DeviceId}{self}");
             pairedDeviceList.SetItemMetadata(pairedDeviceList.ItemCount - 1, device.DeviceId);
@@ -273,7 +273,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             _ = await AwaitCurrentWorldResultAsync(ownerApi.SetLifePaceAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
-            return "life pace saved; current ages preserved, future aging changed";
+            return "Aging override saved. Current ages stay the same; agents age at the new speed from now on.";
         });
     }
 
@@ -394,7 +394,7 @@ public partial class Main
         AddAuthoringKind("set_weather", "Set weather — value required");
         AddAuthoringKind("set_season", "Set season — value: spring, summer, autumn, or winter");
         AddAuthoringKind("set_weather_season", "Set weather + season — value=weather, secondary value=season");
-        AddAuthoringKind("add_approved_asset_reference", "Add approved asset reference — ID and exact lowercase sha256 digest must already exist in the host catalog");
+        AddAuthoringKind("add_approved_asset_reference", "Add approved asset reference — ID and exact lowercase sha256 digest must already be in the world server's asset catalog");
         AddAuthoringKind("remove_approved_asset_reference", "Remove approved asset reference — ID required");
     }
 
@@ -460,8 +460,8 @@ public partial class Main
         routineHelperKeyChoice.Disabled = routineHelperChoice.Disabled;
         applyLifePaceButton.Disabled = actionDisabled || !paused || !supportsLifePace;
         lifePaceChoice.Disabled = actionDisabled || !paused || !supportsLifePace;
-        applyLifePaceButton.TooltipText = !supportsLifePace ? "This host does not support life pacing." :
-            !paused ? "Pause the world before changing life pace." : "Apply future aging speed; existing ages are preserved.";
+        applyLifePaceButton.TooltipText = !supportsLifePace ? "This world server can't use the aging override." :
+            !paused ? "Pause the world before changing the aging override." : "Change how fast agents age from now on; current ages stay the same.";
         if (snapshot?.LifePaceRate is { } rate && (lastObservedLifePace != rate || lastLifePaceWorldId != snapshot.WorldId))
         {
             lifePaceChoice.Select(lifePaceChoice.GetItemIndex(rate));
@@ -498,8 +498,8 @@ public partial class Main
         var infantSelected = selected?.DecisionFactors.Any(factor => factor.Key == "age-band" && factor.Detail == "infant") == true;
         var deceasedSelected = selected?.Lifecycle == "dead";
         submitInstructionButton.Disabled = actionDisabled || selected is null || selected.IsDraft || infantSelected || deceasedSelected;
-        submitInstructionButton.TooltipText = deceasedSelected ? "Historical profiles cannot receive instructions." :
-            infantSelected ? "Direct care through an adult caregiver." : "Send an instruction to this agent.";
+        submitInstructionButton.TooltipText = deceasedSelected ? "You can't send messages to someone who has died." :
+            infantSelected ? "Send messages to an adult who cares for them instead." : "Send this message to the agent.";
         RenderDeveloperEdits(snapshot, actionDisabled);
         submitAuthoringButton.Disabled = actionDisabled || !paused;
         authoringKind.Disabled = actionDisabled || !paused;

@@ -9,7 +9,7 @@ namespace ClankerWorld.GodotClient.Pairing;
 public sealed class OwnerActionCompatibilityException : InvalidOperationException
 {
     public OwnerActionCompatibilityException()
-        : base("The host and client need matching updates for this action.") { }
+        : base("The world server and game need matching updates for this action.") { }
 }
 
 public sealed class OwnerAgentNameTakenException : HttpRequestException

@@ -47,7 +47,7 @@ public partial class Main
         developerTileLabel.Text = "Point at the map.";
         readouts.AddChild(MetricRow("Tile", developerTileLabel));
         readouts.AddChild(MetricRow("Frame time", developerFrameLabel));
-        developerTickLabel.TooltipText = "How long the host took to work out the latest world tick, not counting saving it.";
+        developerTickLabel.TooltipText = "How long the world server took to work out the latest world tick, not counting saving it.";
         readouts.AddChild(MetricRow("Tick time", developerTickLabel));
         readouts.AddChild(MetricRow("Refused actions", developerRefusedActionLabel));
         readouts.AddChild(MetricRow("Agents", developerAgentCountLabel));
@@ -61,7 +61,7 @@ public partial class Main
         developerAgentList.ItemSelected += JumpToDeveloperAgent;
         agents.AddChild(developerAgentList);
         developerPathToggle.Text = "Show planned path";
-        developerPathToggle.TooltipText = "Draw the route the selected agent is walking, as the host planned it.";
+        developerPathToggle.TooltipText = "Draw the route the selected agent is walking, as the world server planned it.";
         developerPathToggle.Toggled += _ => RenderDeveloperRoute();
         agents.AddChild(developerPathToggle);
         developerRouteLabel.ThemeTypeVariation = "DimLabel";
@@ -100,15 +100,15 @@ public partial class Main
     private void BuildDeveloperLifePace()
     {
         var lifePaceRow = new HBoxContainer();
-        lifePaceRow.AddChild(new Label { Text = "Aging multiplier" });
+        lifePaceRow.AddChild(new Label { Text = "Speed" });
         lifePaceChoice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         lifePaceChoice.AddItem("Calendar", 1);
         lifePaceChoice.AddItem("Generations", 365);
         lifePaceChoice.AddItem("Fast generations", 1_460);
         lifePaceChoice.SetItemTooltip(0, "Original aging: one biological year per 365 world days.");
-        lifePaceChoice.SetItemTooltip(1, "One biological year per world day (about 24 active minutes).");
-        lifePaceChoice.SetItemTooltip(2, "One biological year per quarter-day (about 6 active minutes).");
-        lifePaceChoice.TooltipText = "Prototype override only: changes future biological aging without changing the calendar, seasons or model-call speed. This is not the decided 40-day year or six-hour lifespan.";
+        lifePaceChoice.SetItemTooltip(1, "One biological year per world day.");
+        lifePaceChoice.SetItemTooltip(2, "One biological year per quarter of a world day.");
+        lifePaceChoice.TooltipText = "A testing control that changes how fast agents age from now on, without changing the calendar, seasons or how often models are called; it is not the planned 40-day year or six-hour lifespan.";
         lifePaceRow.AddChild(lifePaceChoice);
         applyLifePaceButton.Text = "Apply";
         StyleButton(applyLifePaceButton);
@@ -117,11 +117,11 @@ public partial class Main
         var prototypePaceBody = new VBoxContainer();
         prototypePaceBody.AddChild(new Label
         {
-            Text = "Experimental prototype control. The decided world calendar and lifespan are not implemented by this setting.",
+            Text = "For testing only. This does not set the world's planned calendar or lifespan.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         prototypePaceBody.AddChild(lifePaceRow);
-        developerBody.AddChild(NewPanel("Prototype aging override", prototypePaceBody));
+        developerBody.AddChild(NewPanel("Aging override", prototypePaceBody));
     }
 
     private void BuildDeveloperRecovery()
@@ -252,8 +252,8 @@ public partial class Main
         var died = snapshot.Inhabitants.Count(person => !person.IsDraft && !IsLiving(person));
         developerAgentCountLabel.Text = died == 0 ? $"{living} living" : $"{living} living · {died} died";
         developerTickLabel.Text = snapshot.LastTickMilliseconds is { } milliseconds
-            ? $"{milliseconds.ToString("0.0", CultureInfo.InvariantCulture)} ms on the host · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}"
-            : $"Not reported by this host yet · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}";
+            ? $"{milliseconds.ToString("0.0", CultureInfo.InvariantCulture)} ms on the world server · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}"
+            : $"Not reported by this world server yet · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}";
         RenderDeveloperAgentList(snapshot);
         RenderDeveloperTile();
         RenderDeveloperRoute();

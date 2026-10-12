@@ -591,7 +591,7 @@ public partial class Main
         foreach (var hearing in town.NonviolentCases)
             lines.AddRange(NonviolentHearingText.Details(hearing, DisplayWorldClock, observedCalendarPace?.TicksPerDay ?? 1_440));
         if (town.LandTransferCount > town.LandTransfers.Count)
-            lines.Add($"Showing {town.LandTransfers.Count} pending or recent permission transfers of {town.LandTransferCount}.");
+            lines.Add($"Showing {town.LandTransfers.Count} pending or recent use right transfers of {town.LandTransferCount}.");
         foreach (var transfer in town.LandTransfers)
             lines.AddRange(LandTransferText.Details(transfer, DisplayWorldClock));
         // Proposals are written by agents' models, which may use the font's mid-height ellipsis.
@@ -639,7 +639,7 @@ public partial class Main
             lines.Add("Non-land authority: " + authority.HolderName + " · effective " + DisplayWorldClock(authority.EffectiveTick) +
                 " · existing term ends " + DisplayWorldClock(authority.TermEndTick) + ".");
         else if (government.NonLandAuthorized) lines.Add("No current non-land officeholder; eligible independent case elections remain available.");
-        if (government.Offices.Count > 0) lines.Add("Land permission and non-land hearings are separate mandates. An office grants no ownership.");
+        if (government.Offices.Count > 0) lines.Add("Land hearings and non-land hearings are separate mandates. An office grants no ownership.");
         foreach (var grant in government.NonLandGrants)
             lines.Add(grant.HolderName + " accepted added non-land duties · " + DisplayWorldClock(grant.ConsentTick) +
                 " · effective " + DisplayWorldClock(grant.EffectiveTick) + "; original " + grant.BaseMandate +

@@ -415,7 +415,7 @@ public static class WorldEventText
         var outcome = hearing?.Kind switch
         {
             "property" => "ownership outcome",
-            "dispute" or "expiry" => "permission change",
+            "dispute" or "expiry" => "use right change",
             _ => "outcome",
         };
         return $"{townName} posted the result of a {subject}. See the Towns page for its {outcome} and reasons.";
