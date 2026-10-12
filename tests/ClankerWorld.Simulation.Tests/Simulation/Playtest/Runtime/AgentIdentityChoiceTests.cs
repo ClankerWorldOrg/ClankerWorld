@@ -86,29 +86,25 @@ public sealed class AgentIdentityChoiceTests
         var provider = new DelayedIdentityEntryProvider(model, entryDelayMilliseconds, deferEntry ? enter.Task : null);
         using var world = NormalPathWorld.CreateGenerated("identity-pause", id => id == AgentId ? provider : new DeterministicDecisionProvider());
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var hosted = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(PrivateWorldRuntime)
-            .GetField("pendingHosted", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .GetValue(world));
-        var call = hosted[AgentId]!;
-        Assert.NotNull(call);
-        var request = Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call));
-        var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
-        var cancellation = Assert.IsType<CancellationTokenSource>(call.GetType().GetProperty("Cancellation")!.GetValue(call));
+        Assert.Equal(AgentId, Assert.Single(world.ExportState().Events,
+            item => item.Kind == "hosted_decision_started").Detail);
+        // Snapshot the actual registered worker with the existing shared wait,
+        // before pause removes it from the runtime's live pending collection.
+        var task = GrownAgentHelperMemoryTests.WaitForRequests(world);
         Assert.False(task.IsCompleted);
         if (deferEntry) Assert.False(model.Started.Task.IsCompleted);
         var entering = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         enter.TrySetResult(true);
         await Task.WhenAny(model.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
-        Assert.True(model.Started.Task.IsCompleted, $"Identity request {request.RequestId} finished before provider entry.");
-        Assert.Same(call, hosted[AgentId]);
-        Assert.Same(request, model.Request);
+        Assert.True(model.Started.Task.IsCompleted, "The registered identity worker finished before provider entry.");
+        var request = Assert.IsType<CognitionDecisionRequest>(model.Request);
+        Assert.Equal(AgentId, request.Observation.InhabitantId);
         Assert.True(request.Observation.NeedsPersonality);
         Assert.True(request.Observation.NeedsAspiration);
         Assert.False(task.IsCompleted);
         Assert.Equal(entering, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
         world.Pause();
-        Assert.True(cancellation.IsCancellationRequested);
-        Assert.False(hosted.Contains(AgentId));
+        Assert.True(model.Cancellation.IsCancellationRequested);
         var paused = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         var saved = PrivateWorldRuntimeCodec.Decode(paused);
         model.Release.TrySetResult(true);
@@ -185,6 +181,7 @@ public sealed class AgentIdentityChoiceTests
     private sealed class HeldIdentityProvider : IDecisionProvider
     {
         public CognitionDecisionRequest? Request { get; private set; }
+        public CancellationToken Cancellation { get; private set; }
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -194,6 +191,7 @@ public sealed class AgentIdentityChoiceTests
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             Request = request;
+            Cancellation = cancellationToken;
             Started.TrySetResult(true);
             await Release.Task;
             Returned.TrySetResult(true);

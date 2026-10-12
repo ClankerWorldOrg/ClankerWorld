@@ -155,10 +155,12 @@ partnership answer stays held throughout; denied-tick bytes, continued training,
 unanswered partnership and strict reload remain checked. Pause must finish the
 actual cancelled hosted task without changing the paused checkpoint.
 
-The initial identity-pause fixture captures its actual registered request and
-hosted task after one committed native tick. It waits for provider entry with
-the complete checkpoint frozen, then checks pause cancellation, the removed
-pending call and the finished late reply without changing the paused checkpoint.
+The initial identity-pause fixture snapshots its registered worker through the
+existing shared hosted-request wait after one committed native tick. It observes
+the real request and cancellation token at provider entry with the complete
+checkpoint frozen, then checks pause cancellation and the finished late reply
+without changing the paused checkpoint. The wait is captured before pause
+removes the live pending call; no new private-field reflection is added.
 The saved identity opportunity remains unconsumed on strict restore, with no
 late personality, aspiration or identity event applied. Immediate, deferred and
 four-second entry cases use thirty-second phase diagnostic bounds; no extra
