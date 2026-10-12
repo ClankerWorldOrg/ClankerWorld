@@ -158,7 +158,7 @@ public sealed partial class ViewerHttpTests
             {
                 var capped = await cappedResponse.Content.ReadFromJsonAsync<ServerSetupCheckResult>();
                 Assert.Equal("usage_limit", capped!.Outcome);
-                Assert.Contains("No check was sent", capped.Message, StringComparison.Ordinal);
+                Assert.Contains("no test was sent", capped.Message, StringComparison.Ordinal);
             }
             Assert.Equal(1, handler.RequestCount);
             Assert.Equal(1, usage.Capture().Attempts);

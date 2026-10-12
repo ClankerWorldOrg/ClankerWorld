@@ -1175,7 +1175,7 @@ public sealed partial class OwnerWorldObservationStore
                     (offer.FirstPartyId == inhabitant.Id || offer.SecondPartyId == inhabitant.Id))
                 .Select(offer => offer.AcceptedBy.Contains(inhabitant.Id, StringComparer.Ordinal)
                     ? "Waiting for the other agent to accept or decline an exchange."
-                    : "An exchange is on offer; nobody has accepted or refused it yet.")
+                    : "An exchange is on offer; they haven't accepted or refused it yet.")
                 .Concat(BusinessTradeNotes(state, inhabitant))
                 .Concat(MarriageNotes(state, inhabitant.Id))
                 .Concat(state.Inhabitants.Where(person => person.Parenthood is { } plan &&
