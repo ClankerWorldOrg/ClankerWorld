@@ -117,14 +117,6 @@ public static class InventoryContainerRules
     public const int StoragePotCapacity = 8;
     public const int WaterJugCapacity = 4;
 
-    private static readonly HashSet<string> FoodKinds = new(StringComparer.Ordinal)
-    {
-        "food", "berries", "wild_greens", "fruit", "grain", "flour", "potato", "potatoes",
-        "greens", "cultivated_greens", "bread", "porridge", "stew",
-        "simple_meal", "berry_porridge", "fruit_porridge", "restaurant_meal",
-        "eggs", "milk", "cooked_eggs", "milk_porridge", "rich_meal",
-    };
-
     public static bool IsContainer(string itemKind) => itemKind is StoragePot or WaterJug or Handcart;
 
     public static int Capacity(string itemKind) => itemKind switch
@@ -138,12 +130,12 @@ public static class InventoryContainerRules
     public static bool Allows(string containerKind, string contentKind) => containerKind switch
     {
         Handcart => !IsContainer(contentKind) && contentKind != FreshWater,
-        StoragePot => FoodKinds.Contains(contentKind),
+        StoragePot => FoodRules.IsFood(contentKind),
         WaterJug => contentKind == FreshWater,
         _ => false,
     };
 
-    public static bool IsFood(string itemKind) => FoodKinds.Contains(itemKind);
+    public static bool IsFood(string itemKind) => FoodRules.IsFood(itemKind);
 }
 
 /// <summary>

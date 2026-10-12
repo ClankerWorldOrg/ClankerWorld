@@ -47,7 +47,8 @@ connection once dependencies are restored. See [How it works](how-it-works.md).
 
 The first export target is Windows 11 x64. The current export is an unsigned
 portable bundle, and [the portable package](#portable-windows-package) adds the
-game's own host to it. It does not establish an installer, signing provider or public
+game's own host to it. The [Windows installer](#windows-installer) combines the
+launcher and game packages. These checks do not establish code signing or public
 release. A Windows smoke test and paired reconnect were recorded on 2026-09-21;
 that historical check does not verify every later build.
 
@@ -99,11 +100,21 @@ stay unchanged during each wait. Thirty-second phase deadlines diagnose a
 stalled request without polling native ticks. The check retains one harvest,
 unchanged completion units, the actual late reply and strict checkpoint reload.
 
+The held housing-reply fixture captures the registered request before waiting
+for provider startup. Its deferred-start rows keep that same request pending
+through lesson progress, then observe entry with the world frozen. It retains
+the unapproved housing request, no admission or completed reply, refused-tick
+preservation and strict reload. The thirty-second entry bound is diagnostic;
+waiting for it spends no native ticks.
+
 The held harvest/eating check keeps its two adjacent physical frames: one
 harvest without consumption, then consumption on the following tick. Its
 deferred-entry row holds a private preparation gate until both frames are
 checked. It then waits for validated provider entry with the world frozen,
-preserving checkpoint bytes and the three-second startup bound. After releasing
+preserving checkpoint bytes and the same registered request and task. A controlled
+row delays validated entry for four seconds, beyond the former startup deadline.
+Entry, actual task completion and cancellation cleanup reuse the shared
+thirty-second harvest-phase diagnostic bound. After releasing
 the reply, it waits for the captured hosted task rather than only the provider's
 response-construction signal. The original five admission ticks and finished-order,
 single-harvest, stale-response, observer-reply and reload checks remain. Its
@@ -140,6 +151,12 @@ The progress baseline is captured only after entry, with room for three further
 lesson steps. The offered partnership answer stays held throughout; denied-tick
 bytes, continued training, unanswered partnership and strict reload remain checked.
 
+The held identity-routing fixture waits for the runtime's hosted task to finish
+before polling admission. Its deferred-return case holds the provider after
+constructing the reply and checks that the wait keeps the complete checkpoint
+unchanged. The completion wait has a five-second bound; the three-second startup,
+twenty admission ticks, retained-work checks and next-tick reload comparison remain.
+
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary hosted decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native
@@ -161,6 +178,14 @@ signal has a thirty-second diagnostic deadline. Advancing native ticks during
 this wait could store another load before cancellation, because chosen work
 continues while a model waits. The check retains one stored load, the untouched
 second load and exact checkpoint reload after releasing the cancelled reply.
+
+The held movement-cancellation fixture captures the actual registered request
+and task after its first committed tick, before waiting for provider entry.
+Its deferred-entry row keeps preparation held until that pending call is
+checked. Entry and reply signals use the shared thirty-second diagnostic
+bound while checkpoint bytes and position stay fixed. Cancellation still
+keeps the order cancelled with zero progress and the agent stationary through
+the original bounded post-cancellation polling.
 
 The long-recipe tool-request fixture admits its request through the personal
 provider and saves it through the real host. For byte-for-byte continuation,
@@ -445,6 +470,40 @@ the logo art in `UI/MenuLogo.cs` and embedded in the exported `.exe`. After
 changing that art, rebuild the icon with
 `godot --headless --path src/ClankerWorld.GodotClient -- --write-app-icon`.
 The UI smoke test fails if the committed icon no longer matches the art.
+
+### Windows installer
+
+The `windows-installer` CI job builds the unsigned per-user setup from the
+verified game and launcher zips, then runs it under a fresh standard Windows
+user. In Windows Git Bash, run:
+
+```bash
+bash scripts/package-windows-installer.sh <game.zip> <launcher.zip> export/setup
+```
+
+The script verifies both zip checksums, their internal manifests and their
+matching source commit. It compiles the committed installer script and icon
+with Inno Setup 6.5.4, downloaded through the shared tool cache and checked
+against its pinned SHA-256. The official compiler runs in portable mode.
+CI uploads `ClankerWorld-Setup-<game version>-windows-x64.exe`, its `.sha256`
+and `build.json` as `clankerworld-windows-11-x64-setup`.
+
+Setup installs the launcher in `%LOCALAPPDATA%\Programs\ClankerWorld` with
+Start-menu and optional desktop shortcuts and a per-user uninstaller. It
+stages a bundled game on the destination volume and publishes its complete
+folder under `%LOCALAPPDATA%\ClankerWorld\versions` only if that version is
+absent. Existing version folders remain intact, even if the same version name
+came from a different development build. Uninstall removes launcher program
+files and shortcuts and keeps game versions, saves, keys, settings and usage.
+
+`scripts/verify-windows-installer.ps1` checks actual setup, upgrade, reinstall,
+uninstall and install after removal, including native launcher startup,
+shortcuts, HKCU registration and preserved file hashes. Its older setup is a
+synthetic metadata/README fixture; it is not a published launcher release.
+The required `verify` job waits for this check whenever code checks run.
+Native logs and results are in `windows-installer-evidence`; the owner's
+Windows 11 install/play/uninstall/reinstall check remains in
+[`playtest/1567-windows-installer.md`](../../playtest/1567-windows-installer.md).
 
 ## Compare tick equivalence
 

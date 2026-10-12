@@ -94,6 +94,22 @@ owns conversations, daily budgets and marriages in one immutable
 and its snapshot; the runtime commits the system with one assignment.
 Other areas move in separate reviewed steps.
 
+`Farming/FarmingSystem.cs` owns household fields in an immutable `FarmingState`
+and handles field work, crop planning, validation and forestry. Field writes
+replace the read-only snapshot. Trusted preparation captures and shares that
+snapshot; each proposal has a separate system, and commit transfers it with one
+assignment. `IFarmingWorld` supplies the current inventory, residents, land,
+routes, environment and event sink per call, through an adapter that stays on
+the coordinator. Field and tree orders retain their existing adapters and
+private forwarders. Tree planting updates the coordinator's map and the
+EnvironmentSystem's ecology and chunks through those world services.
+
+Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
+prepared farming systems for the same world seed. A changed map gets a new
+value. The verification switch rebuilds and compares its terrain and rainfall
+inputs on cache hits. Positions, reservations and planting obstacles remain
+current-world queries; no fertility or cache data enters saves or digests.
+
 `Environment/EnvironmentSystem.cs` owns the immutable `WorldSystemsState`
 snapshot, including ecology, chunks and weather. Named writes handle harvesting,
 animal forage, tree planting and settlement resources. Weather advances at its
@@ -111,13 +127,26 @@ order cancellation, death recording and event sink. The system retains no
 runtime reference, and its adapter stays on the committed coordinator. Existing
 private environment and exposure methods remain forwarders.
 
-`Civic/CivicSystem.cs` owns the settlement council and each Town's governance,
-government and nonviolent-law snapshots in one immutable `CivicState`. The
-coordinator keeps the full Town checkpoint views, including land and membership;
-its central Town write imports civic changes, and checkpoint capture projects
-the system's civic snapshots onto those views. A prepared tick commits the
-system with one assignment. Civic operations receive the current world through
-an adapter on each call, and the adapter stays on the committed coordinator.
+`Civic/CivicSystem.cs` owns the settlement council, complete Town records,
+Town land titles, household land-use rights and requests, and founder setup in
+one immutable `CivicState`. Membership, abandonment, admission, first-Town setup,
+land grants, hearings, transfers and sales run in this system alongside Town
+governance, government and nonviolent law. Every write replaces its affected
+read-only collection and snapshot; one central Town write records abandonment
+and revival. Checkpoint capture reads these records directly. Trusted tick
+preparation shares the captured civic snapshot until a write replaces it, and
+commit transfers the system with one assignment. External loads keep their full
+validation and canonical ordering. The admission loop's recursion guard is live
+system state and never enters a checkpoint.
+
+Civic operations receive the current world through an adapter on each call,
+and the adapter stays on the committed coordinator. Founder placement and setup
+keep their public coordinator locks. Existing private methods remain forwarders.
+Town writes need only the clock and event sink; land consent needs those services
+and current household adults through `ICivicLandConsentWorld`. Other operations
+query current physical state or request inventory, society, road, construction
+and property transitions through `ICivicTownWorld`. No system retains the adapter
+or a runtime reference.
 The civic-history index uses `Derived` with the immutable governance snapshot
 as its weak key. Its notice, knowledge and recent-receipt lookups survive tick
 copies; replacing governance invalidates the lookup. Physical needs, positions,
@@ -275,9 +304,64 @@ matches and rechecks remain unreserved; `Collect` refuses a coverage request and
 still cannot pick up a reserved vessel family. Coverage and reservation indices
 are derived from the current checkpoint and are never saved.
 
-Delivery selection and remaining uses belong to the later steps of
-[#1366](https://github.com/compoodment/ClankerWorld/issues/1366); unsupported
-origin/destination fields and extra-unit requests are refused rather than silently ignored.
+`Spend` and `Sell` share usable, unreserved quantities and delivery exclusions.
+Spend excludes stock committed to a borrowed Market stall; Sell lets the Market
+check its seller, live occupancy and stock receipt. Warehouse contributions,
+Town donations, barter, business payments, ornament gifts, repair inputs and
+land payments use these answers with their existing purpose and place filters.
+Market selection computes food reserves across split lots once per query;
+binding a source lot does not narrow the stock that covers its owner's reserve.
+Actions query the current checkpoint again before reserving or transferring.
+Already-reserved barter offers retain their exact-claim checks rather than
+looking for their committed goods in an unreserved answer.
+
+`StorePersonal` selects carried, unworn personal property for storage, including
+damaged or spoiled goods, and refuses delivery promises and reserved vessel
+families. Storage still checks destination room and the transfer authority.
+Physical Market stock counts also remain physical, including damaged contents,
+so usable sale selection cannot undercount occupied space. These queries add no
+route, saved state or persistent world cache.
+
+`Deliver` extends usable holdings with custody, free vessel families, carrying
+room, the native pickup and loaded return routes, and receiving space from
+`DestinationRoom`. Requests name a destination building. Matches and action
+rechecks share these checks; inbound promises cannot leave a stale load eligible.
+A query reuses each root's loaded-route capacity across its matching contents.
+
+Delivery purposes preserve the existing physical operations. Ordinary stock
+moves whole vessel families. Farm stock permits the established grain/flour
+partial-vessel haul, while its planner retains source deficits, load limits and
+whole-family preference. Expansion materials go to a building's outdoor site,
+and Town-project materials go to the approved work site named by `Near`;
+neither occupies indoor storage. These outdoor uses retain Town material access
+and active-project custody. Source ordering and workstation surplus remain caller
+filters. House, Farmhouse, Silo, Blacksmith, workstation, expansion and Town-project
+selectors share these queries. Restaurant household supply uses the same eligible
+matches before applying each source's reserve once. Gathering falls back only
+when no stock can supply the destination.
+
+`VesselFor` selects usable, unreserved vessel families and checks room for the
+requested additional contents. Jug refill, stored-jug pickup, empty-vessel return
+and food-pot selection retain their own ownership, place, route and destination
+rules. `ReturnVessel` preserves physical returns of damaged carried jugs;
+damage does not repair or discard property. A reserved or damaged jug still
+counts as physically present even when it cannot be refilled.
+
+`Eat` uses the inventory consumption boundary and requires the actor to carry
+the food or its usable vessel, with no delivery assignment. Personal meals keep
+their storage-pot and free-family requirement; milk drinking retains partial
+unreserved portions across carried lots. Animal care and water supply use
+`ConsumeAt`, with their existing yard access, feed reserve and whole-jug checks.
+`Cargo` selects physical contents of the named owned handcart, including spoiled
+goods and broken carts, but excludes a family reserved for another job. Actions
+recheck the same query before unloading; load selection uses `ConsumeAt` and
+retains its native custody and food-policy rules. `Kernel/FoodRules.cs` is the
+single food catalog: ingredients can be stored without becoming edible servings.
+
+The remaining uses belong to later steps of
+[#1366](https://github.com/compoodment/ClankerWorld/issues/1366). Unsupported
+origin/destination combinations are refused rather than silently ignored. Extra
+units and a contents kind apply only to `VesselFor`.
 
 `DestinationRoom(buildingId, movingRoot)` is the shared read-only calculation
 for space at a building. It subtracts all stored physical units, positive net
@@ -2331,7 +2415,7 @@ recorded, living or dead, not from the client's agent ID. The saved birth tick
 holds the result, so loading never draws again. Year-based development worlds
 keep the 18-year adult age.
 
-`PrivateWorldRuntime.TownFounding` offers an explicit personal `found` civic
+`CivicSystem.TownFounding` offers an explicit personal `found` civic
 choice to a living adult on buildable unclaimed land. The stable candidate ID
 binds the world seed and current site. Execution rechecks the adult, location,
 other Town borders and titles, and private property after earlier choices.
@@ -2620,7 +2704,7 @@ powers. Bounded civic lifecycle telemetry records Town identity and
 council/vote/status counts without proposal text, notices, names or per-read
 polling noise.
 
-**Town admission** (`PrivateWorldRuntime.TownMembership`). `TownRuntimeState.ResidentIds`
+**Town admission** (`CivicSystem.TownMembership`). `TownRuntimeState.ResidentIds`
 is the only record of Town membership; household, House and position alone never
 change it. After every saved council decision, every Town roster change and on
 every tick, `SettleTownAdmissions` reads each Town's passed admission proposals
@@ -2865,6 +2949,11 @@ Road-frontage scoring reuses the rectangular footprint and cardinal direction
 checks with direct loops, avoiding nested iterator and predicate allocations.
 The [Road-frontage measurements](road-frontage-query-measurements.md) record
 matched native captures, lower allocations and mixed timing limits.
+Site evaluation enumerates placement footprints lazily, rejecting blocked tiles
+without allocating the remaining translated points. It keeps full-footprint
+legality before limiting offered candidates. See
+[footprint evaluation measurements](footprint-evaluation-measurements.md)
+for matched native results and allocation/timing limits.
 Building plans follow what a household needs, not a role. An adult whose
 household lacks a House, Farmhouse, Blacksmith, Silo, Tailor Shop, Clinic or Restaurant is offered ranked sites
 for it once the household has the build costs in hand: stock the household
@@ -3182,6 +3271,12 @@ Stock suppresses Blacksmith gathering only when the current delivery selector
 can use it with cargo room, receiving space and the required routes. This also
 applies to ore mining, harvest preparation and supply orders. Disconnected stock
 keeps its owner and position while the adult gathers reachable local inputs.
+
+Material harvest planning keeps room for the required carried tool as well as
+the gathered goods and any tree seed. If a tool's full bonus exceeds the actor's
+total carrying capacity even after other cargo is set down, it uses the existing
+four-unit harvest instead. Bonuses that fit keep their full yield; current free
+space, reservations and loaded return routes still govern the actual harvest.
 
 If an unpaid household recipe remains blocked for 60 ticks and no household
 member has an actionable way to supply its missing ingredients, the runtime

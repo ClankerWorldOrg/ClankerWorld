@@ -525,7 +525,7 @@ public sealed partial class PrivateWorldRuntime
 
     private static bool IsPreparedMeal(string kind) => PreparedMealGoods.Ids.Contains(kind, StringComparer.Ordinal);
 
-    private static bool IsEdibleFood(string kind) => EdibleFoodGoods.Ids.Contains(kind, StringComparer.Ordinal);
+    private static bool IsEdibleFood(string kind) => FoodRules.IsEdible(kind);
 
     private static int FoodNourishment(string kind) => kind switch
     {
@@ -545,23 +545,15 @@ public sealed partial class PrivateWorldRuntime
     {
         var previous = actor is not null && inhabitants.TryGetValue(actor, out var person) ? person.Survival?.LastMealKind : null;
         var inventory = society.Checkpoint.Inventory;
-        return inventory.Lots.Where(lot => lot.OwnerId == owner && IsEdibleFood(lot.ItemKind) &&
-                (owner != actor ? lot.ContainerLotId is null && lot.CarrierId is null :
-                    UsablePersonalFood(inventory, lot, actor!)) &&
-                AvailableLotQuantity(lot) > 0)
+        var request = new GoodsRequest(owner == actor ? GoodsUse.Eat : GoodsUse.ConsumeAt,
+            actor, GoodsOwners.One(owner), EdibleFoodGoods);
+        return FindGoods(inventory, request).Matches.Where(match => owner != actor
+                ? match.Lot.ContainerLotId is null && match.Lot.CarrierId is null
+                : match.Lot.ContainerLotId is null || match.Root.ItemKind == InventoryContainerRules.StoragePot &&
+                    !InventoryIndex.For(inventory).HasReservedFamily(match.Root.Id))
+            .Select(match => match.Lot)
             .OrderBy(lot => previous is not null && FoodSource(lot) == previous ? 1 : 0)
             .ThenByDescending(lot => lot.FreshnessBasisPoints).ThenBy(lot => lot.Id, StringComparer.Ordinal);
-    }
-
-    private static bool UsablePersonalFood(InventoryCheckpoint inventory, InventoryLot food, string actor)
-    {
-        if (food.DeliveryBuildingId is not null) return false;
-        if (food.ContainerLotId is not { } containerId)
-            return PersonalEquipmentRules.IsCarried(food, actor);
-        return inventory.Lots.Any(pot => pot.Id == containerId && pot.OwnerId == actor &&
-            pot.ItemKind == InventoryContainerRules.StoragePot && pot.ConditionBasisPoints > 0 &&
-            pot.DeliveryBuildingId is null && PersonalEquipmentRules.IsCarried(pot, actor) &&
-            !HasActiveContainerReservation(inventory, pot.Id));
     }
 
     private SurvivalCondition? AfterMeal(PlaytestInhabitantState person, InventoryLot food)

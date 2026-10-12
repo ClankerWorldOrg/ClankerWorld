@@ -129,8 +129,10 @@ searches find it.
   The repository is public, so never describe it in an issue, pull request or
   comment. Agents tell the owner in chat ([how](AGENTS.md#ask-the-owner-in-chat))
   and open an issue titled `Security report waiting for the owner`, with only
-  `type:bug`, `owner-task`, `priority:p0` and one area, and no details. The
-  owner decides in chat how it is fixed. Hardening ideas with no working
+  `type:bug`, `owner-task`, `priority:p0` and one area, and no details. Its
+  description says only which session has the report and when it told the
+  owner, signed, so the owner can find it. The owner decides in chat how it is
+  fixed. Hardening ideas with no working
   exploit are ordinary issues.
 - **Features, experiments and decisions** start at P2. They move to P1 for a
   playtest only when the owner says in chat that the next playtest needs them.
@@ -159,8 +161,9 @@ While the owner prepares a release, a release label marks the issues it
 needs; it is `release:alpha-1` now, for `v0.1.0-alpha.1`. Fixers take labelled
 issues first, highest priority first, and other issues only when no labelled
 one is ready. A new P0 or P1 bug, or work the owner asks to include, gets the
-label; other new issues wait for the next release. When every labelled issue
-is closed, the owner announces a merge day
+label; other new issues wait for the next release. On a merge day, which the
+owner names in chat, everyone works to close the open issues and merge the
+open pull requests
 ([Releasing](docs/development/releasing.md#release-scope-and-merge-day)).
 
 ## Claims

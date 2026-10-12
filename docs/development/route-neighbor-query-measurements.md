@@ -7,6 +7,12 @@ updated: 2026-10-11
 
 # Walking-route neighbor measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 Default shared walking-route searches use the existing value-type foot-neighbor
 enumerator instead of allocating a public iterator for each expanded tile.
 Custom neighbor callbacks, including swimming, retain their callback path.
@@ -19,7 +25,7 @@ The [complete dataset recorded on PR #1731](https://github.com/ClankerWorldOrg/C
 allocations in all ten ordinary/repeat pairs for the final candidate, by
 0.698–1.257%. Timing changes are mixed, including worse p95 values;
 this supports a bounded allocation reduction, not a uniform latency improvement.
-Broader construction costs remain in [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
+Broader construction costs were tracked in [#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998).
 
 ## Inputs and method
 
@@ -191,5 +197,5 @@ Full checkpoints, ordered captures, raw trace, Speedscope conversion, input
 manifests and logs are retained under `.evidence/keep/998-construction-profile/`
 in Codex session d9925a9c's workspace. The public dataset includes their
 comparison hashes and trace hashes, not private saves or model payloads.
-Existing [Windows/F12 checks](../../playtest/998-walking-route-neighbors.md) remain
+Existing [Windows/F12 checks](../../playtest/alpha-1.md) remain
 pending. Independent review and full green CI are required before merging.

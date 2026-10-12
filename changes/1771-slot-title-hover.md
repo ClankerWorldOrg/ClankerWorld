@@ -1,0 +1,1 @@
+- Hover world and save list cards to read their full names, including names shortened to fit.

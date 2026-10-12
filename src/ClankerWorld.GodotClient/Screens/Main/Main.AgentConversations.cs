@@ -25,14 +25,7 @@ public partial class Main
     {
         var body = new VBoxContainer();
         body.AddThemeConstantOverride("separation", 6);
-        var heading = new HBoxContainer();
-        conversationReaderTitle.ThemeTypeVariation = "HeadingLabel";
-        conversationReaderTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        heading.AddChild(conversationReaderTitle);
-        var close = CloseButton("Close conversation (Esc)");
-        close.Pressed += () => conversationPanel.Hide();
-        heading.AddChild(close);
-        body.AddChild(heading);
+        body.AddChild(ReaderHeading(conversationPanel, conversationReaderTitle, "Close conversation (Esc)"));
         body.AddChild(conversationReaderStatus);
         body.AddChild(conversationReaderSummary);
         conversationHistoryButton.Text = "Show history";
@@ -141,6 +134,7 @@ public partial class Main
         {
             conversationReaderTitle.Text = $"Nearby conversation · {conversation.InitiatorName} and {conversation.InviteeName}";
         }
+        conversationReaderTitle.TooltipText = conversationReaderTitle.Text;
         conversationReaderStatus.Text = ConversationStatusText(conversation);
         conversationReaderSummary.Text = ConversationSummary(conversation, agentId, unreadCount);
 

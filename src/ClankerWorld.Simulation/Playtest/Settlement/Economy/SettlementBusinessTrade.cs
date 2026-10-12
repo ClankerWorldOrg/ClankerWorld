@@ -63,25 +63,16 @@ public sealed partial class PrivateWorldRuntime
                  !UnusableDeliveryStock(inventory, inventory.GetLot(containerId)) &&
                  ContainerFamilyQuantity(inventory, containerId) <= DestinationRoom(inventory, building.InstanceId))))
             .Sum(lot => UsableWorkstationQuantity(inventory, lot));
-        var householdStock = inventory.Lots.Where(lot => lot.OwnerId == householdId && lot.ItemKind == itemKind &&
-                lot.CarrierId is null && !OnBorrowedMarketStall(lot) &&
-                lot.DeliveryBuildingId is null && UsableWorkstationQuantity(inventory, lot) > 0 &&
+        var householdStock = restaurants.Where(building => WorkstationInputTarget(building, itemKind) >
+                WorkstationOnsiteQuantity(inventory, building, itemKind) + WorkstationIncomingQuantity(inventory, building, itemKind))
+            .SelectMany(building => FindGoods(DeliveryGoodsRequest(actor, householdId, itemKind, building.InstanceId)).Matches
+                .Where(match => WorkstationPickupQuantity(actor, inventory, match.Root, building.InstanceId, int.MaxValue) > 0))
+            .Select(match => match.Lot).DistinctBy(lot => lot.Id)
+            .Where(lot => lot.CarrierId is null &&
                 (lot.StorageBuildingId is null || worldSimulation.Buildings.Any(building =>
                     building.InstanceId == lot.StorageBuildingId && worldContent.Buildings.Any(definition =>
                         definition.CanonicalId == building.DefinitionId &&
                         definition.Tags.Any(tag => tag is "house" or "silo" or "farmhouse" or "restaurant")))))
-            .Where(lot => lot.ContainerLotId is not { } containerId ||
-                CanRemoveWorkstationStock(inventory, inventory.GetLot(containerId), 1))
-            .Where(lot => restaurants.Any(building => WorkstationInputTarget(building, itemKind) >
-                    WorkstationOnsiteQuantity(inventory, building, itemKind) +
-                    WorkstationIncomingQuantity(inventory, building, itemKind) &&
-                WorkstationPickupQuantity(actor, inventory,
-                    lot.ContainerLotId is { } containerId ? inventory.GetLot(containerId) : lot,
-                    building.InstanceId, int.MaxValue) > 0))
-            .Where(lot => IsWithinInteractionRange(inhabitants[actor].Position, HouseholdStockPosition(lot),
-                    HouseholdStockInteractionRange(lot)) ||
-                FindUnoccupiedRoute(actor, inhabitants[actor].Position, HouseholdStockPosition(lot),
-                    HouseholdStockInteractionRange(lot)).Count > 0)
             .GroupBy(lot => lot.StorageBuildingId)
             // Reserve the source's target once across all of its lots.
             .Sum(group => Math.Min(group.Sum(lot => UsableWorkstationQuantity(inventory, lot)),
@@ -182,8 +173,8 @@ public sealed partial class PrivateWorldRuntime
     {
         var inventory = society.Checkpoint.Inventory;
         var protectedToolIds = BestUsableToolIds(inventory, buyer);
-        return inventory.Lots.Where(lot => lot.OwnerId == buyer && PersonalEquipmentRules.IsCarried(lot, buyer) &&
-                IsLooseBusinessLot(lot) && AvailableLotQuantity(lot) > 0 &&
+        return SpendingGoods(buyer, GoodsUse.Spend, [buyer], inventory: inventory).Select(match => match.Lot)
+            .Where(lot => PersonalEquipmentRules.IsCarried(lot, buyer) && IsLooseBusinessLot(lot) &&
                 !protectedToolIds.Contains(lot.Id) && !BusinessBuyerWants(buyer, lot) &&
                 BusinessPaymentUseful(building, lot) &&
                 !PersonalEquipmentRules.IsSelected(inhabitants[buyer].Equipment, lot.Id) &&
@@ -248,9 +239,9 @@ public sealed partial class PrivateWorldRuntime
             return null;
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
         if (BusinessRules.KindOf(definition) is not { } kind) return null;
-        foreach (var goods in inventory.Lots.Where(lot => lot.OwnerId == seller &&
-                     lot.StorageBuildingId == building.InstanceId && IsLooseBusinessLot(lot) &&
-                     AvailableLotQuantity(lot) > 0 && BusinessRules.MaySell(kind, lot.ItemKind) &&
+        foreach (var goods in SpendingGoods(buyer, GoodsUse.Sell, [seller], building: building.InstanceId,
+                     inventory: inventory).Select(match => match.Lot)
+                     .Where(lot => IsLooseBusinessLot(lot) && BusinessRules.MaySell(kind, lot.ItemKind) &&
                      (exactGoodsLotId is null || lot.Id == exactGoodsLotId) && (requestedGoods || BusinessBuyerWants(buyer, lot))).OrderBy(lot => lot.Id, StringComparer.Ordinal))
         {
             // Payment comes from the buyer's own goods, never borrowed household ones.

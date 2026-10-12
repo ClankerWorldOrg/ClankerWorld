@@ -8,6 +8,7 @@ public sealed class LandFertility
     private readonly SeededMap map;
     private readonly TerrainKind[] terrain;
     private readonly Func<int, int, float> rainfall;
+    private readonly string rainfallSeed;
 
     public LandFertility(SeededMap map, string worldSeed)
     {
@@ -17,7 +18,7 @@ public sealed class LandFertility
         terrain = new TerrainKind[checked(map.Width * map.Height)];
         foreach (var tile in map.Tiles) terrain[tile.Position.Y * map.Width + tile.Position.X] = tile.Terrain;
         // Legacy fixture attempts do not select a generated geography candidate.
-        var rainfallSeed = map.ClimateZones is null
+        rainfallSeed = map.ClimateZones is null
             ? worldSeed
             : GeographyGenerator.CandidateSeed(worldSeed, map.GenerationAttempt);
         rainfall = GeographyGenerator.LayerNoise(rainfallSeed, "rainfall", 0.018f, map.Width, map.WrapsEastWest);
@@ -53,6 +54,9 @@ public sealed class LandFertility
     }
 
     public bool CanFarm(GridPoint point) => map.Contains(point) && At(point) > 0;
+
+    internal bool HasSameValues(LandFertility other) => ReferenceEquals(map, other.map) &&
+        rainfallSeed == other.rainfallSeed && terrain.SequenceEqual(other.terrain);
 
     public static string Description(int fertility) => fertility switch
     {

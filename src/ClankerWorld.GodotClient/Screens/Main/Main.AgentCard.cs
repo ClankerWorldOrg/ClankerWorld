@@ -81,6 +81,7 @@ public partial class Main
         quickCardNameLabel.ThemeTypeVariation = "HeadingLabel";
         quickCardNameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         quickCardNameLabel.ClipText = true;
+        quickCardNameLabel.MouseFilter = Control.MouseFilterEnum.Pass;
         heading.AddChild(quickCardNameLabel);
         StyleIconButton(findAgentButton, PixelGlyph.Find);
         findAgentButton.TooltipText = "Center the map on this agent (C)";
@@ -151,6 +152,7 @@ public partial class Main
         selectedActorNameLabel.MaxLinesVisible = 2;
         selectedActorNameLabel.TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
         selectedActorNameLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        selectedActorNameLabel.MouseFilter = Control.MouseFilterEnum.Pass;
         nameRow.AddChild(selectedActorNameLabel);
         // A small pencil beside the name renames; it opens a field only when wanted.
         StyleIconButton(renameToggleButton, PixelGlyph.Pencil);
@@ -378,18 +380,28 @@ public partial class Main
         }
     }
 
+    /// <summary>Reader headings share a bounded name and keep Close visible for every accepted name.</summary>
+    private static HBoxContainer ReaderHeading(PanelContainer panel, Label title, string closeHint)
+    {
+        title.ThemeTypeVariation = "HeadingLabel";
+        title.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+        title.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        title.MaxLinesVisible = 2;
+        title.TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
+        title.MouseFilter = Control.MouseFilterEnum.Pass;
+        var heading = new HBoxContainer();
+        heading.AddChild(title);
+        var close = CloseButton(closeHint);
+        close.Pressed += () => panel.Hide();
+        heading.AddChild(close);
+        return heading;
+    }
+
     private void BuildThoughtsReader()
     {
         var body = new VBoxContainer();
         body.AddThemeConstantOverride("separation", 6);
-        var heading = new HBoxContainer();
-        thoughtsReaderTitle.ThemeTypeVariation = "HeadingLabel";
-        thoughtsReaderTitle.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-        heading.AddChild(thoughtsReaderTitle);
-        var close = CloseButton("Close thoughts (Esc)");
-        close.Pressed += () => thoughtsPanel.Hide();
-        heading.AddChild(close);
-        body.AddChild(heading);
+        body.AddChild(ReaderHeading(thoughtsPanel, thoughtsReaderTitle, "Close thoughts (Esc)"));
         body.AddChild(new Label
         {
             Text = "Only you can read these. Other agents don't know them unless they are told.",
@@ -424,7 +436,7 @@ public partial class Main
     /// <summary>Every recent private thought, newest first, under a heading for each day.</summary>
     private void RenderThoughtsReader(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant)
     {
-        thoughtsReaderTitle.Text = IsDeceased(inhabitant) ? $"{inhabitant.DisplayName} · thoughts, historical" : $"{inhabitant.DisplayName} · thoughts";
+        thoughtsReaderTitle.Text = thoughtsReaderTitle.TooltipText = IsDeceased(inhabitant) ? $"{inhabitant.DisplayName} · thoughts, historical" : $"{inhabitant.DisplayName} · thoughts";
         var thoughts = inhabitant.RecentPrivateThoughts.Reverse()
             .Select(thought => (Clock: SplitClock(DisplayWorldClock(thought.WorldTick)), thought.Text)).ToArray();
         var signature = inhabitant.Id + "|" + UiTheme.Current.Name + "\n" +
@@ -601,7 +613,7 @@ public partial class Main
             renamingAgentId = null;
             refusedAgentRename.Forget();
             renameRow.Hide();
-            quickCardNameLabel.Text = string.Empty;
+            quickCardNameLabel.Text = quickCardNameLabel.TooltipText = string.Empty;
             selectedActorNameLabel.Text = string.Empty;
             selectedActorSummaryLabel.Text = string.Empty;
             selectedActorConditionLabel.Text = string.Empty;
@@ -633,7 +645,7 @@ public partial class Main
             CloseAgentModelEditor();
 
         // Name, age and one plain sentence for what they are doing, shared by both cards.
-        quickCardNameLabel.Text = inhabitant.DisplayName;
+        quickCardNameLabel.Text = quickCardNameLabel.TooltipText = inhabitant.DisplayName;
         selectedActorNameLabel.Text = inhabitant.DisplayName;
         // Draft and refused names stay in the open field for the player to change,
         // while the labels above keep showing the name the host holds.

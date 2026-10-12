@@ -1,6 +1,6 @@
 # Alpha 1 playtest checklist
 
-Pending hands-on checks for alpha 1, in 98 checks. Nothing here has been checked by hand yet.
+Pending hands-on checks for alpha 1, in 100 checks. Nothing here has been checked by hand yet.
 
 This checklist targets the planned alpha 1 build. Milk without jugs ([#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706)), council elections at four adults ([#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713)), an empty mayor's office from the start ([#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714)), and one mod ID limit ([#1606](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1606)) are agreed changes required for these checks. Use a build that includes them for those checks; earlier builds keep the previous rules.
 
@@ -13,6 +13,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Press **Play** ("Install and Play <version>"). → The download shows a progress bar, then the launcher closes and that version's Main Menu opens.
   - Look in `%LOCALAPPDATA%\ClankerWorld`. → The version is installed under `versions`, with the `saves`, `settings` and `logs` folders beside it untouched.
   - Choose **Quit to Launcher** on the Main Menu. → It asks first, saves, closes the game and reopens the launcher with that version chosen.
+  - Press **Play** again and open **Load World**. → The game opens at the Main Menu, the world you left is already selected, and it opens only after you choose **Open World**.
   - Start a game straight from `ClankerWorld.exe`. → Its Main Menu has no **Quit to Launcher** button.
   - Edit a file in the installed version and choose **Repair**. → The file is restored.
   - Try **Remove**. → It asks first and keeps your worlds.
@@ -216,23 +217,29 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Pause, save and reopen before and after each birth. → Play carries on after reloading.
   - For one birth, empty and remove the caregiver's House first. → The baby is still born beside the caregiver into their household; its card and the Event Log say it needs housing.
   - Save and load after that birth. → There is still exactly one baby.
-- [ ] **Electing the council and a mayor.** ([#618](https://github.com/compoodment/ClankerWorld/issues/618), [#631](https://github.com/compoodment/ClankerWorld/issues/631), [#813](https://github.com/compoodment/ClankerWorld/pull/813), [#878](https://github.com/compoodment/ClankerWorld/issues/878), [#880](https://github.com/compoodment/ClankerWorld/issues/880))
+- [ ] **Electing the council and a mayor.** ([#618](https://github.com/compoodment/ClankerWorld/issues/618), [#631](https://github.com/compoodment/ClankerWorld/issues/631), [#813](https://github.com/compoodment/ClankerWorld/pull/813), [#878](https://github.com/compoodment/ClankerWorld/issues/878), [#880](https://github.com/compoodment/ClankerWorld/issues/880), [#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713), [#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714))
+  - On the paired world: start an ordinary world with four founders and open its Town in World Info on day 1. → Its first council election is already recorded.
+  - Let that election close with fewer than three willing candidates. → It fails, and all four adults keep governing; built-in agents neither stand nor vote.
   - Let a Town reach four adult residents and hold its first council election. → Adults who agreed to stand before voting opened are on the ballot.
   - Watch the votes. → Each voter chooses up to three different council candidates, themselves included.
   - Try a tie at the cutoff. → One runoff follows, then a settled result.
-  - Look at the Town's offices in Towns. → Every Town starts with an empty mayor's office, for land disputes and other cases, that residents only need to fill.
+  - Before anyone stands for mayor, look at the Town's offices in Towns. → Every Town starts with an empty mayor's office, for land disputes and other cases, with no holder or term, that residents only need to fill; meanwhile the Council governs as usual.
+  - Suggest that an adult with a personal model stand for mayor. → They agree to both duties themselves, and a mayor's election starts without a vote to change the government.
   - Have residents elect a mayor; try a tied vote, and a council election at once. → Willing candidates, ballots, ties, interrupted votes, the handover and the officeholder show in Towns and the Event Log.
-  - Pause, save and restart mid-vote. → The vote and its deadline survive, and nobody gains authority before a proper handover.
-  - Check the new mayor's roles. → The mayor's land role stays separate from ordinary governing.
+  - Pause, save and restart mid-vote. → The candidates, ballots and deadline survive, and nobody gains authority before a proper handover.
+  - Check the new mayor's roles. → They hold both case duties with one term, land and conduct cases can go to them as judge, and the land role stays separate from ordinary governing.
   - Have a mayor who also holds the Town's governing role resign one of them. → The remaining role and the vacancy or fallback are shown.
   - Have an elected mayor resign and withdraw while residents approve a change to all-adult government that keeps the mayor's office. → The government-change vote appears in the Event Log.
   - Let the change pass. → It completes with the mayor's office empty.
+  - Have residents vote to limit the mayor's office to land cases, or to remove it. → The approved duties change, a removed duty carries no authority, and pending cases wait while no judge can hear them.
   - Let days pass with no candidate. → No repeated empty elections are added.
   - Have an eligible adult stand and win, then reload. → They get a fresh term, also after reload.
   - During a normal population-triggered council election, approve a government change with nobody willing to stand for mayor, and have an adult leave mid-vote. → The elected councillors take office after voting and stay when the government change expires.
   - Before the normal election threshold, propose a government change that itself creates a council election. → Its elected councillors wait for handover, and that election ends if handover expires without a willing mayor.
   - Pause and reload during voting and while councillors wait. → Each election keeps its own outcome.
   - Let a normal election run with empty ballots. → It retries independently of the government change.
+  - On the paired world: with personal models on, let three residents agree to stand and win a council election, then bring the Town down to three living adults. → All three adults govern after the drop.
+  - Admit a fourth adult. → A new council election opens once there are four, on the usual election schedule.
 - [ ] **Save and reopen a running world.** ([#591](https://github.com/compoodment/ClankerWorld/pull/591), [#764](https://github.com/compoodment/ClankerWorld/issues/764), [#787](https://github.com/compoodment/ClankerWorld/pull/787), [#891](https://github.com/compoodment/ClankerWorld/issues/891), [#1195](https://github.com/compoodment/ClankerWorld/issues/1195), [#1200](https://github.com/compoodment/ClankerWorld/issues/1200), [#1203](https://github.com/compoodment/ClankerWorld/issues/1203), [#1205](https://github.com/compoodment/ClankerWorld/issues/1205), [#1211](https://github.com/compoodment/ClankerWorld/issues/1211))
   - Create a Small and a Medium world with four founders, and let time run while agents gather and the weather changes. → Resources, fields, tree growth and the Event Log keep updating.
   - Compare the map and the overview while time runs. → Ground and mountain detail stay the same on both.
@@ -250,7 +257,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Cancel it. → Nothing is removed.
   - Confirm a fresh preview. → Only the copies it listed are removed, and the named save and latest recovery copy still load.
   - Repeat the preview at the smallest window size and with larger text. → The lists and the Cancel and Delete buttons stay usable at every size.
-- [ ] **Recovering after a crash or a damaged save.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1319](https://github.com/compoodment/ClankerWorld/issues/1319), [#1321](https://github.com/compoodment/ClankerWorld/issues/1321))
+- [ ] **Recovering after a crash or a damaged save.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1319](https://github.com/compoodment/ClankerWorld/issues/1319), [#1321](https://github.com/compoodment/ClankerWorld/issues/1321), [PR #1725](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1725))
   - Back up the save folder, then use a disposable test world with a rotating autosave. Stop the host, damage only that test world's current save and restart. → Recover world appears before you enter the world.
   - Read the Recover world screen. → It explains what is kept and lost, and offers the last good autosave.
   - Choose to recover. → The world opens paused, with the other saves and a copy of the damaged file kept.
@@ -258,7 +265,9 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Restore an autosave and choose Check again. → Recovery becomes available.
   - Drop the connection after choosing. → It offers Check again instead of repeating the choice.
   - While playing, end the ClankerWorld.Viewer process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
-  - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game uses the server left running.
+  - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running.
+  - Repeat while the PC is busy. → After at most a short delay it reconnects, without saying another program is using the port or starting a second server.
+  - Start a different game build while that server is still running. → It refuses the server that doesn't match, and the original world keeps running.
   - Let the host's save disk get nearly full. → A readable warning shows during play and in Save World, in both themes.
   - Save and Overwrite with the disk nearly full. → Both still work, and autosaves and emergency saves keep trying.
   - Watch for a save that fails. → It says so instead of claiming success.
@@ -409,7 +418,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Watch the infant. → It makes no paid calls as an infant.
   - Set the newborn to **No personal model (safe local)** and reopen. → The setting survives, and later uses built-in choices even with a paid world default.
   - Remove the key, or open the save on another install. → The child keeps its choice, makes safe choices and never uses a different paid model.
-- [ ] **Memories, personality and life moments.** ([#442](https://github.com/compoodment/ClankerWorld/issues/442), [#472](https://github.com/compoodment/ClankerWorld/issues/472), [#970](https://github.com/compoodment/ClankerWorld/issues/970), [#1311](https://github.com/compoodment/ClankerWorld/issues/1311), [#1312](https://github.com/compoodment/ClankerWorld/issues/1312), [#1524](https://github.com/compoodment/ClankerWorld/issues/1524), [#1690](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1690), [#1694](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1694))
+- [ ] **Memories, personality and life moments.** ([#442](https://github.com/compoodment/ClankerWorld/issues/442), [#472](https://github.com/compoodment/ClankerWorld/issues/472), [#970](https://github.com/compoodment/ClankerWorld/issues/970), [#1311](https://github.com/compoodment/ClankerWorld/issues/1311), [#1312](https://github.com/compoodment/ClankerWorld/issues/1312), [#1524](https://github.com/compoodment/ClankerWorld/issues/1524), [#1690](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1690), [#1694](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1694), [#1704](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1704))
   - Let agents live more than three world days with the routine helper off. → Old, unimportant memories leave the recent list, while life, relationship, skill and family records stay.
   - Watch memories tied to an unfinished task or an active child plan. → They stay until it ends; a postponed child plan doesn't keep them.
   - Turn the helper on (Jev or OpenAI Decisions). → Archived memories become summaries that help later choices and keep who said what and any later correction.
@@ -423,6 +432,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Have two world-born adults barter, and one supply materials for the other's project. → They remember each other in their profiles and later thoughts.
   - Save, reload, reconnect and message them about it. → They can refer to the trade or help without the goods moving again or trust rising twice.
   - Let a child talk, play or learn beside someone, then message them about it. → The child's reply can refer to what they did, and social actions still work.
+  - In a grown world, let world-born adults form households, have children, trade and help one another, then save and reopen. → Household membership, parents and each person's memories are still right.
 - [ ] **Suggestions and orders the game can't do.** ([#503](https://github.com/compoodment/ClankerWorld/issues/503), [#586](https://github.com/compoodment/ClankerWorld/issues/586), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#700](https://github.com/compoodment/ClankerWorld/pull/700), [#1221](https://github.com/compoodment/ClankerWorld/issues/1221), [#1223](https://github.com/compoodment/ClankerWorld/issues/1223), [#1228](https://github.com/compoodment/ClankerWorld/issues/1228), [#1229](https://github.com/compoodment/ClankerWorld/issues/1229))
   - Send a Suggest to an adult with a personal model. → Their next planning request hears your exact words as an outside observer.
   - Read their card. → **Your messages** shows your words and that they were heard; a short reply appears under **Agent reply**, apart from Thoughts.
@@ -470,7 +480,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Order an adult to gather a material they remember only from across water. → They explore nearby.
   - Name that distant source in the order. → They wait for it.
   - Save and reload during and after each of these. → The world loads without an error, and each result above still holds.
-- [ ] **Names and renames.** ([#456](https://github.com/compoodment/ClankerWorld/issues/456), [#588](https://github.com/compoodment/ClankerWorld/issues/588), [#912](https://github.com/compoodment/ClankerWorld/issues/912), [#924](https://github.com/compoodment/ClankerWorld/pull/924), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330); `1219-town-portrait-rename.md`, no link)
+- [ ] **Names and renames.** ([#456](https://github.com/compoodment/ClankerWorld/issues/456), [#588](https://github.com/compoodment/ClankerWorld/issues/588), [#912](https://github.com/compoodment/ClankerWorld/issues/912), [#924](https://github.com/compoodment/ClankerWorld/pull/924), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330), [#1662](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1662); `1219-town-portrait-rename.md`, no link)
   - Let a model pick a first name another agent already has (a different surname doesn't count). → The agent keeps its placeholder, is asked once more, then left for you to rename.
   - Rename that agent yourself. → Your rename always wins, even after a save, load or late reply.
   - Give one of two unnamed adults a first name starting with the other's temporary name. → The name is accepted.
@@ -481,6 +491,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Rename a child from World Info → Towns. → The Towns page updates and keeps its scroll position.
   - Rename a married agent's surname. → Both spouses' surnames change, and each spouse gets their own Memories card.
   - Look at a newborn and rename its surname. → It has a temporary name, makes no model calls, and accepts only a parent's surname.
+  - With two unmarried parents and a child who isn't grown up, rename one parent to a single-word name, then try to remove the other parent's surname in Profile. → That rename is refused, the current name stays, and no new rename card appears in Memories.
+  - Rename the child with the remaining parent's surname, then again with another unused first name and the same surname, and save and reload. → The accepted names are kept.
   - Open the agent's Memories after each rename. → Each valid rename adds a private permanent card with the date and new name; refused or unchanged names add nothing.
   - Open Memories in a small window. → The cards fit the panel.
   - Save, reload and reopen the world. → Every name and card survives.
@@ -582,7 +594,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Look at the finished Restaurant at every zoom. → It shows its clay roof and pot sign, with no terrace when narrow.
   - Watch each finished building work. → It does its normal work at normal speed, with products going to the right owner.
   - Save mid-trip and mid-work, then reload. → Work resumes once, without spending twice.
-- [ ] **Building cards and Details.** ([#543](https://github.com/compoodment/ClankerWorld/issues/543), [#890](https://github.com/compoodment/ClankerWorld/issues/890), [#1047](https://github.com/compoodment/ClankerWorld/issues/1047), [#1052](https://github.com/compoodment/ClankerWorld/issues/1052), [#1078](https://github.com/compoodment/ClankerWorld/issues/1078), [#1181](https://github.com/compoodment/ClankerWorld/pull/1181), [#1183](https://github.com/compoodment/ClankerWorld/pull/1183))
+- [ ] **Building cards and Details.** ([#543](https://github.com/compoodment/ClankerWorld/issues/543), [#890](https://github.com/compoodment/ClankerWorld/issues/890), [#1047](https://github.com/compoodment/ClankerWorld/issues/1047), [#1052](https://github.com/compoodment/ClankerWorld/issues/1052), [#1078](https://github.com/compoodment/ClankerWorld/issues/1078), [#1181](https://github.com/compoodment/ClankerWorld/pull/1181), [#1183](https://github.com/compoodment/ClankerWorld/pull/1183), [#1768](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1768))
   - Click a House, the Farmhouse, the Blacksmith and the Warehouse. → Each is outlined and opens a card with roof, name, owner, one status line and stored items as icons with count badges.
   - Open Details on each. → A panel docks with owner, users, build date, door side, a storage grid and bar, recent changes and who is inside.
   - Open Details while the building is working. → Current work shows its inputs, outputs and held materials, which are gone once the work finishes.
@@ -590,6 +602,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Keep Details open as goods are delivered, taken or used. → Everything updates live, and looking never changes stock.
   - Press Back or Escape, then ×. → Back or Escape returns, and × closes.
   - View the panel in Light and Dark at 200%. → It reads well in both.
+  - Store Restaurant meals, Vegetable stew or crude wooden pickaxes in a building, then open its Details in Light and Dark at the screen sizes you use. → Each item name stays inside its own slot, and hovering shows the full name and amount.
   - With Details open, switch to another building or world. → Switching replaces everything in the panel.
   - At close zoom, watch someone go into a House. → They vanish at the door, and a person badge with a count appears, naming them on hover.
   - Watch people in an animal yard or on a Port pier. → They stay visible, with no badge.
@@ -640,7 +653,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Try the same on a building holding or expecting goods, with work under way, or the household's last Farmhouse in use. → It refuses the change without losing anything.
   - With two paired devices, open a removal confirmation on one while changing that building's owner on the other. → The out-of-date action is refused and changes nothing.
   - Start an action in one world, then switch worlds before confirming. → The out-of-date action is refused and changes nothing, while a fresh action works in the intended world.
-- [ ] **Town land and plots.** ([#426](https://github.com/compoodment/ClankerWorld/issues/426), [#885](https://github.com/compoodment/ClankerWorld/issues/885), [#1141](https://github.com/compoodment/ClankerWorld/issues/1141), [#1331](https://github.com/compoodment/ClankerWorld/issues/1331))
+- [ ] **Town land and plots.** ([#426](https://github.com/compoodment/ClankerWorld/issues/426), [#885](https://github.com/compoodment/ClankerWorld/issues/885), [#1141](https://github.com/compoodment/ClankerWorld/issues/1141), [#1331](https://github.com/compoodment/ClankerWorld/issues/1331), [#1628](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1628))
   - Start a new world, accept the first Town layout, place four founders, then turn on the Town land title and household land use views. → The Town's border is titled.
   - Look at the household land use view. → Each household's buildings show separate use areas, and the shared Warehouse has no household colour.
   - Let the Town build past the border. → The border grows while the title view stays on the original land.
@@ -649,6 +662,9 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Try it with no eligible land, and reload while they wait. → They keep waiting.
   - Ask an adult to request a free plot inside Town title. → The plot shows a pending request with Council and household counts, and no use right yet.
   - Have the Council approve and all but one household adult accept, then reload. → The plot waits for the last adult, and the counts survive the reload.
+  - On the paired world: let a world-born child grow into an adult household member of a Town with a Council and free titled land, and suggest they ask for household use of a nearby plot. → The request goes to the Council without granting any use right or counting as their household's agreement.
+  - Save and reopen the world. → The request keeps the same requester, household and plot.
+  - Repeat with an adult from a later generation, also after they found their own household. → The same holds.
   - Let another household claim the same plot, or challenge a recorded right. → It stays a dispute where nobody loses buildings, goods or movement until one side withdraws and the grant completes.
   - Make an ordinary request over another household's field. → It is refused.
   - Give one household farmland by request or grant. → Farmers from other households leave it untouched, but still work free land and their own plots.
@@ -685,7 +701,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Zoom out to overview with Filters on. → The border line becomes thin and solid.
   - Keep watching through a world switch, a reconnect and save and load. → The overlays keep following border and ownership changes.
   - In a grown Town, move residents, change Warehouse and shared-tool stock, grant household land, and add or remove buildings, Roads or a public Workshop. → The overlays follow the border and ownership changes.
-  - Try building and crafting proposals in the grown Town. → They still offer legal sites with reasons, and refuse occupied sites, blocked doors and impossible routes.
+  - Move a resident, change shared stock and household land, and remove a Road or public Workshop in the grown Town, then save and reload. → Building, crafting and work choices follow the current Town, still offer legal sites with reasons, and refuse occupied sites, blocked doors, impossible routes and unavailable inputs.
   - Try proposals using goods that are unavailable or someone else's. → They are refused.
   - Watch a household that lacks a workshop, then remove the workshop once built. → It plans one once it owns the materials, and can rebuild after removal.
   - Look at a Market with Roads through its aisles. → It keeps its project.
@@ -725,11 +741,13 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Take the ornament off. → It stays carried.
   - Compare the wearer with and without it. → It changes neither warmth, carrying room, fighting nor map appearance.
   - Save and reopen while a tool or the ornament is being made, during field work and during a repair. → Tools, wear and work match after reopening.
-- [ ] **Repairs, clothing and carrying aids.** ([#563](https://github.com/compoodment/ClankerWorld/issues/563), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#725](https://github.com/compoodment/ClankerWorld/issues/725), [#1062](https://github.com/compoodment/ClankerWorld/issues/1062), [#1173](https://github.com/compoodment/ClankerWorld/issues/1173))
+- [ ] **Repairs, clothing and carrying aids.** ([#563](https://github.com/compoodment/ClankerWorld/issues/563), [#587](https://github.com/compoodment/ClankerWorld/issues/587), [#725](https://github.com/compoodment/ClankerWorld/issues/725), [#1062](https://github.com/compoodment/ClankerWorld/issues/1062), [#1173](https://github.com/compoodment/ClankerWorld/issues/1173), [#1592](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1592))
   - Follow fiber into a Tailor Shop for cloth, then wear its padded coat and rain cloak. → The coat helps in cold and the cloak in wet weather, without changing the map sprite.
   - Follow rope and baskets at a House and sacks at the Tailor Shop. → Carrying aids raise the limit on the card, and real pickups respect it.
   - Let gear wear out. → Replaced gear stays real stock.
   - Let a carrying aid break while loaded. → It may leave an oversized load, but nothing more is picked up.
+  - On the paired world: as an agent's worn clothing and sack wear out, check them in **Profile**, saving and reloading along the way. → They show at least 1% while any wear is left, and 0% only once fully broken.
+  - On the paired world: compare the carrying limit on the card with a working sack and a broken one. → The working sack raises the limit; a broken sack leaves only the basic limit.
   - Order **Repair my basket** and **Repair two padded coats**. → They use real materials: fiber and rope at the House, cloth at the Tailor Shop.
   - Order **Repair my wooden axe** and **Repair two stone pickaxes**. → They use real wood and stone at the Blacksmith.
   - Watch each repair finish. → It counts only once condition improves, and never repairs extra.
@@ -811,12 +829,19 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Let food spoil while an adult carries a household delivery. → It is brought back to camp and set down, still the household's, freeing the load and clearing the old delivery.
   - Leave a filled water jug at camp because the House was full. → It is later carried home with all its water once someone can carry it whole, never splitting or vanishing.
   - Save and reload mid-trip throughout. → Each load is delivered once, with ownership and amounts intact and nothing lost or doubled.
-- [ ] **Fetching real goods within reach.** (`1261-reachable-cart-materials.md`, [#1281](https://github.com/compoodment/ClankerWorld/issues/1281), [#1282](https://github.com/compoodment/ClankerWorld/issues/1282), [#1286](https://github.com/compoodment/ClankerWorld/issues/1286), [#1370](https://github.com/compoodment/ClankerWorld/issues/1370), `1617-owned-tool-collection.md`)
+- [ ] **Fetching real goods within reach.** (`1261-reachable-cart-materials.md`, [#1281](https://github.com/compoodment/ClankerWorld/issues/1281), [#1282](https://github.com/compoodment/ClankerWorld/issues/1282), [#1286](https://github.com/compoodment/ClankerWorld/issues/1286), [#1370](https://github.com/compoodment/ClankerWorld/issues/1370), [#1596](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1596), `1617-owned-tool-collection.md`)
   - Leave household wood, ore, iron fittings or personal belongings on land nobody can reach. → Agents gather local wood or ore for a Blacksmith instead.
   - Watch the household's handcart plans. → They don't start a handcart that needs the far fittings, or turn away wood deliveries because of it.
   - Watch agents with belongings near and far. → They collect nearby belongings and stop trying to reach far ones, which keep their owner and place.
   - Make a target unreachable while an agent is on the way. → They give up on it.
   - While playing, watch what agents pick up. → They never pick up goods they could not take where they are going.
+  - Put spare household milk on land its carrier can't reach from the Store. → The carrier isn't offered to stock it in the Store.
+  - Move the same milk to ground the carrier can reach. → It is carried into the Store, and the household's food reserve is kept.
+  - Where the only way to the Store crosses a river or lake they must swim, give the carrier four other items, then three. → With four they don't pick up the milk; with three they take only one portion.
+  - Across water they must swim, have an adult take a jug holding two portions of water to an animal yard while carrying two other items. → They leave the jug in stock rather than take a load too heavy to swim with.
+  - Repeat with one other item. → The whole jug reaches the yard.
+  - Across water they must swim, try planting and replanting, bringing medicine to a patient who accepted care, repairing a garment, fetching cart fittings, and an infant's other caregiver bringing food. → Loads of more than four items are held back or made smaller, and repair orders explain the blocked trip.
+  - Repeat with lighter loads, and over land. → The tasks still complete.
   - Let an adult gather with a shared household tool kept at the House. → They walk to collect the actual tool, and it stays the lender's.
   - Let an adult gather handcart or building materials from household or Town Warehouse stock. → They walk to collect the actual goods, and take only what is there.
   - Have a fully loaded adult repair a personal tool with shared supplies. → They put aside only spare cargo.
@@ -870,7 +895,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Reload with a partly supplied Market, a carried selling load, a borrowed stall and an open exchange. → Goods, owners, sellers and open terms are right, with no duplicated goods or votes.
   - Reload after an agent shuffles parts of one wood pile, then delivers a whole and a partial load. → Delivered stock stays at the stall with its owner; the rest stays with the agent.
   - After each reload, read the Market events and use Find on the stall. → The events read clearly, and Find reaches the stall.
-- [ ] **Stocking a Store or stall.** ([#1033](https://github.com/compoodment/ClankerWorld/issues/1033), [#1064](https://github.com/compoodment/ClankerWorld/issues/1064), [#1071](https://github.com/compoodment/ClankerWorld/issues/1071), [#1072](https://github.com/compoodment/ClankerWorld/issues/1072), [#1172](https://github.com/compoodment/ClankerWorld/issues/1172), [#1213](https://github.com/compoodment/ClankerWorld/issues/1213), [#1291](https://github.com/compoodment/ClankerWorld/issues/1291), [#1338](https://github.com/compoodment/ClankerWorld/issues/1338), [#1345](https://github.com/compoodment/ClankerWorld/issues/1345), [#1360](https://github.com/compoodment/ClankerWorld/issues/1360), [#1361](https://github.com/compoodment/ClankerWorld/issues/1361))
+- [ ] **Stocking a Store or stall.** ([#1033](https://github.com/compoodment/ClankerWorld/issues/1033), [#1064](https://github.com/compoodment/ClankerWorld/issues/1064), [#1071](https://github.com/compoodment/ClankerWorld/issues/1071), [#1072](https://github.com/compoodment/ClankerWorld/issues/1072), [#1172](https://github.com/compoodment/ClankerWorld/issues/1172), [#1213](https://github.com/compoodment/ClankerWorld/issues/1213), [#1291](https://github.com/compoodment/ClankerWorld/issues/1291), [#1338](https://github.com/compoodment/ClankerWorld/issues/1338), [#1345](https://github.com/compoodment/ClankerWorld/issues/1345), [#1360](https://github.com/compoodment/ClankerWorld/issues/1360), [#1361](https://github.com/compoodment/ClankerWorld/issues/1361), [#1704](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1704), [#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706))
   - Ask a household adult to stock their Store with spare food or tools in separate loads (two berries plus two more, or two wooden axes). → The goods reach the shelf.
   - Check what the adult keeps. → They keep their own food reserve and one usable tool.
   - Keep stocking until the Store is full. → A full Store refuses more.
@@ -880,6 +905,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Watch animal care or a planned birth that needs those goods. → It waits instead of using the goods on sale.
   - Have the seller leave the stall. → The released goods count again, and housemates can collect and use them, for example grain for animal care, without changing their owner.
   - Let stock spoil at the stall, then have the stall owner collect it. → It keeps its owner and spoiled state, and moves only once.
+  - Stock spare milk at a Store or a borrowed Market stall, and have buyers offer payment; let the seller accept one offer and refuse another. → The accepted sale moves the milk and the payment; the refused one leaves both where they were.
+  - Resell the same milk portion at least 14 times through paid Store or Market sales, saving and reopening during an offer and after a sale. → The milk's owner, the payment and the next sale stay right.
   - Save during restocking and after leaving, then reload. → All of this still holds.
 - [ ] **Buying at shops and Restaurants.** ([#561](https://github.com/compoodment/ClankerWorld/issues/561), [#564](https://github.com/compoodment/ClankerWorld/issues/564), [#1308](https://github.com/compoodment/ClankerWorld/issues/1308))
   - Have an adult from another household offer goods for stock kept at a Farmhouse, Blacksmith, Tailor Shop or Store. → The building card names the exact exchange and says both must meet there.
@@ -946,10 +973,12 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Click an animal inside the yard and open Details. → They show its name, age, household, care, ready products and permissions next to the yard's own information.
   - Move the pointer away. → The Details stay open.
   - Lead the animal out. → It leaves the yard's Details and is clickable on open ground.
-- [ ] **Caring for animals and collecting products.** ([#1030](https://github.com/compoodment/ClankerWorld/pull/1030), [#1079](https://github.com/compoodment/ClankerWorld/issues/1079), [#1123](https://github.com/compoodment/ClankerWorld/issues/1123), [#1161](https://github.com/compoodment/ClankerWorld/issues/1161), `1163-yard-care-pickup.md`, [#1177](https://github.com/compoodment/ClankerWorld/issues/1177), [#1209](https://github.com/compoodment/ClankerWorld/issues/1209), [#1213](https://github.com/compoodment/ClankerWorld/issues/1213), [#1338](https://github.com/compoodment/ClankerWorld/issues/1338), [#1370](https://github.com/compoodment/ClankerWorld/issues/1370), [#1391](https://github.com/compoodment/ClankerWorld/issues/1391), [#1642](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1642))
+- [ ] **Caring for animals and collecting products.** ([#1030](https://github.com/compoodment/ClankerWorld/pull/1030), [#1079](https://github.com/compoodment/ClankerWorld/issues/1079), [#1123](https://github.com/compoodment/ClankerWorld/issues/1123), [#1161](https://github.com/compoodment/ClankerWorld/issues/1161), `1163-yard-care-pickup.md`, [#1177](https://github.com/compoodment/ClankerWorld/issues/1177), [#1209](https://github.com/compoodment/ClankerWorld/issues/1209), [#1213](https://github.com/compoodment/ClankerWorld/issues/1213), [#1338](https://github.com/compoodment/ClankerWorld/issues/1338), [#1370](https://github.com/compoodment/ClankerWorld/issues/1370), [#1391](https://github.com/compoodment/ClankerWorld/issues/1391), [#1642](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1642), [#1706](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1706))
   - With a hen, sheep and cow in a household yard (tamed, or added in Developer tools while paused), Order collection of eggs, wool and milk. → The products belong to the household.
   - Look at where the milk is kept. → It is stored like any other good, with no jug.
   - Cook with the products. → Egg portions and milk porridge can be cooked.
+  - Order an adult with room for two portions and no water jug to collect from a cared-for cow. → They collect the milk without a jug, and it can go back to the House and into milk porridge.
+  - Keep a water jug for animal care and cooking water, and have an adult collect and drink milk separately. → The jug stays free for fresh water.
   - Order care for the cow with grain and jug water from the House or yard. → The adult collects the feed and water and cares for the cow once.
   - Check the household's stock after care. → The jugs and the household's meal reserve are kept.
   - Repeat with the water split across jugs, or with one jug already carried. → Care still happens once, and the jugs are kept.
@@ -1085,9 +1114,10 @@ Each check is one short play session. Its steps say what to do, then, after the 
 
 ## Towns and government
 
-- [ ] **Founding a Town.** ([#1305](https://github.com/compoodment/ClankerWorld/issues/1305), [#1306](https://github.com/compoodment/ClankerWorld/issues/1306))
+- [ ] **Founding a Town.** ([#1305](https://github.com/compoodment/ClankerWorld/issues/1305), [#1306](https://github.com/compoodment/ClankerWorld/issues/1306), [#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714))
   - Suggest that an adult with a personal model found a Town on buildable unclaimed land away from two other Towns. → A new Town appears with them on its council.
   - Look at what the new Town holds. → It holds title over its layout, but gets no free House, Roads or materials.
+  - Open the new Town in Towns. → It has its own empty mayor's office for both land and other cases.
   - Watch their dependent children. → They join the Town without teleporting.
   - Finish its first building. → One Road that looks like the packed-dirt streets reaches the nearer Town over clear ground, reusing existing streets.
   - Check where that Road meets water or protected land. → It bridges a river one or two tiles wide; protected land or wider water leaves the Towns unconnected.
@@ -1127,7 +1157,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Follow a voluntary goods, repair or service offer. → Reading or declining it isn't an offence; only real delivery or repair counts.
   - Reload while things are pending. → Nothing transfers twice.
   - At the smallest window, view a Town with many laws and scroll to the last law. → Names and dates stay readable.
-- [ ] **Land claims and disputes.** ([#426](https://github.com/compoodment/ClankerWorld/issues/426), [#633](https://github.com/compoodment/ClankerWorld/issues/633), [#1519](https://github.com/compoodment/ClankerWorld/issues/1519), [#1520](https://github.com/compoodment/ClankerWorld/issues/1520), [#1525](https://github.com/compoodment/ClankerWorld/issues/1525))
+- [ ] **Land claims and disputes.** ([#426](https://github.com/compoodment/ClankerWorld/issues/426), [#633](https://github.com/compoodment/ClankerWorld/issues/633), [#1519](https://github.com/compoodment/ClankerWorld/issues/1519), [#1520](https://github.com/compoodment/ClankerWorld/issues/1520), [#1525](https://github.com/compoodment/ClankerWorld/issues/1525), [#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714))
   - Have an adult ask the council to claim a small adjoining plot of unclaimed land. → The Towns page shows the exact tiles and votes.
   - Suggest votes to the councillors. → The Town's title changes only after a majority agrees.
   - Load a save made during the claim. → There is one title record, with the same plot and voting window.
@@ -1137,7 +1167,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Check who has heard about the case. → A posted notice isn't the same as someone knowing it, and silence isn't agreement.
   - Follow the hearing to a ruling. → Only a valid, informed ruling settles the case, showing its evidence, reasons and exact change, and updating the disputed-land view.
   - Ask for a rehearing with new evidence. → The earlier ruling stays in force until the new decision.
-  - Open a case involving the mayor's own household, with an independent adult available. → The mayor steps aside for a willing, eligible stand-in elected for that case only.
+  - Open a case involving the mayor's own household, with an independent adult available. → The mayor steps aside for a willing, eligible stand-in elected for that case only, and the mayor's office is otherwise unchanged.
   - Try a tied vote for the stand-in, and reload. → The tie lasts through reload until residents pick one winner.
   - Repeat with nobody eligible. → The hearing waits and says why.
   - Follow an ordinary dispute case and an expiry case. → They talk about use permission without changing the owner.
@@ -1214,7 +1244,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 
 ## Saves, loading and recovery
 
-- [ ] **Save branches and the timeline.** ([#679](https://github.com/compoodment/ClankerWorld/issues/679), [#680](https://github.com/compoodment/ClankerWorld/issues/680), [#787](https://github.com/compoodment/ClankerWorld/pull/787), [#1320](https://github.com/compoodment/ClankerWorld/issues/1320), [#1431](https://github.com/compoodment/ClankerWorld/pull/1431))
+- [ ] **Save branches and the timeline.** ([#679](https://github.com/compoodment/ClankerWorld/issues/679), [#680](https://github.com/compoodment/ClankerWorld/issues/680), [#787](https://github.com/compoodment/ClankerWorld/pull/787), [#1320](https://github.com/compoodment/ClankerWorld/issues/1320), [#1431](https://github.com/compoodment/ClankerWorld/pull/1431), [#1547](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1547))
   - Save "Before the flood", play on and save "Big harvest", then load "Before the flood". → A warning says playing on from an older save starts a new branch.
   - Look at the timeline after loading. → **You are here** sits on a dotted **New branch** row bending from the loaded save.
   - Save "Hungry winter". → The timeline, the chosen-save card and List show it on a coloured branch named "From Before the flood".
@@ -1225,11 +1255,13 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Look along the top of the timeline. → Seasons run along the top.
   - At 1080p in both themes, browse Save World and Load Save with clicks. → A clicked save turns orange, and its card shows branch, date and whether playing on starts a branch.
   - Browse with the arrow keys, then press Enter or double-click a save. → Enter or a double-click opens the load prompt.
+  - While paused, make several saves at the same moment. In Load Save, use the arrow keys to choose one whose name is pushed aside by the others, then make the window narrower. → Its whole name stays visible.
+  - Move the timeline scrollbar yourself, then resize the window again. → The timeline stays where you scrolled instead of jumping back to that name.
   - Switch to List and back. → List keeps the same save chosen.
   - Try overwriting an autosave and a named save. → Autosaves can't be overwritten, while named saves ask first.
   - Look at long names, and scroll the timeline. → Long names stay inside their controls with the full name on hover; the timeline fits and scrolls with names and seasons in view.
   - Judge Save World's layout overall. → Say if it feels cramped.
-- [ ] **Load World and saves from other versions.** ([#445](https://github.com/compoodment/ClankerWorld/issues/445), [#487](https://github.com/compoodment/ClankerWorld/issues/487), [#564](https://github.com/compoodment/ClankerWorld/issues/564), [#565](https://github.com/compoodment/ClankerWorld/issues/565), [#567](https://github.com/compoodment/ClankerWorld/issues/567), [#584](https://github.com/compoodment/ClankerWorld/issues/584), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#595](https://github.com/compoodment/ClankerWorld/pull/595), [#625](https://github.com/compoodment/ClankerWorld/issues/625), [#683](https://github.com/compoodment/ClankerWorld/issues/683), [#767](https://github.com/compoodment/ClankerWorld/issues/767), [#971](https://github.com/compoodment/ClankerWorld/issues/971), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330), [#1534](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1534), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
+- [ ] **Load World and saves from other versions.** ([#445](https://github.com/compoodment/ClankerWorld/issues/445), [#487](https://github.com/compoodment/ClankerWorld/issues/487), [#564](https://github.com/compoodment/ClankerWorld/issues/564), [#565](https://github.com/compoodment/ClankerWorld/issues/565), [#567](https://github.com/compoodment/ClankerWorld/issues/567), [#584](https://github.com/compoodment/ClankerWorld/issues/584), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#595](https://github.com/compoodment/ClankerWorld/pull/595), [#625](https://github.com/compoodment/ClankerWorld/issues/625), [#683](https://github.com/compoodment/ClankerWorld/issues/683), [#767](https://github.com/compoodment/ClankerWorld/issues/767), [#971](https://github.com/compoodment/ClankerWorld/issues/971), [#1330](https://github.com/compoodment/ClankerWorld/issues/1330), [#1534](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1534), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566), [#1771](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1771))
   - Restart the server and play straight away, then open Load World with several worlds. → The world runs and saves normally while the list is checked.
   - Wait for the first check. → It may be slow, but it lists every world.
   - Press Back, reopen it, open a different world and check once more. → The list appears almost at once, with the same marks.
@@ -1239,6 +1271,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Try to open one. → It's refused with nothing converted, and its files and the current world are left unchanged.
   - Find a world saved by a newer version installed through the launcher. → It's marked **Saved by <newer version>**, with a red **Open in <newer version>** button.
   - Press that button. → It asks first, then closes the game and opens the launcher with that version chosen.
+  - Press **Play** in the launcher and open **Load World**. → That same world is selected, even when another world has the same name.
+  - Give two worlds, and two saves, long names that start the same way, then hover their cards in Load World and in the save List, in a small and a large window. → Each full name can be read with its save date and seed, and selecting, opening and the branch-tag hover text still work.
   - Pause and delete an inactive world. → Its card and saves go; Open and Delete stay unavailable until the list refreshes, then open the world you pick.
   - Use a healthy world holding a named save from an older version, then restart. → The unreadable save stays, and restarting still opens the healthy world.
   - From **Load a save...** on the current world, the Main Menu and after leaving the world, delete a named save and an autosave. → Each asks with a confirmation naming the right save.
@@ -1299,7 +1333,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Look at dates in the top bar, Event Log, World Info, Save World and Load World. → They read like "Autumn 2, Year 1 · 14:20", followed by the weather.
   - In **Settings → Game**, try each **Date display** and **Time display** choice. → Each changes the top bar at once; numeric dates bring the season name back beside the weather.
   - Restart the game. → Your choices survive.
-- [ ] **Agent cards and Profiles.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#454](https://github.com/compoodment/ClankerWorld/issues/454), [#739](https://github.com/compoodment/ClankerWorld/pull/739), [#1018](https://github.com/compoodment/ClankerWorld/issues/1018), [#1031](https://github.com/compoodment/ClankerWorld/issues/1031), [#1214](https://github.com/compoodment/ClankerWorld/issues/1214))
+- [ ] **Agent cards and Profiles.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#454](https://github.com/compoodment/ClankerWorld/issues/454), [#739](https://github.com/compoodment/ClankerWorld/pull/739), [#1018](https://github.com/compoodment/ClankerWorld/issues/1018), [#1031](https://github.com/compoodment/ClankerWorld/issues/1031), [#1214](https://github.com/compoodment/ClankerWorld/issues/1214), [PR #1778](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1778))
   - At 1280×720 and 1080p in both themes, select agents near each screen edge and from the Agents list. → The small card opens beside the agent without covering them, with Profile and Speak reachable.
   - Scroll the card, and press Speak on the quick card. → Suggest, Order and Send scroll into view, and Speak scrolls the message box into view.
   - Open a Profile after a few messages. → It stays on screen with details scrolling inside, and Your messages is reachable.
@@ -1312,6 +1346,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Press Escape. → Only the reader closes.
   - Rename an adult to a 48-character name, and to one with wide characters such as 界, pressing Tab away mid-rename and waiting. → Your typing stays until you submit or cancel.
   - Look at the renamed heading. → It fits on two lines with the full name on hover, and Rename and Back stay visible.
+  - With that long name, open Read all, All orders and a conversation they're in, at 1280×720 and 1920×1080. → Each reader and its Close button stay on screen, hovering shows the full heading, and Close works with the mouse and the keyboard.
   - Pan the map. → The portrait frame and Speak controls follow the theme.
 - [ ] **Orders and messages.** ([#589](https://github.com/compoodment/ClankerWorld/issues/589), [#1533](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1533))
   - In a small window at 100% interface size, order an adult who isn't hungry to "eat 3 berries". → The card and Profile read "Order: Blocked · Eating food · 0/3 food items · Waiting until hungry enough to eat."
@@ -1349,7 +1384,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Drag and keyboard-pan during a glide. → Both stay instant and cancel the glide.
   - Zoom at a tile away from the centre. → Each zoom step eases quickly and keeps that tile under the cursor, without jumps.
   - Open another world. → Any old camera motion is dropped.
-- [ ] **World Info and the Event Log.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#448](https://github.com/compoodment/ClankerWorld/issues/448), [#695](https://github.com/compoodment/ClankerWorld/pull/695), [#704](https://github.com/compoodment/ClankerWorld/pull/704), [#777](https://github.com/compoodment/ClankerWorld/issues/777), [#1289](https://github.com/compoodment/ClankerWorld/issues/1289), [#1408](https://github.com/compoodment/ClankerWorld/issues/1408), event-log-wording.md, no link)
+- [ ] **World Info and the Event Log.** ([#285](https://github.com/compoodment/ClankerWorld/issues/285), [#448](https://github.com/compoodment/ClankerWorld/issues/448), [#695](https://github.com/compoodment/ClankerWorld/pull/695), [#704](https://github.com/compoodment/ClankerWorld/pull/704), [#777](https://github.com/compoodment/ClankerWorld/issues/777), [#1289](https://github.com/compoodment/ClankerWorld/issues/1289), [#1408](https://github.com/compoodment/ClankerWorld/issues/1408), [#1710](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1710), event-log-wording.md, no link)
   - Play a few days in a busy world, watching the Event Log. → Meals, foraging, cart loading and project shifts don't flood it.
   - Leave World Info closed on its Towns page, then open its World page. → It shows the date, season, local weather and moisture, calendar and all eight counts at once.
   - Pan to other weather, and change the theme and scale. → The page follows the camera and stays current and readable.
@@ -1363,10 +1398,22 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Rename someone, then read the Event Log. → Lines are plain sentences naming who was involved, never "Agent" or "Founder", and using new names after a rename.
   - While playing, watch for partnerships, marriages, births, animal births, skill lessons and a paid Clinic's construction. → Each appears with the right names.
   - Have a Blacksmith make a wooden axe from its controls, and from a Must Do order. → Each appears with the right names, and the axe reaches storage.
+  - On the paired world: in a Town, watch a law decision, a government vote or handover, and a mayor's election or change of office. → Each gets a readable Event Log line naming the Town, and Towns shows its wording or result.
+  - Save and reopen the world, then read those lines again. → They still show, without raw record or agent IDs.
   - Save and reload, then read the Event Log. → The names, headings and Find are kept, and weather lines are unchanged.
 
 ## Developer tools
 
+- [ ] **Launcher developer options.** ([#1764](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1764))
+  - In the launcher's Settings, turn on **Developer mode** and leave **Use test data folder** on. Play a build that supports test data, create and save a test world, then choose **Quit to Launcher** and **Play** again. → The test world is selected.
+  - Turn **Use test data folder** off and play. → Your usual worlds and model settings are unchanged.
+  - Use **Open saves folder** and **Open logs folder** with test data on and off. → Each opens the folder for the data you chose.
+  - Turn **Detailed logs** on, play, then open the logs folder. → `game.log` has extra engine detail, and `host.log` has a line saying it was a detailed launch.
+  - Quit, turn **Detailed logs** off and play again. → The new logs are back to normal detail.
+  - Choose **Report a problem**. → The report includes the current run's logs.
+  - Choose **Run a local build** and pick an unzipped portable `ClankerWorld.exe` with its `host` folder beside it. → It starts with the data folder and log options you chose.
+  - Pick an incomplete build, or one too old to support test data. → The launcher explains why it refuses, and your saves are safe.
+  - Turn **Developer mode** off. → All three developer options disappear, and **Play** uses your usual data.
 - [ ] **Opening Developer tools.** ([#675](https://github.com/compoodment/ClankerWorld/issues/675), Refs #944, [#998](https://github.com/compoodment/ClankerWorld/issues/998), [PR #1070](https://github.com/compoodment/ClankerWorld/pull/1070), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
   - In a running world, press F12, then press it again. → The panel opens and closes at the right edge while time keeps running.
   - Check F1, the Pause Menu and Settings. → F1 lists the panel, and Settings shows only Game and World, with no Developer tools category.
@@ -1374,8 +1421,13 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - With Developer tools open at 1080p (200%) in both themes, hover the map. → Tile coordinates and facts follow the pointer, and the panel fits on screen and scrolls.
   - Turn on **Show planned path** and choose an agent from the list. → The camera jumps to them, with a pale line along their route to a gold square.
   - While paused, use the aging override, paused world editing, retained-request buttons and paired-device list. → They work as they did in Settings.
-  - On Windows, in one grown-Town save, note the timings across builds and smaller and larger Towns. → Frame and update times and the living-agent count look sensible.
-  - Write down the details with your timings. → Record the seed, game time, machine and resident, Road and building counts, keep model and drawing time separate, and say whether play visibly stutters.
+  - On Windows, in one grown-Town save with the same models and settings, note the timings across builds and smaller and larger Towns. → Frame and update times and the living-agent count look sensible.
+  - Write down the details with your timings. → Record the seed, game time, machine, each build's commit and resident, Road and building counts, keep model and drawing time separate, and say whether play visibly stutters.
+- [ ] **Refused actions.** ([PR #1756](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1756))
+  - With the launcher's **Developer mode** on, open a newly created world and press F12 at 1280×720. → The **Refused actions** count starts at zero and is readable.
+  - If an action is ever refused during play, note the world and the action, then read the Event Log and the agent's card. → Time keeps moving, the Event Log names the agent and says they waited because of a game error, and their current order shows why it was cancelled.
+  - Save, quit and reload that world. → The refusal is still in its Event Log, and the count keeps its value.
+  - Open a different world. → It has its own count.
 - [ ] **Editing a paused world.** ([#677](https://github.com/compoodment/ClankerWorld/issues/677), [#728](https://github.com/compoodment/ClankerWorld/issues/728), [#960](https://github.com/compoodment/ClankerWorld/issues/960))
   - In a disposable paused Small world at 1280×720 and 1920×1080, set an agent's Fullness to 62%. → It shows on the agent and as a named Developer edit in the Event Log.
   - Give and remove two wood, and add and remove farming. → Each edit shows the same way.
@@ -1390,4 +1442,4 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Reconnect. → The waiting request is never sent into the loaded world.
   - Lose a reply without loading a save. → An exact retry is still allowed.
 
-Folded on October 11, 2026 from 404 per-change files with 1,122 checks. Each check keeps the links of the changes it came from, and the original files are in git history at commit `afbc35e8`.
+Folded on October 11, 2026 from 404 per-change files with 1,122 checks. Each check keeps the links of the changes it came from, and the original files are in git history at commit `afbc35e8`. Later the same day, 21 more per-change files were folded in; they are in git history at commit `10e9d3d3`.

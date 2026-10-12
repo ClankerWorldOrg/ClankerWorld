@@ -58,8 +58,10 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private readonly Func<string, IDecisionProvider>? providerFactory;
     private readonly int maxCognitionDispatchPerCycle;
     private SeededMap map;
-    private LandFertility fertility;
-    private List<FarmFieldState> fields = [];
+    private FarmingSystem farmingSystem;
+    private readonly IFarmingWorld farmingWorld;
+    private LandFertility fertility => farmingSystem.Fertility(map);
+    private IReadOnlyList<FarmFieldState> fields => farmingSystem.State.Fields;
     private SocietyWorldRuntime society;
     private ContentPackageRegistry contentRegistry;
     private EnvironmentSystem environmentSystem;
@@ -89,11 +91,11 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     private bool jevEnabled = true;
     private RoutineHelperSettings routineHelper = RoutineHelperSettings.Jev;
     private long jevPolicyRevision;
-    private FounderSetupState? founderSetup;
-    private List<TownRuntimeState> towns = [];
-    private List<TownLandTitleRecord> townLandTitles = [];
-    private List<HouseholdLandUseRight> householdLandUseRights = [];
-    private List<HouseholdLandUseRequest> householdLandUseRequests = [];
+    private FounderSetupState? founderSetup { get => civicSystem.State.FounderSetup; set => civicSystem.RestoreFounderSetup(value); }
+    private IReadOnlyList<TownRuntimeState> towns { get => civicSystem.State.Towns; set => civicSystem.RestoreTowns(value); }
+    private IReadOnlyList<TownLandTitleRecord> townLandTitles { get => civicSystem.State.TownLandTitles; set => civicSystem.RestoreTownLandTitles(value); }
+    private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => civicSystem.State.HouseholdLandUseRights; set => civicSystem.RestoreHouseholdLandUseRights(value); }
+    private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => civicSystem.State.HouseholdLandUseRequests; set => civicSystem.RestoreHouseholdLandUseRequests(value); }
     private HashSet<GridPoint> roadTiles = [];
     private AnimalWorldState animalWorld = AnimalWorldState.Empty;
     public IReadOnlyList<AnimalState> Animals => animalWorld.Animals;
@@ -160,6 +162,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         residentWorld = new ResidentWorldAdapter(this);
         environmentWorld = new EnvironmentWorldAdapter(this);
         civicWorld = new CivicWorldAdapter(this);
+        farmingWorld = new FarmingWorldAdapter(this);
         if (geographyOptions is not null &&
             (startPace != WorldStartPace.FounderSetup ||
              !string.Equals(geographyOptions.Seed, this.worldSeed, StringComparison.Ordinal)))
@@ -184,7 +187,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
                 ? BaseCampMapGenerator.Generate(this.worldSeed, includeLegacyBedroll)
                 : GeographyCandidateSelector.GenerateCandidate(geographyOptions, includeLegacyBedroll: includeLegacyBedroll)
             : SeededMapGenerator.Generate(this.worldSeed, includeLegacyBedroll));
-        fertility = new LandFertility(map, this.worldSeed);
+        farmingSystem = new(FarmingState.Empty, this.worldSeed);
         // Restore supplies an already validated saved state or a trusted tick
         // snapshot. Only a new world needs genesis ecology, chunks and weather.
         environmentSystem = new(restoringState?.WorldSystems ?? CreateWorldSystems(this.worldSeed, map, startPace));
@@ -213,7 +216,6 @@ public sealed partial class PrivateWorldRuntime : IDisposable
             founderSetup = new FounderSetupState([], false);
             if (geographyOptions is null)
                 towns = [TownBorderRules.CreateFirstTown(map)];
-            civicSystem.RestoreTowns(towns);
         }
         else
             CreatePhysicalState();
@@ -284,7 +286,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
     public FounderSetupState? FounderSetup => founderSetup;
 
     public IReadOnlyList<TownRuntimeState> Towns => towns
-        .Select(civicSystem.CheckpointTown).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+        .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
 
     public IReadOnlyList<TownLandTitleRecord> TownLandTitles => townLandTitles
         .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
@@ -332,7 +334,9 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         int maxCognitionDispatchPerCycle,
         bool trustedPreparedState,
         bool applyLoadTransitions = true,
-        ConversationState? preparedConversations = null)
+        ConversationState? preparedConversations = null,
+        CivicState? preparedCivic = null,
+        FarmingSystem? preparedFarming = null)
     {
         if (!trustedPreparedState) ValidateStateForCodec(state);
         var runtime = new PrivateWorldRuntime(
@@ -358,20 +362,24 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         runtime.jevEnabled = state.JevEnabled ?? true;
         runtime.routineHelper = state.RoutineHelper;
         runtime.jevPolicyRevision = state.JevPolicyRevision;
-        runtime.founderSetup = state.FounderSetup;
-        runtime.fertility = new LandFertility(runtime.map, state.WorldSeed);
         runtime.handcartHitches = state.HandcartHitches!.ToList();
         runtime.boatTransport = state.BoatTransport;
         runtime.animalWorld = state.AnimalWorld;
-        runtime.fields = state.Fields!.OrderBy(field => field.Position.Y)
-            .ThenBy(field => field.Position.X).ToList();
-        runtime.towns = state.Towns!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
-        runtime.civicSystem.RestoreTowns(runtime.towns);
-        runtime.townLandTitles = state.TownLandTitles!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
-        runtime.householdLandUseRights = state.HouseholdLandUseRights!
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
-        runtime.householdLandUseRequests = state.HouseholdLandUseRequests!
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+        runtime.farmingSystem = trustedPreparedState && preparedFarming is not null
+            ? preparedFarming.Fork() : new(new(state.Fields!.OrderBy(field => field.Position.Y)
+                .ThenBy(field => field.Position.X)), state.WorldSeed);
+        if (trustedPreparedState && preparedCivic is not null)
+            runtime.civicSystem = new(preparedCivic);
+        else
+        {
+            runtime.founderSetup = state.FounderSetup;
+            runtime.towns = state.Towns!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+            runtime.townLandTitles = state.TownLandTitles!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+            runtime.householdLandUseRights = state.HouseholdLandUseRights!
+                .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+            runtime.householdLandUseRequests = state.HouseholdLandUseRequests!
+                .OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
+        }
         runtime.roadTiles = state.RoadTiles!.ToHashSet();
         runtime.bridges = state.Bridges!.OrderBy(item => item.Id, StringComparer.Ordinal).ToList();
         runtime.bridgeTraffic = state.BridgeTraffic!;
@@ -482,7 +490,8 @@ public sealed partial class PrivateWorldRuntime : IDisposable
                 // Keep the live world paused throughout the write. A failed write
                 // discards this proposal, including its resume event and epoch.
                 using var proposed = RestoreCore(CaptureState(), providerFactory, maxCognitionDispatchPerCycle,
-                    trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState);
+                    trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState,
+                    preparedCivic: civicSystem.CheckpointState, preparedFarming: farmingSystem);
                 proposed.Resume();
                 var persisted = persist(proposed.CaptureState());
                 if (persisted.HistoryArchiveHead != proposed.historyArchiveHead)
@@ -530,7 +539,7 @@ public sealed partial class PrivateWorldRuntime : IDisposable
         assetReservations.ExportState(), eventHistoryFloor, historyArchiveHead, survivalState, council,
         deceasedInhabitants.Count == 0 ? null : deceasedInhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
         jevPolicyRevision == 0 && jevEnabled ? null : jevEnabled, jevPolicyRevision, founderSetup,
-        geographyOptions, towns.Select(civicSystem.CheckpointTown).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
+        geographyOptions, towns.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
         RoadTiles, Bridges, bridgeTraffic, fields.ToArray(),
         conversationSystem.CheckpointState.Conversations,
         conversationSystem.CheckpointState.Budgets,

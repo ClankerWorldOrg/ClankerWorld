@@ -45,7 +45,10 @@ if (publicPort is <= 0 or > 65535 || localApprovalPort is < 0 or > 65535 || loca
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 30_000_000;
+    // The general limit is the listener's default. RequestBodyLimits sets each
+    // request's own limit before any endpoint reads the body, raising it only
+    // for signed owner routes.
+    options.Limits.MaxRequestBodySize = RequestBodyLimits.Unauthenticated;
     options.Listen(IPAddress.Loopback, publicPort);
     if (localApprovalPort > 0)
     {
@@ -185,6 +188,7 @@ var pairingHostOptions = new OwnerPairingHostOptions(localApprovalPort,
     companionSecretPath is null ? null : OwnerPairingHostOptions.ReadCompanionSecret(companionSecretPath));
 builder.Services.AddSingleton(pairingHostOptions);
 builder.Services.AddSingleton<PairingRequestBudget>();
+builder.Services.AddSingleton<HostRequestRefusals>();
 builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
 {
     var worldId = services.GetRequiredService<PrivateWorldStartupRecovery>().Pending
@@ -225,6 +229,7 @@ var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWo
 providerUsage.LimitReached += () => usageEffects.Value.PauseAtLimit();
 providerUsage.WarningReached += warning => usageEffects.Value.RecordWarning(warning);
 
+app.UseRequestBodyLimits();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 

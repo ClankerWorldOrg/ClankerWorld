@@ -47,7 +47,8 @@ public sealed record OwnerControlFailure(string Code, string Detail);
 
 /// <summary>
 /// The normal HTTPS/Tailnet listener never has this port. Only a separately
-/// bound loopback listener can approve the first pending device.
+/// bound loopback listener can approve the first pending device, and only for a
+/// request addressed to a literal loopback host name.
 /// </summary>
 /// <remarks>
 /// A host the game started on the player's own PC also has a companion secret.
@@ -62,12 +63,28 @@ public sealed record OwnerPairingHostOptions(int LocalApprovalPort, string? Comp
 
     public bool IsCompanionHost => CompanionSecret is not null;
 
-    public bool IsLocalApprovalRequest(HttpContext context) =>
-        LocalApprovalPort > 0 &&
-        context.Connection.LocalPort == LocalApprovalPort &&
-        context.Connection.RemoteIpAddress is { } address &&
-        IPAddress.IsLoopback(address) &&
-        (CompanionSecret is null || HasCompanionSecret(context));
+    public bool IsLocalApprovalRequest(HttpContext context)
+    {
+        if (LocalApprovalPort <= 0 || context.Connection.LocalPort != LocalApprovalPort ||
+            context.Connection.RemoteIpAddress is not { } address || !IPAddress.IsLoopback(address))
+            return false;
+        // A loopback connection is not enough on its own: the caller must also
+        // address this host by a loopback name, as the game and a local operator do.
+        if (!IsLoopbackHostName(context.Request.Host))
+        {
+            context.RequestServices?.GetService<HostRequestRefusals>()?.LocalApprovalHostRefused();
+            return false;
+        }
+        return CompanionSecret is null || HasCompanionSecret(context);
+    }
+
+    /// <summary>
+    /// <c>127.0.0.1</c>, <c>[::1]</c> or <c>localhost</c>, with any port or none.
+    /// Other spellings of a loopback address are refused.
+    /// </summary>
+    public static bool IsLoopbackHostName(HostString host) =>
+        host.HasValue && (host.Host is "127.0.0.1" or "[::1]" ||
+            string.Equals(host.Host, "localhost", StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Only a companion host can be stopped over HTTP, and only by the game that started it.</summary>
     public bool IsCompanionShutdownRequest(HttpContext context) => IsCompanionHost && IsLocalApprovalRequest(context);

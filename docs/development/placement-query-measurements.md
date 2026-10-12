@@ -2,17 +2,24 @@
 title: Placement query measurements
 type: performance-report
 status: complete
-updated: 2026-10-07
+updated: 2026-10-11
 ---
 
 # Placement query measurements
+
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
 
 Gathering placement obstacles once per synchronous Town proposal query and
 renting tentative layout-search costs reduces repeated work in the measured
 grown Towns. Candidate lists, admissions and final saved states remain exactly
 equal. The largest fixture still takes about 470 ms per native tick;
-[#998](https://github.com/compoodment/ClankerWorld/issues/998) remains open for
-the remaining layout, route and input-query cost. These authored measurements
+[#998](https://github.com/compoodment/ClankerWorld/issues/998) covered
+the remaining layout, route and input-query cost at the time of measurement. These
+authored measurements
 do not establish a gameplay timing promise.
 
 ## Matched native measurements

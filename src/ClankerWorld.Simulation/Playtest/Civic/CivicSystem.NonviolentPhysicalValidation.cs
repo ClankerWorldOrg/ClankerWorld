@@ -139,7 +139,7 @@ internal sealed partial class CivicSystem
                         continue;
                     var law = town.Government?.Laws.FirstOrDefault(item => item.Id == file.Allegation.LawId);
                     var wording = law?.Versions.FirstOrDefault(version => version.Version == file.Allegation.LawVersion);
-                    if (law is not null && wording is not null && evidence.SourceRecordId == PrivateWorldRuntime.CivicSharedRules.LandHearingLawToken(law, wording))
+                    if (law is not null && wording is not null && evidence.SourceRecordId == LandHearingLawToken(law, wording))
                     {
                         var text = "Applicable law at the alleged act: " + TownLawRules.Text(wording.Subject, wording.Rule);
                         if (evidence.Kind != "record" || evidence.Acquisition != "record_inspection" ||

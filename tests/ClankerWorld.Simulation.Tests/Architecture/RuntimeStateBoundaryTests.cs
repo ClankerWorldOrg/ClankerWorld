@@ -66,4 +66,36 @@ public sealed class RuntimeStateBoundaryTests
             Assert.Equal(value, typeof(PrivateWorldRuntime).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(committed));
         committed.Validate();
     }
+
+    [Fact]
+    public void TrustedPreparationSharesCivicRecordsUntilAProposedWrite()
+    {
+        using var committed = NormalPathWorld.CreateGenerated("civic-snapshot-sharing", _ => new DeterministicDecisionProvider());
+        var civicField = typeof(PrivateWorldRuntime).GetField("civicSystem", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var original = ((CivicSystem)civicField.GetValue(committed)!).State;
+        var before = PrivateWorldRuntimeCodec.Encode(committed.ExportState());
+        var restore = typeof(PrivateWorldRuntime).GetMethod("RestoreCore", BindingFlags.Static | BindingFlags.NonPublic)!;
+        using var prepared = (PrivateWorldRuntime)restore.Invoke(null, [committed.ExportState(), null, 4, true, false, null, original, null])!;
+        var proposed = (CivicSystem)civicField.GetValue(prepared)!;
+        Assert.Same(original, proposed.State);
+        var snapshot = prepared.ExportState();
+        var town = Assert.Single(snapshot.Towns!);
+        var occupied = snapshot.Inhabitants.Select(person => person.Position)
+            .Concat(snapshot.Map.Resources.Select(resource => resource.Position))
+            .Concat(snapshot.Map.CampObjects.Select(item => item.Position))
+            .Concat(snapshot.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
+                snapshot.WorldContent!.BuildingDefinitions[building.DefinitionId], building))).ToHashSet();
+        var position = town.BorderTiles.First(point => snapshot.Map.IsBuildable(point) && !occupied.Contains(point));
+        const string newcomer = "agent:fffffffffffffffffffffffffffffffe";
+
+        prepared.AddAgent(newcomer, position);
+
+        Assert.NotSame(original, proposed.State);
+        Assert.Same(original.TownLandTitles, proposed.State.TownLandTitles);
+        Assert.Contains(newcomer, Assert.Single(prepared.Towns).ResidentIds);
+        Assert.DoesNotContain(newcomer, Assert.Single(committed.Towns).ResidentIds);
+        Assert.Same(original, ((CivicSystem)civicField.GetValue(committed)!).State);
+        Assert.Equal(before, PrivateWorldRuntimeCodec.Encode(committed.ExportState()));
+        prepared.Validate();
+    }
 }

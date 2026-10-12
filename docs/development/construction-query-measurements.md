@@ -7,10 +7,17 @@ updated: 2026-10-11
 
 # Construction query measurements
 
+Issue status, October 11: the owner closed
+[#998](https://github.com/ClankerWorldOrg/ClankerWorld/issues/998) after
+[#1777](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1777). These measurements
+remain historical evidence. A slowdown observed during alpha playtesting should be
+reported as a new bug.
+
 This change reduces repeated site scoring, shared-tool route lookup and idle
 continuation queries. The measured grown Town is faster, but still exceeds
 [#998](https://github.com/compoodment/ClankerWorld/issues/998)'s rough 200 ms
-guidance. That issue remains open for the remaining layout and route costs;
+guidance. At the time of these measurements, that issue covered the remaining layout and
+route costs;
 these measurements do not establish a player-facing timing promise.
 
 ## Matched native measurements

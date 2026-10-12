@@ -1,0 +1,2 @@
+- On the paired world: choose a first Town site, place and undo a founder, place all four founders, then Start World. Town membership and the starting buildings and household goods should remain correct. ([#1386](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1386))
+- On the paired world: follow a household land request through Council approval and each adult's acceptance, then save and reload. Its plot, accepted terms, use right and public notices should stay the same. ([#1386](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1386))

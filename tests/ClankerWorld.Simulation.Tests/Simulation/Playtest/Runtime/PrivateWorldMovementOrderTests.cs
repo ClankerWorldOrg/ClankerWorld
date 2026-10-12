@@ -294,20 +294,41 @@ public sealed partial class PrivateWorldRuntimeTests
         world.Validate();
     }
 
-    [Fact]
-    public async Task CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CancelledMovementOrderCannotBeResurrectedByItsHeldPersonalReply(bool deferStartup)
     {
-        var provider = new CancellationPlanningProvider(holdFirstOrder: true, orderCandidate: "move_to");
+        var allowStart = deferStartup ? 0 : 1;
+        var provider = new CancellationPlanningProvider(holdFirstOrder: true, orderCandidate: "move_to")
+        {
+            CanStart = () => Volatile.Read(ref allowStart) == 1,
+        };
         using var world = CreateCancellationTravelWorld(provider);
         var receipt = SubmitMovementOrder(world, "held-move", MovementOrderDestination(world.ExportState()));
         try
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            // Registration precedes background provider entry. Keep the first
+            // physical frame fixed while waiting for this exact held call.
+            var call = CaptureHeldHarvestCall(world);
+            Assert.Equal(HarvestInstructionActor, call.Request.Observation.InhabitantId);
+            Assert.Equal(receipt.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
+            Assert.False(call.Task.IsCompleted);
             var position = CancellationActorPosition(world.ExportState());
+            var beforeEntry = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+            if (deferStartup) Assert.False(provider.Started.Task.IsCompleted);
+            Volatile.Write(ref allowStart, 1);
+            await AwaitHarvestPhase(provider.Started.Task, "movement provider entry");
+            var entered = CaptureHeldHarvestCall(world);
+            Assert.Same(call.Request, entered.Request);
+            Assert.Same(call.Task, entered.Task);
+            Assert.Same(call.Request.Observation, Assert.Single(provider.Requests));
+            Assert.False(call.Task.IsCompleted);
+            Assert.Equal(beforeEntry, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
             CancelTravelOrder(world, receipt.InstructionId, "cancel-move");
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            await AwaitHarvestPhase(provider.Returned.Task, "cancelled movement reply return");
             for (var tick = 0; tick < 8 || tick < 60 &&
                      !provider.Requests.Any(request => request.OperativeOrderInstructionId is null); tick++)
             {
@@ -320,7 +341,11 @@ public sealed partial class PrivateWorldRuntimeTests
             Assert.Equal(0, CancellationOrder(world.ExportState(), receipt.InstructionId).CompletedUnits);
             world.Validate();
         }
-        finally { provider.Release.TrySetResult(true); }
+        finally
+        {
+            Volatile.Write(ref allowStart, 1);
+            provider.Release.TrySetResult(true);
+        }
     }
 
     [Fact]

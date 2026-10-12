@@ -37,6 +37,39 @@ public sealed class CompanionHostTests
         Assert.False(new OwnerPairingHostOptions(0).IsLocalApprovalRequest(Request(0, null)));
     }
 
+    [Theory]
+    [InlineData("127.0.0.1")]
+    [InlineData("127.0.0.1:5189")]
+    [InlineData("[::1]")]
+    [InlineData("[::1]:5189")]
+    [InlineData("localhost")]
+    [InlineData("LocalHost:5189")]
+    public void LocalApprovalAcceptsALiteralLoopbackHostName(string host)
+    {
+        Assert.True(new OwnerPairingHostOptions(ApprovalPort).IsLocalApprovalRequest(Request(ApprovalPort, null, host: host)));
+        var companion = new OwnerPairingHostOptions(ApprovalPort, Secret);
+        Assert.True(companion.IsLocalApprovalRequest(Request(ApprovalPort, Secret, host: host)));
+        Assert.True(companion.IsCompanionShutdownRequest(Request(ApprovalPort, Secret, host: host)));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("example.test")]
+    [InlineData("example.test:5189")]
+    [InlineData("localhost.example.test:5189")]
+    [InlineData("127.0.0.1.example.test")]
+    [InlineData("localhost.")]
+    [InlineData("127.1:5189")]
+    [InlineData("[::ffff:127.0.0.1]:5189")]
+    [InlineData("0.0.0.0:5189")]
+    public void LocalApprovalRefusesAnyOtherHostNameEvenWithTheSecret(string host)
+    {
+        Assert.False(new OwnerPairingHostOptions(ApprovalPort).IsLocalApprovalRequest(Request(ApprovalPort, null, host: host)));
+        var companion = new OwnerPairingHostOptions(ApprovalPort, Secret);
+        Assert.False(companion.IsLocalApprovalRequest(Request(ApprovalPort, Secret, host: host)));
+        Assert.False(companion.IsCompanionShutdownRequest(Request(ApprovalPort, Secret, host: host)));
+    }
+
     [Fact]
     public void CompanionSecretFileMustHoldOneLongValue()
     {
@@ -107,11 +140,14 @@ public sealed class CompanionHostTests
         }
     }
 
-    private static DefaultHttpContext Request(int localPort, string? secret, IPAddress? remote = null)
+    // The game's HttpClient names the approval listener as 127.0.0.1 and its port.
+    private static DefaultHttpContext Request(int localPort, string? secret, IPAddress? remote = null,
+        string host = "127.0.0.1:5189")
     {
         var context = new DefaultHttpContext();
         context.Connection.LocalPort = localPort;
         context.Connection.RemoteIpAddress = remote ?? IPAddress.Loopback;
+        context.Request.Host = new HostString(host);
         if (secret is not null) context.Request.Headers[OwnerPairingHostOptions.CompanionSecretHeader] = secret;
         return context;
     }

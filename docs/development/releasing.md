@@ -83,10 +83,11 @@ marks those for `v0.1.0-alpha.1`, the first playtest release.
 
 1. Fixers take labelled issues first. Only new P0 or P1 bugs and work the
    owner adds join the release; everything else waits for the next one.
-2. When every labelled issue is closed, the owner announces a merge day in
-   chat. Fixing sessions stop opening pull requests, reviewers merge what is
-   ready, and work that needs no other pull request open, such as renaming
-   folders across the code, goes in last.
+2. A merge day is a day the owner spends getting the repository as clean as
+   possible before a playtest, and they say so in chat. Fixers finish the
+   open issues and reviewers merge what is ready, until nothing is left open.
+   Work that needs no other pull request open, such as renaming folders across
+   the code, goes in last.
 3. The session the owner asks to prepare the release follows the
    [release gate](#release-gate) below.
 4. After publishing, move the label to `retired` in `labels.json`, and add the
@@ -129,7 +130,11 @@ Before publishing:
    [portable Windows zip](build-and-test.md#portable-windows-package) and its
    `.sha256` built from the tagged commit, keeping their file names: the
    launcher finds a game release by its `v<version>` tag and those two assets,
-   and refuses a package whose SHA-256 differs from the `.sha256` file.
+   and refuses a package whose SHA-256 differs from the `.sha256` file. For a
+   later alpha that includes the installer, also attach the
+   [per-user setup](build-and-test.md#windows-installer) and its `.sha256` from
+   the same tagged commit. The setup includes that game's
+   current launcher and game; keep the portable zip for launcher downloads.
 7. The launcher has its own releases, tagged `launcher-v<launcher version>`
    with the [launcher zip](build-and-test.md#windows-launcher). Publish one only
    when the launcher changed. Players download it themselves: the launcher

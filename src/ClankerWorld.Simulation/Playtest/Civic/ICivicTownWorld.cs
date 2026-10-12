@@ -12,43 +12,23 @@ using ClankerWorld.Simulation.Content;
 
 namespace ClankerWorld.Simulation.Playtest;
 
-internal interface ICivicTownWorld : ICivicHistoryWorld
+internal interface ICivicTownWorld : ICivicHistoryWorld, ICivicLandConsentWorld
 {
-    void AcceptTownAdmission(string actor, string townId, string proposalId);
     void AddBoatAccessCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     void AddEquipmentCandidates(List<CognitionCandidate> candidates, string actor, PlaytestInhabitantState person);
     void AddHandcartCandidates(List<CognitionCandidate> candidates, string actor,
             PlaytestInhabitantState person);
-    void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     void AddToolRepairCandidates(List<CognitionCandidate> candidates, string actor);
-    void AddTownAdmissionCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
-    void AddTownLandHearingCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
-    void AddTownLandTransferCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
     void AddTownProjectProposalCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
-    string AdmissionRequestText(string actor, TownRuntimeState town);
     bool AdultResident(string actor);
-    (TownGovernanceState Council, TownLandHearingState LandHearings) AdvanceTownLandHearings(
-            TownRuntimeState town, TownGovernanceState council, TownGovernmentState government);
-    (TownGovernanceState Council, TownLandHearingState LandHearings) AdvanceTownLandTransfers(
-            TownRuntimeState town, TownGovernanceState council);
     void AppendEvent(string kind, string detail, GridPoint? eventPosition = null);
-    (TownRuntimeState Town, TownGovernanceState Governance) ApplyApprovedTownLandClaims(
-            TownRuntimeState town, TownGovernanceState updated);
     bool ApplyHandcartCandidate(string actor, PlaytestInhabitantState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue);
     void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition);
-    (TownGovernanceState Council, TownLandHearingState LandHearings) ApplyTownLandHearingAction(TownRuntimeState town,
-            string actor, string action, string subject, string choice, string? proposalText, IReadOnlyList<CognitionLandTile>? landTiles,
-            CognitionLandHearingChoice? hearingChoice, TownGovernanceState council, TownGovernmentState government);
-    (TownGovernanceState Council, TownLandHearingState LandHearings) ApplyTownLandTransferAction(
-            TownRuntimeState town, string actor, string action, string subject, string choice,
-            IReadOnlyList<CognitionLandTile>? landTiles, CognitionLandHearingChoice? hearingChoice, TownGovernanceState council);
     bool CanContinueEquipmentRepair(string actor);
     bool CanPrepareEquipmentRepair(string actor, PlaytestInhabitantState person, InventoryLot lot);
-    bool CanWalkToCivicBoard(string actor, TownRuntimeState town);
     IEnumerable<PlaytestInhabitantState> ChildrenNeedingCare(string actor);
     bool ChildResident(string actor);
     EquipmentRepairWork? ContinueEquipmentRepair(string actor);
-    TownGovernanceState DecideHouseholdLandUse(TownGovernanceState state, string actor, string requestId, string action);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot);
     List<GridPoint> FindUnoccupiedRoute(
@@ -58,7 +38,6 @@ internal interface ICivicTownWorld : ICivicHistoryWorld
             int interactionRange,
             bool allowSwimming = true,
             int additionalCarriedUnits = 0);
-    void FoundTown(string actor, string candidate);
     int FreeCarryCapacity(string actor);
     bool HasCarriedMaterial(string actor, string itemKind, int quantity);
     PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag);
@@ -67,17 +46,8 @@ internal interface ICivicTownWorld : ICivicHistoryWorld
     IReadOnlyList<HouseholdLandUseRight> HouseholdLandUseRights { get; }
     IEnumerable<string> IllDependentsNeedingCare(string adult);
     bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange);
-    bool LandHearingAdult(string actor);
-    Dictionary<string, string?> LandHearingHouseholds();
-    string LandUseTerms(HouseholdLandUseRequest request);
     void MaintainTownProjects();
     SeededMap Map { get; }
-    bool MayBeSponsoredForAdmission(string nominee, TownRuntimeState town);
-    bool MayRequestOwnAdmission(string actor, TownRuntimeState town);
-    bool MayResettleTown(string actor, TownRuntimeState town);
-    bool MayVisitAsNewcomer(string actor, TownRuntimeState town);
-    bool MayVisitLandHearing(string actor, TownRuntimeState town);
-    bool MayVisitLandTransfer(string actor, TownRuntimeState town);
     void MoveToward(
             string inhabitantId,
             PlaytestInhabitantState state,
@@ -97,20 +67,7 @@ internal interface ICivicTownWorld : ICivicHistoryWorld
     void RepairEquipment(string actor, PlaytestInhabitantState person, string? requestedLotId = null, string? orderInstructionId = null);
     string? RepairTool(string actor, PlaytestInhabitantState state, string lotId,
             IReadOnlyList<string>? protectedToolIds = null);
-    GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count);
-    string ResettlementText(string actor, TownRuntimeState town);
-    void ResettleTown(string actor, TownRuntimeState town);
-    TownGovernanceState ResolveHouseholdLandRequests(TownRuntimeState town, TownGovernanceState state);
-    void SettleTownAdmissions();
-    void SetTown(TownRuntimeState updated);
     int SkilledWorkTicks(string actor, SettlementSkillKind skill, int ticks);
-    TownGovernanceState SubmitExpansionLandRequest(TownRuntimeState town, TownGovernanceState state, string actor, string buildingId);
-    TownGovernanceState SubmitPersonalLandUseRequest(TownRuntimeState town, TownGovernanceState state,
-            string actor, IReadOnlyList<CognitionLandTile>? landTiles);
-    TownGovernanceState SubmitTownLandClaim(TownRuntimeState town, TownGovernanceState state,
-            string actor, IReadOnlyList<CognitionLandTile>? requested);
-    string? TownForResident(string residentId);
-    TownRuntimeState? TownFoundingLayout(string actor);
     IReadOnlyList<TownLandTitleRecord> TownLandTitles { get; }
     string? TownProjectSiteFailure(TownRuntimeState town, TownProjectPayload plan,
             string? projectId = null, string? actor = null, bool ignorePendingRequests = false);
@@ -118,6 +75,46 @@ internal interface ICivicTownWorld : ICivicHistoryWorld
     PlacedBuilding? WarehouseForResident(string actor);
     DeclarativeWorldContentState WorldContent { get; }
     string WorldSeed { get; }
-    WorldContentSimulationState WorldSimulation { get; }
+    WorldContentSimulationState WorldSimulation { get; set; }
     IEnumerable<InventoryLot> WornEquipmentItems(string actor);
+
+    IEnumerable<GridPoint> RoadAndBridgeTiles();
+    IEnumerable<GridPoint> TownProjectProtectedSites(string? exceptProjectId = null);
+    HashSet<GridPoint> PendingTownProjectSiteTiles();
+    IEnumerable<GridPoint> MarketSiteTiles();
+    bool MayExpandBuilding(string actor, PlacedBuilding building, out string failure);
+    IEnumerable<(GridPoint Position, BuildingFootprintRevision Footprint)> ExpansionShapes(PlacedBuilding building);
+    bool CanFitExpansion(PlacedBuilding building, GridPoint position, BuildingFootprintRevision footprint, out string failure, string? ownJobId = null, bool requireLandRights = true);
+    void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town);
+    bool PropertyCanTransfer(TownRuntimeState town, TownLandCase item);
+    bool PropertyMayReopen(TownRuntimeState town, TownLandCase item);
+    (TownGovernanceState Council, TownLandHearingState LandHearings) RequestPropertyCase(TownRuntimeState town, string actor, string subject, string choice, string statement, TownGovernanceState council, TownGovernmentState government);
+    TownPropertySnapshot CaptureProperty(TownRuntimeState town, TownPropertyRequest request, int revision);
+    TownLandHearingState TransferCaseProperty(TownRuntimeState town, TownLandHearingState hearings, string caseId, TownPropertySnapshot prior);
+    int CaregiverFoodCarryRequirement(string actor, PlaytestInhabitantState parent);
+    InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0);
+    int MarketSurplus(string actor, InventoryLot lot);
+    int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0);
+    GridPoint HouseholdStockPosition(InventoryLot lot);
+    bool ReadyForBriefInteraction(string actor);
+    int PhysicalUnreservedQuantity(InventoryLot lot);
+    IEnumerable<PlacedBuilding> WarehousesForTown(string townId);
+    bool VesselFits(InventoryLot lot, int room);
+    void GenerateRoadBetweenTowns(TownRuntimeState town, PlacedBuilding firstBuilding);
+    bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination);
+    PlacedBuilding? HouseForHousehold(string householdId);
+    bool CanFitHouseResident(string householdId, SocietyInhabitant proposedResident);
+    List<GridPoint> GenerateRoadToBuilding(PlacedBuilding building, HashSet<GridPoint>? border = null);
+    IEnumerable<GoodsMatch> SpendingGoods(string actor, GoodsUse use, IReadOnlyList<string> owners, string? kind = null);
+    IReadOnlyList<FarmFieldState> Fields { get; }
+    IReadOnlyList<BridgeState> Bridges { get; }
+    IReadOnlySet<GridPoint> RoadTiles { get; set; }
+    GroundOccupancy Ground { get; }
+    bool HasGeneratedGeography { get; }
+    ContentRegistryState ContentState { get; }
+    void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> operation);
+    void ResumeSociety();
+    void AddInhabitant(string id, PlaytestInhabitantState person);
+    void SetInhabitant(string id, PlaytestInhabitantState person);
+    void RemoveInhabitant(string id);
 }

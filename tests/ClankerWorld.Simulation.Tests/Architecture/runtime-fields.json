@@ -13,13 +13,8 @@
     "conversationSystem",
     "civicSystem",
     "deceasedInhabitants",
-    "fertility",
-    "fields",
-    "founderSetup",
     "geographyOptions",
     "handcartHitches",
-    "householdLandUseRequests",
-    "householdLandUseRights",
     "inhabitants",
     "instructionReceipts",
     "instructionsByIdempotency",
@@ -36,15 +31,14 @@
     "society",
     "survivalState",
     "toolMakingRequests",
-    "townLandTitles",
-    "towns",
     "worldContent",
     "worldEventLog",
     "worldSeed",
     "worldSimulation",
     "environmentSystem",
     "actionRefusals",
-    "refusedActionCount"
+    "refusedActionCount",
+    "farmingSystem"
   ],
   "live": [
     "AgentBeliefChanged",
@@ -63,7 +57,8 @@
     "pendingWills",
     "providerFactory",
     "residentWorld",
-    "tickGate"
+    "tickGate",
+    "farmingWorld"
   ],
   "scratch": [
     "guardianPlacementActions",
@@ -72,7 +67,6 @@
     "plannedRoutes",
     "previousPlannedRoutes",
     "routeSearches",
-    "settlingTownAdmissions",
     "attemptedActions",
     "withheldActions"
   ]
