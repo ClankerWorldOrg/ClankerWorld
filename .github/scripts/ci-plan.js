@@ -135,15 +135,16 @@ function median(values) {
 // Each test's median seconds over main's runs in `dir`, one folder per run named by its run ID, how
 // many runs had timings and their IDs. One run's times swing too much to split the tests by, or to
 // compare a change with.
-function readMainTimings(dir) {
+function readMainTimings(dir, namespace) {
   const folders = dir && fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).filter(item => item.isDirectory()) : [];
   const samples = {};
   const ids = [];
   for (const folder of folders.sort((a, b) => (a.name < b.name ? -1 : 1))) {
-    const times = readTimings(path.join(dir, folder.name));
-    if (Object.keys(times).length === 0) continue;
+    const entries = Object.entries(readTimings(path.join(dir, folder.name)))
+      .filter(([name]) => !namespace || name.startsWith(namespace));
+    if (entries.length === 0) continue;
     ids.push(folder.name);
-    for (const [name, seconds] of Object.entries(times)) (samples[name] ??= []).push(seconds);
+    for (const [name, seconds] of entries) (samples[name] ??= []).push(seconds);
   }
   const times = Object.fromEntries(Object.entries(samples).map(([name, values]) => [name, median(values)]));
   return { times, runs: ids.length, ids };
@@ -216,8 +217,7 @@ function planShards(times, count = shardCount(), cores = Cores) {
 const TestNamespace = 'ClankerWorld.Tests.';
 
 function planFilters(dir, namespace = TestNamespace) {
-  const { times: measured, runs } = readMainTimings(dir);
-  const times = Object.fromEntries(Object.entries(measured).filter(([name]) => name.startsWith(namespace)));
+  const { times, runs } = readMainTimings(dir, namespace);
   const plan = planShards(times);
   const shards = plan ? plan.named : PinnedShards;
   const lines = [`source=${plan ? 'timings' : 'fixed'}`];

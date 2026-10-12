@@ -153,6 +153,42 @@ test('with too few runs, or in a dry run, nothing is written', async t => {
   assert.match(dry.logs.join('\n'), /Would refresh #7\./);
 });
 
+test('old-only namespace histories leave an existing budget issue open', async t => {
+  const prior = Object.fromEntries(Object.entries(runsTotalling(BudgetSeconds * 2)).map(([id, times]) => [id,
+    Object.fromEntries(Object.entries(times).map(([name, value]) =>
+      [name.replace('ClankerWorld.Tests.', 'ClankerWorld.Simulation.Tests.'), value])),
+  ]));
+  const { records, writes, logs, run } = world([{ number: 7, body: Marker }]);
+  assert.deepEqual(await run(timings(t, prior)), { action: 'none' });
+  assert.deepEqual(writes, []);
+  assert.equal(records[0].state, 'open');
+  assert.match(logs.join('\n'), /Only 0 of main's green runs had test timings/);
+});
+
+test('old-only runs cannot fill the minimum alongside one or two current runs', async t => {
+  for (const count of [1, 2]) {
+    const runs = Object.fromEntries(Object.entries(runsTotalling(BudgetSeconds * 0.5)).slice(0, count));
+    runs[4001] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+    runs[4002] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+    runs[4003] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+    const { records, writes, logs, run } = world([{ number: 7, body: Marker }]);
+    assert.deepEqual(await run(timings(t, runs)), { action: 'none' });
+    assert.deepEqual(writes, []);
+    assert.equal(records[0].state, 'open');
+    assert.ok(logs.some(line => line.includes(`Only ${count} of main's green runs had test timings`)));
+  }
+});
+
+test('budget decisions cite only the three runs that measured current tests', async t => {
+  const runs = runsTotalling(BudgetSeconds + 600);
+  runs[4001] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+  runs[4002] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+  runs[4003] = { 'ClankerWorld.Simulation.Tests.OldTests.Test': 18000 };
+  const { writes, run } = world();
+  assert.deepEqual(await run(timings(t, runs)), { action: 'opened', number: 900 });
+  assert.match(writes[0][1].body, /median over main's last 3 green CI runs, the newest of them \[run 3003\]/);
+});
+
 test('the workflow runs weekly on main with main\'s timings and copy of the script', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', 'workflows', 'test-time-budget.yml'), 'utf8');
   assert.match(workflow, /schedule:\n\s+- cron: '\d+ \d+ \* \* 1'/);

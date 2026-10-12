@@ -73,11 +73,9 @@ function issueBody({ times, runs, ids }, { repoUrl, now = new Date() }) {
 async function checkTestTimeBudget({ github, context, core, dir, now = new Date(), dryRun = false }) {
   const repo = context.repo;
   const repoUrl = `https://github.com/${repo.owner}/${repo.repo}`;
-  const measured = readMainTimings(dir);
   // Only timings in the current test namespace count. After the test project was renamed, main's
   // older runs named the same tests under the old namespace, and counting both would double them.
-  const times = Object.fromEntries(Object.entries(measured.times).filter(([name]) => name.startsWith(TestNamespace)));
-  const timings = { ...measured, times };
+  const timings = readMainTimings(dir, TestNamespace);
   if (timings.runs < MinRuns) {
     core.warning(`Only ${timings.runs} of main's green runs had test timings; at least ${MinRuns} are needed.`);
     return { action: 'none' };
