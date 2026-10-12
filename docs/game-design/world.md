@@ -2,7 +2,7 @@
 title: The world, time and survival
 type: game-design
 status: active
-updated: 2026-10-10
+updated: 2026-10-12
 ---
 
 # The world, time and survival
@@ -24,18 +24,25 @@ everything that is available in the current build. See [what works today](../wha
 
 ### Agreed
 
-- **During development and computment's own playtesting:** keep the current
-  Godot desktop client connected to the private VPS-hosted simulation. This
-  allows Clanker to inspect server logs, observe the running world, debug, and
-  tune behavior. There is no need to move the current development world just
-  to settle the eventual distribution architecture.
-- **For the first finished game distributed to other players:** provide a
-  simple PC install that runs the game and its game rules on
-  that player's own computer. Their saves and provider credentials belong on
-  their computer; playing must not depend on access to computment's VPS or a
-  mandatory hosted game account. If they choose cloud-hosted AI models, those
-  providers still require an internet connection and applicable credentials;
-  local game hosting does not mean all model inference is offline.
+- **A world server and a game, agreed by the owner in chat on October 12.**
+  The **world server** runs the simulation and is the only authority over the
+  world. The **game** draws that world and sends the player's choices to it.
+  The same server and rules run wherever the server is, and both ways below
+  are part of the finished game:
+  - **On the player's own device, the default.** Starting the game starts its
+    world server on the same PC, with saves and provider credentials on that
+    PC. Playing never depends on computment's machines or a hosted game
+    account. If a player chooses cloud-hosted AI models, those providers still
+    need an internet connection and the player's own key; a local world
+    server does not make model calls offline.
+  - **On another machine.** A player can run the world server somewhere else,
+    such as a VPS, and connect to it from the game on their own device. This
+    suits development and debugging: computment runs the world server on the
+    VPS Clanker, where the agent of the same name reads its logs and opens
+    issues, and plays on the Windows laptop. The alpha 1 playtest uses both
+    ways. Once the game no longer needs it for debugging, computment plans to
+    play entirely on the laptop, and running a server elsewhere stays
+    supported.
 - **The first finished release supports Windows only.** Computment has a
   Windows laptop for actual desktop playtesting, but no Linux or macOS desktop
   testing setup. Linux/macOS support is not a launch obligation; interested
@@ -54,8 +61,8 @@ everything that is available in the current build. See [what works today](../wha
   ([#1275](https://github.com/compoodment/ClankerWorld/issues/1275)):** keys
   are stored protected by Windows for the current Windows user, and the player
   can **Check key** to see which models that key can use.
-- Keep one simulation/game-rules implementation across the private-VPS and
-  local-PC deployments. The player-facing Godot client should not become the
+- Keep one simulation/game-rules implementation for both ways of running the
+  world server. The player-facing Godot client should not become the
   authority merely because the host runs locally. Closing the game still
   freezes the world, without offline catch-up.
 - **On a player's computer, the host is a bundled companion process.** The game
@@ -101,8 +108,8 @@ everything that is available in the current build. See [what works today](../wha
   model replies never go in, and anything in a log that looks like a key is
   blanked. The player sends the zip themselves; nothing is uploaded. The game
   offers it, and the launcher will reuse it.
-- **Private-server deployment starts with a written checklist.** A staged
-  deployment command for the private server waits until the local package
+- **Deploying a world server to another machine starts with a written
+  checklist.** A staged deployment command waits until the local package
   works.
 - **Agreed on October 1
   ([#638](https://github.com/compoodment/ClankerWorld/issues/638)):** a new
@@ -117,7 +124,7 @@ implementation choices to prove, not reasons to reopen the agreed player-local
 distribution goal, the companion-process host or the first package.
 
 **Parked until ClankerWorld becomes a public, versioned alpha (October 8):**
-a world between the private server and a player's PC
+a world between a world server on another machine and a player's PC
 ([#1262](https://github.com/compoodment/ClankerWorld/issues/1262)). The owner
 is the only player for now, so this waits until then.
 
@@ -641,11 +648,11 @@ an idle-label change.
 
 These remain open; they are not new decisions.
 
-- **Local packaging and VPS parity.** The finished distribution target is
-   player-local and Windows-only at first, while development stays VPS-backed.
-   [Where the game runs](#where-the-game-runs) records the agreed local host
-   and first package. Still to prove: the same simulation and save behavior in
-   both deployments, without creating a second, divergent game.
+- **Local and remote parity.** The world server runs on the player's PC by
+   default or on another machine, Windows-only for the game at first.
+   [Where the game runs](#where-the-game-runs) records both ways and the first
+   package. Still to prove: the same simulation and save behavior in both,
+   without creating a second, divergent game.
 
 - **Night and weather details.** Night is 30% to 50% of each day with the
     seasons and, at first, lowers warmth only, with no sleep/energy gate or

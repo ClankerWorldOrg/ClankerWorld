@@ -11,7 +11,7 @@ The goal is a small society that survives, trades, forms institutions and
 eventually invents things that change its world.
 
 ClankerWorld is an **early private alpha**. You currently play through a Windows
-game client connected to a private world server. A simple local Windows install
+game client connected to a world server. A simple local Windows install
 is part of the intended finished game; it is not available yet.
 
 ## Start here
