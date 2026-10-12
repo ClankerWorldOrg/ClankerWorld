@@ -61,11 +61,11 @@ Older alpha builds don't; update through the launcher.
 - The world server is the only authority over the world. The game, other
   devices and model replies can only ask; the server checks every request.
 - The world server the game starts on your PC listens only on your own
-  computer. A device is paired only after its code is approved on the world
-  server's computer.
+  computer. The first device's code is approved on the world server's computer;
+  an approved owner device can approve further devices.
 - On Windows, API keys are stored protected for your Windows account. Keys never
-  go into saves, logs or problem reports, and anything in a log that looks like
-  a key is blanked.
+  go into saves or logs. Problem reports also blank known secrets and text that
+  resembles common keys before including log excerpts.
 - The launcher checks every download against the published release before
   running it.
 
@@ -73,4 +73,6 @@ Older alpha builds don't; update through the launcher.
 
 Contributors and coding agents follow the security rules in
 [CONTRIBUTING.md](CONTRIBUTING.md#priorities): never describe a security
-problem in an issue, pull request or comment, and report it privately as above.
+problem in an issue, pull request or comment. Contributors use private reporting
+as above. Coding agents tell the owner in chat and create only the placeholder
+issue described in CONTRIBUTING.
