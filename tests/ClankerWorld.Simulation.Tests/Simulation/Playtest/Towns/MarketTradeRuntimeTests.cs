@@ -130,10 +130,10 @@ internal static class MarketTradeScenario
         {
             Reservations = offering.Society.Inventory.Reservations.Where(claim => claim.Purpose != "barter:" + offer.Id).ToArray(),
         };
-        Assert.Equal(offeredPayment.Quantity, MarketTradeRules.AvailableQuantity(withoutThisOffer, offeredPayment));
+        Assert.Equal(offeredPayment.Quantity, InventoryRules.UsableQuantity(InventoryIndex.For(withoutThisOffer), offeredPayment));
         Assert.DoesNotContain(offeredPayment.Id, ToolProgressionRules.All.Select(tool => tool.Family).Distinct()
             .Select(family => ToolProgressionRules.BestUsableTool(withoutThisOffer, buyer, family)?.Id));
-        Assert.Equal(3, MarketTradeRules.AvailableQuantity(offering.Society.Inventory, offering.Society.Inventory.GetLot(deposit.LotId)));
+        Assert.Equal(3, InventoryRules.UsableQuantity(InventoryIndex.For(offering.Society.Inventory), offering.Society.Inventory.GetLot(deposit.LotId)));
         Assert.All(offering.Society.Inventory.Reservations.Where(claim => claim.Purpose == "barter:" + offer.Id),
             claim => Assert.Equal(InventoryReservationState.Reserved, claim.State));
         MarketObservationTests.AssertProjection(offering);

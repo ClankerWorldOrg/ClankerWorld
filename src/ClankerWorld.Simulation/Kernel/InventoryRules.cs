@@ -10,6 +10,10 @@ public static class InventoryRules
     public static int UnreservedQuantity(InventoryIndex index, InventoryLot lot) =>
         lot.Quantity - index.ReservedQuantity(lot.Id);
 
+    // Runtime work accounting retains its original unclamped quantity.
+    public static int AvailableQuantity(InventoryIndex index, InventoryLot lot) =>
+        lot.ConditionBasisPoints == 0 || lot.FreshnessBasisPoints == 0 ? 0 : UnreservedQuantity(index, lot);
+
     public static int UsableQuantity(InventoryIndex index, InventoryLot lot) =>
         lot.ConditionBasisPoints <= 0 || lot.FreshnessBasisPoints <= 0 ? 0 : Math.Max(0, UnreservedQuantity(index, lot));
 

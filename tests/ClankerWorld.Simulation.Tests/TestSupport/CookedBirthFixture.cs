@@ -59,7 +59,7 @@ internal static class CookedBirthFixture
         foreach (var lot in inventory.Lots.Where(lot => lot.OwnerId == household &&
                      InventoryContainerRules.IsFood(lot.ItemKind) && lot.FreshnessBasisPoints > 0 && lot.ConditionBasisPoints > 0).ToArray())
         {
-            var available = PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+            var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot));
             if (available > 0)
                 inventory = InventoryFixture.Reserve(inventory, "birth-stock-claim:" + lot.Id, household,
                     lot.Id, available, "unrelated_household_food", long.MaxValue);

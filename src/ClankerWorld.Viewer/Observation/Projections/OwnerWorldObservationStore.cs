@@ -459,7 +459,7 @@ public sealed partial class OwnerWorldObservationStore
                         .OrderBy(lot => lot.OwnerId, StringComparer.Ordinal).ThenBy(lot => lot.ItemKind, StringComparer.Ordinal)
                         .ThenBy(lot => lot.Id, StringComparer.Ordinal).Select(lot => new ViewerMarketStock(
                             lot.Id, lot.ContainerLotId, lot.OwnerId, MarketOwnerName(lot.OwnerId), lot.ItemKind,
-                            lot.Quantity, MarketTradeRules.AvailableQuantity(inventory, lot))).ToArray();
+                            lot.Quantity, InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot))).ToArray();
                     var trades = market.Trades.Where(trade => trade.StallBuildingId == stall.BuildingId)
                         .OrderByDescending(trade => inventory.GetOffer(trade.OfferId).State == DirectBarterState.Open)
                         .ThenByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
