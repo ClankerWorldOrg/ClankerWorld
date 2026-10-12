@@ -1,0 +1,138 @@
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
+
+namespace ClankerWorld.Tests;
+
+public sealed class FoodPolicyBallotExpiryTests
+{
+    private const long BallotExpiryTick = 121;
+    private static readonly Lazy<Task<IReadOnlyDictionary<long, WorldRuntimeState>>> States = new(CreateStates);
+
+    [Theory]
+    [InlineData(121, true, false, "open", false)]
+    [InlineData(121, false, false, "open", false)]
+    [InlineData(120, true, false, "essential_first", false)]
+    [InlineData(120, false, false, "open", true)]
+    [InlineData(120, false, true, "essential_first", false)]
+    [InlineData(119, false, true, "essential_first", false)]
+    public async Task FoodPolicyRequiresALivingMajorityNoLaterThanTheExpiryTick(
+        long startingTick, bool nonapproverDies, bool castThirdApproval,
+        string expectedPolicy, bool expectedPending)
+    {
+        var state = (await States.Value)[startingTick];
+        var society = state.Society.Society;
+        var voters = society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
+            person.HouseholdId is not null && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+            .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(4, voters.Length);
+        var dying = voters[3];
+        var maximumDay = society.Config.DayLifecycle!.MaximumDay;
+        var nextTick = startingTick + 1;
+        var birthTick = nextTick - maximumDay * society.Config.TicksPerLifecycleAge;
+        var birthLifeTick = society.LifeTickAt(nextTick) - maximumDay * society.Config.TicksPerLifecycleAge;
+        state = WeatherTestFixture.WithWeather(state with
+        {
+            FoodStewardship = new(voters[0], "open", 0, new("essential_first", 1, BallotExpiryTick, voters, voters[..2], [])),
+            Society = state.Society with
+            {
+                Society = society with
+                {
+                    Agents = society.Agents.Select(person => nonapproverDies && person.Id == dying
+                        ? person with
+                        {
+                            BirthTick = birthTick,
+                            BirthLifeTick = society.LifeClock is null ? null : birthLifeTick,
+                            AgeBand = SocietyAgeBand.Elder,
+                            LastLifecycleYearChecked = maximumDay - 1,
+                        }
+                        : person).ToArray(),
+                },
+            },
+            Agents = state.Agents.Select(person => person with
+            {
+                LastDecisionContext = null,
+                FullnessBasisPoints = 7_000,
+                Survival = new(),
+            }).ToArray(),
+        }, WeatherKind.Clear);
+
+        var bytes = WorldRuntimeCodec.Encode(state);
+        IDecisionProvider Provider(string id) => new Pick(castThirdApproval && id == voters[2] ? "food_policy_vote_yes" : "safe_idle");
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Provider);
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Provider);
+        world.Validate();
+        Assert.Equal("open", world.ExportState().FoodStewardship!.FoodPolicy);
+        Assert.Equal(2, world.ExportState().FoodStewardship!.Ballot!.Approvals.Count);
+        Assert.Equal(SocietyAgentStatus.Active, world.Society.GetAgent(dying).Status);
+
+        var result = await world.AdvanceOneTickAsync();
+        Assert.True(result.Advanced);
+        Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(nextTick, world.WorldTick);
+        world.Validate();
+        replay.Validate();
+        var after = world.ExportState();
+        var afterBytes = WorldRuntimeCodec.Encode(after);
+        Assert.Equal(afterBytes, WorldRuntimeCodec.Encode(replay.ExportState()));
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(afterBytes));
+        Assert.Equal(afterBytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.Equal(nonapproverDies ? SocietyAgentStatus.Dead : SocietyAgentStatus.Active,
+            world.Society.GetAgent(dying).Status);
+        if (nonapproverDies)
+        {
+            Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(dying).DeathCause);
+            Assert.Equal(nextTick, world.Society.GetAgent(dying).DeathTick);
+        }
+        var votes = result.Events.Where(item => item.Kind == "food_policy_vote_recorded").ToArray();
+        if (castThirdApproval) Assert.Equal(voters[2], Assert.Single(votes).Detail);
+        else Assert.Empty(votes);
+        Assert.Equal(expectedPending, after.FoodStewardship!.Ballot is not null);
+        Assert.Equal(expectedPolicy, after.FoodStewardship.FoodPolicy);
+        var resolutions = result.Events.Where(item => item.Kind is "food_policy_rejected" or "food_policy_adopted").ToArray();
+        if (expectedPending)
+        {
+            Assert.Equal(0, after.FoodStewardship.LastResolutionTick);
+            Assert.Equal(voters, after.FoodStewardship.Ballot!.Electorate);
+            Assert.Equal(voters[..2], after.FoodStewardship.Ballot.Approvals);
+            Assert.Empty(after.FoodStewardship.Ballot.Rejections);
+            Assert.Equal(BallotExpiryTick, after.FoodStewardship.Ballot.ExpiryTick);
+            Assert.Empty(resolutions);
+        }
+        else
+        {
+            Assert.Equal(nextTick, after.FoodStewardship.LastResolutionTick);
+            var resolution = Assert.Single(resolutions);
+            Assert.Equal(expectedPolicy == "open" ? "food_policy_rejected" : "food_policy_adopted", resolution.Kind);
+            Assert.Equal("essential_first", resolution.Detail);
+            Assert.Equal(nextTick, resolution.WorldTick);
+        }
+    }
+
+    private static async Task<IReadOnlyDictionary<long, WorldRuntimeState>> CreateStates()
+    {
+        using var world = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new Pick("safe_idle"));
+        var states = new Dictionary<long, WorldRuntimeState>();
+        while (world.WorldTick < BallotExpiryTick)
+        {
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            if (world.WorldTick >= 119) states.Add(world.WorldTick, world.ExportState());
+        }
+        return states;
+    }
+
+    private sealed class Pick(string wanted) : IDecisionProvider
+    {
+        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
+        public long ProviderEpoch => 0;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            var candidate = request.Observation.Candidates.FirstOrDefault(item => item.Id == wanted)
+                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
+            return new DeterministicDecisionProvider().DecideAsync(request with
+            {
+                Observation = request.Observation with { Candidates = [candidate] },
+            }, cancellationToken);
+        }
+    }
+}

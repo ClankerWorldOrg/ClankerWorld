@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ClankerWorld.GodotClient.Pairing;
 
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.GodotClient.Protocol;
 
 /// <summary>
 /// Canonical scalar payloads for every currently exposed owner operation.
@@ -104,11 +104,11 @@ public static class OwnerWorldActionPayload
         $"amount={action.Amount.ToString(CultureInfo.InvariantCulture)}",
         $"other-agent-id={EncodeOptional(action.OtherAgentId)}");
 
-    public const string LifePacePayloadDomain = "clankerworld.owner-life-pace.v2";
+    public const string AgingOverridePayloadDomain = "clankerworld.owner-aging-override.v2";
     public const string JevAssistancePayloadDomain = "clankerworld.owner-jev-assistance.v2";
 
-    public static string LifePace(OwnerLifePaceAction action) => string.Join('\n',
-        LifePacePayloadDomain,
+    public static string AgingOverride(OwnerAgingOverrideAction action) => string.Join('\n',
+        AgingOverridePayloadDomain,
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"rate={action.Rate.ToString(CultureInfo.InvariantCulture)}");
 
@@ -226,8 +226,8 @@ public static class OwnerWorldActionPayload
             $"model={EncodeOptional(action.Model)}",
             $"api-key-sha256={apiKeyDigest}",
             $"forget-credential={action.ForgetCredential.ToString().ToLowerInvariant()}");
-        if (action.InhabitantId is not null)
-            payload += "\ninhabitant=" + EncodeRequired(action.InhabitantId, nameof(action.InhabitantId));
+        if (action.AgentId is not null)
+            payload += "\ninhabitant=" + EncodeRequired(action.AgentId, nameof(action.AgentId));
         if (action.CredentialSlotId is not null)
             payload += "\ncredential-slot=" + EncodeRequired(action.CredentialSlotId, nameof(action.CredentialSlotId));
         if (action.NewCredentialLabel is not null)
@@ -295,7 +295,7 @@ public static class OwnerWorldActionPayload
         action.Queue ? "clankerworld.owner-instruction.v3" : "clankerworld.owner-instruction.v2",
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"idempotency-key={EncodeRequired(action.IdempotencyKey, nameof(action.IdempotencyKey))}",
-        $"target-inhabitant-id={EncodeRequired(action.TargetInhabitantId, nameof(action.TargetInhabitantId))}",
+        $"target-agent-id={EncodeRequired(action.TargetAgentId, nameof(action.TargetAgentId))}",
         $"kind={EncodeRequired(action.Kind, nameof(action.Kind))}",
         $"text={EncodeRequired(action.Text, nameof(action.Text))}" +
             (action.Queue ? "\nqueue=true" : string.Empty));
@@ -305,7 +305,7 @@ public static class OwnerWorldActionPayload
         "clankerworld.owner-order-cancel.v1",
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"idempotency-key={EncodeRequired(action.IdempotencyKey, nameof(action.IdempotencyKey))}",
-        $"target-inhabitant-id={EncodeRequired(action.TargetInhabitantId, nameof(action.TargetInhabitantId))}",
+        $"target-agent-id={EncodeRequired(action.TargetAgentId, nameof(action.TargetAgentId))}",
         $"order-id={EncodeRequired(action.OrderId, nameof(action.OrderId))}");
 
     public static string Authoring(OwnerAuthoringBatchAction action)

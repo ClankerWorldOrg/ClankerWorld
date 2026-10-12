@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Kernel;
 
-public static partial class InventoryFixture
+public static partial class InventoryAuthority
 {
     /// <summary>Moves an animal's complete held product without releasing its custody.</summary>
     public static InventoryCheckpoint MoveAnimalProduct(InventoryCheckpoint checkpoint, string productId,

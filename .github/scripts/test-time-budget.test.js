@@ -35,9 +35,9 @@ function timings(t, runs) {
 // Three runs whose tests add up to `total` seconds at their medians; the middle run is the median.
 function runsTotalling(total) {
   const scaled = factor => ({
-    'ClankerWorld.Simulation.Tests.HugeTests.Slowest': Math.round(total * 0.6 * factor),
-    'ClankerWorld.Simulation.Tests.HugeTests.Second': Math.round(total * 0.3 * factor),
-    'ClankerWorld.Simulation.Tests.SmallTests.Quick': Math.round(total * 0.1 * factor),
+    'ClankerWorld.Tests.HugeTests.Slowest': Math.round(total * 0.6 * factor),
+    'ClankerWorld.Tests.HugeTests.Second': Math.round(total * 0.3 * factor),
+    'ClankerWorld.Tests.SmallTests.Quick': Math.round(total * 0.1 * factor),
   });
   return { 3001: scaled(0.8), 3002: scaled(1), 3003: scaled(1.3) };
 }
@@ -125,6 +125,19 @@ test('a held issue, a total just under the budget or no issue at all changes not
   assert.deepEqual(near.writes, []);
   const none = world();
   assert.deepEqual(await none.run(timings(t, runsTotalling(BudgetSeconds * 0.5))), { action: 'none' });
+});
+
+test('timings under another test namespace, such as main\'s from before a rename, are not counted', async t => {
+  const { writes, logs, run } = world();
+  const runs = runsTotalling(BudgetSeconds - 1000);
+  for (const times of Object.values(runs)) {
+    for (const [name, seconds] of Object.entries(times)) {
+      times[name.replace(/^ClankerWorld\.Tests\./, 'ClankerWorld.Simulation.Tests.')] = seconds;
+    }
+  }
+  await run(timings(t, runs));
+  assert.deepEqual(writes, []);
+  assert.ok(logs.some(line => line.includes(`${(BudgetSeconds - 1000).toLocaleString('en-US')} s`)), logs.join('\n'));
 });
 
 test('with too few runs, or in a dry run, nothing is written', async t => {

@@ -4,7 +4,7 @@ namespace ClankerWorld.Simulation.Society;
 internal sealed class SocietyBeliefValidationIndex
 {
     private readonly IReadOnlyDictionary<string, SocietyAgentBelief> byId;
-    private readonly HashSet<string> inhabitants;
+    private readonly HashSet<string> agents;
     private readonly Dictionary<string, string> roots = new(StringComparer.Ordinal);
     private readonly Dictionary<(string Owner, string Turn), string> sourceRoots = [];
 
@@ -12,7 +12,7 @@ internal sealed class SocietyBeliefValidationIndex
         IReadOnlyDictionary<string, SocietyAgentBelief>? beliefsById = null)
     {
         byId = beliefsById ?? checkpoint.AllBeliefs().ToDictionary(item => item.Id, StringComparer.Ordinal);
-        inhabitants = checkpoint.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        agents = checkpoint.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var belief in byId.Values)
         {
             var root = Root(belief);
@@ -24,7 +24,7 @@ internal sealed class SocietyBeliefValidationIndex
         }
     }
 
-    internal bool KnowsInhabitant(string id) => inhabitants.Contains(id);
+    internal bool KnowsAgent(string id) => agents.Contains(id);
 
     internal bool AllowsSourceTurn(SocietyAgentBelief belief) =>
         belief.SourceTurnId is not { } turn || !sourceRoots.TryGetValue((belief.OwnerId, turn), out var root) ||

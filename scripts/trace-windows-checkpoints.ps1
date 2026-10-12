@@ -20,8 +20,8 @@ $rawRoot = Join-Path $outputRoot 'raw'
 $evidenceRoot = Join-Path $outputRoot 'checkpoint-evidence'
 [void][IO.Directory]::CreateDirectory($evidenceRoot)
 $utf8 = [Text.UTF8Encoding]::new($false)
-$project = Join-Path $repoRoot 'tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj'
-$testBinaryRoot = Join-Path $repoRoot 'tests/ClankerWorld.Simulation.Tests/bin/Release/net10.0'
+$project = Join-Path $repoRoot 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj'
+$testBinaryRoot = Join-Path $repoRoot 'tests/ClankerWorld.Tests/bin/Release/net10.0'
 $provider = 'Microsoft-Windows-Kernel-File'
 $fixturePattern = '(?i)(?:^|[\\/])(clankerworld-(?:history-soak|checkpoint-blocked|checkpoint-obstructed)-[0-9a-f]{32})(?:[\\/]|$)'
 
@@ -31,7 +31,7 @@ function Write-Json([string]$Path, $Value) {
 
 function Get-BinaryPins {
     $pins = [ordered]@{}
-    foreach ($assembly in @('ClankerWorld.Simulation', 'ClankerWorld.Viewer', 'ClankerWorld.Simulation.Tests')) {
+    foreach ($assembly in @('ClankerWorld.Simulation', 'ClankerWorld.Server', 'ClankerWorld.Tests')) {
         foreach ($suffix in @('dll', 'pdb')) {
             $name = "$assembly.$suffix"
             $pins[$name] = (Get-FileHash -LiteralPath (Join-Path $testBinaryRoot $name) -Algorithm SHA256).Hash

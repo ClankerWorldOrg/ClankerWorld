@@ -14,7 +14,7 @@ decisions themselves are in
 [Interface and art](../game-design/interface-and-art.md#pixel-art-and-generated-images).
 
 All art is drawn in C# code in the Godot client
-(`src/ClankerWorld.GodotClient/UI/Graphics/`, `UI/Map/`, `UI/MenuScene.cs`),
+(`src/ClankerWorld.GodotClient/UI/Graphics/`, `UI/Map/`, `UI/Menu/MenuValleyArt.cs`),
 generated once at startup from fixed seeds. There are no image files.
 
 ## Drawing and reviewing art

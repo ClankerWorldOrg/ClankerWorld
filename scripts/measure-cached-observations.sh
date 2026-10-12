@@ -11,9 +11,9 @@ mkdir -p "${output_dir}"
 output_dir=$(cd "${output_dir}" && pwd)
 probe_dir=$(mktemp -d)
 trap 'rm -rf "${probe_dir}"' EXIT
-dotnet restore "${target_root}/src/ClankerWorld.Viewer/ClankerWorld.Viewer.csproj" --locked-mode >/dev/null
+dotnet restore "${target_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj" --locked-mode >/dev/null
 dotnet new console --name CachedObservationMeasurement --output "${probe_dir}" --framework net10.0 --no-restore >/dev/null
-dotnet add "${probe_dir}/CachedObservationMeasurement.csproj" reference "${target_root}/src/ClankerWorld.Viewer/ClankerWorld.Viewer.csproj" >/dev/null
+dotnet add "${probe_dir}/CachedObservationMeasurement.csproj" reference "${target_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj" >/dev/null
 cp "${script_root}/measure-cached-observations.cs" "${probe_dir}/Program.cs"
 cp "${probe_dir}/Program.cs" "${output_dir}/${variant}.probe.cs"
 dotnet run --project "${probe_dir}/CachedObservationMeasurement.csproj" --configuration Release -- "${output_dir}" "${variant}"

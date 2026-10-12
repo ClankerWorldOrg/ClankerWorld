@@ -1,5 +1,4 @@
 using ArtPreview.Proposed.Polish;
-using ClankerWorld.GodotClient.UI;
 using Godot;
 
 namespace ArtPreview.Approved;

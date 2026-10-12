@@ -1,0 +1,193 @@
+using System.Reflection;
+using System.Text.Json;
+using ClankerWorld.Simulation;
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
+
+namespace ClankerWorld.Tests;
+
+public sealed partial class GrownAgentHelperMemoryTests
+{
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(false, false, true)]
+    [InlineData(true, false, true)]
+    public async Task NativeAdultsFileLandRequestsThroughPublicAndPersonalPaths(bool later, bool shortControl, bool formedHousehold)
+    {
+        var state = WorldRuntimeCodec.Decode(await (later ? LaterAdult : ConversationAdult).Value);
+        var native = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
+        var household = state.Society.Society.GetAgent(native).HouseholdId;
+        if (formedHousehold)
+        {
+            state = await FormNativeLandHouseholdAsync(state, native);
+            Assert.InRange(state.Society.Society.GetAgent(native).HouseholdId!.Length, 1, DerivedId.MaximumLength);
+        }
+        var control = state.Society.Society.Agents.First(person => person.Id != native && person.Id.Length <= 128 &&
+            person.Status == SocietyAgentStatus.Active && person.HouseholdId == household &&
+            person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
+        var actor = shortControl ? control : native;
+        Assert.InRange(native.Length, 1, DerivedId.MaximumLength);
+        Assert.Equal(later ? 3 : 1, state.Society.Society.Births.Count);
+        var town = Assert.Single(state.Towns!, item => item.ResidentIds.Contains(native));
+        Assert.Contains(control, town.ResidentIds);
+        using var publicWorld = WorldRuntime.Restore(state, _ => new QuietProvider());
+        // Read the same free-land query used by the candidate descriptions.
+        // Keep both actual positions and require an advertised plot for both.
+        var query = typeof(WorldRuntime).GetMethod("RequestableLandNear", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        GridPoint[] Offered(string id) => (GridPoint[])query.Invoke(publicWorld,
+            [town, state.Agents.Single(person => person.AgentId == id).Position, 6])!;
+        var plot = Offered(native).Intersect(Offered(control)).First();
+        var requestId = new string('r', 128);
+        AssertLandRequestRefused(publicWorld, new string('r', 129), control, town.Id, [plot]);
+        foreach (var invalid in new[] { " " + native, native + "\0", native + ":unknown", "" })
+            AssertLandRequestRefused(publicWorld, "bad-person", invalid, town.Id, [plot]);
+        AssertLandRequestRefused(publicWorld, "bad-plot", actor, town.Id, [plot, plot]);
+        AssertLandRequestRefused(publicWorld, "untitled-plot", actor, town.Id,
+            [state.Map.Tiles.First(tile => state.Map.IsLand(tile.Position) &&
+                !state.TownLandTitles!.Any(title => title.Tiles.Contains(tile.Position))).Position]);
+        var result = publicWorld.RequestHouseholdLandUse(requestId, actor, town.Id, [plot]);
+        Assert.True(result.Applied, result.Failure);
+        var request = Assert.IsType<HouseholdLandUseRequest>(result.Request);
+        Assert.Equal(actor, request.RequestedByAgentId);
+        Assert.Equal(state.Society.Society.GetAgent(actor).HouseholdId, request.HouseholdId);
+        AssertPendingLandRequest(publicWorld, state, actor, plot);
+        var saved = WorldRuntimeCodec.Encode(publicWorld.ExportState());
+        using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietProvider());
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(reloaded.ExportState()));
+        Assert.True(publicWorld.RequestHouseholdLandUse(requestId, actor, town.Id, [plot]).IsDuplicate);
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(publicWorld.ExportState()));
+        AssertLandRequestRefused(publicWorld, requestId, shortControl ? native : control, town.Id, [plot]);
+        foreach (var invalid in new[] { " " + actor, actor + "\0", actor + ":unknown", "" })
+            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(publicWorld.ExportState() with
+            { HouseholdLandUseRequests = [request with { RequestedByAgentId = invalid }] }));
+        foreach (var invalid in new[] { " " + request.HouseholdId, request.HouseholdId + "\0", request.HouseholdId + ":unknown", "" })
+            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(publicWorld.ExportState() with
+            { HouseholdLandUseRequests = [request with { HouseholdId = invalid }] }));
+
+        var choices = new NativeLandRequestChoices(actor, plot);
+        using var world = WorldRuntime.Restore(state, _ => choices);
+        world.Resume();
+        world.SubmitInstruction(new OwnerInstructionRequest("consider-native-land", "owner:test", actor,
+            OwnerInstructionKind.Suggestion, $"Consider asking for household use of ({plot.X}, {plot.Y})."));
+        var folder = Directory.CreateTempSubdirectory("native-land-request-");
+        try
+        {
+            var file = new WorldStateFile(Path.Combine(folder.FullName, "world.json"), _ => choices);
+            file.Save(world);
+            var before = File.ReadAllBytes(file.Path);
+            Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
+            Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+            Assert.Equal(before, File.ReadAllBytes(file.Path));
+            var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(10));
+            presence.RecordAuthenticatedReconnect("land-test-owner");
+            using var service = new WorldRuntimeService(world, file, presence);
+            for (var step = 0; step < 20 && world.HouseholdLandUseRequests.Count == 0; step++)
+            {
+                Assert.True(await service.TryAdvanceOnceAsync());
+                await WaitForRequests(world);
+            }
+            Assert.Contains(choices.Selected, selected => selected.Contains("|request_land_use|", StringComparison.Ordinal));
+            AssertPendingLandRequest(world, state, actor, plot);
+            saved = File.ReadAllBytes(file.Path);
+            using var strict = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietProvider());
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(strict.ExportState()));
+            // Reply arrival is an external input. Continue two worlds from the
+            // same paused checkpoint with identical synchronous idle inputs.
+            world.Pause();
+            var checkpoint = WorldRuntimeCodec.Encode(world.ExportState());
+            using var left = WorldRuntime.Restore(WorldRuntimeCodec.Decode(checkpoint), _ => new QuietProvider());
+            using var right = WorldRuntime.Restore(WorldRuntimeCodec.Decode(checkpoint), _ => new QuietProvider());
+            left.Resume();
+            right.Resume();
+            for (var step = 0; step < 3; step++)
+            {
+                Assert.True((await left.AdvanceOneTickAsync()).Advanced);
+                Assert.True((await right.AdvanceOneTickAsync()).Advanced);
+                Assert.Equal(WorldRuntimeCodec.Encode(left.ExportState()), WorldRuntimeCodec.Encode(right.ExportState()));
+            }
+            AssertPendingLandRequest(left, state, actor, plot);
+        }
+        finally { folder.Delete(true); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LandFilingStillRefusesActualYoungAndNonresidentPeople(bool nonresident)
+    {
+        WorldRuntimeState state;
+        string actor;
+        string town;
+        if (nonresident)
+        {
+            var scenario = GuardianPlacementTestFixture.Prepared(1, 0);
+            state = scenario.State;
+            actor = scenario.Guardians[0];
+            town = scenario.OriginalTownId;
+            Assert.DoesNotContain(actor, state.Towns!.Single(item => item.Id == town).ResidentIds);
+        }
+        else
+        {
+            state = WorldRuntimeCodec.Decode(await Born.Value);
+            actor = Assert.Single(state.Society.Society.Births).ChildId;
+            town = state.Towns!.Single(item => item.ResidentIds.Contains(actor)).Id;
+            Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetAgent(actor).AgeBand);
+        }
+        using var world = WorldRuntime.Restore(state, _ => new QuietProvider());
+        AssertLandRequestRefused(world, "ineligible-person", actor, town,
+            [state.TownLandTitles!.First(item => item.TownId == town).Tiles[0]]);
+    }
+
+    private static void AssertLandRequestRefused(WorldRuntime world, string key, string actor,
+        string town, GridPoint[] plot)
+    {
+        var before = WorldRuntimeCodec.Encode(world.ExportState());
+        Assert.False(world.RequestHouseholdLandUse(key, actor, town, plot).Applied);
+        Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
+    }
+
+    private static void AssertPendingLandRequest(WorldRuntime world, WorldRuntimeState initial,
+        string actor, GridPoint plot)
+    {
+        var request = Assert.Single(world.HouseholdLandUseRequests);
+        Assert.Equal(actor, request.RequestedByAgentId);
+        Assert.Equal(initial.Society.Society.GetAgent(actor).HouseholdId, request.HouseholdId);
+        Assert.Equal("pending", request.Status);
+        Assert.Equal([plot], request.Tiles);
+        Assert.Empty(request.Consents);
+        Assert.Equal(JsonSerializer.SerializeToUtf8Bytes(initial.HouseholdLandUseRights),
+            JsonSerializer.SerializeToUtf8Bytes(world.HouseholdLandUseRights));
+        var proposal = Assert.Single(world.Towns.Single(town => town.Id == request.TownId).Council!.Proposals,
+            item => item.Id == request.CouncilProposalId);
+        Assert.Equal(actor, proposal.AuthorId);
+        Assert.Equal("pending", proposal.Status);
+        Assert.Empty(proposal.Votes);
+    }
+
+    private sealed class NativeLandRequestChoices(string actor, GridPoint plot) : IDecisionProvider
+    {
+        public List<string> Selected { get; } = [];
+        public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
+        public long ProviderEpoch => 0;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            var observation = request.Observation;
+            var selected = observation.AgentId == actor ? observation.Candidates.FirstOrDefault(candidate =>
+                candidate.Id.Contains("|request_land_use|", StringComparison.Ordinal) &&
+                candidate.Description.Contains($"({plot.X}, {plot.Y})", StringComparison.Ordinal)) : null;
+            selected ??= observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
+            Selected.Add(selected.Id);
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
+                observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
+                observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate == selected ? 1d : 0d, StringComparer.Ordinal),
+                CivicLandTiles: selected.Id.Contains("|request_land_use|", StringComparison.Ordinal)
+                    ? [new(plot.X, plot.Y)] : null));
+        }
+    }
+}

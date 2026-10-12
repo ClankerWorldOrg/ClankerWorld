@@ -175,7 +175,7 @@ public static partial class ProblemReport
     }
 
     [GeneratedRegex(
-        """(?<prefix>(?:api[-_ ]?key|apikey|x-api-key|authorization|secret|token|password|passwd|signature|pairing[-_ ]?code|companion[-_ ]?secret|private[-_ ]?key)"?\s*[:=]\s*"?)(?!\[removed\])[^\s",;&'}]+""",
+        """(?<prefix>(?:api[-_ ]?key|apikey|x-api-key|authorization|secret|token|password|passwd|signature|pairing[-_ ]?code|companion[-_ ]?secret|launch[-_ ]?secret|private[-_ ]?key)"?\s*[:=]\s*"?)(?!\[removed\])[^\s",;&'}]+""",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex NamedValue();
 

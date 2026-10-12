@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -8,6 +9,10 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
+    private float agentListWantedHeight = 60;
+    private float eventLogWantedHeight = 120;
+    private bool hudListsRefitQueued;
+
     /// <summary>The area the interface lays out in, in unscaled interface pixels.</summary>
     private Vector2 UiSize => uiLayer.Size;
 
@@ -22,8 +27,8 @@ public partial class Main
         climateBox.Visible = viewport.X >= 1100 && renderedMapSnapshot?.Authoring is not null;
         CompactHud(viewport.X < 1280);
         float panelWidth(int width) => Math.Min(width, Math.Max(1, viewport.X - 28));
-        rosterPanel.CustomMinimumSize = new Vector2(panelWidth(410), 0);
-        eventsPanel.CustomMinimumSize = new Vector2(panelWidth(390), 0);
+        agentsPanel.CustomMinimumSize = new Vector2(panelWidth(410), 0);
+        eventLogPanel.CustomMinimumSize = new Vector2(panelWidth(390), 0);
         worldInfoPanel.CustomMinimumSize = new Vector2(panelWidth(420), 0);
         selectedTilePanel.CustomMinimumSize = new Vector2(panelWidth(315), 0);
         filtersPanel.CustomMinimumSize = new Vector2(panelWidth(305), 0);
@@ -47,7 +52,7 @@ public partial class Main
             }
             else
             {
-                PositionSelectedInhabitantCard(snapshot);
+                PositionSelectedAgentCard(snapshot);
                 PositionBuildingQuickCard(snapshot);
             }
         }
@@ -71,7 +76,7 @@ public partial class Main
         }
 
         var menuWidth = panelWidth(560);
-        gameMenuPanel.CustomMinimumSize = new Vector2(menuWidth, 0);
+        pauseMenuPanel.CustomMinimumSize = new Vector2(menuWidth, 0);
         FitMenuScrolls(viewport.Y);
 
         var toastSize = statusToast.GetCombinedMinimumSize();
@@ -126,30 +131,30 @@ public partial class Main
             Math.Clamp(centeredY, minimumY, maximumY));
     }
 
-    private void PositionSelectedInhabitantCard(OwnerWorldSnapshot snapshot)
+    private void PositionSelectedAgentCard(OwnerWorldSnapshot snapshot)
     {
         var ui = UiSize;
-        if (!selectedInhabitantCard.Visible || ui.X <= 0 || ui.Y <= 0)
+        if (!agentQuickCard.Visible || ui.X <= 0 || ui.Y <= 0)
         {
             return;
         }
 
-        var inhabitant = snapshot.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
-        if (inhabitant is null)
+        var agent = snapshot.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
+        if (agent is null)
         {
             return;
         }
 
-        selectedInhabitantCard.CustomMinimumSize = new Vector2(Math.Min(QuickCardWidth, Math.Max(1, ui.X - 24)), 0);
+        agentQuickCard.CustomMinimumSize = new Vector2(Math.Min(QuickCardWidth, Math.Max(1, ui.X - 24)), 0);
         // The map is drawn at screen resolution; the card lives in interface pixels.
         var stride = currentTileSize + TileGap;
         var tile = currentTileSize / (float)uiLayer.Factor;
-        var target = inhabitantVisuals.TryGetValue(inhabitant.Id, out var marker) && marker.Visible
+        var target = agentVisuals.TryGetValue(agent.Id, out var marker) && marker.Visible
             ? new Rect2((mapStage.Position + marker.Position) / uiLayer.Factor, marker.Size / uiLayer.Factor)
-            : new Rect2((mapStage.Position + new Vector2(inhabitant.Position.X * stride, inhabitant.Position.Y * stride)) / uiLayer.Factor,
+            : new Rect2((mapStage.Position + new Vector2(agent.Position.X * stride, agent.Position.Y * stride)) / uiLayer.Factor,
                 new Vector2(tile, tile));
-        PlaceQuickCard(selectedInhabitantCard, target);
+        PlaceQuickCard(agentQuickCard, target);
     }
 
     /// <summary>
@@ -206,14 +211,62 @@ public partial class Main
         if (settingsScroll.IsVisibleInTree() && settingsScroll.GetChildCount() > 0 && settingsScroll.GetChild(0) is Control content)
         {
             settingsScroll.CustomMinimumSize = new Vector2(settingsScroll.CustomMinimumSize.X, 0);
-            var around = gameMenuPanel.GetCombinedMinimumSize().Y;
+            var around = pauseMenuPanel.GetCombinedMinimumSize().Y;
             var height = Math.Clamp(content.GetCombinedMinimumSize().Y, 120, Math.Max(120, viewportHeight - 28 - around));
             settingsScroll.CustomMinimumSize = new Vector2(settingsScroll.CustomMinimumSize.X, height);
         }
-        gameMenuPanel.Size = gameMenuPanel.GetCombinedMinimumSize();
+        pauseMenuPanel.Size = pauseMenuPanel.GetCombinedMinimumSize();
     }
 
     /// <summary>The agent card sits below the HUD when it fits, and slides up over it only when it is taller than the room left.</summary>
     private float CardTop(float cardHeight) => Math.Max(12, Math.Min(HudTop, UiSize.Y - cardHeight - 12));
 
+    /// <summary>
+    /// The Agents list, Event Log and Towns page grow until they would pass
+    /// the bottom of the screen, then scroll. Called again when the window changes.
+    /// </summary>
+    private void FitHudLists()
+    {
+        agentListCards.CustomMinimumSize = new Vector2(380, Math.Min(agentListWantedHeight, ListRoom(agentsPanel, agentListCards)));
+        eventLogWantedHeight = Math.Max(30, eventRows.GetCombinedMinimumSize().Y);
+        var eventLogMinimum = new Vector2(400, Math.Min(eventLogWantedHeight, ListRoom(eventLogPanel, eventScroll)));
+        if (!eventScroll.CustomMinimumSize.IsEqualApprox(eventLogMinimum))
+            eventScroll.CustomMinimumSize = eventLogMinimum;
+        if (townsScroll.Visible)
+        {
+            var townsWanted = townsPage.GetCombinedMinimumSize().Y;
+            var townsRoom = ListRoom(worldInfoPanel, townsScroll);
+            // Keep the Show buttons and details clear of the scrollbar, as in Settings.
+            townsGap.AddThemeConstantOverride("margin_right", townsWanted > townsRoom ? SettingsScrollGap : 0);
+            townsScroll.CustomMinimumSize = new Vector2(0, Math.Min(townsWanted, townsRoom));
+        }
+        agentsPanel.ResetSize();
+        eventLogPanel.ResetSize();
+        worldInfoPanel.ResetSize();
+    }
+
+    /// <summary>
+    /// Fits the lists again on the next frame. Wrapped text reports its real
+    /// height only once its panel has a width, so the first fit can be short.
+    /// </summary>
+    private void QueueHudListsFit()
+    {
+        if (hudListsRefitQueued || !IsInsideTree()) return;
+        hudListsRefitQueued = true;
+        GetTree().Connect(SceneTree.SignalName.ProcessFrame, Callable.From(() =>
+        {
+            hudListsRefitQueued = false;
+            FitHudLists();
+        }), (uint)ConnectFlags.OneShot);
+    }
+
+    /// <summary>
+    /// How tall a panel's list may grow before it scrolls: what is left of the
+    /// screen below the top bar after the panel's heading and frame.
+    /// </summary>
+    private float ListRoom(Control panel, Control list)
+    {
+        var chrome = panel.GetCombinedMinimumSize().Y - list.CustomMinimumSize.Y;
+        return Math.Max(120, UiSize.Y - HudTop - 16 - chrome);
+    }
 }

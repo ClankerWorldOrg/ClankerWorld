@@ -6,7 +6,7 @@ namespace ArtPreview.Proposed.Menu;
 
 /// <summary>
 /// Proposal for the Main Menu valley (STYLE.md section 13). It renders
-/// <see cref="MenuSceneProposed"/>, a copy of the game's <c>MenuScene</c> with
+/// <see cref="MenuValleyArtProposed"/>, a copy of the game's <c>MenuValleyArt</c> with
 /// the same composition, Towns, river course and animation lists, improved in
 /// place: side-view snowy mountains with lit and shaded faces, ribs, couloirs
 /// and snowfields in three hazed depth bands (round 2), a varied tree line, fields
@@ -24,7 +24,7 @@ public sealed class MenuProposal : IArtProposal, IArtSetProvider
     {
         foreach (var night in new[] { false, true })
         {
-            var scene = MenuSceneProposed.Create(night);
+            var scene = MenuValleyArtProposed.Create(night);
             var composed = scene.Sky.Duplicate();
             Sheet.Blend(composed, scene.Land, 0, 0);
             foreach (var cloud in scene.Clouds) Sheet.Blend(composed, cloud.Image, (int)cloud.X, (int)cloud.Y);
@@ -47,10 +47,10 @@ public sealed class MenuProposal : IArtProposal, IArtSetProvider
 /// 320 × 180 logical pixels. The still layers are built once for daytime
 /// (Light theme) or dusk (Dark theme); the game's <c>MenuBackdrop</c> moves the
 /// clouds, smoke, birds, water, stars, lights and fireflies on top.
-/// Proposed replacement for <c>ClankerWorld.GodotClient.UI.MenuScene</c>: the
+/// Proposed replacement for <c>ClankerWorld.GodotClient.UI.MenuValleyArt</c>: the
 /// public surface (sizes, records, lists and colours) is unchanged.
 /// </summary>
-public sealed class MenuSceneProposed
+public sealed class MenuValleyArtProposed
 {
     public const int Width = 320;
     public const int Height = 180;
@@ -153,7 +153,7 @@ public sealed class MenuSceneProposed
     private readonly List<Chimney> chimneys = [];
     private readonly List<Vector2> fireflyHomes = [];
 
-    private MenuSceneProposed(bool night)
+    private MenuValleyArtProposed(bool night)
     {
         Night = night;
         var skyRows = SkyRows(night);
@@ -183,7 +183,7 @@ public sealed class MenuSceneProposed
     public Color ForgeSmokeColor => Night ? new Color("646078") : new Color("AAA6A2");
     public static Color BirdColor => new("3C4254");
 
-    public static MenuSceneProposed Create(bool night) => new(night);
+    public static MenuValleyArtProposed Create(bool night) => new(night);
 
     /// <summary>Maps a hash to 0..1.</summary>
     private static float Unit(uint hash) => hash / 4294967296f;

@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 
@@ -10,7 +11,7 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     /// <summary>A small framed portrait: the agent's own map sprite on green, or on grey once they have died.</summary>
-    private static ImageTexture AgentPortrait(OwnerWorldInhabitant person, bool living)
+    private static ImageTexture AgentPortrait(OwnerWorldAgent person, bool living)
     {
         var age = person.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail;
         var sprite = AgentSprites.Sprite(AgentSprites.VariantFor(person.Id), AgentSprites.StageIndex(age), 16);
@@ -55,7 +56,7 @@ public partial class Main
         else if (resource.NaturalObjectKind is { } kind)
             sprite = NatureSprites.ForNaturalObject(kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
         else
-            sprite = NatureSprites.ForCampResource(resource.Kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
+            sprite = NatureSprites.ForResourceKind(resource.Kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
         return sprite is { } found ? NatureSprites.Sprite(found, 16, terrainLayer.Season) : null;
     }
 

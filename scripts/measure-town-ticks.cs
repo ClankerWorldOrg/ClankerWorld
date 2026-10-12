@@ -5,11 +5,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
-using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Playtest;
-using ClankerWorld.Simulation.Society;
 using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
 
 const string seed = "town-project-real-donation";
 var output = args[0];
@@ -35,11 +33,11 @@ foreach (var size in cases)
         builder.MarketLocalId = market.LocalId;
         var stock = state.Society.Society.Inventory;
         foreach (var cost in market.BuildCosts)
-            stock = InventoryFixture.AddLot(stock, "probe-market-" + cost.ResourceId, cost.ResourceId,
+            stock = InventoryAuthority.AddLot(stock, "probe-market-" + cost.ResourceId, cost.ResourceId,
                 state.Towns![0].Id, cost.Amount, storageBuildingId: "first-town-warehouse");
         state = WithInventory(state, stock);
     }
-    var world = PrivateWorldRuntime.Restore(state, _ => builder);
+    var world = WorldRuntime.Restore(state, _ => builder);
     try
     {
         if (market is not null)
@@ -55,16 +53,16 @@ foreach (var size in cases)
             state = world.ExportState();
             var house = state.WorldContent!.Buildings.Single(definition => definition.LocalId == "house-1x1");
             var site = Sites(state, house).First(point => state.Towns![0].BorderTiles.Contains(point) &&
-                !state.Inhabitants.Any(person => person.Position == point));
+                !state.Agents.Any(person => person.Position == point));
             var actor = $"agent:{ordinal:D32}";
             world.AddAgent(actor, site);
             state = world.ExportState();
             var household = "household:probe-" + ordinal;
-            var society = SocietyFixture.CreateHousehold(state.Society.Society, household, "Probe household " + ordinal, [actor]).Checkpoint;
-            var stock = InventoryFixture.AddLot(society.Inventory, "probe-house-wood-" + ordinal, "wood", household, 8);
+            var society = SocietyRules.CreateHousehold(state.Society.Society, household, "Probe household " + ordinal, [actor]).Checkpoint;
+            var stock = InventoryAuthority.AddLot(society.Inventory, "probe-house-wood-" + ordinal, "wood", household, 8);
             state = state with { Society = state.Society with { Society = society with { Inventory = stock } } };
             world.Dispose();
-            world = PrivateWorldRuntime.Restore(state, _ => builder);
+            world = WorldRuntime.Restore(state, _ => builder);
             PlaceAtFirstLegal(world, "probe-house-" + ordinal, house, household);
         }
         var workshop = world.ExportState().WorldContent!.Buildings.Single(definition => definition.LocalId == "blacksmith-1x2");
@@ -74,10 +72,10 @@ foreach (var size in cases)
             state = world.ExportState();
             var stock = state.Society.Society.Inventory;
             foreach (var cost in workshop.BuildCosts)
-                stock = InventoryFixture.AddLot(stock, $"probe-workshop-{ordinal}-{cost.ResourceId}", cost.ResourceId,
+                stock = InventoryAuthority.AddLot(stock, $"probe-workshop-{ordinal}-{cost.ResourceId}", cost.ResourceId,
                     "household:camp-alpha", cost.Amount);
             world.Dispose();
-            world = PrivateWorldRuntime.Restore(WithInventory(state, stock), _ => builder);
+            world = WorldRuntime.Restore(WithInventory(state, stock), _ => builder);
             PlaceAtFirstLegal(world, "probe-workshop-" + ordinal, workshop, "household:camp-alpha", growRoads: true);
         }
         state = world.ExportState();
@@ -87,10 +85,10 @@ foreach (var size in cases)
             var house = state.WorldSimulation!.Buildings.FirstOrDefault(building => building.HouseholdId == household.Id &&
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
             if (house is not null)
-                food = InventoryFixture.AddLot(food, "probe-food-" + household.Id, "food", household.Id, 64, storageBuildingId: house.InstanceId);
+                food = InventoryAuthority.AddLot(food, "probe-food-" + household.Id, "food", household.Id, 64, storageBuildingId: house.InstanceId);
         }
         world.Dispose();
-        world = PrivateWorldRuntime.Restore(WithInventory(state, food), _ => new DeterministicDecisionProvider());
+        world = WorldRuntime.Restore(WithInventory(state, food), _ => new DeterministicDecisionProvider());
         world.Validate();
         world.Resume();
         while (world.WorldTick < startTick) RequireAdvance(await world.AdvanceOneTickNonBlockingAsync());
@@ -145,7 +143,7 @@ foreach (var size in cases)
         File.WriteAllText(output, JsonSerializer.Serialize(new
         {
             Commit = commit, ProbeDigest = probeDigest, Seed = seed, Runtime = RuntimeInformation.FrameworkDescription,
-            Schema = PrivateWorldRuntime.StateSchemaVersion,
+            Schema = WorldRuntime.StateSchemaVersion,
             OS = RuntimeInformation.OSDescription, Architecture = RuntimeInformation.ProcessArchitecture.ToString(),
             CpuModel = OperatingSystem.IsLinux() ? File.ReadLines("/proc/cpuinfo").FirstOrDefault(line =>
                 line.StartsWith("model name", StringComparison.Ordinal))?.Split(':', 2)[1].Trim() : Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER"),
@@ -160,13 +158,13 @@ foreach (var size in cases)
 }
 
 static double Percentile(List<double> values, double fraction) => values.Order().ElementAt((int)Math.Ceiling(values.Count * fraction) - 1);
-static void RequireAdvance(PrivateWorldStepResult step)
+static void RequireAdvance(WorldStepResult step)
 {
     if (!step.Advanced) throw new InvalidOperationException("The measurement tick did not advance: " + step.Outcome);
 }
-static PrivateWorldRuntimeState WithInventory(PrivateWorldRuntimeState state, InventoryCheckpoint inventory) =>
+static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
     state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
-static void PlaceAtFirstLegal(PrivateWorldRuntime world, string id, BuildingDefinition definition, string household, bool growRoads = false)
+static void PlaceAtFirstLegal(WorldRuntime world, string id, BuildingDefinition definition, string household, bool growRoads = false)
 {
     var state = world.ExportState();
     var sites = Sites(state, definition);
@@ -190,12 +188,12 @@ static void PlaceAtFirstLegal(PrivateWorldRuntime world, string id, BuildingDefi
 // Farthest geometric sites can be on disconnected land. Choose growth sites
 // on buildable ground connected to the current Roads; native placement and
 // Road validation still decide whether the chosen building and street are legal.
-static HashSet<GridPoint> RoadConnectedGround(PrivateWorldRuntimeState state)
+static HashSet<GridPoint> RoadConnectedGround(WorldRuntimeState state)
 {
     var occupied = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
         state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
         .Concat(state.Map.Resources.Select(resource => resource.Position))
-        .Concat(state.Map.CampObjects.Select(item => item.Position)).ToHashSet();
+        .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
     var connected = state.RoadTiles!.ToHashSet();
     var pending = new Queue<GridPoint>(connected);
     while (pending.TryDequeue(out var point))
@@ -204,11 +202,11 @@ static HashSet<GridPoint> RoadConnectedGround(PrivateWorldRuntimeState state)
                 pending.Enqueue(next);
     return connected;
 }
-static IEnumerable<GridPoint> Sites(PrivateWorldRuntimeState state, BuildingDefinition definition)
+static IEnumerable<GridPoint> Sites(WorldRuntimeState state, BuildingDefinition definition)
 {
     var taken = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
         state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
-        .Concat(state.Map.Resources.Select(resource => resource.Position)).Concat(state.Map.CampObjects.Select(item => item.Position))
+        .Concat(state.Map.Resources.Select(resource => resource.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
         .Concat(state.RoadTiles!).ToHashSet();
     var border = state.Towns![0].BorderTiles.ToHashSet();
     return state.Map.Tiles.Select(tile => tile.Position).Where(point =>
@@ -221,10 +219,10 @@ static IEnumerable<GridPoint> Sites(PrivateWorldRuntimeState state, BuildingDefi
         .OrderBy(point => state.RoadTiles!.Min(road => Math.Abs(road.X - point.X) + Math.Abs(road.Y - point.Y)))
         .ThenBy(point => point.Y).ThenBy(point => point.X);
 }
-static PrivateWorldRuntime CreateWorld(string seed, Func<string, IDecisionProvider> providers)
+static WorldRuntime CreateWorld(string seed, Func<string, IDecisionProvider> providers)
 {
     var options = new GeographyOptions(seed, WorldSizePreset.Small);
-    var world = new PrivateWorldRuntime(seed, providers, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
+    var world = new WorldRuntime(seed, providers, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
     world.InitializeFirstTownContent();
     world.AcceptFirstTownLayout(new(108, 53));
     var state = world.ExportState();
@@ -251,7 +249,7 @@ sealed class MarketBuilder : IDecisionProvider
             candidates.FirstOrDefault(candidate => candidate.Id.Contains("|yes|", StringComparison.Ordinal)) ??
             candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
         string? proposal = null;
-        if (chosen is null && !proposed && MarketLocalId is not null && observation.InhabitantId.EndsWith("01", StringComparison.Ordinal))
+        if (chosen is null && !proposed && MarketLocalId is not null && observation.AgentId.EndsWith("01", StringComparison.Ordinal))
         {
             chosen = candidates.FirstOrDefault(candidate => candidate.Id.Contains("|project|" + MarketLocalId + "|", StringComparison.Ordinal));
             if (chosen is not null) { proposed = true; proposal = "First Market"; }
@@ -260,7 +258,7 @@ sealed class MarketBuilder : IDecisionProvider
             chosen ??= candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal));
         chosen ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal));
         chosen ??= candidates.Single(candidate => candidate.Id == "safe_idle");
-        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
             Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
             chosen.Id, 1, candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == chosen.Id ? 1d : 0d),
             CivicProposal: proposal));

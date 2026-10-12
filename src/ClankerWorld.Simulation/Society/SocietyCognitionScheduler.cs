@@ -8,11 +8,11 @@ namespace ClankerWorld.Simulation.Society;
 
 public sealed record SocietyCognitionScheduleEntry(
     string ScheduleId,
-    string InhabitantId,
+    string AgentId,
     int Priority,
     long EnqueuedTick,
     IReadOnlyList<string> TriggerIds,
-    InhabitantObservation Observation);
+    AgentObservation Observation);
 
 public sealed record SocietyCognitionSchedulerEvent(
     long EventId,
@@ -21,11 +21,11 @@ public sealed record SocietyCognitionSchedulerEvent(
     string Detail);
 
 public sealed record SocietyCognitionDispatchResult(
-    string InhabitantId,
+    string AgentId,
     CognitionAdmissionResult Admission);
 
 public sealed record SocietyDeferredCognitionRequest(
-    string InhabitantId,
+    string AgentId,
     CognitionDecisionRequest Request,
     Func<CancellationToken, ValueTask<CognitionDecisionResponse>> DecideAsync);
 
@@ -39,9 +39,9 @@ public sealed record SocietyCognitionSchedulerState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0);
 
 /// <summary>
-/// Fair multi-inhabitant cognition admission. Each inhabitant has one
+/// Fair multi-agent cognition admission. Each agent has one
 /// CognitionRuntime and therefore one in-flight request; the shared queue is
-/// bounded and ordered by priority, age, inhabitant ID, and schedule ID.
+/// bounded and ordered by priority, age, agent ID, and schedule ID.
 /// </summary>
 public sealed class SocietyCognitionScheduler
 {
@@ -58,12 +58,12 @@ public sealed class SocietyCognitionScheduler
     private long eventHistoryFloor;
 
     public SocietyCognitionScheduler(
-        IEnumerable<SocietyInhabitant> inhabitants,
+        IEnumerable<SocietyAgent> agents,
         Func<string, IDecisionProvider>? providerFactory = null,
         int maxQueueLength = 64,
         int maxDispatchPerCycle = 8)
     {
-        ArgumentNullException.ThrowIfNull(inhabitants);
+        ArgumentNullException.ThrowIfNull(agents);
         if (maxQueueLength <= 0 || maxDispatchPerCycle <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(maxQueueLength));
@@ -72,8 +72,8 @@ public sealed class SocietyCognitionScheduler
         this.maxQueueLength = maxQueueLength;
         this.maxDispatchPerCycle = maxDispatchPerCycle;
         this.providerFactory = providerFactory ?? (_ => new DeterministicDecisionProvider());
-        runtimes = inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        runtimes = agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .OrderBy(item => item.Id, StringComparer.Ordinal)
             .ToDictionary(
                 item => item.Id,
@@ -81,18 +81,18 @@ public sealed class SocietyCognitionScheduler
                 StringComparer.Ordinal);
     }
 
-    public IReadOnlyList<string> InhabitantIds => runtimes.Keys.OrderBy(item => item, StringComparer.Ordinal).ToArray();
+    public IReadOnlyList<string> AgentIds => runtimes.Keys.OrderBy(item => item, StringComparer.Ordinal).ToArray();
 
     public bool Enqueue(SocietyCognitionScheduleEntry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
         ValidateEntry(entry);
-        if (!runtimes.ContainsKey(entry.InhabitantId))
+        if (!runtimes.ContainsKey(entry.AgentId))
         {
-            throw new InvalidOperationException($"Unknown inhabitant '{entry.InhabitantId}'.");
+            throw new InvalidOperationException($"Unknown agent '{entry.AgentId}'.");
         }
 
-        var existing = queue.SingleOrDefault(item => item.InhabitantId == entry.InhabitantId);
+        var existing = queue.SingleOrDefault(item => item.AgentId == entry.AgentId);
         if (existing is not null)
         {
             var merged = existing with
@@ -107,7 +107,7 @@ public sealed class SocietyCognitionScheduler
                 Observation = LatestObservation(existing.Observation, entry.Observation),
             };
             queue[queue.IndexOf(existing)] = merged;
-            AppendEvent(entry.EnqueuedTick, "cognition_trigger_coalesced", entry.InhabitantId);
+            AppendEvent(entry.EnqueuedTick, "cognition_trigger_coalesced", entry.AgentId);
             return true;
         }
 
@@ -122,59 +122,59 @@ public sealed class SocietyCognitionScheduler
         return true;
     }
 
-    private static InhabitantObservation LatestObservation(InhabitantObservation previous, InhabitantObservation incoming) =>
+    private static AgentObservation LatestObservation(AgentObservation previous, AgentObservation incoming) =>
         (incoming.RunEpoch, incoming.DecisionGeneration, incoming.WorldTick)
             .CompareTo((previous.RunEpoch, previous.DecisionGeneration, previous.WorldTick)) >= 0
             ? incoming : previous;
 
     /// <summary>
     /// Reconciles cognition runtimes with the authoritative lifecycle set.
-    /// Dead inhabitants cannot receive new work, and newborns get a fresh
+    /// Dead agents cannot receive new work, and newborns get a fresh
     /// provider binding without disturbing surviving runtimes or queued work.
     /// </summary>
-    public void SyncInhabitants(IEnumerable<SocietyInhabitant> inhabitants, IReadOnlySet<string>? bornChildIds = null)
+    public void SyncAgents(IEnumerable<SocietyAgent> agents, IReadOnlySet<string>? bornChildIds = null)
     {
-        ArgumentNullException.ThrowIfNull(inhabitants);
-        var current = inhabitants.ToArray();
+        ArgumentNullException.ThrowIfNull(agents);
+        var current = agents.ToArray();
         var activeIds = current
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .Select(item => item.Id)
             .ToHashSet(StringComparer.Ordinal);
 
         foreach (var removedId in runtimes.Keys.Where(id => !activeIds.Contains(id)).ToArray())
         {
             runtimes.Remove(removedId);
-            queue.RemoveAll(entry => entry.InhabitantId == removedId);
+            queue.RemoveAll(entry => entry.AgentId == removedId);
             AppendEvent(0, "cognition_runtime_removed", removedId);
         }
 
-        foreach (var inhabitant in current
-                     .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        foreach (var agent in current
+                     .Where(item => item.Status == SocietyAgentStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (runtimes.ContainsKey(inhabitant.Id))
+            if (runtimes.ContainsKey(agent.Id))
             {
                 continue;
             }
 
             runtimes.Add(
-                inhabitant.Id,
-                new CognitionRuntime(inhabitant.Id, providerFactory(inhabitant.Id)));
-            AppendEvent(0, "cognition_runtime_added", inhabitant.Id);
+                agent.Id,
+                new CognitionRuntime(agent.Id, providerFactory(agent.Id)));
+            AppendEvent(0, "cognition_runtime_added", agent.Id);
         }
 
         // A save from before child-provider routing can contain an already
         // queued observation. Reconcile it before hosted preview or dispatch.
         var infants = current.Where(item => item.AgeBand == SocietyAgeBand.Infant)
             .Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        queue.RemoveAll(entry => infants.Contains(entry.InhabitantId));
+        queue.RemoveAll(entry => infants.Contains(entry.AgentId));
         var named = current.Where(item => !item.NeedsName).Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         for (var index = queue.Count - 1; index >= 0; index--)
         {
             var entry = queue[index];
             // A completed naming call may leave newer ordinary work queued,
             // including after its consumed retry trigger has been removed.
-            if (!named.Contains(entry.InhabitantId) || !entry.Observation.NeedsName &&
+            if (!named.Contains(entry.AgentId) || !entry.Observation.NeedsName &&
                 !entry.TriggerIds.Contains(NameRetryTriggerId, StringComparer.Ordinal))
                 continue;
             var remaining = entry.TriggerIds.Where(trigger => trigger != NameRetryTriggerId).ToArray();
@@ -188,7 +188,7 @@ public sealed class SocietyCognitionScheduler
         if (bornChildIds is not null)
         {
             for (var index = 0; index < queue.Count; index++)
-                if (bornChildIds.Contains(queue[index].InhabitantId))
+                if (bornChildIds.Contains(queue[index].AgentId))
                     queue[index] = queue[index] with
                     {
                         Observation = queue[index].Observation with { RequiresPersonalProvider = true },
@@ -205,36 +205,36 @@ public sealed class SocietyCognitionScheduler
         DispatchDeterministicAsync(null, null, cancellationToken);
 
     internal ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> DispatchDeterministicAsync(
-        IReadOnlySet<string>? excludedInhabitantIds, Func<InhabitantObservation, bool>? observationIsCurrent,
+        IReadOnlySet<string>? excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent,
         CancellationToken cancellationToken) =>
-        DispatchEligibleAsync(entry => excludedInhabitantIds?.Contains(entry.InhabitantId) != true &&
+        DispatchEligibleAsync(entry => excludedAgentIds?.Contains(entry.AgentId) != true &&
             (observationIsCurrent?.Invoke(entry.Observation) ?? true) &&
-            runtimes[entry.InhabitantId].ProviderKindFor(entry.Observation) ==
+            runtimes[entry.AgentId].ProviderKindFor(entry.Observation) ==
             DecisionProviderKind.Deterministic, cancellationToken);
 
-    public IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(
-        IReadOnlySet<string> excludedInhabitantIds) =>
-        PreviewHostedRequests(excludedInhabitantIds, null);
+    public IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
+        IReadOnlySet<string> excludedAgentIds) =>
+        PreviewModelRequests(excludedAgentIds, null);
 
-    internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(
-        IReadOnlySet<string> excludedInhabitantIds, Func<InhabitantObservation, bool>? observationIsCurrent)
+    internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewModelRequests(
+        IReadOnlySet<string> excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent)
     {
-        ArgumentNullException.ThrowIfNull(excludedInhabitantIds);
+        ArgumentNullException.ThrowIfNull(excludedAgentIds);
         var selected = OrderedQueue()
-            .Where(entry => !excludedInhabitantIds.Contains(entry.InhabitantId) &&
+            .Where(entry => !excludedAgentIds.Contains(entry.AgentId) &&
                 (observationIsCurrent?.Invoke(entry.Observation) ?? true) &&
-                runtimes[entry.InhabitantId].ProviderKindFor(ObservationFor(entry)) != DecisionProviderKind.Deterministic)
+                runtimes[entry.AgentId].ProviderKindFor(ObservationFor(entry)) != DecisionProviderKind.Deterministic)
             .Take(maxDispatchPerCycle)
             .ToArray();
         var previews = new List<SocietyDeferredCognitionRequest>(selected.Length);
         foreach (var entry in selected)
         {
-            var runtime = runtimes[entry.InhabitantId];
+            var runtime = runtimes[entry.AgentId];
             try
             {
                 var request = runtime.PreviewRequest(ObservationFor(entry));
                 previews.Add(new SocietyDeferredCognitionRequest(
-                    entry.InhabitantId,
+                    entry.AgentId,
                     request,
                     token => runtime.DecidePreviewAsync(request, token)));
             }
@@ -247,19 +247,19 @@ public sealed class SocietyCognitionScheduler
         return previews;
     }
 
-    public IReadOnlySet<string> PendingHostedInhabitantIds() => queue
-        .Where(entry => runtimes[entry.InhabitantId].ProviderKindFor(ObservationFor(entry)) != DecisionProviderKind.Deterministic)
-        .Select(entry => entry.InhabitantId)
+    public IReadOnlySet<string> PendingModelAgentIds() => queue
+        .Where(entry => runtimes[entry.AgentId].ProviderKindFor(ObservationFor(entry)) != DecisionProviderKind.Deterministic)
+        .Select(entry => entry.AgentId)
         .ToHashSet(StringComparer.Ordinal);
 
-    public long CurrentProviderEpoch(string inhabitantId) => GetRuntime(inhabitantId).ProviderEpoch;
+    public long CurrentProviderEpoch(string agentId) => GetRuntime(agentId).ProviderEpoch;
 
-    internal void ClearCurrentIntention(string inhabitantId, long worldTick) =>
-        GetRuntime(inhabitantId).ClearCurrentIntention(worldTick);
+    internal void ClearCurrentIntention(string agentId, long worldTick) =>
+        GetRuntime(agentId).ClearCurrentIntention(worldTick);
 
-    internal void CompleteQueuedIdentityChoice(string inhabitantId, string name, string personality, string aspiration)
+    internal void CompleteQueuedIdentityChoice(string agentId, string name, string personality, string aspiration)
     {
-        var index = queue.FindIndex(entry => entry.InhabitantId == inhabitantId);
+        var index = queue.FindIndex(entry => entry.AgentId == agentId);
         if (index < 0) return;
         var entry = queue[index];
         var self = entry.Observation.Self is { } previousSelf
@@ -293,9 +293,9 @@ public sealed class SocietyCognitionScheduler
         bool? decisionContextChanged = null)
     {
         ArgumentNullException.ThrowIfNull(originalRequest);
-        var inhabitantId = originalRequest.Observation.InhabitantId;
-        var entry = queue.SingleOrDefault(item => item.InhabitantId == inhabitantId);
-        if (entry is null || !runtimes.TryGetValue(inhabitantId, out var runtime) ||
+        var agentId = originalRequest.Observation.AgentId;
+        var entry = queue.SingleOrDefault(item => item.AgentId == agentId);
+        if (entry is null || !runtimes.TryGetValue(agentId, out var runtime) ||
             originalRequest.Observation.RunEpoch != currentRunEpoch ||
             originalRequest.ProviderEpoch != runtime.ProviderEpoch)
             return null;
@@ -337,14 +337,14 @@ public sealed class SocietyCognitionScheduler
         }
         AppendEvent(entry.Observation.WorldTick,
             admission.Accepted ? "cognition_dispatched" : "cognition_dispatch_rejected",
-            $"{inhabitantId}:{admission.Outcome}");
-        return new SocietyCognitionDispatchResult(inhabitantId, admission);
+            $"{agentId}:{admission.Outcome}");
+        return new SocietyCognitionDispatchResult(agentId, admission);
     }
 
     private IOrderedEnumerable<SocietyCognitionScheduleEntry> OrderedQueue() => queue
         .OrderByDescending(item => item.Priority)
         .ThenBy(item => item.EnqueuedTick)
-        .ThenBy(item => item.InhabitantId, StringComparer.Ordinal)
+        .ThenBy(item => item.AgentId, StringComparer.Ordinal)
         .ThenBy(item => item.ScheduleId, StringComparer.Ordinal);
 
     private async ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> DispatchEligibleAsync(
@@ -359,7 +359,7 @@ public sealed class SocietyCognitionScheduler
         async Task<SocietyCognitionDispatchResult> DispatchOneAsync(SocietyCognitionScheduleEntry entry)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var runtime = runtimes[entry.InhabitantId];
+            var runtime = runtimes[entry.AgentId];
             CognitionAdmissionResult admission;
             try
             {
@@ -376,11 +376,11 @@ public sealed class SocietyCognitionScheduler
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            return new SocietyCognitionDispatchResult(entry.InhabitantId, admission);
+            return new SocietyCognitionDispatchResult(entry.AgentId, admission);
         }
 
-        // Each inhabitant owns an independent cognition runtime, so the
-        // bounded selection may call hosted providers concurrently. Results
+        // Each agent owns an independent cognition runtime, so the
+        // bounded selection may call model providers concurrently. Results
         // are still committed in the deterministic scheduler order below.
         // If cancellation interrupts the batch, every selected queue entry
         // remains durable for a later retry.
@@ -395,13 +395,13 @@ public sealed class SocietyCognitionScheduler
             AppendEvent(
                 entry.Observation.WorldTick,
                 result.Admission.Accepted ? "cognition_dispatched" : "cognition_dispatch_rejected",
-                $"{entry.InhabitantId}:{result.Admission.Outcome}");
+                $"{entry.AgentId}:{result.Admission.Outcome}");
         }
 
         return results;
     }
 
-    private static InhabitantObservation ObservationFor(SocietyCognitionScheduleEntry entry)
+    private static AgentObservation ObservationFor(SocietyCognitionScheduleEntry entry)
     {
         if (!entry.TriggerIds.Contains(NameRetryTriggerId, StringComparer.Ordinal))
             return entry.Observation with { IsNameRetry = false };
@@ -411,13 +411,13 @@ public sealed class SocietyCognitionScheduler
         return entry.Observation with { IsNameRetry = true, ObservationDigest = retryDigest };
     }
 
-    public CognitionRuntimeSnapshot CaptureRuntime(string inhabitantId) =>
-        GetRuntime(inhabitantId).Capture();
+    public CognitionRuntimeSnapshot CaptureRuntime(string agentId) =>
+        GetRuntime(agentId).Capture();
 
     public SocietyCognitionSchedulerState ExportState()
     {
         var runtimeStates = runtimes.Values
-            .OrderBy(runtime => runtime.InhabitantId, StringComparer.Ordinal)
+            .OrderBy(runtime => runtime.AgentId, StringComparer.Ordinal)
             .Select(runtime => runtime.ExportState())
             .ToArray();
         return new SocietyCognitionSchedulerState(
@@ -440,12 +440,12 @@ public sealed class SocietyCognitionScheduler
             throw new InvalidDataException("The society cognition scheduler state is invalid.");
         }
 
-        var inhabitants = state.Runtimes
-            .Select(item => new SocietyInhabitant(
-                item.InhabitantId,
-                item.InhabitantId,
+        var agents = state.Runtimes
+            .Select(item => new SocietyAgent(
+                item.AgentId,
+                item.AgentId,
                 0,
-                SocietyInhabitantStatus.Active,
+                SocietyAgentStatus.Active,
                 SocietyAgeBand.Adult,
                 10_000,
                 null,
@@ -454,21 +454,21 @@ public sealed class SocietyCognitionScheduler
                 0))
             .ToArray();
         var scheduler = new SocietyCognitionScheduler(
-            inhabitants,
+            agents,
             providerFactory,
             state.MaxQueueLength,
             state.MaxDispatchPerCycle);
         scheduler.queue.AddRange(state.Queue);
         foreach (var runtimeState in state.Runtimes)
         {
-            if (!scheduler.runtimes.ContainsKey(runtimeState.InhabitantId))
+            if (!scheduler.runtimes.ContainsKey(runtimeState.AgentId))
             {
-                throw new InvalidDataException("A scheduler runtime has no matching inhabitant.");
+                throw new InvalidDataException("A scheduler runtime has no matching agent.");
             }
 
-            scheduler.runtimes[runtimeState.InhabitantId] = CognitionRuntime.Restore(
+            scheduler.runtimes[runtimeState.AgentId] = CognitionRuntime.Restore(
                 runtimeState,
-                providerFactory?.Invoke(runtimeState.InhabitantId));
+                providerFactory?.Invoke(runtimeState.AgentId));
         }
 
         scheduler.events.AddRange(state.Events);
@@ -501,19 +501,19 @@ public sealed class SocietyCognitionScheduler
         foreach (var entry in queue)
         {
             ValidateEntry(entry);
-            if (!runtimes.ContainsKey(entry.InhabitantId))
+            if (!runtimes.ContainsKey(entry.AgentId))
             {
-                throw new InvalidDataException("A queued cognition entry references an unknown inhabitant.");
+                throw new InvalidDataException("A queued cognition entry references an unknown agent.");
             }
         }
     }
 
-    private CognitionRuntime GetRuntime(string inhabitantId)
+    private CognitionRuntime GetRuntime(string agentId)
     {
-        var id = string.IsNullOrWhiteSpace(inhabitantId) ? inhabitantId : inhabitantId.Trim();
+        var id = string.IsNullOrWhiteSpace(agentId) ? agentId : agentId.Trim();
         return runtimes.TryGetValue(id, out var runtime)
             ? runtime
-            : throw new KeyNotFoundException($"Unknown inhabitant '{id}'.");
+            : throw new KeyNotFoundException($"Unknown agent '{id}'.");
     }
 
     private void AppendEvent(long worldTick, string kind, string detail)
@@ -531,14 +531,14 @@ public sealed class SocietyCognitionScheduler
     private static void ValidateEntry(SocietyCognitionScheduleEntry entry)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(entry.ScheduleId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(entry.InhabitantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(entry.AgentId);
         if (entry.Priority < 0 || entry.EnqueuedTick < 0 || entry.TriggerIds.Count == 0)
         {
             throw new ArgumentOutOfRangeException(nameof(entry));
         }
 
         entry.Observation.Validate();
-        if (entry.Observation.InhabitantId != entry.InhabitantId ||
+        if (entry.Observation.AgentId != entry.AgentId ||
             entry.TriggerIds.Any(string.IsNullOrWhiteSpace) ||
             entry.TriggerIds.Distinct(StringComparer.Ordinal).Count() != entry.TriggerIds.Count)
         {

@@ -18,9 +18,9 @@ public partial class Main
         }
         foreach (var panel in new Control[]
         {
-            mainMenuOverlay, gameMenuPanel, settingsPanel, modLibraryPanel, worldMenuOverlay, manualSaveOverlay,
-            controlsPanel, founderSetupPanel, rosterPanel, eventsPanel, worldInfoPanel, filtersPanel, worldOverviewPanel,
-            selectedInhabitantCard, agentProfilePanel, familyTreePanel, memoriesPanel, thoughtsPanel, ordersPanel,
+            mainMenuOverlay, pauseMenuPanel, settingsPanel, modLibraryPanel, worldMenuOverlay, manualSaveOverlay,
+            controlsPanel, founderSetupPanel, agentsPanel, eventLogPanel, worldInfoPanel, filtersPanel, worldMapPanel,
+            agentQuickCard, agentProfilePanel, familyTreePanel, memoriesPanel, thoughtsPanel, ordersPanel,
             conversationPanel, selectedTilePanel, buildingQuickCard, buildingDetailsPanel, developerPanel,
         })
         {
@@ -67,7 +67,7 @@ public partial class Main
     {
         if (manualSaveOverlay.IsVisibleInTree()) return manualSaveOverlay;
         if (worldMenuOverlay.IsVisibleInTree()) return worldMenuOverlay;
-        if (gameMenuPanel.IsVisibleInTree()) return gameMenuPanel;
+        if (pauseMenuPanel.IsVisibleInTree()) return pauseMenuPanel;
         if (mainMenuOverlay.IsVisibleInTree()) return mainMenuOverlay;
         var focused = GetViewport().GuiGetFocusOwner();
         if (focused == mapCanvas) return this;

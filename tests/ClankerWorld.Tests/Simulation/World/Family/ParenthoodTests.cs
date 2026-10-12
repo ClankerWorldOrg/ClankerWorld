@@ -1,0 +1,669 @@
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
+using ClankerWorld.Server.Observation;
+using ClankerWorld.Server.Runtime;
+using ClankerWorld.Server.Saves;
+
+namespace ClankerWorld.Tests;
+
+public sealed partial class ParenthoodTests
+{
+    [Fact]
+    public async Task ConsentingParentsPrepareAcrossRestartAndFeedARealChildWithoutInfantProviderCalls()
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == first || person.AgentId == second
+                ? person with { Skills = [new(SkillKind.Building, state.Society.Society.WorldTick)] }
+                : person).ToArray(),
+        };
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
+        await world.AdvanceOneTickAsync();
+        Assert.Equal("requested", world.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        Assert.Empty(world.Society.Births);
+        await world.AdvanceOneTickAsync();
+        Assert.Equal("preparing", world.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        world.Pause();
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ParentProvider("safe_idle"));
+        Assert.False((await restored.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
+        restored.Resume();
+        for (var tick = 0; tick < 601; tick++) await restored.AdvanceOneTickAsync();
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new ParentProvider("safe_idle"));
+        replay.Resume();
+        for (var tick = 0; tick < 601; tick++) await replay.AdvanceOneTickAsync();
+        Assert.Equal(WorldRuntimeCodec.Encode(restored.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        var birth = Assert.Single(restored.Society.Births);
+        Assert.Equal(5, restored.Agents.Count);
+        var newbornIdentity = restored.Society.GetAgent(birth.ChildId);
+        Assert.False(newbornIdentity.HasChosenName);
+        Assert.True(newbornIdentity.NeedsName);
+        Assert.Equal("Child", newbornIdentity.Name);
+        Assert.Equal(SocietyAgeBand.Infant, restored.Society.GetAgent(birth.ChildId).AgeBand);
+        Assert.Empty(restored.Agents.Single(person => person.AgentId == birth.ChildId).Skills ?? []);
+        var newborn = restored.Agents.Single(person => person.AgentId == birth.ChildId);
+        Assert.NotNull(newborn.Housing?.Blocker);
+        Assert.Contains(newborn.Housing!.Blocker,
+            new[] { HousingBlockers.NoAuthorizedHome, HousingBlockers.MissingMaterials, HousingBlockers.NoLegalSite });
+        Assert.Contains(restored.ExportState().Events, item => item.Kind == "housing_blocked" &&
+            item.Detail == $"{birth.ChildId}:{newborn.Housing.Blocker}");
+        var newbornProfile = new OwnerWorldObservationStore(restored).GetSnapshot().Agents
+            .Single(person => person.Id == birth.ChildId);
+        Assert.Contains(newbornProfile.DecisionFactors, factor => factor.Key == "housing" &&
+            factor.Detail.Contains("No home", StringComparison.Ordinal));
+        using (var reloaded = WorldRuntime.Restore(
+                   WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(restored.ExportState()))))
+        {
+            Assert.Equal(newborn.Housing.Blocker,
+                reloaded.Agents.Single(person => person.AgentId == birth.ChildId).Housing?.Blocker);
+            var reloadedState = reloaded.ExportState();
+            var householdId = reloaded.Society.GetAgent(birth.ChildId).HouseholdId!;
+            var members = reloaded.Society.GetHousehold(householdId).MemberIds
+                .Where(member => member != birth.ChildId).ToArray();
+            var forgedRequest = reloadedState with
+            {
+                Agents = reloadedState.Agents.Select(person => person.AgentId == birth.ChildId
+                    ? person with
+                    {
+                        Housing = new HousingState(Request: new HousingRequest(
+                        householdId, reloaded.Society.WorldTick,
+                        reloaded.Society.WorldTick + WorldRuntime.HousingRequestTicks, members, [], []))
+                    }
+                    : person).ToArray(),
+            };
+            Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forgedRequest));
+            var forgedRefusal = reloadedState with
+            {
+                Agents = reloadedState.Agents.Select(person => person.AgentId == birth.ChildId
+                    ? person with
+                    {
+                        Housing = (person.Housing ?? new()) with
+                        {
+                            Refusals = [new HousingRefusal(householdId, reloaded.Society.WorldTick)],
+                        }
+                    }
+                    : person).ToArray(),
+            };
+            Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forgedRefusal));
+        }
+        Assert.Equal("completed", restored.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        var completedState = restored.ExportState();
+        var forgedPending = completedState with
+        {
+            Agents = completedState.Agents.Select(person => person.AgentId == first
+            ? person with { Parenthood = person.Parenthood! with { Stage = "preparing", ChildId = null } } : person).ToArray()
+        };
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forgedPending));
+        Assert.Equal(2, restored.Society.Relationships.Count(item => item.Type == SocietyRelationshipType.Caregiver && item.TargetId == birth.ChildId));
+        var familySnapshot = new OwnerWorldObservationStore(restored).GetSnapshot();
+        Assert.Contains(familySnapshot.Agents.Single(person => person.Id == first).Relationships,
+            relationship => relationship.OtherPartyId == birth.ChildId &&
+                relationship.Type == "biological_parentage" && relationship.Direction == "parent");
+        Assert.Contains(familySnapshot.Agents.Single(person => person.Id == birth.ChildId).Relationships,
+            relationship => relationship.OtherPartyId == first &&
+                relationship.Type == "biological_parentage" && relationship.Direction == "child");
+        Assert.Contains(familySnapshot.Agents.Single(person => person.Id == first).SocialNotes,
+            note => note.Contains("Caring for a child", StringComparison.Ordinal));
+
+        state = restored.ExportState();
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId == birth.ChildId
+            ? person with { FullnessBasisPoints = 1_000 } : person).ToArray()
+        };
+        var childProvider = new ParentProvider("build:");
+        using var caring = WorldRuntime.Restore(state, actor => actor == birth.ChildId ? childProvider : new ParentProvider("care:"));
+        var foodBefore = caring.Society.Inventory.Lots.Where(lot => lot.ItemKind == "food").Sum(lot => lot.Quantity);
+        for (var tick = 0; tick < 80 && caring.Agents.Single(person => person.AgentId == birth.ChildId).FullnessBasisPoints < 3_000; tick++)
+            await caring.AdvanceOneTickAsync();
+        Assert.True(caring.Agents.Single(person => person.AgentId == birth.ChildId).FullnessBasisPoints >= 3_000);
+        Assert.True(caring.Society.Inventory.Lots.Where(lot => lot.ItemKind == "food").Sum(lot => lot.Quantity) < foodBefore);
+        Assert.Equal(0, childProvider.Calls);
+        Assert.Null(caring.Agents.Single(person => person.AgentId == birth.ChildId).Project);
+        Assert.Throws<ArgumentException>(() => caring.SubmitInstruction(new("infant-order", "owner", birth.ChildId,
+            OwnerInstructionKind.Order, "build a shelter")));
+        Assert.Contains(caring.ExportState().Events, item => item.Kind == "child_cared_for");
+        Assert.Contains(caring.Society.Relationships, item => item.ProposerId == second && item.TargetId == birth.ChildId);
+
+        var childId = birth.ChildId;
+        state = completedState;
+        var caregiverId = state.Society.Society.Relationships.First(edge => edge.Type == SocietyRelationshipType.Caregiver &&
+            edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted).ProposerId;
+        var child = state.Agents.Single(person => person.AgentId == childId);
+        var caregiverTile = state.Map.FootNeighbors(child.Position).First(point => state.Map.IsPassable(point) &&
+            Math.Abs(point.X - child.Position.X) + Math.Abs(point.Y - child.Position.Y) == 1 &&
+            !state.Agents.Any(person => person.AgentId != caregiverId && person.AgentId != childId && person.Position == point));
+        const int initialIllness = 9_000;
+        state = state with
+        {
+            Agents = state.Agents.Select(person => person.AgentId switch
+            {
+                var id when id == caregiverId => person with
+                {
+                    Position = caregiverTile,
+                    FullnessBasisPoints = 9_000,
+                    Survival = new SurvivalCondition(10_000, 0),
+                    Project = null,
+                    LastDecisionContext = null,
+                    TravelCooldownTicks = 0,
+                },
+                var id when id == childId => person with
+                {
+                    FullnessBasisPoints = 9_000,
+                    Survival = new SurvivalCondition(9_000, initialIllness),
+                    Project = null,
+                },
+                _ => person,
+            }).ToArray(),
+        };
+        using var tending = WorldRuntime.Restore(state, actor =>
+            new ParentProvider(actor == caregiverId ? "care:" : "safe_idle"));
+
+        var tendingStep = await tending.AdvanceOneTickAsync();
+        Assert.True(tendingStep.Advanced);
+
+        var caredFor = tending.Agents.Single(person => person.AgentId == childId);
+        Assert.Contains(tendingStep.Events, item => item.Kind == "child_cared_for" && item.Detail == childId);
+        Assert.Equal(10_000, caredFor.Survival!.WarmthBasisPoints);
+        Assert.True(caredFor.Survival.IllnessBasisPoints < initialIllness - 12,
+            $"Expected direct caregiver care to improve on ordinary warm-and-fed recovery; actual illness {caredFor.Survival.IllnessBasisPoints}.");
+    }
+
+    [Fact]
+    public async Task BirthUsesTheAgreedCaregiversActualHouseholdIfItChangesBeforeBirth()
+    {
+        using var seed = NormalPathWorld.CreateGenerated("parenthood-stale-intended-home", _ => new ParentProvider("safe_idle"));
+        var state = seed.ExportState();
+        var oldHome = state.Society.Society.Households.Single(item => item.Id == "household:camp-alpha");
+        var newHome = state.Society.Society.Households.Single(item => item.Id == "household:camp-beta");
+        var caregiver = oldHome.MemberIds[0];
+        var otherParent = oldHome.MemberIds[1];
+        var agreedHome = oldHome.Id;
+        using (var society = SocietyRuntime.Restore(state.Society))
+        {
+            society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
+                new("stale-home-parents", 1, SocietyRelationshipType.Partnership, caregiver, otherParent, checkpoint.WorldTick)));
+            society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, "stale-home-parents", 1, otherParent));
+            state = state with
+            {
+                Society = society.ExportState(),
+                Agents = state.Agents.Select(person => person.AgentId == caregiver || person.AgentId == otherParent
+                    ? person with { Skills = [new(SkillKind.Building, state.Society.Society.WorldTick)] }
+                    : person).ToArray(),
+                WorldSystems = state.WorldSystems! with
+                {
+                    RegionalWeather = null,
+                    Config = state.WorldSystems.Config with
+                    {
+                        WeatherProfiles = Enum.GetValues<SeasonKind>().Select(season => new WeatherProfile(season, 1, 0, 0, 0, 0)).ToArray(),
+                    },
+                    Climate = state.WorldSystems.Climate with { Weather = WeatherKind.Clear },
+                },
+            };
+        }
+        IDecisionProvider ProviderFor(string actor) => actor == caregiver
+            ? new ParentProvider("parent_propose:")
+            : actor == otherParent
+                ? new ParentProvider($"parent_accept:{caregiver}:initiator")
+                : new ParentProvider("safe_idle");
+
+        using var preparing = WorldRuntime.Restore(state, ProviderFor);
+        Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
+        Assert.True((await preparing.AdvanceOneTickAsync()).Advanced);
+        Assert.Equal("preparing", preparing.Agents.Single(item => item.AgentId == caregiver).Parenthood!.Stage);
+        var plan = preparing.Agents.Single(item => item.AgentId == caregiver).Parenthood!;
+        Assert.Equal(caregiver, plan.PrimaryCaregiverId);
+        Assert.Equal(agreedHome, plan.IntendedHouseholdId);
+
+        preparing.Pause();
+        var movedState = preparing.ExportState();
+        var movedSociety = movedState.Society.Society;
+        var membership = movedSociety.Relationships.Single(item => item.Type == SocietyRelationshipType.HouseholdMembership &&
+            item.TargetId == caregiver && item.State == SocietyRelationshipState.Accepted);
+        movedSociety = SocietyRules.RevokeRelationship(movedSociety, membership.Id, caregiver).Checkpoint;
+        movedSociety = SocietyRules.JoinHousehold(movedSociety, caregiver, newHome.Id).Checkpoint;
+        var newHouse = movedState.WorldSimulation!.Buildings.Single(item => item.HouseholdId == newHome.Id &&
+            movedState.WorldContent!.Buildings.Single(definition => definition.CanonicalId == item.DefinitionId)
+                .Tags.Contains("house", StringComparer.Ordinal));
+        movedState = movedState with
+        {
+            Society = movedState.Society with
+            {
+                Society = movedSociety,
+            },
+        };
+
+        using var moved = WorldRuntime.Restore(
+            WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(movedState)),
+            ProviderFor);
+        Assert.Equal(newHome.Id, moved.Society.GetAgent(caregiver).HouseholdId);
+        Assert.Equal(agreedHome, moved.Society.GetAgent(otherParent).HouseholdId);
+        var fullHome = new OwnerWorldObservationStore(moved).GetSnapshot().PlacedBuildings
+            .Single(item => item.InstanceId == newHouse.InstanceId);
+        Assert.Equal(3, fullHome.PermanentResidentCount);
+        Assert.Equal(3, fullHome.ResidentLimit);
+        Assert.False(fullHome.IsOvercrowded);
+        PositionFamilyFixtureAt(moved, plan.LastTransitionTick + 598);
+        moved.Resume();
+        Assert.True((await moved.AdvanceOneTickAsync()).Advanced);
+        Assert.Empty(moved.Society.Births);
+        for (var tick = 0; tick < 620 && moved.Society.Births.Count == 0; tick++)
+            Assert.True((await moved.AdvanceOneTickAsync()).Advanced);
+
+        var birth = Assert.Single(moved.Society.Births);
+        var child = moved.Society.GetAgent(birth.ChildId);
+        var completed = moved.Agents.Single(item => item.AgentId == caregiver).Parenthood!;
+        Assert.Equal(caregiver, child.PrimaryCaregiverId);
+        Assert.Equal(newHome.Id, child.HouseholdId);
+        Assert.Equal(newHome.Id, birth.HouseholdId);
+        Assert.Equal(agreedHome, completed.IntendedHouseholdId);
+        Assert.Equal(newHome.Id, completed.BirthHouseholdId);
+        Assert.Equal(agreedHome, moved.Society.GetAgent(otherParent).HouseholdId);
+        var capacity = new OwnerWorldObservationStore(moved).GetSnapshot().PlacedBuildings
+            .Single(item => item.InstanceId == newHouse.InstanceId);
+        Assert.Equal(4, capacity.PermanentResidentCount);
+        Assert.Equal(3, capacity.ResidentLimit);
+        Assert.True(capacity.IsOvercrowded);
+        var newborn = moved.Agents.Single(item => item.AgentId == birth.ChildId);
+        Assert.Equal(HousingBlockers.Overcrowded, newborn.Housing?.Blocker);
+        var housingDetail = Assert.Single(new OwnerWorldObservationStore(moved).GetSnapshot().Agents
+            .Single(item => item.Id == birth.ChildId).DecisionFactors,
+            factor => factor.Key == "housing").Detail;
+        Assert.Contains("House overcrowded: 4 residents, 3 places.", housingDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("No home", housingDetail, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(4, capacity.PermanentResidentCount);
+        using var restored = WorldRuntime.Restore(
+            WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(moved.ExportState())), ProviderFor);
+        Assert.Equal(newHome.Id, Assert.Single(restored.Society.Births).HouseholdId);
+        Assert.Equal(newHome.Id, restored.Agents.Single(item => item.AgentId == caregiver).Parenthood!.BirthHouseholdId);
+        Assert.Equal(HousingBlockers.Overcrowded,
+            restored.Agents.Single(item => item.AgentId == birth.ChildId).Housing?.Blocker);
+    }
+
+    [Fact]
+    public async Task ExistingSecondaryCaregiverCanChoosePrimaryCareAfterTheRecordedPrimaryDies()
+    {
+        using var initial = NormalPathWorld.CreateGenerated("secondary-caregiver-primary-choice", _ => new ParentProvider("safe_idle"));
+        var state = initial.ExportState();
+        var house = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-house-a");
+        var householdId = house.HouseholdId!;
+        var parents = state.Society.Society.GetHousehold(householdId).MemberIds
+            .Where(id => state.Society.Society.GetAgent(id).Status == SocietyAgentStatus.Active)
+            .Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(2, parents.Length);
+        var primary = parents[0];
+        var secondary = parents[1];
+        var otherHousehold = state.Society.Society.Households.First(item => item.Id != householdId);
+        var newPartner = otherHousehold.MemberIds[0];
+
+        var society = ChosenBirthNameTestFixture.NameParent(state.Society.Society, primary);
+        society = SocietyRules.ProposeRelationship(society,
+            new("primary-care-parents", 1, SocietyRelationshipType.Partnership, primary, secondary, society.WorldTick)).Checkpoint;
+        society = SocietyRules.AcceptRelationship(society, "primary-care-parents", 1, secondary).Checkpoint;
+        var food = society.Inventory.Lots.First(item => item.OwnerId == householdId && item.ItemKind == "food" && item.Quantity >= 4);
+        var birth = SocietyRules.CommitBirth(society, new SocietyBirthRequest(
+            "secondary-caregiver-child", 1, primary, secondary, householdId, [primary, secondary], [primary, secondary],
+            food.Id, 4, society.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(society, primary, "Ari"), PrimaryCaregiverId: primary));
+        var childId = Assert.IsType<string>(birth.CreatedId);
+        society = birth.Checkpoint;
+        Assert.Equal(primary, society.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Single(society.Relationships, item => item.Type == SocietyRelationshipType.Caregiver &&
+            item.ProposerId == secondary && item.TargetId == childId && item.State == SocietyRelationshipState.Accepted);
+
+        var childPosition = state.Map.Tiles.Select(item => item.Position).First(tile => state.Map.IsBuildable(tile) &&
+            !state.Agents.Any(person => person.Position == tile) &&
+            !state.Map.Resources.Any(resource => resource.Position == tile) &&
+            !state.Map.MapObjects.Any(startingSite => startingSite.Position == tile));
+        state = state with
+        {
+            Society = state.Society with { Society = society },
+            Survival = new SurvivalState(society.WorldTick, []),
+            Agents = state.Agents.Append(new AgentState(childId, childPosition,
+                9_000, 0, "curious", "grow with the household", Survival: new SurvivalCondition(WarmthBasisPoints: 10_000)))
+                .Select(person => person with
+                {
+                    Survival = new SurvivalCondition(WarmthBasisPoints: 10_000),
+                    LastDecisionContext = null,
+                }).ToArray(),
+            Towns = state.Towns!.Select(town => town.ResidentIds.Contains(primary, StringComparer.Ordinal)
+                ? town with { ResidentIds = town.ResidentIds.Append(childId).Order(StringComparer.Ordinal).ToArray() }
+                : town).ToArray(),
+        };
+        state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+
+        society = SocietyRules.Kill(state.Society.Society, primary, SocietyDeathCause.NaturalAge).Checkpoint;
+        society = SocietyRules.ProposeRelationship(society,
+            new("replacement-primary-partnership", 1, SocietyRelationshipType.Partnership,
+                secondary, newPartner, society.WorldTick)).Checkpoint;
+        society = SocietyRules.AcceptRelationship(society, "replacement-primary-partnership", 1, newPartner).Checkpoint;
+        var deceasedPhysical = state.Agents.Single(person => person.AgentId == primary);
+        var deceased = new DeceasedAgentState(primary, society.GetAgent(primary).DeathTick!.Value,
+            society.AgeAt(society.GetAgent(primary), society.GetAgent(primary).DeathTick!.Value), deceasedPhysical);
+        state = state with
+        {
+            Society = state.Society with { Society = society },
+            Agents = state.Agents.Where(person => person.AgentId != primary).ToArray(),
+            DeceasedAgents = [.. state.DeceasedAgents ?? [], deceased],
+            Towns = state.Towns!.Select(town =>
+            {
+                var residents = town.ResidentIds.Where(id => id != primary).ToArray();
+                var adults = residents.Where(id => society.GetAgent(id).Status == SocietyAgentStatus.Active &&
+                    society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder);
+                return town with
+                {
+                    ResidentIds = residents,
+                    Council = TownCouncilRules.Advance(town.Council!, town.Id, state.WorldSeed, adults,
+                        society.WorldTick, state.WorldSystems!.Config.TicksPerDay),
+                };
+            }).ToArray(),
+        };
+        Assert.Null(society.GetAgent(childId).PrimaryCaregiverId);
+        var replacementUnit = society.GetAgent(secondary).DomesticFamilyUnitId;
+        Assert.NotEqual(replacementUnit, society.GetAgent(childId).DomesticFamilyUnitId);
+
+        var caregiverProvider = new ParentProvider("guardian_accept:");
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
+            actor => actor == secondary ? caregiverProvider : new ParentProvider("safe_idle"));
+        for (var tick = 0; tick < 40 && world.Society.GetAgent(childId).PrimaryCaregiverId != secondary; tick++)
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+
+        Assert.Contains(caregiverProvider.SeenCandidates,
+            candidate => candidate.Id == "guardian_accept:" + childId);
+        Assert.Equal(secondary, world.Society.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(replacementUnit, world.Society.GetAgent(childId).DomesticFamilyUnitId);
+        Assert.Equal(primary, Assert.Single(world.Society.Births).PrimaryCaregiverId);
+        Assert.Single(world.Society.Relationships, item => item.Type == SocietyRelationshipType.Caregiver &&
+            item.ProposerId == secondary && item.TargetId == childId && item.State == SocietyRelationshipState.Accepted);
+    }
+
+    [Theory]
+    [InlineData("parent_decline:")]
+    [InlineData("safe_idle")]
+    public async Task RefusalOrSilenceNeverCreatesAChild(string response)
+    {
+        // Ordinary refusal applies once four eligible adult couples make the continuity rule turn off.
+        var state = WithFourEligibleCouples(await PreparedState());
+        var first = state.Agents[0].AgentId;
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : response));
+        for (var tick = 0; tick < 125; tick++) await world.AdvanceOneTickAsync();
+        Assert.Empty(world.Society.Births);
+        Assert.Equal("cancelled", world.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        Assert.Equal(8, world.Agents.Count);
+        Assert.False(world.ExportState().Continuity!.Active);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task FirstCousinsButNotAuntsOrUnclesCanPlanAChild(bool cousins)
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        var third = state.Agents[2].AgentId;
+        var fourth = state.Agents[3].AgentId;
+        if (cousins)
+        {
+            (state, var grandparent) = FamilyTreeFixture.WithDeadAncestor(state, "grandparent");
+            state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
+                (grandparent, third), (grandparent, fourth), (third, first), (fourth, second));
+        }
+        else
+        {
+            state = FamilyTreeFixture.WithRelationships(state, SocietyRelationshipType.BiologicalParentage,
+                (fourth, first), (fourth, third), (third, second));
+        }
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
+        await world.AdvanceOneTickAsync();
+        if (cousins)
+        {
+            Assert.Equal("requested", world.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        }
+        else
+        {
+            Assert.All(world.Agents, person => Assert.Null(person.Parenthood));
+        }
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task EldersCannotPlanAChildOrBeHeldByTheContinuityRule(int elderIndex)
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        state = AsElder(state, state.Agents[elderIndex].AgentId);
+        var proposer = new ParentProvider("parent_propose:");
+        using var world = WorldRuntime.Restore(state, actor => actor == first ? proposer : new ParentProvider("parent_accept:"));
+        for (var tick = 0; tick < 4; tick++) await world.AdvanceOneTickAsync();
+        Assert.DoesNotContain(proposer.SeenCandidates, item => item.Id.StartsWith("parent_propose:", StringComparison.Ordinal));
+        Assert.All(world.Agents, person => Assert.Null(person.Parenthood));
+        Assert.Empty(world.Society.Births);
+        var continuity = world.ExportState().Continuity!;
+        Assert.True(continuity.Active);
+        Assert.Empty(continuity.Couples);
+    }
+
+    [Fact]
+    public async Task BecomingAnElderEndsAPlanBeforeTheBirth()
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
+        await world.AdvanceOneTickAsync();
+        await world.AdvanceOneTickAsync();
+        Assert.Equal("preparing", world.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        using var restored = WorldRuntime.Restore(AsElder(world.ExportState(), second), _ => new ParentProvider("safe_idle"));
+        await restored.AdvanceOneTickAsync();
+        Assert.Equal("cancelled", restored.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        Assert.Empty(restored.Society.Births);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SocietyRefusesABirthWithAnElderParent(bool elder)
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        var society = ChosenBirthNameTestFixture.NameParent((elder ? AsElder(state, second) : state).Society.Society, first);
+        var householdId = society.GetAgent(first).HouseholdId!;
+        var food = society.Inventory.Lots.First(item => item.OwnerId == householdId && item.ItemKind == "food" && item.Quantity >= 4);
+        var result = SocietyRules.CommitBirth(society, new SocietyBirthRequest(
+            "elder-parent-child", 1, first, second, householdId, CaregiverIds: [first], ConsentingParentIds: [first, second],
+            food.Id, 4, society.WorldTick, ChildName: ChosenBirthNameTestFixture.ChildName(society, first, "Ari"), PrimaryCaregiverId: first));
+        Assert.Equal(elder, result.CreatedId is null);
+        Assert.Equal(elder ? 0 : 1, result.Checkpoint.Births.Count);
+    }
+
+    [Fact]
+    public async Task EndingPartnershipCancelsPreparation()
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
+        await world.AdvanceOneTickAsync();
+        await world.AdvanceOneTickAsync();
+        state = world.ExportState();
+        using var society = SocietyRuntime.Restore(state.Society);
+        society.Apply(checkpoint => SocietyRules.RevokeRelationship(checkpoint, "parents", first));
+        using var restored = WorldRuntime.Restore(state with { Society = society.ExportState() }, _ => new ParentProvider("safe_idle"));
+        await restored.AdvanceOneTickAsync();
+        Assert.Equal("cancelled", restored.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        Assert.Empty(restored.Society.Births);
+    }
+
+    [Fact]
+    public async Task EitherParentCanWithdrawDuringPreparation()
+    {
+        // Withdrawal is ordinary refusal, so it needs the continuity rule to be off.
+        var state = WithFourEligibleCouples(await PreparedState());
+        var first = state.Agents[0].AgentId;
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
+        await world.AdvanceOneTickAsync();
+        await world.AdvanceOneTickAsync();
+        using var restored = WorldRuntime.Restore(world.ExportState(), _ => new ParentProvider("parent_cancel:"));
+        for (var tick = 0; tick < 40; tick++) await restored.AdvanceOneTickAsync();
+        Assert.Equal("cancelled", restored.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        Assert.Empty(restored.Society.Births);
+    }
+
+    [Fact]
+    public async Task ParenthoodIsNotOfferedWithoutFoodAndHousing()
+    {
+        var state = await PreparedState();
+        state = state with { WorldSimulation = state.WorldSimulation! with { Buildings = [] } };
+        using var world = WorldRuntime.Restore(state, _ => new ParentProvider("parent_propose:"));
+        for (var tick = 0; tick < 4; tick++) await world.AdvanceOneTickAsync();
+        Assert.All(world.Agents, person => Assert.Null(person.Parenthood));
+        Assert.Empty(world.Society.Births);
+    }
+
+    [Fact]
+    public async Task ParentDeathCancelsPreparationAndCannotCreateAnOrphanedBirth()
+    {
+        var state = await PreparedState();
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "parent_accept:"));
+        await world.AdvanceOneTickAsync();
+        await world.AdvanceOneTickAsync();
+        state = world.ExportState();
+        using var society = SocietyRuntime.Restore(state.Society);
+        society.Apply(checkpoint => SocietyRules.Kill(checkpoint, second, SocietyDeathCause.Accident, checkpoint.WorldTick));
+        state = state with { Society = society.ExportState(), Agents = state.Agents.Where(person => person.AgentId != second).ToArray() };
+        using var restored = WorldRuntime.Restore(state, _ => new ParentProvider("safe_idle"));
+        await restored.AdvanceOneTickAsync();
+        Assert.Equal("cancelled", restored.Agents.Single(person => person.AgentId == first).Parenthood!.Stage);
+        Assert.Empty(restored.Society.Births);
+    }
+
+    [Fact]
+    public async Task ParenthoodTelemetryReportsStagesWithoutPrivateNames()
+    {
+        var directory = Directory.CreateTempSubdirectory("clankerworld-parenthood-log-");
+        try
+        {
+            var state = await PreparedState();
+            var first = state.Agents[0].AgentId;
+            state = state with
+            {
+                Society = state.Society with
+                {
+                    Society = state.Society.Society with
+                    {
+                        Agents = state.Society.Society.Agents.Select(person => person with { Name = $"private-parenthood-secret-{person.Id}" }).ToArray(),
+                    }
+                }
+            };
+            using var world = WorldRuntime.Restore(state, actor => new ParentProvider(actor == first ? "parent_propose:" : "safe_idle"));
+            var presence = new OwnerClientPresenceLease(TimeSpan.FromSeconds(30));
+            presence.RecordAuthenticatedReconnect("owner");
+            var logger = new RecordingLogger<WorldRuntimeService>();
+            using var service = new WorldRuntimeService(world, new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
+            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.Contains(logger.Messages, message => message.Contains("family_activity", StringComparison.Ordinal) &&
+                message.Contains("event=parenthood_requested", StringComparison.Ordinal));
+            Assert.DoesNotContain(logger.Messages, message => message.Contains("private-parenthood-secret", StringComparison.Ordinal));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private static async Task<WorldRuntimeState> PreparedState()
+    {
+        using var world = new WorldRuntime("settlement-parenthood", _ => new ParentProvider("safe_idle"));
+        world.StageStarterContent();
+        for (var tick = 0; tick < 5; tick++) await world.AdvanceOneTickAsync();
+        var shelter = world.WorldContent.Buildings.First(building => building.Tags.Contains("shelter", StringComparer.Ordinal));
+        var placed = false;
+        var map = world.ExportState().Map;
+        foreach (var tile in map.Tiles.Where(tile => map.IsPassable(tile.Position)))
+        {
+            if (world.PlaceBuilding("family-shelter", shelter.CanonicalId, tile.Position).Applied)
+            {
+                placed = true;
+                break;
+            }
+        }
+        Assert.True(placed);
+        var state = world.ExportState();
+        var first = state.Agents[0].AgentId;
+        var second = state.Agents[1].AgentId;
+        using var society = SocietyRuntime.Restore(state.Society);
+        society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
+            new("parents", 1, SocietyRelationshipType.Partnership, first, second, checkpoint.WorldTick)));
+        society.Apply(checkpoint => SocietyRules.AcceptRelationship(checkpoint, "parents", 1, second));
+        return state with
+        {
+            Society = society.ExportState(),
+            Agents = state.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
+            WorldSystems = state.WorldSystems! with
+            {
+                RegionalWeather = null,
+                Config = state.WorldSystems.Config with
+                {
+                    WeatherProfiles = Enum.GetValues<SeasonKind>().Select(season => new WeatherProfile(season, 1, 0, 0, 0, 0)).ToArray(),
+                },
+                Climate = state.WorldSystems.Climate with { Weather = WeatherKind.Clear },
+            },
+        };
+    }
+
+    /// <summary>Ages one agent into the elder stage, keeping their saved birth, age and stage consistent.</summary>
+    private static WorldRuntimeState AsElder(WorldRuntimeState state, string id)
+    {
+        var society = state.Society.Society;
+        var config = society.Config;
+        var age = Enumerable.Range(0, 1_000).First(years => config.AgeBandAt(years) == SocietyAgeBand.Elder);
+        var birth = society.LifeTickAt(society.WorldTick) - age * config.TicksPerLifecycleAge;
+        return state with
+        {
+            Society = state.Society with
+            {
+                Society = society with
+                {
+                    Agents = society.Agents.Select(person => person.Id == id ? person with
+                    {
+                        BirthTick = birth,
+                        BirthLifeTick = society.LifeClock is null ? null : birth,
+                        AgeBand = SocietyAgeBand.Elder,
+                        LastLifecycleYearChecked = age,
+                    } : person).ToArray(),
+                },
+            },
+        };
+    }
+
+    private sealed class ParentProvider(string prefix, Action<CognitionDecisionRequest>? inspect = null) : IDecisionProvider
+    {
+        public int Calls { get; private set; }
+        public List<CognitionCandidate> SeenCandidates { get; } = [];
+        public List<string> SelectedCandidateIds { get; } = [];
+        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
+        public long ProviderEpoch => 0;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            Calls++;
+            inspect?.Invoke(request);
+            SeenCandidates.AddRange(request.Observation.Candidates);
+            var candidate = request.Observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal))
+                ?? request.Observation.Candidates.Single(item => item.Id == "safe_idle");
+            SelectedCandidateIds.Add(candidate.Id);
+            return new DeterministicDecisionProvider().DecideAsync(request with
+            {
+                Observation = request.Observation with { Candidates = [candidate] },
+            }, cancellationToken);
+        }
+    }
+}

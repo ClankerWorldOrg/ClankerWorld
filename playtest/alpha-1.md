@@ -23,7 +23,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Pair and continue into the right world.** ([#889](https://github.com/compoodment/ClankerWorld/issues/889), [#973](https://github.com/compoodment/ClankerWorld/issues/973), [#1021](https://github.com/compoodment/ClankerWorld/issues/1021))
   - Pair the device with the host. → The Main Menu shows the logo with Continue, Settings and Quit Game.
   - Open Settings, then leave it. → Settings returns you to the Main Menu.
-  - Press Continue. → It enters the paired world.
+  - Press Continue. → It enters the world on the remote server.
   - Restart the game, also once after pairing was interrupted after the host accepted it. → It reuses the saved pairing and recovers to the same menu.
   - Press Continue on a fresh server with an empty saves folder. → New World opens with no old camp or start time.
   - Work through New World. → You can preview, create, pick the first Town site and place founders.
@@ -34,12 +34,12 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Press Continue again. → A fresh Continue enters normally.
 - [ ] **Save, quit and continue.** ([#468](https://github.com/ClankerWorldOrg/ClankerWorld/issues/468), [#1683](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1683))
   - Unzip the portable Windows package into two folders and start `ClankerWorld.exe`. → The Main Menu opens without asking for a server address or comparison code.
-  - Add a key, create and start a world, and make a visible change. → Saves, settings and `logs\host.log` live in `%LOCALAPPDATA%\ClankerWorld`, not the game folder.
+  - Add a key, create and start a world, and make a visible change. → Saves, settings and `logs\server.log` live in `%LOCALAPPDATA%\ClankerWorld`, not the game folder.
   - Start the game from the other folder. → Both copies open the same worlds.
-  - While playing, search `logs\host.log` and the game folder for your key. → Your key appears nowhere.
+  - While playing, search `logs\server.log` and the game folder for your key. → Your key appears nowhere.
   - While playing, run `netstat -ano | findstr 5188`. → The world server listens only on 127.0.0.1.
-  - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Viewer is left in Task Manager.
-  - Start again and press **Continue**, once with the network to the private server blocked. → The same world reopens at the saved point, with your fullscreen and interface size settings kept.
+  - Save and choose **Quit Game**. → The game closes after "Saving your world…" with no shutdown error, and no ClankerWorld.Server is left in Task Manager.
+  - Start again and press **Continue**, once with the network to the remote world server blocked. → The same world reopens at the saved point, with your fullscreen and interface size settings kept.
 - [ ] **New World screen and preview.** ([#409](https://github.com/compoodment/ClankerWorld/issues/409), [#591](https://github.com/compoodment/ClankerWorld/pull/591), [#719](https://github.com/compoodment/ClankerWorld/issues/719), [#900](https://github.com/compoodment/ClankerWorld/issues/900), [#1023](https://github.com/compoodment/ClankerWorld/issues/1023))
   - Open New World, also straight after changing a Main Menu setting such as the model-call limit. → Name, seed and size sit in one box.
   - Change the name, seed and size, and press Reset these options. → Any change updates the preview.
@@ -264,7 +264,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Repeat with no usable autosave. → Recovery is unavailable, Check again and Quit Game still work, and no new world is made.
   - Restore an autosave and choose Check again. → Recovery becomes available.
   - Drop the connection after choosing. → It offers Check again instead of repeating the choice.
-  - While playing, end the ClankerWorld.Viewer process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
+  - While playing, end the ClankerWorld.Server process in Task Manager and start the game again. → A new world server starts, and the world reopens from its last save.
   - Do the same with the ClankerWorld.exe process. → Model calls stop within a few seconds, and the new game reconnects to the server left running, with the world still there and only one world server running.
   - Repeat while the PC is busy. → After at most a short delay it reconnects, without saying another program is using the port or starting a second server.
   - Start a different game build while that server is still running. → It refuses the server that doesn't match, and the original world keeps running.
@@ -1218,7 +1218,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Open each proposal in Towns. → It shows the name, proposer, site, entrance or Road tile, provisional budget and votes.
   - Read each budget. → A Hall needs 24 wood and 12 stone; a lantern needs 4 stone, or 4 wood plus 1 refined iron.
   - Let the council vote. → Approval needs a majority of the whole council, and silence approves nothing.
-  - Include a councillor on a hosted personal model, then load a save. → They vote once, and the vote still counts after loading.
+  - Include a councillor on a personal model, then load a save. → They vote once, and the vote still counts after loading.
   - Watch how residents learn of the proposal. → They learn of it only by reading the notice or being told.
   - Approve the project. → Approval adds no building or materials.
   - Watch residents carry materials from the Warehouse in several loads. → Towns counts only what has arrived, the Warehouse loses exactly what was picked up, and household stock is never taken.
@@ -1408,7 +1408,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - In the launcher's Settings, turn on **Developer mode** and leave **Use test data folder** on. Play a build that supports test data, create and save a test world, then choose **Quit to Launcher** and **Play** again. → The test world is selected.
   - Turn **Use test data folder** off and play. → Your usual worlds and model settings are unchanged.
   - Use **Open saves folder** and **Open logs folder** with test data on and off. → Each opens the folder for the data you chose.
-  - Turn **Detailed logs** on, play, then open the logs folder. → `game.log` has extra engine detail, and `host.log` has a line saying it was a detailed launch.
+  - Turn **Detailed logs** on, play, then open the logs folder. → `game.log` has extra engine detail, and `server.log` has a line saying it was a detailed launch.
   - Quit, turn **Detailed logs** off and play again. → The new logs are back to normal detail.
   - Choose **Report a problem**. → The report includes the current run's logs.
   - Choose **Run a local build** and pick an unzipped portable `ClankerWorld.exe` with its `host` folder beside it. → It starts with the data folder and log options you chose.

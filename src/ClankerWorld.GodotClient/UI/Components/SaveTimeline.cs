@@ -1,5 +1,6 @@
 using System.Globalization;
 using Godot;
+using ClankerWorld.GodotClient.Protocol;
 
 namespace ClankerWorld.GodotClient.UI;
 

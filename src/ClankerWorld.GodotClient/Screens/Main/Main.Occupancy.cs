@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 
@@ -14,15 +15,15 @@ public partial class Main
     /// and not riding. They are hidden from the map, and the building shows a
     /// badge with how many are inside.
     /// </summary>
-    private static Dictionary<string, OwnerWorldInhabitant[]> PeopleInside(OwnerWorldSnapshot snapshot, string? buildingId = null)
+    private static Dictionary<string, OwnerWorldAgent[]> PeopleInside(OwnerWorldSnapshot snapshot, string? buildingId = null)
     {
         var riders = snapshot.Animals.Where(animal => animal.RiderId is not null).Select(animal => animal.RiderId!)
             .ToHashSet(StringComparer.Ordinal);
-        var people = snapshot.Inhabitants
+        var people = snapshot.Agents
             .Where(person => !person.IsDraft && string.Equals(person.Lifecycle, "active", StringComparison.OrdinalIgnoreCase) &&
                 !riders.Contains(person.Id))
             .ToArray();
-        var inside = new Dictionary<string, OwnerWorldInhabitant[]>(StringComparer.Ordinal);
+        var inside = new Dictionary<string, OwnerWorldAgent[]>(StringComparer.Ordinal);
         if (people.Length == 0) return inside;
         foreach (var building in snapshot.PlacedBuildings.Where(building => buildingId is null || building.InstanceId == buildingId))
         {
@@ -48,9 +49,9 @@ public partial class Main
     }
 
     /// <summary>A badge on the corner of each building with people inside, at sprite zoom; none at overview zoom.</summary>
-    private void RenderOccupancyBadges(OwnerWorldSnapshot snapshot, IReadOnlyDictionary<string, OwnerWorldInhabitant[]> inside)
+    private void RenderOccupancyBadges(OwnerWorldSnapshot snapshot, IReadOnlyDictionary<string, OwnerWorldAgent[]> inside)
     {
-        var shown = currentTileSize >= WorldTerrainLayer.SpriteTileMinimum ? inside : new Dictionary<string, OwnerWorldInhabitant[]>();
+        var shown = currentTileSize >= WorldTerrainLayer.SpriteTileMinimum ? inside : new Dictionary<string, OwnerWorldAgent[]>();
         foreach (var id in occupancyBadges.Keys.Where(id => !shown.ContainsKey(id)).ToArray())
         {
             occupancyBadges[id].QueueFree();

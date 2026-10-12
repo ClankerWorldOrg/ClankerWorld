@@ -1,5 +1,6 @@
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Pairing;
+using ClankerWorld.GodotClient.Protocol;
 using ClankerWorld.GodotClient.UI;
 using Godot;
 using System.Globalization;
@@ -86,8 +87,8 @@ public partial class Main
         foreach (var (id, visual) in mapObjectVisuals)
             if (mapObjectCanonicalXs.TryGetValue(id, out var x))
                 visual.Position = new Vector2(WrappedMarkerX(x, mapWidth, stride, wrapsEastWest), visual.Position.Y);
-        foreach (var (id, visual) in inhabitantVisuals)
-            if (inhabitantCanonicalXs.TryGetValue(id, out var x))
+        foreach (var (id, visual) in agentVisuals)
+            if (agentCanonicalXs.TryGetValue(id, out var x))
                 visual.Position = new Vector2(WrappedMarkerX(x, mapWidth, stride, wrapsEastWest), visual.Position.Y);
         foreach (var (id, badge) in occupancyBadges)
             if (occupancyCanonicalXs.TryGetValue(id, out var x))
@@ -103,7 +104,7 @@ public partial class Main
             Math.Clamp((mapCanvas.Size.X - mapStage.Position.X) / stride, 0, mapWidth);
         var bottom = Math.Clamp((mapCanvas.Size.Y - mapStage.Position.Y) / stride, 0, mapHeight);
         var visible = new Rect2(left, top, right - left, bottom - top);
-        worldOverview.SetVisibleTiles(visible);
+        worldMapAtlas.SetVisibleTiles(visible);
         terrainLayer.SetCamera(visible, currentTileSize, TileGap, wrapsEastWest);
     }
 
@@ -134,7 +135,7 @@ public partial class Main
 
     private void HandleMapInput(InputEvent @event)
     {
-        if (gameMenuPanel.Visible ||
+        if (pauseMenuPanel.Visible ||
             renderedMapSnapshot is not { } snapshot || !HasMap(snapshot))
         {
             return;
@@ -271,7 +272,7 @@ public partial class Main
         {
             lines.Add($"Field: {Pretty(field.Stage)}" + (field.Crop is null ? "" : $" · {Pretty(field.Crop)}"));
             lines.Add($"Used by: {snapshot.Stockpiles.FirstOrDefault(stock => stock.OwnerId == field.HouseholdId)?.Name ?? field.HouseholdId}");
-            if (field.WorkerId is { } worker) lines.Add($"Worker: {snapshot.Inhabitants.FirstOrDefault(person => person.Id == worker)?.DisplayName ?? worker}");
+            if (field.WorkerId is { } worker) lines.Add($"Worker: {snapshot.Agents.FirstOrDefault(person => person.Id == worker)?.DisplayName ?? worker}");
         }
         foreach (var cart in snapshot.Handcarts.Where(cart => cart.Position.X == tile.X && cart.Position.Y == tile.Y))
             lines.Add(GameUiText.HandcartDescription(cart));
@@ -305,7 +306,7 @@ public partial class Main
         }
         foreach (var request in useRequests)
         {
-            var requester = snapshot.Inhabitants.FirstOrDefault(person => person.Id == request.RequestedByAgentId)?.DisplayName;
+            var requester = snapshot.Agents.FirstOrDefault(person => person.Id == request.RequestedByAgentId)?.DisplayName;
             var claimant = GameUiText.PartyName(snapshot, request.HouseholdId) +
                 (requester is null ? string.Empty : $" · filed by {requester}");
             lines.Add($"Pending use request: {claimant} · {request.ApprovalDetail}");
@@ -388,7 +389,7 @@ public partial class Main
     private void UpdateTileHover(Vector2 canvasPosition, bool keyboard = false)
     {
         if (renderedMapSnapshot is not { } snapshot || !HasMap(snapshot) ||
-            gameMenuPanel.Visible ||
+            pauseMenuPanel.Visible ||
             canvasPosition.X < 0 || canvasPosition.Y < 0 ||
             canvasPosition.X >= mapCanvas.Size.X || canvasPosition.Y >= mapCanvas.Size.Y)
         {
@@ -410,7 +411,7 @@ public partial class Main
         UpdateHoverReadout(snapshot, tile);
         PreviewAddAgentPlacement(snapshot, tile);
         if (!MapContains(snapshot, tile.X, tile.Y) ||
-            inhabitantVisuals.Values.Any(marker => marker.Visible &&
+            agentVisuals.Values.Any(marker => marker.Visible &&
                 new Rect2(marker.Position, marker.Size).HasPoint(stagePosition)))
         {
             terrainLayer.SetHoveredTile(null);

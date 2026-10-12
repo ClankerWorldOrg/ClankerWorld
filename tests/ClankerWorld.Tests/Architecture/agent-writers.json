@@ -1,0 +1,229 @@
+{
+  "$collection": [
+    "src/ClankerWorld.Simulation/World/Animals/WorldRuntime.AnimalWorld.cs",
+    "src/ClankerWorld.Simulation/World/Civic/WorldRuntime.CivicTownWorld.cs",
+    "src/ClankerWorld.Simulation/World/Community/HouseholdDeparture.cs",
+    "src/ClankerWorld.Simulation/World/Community/HousingState.cs",
+    "src/ClankerWorld.Simulation/World/Community/SocialStandingEntry.cs",
+    "src/ClankerWorld.Simulation/World/Community/WorkProficiency.cs",
+    "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Learning.cs",
+    "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Skills.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Ornaments.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs",
+    "src/ClankerWorld.Simulation/World/Environment/WorldRuntime.EnvironmentWorld.cs",
+    "src/ClankerWorld.Simulation/World/Family/GuardianPlacementState.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.DependentCare.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs",
+    "src/ClankerWorld.Simulation/World/Knowledge/ExplorationState.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ChildModels.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ConstructionOrders.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Identity.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ModelOutcomes.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Orders.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ProductionOrders.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Tick.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs"
+  ],
+  "AgentId": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "Aspiration": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Identity.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs"
+  ],
+  "ChildModelSelection": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ChildModels.cs"
+  ],
+  "Departures": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/HouseholdDeparture.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "Equipment": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Ornaments.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "Exploration": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Knowledge/ExplorationState.cs"
+  ],
+  "FullnessBasisPoints": [
+    "src/ClankerWorld.Simulation/World/Animals/AnimalSystem.AnimalActions.cs",
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs"
+  ],
+  "GuardianPlacement": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/GuardianPlacementState.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "GuardianSearch": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.DependentCare.cs"
+  ],
+  "Housing": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/HouseholdDeparture.cs",
+    "src/ClankerWorld.Simulation/World/Community/HousingState.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "IdentityChoicePending": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Identity.cs"
+  ],
+  "IdentityMoments": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs"
+  ],
+  "LastDecisionContext": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/HouseholdDeparture.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Cognition.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs"
+  ],
+  "LastModelAttempt": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ModelOutcomes.cs"
+  ],
+  "Lesson": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Learning.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "MedicalConsent": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs"
+  ],
+  "MedicalSupplyTrip": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs"
+  ],
+  "MedicalTreatment": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs"
+  ],
+  "MoveWaitTicks": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs"
+  ],
+  "Parenthood": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "Personality": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Identity.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.IdentityMoments.cs"
+  ],
+  "Position": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs"
+  ],
+  "Proficiency": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/WorkProficiency.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "Project": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/HouseholdDeparture.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs",
+    "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ConstructionOrders.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.ProductionOrders.cs"
+  ],
+  "RecentThoughts": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Tick.cs"
+  ],
+  "Skills": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Skills.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs"
+  ],
+  "SocialStanding": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Community/SocialStandingEntry.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs"
+  ],
+  "Survival": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.DependentCare.cs",
+    "src/ClankerWorld.Simulation/World/Family/WorldRuntime.MedicalCare.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.DeveloperEdits.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Survival.cs"
+  ],
+  "TravelCooldownTicks": [
+    "src/ClankerWorld.Simulation/World/Civic/TownSystem.Towns.cs",
+    "src/ClankerWorld.Simulation/World/Environment/EnvironmentSystem.Physical.cs",
+    "src/ClankerWorld.Simulation/World/Family/ParenthoodPlan.cs",
+    "src/ClankerWorld.Simulation/World/Runtime/WorldRuntime.Actions.cs",
+    "src/ClankerWorld.Simulation/World/Towns/WorldRuntime.Boats.cs"
+  ]
+}

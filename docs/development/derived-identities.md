@@ -31,7 +31,7 @@ The native inventory uses three actual accepted births. Its milk trace performs
 50 ordinary kernel barters with both parties consenting, exclusive holds,
 whole-lot milk and partial wood payments. Milk retains its identity; each new
 payment lot preserves its source. Each barter saves and strictly reloads the
-private world, then recalls a memory keyed by its new payment ID. This is a
+world, then recalls a memory keyed by its new payment ID. This is a
 controlled-stock kernel trace. The admitted Store and Market purchase workflows
 have separate native regression coverage.
 
@@ -44,12 +44,12 @@ factory-input records do not represent model-admitted civic or owner orders.
 
 | Inventory | Production generators and variants |
 | --- | --- |
-| `NativeDerivedInventoryIdTests` | Partial transfer, containment, take, relocation, handcart load/unload, barter holds and settlement, milk and payment splits |
-| `NativePaidMilkDerivedIdTests` | Fifty successive ordinary milk barters, both consents, payment quantities, stable milk identity, completed reservations, complete payment source links and recall after every barter |
-| `NativeDerivedSocietyIdTests` | Native child and request IDs, protected parentage/care/membership records, birth food holds, domestic-person and frozen birth-family handles, household creation/join/rejoin, consumption holds and memory summaries |
-| `NativeDerivedWorkIdTests` | Native personal and borrowed tool repair, partial tool/material splits, gifts to the household, completed material reservations and owner-order completion receipts; actual paid placement of a 128-character building instance |
-| `NativeDerivedCivicIdTests` | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |
-| `NativeDerivedPrivateFactoryTests` | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, automatic buildings and replacements, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage choices/operations; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices |
+| `DerivedInventoryIdTests` | Partial transfer, containment, take, relocation, handcart load/unload, barter holds and settlement, milk and payment splits |
+| `PaidMilkDerivedIdTests` | Fifty successive ordinary milk barters, both consents, payment quantities, stable milk identity, completed reservations, complete payment source links and recall after every barter |
+| `DerivedSocietyIdTests` | Native child and request IDs, protected parentage/care/membership records, birth food holds, domestic-person and frozen birth-family handles, household creation/join/rejoin, consumption holds and memory summaries |
+| `DerivedWorkIdTests` | Native personal and borrowed tool repair, partial tool/material splits, gifts to the household, completed material reservations and owner-order completion receipts; actual paid placement of a 128-character building instance |
+| `DerivedCivicIdTests` | Council proposals, project requests/projects/buildings/deliveries and delivery/deposit suffixes, market/stall/stock/offer handles, land grants/claims/cases/revisions/property/transfers/payments and hearing-generated rights/sources, law adoption/amendment/repeal/record handles including typed estate amendments, government and judge rounds, nominations/admissions, non-land grants, hearing notices/law evidence/party handles, marriage/surname/writing handles, every numbered Town record family and all five nonviolent file-ID kinds |
+| `DerivedPrivateFactoryTests` | Knowledge/recipe/cognition aliases, food/boat/guardian arrivals, wills, automatic buildings and replacements, construction/production/expansion/tool-request/cart/cargo/repair/talk/shelter/read receipts, civic/evidence/action tokens, ornaments and salvage choices/operations; medical, food/material/tree harvests, orchard holds, tool use/repair/gifts, field planting/tool/crop/seed/replant handles, equipment and indexed vessel units; guardian/dependent/replacement care, membership collision suffixes, domestic-family splits, estates/storage variants and final words; parenthood/partnership/solo-household/departure/personal-transfer handles, childhood/lesson/project/trust memories, roads, trade and writing; conduct/seen/inspection/relay/remedy handles and work receipts; conversation/turn/wrap-up/claim/context and rename memories; animal choices/products/births/herds/saddle/milk holds, boat choices |
 
 The civic matrix preserves a named saved Town with a 128-character ID and a
 120-character name, a 128-character household name and an 80-character project
@@ -64,6 +64,17 @@ The legacy automatic-building row supplies a controlled identifier in the old
 content-instance grammar. Its native-descendant row retains the actual native
 person. Rename handles use the production memory contract: private permanent
 contents, current source tick and the owner as subject.
+
+## Generated agent IDs
+
+A child born in the world gets `DerivedId.Create("{worldId}:agent:{request}")`
+from its accepted birth request. Saves made before the
+[#1364](https://github.com/compoodment/ClankerWorld/issues/1364) rename spelled
+it `:inhabitant:`; those saves are refused by schema, so no producer or reader
+accepts the old spelling. The same rename changed the text of these
+generators: `direct-barter:` (direct barter offers), `shop-trade:` (shop
+trades), `partnership:` and `care-relationship:` (relationship records) and
+`trust-memory:` (trust memories).
 
 ## Matching generated IDs
 

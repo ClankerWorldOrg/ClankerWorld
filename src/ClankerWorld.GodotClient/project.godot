@@ -1,5 +1,5 @@
 ; Engine configuration file.
-; The Phase 2 Godot client renders signed owner projections and submits paired
+; The Godot game client renders signed owner projections and submits paired
 ; owner requests. It never owns or directly mutates simulation state.
 config_version=5
 
@@ -9,13 +9,13 @@ config/name="ClankerWorld"
 ; identifier reset deliberately starts a fresh owner registration.
 config/use_custom_user_dir=true
 config/custom_user_dir_name="Godot/app_userdata/ClankerWorld"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://Screens/Main/Main.tscn"
 ; The launcher export (custom feature "launcher") opens the launcher instead.
 run/main_scene.launcher="res://Launcher/Launcher.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [clankerworld]
-world_url="http://127.0.0.1:5188"
+server_url="http://127.0.0.1:5188"
 
 [dotnet]
 project/assembly_name="ClankerWorld.GodotClient"
