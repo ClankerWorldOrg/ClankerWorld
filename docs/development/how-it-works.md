@@ -81,7 +81,7 @@ conversation adapters register their entries beside their existing private
 forwarders. Every binding receives the current coordinator per call; no entry
 captures a world or a prepared system. Remaining areas bind their current rules
 in the same tables until their own extraction. Follow-up work is tracked in
-[#1830](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1830).
+[#1826](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1826).
 
 Choice sources retain their original adult, child and urgent-needs groups,
 including both Market calls and their different gates. Exclusive boat and
