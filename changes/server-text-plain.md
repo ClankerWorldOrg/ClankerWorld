@@ -1,0 +1,1 @@
+- Text the world server writes for the Towns page, agent and building cards, Load World and the model test now uses plain words: mayors' duties, vacancies, election and handover results, Town project and order blockers, joining a Town, trade cancellations and model test results no longer mention mandates, incumbents, adjudicators, admission, providers, paid checks or checkpoints.

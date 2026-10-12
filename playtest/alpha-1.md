@@ -1133,7 +1133,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Read World Info → Towns on a short screen with long proposals. → Each Town lists councillors, willing candidates, current and latest elections (failed and cancelled too) and eight recent proposal results.
   - Scroll to the end and switch pages. → Names and dates fit.
   - Watch adults visit the notice place. → They read and pass on notices; someone who is away doesn't learn of a notice just because it was posted.
-  - Let an adult outside every Town ask to join. → Their profile says no Town, then admission pending.
+  - Let an adult outside every Town ask to join. → Their profile says no Town, then that they've asked to join and when the council decides.
   - While they wait, have them ask a household with room, or walk into the Town. → Walking in or joining a household doesn't make them a resident.
   - Let the vote pass for an adult who asked for themselves at the notice place. → They join as the vote passes.
   - Have a resident ask the council to admit a nearby adult with no Town, keeping that newcomer away from the notice place. → Their Profile shows a readable deadline, with no separate decline choice.
@@ -1149,8 +1149,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Amend it, adding an emoji near the end of a long law, then repeal it. → Each decision appears in the Event Log and Towns with the law's scope, dates and full wording.
   - Let residents die before and after the amendment or repeal. → Earlier deaths keep the old rule; later deaths use the new one.
   - While laws are in force, watch buildings and gathering. → Laws never quietly move a building or stop gathering.
-  - With a mayor in office, have residents approve the separate non-land hearing mandate and report witnessed conduct under a law. → The case stays pending until the mayor accepts the added duty.
-  - Have the mayor accept. → Towns shows the added mandate with the original term's end date.
+  - With a mayor in office, have residents approve the separate non-land hearing duty and report witnessed conduct under a law. → The case stays pending until the mayor accepts the added duty.
+  - Have the mayor accept. → Towns shows the added duty with the original term's end date.
   - Leave the case for a while. → It waits until the mayor takes it up.
   - Inspect the case. → It shows its place, the law as it was, evidence, sources, inspection receipts, who knew, response window and reasons.
   - Look at what the case offers visitors and children. → Visitors get the same chance, and children get caregiver support.
@@ -1170,7 +1170,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Open a case involving the mayor's own household, with an independent adult available. → The mayor steps aside for a willing, eligible stand-in elected for that case only, and the mayor's office is otherwise unchanged.
   - Try a tied vote for the stand-in, and reload. → The tie lasts through reload until residents pick one winner.
   - Repeat with nobody eligible. → The hearing waits and says why.
-  - Follow an ordinary dispute case and an expiry case. → They talk about use permission without changing the owner.
+  - Follow an ordinary dispute case and an expiry case. → They talk about use rights without changing the owner.
   - Pause, save, restart and reconnect mid-case. → The parties, evidence, answers, deadline and judge stay.
   - Read the result messages. → They describe ownership outcomes, and stay neutral where details are missing.
   - Read the details at the smallest window and interface size. → Names, dates and history stay readable and scrollable.
@@ -1280,7 +1280,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
 - [ ] **Two devices on one host.** ([#312](https://github.com/compoodment/ClankerWorld/issues/312), [#728](https://github.com/compoodment/ClankerWorld/issues/728), [#959](https://github.com/compoodment/ClankerWorld/issues/959), [#1024](https://github.com/compoodment/ClankerWorld/issues/1024))
   - Pair two devices, give two worlds different autosave settings with several copies each, and reload. → Each world keeps its own settings and listed autosaves.
   - From one device, change a world setting while the other device switches to the other world. → The change reaches only the world it was made in, or is refused.
-  - Repeat for life pace, routine helper, autosave copies and turning rotation off, with the other device also selecting the other world. → The same holds each time.
+  - Repeat for **Aging override**, the routine helper, autosave copies and turning rotation off, with the other device also selecting the other world. → The same holds each time.
   - On one device, pause, select another world and load an earlier save while the other device has a panel open. → The other device catches up on its next refresh, without reconnecting.
   - Look at the other device. → It shows the right map, Event Log, unread count and agent panels, and the open panel doesn't reappear over the loaded world.
   - Lose the reply to a load once, then choose Continue. → It recovers without resuming unexpectedly.
@@ -1420,7 +1420,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Start the game with the launcher's **Developer mode** off, then on. → With it off, F12 does nothing and F1 doesn't mention it.
   - With Developer tools open at 1080p (200%) in both themes, hover the map. → Tile coordinates and facts follow the pointer, and the panel fits on screen and scrolls.
   - Turn on **Show planned path** and choose an agent from the list. → The camera jumps to them, with a pale line along their route to a gold square.
-  - While paused, use the aging override, paused world editing, retained-request buttons and paired-device list. → They work as they did in Settings.
+  - While paused, use **Aging override**, paused world editing, the recovery for a request whose reply was lost and the paired-device list. → They work as they did in Settings.
   - On Windows, in one grown-Town save with the same models and settings, note the timings across builds and smaller and larger Towns. → Frame and update times and the living-agent count look sensible.
   - Write down the details with your timings. → Record the seed, game time, machine, each build's commit and resident, Road and building counts, keep model and drawing time separate, and say whether play visibly stutters.
 - [ ] **Refused actions.** ([PR #1756](https://github.com/ClankerWorldOrg/ClankerWorld/pull/1756))

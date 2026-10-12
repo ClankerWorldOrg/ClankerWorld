@@ -202,7 +202,7 @@ public sealed partial class PrivateWorldConversationTests
         for (var tick = 0; tick < 4; tick++) await AdvanceTalkOrderTick(world);
         var order = Assert.Single(world.ExportState().Instructions!).Order!;
         Assert.Equal("blocked", order.Status);
-        Assert.Contains(allowance ? "allowance" : "model", order.BlockedReason);
+        Assert.Contains(allowance ? "daily conversation limit" : "model", order.BlockedReason);
         Assert.Equal(0, order.CompletedUnits);
         Assert.Empty(world.Conversations);
         Assert.DoesNotContain(world.ConversationBudgets, item => item.AgentId == InitiatorId);

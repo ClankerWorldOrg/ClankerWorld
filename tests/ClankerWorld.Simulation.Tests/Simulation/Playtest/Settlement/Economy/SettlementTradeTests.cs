@@ -283,7 +283,7 @@ public sealed class SettlementTradeTests
         Assert.Equal(DirectBarterState.Open, offered.State);
         Assert.Equal([first], offered.AcceptedBy);
         Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == second).SocialNotes,
-            note => note.Contains("undecided", StringComparison.Ordinal));
+            note => note.Contains("haven't accepted or refused it yet", StringComparison.Ordinal));
         world.Pause();
         var bytes = PrivateWorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync()).Advanced);

@@ -445,7 +445,7 @@ public sealed partial class PrivateWorldRuntime
             MarketOccupant(market, stall)?.Id != occupancy.Id || !MarketAdult(trade.SellerAgentId) ||
             !MarketTradeRules.IsInside(market, inhabitants[trade.SellerAgentId].Position) ||
             society.Checkpoint.GetInhabitant(trade.SellerAgentId).HouseholdId != trade.PaymentOwnerId)
-            return "The named seller no longer borrows this stall or represents the receiving household.";
+            return "The seller no longer has this stall or no longer belongs to the household being paid.";
         if (!MarketAdult(trade.BuyerId)) return "The buyer is no longer available.";
         var inventory = society.Checkpoint.Inventory;
         var goods = inventory.Lots.SingleOrDefault(lot => lot.Id == offer.FirstLotId);
@@ -460,11 +460,11 @@ public sealed partial class PrivateWorldRuntime
             payment.Quantity < offer.SecondQuantity || ProtectedMarketItem(trade.BuyerId, payment) ||
             !MarketTradeValidation.HasExactOpenClaim(inventory, offer, true) ||
             !MarketTradeValidation.HasExactOpenClaim(inventory, offer, false))
-            return "The exact reserved goods are no longer usable at their agreed location.";
+            return "The goods set aside for this trade are no longer usable at the agreed place.";
         if (MarketStockQuantity(market, stall) + MarketIncomingPayment(market, stall) > MarketTradeRules.StallCapacity ||
             PersonalEquipmentRules.CarriedQuantity(inventory, trade.BuyerId, inhabitants[trade.BuyerId].Equipment) +
             ReservedBusinessCarrySpace(trade.BuyerId) > PersonalEquipmentRules.Capacity(inventory, trade.BuyerId, inhabitants[trade.BuyerId].Equipment) + HorseCargoCapacity(trade.BuyerId))
-            return "There is no longer enough physical receiving space.";
+            return "There is no longer enough room to receive the goods.";
         if (!IsWithinInteractionRange(inhabitants[trade.BuyerId].Position, trade.Position, ResourceInteractionRange) &&
             FindUnoccupiedRoute(trade.BuyerId, inhabitants[trade.BuyerId].Position, trade.Position, ResourceInteractionRange).Count == 0)
             return "The buyer can no longer reach the stall.";
@@ -565,7 +565,7 @@ public sealed partial class PrivateWorldRuntime
                 foreach (var occupancy in market.Occupancies.Where(item => item.EndedTick is null).ToArray())
                 {
                     var stall = market.Stalls.Single(item => item.BuildingId == occupancy.StallBuildingId);
-                    var reason = !LiveMarketStall(originalTown, market, stall) ? "The paid Market stall is no longer available." :
+                    var reason = !LiveMarketStall(originalTown, market, stall) ? "The Market stall is no longer available." :
                         !MarketAdult(occupancy.SellerAgentId) ? "The seller is no longer available." :
                         society.Checkpoint.GetInhabitant(occupancy.SellerAgentId).HouseholdId != occupancy.SellerHouseholdId
                             ? "The seller's household changed." :
@@ -580,7 +580,7 @@ public sealed partial class PrivateWorldRuntime
                     // The inventory closes an offer at its deadline before this check sees it.
                     var failure = offer.State == DirectBarterState.Open ? MarketTradeFailure(originalTown, market, trade, offer) :
                         offer.State != DirectBarterState.Cancelled ? null :
-                        offer.ExpiryTick < WorldTick ? "The offer ran out of time." : "The exact offer was cancelled.";
+                        offer.ExpiryTick < WorldTick ? "The offer ran out of time." : "The offer was cancelled.";
                     if (failure is null) continue;
                     CancelMarketTrade(originalTown.Id, market, trade, failure);
                     market = towns.Single(town => town.Id == originalTown.Id).Markets.Single(item => item.Id == market.Id);

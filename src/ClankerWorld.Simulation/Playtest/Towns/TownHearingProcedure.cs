@@ -67,7 +67,7 @@ public static class TownHearingProcedure
             {
                 Stage = "failed",
                 SettledTick = tick,
-                Reason = "No eligible candidate received an actual vote."
+                Reason = "Nobody standing got a vote."
             } : top.Length == 1 ?
                 SaveRound(contest, tick, "winner") with { Stage = "completed", WinnerId = top[0], SettledTick = tick } :
                 SaveRound(contest with { TiedCandidates = top }, tick, "tie") with
@@ -99,7 +99,7 @@ public static class TownHearingProcedure
                 {
                     Stage = "failed",
                     SettledTick = tick,
-                    Reason = "No willing independent adult resident is available."
+                    Reason = "No independent adult resident is willing to judge this case."
                 };
         }
         return contest;

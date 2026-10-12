@@ -57,7 +57,7 @@ internal sealed partial class AnimalSystem
         animal.CareUntilTick <= world.WorldTick && MayCareForAnimal(world, instruction.TargetInhabitantId, animal) &&
         !HasAnimalCareOrderSupplies(world, instruction.TargetInhabitantId, animal)
             ? "Waiting for safe feed and jug water to care for " + animal.Name + "."
-            : "Waiting for the named animal, permission, a legal route, carry space and physical feed or jug water.";
+            : "Waiting for the animal, permission, an open route, carrying space, and feed or jug water.";
 
     internal void ExecuteAnimalOrder(IAnimalWorld world, OwnerQueuedInstruction instruction)
     {
@@ -85,7 +85,7 @@ internal sealed partial class AnimalSystem
         }
         // A supply pickup can finish collection immediately at the animal.
         if (CreditEffect()) return;
-        if (choice is null) world.SetOrderStatus(instruction, "blocked", "Waiting for this animal's permission, physical supplies, product or free yard place.");
+        if (choice is null) world.SetOrderStatus(instruction, "blocked", "Waiting for permission to handle this animal, its supplies, a ready product or a free yard place.");
 
         bool CreditEffect()
         {

@@ -154,7 +154,7 @@ public sealed partial class PrivateWorldRuntime
                 !IsProductionOrderProject(instruction, person.Project))
             {
                 CancelProductionForOrder(instruction);
-                SetOrderStatus(instruction, "blocked", "The bound production worker or workstation is no longer available.");
+                SetOrderStatus(instruction, "blocked", "The worker or workstation for this order is no longer available.");
                 continue;
             }
             if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))

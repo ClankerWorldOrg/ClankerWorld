@@ -201,7 +201,7 @@ public sealed class WorldSelectionCoordinator(
                 return world with
                 {
                     Compatibility = "incompatible",
-                    CompatibilityReason = "Required model configuration or a local credential is unavailable."
+                    CompatibilityReason = "A model setting or saved key it needs is missing."
                 };
             return world with { Compatibility = "compatible", CompatibilityReason = null };
         }
@@ -215,7 +215,7 @@ public sealed class WorldSelectionCoordinator(
             return world with
             {
                 Compatibility = "unknown",
-                CompatibilityReason = "The saved checkpoint could not be checked right now."
+                CompatibilityReason = "Its save couldn't be checked right now."
             };
         }
     }
@@ -258,7 +258,7 @@ public sealed class WorldSelectionCoordinator(
             : world with
             {
                 Compatibility = "incompatible",
-                CompatibilityReason = "The saved checkpoint or required content cannot be restored."
+                CompatibilityReason = "This version can't open its save or the game content it needs."
             };
 
     /// <summary>Compatibility of a world that another game version can open.</summary>

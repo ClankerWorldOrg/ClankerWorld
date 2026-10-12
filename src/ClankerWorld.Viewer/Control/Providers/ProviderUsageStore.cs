@@ -36,7 +36,7 @@ public sealed class ProviderUsageStore
     private State state;
     private bool limitNotified;
     private string? accountingError;
-    public const string RecoveryMessage = "Model-call accounting could not be read. Paid calls are blocked. Restore the usage file from a trusted backup, then restart the host; do not delete it or reset spent calls.";
+    public const string RecoveryMessage = "The world server couldn't read its model-call count, so model calls are paused. Restore the usage file from a trusted backup, then restart the world server. Don't delete the file or reset the count.";
 
     private sealed record Pending(string Id, string Provider, string Model, string Role);
     private sealed record State(int SchemaVersion, long? AttemptLimit,

@@ -363,7 +363,7 @@ public sealed partial class ViewerHttpTests
                 var blockedSnapshot = (await olderList.Content.ReadFromJsonAsync<WorldCatalogSnapshot>())!;
                 var blockedWorld = blockedSnapshot.Worlds.Single(world => world.Id == firstId);
                 Assert.Equal("incompatible", blockedWorld.Compatibility);
-                Assert.Equal("The saved checkpoint or required content cannot be restored.",
+                Assert.Equal("This version can't open its save or the game content it needs.",
                     blockedWorld.CompatibilityReason);
                 var activeIdBeforeRefusal = host.Services.GetRequiredService<WorldCatalogStore>().Capture().ActiveId;
                 var activeWorldIdBeforeRefusal = runtime.Society.WorldId;

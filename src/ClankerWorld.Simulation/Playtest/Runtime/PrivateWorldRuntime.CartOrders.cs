@@ -90,7 +90,7 @@ public sealed partial class PrivateWorldRuntime
         if (AttachedHandcart(actor) is not null) return "Park your attached cart before attaching another cart.";
         if (handcartHitches.Any(hitch => hitch.CartLotId == cart.Id)) return "The selected cart is already attached.";
         return person.Position == CartPosition(cart) || FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count > 0
-            ? null : "Waiting for a clear legal route to the selected cart.";
+            ? null : "Waiting for a clear route to the selected cart.";
     }
 
     private void ExecuteCartOrderStep(OwnerQueuedInstruction instruction, PlaytestInhabitantState person)

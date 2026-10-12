@@ -53,7 +53,7 @@ public sealed partial class PrivateWorldRuntime
         if (!NeedsCaregiver(child) || inhabitants[child].GuardianSearch is null)
             return "The named child is no longer looking for a guardian.";
         if (!ReadyForBriefInteraction(adult)) return "The adult needs to finish their current activity before accepting care.";
-        return "Waiting for this adult to be asked by the child's guardian search.";
+        return "Waiting for this adult's turn in the search for the child's guardian.";
     }
 
     private static string GuardianOrderEffectId(string adult, string child) =>

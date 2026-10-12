@@ -232,7 +232,7 @@ public sealed class KnowledgeCopyOrderTests
         for (var tick = 0; tick < 14; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("blocked", 1, (string?)null),
             (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).KnowledgeCopySourceArtifactId));
-        Assert.Contains("already been written", Order(world, receipt).BlockedReason!);
+        Assert.Contains("already been copied", Order(world, receipt).BlockedReason!);
         Assert.Equal(2, world.ExportState().Knowledge!.Artifacts.Count);
         Assert.Equal(2, Quantity(world.ExportState(), actor, "paper"));
         AssertReload(world.ExportState());

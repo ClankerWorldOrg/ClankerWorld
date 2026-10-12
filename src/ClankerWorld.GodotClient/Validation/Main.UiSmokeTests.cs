@@ -1516,9 +1516,9 @@ public partial class Main
             {
                 Government = new OwnerTownGovernment("Ordinary decisions: the elected Council. Land decisions: the elected mayor.",
                     [new("law-1", "Grove", "Leave the saplings.", "site", 5, 2, 3_600, null)], 1,
-                    [new("land disputes and permission expiries", "Mira Vale", 10_800, null)],
+                    [new("land disputes and expiring use rights", "Mira Vale", 10_800, null)],
                     [new("change-1", "Every adult resident makes ordinary decisions.", "handover", 3, 0, 3, 3_600, 4_680, null)],
-                    new("mayor-1", "land disputes and permission expiries", "voting", 2, 3_960,
+                    new("mayor-1", "land disputes and expiring use rights", "voting", 2, 3_960,
                         [new("candidate-1", "Nia Moss", 2)], null, null), null, 0),
             };
             Render(sample with { WorldTick = 3_600, Towns = [governmentTown] }, []);

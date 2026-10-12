@@ -520,7 +520,7 @@ public sealed partial class PrivateWorldRuntime
 
         if (!TownConstructionCandidateIds.TryParse(project.CandidateId, out var selection))
         {
-            SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "The construction choice is invalid" });
+            SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "This building choice can't be used" });
             return;
         }
         var definitionId = selection.DefinitionId;
@@ -528,7 +528,7 @@ public sealed partial class PrivateWorldRuntime
         var recipe = selection.IsBuilding ? null : worldContent.Recipes.FirstOrDefault(item => item.CanonicalId == definitionId);
         if (building is null && recipe is null)
         {
-            SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "Content is no longer active" });
+            SetProject(inhabitantId, project with { Stage = "cancelled", Blocker = "This building or recipe is no longer available" });
             return;
         }
         if (building?.Tags.Contains("house", StringComparer.Ordinal) == true)
@@ -653,7 +653,7 @@ public sealed partial class PrivateWorldRuntime
             }
             else
             {
-                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = "No legal Town construction site is currently available. " + HousingBlockers.LandRecoveryGuidance });
+                SetProject(inhabitantId, project with { Stage = "blocked", Blocker = "No site where this can be built is free right now. " + HousingBlockers.LandRecoveryGuidance });
                 return;
             }
         }
@@ -759,7 +759,7 @@ public sealed partial class PrivateWorldRuntime
                 ? HouseForHousehold(constructionOwner) : null;
             var store = house?.Position ?? SettlementStoragePosition;
             var interactionRange = house is null ? ResourceInteractionRange : 0;
-            SetProject(inhabitantId, project with { Stage = "delivering", Blocker = $"Taking {input.ResourceId} to household storage" });
+            SetProject(inhabitantId, project with { Stage = "delivering", Blocker = $"Taking {input.ResourceId.Replace('_', ' ')} to household storage" });
             if (!IsWithinInteractionRange(state.Position, store, interactionRange))
             {
                 MoveToward(inhabitantId, inhabitants[inhabitantId], store, "deliver", interactionRange);
@@ -791,7 +791,7 @@ public sealed partial class PrivateWorldRuntime
         if (WarehouseMaterialSource(inhabitantId, input.ResourceId, returnTo.Value, returnRange) is { } warehouseSource)
         {
             var warehouse = warehouseSource.Warehouse;
-            SetProject(inhabitantId, project with { Stage = "gathering", Blocker = $"Collecting {input.ResourceId} from the Town Warehouse" });
+            SetProject(inhabitantId, project with { Stage = "gathering", Blocker = $"Collecting {input.ResourceId.Replace('_', ' ')} from the Town Warehouse" });
             if (state.Position != warehouse.Position)
             {
                 MoveToward(inhabitantId, inhabitants[inhabitantId], warehouse.Position, "warehouse_materials", 0);
@@ -820,10 +820,10 @@ public sealed partial class PrivateWorldRuntime
         var source = MaterialSource(input.ResourceId, inhabitantId, returnTo, returnRange, useHarvestBonus: false);
         if (source is null)
         {
-            SetProject(inhabitantId, project with { Stage = "blocked", Blocker = $"No available source of {input.ResourceId}" });
+            SetProject(inhabitantId, project with { Stage = "blocked", Blocker = $"No available source of {input.ResourceId.Replace('_', ' ')}" });
             return;
         }
-        SetProject(inhabitantId, project with { Stage = "gathering", Blocker = $"Need {input.Amount} {input.ResourceId}" });
+        SetProject(inhabitantId, project with { Stage = "gathering", Blocker = $"Need {input.Amount} {input.ResourceId.Replace('_', ' ')}" });
         var useHarvestBonus = UseHarvestBonusForBuildingMaterial(inhabitantId, input.ResourceId, source, returnTo, returnRange);
         GatherProjectMaterial(inhabitantId, state, input.ResourceId, source, useHarvestBonus, returnTo: returnTo, returnRange: returnRange);
     }

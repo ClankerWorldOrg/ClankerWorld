@@ -116,7 +116,7 @@ public static class TownMembershipText
             _ => "sit and vote on its council",
         };
         var text = home is null
-            ? adult ? "Town: none · no council vote; seek admission or resettle an abandoned Town"
+            ? adult ? "Town: none · no council vote; can ask a Town's council to join, or resettle an abandoned Town"
                 : "Town: none · follows their primary caregiver's Town"
             : !adult ? person.PrimaryCaregiverId is { } caregiver && home.ResidentIds.Contains(caregiver, StringComparer.Ordinal)
                 ? $"Town: resident of {home.Name} with their primary caregiver · council rights begin at adulthood"
@@ -182,15 +182,15 @@ public static class TownMembershipText
         string Day(long tick) => "world day " +
             (tick / day + (tick % day + calendarOffsetTicks) / day + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (KnownPendingAdmission(towns, agentId, knows) is { } pending)
-            return $"admission to {pending.Town.Name} pending until {Day(pending.Proposal.DeadlineTick)}; grants nothing yet";
+            return $"asked to join {pending.Town.Name}; its council decides by {Day(pending.Proposal.DeadlineTick)}, and nothing changes until then";
         if (KnownOpenApproval(towns, agentId, worldTick, day, knows) is { } approved)
-            return $"{approved.Town.Name}'s council approved admission; accept before {TownAdmissionDeadlineRules.DescribeWindow(approved.Deadline, worldTick, day, calendarOffsetTicks)}";
+            return $"{approved.Town.Name}'s council agreed to the request to join; accept before {TownAdmissionDeadlineRules.DescribeWindow(approved.Deadline, worldTick, day, calendarOffsetTicks)}";
         foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
             if (town.Id != homeId && town.Admissions?.LastOrDefault(record => record.SubjectId == agentId) is { } record &&
                 (record.Status == PrivateWorldRuntime.AdmissionApproved || record.Status == PrivateWorldRuntime.AdmissionLapsed && record.Reason == "acceptance_expired") &&
                 knows(town, "result", record.ProposalId) && TownAdmissionDeadlineRules.IsExpired(
                     town.Governance?.Proposals.SingleOrDefault(proposal => proposal.Id == record.ProposalId), worldTick, day))
-                return $"{town.Name}'s admission approval expired without acceptance; ask again";
+                return $"{town.Name}'s approval to join expired before it was accepted; can ask again";
         var closed = towns.Where(town => town.Id != homeId).SelectMany(town => (town.Governance?.Proposals ?? [])
                 .Where(proposal => proposal.Kind == "admission" && proposal.SubjectId == agentId &&
                     proposal.Status is "rejected" or "cancelled" && worldTick - proposal.SettledTick < day &&
@@ -201,8 +201,8 @@ public static class TownMembershipText
             .OrderByDescending(item => item.Proposal.SettledTick).FirstOrDefault();
         return closed.Proposal switch
         {
-            { Status: "rejected" } proposal => $"{closed.Town.Name}'s council did not approve admission on {Day(proposal.SettledTick ?? 0)}",
-            { Status: "cancelled" } => $"admission request to {closed.Town.Name} closed when its council changed; ask again",
+            { Status: "rejected" } proposal => $"{closed.Town.Name}'s council turned down the request to join on {Day(proposal.SettledTick ?? 0)}",
+            { Status: "cancelled" } => $"the request to join {closed.Town.Name} closed when its council changed; can ask again",
             _ => null,
         };
     }

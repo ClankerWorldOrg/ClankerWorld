@@ -45,11 +45,11 @@ public sealed class ProviderSetupCheckService(
         }
         catch (ProviderUsageLimitReachedException)
         {
-            return Result("usage_limit", "The paid-call limit is reached. No check was sent.");
+            return Result("usage_limit", "The model-call limit has been reached, so no test was sent.");
         }
         catch (InvalidOperationException) when (usage.Capture().AccountingError is not null)
         {
-            return Result("usage_limit", "Paid calls are blocked because usage accounting is unavailable. Repair it before testing a model.");
+            return Result("usage_limit", "Model calls are paused because the world server can't read its call count. No test was sent.");
         }
 
         var request = CreateRequest();
@@ -81,7 +81,7 @@ public sealed class ProviderSetupCheckService(
             usage.Finish(ticket, cancellationToken.IsCancellationRequested ? "abandoned" : "failed");
             if (cancellationToken.IsCancellationRequested)
                 throw;
-            return Result("timed_out", "The provider did not answer within 15 seconds. This paid check was counted.");
+            return Result("timed_out", "The model service didn't answer within 15 seconds. This test still counts as a model call.");
         }
         catch (HttpRequestException exception)
         {
@@ -89,14 +89,14 @@ public sealed class ProviderSetupCheckService(
             return exception.StatusCode switch
             {
                 HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity when thinking is not null =>
-                    Result("unsupported_format", "The provider rejected this request. This paid check was counted; choose a supported model, or set Thinking to Model default."),
+                    Result("unsupported_format", "The model service turned down this request. This test still counts as a model call. Choose another model, or set Thinking to Model default."),
                 HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity when providerId == PlayerDecisionProviders.Anthropic =>
-                    Result("unsupported_format", "The provider rejected this request. This paid check was counted; choose a supported model."),
+                    Result("unsupported_format", "The model service turned down this request. This test still counts as a model call. Choose another model."),
                 HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity =>
-                    Result("unsupported_format", "The provider rejected the game's required JSON response format. This paid check was counted; choose a supported model."),
+                    Result("unsupported_format", "This model can't reply in the format the game needs. This test still counts as a model call. Choose another model."),
                 HttpStatusCode.RequestTimeout or HttpStatusCode.GatewayTimeout =>
-                    Result("timed_out", "The provider did not answer in time. This paid check was counted."),
-                _ => Result("unavailable", "The provider could not complete the check. This paid check was counted; check the key, model and connection."),
+                    Result("timed_out", "The model service didn't answer in time. This test still counts as a model call."),
+                _ => Result("unavailable", "The model service couldn't finish the test. This test still counts as a model call. Check the key, the model and your connection."),
             };
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -104,8 +104,8 @@ public sealed class ProviderSetupCheckService(
             _ = HostedModelUnusableReply.TryGetTokens(exception, out var inputTokens, out var outputTokens);
             usage.Finish(ticket, "failed", inputTokens, outputTokens);
             return IsUnusableReply(exception)
-                ? Result("unusable", "The provider answered, but its reply did not match the game's required format. This paid check was counted.")
-                : Result("unavailable", "The provider could not complete the check. This paid check was counted; check the key, model and connection.");
+                ? Result("unusable", "The model answered, but the game couldn't use its reply. This test still counts as a model call.")
+                : Result("unavailable", "The model service couldn't finish the test. This test still counts as a model call. Check the key, the model and your connection.");
         }
 
         try
@@ -117,13 +117,13 @@ public sealed class ProviderSetupCheckService(
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or InvalidDataException)
         {
             usage.Finish(ticket, "failed", response.Usage?.InputTokens ?? 0, response.Usage?.OutputTokens ?? 0);
-            return Result("unusable", "The provider answered, but its reply did not match the game's required format. This paid check was counted.");
+            return Result("unusable", "The model answered, but the game couldn't use its reply. This test still counts as a model call.");
         }
 
         usage.Finish(ticket, "completed", response.Usage?.InputTokens ?? 0, response.Usage?.OutputTokens ?? 0);
         return new OwnerProviderSetupCheckResult(
             "ready",
-            "The provider returned a reply the game can use. This check used one paid call.",
+            "The model sent a reply the game can use. This test used one model call.",
             IsReady: true);
     }
 

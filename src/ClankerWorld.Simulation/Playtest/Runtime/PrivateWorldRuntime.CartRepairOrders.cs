@@ -45,14 +45,14 @@ public sealed partial class PrivateWorldRuntime
         if (HasActiveContainerReservation(society.Checkpoint.Inventory, cart.Id))
             return "The selected cart or its cargo is reserved for another task.";
         if (person.Position != CartPosition(cart) && FindUnoccupiedRoute(actor, person.Position, CartPosition(cart), 0).Count == 0)
-            return "Waiting for a clear legal route to the selected cart.";
+            return "Waiting for a clear route to the selected cart.";
         var missing = CartRepairKinds.Where(kind => !HasCarriedMaterial(actor, kind, 1)).ToArray();
         if (missing.Length > 0 && missing.Length > FreeCarryCapacity(actor))
             return "Make carrying space for the cart's repair supplies.";
         if (missing.Any(kind => SharedItem(kind, actor, CartPosition(cart)) is null))
             return "The cart repair needs one available wood, iron fitting and rope in your hands or permitted household or Town stock.";
         if (CartRepairCollectionPlan(actor, cart) is null)
-            return "Waiting for a legal route to collect the repair supplies and return to the selected cart.";
+            return "Waiting for an open route to collect the repair supplies and return to the cart.";
         return null;
     }
 
