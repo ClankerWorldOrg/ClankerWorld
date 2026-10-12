@@ -1,0 +1,1 @@
+- Agent choices and action routes now use ordered registrations, preserving existing choice order, prefixes, saves and replay while preparing the remaining runtime systems for extraction.

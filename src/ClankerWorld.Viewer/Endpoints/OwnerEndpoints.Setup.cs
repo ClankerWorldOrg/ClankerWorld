@@ -9,7 +9,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapSetup(WebApplication app, bool isPrivateWorld)
+    private static void MapSetup(WebApplication app)
     {
         var founderSetupGate = app.Services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate;
 
@@ -24,7 +24,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/town/first-layout",
                 OwnerHttpBinding.FirstTownLayoutPayload(action));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "First-Town setup requires a private world." });
             lock (founderSetupGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();
@@ -56,7 +55,7 @@ internal static partial class OwnerEndpoints
             ILoggerFactory loggerFactory,
             IServiceProvider services) =>
         {
-            if (!isPrivateWorld || request?.Action is not { Cognition: { } cognition } action)
+            if (request?.Action is not { Cognition: { } cognition } action)
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["A founder placement is required in a private world."] });
             string payload;
             try { payload = OwnerHttpBinding.FounderPlacementPayload(action); }
@@ -120,7 +119,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/founders/move", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Founder setup requires a private world." });
             lock (founderSetupGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();
@@ -160,7 +158,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException exception) { return Results.BadRequest(new { error = exception.Message }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/founders/undo", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Founder setup requires a private world." });
             lock (founderSetupGate)
             {
                 var runtime = services.GetRequiredService<PrivateWorldRuntime>();
@@ -207,7 +204,7 @@ internal static partial class OwnerEndpoints
             ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger("ClankerWorld.AgentPlacement");
-            if (!isPrivateWorld || request?.Action is not { Cognition: { } cognition } action)
+            if (request?.Action is not { Cognition: { } cognition } action)
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["An agent placement is required in a private world."] });
             string payload;
             try { payload = OwnerHttpBinding.AgentPlacementPayload(action); }
@@ -261,7 +258,7 @@ internal static partial class OwnerEndpoints
             IServiceProvider services,
             ILoggerFactory loggerFactory) =>
         {
-            if (!isPrivateWorld || request?.Action is not { } action)
+            if (request?.Action is not { } action)
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action"] = ["Choose an agent and name."] });
             string payload;
             try { payload = OwnerHttpBinding.AgentRenamePayload(action); }
@@ -303,7 +300,7 @@ internal static partial class OwnerEndpoints
             OwnerWorldObservationStore observations,
             ILoggerFactory loggerFactory) =>
         {
-            if (!isPrivateWorld || !IsControl(request, "start-world"))
+            if (!IsControl(request, "start-world"))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action.operation"] = ["This endpoint starts a configured private world."] });
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/start-world",
                 OwnerHttpBinding.EmptyPayload("start-world"));

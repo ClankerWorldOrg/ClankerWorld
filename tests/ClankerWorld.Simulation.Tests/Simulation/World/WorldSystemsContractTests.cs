@@ -27,33 +27,6 @@ public sealed class WorldSystemsContractTests
         }
     }
 
-    [Fact]
-    public void CurrencyTransferRequiresOwnerFundsAndMatchingCurrency()
-    {
-        var state = new CurrencyState(
-            [new CurrencyDefinition("copper", "Copper", "cp")],
-            [
-                new CurrencyAccount("alice-wallet", "alice", "copper", 100),
-                new CurrencyAccount("bob-wallet", "bob", "copper", 10),
-            ],
-            []);
-        var transfer = new CurrencyTransfer("transfer-1", "alice", "alice-wallet", "bob-wallet", "copper", 40, 1);
-
-        var result = CurrencyRules.ApplyTransfer(state, transfer);
-        var insufficient = CurrencyRules.ValidateTransfer(
-            result.State!,
-            transfer with { TransferId = "transfer-2", AmountMinorUnits = 1_000 });
-        var forged = CurrencyRules.ValidateTransfer(
-            state,
-            transfer with { TransferId = "transfer-3", InitiatorId = "mallory" });
-
-        Assert.True(result.IsValid);
-        Assert.Equal(60, result.State!.GetAccount("alice-wallet").BalanceMinorUnits);
-        Assert.Equal(50, result.State.GetAccount("bob-wallet").BalanceMinorUnits);
-        Assert.False(insufficient.IsValid);
-        Assert.False(forged.IsValid);
-    }
-
     [Theory]
     [InlineData(4_000)]
     public void EcologyLookupReadsEachResourceAboutOnceAsTheWorldGrows(int count)
@@ -134,7 +107,6 @@ public sealed class WorldSystemsContractTests
         WinterDays: 2,
         MaxChunkCount: 8,
         MaxResourcesPerChunk: 8,
-        MaxCultureTags: 8,
         WeatherProfiles:
         [
             new WeatherProfile(SeasonKind.Spring, 1, 1, 1, 0, 0),

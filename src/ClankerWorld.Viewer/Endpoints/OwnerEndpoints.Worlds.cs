@@ -9,7 +9,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapWorlds(WebApplication app, bool isPrivateWorld)
+    private static void MapWorlds(WebApplication app)
     {
         app.MapPost("/api/v1/owner/worlds/list", (
             OwnerSignedHttpRequest<OwnerControlAction> request,
@@ -22,7 +22,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/list",
                 OwnerHttpBinding.EmptyPayload("list-worlds"));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "World selection requires a private world." });
             try
             {
                 return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().List(context.RequestAborted));
@@ -47,7 +46,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/create",
                 creationPayload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "World creation requires a private world." });
             if (!HasCreateIdentity(action))
                 return Results.BadRequest(new { error = "Preview the map before creating it." });
             if (!TryWorldOptions(action, out var options))
@@ -80,7 +78,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "World name, seed, and size are required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/preview", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "World preview requires a private world." });
             if (!HasNoPreviewIdentity(action))
                 return Results.BadRequest(new { error = "Preview requests cannot carry a candidate acceptance." });
             if (!TryWorldOptions(action, out var options))
@@ -108,7 +105,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/worlds/select",
                 payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "World selection requires a private world." });
             try { return Results.Ok(services.GetRequiredService<WorldSelectionCoordinator>().Select(action.Value)); }
             catch (FileNotFoundException) { return Results.NotFound(new { error = "The selected world does not exist." }); }
             catch (InvalidOperationException exception) { return Results.Conflict(new { error = exception.Message }); }

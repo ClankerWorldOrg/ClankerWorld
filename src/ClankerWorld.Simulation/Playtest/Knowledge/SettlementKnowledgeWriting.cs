@@ -158,7 +158,7 @@ public sealed partial class PrivateWorldRuntime
             var remaining = input.Quantity;
             foreach (var lot in CarriedWritingMaterials(actor, input.Kind))
             {
-                var quantity = Math.Min(remaining, PersonalEquipmentRules.AvailableQuantity(inventory, lot));
+                var quantity = Math.Min(remaining, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)));
                 if (quantity <= 0) continue;
                 var reservationId = WritingMaterialReservationId(id, materials.Count);
                 inventory = InventoryFixture.Reserve(inventory, reservationId, actor, lot.Id, quantity,

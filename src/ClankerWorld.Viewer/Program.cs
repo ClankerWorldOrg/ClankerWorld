@@ -9,20 +9,15 @@ using ClankerWorld.Viewer.Endpoints;
 using ClankerWorld.Viewer.Observation;
 
 var builder = WebApplication.CreateBuilder(args);
-var runtimeSeed = builder.Configuration["ClankerWorld:Runtime:Seed"] ?? SeededWorldObservationStore.SampleSeed;
+var runtimeSeed = builder.Configuration["ClankerWorld:Runtime:Seed"] ?? "camp-alpha";
 var configuredWorldMode = builder.Configuration["ClankerWorld:Runtime:WorldMode"] ?? "private";
-if (!string.Equals(configuredWorldMode, "private", StringComparison.OrdinalIgnoreCase) &&
-    !string.Equals(configuredWorldMode, "fixture", StringComparison.OrdinalIgnoreCase))
+if (!string.Equals(configuredWorldMode, "private", StringComparison.OrdinalIgnoreCase))
 {
     throw new InvalidOperationException(
-        $"Unsupported ClankerWorld:Runtime:WorldMode '{configuredWorldMode}'. Expected private or fixture.");
+        $"Unsupported ClankerWorld:Runtime:WorldMode '{configuredWorldMode}'. Only private worlds are supported; fixture world mode has been removed.");
 }
 
-var isPrivateWorld = string.Equals(configuredWorldMode, "private", StringComparison.OrdinalIgnoreCase);
-var advanceFixture = builder.Configuration.GetValue<bool>("ClankerWorld:Runtime:AdvanceScript");
-var advanceRuntime = isPrivateWorld
-    ? builder.Configuration.GetValue("ClankerWorld:Runtime:AdvanceScript", true)
-    : advanceFixture;
+var advanceRuntime = builder.Configuration.GetValue("ClankerWorld:Runtime:AdvanceScript", true);
 var clientPresenceTimeoutSeconds = builder.Configuration.GetValue(
     "ClankerWorld:Runtime:ClientPresenceTimeoutSeconds",
     5);
@@ -68,13 +63,8 @@ var runtimeStatePath = configuredRuntimeStatePath ??
     Path.Combine(
         builder.Environment.ContentRootPath,
         "saves",
-        isPrivateWorld ? "private-world.json" : "fixture-runtime.json");
-var legacyRuntimeStatePath = builder.Configuration["ClankerWorld:Runtime:LegacyStatePath"] ??
-    Path.Combine(builder.Environment.ContentRootPath, "saves", "fixture-runtime.json");
-var privateRuntimeStatePath = isPrivateWorld
-    ? runtimeStatePath
-    : builder.Configuration["ClankerWorld:Runtime:PrivateStatePath"] ??
-        Path.Combine(builder.Environment.ContentRootPath, "saves", "private-world.json");
+        "private-world.json");
+var privateRuntimeStatePath = runtimeStatePath;
 var providerConfigurationPath = builder.Configuration["ClankerWorld:Runtime:ProviderStatePath"] ??
     Path.Combine(builder.Environment.ContentRootPath, "saves", "provider-configuration.json");
 var providerUsagePath = builder.Configuration["ClankerWorld:Runtime:ProviderUsagePath"] ??
@@ -113,91 +103,79 @@ builder.Services.AddSingleton<ProviderSetupCheckService>();
 builder.Services.AddSingleton<ConfigurableDecisionProvider>();
 builder.Services.AddSingleton<IDecisionProvider>(services =>
     services.GetRequiredService<ConfigurableDecisionProvider>());
-builder.Services.AddSingleton<OwnerWorldStateFile>(services => new OwnerWorldStateFile(
-    isPrivateWorld ? legacyRuntimeStatePath : runtimeStatePath,
-    approvedAssetCatalog,
-    services.GetRequiredService<IDecisionProvider>()));
-builder.Services.AddSingleton<OwnerWorldRuntime>(services => services
-    .GetRequiredService<OwnerWorldStateFile>()
-    .LoadOrCreate(runtimeSeed));
 builder.Services.AddSingleton<PrivateWorldStateFile>(services => new PrivateWorldStateFile(
     privateRuntimeStatePath,
     _ => services.GetRequiredService<IDecisionProvider>(),
     WorldStartPace.FounderSetup,
-    allowDifferentSavedSeed: isPrivateWorld));
+    allowDifferentSavedSeed: true));
 builder.Services.AddSingleton(services => new ManualWorldSaveStore(privateRuntimeStatePath,
     services.GetRequiredService<ILogger<ManualWorldSaveStore>>(),
     services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate));
 builder.Services.AddSingleton<ISaveDiskSpaceProbe, SaveDiskSpaceProbe>();
 builder.Services.AddSingleton(services => new SaveDiskSpaceMonitor(privateRuntimeStatePath,
     services.GetRequiredService<ISaveDiskSpaceProbe>(), services.GetRequiredService<ILogger<SaveDiskSpaceMonitor>>()));
-if (isPrivateWorld)
-    builder.Services.AddHostedService(services => services.GetRequiredService<SaveDiskSpaceMonitor>());
-if (isPrivateWorld)
-    builder.Services.AddSingleton(services => new PrivateWorldStartupRecovery(
+builder.Services.AddHostedService(services => services.GetRequiredService<SaveDiskSpaceMonitor>());
+builder.Services.AddSingleton(services => new PrivateWorldStartupRecovery(
         services.GetRequiredService<PrivateWorldStateFile>(), services.GetRequiredService<ManualWorldSaveStore>(),
         services.GetRequiredService<ProviderConfigurationStore>(), _ => services.GetRequiredService<IDecisionProvider>(),
         runtimeSeed, authorityStatePath, services.GetRequiredService<ILogger<PrivateWorldStartupRecovery>>()));
 builder.Services.AddSingleton<PrivateWorldRuntime>(services =>
 {
-    var runtime = isPrivateWorld ? services.GetRequiredService<PrivateWorldStartupRecovery>().Runtime
-        : services.GetRequiredService<PrivateWorldStateFile>().LoadOrCreate(runtimeSeed);
+    var runtime = services.GetRequiredService<PrivateWorldStartupRecovery>().Runtime;
     services.GetRequiredService<WorldJevPolicy>().Initialize(runtime.JevEnabled, runtime.JevPolicyRevision, runtime.RoutineHelper);
     return runtime;
 });
 builder.Services.AddSingleton<WorldAutosaveStore>(services => new WorldAutosaveStore(
-    privateRuntimeStatePath, isPrivateWorld && services.GetRequiredService<PrivateWorldStartupRecovery>().Pending
+    privateRuntimeStatePath, services.GetRequiredService<PrivateWorldStartupRecovery>().Pending
         ? services.GetRequiredService<PrivateWorldStartupRecovery>().WorldId
         : services.GetRequiredService<PrivateWorldRuntime>().Society.WorldId,
-    allowWorldSwitch: isPrivateWorld,
+    allowWorldSwitch: true,
     mutationGate: services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate));
-if (isPrivateWorld)
+
+builder.Services.AddSingleton<WorldCatalogStore>(services =>
 {
-    builder.Services.AddSingleton<WorldCatalogStore>(services =>
+    var providers = services.GetRequiredService<ProviderConfigurationStore>();
+    var autosave = services.GetRequiredService<WorldAutosaveStore>();
+    var catalog = new WorldCatalogStore(privateRuntimeStatePath,
+        services.GetRequiredService<PrivateWorldRuntime>().ExportState(),
+        providers.CaptureRuntimeConfiguration().Assignments ?? [], autosave.Capture(), providers.WorldMutationGate);
+    var active = catalog.Active();
+    if (catalog.RecoveredSelection)
     {
-        var providers = services.GetRequiredService<ProviderConfigurationStore>();
-        var autosave = services.GetRequiredService<WorldAutosaveStore>();
-        var catalog = new WorldCatalogStore(privateRuntimeStatePath,
-            services.GetRequiredService<PrivateWorldRuntime>().ExportState(),
-            providers.CaptureRuntimeConfiguration().Assignments ?? [], autosave.Capture(), providers.WorldMutationGate);
-        var active = catalog.Active();
-        if (catalog.RecoveredSelection)
+        if (!(providers.CaptureRuntimeConfiguration().Assignments ?? [])
+            .SequenceEqual(active.Assignments))
+            providers.RestoreWorldAssignments(active.Assignments);
+        if (active.AutosaveSettings is { } settings && autosave.Capture() != settings)
+            autosave.SelectWorld(active.WorldId, settings);
+    }
+    lock (providers.WorldMutationGate)
+    {
+        try
         {
-            if (!(providers.CaptureRuntimeConfiguration().Assignments ?? [])
-                .SequenceEqual(active.Assignments))
-                providers.RestoreWorldAssignments(active.Assignments);
-            if (active.AutosaveSettings is { } settings && autosave.Capture() != settings)
-                autosave.SelectWorld(active.WorldId, settings);
+            var saves = services.GetRequiredService<ManualWorldSaveStore>();
+            saves.RecoverDeletions();
+            catalog.RecoverDeletions(saves.DeleteWorldSnapshots);
         }
-        lock (providers.WorldMutationGate)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or JsonException)
         {
-            try
-            {
-                var saves = services.GetRequiredService<ManualWorldSaveStore>();
-                saves.RecoverDeletions();
-                catalog.RecoverDeletions(saves.DeleteWorldSnapshots);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidDataException or JsonException)
-            {
-                ManualWorldSaveTelemetry.DeletionPending(services.GetRequiredService<ILogger<WorldCatalogStore>>(),
-                    "startup", exception.GetType().Name);
-            }
+            ManualWorldSaveTelemetry.DeletionPending(services.GetRequiredService<ILogger<WorldCatalogStore>>(),
+                "startup", exception.GetType().Name);
         }
-        return catalog;
-    });
-    builder.Services.AddSingleton<WorldSelectionCoordinator>(services => new WorldSelectionCoordinator(
-        services.GetRequiredService<WorldCatalogStore>(),
-        services.GetRequiredService<PrivateWorldRuntime>(),
-        services.GetRequiredService<PrivateWorldStateFile>(),
-        services.GetRequiredService<ProviderConfigurationStore>(),
-        services.GetRequiredService<WorldAutosaveStore>(),
-        services.GetRequiredService<WorldJevPolicy>(),
-        services.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
-        _ => services.GetRequiredService<IDecisionProvider>()));
-}
-builder.Services.AddSingleton<OwnerWorldObservationStore>(services => isPrivateWorld
-    ? new OwnerWorldObservationStore(services.GetRequiredService<PrivateWorldRuntime>())
-    : new OwnerWorldObservationStore(services.GetRequiredService<OwnerWorldRuntime>()));
+    }
+    return catalog;
+});
+builder.Services.AddSingleton<WorldSelectionCoordinator>(services => new WorldSelectionCoordinator(
+    services.GetRequiredService<WorldCatalogStore>(),
+    services.GetRequiredService<PrivateWorldRuntime>(),
+    services.GetRequiredService<PrivateWorldStateFile>(),
+    services.GetRequiredService<ProviderConfigurationStore>(),
+    services.GetRequiredService<WorldAutosaveStore>(),
+    services.GetRequiredService<WorldJevPolicy>(),
+    services.GetRequiredService<ILogger<WorldSelectionCoordinator>>(),
+    _ => services.GetRequiredService<IDecisionProvider>()));
+
+builder.Services.AddSingleton<OwnerWorldObservationStore>(services =>
+    new OwnerWorldObservationStore(services.GetRequiredService<PrivateWorldRuntime>()));
 builder.Services.AddSingleton(new OwnerAuthorityStateFile(authorityStatePath));
 // Set only when the game starts this host on the player's own PC.
 var companionSecretPath = builder.Configuration["ClankerWorld:Pairing:CompanionSecretPath"];
@@ -213,98 +191,73 @@ builder.Services.AddSingleton<PairingRequestBudget>();
 builder.Services.AddSingleton<HostRequestRefusals>();
 builder.Services.AddSingleton<OwnerAuthorityStore>(services =>
 {
-    var worldId = isPrivateWorld
-        ? services.GetRequiredService<PrivateWorldStartupRecovery>().Pending
-            ? services.GetRequiredService<PrivateWorldStartupRecovery>().WorldId
-            : services.GetRequiredService<PrivateWorldRuntime>().Society.WorldId
-        : services.GetRequiredService<OwnerWorldRuntime>().Capture().Snapshot.World.Identity.WorldId;
+    var worldId = services.GetRequiredService<PrivateWorldStartupRecovery>().Pending
+        ? services.GetRequiredService<PrivateWorldStartupRecovery>().WorldId
+        : services.GetRequiredService<PrivateWorldRuntime>().Society.WorldId;
     return services.GetRequiredService<OwnerAuthorityStateFile>().LoadOrCreate(
         new OwnerAuthorityIdentity(configuredAuthorityId, worldId),
-        allowWorldSwitch: isPrivateWorld);
+        allowWorldSwitch: true);
 });
 builder.Services.AddSingleton<OwnerRequestAuthorizer>();
 builder.Services.AddSingleton(new OwnerClientPresenceLease(
     TimeSpan.FromSeconds(clientPresenceTimeoutSeconds)));
-if (isPrivateWorld)
-    builder.Services.AddSingleton(services => ActivatorUtilities.CreateInstance<PrivateWorldRuntimeService>(services,
-        builder.Configuration.GetValue<bool>("ClankerWorld:Runtime:StrictTickFailures")
-            ? PrivateWorldTickFailurePolicy.Strict : PrivateWorldTickFailurePolicy.RefuseSingleAction));
+builder.Services.AddSingleton(services => ActivatorUtilities.CreateInstance<PrivateWorldRuntimeService>(services,
+    builder.Configuration.GetValue<bool>("ClankerWorld:Runtime:StrictTickFailures")
+        ? PrivateWorldTickFailurePolicy.Strict : PrivateWorldTickFailurePolicy.RefuseSingleAction));
 if (advanceRuntime)
 {
-    if (isPrivateWorld)
-    {
-        builder.Services.AddHostedService<PrivateWorldStartupService>();
-        builder.Services.AddHostedService(services => new WorldCatalogWarmUpService(services,
-            services.GetRequiredService<PrivateWorldStartupRecovery>()));
-    }
-    else
-    {
-        builder.Services.AddHostedService<OwnerWorldRuntimeService>();
-    }
+    builder.Services.AddHostedService<PrivateWorldStartupService>();
+    builder.Services.AddHostedService(services => new WorldCatalogWarmUpService(services,
+        services.GetRequiredService<PrivateWorldStartupRecovery>()));
 }
 
 var app = builder.Build();
 // Recover an interrupted selection before hosted services, requests or model dispatch.
-if (isPrivateWorld && !app.Services.GetRequiredService<PrivateWorldStartupRecovery>().Pending)
+if (!app.Services.GetRequiredService<PrivateWorldStartupRecovery>().Pending)
     _ = app.Services.GetRequiredService<WorldCatalogStore>();
 if (app.Services.GetRequiredService<ProviderUsageStore>().Capture().AccountingError is not null)
     ProviderUsageTelemetry.AccountingBlocked(app.Logger);
 ProviderCredentialTelemetry.Ready(app.Logger, OperatingSystem.IsWindows() ? "windows_current_user" : "private_file_permissions");
 var providerUsage = app.Services.GetRequiredService<ProviderUsageStore>();
-if (isPrivateWorld)
-{
-    var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWorldEffects(
-        app.Services.GetRequiredService<PrivateWorldRuntime>(),
-        app.Services.GetRequiredService<PrivateWorldStateFile>(),
-        providerUsage,
-        app.Services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate,
-        app.Logger));
-    providerUsage.LimitReached += () => usageEffects.Value.PauseAtLimit();
-    providerUsage.WarningReached += warning => usageEffects.Value.RecordWarning(warning);
-}
-else
-{
-    providerUsage.LimitReached += () =>
-    {
-        var runtime = app.Services.GetRequiredService<OwnerWorldRuntime>();
-        if (runtime.Pause("provider_usage_limit"))
-            app.Services.GetRequiredService<OwnerWorldStateFile>().Save(runtime);
-        ProviderUsageTelemetry.LimitReached(app.Logger, "paused", 0);
-    };
-    // The fixture world has no Event Log line for this; the log still records it.
-    providerUsage.WarningReached += warning =>
-        ProviderUsageTelemetry.WarningReached(app.Logger, "logged_only", warning.Attempts, warning.AttemptLimit, 0);
-}
+
+var usageEffects = new Lazy<ProviderUsageWorldEffects>(() => new ProviderUsageWorldEffects(
+    app.Services.GetRequiredService<PrivateWorldRuntime>(),
+    app.Services.GetRequiredService<PrivateWorldStateFile>(),
+    providerUsage,
+    app.Services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate,
+    app.Logger));
+providerUsage.LimitReached += () => usageEffects.Value.PauseAtLimit();
+providerUsage.WarningReached += warning => usageEffects.Value.RecordWarning(warning);
+
 app.UseRequestBodyLimits();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-if (isPrivateWorld)
-{
-    var recovery = app.Services.GetRequiredService<PrivateWorldStartupRecovery>();
-    app.Use(async (context, next) =>
-    {
-        // Run before endpoint parameter binding: no runtime or world-mutating
-        // service may initialize while the refused checkpoint is still active.
-        if (recovery.Pending && context.Request.Path.StartsWithSegments("/api/v1/owner") &&
-            context.Request.Path != "/api/v1/owner/challenges" &&
-            context.Request.Path != "/api/v1/owner/saves/disk-status" &&
-            context.Request.Path != "/api/v1/owner/recovery/status" &&
-            context.Request.Path != "/api/v1/owner/recovery/restore")
-        {
-            context.Response.StatusCode = StatusCodes.Status409Conflict;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                code = "startup_recovery_required",
-                error = "The latest saved state could not be opened. Choose recovery before opening the world."
-            });
-            return;
-        }
-        await next(context);
-    });
-}
 
-app.MapOwnerEndpoints(isPrivateWorld);
+var recovery = app.Services.GetRequiredService<PrivateWorldStartupRecovery>();
+app.Use(async (context, next) =>
+{
+    // Run before endpoint parameter binding: no runtime or world-mutating
+    // service may initialize while the refused checkpoint is still active.
+    if (recovery.Pending && context.Request.Path.StartsWithSegments("/api/v1/owner") &&
+        context.Request.Path != "/api/v1/owner/challenges" &&
+        context.Request.Path != "/api/v1/owner/saves/disk-status" &&
+        context.Request.Path != "/api/v1/owner/recovery/status" &&
+        context.Request.Path != "/api/v1/owner/recovery/restore")
+    {
+        context.Response.StatusCode = StatusCodes.Status409Conflict;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            code = "startup_recovery_required",
+            error = "The latest saved state could not be opened. Choose recovery before opening the world."
+        });
+        return;
+    }
+    await next(context);
+});
+
+
+app.MapOwnerEndpoints();
 
 app.Run();
 

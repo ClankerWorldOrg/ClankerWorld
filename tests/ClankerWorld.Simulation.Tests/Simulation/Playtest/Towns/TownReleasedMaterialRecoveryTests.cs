@@ -86,7 +86,7 @@ public sealed class TownReleasedMaterialRecoveryTests
             }, WeatherKind.Storm);
         var released = state.Towns![0].Projects[0].Deliveries.Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
         foreach (var item in inventory.Lots.Where(item => released.Contains(item.Id) && item.GroundPosition is not null &&
-                     PersonalEquipmentRules.AvailableQuantity(inventory, item) > 0).ToArray())
+                     Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), item)) > 0).ToArray())
         {
             if (situation == "claimed")
                 inventory = InventoryFixture.Reserve(inventory, "recovery:other-job:" + item.Id, item.OwnerId, item.Id,
@@ -296,9 +296,9 @@ public sealed class TownReleasedMaterialRecoveryTests
         // Isolate this physical load for capacity and urgency checks; the other
         // released goods remain Town-owned and reserved for a separate job.
         foreach (var other in inventory.Lots.Where(item => item.Id != lot.Id && released.Contains(item.Id) &&
-                     item.GroundPosition is not null && PersonalEquipmentRules.AvailableQuantity(inventory, item) > 0).ToArray())
+                     item.GroundPosition is not null && Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), item)) > 0).ToArray())
             inventory = InventoryFixture.Reserve(inventory, "recovery:fixture-claim:" + other.Id, other.OwnerId,
-                other.Id, PersonalEquipmentRules.AvailableQuantity(inventory, other), "unrelated-job", long.MaxValue);
+                other.Id, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), other)), "unrelated-job", long.MaxValue);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
             Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor

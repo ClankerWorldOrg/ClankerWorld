@@ -14,9 +14,9 @@ public sealed partial class ViewerHttpTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedPrivateWorldDevice(bool privateWorld)
+    public async Task ObserverTimelineIsAdvertisedOnlyToAnAuthenticatedPrivateWorldDevice(bool legacyPrivateWorld)
     {
-        using var host = new ViewerWebApplicationFactory(null, privateWorld: privateWorld);
+        using var host = new ViewerWebApplicationFactory(null, privateWorld: true, legacyPrivateWorld: legacyPrivateWorld);
         using var client = host.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var discovery = await client.GetFromJsonAsync<ViewerHandshake>("/api/v1/handshake");
@@ -25,18 +25,10 @@ public sealed partial class ViewerHttpTests
         var device = await StartAndActivateAsync(host, client, key);
         var reconnect = await ReadObserverTimelineAsync(host, client, key, device.DeviceId, new(0));
 
-        if (privateWorld)
-        {
-            Assert.Contains("owner-observation-timeline.v1", reconnect.Handshake.ServerCapabilities);
-            Assert.NotNull(reconnect.Baseline.Timeline);
-            Assert.False(string.IsNullOrWhiteSpace(reconnect.Baseline.Timeline.InstanceId));
-            Assert.True(reconnect.Baseline.Timeline.Generation >= 0);
-        }
-        else
-        {
-            Assert.DoesNotContain("owner-observation-timeline.v1", reconnect.Handshake.ServerCapabilities);
-            Assert.Null(reconnect.Baseline.Timeline);
-        }
+        Assert.Contains("owner-observation-timeline.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.NotNull(reconnect.Baseline.Timeline);
+        Assert.False(string.IsNullOrWhiteSpace(reconnect.Baseline.Timeline.InstanceId));
+        Assert.True(reconnect.Baseline.Timeline.Generation >= 0);
     }
 
     [Theory]

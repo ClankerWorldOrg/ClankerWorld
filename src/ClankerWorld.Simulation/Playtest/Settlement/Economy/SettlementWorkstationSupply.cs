@@ -35,9 +35,8 @@ public sealed partial class PrivateWorldRuntime
         : 0;
 
     private static int UsableWorkstationQuantity(InventoryCheckpoint inventory, InventoryLot lot) =>
-        lot.ContainerLotId is { } containerId && !inventory.Lots.Any(container =>
-            container.Id == containerId && container.ConditionBasisPoints > 0)
-            ? 0 : PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+        InventoryRules.HasUsableContainer(InventoryIndex.For(inventory), lot)
+            ? Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)) : 0;
 
     private static int WorkstationOnsiteQuantity(InventoryCheckpoint inventory, PlacedBuilding building, string itemKind) =>
         building.HouseholdId is { } householdId ? inventory.Lots.Where(lot => lot.OwnerId == householdId &&

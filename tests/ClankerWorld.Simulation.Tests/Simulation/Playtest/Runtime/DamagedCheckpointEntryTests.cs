@@ -12,13 +12,13 @@ public sealed class DamagedCheckpointEntryTests
 {
     private static readonly Lazy<Task<byte[]>> healthyCheckpoint = new(CreateHealthyCheckpoint);
 
-    // Every list below threw a null-reference fault on an empty entry before
-    // the decoder refused empty entries generically.
+    // Representative saved lists must reject empty entries before their
+    // individual contracts are deserialized and validated.
     [Theory]
     [InlineData("map.resources")]
     [InlineData("society.society.inventory.lots")]
     [InlineData("society.cognition.runtimes[0].events")]
-    [InlineData("worldSystems.factions.standings")]
+    [InlineData("worldSystems.ecology.resources")]
     [InlineData("worldContent.recipes[0].inputs")]
     [InlineData("worldSimulation.buildingExpansions")]
     [InlineData("towns[0].residentIds")]

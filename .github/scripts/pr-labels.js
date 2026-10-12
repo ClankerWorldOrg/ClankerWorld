@@ -190,7 +190,7 @@ const AreaRules = {
     'src/ClankerWorld.Viewer/',
     'deploy/',
     'docs/development/device-pairing.md',
-    'docs/development/private-server-deployment.md',
+    'docs/development/remote-server-deployment.md',
   ],
   // changes/, playtest/ and docs/what-works.md stay unmapped: most feature PRs
   // add a file there, and the one-third rule would then add area:tooling.

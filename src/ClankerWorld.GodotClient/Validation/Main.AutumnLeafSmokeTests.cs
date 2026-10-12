@@ -12,7 +12,7 @@ public partial class Main
             original.MapManifestDigest, original.MapManifestDigest, "clear", "summer", []);
         try
         {
-            var systems = original.WorldSystems ?? new OwnerWorldSystemsSummary("summer", "clear", 0, 0, 0, 0, 0);
+            var systems = original.WorldSystems ?? new OwnerWorldSystemsSummary("summer", "clear", 0, 0);
             RenderMap(original with { Authoring = null, WorldSystems = systems with { Season = "autumn" } });
             if (!terrainLayer.AutumnLeavesEnabled)
                 throw new InvalidOperationException("A world-summary autumn must enable leaves when authoring observations are absent.");

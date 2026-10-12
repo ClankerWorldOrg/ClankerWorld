@@ -1,7 +1,6 @@
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Simulation.Society;
-using ClankerWorld.Viewer.Observation;
 
 namespace ClankerWorld.Simulation.Tests;
 
@@ -30,7 +29,7 @@ public sealed class ProductionAgeTests
 
     internal static async Task<PreparedProduction> PrepareAsync(SocietyAgeBand age)
     {
-        using var seed = new PrivateWorldRuntime(SeededWorldObservationStore.SampleSeed, _ => new IdleProvider());
+        using var seed = new PrivateWorldRuntime("camp-alpha", _ => new IdleProvider());
         seed.StageStarterContent();
         for (var tick = 0; tick < 5; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();

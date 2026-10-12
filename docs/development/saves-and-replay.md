@@ -109,11 +109,15 @@ agent's model choice can carry a thinking level, written only when one is
 chosen. Provider files from before Anthropic was added load with an empty
 Anthropic record; the provider file's schema stays 3.
 
-New-world genesis no longer seeds Copper, a 100-unit household wallet or the
-legacy `camp-no-theft` fine. Currency and faction-law collections start empty.
-This changes initial world state without adding checkpoint fields or changing
-the schema. Restore uses saved world systems through the existing path; no
-migration or extra compatibility logic is added.
+Private-world schema 127 and world-systems schema 4 remove the unused prototype
+faction/law, currency and culture collections and the culture-tag bound.
+Native legacy-map starts previously wrote world-systems schema 2, while generated
+founder starts wrote schema 3; both now write schema 4.
+Current saves retain weather, ecology, chunks and the native Town law and
+ownership systems. Creation, play and replay keep their existing behavior.
+Earlier alpha checkpoints are refused and preserved through the normal
+unsupported-format path. There is no migration or additional compatibility
+implementation.
 
 The October 1 terrain tuning changes deterministic generation for new worlds.
 Loading retains the saved map and current weather episode; it does not replace
@@ -185,8 +189,8 @@ Workstation recipes that output fresh water are refused before reserving
 materials or creating a job: their output path has no destination jug, and
 inventory requires fresh water inside a water jug. Autonomous production and
 workstation supply planning skip those recipes, including mixed-output ones.
-A running job admitted by an earlier build remains loadable. When it becomes
-due, it cancels and releases its remaining reservations without consuming
+A supported current-format checkpoint can retain a running job admitted by an
+earlier build. When it becomes due, it cancels and releases its remaining reservations without consuming
 inputs, wearing its tool or creating output. The cancellation saves and
 replays normally; no schema change or water-production feature is added.
 
@@ -1190,7 +1194,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current private-world checkpoint schema, currently
-`PrivateWorldRuntime.StateSchemaVersion` 126. The minimum supported schema is
+`PrivateWorldRuntime.StateSchemaVersion` 127. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no private-world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1388,33 +1392,32 @@ Other compatibility fields remain separate for simulation, envelopes, content,
 assets, generator and network contracts. Change the field whose semantics
 changed; a cosmetic game-version bump is not a migration.
 
-The saved clock/lifecycle values govern old worlds. Restore validates matching
+The saved clock/lifecycle values govern loaded current-format worlds. Restore validates matching
 society/world-system calendar values rather than silently assigning the newest
 playtest pace.
 
 Newly created playable worlds save `CalendarOffsetTicks = 90` with 360 ticks
 per day, placing elapsed tick zero at 06:00 on Spring 1, Year 1. The offset
-must be nonnegative and less than one day. World-systems schema 3 carries a
-nonzero offset, so older readers reject it instead of silently displaying
-midnight. The outer private-world schema is unchanged. Zero-offset worlds
-continue using world-systems schema 2; an absent offset means zero and is
-omitted when writing, preserving their existing clock and canonical bytes.
+must be nonnegative and less than one day. World-systems schema 3 originally
+introduced nonzero offsets. Current checkpoints require world-systems schema 4
+for both zero and nonzero offsets. An absent offset means zero and is omitted
+when writing a zero-offset current-format checkpoint, preserving its saved
+clock and roundtrip bytes.
 Restore uses the saved value, not the new-world default. Ages, setup guards,
 action deadlines and elapsed durations keep using the original world tick;
 calendar dates, daylight and daily allowances use its offset calendar.
 
 Night ([#673](https://github.com/compoodment/ClankerWorld/issues/673)) adds no
 saved darkness field: time of day is derived from the saved tick, ticks per day
-and calendar offset. A current-schema
-save made before night existed loads unchanged; nights, and their chill on
-outdoor warmth, apply from its next tick. Its recorded history is not
-re-simulated. A world saved during dawn reloads at the same darkness and
+and calendar offset. Current-format saves retain their saved clock; nights and
+their chill on outdoor warmth are derived from it without re-simulating
+recorded history. A world saved during dawn reloads at the same darkness and
 advances to the same bytes as the live world, which `SettlementSurvivalTests`
 checks. Seasonal night length
 ([#891](https://github.com/compoodment/ClankerWorld/issues/891)) is derived the
 same way, from the saved tick and the saved season lengths, so it adds no saved
-field either: an existing save loads, and from its next tick its nights follow
-the season it is in.
+field either: current-format saves retain their saved season, and from the
+next tick their nights follow that season.
 
 ## Council-approved Town projects
 
@@ -1911,7 +1914,8 @@ the original files. The save list skips these same invalid entries.
 Manual overwrite first writes an immutable checkpoint generation, then
 atomically publishes its metadata pointer with the matching model assignments
 and autosave settings. Failure before publication leaves the previous selected
-pair intact. Legacy saves without a generation pointer remain readable.
+pair intact. Current-format checkpoints whose metadata lacks a generation
+pointer remain readable.
 After publication, the previously selected checkpoint file is removed; the
 separate **Before overwriting** recovery copy keeps its original bytes,
 assignments and autosave settings. A locked or unwritable old file stays on
@@ -2058,11 +2062,13 @@ transitions from extreme profiles use the corrected probabilities. Current
 saves round-trip and continue deterministically under those rules.
 
 Episode version and bounds are validated, including topology against the saved
-map. Episodes arrived with private-save schema 26; episode-bearing world systems use schema 2.
-World-systems schema 1 remains readable, with the absent field omitted when null.
-Older binaries reject the newer schema instead of silently dropping episodes.
-The new code reads old saves; keep backups before testing.
-This prototype changes future weather/events, not past recorded history.
+map. Episodes originally arrived with private-save schema 26 and world-systems
+schema 2. Current checkpoints require world-systems schema 4 and the current
+private-world schema; earlier alpha saves are refused without migration.
+Regional weather remains optional: absent or null episodes stay absent on load,
+and the field is omitted when null. Saved episodes resume without rerolling;
+the first resumed tick initializes missing episodes. Future weather and events
+follow these rules without changing past recorded history.
 
 Advanced generation saves optional forest, mountain and river presets. Missing
 fields mean Normal. New-world water defaults do not alter saved water values.
@@ -2148,7 +2154,8 @@ A paused developer edit changes existing need, inventory, skill or partnership
 state and appends one `developer_edit` event whose JSON detail is the complete
 `PrivateWorldDeveloperEdit` command. No checkpoint fields or schema version
 change. Existing save validation still applies to the entire proposed world;
-older readers can load the same state representation, though they do not offer
+readers supporting the same checkpoint schema can load the representation,
+though they do not offer
 the edit UI or describe the new event kind.
 
 The event ID supplies deterministic lot and relationship IDs. Reapplying its

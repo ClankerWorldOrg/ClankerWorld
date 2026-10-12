@@ -6,7 +6,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapDeletion(WebApplication app, bool isPrivateWorld)
+    private static void MapDeletion(WebApplication app)
     {
         app.MapPost("/api/v1/owner/delete", (
             OwnerSignedHttpRequest<OwnerDeletionAction> request,
@@ -26,7 +26,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "The deletion target is invalid." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/delete", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Deletion requires a private world." });
             lock (providers.WorldMutationGate)
             {
                 if (!runtime.Society.IsPaused)

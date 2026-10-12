@@ -20,14 +20,6 @@ public sealed record OwnerControlReceipt(
     long Revision,
     long LatestEventId)
 {
-    public static OwnerControlReceipt From(string operation, bool changed, OwnerWorldSnapshot snapshot) => new(
-        operation,
-        changed,
-        snapshot.IsPaused,
-        snapshot.RunEpoch,
-        snapshot.Revision,
-        snapshot.LatestGlobalEventId);
-
     public static OwnerControlReceipt From(string operation, bool changed, ViewerWorldSnapshot snapshot)
     {
         var authoring = snapshot.Authoring;
