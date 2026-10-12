@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -97,7 +96,7 @@ public sealed class MultiHeirWillAdmissionTests
         using var world = NewWorld(provider);
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(Deadline);
-        var pendingWill = PendingWillTask(world);
+        var pendingWill = NativeWillFixture.PendingTask(world);
 
         // This legal provider completion permits its awaiting continuation to
         // run inline on the completion thread, as configured HTTP adapters do.
@@ -330,16 +329,6 @@ public sealed class MultiHeirWillAdmissionTests
         };
         return PrivateWorldRuntime.Restore(state,
             id => id == Actor ? provider : new DeterministicDecisionProvider());
-    }
-
-    private static Task PendingWillTask(PrivateWorldRuntime world)
-    {
-        // Between controlled ticks, await the runtime's full provider handoff
-        // without advancing another tick that could admit the unchanged reply.
-        var field = typeof(PrivateWorldRuntime).GetField("pendingWills",
-            BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var pending = Assert.Single(Assert.IsAssignableFrom<IDictionary>(field.GetValue(world)).Values.Cast<object>());
-        return Assert.IsAssignableFrom<Task>(pending.GetType().GetProperty("Task")!.GetValue(pending));
     }
 
     private sealed class HeldWillProvider : IDecisionProvider

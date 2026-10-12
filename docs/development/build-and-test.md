@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Build and test
@@ -173,6 +173,9 @@ with a kept identity in the other. The child household-change fixture awaits all
 four queues without advancing another tick, retaining complete checkpoint bytes,
 strict file reload, cargo and refused-arrival checks. Its controlled identity
 check holds a real provider request to verify that the fixture waits at this boundary.
+Town food-inheritance checks likewise await the registered will task at the death
+checkpoint before its next admission tick, so polling a background worker cannot
+advance the will deadline.
 
 The held storage-cancellation check keeps the world at its first committed
 load while waiting for actual provider invocation, the validated operative
