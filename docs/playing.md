@@ -37,7 +37,7 @@ device must be able to reach it through its private network.
 
 A new device needs approval. Compare the game's code with the person approving
 the device on the server, then complete pairing. Do not post the code, keys or
-private world data in an issue. Once paired, reconnecting uses the saved
+world data in an issue. Once paired, reconnecting uses the saved
 registration; normal play does not need approval every time.
 
 After pairing, choose **Continue** from the Main Menu to enter your world.

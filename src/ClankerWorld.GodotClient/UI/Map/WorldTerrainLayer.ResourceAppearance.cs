@@ -6,19 +6,19 @@ public partial class WorldTerrainLayer
     // caller's list would miss in-place replacement of a resource in that list.
     private OwnerWorldResource[]? treeAppearanceInputs;
     private OwnerWorldResource[]? naturalAppearanceInputs;
-    private OwnerWorldResource[]? campAppearanceInputs;
+    private OwnerWorldResource[]? resourceKindAppearanceInputs;
     private byte[]? naturalAppearanceTrees;
-    private byte[]? campAppearanceTrees;
-    private byte[]? campAppearanceNaturalObjects;
+    private byte[]? resourceKindAppearanceTrees;
+    private byte[]? resourceKindAppearanceNaturalObjects;
 
     private void ResetResourceAppearanceInputs()
     {
         treeAppearanceInputs = null;
         naturalAppearanceInputs = null;
-        campAppearanceInputs = null;
+        resourceKindAppearanceInputs = null;
         naturalAppearanceTrees = null;
-        campAppearanceTrees = null;
-        campAppearanceNaturalObjects = null;
+        resourceKindAppearanceTrees = null;
+        resourceKindAppearanceNaturalObjects = null;
     }
 
     private bool ResourceInBounds(OwnerWorldResource resource) => resource.Position.X >= 0 && resource.Position.X < world!.Width &&
@@ -31,9 +31,9 @@ public partial class WorldTerrainLayer
     private static byte VisibleNaturalStage(OwnerWorldResource resource) =>
         resource.Quantity == 0 || resource.State != "available" ? resource.IsRenewable ? (byte)2 : (byte)1 : (byte)0;
 
-    private static NatureSprite? CampAppearance(OwnerWorldResource resource) =>
+    private static NatureSprite? ResourceKindAppearance(OwnerWorldResource resource) =>
         resource.TreeKind is not null || resource.NaturalObjectKind is not null ? null :
-            NatureSprites.ForCampResource(resource.Kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
+            NatureSprites.ForResourceKind(resource.Kind, resource.Quantity == 0 || resource.State != "available", resource.IsRenewable);
 
     private bool TreeAppearanceMatches(IReadOnlyList<OwnerWorldResource> resources)
     {
@@ -68,19 +68,19 @@ public partial class WorldTerrainLayer
         return index == naturalAppearanceInputs.Length;
     }
 
-    private bool CampAppearanceMatches(IReadOnlyList<OwnerWorldResource> resources)
+    private bool ResourceKindAppearanceMatches(IReadOnlyList<OwnerWorldResource> resources)
     {
-        if (campAppearanceInputs is null) return false;
+        if (resourceKindAppearanceInputs is null) return false;
         var index = 0;
         for (var source = 0; source < resources.Count; source++)
         {
             var resource = resources[source];
-            var sprite = CampAppearance(resource);
+            var sprite = ResourceKindAppearance(resource);
             if (sprite is null || !ResourceInBounds(resource)) continue;
-            if (index >= campAppearanceInputs.Length) return false;
-            var previous = campAppearanceInputs[index++];
-            if (resource.Position != previous.Position || sprite != CampAppearance(previous)) return false;
+            if (index >= resourceKindAppearanceInputs.Length) return false;
+            var previous = resourceKindAppearanceInputs[index++];
+            if (resource.Position != previous.Position || sprite != ResourceKindAppearance(previous)) return false;
         }
-        return index == campAppearanceInputs.Length;
+        return index == resourceKindAppearanceInputs.Length;
     }
 }

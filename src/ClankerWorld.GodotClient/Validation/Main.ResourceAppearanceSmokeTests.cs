@@ -28,8 +28,8 @@ public partial class Main
                 !ReferenceEquals(before.Stages, after.Stages))
                 throw new InvalidOperationException($"Unchanged resource appearance must retain all three indexes during {context}.");
         }
-        NatureSprite CampSprite() => ((Dictionary<int, NatureSprite>)typeof(WorldTerrainLayer)
-            .GetField("campResources", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(terrainLayer)!)[1 * 4 + 3];
+        NatureSprite ResourceKindSprite() => ((Dictionary<int, NatureSprite>)typeof(WorldTerrainLayer)
+            .GetField("resourceKindSprites", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(terrainLayer)!)[1 * 4 + 3];
         void Show() => RenderMap(snapshot);
 
         try
@@ -96,17 +96,17 @@ public partial class Main
             before = Indexes();
             resources[2] = resources[2] with { Quantity = 0 };
             Show();
-            Retained(before, "a camp-only depletion");
-            if (CampSprite() != NatureSprite.Depleted)
-                throw new InvalidOperationException("A camp-only depletion must still refresh its sprite.");
+            Retained(before, "a resource-kind-only depletion");
+            if (ResourceKindSprite() != NatureSprite.Depleted)
+                throw new InvalidOperationException("A resource-kind-only depletion must still refresh its sprite.");
             resources[2] = resources[2] with { Kind = "food", Quantity = 3, IsRenewable = true };
             Show();
-            Retained(before, "a camp-only kind and regeneration change");
-            if (CampSprite() != NatureSprite.BerryBush)
-                throw new InvalidOperationException("A camp-only kind and regeneration change must refresh its sprite.");
+            Retained(before, "a resource-kind-only kind and regeneration change");
+            if (ResourceKindSprite() != NatureSprite.BerryBush)
+                throw new InvalidOperationException("A resource-kind-only kind and regeneration change must refresh its sprite.");
             snapshot = snapshot with { Resources = resources[..2] };
             Show();
-            if (terrainLayer.CampResourceSpriteCount != 0)
+            if (terrainLayer.ResourceKindSpriteCount != 0)
                 throw new InvalidOperationException("Removing a camp resource must remove its retained sprite.");
 
             // An unchanged natural-site key must still reject a newly overlapping tree.
@@ -121,7 +121,7 @@ public partial class Main
             resources[0] = resources[0] with { Position = new(0, 1) };
             snapshot = snapshot with { WorldId = "resource-reuse-reset", Resources = resources };
             Show();
-            if (terrainLayer.TreeStageAt(0, 1) != "mature" || terrainLayer.CampResourceSpriteCount != 1)
+            if (terrainLayer.TreeStageAt(0, 1) != "mature" || terrainLayer.ResourceKindSpriteCount != 1)
                 throw new InvalidOperationException("A world reset must repopulate resources even when their appearance keys match.");
             before = Indexes();
             snapshot = snapshot with
@@ -136,7 +136,7 @@ public partial class Main
             snapshot = snapshot with { Resources = [] };
             Show();
             if (terrainLayer.TreeStageAt(0, 1) is not null || terrainLayer.NaturalObjectNameAt(2, 2) is not null ||
-                terrainLayer.CampResourceSpriteCount != 0)
+                terrainLayer.ResourceKindSpriteCount != 0)
                 throw new InvalidOperationException("Removing resources must clear all retained appearance.");
             GD.Print("Resource appearance reuse checks passed.");
         }

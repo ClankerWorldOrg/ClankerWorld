@@ -206,7 +206,7 @@ same target; they never shorten or replace it.
 
 The user can explicitly retry that one record. The retry obtains a new one-use
 challenge and signature, then submits the same logical request so the server
-returns the original receipt rather than creating a duplicate. Private-world
+returns the original receipt rather than creating a duplicate. World
 instruction keys ignore surrounding whitespace consistently. An exact instruction
 retry at the host still returns its accepted receipt after the recipient dies,
 including after saving and restarting the host. The client's stricter timeline
@@ -323,7 +323,7 @@ public route's shared budget and pending slots do not hold it up. Status and
 activation stay on the pinned public origin. Pairing with any other server uses
 the public route.
 
-The game does this itself when its folder has `host/ClankerWorld.Viewer.exe`
+The game does this itself when its folder has `host/ClankerWorld.Server.exe`
 and no `--world-url` argument (`LocalHostCompanion`). It uses the fixed origin
 `http://127.0.0.1:5188/`, because a paired origin is pinned, and the approval
 port 5189. It stores this pairing in `user://local-owner-device-registration.json`,
@@ -342,12 +342,12 @@ previous one to `logs/host.previous.log` so a crash can still be reported.
 Saves, the owner authority and the provider files sit in separate folders
 there, never in the game folder.
 
-`POST /api/v1/local/shutdown` exists only on a private-world companion host. It
+`POST /api/v1/local/shutdown` exists only on a world companion host. It
 pauses the world, cancels hosted model work and writes its checkpoint before
 returning 202. The response completion callback requests process exit, so host
 teardown follows the acknowledgement. If writing fails, it returns 503 and
 keeps the host alive and paused so the game can retry. Pending startup recovery
-returns 409 without rewriting the refused checkpoint. Whenever a private-world
+returns 409 without rewriting the refused checkpoint. Whenever a world
 host stops, it waits for the tick loop to finish and writes a final checkpoint
 (`host_shutdown` in the log). Ctrl+C or a service stop also pauses a companion
 world; a failed final write is logged and sets a nonzero process exit status.

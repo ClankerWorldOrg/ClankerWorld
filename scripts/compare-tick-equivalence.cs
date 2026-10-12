@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Harness;
-using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Simulation.World;
 
 var output = args[0];
@@ -21,7 +20,7 @@ foreach (var mode in modes)
     for (var ordinal = 0; ordinal < seeds.Length; ordinal++)
     {
         var recorder = new RecordingChoices();
-        using var world = mode == "generated" ? CreateGenerated(seeds[ordinal], recorder) : new PrivateWorldRuntime(seeds[ordinal], _ => recorder);
+        using var world = mode == "generated" ? CreateGenerated(seeds[ordinal], recorder) : new WorldRuntime(seeds[ordinal], _ => recorder);
         world.Validate();
         var directory = Path.Combine(output, $"{mode}-{ordinal:D2}");
         Directory.CreateDirectory(directory);
@@ -31,7 +30,7 @@ foreach (var mode in modes)
             var prefix = Path.Combine(directory, $"tick-{tick:D6}");
             using (var file = File.Create(prefix + ".checkpoint.gz"))
             using (var compressed = new GZipStream(file, CompressionLevel.Fastest))
-                compressed.Write(PrivateWorldRuntimeCodec.Encode(state));
+                compressed.Write(WorldRuntimeCodec.Encode(state));
             File.WriteAllText(prefix + ".events.json", JsonSerializer.Serialize(state.Events));
             File.WriteAllText(prefix + ".digests.json", JsonSerializer.Serialize(recorder.Observations.ToArray()));
             if (tick == ticks) break;
@@ -45,24 +44,24 @@ foreach (var mode in modes)
     }
 }
 
-static PrivateWorldRuntime CreateGenerated(string seed, IDecisionProvider provider)
+static WorldRuntime CreateGenerated(string seed, IDecisionProvider provider)
 {
     var options = new GeographyOptions(seed, WorldSizePreset.Small);
-    var world = new PrivateWorldRuntime(seed, _ => provider, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
+    var world = new WorldRuntime(seed, _ => provider, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
     var map = world.ExportState().Map;
-    var camp = map.Resources.Single(item => item.Id == "berry-patch").Position;
-    var occupied = map.Resources.Select(item => item.Position).Concat(map.CampObjects.Select(item => item.Position)).ToHashSet();
+    var startingSite = map.Resources.Single(item => item.Id == "berry-patch").Position;
+    var occupied = map.Resources.Select(item => item.Position).Concat(map.MapObjects.Select(item => item.Position)).ToHashSet();
     var anchor = map.Tiles.Select(tile => tile.Position)
         .Where(point => map.IsBuildable(point) && !occupied.Contains(point))
-        .OrderBy(point => Math.Abs(point.X - camp.X) + Math.Abs(point.Y - camp.Y)).ThenBy(point => point.Y).ThenBy(point => point.X)
-        .Prepend(camp).First(point =>
+        .OrderBy(point => Math.Abs(point.X - startingSite.X) + Math.Abs(point.Y - startingSite.Y)).ThenBy(point => point.Y).ThenBy(point => point.X)
+        .Prepend(startingSite).First(point =>
         {
             if (FirstTownLayoutPlanner.Plan(map, point) is not { } layout) return false;
             var taken = occupied.Concat(layout.RoadTiles).Concat(layout.Buildings.SelectMany(building =>
                 Enumerable.Range(0, building.Height).SelectMany(y => Enumerable.Range(0, building.Width)
                     .Select(x => new GridPoint(building.Position.X + x, building.Position.Y + y))))).ToHashSet();
             return map.Tiles.Count(tile => Math.Abs(tile.Position.X - point.X) <= 5 && Math.Abs(tile.Position.Y - point.Y) <= 5 &&
-                map.IsBuildable(tile.Position) && !taken.Contains(tile.Position)) >= PrivateWorldRuntime.RequiredFounders;
+                map.IsBuildable(tile.Position) && !taken.Contains(tile.Position)) >= WorldRuntime.RequiredFounders;
         });
     world.InitializeFirstTownContent();
     world.AcceptFirstTownLayout(anchor);
@@ -71,7 +70,7 @@ static PrivateWorldRuntime CreateGenerated(string seed, IDecisionProvider provid
     var roads = world.RoadTiles.ToHashSet();
     var sites = map.Tiles.Where(tile => Math.Abs(tile.Position.X - anchor.X) <= 5 && Math.Abs(tile.Position.Y - anchor.Y) <= 5 &&
         map.IsBuildable(tile.Position) && !occupied.Contains(tile.Position) && !buildings.Contains(tile.Position) && !roads.Contains(tile.Position))
-        .Take(PrivateWorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
+        .Take(WorldRuntime.RequiredFounders).Select(tile => tile.Position).ToArray();
     for (var index = 0; index < sites.Length; index++) world.PlaceFounder($"founder:{index + 1:D32}", sites[index]);
     world.StartWorld();
     return world;

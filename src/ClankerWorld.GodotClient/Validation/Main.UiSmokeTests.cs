@@ -2494,14 +2494,14 @@ public partial class Main
                 BuildingSprites.KindForObject("campfire") != BuildingKind.Hearth ||
                 BuildingSprites.KindForObject("cooking") != BuildingKind.Hearth ||
                 BuildingSprites.KindForObject("path") != BuildingKind.Path ||
-                NatureSprites.ForCampResource("construction") != NatureSprite.WoodPile ||
+                NatureSprites.ForResourceKind("construction") != NatureSprite.WoodPile ||
                 // A Town's starting supplies carry no natural site; none may fall back to a bare marker.
-                NatureSprites.ForCampResource("stone") != NatureSprite.StoneOutcrop ||
-                NatureSprites.ForCampResource("fiber") != NatureSprite.FiberPlant ||
-                NatureSprites.ForCampResource("seed") != NatureSprite.WildSeedPatch ||
-                NatureSprites.ForCampResource("clay") != NatureSprite.ClayBank ||
-                NatureSprites.ForCampResource("grain_seed") != NatureSprite.WildSeedPatch ||
-                NatureSprites.ForCampResource("iron_ore") is not null ||
+                NatureSprites.ForResourceKind("stone") != NatureSprite.StoneOutcrop ||
+                NatureSprites.ForResourceKind("fiber") != NatureSprite.FiberPlant ||
+                NatureSprites.ForResourceKind("seed") != NatureSprite.WildSeedPatch ||
+                NatureSprites.ForResourceKind("clay") != NatureSprite.ClayBank ||
+                NatureSprites.ForResourceKind("grain_seed") != NatureSprite.WildSeedPatch ||
+                NatureSprites.ForResourceKind("iron_ore") is not null ||
                 BuildingSprites.KindForObject("resource") is not null)
                 throw new InvalidOperationException("Buildings and camp objects must pick their art family from their recorded tags and kinds.");
             var agentData = new HashSet<string>(StringComparer.Ordinal);
@@ -2722,7 +2722,7 @@ public partial class Main
             RenderMap(occupied);
             if (nameplateFailures.Count > 0)
                 throw new InvalidOperationException("Map nameplates must draw the bounded whole given name or initial: " + string.Join("; ", nameplateFailures));
-            if (terrainLayer.CampResourceSpriteCount == 0 || mapObjectVisuals["resource:wood"].Text.Contains('▰'))
+            if (terrainLayer.ResourceKindSpriteCount == 0 || mapObjectVisuals["resource:wood"].Text.Contains('▰'))
                 throw new InvalidOperationException("Older camp resources such as the wood store must draw as sprites instead of glyphs.");
             if (terrainLayer.BuildingSpriteCount != occupied.PlacedBuildings.Count ||
                 mapObjectVisuals.TryGetValue("building:test-hall", out var hallMarker) && hallMarker.Text.Contains('⌂'))

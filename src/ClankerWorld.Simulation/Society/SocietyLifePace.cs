@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     public static SocietyOperationResult SetLifePace(SocietyCheckpoint checkpoint, int rate)
     {

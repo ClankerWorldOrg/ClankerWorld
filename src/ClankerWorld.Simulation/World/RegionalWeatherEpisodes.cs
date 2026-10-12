@@ -1,4 +1,3 @@
-using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.World;
@@ -12,7 +11,7 @@ public sealed record RegionalWeatherState(int Version, int Columns, int Rows,
 /// <summary>Provisional regional episodes for owner playtesting, not approved rain balance.</summary>
 public static class RegionalWeatherRules
 {
-    public static WorldSystemsState Initialize(WorldSystemsState state, SeededMap map)
+    public static WorldSystemsState Initialize(WorldSystemsState state, WorldMap map)
     {
         if (state.RegionalWeather is not null) return state;
         var columns = (map.Width + WeatherRules.RegionSize - 1) / WeatherRules.RegionSize;
@@ -103,7 +102,7 @@ public static class RegionalWeatherRules
         return regions with { Episodes = episodes };
     }
 
-    public static void ValidateMap(WorldSystemsState state, SeededMap map)
+    public static void ValidateMap(WorldSystemsState state, WorldMap map)
     {
         if (state.RegionalWeather is not { } regions) return;
         if (regions.Columns != (map.Width + WeatherRules.RegionSize - 1) / WeatherRules.RegionSize ||

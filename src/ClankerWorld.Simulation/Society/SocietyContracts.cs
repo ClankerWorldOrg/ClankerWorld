@@ -81,7 +81,7 @@ public enum NewbornProviderPolicy
     Hybrid,
 }
 
-/// <summary>Day-based lifecycle for newly created playtest worlds.</summary>
+/// <summary>Day-based lifecycle for newly created worlds on the game calendar.</summary>
 public sealed record SocietyDayLifecycle(
     int ChildStartDay = 3,
     int AdultStartDay = 15,

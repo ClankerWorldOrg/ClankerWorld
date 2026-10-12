@@ -26,7 +26,7 @@ public partial class WorldTerrainLayer : Control
     private Rect2I? selectedBuilding;
     private byte[] trees = [];
     private byte[] naturalObjects = [];
-    private readonly Dictionary<int, NatureSprite> campResources = [];
+    private readonly Dictionary<int, NatureSprite> resourceKindSprites = [];
     private readonly List<(TerrainStyle Style, int Piece)> transitionPieces = [];
     private byte[] naturalStages = [];
     private int weatherRegionSize = 32;
@@ -144,7 +144,7 @@ public partial class WorldTerrainLayer : Control
             }
         trees = new byte[checked(map.Width * map.Height)];
         naturalObjects = new byte[checked(map.Width * map.Height)];
-        campResources.Clear();
+        resourceKindSprites.Clear();
         fields.Clear();
         constructionSites.Clear();
         lanternSites.Clear();
@@ -712,34 +712,34 @@ public partial class WorldTerrainLayer : Control
                     throw new InvalidDataException("Generated natural objects cannot overlap another tree or natural object.");
         }
         naturalAppearanceTrees = trees;
-        if (ReferenceEquals(campAppearanceTrees, trees) && ReferenceEquals(campAppearanceNaturalObjects, naturalObjects) &&
-            CampAppearanceMatches(resources))
+        if (ReferenceEquals(resourceKindAppearanceTrees, trees) && ReferenceEquals(resourceKindAppearanceNaturalObjects, naturalObjects) &&
+            ResourceKindAppearanceMatches(resources))
         {
             if (changed) QueueRedraw();
             return;
         }
         // Older camp resources carry only a resource kind; draw them with the
         // matching site's sprite where no generated site already stands.
-        campResources.Clear();
+        resourceKindSprites.Clear();
         foreach (var resource in resources)
         {
             if (resource.TreeKind is not null || resource.NaturalObjectKind is not null ||
-                NatureSprites.ForCampResource(resource.Kind, resource.Quantity == 0 || resource.State != "available",
+                NatureSprites.ForResourceKind(resource.Kind, resource.Quantity == 0 || resource.State != "available",
                     resource.IsRenewable) is not { } sprite) continue;
             var x = resource.Position.X;
             var y = resource.Position.Y;
             if (x < 0 || x >= world.Width || y < 0 || y >= world.Height) continue;
             var index = y * world.Width + x;
             if (trees[index] != 0 || naturalObjects[index] != 0) continue;
-            campResources[index] = sprite;
+            resourceKindSprites[index] = sprite;
         }
-        campAppearanceInputs = resources.Where(resource => CampAppearance(resource) is not null && ResourceInBounds(resource)).ToArray();
-        campAppearanceTrees = trees;
-        campAppearanceNaturalObjects = naturalObjects;
+        resourceKindAppearanceInputs = resources.Where(resource => ResourceKindAppearance(resource) is not null && ResourceInBounds(resource)).ToArray();
+        resourceKindAppearanceTrees = trees;
+        resourceKindAppearanceNaturalObjects = naturalObjects;
         QueueRedraw();
     }
 
-    public int CampResourceSpriteCount => campResources.Count;
+    public int ResourceKindSpriteCount => resourceKindSprites.Count;
 
     /// <summary>Cacti drawn in the last frame; zero below sprite zoom.</summary>
     public int CactusSpriteCount { get; private set; }
@@ -890,8 +890,8 @@ public partial class WorldTerrainLayer : Control
                 var index = y * world.Width + mapX;
                 if (naturalObjects[index] != 0)
                     DrawNaturalObject(new Vector2(x * stride, y * stride), naturalObjects[index], naturalStages[index]);
-                else if (campResources.TryGetValue(index, out var campSprite))
-                    DrawCampResource(new Vector2(x * stride, y * stride), campSprite);
+                else if (resourceKindSprites.TryGetValue(index, out var resourceKindSprite))
+                    DrawResourceKindSprite(new Vector2(x * stride, y * stride), resourceKindSprite);
                 else if (tree == 0 && tileSize >= SpriteTileMinimum && CactusAt(mapX, y) is { } cactus)
                 {
                     DrawNatureSprite(new Vector2(x * stride, y * stride), cactus);
@@ -1079,7 +1079,7 @@ public partial class WorldTerrainLayer : Control
                     center + new Vector2(tileSize * 0.11f, -tileSize * 0.07f), new Color("B69B69"), scale);
                 break;
             case 12: // fallen wood
-                DrawCampResource(position, NatureSprite.WoodPile);
+                DrawResourceKindSprite(position, NatureSprite.WoodPile);
                 break;
             case 13: // medicinal herb patch: reuse the approved drawing at overview zoom.
                 DrawNatureSprite(position, NatureSprite.HerbPatch);
@@ -1469,7 +1469,7 @@ public partial class WorldTerrainLayer : Control
     }
 
     /// <summary>A generated tree or natural-site sprite filling its tile.</summary>
-    private void DrawCampResource(Vector2 position, NatureSprite sprite)
+    private void DrawResourceKindSprite(Vector2 position, NatureSprite sprite)
     {
         if (tileSize >= SpriteTileMinimum)
         {

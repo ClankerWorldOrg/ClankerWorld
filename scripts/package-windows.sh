@@ -17,8 +17,8 @@ set -euo pipefail
 #   bash scripts/verify-godot-windows-export.sh --launcher
 #   bash scripts/package-windows.sh --launcher [export-dir] [output-dir]
 
-readonly HOST_EXE="ClankerWorld.Viewer.exe"
-readonly HOST_ASSEMBLY="ClankerWorld.Viewer.dll"
+readonly HOST_EXE="ClankerWorld.Server.exe"
+readonly HOST_ASSEMBLY="ClankerWorld.Server.dll"
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 launcher=false
@@ -61,10 +61,10 @@ else
     staged_repo_root="${scratch_root}/repository"
     mkdir -p "${staged_repo_root}"
     git -C "${repo_root}" archive "${revision}" \
-        global.json Directory.Build.props src/ClankerWorld.Viewer src/ClankerWorld.Simulation \
+        global.json Directory.Build.props src/ClankerWorld.Server src/ClankerWorld.Simulation \
         src/ClankerWorld.Shared/BuildInformation.cs \
         src/ClankerWorld.Shared/AgentPlacementRules.cs | tar -C "${staged_repo_root}" -xf -
-    staged_host_project="${staged_repo_root}/src/ClankerWorld.Viewer/ClankerWorld.Viewer.csproj"
+    staged_host_project="${staged_repo_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj"
     version="$(dotnet msbuild "${staged_host_project}" -nologo -getProperty:Version)"
 fi
 if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then

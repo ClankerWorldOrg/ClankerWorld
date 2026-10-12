@@ -2,190 +2,9 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
-using ClankerWorld.Simulation.Playtest;
+using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Simulation.Harness;
-
-/// <summary>
-/// The two owner-to-inhabitant instruction strengths exposed by the Phase 2
-/// fixture. The request never carries an instruction ID: that ID is minted by
-/// the authoritative runtime after validation.
-/// </summary>
-public enum OwnerInstructionKind
-{
-    Suggestive,
-    MustDo,
-}
-
-/// <summary>
-/// The minimal durable lifecycle for an owner instruction entering the
-/// cognition-aware fixture. Later phases may add active, completed, and
-/// rejected states without making a client responsible for changing a queued
-/// instruction's state.
-/// </summary>
-public enum OwnerInstructionState
-{
-    Queued,
-}
-
-/// <summary>
-/// An untrusted client request to queue a human instruction. The idempotency
-/// key is client supplied; every other durable identifier is server minted.
-/// </summary>
-public sealed record OwnerInstructionRequest(
-    string IdempotencyKey,
-    string IssuerId,
-    string TargetInhabitantId,
-    OwnerInstructionKind Kind,
-    string Text,
-    bool Queue = false);
-
-/// <summary>
-/// Authoritative progress for the small set of order tasks currently supported
-/// by the private-world simulation. The original instruction text remains on
-/// its own message record; this typed state is the physical task the host understood.
-/// </summary>
-public sealed record OwnerInstructionOrder(
-    string Action,
-    string Status,
-    int RequestedUnits,
-    int CompletedUnits,
-    string ProgressUnit,
-    bool RepeatUntilCancelled,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool QuantityIsExplicit = false,
-    string? TargetFoodKind = null,
-    string? TargetResourceId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null,
-    string? BlockedReason = null,
-    string? LastEffectId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaitForDecisionAfterFailure = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetAgentId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetMaterialKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetEquipmentKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCropKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetRecipeId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetOutputKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionBuildingId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionJobId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ProductionProjectStartedTick = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetLotId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryPurpose = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryRoute = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryLotId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeliveryQuantity = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetDefinitionId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ConstructionOwnerId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? ConstructionPosition = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ConstructionStartedTick = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ConstructionInstanceId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerBuildingExpansionBinding? ExpansionBinding = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterBinding? ShelterBinding = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterCompletion? ShelterCompletion = null)
-{
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetAnimalId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public OwnerBoatTravelBinding? BoatTravel { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetKnowledgeKind { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? KnowledgeWritingProjectId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? KnowledgeCopySourceArtifactId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetCartLotId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TalkConversationId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TalkOutcome { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetKnowledgeArtifactId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public OwnerKnowledgeReadCompletion? KnowledgeReadCompletion { get; init; }
-}
-
-public sealed record OwnerBoatTravelBinding(string DestinationPortId, string? RequestId = null);
-public sealed record OwnerKnowledgeReadCompletion(long WorldTick, IReadOnlyList<GridPoint> LearnedSites)
-{
-    [JsonRequired] public IReadOnlyList<string> LearnedRecipes { get; init; } = [];
-}
-
-public sealed record OwnerShelterBinding(
-    string Kind,
-    GridPoint Position,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? BuildingInstanceId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DefinitionId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? OwnerId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? BuildingPosition = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? BuildingPlacedTick = null);
-
-public sealed record OwnerShelterCompletion(
-    long WorldTick,
-    GridPoint Position,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? FuelReservationId = null);
-
-public sealed record OwnerBuildingExpansionBinding(
-    string BuildingInstanceId,
-    string DefinitionId,
-    string OwnerId,
-    GridPoint ExpectedPosition,
-    int ExpectedRevision,
-    GridPoint TargetPosition,
-    BuildingFootprintRevision TargetFootprint,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? JobId = null);
-
-public sealed record OwnerOrderCancelRequest(
-    string IdempotencyKey,
-    string IssuerId,
-    string WorldId,
-    string TargetInhabitantId,
-    string OrderId);
-
-public sealed record OwnerOrderControlReceipt(
-    string OrderId,
-    string Status,
-    bool Changed,
-    long WorldTick,
-    long LatestEventId);
-
-public sealed record OwnerOrderCancellation(
-    string IdempotencyKey,
-    string IssuerId,
-    string WorldId,
-    string TargetInhabitantId,
-    string OrderId,
-    OwnerOrderControlReceipt Receipt);
-
-/// <summary>
-/// The authoritative queued record retained by the world runtime.
-/// </summary>
-public sealed record OwnerQueuedInstruction(
-    string InstructionId,
-    string IdempotencyKey,
-    string IssuerId,
-    string TargetInhabitantId,
-    OwnerInstructionKind Kind,
-    string Text,
-    long SubmittedTick,
-    long RunEpoch,
-    long SubmissionSequence,
-    OwnerInstructionState State,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ObservedTick = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ObserverReply = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? GuidancePromptedTick = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool Queue = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerInstructionOrder? Order = null)
-{
-    public const int MaximumTextLength = 512;
-    public const int MaximumIdentifierLength = DerivedId.MaximumLength;
-}
-
-/// <summary>
-/// A stable reply to an instruction submission. Repeating the same request
-/// with its idempotency key returns this exact receipt and does not append a
-/// second event.
-/// </summary>
-public sealed record OwnerInstructionReceipt(
-    string InstructionId,
-    string IdempotencyKey,
-    long SubmittedTick,
-    long RunEpoch,
-    long Revision);
 
 /// <summary>
 /// One event in the Phase 2 composite runtime's global event stream. This is
@@ -216,28 +35,6 @@ public sealed record OwnerFounderDraft(
     string DisplayName,
     GridPoint Position,
     long CreatedRevision);
-
-/// <summary>
-/// A reference that has already passed whatever approval pipeline owns the
-/// actual asset bytes. Phase 2 stores only the approved reference, never bytes
-/// or an untrusted client-side asset payload.
-/// </summary>
-public sealed record OwnerApprovedAssetReference(string AssetId, string AssetDigest);
-
-/// <summary>
-/// Decides whether an asset reference has already been approved by the
-/// server-owned asset catalog. The runtime deliberately accepts a policy
-/// rather than a client-provided allow-list, so an owner request can name an
-/// asset but cannot make that asset approved.
-/// </summary>
-public interface IOwnerApprovedAssetReferencePolicy
-{
-    /// <summary>
-    /// Returns whether this exact canonical ID/digest pair is approved for
-    /// attachment to the Phase 2 authored-world projection.
-    /// </summary>
-    bool IsApproved(OwnerApprovedAssetReference reference);
-}
 
 /// <summary>
 /// Fail-closed default for asset references. Hosts must explicitly inject a
@@ -416,7 +213,7 @@ public sealed record OwnerAuthoringBatchReceipt(
 /// </summary>
 public sealed record OwnerWorldSnapshot(
     HarnessWorld World,
-    SeededMap CurrentMap,
+    WorldMap CurrentMap,
     string InitialMapManifestDigest,
     string CurrentMapManifestDigest,
     long TopologyRevision,
@@ -464,7 +261,7 @@ public sealed record OwnerAppliedAuthoringBatchState(
 public sealed record OwnerWorldRuntimeState(
     int SchemaVersion,
     HarnessWorld World,
-    SeededMap CurrentMap,
+    WorldMap CurrentMap,
     bool IsPaused,
     long RunEpoch,
     long Revision,
@@ -509,7 +306,7 @@ public sealed class OwnerWorldRuntime
     /// this runtime. Saved worlds are rejected rather than guessed across a
     /// schema boundary.
     /// </summary>
-    public const int StateSchemaVersion = 1;
+    public const int StateSchemaVersion = 2;
 
     private static readonly HashSet<string> ValidSeasons = new(StringComparer.Ordinal)
     {
@@ -530,7 +327,7 @@ public sealed class OwnerWorldRuntime
         new(StringComparer.Ordinal);
     private readonly List<OwnerWorldEvent> globalEvents = [];
     private HarnessWorld world;
-    private SeededMap currentMap;
+    private WorldMap currentMap;
     private OwnerClimate climate = new("clear", "spring");
     private IReadOnlyList<OwnerFounderDraft> founderDrafts = [];
     private IReadOnlyList<OwnerApprovedAssetReference> approvedAssetReferences = [];
@@ -1537,14 +1334,14 @@ public sealed class OwnerWorldRuntime
         return normalized;
     }
 
-    private static void RequireMapCollections(SeededMap map, string label)
+    private static void RequireMapCollections(WorldMap map, string label)
     {
         if (map is null ||
             map.Tiles is null ||
-            map.CampObjects is null ||
+            map.MapObjects is null ||
             map.Resources is null ||
             map.Tiles.Any(tile => tile is null) ||
-            map.CampObjects.Any(mapObject => mapObject is null) ||
+            map.MapObjects.Any(mapObject => mapObject is null) ||
             map.Resources.Any(resource => resource is null))
         {
             throw new InvalidDataException($"The saved {label} is incomplete.");
@@ -1558,13 +1355,13 @@ public sealed class OwnerWorldRuntime
         left.Resources.SequenceEqual(right.Resources) &&
         left.Events.SequenceEqual(right.Events);
 
-    private static bool EquivalentMap(SeededMap left, SeededMap right) =>
+    private static bool EquivalentMap(WorldMap left, WorldMap right) =>
         left.Width == right.Width &&
         left.Height == right.Height &&
         left.GenerationAttempt == right.GenerationAttempt &&
         string.Equals(left.ManifestDigest, right.ManifestDigest, StringComparison.Ordinal) &&
         left.Tiles.SequenceEqual(right.Tiles) &&
-        left.CampObjects.SequenceEqual(right.CampObjects) &&
+        left.MapObjects.SequenceEqual(right.MapObjects) &&
         left.Resources.SequenceEqual(right.Resources);
 
     private static OwnerAuthoringOperation[] CloneOperations(
@@ -1687,9 +1484,9 @@ public sealed class OwnerWorldRuntime
         };
     }
 
-    private static GridPoint ResolveDestination(SeededMap map, string destinationId)
+    private static GridPoint ResolveDestination(WorldMap map, string destinationId)
     {
-        var mapObject = map.CampObjects.SingleOrDefault(mapObject =>
+        var mapObject = map.MapObjects.SingleOrDefault(mapObject =>
             string.Equals(mapObject.Id, destinationId, StringComparison.Ordinal));
         if (mapObject is not null)
         {
@@ -1888,7 +1685,7 @@ public sealed class OwnerWorldRuntime
         }
     }
 
-    private static SeededMap SetTerrain(SeededMap map, GridPoint position, TerrainKind terrain)
+    private static WorldMap SetTerrain(WorldMap map, GridPoint position, TerrainKind terrain)
     {
         EnsureContains(map, position);
         return map with
@@ -1899,7 +1696,7 @@ public sealed class OwnerWorldRuntime
         };
     }
 
-    private static SeededMap PlaceResource(SeededMap map, PlaceResourceOperation operation)
+    private static WorldMap PlaceResource(WorldMap map, PlaceResourceOperation operation)
     {
         var id = NormalizeRequiredText(operation.Id, "Resource ID");
         var kind = NormalizeRequiredText(operation.Kind, "Resource kind");
@@ -1912,7 +1709,7 @@ public sealed class OwnerWorldRuntime
         return map with { Resources = map.Resources.Append(new MapResource(id, kind, operation.Position, operation.IsRenewable)).ToArray() };
     }
 
-    private static SeededMap RemoveResource(SeededMap map, string resourceId)
+    private static WorldMap RemoveResource(WorldMap map, string resourceId)
     {
         var id = NormalizeRequiredText(resourceId, "Resource ID");
         if (!map.Resources.Any(resource => string.Equals(resource.Id, id, StringComparison.Ordinal)))
@@ -1928,30 +1725,30 @@ public sealed class OwnerWorldRuntime
         };
     }
 
-    private static SeededMap PlaceObject(SeededMap map, string objectId, string objectKind, GridPoint position)
+    private static WorldMap PlaceObject(WorldMap map, string objectId, string objectKind, GridPoint position)
     {
         var id = NormalizeRequiredText(objectId, "Object ID");
         var kind = NormalizeRequiredText(objectKind, "Object kind");
         EnsureContains(map, position);
-        if (map.CampObjects.Any(mapObject => string.Equals(mapObject.Id, id, StringComparison.Ordinal)))
+        if (map.MapObjects.Any(mapObject => string.Equals(mapObject.Id, id, StringComparison.Ordinal)))
         {
             throw new InvalidOperationException($"An object with ID '{id}' already exists.");
         }
 
-        return map with { CampObjects = map.CampObjects.Append(new CampObject(id, kind, position)).ToArray() };
+        return map with { MapObjects = map.MapObjects.Append(new MapObject(id, kind, position)).ToArray() };
     }
 
-    private static SeededMap RemoveObject(SeededMap map, string objectId)
+    private static WorldMap RemoveObject(WorldMap map, string objectId)
     {
         var id = NormalizeRequiredText(objectId, "Object ID");
-        if (!map.CampObjects.Any(mapObject => string.Equals(mapObject.Id, id, StringComparison.Ordinal)))
+        if (!map.MapObjects.Any(mapObject => string.Equals(mapObject.Id, id, StringComparison.Ordinal)))
         {
             throw new InvalidOperationException($"No object with ID '{id}' exists.");
         }
 
         return map with
         {
-            CampObjects = map.CampObjects
+            MapObjects = map.MapObjects
                 .Where(mapObject => !string.Equals(mapObject.Id, id, StringComparison.Ordinal))
                 .ToArray(),
         };
@@ -2060,7 +1857,7 @@ public sealed class OwnerWorldRuntime
         return normalized;
     }
 
-    private static void EnsureContains(SeededMap map, GridPoint position)
+    private static void EnsureContains(WorldMap map, GridPoint position)
     {
         if (!map.Contains(position))
         {
@@ -2068,7 +1865,7 @@ public sealed class OwnerWorldRuntime
         }
     }
 
-    private static SeededMap CanonicalizeMap(SeededMap map)
+    private static WorldMap CanonicalizeMap(WorldMap map)
     {
         var canonical = map with
         {
@@ -2077,7 +1874,7 @@ public sealed class OwnerWorldRuntime
                 .ThenBy(tile => tile.Position.X)
                 .Select(tile => tile with { })
                 .ToArray(),
-            CampObjects = map.CampObjects
+            MapObjects = map.MapObjects
                 .OrderBy(mapObject => mapObject.Id, StringComparer.Ordinal)
                 .Select(mapObject => mapObject with { })
                 .ToArray(),
@@ -2090,10 +1887,10 @@ public sealed class OwnerWorldRuntime
         return canonical with { ManifestDigest = MapManifestCodec.Digest(canonical) };
     }
 
-    private static SeededMap CloneMap(SeededMap map) => map with
+    private static WorldMap CloneMap(WorldMap map) => map with
     {
         Tiles = map.Tiles.Select(tile => tile with { }).ToArray(),
-        CampObjects = map.CampObjects.Select(mapObject => mapObject with { }).ToArray(),
+        MapObjects = map.MapObjects.Select(mapObject => mapObject with { }).ToArray(),
         Resources = map.Resources.Select(resource => resource with { }).ToArray(),
     };
 
@@ -2116,7 +1913,7 @@ public sealed class OwnerWorldRuntime
 
     private sealed record RequiredStateDocument(
         HarnessWorld World,
-        SeededMap CurrentMap,
+        WorldMap CurrentMap,
         OwnerClimate Climate,
         IReadOnlyList<OwnerFounderDraft> FounderDrafts,
         IReadOnlyList<OwnerApprovedAssetReference> ApprovedAssetReferences,
@@ -2137,7 +1934,7 @@ public sealed class OwnerWorldRuntime
         OwnerAuthoringBatchReceipt Receipt);
 
     private sealed record RestoredAuthoringState(
-        SeededMap CurrentMap,
+        WorldMap CurrentMap,
         OwnerClimate Climate,
         IReadOnlyList<OwnerFounderDraft> FounderDrafts,
         IReadOnlyList<OwnerApprovedAssetReference> ApprovedAssetReferences,
@@ -2148,7 +1945,7 @@ public sealed class OwnerWorldRuntime
     private sealed class AuthoringCandidate
     {
         public AuthoringCandidate(
-            SeededMap map,
+            WorldMap map,
             OwnerClimate climate,
             IEnumerable<OwnerFounderDraft> drafts,
             IEnumerable<OwnerApprovedAssetReference> assets)
@@ -2159,7 +1956,7 @@ public sealed class OwnerWorldRuntime
             ApprovedAssetReferences = assets.Select(reference => reference with { }).ToList();
         }
 
-        public SeededMap Map { get; set; }
+        public WorldMap Map { get; set; }
 
         public OwnerClimate Climate { get; set; }
 

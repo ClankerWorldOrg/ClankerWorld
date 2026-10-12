@@ -7,7 +7,7 @@ using System.Globalization;
 namespace ClankerWorld.GodotClient;
 
 /// <summary>
-/// The deliberately practical Phase 2 owner client. It renders only signed,
+/// The owner's game client. It renders only signed,
 /// server-issued world projections; all control buttons submit a one-use
 /// device-key proof to the server and never mutate a local simulation copy.
 /// </summary>

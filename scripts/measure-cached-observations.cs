@@ -2,9 +2,8 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using ClankerWorld.Simulation.Harness;
-using ClankerWorld.Simulation.Playtest;
 using ClankerWorld.Simulation.World;
-using ClankerWorld.Viewer.Observation;
+using ClankerWorld.Server.Observation;
 
 var output = Path.GetFullPath(args[0]);
 var variant = args[1];
@@ -13,9 +12,9 @@ var report = new List<object>();
 foreach (var size in new[] { WorldSizePreset.Small, WorldSizePreset.Medium })
 {
     var options = new GeographyOptions("cached-observation-cost-audit", size);
-    using var world = new PrivateWorldRuntime(options.Seed, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
+    using var world = new WorldRuntime(options.Seed, startPace: WorldStartPace.FounderSetup, geographyOptions: options);
     var state = world.ExportState();
-    var saved = PrivateWorldRuntimeCodec.Encode(state);
+    var saved = WorldRuntimeCodec.Encode(state);
     var store = new OwnerWorldObservationStore(world);
     var initial = store.GetSnapshot();
     var cached = store.GetReconnectBaseline(0, initial.WorldId, initial.MapManifestDigest, initial.MapLayersDigest).Snapshot;
@@ -34,11 +33,11 @@ foreach (var size in new[] { WorldSizePreset.Small, WorldSizePreset.Medium })
         initial.MapManifestDigest, initial.MapLayersDigest));
     var digest = Measure(() => _ = MapLayerManifestCodec.Digest(state.Map));
     var fertility = Measure(() => _ = new LandFertility(state.Map, state.WorldSeed));
-    if (!saved.AsSpan().SequenceEqual(PrivateWorldRuntimeCodec.Encode(world.ExportState())))
+    if (!saved.AsSpan().SequenceEqual(WorldRuntimeCodec.Encode(world.ExportState())))
         throw new InvalidOperationException("Observation changed state");
-    using var restored = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(saved));
+    using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
     restored.Validate();
-    if (!saved.AsSpan().SequenceEqual(PrivateWorldRuntimeCodec.Encode(restored.ExportState())))
+    if (!saved.AsSpan().SequenceEqual(WorldRuntimeCodec.Encode(restored.ExportState())))
         throw new InvalidOperationException("Restore changed state");
     var restoredSnapshot = new OwnerWorldObservationStore(restored).GetSnapshot();
     if (JsonSerializer.Serialize(initial) != JsonSerializer.Serialize(restoredSnapshot))

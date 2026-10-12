@@ -43,15 +43,15 @@ function trx(results) {
 }
 
 const Names = [
-  'ClankerWorld.Simulation.Tests.SlowTests.First',
-  'ClankerWorld.Simulation.Tests.SlowTests.Second',
-  'ClankerWorld.Simulation.Tests.BigTests.LongMethod',
-  'ClankerWorld.Simulation.Tests.BigTests.LongMethodWithCases',
-  'ClankerWorld.Simulation.Tests.BigTests.ShortMethod',
-  'ClankerWorld.Simulation.Tests.OtherTests.Anything',
-  'ClankerWorld.Simulation.Tests.NotSlowTests.Lookalike',
-  'ClankerWorld.Simulation.Tests.SlowTestsHelpers.Lookalike',
-  'ClankerWorld.Simulation.Tests.NewTests.AddedLater',
+  'ClankerWorld.Tests.SlowTests.First',
+  'ClankerWorld.Tests.SlowTests.Second',
+  'ClankerWorld.Tests.BigTests.LongMethod',
+  'ClankerWorld.Tests.BigTests.LongMethodWithCases',
+  'ClankerWorld.Tests.BigTests.ShortMethod',
+  'ClankerWorld.Tests.OtherTests.Anything',
+  'ClankerWorld.Tests.NotSlowTests.Lookalike',
+  'ClankerWorld.Tests.SlowTestsHelpers.Lookalike',
+  'ClankerWorld.Tests.NewTests.AddedLater',
 ];
 
 test('every test runs in exactly one shard, and unnamed tests run in the last one', () => {
@@ -62,20 +62,20 @@ test('every test runs in exactly one shard, and unnamed tests run in the last on
     }
     assert.equal(hits.length, 1, `${name} ran in shards ${hits.join(', ') || 'none'}`);
   }
-  assert.ok(matches(testFilter(3, Shards), 'ClankerWorld.Simulation.Tests.NewTests.AddedLater'));
+  assert.ok(matches(testFilter(3, Shards), 'ClankerWorld.Tests.NewTests.AddedLater'));
 });
 
 test('a class entry matches only that class, and an earlier shard keeps the methods it names', () => {
   const shardOf = name => [1, 2, 3].filter(shard => matches(testFilter(shard, Shards), name));
   assert.deepEqual(Names.filter(name => shardOf(name)[0] === 1), [
-    'ClankerWorld.Simulation.Tests.SlowTests.First',
-    'ClankerWorld.Simulation.Tests.SlowTests.Second',
-    'ClankerWorld.Simulation.Tests.BigTests.LongMethod',
-    'ClankerWorld.Simulation.Tests.BigTests.LongMethodWithCases',
+    'ClankerWorld.Tests.SlowTests.First',
+    'ClankerWorld.Tests.SlowTests.Second',
+    'ClankerWorld.Tests.BigTests.LongMethod',
+    'ClankerWorld.Tests.BigTests.LongMethodWithCases',
   ]);
   assert.deepEqual(Names.filter(name => shardOf(name)[0] === 2), [
-    'ClankerWorld.Simulation.Tests.BigTests.ShortMethod',
-    'ClankerWorld.Simulation.Tests.OtherTests.Anything',
+    'ClankerWorld.Tests.BigTests.ShortMethod',
+    'ClankerWorld.Tests.OtherTests.Anything',
   ]);
   assert.equal(namePart('SlowTests'), '.SlowTests.');
   assert.equal(namePart('BigTests.LongMethod'), '.BigTests.LongMethod');
@@ -313,7 +313,7 @@ test('only a change made entirely of documentation skips the code checks and the
     { code: false, tests: false });
   assert.deepEqual(plan(['README.md', 'src/ClankerWorld.Simulation/World.cs']), { code: true, tests: true });
   assert.deepEqual(plan(['.github/workflows/ci.yml']), { code: true, tests: true });
-  assert.deepEqual(plan(['tests/ClankerWorld.Simulation.Tests/Documentation/DocumentationTests.cs']),
+  assert.deepEqual(plan(['tests/ClankerWorld.Tests/Documentation/DocumentationTests.cs']),
     { code: true, tests: true });
   assert.deepEqual(plan([]), { code: true, tests: true });
   assert.deepEqual(plan(['', '  ']), { code: true, tests: true });
@@ -327,10 +327,10 @@ test('a change to client files the tests do not compile skips only the test suit
   // A compiled client file, or anything outside the client folder, needs the test suite.
   assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs',
     'src/ClankerWorld.GodotClient/Protocol/WorldObservationProtocol.cs']), { code: true, tests: true });
-  assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs', 'src/ClankerWorld.Viewer/Program.cs']),
+  assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs', 'src/ClankerWorld.Server/Program.cs']),
     { code: true, tests: true });
   assert.deepEqual(plan(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs',
-    'tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj']), { code: true, tests: true });
+    'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj']), { code: true, tests: true });
   assert.deepEqual(plan(['src/ClankerWorld.GodotClientExtras/Tool.cs']), { code: true, tests: true });
   // When the compiled files can't be known, every client file counts as compiled.
   assert.deepEqual(planScope(['src/ClankerWorld.GodotClient/UI/AgentPanel.cs'], null), { code: true, tests: true });
@@ -346,7 +346,7 @@ test('the compiled client files come from the test project', () => {
   // The real project compiles a few client files, and each one exists.
   const root = path.join(__dirname, '..', '..');
   const real = compiledFiles(fs.readFileSync(
-    path.join(root, 'tests', 'ClankerWorld.Simulation.Tests', 'ClankerWorld.Simulation.Tests.csproj'), 'utf8'));
+    path.join(root, 'tests', 'ClankerWorld.Tests', 'ClankerWorld.Tests.csproj'), 'utf8'));
   assert.ok(real.size > 0);
   for (const file of real) {
     assert.ok(file.startsWith('src/ClankerWorld.GodotClient/'), file);

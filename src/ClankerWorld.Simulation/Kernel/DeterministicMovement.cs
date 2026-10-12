@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using ClankerWorld.Simulation.Harness;
+using ClankerWorld.Simulation.World;
 
 namespace ClankerWorld.Simulation.Kernel;
 
@@ -37,7 +37,7 @@ public sealed record MovementResolution(
 public static class DeterministicMovementResolver
 {
     public static MovementResolution Resolve(
-        SeededMap map,
+        WorldMap map,
         IEnumerable<MovementActor> actors,
         IEnumerable<MovementIntent> intents)
     {
@@ -183,7 +183,7 @@ public static class DeterministicMovementResolver
         return new MovementResolution(nextActors, events);
     }
 
-    private static void ValidateActors(SeededMap map, MovementActor[] actors)
+    private static void ValidateActors(WorldMap map, MovementActor[] actors)
     {
         if (actors.Any(actor => string.IsNullOrWhiteSpace(actor.Id) || actor.MoveWaitTicks < 0) ||
             actors.Select(actor => actor.Id).Distinct(StringComparer.Ordinal).Count() != actors.Length ||
@@ -217,7 +217,7 @@ public sealed class NonAuthoritativeRouteCache
 
     public int ComputationCount { get; private set; }
 
-    public IReadOnlyList<GridPoint> GetOrCompute(SeededMap map, RouteCacheKey key)
+    public IReadOnlyList<GridPoint> GetOrCompute(WorldMap map, RouteCacheKey key)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(key);

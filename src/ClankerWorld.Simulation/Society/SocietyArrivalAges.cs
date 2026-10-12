@@ -2,11 +2,11 @@ using ClankerWorld.Simulation.Kernel;
 
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     /// <summary>
     /// Founders and added adults in day-lifecycle worlds arrive up to this many
-    /// days past the adult threshold: day 15 to day 25 in playtest worlds.
+    /// days past the adult threshold: day 15 to day 25 in worlds on the game calendar.
     /// </summary>
     public const int ArrivalAgeSpreadDays = 10;
 

@@ -1,0 +1,86 @@
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Server.Control;
+using ClankerWorld.Server.Observation;
+
+namespace ClankerWorld.Server.Endpoints;
+
+internal static partial class OwnerEndpoints
+{
+    public static void MapOwnerEndpoints(this WebApplication app, bool isGameWorld)
+    {
+        app.MapGet("/api/v1/status", () => Results.Ok(new
+        {
+            Build = BuildInformation.Display,
+            BuildInformation.Version,
+            BuildInformation.SourceRevision,
+        }));
+        MapPairing(app);
+        MapObservation(app);
+        MapRuntimeControl(app, isGameWorld);
+        MapWorlds(app, isGameWorld);
+        MapSaves(app, isGameWorld);
+        MapStartupRecovery(app, isGameWorld);
+        MapDeletion(app, isGameWorld);
+        MapRecoveryCleanup(app, isGameWorld);
+        MapSetup(app, isGameWorld);
+        MapInstructions(app, isGameWorld);
+        MapContent(app, isGameWorld);
+        MapDevices(app);
+        MapProviders(app);
+
+        app.MapGet("/api/v1/world", OwnerFailures.UnpairedObservation);
+        app.MapGet("/api/v1/events", OwnerFailures.UnpairedObservation);
+        app.MapGet("/api/v1/reconnect", OwnerFailures.UnpairedObservation);
+    }
+
+    private static bool IsControl(OwnerSignedHttpRequest<OwnerControlAction>? request, string expectedOperation) =>
+        request?.Action is not null &&
+        string.Equals(request.Action.Operation, expectedOperation, StringComparison.Ordinal);
+
+    private static bool TryWorldOptions(OwnerWorldCreationAction action, out GeographyOptions? options)
+    {
+        options = null;
+        if (action.Name is null || action.Name.Length is < 1 or > 80 || action.Name.Any(char.IsControl) ||
+            action.Seed is null || action.Seed.Length is < 1 or > 100 || action.Seed.Any(char.IsControl) ||
+            !Enum.TryParse<WorldSizePreset>(action.Size, true, out var size) ||
+            !Enum.IsDefined(size) || size is not (WorldSizePreset.Small or WorldSizePreset.Medium) ||
+            !Enum.TryParse<ClimateMode>(action.ClimateMode, true, out var climateMode) ||
+            !Enum.IsDefined(climateMode) ||
+            !Enum.TryParse<ClimateZone>(action.SelectedClimate, true, out var selectedClimate) ||
+            !Enum.IsDefined(selectedClimate) ||
+            !Enum.TryParse<ResourceAbundance>(action.ResourceAbundance, true, out var abundance) ||
+            !Enum.IsDefined(abundance) ||
+            !Enum.TryParse<GenerationAmount>(action.ForestCover, true, out var forest) || !Enum.IsDefined(forest) ||
+            !Enum.TryParse<GenerationAmount>(action.MountainRelief, true, out var mountain) || !Enum.IsDefined(mountain) ||
+            !Enum.TryParse<GenerationAmount>(action.RiverAbundance, true, out var river) || !Enum.IsDefined(river) ||
+            action.WaterPercent is < 20 or > 80 ||
+            action.CandidateAttempt is < 0 or >= GeographyGenerator.MaximumCandidateAttempts)
+            return false;
+        options = new GeographyOptions(action.Seed, size, action.WrapEastWest, action.WaterPercent,
+            climateMode, selectedClimate, action.LatitudeCooling, abundance, GeographyGenerator.CurrentHydrologyVersion,
+            forest, mountain, river, action.CandidateAttempt ?? 0);
+        return true;
+    }
+
+    private static bool HasNoPreviewIdentity(OwnerWorldCreationAction action) =>
+        action.CandidateAttempt is null && action.ExpectedManifestDigest is null &&
+        action.ExpectedMapLayersDigest is null && !action.AcceptUnmetTargets;
+
+    private static bool HasCreateIdentity(OwnerWorldCreationAction action) =>
+        action.CandidateAttempt is >= 0 and < GeographyGenerator.MaximumCandidateAttempts &&
+        !string.IsNullOrWhiteSpace(action.ExpectedManifestDigest) &&
+        !string.IsNullOrWhiteSpace(action.ExpectedMapLayersDigest);
+
+    private static bool TryParseInstructionKind(string? value, out OwnerInstructionKind kind)
+    {
+        kind = value?.Trim().ToLowerInvariant() switch
+        {
+            "suggestive" => OwnerInstructionKind.Suggestive,
+            "must_do" => OwnerInstructionKind.MustDo,
+            _ => default,
+        };
+        return value is not null && (value.Trim().Equals("suggestive", StringComparison.OrdinalIgnoreCase) ||
+            value.Trim().Equals("must_do", StringComparison.OrdinalIgnoreCase));
+    }
+}

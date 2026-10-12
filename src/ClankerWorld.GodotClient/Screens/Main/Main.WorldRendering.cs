@@ -302,7 +302,7 @@ public partial class Main
                 // Natural sites are drawn as terrain sprites; their marker only
                 // adds hover help and a caption, not a second symbol.
                 WorldTerrainMap.NaturalObjectName(resource.NaturalObjectKind) is null &&
-                    (resource.NaturalObjectKind is not null || NatureSprites.ForCampResource(resource.Kind) is null)
+                    (resource.NaturalObjectKind is not null || NatureSprites.ForResourceKind(resource.Kind) is null)
                     ? ResourceGlyph(resource.Kind, resource.NaturalObjectKind) : string.Empty,
                 GameUiText.ResourceMapCaption(resource, currentTileSize),
                 GameUiText.ResourceTooltip(resource));

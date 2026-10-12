@@ -283,12 +283,12 @@ work changes no saved state; runtime-gate exclusion is checked separately.
 To time tests locally, or list what a job would run under the fixed split:
 
 ```bash
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --logger "trx;LogFileName=timings.trx"
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --no-build --list-tests --filter "$(node .github/scripts/ci-plan.js filter 1)"
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --logger "trx;LogFileName=timings.trx"
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-build --list-tests --filter "$(node .github/scripts/ci-plan.js filter 1)"
 ```
 
 The first command records each test's duration in
-`tests/ClankerWorld.Simulation.Tests/TestResults/timings.trx`; the second lists
+`tests/ClankerWorld.Tests/TestResults/timings.trx`; the second lists
 the tests job 1 would run without timings.
 
 The native Windows storage job also runs the repeated checkpoint-compaction
@@ -305,7 +305,7 @@ from an unexpected stress-test failure.
 
 To retain the same evidence for a local persistence test, set
 `CLANKERWORLD_CHECKPOINT_DIAGNOSTICS` to an empty disposable directory before
-running `FullyQualifiedName~PrivateWorldStateFileTests`. On I/O failure, the
+running `FullyQualifiedName~WorldStateFileTests`. On I/O failure, the
 tests copy evidence from their uniquely named temporary worlds there. A
 passing rerun does not explain an earlier intermittent access refusal; retain
 the failed report and its diagnostics when investigating one.
@@ -321,7 +321,7 @@ runs the existing three intentional overwrite-refusal controls to check the
 native trace, including an access-denied operation completion for each
 synthetic fixture in the test process. It builds once, uses four test processors
 and records all six
-Simulation/Viewer/test DLL and PDB hashes before and after the unchanged tests.
+Simulation/Server/test DLL and PDB hashes before and after the unchanged tests.
 
 On an administrator Windows machine with PowerShell 7 and the pinned .NET SDK:
 
@@ -414,7 +414,7 @@ every file. The script refuses an export that was not built from the current
 commit, stages the host and version from committed inputs (excluding local
 edits), and checks that the host assembly carries the same version and commit,
 since the game reuses only a host of its own exact build
-([Device pairing](device-pairing.md#host-started-by-the-game)). The Viewer and
+([Device pairing](device-pairing.md#host-started-by-the-game)). The server and
 Simulation projects list `win-x64` in `RuntimeIdentifiers` so this publish
 restores in locked mode. CI uploads the zip as the
 `clankerworld-windows-11-x64-portable` artifact. It is unsigned, and a built
@@ -441,7 +441,7 @@ package commands above, unpack its zip, then choose its `ClankerWorld.exe`.
 The game and package manifests carry `# Launcher options: developer-data-v1`;
 the launcher refuses the new run options on a build without that marker so an
 older game cannot silently ignore test isolation. Local builds need their
-bundled `host/ClankerWorld.Viewer.exe` too. Normal installs retain the existing
+bundled `host/ClankerWorld.Server.exe` too. Normal installs retain the existing
 download and manifest checks; local builds are files the developer chooses.
 See [Launcher developer runs](how-it-works.md#launcher-developer-runs) for the
 data paths and logging switches. These controls still need the listed Windows
@@ -529,8 +529,8 @@ describe the state and ordering contracts that every refactor step keeps.
 ## Focused documentation checks
 
 ```bash
-dotnet restore tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --locked-mode
-dotnet test tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~DocumentationTests
+dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~DocumentationTests
 ```
 
 These checks cover front matter on pages under `docs/`, local links and linked

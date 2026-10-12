@@ -14,7 +14,6 @@ dotnet add "$measurement_dir/MapGenerationMeasurement.csproj" reference "$repo_r
 cat > "$measurement_dir/Program.cs" <<'CSHARP'
 using System.Diagnostics;
 using System.Text.Json;
-using ClankerWorld.Simulation.Harness;
 using ClankerWorld.Simulation.World;
 
 var outputPrefix = args.Length > 0 ? args[0] : "before";
@@ -25,13 +24,13 @@ foreach (var options in new[] {
         SelectedClimate: ClimateZone.Dry, LatitudeCooling: false, HydrologyVersion: GeographyGenerator.CurrentHydrologyVersion),
 })
 {
-    _ = GeneratedCampMapGenerator.Generate(options);
+    _ = GeneratedWorldMapGenerator.Generate(options);
     var times = new List<double>();
-    SeededMap? map = null;
+    WorldMap? map = null;
     for (var trial = 0; trial < 5; trial++)
     {
         var timer = Stopwatch.StartNew();
-        map = GeneratedCampMapGenerator.Generate(options);
+        map = GeneratedWorldMapGenerator.Generate(options);
         timer.Stop();
         times.Add(timer.Elapsed.TotalMilliseconds);
     }

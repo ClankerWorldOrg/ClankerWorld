@@ -50,7 +50,7 @@ public sealed class GameVersionStore(LauncherLayout layout, HttpClient http)
             manifest = ReadManifest(Path.Combine(version.Directory, LauncherLayout.PackageManifest)).ToArray();
             var names = manifest.Select(item => item.Relative).ToHashSet(StringComparer.OrdinalIgnoreCase);
             if (!names.Contains(LauncherLayout.GameExecutable) ||
-                !names.Contains(Path.Combine("host", "ClankerWorld.Viewer.exe")))
+                !names.Contains(Path.Combine("host", "ClankerWorld.Server.exe")))
                 return [LauncherLayout.PackageManifest];
             foreach (var path in Directory.EnumerateFiles(version.Directory, "*", SearchOption.AllDirectories))
             {

@@ -1900,7 +1900,7 @@ detailed actions. See [combat](agents-and-families.md#combat) and
 This stage makes, stores and trades bandages, but does not create injuries or
 apply bandages to a patient. Medicine uses the existing illness system and
 supports recovery gradually. The Clinic implements this scope in the normal
-private-world path; its Windows playtest is pending, and the injury stage is
+world path; its Windows playtest is pending, and the injury stage is
 agreed below. See
 [current availability](../what-works.md#life-work-and-society).
 

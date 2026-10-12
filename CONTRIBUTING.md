@@ -376,7 +376,7 @@ them.
 
 Update the affected docs in the same change, keeping one home per subject and
 linking to it. Only call a feature available once it works on the normal
-private-world and Godot play path; a test or data type alone does not make it
+world server and Godot play path; a test or data type alone does not make it
 playable. Put detailed unresolved findings in Issues, and link them from a page
 only when that helps a reader understand a limitation. If a page moves, update
 the links to it; the [documentation checks](docs/development/build-and-test.md#focused-documentation-checks)

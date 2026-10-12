@@ -39,7 +39,7 @@ function issueBody({ times, runs, ids }, { repoUrl, now = new Date() }) {
     classes.set(owner, { count: entry.count + 1, seconds: entry.seconds + value });
   }
   const heaviest = [...classes].sort((a, b) => b[1].seconds - a[1].seconds || (a[0] < b[0] ? -1 : 1)).slice(0, 10);
-  const short = name => name.replace(/^ClankerWorld\.Simulation\.Tests\./, '');
+  const short = name => name.replace(/^ClankerWorld\.Tests\./, '');
   const newest = ids.map(Number).sort((a, b) => b - a)[0];
   const docs = `${repoUrl}/blob/main/docs/development/build-and-test.md#how-ci-runs`;
   return [

@@ -35,9 +35,9 @@ function timings(t, runs) {
 // Three runs whose tests add up to `total` seconds at their medians; the middle run is the median.
 function runsTotalling(total) {
   const scaled = factor => ({
-    'ClankerWorld.Simulation.Tests.HugeTests.Slowest': Math.round(total * 0.6 * factor),
-    'ClankerWorld.Simulation.Tests.HugeTests.Second': Math.round(total * 0.3 * factor),
-    'ClankerWorld.Simulation.Tests.SmallTests.Quick': Math.round(total * 0.1 * factor),
+    'ClankerWorld.Tests.HugeTests.Slowest': Math.round(total * 0.6 * factor),
+    'ClankerWorld.Tests.HugeTests.Second': Math.round(total * 0.3 * factor),
+    'ClankerWorld.Tests.SmallTests.Quick': Math.round(total * 0.1 * factor),
   });
   return { 3001: scaled(0.8), 3002: scaled(1), 3003: scaled(1.3) };
 }

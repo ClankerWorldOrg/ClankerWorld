@@ -1,6 +1,6 @@
 namespace ClankerWorld.Simulation.Society;
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     /// <summary>
     /// The adult and the dependents in their primary care who share their household. A guardian whose

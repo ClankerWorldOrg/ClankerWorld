@@ -37,7 +37,7 @@ words arm says instead that each need gives its level and then the whole scale.
 ## Method
 
 `NeedWordingComparisonTests.ReportNeedWordingComparison` uses the normal
-private-world decision and survival code, like the
+world decision and survival code, like the
 [survival priority prototype](survival-priority-prototype.md). Three
 compatibility-map worlds use seeds `need-wording-0`, `-1` and `-2` with fixed
 clear, rain and storm weather; regional weather episodes are off. After three

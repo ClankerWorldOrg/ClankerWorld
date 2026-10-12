@@ -31,7 +31,7 @@ The native inventory uses three actual accepted births. Its milk trace performs
 50 ordinary kernel barters with both parties consenting, exclusive holds,
 whole-lot milk and partial wood payments. Milk retains its identity; each new
 payment lot preserves its source. Each barter saves and strictly reloads the
-private world, then recalls a memory keyed by its new payment ID. This is a
+world, then recalls a memory keyed by its new payment ID. This is a
 controlled-stock kernel trace. The admitted Store and Market purchase workflows
 have separate native regression coverage.
 

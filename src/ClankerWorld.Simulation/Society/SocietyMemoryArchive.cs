@@ -14,7 +14,7 @@ public static class SocietyMemoryArchiveRules
     public static SocietyCheckpoint Archive(SocietyCheckpoint checkpoint, IReadOnlySet<string> protectedOwners,
         IReadOnlySet<string> protectedTurns)
     {
-        SocietyFixture.Validate(checkpoint);
+        SocietyRules.Validate(checkpoint);
         var age = checked((long)MinimumAgeDays * checkpoint.Config.TicksPerWorldDay);
         var importance = (checkpoint.MemoryCompactions ?? []).SelectMany(owner => owner.Sources.Select(source =>
             (Key: (owner.OwnerId, source.Kind, source.SourceId), source.ImportanceBasisPoints)))
@@ -42,12 +42,12 @@ public static class SocietyMemoryArchiveRules
             ArchivedMemories = checkpoint.ArchivedMemories.Concat(memories).OrderBy(item => item.Memory.Id, StringComparer.Ordinal).ToArray(),
             ArchivedBeliefs = checkpoint.ArchivedBeliefs.Concat(beliefs).OrderBy(item => item.Belief.Id, StringComparer.Ordinal).ToArray(),
         };
-        SocietyFixture.Validate(archived);
+        SocietyRules.Validate(archived);
         return archived;
     }
 }
 
-public static partial class SocietyFixture
+public static partial class SocietyRules
 {
     private static void ValidateMemoryArchive(SocietyCheckpoint checkpoint)
     {

@@ -1,0 +1,20 @@
+namespace ClankerWorld.Server.Control;
+
+public static partial class ProviderUsageTelemetry
+{
+    [LoggerMessage(EventId = 2283, Level = LogLevel.Error,
+        Message = "provider_usage_unavailable outcome=blocked scope=installation recovery=restore_trusted_meter_and_restart")]
+    public static partial void AccountingBlocked(ILogger logger);
+
+    [LoggerMessage(EventId = 2281, Level = LogLevel.Warning,
+        Message = "provider_usage_limit_reached outcome={Outcome} scope=installation tick={WorldTick}")]
+    public static partial void LimitReached(ILogger logger, string outcome, long worldTick);
+
+    [LoggerMessage(EventId = 2288, Level = LogLevel.Warning,
+        Message = "provider_usage_warning outcome={Outcome} scope=installation attempts={Attempts} limit={AttemptLimit} tick={WorldTick}")]
+    public static partial void WarningReached(ILogger logger, string outcome, long attempts, long attemptLimit, long worldTick);
+
+    [LoggerMessage(EventId = 2282, Level = LogLevel.Information,
+        Message = "provider_usage_limit_configured outcome=accepted enabled={Enabled} limit={AttemptLimit} attempts={Attempts}")]
+    public static partial void LimitConfigured(ILogger logger, bool enabled, long? attemptLimit, long attempts);
+}

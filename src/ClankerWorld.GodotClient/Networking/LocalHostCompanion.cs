@@ -20,7 +20,7 @@ public sealed record LocalHostLayout(
     string DataDirectory)
 {
     public const string HostFolderName = "host";
-    public const string WindowsHostFileName = "ClankerWorld.Viewer.exe";
+    public const string WindowsHostFileName = "ClankerWorld.Server.exe";
 
     public string SecretPath => Path.Combine(DataDirectory, "host", "companion.secret");
     public string LogPath => Path.Combine(DataDirectory, "logs", "host.log");
@@ -58,7 +58,7 @@ public sealed record LocalHostLayout(
         $"--ClankerWorld:Pairing:LocalApprovalPort={approvalPort}",
         $"--ClankerWorld:Pairing:CompanionSecretPath={SecretPath}",
         $"--ClankerWorld:Pairing:StatePath={Path.Combine(SettingsDirectory, "owner-authority.json")}",
-        $"--ClankerWorld:Runtime:StatePath={Path.Combine(SaveDirectory, "private-world.json")}",
+        $"--ClankerWorld:Runtime:StatePath={Path.Combine(SaveDirectory, "world.json")}",
         $"--ClankerWorld:Runtime:ProviderStatePath={Path.Combine(SettingsDirectory, "provider-configuration.json")}",
         $"--ClankerWorld:Runtime:ProviderUsagePath={Path.Combine(SettingsDirectory, "provider-usage.json")}",
         .. detailedLogs ? new[] { "--Logging:LogLevel:ClankerWorld=Debug" } : [],
@@ -66,7 +66,7 @@ public sealed record LocalHostLayout(
 
     /// <summary>
     /// Provider keys a standalone host saves from its environment on first
-    /// start (the Viewer's <c>Program.cs</c>). The game's own host takes keys
+    /// start (the server's <c>Program.cs</c>). The game's own host takes keys
     /// only from the API keys screen, so these are not passed to it.
     /// </summary>
     public static IReadOnlyList<string> ProviderKeyVariables { get; } =

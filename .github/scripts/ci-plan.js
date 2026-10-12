@@ -28,12 +28,12 @@ const SuiteSlowerSeconds = 120;
 // text. Normally `plan` splits the tests from measured timings.
 const PinnedShards = [
   ['RestaurantBusinessPipelineTests', 'NativeOrchardObservationTests', 'PortBoatRuntimeTests', 'OrnamentTradeTests'],
-  ['PrivateWorldConstructionOrderTests', 'PersonalEquipmentTests', 'PrivateWorldFieldOrderTests', 'OrnamentProductionTests'],
-  ['ConcreteMealTests', 'PrivateWorldDeliveryOrderTests', 'FarmFieldTests', 'HandcartRuntimeTests'],
-  ['SettlementParenthoodTests', 'PrivateWorldCollectionOrderTests', 'PotteryContentTests', 'ExplorationBridgeSaveTests'],
-  ['BusinessTradeTests', 'PrivateWorldExpansionOrderTests', 'ToolMakingRequestTests', 'BuildingExpansionTests'],
-  ['PrivateWorldRuntimeTests', 'NewbornModelBindingCheckpointTests', 'CookedMealBirthTests', 'TownReleasedMaterialRecoveryTests'],
-  ['AnimalPipelineTests', 'TownMembershipTests', 'MarketConstructionRuntimeTests', 'PrivateWorldProductionOrderTests'],
+  ['WorldConstructionOrderTests', 'PersonalEquipmentTests', 'WorldFieldOrderTests', 'OrnamentProductionTests'],
+  ['ConcreteMealTests', 'WorldDeliveryOrderTests', 'FarmFieldTests', 'HandcartRuntimeTests'],
+  ['SettlementParenthoodTests', 'WorldCollectionOrderTests', 'PotteryContentTests', 'ExplorationBridgeSaveTests'],
+  ['BusinessTradeTests', 'WorldExpansionOrderTests', 'ToolMakingRequestTests', 'BuildingExpansionTests'],
+  ['WorldRuntimeTests', 'NewbornModelBindingCheckpointTests', 'CookedMealBirthTests', 'TownReleasedMaterialRecoveryTests'],
+  ['AnimalPipelineTests', 'TownMembershipTests', 'MarketConstructionRuntimeTests', 'WorldProductionOrderTests'],
 ];
 
 const EntryPattern = /^[A-Za-z_]\w*(\.[A-Za-z_]\w*)?$/;
@@ -271,7 +271,7 @@ function compareTimings(main, run, { runs = 1, top = 10 } = {}) {
 }
 
 // The test project, and the client folder it compiles a few files from.
-const TestProject = 'tests/ClankerWorld.Simulation.Tests/ClankerWorld.Simulation.Tests.csproj';
+const TestProject = 'tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj';
 const ClientFolder = 'src/ClankerWorld.GodotClient/';
 
 // The repository paths of the files the test project compiles from outside its folder, or null
