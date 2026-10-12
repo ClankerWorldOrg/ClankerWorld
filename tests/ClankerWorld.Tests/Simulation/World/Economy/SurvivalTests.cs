@@ -557,7 +557,7 @@ public sealed class SurvivalTests
             Assert.True(await service.TryAdvanceOnceAsync());
 
             Assert.Contains(logger.Messages, message => message.Contains("survival_condition", StringComparison.Ordinal) &&
-                message.Contains("agent=" + actor.AgentId + " ", StringComparison.Ordinal) &&
+                message.Contains("inhabitant=" + actor.AgentId + " ", StringComparison.Ordinal) &&
                 message.Contains("illness_work_percent=50", StringComparison.Ordinal) &&
                 message.Contains("illness_travel_delay=1", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("private-illness-secret", StringComparison.Ordinal));

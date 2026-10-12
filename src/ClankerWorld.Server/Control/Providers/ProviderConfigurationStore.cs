@@ -1673,7 +1673,7 @@ public sealed partial class ConfigurableDecisionProvider(
     [LoggerMessage(
         EventId = 2101,
         Level = LogLevel.Information,
-        Message = "cognition_provider_call status=completed provider={Provider} role={Role} model={Model} agent={AgentId} tick={WorldTick} candidate={CandidateId} confidence={Confidence} input_tokens={InputTokens} output_tokens={OutputTokens} latency_ms={LatencyMilliseconds}")]
+        Message = "cognition_provider_call status=completed provider={Provider} role={Role} model={Model} inhabitant={AgentId} tick={WorldTick} candidate={CandidateId} confidence={Confidence} input_tokens={InputTokens} output_tokens={OutputTokens} latency_ms={LatencyMilliseconds}")]
     private static partial void LogProviderCallCompleted(
         ILogger logger,
         string provider,
@@ -1690,7 +1690,7 @@ public sealed partial class ConfigurableDecisionProvider(
     [LoggerMessage(
         EventId = 2102,
         Level = LogLevel.Information,
-        Message = "cognition_provider_call status=cancelled provider={Provider} role={Role} model={Model} agent={AgentId} tick={WorldTick} latency_ms={LatencyMilliseconds}")]
+        Message = "cognition_provider_call status=cancelled provider={Provider} role={Role} model={Model} inhabitant={AgentId} tick={WorldTick} latency_ms={LatencyMilliseconds}")]
     private static partial void LogProviderCallCancelled(
         ILogger logger,
         string provider,
@@ -1703,7 +1703,7 @@ public sealed partial class ConfigurableDecisionProvider(
     [LoggerMessage(
         EventId = 2103,
         Level = LogLevel.Warning,
-        Message = "cognition_provider_call status=failed provider={Provider} role={Role} model={Model} agent={AgentId} tick={WorldTick} error_type={ErrorType} latency_ms={LatencyMilliseconds}")]
+        Message = "cognition_provider_call status=failed provider={Provider} role={Role} model={Model} inhabitant={AgentId} tick={WorldTick} error_type={ErrorType} latency_ms={LatencyMilliseconds}")]
     private static partial void LogProviderCallFailed(
         ILogger logger,
         string provider,

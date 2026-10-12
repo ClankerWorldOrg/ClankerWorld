@@ -481,7 +481,7 @@ public sealed class AnthropicProviderTests
         var plain = new OwnerProviderConfigurationAction("personal", "anthropic", "claude-haiku-5-5", null, false, "agent-a");
         var withThinking = plain with { Thinking = "low" };
 
-        Assert.EndsWith("agent=" + Base64Url("agent-a"), OwnerHttpBinding.ProviderConfigurationPayload(plain), StringComparison.Ordinal);
+        Assert.EndsWith("inhabitant=" + Base64Url("agent-a"), OwnerHttpBinding.ProviderConfigurationPayload(plain), StringComparison.Ordinal);
         Assert.EndsWith("\nthinking=" + Base64Url("low"), OwnerHttpBinding.ProviderConfigurationPayload(withThinking), StringComparison.Ordinal);
         Assert.EndsWith("\nthinking=" + Base64Url("high"), OwnerHttpBinding.ProviderSetupCheckPayload(
             new OwnerProviderSetupCheckAction("claude", "claude-haiku-5-5", Thinking: "high")), StringComparison.Ordinal);

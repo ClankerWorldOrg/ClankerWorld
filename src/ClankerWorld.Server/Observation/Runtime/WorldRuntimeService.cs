@@ -27,7 +27,7 @@ public sealed partial class WorldRuntimeService(
     private readonly Dictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
 
     [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
-        Message = "world_action_refused tick={WorldTick} agent={AgentId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
+        Message = "world_action_refused tick={WorldTick} inhabitant={AgentId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
     private static partial void LogActionRefused(ILogger logger, long worldTick, string agentId, string choiceKind, string check);
 
     private static string RefusedChoiceKind(string candidate) => candidate.Split(':', 2)[0] switch
@@ -46,23 +46,23 @@ public sealed partial class WorldRuntimeService(
 
 
     [LoggerMessage(EventId = 2215, Level = LogLevel.Information,
-        Message = "work_practice tick={WorldTick} agent={AgentId} building={Building} farming={Farming} crafting={Crafting}")]
+        Message = "work_practice tick={WorldTick} inhabitant={AgentId} building={Building} farming={Farming} crafting={Crafting}")]
     private static partial void LogWorkPractice(ILogger logger, long worldTick, string agentId, int building, int farming, int crafting);
 
     [LoggerMessage(EventId = 2216, Level = LogLevel.Information,
-        Message = "social_standing tick={WorldTick} agent={AgentId} subject={SubjectId} trust={Trust} reason={Reason}")]
+        Message = "social_standing tick={WorldTick} inhabitant={AgentId} subject={SubjectId} trust={Trust} reason={Reason}")]
     private static partial void LogSocialStanding(ILogger logger, long worldTick, string agentId, string subjectId, int trust, string reason);
 
     [LoggerMessage(EventId = 2271, Level = LogLevel.Information,
-        Message = "tree_planting tick={WorldTick} agent={AgentId} outcome={Outcome} detail={Detail}")]
+        Message = "tree_planting tick={WorldTick} inhabitant={AgentId} outcome={Outcome} detail={Detail}")]
     private static partial void LogTreePlanting(ILogger logger, long worldTick, string agentId, string outcome, string detail);
 
     [LoggerMessage(EventId = 2218, Level = LogLevel.Information,
-        Message = "hosted_decision tick={WorldTick} agent={AgentId} outcome={Outcome}")]
+        Message = "hosted_decision tick={WorldTick} inhabitant={AgentId} outcome={Outcome}")]
     private static partial void LogHostedDecision(ILogger logger, long worldTick, string agentId, string outcome);
 
     [LoggerMessage(EventId = 2288, Level = LogLevel.Information,
-        Message = "agent_identity_changed tick={WorldTick} agent={AgentId}")]
+        Message = "agent_identity_changed tick={WorldTick} inhabitant={AgentId}")]
     private static partial void LogIdentityChanged(ILogger logger, long worldTick, string agentId);
 
     [LoggerMessage(EventId = 2255, Level = LogLevel.Information,
@@ -879,7 +879,7 @@ public sealed partial class WorldRuntimeService(
     }
 
     [LoggerMessage(EventId = 2212, Level = LogLevel.Information,
-        Message = "production_cancelled tick={WorldTick} job={JobId} agent={AgentId} reason=worker_unavailable")]
+        Message = "production_cancelled tick={WorldTick} job={JobId} inhabitant={AgentId} reason=worker_unavailable")]
     private static partial void LogProductionCancelled(ILogger logger, long worldTick, string jobId, string agentId);
 
     [LoggerMessage(EventId = 2209, Level = LogLevel.Information,
@@ -908,12 +908,12 @@ public sealed partial class WorldRuntimeService(
         int boatRequests, int retiredBoatRanges);
 
     [LoggerMessage(EventId = 2204, Level = LogLevel.Information,
-        Message = "project_activity tick={WorldTick} event={EventKind} agent={AgentId} stage={Stage} work={WorkDone} blocked={Blocked}")]
+        Message = "project_activity tick={WorldTick} event={EventKind} inhabitant={AgentId} stage={Stage} work={WorkDone} blocked={Blocked}")]
     private static partial void LogProjectActivity(ILogger logger, long worldTick, string eventKind,
         string agentId, string stage, int workDone, bool blocked);
 
     [LoggerMessage(EventId = 2205, Level = LogLevel.Information,
-        Message = "survival_condition tick={WorldTick} agent={AgentId} warmth={Warmth} illness={Illness} illness_work_percent={IllnessWorkPercent} illness_travel_delay={IllnessTravelDelay}")]
+        Message = "survival_condition tick={WorldTick} inhabitant={AgentId} warmth={Warmth} illness={Illness} illness_work_percent={IllnessWorkPercent} illness_travel_delay={IllnessTravelDelay}")]
     private static partial void LogSurvivalCondition(ILogger logger, long worldTick, string agentId, int warmth, int illness,
         int illnessWorkPercent, int illnessTravelDelay);
 
@@ -924,7 +924,7 @@ public sealed partial class WorldRuntimeService(
     [LoggerMessage(
         EventId = 2201,
         Level = LogLevel.Information,
-        Message = "cognition_decision tick={WorldTick} agent={AgentId} accepted={Accepted} fallback={FellBack} outcome={Outcome} provider={Provider} candidate={CandidateId} confidence={Confidence} model={Model} input_tokens={InputTokens} output_tokens={OutputTokens}")]
+        Message = "cognition_decision tick={WorldTick} inhabitant={AgentId} accepted={Accepted} fallback={FellBack} outcome={Outcome} provider={Provider} candidate={CandidateId} confidence={Confidence} model={Model} input_tokens={InputTokens} output_tokens={OutputTokens}")]
     private static partial void LogCognitionDecision(
         ILogger logger,
         long worldTick,

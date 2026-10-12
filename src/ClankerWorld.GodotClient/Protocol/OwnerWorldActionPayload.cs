@@ -227,7 +227,7 @@ public static class OwnerWorldActionPayload
             $"api-key-sha256={apiKeyDigest}",
             $"forget-credential={action.ForgetCredential.ToString().ToLowerInvariant()}");
         if (action.AgentId is not null)
-            payload += "\nagent=" + EncodeRequired(action.AgentId, nameof(action.AgentId));
+            payload += "\ninhabitant=" + EncodeRequired(action.AgentId, nameof(action.AgentId));
         if (action.CredentialSlotId is not null)
             payload += "\ncredential-slot=" + EncodeRequired(action.CredentialSlotId, nameof(action.CredentialSlotId));
         if (action.NewCredentialLabel is not null)

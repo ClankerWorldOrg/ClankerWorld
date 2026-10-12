@@ -105,7 +105,7 @@ internal static partial class TownTelemetry
     }
 
     [LoggerMessage(EventId = 2266, Level = LogLevel.Information,
-        Message = "town_site_rejected tick={WorldTick} town={TownId} agent={AgentId} building={BuildingId} x={X} y={Y} reason={Reason}")]
+        Message = "town_site_rejected tick={WorldTick} town={TownId} inhabitant={AgentId} building={BuildingId} x={X} y={Y} reason={Reason}")]
     private static partial void LogTownSiteRejected(ILogger logger, long worldTick, string townId, string agentId,
         string buildingId, int x, int y, string reason);
 
