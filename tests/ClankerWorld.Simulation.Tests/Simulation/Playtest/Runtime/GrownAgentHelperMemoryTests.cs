@@ -422,7 +422,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
     }
 
-    private static async Task WaitForRequests(PrivateWorldRuntime world)
+    internal static async Task WaitForRequests(PrivateWorldRuntime world)
     {
         var field = typeof(PrivateWorldRuntime).GetField("pendingHosted", BindingFlags.Instance | BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));

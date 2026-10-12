@@ -30,6 +30,7 @@ public partial class Main
         FitFloatingPanelsToContents();
         BuildStatusToast(uiLayer);
         BuildSaveDiskWarning(uiLayer);
+        BuildPendingSubmissionRecovery(uiLayer);
         AddChild(menuLayer);
         BuildMainMenu();
         BuildManualSavesPanel();
@@ -52,7 +53,7 @@ public partial class Main
         body.AddThemeConstantOverride("separation", 6);
         var controls = new HBoxContainer();
         controls.AddThemeConstantOverride("separation", 8);
-        worldUrlInput.PlaceholderText = "https://your-tailnet-host:8443";
+        worldUrlInput.PlaceholderText = "https://your-world-server:8443";
         worldUrlInput.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         controls.AddChild(worldUrlInput);
         connectButton.Text = "Connect";
@@ -114,12 +115,12 @@ public partial class Main
         pairingInstructionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(pairingInstructionLabel);
         var codeRow = new HBoxContainer();
-        codeRow.AddChild(new Label { Text = "comparison code:" });
+        codeRow.AddChild(new Label { Text = "Comparison code:" });
         pairingCodeLabel.AddThemeFontSizeOverride("font_size", UiFonts.Body * 2);
         codeRow.AddChild(pairingCodeLabel);
         body.AddChild(codeRow);
         var idRow = new HBoxContainer();
-        idRow.AddChild(new Label { Text = "pairing ID:" });
+        idRow.AddChild(new Label { Text = "Pairing ID:" });
         pairingIdLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         idRow.AddChild(pairingIdLabel);
         body.AddChild(idRow);
@@ -128,7 +129,7 @@ public partial class Main
         pairButton.Text = "Start pairing";
         pairButton.Pressed += () => _ = StartPairingAsync();
         buttons.AddChild(pairButton);
-        forgetRegistrationButton.Text = "Forget local registration";
+        forgetRegistrationButton.Text = "Forget saved connection";
         forgetRegistrationButton.Pressed += ForgetLocalRegistration;
         buttons.AddChild(forgetRegistrationButton);
         body.AddChild(buttons);

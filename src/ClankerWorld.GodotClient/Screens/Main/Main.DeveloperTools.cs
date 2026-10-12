@@ -9,7 +9,7 @@ namespace ClankerWorld.GodotClient;
 /// shows the tile under the pointer, frame time, the host's tick time and
 /// the agent count; jumps the camera to any agent and draws their planned
 /// path as the server reports it; and holds the older testing tools (life
-/// speed, lost-reply recovery, paused world editing and paired devices).
+/// speed, paused world editing and paired devices).
 /// </summary>
 public partial class Main
 {
@@ -47,7 +47,7 @@ public partial class Main
         developerTileLabel.Text = "Point at the map.";
         readouts.AddChild(MetricRow("Tile", developerTileLabel));
         readouts.AddChild(MetricRow("Frame time", developerFrameLabel));
-        developerTickLabel.TooltipText = "How long the host took to work out the latest world tick, not counting saving it.";
+        developerTickLabel.TooltipText = "How long the world server took to work out the latest world tick, not counting saving it.";
         readouts.AddChild(MetricRow("Tick time", developerTickLabel));
         readouts.AddChild(MetricRow("Refused actions", developerRefusedActionLabel));
         readouts.AddChild(MetricRow("Agents", developerAgentCountLabel));
@@ -61,7 +61,7 @@ public partial class Main
         developerAgentList.ItemSelected += JumpToDeveloperAgent;
         agents.AddChild(developerAgentList);
         developerPathToggle.Text = "Show planned path";
-        developerPathToggle.TooltipText = "Draw the route the selected agent is walking, as the host planned it.";
+        developerPathToggle.TooltipText = "Draw the route the selected agent is walking, as the world server planned it.";
         developerPathToggle.Toggled += _ => RenderDeveloperRoute();
         agents.AddChild(developerPathToggle);
         developerRouteLabel.ThemeTypeVariation = "DimLabel";
@@ -77,7 +77,6 @@ public partial class Main
         });
         BuildDeveloperEdits();
         BuildDeveloperLifePace();
-        BuildDeveloperRecovery();
         BuildDeveloperAuthoring();
         BuildDeveloperDevices();
 
@@ -100,15 +99,15 @@ public partial class Main
     private void BuildDeveloperLifePace()
     {
         var lifePaceRow = new HBoxContainer();
-        lifePaceRow.AddChild(new Label { Text = "Aging multiplier" });
+        lifePaceRow.AddChild(new Label { Text = "Speed" });
         lifePaceChoice.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         lifePaceChoice.AddItem("Calendar", 1);
         lifePaceChoice.AddItem("Generations", 365);
         lifePaceChoice.AddItem("Fast generations", 1_460);
         lifePaceChoice.SetItemTooltip(0, "Original aging: one biological year per 365 world days.");
-        lifePaceChoice.SetItemTooltip(1, "One biological year per world day (about 24 active minutes).");
-        lifePaceChoice.SetItemTooltip(2, "One biological year per quarter-day (about 6 active minutes).");
-        lifePaceChoice.TooltipText = "Prototype override only: changes future biological aging without changing the calendar, seasons or model-call speed. This is not the decided 40-day year or six-hour lifespan.";
+        lifePaceChoice.SetItemTooltip(1, "One biological year per world day.");
+        lifePaceChoice.SetItemTooltip(2, "One biological year per quarter of a world day.");
+        lifePaceChoice.TooltipText = "A testing control that changes how fast agents age from now on, without changing the calendar, seasons or how often models are called; it is not the planned 40-day year or six-hour lifespan.";
         lifePaceRow.AddChild(lifePaceChoice);
         applyLifePaceButton.Text = "Apply";
         StyleButton(applyLifePaceButton);
@@ -117,28 +116,11 @@ public partial class Main
         var prototypePaceBody = new VBoxContainer();
         prototypePaceBody.AddChild(new Label
         {
-            Text = "Experimental prototype control. The decided world calendar and lifespan are not implemented by this setting.",
+            Text = "For testing only. This does not set the world's planned calendar or lifespan.",
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         });
         prototypePaceBody.AddChild(lifePaceRow);
-        developerBody.AddChild(NewPanel("Prototype aging override", prototypePaceBody));
-    }
-
-    private void BuildDeveloperRecovery()
-    {
-        var retryBody = new VBoxContainer();
-        pendingSubmissionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        retryBody.AddChild(pendingSubmissionLabel);
-        var retryButtons = new HBoxContainer();
-        retryPendingSubmissionButton.Text = "Retry retained request";
-        retryPendingSubmissionButton.Pressed += () => _ = RetryPendingSubmissionAsync();
-        retryButtons.AddChild(retryPendingSubmissionButton);
-        forgetPendingSubmissionButton.Text = "Forget retained request";
-        forgetPendingSubmissionButton.Pressed += ForgetPendingSubmission;
-        retryButtons.AddChild(forgetPendingSubmissionButton);
-        retryBody.AddChild(retryButtons);
-        developerBody.AddChild(NewPanel("Response-loss recovery · exact server retry", retryBody));
-        RenderPendingSubmission();
+        developerBody.AddChild(NewPanel("Aging override", prototypePaceBody));
     }
 
     private void BuildDeveloperAuthoring()
@@ -158,15 +140,15 @@ public partial class Main
         ConfigureCoordinate(authoringY, "y");
         coordinateRow.AddChild(authoringX);
         coordinateRow.AddChild(authoringY);
-        authoringRenewable.Text = "renewable resource";
+        authoringRenewable.Text = "Renewable resource";
         coordinateRow.AddChild(authoringRenewable);
         authoringBody.AddChild(coordinateRow);
         authoringHintLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         authoringBody.AddChild(authoringHintLabel);
-        submitAuthoringButton.Text = "Apply one paused authoring operation";
+        submitAuthoringButton.Text = "Apply this edit";
         submitAuthoringButton.Pressed += () => _ = SubmitAuthoringAsync();
         authoringBody.AddChild(submitAuthoringButton);
-        developerBody.AddChild(NewPanel("Paused authoring · server validates atomically", authoringBody));
+        developerBody.AddChild(NewPanel("Paused world editing", authoringBody));
     }
 
     private void BuildDeveloperDevices()
@@ -177,10 +159,10 @@ public partial class Main
         pairingApprovalCode.PlaceholderText = "Six-digit comparison code";
         pairingApprovalCode.Secret = true;
         deviceManagementBody.AddChild(pairingApprovalCode);
-        approvePairingButton.Text = "Approve paired device";
+        approvePairingButton.Text = "Approve new device";
         approvePairingButton.Pressed += () => _ = ApprovePairingAsync();
         deviceManagementBody.AddChild(approvePairingButton);
-        refreshDevicesButton.Text = "Refresh signed device list";
+        refreshDevicesButton.Text = "Refresh device list";
         refreshDevicesButton.Pressed += () => _ = RefreshDeviceRegistryAsync();
         deviceManagementBody.AddChild(refreshDevicesButton);
         pairedDeviceList.CustomMinimumSize = new Vector2(0, 104);
@@ -198,7 +180,7 @@ public partial class Main
         revokeDeviceButton.Text = "Revoke other device";
         revokeDeviceButton.Pressed += () => _ = RevokeDeviceAsync();
         deviceManagementBody.AddChild(revokeDeviceButton);
-        developerBody.AddChild(NewPanel("Paired-device management · signed server requests", deviceManagementBody));
+        developerBody.AddChild(NewPanel("Paired-device management", deviceManagementBody));
     }
 
     /// <summary>F12: opens or closes the panel. Time keeps running either way.</summary>
@@ -252,8 +234,8 @@ public partial class Main
         var died = snapshot.Inhabitants.Count(person => !person.IsDraft && !IsLiving(person));
         developerAgentCountLabel.Text = died == 0 ? $"{living} living" : $"{living} living · {died} died";
         developerTickLabel.Text = snapshot.LastTickMilliseconds is { } milliseconds
-            ? $"{milliseconds.ToString("0.0", CultureInfo.InvariantCulture)} ms on the host · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}"
-            : $"Not reported by this host yet · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}";
+            ? $"{milliseconds.ToString("0.0", CultureInfo.InvariantCulture)} ms on the world server · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}"
+            : $"Not reported by this world server yet · tick {snapshot.WorldTick.ToString("N0", CultureInfo.InvariantCulture)}";
         RenderDeveloperAgentList(snapshot);
         RenderDeveloperTile();
         RenderDeveloperRoute();

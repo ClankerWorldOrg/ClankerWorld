@@ -121,8 +121,8 @@ public partial class Main
                     exception is not ObsoleteWorldRequestException)
                 {
                     if (currentRevision() == testedRevision)
-                        resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: No result was received. Check paid-call usage before trying again.";
-                    return "The setup-check result was not received. Check paid-call usage before retrying.";
+                        resultLabel.Text = $"{ProviderDisplayName(provider)} / {model}: No result arrived. Check your model-call count before trying again.";
+                    return "The test result didn't arrive. Check your model-call count before trying again.";
                 }
             });
         }
@@ -162,8 +162,8 @@ public partial class Main
             cognitionModelSetupCheckButton.GetParent() != cognitionModelPicker.GetParent() ||
             founderModelSetupCheckButton.Text != "Test model · 1 paid call" ||
             cognitionModelSetupCheckButton.Text != "Test model · 1 paid call" ||
-            !founderModelSetupCheckButton.TooltipText.Contains("counts toward your paid-call limit", StringComparison.OrdinalIgnoreCase) ||
-            !cognitionModelSetupCheckButton.TooltipText.Contains("counts toward your paid-call limit", StringComparison.OrdinalIgnoreCase))
+            !founderModelSetupCheckButton.TooltipText.Contains("counts toward your model-call limit", StringComparison.OrdinalIgnoreCase) ||
+            !cognitionModelSetupCheckButton.TooltipText.Contains("counts toward your model-call limit", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("Add Agent and an agent's Model panel must expose the same explicit one-paid-call setup check beside the model picker.");
 
         try

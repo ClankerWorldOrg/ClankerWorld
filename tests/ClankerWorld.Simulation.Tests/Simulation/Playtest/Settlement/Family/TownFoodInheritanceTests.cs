@@ -8,21 +8,22 @@ namespace ClankerWorld.Simulation.Tests;
 public sealed class TownFoodInheritanceTests
 {
     [Theory]
-    [InlineData("eggs", null, true)]
-    [InlineData("milk", null, true)]
-    [InlineData("milk", "storage_pot", true)]
-    [InlineData("cooked_eggs", null, true)]
-    [InlineData("milk_porridge", "storage_pot", true)]
-    [InlineData("rich_meal", "storage_pot", true)]
-    [InlineData("berry_porridge", "storage_pot", true)]
-    [InlineData("fresh_water", "water_jug", false)]
-    [InlineData("wood", null, false)]
-    public async Task NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels(string kind, string? vesselKind, bool household)
+    [InlineData("eggs", null, true, false)]
+    [InlineData("milk", null, true, false)]
+    [InlineData("milk", "storage_pot", true, false)]
+    [InlineData("cooked_eggs", null, true, false)]
+    [InlineData("milk_porridge", "storage_pot", true, false)]
+    [InlineData("rich_meal", "storage_pot", true, false)]
+    [InlineData("berry_porridge", "storage_pot", true, false)]
+    [InlineData("fresh_water", "water_jug", false, false)]
+    [InlineData("wood", null, false, false)]
+    [InlineData("cooked_eggs", null, true, true)]
+    public async Task NativeTownBequestsKeepFoodWithHouseholdBeneficiariesAndVessels(string kind, string? vesselKind, bool household, bool holdWill)
     {
         const string deceased = "founder:00000000000000000000000000000001";
         var will = new PostDeathWillTests.WillProvider(CognitionWillContext.HeirsCandidateId, observation =>
             new CognitionWillChoice([observation.Will!.Heirs.Single(heir => heir.Key.StartsWith("will:town:", StringComparison.Ordinal)).Key],
-                CognitionWillContext.EqualSplit));
+                CognitionWillContext.EqualSplit), hold: holdWill, ignoreCancellation: holdWill);
         IDecisionProvider Provider(string id) => id == deceased ? will : new DeterministicDecisionProvider();
         using var generated = NormalPathWorld.CreateGenerated("new-food-town-will-audit", Provider);
         var state = generated.ExportState();
@@ -53,11 +54,23 @@ public sealed class TownFoodInheritanceTests
         using var world = PrivateWorldRuntime.Restore(PrivateWorldRuntimeCodec.Decode(PrivateWorldRuntimeCodec.Encode(state)), Provider);
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates);
-        for (var attempt = 0; attempt < 40 && world.Society.GetEstate(estate.Id).WillStatus is null or "pending"; attempt++)
+        // Wait at the death checkpoint; polling with ticks can expire the will.
+        var pendingWill = NativeWillFixture.PendingTask(world);
+        var frozen = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+        var waiting = pendingWill.WaitAsync(TimeSpan.FromSeconds(30));
+        if (holdWill)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(10);
+            try
+            {
+                await will.Called.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                Assert.False(waiting.IsCompleted);
+            }
+            finally { will.ReleaseHeldResponse(); }
         }
+        await waiting;
+        Assert.Equal(frozen, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+        Assert.Equal("pending", world.Society.GetEstate(estate.Id).WillStatus);
+        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         estate = world.Society.GetEstate(estate.Id);
         Assert.Equal("accepted", estate.WillStatus);
         Assert.Equal(TownBorderRules.FirstTownId, Assert.Single(estate.WillHeirIds!));

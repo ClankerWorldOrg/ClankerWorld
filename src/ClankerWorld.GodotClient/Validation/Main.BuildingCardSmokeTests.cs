@@ -132,8 +132,8 @@ public partial class Main
             var currentOwner = currentBuilding.HouseholdId is null ? "First Town" : "Founder's household";
             if (!hearingFacts.Contains("Owner\n" + currentOwner, StringComparison.Ordinal) ||
                 (kind == "property" && (hearingFacts.Contains("This hearing does not change", StringComparison.Ordinal) ||
-                    hearingFacts.Contains("Use permission\n", StringComparison.Ordinal))) ||
-                (kind != "property" && (!hearingFacts.Contains("Use permission\n", StringComparison.Ordinal) ||
+                    hearingFacts.Contains("Use right\n", StringComparison.Ordinal))) ||
+                (kind != "property" && (!hearingFacts.Contains("Use right\n", StringComparison.Ordinal) ||
                     !hearingFacts.Contains("This hearing does not change the building's owner or access", StringComparison.Ordinal))) ||
                 (settled && kind == "property" && !hearingFacts.Contains("Property outcome\n" + LandHearingText.Outcome(outcome, DisplayWorldClock), StringComparison.Ordinal)) ||
                 (!settled && hearingFacts.Contains("Property outcome\n", StringComparison.Ordinal)))
@@ -141,9 +141,9 @@ public partial class Main
             if (settled)
             {
                 var description = WorldEventText.Describe(new(1, 25, "town_civic_result", "town:first|" + ruling.Id + "|Recorded outcome."), hearingMap);
-                if (kind == "property" ? !description.Contains("property ruling", StringComparison.Ordinal) || description.Contains("permission change", StringComparison.Ordinal)
-                    : !description.Contains("permission change", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Ruling event text must describe the same recorded property or use-permission case as its building card.");
+                if (kind == "property" ? !description.Contains("property ruling", StringComparison.Ordinal) || description.Contains("use right change", StringComparison.Ordinal)
+                    : !description.Contains("use right change", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Ruling event text must describe the same recorded property or use-right case as its building card.");
             }
         }
         RenderBuildingCard(buildingMap);

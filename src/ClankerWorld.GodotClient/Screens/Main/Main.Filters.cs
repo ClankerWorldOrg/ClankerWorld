@@ -46,7 +46,7 @@ public partial class Main
 
         disputedLandFilter.TooltipText = "Stripe land with conflicting household claims.";
         disputedLandFilter.Toggled += _ => ApplyMapFiltersFromCurrentSnapshot();
-        body.AddChild(FilterRow(disputedLandFilter, FilterLook.Dispute, "Disputed land", "Red stripes where claims overlap or permission is under review"));
+        body.AddChild(FilterRow(disputedLandFilter, FilterLook.Dispute, "Disputed land", "Red stripes where claims overlap or a use right is under review"));
         AddClosablePanelContents(filtersPanel, "Map filters", body);
         filtersPanel.CustomMinimumSize = new Vector2(320, 0);
         filtersPanel.ZIndex = 85;

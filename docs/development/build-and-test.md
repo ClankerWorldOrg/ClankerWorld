@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-11
+updated: 2026-10-12
 ---
 
 # Build and test
@@ -124,6 +124,13 @@ Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
 
+The owner-action body-deadline fixture completes its stalled read directly from
+the actual read token's cancellation callback. It retains the initial partial
+JSON, both body locations and both cancellation sources, the 500 ms client
+setting and five-second diagnostic waits. The stream adds no asynchronous
+continuation between cancellation and read completion. The following real pause
+must still acquire the released action gate.
+
 The held collection-cancellation check keeps the first collected load fixed
 while waiting for actual provider invocation, the validated operative request
 and the constructed late reply. Its deferred-entry case opens a preparation
@@ -155,6 +162,17 @@ partnership answer stays held throughout; denied-tick bytes, continued training,
 unanswered partnership and strict reload remain checked. Pause must finish the
 actual cancelled hosted task without changing the paused checkpoint.
 
+The initial identity-pause fixture snapshots its registered worker through the
+existing shared hosted-request wait after one committed native tick. It observes
+the real request and cancellation token at provider entry with the complete
+checkpoint frozen, then checks pause cancellation and the finished late reply
+without changing the paused checkpoint. The wait is captured before pause
+removes the live pending call; no new private-field reflection is added.
+The saved identity opportunity remains unconsumed on strict restore, with no
+late personality, aspiration or identity event applied. Immediate, deferred and
+four-second entry cases use thirty-second phase diagnostic bounds; no extra
+native tick is spent on scheduling.
+
 The held identity-routing fixture waits for the runtime's hosted task to finish
 before polling admission. Its deferred-return case holds the provider after
 constructing the reply and checks that the wait keeps the complete checkpoint
@@ -173,6 +191,9 @@ with a kept identity in the other. The child household-change fixture awaits all
 four queues without advancing another tick, retaining complete checkpoint bytes,
 strict file reload, cargo and refused-arrival checks. Its controlled identity
 check holds a real provider request to verify that the fixture waits at this boundary.
+Town food-inheritance checks likewise await the registered will task at the death
+checkpoint before its next admission tick, so polling a background worker cannot
+advance the will deadline.
 
 The held storage-cancellation check keeps the world at its first committed
 load while waiting for actual provider invocation, the validated operative
@@ -190,6 +211,15 @@ checked. Entry and reply signals use the shared thirty-second diagnostic
 bound while checkpoint bytes and position stay fixed. Cancellation still
 keeps the order cancelled with zero progress and the agent stationary through
 the original bounded post-cancellation polling.
+
+The held field-cancellation fixture stops at its first working frame, or after
+the deliberate two additional ticks in its deferred-entry row. It captures the
+existing shared hosted-task wait before cancelling the order, then waits for
+actual provider entry without advancing the world. The deferred row also delays
+entry by one second. Waiting for entry and releasing the cancelled reply must
+keep checkpoint bytes unchanged; the original eight subsequent ticks still
+check the cancelled order, unspent seed, released reservation and absent planting
+event. Polling additional ticks for entry could finish planting before cancellation.
 
 The long-recipe tool-request fixture admits its request through the personal
 provider and saves it through the real host. For byte-for-byte continuation,

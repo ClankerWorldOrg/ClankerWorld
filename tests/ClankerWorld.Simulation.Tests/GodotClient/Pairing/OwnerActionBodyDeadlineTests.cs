@@ -33,7 +33,12 @@ public sealed class OwnerActionBodyDeadlineTests
             await api.SetPausedAsync(new("http://127.0.0.1:5188"), new("server", "world"), "device", true, signer, cancellation.Token));
         await handler.Body.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
         if (callerCancels) cancellation.Cancel();
-        try { await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(5))); }
+        try
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first.WaitAsync(TimeSpan.FromSeconds(5)));
+            Assert.True(handler.Body.ReadToken.IsCancellationRequested);
+            Assert.Equal(callerCancels, cancellation.IsCancellationRequested);
+        }
         finally { cancellation.Cancel(); }
         Assert.True(handler.Body.Cancelled);
         OwnerControlReceipt? receipt = null;
@@ -70,19 +75,28 @@ public sealed class OwnerActionBodyDeadlineTests
     {
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool Cancelled { get; private set; }
+        public CancellationToken ReadToken { get; private set; }
+        // Complete the read from cancellation itself, without a second queued
+        // fixture continuation competing with the outer diagnostic deadline.
+        private readonly TaskCompletionSource<int> read = new();
+        private CancellationTokenRegistration cancellation;
         private bool began;
-        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             if (!began)
             {
                 began = true;
                 buffer.Span[0] = (byte)'{';
-                return 1;
+                return ValueTask.FromResult(1);
             }
+            ReadToken = cancellationToken;
+            cancellation = cancellationToken.Register(() =>
+            {
+                Cancelled = true;
+                read.TrySetCanceled(cancellationToken);
+            });
             Started.TrySetResult();
-            try { await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken); }
-            catch (OperationCanceledException) { Cancelled = true; throw; }
-            return 0;
+            return new(read.Task);
         }
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
             ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
@@ -96,6 +110,11 @@ public sealed class OwnerActionBodyDeadlineTests
         public override void SetLength(long value) => throw new NotSupportedException();
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
         public override void Flush() { }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) cancellation.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
     private sealed class Signer : IOwnerDeviceSigner

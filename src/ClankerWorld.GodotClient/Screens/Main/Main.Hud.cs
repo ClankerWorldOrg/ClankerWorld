@@ -524,15 +524,15 @@ public partial class Main
         if (town.Governance is not { } council) return "";
         var lines = new List<string>
         {
-            town.IsAbandoned ? "No active council. An adult here may explicitly resettle the Town." :
+            town.IsAbandoned ? "No council: nobody lives here. An adult who comes here can choose to resettle the Town." :
                 council.Form == "leader" ? "Ordinary decisions: elected governing leader" :
                 council.Form == "representative" ? "Council: elected representatives" : "Council: all adult residents",
             council.MemberNames.Count == 0 ? "No adult councillors." : string.Join(", ", council.MemberNames),
         };
-        if (town.IsAbandoned) lines.Add("Unreserved communal stock may be salvaged in person. Private property and existing laws remain.");
+        if (town.IsAbandoned) lines.Add("Adults who come here can salvage shared stock that isn't set aside. Private property and existing laws remain.");
         if (council.TermEndTick is { } termEnd) lines.Add("Term ends " + DisplayWorldClock(termEnd));
-        if (council.Fallback == "candidates") lines.Add("All adults govern while the Town seeks a supported council.");
-        if (council.Fallback == "demographic") lines.Add("Representation resumes at four adult residents.");
+        if (council.Fallback == "candidates") lines.Add("All adults decide together until enough adults agree to stand for the council.");
+        if (council.Fallback == "demographic") lines.Add("At four adult residents, the Town can elect a council again.");
         if (council.Election is { } election)
         {
             var stage = election.Stage switch
@@ -544,19 +544,19 @@ public partial class Main
             };
             lines.Add($"{CivicElectionName(election.Kind)} · {stage} · {election.Seats} {(election.Seats == 1 ? "seat" : "seats")}");
             if (election.Stage is "main" or "runoff") lines.Add("Voting closes " + DisplayWorldClock(election.DeadlineTick));
-            lines.Add(election.Candidates.Count == 0 ? "No willing eligible candidates in this contest." :
+            lines.Add(election.Candidates.Count == 0 ? "Nobody eligible has agreed to stand in this election." :
                 string.Join(" · ", election.Candidates.Select(c => $"{c.Name}: {c.Votes} {(c.Votes == 1 ? "vote" : "votes")}")));
             if (election.SettledNames.Count > 0) lines.Add("Chosen: " + string.Join(", ", election.SettledNames));
             if (election.Stage == "ready" && election.Kind == "regular" && council.TermEndTick is { } currentTermEnd && currentTermEnd > tick)
                 lines.Add("The chosen representatives take office when the current term ends.");
         }
-        else if (council.RetryTick > tick) lines.Add("Election retry after " + DisplayWorldClock(council.RetryTick));
+        else if (council.RetryTick > tick) lines.Add("Next election attempt after " + DisplayWorldClock(council.RetryTick));
         if (council.LatestElection is { } latest)
         {
             lines.Add(latest.Stage switch
             {
                 "completed" => "Last election completed: " + string.Join(", ", latest.SettledNames),
-                "failed" => "The last election did not elect a supported council.",
+                "failed" => "The last election didn't produce a council.",
                 "cancelled" => "The last election was cancelled.",
                 _ => "The last election has ended.",
             });
@@ -591,7 +591,7 @@ public partial class Main
         foreach (var hearing in town.NonviolentCases)
             lines.AddRange(NonviolentHearingText.Details(hearing, DisplayWorldClock, observedCalendarPace?.TicksPerDay ?? 1_440));
         if (town.LandTransferCount > town.LandTransfers.Count)
-            lines.Add($"Showing {town.LandTransfers.Count} pending or recent permission transfers of {town.LandTransferCount}.");
+            lines.Add($"Showing {town.LandTransfers.Count} pending or recent use right transfers of {town.LandTransferCount}.");
         foreach (var transfer in town.LandTransfers)
             lines.AddRange(LandTransferText.Details(transfer, DisplayWorldClock));
         // Proposals are written by agents' models, which may use the font's mid-height ellipsis.
@@ -633,13 +633,13 @@ public partial class Main
             lines.Add(office.HolderName is { } holder ? $"{holder}: {office.Mandate}; term ends " + DisplayWorldClock(office.TermEndTick!.Value)
                 : $"Vacant: {office.Mandate}. {office.VacancyReason}");
         lines.Add(government.NonLandAuthorized
-            ? "Non-land hearings are separately authorized by residents; remedies require each contributor's consent."
-            : "Non-land adjudication is not authorized. Formal cases wait; Council mediation remains voluntary.");
+            ? "Residents have allowed non-land hearings. Any remedy needs each contributor's own agreement."
+            : "Residents haven't allowed non-land hearings. Formal cases wait; Council mediation is still voluntary.");
         if (government.NonLandAuthority is { } authority)
-            lines.Add("Non-land authority: " + authority.HolderName + " · effective " + DisplayWorldClock(authority.EffectiveTick) +
-                " · existing term ends " + DisplayWorldClock(authority.TermEndTick) + ".");
-        else if (government.NonLandAuthorized) lines.Add("No current non-land officeholder; eligible independent case elections remain available.");
-        if (government.Offices.Count > 0) lines.Add("Land permission and non-land hearings are separate mandates. An office grants no ownership.");
+            lines.Add("Judge for non-land cases: " + authority.HolderName + " · from " + DisplayWorldClock(authority.EffectiveTick) +
+                " · current term ends " + DisplayWorldClock(authority.TermEndTick) + ".");
+        else if (government.NonLandAuthorized) lines.Add("Nobody holds the non-land judging office; residents can still elect an independent judge for each case.");
+        if (government.Offices.Count > 0) lines.Add("Land hearings and non-land hearings are separate duties. Holding an office gives no ownership.");
         foreach (var grant in government.NonLandGrants)
             lines.Add(grant.HolderName + " accepted added non-land duties · " + DisplayWorldClock(grant.ConsentTick) +
                 " · effective " + DisplayWorldClock(grant.EffectiveTick) + "; original " + grant.BaseMandate +
@@ -648,7 +648,7 @@ public partial class Main
         {
             lines.Add($"{Pretty(change.Status)} resident proposal: {change.Declaration}");
             if (change.Status == "voting") lines.Add($"{change.Yes} yes / {change.No} no · {change.RequiredYes} yes needed · closes " + DisplayWorldClock(change.DeadlineTick!.Value));
-            if (change.Status == "handover") lines.Add("Incumbent authority continues; handover due by " + DisplayWorldClock(change.HandoverDeadlineTick!.Value));
+            if (change.Status == "handover") lines.Add("The current officeholders stay until the handover, due by " + DisplayWorldClock(change.HandoverDeadlineTick!.Value));
             if (change.NonLandExtension is { } extension)
                 lines.Add("Proposed added non-land duties for " + extension.HolderName + " · " +
                     (extension.ConsentTick is { } consent ? "personally accepted " + DisplayWorldClock(consent) : "awaiting personal acceptance") +
@@ -661,12 +661,12 @@ public partial class Main
             if (election.Stage == "voting" && election.DeadlineTick is { } deadline) lines.Add("Voting closes " + DisplayWorldClock(deadline));
             if (election.Stage == "waiting") lines.Add("Waiting for the Council election to finish. No mayoral ballots are being collected.");
             if (election.Candidates.Count > 0) lines.Add(string.Join(" · ", election.Candidates.Select(c => $"{c.Name}: {c.Votes} {(c.Votes == 1 ? "vote" : "votes")}")));
-            if (election.WinnerName is { } winner) lines.Add("Selected: " + winner + (election.Stage == "ready" ? "; awaiting a valid handover or term start." : "."));
+            if (election.WinnerName is { } winner) lines.Add("Selected: " + winner + (election.Stage == "ready" ? "; waiting to take office." : "."));
             if (election.Reason is { } reason) lines.Add(reason);
         }
         if (government.Election is { } live) Election(live, false);
         if (government.LatestElection is { } latest) Election(latest, true);
-        if (government.Election is null && government.RetryTick > tick) lines.Add("Mayoral retry after " + DisplayWorldClock(government.RetryTick));
+        if (government.Election is null && government.RetryTick > tick) lines.Add("Next mayoral election attempt after " + DisplayWorldClock(government.RetryTick));
         if (government.LawCount > government.Laws.Count) lines.Add($"Showing the latest {government.Laws.Count} of {government.LawCount} laws.");
         foreach (var law in government.Laws)
         {
@@ -695,7 +695,7 @@ public partial class Main
             lines.Add($"{name} · {Plural(market.Stalls.Count, "stall")} built · {borrowed} borrowed");
             lines.Add(market.RemovedTick is null
                 ? $"Town-owned Market · {market.PlazaWidth} × {market.PlazaHeight} plaza · any Town's adults may trade"
-                : "Market removed · earlier goods retain their recorded owners");
+                : "Market removed · earlier goods keep their recorded owners");
             foreach (var stall in market.Stalls)
             {
                 lines.Add(MarketStallText(stall, market.RemovedTick is not null));
@@ -713,7 +713,7 @@ public partial class Main
             ? $"borrowed by {stall.SellerName ?? stall.SellerId}" : "free to borrow");
 
     private static string MarketStockText(OwnerWorldMarketStock stock) =>
-        $"{stock.Quantity} {GameUiText.ItemName(stock.Kind)} · owner: {stock.OwnerName} · {stock.AvailableQuantity} usable and unreserved";
+        $"{stock.Quantity} {GameUiText.ItemName(stock.Kind)} · owner: {stock.OwnerName} · {stock.AvailableQuantity} available";
 
     private static string MarketTradeText(OwnerWorldMarketTrade trade) =>
         $"{trade.SellerName} → {trade.BuyerName}: {trade.GoodsQuantity} {GameUiText.ItemName(trade.GoodsKind)} for " +

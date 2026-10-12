@@ -81,7 +81,7 @@ public partial class Main
             providerConfiguration = status;
             RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
             RenderSavedApiKeys();
-            apiKeysStatus.Text = "Keys stay private on the host.";
+            apiKeysStatus.Text = "Keys stay private on the world server.";
         }
         catch (Exception exception)
         {
@@ -126,9 +126,9 @@ public partial class Main
             apiKeysStatus.Text = $"Saved {label}. Choose it when adding an agent or setting the Decisions helper.";
             PopulateFounderCredentials();
             PopulateCredentialChoices();
-            return "API key saved on the host";
+            return "API key saved on the world server.";
         });
         if (!saved && IsCurrentWorldRequest(generation))
-            apiKeysStatus.Text = "The key was not confirmed saved. Check the host connection and try again.";
+            apiKeysStatus.Text = "The world server did not confirm that the key was saved. Check the connection and try again.";
     }
 }

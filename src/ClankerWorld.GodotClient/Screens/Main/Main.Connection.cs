@@ -32,8 +32,8 @@ public partial class Main
                 registeredEndpointInvalid = true;
                 pairingPanel.Show();
                 OpenMenuForSetup();
-                pairingInstructionLabel.Text = "This saved device registration has no valid pinned server endpoint. Forget the local registration, then pair this Windows key again at the intended HTTPS host.";
-                SetStatus("saved owner endpoint is invalid · re-pair required", good: false);
+                pairingInstructionLabel.Text = "This PC's saved connection has no valid world server address. Choose Forget saved connection, then pair again with the right world server.";
+                SetStatus("This PC's saved connection is not valid. Pair this device again.", good: false);
                 RefreshControlAvailability();
                 return;
             }
@@ -52,8 +52,8 @@ public partial class Main
         {
             pairingPanel.Show();
             OpenMenuForSetup();
-            SetStatus($"owner key unavailable · {FriendlyFailure(exception)}", good: false);
-            pairingInstructionLabel.Text = "This client needs the Windows current-user key store. It does not create a portable private-key file.";
+            SetStatus($"Could not open this PC's device key · {FriendlyFailure(exception)}", good: false);
+            pairingInstructionLabel.Text = "Pairing needs the key store for your Windows account on this PC. The game never saves the device key as a file that could be copied.";
             pairButton.Disabled = true;
         }
     }
@@ -97,17 +97,17 @@ public partial class Main
             pendingPairingOrigin = origin;
             if (ownHost && await ApproveLocalPairingAsync(pendingPairing)) return;
             pairingPanel.Show();
-            pairingInstructionLabel.Text = "Give the host the pairing ID and short comparison code below. The host approves it on its private loopback listener; this code is not a password.";
+            pairingInstructionLabel.Text = "Give the person who runs the world server the pairing ID and comparison code below. They approve this device on the server's own computer. The code is not a password.";
             pairingCodeLabel.Text = pendingPairing.PairingCode;
             pairingIdLabel.Text = pendingPairing.PairingId;
-            pairingExpiryLabel.Text = $"expires {pendingPairing.ExpiresAtUtc.LocalDateTime:yyyy-MM-dd HH:mm:ss}";
+            pairingExpiryLabel.Text = $"Expires {pendingPairing.ExpiresAtUtc.LocalDateTime:yyyy-MM-dd HH:mm:ss}";
             pairButton.Text = "Start fresh pairing";
-            SetStatus("Waiting for the host to approve this device", good: true);
+            SetStatus("Waiting for the person who runs the world server to approve this device.", good: true);
             _ = RevealPairingPanelAsync();
         }
         catch (Exception exception)
         {
-            SetStatus($"could not start device pairing · {FriendlyFailure(exception)}", good: false);
+            SetStatus($"Could not start pairing · {FriendlyFailure(exception)}", good: false);
         }
         finally
         {
@@ -145,17 +145,17 @@ public partial class Main
             {
                 pendingPairingOrigin = null;
                 pendingPairing = null;
-                SetStatus("pairing status does not match this device and server · start a fresh pairing", good: false);
+                SetStatus("The pairing reply did not match this device and world server. Start a fresh pairing.", good: false);
                 return;
             }
 
             switch (status.State)
             {
                 case OwnerPairingState.Pending:
-                    pairingInstructionLabel.Text = "Waiting for host approval. Give the host the pairing ID and comparison code exactly as shown.";
+                    pairingInstructionLabel.Text = "Waiting for approval. Give the person who runs the world server the pairing ID and comparison code exactly as shown.";
                     break;
                 case OwnerPairingState.Approved:
-                    pairingInstructionLabel.Text = "Host approval received. Proving possession of this Windows device key...";
+                    pairingInstructionLabel.Text = "Approved. Checking this PC's device key...";
                     await ActivatePendingPairingAsync();
                     break;
                 case OwnerPairingState.Active:
@@ -185,8 +185,8 @@ public partial class Main
                     }
                     else
                     {
-                        pairingInstructionLabel.Text = "This pairing is active but is not bound to this device key. Revoke it at the host before attempting another pairing.";
-                        SetStatus("active pairing does not match this device key", good: false);
+                        pairingInstructionLabel.Text = "This pairing is already active for a different device key. Ask the person who runs the world server to remove it, then pair again.";
+                        SetStatus("That active pairing belongs to a different device key.", good: false);
                     }
 
                     break;
@@ -194,16 +194,16 @@ public partial class Main
                     pairingInstructionLabel.Text = "The comparison code expired. Start a fresh pairing to get a new short code.";
                     pendingPairing = null;
                     pendingPairingOrigin = null;
-                    SetStatus("pairing expired", good: false);
+                    SetStatus("Pairing expired.", good: false);
                     break;
                 default:
-                    SetStatus("unknown pairing state returned by server", good: false);
+                    SetStatus("The world server sent a pairing status this game doesn't know. Check that the game and server are up to date.", good: false);
                     break;
             }
         }
         catch (Exception exception)
         {
-            SetStatus($"pairing status unavailable · {FriendlyFailure(exception)}", good: false);
+            SetStatus($"Could not check the pairing · {FriendlyFailure(exception)}", good: false);
         }
         finally
         {
@@ -245,7 +245,7 @@ public partial class Main
         }
         catch (Exception exception)
         {
-            SetStatus($"host approved pairing, but key activation failed · {FriendlyFailure(exception)}", good: false);
+            SetStatus($"Pairing was approved, but this PC could not finish it · {FriendlyFailure(exception)}", good: false);
         }
     }
 
@@ -262,6 +262,7 @@ public partial class Main
         pairedDeviceList.Clear();
         pendingSubmission = null;
         _ = pendingSubmissionStore.TryForget();
+        unloadedPendingSubmission = pendingSubmissionStore.HasRecord;
         RenderPendingSubmission();
         knownEvents.Clear();
         pairingPanel.Show();
@@ -270,8 +271,8 @@ public partial class Main
         pairingCodeLabel.Text = "—";
         pairingIdLabel.Text = "—";
         pairingExpiryLabel.Text = string.Empty;
-        pairingInstructionLabel.Text = "Local public registration forgotten. The Windows private key remains in the current-user key store; start a new pairing only if the host allows that key to be paired.";
-        SetStatus("local registration forgotten", good: false);
+        pairingInstructionLabel.Text = "This PC's saved connection was forgotten. Its device key stays saved on this PC for your Windows account. Pair again only if the person who runs the world server allows this device.";
+        SetStatus("Saved connection forgotten.", good: false);
         RefreshControlAvailability();
     }
 
@@ -285,6 +286,7 @@ public partial class Main
         isRefreshing = true;
         using var refresh = new CancellationTokenSource();
         refreshCancellation = refresh;
+        var confirmed = false;
         try
         {
             var request = observationSession.CaptureRequest();
@@ -345,6 +347,7 @@ public partial class Main
                     ExpireStatusToast(refreshSucceeded: true);
                 }
             }
+            confirmed = true;
         }
         catch (OperationCanceledException) when (refresh.IsCancellationRequested)
         {
@@ -365,6 +368,7 @@ public partial class Main
             isRefreshing = false;
             RefreshControlAvailability();
         }
+        if (confirmed) await RecoverPendingSubmissionAsync();
     }
 
     private bool IsCurrentWorldRequest(long generation) =>
@@ -407,9 +411,9 @@ public partial class Main
     {
         if (registeredEndpointInvalid)
         {
-            connectionStatusLabel.Text = "This device's saved connection is invalid. Ask the host owner before pairing again.";
+            connectionStatusLabel.Text = "This device's saved connection is not valid. Ask the person who runs the world server before pairing again.";
             connectionStatusLabel.Show();
-            SetStatus("saved paired endpoint is invalid · forget this local registration before pairing again", good: false);
+            SetStatus("This device's saved connection is not valid. Choose Forget saved connection before pairing again.", good: false);
             return;
         }
 
@@ -420,9 +424,9 @@ public partial class Main
         catch (Exception exception)
         {
             var failure = FriendlyFailure(exception);
-            connectionStatusLabel.Text = $"World URL is invalid · {failure}";
+            connectionStatusLabel.Text = $"That world server address can't be used · {failure}";
             connectionStatusLabel.Show();
-            SetStatus($"world URL is invalid · {failure}", good: false);
+            SetStatus($"That world server address can't be used · {failure}", good: false);
             return;
         }
 

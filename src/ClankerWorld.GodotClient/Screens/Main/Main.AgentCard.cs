@@ -734,7 +734,7 @@ public partial class Main
         if (!isDeceased && Factor("last-model-choice") is { } lastModelChoice)
             details.Add("Last model choice: " + Sentence(GameUiText.ActivityPhrase(lastModelChoice, null)));
         if (!isDeceased && Factor("model-setup-blocker") == "unsupported_request")
-            details.Add("This model rejected the request format. Choose a compatible model in Model settings.");
+            details.Add("This model refused the game's requests. Choose another model in Model settings.");
         if (inhabitant.Project is { } project)
         {
             details.Add($"{project.Label} · {Pretty(project.Stage)} · {project.WorkDone}/{project.WorkRequired}");
@@ -771,12 +771,12 @@ public partial class Main
         SetPanelText(inhabitantDetails, string.Join("\n", details));
         inhabitantDetails.Visible = details.Count > 0;
         inhabitantDetails.TooltipText = decision is null ? "" :
-            $"Last accepted decision\nRole: {decision.Role ?? "not reported"}\nModel: {decision.Model ?? "not reported"}\nConfidence: {decision.Confidence:P0}\n" +
-            $"Latency: {decision.LatencyMilliseconds?.ToString(CultureInfo.CurrentCulture) ?? "—"} ms\n" +
-            $"Tokens in/out: {decision.InputTokens?.ToString(CultureInfo.CurrentCulture) ?? "—"}/{decision.OutputTokens?.ToString(CultureInfo.CurrentCulture) ?? "—"}";
+            $"Latest accepted choice\nRole: {decision.Role ?? "not reported"}\nModel: {decision.Model ?? "not reported"}\nConfidence: {decision.Confidence:P0}\n" +
+            $"Reply time: {decision.LatencyMilliseconds?.ToString(CultureInfo.CurrentCulture) ?? "—"} ms\n" +
+            $"Tokens sent/received: {decision.InputTokens?.ToString(CultureInfo.CurrentCulture) ?? "—"}/{decision.OutputTokens?.ToString(CultureInfo.CurrentCulture) ?? "—"}";
         if (inhabitant.Proficiency is not null)
             inhabitantDetails.TooltipText += (inhabitantDetails.TooltipText.Length == 0 ? "" : "\n") +
-                "Practice: each completed project earns one point in its domain, up to 30. Every 10 points adds one work per preparation step. Materials, permissions and crop growth time are unchanged.";
+                "Practice: each finished project earns one point for its kind of work, up to 30. Every 10 points adds one unit of work to each step, so projects finish sooner. Materials, permissions and crop growing time stay the same.";
 
         thoughtsHeading.Text = isDeceased ? "THOUGHTS · HISTORICAL" : "THOUGHTS";
         privateThoughtHistory.Text = inhabitant.RecentPrivateThoughts.Count == 0
@@ -909,7 +909,7 @@ public partial class Main
             "agreed" => "Conversation completed",
             "refused" => "Invitation refused",
             "deadline" => "Invitation expired",
-            "daily_limit" => "Conversation allowance reached",
+            "daily_limit" => "Daily conversation limit reached",
             "disagreed" => "Conversation ended without agreement",
             "withdrawn" => "Conversation ended",
             "participant_unavailable" => "Person unavailable",
@@ -922,7 +922,7 @@ public partial class Main
                 "ready" or "awaiting_speaker" => "Invitation accepted; talking",
                 "wrap_up" => "Waiting for both people's wrap-up choices",
                 "suspended" => "Stopped; both people must choose to resume",
-                _ => "Attempting an invitation",
+                _ => "Going to invite them to talk",
             },
         });
         var heard = !includeHeard || instruction.ObservedTick is null ? string.Empty : " · Heard by their personal model";

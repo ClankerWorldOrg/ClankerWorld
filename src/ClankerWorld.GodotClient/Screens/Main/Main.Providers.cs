@@ -32,7 +32,7 @@ public partial class Main
             PopulateProviderChoices(ActiveProviderForSelectedRole());
             PopulateCredentialChoices();
             RenderProviderConfiguration();
-            return "Loaded Agent model settings";
+            return "Agent model settings loaded.";
         });
     }
 
@@ -101,7 +101,7 @@ public partial class Main
         if (usageStatus.AccountingError is not null)
         {
             usageMeterStatus.Text = usageStatus.AccountingError;
-            usageMeterStatus.TooltipText = "Call totals are unavailable until accounting is restored.";
+            usageMeterStatus.TooltipText = "Call totals can't be shown until the world server can read its call count again.";
             grantUsageCallsButton.Visible = false;
             RefreshControlAvailability();
             return;
@@ -150,7 +150,7 @@ public partial class Main
             usageLimitEdited = false;
             RenderUsageStatus();
             if (grant)
-                return "Allowed 100 more model calls. Resume the world when ready";
+                return "Allowed 100 more model calls. Resume the world when you're ready.";
             return cap is null ? "Model-call limit turned off"
                 : string.Create(CultureInfo.InvariantCulture, $"Model-call limit set to {cap:N0} calls");
         });
@@ -241,7 +241,7 @@ public partial class Main
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
                 ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
-            return $"forgot the saved {ProviderDisplayName(provider)} key";
+            return $"Forgot the saved {ProviderDisplayName(provider)} key.";
         });
         if (IsCurrentWorldRequest(generation))
         {
@@ -278,7 +278,7 @@ public partial class Main
                 ResolveWorldUri(), authority, deviceId, slotId, signer, CancellationToken.None));
             PopulateCredentialChoices();
             RenderProviderConfiguration();
-            return $"deleted saved key {slot.Label}";
+            return $"Deleted the saved key {slot.Label}.";
         });
     }
 
@@ -327,7 +327,7 @@ public partial class Main
         if (SelectedCognitionTarget() is not null)
         {
             AddProviderChoice(SelectedTargetWasBornHere()
-                ? "No personal model (safe local)" : "Use world default", "inherit");
+                ? "No personal model (built-in choices)" : "Use world default", "inherit");
         }
         AddProviderChoice("Built-in rules (no model)", "deterministic");
         if (SelectedRoleId() == "routine" && SelectedCognitionTarget() is null)
@@ -341,7 +341,7 @@ public partial class Main
             AddProviderChoice("Anthropic", "anthropic");
         }
         if (SelectedCognitionTarget() is not null && selectedProvider == "jev")
-            AddProviderChoice("Jev (legacy assignment)", "jev");
+            AddProviderChoice("Jev (from an older version)", "jev");
 
         SelectProviderChoice(selectedProvider);
     }
@@ -457,13 +457,13 @@ public partial class Main
             ? "Leave blank to keep saved key"
             : "API key";
         cognitionCredentialHint.Text = newCredential
-            ? "A new key is stored privately on the host and can be reused for other agents."
+            ? "A new key is stored privately on the world server and can be reused for other agents."
             : agentCredential && SelectedCredentialChoice() != "default"
-            ? "This key is saved on the host."
+            ? "This key is saved on the world server."
             : agentCredential && option?.HasCredential != true
             ? "No provider default key. Select Add another API key to give this agent one."
             : option?.HasCredential == true
-            ? "The key is saved on the host."
+            ? "The key is saved on the world server."
             : "No saved key";
         cognitionConfigurationStatus.Text = providerConfiguration is null
             ? "Loading..."
@@ -495,13 +495,13 @@ public partial class Main
         {
             var pendingModelName = $"{ProviderDisplayName(birthProvider)} · {birthModel}";
             if (routine is null && planning is null)
-                return $"Model needs setup: {pendingModelName} was chosen at birth; its settings are waiting to be saved. Built-in choices continue until setup is recovered.";
+                return $"Model needs setup: {pendingModelName} was chosen at birth; its settings are waiting to be saved. Built-in choices continue until it is set up.";
 
-            var pendingRoute = $"{pendingModelName} waiting for saved setup; built-in choices continue";
+            var pendingRoute = $"{pendingModelName} needs setup; built-in choices continue until then";
             return $"Routine: {(routine is null ? pendingRoute : ChildModelRouteSummary(routine))} · Planning: {(planning is null ? pendingRoute : ChildModelRouteSummary(planning))}.";
         }
         if (IsUnconfiguredChildRoute(routine) && IsUnconfiguredChildRoute(planning))
-            return "No personal model selected for this child. Safe local decisions continue until a model is assigned; world defaults are not used.";
+            return "No personal model is chosen for this child. Built-in choices keep them safe until you choose one; the world's default models are not used.";
 
         if (!SameChildProviderRoute(routine, planning))
         {
@@ -515,7 +515,7 @@ public partial class Main
             item.Provider == assignment.Provider)?.Model;
         var modelName = string.IsNullOrWhiteSpace(model) ? provider : $"{provider} · {model}";
         if (ChildModelNeedsSetup(assignment))
-            return $"Model needs setup: {modelName} has no available key on this computer. Add or select a key; built-in choices continue until then, with no other model used.";
+            return $"Model needs setup: {modelName} has no available key. Add or choose a key; built-in choices continue until then, with no other model used.";
 
         return assignment.SelectionReason switch
         {
@@ -528,7 +528,7 @@ public partial class Main
     private string ChildModelRouteSummary(InhabitantProviderAssignment? assignment)
     {
         if (IsUnconfiguredChildRoute(assignment))
-            return "no personal model (safe local; world defaults are not used)";
+            return "no personal model (built-in choices; the world's default models are not used)";
 
         var provider = ProviderDisplayName(assignment!.Provider);
         var model = assignment.Model ?? providerConfiguration!.Providers.FirstOrDefault(item =>
@@ -611,7 +611,7 @@ public partial class Main
 
         cognitionRoleChoice.AddItem("Routine survival");
         cognitionRoleChoice.AddItem("Planning and work");
-        cognitionRoleChoice.TooltipText = "Routine covers everyday choices. Planning covers bigger projects. Jev, the optional helper, is turned on or off for the whole world in Settings.";
+        cognitionRoleChoice.TooltipText = "Routine covers everyday choices and planning covers bigger projects; the world's routine helper is set in Settings → World.";
         cognitionRoleChoice.ItemSelected += _ =>
         {
             ClearCognitionModelSetupCheck();
@@ -664,7 +664,7 @@ public partial class Main
         body.AddChild(FieldCaption("Thinking", cognitionThinkingChoice));
         body.AddChild(cognitionThinkingChoice);
         cognitionModelSetupCheckButton.Text = "Test model · 1 paid call";
-        cognitionModelSetupCheckButton.TooltipText = "Sends one request with this model and key. It counts toward your paid-call limit.";
+        cognitionModelSetupCheckButton.TooltipText = "Sends one request with this model and key. It counts toward your model-call limit.";
         StyleButton(cognitionModelSetupCheckButton);
         cognitionModelSetupCheckButton.Pressed += () => _ = RunCognitionModelSetupCheckAsync();
         body.AddChild(cognitionModelSetupCheckButton);
@@ -676,7 +676,7 @@ public partial class Main
         cognitionCredentialHint.ThemeTypeVariation = "DimLabel";
         body.AddChild(cognitionCredentialHint);
 
-        cognitionCredentialHint.TooltipText = "Keys are sent securely and stay on the game server. They are never shown again, logged, or saved in world files.";
+        cognitionCredentialHint.TooltipText = "Keys are sent securely and stay on the world server. They are never shown again, logged, or saved in world files.";
 
         cognitionConfigurationStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         body.AddChild(cognitionConfigurationStatus);
@@ -694,12 +694,12 @@ public partial class Main
         forgetCognitionCredentialButton.Pressed += () => _ = ForgetProviderCredentialAsync();
         buttons.AddChild(forgetCognitionCredentialButton);
         deleteCognitionCredentialSlotButton.Text = "Delete this key";
-        deleteCognitionCredentialSlotButton.TooltipText = "Delete a saved key. Move agents using it to another key first; a child bound at birth keeps its model and waits for setup.";
+        deleteCognitionCredentialSlotButton.TooltipText = "Delete a saved key. Move agents using it to another key first; a child whose model was set at birth keeps it and waits for setup.";
         StyleButton(deleteCognitionCredentialSlotButton);
         deleteCognitionCredentialSlotButton.Pressed += () => _ = DeleteCredentialSlotAsync();
         buttons.AddChild(deleteCognitionCredentialSlotButton);
         openModelSettingsButton.Text = "Open model settings";
-        openModelSettingsButton.TooltipText = "Opens this agent's model in Settings, where you can also delete saved keys.";
+        openModelSettingsButton.TooltipText = "Opens this agent's model in World Settings, where you can also delete saved keys.";
         StyleButton(openModelSettingsButton);
         openModelSettingsButton.Pressed += () => _ = OpenWorldModelSettingsAsync();
         openModelSettingsButton.Hide();

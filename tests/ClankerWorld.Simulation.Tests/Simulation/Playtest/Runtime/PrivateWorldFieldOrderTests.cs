@@ -394,25 +394,40 @@ public sealed partial class PrivateWorldFieldOrderTests
     [InlineData(true, true)]
     public async Task ACancelledHeldModelReplyCannotSpendTheReleasedSeed(bool explicitLocation, bool delayedStartup = false)
     {
-        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
+        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true,
+            entryDelayMilliseconds: delayedStartup ? 1_000 : 0);
         using var world = PrivateWorldRuntime.Restore(WithFields(WithSeeds(Prepared(), "grain", 1), new FarmFieldState(Point, Household, FarmFieldStage.Prepared)),
             actor => actor == Actor ? provider : new FieldChoices());
         var text = "plant grain" + (explicitLocation ? $" at ({Point.X}, {Point.Y})" : "");
         var receipt = Submit(world, "held", text);
         var startAfterTick = world.WorldTick + 3;
-        // A hosted request may need later committed ticks before it enters
-        // the provider. Make that scheduling boundary observable in one row.
+        // Preserve the deliberate two-extra-tick entry row, then freeze that
+        // working frame: further polling ticks could spend the reserved seed.
         if (delayedStartup) provider.CanStart = () => world.WorldTick >= startAfterTick;
         try
         {
-            await AdvanceUntil(world, () => provider.Started.Task.IsCompleted,
-                "The held field request did not start within forty native ticks.");
+            var entryFrame = delayedStartup ? startAfterTick : world.WorldTick + 1;
+            await AdvanceUntil(world, () => world.WorldTick >= entryFrame,
+                "The held field working frame did not commit within forty native ticks.");
+            var task = GrownAgentHelperMemoryTests.WaitForRequests(world);
+            Assert.False(task.IsCompleted);
+            var working = Assert.IsType<FarmFieldWork>(Assert.Single(world.Fields).Work);
+            Assert.Equal(receipt.InstructionId, working.OrderInstructionId);
+            var reservation = working.SeedReservationId!;
+            Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(reservation).State);
+            var entering = PrivateWorldRuntimeCodec.Encode(world.ExportState());
+            await Task.WhenAny(provider.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.True(provider.Started.Task.IsCompleted, "The registered field worker finished before held provider entry.");
+            Assert.False(task.IsCompleted);
+            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(entering, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
             if (delayedStartup) Assert.True(world.WorldTick >= startAfterTick);
-            var reservation = Assert.Single(world.Fields).Work!.SeedReservationId!;
             Assert.True(world.CancelOrder(new("stop-held", "owner:test", world.Society.WorldId, Actor, receipt.InstructionId)).Changed);
+            var cancelled = PrivateWorldRuntimeCodec.Encode(world.ExportState());
             provider.Release.TrySetResult(true);
-            await AdvanceUntil(world, () => provider.Returned.Task.IsCompleted,
-                "The released field reply did not return within forty native ticks.");
+            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            await task;
+            Assert.Equal(cancelled, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
             for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(1, SeedQuantity(world, "grain"));
@@ -541,7 +556,8 @@ public sealed partial class PrivateWorldFieldOrderTests
             !occupied.Contains(point) && !state.Inhabitants.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(Point, point))
             .OrderBy(point => state.Map.FootDistance(Point, point)).First();
     }
-    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
+    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false,
+        int entryDelayMilliseconds = 0) : IDecisionProvider
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
@@ -553,6 +569,7 @@ public sealed partial class PrivateWorldFieldOrderTests
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
+            if (entryDelayMilliseconds > 0) await Task.Delay(entryDelayMilliseconds, cancellationToken);
             request.Validate();
             var observation = request.Observation;
             Requests.Enqueue(observation);
