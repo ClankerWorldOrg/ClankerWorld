@@ -47,8 +47,8 @@ public sealed partial class OwnerWorldObservationStore
             "Non-land cases: " + (arrangement.NonLand == TownArrangementRules.Mayor ? "the elected mayor, as a separate duty" : "nobody holds this duty, so formal cases wait") + ".";
         if (TownArrangementRules.Mandates(arrangement) is not { } mandates) return text;
         return text + $" Residents elect a willing adult resident as mayor ({OfficeDuties(mandates)}), one vote each; a tie means another vote. " +
-            $"A term lasts {TownArrangementRules.MayorTermDays} unpaused days, and voting for the next term starts one day before it ends. " +
-            "If the office becomes empty, an election for a fresh full term starts straight away" +
+            $"A term lasts {TownArrangementRules.MayorTermDays} unpaused days, and voting for the next term is due one day before it ends. " +
+            "If the office becomes empty, residents can elect a willing successor for a fresh full term" +
             (arrangement.Ordinary == TownArrangementRules.Mayor ? "; until then every adult resident makes everyday decisions." : "; until then land cases wait.");
     }
 

@@ -827,7 +827,7 @@ public sealed partial class TownMembershipTests
             Assert.All(unread, observation =>
             {
                 Assert.DoesNotContain(observation.Candidates, candidate => candidate.Id.StartsWith(accept, StringComparison.Ordinal));
-                Assert.DoesNotContain($"{town.Name}'s council approved", observation.Self?.TownMembershipNote ?? "", StringComparison.Ordinal);
+                Assert.DoesNotContain($"{town.Name}'s council agreed to the request to join", observation.Self?.TownMembershipNote ?? "", StringComparison.Ordinal);
             });
             Assert.Contains(observed, observation => observation.Candidates.Any(candidate => candidate.Id.StartsWith(accept, StringComparison.Ordinal)) &&
                 observation.Self?.TownMembershipNote?.Contains("council agreed to the request to join; accept before", StringComparison.Ordinal) == true);
