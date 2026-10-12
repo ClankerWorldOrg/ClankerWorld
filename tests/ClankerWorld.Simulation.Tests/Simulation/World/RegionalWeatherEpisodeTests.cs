@@ -26,7 +26,7 @@ public sealed class RegionalWeatherEpisodeTests
             },
             WorldSystems = initialState.WorldSystems! with
             {
-                SchemaVersion = 1,
+                SchemaVersion = WorldSystemsRules.SchemaVersion,
                 RegionalWeather = null,
                 Config = initialState.WorldSystems.Config with
                 {

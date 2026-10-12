@@ -597,7 +597,7 @@ test('process files map to an area, but changelog and playtest files do not', as
   for (const file of ['CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md', 'skills/test-audit/SKILL.md', '.agents/skills/test-audit', 'docs/development/build-and-test.md', 'docs/development/releasing.md']) {
     assert.deepEqual(areaLabels([file]), ['area:tooling'], file);
   }
-  assert.deepEqual(areaLabels(['docs/development/private-server-deployment.md']), ['area:server']);
+  assert.deepEqual(areaLabels(['docs/development/remote-server-deployment.md']), ['area:server']);
   assert.deepEqual(areaLabels([cognition, 'changes/4-fix.md', 'playtest/4-fix.md', 'docs/what-works.md']), ['area:agents']);
   const state = scenario({ action: 'opened', live: { labels: [] }, files: ['CONTRIBUTING.md'] });
   await state.run();

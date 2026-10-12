@@ -32,7 +32,7 @@ Otherwise use the matching template:
 | **Bug** | Something behaves wrongly. Say what happened, what you expected, how to repeat it and the build. |
 | **Implementation** | Agreed work needs building. Say the goal, the design it follows, how we will know it works and what is out of scope. |
 | **Decision** | A game choice needs the owner's answer. Give the options, trade-offs and a recommendation. |
-| **Prototype** | A small experiment would answer a question. Say what to learn and how to judge the result. |
+| **Experiment** | A small experiment would answer a question. Say what to learn and how to judge the result. |
 
 - One topic per issue, with a title in ordinary words. Link related issues
   instead of copying progress notes between them.

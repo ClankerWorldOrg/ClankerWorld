@@ -16,22 +16,6 @@ public sealed record WorldAssetReservationRequest(
     long GpuBytes,
     int RenderUnits)
 {
-    public static WorldAssetReservationRequest From(
-        NormalizedInertRasterAsset asset,
-        string decodeProfile = "rgba8",
-        int renderUnits = 1)
-    {
-        ArgumentNullException.ThrowIfNull(asset);
-        return new(
-            asset.AssetId,
-            asset.NormalizedDigest,
-            decodeProfile,
-            asset.DurableStorageBytes,
-            asset.DecodedBytes,
-            asset.DecodedBytes,
-            renderUnits);
-    }
-
     public void Validate(string packageDigest)
     {
         ContentPackageRules.ValidateDigest(packageDigest, nameof(packageDigest));
@@ -111,7 +95,7 @@ public sealed record WorldAssetReservationResult(
 public sealed record WorldAssetReservationPolicy
 {
     public const string Version = "world-asset-reservation-v1";
-    public const long MiB = AssetBudgetPolicy.MiB;
+    public const long MiB = 1_048_576;
 
     public long MaxDurableStorageBytes { get; init; } = 512 * MiB;
 

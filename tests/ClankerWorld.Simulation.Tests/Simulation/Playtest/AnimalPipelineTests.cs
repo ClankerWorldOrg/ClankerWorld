@@ -196,7 +196,7 @@ public sealed partial class AnimalPipelineTests
         {
             WorldSystems = WorldSystemsRules.CreateGenesis(state.WorldSeed,
             state.WorldSystems!.Config with { TicksPerDay = 2, CalendarOffsetTicks = 0 }, state.WorldSystems.Ecology.Resources,
-            state.WorldSystems.Factions, state.WorldSystems.Currency, state.WorldSystems.Culture, state.WorldSystems.Chunks)
+            state.WorldSystems.Chunks)
         };
         var animal = new AnimalState("cow", "Moss", "cow", "female", -14, yard.Position,
             owned ? "household:" + home : "wild-herd", owned ? home : null, owned ? yard.InstanceId : null);

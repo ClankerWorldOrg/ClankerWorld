@@ -120,6 +120,8 @@ public sealed class CognitionRuntimeTests
         });
         Assert.Equal(7, currentRequest.ProviderEpoch);
         var before = runtime.Capture();
+        Assert.Equal(DecisionProviderKind.Jev, before.ProviderKind);
+        Assert.Equal(currentRequest.Observation.DecisionGeneration, before.DecisionGeneration);
 
         var exception = Assert.Throws<InvalidOperationException>(() => runtime.IssueRequest(
             CreateObservation(runEpoch: 1, decisionGeneration: 2)));

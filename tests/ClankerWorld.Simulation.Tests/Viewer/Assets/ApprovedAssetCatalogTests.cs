@@ -49,33 +49,6 @@ public sealed class ApprovedAssetCatalogTests
         Assert.Throws<InvalidDataException>(() => ApprovedAssetCatalog.LoadOrDeny(path));
     }
 
-    [Fact]
-    public void SavedAssetReferenceCannotRestoreWithoutTheSameHostApproval()
-    {
-        using var fixture = new TemporaryDirectory();
-        var catalogPath = System.IO.Path.Combine(fixture.Path, "approved-assets.json");
-        var statePath = System.IO.Path.Combine(fixture.Path, "runtime.json");
-        File.WriteAllText(catalogPath, CatalogJson(("portrait-alice", PortraitAliceDigest)));
-
-        var catalog = ApprovedAssetCatalog.LoadOrDeny(catalogPath);
-        var firstStateFile = new OwnerWorldStateFile(statePath, catalog);
-        var first = firstStateFile.LoadOrCreate("camp-alpha");
-        Assert.True(first.Pause("owner-device:catalog-test"));
-        var applied = first.ApplyAuthoringBatch(new OwnerAuthoringBatch(
-            "catalog-asset",
-            [new AddApprovedAssetReferenceOperation("portrait-alice", PortraitAliceDigest)],
-            "owner-device:catalog-test"));
-        Assert.True(applied.Applied, applied.Failure);
-        firstStateFile.Save(first);
-
-        File.Delete(catalogPath);
-        var denyStateFile = new OwnerWorldStateFile(
-            statePath,
-            ApprovedAssetCatalog.LoadOrDeny(catalogPath));
-
-        Assert.Throws<InvalidDataException>(() => denyStateFile.LoadOrCreate("camp-alpha"));
-    }
-
     private static string CatalogJson(params (string AssetId, string AssetDigest)[] references) =>
         $$"""
         {"schemaVersion":1,"references":[{{string.Join(',', references.Select(reference =>

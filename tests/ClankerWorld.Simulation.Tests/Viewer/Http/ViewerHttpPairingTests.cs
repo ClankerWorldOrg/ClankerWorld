@@ -108,6 +108,8 @@ public sealed partial class ViewerHttpTests
         using var client = factory.CreateClient();
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var pairing = await StartAndActivateAsync(client, key, Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()));
+        var runtime = factory.Services.GetRequiredService<PrivateWorldRuntime>();
+        Assert.False(runtime.Society.IsPaused);
         var envelope = await CreateSignedRequestAsync(
             client,
             key,
@@ -121,9 +123,8 @@ public sealed partial class ViewerHttpTests
 
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.Conflict, replay.StatusCode);
-        var runtime = factory.Services.GetRequiredService<OwnerWorldRuntime>();
-        Assert.True(runtime.Capture().Snapshot.IsPaused);
-        Assert.Single(runtime.Capture().Events, worldEvent => worldEvent.Kind == "paused");
+        Assert.True(runtime.Society.IsPaused);
+        Assert.Single(runtime.ExportState().Events, worldEvent => worldEvent.Kind == "paused");
     }
 
     [Fact]
@@ -277,9 +278,11 @@ public sealed partial class ViewerHttpTests
             using (var firstClient = firstHost.CreateClient())
             {
                 pairedDevice = await StartAndActivateAsync(firstHost, firstClient, key);
-                var firstRuntime = firstHost.Services.GetRequiredService<OwnerWorldRuntime>();
-                Assert.True(firstRuntime.Pause($"owner-device:{pairedDevice.DeviceId}"));
-                firstHost.Services.GetRequiredService<OwnerWorldStateFile>().Save(firstRuntime);
+                var firstRuntime = firstHost.Services.GetRequiredService<PrivateWorldRuntime>();
+                Assert.False(firstRuntime.Society.IsPaused);
+                firstRuntime.Pause();
+                Assert.True(firstRuntime.Society.IsPaused);
+                firstHost.Services.GetRequiredService<PrivateWorldStateFile>().Save(firstRuntime);
             }
 
             using var restartedHost = new ViewerWebApplicationFactory(directory);
@@ -299,8 +302,7 @@ public sealed partial class ViewerHttpTests
             Assert.True(baseline.Baseline.Snapshot.Authoring!.IsPaused);
             Assert.Contains(
                 baseline.Baseline.Events.Events,
-                worldEvent => worldEvent.Kind == "paused" &&
-                    worldEvent.Detail.Contains($"issuer:owner-device:{pairedDevice.DeviceId}", StringComparison.Ordinal));
+                worldEvent => worldEvent.Kind == "paused");
         }
         finally
         {

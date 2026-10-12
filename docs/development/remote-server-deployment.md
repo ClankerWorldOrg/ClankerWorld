@@ -1,15 +1,16 @@
 ---
-title: Private-server deployment
+title: Remote world server deployment
 type: development-reference
 status: active
 updated: 2026-09-30
 ---
 
-# Private-server deployment
+# Remote world server deployment
 
-Use this checklist for an owner-authorized update of a private server. It
-describes a manual operation; there is no staged deploy command yet. Building
-or merging a PR does not authorize updating the active playtest host.
+Use this checklist for an owner-authorized update of a world server that runs
+on another machine, such as the development VPS. It describes a manual
+operation; there is no staged deploy command yet. Building or merging a PR
+does not authorize updating the running remote world server.
 
 The operator records each step as passed, failed or not performed, with the
 source commit, artifact hashes and bounded outcomes. Keep that record private
@@ -18,7 +19,7 @@ contents, private thoughts or raw model replies.
 
 ## Prepare the update
 
-1. Confirm the destination host, service, OS account and authorized maintenance
+1. Confirm the destination machine, service, OS account and authorized maintenance
    window. Record the running commit and the proposed commit. Inspect the actual
    service configuration privately; the checked-in
    [systemd template](../../deploy/clankerworld-viewer.service) is a starting

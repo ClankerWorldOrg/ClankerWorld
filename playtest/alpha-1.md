@@ -218,7 +218,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - For one birth, empty and remove the caregiver's House first. → The baby is still born beside the caregiver into their household; its card and the Event Log say it needs housing.
   - Save and load after that birth. → There is still exactly one baby.
 - [ ] **Electing the council and a mayor.** ([#618](https://github.com/compoodment/ClankerWorld/issues/618), [#631](https://github.com/compoodment/ClankerWorld/issues/631), [#813](https://github.com/compoodment/ClankerWorld/pull/813), [#878](https://github.com/compoodment/ClankerWorld/issues/878), [#880](https://github.com/compoodment/ClankerWorld/issues/880), [#1713](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1713), [#1714](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1714))
-  - On the paired world: start an ordinary world with four founders and open its Town in World Info on day 1. → Its first council election is already recorded.
+  - Start an ordinary world with four founders and open its Town in World Info on day 1. → Its first council election is already recorded.
   - Let that election close with fewer than three willing candidates. → It fails, and all four adults keep governing; built-in agents neither stand nor vote.
   - Let a Town reach four adult residents and hold its first council election. → Adults who agreed to stand before voting opened are on the ballot.
   - Watch the votes. → Each voter chooses up to three different council candidates, themselves included.
@@ -238,7 +238,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Before the normal election threshold, propose a government change that itself creates a council election. → Its elected councillors wait for handover, and that election ends if handover expires without a willing mayor.
   - Pause and reload during voting and while councillors wait. → Each election keeps its own outcome.
   - Let a normal election run with empty ballots. → It retries independently of the government change.
-  - On the paired world: with personal models on, let three residents agree to stand and win a council election, then bring the Town down to three living adults. → All three adults govern after the drop.
+  - With personal models on, let three residents agree to stand and win a council election, then bring the Town down to three living adults. → All three adults govern after the drop.
   - Admit a fourth adult. → A new council election opens once there are four, on the usual election schedule.
 - [ ] **Save and reopen a running world.** ([#591](https://github.com/compoodment/ClankerWorld/pull/591), [#764](https://github.com/compoodment/ClankerWorld/issues/764), [#787](https://github.com/compoodment/ClankerWorld/pull/787), [#891](https://github.com/compoodment/ClankerWorld/issues/891), [#1195](https://github.com/compoodment/ClankerWorld/issues/1195), [#1200](https://github.com/compoodment/ClankerWorld/issues/1200), [#1203](https://github.com/compoodment/ClankerWorld/issues/1203), [#1205](https://github.com/compoodment/ClankerWorld/issues/1205), [#1211](https://github.com/compoodment/ClankerWorld/issues/1211))
   - Create a Small and a Medium world with four founders, and let time run while agents gather and the weather changes. → Resources, fields, tree growth and the Event Log keep updating.
@@ -662,7 +662,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Try it with no eligible land, and reload while they wait. → They keep waiting.
   - Ask an adult to request a free plot inside Town title. → The plot shows a pending request with Council and household counts, and no use right yet.
   - Have the Council approve and all but one household adult accept, then reload. → The plot waits for the last adult, and the counts survive the reload.
-  - On the paired world: let a world-born child grow into an adult household member of a Town with a Council and free titled land, and suggest they ask for household use of a nearby plot. → The request goes to the Council without granting any use right or counting as their household's agreement.
+  - Let a world-born child grow into an adult household member of a Town with a Council and free titled land, and suggest they ask for household use of a nearby plot. → The request goes to the Council without granting any use right or counting as their household's agreement.
   - Save and reopen the world. → The request keeps the same requester, household and plot.
   - Repeat with an adult from a later generation, also after they found their own household. → The same holds.
   - Let another household claim the same plot, or challenge a recorded right. → It stays a dispute where nobody loses buildings, goods or movement until one side withdraws and the grant completes.
@@ -746,8 +746,8 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Follow rope and baskets at a House and sacks at the Tailor Shop. → Carrying aids raise the limit on the card, and real pickups respect it.
   - Let gear wear out. → Replaced gear stays real stock.
   - Let a carrying aid break while loaded. → It may leave an oversized load, but nothing more is picked up.
-  - On the paired world: as an agent's worn clothing and sack wear out, check them in **Profile**, saving and reloading along the way. → They show at least 1% while any wear is left, and 0% only once fully broken.
-  - On the paired world: compare the carrying limit on the card with a working sack and a broken one. → The working sack raises the limit; a broken sack leaves only the basic limit.
+  - As an agent's worn clothing and sack wear out, check them in **Profile**, saving and reloading along the way. → They show at least 1% while any wear is left, and 0% only once fully broken.
+  - Compare the carrying limit on the card with a working sack and a broken one. → The working sack raises the limit; a broken sack leaves only the basic limit.
   - Order **Repair my basket** and **Repair two padded coats**. → They use real materials: fiber and rope at the House, cloth at the Tailor Shop.
   - Order **Repair my wooden axe** and **Repair two stone pickaxes**. → They use real wood and stone at the Blacksmith.
   - Watch each repair finish. → It counts only once condition improves, and never repairs extra.
@@ -1398,7 +1398,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Rename someone, then read the Event Log. → Lines are plain sentences naming who was involved, never "Agent" or "Founder", and using new names after a rename.
   - While playing, watch for partnerships, marriages, births, animal births, skill lessons and a paid Clinic's construction. → Each appears with the right names.
   - Have a Blacksmith make a wooden axe from its controls, and from a Must Do order. → Each appears with the right names, and the axe reaches storage.
-  - On the paired world: in a Town, watch a law decision, a government vote or handover, and a mayor's election or change of office. → Each gets a readable Event Log line naming the Town, and Towns shows its wording or result.
+  - In a Town, watch a law decision, a government vote or handover, and a mayor's election or change of office. → Each gets a readable Event Log line naming the Town, and Towns shows its wording or result.
   - Save and reopen the world, then read those lines again. → They still show, without raw record or agent IDs.
   - Save and reload, then read the Event Log. → The names, headings and Find are kept, and weather lines are unchanged.
 

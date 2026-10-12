@@ -59,6 +59,13 @@ public sealed class EcologyBatchValidationTests
         Assert.Throws<ArgumentException>(() => EcologyRules.Advance(new([first, first]), Calendar, config));
         Assert.Throws<ArgumentOutOfRangeException>(() => EcologyRules.Advance(new([first, Resource("stone-b")]), Calendar,
             config with { MaxResourcesPerChunk = 1 }));
+
+        var identifier = Resource("aAzZ09-_:./");
+        Assert.Equal(identifier, Assert.Single(EcologyRules.Advance(new([identifier]), Calendar, config).Resources));
+        Assert.Equal(identifier, EcologyRules.Regenerate(identifier, Calendar, config));
+        var invalidIdentifier = identifier with { Id = "stone a" };
+        Assert.Throws<ArgumentException>(() => EcologyRules.Advance(new([invalidIdentifier]), Calendar, config));
+        Assert.Throws<ArgumentException>(() => EcologyRules.Regenerate(invalidIdentifier, Calendar, config));
     }
 
     private static EcologyResource Resource(string id) => new(id, "stone", new GridPoint(1, 1), false,

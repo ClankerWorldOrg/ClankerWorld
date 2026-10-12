@@ -11,6 +11,28 @@ This page is for contributors building the code. Players use the Windows
 bundle; they do not need the Godot editor or a development SDK.
 See [Playing](../playing.md).
 
+The host supports only private worlds. Protocol tests default to a populated
+native private world with automatic advancement disabled; tests can also use
+fresh founder setup. `fixture` world mode is rejected at actual host startup.
+The unused-code cleanup retires checks of the scripted fixture, its
+authoring/persistence branches, the test-only PNG normalizer and prototype
+world-level faction/law, currency and culture records. Native pairing, signed
+controls, instruction retries, save integrity, content lifecycle, observation
+knowledge and replay checks remain. Mod import and approved-asset catalog
+validation keep their existing paths.
+
+Protocol checks obtain world and resident identities from the authenticated
+baseline. Native before/after checks encode `PrivateWorldRuntime.ExportState()`
+with `PrivateWorldRuntimeCodec`; instruction IDs and issuer IDs come from the
+host's receipt and saved native instruction. These checks exercise the
+private-world authorization and persistence boundary used by the game.
+
+Fixture-retirement replay checks cover both native starting paces. The
+pre-retirement baseline writes world-systems schema 2 for legacy-map starts and
+schema 3 for generated founder starts; both write schema 4 after retirement.
+Compare every remaining state field, event and provider observation, and require
+exact checkpoint bytes after reload.
+
 ## Toolchain
 
 The server and simulation use C# 14 on .NET 10. The exact SDK baseline is
@@ -503,7 +525,7 @@ provider, with a wrapper that records observations and returns its response
 unchanged. It makes no model-service calls.
 
 Defaults are two seeds, sixteen ticks per seed, and both generated Small worlds
-and the legacy fixture. Generated worlds use native first-Town layout,
+and the populated legacy private-map setup. Generated worlds use native first-Town layout,
 founder placement and Start World. Override seeds, tick count and modes with
 the fourth through sixth arguments, for example:
 

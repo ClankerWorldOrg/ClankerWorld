@@ -56,7 +56,9 @@ A new per-change file looks like this:
 - Give an adult next to a fruiting orchard an Order to harvest food. Once the food is gathered, the order shows as done. ([#431](https://github.com/compoodment/ClankerWorld/issues/431))
 ````
 
-When a check needs the private server, start it with "On the paired world:".
+When a check needs a world server running on another machine, start it with
+"On a remote server:". Every other check works the same on the world server the
+game starts on your PC.
 The Windows build is the one that counts; a passing automated test or export
 does not replace a check here.
 
