@@ -58,7 +58,7 @@ public sealed class NewbornModelBindingCheckpointTests
                     Assert.False(advanced);
                     Assert.True(world.Society.IsPaused);
                     var born = Assert.Single(world.Society.Births);
-                    Assert.DoesNotContain(providers.CaptureStatus().Assignments!, row => row.InhabitantId == born.ChildId);
+                    Assert.DoesNotContain(providers.CaptureStatus().Assignments!, row => row.AgentId == born.ChildId);
                     Assert.Contains(logger.Messages, message => message.Contains("waiting_for_child_model_binding", StringComparison.Ordinal));
                 }
                 else
@@ -70,8 +70,8 @@ public sealed class NewbornModelBindingCheckpointTests
             var birth = Assert.Single(world.Society.Births);
             var childId = birth.ChildId;
             Assert.InRange(childId.Length, 1, DerivedId.MaximumLength);
-            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
-            var child = world.Inhabitants.Single(person => person.InhabitantId == childId);
+            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
+            var child = world.Agents.Single(person => person.AgentId == childId);
             Assert.Equal("deterministic", child.ChildModelSelection!.Provider);
             Assert.Equal(WorldRuntime.ChildModelChoiceParentsAgreed, child.ChildModelSelection.ChoiceReason);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)).Society.Society.WorldTick);
@@ -110,12 +110,12 @@ public sealed class NewbornModelBindingCheckpointTests
             Assert.True(await restartedService.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
             Assert.Equal(overrideRevision, reopened.CaptureRuntimeConfiguration().Revision);
             var selected = new ProviderConfigurationStore(providerPath, EmptySeed()).CaptureStatus().Assignments!;
-            Assert.Null(Assert.Single(selected, row => row.InhabitantId == childId && row.Role == PlayerDecisionProviders.PlanningRole).SelectionReason);
+            Assert.Null(Assert.Single(selected, row => row.AgentId == childId && row.Role == PlayerDecisionProviders.PlanningRole).SelectionReason);
             Assert.Equal(WorldRuntime.ChildModelChoiceParentsAgreed,
-                Assert.Single(selected, row => row.InhabitantId == childId && row.Role == PlayerDecisionProviders.RoutineRole).SelectionReason);
+                Assert.Single(selected, row => row.AgentId == childId && row.Role == PlayerDecisionProviders.RoutineRole).SelectionReason);
             Assert.Single(restarted.Society.Births);
             Assert.Equal(child.ChildModelSelection,
-                restarted.Inhabitants.Single(person => person.InhabitantId == childId).ChildModelSelection);
+                restarted.Agents.Single(person => person.AgentId == childId).ChildModelSelection);
             using var final = WorldRuntime.Restore(WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)), Providers);
             Assert.Equal(File.ReadAllBytes(file.Path), WorldRuntimeCodec.Encode(final.ExportState()));
         }
@@ -149,10 +149,10 @@ public sealed class NewbornModelBindingCheckpointTests
             Assert.False(await service.TryAdvanceOnceAsync());
             Assert.True(world.Society.IsPaused);
             var childId = Assert.Single(world.Society.Births).ChildId;
-            var selection = world.Inhabitants.Single(person => person.InhabitantId == childId).ChildModelSelection!;
+            var selection = world.Agents.Single(person => person.AgentId == childId).ChildModelSelection!;
             Assert.Equal("openai", selection.Provider);
             Assert.NotNull(selection.CredentialSlotId);
-            Assert.DoesNotContain(providers.CaptureStatus().Assignments!, row => row.InhabitantId == childId);
+            Assert.DoesNotContain(providers.CaptureStatus().Assignments!, row => row.AgentId == childId);
             providers.Configure(new("planning", "openai", "synthetic-model", "synthetic-replacement-key", false));
             File.Delete(checkpointDirectory);
             Directory.Move(checkpointDirectory + ".held", checkpointDirectory);
@@ -164,11 +164,11 @@ public sealed class NewbornModelBindingCheckpointTests
             var configuration = providers.CaptureRuntimeConfiguration();
             var slot = Assert.Single(configuration.CredentialSlots!, item => item.Id == selection.CredentialSlotId);
             Assert.Equal("synthetic-original-key", slot.ApiKey);
-            var rows = configuration.Assignments!.Where(item => item.InhabitantId == childId).ToArray();
+            var rows = configuration.Assignments!.Where(item => item.AgentId == childId).ToArray();
             Assert.Equal(2, rows.Length);
             Assert.All(rows, row => Assert.Equal(selection.CredentialSlotId, row.CredentialSlotId));
             using var reloaded = file.LoadOrCreate(world.ExportState().WorldSeed);
-            Assert.Equal(selection, reloaded.Inhabitants.Single(person => person.InhabitantId == childId).ChildModelSelection);
+            Assert.Equal(selection, reloaded.Agents.Single(person => person.AgentId == childId).ChildModelSelection);
         }
         finally { directory.Delete(recursive: true); }
     }
@@ -181,7 +181,7 @@ public sealed class NewbornModelBindingCheckpointTests
         // both sides of the ID-length boundary alongside fresh opaque identities.
         if (seedIdentified)
             state = state with { Society = state.Society with { Society = state.Society.Society with { WorldId = state.WorldSeed } } };
-        var household = state.Society.Society.GetInhabitant(First).HouseholdId!;
+        var household = state.Society.Society.GetAgent(First).HouseholdId!;
         var home = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         using (var society = SocietyRuntime.Restore(state.Society))
@@ -201,10 +201,10 @@ public sealed class NewbornModelBindingCheckpointTests
                     storageBuildingId: home.InstanceId),
                 }
             },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId is First or Second ? home.Position : person.Position,
-                HungerBasisPoints = 10_000,
+                Position = person.AgentId is First or Second ? home.Position : person.Position,
+                FullnessBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
         };
@@ -212,7 +212,7 @@ public sealed class NewbornModelBindingCheckpointTests
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), Providers);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var plan = world.Inhabitants.Single(person => person.InhabitantId == First).Parenthood!;
+        var plan = world.Agents.Single(person => person.AgentId == First).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
         // Advance the real waiting ticks; no clock, preparation or birth is fabricated.
         while (world.WorldTick < plan.LastTransitionTick + 599)
@@ -225,7 +225,7 @@ public sealed class NewbornModelBindingCheckpointTests
 
     private static void AssertBound(ProviderConfigurationStore providers, string childId)
     {
-        var rows = providers.CaptureStatus().Assignments!.Where(row => row.InhabitantId == childId).ToArray();
+        var rows = providers.CaptureStatus().Assignments!.Where(row => row.AgentId == childId).ToArray();
         Assert.Equal(new[] { PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.RoutineRole }.Order(), rows.Select(row => row.Role).Order());
         Assert.All(rows, row =>
         {
@@ -246,7 +246,7 @@ public sealed class NewbornModelBindingCheckpointTests
             var prefix = actor == First ? "parent_propose:" : actor == Second ? "parent_accept:" : "safe_idle";
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal))
                 ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, request.ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, request.ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 selected.Id, 1, new Dictionary<string, double> { [selected.Id] = 1 }));
         }

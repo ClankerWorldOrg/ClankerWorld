@@ -28,23 +28,23 @@ public sealed partial class TownLandTransferRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Position = state.Towns![0].OriginSite!.Value, Project = null, LastDecisionContext = null }).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
         var permissions = Permissions(world.ExportState());
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers.Count == 1, 12, provider);
-        var offered = Assert.Single(world.Towns[0].LandHearings.Transfers);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 12, provider);
+        var offered = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal(kind, offered.Price!.ItemKind);
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers[0].Responses.Count == 4, 40, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers[0].Responses.Count == 4, 40, provider);
         Assert.Equal(permissions, Permissions(world.ExportState()));
         var saved = ContentIdFixture.Saved(world);
         using var restored = WorldRuntime.Restore(saved, _ => provider);
         provider.PaySales = true;
         foreach (var actor in offered.Parties.SelectMany(party => party.AdultIds))
-            restored.SubmitInstruction(new("mod-land-pay-" + actor, "owner:test", actor, OwnerInstructionKind.Suggestive, "Consider completing the agreed goods payment."));
-        await UntilAsync(restored, () => restored.Towns[0].LandHearings.Transfers[0].Status == "transferred", 100, provider);
-        var completed = Assert.Single(restored.Towns[0].LandHearings.Transfers);
+            restored.SubmitInstruction(new("mod-land-pay-" + actor, "owner:test", actor, OwnerInstructionKind.Suggestion, "Consider completing the agreed goods payment."));
+        await UntilAsync(restored, () => restored.Towns[0].LandRecords.Transfers[0].Status == "transferred", 100, provider);
+        var completed = Assert.Single(restored.Towns[0].LandRecords.Transfers);
         var payment = Assert.IsType<TownLandSalePayment>(completed.Receipt!.Payment);
         Assert.Equal(kind, completed.Price!.ItemKind);
         Assert.Equal(1, payment.Lots.Sum(lot => lot.Quantity));

@@ -76,8 +76,8 @@ public sealed class ConversationSystem(ConversationState state)
 
     public void SuspendRestoredConversations(IConversationWorld world)
     {
-        var activeIds = world.Society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        var activeIds = world.Society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         for (var index = 0; index < conversations.Count; index++)
         {
@@ -137,7 +137,7 @@ public sealed class ConversationSystem(ConversationState state)
                     world.HasExplicitConversationProvider(current.InitiatorId) && world.HasExplicitConversationProvider(current.InviteeId))
                     result.Add(new CognitionCandidate(
                         $"conversation_accept:{current.Id}",
-                        $"Accept {world.Society.GetInhabitant(current.InitiatorId).Name}'s invitation to talk.", 42));
+                        $"Accept {world.Society.GetAgent(current.InitiatorId).Name}'s invitation to talk.", 42));
                 result.Add(new CognitionCandidate(
                     $"conversation_decline:{current.Id}",
                     "Decline the invitation to talk.", 72));
@@ -178,19 +178,19 @@ public sealed class ConversationSystem(ConversationState state)
         }
 
         if (!HasConversationAllowance(world, agentId) || !world.HasExplicitConversationProvider(agentId) ||
-            world.Inhabitants[agentId] is not { } state || world.NeedsUrgentFood(state) || world.NeedsUrgentWarmth(state))
+            world.Agents[agentId] is not { } state || world.NeedsUrgentFood(state) || world.NeedsUrgentWarmth(state))
             return result;
 
-        foreach (var target in world.Society.Inhabitants
-                     .Where(item => item.Id != agentId && item.Status == SocietyInhabitantStatus.Active &&
+        foreach (var target in world.Society.Agents
+                     .Where(item => item.Id != agentId && item.Status == SocietyAgentStatus.Active &&
                          item.AgeBand != SocietyAgeBand.Infant)
-                     .OrderBy(item => world.FootDistance(state.Position, world.Inhabitants[item.Id].Position))
+                     .OrderBy(item => world.FootDistance(state.Position, world.Agents[item.Id].Position))
                      .ThenBy(item => item.Id, StringComparer.Ordinal))
         {
             if (!HasConversationAllowance(world, target.Id) || !world.HasExplicitConversationProvider(target.Id) ||
                 ConversationFor(target.Id) is not null || world.IsAboardBoat(target.Id) ||
-                world.NeedsUrgentFood(world.Inhabitants[target.Id]) || world.NeedsUrgentWarmth(world.Inhabitants[target.Id]) ||
-                !world.IsWithinInteractionRange(state.Position, world.Inhabitants[target.Id].Position, ResourceInteractionRange))
+                world.NeedsUrgentFood(world.Agents[target.Id]) || world.NeedsUrgentWarmth(world.Agents[target.Id]) ||
+                !world.IsWithinInteractionRange(state.Position, world.Agents[target.Id].Position, ResourceInteractionRange))
                 continue;
             result.Add(new CognitionCandidate(
                 $"talk:{target.Id}",
@@ -221,10 +221,10 @@ public sealed class ConversationSystem(ConversationState state)
     public bool ProposeConversation(IConversationWorld world, string initiatorId, string inviteeId)
     {
         if (initiatorId == inviteeId || world.IsAboardBoat(initiatorId) || world.IsAboardBoat(inviteeId) ||
-            !world.Inhabitants.TryGetValue(initiatorId, out var initiator) ||
-            !world.Inhabitants.TryGetValue(inviteeId, out var invitee) ||
-            world.Society.GetInhabitant(initiatorId).Status != SocietyInhabitantStatus.Active ||
-            world.Society.GetInhabitant(inviteeId).Status != SocietyInhabitantStatus.Active ||
+            !world.Agents.TryGetValue(initiatorId, out var initiator) ||
+            !world.Agents.TryGetValue(inviteeId, out var invitee) ||
+            world.Society.GetAgent(initiatorId).Status != SocietyAgentStatus.Active ||
+            world.Society.GetAgent(inviteeId).Status != SocietyAgentStatus.Active ||
             world.NeedsUrgentFood(initiator) || world.NeedsUrgentWarmth(initiator) ||
             world.NeedsUrgentFood(invitee) || world.NeedsUrgentWarmth(invitee) ||
             !world.IsWithinInteractionRange(initiator.Position, invitee.Position, ResourceInteractionRange) ||
@@ -340,10 +340,10 @@ public sealed class ConversationSystem(ConversationState state)
     {
         if (conversation.Status == AgentConversationStatus.Proposed && world.WorldTick > conversation.ProposalDeadlineTick)
             return false;
-        if (!world.Inhabitants.TryGetValue(conversation.InitiatorId, out var first) ||
-            !world.Inhabitants.TryGetValue(conversation.InviteeId, out var second) ||
-            !world.Society.Inhabitants.Any(item => item.Id == conversation.InitiatorId && item.Status == SocietyInhabitantStatus.Active) ||
-            !world.Society.Inhabitants.Any(item => item.Id == conversation.InviteeId && item.Status == SocietyInhabitantStatus.Active))
+        if (!world.Agents.TryGetValue(conversation.InitiatorId, out var first) ||
+            !world.Agents.TryGetValue(conversation.InviteeId, out var second) ||
+            !world.Society.Agents.Any(item => item.Id == conversation.InitiatorId && item.Status == SocietyAgentStatus.Active) ||
+            !world.Society.Agents.Any(item => item.Id == conversation.InviteeId && item.Status == SocietyAgentStatus.Active))
             return false;
         return (conversation.Kind == AgentConversationKind.MarriageSurname
                 ? IsAcceptedSurnameSession(world, conversation)
@@ -388,8 +388,8 @@ public sealed class ConversationSystem(ConversationState state)
 
     public void UpdateConversationsForTick(IConversationWorld world, long worldTick)
     {
-        var active = world.Society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        var active = world.Society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         foreach (var item in conversations.ToArray())
         {
@@ -436,26 +436,26 @@ public sealed class ConversationSystem(ConversationState state)
     }
 
     public static bool IsUrgentConversationNeed(IConversationWorld world, AgentConversation conversation) =>
-        world.Inhabitants.TryGetValue(conversation.InitiatorId, out var first) &&
+        world.Agents.TryGetValue(conversation.InitiatorId, out var first) &&
             (world.NeedsUrgentFood(first) || world.NeedsUrgentWarmth(first)) ||
-        world.Inhabitants.TryGetValue(conversation.InviteeId, out var second) &&
+        world.Agents.TryGetValue(conversation.InviteeId, out var second) &&
             (world.NeedsUrgentFood(second) || world.NeedsUrgentWarmth(second));
 
     public bool AreConversationParticipantsTogether(IConversationWorld world, AgentConversation conversation) =>
         conversation.Kind == AgentConversationKind.MarriageSurname ? IsAcceptedSurnameSession(world, conversation) :
-        world.Inhabitants.TryGetValue(conversation.InitiatorId, out var first) &&
-        world.Inhabitants.TryGetValue(conversation.InviteeId, out var second) &&
+        world.Agents.TryGetValue(conversation.InitiatorId, out var first) &&
+        world.Agents.TryGetValue(conversation.InviteeId, out var second) &&
         world.IsWithinInteractionRange(first.Position, second.Position, ResourceInteractionRange);
 
     public static string[] ConversationListeners(IConversationWorld world, AgentConversation conversation, string speakerId)
     {
-        var speakerPosition = world.Inhabitants[speakerId].Position;
+        var speakerPosition = world.Agents[speakerId].Position;
         var otherId = speakerId == conversation.InitiatorId ? conversation.InviteeId : conversation.InitiatorId;
         if (conversation.Kind == AgentConversationKind.MarriageSurname) return [otherId];
-        var hearers = world.Society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active && item.Id != speakerId &&
-                item.AgeBand != SocietyAgeBand.Infant && world.Inhabitants.ContainsKey(item.Id))
-            .Select(item => (item.Id, Distance: world.FootDistance(speakerPosition, world.Inhabitants[item.Id].Position)))
+        var hearers = world.Society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active && item.Id != speakerId &&
+                item.AgeBand != SocietyAgeBand.Infant && world.Agents.ContainsKey(item.Id))
+            .Select(item => (item.Id, Distance: world.FootDistance(speakerPosition, world.Agents[item.Id].Position)))
             .Where(item => item.Id == otherId || item.Distance <= ConversationHearingRange)
             .OrderBy(item => item.Id == otherId ? 0 : 1)
             .ThenBy(item => item.Distance)
@@ -549,7 +549,7 @@ public sealed class ConversationSystem(ConversationState state)
         foreach (var ownerId in turn.ListenerIds)
         {
             if (ownerId == turn.SpeakerId ||
-                world.Society.GetInhabitant(ownerId).Status != SocietyInhabitantStatus.Active ||
+                world.Society.GetAgent(ownerId).Status != SocietyAgentStatus.Active ||
                 world.Society.AllBeliefs().Any(item => item.OwnerId == ownerId && item.SourceTurnId == turn.Id))
                 continue;
             var belief = new SocietyAgentBelief(
@@ -602,8 +602,8 @@ public sealed class ConversationSystem(ConversationState state)
         conversation.Kind == AgentConversationKind.MarriageSurname &&
         marriages.SingleOrDefault(item => item.SurnameConversationId == conversation.Id) is { CompletedTick: null, EndReceipt: null } marriage &&
         marriage.InitiatorId == conversation.InitiatorId && marriage.InviteeId == conversation.InviteeId &&
-        AgentMarriageRules.IsAdult(world.Society.GetInhabitant(marriage.InitiatorId)) &&
-        AgentMarriageRules.IsAdult(world.Society.GetInhabitant(marriage.InviteeId)) &&
+        AgentMarriageRules.IsAdult(world.Society.GetAgent(marriage.InitiatorId)) &&
+        AgentMarriageRules.IsAdult(world.Society.GetAgent(marriage.InviteeId)) &&
         AgentMarriageRules.Partnership(world.Society, marriage.InitiatorId, marriage.InviteeId)?.Id == marriage.PartnershipId;
 
     public void MaintainMarriages(IConversationWorld world)
@@ -627,8 +627,8 @@ public sealed class ConversationSystem(ConversationState state)
             }
             SetMarriageAt(index, marriage);
 
-            var first = world.Society.GetInhabitant(marriage.InitiatorId).Name;
-            var second = world.Society.GetInhabitant(marriage.InviteeId).Name;
+            var first = world.Society.GetAgent(marriage.InitiatorId).Name;
+            var second = world.Society.GetAgent(marriage.InviteeId).Name;
             world.AppendEvent("marriage_ended", partnership.State == SocietyRelationshipState.EndedByDeath
                 ? $"The marriage between {first} and {second} ended after a partner died."
                 : $"The marriage between {first} and {second} ended by separation.");
@@ -640,8 +640,8 @@ public sealed class ConversationSystem(ConversationState state)
         var partnership = AgentMarriageRules.Partnership(world.Society, consent.InitiatorId, consent.InviteeId)!;
         var id = AgentMarriageRules.Id(consent.Id);
         var marriage = new AgentMarriage(id, partnership, consent,
-            world.Society.GetInhabitant(consent.InitiatorId).Name,
-            world.Society.GetInhabitant(consent.InviteeId).Name,
+            world.Society.GetAgent(consent.InitiatorId).Name,
+            world.Society.GetAgent(consent.InviteeId).Name,
             AgentMarriageRules.SurnameConversationId(id), world.WorldTick);
         // Consent is retained in the marriage receipt even when ordinary dialogue is compacted.
         AddMarriage(marriage);
@@ -655,7 +655,7 @@ public sealed class ConversationSystem(ConversationState state)
             CurrentSpeakerId = marriage.InitiatorId,
         });
         world.AppendEvent("marriage_accepted", $"{marriage.InitiatorNameAtAcceptance} and {marriage.InviteeNameAtAcceptance} agreed to marry; their shared surname is still undecided.",
-            world.Inhabitants[marriage.InitiatorId].Position);
+            world.Agents[marriage.InitiatorId].Position);
     }
 
     public void CompleteMarriageSurname(IConversationWorld world, AgentConversation receipt)
@@ -664,7 +664,7 @@ public sealed class ConversationSystem(ConversationState state)
         var marriage = marriages[index];
         var surname = AgentMarriageRules.ResolveSurname(world.WorldSeed, marriage, receipt, out var usedTieBreak);
         RenameSpouses(world, marriage, marriage.InitiatorId,
-            AgentMarriageRules.WithSurname(world.Society.GetInhabitant(marriage.InitiatorId).Name, surname));
+            AgentMarriageRules.WithSurname(world.Society.GetAgent(marriage.InitiatorId).Name, surname));
         SetMarriageAt(index, marriage with
         {
             ChosenSurname = surname,
@@ -672,10 +672,10 @@ public sealed class ConversationSystem(ConversationState state)
             UsedTieBreak = usedTieBreak,
             SurnameReceipt = receipt,
         });
-        var couple = world.Society.GetInhabitant(marriage.InitiatorId).Name + " and " + world.Society.GetInhabitant(marriage.InviteeId).Name;
+        var couple = world.Society.GetAgent(marriage.InitiatorId).Name + " and " + world.Society.GetAgent(marriage.InviteeId).Name;
         world.AppendEvent(usedTieBreak ? "marriage_surname_draw" : "marriage_surname_agreed",
             usedTieBreak ? $"{couple} completed their marriage. A draw chose {surname} after four turns without agreement."
-                : $"{couple} completed their marriage and agreed to share the surname {surname}.", world.Inhabitants[marriage.InitiatorId].Position);
+                : $"{couple} completed their marriage and agreed to share the surname {surname}.", world.Agents[marriage.InitiatorId].Position);
     }
 
     public bool CanCompleteMarriageSurname(IConversationWorld world, AgentConversation receipt)
@@ -683,7 +683,7 @@ public sealed class ConversationSystem(ConversationState state)
         var marriage = marriages.Single(item => item.SurnameConversationId == receipt.Id);
         var surname = AgentMarriageRules.ResolveSurname(world.WorldSeed, marriage, receipt, out _);
         return new[] { marriage.InitiatorId, marriage.InviteeId }.All(agentId =>
-            AgentMarriageRules.WithSurname(world.Society.GetInhabitant(agentId).Name, surname).Length <= 48);
+            AgentMarriageRules.WithSurname(world.Society.GetAgent(agentId).Name, surname).Length <= 48);
     }
 
     public void RetainUnavailableSurnameSession(IConversationWorld world, AgentConversation session)
@@ -697,15 +697,15 @@ public sealed class ConversationSystem(ConversationState state)
     public static SocietyOperationResult RenameSpouses(IConversationWorld world, AgentMarriage marriage, string agentId, string name, bool fromPlayer = false)
     {
         var otherId = agentId == marriage.InitiatorId ? marriage.InviteeId : marriage.InitiatorId;
-        var surname = InhabitantNameRules.SurnameKey(name) ?? throw new ArgumentException("Choose a full name with a surname.", nameof(name));
-        var otherName = AgentMarriageRules.WithSurname(world.Society.GetInhabitant(otherId).Name, surname);
+        var surname = AgentNameRules.SurnameKey(name) ?? throw new ArgumentException("Choose a full name with a surname.", nameof(name));
+        var otherName = AgentMarriageRules.WithSurname(world.Society.GetAgent(otherId).Name, surname);
         // Society.Apply publishes only the final valid checkpoint. Either refusal leaves both people untouched.
         return world.Apply(checkpoint =>
         {
             var first = fromPlayer ? world.RenameFromPlayer(checkpoint, agentId, name)
-                : SocietyRules.RenameInhabitant(checkpoint, agentId, name);
+                : SocietyRules.RenameAgent(checkpoint, agentId, name);
             var second = fromPlayer ? world.RenameFromPlayer(first.Checkpoint, otherId, otherName)
-                : SocietyRules.RenameInhabitant(first.Checkpoint, otherId, otherName);
+                : SocietyRules.RenameAgent(first.Checkpoint, otherId, otherName);
             return new SocietyOperationResult(second.Checkpoint, NewEvents: [.. first.NewEvents ?? [], .. second.NewEvents ?? []]);
         });
     }

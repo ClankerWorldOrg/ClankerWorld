@@ -15,9 +15,9 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateCancellationTravelWorld(new CancellationPlanningProvider());
         using var world = RestoreWaitingWorld(setup.ExportState(), HarvestInstructionActor, provider);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("seek_food", world.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == HarvestInstructionActor).CurrentIntention!.CandidateId);
+        Assert.Equal("seek_food", world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == HarvestInstructionActor).CurrentIntention!.CandidateId);
         world.SubmitInstruction(new("waiting-trip-suggestion", "owner:test", HarvestInstructionActor,
-            OwnerInstructionKind.Suggestive, "Think about your next task."));
+            OwnerInstructionKind.Suggestion, "Think about your next task."));
         var dispatch = await world.AdvanceOneTickNonBlockingAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == HarvestInstructionActor);
@@ -31,7 +31,7 @@ public sealed partial class WorldRuntimeTests
         {
             var step = await world.AdvanceOneTickNonBlockingAsync();
             Assert.True(step.Advanced);
-            Assert.DoesNotContain(step.Decisions, item => item.InhabitantId == HarvestInstructionActor);
+            Assert.DoesNotContain(step.Decisions, item => item.AgentId == HarvestInstructionActor);
         }
         Assert.NotEqual(position, CancellationActorPosition(world.ExportState()));
         Assert.Equal(2, provider.Requests.Count);
@@ -64,7 +64,7 @@ public sealed partial class WorldRuntimeTests
     {
         var (state, actor, household, point) = FarmFieldTests.PreparedFarmer("waiting-dependent");
         var checkpoint = ChosenBirthNameTestFixture.NameParent(state.Society.Society, actor);
-        var partner = checkpoint.Inhabitants.First(person => person.HouseholdId == household && person.Id != actor).Id;
+        var partner = checkpoint.Agents.First(person => person.HouseholdId == household && person.Id != actor).Id;
         checkpoint = SocietyRules.ProposeRelationship(checkpoint, new("waiting-care-parents", 1,
             SocietyRelationshipType.Partnership, actor, partner, checkpoint.WorldTick)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "waiting-care-parents", 1, partner).Checkpoint;
@@ -79,53 +79,53 @@ public sealed partial class WorldRuntimeTests
             "waiting-child-serving", "berries", actor, 1)
         };
         var childPosition = state.Map.Tiles.Select(tile => tile.Position).First(tile => state.Map.IsBuildable(tile) &&
-            !state.Inhabitants.Any(person => person.Position == tile) &&
+            !state.Agents.Any(person => person.Position == tile) &&
             (nearby ? state.Map.FootDistance(point, tile) == 1 : state.Map.FootDistance(point, tile) is >= 8 and <= 10));
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
-            Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Survival = new SurvivalState(0, []),
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = 9_000,
+                FullnessBasisPoints = 9_000,
                 Survival = new SurvivalCondition(10_000),
                 LastDecisionContext = null
             }).Append(
-                new InhabitantState(child, childPosition, 1_000, 0, "curious", "grow",
-                    Survival: new SurvivalCondition(10_000))).OrderBy(person => person.InhabitantId, StringComparer.Ordinal).ToArray(),
+                new AgentState(child, childPosition, 1_000, 0, "curious", "grow",
+                    Survival: new SurvivalCondition(10_000))).OrderBy(person => person.AgentId, StringComparer.Ordinal).ToArray(),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(actor) ? town with
             { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() } : town).ToArray(),
         };
-        state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Clear);
+        state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear);
         var provider = new WaitingRoutineProvider("safe_idle");
         using var world = RestoreWaitingWorld(state, actor, provider);
         if (ordered) world.SubmitInstruction(new("waiting-care-order", "owner:test", actor,
-            OwnerInstructionKind.MustDo, "gather food"));
+            OwnerInstructionKind.Order, "gather food"));
         var dispatch = await world.AdvanceOneTickNonBlockingAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == actor);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var relationships = world.Society.Relationships.ToArray();
-        var position = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = world.Agents.Single(person => person.AgentId == actor).Position;
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.Equal(relationships, world.Society.Relationships);
         if (nearby)
         {
             Assert.Contains(world.ExportState().Events, item => item.Kind == "child_cared_for" && item.Detail == child);
-            Assert.True(world.Inhabitants.Single(person => person.InhabitantId == child).HungerBasisPoints > 2_000);
+            Assert.True(world.Agents.Single(person => person.AgentId == child).FullnessBasisPoints > 2_000);
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "waiting-child-serving");
         }
         else
         {
-            Assert.Equal(position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            Assert.Equal(position, world.Agents.Single(person => person.AgentId == actor).Position);
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "child_cared_for");
             Assert.Equal(1, world.Society.Inventory.GetLot("waiting-child-serving").Quantity);
         }
         Assert.Single(provider.Requests);
         world.Validate();
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.Equal(world.Inhabitants.Single(person => person.InhabitantId == child).HungerBasisPoints,
-            restored.Inhabitants.Single(person => person.InhabitantId == child).HungerBasisPoints);
+        Assert.Equal(world.Agents.Single(person => person.AgentId == child).FullnessBasisPoints,
+            restored.Agents.Single(person => person.AgentId == child).FullnessBasisPoints);
     }
 
     [Theory]
@@ -143,28 +143,28 @@ public sealed partial class WorldRuntimeTests
         var house = setup.WorldContent.Buildings.Single(building => building.LocalId == "house-1x1");
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             !state.Map.Resources.Any(resource => resource.Position == point) && !state.Map.MapObjects.Any(item => item.Position == point) &&
-            !state.Inhabitants.Any(person => person.Position == point));
+            !state.Agents.Any(person => person.Position == point));
         var placement = setup.PlaceBuilding("waiting-warm-home", house.CanonicalId, site, "household:camp-alpha");
         Assert.True(placement.Applied, placement.Failure);
         state = setup.ExportState();
         var start = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsBuildable(point) &&
             state.Map.FootDistance(point, site) is >= 4 and <= 7 && state.Map.VegetationAt(point) != VegetationCover.Forest &&
             !state.Map.Resources.Any(resource => resource.Position == point) && !state.Map.MapObjects.Any(item => item.Position == point) &&
-            !state.Inhabitants.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(point, site));
+            !state.Agents.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(point, site));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "waiting-own-food", "food", actor, 1);
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = start,
-                HungerBasisPoints = hungry ? 2_050 : 9_000,
+                FullnessBasisPoints = hungry ? 2_050 : 9_000,
                 Survival = new SurvivalCondition(hungry ? 10_000 : 4_000),
                 LastDecisionContext = null,
                 TravelCooldownTicks = 0
             } : person).ToArray(),
         };
-        state = SettlementWeatherTestFixture.WithWeather(state, weather);
+        state = WeatherTestFixture.WithWeather(state, weather);
         var provider = new WaitingRoutineProvider("safe_idle");
         using var world = RestoreWaitingWorld(state, actor, provider);
         var dispatch = await world.AdvanceOneTickNonBlockingAsync();
@@ -175,16 +175,16 @@ public sealed partial class WorldRuntimeTests
         var buildings = world.WorldSimulation.Buildings.ToArray();
         var relationships = world.Society.Relationships.ToArray();
         for (var tick = 0; tick < 20; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var person = world.Inhabitants.Single(person => person.InhabitantId == actor);
+        var person = world.Agents.Single(person => person.AgentId == actor);
         if (hungry)
         {
             Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == "waiting-own-food");
-            Assert.True(person.HungerBasisPoints > 2_100);
+            Assert.True(person.FullnessBasisPoints > 2_100);
         }
         else
         {
             Assert.NotEqual(start, person.Position);
-            Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+            Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" &&
                 item.Detail.StartsWith(actor + ":", StringComparison.Ordinal));
         }
         Assert.Null(person.Project);
@@ -203,7 +203,7 @@ public sealed partial class WorldRuntimeTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource<bool> release = new(TaskCreationOptions.RunContinuationsAsynchronously);
 

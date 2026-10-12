@@ -25,7 +25,7 @@ public sealed class BrokenVesselProductionTests
     public async Task BreadUsesHealthyIngredientsWhileLeavingBrokenVesselFamiliesUntouched(string damaged, bool alternative)
     {
         var state = WorldRuntimeCodec.Decode(await Generated.Value);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with
@@ -58,15 +58,15 @@ public sealed class BrokenVesselProductionTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
-                HungerBasisPoints = 10_000,
+                Position = person.AgentId == actor ? house.Position : person.Position,
+                FullnessBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new Choices());
-        var receipt = world.SubmitInstruction(new("healthy-bread", "owner:test", actor, OwnerInstructionKind.MustDo, "make house bread"));
+        var receipt = world.SubmitInstruction(new("healthy-bread", "owner:test", actor, OwnerInstructionKind.Order, "make house bread"));
         var beforeTick = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(beforeTick, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -100,8 +100,8 @@ public sealed class BrokenVesselProductionTests
         world.Validate();
     }
 
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == receipt.InstructionId).Order!;
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == receipt.InstructionId).Task!;
 
     private sealed class Choices : IDecisionProvider
     {
@@ -111,7 +111,7 @@ public sealed class BrokenVesselProductionTests
         {
             request.Validate();
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "produce_item")?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

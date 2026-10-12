@@ -166,7 +166,7 @@ public sealed class WorldCustodyOrderParserTests
         var rejected = Submit(world, "unsupported", text);
         Assert.Equal(("unknown", "not_understood"), (rejected.Action, rejected.Status));
         Assert.Null(rejected.TargetItemKind);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
         Assert.Single(world.ExportState().Events, item => item.Kind == "instruction_not_understood");
     }
 
@@ -183,7 +183,7 @@ public sealed class WorldCustodyOrderParserTests
         foreach (var member in new[] { "targetStorageBuildingId", "targetStorageOwnerId", "targetStoragePosition", "targetLotId" })
             Assert.False(savedOrder.ContainsKey(member));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
 
         (string Member, JsonNode? Value)[] corruptions =
@@ -216,9 +216,9 @@ public sealed class WorldCustodyOrderParserTests
         }
     }
 
-    private static OwnerInstructionOrder Submit(WorldRuntime world, string key, string text)
+    private static OrderTask Submit(WorldRuntime world, string key, string text)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.MustDo, text));
-        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text));
+        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     }
 }

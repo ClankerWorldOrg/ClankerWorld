@@ -18,7 +18,7 @@ internal static partial class OwnerEndpoints
             {
                 return Results.ValidationProblem(new Dictionary<string, string[]>
                 {
-                    ["action.kind"] = ["Instruction kind must be suggestive or must_do."],
+                    ["action.kind"] = ["Instruction kind must be suggestion or order."],
                 });
             }
 
@@ -56,7 +56,7 @@ internal static partial class OwnerEndpoints
                     var receipt = privateRuntime.SubmitInstruction(new OwnerInstructionRequest(
                         request.Action.IdempotencyKey,
                         $"owner-device:{authorization.Value!.DeviceId}",
-                        request.Action.TargetInhabitantId,
+                        request.Action.TargetAgentId,
                         kind,
                     request.Action.Text,
                     request.Action.Queue));
@@ -120,7 +120,7 @@ internal static partial class OwnerEndpoints
                         request.Action.IdempotencyKey,
                         $"owner-device:{authorization.Value!.DeviceId}",
                         request.Action.WorldId,
-                        request.Action.TargetInhabitantId,
+                        request.Action.TargetAgentId,
                         request.Action.OrderId));
                     privateStateFile.Save(privateRuntime);
                     return Results.Ok(receipt);

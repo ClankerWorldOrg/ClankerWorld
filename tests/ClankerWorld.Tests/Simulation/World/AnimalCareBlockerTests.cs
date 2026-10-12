@@ -30,11 +30,11 @@ public sealed partial class AnimalPipelineTests
             inventory = InventoryAuthority.AddLot(inventory, "care-blocker-water", "fresh_water", actor, 2, containerLotId: "care-blocker-jug");
         }
         state = At(state, actor, yard.Position, inventory, [cow]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         var decisions = new CareBlockerChooser();
         IDecisionProvider Provider(string id) => id == actor ? decisions : new AnimalChooser();
         using var preparing = WorldRuntime.Restore(state, Provider);
-        var instruction = preparing.SubmitInstruction(new("care-blocker-order", "owner", actor, OwnerInstructionKind.MustDo, "care for Fern"));
+        var instruction = preparing.SubmitInstruction(new("care-blocker-order", "owner", actor, OwnerInstructionKind.Order, "care for Fern"));
         var bytes = WorldRuntimeCodec.Encode(preparing.ExportState());
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Provider);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Provider);
@@ -46,7 +46,7 @@ public sealed partial class AnimalPipelineTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(withSupplies ? "finished" : "blocked", order.Status);
         Assert.Equal(withSupplies ? 1 : 0, order.CompletedUnits);
         if (withSupplies)
@@ -74,7 +74,7 @@ public sealed partial class AnimalPipelineTests
         if (withSupplies || alreadyCared) return;
 
         var blocked = loaded.ExportState();
-        Assert.Equal("blocked", blocked.Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status);
+        Assert.Equal("blocked", blocked.Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status);
         var house = blocked.WorldSimulation!.Buildings.First(building => building.HouseholdId == home &&
             blocked.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house")));
         var ground = new InventoryGroundPosition(house.Position.X, house.Position.Y);
@@ -88,7 +88,7 @@ public sealed partial class AnimalPipelineTests
         Assert.False((await recovering.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(recovering.ExportState()));
         var fetched = false;
-        for (var tick = 0; tick < 70 && recovering.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status != "finished"; tick++)
+        for (var tick = 0; tick < 70 && recovering.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status != "finished"; tick++)
         {
             Assert.True((await recovering.AdvanceOneTickAsync()).Advanced);
             Assert.True((await recoveringReplay.AdvanceOneTickAsync()).Advanced);
@@ -96,17 +96,17 @@ public sealed partial class AnimalPipelineTests
             if (recovering.ExportState().AnimalWorld.SupplyTrips.Any(trip => trip.ActorId == actor && trip.AnimalId == cow.Id))
             {
                 fetched = true;
-                Assert.Equal("doing", recovering.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status);
+                Assert.Equal("doing", recovering.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status);
             }
         }
-        order = recovering.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        order = recovering.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(("finished", 1), (order.Status, order.CompletedUnits));
         Assert.True(fetched);
         Assert.True(recovering.Animals.Single().CareUntilTick > recovering.WorldTick);
         Assert.Equal(2, recovering.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("retry-care-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
         Assert.Equal((home, 2), (recovering.Society.Inventory.GetLot("retry-care-water").OwnerId, recovering.Society.Inventory.GetLot("retry-care-water").Quantity));
         Assert.Equal((home, actor), (recovering.Society.Inventory.GetLot("retry-care-jug").OwnerId, recovering.Society.Inventory.GetLot("retry-care-jug").CarrierId));
-        Assert.Equal(recovering.Animals.Single().Position, recovering.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(recovering.Animals.Single().Position, recovering.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Empty(recovering.ExportState().AnimalWorld.SupplyTrips);
         using var recoveredReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(recovering.ExportState())), Provider);
         recoveredReload.Validate();

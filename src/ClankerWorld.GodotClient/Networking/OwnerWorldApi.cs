@@ -328,13 +328,13 @@ public sealed class OwnerWorldApi
             OwnerPairingEndpoints.OwnerDeveloperEdit, OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.DeveloperEdit(action),
             action, signer, cancellationToken);
 
-    public Task<OwnerControlReceipt> SetLifePaceAsync(Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
+    public Task<OwnerControlReceipt> SetAgingOverrideAsync(Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,
         int rate, string worldId, IOwnerDeviceSigner deviceKey, CancellationToken cancellationToken)
     {
-        var action = new OwnerLifePaceAction(rate, worldId);
-        return pairing.SendSignedActionAsync<OwnerLifePaceAction, OwnerControlReceipt>(serverUri, authority, deviceId,
-            OwnerPairingEndpoints.OwnerLifePace, OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.LifePace(action),
-            action, deviceKey, cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.LifePacePayloadDomain);
+        var action = new OwnerAgingOverrideAction(rate, worldId);
+        return pairing.SendSignedActionAsync<OwnerAgingOverrideAction, OwnerControlReceipt>(serverUri, authority, deviceId,
+            OwnerPairingEndpoints.OwnerAgingOverride, OwnerPairingProtocol.CreateRequestId(), OwnerWorldActionPayload.AgingOverride(action),
+            action, deviceKey, cancellationToken, requiredPayloadDomain: OwnerWorldActionPayload.AgingOverridePayloadDomain);
     }
 
     public Task<OwnerControlReceipt> SetRoutineHelperAsync(Uri serverUri, OwnerAuthorityIdentity authority, string deviceId,

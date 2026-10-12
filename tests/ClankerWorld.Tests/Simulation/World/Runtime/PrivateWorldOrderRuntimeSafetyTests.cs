@@ -18,8 +18,8 @@ public sealed partial class WorldRuntimeTests
             "urgent-order-fruit", "fruit", HarvestInstructionActor, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
-                ? person with { HungerBasisPoints = 1_000 }
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
+                ? person with { FullnessBasisPoints = 1_000 }
                 : person).ToArray(),
             Society = state.Society with
             {
@@ -27,10 +27,10 @@ public sealed partial class WorldRuntimeTests
             },
         };
         using var world = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());
-        var positionBefore = world.ExportState().Inhabitants
-            .Single(item => item.InhabitantId == HarvestInstructionActor).Position;
+        var positionBefore = world.ExportState().Agents
+            .Single(item => item.AgentId == HarvestInstructionActor).Position;
         var order = world.SubmitInstruction(new OwnerInstructionRequest(
-            "urgent-order", "owner:test", HarvestInstructionActor, OwnerInstructionKind.MustDo, text));
+            "urgent-order", "owner:test", HarvestInstructionActor, OwnerInstructionKind.Order, text));
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
@@ -39,10 +39,10 @@ public sealed partial class WorldRuntimeTests
         Assert.DoesNotContain(after.Events, item => item.Kind == "food_harvested" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
         Assert.DoesNotContain(after.Society.Society.Inventory.Lots, item => item.Id == "urgent-order-fruit");
-        Assert.Equal(positionBefore, after.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor).Position);
+        Assert.Equal(positionBefore, after.Agents.Single(item => item.AgentId == HarvestInstructionActor).Position);
         var savedOrder = Assert.Single(after.Instructions!, item => item.InstructionId == order.InstructionId);
-        Assert.Equal("interrupted", savedOrder.Order!.Status);
-        Assert.Equal(0, savedOrder.Order.CompletedUnits);
+        Assert.Equal("interrupted", savedOrder.Task!.Status);
+        Assert.Equal(0, savedOrder.Task.CompletedUnits);
         Assert.DoesNotContain(order.InstructionId, after.CompletedInstructionIds ?? []);
         world.Validate();
     }
@@ -55,12 +55,12 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new DeterministicDecisionProvider());
         var state = setup.ExportState();
-        var person = state.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor);
+        var person = state.Agents.Single(item => item.AgentId == HarvestInstructionActor);
         var inventory = FillActorCarry(state.Society.Society.Inventory, person, "full-harvest-cargo");
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { HungerBasisPoints = 3_000 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { FullnessBasisPoints = 3_000 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -71,11 +71,11 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("full-harvest", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var blocked = world.ExportState();
-        var blockedOrder = Assert.Single(blocked.Instructions!, item => item.InstructionId == order.InstructionId).Order!;
+        var blockedOrder = Assert.Single(blocked.Instructions!, item => item.InstructionId == order.InstructionId).Task!;
         Assert.Equal("blocked", blockedOrder.Status);
         Assert.Contains("carry", blockedOrder.BlockedReason, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(1, provider.CallCount);
@@ -99,9 +99,9 @@ public sealed partial class WorldRuntimeTests
                 .OrderBy(item => item.Id, StringComparer.Ordinal));
         Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(after.Society.Society.Inventory,
             HarvestInstructionActor,
-            after.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor).Equipment));
+            after.Agents.Single(item => item.AgentId == HarvestInstructionActor).Equipment));
         Assert.Single(after.Instructions!, item => item.InstructionId == order.InstructionId &&
-            item.Order!.Status == "blocked" && item.Order.BlockedReason == blockedOrder.BlockedReason);
+            item.Task!.Status == "blocked" && item.Task.BlockedReason == blockedOrder.BlockedReason);
         Assert.Single(after.Events, item => item.Kind == "instruction_order_status" &&
             item.Detail == $"{HarvestInstructionActor}:{order.InstructionId}:blocked");
         Assert.Equal(1, provider.CallCount);
@@ -117,15 +117,15 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new DeterministicDecisionProvider());
         var state = setup.ExportState();
-        var person = state.Inhabitants.Single(item => item.InhabitantId == OrderedAgent);
-        var householdId = state.Society.Society.GetInhabitant(OrderedAgent).HouseholdId!;
+        var person = state.Agents.Single(item => item.AgentId == OrderedAgent);
+        var householdId = state.Society.Society.GetAgent(OrderedAgent).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "shared-order-berries", "berries", householdId, 1);
         inventory = FillActorCarry(inventory, person, "full-shared-food-cargo");
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
-                ? item with { HungerBasisPoints = 3_000 }
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
+                ? item with { FullnessBasisPoints = 3_000 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -136,12 +136,12 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("full-shared-food", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, "eat food"));
+            OrderedAgent, OwnerInstructionKind.Order, "eat food"));
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var blocked = world.ExportState();
-        var blockedOrder = Assert.Single(blocked.Instructions!, item => item.InstructionId == order.InstructionId).Order!;
+        var blockedOrder = Assert.Single(blocked.Instructions!, item => item.InstructionId == order.InstructionId).Task!;
         Assert.Equal("blocked", blockedOrder.Status);
         Assert.Contains("carry", blockedOrder.BlockedReason, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(1, provider.CallCount);
@@ -159,7 +159,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(1, Assert.Single(after.Society.Society.Inventory.Lots,
             item => item.Id == "shared-order-berries").Quantity);
         Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(after.Society.Society.Inventory, OrderedAgent,
-            after.Inhabitants.Single(item => item.InhabitantId == OrderedAgent).Equipment));
+            after.Agents.Single(item => item.AgentId == OrderedAgent).Equipment));
         Assert.Single(after.Events, item => item.Kind == "instruction_order_status" &&
             item.Detail == $"{OrderedAgent}:{order.InstructionId}:blocked");
         Assert.Equal(1, provider.CallCount);
@@ -173,15 +173,15 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateOrderWorldWithoutFood("requested-household-food-kind",
             _ => new DeterministicDecisionProvider());
         var state = setup.ExportState();
-        var householdId = state.Society.Society.GetInhabitant(OrderedAgent).HouseholdId!;
+        var householdId = state.Society.Society.GetAgent(OrderedAgent).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "wrong-kind-fruit", "fruit", householdId, 1);
         inventory = InventoryAuthority.AddLot(inventory,
             "requested-kind-berries", "berries", householdId, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
-                ? item with { HungerBasisPoints = 3_000 }
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
+                ? item with { FullnessBasisPoints = 3_000 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -190,7 +190,7 @@ public sealed partial class WorldRuntimeTests
         };
         using var world = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("requested-kind-eat", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, "eat berries"));
+            OrderedAgent, OwnerInstructionKind.Order, "eat berries"));
 
         for (var tick = 0; tick < 120 && !world.ExportState().Events.Any(item =>
                  item.Kind == "food_consumed" && item.Detail == OrderedAgent); tick++)
@@ -213,15 +213,15 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateOrderWorldWithoutFood("repeat-eat-order-fullness",
             _ => new DeterministicDecisionProvider());
         var state = setup.ExportState();
-        var householdId = state.Society.Society.GetInhabitant(OrderedAgent).HouseholdId!;
+        var householdId = state.Society.Society.GetAgent(OrderedAgent).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "repeat-eat-carried-berries", "berries", OrderedAgent, 2);
         inventory = InventoryAuthority.AddLot(inventory,
             "repeat-eat-household-berries", "berries", householdId, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
-                ? item with { HungerBasisPoints = 3_000 }
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
+                ? item with { FullnessBasisPoints = 3_000 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -230,9 +230,9 @@ public sealed partial class WorldRuntimeTests
         };
         using var world = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("repeat-eat", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, "eat food until cancelled"));
+            OrderedAgent, OwnerInstructionKind.Order, "eat food until cancelled"));
         Assert.True(Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == order.InstructionId)
-            .Order!.RepeatUntilCancelled);
+            .Task!.RepeatUntilCancelled);
 
         for (var tick = 0; tick < 20; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -243,8 +243,8 @@ public sealed partial class WorldRuntimeTests
             item => item.Id == "repeat-eat-carried-berries").Quantity);
         Assert.Equal(1, Assert.Single(full.Society.Society.Inventory.Lots,
             item => item.Id == "repeat-eat-household-berries").Quantity);
-        Assert.True(full.Inhabitants.Single(item => item.InhabitantId == OrderedAgent).HungerBasisPoints >= 4_000);
-        var waitingOrder = Assert.Single(full.Instructions!, item => item.InstructionId == order.InstructionId).Order!;
+        Assert.True(full.Agents.Single(item => item.AgentId == OrderedAgent).FullnessBasisPoints >= 4_000);
+        var waitingOrder = Assert.Single(full.Instructions!, item => item.InstructionId == order.InstructionId).Task!;
         Assert.Equal("blocked", waitingOrder.Status);
         Assert.Contains("hungry", waitingOrder.BlockedReason, StringComparison.OrdinalIgnoreCase);
 
@@ -282,8 +282,8 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateKnownBerryOrderWorld(_ => new DeterministicDecisionProvider());
         var state = setup.ExportState();
         var source = state.Map.Resources.Single(item => item.Id == "berry-patch");
-        var actor = state.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor);
-        var occupied = state.Inhabitants.Where(item => item.InhabitantId != HarvestInstructionActor)
+        var actor = state.Agents.Single(item => item.AgentId == HarvestInstructionActor);
+        var occupied = state.Agents.Where(item => item.AgentId != HarvestInstructionActor)
             .Select(item => item.Position).ToHashSet();
         var farStand = state.Map.Tiles.Select(item => item.Position)
             .Where(point => state.Map.IsPassable(point) && !occupied.Contains(point) &&
@@ -294,15 +294,15 @@ public sealed partial class WorldRuntimeTests
             .Select(item => item.Point).First();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { Position = farStand, HungerBasisPoints = 10_000 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { Position = farStand, FullnessBasisPoints = 10_000 }
                 : item).ToArray(),
         };
         using var restoredWorld = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
             ? provider
             : new DeterministicDecisionProvider());
         var order = restoredWorld.SubmitInstruction(new OwnerInstructionRequest("held-harvest", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather 2 berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather 2 berries from berry-patch"));
         Assert.True((await restoredWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
         var enteredFrame = WorldRuntimeCodec.Encode(restoredWorld.ExportState());
         var call = CaptureHeldHarvestCall(restoredWorld);
@@ -313,21 +313,21 @@ public sealed partial class WorldRuntimeTests
         var initialRequest = Assert.Single(provider.Requests);
         Assert.Equal(initialRequest.ObservationDigest, call.Request.Observation.ObservationDigest);
         Assert.Equal(state.Society.Society.WorldId, initialRequest.WorldId);
-        Assert.Equal(HarvestInstructionActor, initialRequest.InhabitantId);
+        Assert.Equal(HarvestInstructionActor, initialRequest.AgentId);
         var exactMessage = Assert.Single(initialRequest.ObserverGuidance!, item => item.InstructionId == order.InstructionId);
-        Assert.Equal("must_do", exactMessage.Kind);
+        Assert.Equal("order", exactMessage.Kind);
         Assert.Equal("gather 2 berries from berry-patch", exactMessage.Text);
         Assert.True(exactMessage.ReplyAllowed);
         Assert.Equal("gather several food servings from a nearby food source", exactMessage.UnderstoodTask);
 
         for (var tick = 0; tick < 80 && Assert.Single(restoredWorld.ExportState().Instructions!,
-                 item => item.InstructionId == order.InstructionId).Order!.Status != "finished"; tick++)
+                 item => item.InstructionId == order.InstructionId).Task!.Status != "finished"; tick++)
             Assert.True((await restoredWorld.AdvanceOneTickNonBlockingAsync()).Advanced);
 
         var finished = restoredWorld.ExportState();
         var finishedInstruction = Assert.Single(finished.Instructions!, item => item.InstructionId == order.InstructionId);
-        Assert.Equal("finished", finishedInstruction.Order!.Status);
-        Assert.True(finishedInstruction.Order.CompletedUnits >= finishedInstruction.Order.RequestedUnits);
+        Assert.Equal("finished", finishedInstruction.Task!.Status);
+        Assert.True(finishedInstruction.Task.CompletedUnits >= finishedInstruction.Task.RequestedUnits);
         Assert.Null(finishedInstruction.ObservedTick);
         Assert.Equal(1, provider.CallCount);
         Assert.Single(finished.Events, item => item.Kind == "food_harvested" &&
@@ -349,20 +349,20 @@ public sealed partial class WorldRuntimeTests
         Assert.True(provider.Returned.Task.IsCompletedSuccessfully, "The captured hosted call must construct its actual reply.");
         var reply = await provider.Returned.Task;
         Assert.Equal((call.Request.RequestId, HarvestInstructionActor, initialRequest.ObservationDigest, "seek_food"),
-            (reply.RequestId, reply.InhabitantId, reply.ObservationDigest, reply.SelectedCandidateId));
+            (reply.RequestId, reply.AgentId, reply.ObservationDigest, reply.SelectedCandidateId));
         Assert.Equal(finishedFrame, WorldRuntimeCodec.Encode(restoredWorld.ExportState()));
         var admittedTick = await restoredWorld.AdvanceOneTickNonBlockingAsync();
         Assert.True(admittedTick.Advanced);
         var admittedDecision = Assert.Single(admittedTick.Decisions,
-            item => item.InhabitantId == HarvestInstructionActor);
+            item => item.AgentId == HarvestInstructionActor);
         Assert.Single(admittedTick.Events, item => item.Kind == "hosted_decision_completed" &&
             item.Detail == $"{HarvestInstructionActor}:{admittedDecision.Admission.Outcome}");
 
         var afterReplyBytes = WorldRuntimeCodec.Encode(restoredWorld.ExportState());
         var afterReply = WorldRuntimeCodec.Decode(afterReplyBytes);
         var repliedInstruction = Assert.Single(afterReply.Instructions!, item => item.InstructionId == order.InstructionId);
-        Assert.Equal("finished", repliedInstruction.Order!.Status);
-        Assert.Equal(finishedInstruction.Order.CompletedUnits, repliedInstruction.Order.CompletedUnits);
+        Assert.Equal("finished", repliedInstruction.Task!.Status);
+        Assert.Equal(finishedInstruction.Task.CompletedUnits, repliedInstruction.Task.CompletedUnits);
         Assert.Equal(1, afterReply.Events.Count(item => item.Kind == "food_harvested" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal)));
         Assert.NotNull(repliedInstruction.ObservedTick);
@@ -388,8 +388,8 @@ public sealed partial class WorldRuntimeTests
             "held-urgent-fruit", "fruit", HarvestInstructionActor, 2);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { HungerBasisPoints = 0 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { FullnessBasisPoints = 0 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -400,7 +400,7 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("held-urgent-order", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
@@ -411,7 +411,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(1, Assert.Single(afterOneTick.Society.Society.Inventory.Lots,
             item => item.Id == "held-urgent-fruit").Quantity);
         Assert.Equal("interrupted", Assert.Single(afterOneTick.Instructions!,
-            item => item.InstructionId == order.InstructionId).Order!.Status);
+            item => item.InstructionId == order.InstructionId).Task!.Status);
         Assert.Equal(1, provider.CallCount);
         Assert.DoesNotContain(afterOneTick.Events, item => item.Kind == "food_harvested" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
@@ -430,8 +430,8 @@ public sealed partial class WorldRuntimeTests
         var state = setup.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { HungerBasisPoints = 0 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { FullnessBasisPoints = 0 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -447,7 +447,7 @@ public sealed partial class WorldRuntimeTests
         var preparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         if (delayedStartup) provider.PreparationGate = preparation.Task;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("held-urgent-harvest", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
 
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var call = CaptureHeldHarvestCall(world);
@@ -456,7 +456,7 @@ public sealed partial class WorldRuntimeTests
         {
             var afterHarvestTick = world.ExportState();
             Assert.Equal("finished", Assert.Single(afterHarvestTick.Instructions!,
-                item => item.InstructionId == order.InstructionId).Order!.Status);
+                item => item.InstructionId == order.InstructionId).Task!.Status);
             Assert.Single(afterHarvestTick.Events, item => item.Kind == "food_harvested" &&
                 item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
             Assert.DoesNotContain(afterHarvestTick.Events, item => item.Kind == "food_consumed" &&
@@ -498,7 +498,7 @@ public sealed partial class WorldRuntimeTests
 
             var final = world.ExportState();
             var savedOrder = Assert.Single(final.Instructions!, item => item.InstructionId == order.InstructionId);
-            Assert.Equal("finished", savedOrder.Order!.Status);
+            Assert.Equal("finished", savedOrder.Task!.Status);
             Assert.NotNull(savedOrder.ObservedTick);
             Assert.Equal("I will gather the berries.", savedOrder.ObserverReply);
             Assert.Single(final.Events, item => item.Kind == "food_harvested" &&
@@ -532,12 +532,12 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("retry-order", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather berries from berry-patch"));
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var failed = world.ExportState();
-        var failedOrder = Assert.Single(failed.Instructions!, item => item.InstructionId == order.InstructionId).Order!;
+        var failedOrder = Assert.Single(failed.Instructions!, item => item.InstructionId == order.InstructionId).Task!;
         Assert.Equal("blocked", failedOrder.Status);
         Assert.True(failedOrder.WaitForDecisionAfterFailure);
         Assert.Equal(1, provider.CallCount);
@@ -560,7 +560,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Single(recovered.Events, item => item.Kind == "food_harvested" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal));
         Assert.False(Assert.Single(recovered.Instructions!, item => item.InstructionId == order.InstructionId)
-            .Order!.WaitForDecisionAfterFailure);
+            .Task!.WaitForDecisionAfterFailure);
         restored.Validate();
     }
 
@@ -569,13 +569,13 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateHarvestInstructionWorld(orchard: false);
         var state = setup.ExportState();
         var source = state.Map.Resources.Single(item => item.Id == "berry-patch");
-        var occupied = state.Inhabitants.Where(item => item.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(item => item.AgentId != HarvestInstructionActor)
             .Select(item => item.Position).ToHashSet();
         var stand = state.Map.FootNeighbors(source.Position)
             .First(point => state.Map.IsPassable(point) && !occupied.Contains(point));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
                 ? item with { Position = stand }
                 : item).ToArray(),
         };
@@ -584,13 +584,13 @@ public sealed partial class WorldRuntimeTests
 
     private static InventoryCheckpoint FillActorCarry(
         InventoryCheckpoint inventory,
-        InhabitantState person,
+        AgentState person,
         string lotId)
     {
-        var free = PersonalEquipmentRules.FreeCapacity(inventory, person.InhabitantId, person.Equipment);
+        var free = PersonalEquipmentRules.FreeCapacity(inventory, person.AgentId, person.Equipment);
         if (free > 0)
-            inventory = InventoryAuthority.AddLot(inventory, lotId, "stone", person.InhabitantId, free);
-        Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, person.InhabitantId, person.Equipment));
+            inventory = InventoryAuthority.AddLot(inventory, lotId, "stone", person.AgentId, free);
+        Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(inventory, person.AgentId, person.Equipment));
         return inventory;
     }
 
@@ -623,7 +623,7 @@ public sealed partial class WorldRuntimeTests
             candidates.First(item => item.Id == "safe_idle");
         return new CognitionDecisionResponse(
             request.RequestId,
-            request.Observation.InhabitantId,
+            request.Observation.AgentId,
             kind,
             providerEpoch,
             request.Observation.RunEpoch,
@@ -659,7 +659,7 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public int CallCount => Volatile.Read(ref callCount);
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<CognitionDecisionResponse> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

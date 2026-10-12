@@ -20,13 +20,13 @@ public partial class Main
         body.AddChild(profilePeople);
     }
 
-    private void RenderProfilePeople(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant)
+    private void RenderProfilePeople(OwnerWorldSnapshot snapshot, OwnerWorldAgent agent)
     {
-        var ties = inhabitant.Relationships.Select(link => (link, Name: GameUiText.PartyName(snapshot, link.OtherPartyId))).ToArray();
+        var ties = agent.Relationships.Select(link => (link, Name: GameUiText.PartyName(snapshot, link.OtherPartyId))).ToArray();
         var signature = string.Join("|", UiTheme.Current.Name,
             string.Join(",", ties.Select(tie => $"{tie.link.Type}:{tie.link.State}:{tie.link.Direction}:{tie.Name}")),
-            string.Join(",", inhabitant.SocialStanding.Select(standing => $"{standing.SubjectName}:{standing.Trust}")),
-            string.Join(",", inhabitant.SocialNotes));
+            string.Join(",", agent.SocialStanding.Select(standing => $"{standing.SubjectName}:{standing.Trust}")),
+            string.Join(",", agent.SocialNotes));
         if (signature == renderedProfilePeople) return;
         renderedProfilePeople = signature;
         foreach (var child in profilePeople.GetChildren())
@@ -68,10 +68,10 @@ public partial class Main
                     break;
             }
         }
-        foreach (var standing in inhabitant.SocialStanding)
+        foreach (var standing in agent.SocialStanding)
             Row(PixelIcons.Texture(PixelGlyph.Person, p.Ink, p.Primary, 1), "Trusts", standing.SubjectName,
                 Sureness(standing.Trust * 1000, $"Trust {standing.Trust} of 10"));
-        foreach (var note in inhabitant.SocialNotes)
+        foreach (var note in agent.SocialNotes)
             profilePeople.AddChild(new Label { Text = GameUiText.PlainEllipses(note), ThemeTypeVariation = "DimLabel", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(240, 0) });
         if (profilePeople.GetChildCount() == 0)
             profilePeople.AddChild(new Label { Text = "No close relationships yet.", ThemeTypeVariation = "DimLabel" });

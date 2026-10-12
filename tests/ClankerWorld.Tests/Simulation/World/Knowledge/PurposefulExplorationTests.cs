@@ -15,11 +15,11 @@ public sealed partial class PurposefulExplorationTests
         var (state, actor, kind, source, index) = await MaterialCourse();
         using var world = Restore(state);
         var receipt = world.SubmitInstruction(new("purposeful-material", "owner:test", actor,
-            OwnerInstructionKind.MustDo, "gather " + kind.Replace('_', ' ')));
+            OwnerInstructionKind.Order, "gather " + kind.Replace('_', ' ')));
         Assert.Equal("waiting", Order(world, receipt.InstructionId).Status);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var goal = Person(world, actor).Exploration!.Goal;
-        Assert.Equal(new SettlementExplorationGoal("resource", kind, receipt.InstructionId), goal);
+        Assert.Equal(new ExplorationGoal("resource", kind, receipt.InstructionId), goal);
         Assert.Equal(0, Order(world, receipt.InstructionId).CompletedUnits);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -73,7 +73,7 @@ public sealed partial class PurposefulExplorationTests
         });
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Project = new(TownConstructionCandidateIds.Building(definition.CanonicalId, person.Position),
                     "Build a House", state.Society.Society.WorldTick, "paused",
@@ -87,8 +87,8 @@ public sealed partial class PurposefulExplorationTests
             "Missing needed-wood choice: " + string.Join(',', chooser.Offered.Where(id => id.StartsWith("explore", StringComparison.Ordinal))) +
             "; actual project=" + Person(world, actor).Project);
         Assert.Contains("explore_for:terrain:Forest", chooser.Offered);
-        Assert.Equal(new SettlementExplorationGoal(kind, target), Person(world, actor).Exploration!.Goal);
-        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == actor);
+        Assert.Equal(new ExplorationGoal(kind, target), Person(world, actor).Exploration!.Goal);
+        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == actor);
         Assert.Equal("looking for " + target.ToLowerInvariant() + (kind == "terrain" ? " terrain" : ""), visible.PublicIntention!.Summary);
         Assert.Equal(visible.PublicIntention.Summary, ClankerWorld.GodotClient.UI.GameUiText.ActivityPhrase(visible.PublicIntention.CandidateId, null));
         Assert.DoesNotContain(world.ExportState().Knowledge!.Facts, fact => fact.OwnerId == actor && fact.Position == source.Position);
@@ -146,17 +146,17 @@ public sealed partial class PurposefulExplorationTests
         var (state, actor, _, _, _) = await MaterialCourse();
         var chooser = new ScoutProvider("safe_idle");
         using var world = WorldRuntime.Restore(state, id => id == actor ? chooser : new ScoutProvider("safe_idle"));
-        var receipt = world.SubmitInstruction(new("find-fruit", "owner:test", actor, OwnerInstructionKind.MustDo, "harvest fruit"));
+        var receipt = world.SubmitInstruction(new("find-fruit", "owner:test", actor, OwnerInstructionKind.Order, "harvest fruit"));
         for (var tick = 0; tick < 40 && (Person(world, actor).Exploration?.OutingPath.Count ?? 0) < 12; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(new SettlementExplorationGoal("resource", "fruit", receipt.InstructionId), Person(world, actor).Exploration!.Goal);
+        Assert.Equal(new ExplorationGoal("resource", "fruit", receipt.InstructionId), Person(world, actor).Exploration!.Goal);
         Assert.True(Person(world, actor).Exploration!.OutingPath.Count > 8);
         Assert.Contains(world.ExportState().Knowledge!.Facts, fact => fact.OwnerId == actor && fact.ResourceKinds.Contains("construction"));
         Assert.Equal(0, Order(world, receipt.InstructionId).CompletedUnits);
         var origin = Person(world, actor).Exploration!.OutingPath[0];
         world.CancelOrder(new("stop-fruit", "owner:test", world.Society.WorldId, actor, receipt.InstructionId));
         chooser.Preferred = "explore_return";
-        world.SubmitInstruction(new("return-after-fruit", "owner:test", actor, OwnerInstructionKind.Suggestive, "Please return to where the trip started."));
+        world.SubmitInstruction(new("return-after-fruit", "owner:test", actor, OwnerInstructionKind.Suggestion, "Please return to where the trip started."));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved),
             id => new ScoutProvider(id == actor ? "explore_return" : "safe_idle"));
@@ -179,10 +179,10 @@ public sealed partial class PurposefulExplorationTests
     {
         var (state, actor, _, source, _) = await MaterialCourse();
         using var world = Restore(state);
-        var original = world.SubmitInstruction(new("fruit-before-target", "owner:test", actor, OwnerInstructionKind.MustDo, "harvest fruit"));
+        var original = world.SubmitInstruction(new("fruit-before-target", "owner:test", actor, OwnerInstructionKind.Order, "harvest fruit"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("fruit", Person(world, actor).Exploration!.Goal!.Target);
-        var targeted = world.SubmitInstruction(new("exact-fruit-site", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var targeted = world.SubmitInstruction(new("exact-fruit-site", "owner:test", actor, OwnerInstructionKind.Order,
             $"harvest fruit at ({source.Position.X}, {source.Position.Y})"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Null(Person(world, actor).Exploration!.Goal);
@@ -199,22 +199,22 @@ public sealed partial class PurposefulExplorationTests
     public async Task FoodNeedOffersAPurposeAlongsideCuriosityWithoutAnOrder()
     {
         var (state, actor, _, _, _) = await MaterialCourse();
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId;
         state = FarmFieldTests.WithInventory(state, state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != household &&
                 (lot.OwnerId != actor || lot.ItemKind is "basket" or "wooden_axe" or "wooden_pickaxe")).ToArray(),
         }) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 6_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 6_000 } : person).ToArray(),
         };
         var chooser = new ScoutProvider("explore_for:resource:food");
         using var world = WorldRuntime.Restore(state, id => id == actor ? chooser : new ScoutProvider("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Contains("explore", chooser.Offered);
         Assert.Contains("explore_for:resource:food", chooser.Offered);
-        Assert.Equal(new SettlementExplorationGoal("resource", "food"), Person(world, actor).Exploration!.Goal);
+        Assert.Equal(new ExplorationGoal("resource", "food"), Person(world, actor).Exploration!.Goal);
         Assert.Empty(world.ExportState().Instructions!);
         world.Validate();
     }
@@ -224,12 +224,12 @@ public sealed partial class PurposefulExplorationTests
     {
         var (state, actor, _, _, _) = await MaterialCourse();
         using var world = Restore(state);
-        world.SubmitInstruction(new("validate-goal", "owner:test", actor, OwnerInstructionKind.MustDo, "gather wood"));
+        world.SubmitInstruction(new("validate-goal", "owner:test", actor, OwnerInstructionKind.Order, "gather wood"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var peer = world.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
-        var peerOrder = world.SubmitInstruction(new("peer-goal", "owner:test", peer, OwnerInstructionKind.MustDo, "gather wood"));
+        var peer = world.Agents.First(person => person.AgentId != actor).AgentId;
+        var peerOrder = world.SubmitInstruction(new("peer-goal", "owner:test", peer, OwnerInstructionKind.Order, "gather wood"));
         state = world.ExportState();
-        foreach (var goal in new SettlementExplorationGoal[]
+        foreach (var goal in new ExplorationGoal[]
         {
             new("resource", "invented"), new("terrain", "Ocean"), new("resource", "wood", "missing-order"),
             new("resource", "clay", Person(world, actor).Exploration!.Goal!.OrderInstructionId),
@@ -238,14 +238,14 @@ public sealed partial class PurposefulExplorationTests
         {
             var invalid = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Exploration = person.Exploration! with { Goal = goal } } : person).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(invalid))));
         }
         var missingGoal = JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
-        var actorNode = missingGoal["state"]!["inhabitants"]!.AsArray()
-            .Single(person => person!["inhabitantId"]!.GetValue<string>() == actor)!;
+        var actorNode = missingGoal["state"]!["agents"]!.AsArray()
+            .Single(person => person!["agentId"]!.GetValue<string>() == actor)!;
         actorNode["exploration"]!.AsObject().Remove("goal");
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(Encoding.UTF8.GetBytes(missingGoal.ToJsonString())));
         var document = JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
@@ -260,23 +260,23 @@ public sealed partial class PurposefulExplorationTests
     {
         using var setup = NormalPathWorld.CreateGenerated("purposeful-scouting", _ => new ScoutProvider("safe_idle"));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
-        var state = SettlementWeatherTestFixture.WithWeather(setup.ExportState(), WeatherKind.Clear);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var state = WeatherTestFixture.WithWeather(setup.ExportState(), WeatherKind.Clear);
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "scout-basket", "basket", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "scout-axe", "wooden_axe", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "scout-pick", "wooden_pickaxe", actor, 1);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Survival = new(),
                 Project = null,
                 LastDecisionContext = null,
                 TravelCooldownTicks = 0,
                 Exploration = null,
-                Equipment = person.InhabitantId == actor ? new(CarryAidLotId: "scout-basket") : person.Equipment,
+                Equipment = person.AgentId == actor ? new(CarryAidLotId: "scout-basket") : person.Equipment,
             }).ToArray(),
             Knowledge = state.Knowledge! with { Facts = state.Knowledge.Facts.Where(fact => fact.OwnerId != actor).ToArray() },
         };
@@ -312,8 +312,8 @@ public sealed partial class PurposefulExplorationTests
         return (state, actor, target.Kind, target.Source, target.Index);
     }
 
-    private static InhabitantState Person(WorldRuntime world, string actor) => world.Inhabitants.Single(person => person.InhabitantId == actor);
-    private static OwnerInstructionOrder Order(WorldRuntime world, string id) => world.ExportState().Instructions!.Single(item => item.InstructionId == id).Order!;
+    private static AgentState Person(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor);
+    private static OrderTask Order(WorldRuntime world, string id) => world.ExportState().Instructions!.Single(item => item.InstructionId == id).Task!;
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new ScoutProvider("safe_idle"));
 
     private sealed class ScoutProvider(string preferred) : IDecisionProvider

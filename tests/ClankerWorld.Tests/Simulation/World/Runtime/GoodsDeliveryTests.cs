@@ -12,7 +12,7 @@ public sealed class GoodsDeliveryTests
         using var generated = NormalPathWorld.CreateGenerated("goods-delivery-boundaries", _ => new Idle());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, actor);
         var house = PaidMarketWorld.HouseOf(state, household);
         var inventory = state.Society.Society.Inventory with
@@ -70,13 +70,13 @@ public sealed class GoodsDeliveryTests
 
     private static WorldRuntimeState Prepared(WorldRuntimeState state, string actor, GridPoint position) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person with
+        Agents = state.Agents.Select(person => person with
         {
-            Position = person.InhabitantId == actor ? position : person.Position,
-            Equipment = person.InhabitantId == actor ? null : person.Equipment,
+            Position = person.AgentId == actor ? position : person.Position,
+            Equipment = person.AgentId == actor ? null : person.Equipment,
             LastDecisionContext = null,
             Project = null,
-            HungerBasisPoints = 9_500,
+            FullnessBasisPoints = 9_500,
             Survival = new SurvivalCondition { WarmthBasisPoints = 10_000, NutritionBasisPoints = 10_000 },
         }).ToArray(),
         JevEnabled = false,
@@ -88,7 +88,7 @@ public sealed class GoodsDeliveryTests
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == "safe_idle" ? 1d : 0d)));

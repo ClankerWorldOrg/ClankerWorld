@@ -22,13 +22,13 @@ public sealed class TownLandHearingGrantHistoryTests
     public void CourtChangesAndAnAuthorizedBuildingTransferKeepActualCouncilGrantApprovalAndConsent()
     {
         var request = new HouseholdLandUseRequest("original-grant", "town", "alpha", "alpha-adult", GrantPlot, 0, 30);
-        var council = TownGovernanceState.Create(Adults);
-        council = TownGovernanceRules.PostNotice(council, "land_use", request.Id, "The exact household land request", 0);
-        council = TownGovernanceRules.LearnNotice(council, "alpha-adult", council.Notices[^1].Id, 0);
-        council = TownGovernanceRules.SubmitProposal(council, "town", "alpha-adult", "land_use", request.Id,
+        var council = TownCouncilState.Create(Adults);
+        council = TownCouncilRules.PostNotice(council, "land_use", request.Id, "The exact household land request", 0);
+        council = TownCouncilRules.LearnNotice(council, "alpha-adult", council.Notices[^1].Id, 0);
+        council = TownCouncilRules.SubmitProposal(council, "town", "alpha-adult", "land_use", request.Id,
             "Grant this plot subject to personal acceptance", "council:0", Adults, 0, 10, landUseRequest: request);
         var proposalId = council.Proposals[0].Id;
-        foreach (var voter in Adults.Take(3)) council = TownGovernanceRules.VoteProposal(council, proposalId, voter, true, 0);
+        foreach (var voter in Adults.Take(3)) council = TownCouncilRules.VoteProposal(council, proposalId, voter, true, 0);
         request = request with
         {
             CouncilProposalId = proposalId,
@@ -49,12 +49,12 @@ public sealed class TownLandHearingGrantHistoryTests
             Arrangement = new("council", "mayor"),
             Offices = [new("land", "alpha-adult", 0, 100, null, null, "mayor-election")],
         };
-        var hearings = TownLandHearingRules.File(TownLandHearingState.Create(), "town",
+        var hearings = TownLandHearingRules.File(TownLandRecords.Create(), "town",
             new("beta-adult", "dispute", "Review the plot permission", new("end", "alpha"), 1),
             HearingPlot, [original], Parties, 1, 10, "notice:" + (council.Notices.Count + 1));
         var caseId = hearings.Cases[0].Id;
-        council = TownGovernanceRules.PostNotice(council, "land_hearing", caseId + ":1", "The exact hearing plot", 1);
-        foreach (var actor in Adults) council = TownGovernanceRules.LearnNotice(council, actor, council.Notices[^1].Id, 1);
+        council = TownCouncilRules.PostNotice(council, "land_hearing", caseId + ":1", "The exact hearing plot", 1);
+        foreach (var actor in Adults) council = TownCouncilRules.LearnNotice(council, actor, council.Notices[^1].Id, 1);
         hearings = TownLandCaseJudgeRules.Register(hearings, caseId, "judge", Adults, Households, 1);
         (hearings, council) = TownLandCaseJudgeRules.Advance(hearings, council, government, Adults, Households, 1, 10);
         hearings = TownLandCaseJudgeRules.Vote(hearings, caseId,
@@ -70,8 +70,8 @@ public sealed class TownLandHearingGrantHistoryTests
         var moved = TownLandRightsRules.ReassignFootprintRights(map, endedRights, new HashSet<GridPoint> { new(0, 0) }, "beta", 12);
         hearings = TownLandHearingRules.RecordBuildingTransfer(hearings, map, "house", [new(0, 0)], "beta", endedRights, moved, 12);
         var town = new TownRuntimeState("town", "Town", "founded", 0, Adults, [], GrantPlot,
-            Governance: council, Government: government)
-        { LandHearings = hearings };
+            Council: council, Government: government)
+        { LandRecords = hearings };
 
         // These are the production validators, composed across the grant and court ledgers.
         HouseholdLandGrantRules.Validate(12, [town], moved, [request], Adults.ToHashSet(StringComparer.Ordinal));
@@ -82,7 +82,7 @@ public sealed class TownLandHearingGrantHistoryTests
         Assert.Throws<InvalidDataException>(() => HouseholdLandGrantRules.Validate(12, [town], moved,
             [request with { Consents = [] }], Adults.ToHashSet(StringComparer.Ordinal)));
         Assert.Throws<InvalidDataException>(() => HouseholdLandGrantRules.Validate(12,
-            [town with { LandHearings = TownLandHearingState.Create() }], moved, [request], Adults.ToHashSet(StringComparer.Ordinal)));
+            [town with { LandRecords = TownLandRecords.Create() }], moved, [request], Adults.ToHashSet(StringComparer.Ordinal)));
         Assert.Equal("alpha", Assert.Single(moved, right => right.Tiles.Contains(new GridPoint(3, 0))).HouseholdId);
         Assert.Equal("beta", Assert.Single(moved, right => right.Tiles.Contains(new GridPoint(0, 0))).HouseholdId);
         Assert.Equal(30, Assert.Single(moved, right => right.Tiles.Contains(new GridPoint(0, 0))).AgreedEndTick);

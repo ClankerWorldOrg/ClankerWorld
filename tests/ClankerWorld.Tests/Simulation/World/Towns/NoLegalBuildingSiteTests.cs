@@ -37,13 +37,13 @@ public sealed class NoLegalBuildingSiteTests
         var provider = new LandRouteProvider(author, action, definition.CanonicalId);
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with { Position = initial.Towns![0].OriginSite!.Value }).ToArray(),
+            Agents = initial.Agents.Select(person => person with { Position = initial.Towns![0].OriginSite!.Value }).ToArray(),
         }, _ => provider);
         world.SubmitInstruction(new OwnerInstructionRequest("consider-building-land", "owner:test", author,
-            OwnerInstructionKind.Suggestive, "Consider a land request for the household building."));
+            OwnerInstructionKind.Suggestion, "Consider a land request for the household building."));
         for (var tick = 0; tick < 10 && (action == "request_land_use"
                  ? world.HouseholdLandUseRequests.Count == 0
-                 : world.Towns[0].Governance!.Proposals.All(item => item.Kind != "land_claim")); tick++)
+                 : world.Towns[0].Council!.Proposals.All(item => item.Kind != "land_claim")); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         Assert.True(provider.Description is not null, provider.LastObservation);
@@ -61,7 +61,7 @@ public sealed class NoLegalBuildingSiteTests
         }
         else
         {
-            var proposal = Assert.Single(world.Towns[0].Governance!.Proposals, item => item.Kind == "land_claim");
+            var proposal = Assert.Single(world.Towns[0].Council!.Proposals, item => item.Kind == "land_claim");
             Assert.Equal("pending", proposal.Status);
             Assert.Empty(proposal.Votes);
         }
@@ -84,10 +84,10 @@ public sealed class NoLegalBuildingSiteTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var o = request.Observation;
-            if (o.InhabitantId == author)
+            if (o.AgentId == author)
                 LastObservation = System.Text.Json.JsonSerializer.Serialize(o.Self) + "\n" +
                     string.Join("\n", o.Candidates.Select(item => item.Id + ": " + item.Description));
-            var choice = o.InhabitantId == author && Description is null
+            var choice = o.AgentId == author && Description is null
                 ? o.Candidates.FirstOrDefault(item => item.Id.Contains("|" + action + "|", StringComparison.Ordinal)) : null;
             var selected = choice ?? o.Candidates.Single(item => item.Id == "safe_idle");
             CognitionLandTile[]? tiles = null;
@@ -101,7 +101,7 @@ public sealed class NoLegalBuildingSiteTests
                 tiles = [new CognitionLandTile(int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture),
                     int.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture))];
             }
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: tiles));

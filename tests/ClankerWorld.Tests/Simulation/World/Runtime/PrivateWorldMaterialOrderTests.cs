@@ -35,9 +35,9 @@ public sealed partial class WorldRuntimeTests
                 world.Society.Inventory.GetLot("material-order-tool").ConditionBasisPoints);
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId);
-        Assert.Equal(order.TargetMaterialKind, projected.Order!.TargetMaterialKind);
-        Assert.Equal(order.TargetResourceId, projected.Order.TargetResourceId);
-        Assert.Equal(order.CompletedUnits, projected.Order.CompletedUnits);
+        Assert.Equal(order.TargetMaterialKind, projected.Task!.TargetMaterialKind);
+        Assert.Equal(order.TargetResourceId, projected.Task.TargetResourceId);
+        Assert.Equal(order.CompletedUnits, projected.Task.CompletedUnits);
         world.Validate();
     }
 
@@ -147,7 +147,7 @@ public sealed partial class WorldRuntimeTests
     public async Task MaterialOrderCanInspectAnEmptyImpassableTileWithoutSavingInvalidKnowledge()
     {
         var (state, _) = MaterialOrderState("fiber");
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(person => person.AgentId != HarvestInstructionActor)
             .Select(person => person.Position).ToHashSet();
         var buildings = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
@@ -159,7 +159,7 @@ public sealed partial class WorldRuntimeTests
             DeterministicRouteFinder.TryFind(state.Map, point, shore, out var route) && route.All(step => !occupied.Contains(step) && !buildings.Contains(step)));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { Position = position } : person).ToArray()
         };
         using var world = RestoreMaterialOrderWorld(state);
@@ -185,7 +185,7 @@ public sealed partial class WorldRuntimeTests
     {
         var (state, source) = MaterialOrderState("stone", withTool ? "wooden_pickaxe" : null);
         var inventory = state.Society.Society.Inventory;
-        if (full) inventory = FillActorCarry(inventory, state.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor), "material-cargo");
+        if (full) inventory = FillActorCarry(inventory, state.Agents.Single(item => item.AgentId == HarvestInstructionActor), "material-cargo");
         else inventory = inventory with { Lots = inventory.Lots.Where(lot => ToolProgressionRules.Find(lot.ItemKind) is null).ToArray() };
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         using var world = RestoreMaterialOrderWorld(state);
@@ -241,7 +241,7 @@ public sealed partial class WorldRuntimeTests
             var damaged = saved with
             {
                 Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Order = invalid } : item).ToArray()
+                ? item with { Task = invalid } : item).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(damaged)));
         }
@@ -251,7 +251,7 @@ public sealed partial class WorldRuntimeTests
     public async Task MaterialOrderToolCollectionDoesNotCountAsGatheredGoods()
     {
         var (state, source) = MaterialOrderState("stone");
-        var household = state.Society.Society.GetInhabitant(HarvestInstructionActor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(HarvestInstructionActor).HouseholdId!;
         var position = CancellationActorPosition(state);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "material-shared-tool", "wooden_pickaxe", household, 1,
@@ -278,8 +278,8 @@ public sealed partial class WorldRuntimeTests
         var (state, source) = MaterialOrderState("fiber");
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
-                ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
+                ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
             Society = state.Society with
             {
                 Society = state.Society.Society with
@@ -349,14 +349,14 @@ public sealed partial class WorldRuntimeTests
     public async Task MaterialOrderWithoutKnownSitesExploresWithoutRemoteKnowledge()
     {
         var (state, source) = MaterialOrderState("clay", distant: true);
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(person => person.AgentId != HarvestInstructionActor)
             .Select(person => person.Position).ToHashSet();
         var position = state.Map.Tiles.Select(tile => tile.Position).First(point => state.Map.IsPassable(point) &&
             !occupied.Contains(point) && state.Map.FootDistance(point, source.Position) is >= 5 and <= 8 &&
             !state.Map.Resources.Any(item => item.Kind == "clay" && state.Map.FootDistance(point, item.Position) <= 2));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
             ? person with { Position = position } : person).ToArray()
         };
         using var world = RestoreMaterialOrderWorld(state);
@@ -383,7 +383,7 @@ public sealed partial class WorldRuntimeTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == HarvestInstructionActor ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == HarvestInstructionActor ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -395,8 +395,8 @@ public sealed partial class WorldRuntimeTests
             },
             Towns = state.Towns!.Select(town => town with
             {
-                Governance = TownGovernanceState.Create(town.ResidentIds.Where(id => id != HarvestInstructionActor &&
-                    checkpoint.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
+                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != HarvestInstructionActor &&
+                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
             }).ToArray(),
         };
         using var world = RestoreMaterialOrderWorld(state);
@@ -409,7 +409,7 @@ public sealed partial class WorldRuntimeTests
     }
 
     private static OwnerInstructionReceipt SubmitMaterialOrder(WorldRuntime world, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new OwnerInstructionRequest(key, "owner:test", HarvestInstructionActor, OwnerInstructionKind.MustDo, text, queue));
+        world.SubmitInstruction(new OwnerInstructionRequest(key, "owner:test", HarvestInstructionActor, OwnerInstructionKind.Order, text, queue));
 
     private static WorldRuntime RestoreMaterialOrderWorld(WorldRuntimeState state) =>
         WorldRuntime.Restore(state, _ => new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
@@ -421,7 +421,7 @@ public sealed partial class WorldRuntimeTests
         var state = setup.ExportState();
         var buildings = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
             setup.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building)).ToHashSet();
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != HarvestInstructionActor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != HarvestInstructionActor).Select(person => person.Position).ToHashSet();
         var source = state.Map.Resources.Where(item => (item.Kind == kind || kind == "wood" && item.Kind == "construction") &&
                 (kind != "wood" || TreeGrowthRules.IsWoodTree(item.TreeKind)) && state.Map.IsPassable(item.Position) &&
                 state.Map.FootNeighbors(item.Position).Any(point => state.Map.IsPassable(point) && !buildings.Contains(point) && !occupied.Contains(point)))
@@ -435,10 +435,10 @@ public sealed partial class WorldRuntimeTests
         if (tool is not null) inventory = InventoryAuthority.AddLot(inventory, "material-order-tool", tool, HarvestInstructionActor, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor ? person with
             {
                 Position = stand,
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 TravelCooldownTicks = 0,
                 Project = null,
                 Equipment = new(CarryAidLotId: "material-order-basket"),

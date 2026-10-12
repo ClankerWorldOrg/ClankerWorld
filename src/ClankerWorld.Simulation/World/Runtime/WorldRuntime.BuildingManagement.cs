@@ -141,7 +141,7 @@ public sealed partial class WorldRuntime
                 nextHouseholdId is not null && affectedRights.Length > 0
                 ? towns.Single(town => town.Id == rightsTownId) : null;
             var reassignedHearings = rightsTown is not null
-                ? TownLandHearingRules.RecordBuildingTransfer(rightsTown.LandHearings, map, instanceId,
+                ? TownLandHearingRules.RecordBuildingTransfer(rightsTown.LandRecords, map, instanceId,
                     TownLandRightsRules.OrderTiles(footprint), nextHouseholdId!, householdLandUseRights,
                     reassignedRights, WorldTick)
                 : null;
@@ -169,7 +169,7 @@ public sealed partial class WorldRuntime
                     worldSimulation.Buildings.Single(item => item.InstanceId == instanceId));
             if (rightsTown is not null && reassignedHearings is not null)
             {
-                SetTown(rightsTown with { LandHearings = reassignedHearings });
+                SetTown(rightsTown with { LandRecords = reassignedHearings });
                 RefreshTownLandHearings();
             }
             checkpointSchemaVersion = StateSchemaVersion;
@@ -208,7 +208,7 @@ public sealed partial class WorldRuntime
             (worldSimulation.CropBuilds ?? []).Any(job => job.BuildingInstanceId == id && Active(job.State)) ||
             (worldSimulation.BuildingExpansions ?? []).Any(job => job.BuildingInstanceId == id && Active(job.State)))
             return "Wait for the active work at this building to finish before changing its owner or removing it.";
-        if (inhabitants.Values.Any(person => person.Equipment?.Repair?.BuildingId == id))
+        if (agents.Values.Any(person => person.Equipment?.Repair?.BuildingId == id))
             return "Finish or cancel the active equipment repair before changing this building's owner or removing it.";
         return null;
     }

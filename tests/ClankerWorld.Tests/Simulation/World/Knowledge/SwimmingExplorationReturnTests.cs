@@ -15,9 +15,9 @@ public sealed class SwimmingExplorationReturnTests
     {
         using var generated = NormalPathWorld.CreateGenerated("cart-cargo-orders", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
-        var state = SettlementWeatherTestFixture.WithWeather(generated.ExportState(), WeatherKind.Clear);
+        var state = WeatherTestFixture.WithWeather(generated.ExportState(), WeatherKind.Clear);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == FoodCapacityTestFixture.House);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId).Id;
         var source = state.Map.Resources.OrderBy(item => state.Map.FootDistance(item.Position, house.Position))
             .FirstOrDefault(item => item.Kind == "construction" && state.Map.IsPassable(item.Position) &&
                 state.Resources.Single(resource => resource.ResourceId == item.Id).State == ResourceState.Available &&
@@ -25,11 +25,11 @@ public sealed class SwimmingExplorationReturnTests
                 state.Map.IsReachableOnFoot(item.Position, house.Position) == footReturn &&
                 SwimmingRules.IsReachable(state.Map, item.Position, house.Position) &&
                 state.Map.FootNeighbors(item.Position).Any(point => state.Map.IsPassable(point) &&
-                    state.Inhabitants.All(person => person.Position != point)) &&
-                state.Inhabitants.All(person => person.Position != item.Position));
+                    state.Agents.All(person => person.Position != point)) &&
+                state.Agents.All(person => person.Position != item.Position));
         Assert.NotNull(source);
         Assert.Contains(state.Map.FootNeighbors(source.Position), point => state.Map.IsPassable(point) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         var definition = state.WorldContent!.Buildings.First(item => item.BuildCosts.Any(cost => cost.ResourceId == "wood") &&
             item.Tags.Any(tag => tag is "tailor" or "clinic" or "restaurant" or "store") &&
             !state.WorldSimulation.Buildings.Any(placed => placed.HouseholdId == house.HouseholdId && placed.DefinitionId == item.CanonicalId));
@@ -51,10 +51,10 @@ public sealed class SwimmingExplorationReturnTests
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
             Knowledge = state.Knowledge! with { Facts = state.Knowledge.Facts.Where(fact => fact.OwnerId != actor).ToArray() },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = source.Position,
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Survival = new SurvivalCondition(10_000),
                 Equipment = null,
                 LastDecisionContext = null,
@@ -70,8 +70,8 @@ public sealed class SwimmingExplorationReturnTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         if (!existingPurpose)
             Assert.Equal(!footReturn, provider.Offered.Contains("explore_for:resource:wood", StringComparer.Ordinal));
-        var person = world.Inhabitants.Single(item => item.InhabitantId == actor);
-        Assert.Equal(footReturn ? null : new SettlementExplorationGoal("resource", "wood"), person.Exploration?.Goal);
+        var person = world.Agents.Single(item => item.AgentId == actor);
+        Assert.Equal(footReturn ? null : new ExplorationGoal("resource", "wood"), person.Exploration?.Goal);
         Assert.Equal(0, person.Project!.WorkDone);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == actor && lot.ItemKind == "wood");
         Assert.Equal(quantity, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);

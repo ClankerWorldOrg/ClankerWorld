@@ -15,17 +15,17 @@ internal static class FoodCapacityTestFixture
         using var setup = NormalPathWorld.CreateGenerated(seed, _ => new Choices());
         for (var tick = 0; tick < 8; tick++) Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household &&
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var house = setup.WorldSimulation.Buildings.Single(building => building.InstanceId == House);
-        state = SettlementWeatherTestFixture.WithWeather(state with
+        state = WeatherTestFixture.WithWeather(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? house.Position : person.Position,
-                HungerBasisPoints = 9_000,
+                Position = person.AgentId == actor ? house.Position : person.Position,
+                FullnessBasisPoints = 9_000,
                 Survival = new SurvivalCondition(10_000),
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 LastDecisionContext = null,
             }).ToArray(),
         }, WeatherKind.Clear);
@@ -38,8 +38,8 @@ internal static class FoodCapacityTestFixture
     internal static WorldRuntimeState WithFullness(WorldRuntimeState state, string actor, int fullness) =>
         state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = fullness } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = fullness } : person).ToArray(),
         };
 
     internal static InventoryCheckpoint WithoutPersonalCargo(WorldRuntimeState state, string actor) =>

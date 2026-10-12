@@ -45,7 +45,7 @@ public sealed partial class WorldRuntime
         Dictionary<(GridPoint Position, int Range), bool>? routes, Dictionary<string, int>? deliveries)
     {
         var actor = request.Actor!;
-        if (!inhabitants.TryGetValue(actor, out var person)) return GoodsReason.Custody;
+        if (!agents.TryGetValue(actor, out var person)) return GoodsReason.Custody;
         var root = index.Root(lot);
         if (GoodsDeliveryPosition(request) is not { } destination || root.StorageBuildingId == request.Destination &&
             request.Destination is not null) return GoodsReason.Place;
@@ -55,8 +55,8 @@ public sealed partial class WorldRuntime
         if (!townGround && !MayCollectGoodsAt(actor, root)) return GoodsReason.Place;
         if (InventoryContainerRules.IsContainer(root.ItemKind) && !InventoryRules.CanMoveFamily(index, root))
             return GoodsReason.Reservation;
-        if (handcartHitches.Any(hitch => hitch.CartLotId == root.Id) || inhabitants.Values.Any(inhabitant =>
-                PersonalEquipmentRules.IsSelected(inhabitant.Equipment, root.Id))) return GoodsReason.Custody;
+        if (handcartHitches.Any(hitch => hitch.CartLotId == root.Id) || agents.Values.Any(agent =>
+                PersonalEquipmentRules.IsSelected(agent.Equipment, root.Id))) return GoodsReason.Custody;
         if (IsActiveTownProjectDelivery(root.Id)) return GoodsReason.Delivery;
         if (request.DeliveryPurpose != GoodsDeliveryPurpose.FarmStock && UnusableDeliveryStock(society.Checkpoint.Inventory, root))
             return GoodsReason.Vessel;

@@ -12,9 +12,9 @@ public sealed partial class WorldRuntimeTests
         using var world = new WorldRuntime("order-cancel-receipt-commit",
             id => id == OrderedAgent ? provider : new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         var closed = world.SubmitInstruction(new OwnerInstructionRequest(
-            "already-closed-order", "owner:test", OrderedAgent, OwnerInstructionKind.MustDo, "build a house"));
+            "already-closed-order", "owner:test", OrderedAgent, OwnerInstructionKind.Order, "build a house"));
         Assert.Equal("not_understood", Assert.Single(world.ExportState().Instructions!, item =>
-            item.InstructionId == closed.InstructionId).Order!.Status);
+            item.InstructionId == closed.InstructionId).Task!.Status);
 
         var advance = world.AdvanceOneTickAsync().AsTask();
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -65,7 +65,7 @@ public sealed partial class WorldRuntimeTests
             var selected = request.Observation.Candidates.Single(item => item.Id == "safe_idle");
             return new CognitionDecisionResponse(
                 request.RequestId,
-                request.Observation.InhabitantId,
+                request.Observation.AgentId,
                 Kind,
                 ProviderEpoch,
                 request.Observation.RunEpoch,

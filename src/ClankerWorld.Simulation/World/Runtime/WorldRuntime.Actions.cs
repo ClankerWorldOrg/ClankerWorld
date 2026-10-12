@@ -12,108 +12,108 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private void MoveToward(
-        string inhabitantId,
-        InhabitantState state,
+        string agentId,
+        AgentState state,
         GridPoint destination,
         string reason,
         int interactionRange = 0,
         int horseMovementBudget = 100)
     {
-        guardianPlacementActions.Add(inhabitantId);
+        guardianPlacementActions.Add(agentId);
         if (IsWithinInteractionRange(state.Position, destination, interactionRange))
         {
-            AppendEvent("destination_reached", $"{inhabitantId}:{reason}");
+            AppendEvent("destination_reached", $"{agentId}:{reason}");
             return;
         }
 
         if (state.TravelCooldownTicks > 0)
         {
-            inhabitants[inhabitantId] = state with { TravelCooldownTicks = state.TravelCooldownTicks - 1 };
-            KeepPlannedRoute(inhabitantId, reason, destination);
+            agents[agentId] = state with { TravelCooldownTicks = state.TravelCooldownTicks - 1 };
+            KeepPlannedRoute(agentId, reason, destination);
             return;
         }
 
-        if (state.Departures is { Count: > 0 } && MovingCareGroup(inhabitantId).Any(id => id != inhabitantId &&
-                inhabitants[id].GuardianPlacement is null &&
-                !IsWithinInteractionRange(inhabitants[id].Position, state.Position, 2)))
+        if (state.Departures is { Count: > 0 } && MovingCareGroup(agentId).Any(id => id != agentId &&
+                agents[id].GuardianPlacement is null &&
+                !IsWithinInteractionRange(agents[id].Position, state.Position, 2)))
         {
-            RecordMovementBlocked(inhabitantId, state, "waiting_for_dependent");
+            RecordMovementBlocked(agentId, state, "waiting_for_dependent");
             return;
         }
-        if (AttachedHandcart(inhabitantId) is { } heldCart && !CanPullHandcart(heldCart))
+        if (AttachedHandcart(agentId) is { } heldCart && !CanPullHandcart(heldCart))
         {
-            ParkHandcart(inhabitantId, "equipment_unusable");
-            RecordMovementBlocked(inhabitantId, state, "cart_unusable");
+            ParkHandcart(agentId, "equipment_unusable");
+            RecordMovementBlocked(agentId, state, "cart_unusable");
             return;
         }
-        var route = FindUnoccupiedRoute(inhabitantId, state.Position, destination, interactionRange);
+        var route = FindUnoccupiedRoute(agentId, state.Position, destination, interactionRange);
         if (route.Count < 2)
         {
-            RecordMovementBlocked(inhabitantId, state, "no_route");
+            RecordMovementBlocked(agentId, state, "no_route");
             return;
         }
 
         var next = route[1];
-        var travelCost = TravelStepCost(inhabitantId, state.Position, next);
-        var mounted = RidingAnimal(inhabitantId) is not null;
+        var travelCost = TravelStepCost(agentId, state.Position, next);
+        var mounted = RidingAnimal(agentId) is not null;
         if (mounted)
         {
             travelCost = (travelCost + 1) / 2;
             if (horseMovementBudget < 100 && travelCost > horseMovementBudget) return;
         }
-        MoveAttachedHandcart(inhabitantId, state.Position, next);
-        MoveAttachedAnimal(inhabitantId, state.Position, next);
-        inhabitants[inhabitantId] = state with
+        MoveAttachedHandcart(agentId, state.Position, next);
+        MoveAttachedAnimal(agentId, state.Position, next);
+        agents[agentId] = state with
         {
             Position = next,
             MoveWaitTicks = 0,
             TravelCooldownTicks = (travelCost + 99) / 100 - 1 +
-                SettlementIllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0),
+                IllnessRules.TravelDelayTicks(state.Survival?.IllnessBasisPoints ?? 0),
         };
-        RecordPlannedRoute(inhabitantId, reason, destination, route);
-        RecordBridgeTraffic(inhabitantId, state.Position, next);
-        WearCarryAid(inhabitantId);
-        RecordNonviolentConduct(inhabitantId, "travel", next, null, null, 1,
-            $"move:{WorldTick}:{inhabitantId}:{nextEventId}");
-        AppendEvent("inhabitant_moved", $"{inhabitantId}:{state.Position.X},{state.Position.Y}->{next.X},{next.Y}:{reason}");
-        if (mounted && horseMovementBudget == 100 && travelCost <= 50 && inhabitants[inhabitantId].TravelCooldownTicks == 0)
-            MoveToward(inhabitantId, inhabitants[inhabitantId], destination, reason, interactionRange, 100 - travelCost);
+        RecordPlannedRoute(agentId, reason, destination, route);
+        RecordBridgeTraffic(agentId, state.Position, next);
+        WearCarryAid(agentId);
+        RecordNonLandConduct(agentId, "travel", next, null, null, 1,
+            $"move:{WorldTick}:{agentId}:{nextEventId}");
+        AppendEvent("agent_moved", $"{agentId}:{state.Position.X},{state.Position.Y}->{next.X},{next.Y}:{reason}");
+        if (mounted && horseMovementBudget == 100 && travelCost <= 50 && agents[agentId].TravelCooldownTicks == 0)
+            MoveToward(agentId, agents[agentId], destination, reason, interactionRange, 100 - travelCost);
     }
 
     private List<GridPoint> FindUnoccupiedRoute(
-        string inhabitantId,
+        string agentId,
         GridPoint origin,
         GridPoint destination,
         int interactionRange,
         bool allowSwimming = true,
         int additionalCarriedUnits = 0)
     {
-        var occupied = inhabitants.Values
-            .Where(item => item.InhabitantId != inhabitantId)
+        var occupied = agents.Values
+            .Where(item => item.AgentId != agentId)
             .Select(item => item.Position)
             .ToHashSet();
-        occupied.UnionWith(animalWorld.Animals.Where(animal => animal.DiedTick is null && animal.RiderId != inhabitantId &&
-            animal.LeaderId != inhabitantId && animal.Position != destination).Select(animal => animal.Position));
-        if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == inhabitantId || animal.LeaderId == inhabitantId)) &&
-            animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != inhabitantId && animal.LeaderId != inhabitantId && animal.Position == destination))
+        occupied.UnionWith(animalWorld.Animals.Where(animal => animal.DiedTick is null && animal.RiderId != agentId &&
+            animal.LeaderId != agentId && animal.Position != destination).Select(animal => animal.Position));
+        if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
+            animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
             return [];
         if (interactionRange == 0 && worldSimulation.Buildings.Any(building =>
                 building.Position == destination &&
                 building.HouseholdId is not null &&
-                (building.HouseholdId == society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId ||
-                 WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(inhabitantId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(inhabitantId, building))))
+                (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
+                 WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
+                 CanEnterGuardianPlacementHouse(agentId, building))))
             occupied.Remove(destination);
         if (interactionRange == 0 && occupied.Contains(destination) &&
-            CanShareTownDestination(inhabitantId, destination))
+            CanShareTownDestination(agentId, destination))
             occupied.Remove(destination);
         // Other occupied exact destinations cannot be reached. Avoid searching
         // an entire map when neither household nor public Town sharing applies.
         if (interactionRange == 0 && origin != destination && occupied.Contains(destination))
             return [];
-        if (AttachedHandcart(inhabitantId) is null)
+        if (AttachedHandcart(agentId) is null)
             return SharedUnoccupiedRoute(origin, occupied, destination, interactionRange,
-                allowSwimming && CanSwim(inhabitantId, origin, additionalCarriedUnits));
+                allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
 
         var open = new PriorityQueue<GridPoint, (int Cost, int Y, int X, int Order)>();
         var best = new Dictionary<GridPoint, int> { [origin] = 0 };
@@ -140,7 +140,7 @@ public sealed partial class WorldRuntime
 
             foreach (var next in map.FootNeighbors(current))
             {
-                if (handcartHitches.Any(hitch => hitch.PullerId == inhabitantId) && !LegalHandcartStep(current, next) ||
+                if (handcartHitches.Any(hitch => hitch.PullerId == agentId) && !LegalHandcartStep(current, next) ||
                     occupied.Contains(next) ||
                     map.IsDiagonalFootStep(current, next) &&
                     (occupied.Contains(new GridPoint(next.X, current.Y)) ||
@@ -149,7 +149,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
 
-                var cost = checked(priority.Cost + TravelStepCost(inhabitantId, current, next));
+                var cost = checked(priority.Cost + TravelStepCost(agentId, current, next));
                 if (best.TryGetValue(next, out var previous) && previous <= cost)
                     continue;
                 best[next] = cost;
@@ -168,22 +168,22 @@ public sealed partial class WorldRuntime
                 TownProjectRules.WorkSite(project.Plan) == destination));
 
     private void RecordMovementBlocked(
-        string inhabitantId,
-        InhabitantState state,
+        string agentId,
+        AgentState state,
         string reason)
     {
         var waitTicks = checked(state.MoveWaitTicks + 1);
-        inhabitants[inhabitantId] = state with { MoveWaitTicks = waitTicks };
+        agents[agentId] = state with { MoveWaitTicks = waitTicks };
         if (waitTicks == 1 || waitTicks % 30 == 0)
         {
-            if (AttachedHandcart(inhabitantId) is not null || reason == "cart_unusable")
-                AppendEvent("handcart_blocked", $"{inhabitantId}:{reason}");
-            AppendEvent("movement_blocked", $"{inhabitantId}:{reason}:wait={waitTicks}");
+            if (AttachedHandcart(agentId) is not null || reason == "cart_unusable")
+                AppendEvent("handcart_blocked", $"{agentId}:{reason}");
+            AppendEvent("movement_blocked", $"{agentId}:{reason}:wait={waitTicks}");
         }
     }
 
     private bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) =>
-        ResidentQueries.IsWithinInteractionRange(residentWorld, origin, destination, interactionRange);
+        AgentQueries.IsWithinInteractionRange(agentWorld, origin, destination, interactionRange);
 
     private IEnumerable<MapResource> EligibleFoodSources(string actor, GridPoint position) => map.Resources
         .Where(resource => resource.Kind is "food" or "fruit" &&
@@ -215,21 +215,21 @@ public sealed partial class WorldRuntime
         (source.TreeKind == TreeGrowthRules.Orchard ? TreeGrowthRules.OrchardSeedsPerPick : 0);
 
     private FoodHarvestEffect? HarvestFood(
-        string inhabitantId,
-        InhabitantState state,
+        string agentId,
+        AgentState state,
         MapResource? requestedSource = null)
     {
-        var source = requestedSource ?? AvailableFoodSource(inhabitantId, state.Position);
+        var source = requestedSource ?? AvailableFoodSource(agentId, state.Position);
         if (source is null || !IsWithinInteractionRange(state.Position, source.Position, ResourceInteractionRange))
         {
-            AppendEvent("harvest_failed", $"{inhabitantId}:not_at_available_food");
+            AppendEvent("harvest_failed", $"{agentId}:not_at_available_food");
             return null;
         }
 
         var harvestYield = FoodHarvestQuantity(source);
-        if (FreeCarryCapacity(inhabitantId) < FoodHarvestCarryUnits(source))
+        if (FreeCarryCapacity(agentId) < FoodHarvestCarryUnits(source))
         {
-            AppendEvent("carrying_full", inhabitantId);
+            AppendEvent("carrying_full", agentId);
             return null;
         }
         var ecologyResource = worldSystems.Ecology.GetResource(source.Id);
@@ -237,7 +237,7 @@ public sealed partial class WorldRuntime
         if (!harvest.IsValid || harvest.Resource is null)
         {
             SyncEcologyResourceStates();
-            AppendEvent("harvest_failed", $"{inhabitantId}:{harvest.Failure ?? "food_depleted"}");
+            AppendEvent("harvest_failed", $"{agentId}:{harvest.Failure ?? "food_depleted"}");
             return null;
         }
 
@@ -250,36 +250,36 @@ public sealed partial class WorldRuntime
             : harvest.Resource;
         environmentSystem.ReplaceEcologyResource(source.Id, harvested);
         SyncEcologyResourceStates();
-        var harvestedLotId = FoodHarvestLotId(WorldTick, inhabitantId);
+        var harvestedLotId = FoodHarvestLotId(WorldTick, agentId);
         ApplyInventoryTransition(inventory => InventoryAuthority.AddLot(
             inventory, harvestedLotId,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
-            inhabitantId,
+            agentId,
             harvestYield,
             WorldTick));
 
-        RecordNonviolentConduct(inhabitantId, "gather_food", source.Position, source.Id,
+        RecordNonLandConduct(agentId, "gather_food", source.Position, source.Id,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
-            harvestYield, $"gather-food:{WorldTick}:{inhabitantId}:{nextEventId}");
-        AppendEvent("food_harvested", $"{inhabitantId}:{harvestYield}");
+            harvestYield, $"gather-food:{WorldTick}:{agentId}:{nextEventId}");
+        AppendEvent("food_harvested", $"{agentId}:{harvestYield}");
         if (source.TreeKind == TreeGrowthRules.Orchard)
         {
-            var lotId = OrchardSeedLotId(WorldTick, inhabitantId);
+            var lotId = OrchardSeedLotId(WorldTick, agentId);
             ApplyInventoryTransition(inventory => InventoryAuthority.Reserve(
-                InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, inhabitantId,
+                InventoryAuthority.AddLot(inventory, lotId, TreeGrowthRules.OrchardSeedItem, agentId,
                     TreeGrowthRules.OrchardSeedsPerPick, WorldTick), OrchardReplantingReservationId(lotId),
-                inhabitantId, lotId, 1, "orchard_replanting", long.MaxValue));
-            AppendEvent("fruit_harvested", $"{inhabitantId}:{source.Id}:{harvestYield}:picked");
+                agentId, lotId, 1, "orchard_replanting", long.MaxValue));
+            AppendEvent("fruit_harvested", $"{agentId}:{source.Id}:{harvestYield}:picked");
         }
         return new FoodHarvestEffect(harvestedLotId,
             source.Kind == "fruit" ? "fruit" : source.NaturalObjectKind == "wild_greens" ? "wild_greens" : "berries",
             harvestYield, source.Id);
     }
 
-    private string HouseholdFor(string actor) => ResidentQueries.HouseholdFor(residentWorld, actor);
+    private string HouseholdFor(string actor) => AgentQueries.HouseholdFor(agentWorld, actor);
 
     private string ProductionOwnerFor(PlacedBuilding? building, string workerId) =>
-        building?.HouseholdId ?? society.Checkpoint.GetInhabitant(workerId).HouseholdId ?? workerId;
+        building?.HouseholdId ?? society.Checkpoint.GetAgent(workerId).HouseholdId ?? workerId;
 
     private static bool IsHouseholdBuildingTag(string tag) => HouseholdBuildingKinds.IsKindTag(tag);
 
@@ -294,7 +294,7 @@ public sealed partial class WorldRuntime
                 definition.Tags.Contains(tag, StringComparer.Ordinal)))
         .OrderBy(building => building.InstanceId, StringComparer.Ordinal).FirstOrDefault();
 
-    private GridPoint HouseholdStockPosition(InventoryLot lot) => ResidentQueries.HouseholdStockPosition(residentWorld, lot);
+    private GridPoint HouseholdStockPosition(InventoryLot lot) => AgentQueries.HouseholdStockPosition(agentWorld, lot);
 
     private static int HouseholdStockInteractionRange(InventoryLot lot) =>
         lot.StorageBuildingId is null && lot.GroundPosition is null ? ResourceInteractionRange : 0;
@@ -302,7 +302,7 @@ public sealed partial class WorldRuntime
     private InventoryLot? AvailableHouseholdServing(string actor, GridPoint position, string? requiredItemKind = null,
         GridPoint? returnTo = null, int returnRange = 0)
     {
-        if (society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId)
+        if (society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId)
             return null;
         var loose = PreferredFood(householdId, actor).FirstOrDefault(lot =>
             !OnBorrowedMarketStall(lot) && (requiredItemKind is null || lot.ItemKind == requiredItemKind) &&
@@ -320,14 +320,14 @@ public sealed partial class WorldRuntime
     }
 
     private InventoryLot? AvailableSharedFood(string actor, string? requiredItemKind = null) => MayCollectSharedFood(actor)
-        ? AvailableHouseholdServing(actor, inhabitants[actor].Position, requiredItemKind) : null;
+        ? AvailableHouseholdServing(actor, agents[actor].Position, requiredItemKind) : null;
 
-    private bool TryCollectHouseholdServing(string actor, InhabitantState state, InventoryLot food,
+    private bool TryCollectHouseholdServing(string actor, AgentState state, InventoryLot food,
         string operationId, string purpose, string movementReason, GridPoint? returnTo = null, int returnRange = 0)
     {
         operationId = DerivedId.Create(operationId);
         if (FreeCarryCapacity(actor) < 1 || AvailableLotQuantity(food) < 1 || food.CarrierId is not null ||
-            society.Checkpoint.GetInhabitant(actor).HouseholdId is not { } householdId || food.OwnerId != householdId ||
+            society.Checkpoint.GetAgent(actor).HouseholdId is not { } householdId || food.OwnerId != householdId ||
             returnTo is { } destination && PickupCarryCapacity(actor, food, destination, returnRange) < 1)
             return false;
         var supplyPoint = HouseholdStockPosition(food);
@@ -355,35 +355,35 @@ public sealed partial class WorldRuntime
     }
 
     private void CollectSharedFood(
-        string inhabitantId,
-        InhabitantState state,
+        string agentId,
+        AgentState state,
         string? requiredItemKind = null)
     {
-        if (FreeCarryCapacity(inhabitantId) == 0) return;
-        if (AvailableSharedFood(inhabitantId, requiredItemKind) is not { } lot)
+        if (FreeCarryCapacity(agentId) == 0) return;
+        if (AvailableSharedFood(agentId, requiredItemKind) is not { } lot)
             return;
-        if (TryCollectHouseholdServing(inhabitantId, state, lot, $"household-food:{WorldTick}:{inhabitantId}",
+        if (TryCollectHouseholdServing(agentId, state, lot, $"household-food:{WorldTick}:{agentId}",
                 "household_food_share", "household_food"))
-            AppendEvent("household_food_collected", $"{inhabitantId}:{lot.Id}:1");
+            AppendEvent("household_food_collected", $"{agentId}:{lot.Id}:1");
     }
 
-    private string? ConsumeFood(string inhabitantId, InhabitantState state, string? requiredItemKind = null)
+    private string? ConsumeFood(string agentId, AgentState state, string? requiredItemKind = null)
     {
-        var lot = PreferredFood(inhabitantId, inhabitantId)
+        var lot = PreferredFood(agentId, agentId)
             .FirstOrDefault(item => requiredItemKind is null || item.ItemKind == requiredItemKind);
         if (lot is null)
         {
-            AppendEvent("consumption_failed", $"{inhabitantId}:no_food");
+            AppendEvent("consumption_failed", $"{agentId}:no_food");
             return null;
         }
 
-        society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, inhabitantId, lot.Id, 1));
-        inhabitants[inhabitantId] = state with
+        society.Apply(checkpoint => SocietyRules.ConsumeInventory(checkpoint, agentId, lot.Id, 1));
+        agents[agentId] = state with
         {
-            HungerBasisPoints = Math.Min(10_000, state.HungerBasisPoints + FoodNourishment(lot.ItemKind)),
+            FullnessBasisPoints = Math.Min(10_000, state.FullnessBasisPoints + FoodNourishment(lot.ItemKind)),
             Survival = AfterMeal(state, lot)
         };
-        AppendEvent("food_consumed", inhabitantId);
+        AppendEvent("food_consumed", agentId);
         return lot.Id;
     }
 

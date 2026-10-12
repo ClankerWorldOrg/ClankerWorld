@@ -538,21 +538,21 @@ public sealed class ContentPackageRegistry
     }
 
     public ContentPackageRecord Propose(ContentPackageManifest manifest, long worldTick = 0) =>
-        Propose(manifest, worldTick, proposedByInhabitantId: null);
+        Propose(manifest, worldTick, proposedByAgentId: null);
 
     public ContentPackageRecord Propose(
         ContentPackageManifest manifest,
         long worldTick,
-        string? proposedByInhabitantId)
+        string? proposedByAgentId)
     {
         ArgumentNullException.ThrowIfNull(manifest);
-        if (proposedByInhabitantId is not null &&
-            (string.IsNullOrWhiteSpace(proposedByInhabitantId) ||
-             proposedByInhabitantId != proposedByInhabitantId.Trim() ||
-             proposedByInhabitantId.Length > 256 ||
-             proposedByInhabitantId.Any(char.IsControl)))
+        if (proposedByAgentId is not null &&
+            (string.IsNullOrWhiteSpace(proposedByAgentId) ||
+             proposedByAgentId != proposedByAgentId.Trim() ||
+             proposedByAgentId.Length > 256 ||
+             proposedByAgentId.Any(char.IsControl)))
         {
-            throw new ArgumentException("An inhabitant proposal requires a canonical author ID.", nameof(proposedByInhabitantId));
+            throw new ArgumentException("An agent proposal requires a canonical author ID.", nameof(proposedByAgentId));
         }
         manifest.Validate();
         RejectForbiddenCapabilities(manifest);
@@ -571,9 +571,9 @@ public sealed class ContentPackageRegistry
             ContentPackageManifestCodec.ComputeManifestDigest(manifest));
         packages.Add(manifest.PackageId, record);
         AppendEvent(worldTick, manifest.PackageId, "package_proposed", manifest.PackageDigest);
-        if (proposedByInhabitantId is not null)
+        if (proposedByAgentId is not null)
         {
-            AppendEvent(worldTick, manifest.PackageId, "package_proposed_by_inhabitant", proposedByInhabitantId);
+            AppendEvent(worldTick, manifest.PackageId, "package_proposed_by_agent", proposedByAgentId);
         }
         return record;
     }

@@ -15,10 +15,10 @@ public sealed partial class PortBoatRuntimeTests
         var actor = BoatPolicy.Author;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Survival = new SurvivalCondition(8_000), Equipment = null } : person).ToArray(),
         };
-        state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Rain);
+        state = WeatherTestFixture.WithWeather(state, WeatherKind.Rain);
         using var world = new BoatScenario(state, new() { IdleActors = { actor } });
         var before = WorldRuntimeCodec.Encode(world.World.ExportState());
         Assert.False((await world.World.AdvanceOneTickAsync(() => false)).Advanced);
@@ -31,7 +31,7 @@ public sealed partial class PortBoatRuntimeTests
             Assert.True((await replay.World.AdvanceOneTickAsync()).Advanced);
             var boat = Assert.Single(world.World.Boats);
             Assert.Equal(actor, boat.Journey!.PassengerId);
-            var passenger = world.World.Inhabitants.Single(person => person.InhabitantId == actor);
+            var passenger = world.World.Agents.Single(person => person.AgentId == actor);
             Assert.Equal(boat.Position, passenger.Position);
             Assert.True(SwimmingRules.IsSwimmingWater(world.World.ExportState().Map, passenger.Position));
             var warmth = passenger.Survival!.WarmthBasisPoints;

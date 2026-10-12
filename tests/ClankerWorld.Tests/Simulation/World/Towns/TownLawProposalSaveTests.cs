@@ -18,7 +18,7 @@ public sealed class TownLawProposalSaveTests
         var directory = Directory.CreateTempSubdirectory("rejected-law-save-");
         try
         {
-            using var world = NonviolentRuntimeFixture.Create(NonviolentRuntimeFixture.Prepared(), new NonviolentTestProvider());
+            using var world = NonLandRuntimeFixture.Create(NonLandRuntimeFixture.Prepared(), new NonLandTestProvider());
             world.Pause();
             var path = Path.Combine(directory.FullName, "world.json");
             var store = new ManualWorldSaveStore(path);
@@ -31,8 +31,8 @@ public sealed class TownLawProposalSaveTests
                 // same replacement character in JSON. Encode alone accepts this;
                 // the serialized checkpoint must also pass the actual decoder.
                 foreach (var key in new[] { "serialization:\uD800", "serialization:\uD801" })
-                    world.SubmitInstruction(new(key, "owner:test", NonviolentRuntimeFixture.Judge,
-                        OwnerInstructionKind.Suggestive, "Consider the current public law."));
+                    world.SubmitInstruction(new(key, "owner:test", NonLandRuntimeFixture.Judge,
+                        OwnerInstructionKind.Suggestion, "Consider the current public law."));
                 world.Validate();
                 var unreadable = WorldRuntimeCodec.Encode(world.ExportState());
                 Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(unreadable));
@@ -68,22 +68,22 @@ public sealed class TownLawProposalSaveTests
     [InlineData(true, 234)]
     public async Task UnicodeProposalPreservesTheFullDraftThroughActiveAndNamedSaves(bool repeal, int fillerLength)
     {
-        var state = NonviolentRuntimeFixture.Prepared();
+        var state = NonLandRuntimeFixture.Prepared();
         var town = state.Towns![0];
         var law = Assert.Single(town.Government!.Laws);
         var text = "Paths: " + new string('a', fillerLength) + "😀tail";
-        var (council, government) = TownLawRules.ProposeAmendment(town.Governance!, town.Government,
-            town.Id, NonviolentRuntimeFixture.Judge, law.Id, text, town.ResidentIds, 0, NonviolentRuntimeFixture.Day);
+        var (council, government) = TownLawRules.ProposeAmendment(town.Council!, town.Government,
+            town.Id, NonLandRuntimeFixture.Judge, law.Id, text, town.ResidentIds, 0, NonLandRuntimeFixture.Day);
         if (repeal)
         {
             foreach (var voter in town.ResidentIds.Take(3))
-                council = TownGovernanceRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
+                council = TownCouncilRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
             (council, government) = TownLawRules.Enact(council, government, town.Id, town.Name, 0);
             (council, government) = TownLawRules.ProposeRepeal(council, government, town.Id,
-                NonviolentRuntimeFixture.Judge, law.Id, town.ResidentIds, 0, NonviolentRuntimeFixture.Day);
+                NonLandRuntimeFixture.Judge, law.Id, town.ResidentIds, 0, NonLandRuntimeFixture.Day);
         }
-        using var world = NonviolentRuntimeFixture.Create(state with
-        { Towns = [town with { Governance = council, Government = government }] }, new NonviolentTestProvider());
+        using var world = NonLandRuntimeFixture.Create(state with
+        { Towns = [town with { Council = council, Government = government }] }, new NonLandTestProvider());
         world.Validate();
         var label = council.Proposals[^1].Text;
         var prefix = repeal ? "Repeal law 1: " : "Amend law 1 to read: ";
@@ -95,7 +95,7 @@ public sealed class TownLawProposalSaveTests
         try
         {
             var path = Path.Combine(directory.FullName, "world.json");
-            var file = new WorldStateFile(path, _ => new NonviolentTestProvider());
+            var file = new WorldStateFile(path, _ => new NonLandTestProvider());
             file.Save(world);
             using var active = file.LoadOrCreate(state.WorldSeed);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(active.ExportState()));
@@ -105,11 +105,11 @@ public sealed class TownLawProposalSaveTests
             var overwrite = store.Overwrite(saved.Id, world, []);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()),
                 WorldRuntimeCodec.Encode(store.Read(overwrite.BackupId)));
-            using var named = NonviolentRuntimeFixture.Create(new ManualWorldSaveStore(path).Read(saved.Id), new NonviolentTestProvider());
+            using var named = NonLandRuntimeFixture.Create(new ManualWorldSaveStore(path).Read(saved.Id), new NonLandTestProvider());
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(named.ExportState()));
             Assert.Equal(text, TownLawRules.Text(named.Towns[0].Government!.LawDrafts[^1].Subject,
                 named.Towns[0].Government!.LawDrafts[^1].Rule));
-            Assert.Equal(label, named.Towns[0].Governance!.Proposals[^1].Text);
+            Assert.Equal(label, named.Towns[0].Council!.Proposals[^1].Text);
             world.Resume();
             named.Resume();
             for (var tick = 0; tick < 3; tick++)

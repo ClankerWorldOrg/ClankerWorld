@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>
-/// The two owner-to-inhabitant instruction strengths supported by the world. The request never carries an instruction ID: that ID is minted by
+/// The two owner-to-agent instruction strengths supported by the world. The request never carries an instruction ID: that ID is minted by
 /// the authoritative runtime after validation.
 /// </summary>
 public enum OwnerInstructionKind
 {
-    Suggestive,
-    MustDo,
+    Suggestion,
+    Order,
 }
 
 /// <summary>
@@ -28,7 +28,7 @@ public enum OwnerInstructionState
 public sealed record OwnerInstructionRequest(
     string IdempotencyKey,
     string IssuerId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     OwnerInstructionKind Kind,
     string Text,
     bool Queue = false);
@@ -38,7 +38,7 @@ public sealed record OwnerInstructionRequest(
 /// by the world simulation. The original instruction text remains on
 /// its own message record; this typed state is the physical task the host understood.
 /// </summary>
-public sealed record OwnerInstructionOrder(
+public sealed record OrderTask(
     string Action,
     string Status,
     int RequestedUnits,
@@ -127,7 +127,7 @@ public sealed record OwnerOrderCancelRequest(
     string IdempotencyKey,
     string IssuerId,
     string WorldId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId);
 
 public sealed record OwnerOrderControlReceipt(
@@ -141,7 +141,7 @@ public sealed record OwnerOrderCancellation(
     string IdempotencyKey,
     string IssuerId,
     string WorldId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId,
     OwnerOrderControlReceipt Receipt);
 
@@ -152,7 +152,7 @@ public sealed record OwnerQueuedInstruction(
     string InstructionId,
     string IdempotencyKey,
     string IssuerId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     OwnerInstructionKind Kind,
     string Text,
     long SubmittedTick,
@@ -163,7 +163,7 @@ public sealed record OwnerQueuedInstruction(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ObserverReply = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? GuidancePromptedTick = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool Queue = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerInstructionOrder? Order = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OrderTask? Task = null)
 {
     public const int MaximumTextLength = 512;
     public const int MaximumIdentifierLength = DerivedId.MaximumLength;

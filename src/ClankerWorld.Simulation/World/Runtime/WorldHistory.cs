@@ -22,8 +22,8 @@ public static class WorldHistory
         // An order's latest native request remains authority for arrival or
         // recovery. Older retries and ordinary requests can still be archived.
         var boundRequests = (state.Instructions ?? [])
-            .Where(instruction => instruction.Order?.Action == "travel_by_boat")
-            .Select(instruction => instruction.Order!.BoatTravel?.RequestId)
+            .Where(instruction => instruction.Task?.Action == "travel_by_boat")
+            .Select(instruction => instruction.Task!.BoatTravel?.RequestId)
             .OfType<string>().ToHashSet(StringComparer.Ordinal);
         var retired = closed.Take(Math.Max(0, closed.Length - RecentBoatRequestLimit))
             .Where(request => !boundRequests.Contains(request.Id)).ToArray();
@@ -46,7 +46,7 @@ public static class WorldHistory
         var scheduler = Window("scheduler", cognition.Events, item => item.EventId, cognition.EventHistoryFloor, archived);
         var runtimes = cognition.Runtimes.Select(runtime =>
         {
-            var window = Window($"cognition:{runtime.InhabitantId}", runtime.Events, item => item.EventId, runtime.EventHistoryFloor, archived);
+            var window = Window($"cognition:{runtime.AgentId}", runtime.Events, item => item.EventId, runtime.EventHistoryFloor, archived);
             return runtime with { Events = window.Events, EventHistoryFloor = window.Floor };
         }).ToArray();
         if (archived.Count == 0 && retired.Length == 0)

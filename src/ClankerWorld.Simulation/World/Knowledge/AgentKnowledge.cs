@@ -91,7 +91,7 @@ internal static partial class AgentKnowledgeRules
             knowledge.WritingProjects.Any(item => item is null || item.Recipes is null || item.Recipes.Any(recipe => recipe is null)) ||
             knowledge.Artifacts.Any(item => !ValidText(item.Id, DerivedId.MaximumLength) || item.Facts is null || item.Facts.Any(fact => fact is null) || item.Recipes is null || item.Recipes.Any(recipe => recipe is null)))
             throw new InvalidDataException("The agent knowledge collections are missing or contain null records.");
-        var agents = society.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var agents = society.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (knowledge.Facts.Count > checked(agents.Count * MaximumFactsPerAgent) ||
             knowledge.Artifacts.Count > MaximumArtifactsInWorld || knowledge.WritingProjects.Count > agents.Count ||
             knowledge.Facts.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != knowledge.Facts.Count ||
@@ -142,7 +142,7 @@ internal static partial class AgentKnowledgeRules
         foreach (var project in knowledge.WritingProjects)
         {
             if (!ValidText(project.Id, DerivedId.MaximumLength) || !agents.Contains(project.ActorId) ||
-                society.GetInhabitant(project.ActorId).Status != SocietyInhabitantStatus.Active || !IsArtifactKind(project.Kind) ||
+                society.GetAgent(project.ActorId).Status != SocietyAgentStatus.Active || !IsArtifactKind(project.Kind) ||
                 project.StartedTick < 0 || project.StartedTick > project.LastWorkedTick || project.LastWorkedTick > worldTick ||
                 project.WorkDone < 0 || project.WorkDone >= WritingWork(project.Kind) ||
                 project.CandidateId != (project.SourceArtifactId is null ? "knowledge_write:" + project.Kind : "knowledge_copy:" + project.SourceArtifactId) ||

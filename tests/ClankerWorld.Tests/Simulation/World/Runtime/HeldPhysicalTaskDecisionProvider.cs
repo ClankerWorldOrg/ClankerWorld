@@ -8,7 +8,7 @@ internal sealed class HeldPhysicalTaskDecisionProvider : IDecisionProvider
     public Func<bool>? CanStart { get; set; }
     public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
     public long ProviderEpoch => 1;
-    public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+    public ConcurrentQueue<AgentObservation> Requests { get; } = new();
     public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,

@@ -23,10 +23,10 @@ public sealed class InboundCustodyStorageTests
         var state = setup.ExportState();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var household = house.HouseholdId!;
-        var adults = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == household).Take(2).Select(person => person.Id).ToArray();
+        var adults = state.Society.Society.Agents.Where(person => person.HouseholdId == household).Take(2).Select(person => person.Id).ToArray();
         var hauler = adults[0];
         var actor = adults[1];
-        var occupied = state.Inhabitants.Where(person => !adults.Contains(person.InhabitantId)).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => !adults.Contains(person.AgentId)).Select(person => person.Position).ToHashSet();
         var neighbors = state.Map.FootNeighbors(house.Position).Where(position => state.Map.IsPassable(position) &&
             !occupied.Contains(position) && state.Map.Resources.All(resource => resource.Position != position) &&
             state.Map.MapObjects.All(item => item.Position != position)).Take(2).ToArray();
@@ -47,13 +47,13 @@ public sealed class InboundCustodyStorageTests
             inventory = InventoryAuthority.AddLot(inventory, "custody-water", "fresh_water", woodOwner, 3, containerLotId: "custody-wood");
         if (mode == "borrowed")
             inventory = InventoryAuthority.Relocate(inventory, "borrow-custody-wood", "custody-wood", household, quantity, carrierId: actor);
-        state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
+        state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == hauler ? neighbors[0] : person.InhabitantId == actor ? neighbors[1] : person.Position,
-                HungerBasisPoints = 10_000,
+                Position = person.AgentId == hauler ? neighbors[0] : person.AgentId == actor ? neighbors[1] : person.Position,
+                FullnessBasisPoints = 10_000,
                 Survival = person.Survival is { } survival ? survival with
                 { WarmthBasisPoints = 10_000, NutritionBasisPoints = 10_000, IllnessBasisPoints = 0 } : null,
                 LastDecisionContext = null,
@@ -77,7 +77,7 @@ public sealed class InboundCustodyStorageTests
         Assert.Equal(64 - initialStock, world.DestinationRoom(house.InstanceId, jug));
         Assert.Equal(beforeRoomQuery, WorldRuntimeCodec.Encode(world.ExportState()));
         hauling.Preferred = "safe_idle";
-        if (mode != "none") world.SubmitInstruction(new("custody-capacity", "owner:test", actor, OwnerInstructionKind.MustDo,
+        if (mode != "none") world.SubmitInstruction(new("custody-capacity", "owner:test", actor, OwnerInstructionKind.Order,
             mode == "borrowed" ? vessel ? "return one borrowed water jug" : "return four borrowed wood" :
                 vessel ? "store one water jug in my House" : "store four wood in my House"));
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -89,7 +89,7 @@ public sealed class InboundCustodyStorageTests
         for (var tick = 0; tick < 4; tick++) await TickTogether(world, replay);
         if (mode != "none" && initialStock != 56)
         {
-            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "custody-capacity").Order!;
+            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "custody-capacity").Task!;
             Assert.Equal(("blocked", 0), (order.Status, order.CompletedUnits));
             Assert.Null(world.Society.Inventory.GetLot("custody-wood").StorageBuildingId);
         }
@@ -118,7 +118,7 @@ public sealed class InboundCustodyStorageTests
         }
         if (mode != "none" && initialStock == 56)
         {
-            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "custody-capacity").Order!;
+            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "custody-capacity").Task!;
             Assert.Equal(("finished", quantity), (order.Status, order.CompletedUnits));
         }
         // Ordinary work may use capacity left over after the delivery. It
@@ -151,7 +151,7 @@ public sealed class InboundCustodyStorageTests
             var observation = request.Observation;
             var chosen = observation.Candidates.FirstOrDefault(item => item.Id == Preferred) ??
                 observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 chosen.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == chosen.Id ? 1d : 0d)));
         }

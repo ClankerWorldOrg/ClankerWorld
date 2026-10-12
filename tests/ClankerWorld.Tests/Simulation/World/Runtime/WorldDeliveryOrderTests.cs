@@ -62,9 +62,9 @@ public sealed partial class WorldDeliveryOrderTests
         Assert.Equal((Beta, 2), (world.Society.Inventory.GetLot("foreign-cloth").OwnerId, world.Society.Inventory.GetLot("foreign-cloth").Quantity));
         Assert.Single(world.ExportState().Events, item => item.Kind == "owner_stock_delivered");
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
-            item => item.InstructionId == receipt.InstructionId).Order!;
+            item => item.InstructionId == receipt.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldOrderTask>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal(("cloth", "house", "goods_items", 2),
             (client.TargetItemKind, client.TargetBuildingKind, client.ProgressUnit, client.CompletedUnits));
@@ -128,7 +128,7 @@ public sealed partial class WorldDeliveryOrderTests
         OwnerInstructionReceipt? receipt = ordered ? Submit(world, actor, "routine-pot-order", "haul two potatoes to my Farmhouse") : null;
         await Tick(world);
         var canFit = expectedDestination is not null;
-        var observation = Assert.Single(choices.Requests, request => request.InhabitantId == actor);
+        var observation = Assert.Single(choices.Requests, request => request.AgentId == actor);
         if (!ordered)
         {
             Assert.Equal(canFit, observation.Candidates.Any(candidate => candidate.Id == "haul_farm_grain"));
@@ -324,10 +324,10 @@ public sealed partial class WorldDeliveryOrderTests
         state = state with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = 10_000,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                FullnessBasisPoints = 10_000,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 LastDecisionContext = null,
             }).ToArray(),
         };
@@ -335,20 +335,20 @@ public sealed partial class WorldDeliveryOrderTests
     }
     private static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position)
     {
-        var previous = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = state.Agents.Single(person => person.AgentId == actor).Position;
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Position = position, LastDecisionContext = null }
             : person.Position == position ? person with { Position = previous } : person).ToArray()
         };
     }
     private static GridPoint SourceNear(WorldRuntimeState state, GridPoint destination) => state.Map.FootNeighbors(destination)
-        .Where(point => state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point) &&
+        .Where(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point) &&
             state.Map.Resources.All(resource => resource.Position != point) && state.Map.MapObjects.All(item => item.Position != point))
         .OrderBy(point => point.Y).ThenBy(point => point.X).First();
     private static PlacedBuilding Home(WorldRuntimeState state, string id) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == id);
-    private static string Actor(WorldRuntimeState state, string household = Alpha) => state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+    private static string Actor(WorldRuntimeState state, string household = Alpha) => state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new DeliveryChoices());
@@ -360,9 +360,9 @@ public sealed partial class WorldDeliveryOrderTests
         return replay;
     }
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text, Queue: queue));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static int Stored(WorldRuntime world, string building, string kind) => world.Society.Inventory.Lots
         .Where(lot => lot.ItemKind == kind && lot.StorageBuildingId == building).Sum(lot => lot.Quantity);
     private static async Task Tick(WorldRuntime world) => Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -383,7 +383,7 @@ public sealed partial class WorldDeliveryOrderTests
         private static readonly string[] FarmHaulChoices = ["haul_farm_grain", "haul_household_stock", "safe_idle"];
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -399,11 +399,11 @@ public sealed partial class WorldDeliveryOrderTests
                 Returned.TrySetResult(true);
             }
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "deliver_stock")
-                ? "deliver_stock" : observation.InhabitantId == farmHaulActor
+                ? "deliver_stock" : observation.AgentId == farmHaulActor
                 ? FarmHaulChoices.First(id => observation.Candidates.Any(candidate => candidate.Id == id &&
                     (id != "haul_household_stock" || candidate.DestinationId is Farmhouse or Silo)))
                 : "safe_idle";
-            return new(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

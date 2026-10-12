@@ -38,7 +38,7 @@ public sealed partial class AnimalPipelineTests
         Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
         var milkId = Assert.Single(collecting.Animals).ReadyProductLotId!;
         Assert.NotNull(milkId);
-        collecting.SubmitInstruction(new("collect-return-milk", "owner", actor, OwnerInstructionKind.MustDo, "collect from Moss"));
+        collecting.SubmitInstruction(new("collect-return-milk", "owner", actor, OwnerInstructionKind.Order, "collect from Moss"));
         await Until(collecting, () => collecting.Animals.Single().ReadyProductLotId is null);
         inventory = collecting.Society.Inventory;
         Assert.Equal((home, actor, 2, (string?)null), (inventory.GetLot(milkId).OwnerId,
@@ -54,7 +54,7 @@ public sealed partial class AnimalPipelineTests
         { Society = collecting.ExportState().Society with { Society = collecting.Society with { Inventory = inventory } } };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? new AnimalChooser("return_borrowed") : new AnimalChooser());
-        world.SubmitInstruction(new("return-collected-milk", "owner", actor, OwnerInstructionKind.MustDo, "return two borrowed milk"));
+        world.SubmitInstruction(new("return-collected-milk", "owner", actor, OwnerInstructionKind.Order, "return two borrowed milk"));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
             id => id == actor ? new AnimalChooser("return_borrowed") : new AnimalChooser());
@@ -65,10 +65,10 @@ public sealed partial class AnimalPipelineTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-milk").Order!;
+            var order = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-milk").Task!;
             if (order.Status == "finished" || boundary != "available" && tick >= 3) break;
         }
-        var result = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-milk").Order!;
+        var result = world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "return-collected-milk").Task!;
         var jug = world.Society.Inventory.GetLot("return-jug");
         var milk = world.Society.Inventory.GetLot(milkId);
         var owner = boundary == "delivery" ? actor : home;

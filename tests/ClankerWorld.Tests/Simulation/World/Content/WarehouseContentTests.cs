@@ -77,12 +77,12 @@ public sealed class WarehouseContentTests
         Assert.Contains("already", duplicate.Failure, StringComparison.OrdinalIgnoreCase);
 
         var state = seed.ExportState();
-        var alpha = state.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-alpha").Id;
-        var beta = state.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-beta").Id;
+        var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-beta").Id;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == alpha
-                ? person with { Position = warehouse.Position, HungerBasisPoints = 9_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == alpha
+                ? person with { Position = warehouse.Position, FullnessBasisPoints = 9_000 } : person).ToArray(),
             Society = state.Society with
             {
                 Society = state.Society.Society with
@@ -140,7 +140,7 @@ public sealed class WarehouseContentTests
         var worldSimulation = reloaded.WorldSimulation!;
         var occupied = reloaded.Map.MapObjects.Select(item => item.Position)
             .Concat(reloaded.Map.Resources.Select(item => item.Position))
-            .Concat(reloaded.Inhabitants.Select(item => item.Position))
+            .Concat(reloaded.Agents.Select(item => item.Position))
             .Concat(reloaded.RoadTiles ?? [])
             .Concat((reloaded.Bridges ?? []).SelectMany(item => item.Entrances))
             .Concat((reloaded.Fields ?? []).Select(item => item.Position))
@@ -160,12 +160,12 @@ public sealed class WarehouseContentTests
         var houseSite = FindOpenSite(house);
         var materialPickup = reloaded with
         {
-            Inhabitants = reloaded.Inhabitants.Select(person => person.InhabitantId == beta
+            Agents = reloaded.Agents.Select(person => person.AgentId == beta
                 ? person with
                 {
                     Position = warehouse.Position,
-                    HungerBasisPoints = 9_000,
-                    Project = new SettlementProject(TownConstructionCandidateIds.Building(house.CanonicalId,
+                    FullnessBasisPoints = 9_000,
+                    Project = new AgentProject(TownConstructionCandidateIds.Building(house.CanonicalId,
                             houseSite), house.DisplayName, reloaded.Society.Society.WorldTick,
                         "acquiring", LastTransitionTick: reloaded.Society.Society.WorldTick),
                 } : person).ToArray(),
@@ -196,8 +196,8 @@ public sealed class WarehouseContentTests
             "warehouse-tool", "wooden_hammer", town.Id, 1, storageBuildingId: warehouse.InstanceId);
         var farmWorkers = (reloaded.Fields ?? []).Where(field => field.Work is not null)
             .Select(field => field.Work!.WorkerId).ToHashSet(StringComparer.Ordinal);
-        var toolCollectorId = reloaded.Society.Society.Inhabitants
-            .Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var toolCollectorId = reloaded.Society.Society.Agents
+            .Where(person => person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder &&
                 currentTown.ResidentIds.Contains(person.Id, StringComparer.Ordinal) &&
                 !farmWorkers.Contains(person.Id))
@@ -211,11 +211,11 @@ public sealed class WarehouseContentTests
         };
         reloaded = reloaded with
         {
-            Inhabitants = reloaded.Inhabitants.Select(person => person.InhabitantId == toolCollectorId
+            Agents = reloaded.Agents.Select(person => person.AgentId == toolCollectorId
                 ? person with
                 {
                     Position = warehouse.Position,
-                    HungerBasisPoints = 10_000,
+                    FullnessBasisPoints = 10_000,
                     Project = null,
                     LastDecisionContext = null,
                     TravelCooldownTicks = 0,
@@ -229,7 +229,7 @@ public sealed class WarehouseContentTests
                  item.Kind == "equipment_collected" && item.Detail == toolCollectorId + ":wooden_hammer"); tick++)
             Assert.True((await collecting.AdvanceOneTickAsync()).Advanced);
         var finalCollectionState = collecting.ExportState();
-        var finalCollector = finalCollectionState.Inhabitants.Single(person => person.InhabitantId == toolCollectorId);
+        var finalCollector = finalCollectionState.Agents.Single(person => person.AgentId == toolCollectorId);
         var finalInventory = finalCollectionState.Society.Society.Inventory;
         var carried = finalInventory.Lots.Where(lot => PersonalEquipmentRules.IsPhysicallyCarried(
                 finalInventory, lot, toolCollectorId))
@@ -254,16 +254,16 @@ public sealed class WarehouseContentTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)
         {
-            ObservedCandidates.Add(request.Observation.InhabitantId + "=[" +
+            ObservedCandidates.Add(request.Observation.AgentId + "=[" +
                 string.Join(",", request.Observation.Candidates.Select(candidate => candidate.Id)) + "]");
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == candidateId);
             if (selected is null && requireCandidate)
                 throw new InvalidOperationException($"Expected '{candidateId}' candidate; available: " +
                     string.Join(",", request.Observation.Candidates.Select(candidate => candidate.Id)));
             selected ??= request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            SelectedCandidates.Add(request.Observation.InhabitantId + "=" + selected.Id);
+            SelectedCandidates.Add(request.Observation.AgentId + "=" + selected.Id);
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d)));

@@ -41,7 +41,7 @@ public sealed partial class ServerHttpTests
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
-            Assert.Empty(world.Inhabitants);
+            Assert.Empty(world.Agents);
             Assert.Equal(routing, JsonSerializer.Serialize(providers.CaptureRuntimeConfiguration()));
             var reopened = new ProviderConfigurationStore(providers.Path,
                 new("deterministic", null, null, null, null, null, null));
@@ -53,8 +53,8 @@ public sealed partial class ServerHttpTests
                 "/api/v1/owner/founders/place", action, OwnerHttpBinding.FounderPlacementPayload(action));
             Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
             using var restored = file.LoadOrCreate(world.ExportState().WorldSeed);
-            Assert.Contains(restored.Inhabitants, person => person.InhabitantId == id);
-            Assert.Equal(2, providers.CaptureRuntimeConfiguration().Assignments!.Count(item => item.InhabitantId == id));
+            Assert.Contains(restored.Agents, person => person.AgentId == id);
+            Assert.Equal(2, providers.CaptureRuntimeConfiguration().Assignments!.Count(item => item.AgentId == id));
         }
         finally { directory.Delete(recursive: true); }
     }
@@ -93,15 +93,15 @@ public sealed partial class ServerHttpTests
                 while (world.Society.WorldId != target.Society.WorldId) await Task.Delay(10, deadline.Token);
                 placement = Task.Run(() => client.PostAsJsonAsync("/api/v1/owner/founders/place", envelope));
                 await Task.Delay(200, deadline.Token);
-                Assert.Empty(world.Inhabitants);
+                Assert.Empty(world.Agents);
             }
             finally { release.Set(); }
             await held;
             await selection;
             using var response = await placement!;
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains(world.Inhabitants, person => person.InhabitantId == id);
-            Assert.Equal(2, providers.CaptureRuntimeConfiguration().Assignments!.Count(item => item.InhabitantId == id));
+            Assert.Contains(world.Agents, person => person.AgentId == id);
+            Assert.Equal(2, providers.CaptureRuntimeConfiguration().Assignments!.Count(item => item.AgentId == id));
         }
         finally { directory.Delete(recursive: true); }
     }

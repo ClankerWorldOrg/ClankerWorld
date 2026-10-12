@@ -35,7 +35,7 @@ public sealed partial class WorldStorageOrderTests
             (lot.OwnerId, lot.StorageBuildingId, lot.Quantity, lot.ConditionBasisPoints, lot.CarrierId));
         Assert.Null(world.Society.Inventory.GetLot("equipment-other").StorageBuildingId);
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
-            item => item.InstructionId == receipt.InstructionId).Order!;
+            item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal(kind, projected.TargetEquipmentKind);
         Assert.Single(world.ExportState().Events, item => item.Kind == "personal_goods_stored");
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -54,7 +54,7 @@ public sealed partial class WorldStorageOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "equipment-spare", kind, actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Equipment = kind == "basket" ? new(CarryAidLotId: "equipment-worn") : new(ClothingLotId: "equipment-worn"),
             } : person).ToArray(),
@@ -69,7 +69,7 @@ public sealed partial class WorldStorageOrderTests
         Assert.Equal("blocked", Order(world, receipt).Status);
         Assert.Contains("not worn", Order(world, receipt).BlockedReason, StringComparison.Ordinal);
         Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("equipment-worn"), actor));
-        Assert.True(PersonalEquipmentRules.IsSelected(world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment, "equipment-worn"));
+        Assert.True(PersonalEquipmentRules.IsSelected(world.Agents.Single(person => person.AgentId == actor).Equipment, "equipment-worn"));
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(1, Order(restored, receipt).CompletedUnits);
     }
@@ -115,7 +115,7 @@ public sealed partial class WorldStorageOrderTests
         {
             var corrupt = saved with
             {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Order = invalid } : item).ToArray(),
+                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray(),
             };
             Assert.Throws<InvalidDataException>(() => Restore(corrupt));
         }

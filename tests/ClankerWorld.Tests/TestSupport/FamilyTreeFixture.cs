@@ -29,11 +29,11 @@ internal static class FamilyTreeFixture
     public static (WorldRuntimeState State, string Id) WithDeadAncestor(WorldRuntimeState state, string key)
     {
         var society = state.Society.Society;
-        var ancestor = society.Inhabitants[0] with
+        var ancestor = society.Agents[0] with
         {
-            Id = $"{society.WorldId}:inhabitant:ancestor-{key}",
+            Id = $"{society.WorldId}:agent:ancestor-{key}",
             Name = $"Ancestor-{key}",
-            Status = SocietyInhabitantStatus.Dead,
+            Status = SocietyAgentStatus.Dead,
             HouseholdId = null,
             ProviderBindingId = null,
             DeathTick = society.WorldTick,
@@ -45,7 +45,7 @@ internal static class FamilyTreeFixture
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Append(ancestor).OrderBy(person => person.Id, StringComparer.Ordinal).ToArray(),
+                    Agents = society.Agents.Append(ancestor).OrderBy(person => person.Id, StringComparer.Ordinal).ToArray(),
                 },
             },
         }, ancestor.Id);

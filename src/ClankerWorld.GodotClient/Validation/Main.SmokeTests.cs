@@ -9,14 +9,14 @@ public partial class Main
     private async Task VerifySmokeAsync(OwnerWorldSnapshot map)
     {
         var (zoom, center, paused) = (cameraZoom, cameraCenterTiles, weatherLayer.Paused);
-        var person = new OwnerWorldInhabitant("agent:smoke", "Ada", "active", new(11, 10), 8_000, [], [],
+        var person = new OwnerWorldAgent("agent:smoke", "Ada", "active", new(11, 10), 8_000, [], [],
             new OwnerWorldRoute("idle", null, null, [], string.Empty),
             new OwnerWorldSpatialKnowledge(new(11, 10), [new(11, 10)], [new(11, 10)]), false);
         OwnerWorldPlacedBuilding Building(string id, string tag, int x, int y, int height = 1) =>
             new(id, $"test/{tag}", new(x, y), 0, id, [tag], 1, height, Entrance: new(x, y + height));
         var occupied = map with
         {
-            Inhabitants = [person],
+            Agents = [person],
             Objects = [],
             PlacedBuildings = [Building("home", "house", 11, 10), Building("empty", "house", 13, 10),
                 Building("forge", "blacksmith", 17, 9, 2), Building("idle", "blacksmith", 20, 9, 2),
@@ -56,14 +56,14 @@ public partial class Main
         cameraZoom = maximumCameraZoom;
         // Mid zoom clamps the camera away from these chimneys; bring them back into view.
         cameraCenterTiles = new(17, 10);
-        RenderMap(occupied with { Inhabitants = [], ProductionJobs = [occupied.ProductionJobs[1]] });
+        RenderMap(occupied with { Agents = [], ProductionJobs = [occupied.ProductionJobs[1]] });
         await Settle();
         if (Frame().Length != 0) throw new InvalidOperationException("An empty House must not smoke even with a running job; the idle forge must also stop.");
         foreach (var absent in new[] { person with { IsDraft = true }, person with { Lifecycle = "deceased" } })
         {
-            RenderMap(occupied with { Inhabitants = [absent], ProductionJobs = [occupied.ProductionJobs[1]] });
+            RenderMap(occupied with { Agents = [absent], ProductionJobs = [occupied.ProductionJobs[1]] });
             await Settle();
-            if (Frame().Length != 0) throw new InvalidOperationException("Draft and deceased inhabitants must not make a House smoke.");
+            if (Frame().Length != 0) throw new InvalidOperationException("Draft and deceased agents must not make a House smoke.");
         }
         cameraCenterTiles = new(150, 80);
         RenderMap(occupied);
@@ -74,7 +74,7 @@ public partial class Main
         {
             WorldId = occupied.WorldId + ":smoke-wrap",
             WrapsEastWest = true,
-            Inhabitants = [person with { Position = new(east, 10) }],
+            Agents = [person with { Position = new(east, 10) }],
             PlacedBuildings = [Building("seam", "house", east, 10)],
             ProductionJobs = [],
         };

@@ -23,7 +23,7 @@ public partial class Main
             worldUrlInput.Text = host.Address;
             observationSession.ReplaceRegistration(registration);
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1", "owner-observation-timeline.v1"], []);
             var snapshot = new OwnerWorldSnapshot("disk-warning-world", 0, "disk-warning-map", [new(0, 0, "meadow")], [], [], null, 0)
             {

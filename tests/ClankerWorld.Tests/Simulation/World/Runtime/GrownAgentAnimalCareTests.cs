@@ -17,8 +17,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         var actor = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
         Assert.Equal(generation, state.Society.Society.Births.Count);
         Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == home &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         // Explicit stock/animal preparation; the yard is built and paid for through the public action.
@@ -36,7 +36,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(wood - 8, setup.Society.Inventory.Lots.Where(lot => lot.OwnerId == home && lot.ItemKind == "wood").Sum(lot => lot.Quantity));
         Assert.Equal(rope - 2, setup.Society.Inventory.Lots.Where(lot => lot.OwnerId == home && lot.ItemKind == "rope").Sum(lot => lot.Quantity));
         state = setup.ExportState();
-        Assert.Equal(position, state.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(position, state.Agents.Single(person => person.AgentId == actor).Position);
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "native-care-feed", "grain", home, 6, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "native-care-jug", "water_jug", home, 1, storageBuildingId: house.InstanceId);
         inventory = InventoryAuthority.AddLot(inventory, "native-care-water", "fresh_water", home, 2, storageBuildingId: house.InstanceId, containerLotId: "native-care-jug");
@@ -66,7 +66,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(initial), _ => new NativeCareChoices(actor));
         using var replayHost = new NativeGatheringHost(replay);
         world.Resume(); replay.Resume();
-        var request = new OwnerInstructionRequest("native-care", "owner:test", actor, OwnerInstructionKind.MustDo, "care for Finch");
+        var request = new OwnerInstructionRequest("native-care", "owner:test", actor, OwnerInstructionKind.Order, "care for Finch");
         var instruction = world.SubmitInstruction(request);
         Assert.Equal(instruction.InstructionId, replay.SubmitInstruction(request).InstructionId);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -121,7 +121,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(1, Order().CompletedUnits);
         Assert.Equal(5, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("native-care-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));
 
-        OwnerInstructionOrder Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        OrderTask Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
     }
 
     private sealed class NativeCareChoices(string actor) : IDecisionProvider
@@ -131,9 +131,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var choice = observation.InhabitantId == actor ? observation.Candidates.FirstOrDefault(item => item.Id == "animal_order") : null;
+            var choice = observation.AgentId == actor ? observation.Candidates.FirstOrDefault(item => item.Id == "animal_order") : null;
             choice ??= observation.Candidates.FirstOrDefault(item => item.Id == "safe_idle") ?? observation.Candidates.Single(item => item.Id == "identity_optional");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, 0,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 new Dictionary<string, double> { [choice.Id] = 1 }));
         }

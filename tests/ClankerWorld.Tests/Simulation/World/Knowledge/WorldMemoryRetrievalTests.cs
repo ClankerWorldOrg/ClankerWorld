@@ -17,12 +17,12 @@ public sealed class WorldMemoryRetrievalTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                RecentThoughts = [new InhabitantThought(0, person.InhabitantId + " private thought")],
+                RecentThoughts = [new RecentThought(0, person.AgentId + " private thought")],
             }).ToArray(),
         };
-        var observations = new List<InhabitantObservation>();
+        var observations = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new CapturingProvider(observations));
         world.Resume();
@@ -31,12 +31,12 @@ public sealed class WorldMemoryRetrievalTests
         foreach (var observation in observations)
         {
             var self = Assert.IsType<CognitionSelfContext>(observation.Self);
-            var identity = state.Society.Society.Inhabitants.Single(person => person.Id == observation.InhabitantId);
-            var physical = state.Inhabitants.Single(person => person.InhabitantId == observation.InhabitantId);
+            var identity = state.Society.Society.Agents.Single(person => person.Id == observation.AgentId);
+            var physical = state.Agents.Single(person => person.AgentId == observation.AgentId);
             Assert.Equal(identity.Name, self.Name);
             Assert.Equal(identity.HouseholdId, self.HouseholdId);
             Assert.Equal(physical.Personality, self.Personality);
-            Assert.Equal(observation.InhabitantId + " private thought", self.RecentThought);
+            Assert.Equal(observation.AgentId + " private thought", self.RecentThought);
             observation.Validate();
         }
     }
@@ -78,7 +78,7 @@ public sealed class WorldMemoryRetrievalTests
             },
         };
         var encoded = WorldRuntimeCodec.Encode(state);
-        var observations = new List<InhabitantObservation>();
+        var observations = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded),
             _ => new CapturingProvider(observations));
         world.Pause();
@@ -86,8 +86,8 @@ public sealed class WorldMemoryRetrievalTests
         world.Resume();
         Assert.False(world.JevEnabled);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var scout = observations.Single(item => item.InhabitantId == "founder-scout");
-        var mira = observations.Single(item => item.InhabitantId == "founder-mira");
+        var scout = observations.Single(item => item.AgentId == "founder-scout");
+        var mira = observations.Single(item => item.AgentId == "founder-mira");
         Assert.Contains(scout.RetrievedMemories!, item => item.Id == "food");
         Assert.Equal(4, scout.RetrievedMemories!.Count);
         Assert.Equal("food", scout.RetrievedMemories[0].Id);
@@ -100,21 +100,21 @@ public sealed class WorldMemoryRetrievalTests
         Assert.DoesNotContain(scout.RetrievedMemories!, item => item.Id is "secret" or "forgotten");
         Assert.Equal("secret", Assert.Single(mira.RetrievedMemories!).Id);
         Assert.All(observations, observation => Assert.All(observation.RetrievedMemories!,
-            memory => Assert.Equal(observation.InhabitantId, memory.OwnerId)));
+            memory => Assert.Equal(observation.AgentId, memory.OwnerId)));
         Assert.Equal(memories.OrderBy(item => item.Id), world.Society.Memories);
         Assert.Equal(belief, Assert.Single(world.Society.Beliefs!));
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.False(saved.JevEnabled);
         Assert.Equal(memories.OrderBy(item => item.Id), saved.Society.Society.Memories);
 
-        var repeatObservations = new List<InhabitantObservation>();
+        var repeatObservations = new List<AgentObservation>();
         using var repeat = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded),
             _ => new CapturingProvider(repeatObservations));
         repeat.Pause();
         repeat.SetJevEnabled(false);
         repeat.Resume();
         Assert.True((await repeat.AdvanceOneTickAsync()).Advanced);
-        var repeatedScout = repeatObservations.Single(item => item.InhabitantId == "founder-scout");
+        var repeatedScout = repeatObservations.Single(item => item.AgentId == "founder-scout");
         Assert.Equal(scout.RetrievedMemories, repeatedScout.RetrievedMemories);
         Assert.Equal(scout.ObservationDigest, repeatedScout.ObservationDigest);
     }
@@ -140,12 +140,12 @@ public sealed class WorldMemoryRetrievalTests
                 },
             },
         };
-        var observed = new List<InhabitantObservation>();
+        var observed = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(state, _ => new CapturingProvider(observed));
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        var scout = observed.Single(item => item.InhabitantId == "founder-scout");
+        var scout = observed.Single(item => item.AgentId == "founder-scout");
         Assert.Empty(scout.MemoryCompactionCandidates ?? []);
         Assert.Equal(indexed, world.Society.MemoryCompactions!.Single().Sources);
     }
@@ -216,7 +216,7 @@ public sealed class WorldMemoryRetrievalTests
         for (var tick = 0; tick < 40 && provider.PersonalObservation is null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        var personal = Assert.IsType<InhabitantObservation>(provider.PersonalObservation);
+        var personal = Assert.IsType<AgentObservation>(provider.PersonalObservation);
         Assert.Equal(1, provider.PersonalDecisionCount);
         Assert.Null(personal.MemoryCompactionCandidates);
         Assert.Equal(4, personal.RetrievedMemories!.Count);
@@ -258,7 +258,7 @@ public sealed class WorldMemoryRetrievalTests
                 Society = state.Society.Society with { Memories = memories },
             },
         };
-        var observed = new List<InhabitantObservation>();
+        var observed = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(state, id => id == "founder-scout"
             ? new FailingHostedProvider(observed)
             : new CapturingProvider(observed));
@@ -270,16 +270,16 @@ public sealed class WorldMemoryRetrievalTests
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         }
         Assert.Contains(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
-        Assert.Contains(observed, item => item.InhabitantId == "founder-scout" &&
+        Assert.Contains(observed, item => item.AgentId == "founder-scout" &&
             item.RetrievedMemories!.Any(retrieved => retrieved.Id == memories[0].Id) &&
             item.MemoryCompactionCandidates?.Count == 4);
-        Assert.DoesNotContain(observed.Where(item => item.InhabitantId != "founder-scout"),
+        Assert.DoesNotContain(observed.Where(item => item.AgentId != "founder-scout"),
             item => item.RetrievedMemories!.Any(retrieved => retrieved.Id == memories[0].Id) ||
                 item.MemoryCompactionCandidates?.Any(candidate => candidate.Id == memories[0].Id) == true);
         Assert.Equal(memories, world.Society.Memories);
         Assert.Empty(world.Society.MemoryCompactions ?? []);
         Assert.Contains(world.ExportState().Society.Cognition.Runtimes.Single(runtime =>
-            runtime.InhabitantId == "founder-scout").Events,
+            runtime.AgentId == "founder-scout").Events,
             item => item.Kind == "cognition_fallback_applied");
         Assert.DoesNotContain(world.ExportState().Events,
             item => item.Detail.Contains("Secret map marker", StringComparison.Ordinal));
@@ -332,7 +332,7 @@ public sealed class WorldMemoryRetrievalTests
         }
     }
 
-    private sealed class CapturingProvider(List<InhabitantObservation> observed) : IDecisionProvider
+    private sealed class CapturingProvider(List<AgentObservation> observed) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 1;
@@ -343,14 +343,14 @@ public sealed class WorldMemoryRetrievalTests
             lock (observed) observed.Add(request.Observation);
             var selected = request.Observation.Candidates[0].Id;
             return ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1,
                 new Dictionary<string, double> { [selected] = 1 }));
         }
     }
 
-    private sealed class FailingHostedProvider(List<InhabitantObservation> observed) : IDecisionProvider
+    private sealed class FailingHostedProvider(List<AgentObservation> observed) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;
@@ -378,7 +378,7 @@ public sealed class WorldMemoryRetrievalTests
                 new CognitionMemoryCompactionScore(item.Id, item.OwnerId, item.Kind, item.SourceTick,
                     5_000, 8_000)).ToArray();
             return ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, probabilities,
                 MemoryCompactionScores: scores));
@@ -388,7 +388,7 @@ public sealed class WorldMemoryRetrievalTests
     private sealed class JevThenPersonalProvider(DecisionProviderKind helperKind) : IDecisionProvider
     {
         public bool UseJev { get; set; } = true;
-        public InhabitantObservation? PersonalObservation { get; private set; }
+        public AgentObservation? PersonalObservation { get; private set; }
         public int JevDecisionCount { get; private set; }
         public int PersonalDecisionCount { get; private set; }
         public DecisionProviderKind Kind => UseJev ? helperKind : DecisionProviderKind.LargeLanguageModel;
@@ -405,13 +405,13 @@ public sealed class WorldMemoryRetrievalTests
                 JevDecisionCount++;
                 Assert.InRange(request.Observation.MemoryCompactionCandidates?.Count ?? 0, 6, 12);
                 Assert.All(request.Observation.MemoryCompactionCandidates!, item =>
-                    Assert.Equal(request.Observation.InhabitantId, item.OwnerId));
+                    Assert.Equal(request.Observation.AgentId, item.OwnerId));
                 var scores = request.Observation.MemoryCompactionCandidates!.Select(item =>
                     new CognitionMemoryCompactionScore(item.Id, item.OwnerId, item.Kind, item.SourceTick,
                         item.Id == "experience-major" ? 10_000 : item.Kind == "belief" ? 9_000 : 0,
                         item.Id == "experience-major" ? 8_800 : item.Kind == "belief" ? 9_000 : 6_000)).ToArray();
                 return ValueTask.FromResult(new CognitionDecisionResponse(
-                    request.RequestId, request.Observation.InhabitantId, helperKind, ProviderEpoch,
+                    request.RequestId, request.Observation.AgentId, helperKind, ProviderEpoch,
                     request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                     request.Observation.ObservationDigest, selected, 1, probabilities,
                     MemoryCompactionScores: scores));
@@ -420,7 +420,7 @@ public sealed class WorldMemoryRetrievalTests
             PersonalDecisionCount++;
             PersonalObservation = request.Observation;
             return ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, DecisionProviderKind.LargeLanguageModel,
+                request.RequestId, request.Observation.AgentId, DecisionProviderKind.LargeLanguageModel,
                 ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, probabilities));
         }

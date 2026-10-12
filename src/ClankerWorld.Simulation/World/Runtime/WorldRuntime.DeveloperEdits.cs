@@ -34,7 +34,7 @@ public sealed partial class WorldRuntime
             if (edit.ExpectedEventId != nextEventId - 1)
                 return new(false, false, "The world changed. Refresh before editing.");
             using var proposed = RestoreCore(CaptureState(), providerFactory,
-                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: civicSystem.CheckpointState);
+                maxCognitionDispatchPerCycle, trustedPreparedState: true, preparedCivic: townSystem.CheckpointState);
             try
             {
                 proposed.ApplyDeveloperEditCore(edit);
@@ -61,15 +61,15 @@ public sealed partial class WorldRuntime
         if (new[] { edit.AgentId, edit.Operation, edit.Value, edit.OtherAgentId ?? "" }
             .Any(value => value is null || value.Length > 512 || value.Any(char.IsControl)))
             throw new ArgumentException("Developer edit values must be short and contain no control characters.");
-        if (!inhabitants.TryGetValue(edit.AgentId, out var person) ||
-            society.Checkpoint.GetInhabitant(edit.AgentId).Status != SocietyInhabitantStatus.Active)
+        if (!agents.TryGetValue(edit.AgentId, out var person) ||
+            society.Checkpoint.GetAgent(edit.AgentId).Status != SocietyAgentStatus.Active)
             throw new InvalidOperationException("Select a living agent.");
         var actor = edit.AgentId;
         var id = $"developer-edit-{edit.ExpectedEventId + 1}";
         switch (edit.Operation)
         {
             case "add_animal":
-                if (!AdultResident(actor) || HouseholdFor(actor) is not { } animalHousehold || AnimalYard(animalHousehold) is not { } animalYard)
+                if (!IsAdult(actor) || HouseholdFor(actor) is not { } animalHousehold || AnimalYard(animalHousehold) is not { } animalYard)
                     throw new InvalidOperationException("Select an adult whose household has a completed animal yard.");
                 var animalParts = edit.Value.Split(':');
                 if (animalParts.Length != 2 || !AnimalRules.Species.Any(species => species.Id == animalParts[0]) ||
@@ -87,10 +87,10 @@ public sealed partial class WorldRuntime
                 if (edit.Amount is < 0 or > 100)
                     throw new ArgumentOutOfRangeException(nameof(edit), "Needs must be between 0 and 100 percent.");
                 var survival = person.Survival ?? new SurvivalCondition();
-                if (edit.Value != "fullness") survivalState ??= new SettlementSurvivalState(WorldTick, []);
-                inhabitants[actor] = edit.Value switch
+                if (edit.Value != "fullness") survivalState ??= new SurvivalState(WorldTick, []);
+                agents[actor] = edit.Value switch
                 {
-                    "fullness" => person with { HungerBasisPoints = edit.Amount * 100 },
+                    "fullness" => person with { FullnessBasisPoints = edit.Amount * 100 },
                     "warmth" => person with { Survival = survival with { WarmthBasisPoints = edit.Amount * 100 } },
                     "illness" => person with { Survival = survival with { IllnessBasisPoints = edit.Amount * 100 } },
                     "nutrition" => person with { Survival = survival with { NutritionBasisPoints = edit.Amount * 100 } },
@@ -135,21 +135,21 @@ public sealed partial class WorldRuntime
                 break;
             case "add_skill":
             case "remove_skill":
-                if (!Enum.TryParse<SettlementSkillKind>(edit.Value, true, out var skill) || !Enum.IsDefined(skill))
+                if (!Enum.TryParse<SkillKind>(edit.Value, true, out var skill) || !Enum.IsDefined(skill))
                     throw new ArgumentException("Choose building, farming, crafting or smithing.");
                 var hasSkill = person.Skills?.Any(item => item.Kind == skill) == true;
                 if (hasSkill == (edit.Operation == "add_skill"))
                     throw new InvalidOperationException(hasSkill ? "The agent already has that skill." : "The agent does not have that skill.");
                 var skills = (person.Skills ?? []).Where(item => item.Kind != skill).ToList();
                 if (edit.Operation == "add_skill")
-                    skills.Add(person.Skills?.FirstOrDefault(item => item.Kind == skill) ?? new SettlementSkill(skill, WorldTick));
-                inhabitants[actor] = person with { Skills = skills.OrderBy(item => item.Kind).ToArray() };
+                    skills.Add(person.Skills?.FirstOrDefault(item => item.Kind == skill) ?? new LearnedSkill(skill, WorldTick));
+                agents[actor] = person with { Skills = skills.OrderBy(item => item.Kind).ToArray() };
                 break;
             case "start_partnership":
             case "end_partnership":
                 if (edit.Value != "partnership") throw new ArgumentException("Choose partnership as the relationship type.");
                 var other = edit.OtherAgentId;
-                if (other is null || other == actor || !AdultResident(actor) || !AdultResident(other))
+                if (other is null || other == actor || !IsAdult(actor) || !IsAdult(other))
                     throw new InvalidOperationException("Choose two different living adults.");
                 if (edit.Operation == "start_partnership")
                 {
@@ -174,7 +174,7 @@ public sealed partial class WorldRuntime
             default:
                 throw new ArgumentException("Choose a supported developer edit.");
         }
-        inhabitants[actor] = inhabitants[actor] with { LastDecisionContext = null };
+        agents[actor] = agents[actor] with { LastDecisionContext = null };
         checkpointSchemaVersion = StateSchemaVersion;
     }
 }

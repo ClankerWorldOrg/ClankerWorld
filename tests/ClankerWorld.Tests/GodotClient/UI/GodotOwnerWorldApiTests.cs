@@ -169,10 +169,10 @@ public sealed class GodotOwnerWorldApiTests
 
     [Theory]
     [InlineData(1_460)]
-    public void LifePacePayloadMatchesTheHostExactly(int rate)
+    public void AgingOverridePayloadMatchesTheHostExactly(int rate)
     {
-        Assert.Equal(OwnerHttpBinding.LifePacePayload(new ClankerWorld.Server.Control.OwnerLifePaceAction(rate, "world-é")),
-            OwnerWorldActionPayload.LifePace(new OwnerLifePaceAction(rate, "world-é")));
+        Assert.Equal(OwnerHttpBinding.AgingOverridePayload(new ClankerWorld.Server.Control.OwnerAgingOverrideAction(rate, "world-é")),
+            OwnerWorldActionPayload.AgingOverride(new OwnerAgingOverrideAction(rate, "world-é")));
     }
 
     [Theory]
@@ -264,14 +264,14 @@ public sealed class GodotOwnerWorldApiTests
     {
         var clientAction = new OwnerInstructionAction(
             IdempotencyKey: "instruction-01",
-            TargetInhabitantId: "camp-alpha",
+            TargetAgentId: "camp-alpha",
             Kind: "must-do",
             Text: "Gather wood before dusk.",
             WorldId: "world-A",
             Queue: queue);
         var serverAction = new ServerInstructionAction(
             clientAction.IdempotencyKey,
-            clientAction.TargetInhabitantId,
+            clientAction.TargetAgentId,
             clientAction.Kind,
             clientAction.Text,
             clientAction.WorldId,
@@ -284,7 +284,7 @@ public sealed class GodotOwnerWorldApiTests
             queue ? "clankerworld.owner-instruction.v3" : "clankerworld.owner-instruction.v2",
             "world-id=d29ybGQtQQ",
             "idempotency-key=aW5zdHJ1Y3Rpb24tMDE",
-            "target-inhabitant-id=Y2FtcC1hbHBoYQ",
+            "target-agent-id=Y2FtcC1hbHBoYQ",
             "kind=bXVzdC1kbw",
             "text=R2F0aGVyIHdvb2QgYmVmb3JlIGR1c2su" + (queue ? "\nqueue=true" : string.Empty));
         Assert.Equal(expected, clientPayload);
@@ -298,7 +298,7 @@ public sealed class GodotOwnerWorldApiTests
             "cancel-01", "camp-alpha", "private-instruction-0000000042", "world-A");
         var serverAction = new ServerOrderCancelAction(
             clientAction.IdempotencyKey,
-            clientAction.TargetInhabitantId,
+            clientAction.TargetAgentId,
             clientAction.OrderId,
             clientAction.WorldId);
 
@@ -309,7 +309,7 @@ public sealed class GodotOwnerWorldApiTests
             "clankerworld.owner-order-cancel.v1",
             "world-id=d29ybGQtQQ",
             "idempotency-key=Y2FuY2VsLTAx",
-            "target-inhabitant-id=Y2FtcC1hbHBoYQ",
+            "target-agent-id=Y2FtcC1hbHBoYQ",
             "order-id=cHJpdmF0ZS1pbnN0cnVjdGlvbi0wMDAwMDAwMDQy");
         Assert.Equal(expected, clientPayload);
         Assert.Equal(serverPayload, clientPayload);
@@ -385,7 +385,7 @@ public sealed class GodotOwnerWorldApiTests
             "personal", provider, "model-name", "pasted-provider-secret", false, "agent-a", slot, "My key", thinking);
         var serverAction = new ServerProviderConfigurationAction(
             clientAction.Role, clientAction.Provider, clientAction.Model, clientAction.ApiKey, clientAction.ForgetCredential,
-            clientAction.InhabitantId, clientAction.CredentialSlotId, clientAction.NewCredentialLabel, thinking);
+            clientAction.AgentId, clientAction.CredentialSlotId, clientAction.NewCredentialLabel, thinking);
         var clientCheck = OwnerWorldActionPayload.ProviderSetupCheck(new OwnerProviderSetupCheckAction(provider, "model-name", slot, Thinking: thinking));
         var serverCheck = OwnerHttpBinding.ProviderSetupCheckPayload(new ServerProviderSetupCheckAction(provider, "model-name", slot, Thinking: thinking));
 
@@ -419,7 +419,7 @@ public sealed class GodotOwnerWorldApiTests
             ServerCapabilities:
             [
                 "owner-observation.read.v1",
-                "inhabitant-inspection.read.v1",
+                "agent-inspection.read.v1",
                 "spatial-knowledge.read.v1",
                 "owner-control.request.v1",
                 "paused-authoring.request.v1",

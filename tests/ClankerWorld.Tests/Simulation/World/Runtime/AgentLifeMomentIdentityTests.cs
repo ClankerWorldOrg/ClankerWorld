@@ -25,7 +25,7 @@ public sealed class AgentLifeMomentIdentityTests
             new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
         using var world = WorldRuntime.Restore(MidlifeState(), Route(model));
         await UntilResolved(world);
-        var person = world.Inhabitants.Single(item => item.InhabitantId == ActorId);
+        var person = world.Agents.Single(item => item.AgentId == ActorId);
         Assert.Equal("More willing to take chances", person.Personality);
         Assert.Equal("Build a lasting home", person.Aspiration);
         var moment = Assert.Single(person.IdentityMoments!);
@@ -37,7 +37,7 @@ public sealed class AgentLifeMomentIdentityTests
         Assert.Equal(Personality, question.RootElement.GetProperty("self").GetProperty("personality").GetString());
         Assert.False(question.RootElement.GetProperty("needs_name").GetBoolean());
         Assert.Single(question.RootElement.GetProperty("candidates").EnumerateArray());
-        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants
+        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Agents
             .Single(item => item.Id == ActorId).DecisionFactors,
             item => item.Key == "identity-change" && item.Detail.Contains(moment.Reason, StringComparison.Ordinal));
         Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_identity_revised");
@@ -61,7 +61,7 @@ public sealed class AgentLifeMomentIdentityTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Resume();
         for (var tick = 0; tick < 12; tick++) await restored.AdvanceOneTickNonBlockingAsync();
-        Assert.Equal(person.Personality, restored.Inhabitants.Single(item => item.InhabitantId == ActorId).Personality);
+        Assert.Equal(person.Personality, restored.Agents.Single(item => item.AgentId == ActorId).Personality);
         Assert.Single(handler.MomentBodies);
     }
 
@@ -99,7 +99,7 @@ public sealed class AgentLifeMomentIdentityTests
         using var world = WorldRuntime.Restore(MidlifeState(), Route(provider));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal("requested", world.Inhabitants.Single(item => item.InhabitantId == ActorId).IdentityMoments!.Single().Outcome);
+        Assert.Equal("requested", world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!.Single().Outcome);
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         if (interruption == "pause") world.Pause();
         else if (interruption == "disconnect" || interruption == "reload") world.CancelPendingHostedDecisions();
@@ -110,10 +110,10 @@ public sealed class AgentLifeMomentIdentityTests
         var current = restored ?? world;
         current.Resume();
         for (var tick = 0; tick < 8; tick++) await current.AdvanceOneTickNonBlockingAsync();
-        Assert.Equal(Personality, current.Inhabitants.Single(item => item.InhabitantId == ActorId).Personality);
-        Assert.Equal(Aspiration, current.Inhabitants.Single(item => item.InhabitantId == ActorId).Aspiration);
+        Assert.Equal(Personality, current.Agents.Single(item => item.AgentId == ActorId).Personality);
+        Assert.Equal(Aspiration, current.Agents.Single(item => item.AgentId == ActorId).Aspiration);
         Assert.DoesNotContain(current.ExportState().Events, item => item.Kind == "agent_identity_revised");
-        Assert.Equal("interrupted", current.Inhabitants.Single(item => item.InhabitantId == ActorId).IdentityMoments!.Single().Outcome);
+        Assert.Equal("interrupted", current.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!.Single().Outcome);
         Assert.Equal(1, provider.CallCount);
     }
 
@@ -139,7 +139,7 @@ public sealed class AgentLifeMomentIdentityTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(item => item.Id == ActorId ? item with
+                    Agents = checkpoint.Agents.Select(item => item.Id == ActorId ? item with
                     {
                         BirthTick = checkpoint.WorldTick - 60L * checkpoint.Config.TicksPerWorldDay + 2,
                         AgeBand = SocietyAgeBand.Elder,
@@ -147,7 +147,7 @@ public sealed class AgentLifeMomentIdentityTests
                     } : item).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == ActorId ? item with
+            Agents = state.Agents.Select(item => item.AgentId == ActorId ? item with
             {
                 IdentityMoments = [new(AgentIdentityMomentKind.Midlife, 0, "kept", CompletedTick: 0)],
             } : item).ToArray(),
@@ -160,7 +160,7 @@ public sealed class AgentLifeMomentIdentityTests
         await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
         await Task.Delay(10);
         await world.AdvanceOneTickNonBlockingAsync();
-        var deceased = world.ExportState().DeceasedInhabitants!.Single(item => item.InhabitantId == ActorId);
+        var deceased = world.ExportState().DeceasedAgents!.Single(item => item.AgentId == ActorId);
         Assert.Equal(Personality, deceased.LastPhysical.Personality);
         Assert.Equal("interrupted", deceased.LastPhysical.IdentityMoments!
             .Single(item => item.Kind == AgentIdentityMomentKind.Elder).Outcome);
@@ -169,8 +169,8 @@ public sealed class AgentLifeMomentIdentityTests
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), Route(provider));
         for (var tick = 0; tick < 3; tick++) await restored.AdvanceOneTickNonBlockingAsync();
         Assert.Equal(1, provider.CallCount);
-        Assert.Equal("interrupted", restored.ExportState().DeceasedInhabitants!
-            .Single(item => item.InhabitantId == ActorId).LastPhysical.IdentityMoments!
+        Assert.Equal("interrupted", restored.ExportState().DeceasedAgents!
+            .Single(item => item.AgentId == ActorId).LastPhysical.IdentityMoments!
             .Single(item => item.Kind == AgentIdentityMomentKind.Elder).Outcome);
     }
 
@@ -204,7 +204,7 @@ public sealed class AgentLifeMomentIdentityTests
     public async Task FiveDistinctLifeMomentsHaveAFiveCallLifetimeLimit()
     {
         var state = MidlifeState();
-        var people = state.Society.Society.Inhabitants.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+        var people = state.Society.Society.Agents.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
         var partnerId = people[1].Id;
         var parentId = people[2].Id;
         var childId = people[3].Id;
@@ -221,7 +221,7 @@ public sealed class AgentLifeMomentIdentityTests
                 new("moment-child", 1, SocietyRelationshipType.BiologicalParentage, ActorId, childId,
                     SocietyRelationshipState.Accepted, SocietyConsentState.ProtectedLifecycle, tick, tick, "family"),
             }).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
-            Inhabitants = checkpoint.Inhabitants.Select(item => item.Id == ActorId ? item with
+            Agents = checkpoint.Agents.Select(item => item.Id == ActorId ? item with
             {
                 BirthTick = tick - 45L * checkpoint.Config.TicksPerWorldDay,
                 BirthLifeTick = null,
@@ -237,21 +237,21 @@ public sealed class AgentLifeMomentIdentityTests
         state = state with
         {
             Society = postDeath,
-            Inhabitants = state.Inhabitants.Where(item => !dead.Contains(item.InhabitantId)).ToArray(),
-            DeceasedInhabitants = dead.Select(id => new DeceasedInhabitantState(id, tick,
-                checkpoint.AgeAt(checkpoint.GetInhabitant(id), tick),
-                state.Inhabitants.Single(item => item.InhabitantId == id))).ToArray(),
+            Agents = state.Agents.Where(item => !dead.Contains(item.AgentId)).ToArray(),
+            DeceasedAgents = dead.Select(id => new DeceasedAgentState(id, tick,
+                checkpoint.AgeAt(checkpoint.GetAgent(id), tick),
+                state.Agents.Single(item => item.AgentId == id))).ToArray(),
             Towns = state.Towns!.Select(town =>
             {
                 var residents = town.ResidentIds.Where(id => !dead.Contains(id)).ToArray();
-                var adults = residents.Where(id => postDeath.Society.Inhabitants.Any(person => person.Id == id &&
-                    person.Status == SocietyInhabitantStatus.Active &&
+                var adults = residents.Where(id => postDeath.Society.Agents.Any(person => person.Id == id &&
+                    person.Status == SocietyAgentStatus.Active &&
                     person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder));
                 // Settle council membership after both deaths without replacing its history.
                 return town with
                 {
                     ResidentIds = residents,
-                    Governance = TownGovernanceRules.Advance(town.Governance!, town.Id, state.WorldSeed,
+                    Council = TownCouncilRules.Advance(town.Council!, town.Id, state.WorldSeed,
                         adults, postDeath.Society.WorldTick, state.WorldSystems!.Config.TicksPerDay),
                 };
             }).ToArray(),
@@ -265,7 +265,7 @@ public sealed class AgentLifeMomentIdentityTests
         }
         await UntilResolved(world);
         Assert.Equal(5, provider.Calls.Count);
-        Assert.Equal(5, world.Inhabitants.Single(item => item.InhabitantId == ActorId).IdentityMoments!.Count);
+        Assert.Equal(5, world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!.Count);
         Assert.Equal(5, provider.Calls.Select(request => request.Observation.IdentityMoment).Distinct().Count());
         world.Pause();
         using var restored = WorldRuntime.Restore(
@@ -282,13 +282,13 @@ public sealed class AgentLifeMomentIdentityTests
         var moment = new AgentIdentityMoment(AgentIdentityMomentKind.Midlife, 0);
         var duplicate = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == ActorId ?
+            Agents = state.Agents.Select(item => item.AgentId == ActorId ?
                 item with { IdentityMoments = [moment, moment] } : item).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(duplicate));
         var invalid = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == ActorId ?
+            Agents = state.Agents.Select(item => item.AgentId == ActorId ?
                 item with { IdentityMoments = [moment with { Outcome = "accepted", CompletedTick = 0, Personality = "bad\ntext" }] } : item).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(invalid));
@@ -297,7 +297,7 @@ public sealed class AgentLifeMomentIdentityTests
         var older = state with
         {
             SchemaVersion = WorldRuntime.LifeMomentIdentitySchemaVersion - 1,
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == ActorId ?
+            Agents = state.Agents.Select(item => item.AgentId == ActorId ?
                 item with { IdentityMoments = [moment] } : item).ToArray(),
         };
         var refused = Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(older));
@@ -365,9 +365,9 @@ public sealed class AgentLifeMomentIdentityTests
             Assert.True(world.Society.IsPaused);
             Assert.Single(handler.MomentBodies);
             Assert.Equal(1, usage.Capture().Attempts);
-            Assert.Equal(Personality, world.Inhabitants.Single(item => item.InhabitantId == ActorId).Personality);
+            Assert.Equal(Personality, world.Agents.Single(item => item.AgentId == ActorId).Personality);
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_identity_revised");
-            Assert.Equal("interrupted", Assert.Single(world.Inhabitants.Single(item => item.InhabitantId == ActorId).IdentityMoments!).Outcome);
+            Assert.Equal("interrupted", Assert.Single(world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!).Outcome);
             usage.LimitReached -= PauseAtLimit;
             world.Resume();
             for (var tick = 0; tick < 8; tick++) await world.AdvanceOneTickNonBlockingAsync();
@@ -429,25 +429,25 @@ public sealed class AgentLifeMomentIdentityTests
             {
                 await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
                 var saved = WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path));
-                Assert.Equal("requested", Assert.Single(saved.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Equal("requested", Assert.Single(saved.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Single(saved.Events, item => item.Kind == "agent_identity_moment_started" && item.Detail.StartsWith(ActorId, StringComparison.Ordinal));
                 world.Pause();
                 using var restored = file.LoadOrCreate(saved.WorldSeed);
                 restored.Resume();
                 for (var step = 0; step < 3; step++) await restored.AdvanceOneTickNonBlockingAsync();
-                Assert.Equal("interrupted", Assert.Single(restored.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Equal("interrupted", Assert.Single(restored.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Equal(1, provider.CallCount);
             }
             else
             {
                 Assert.Equal(baseline, File.ReadAllBytes(file.Path));
                 Assert.Equal(0, provider.CallCount);
-                Assert.Equal("requested", Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Equal("requested", Assert.Single(world.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 world.Pause();
                 file.Save(world);
                 world.Resume();
                 for (var step = 0; step < 3; step++) await world.AdvanceOneTickNonBlockingAsync();
-                Assert.Equal("interrupted", Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == ActorId).IdentityMoments!).Outcome);
+                Assert.Equal("interrupted", Assert.Single(world.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Equal(0, provider.CallCount);
             }
         }
@@ -469,7 +469,7 @@ public sealed class AgentLifeMomentIdentityTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(item => item.Id == ActorId ? item with
+                    Agents = checkpoint.Agents.Select(item => item.Id == ActorId ? item with
                     {
                         BirthTick = checkpoint.WorldTick - 30L * checkpoint.Config.TicksPerWorldDay + 1,
                         BirthLifeTick = null,
@@ -478,7 +478,7 @@ public sealed class AgentLifeMomentIdentityTests
                     } : item).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == ActorId ? item with
+            Agents = state.Agents.Select(item => item.AgentId == ActorId ? item with
             {
                 IdentityChoicePending = false,
                 Personality = Personality,
@@ -489,7 +489,7 @@ public sealed class AgentLifeMomentIdentityTests
 
     private static void AssertKept(WorldRuntime world)
     {
-        var person = world.Inhabitants.Single(item => item.InhabitantId == ActorId);
+        var person = world.Agents.Single(item => item.AgentId == ActorId);
         Assert.Equal(Personality, person.Personality);
         Assert.Equal(Aspiration, person.Aspiration);
         Assert.Equal("kept", Assert.Single(person.IdentityMoments!).Outcome);
@@ -500,7 +500,7 @@ public sealed class AgentLifeMomentIdentityTests
         for (var attempt = 0; attempt < 35; attempt++)
         {
             await world.AdvanceOneTickNonBlockingAsync();
-            if (world.Inhabitants.Single(item => item.InhabitantId == ActorId).IdentityMoments is { Count: > 0 } moments &&
+            if (world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments is { Count: > 0 } moments &&
                 moments.All(item => item.Outcome is not ("waiting" or "requested"))) return;
             await Task.Delay(10);
         }
@@ -575,7 +575,7 @@ public sealed class AgentLifeMomentIdentityTests
     }
 
     private static CognitionDecisionResponse Reply(CognitionDecisionRequest request) => new(
-        request.RequestId, request.Observation.InhabitantId, DecisionProviderKind.LargeLanguageModel,
+        request.RequestId, request.Observation.AgentId, DecisionProviderKind.LargeLanguageModel,
         request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
         request.Observation.ObservationDigest, request.Observation.IdentityMoment is null ? "safe_idle" : "identity_optional",
         1, new Dictionary<string, double>(), ChosenPersonality: "More willing to take chances", ChosenAspiration: "Build a lasting home");

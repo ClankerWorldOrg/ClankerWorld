@@ -187,7 +187,7 @@ public sealed class AnthropicProviderTests
             var store = Store(directory);
             var slot = Guid.NewGuid().ToString("N");
             _ = store.Configure(new OwnerProviderConfigurationAction(
-                "personal", "anthropic", null, "sk-ant-agent-key", false, "inhabitant-test", slot, "Claude key", Thinking: "high"));
+                "personal", "anthropic", null, "sk-ant-agent-key", false, "agent-test", slot, "Claude key", Thinking: "high"));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             var handler = new AnthropicHandler(MessageReply(Answer));
             var logger = new RecordingLogger<ConfigurableDecisionProvider>();
@@ -230,7 +230,7 @@ public sealed class AnthropicProviderTests
         {
             var store = Store(directory);
             _ = store.Configure(new OwnerProviderConfigurationAction("personal", "anthropic", null,
-                "sk-ant-test-key", false, "inhabitant-test", Guid.NewGuid().ToString("N"), "Test key"));
+                "sk-ant-test-key", false, "agent-test", Guid.NewGuid().ToString("N"), "Test key"));
             var usagePath = Path.Combine(directory.FullName, "usage.json");
             var usage = new ProviderUsageStore(usagePath);
             var body = System.Text.Json.Nodes.JsonNode.Parse(MessageReply(answer, stopReason: stopReason))!.AsObject();
@@ -272,7 +272,7 @@ public sealed class AnthropicProviderTests
         {
             var store = Store(directory);
             _ = store.Configure(new OwnerProviderConfigurationAction("personal", "openai", "gpt-6-luna",
-                "test-key", false, "inhabitant-test", Guid.NewGuid().ToString("N"), "Test key"));
+                "test-key", false, "agent-test", Guid.NewGuid().ToString("N"), "Test key"));
             var usagePath = Path.Combine(directory.FullName, "usage.json");
             var usage = new ProviderUsageStore(usagePath);
             var body = JsonSerializer.Serialize(new
@@ -370,11 +370,11 @@ public sealed class AnthropicProviderTests
             var status = store.Configure(new OwnerProviderConfigurationAction(
                 "personal", "anthropic", "claude-opus-5-5", "sk-ant-saved-key", false, "agent-a",
                 Guid.NewGuid().ToString("N"), "Claude key", Thinking: "High"));
-            Assert.All(status.Assignments!.Where(item => item.InhabitantId == "agent-a"),
+            Assert.All(status.Assignments!.Where(item => item.AgentId == "agent-a"),
                 item => Assert.Equal(("anthropic", "claude-opus-5-5", "high"), (item.Provider, item.Model, item.Thinking)));
 
             var reloaded = new ProviderConfigurationStore(store.Path, EmptySeed()).CaptureStatus();
-            Assert.Equal(2, reloaded.Assignments!.Count(item => item.InhabitantId == "agent-a" && item.Thinking == "high"));
+            Assert.Equal(2, reloaded.Assignments!.Count(item => item.AgentId == "agent-a" && item.Thinking == "high"));
             Assert.Contains(reloaded.Providers, option => option.Provider == "anthropic" && option.Model == "claude-haiku-5-5");
 
             Assert.Throws<ArgumentException>(() => store.Configure(new OwnerProviderConfigurationAction(
@@ -481,7 +481,7 @@ public sealed class AnthropicProviderTests
         var plain = new OwnerProviderConfigurationAction("personal", "anthropic", "claude-haiku-5-5", null, false, "agent-a");
         var withThinking = plain with { Thinking = "low" };
 
-        Assert.EndsWith("inhabitant=" + Base64Url("agent-a"), OwnerHttpBinding.ProviderConfigurationPayload(plain), StringComparison.Ordinal);
+        Assert.EndsWith("agent=" + Base64Url("agent-a"), OwnerHttpBinding.ProviderConfigurationPayload(plain), StringComparison.Ordinal);
         Assert.EndsWith("\nthinking=" + Base64Url("low"), OwnerHttpBinding.ProviderConfigurationPayload(withThinking), StringComparison.Ordinal);
         Assert.EndsWith("\nthinking=" + Base64Url("high"), OwnerHttpBinding.ProviderSetupCheckPayload(
             new OwnerProviderSetupCheckAction("claude", "claude-haiku-5-5", Thinking: "high")), StringComparison.Ordinal);
@@ -515,12 +515,12 @@ public sealed class AnthropicProviderTests
 
     private static ProviderConfigurationSeed EmptySeed() => new("deterministic", null, null, null, null, null, null);
 
-    private static InhabitantObservation Observation(bool strategic, string inhabitantId = "inhabitant-test")
+    private static AgentObservation Observation(bool strategic, string agentId = "agent-test")
     {
         CognitionCandidate[] candidates = strategic
             ? [new CognitionCandidate("build:building:shelter", "Build a shelter.", 20), new CognitionCandidate("safe_idle", "Wait safely.", 100)]
             : [new CognitionCandidate("safe_idle", "Wait safely.", 100)];
-        return new InhabitantObservation(inhabitantId, 12, 0, 3, "sha256:anthropic-test", 5_000, candidates);
+        return new AgentObservation(agentId, 12, 0, 3, "sha256:anthropic-test", 5_000, candidates);
     }
 
     private static AgentConversationTurnRequest ConversationRequest() => new(

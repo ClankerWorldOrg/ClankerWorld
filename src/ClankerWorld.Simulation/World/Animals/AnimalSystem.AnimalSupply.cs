@@ -17,14 +17,14 @@ internal sealed partial class AnimalSystem
 
     internal IEnumerable<AnimalSupplyChoice> AnimalSupplyChoices(IAnimalWorld world, string actor, bool ignoreActiveTrip = false)
     {
-        if (!world.AdultResident(actor) || !ignoreActiveTrip && State.SupplyTrips.Any(trip => trip.ActorId == actor)) yield break;
+        if (!world.IsAdult(actor) || !ignoreActiveTrip && State.SupplyTrips.Any(trip => trip.ActorId == actor)) yield break;
         var yards = world.Simulation.Buildings.Where(yard => yard.HouseholdId is not null && world.Content.Buildings.Any(definition =>
             definition.CanonicalId == yard.DefinitionId && definition.Tags.Contains(AnimalContent.YardTag)) && MaySupplyAnimalYard(world, actor, yard));
         foreach (var yard in yards.OrderBy(yard => yard.InstanceId, StringComparer.Ordinal))
             foreach (var choice in AnimalSupplyChoicesAtYard(world, actor, yard.HouseholdId!, yard)) yield return choice;
     }
 
-    internal bool MaySupplyAnimalYard(IAnimalWorld world, string actor, PlacedBuilding yard) => world.AdultResident(actor) &&
+    internal bool MaySupplyAnimalYard(IAnimalWorld world, string actor, PlacedBuilding yard) => world.IsAdult(actor) &&
         (yard.HouseholdId == world.HouseholdFor(actor) || State.Animals.Any(animal => animal.YardId == yard.InstanceId && MayCareForAnimal(world, actor, animal)));
 
     internal IEnumerable<AnimalSupplyChoice> AnimalSupplyChoicesAtYard(IAnimalWorld world, string actor, string household, PlacedBuilding yard)
@@ -77,7 +77,7 @@ internal sealed partial class AnimalSystem
             var quantity = Math.Min(wanted, Math.Min(world.AvailableLotQuantity(root), world.DestinationRoom(yard.InstanceId)));
             var carried = PersonalEquipmentRules.IsCarried(root, actor);
             var capacity = carried ? world.FreeCarryCapacity(actor) : world.PickupCarryCapacity(actor, root, yard.Position);
-            if (carried && world.FindUnoccupiedRoute(actor, world.Inhabitants[actor].Position, yard.Position, 0).Count == 0) continue;
+            if (carried && world.FindUnoccupiedRoute(actor, world.Agents[actor].Position, yard.Position, 0).Count == 0) continue;
             if (!carried) quantity = Math.Min(quantity, capacity);
             if (quantity <= 0 || !world.VesselFits(root, world.DestinationRoom(yard.InstanceId)) ||
                 !carried && !world.VesselFits(root, capacity) ||
@@ -105,7 +105,7 @@ internal sealed partial class AnimalSystem
             var inventory = world.Society.Inventory;
             var lot = inventory.Lots.FirstOrDefault(lot => lot.Id == trip.LotId && PersonalEquipmentRules.IsCarried(lot, actor));
             var yard = world.Simulation.Buildings.FirstOrDefault(building => building.InstanceId == trip.YardId && MaySupplyAnimalYard(world, actor, building));
-            if (lot is null || yard is null || !world.AdultResident(actor)) { FinishAnimalSupplyTrip(actor); return true; }
+            if (lot is null || yard is null || !world.IsAdult(actor)) { FinishAnimalSupplyTrip(actor); return true; }
             if (trip.AnimalId is { } animalId)
             {
                 var animal = Animal(animalId);
@@ -118,7 +118,7 @@ internal sealed partial class AnimalSystem
                         AnimalRules.Definition(animal.Species).DailyWater) is null) FinishAnimalSupplyTrip(actor);
                 return true;
             }
-            if (world.Inhabitants[actor].Position != yard.Position) { world.MoveToward(actor, world.Inhabitants[actor], yard.Position, "animal_yard_supply"); return true; }
+            if (world.Agents[actor].Position != yard.Position) { world.MoveToward(actor, world.Agents[actor], yard.Position, "animal_yard_supply"); return true; }
             var room = world.DestinationRoom(yard.InstanceId, lot);
             var quantity = InventoryContainerRules.IsContainer(lot.ItemKind) ? world.VesselFits(lot, room) ? 1 : 0 :
                 Math.Min(world.AvailableLotQuantity(lot), room);
@@ -139,8 +139,8 @@ internal sealed partial class AnimalSystem
         if (!carried)
         {
             var position = world.HouseholdStockPosition(source);
-            if (!world.IsWithinInteractionRange(world.Inhabitants[actor].Position, position, HouseholdStockInteractionRange(source)))
-            { world.MoveToward(actor, world.Inhabitants[actor], position, "animal_supply_pickup", HouseholdStockInteractionRange(source)); return true; }
+            if (!world.IsWithinInteractionRange(world.Agents[actor].Position, position, HouseholdStockInteractionRange(source)))
+            { world.MoveToward(actor, world.Agents[actor], position, "animal_supply_pickup", HouseholdStockInteractionRange(source)); return true; }
         }
         var pickupRequest = new GoodsRequest(GoodsUse.Collect, actor,
             GoodsOwners.One(source.OwnerId), GoodsKinds.One(source.ItemKind));

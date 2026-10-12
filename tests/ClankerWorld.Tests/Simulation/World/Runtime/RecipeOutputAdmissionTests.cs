@@ -109,7 +109,7 @@ public sealed class RecipeOutputAdmissionTests
         var (state, _, worker, shop) = ToolMakingRequestTests.Prepared();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker
+            Agents = state.Agents.Select(person => person.AgentId == worker
             ? person with { Position = shop.Position } : person).ToArray()
         };
         var version = ContentVersion.Parse("1.0.0");
@@ -137,7 +137,7 @@ public sealed class RecipeOutputAdmissionTests
                 control.Tags
             }, JsonSerializerOptions.Web));
         var package = new ContentPackageManifest("physical-output", version, digest,
-            [new(BusinessContent.PackageId, new(version, ContentVersion.Parse("2.0.0")))], [definition, controlDefinition], []);
+            [new(StoreContent.PackageId, new(version, ContentVersion.Parse("2.0.0")))], [definition, controlDefinition], []);
         var world = WorldRuntime.Restore(state, _ => choices);
         world.ProposeContent(package);
         var resolution = world.ResolveContent(package.PackageId);

@@ -52,7 +52,7 @@ public sealed class ModelNeedWordsTests
     {
         foreach (var illness in new[] { 2_499, 2_500, 4_999, 5_000, 7_499, 7_500 })
         {
-            var expected = SettlementIllnessRules.WorkRatePercent(illness) switch
+            var expected = IllnessRules.WorkRatePercent(illness) switch
             {
                 100 => "well",
                 75 => "unwell",
@@ -76,7 +76,7 @@ public sealed class ModelNeedWordsTests
         Assert.Equal("chilly (freezing, chilly, warm; freezing is worst, warm is best)", self.GetProperty("warmth").GetString());
         Assert.Equal("unwell (very ill, ill, unwell, well; very ill is worst, well is best)", self.GetProperty("illness").GetString());
         Assert.Contains("whole scale from worst to best", system, StringComparison.Ordinal);
-        foreach (var exact in new[] { "warmth_basis_points", "illness_basis_points", "hunger_basis_points", "3917", "5123", "2731" })
+        foreach (var exact in new[] { "warmth_basis_points", "illness_basis_points", "fullness_basis_points", "3917", "5123", "2731" })
             Assert.DoesNotContain(exact, input, StringComparison.Ordinal);
         // Memory confidence keeps its own 0–10000 scale; only the need scales go.
         Assert.DoesNotContain("10000 is full", system, StringComparison.Ordinal);
@@ -124,7 +124,7 @@ public sealed class ModelNeedWordsTests
 
         using var body = JsonDocument.Parse(handler.Body!);
         using var question = JsonDocument.Parse(body.RootElement.GetProperty("messages")[1].GetProperty("content").GetString()!);
-        Assert.Equal(3_917, question.RootElement.GetProperty("hunger_basis_points").GetInt32());
+        Assert.Equal(3_917, question.RootElement.GetProperty("fullness_basis_points").GetInt32());
         Assert.Equal(5_123, question.RootElement.GetProperty("self").GetProperty("warmth_basis_points").GetInt32());
         Assert.Equal(2_731, question.RootElement.GetProperty("self").GetProperty("illness_basis_points").GetInt32());
         Assert.False(question.RootElement.TryGetProperty("fullness", out _));
@@ -140,7 +140,7 @@ public sealed class ModelNeedWordsTests
         Assert.Equal("starving (starving, hungry, fine, full; starving is worst, full is best)", state.GetProperty("fullness").GetString());
         Assert.Equal("chilly (freezing, chilly, warm; freezing is worst, warm is best)", state.GetProperty("warmth").GetString());
         Assert.Equal("unwell (very ill, ill, unwell, well; very ill is worst, well is best)", state.GetProperty("illness").GetString());
-        foreach (var exact in new[] { "hunger_basis_points", "warmth_basis_points", "illness_basis_points", "1917", "5123", "2731" })
+        foreach (var exact in new[] { "fullness_basis_points", "warmth_basis_points", "illness_basis_points", "1917", "5123", "2731" })
             Assert.DoesNotContain(exact, body, StringComparison.Ordinal);
         Assert.Contains("whole scale from worst to best", instructions, StringComparison.Ordinal);
         Assert.DoesNotContain("10000", instructions, StringComparison.Ordinal);
@@ -172,7 +172,7 @@ public sealed class ModelNeedWordsTests
 
         using var document = JsonDocument.Parse(body);
         var state = document.RootElement.GetProperty("state");
-        Assert.Equal(1_917, state.GetProperty("hunger_basis_points").GetInt32());
+        Assert.Equal(1_917, state.GetProperty("fullness_basis_points").GetInt32());
         Assert.Equal(5_123, state.GetProperty("warmth_basis_points").GetInt32());
         Assert.Equal(2_731, state.GetProperty("illness_basis_points").GetInt32());
         Assert.False(state.TryGetProperty("fullness", out _));
@@ -181,7 +181,7 @@ public sealed class ModelNeedWordsTests
         Assert.Null(RetiredWording.Find(instructions));
     }
 
-    private static async Task<(string System, string Input)> PersonalRequestAsync(ModelNeedFormat format, InhabitantObservation observation)
+    private static async Task<(string System, string Input)> PersonalRequestAsync(ModelNeedFormat format, AgentObservation observation)
     {
         var handler = new RecordingHandler(PersonalReply);
         using var client = new HttpClient(handler);
@@ -201,13 +201,13 @@ public sealed class ModelNeedWordsTests
     private static string[] FieldsWithNeedsInWords(JsonElement numbersRequest) => numbersRequest.EnumerateObject()
         .Select(property => property.Name switch
         {
-            "hunger_basis_points" => "fullness",
+            "fullness_basis_points" => "fullness",
             "warmth_basis_points" => "warmth",
             "illness_basis_points" => "illness",
             var name => name,
         }).ToArray();
 
-    private static async Task<(string Body, string Instructions)> JevRequestAsync(ModelNeedFormat? format, InhabitantObservation observation)
+    private static async Task<(string Body, string Instructions)> JevRequestAsync(ModelNeedFormat? format, AgentObservation observation)
     {
         var handler = new RecordingHandler(
             """
@@ -230,7 +230,7 @@ public sealed class ModelNeedWordsTests
             .GetProperty("instructions").GetString()!);
     }
 
-    private static InhabitantObservation Observation(int fullness, int? warmth, int? illness) => new(
+    private static AgentObservation Observation(int fullness, int? warmth, int? illness) => new(
         "actor-scout", 9, 1, 3, "sha256:need-words", fullness,
         [
             new CognitionCandidate("safe_idle", "Continue safely.", 0),

@@ -21,7 +21,7 @@ public sealed class AgentBeliefLedgerTests
             0,
             SourceAgentId: "founder-mira",
             SourceEventId: 1,
-            AboutInhabitantId: "founder-mira");
+            AboutAgentId: "founder-mira");
         world.RecordAgentBelief(rumor);
 
         var corrected = world.CorrectAgentBelief(
@@ -35,14 +35,14 @@ public sealed class AgentBeliefLedgerTests
                 9_600,
                 0,
                 SourceEventId: 1,
-                AboutInhabitantId: "founder-mira"));
+                AboutAgentId: "founder-mira"));
 
         var state = world.ExportState();
         Assert.Equal(WorldRuntime.StateSchemaVersion, state.SchemaVersion);
         Assert.Equal(before.Society.Society.WorldTick, state.Society.Society.WorldTick);
         Assert.Equal(before.Events, state.Events);
         Assert.Equal(before.Society.Society.Events, state.Society.Society.Events);
-        Assert.Equal(before.Society.Society.Inhabitants, state.Society.Society.Inhabitants);
+        Assert.Equal(before.Society.Society.Agents, state.Society.Society.Agents);
         var beliefs = state.Society.Society.Beliefs!;
         Assert.Equal(new[] { rumor.Id, corrected.Id }, beliefs.Select(item => item.Id));
         Assert.Equal(corrected.Id, beliefs.Single(item => item.Id == rumor.Id).SupersededByBeliefId);
@@ -83,8 +83,8 @@ public sealed class AgentBeliefLedgerTests
             SocietyBeliefProvenance.Firsthand, 10_000, 0));
 
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var scout = snapshot.Inhabitants.Single(item => item.Id == "founder-scout");
-        var mira = snapshot.Inhabitants.Single(item => item.Id == "founder-mira");
+        var scout = snapshot.Agents.Single(item => item.Id == "founder-scout");
+        var mira = snapshot.Agents.Single(item => item.Id == "founder-mira");
         Assert.Equal(scoutBelief.Statement, Assert.Single(scout.RecentBeliefs).Statement);
         Assert.Equal("hearsay", scout.RecentBeliefs[0].Provenance);
         Assert.Equal(4_200, scout.RecentBeliefs[0].ConfidenceBasisPoints);

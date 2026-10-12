@@ -19,7 +19,7 @@ public sealed class BuildingVariantHandcartTests
             var smith = fixture.State.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
             fixture = fixture with
             {
-                Actor = fixture.State.Society.Society.Inhabitants.First(item => item.HouseholdId == smith.HouseholdId).Id,
+                Actor = fixture.State.Society.Society.Agents.First(item => item.HouseholdId == smith.HouseholdId).Id,
                 Definition = fixture.State.WorldContent!.Buildings.Single(item => item.CanonicalId == smith.DefinitionId),
             };
         }
@@ -48,21 +48,21 @@ public sealed class BuildingVariantHandcartTests
         {
             State = BuildingVariantTestWorld.WithInventory(fixture.State, inventory) with
             {
-                Inhabitants = fixture.State.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = fixture.State.Agents.Select(person => person.AgentId == actor
                     ? person with
                     {
                         Position = building.Position,
                         Project = null,
                         LastDecisionContext = null,
-                        HungerBasisPoints = 10_000,
+                        FullnessBasisPoints = 10_000,
                         TravelCooldownTicks = 0,
                     } : person).ToArray(),
             },
         };
         var fittingsProvider = new VariantActionProvider(id => id == "equip_carry_aid");
         using var makingFittings = BuildingVariantTestWorld.Restore(fixture, fittingsProvider);
-        await BuildingVariantTestWorld.UntilAsync(makingFittings, () => makingFittings.Inhabitants
-            .Single(person => person.InhabitantId == actor).Equipment?.CarryAidLotId == "cart-carry-basket", 8);
+        await BuildingVariantTestWorld.UntilAsync(makingFittings, () => makingFittings.Agents
+            .Single(person => person.AgentId == actor).Equipment?.CarryAidLotId == "cart-carry-basket", 8);
         Assert.Contains("equip_carry_aid", fittingsProvider.Chosen);
         fittingsProvider.Choose = id => id == fittingsCandidate;
         await BuildingVariantTestWorld.UntilAsync(makingFittings, () => makingFittings.WorldSimulation.ProductionJobs
@@ -83,7 +83,7 @@ public sealed class BuildingVariantHandcartTests
         {
             State = ready with
             {
-                Inhabitants = ready.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = ready.Agents.Select(person => person.AgentId == actor
                     ? person with { LastDecisionContext = null } : person).ToArray(),
             },
         };
@@ -151,7 +151,7 @@ public sealed class BuildingVariantHandcartTests
         var recorder = new RunningCartObservationProvider();
         using var world = WorldRuntime.Restore(fixture.State,
             id => id == fixture.Actor ? recorder : new VariantActionProvider());
-        var worker = world.Inhabitants.Single(person => person.InhabitantId == fixture.Actor);
+        var worker = world.Agents.Single(person => person.AgentId == fixture.Actor);
         Assert.True(PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, fixture.Actor, worker.Equipment) > 0);
         Assert.Equal(WorldProductionJobState.Running,
             world.WorldSimulation.ProductionJobs.Single(job => job.JobId == jobId).State);
@@ -159,12 +159,12 @@ public sealed class BuildingVariantHandcartTests
         // ordinary project continuation would otherwise avoid another call.
         const string message = "Keep working on your current handcart.";
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest("cart-running-observation", "owner:test", fixture.Actor,
-            OwnerInstructionKind.Suggestive, message));
+            OwnerInstructionKind.Suggestion, message));
         await BuildingVariantTestWorld.UntilAsync(world, () => recorder.Requests.Count > 0, 3);
         var observation = Assert.Single(recorder.Requests).Observation;
-        Assert.Equal(fixture.Actor, observation.InhabitantId);
+        Assert.Equal(fixture.Actor, observation.AgentId);
         Assert.Contains(observation.ObserverGuidance ?? [], guidance =>
-            guidance.InstructionId == receipt.InstructionId && guidance.TargetInhabitantId == fixture.Actor &&
+            guidance.InstructionId == receipt.InstructionId && guidance.TargetAgentId == fixture.Actor &&
                 guidance.Text == message);
         Assert.Contains(observation.Candidates, candidate => candidate.Id == "safe_idle");
         Assert.Contains(world.ExportState().Instructions!, instruction =>

@@ -38,10 +38,10 @@ public static class MarketTradeValidation
 
     public static void Validate(IReadOnlyList<TownRuntimeState> towns, SocietyCheckpoint society,
         WorldMap map, WorldContentSimulationState simulation, DeclarativeWorldContentState content, long worldTick,
-        IEnumerable<InhabitantState> physicalInhabitants)
+        IEnumerable<AgentState> physicalAgents)
     {
         var inventory = society.Inventory;
-        var people = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var people = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var households = society.Households.Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
         var markets = new HashSet<string>(StringComparer.Ordinal);
         var stalls = new HashSet<string>(StringComparer.Ordinal);
@@ -105,11 +105,11 @@ public static class MarketTradeValidation
                         throw Invalid("A retained Market borrowing record is malformed.");
                     if (occupancy.EndedTick is null)
                     {
-                        var seller = society.GetInhabitant(occupancy.SellerAgentId);
-                        var physical = physicalInhabitants.FirstOrDefault(person => person.InhabitantId == occupancy.SellerAgentId);
+                        var seller = society.GetAgent(occupancy.SellerAgentId);
+                        var physical = physicalAgents.FirstOrDefault(person => person.AgentId == occupancy.SellerAgentId);
                         if (!activeSellers.Add(occupancy.SellerAgentId) || market.RemovedTick is not null ||
                             market.Stalls.Single(stall => stall.BuildingId == occupancy.StallBuildingId).RemovedTick is not null ||
-                            seller.Status != SocietyInhabitantStatus.Active || seller.HouseholdId != occupancy.SellerHouseholdId ||
+                            seller.Status != SocietyAgentStatus.Active || seller.HouseholdId != occupancy.SellerHouseholdId ||
                             seller.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
                             physical is null || !MarketTradeRules.IsInside(market, physical.Position))
                             throw Invalid("A live seller must borrow one existing stall for their actual household.");
@@ -322,8 +322,8 @@ public static class MarketTradeRules
     /// <summary>Only the recorded person, never another member of their household, responds for this occupancy.</summary>
     public static bool MaySell(TownMarketState market, MarketStallOccupancy occupancy, InventoryLot lot,
         SocietyCheckpoint society, string actor) => occupancy.EndedTick is null &&
-        occupancy.SellerAgentId == actor && society.Inhabitants.Any(person => person.Id == actor &&
-            person.Status == SocietyInhabitantStatus.Active &&
+        occupancy.SellerAgentId == actor && society.Agents.Any(person => person.Id == actor &&
+            person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId == occupancy.SellerHouseholdId &&
             (lot.OwnerId == actor || person.HouseholdId is { } household && lot.OwnerId == household)) &&
         IsLoose(lot) && HasReceipt(market, occupancy, lot);

@@ -14,7 +14,7 @@ public sealed class GoodsCarriedReachabilityTests
         using var generated = NormalPathWorld.CreateGenerated("cart-set-unfinished", _ => new DeterministicDecisionProvider());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var startingSite = state.Map.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
             state.WorldSimulation!.Buildings.First(item => item.InstanceId == "first-town-warehouse").Position;
         var remote = new GridPoint(238, 85);
@@ -34,7 +34,7 @@ public sealed class GoodsCarriedReachabilityTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = remote, Equipment = null, Project = null, LastDecisionContext = null } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());

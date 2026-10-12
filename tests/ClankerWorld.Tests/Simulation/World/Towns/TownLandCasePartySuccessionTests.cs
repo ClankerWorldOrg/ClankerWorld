@@ -10,7 +10,7 @@ public sealed class TownLandCasePartySuccessionTests
     private static readonly GridPoint[] Plot = [new(1, 0), new(2, 0)];
     private static readonly HouseholdLandUseRight[] Rights = [new("right", "town", "alpha", Plot, 0, "original-grant", 100)];
     private static readonly HouseholdLandUseRequest[] Requests = [new("beta-request", "town", "beta", "b", Plot, 0, 100)];
-    private static readonly SocietyInhabitant[] People =
+    private static readonly SocietyAgent[] People =
     [Person("a", "alpha"), Person("b", "beta"), Person("judge", "neutral"), Person("other", "other-household")];
     private static readonly IReadOnlyDictionary<string, string?> Households = People.ToDictionary(person => person.Id, person => person.HouseholdId);
 
@@ -22,14 +22,14 @@ public sealed class TownLandCasePartySuccessionTests
             Arrangement = new("mayor", "mayor"),
             Offices = [new("ordinary", "a", 0, 100, null, null, "ordinary:first"), new("land", "a", 0, 100, null, null, "land:first")],
         };
-        var council = TownGovernanceState.Create(Adults);
-        var town = new TownRuntimeState("town", "Town", "founded", 0, Adults, [], Plot, Governance: council, Government: government);
+        var council = TownCouncilState.Create(Adults);
+        var town = new TownRuntimeState("town", "Town", "founded", 0, Adults, [], Plot, Council: council, Government: government);
         var parties = TownLandCasePartyRules.CurrentParties(town, Plot, Rights, Requests, People, 0, townRepresentative: "a");
-        var state = TownLandHearingRules.File(TownLandHearingState.Create(), town.Id,
+        var state = TownLandHearingRules.File(TownLandRecords.Create(), town.Id,
             new("a", "town", "Review the existing permission", new("confirm"), 0, "ordinary:first"), Plot, Rights, parties, 0, 10, "notice:1");
         var id = state.Cases[0].Id;
-        council = TownGovernanceRules.PostNotice(council, "land_hearing", id + ":1", "The formal hearing notice", 0);
-        council = TownGovernanceRules.LearnNotice(council, "a", "notice:1", 1);
+        council = TownCouncilRules.PostNotice(council, "land_hearing", id + ":1", "The formal hearing notice", 0);
+        council = TownCouncilRules.LearnNotice(council, "a", "notice:1", 1);
         state = TownLandHearingRules.Respond(state, id, 1, "a", "waive", "Only my household response is waived", 1,
             council.Knowledge, parties, "household:alpha");
         state = TownLandCaseJudgeRules.Register(state, id, "judge", Adults, Households, 1, parties);
@@ -48,7 +48,7 @@ public sealed class TownLandCasePartySuccessionTests
             Offices = [new("ordinary", "judge", 12, 112, null, null, "ordinary:successor"), government.Offices[1]],
             OfficeHistory = [new("a", "ordinary", 0, 12, "term_ended", "ordinary:first")],
         };
-        town = town with { Government = successor, Governance = council, LandHearings = state };
+        town = town with { Government = successor, Council = council, LandRecords = state };
         var current = TownLandCasePartyRules.CurrentParties(town, Plot, Rights, Requests, People, 12, state.Cases[0]);
         Assert.Equal("judge", Assert.Single(current, party => party.Kind == "town").RepresentativeId);
         Assert.False(TownLandCasePartyRules.TownFilingAuthority(town, "a", "ordinary:first", People, 12));
@@ -71,7 +71,7 @@ public sealed class TownLandCasePartySuccessionTests
         Assert.Empty(state.Adjustments);
         Assert.Equal(10, state.Cases[0].Revisions[0].DeadlineTick);
         Validate(state, council, successor, current, 22);
-        var restored = JsonSerializer.Deserialize<TownLandHearingState>(JsonSerializer.Serialize(state))!;
+        var restored = JsonSerializer.Deserialize<TownLandRecords>(JsonSerializer.Serialize(state))!;
         Validate(restored, council, successor, current, 22);
     }
 
@@ -80,12 +80,12 @@ public sealed class TownLandCasePartySuccessionTests
     {
         var town = new TownRuntimeState("town", "Town", "founded", 0, Adults, [], Plot);
         var parties = TownLandCasePartyRules.CurrentParties(town, Plot, Rights, [], People, 0, filingHousehold: "beta");
-        var state = TownLandHearingRules.File(TownLandHearingState.Create(), town.Id,
+        var state = TownLandHearingRules.File(TownLandRecords.Create(), town.Id,
             new("b", "dispute", "Consider this permission", new("confirm"), 0), Plot, Rights, parties, 0, 10, "notice:1");
         var notice = JsonSerializer.Serialize(state.Cases[0].Revisions[0]);
         var changed = People.Select(person => person.Id switch
         {
-            "a" => person with { Status = SocietyInhabitantStatus.Dead, DeathTick = 1 },
+            "a" => person with { Status = SocietyAgentStatus.Dead, DeathTick = 1 },
             "b" => person with { HouseholdId = "neutral" },
             _ => person,
         }).Append(Person("new-adult", "beta")).ToArray();
@@ -98,11 +98,11 @@ public sealed class TownLandCasePartySuccessionTests
         Assert.Equal(notice, JsonSerializer.Serialize(state.Cases[0].Revisions[0]));
     }
 
-    private static SocietyInhabitant Person(string id, string household) =>
-        new(id, id, 0, SocietyInhabitantStatus.Active, SocietyAgeBand.Adult, 10_000, household, null, SocietyWorkRole.Unassigned, 0);
+    private static SocietyAgent Person(string id, string household) =>
+        new(id, id, 0, SocietyAgentStatus.Active, SocietyAgeBand.Adult, 10_000, household, null, SocietyWorkRole.Unassigned, 0);
     private static Dictionary<string, IReadOnlyList<TownLandCaseParty>> ForCase(string id, IReadOnlyList<TownLandCaseParty> parties) =>
         new Dictionary<string, IReadOnlyList<TownLandCaseParty>>(StringComparer.Ordinal) { [id] = parties };
-    private static void Validate(TownLandHearingState state, TownGovernanceState council, TownGovernmentState government,
+    private static void Validate(TownLandRecords state, TownCouncilState council, TownGovernmentState government,
         IReadOnlyList<TownLandCaseParty> parties, long tick)
     {
         var map = new WorldMap(4, 1, 0, Enumerable.Range(0, 4).Select(x => new TerrainTile(new(x, 0), TerrainKind.Meadow)).ToArray(), [], [], "party-succession");

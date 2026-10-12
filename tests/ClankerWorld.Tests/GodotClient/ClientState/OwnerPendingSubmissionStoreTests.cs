@@ -11,7 +11,7 @@ public sealed class OwnerPendingSubmissionStoreTests
     {
         using var fixture = new PendingStoreFixture();
         var binding = PendingStoreFixture.CreateBinding();
-        var action = new OwnerInstructionAction("instruction_exact", "camp-alpha", "must_do", "Gather wood before dusk.", "world-A");
+        var action = new OwnerInstructionAction("instruction_exact", "camp-alpha", "order", "Gather wood before dusk.", "world-A");
         var pending = OwnerPendingSubmission.ForInstruction(binding, action);
 
         Assert.True(fixture.Store.TrySave(pending));
@@ -76,8 +76,8 @@ public sealed class OwnerPendingSubmissionStoreTests
             original with { IdempotencyKey = new string('k', 129) },
             original with { OrderId = new string('o', 129) },
             original with { WorldId = new string('w', 129) },
-            original with { TargetInhabitantId = " " },
-            original with { TargetInhabitantId = "camp-alpha\0" },
+            original with { TargetAgentId = " " },
+            original with { TargetAgentId = "camp-alpha\0" },
             original with { IdempotencyKey = "cancel\0" },
             original with { OrderId = "order\0" },
             original with { WorldId = "world\0" },
@@ -121,7 +121,7 @@ public sealed class OwnerPendingSubmissionStoreTests
         var binding = PendingStoreFixture.CreateBinding();
         var pending = OwnerPendingSubmission.ForInstruction(
             binding,
-            new OwnerInstructionAction("instruction-01", "camp-alpha", "suggestive", "Rest.", "world-A"));
+            new OwnerInstructionAction("instruction-01", "camp-alpha", "suggestion", "Rest.", "world-A"));
         Assert.True(fixture.Store.TrySave(pending));
 
         var changed = pending with
@@ -140,7 +140,7 @@ public sealed class OwnerPendingSubmissionStoreTests
         var binding = PendingStoreFixture.CreateBinding();
         Assert.True(fixture.Store.TrySave(OwnerPendingSubmission.ForInstruction(
             binding,
-            new OwnerInstructionAction("instruction-01", "camp-alpha", "suggestive", "Rest.", "world-A"))));
+            new OwnerInstructionAction("instruction-01", "camp-alpha", "suggestion", "Rest.", "world-A"))));
 
         var differentAuthority = OwnerPendingSubmissionBinding.Create(
             new OwnerAuthorityIdentity("other-authority", binding.Authority.WorldId),
@@ -177,10 +177,10 @@ public sealed class OwnerPendingSubmissionStoreTests
         var binding = PendingStoreFixture.CreateBinding();
         var first = OwnerPendingSubmission.ForInstruction(
             binding,
-            new OwnerInstructionAction("instruction-first", "camp-alpha", "suggestive", "Rest.", "world-A"));
+            new OwnerInstructionAction("instruction-first", "camp-alpha", "suggestion", "Rest.", "world-A"));
         var second = OwnerPendingSubmission.ForInstruction(
             binding,
-            new OwnerInstructionAction("instruction-second", "camp-alpha", "must_do", "Work.", "world-A"));
+            new OwnerInstructionAction("instruction-second", "camp-alpha", "order", "Work.", "world-A"));
 
         Assert.True(fixture.Store.TrySave(first));
         Assert.False(fixture.Store.TrySave(second));

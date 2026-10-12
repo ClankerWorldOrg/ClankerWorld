@@ -69,9 +69,9 @@ public sealed partial class AnimalPipelineTests
     public async Task PermittedOutsiderCombinesSpareGreensWithoutSpendingEitherHouseholdsReserveAcrossReload()
     {
         var (prepared, _, animalHousehold, yard) = CreateYard("animal-two-family-feed");
-        var actor = prepared.Society.Society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var actor = prepared.Society.Society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand == SocietyAgeBand.Adult && person.HouseholdId != animalHousehold).Id;
-        var actorHousehold = prepared.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actorHousehold = prepared.Society.Society.GetAgent(actor).HouseholdId!;
         var households = new[] { animalHousehold, actorHousehold };
         var members = households.SelectMany(id => prepared.Society.Society.GetHousehold(id).MemberIds).ToArray();
         Assert.All(households, id => Assert.Equal(2, prepared.Society.Society.GetHousehold(id).MemberIds.Count));

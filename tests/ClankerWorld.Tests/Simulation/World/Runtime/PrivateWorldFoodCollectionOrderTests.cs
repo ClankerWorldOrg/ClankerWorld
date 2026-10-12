@@ -42,7 +42,7 @@ public sealed partial class WorldCollectionOrderTests
         Assert.Equal((actor, 2), (lot.OwnerId, lot.Quantity));
         Assert.True(PersonalEquipmentRules.IsCarried(lot, actor));
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
-            item => item.InstructionId == receipt.InstructionId).Order!;
+            item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal(targetKind, projected.TargetFoodKind);
         Assert.Single(world.ExportState().Events, item => item.Kind == "personal_goods_collected");
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
@@ -55,7 +55,7 @@ public sealed partial class WorldCollectionOrderTests
     {
         var state = Prepared(distant: true);
         var actor = Actor(state);
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var source = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "food-nearer", "fruit", actor, 3,
             groundPosition: new(position.X, position.Y));
@@ -73,7 +73,7 @@ public sealed partial class WorldCollectionOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, first).CompletedUnits);
         Assert.Equal("queued", Order(world, second).Status);
-        Assert.NotEqual(position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(position, world.Agents.Single(person => person.AgentId == actor).Position);
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         var sawPartial = false;
         for (var tick = 0; tick < 20 && Order(world, second).Status != "finished"; tick++)
@@ -169,7 +169,7 @@ public sealed partial class WorldCollectionOrderTests
         {
             var corrupt = saved with
             {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Order = invalid } : item).ToArray(),
+                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray(),
             };
             Assert.Throws<InvalidDataException>(() => Restore(corrupt));
         }

@@ -142,7 +142,7 @@ public sealed partial class WorldExpansionOrderTests
         await Tick(world);
         var binding = Assert.IsType<OwnerBuildingExpansionBinding>(Order(world, receipt).ExpansionBinding);
         Assert.Null(binding.JobId);
-        Assert.Equal(house.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == actor).Position);
         var ordinary = world.StartBuildingExpansion(actor, House);
         Assert.True(ordinary.Applied, ordinary.Failure);
         Assert.Null(Job(world, ordinary.JobId!).OrderInstructionId);
@@ -230,7 +230,7 @@ public sealed partial class WorldExpansionOrderTests
             var corrupt = saved with
             {
                 Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Order = invalid } : item).ToArray(),
+                    ? item with { Task = invalid } : item).ToArray(),
             };
             Assert.Throws<InvalidDataException>(() => Restore(corrupt));
         }
@@ -265,7 +265,7 @@ public sealed partial class WorldExpansionOrderTests
             .SelectMany(item => WorldContentSimulationRules.Footprint(state.WorldContent.Buildings.Single(value => value.CanonicalId == item.DefinitionId), item))
             .Concat(state.Map.Resources.Select(item => item.Position)).Concat(state.Map.MapObjects.Select(item => item.Position))
             .Concat(state.RoadTiles!).Concat(state.Fields!.Select(item => item.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position))
             .Concat(state.Towns!.Where(town => town.Id != original.TownId).SelectMany(town => town.BorderTiles)).ToHashSet();
         var connected = new HashSet<GridPoint> { state.RoadTiles![0] };
         var pending = new Queue<GridPoint>(connected);
@@ -286,10 +286,10 @@ public sealed partial class WorldExpansionOrderTests
             var placed = original with { Position = site, Entrance = entrances[0] };
             var candidate = WithInventory(state, inventory) with
             {
-                Inhabitants = state.Inhabitants.Select(person => person with
+                Agents = state.Agents.Select(person => person with
                 {
-                    Position = person.InhabitantId == actor ? site : person.Position,
-                    HungerBasisPoints = 10_000,
+                    Position = person.AgentId == actor ? site : person.Position,
+                    FullnessBasisPoints = 10_000,
                     Equipment = null,
                     Project = null,
                     LastDecisionContext = null,
@@ -316,10 +316,10 @@ public sealed partial class WorldExpansionOrderTests
     {
         var point = state.Map.FootNeighbors(building.Position).OrderBy(point =>
                 Math.Abs(point.X - building.Position.X) + Math.Abs(point.Y - building.Position.Y))
-            .First(point => !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point));
+            .First(point => !state.Agents.Any(person => person.AgentId != actor && person.Position == point));
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Position = point, LastDecisionContext = null } : person).ToArray()
         };
     }
@@ -336,9 +336,9 @@ public sealed partial class WorldExpansionOrderTests
         return restored;
     }
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static BuildingExpansionJob Job(WorldRuntime world, string id) => world.WorldSimulation.BuildingExpansions!.Single(item => item.JobId == id);
     private static int Quantity(WorldRuntime world, string kind) => world.Society.Inventory.Lots.Where(lot => lot.ItemKind == kind).Sum(lot => lot.Quantity);
     private static async Task Tick(WorldRuntime world) => Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -367,7 +367,7 @@ public sealed partial class WorldExpansionOrderTests
             request.Validate();
             var selected = request.Observation.OperativeOrderInstructionId is not null
                 ? request.Observation.Candidates.FirstOrDefault(item => item.Id == "expand_building")?.Id ?? "safe_idle" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

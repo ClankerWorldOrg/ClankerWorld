@@ -34,11 +34,11 @@ public sealed partial class AnimalPipelineTests
             inventory = InventoryAuthority.Relocate(inventory, "controlled-borrowed-feed", "quantity-source-feed", sourceOwner, 4, carrierId: actor);
         var start = distant ? state.Map.Tiles.Where(tile => state.Map.FootDistance(tile.Position, yard.Position) == 3 &&
             state.Map.IsReachableOnFoot(tile.Position, yard.Position) &&
-            !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == tile.Position)).First().Position : yard.Position;
+            !state.Agents.Any(person => person.AgentId != actor && person.Position == tile.Position)).First().Position : yard.Position;
         state = At(state, actor, start, inventory, [hen]) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { Position = start, Equipment = null, LastDecisionContext = null, HungerBasisPoints = 9_500 }
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { Position = start, Equipment = null, LastDecisionContext = null, FullnessBasisPoints = 9_500 }
                 : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), id =>

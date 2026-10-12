@@ -16,11 +16,11 @@ public sealed partial class WorldFireOrderTests
         var state = Prepared();
         var actor = Actor(state);
         var house = House(state);
-        if (!hungry) state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Snow);
+        if (!hungry) state = WeatherTestFixture.WithWeather(state, WeatherKind.Snow);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = hungry ? 1_000 : 9_000, Survival = new(hungry ? 10_000 : 1_000) }
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = hungry ? 1_000 : 9_000, Survival = new(hungry ? 10_000 : 1_000) }
                 : person).ToArray(),
         };
         if (hungry) state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
@@ -108,7 +108,7 @@ public sealed partial class WorldFireOrderTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(step.Advanced);
-                admitted = step.Decisions.Any(item => item.InhabitantId == actor && item.Admission.Accepted);
+                admitted = step.Decisions.Any(item => item.AgentId == actor && item.Admission.Accepted);
                 if (!admitted) await Task.Delay(10);
             }
             Assert.True(admitted, "A post-release decision must actually be admitted before checking the cancelled order.");
@@ -237,7 +237,7 @@ public sealed partial class WorldFireOrderTests
             Assert.Throws<InvalidDataException>(() => Restore(saved with
             {
                 Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Order = bad } : item).ToArray(),
+                    ? item with { Task = bad } : item).ToArray(),
             }));
         var paid = world.Society.Inventory.GetReservation(order.ShelterCompletion.FuelReservationId!);
         foreach (var invalid in new[] { paid with { Purpose = "other_work" }, paid with { State = InventoryReservationState.Released } })

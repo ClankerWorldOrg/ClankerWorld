@@ -175,7 +175,7 @@ public sealed class WorldStateFileTests(ITestOutputHelper output)
             var hungry = setup.ExportState();
             using var seed = WorldRuntime.Restore(hungry with
             {
-                Inhabitants = hungry.Inhabitants.Select(person => person with { HungerBasisPoints = 3_000 }).ToArray(),
+                Agents = hungry.Agents.Select(person => person with { FullnessBasisPoints = 3_000 }).ToArray(),
             });
             await seed.AdvanceOneTickAsync();
             var initial = seed.ExportState();

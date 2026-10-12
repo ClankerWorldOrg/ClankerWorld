@@ -8,8 +8,8 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>Durable ownership proof, noticed consent and exact physical transfer receipts.</summary>
 public static class TownPropertyValidation
 {
-    public static void ValidateFiles(TownLandHearingState state, string townId, long tick,
-        IReadOnlySet<string> agents, IReadOnlySet<string> households, TownGovernanceState? council, TownGovernmentState? government)
+    public static void ValidateFiles(TownLandRecords state, string townId, long tick,
+        IReadOnlySet<string> agents, IReadOnlySet<string> households, TownCouncilState? council, TownGovernmentState? government)
     {
         foreach (var item in state.Cases)
         {
@@ -112,7 +112,7 @@ public static class TownPropertyValidation
         WorldContentSimulationState simulation, DeclarativeWorldContentState content)
     {
         foreach (var town in towns)
-            foreach (var item in town.LandHearings.Cases.Where(item => item.Property is not null))
+            foreach (var item in town.LandRecords.Cases.Where(item => item.Property is not null))
             {
                 var property = item.Property!;
                 foreach (var snapshot in property.Snapshots)
@@ -126,14 +126,14 @@ public static class TownPropertyValidation
                             "A property case cannot forget living former household members.");
                 }
                 if (property.Request.SourceHouseholdId is null)
-                    Check(town.LandHearings.Cases.Any(previous => previous.Id != item.Id && previous.Property?.Transfer is { ResultBuilding.HouseholdId: null } receipt &&
+                    Check(town.LandRecords.Cases.Any(previous => previous.Id != item.Id && previous.Property?.Transfer is { ResultBuilding.HouseholdId: null } receipt &&
                         receipt.ResultBuilding.InstanceId == property.Request.BuildingId && receipt.Tick <= item.FiledTick),
                         "An onward grant needs the Town's prior recovery ruling.");
             }
     }
 
     public static HashSet<string> RecoveredBuildings(IReadOnlyList<TownRuntimeState>? towns) =>
-        (towns ?? []).SelectMany(town => town?.LandHearings?.Cases ?? []).Where(item => item?.Property is { Transfer: not null, Request: not null })
+        (towns ?? []).SelectMany(town => town?.LandRecords?.Cases ?? []).Where(item => item?.Property is { Transfer: not null, Request: not null })
             .Select(item => item.Property!.Request.BuildingId).ToHashSet(StringComparer.Ordinal);
 
     private static bool Canonical(IReadOnlyList<string> values) => values.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).SequenceEqual(values);

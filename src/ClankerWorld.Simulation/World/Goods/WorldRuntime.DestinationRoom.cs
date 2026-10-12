@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
         DestinationRoom(society.Checkpoint.Inventory, buildingId, movingRoot);
 
     private int DestinationRoom(InventoryCheckpoint inventory, string buildingId, InventoryLot? movingRoot = null,
-        int outgoingQuantity = 0, int releasedBusinessReservation = 0)
+        int outgoingQuantity = 0, int releasedShopReservation = 0)
     {
         var building = worldSimulation.Buildings.Single(item => item.InstanceId == buildingId);
         var definition = worldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId);
@@ -27,7 +27,7 @@ public sealed partial class WorldRuntime
             .Where(lot => moving is null || lot.Id != moving.Id && lot.ContainerLotId != moving.Id)
             .Sum(lot => (long)lot.Quantity);
         var used = (long)StoredQuantity(buildingId, inventory) + ReservedStorageGrowth(buildingId, inventory) +
-            ReservedBusinessStorageSpace(buildingId, inventory) + inbound;
-        return (int)Math.Clamp(capacity - used + outgoingQuantity + releasedBusinessReservation, 0, int.MaxValue);
+            ReservedShopStorageSpace(buildingId, inventory) + inbound;
+        return (int)Math.Clamp(capacity - used + outgoingQuantity + releasedShopReservation, 0, int.MaxValue);
     }
 }

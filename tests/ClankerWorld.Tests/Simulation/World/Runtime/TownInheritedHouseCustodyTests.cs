@@ -21,9 +21,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         var lots = society.Inventory.Lots.Where(lot => due.Any(estate => estate.Id == lot.OwnerId) &&
             lot.ItemKind == "bread" && lot.StorageBuildingId is not null).ToArray();
         Assert.NotEmpty(lots);
-        Assert.Empty(state.Inhabitants);
+        Assert.Empty(state.Agents);
         Assert.All(due, estate => Assert.DoesNotContain(estate.BeneficiaryIds,
-            id => society.GetInhabitant(id).Status == ClankerWorld.Simulation.Society.SocietyInhabitantStatus.Active));
+            id => society.GetAgent(id).Status == ClankerWorld.Simulation.Society.SocietyAgentStatus.Active));
         Assert.Contains(due, estate => estate.WillStatus == "default");
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == lots[0].StorageBuildingId);
         Assert.NotNull(house.HouseholdId);
@@ -69,7 +69,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 var inherited = world.Society.Inventory.GetLot(lot.Id);
                 var estate = due.Single(item => item.Id == lot.OwnerId);
-                var town = state.DeceasedInhabitants!.Single(person => person.InhabitantId == estate.DeceasedId).TownId;
+                var town = state.DeceasedAgents!.Single(person => person.AgentId == estate.DeceasedId).TownId;
                 Assert.Equal(town, inherited.OwnerId);
                 Assert.Equal(lot.Quantity, inherited.Quantity);
                 Assert.Equal(lot.ItemKind, inherited.ItemKind);
@@ -132,7 +132,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         });
         Refuse(state with
         {
-            DeceasedInhabitants = state.DeceasedInhabitants!.Select(person => person.InhabitantId == estate.DeceasedId
+            DeceasedAgents = state.DeceasedAgents!.Select(person => person.AgentId == estate.DeceasedId
             ? person with { TownId = null } : person).ToArray()
         });
         Refuse(state with
@@ -155,7 +155,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var choices = new DefaultEstateChoices();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(await LaterAdult.Value), _ => choices);
         world.Pause();
-        world.SetLifePace(1460);
+        world.SetAgingOverride(1460);
         world.Resume();
         for (var step = 0; step < 900; step++)
         {
@@ -186,7 +186,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id == CognitionWillContext.HouseholdCandidateId)
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             if (selected.Id == CognitionWillContext.HouseholdCandidateId) Wills++;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate == selected ? 1d : 0d, StringComparer.Ordinal)));
         }

@@ -36,8 +36,8 @@ public sealed partial class WorldRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
-                ? person with { HungerBasisPoints = 1_500 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
+                ? person with { FullnessBasisPoints = 1_500 } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new MilkOrderProvider());
         var receipt = food == "unordered" ? null
@@ -56,7 +56,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(usableMilk || food == "bread" ? 1 : 0, world.ExportState().Events.Count(item =>
             item.Kind is "milk_drunk" or "food_consumed" && item.Detail == HarvestInstructionActor));
         Assert.Equal(food == "bread" ? 5_496 : usableMilk ? 4_496 : 1_496,
-            world.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor).HungerBasisPoints);
+            world.Agents.Single(person => person.AgentId == HarvestInstructionActor).FullnessBasisPoints);
         if (food == "broken-pot")
             Assert.Equal((HarvestInstructionActor, 1, 0), (world.Society.Inventory.GetLot("order-milk-pot").OwnerId,
                 world.Society.Inventory.GetLot("order-milk-pot").Quantity,
@@ -93,11 +93,11 @@ public sealed partial class WorldRuntimeTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var choice = observation.InhabitantId == HarvestInstructionActor
+            var choice = observation.AgentId == HarvestInstructionActor
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id == "consume_food")
                     ?? observation.Candidates.FirstOrDefault(candidate => candidate.Id == "drink_milk") : null;
             choice ??= observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

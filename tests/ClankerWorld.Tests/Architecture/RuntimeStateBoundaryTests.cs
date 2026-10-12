@@ -71,16 +71,16 @@ public sealed class RuntimeStateBoundaryTests
     public void TrustedPreparationSharesCivicRecordsUntilAProposedWrite()
     {
         using var committed = NormalPathWorld.CreateGenerated("civic-snapshot-sharing", _ => new DeterministicDecisionProvider());
-        var civicField = typeof(WorldRuntime).GetField("civicSystem", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var original = ((CivicSystem)civicField.GetValue(committed)!).State;
+        var civicField = typeof(WorldRuntime).GetField("townSystem", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var original = ((TownSystem)civicField.GetValue(committed)!).State;
         var before = WorldRuntimeCodec.Encode(committed.ExportState());
         var restore = typeof(WorldRuntime).GetMethod("RestoreCore", BindingFlags.Static | BindingFlags.NonPublic)!;
         using var prepared = (WorldRuntime)restore.Invoke(null, [committed.ExportState(), null, 4, true, false, null, original, null])!;
-        var proposed = (CivicSystem)civicField.GetValue(prepared)!;
+        var proposed = (TownSystem)civicField.GetValue(prepared)!;
         Assert.Same(original, proposed.State);
         var snapshot = prepared.ExportState();
         var town = Assert.Single(snapshot.Towns!);
-        var occupied = snapshot.Inhabitants.Select(person => person.Position)
+        var occupied = snapshot.Agents.Select(person => person.Position)
             .Concat(snapshot.Map.Resources.Select(resource => resource.Position))
             .Concat(snapshot.Map.MapObjects.Select(item => item.Position))
             .Concat(snapshot.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
@@ -94,7 +94,7 @@ public sealed class RuntimeStateBoundaryTests
         Assert.Same(original.TownLandTitles, proposed.State.TownLandTitles);
         Assert.Contains(newcomer, Assert.Single(prepared.Towns).ResidentIds);
         Assert.DoesNotContain(newcomer, Assert.Single(committed.Towns).ResidentIds);
-        Assert.Same(original, ((CivicSystem)civicField.GetValue(committed)!).State);
+        Assert.Same(original, ((TownSystem)civicField.GetValue(committed)!).State);
         Assert.Equal(before, WorldRuntimeCodec.Encode(committed.ExportState()));
         prepared.Validate();
     }

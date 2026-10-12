@@ -18,7 +18,7 @@ public sealed record TownRuntimeState(
     IReadOnlyList<string> AssignedBuildingIds,
     IReadOnlyList<GridPoint> BorderTiles,
     GridPoint? OriginSite = null,
-    TownGovernanceState? Governance = null,
+    TownCouncilState? Council = null,
     TownGovernmentState? Government = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     IReadOnlyList<TownAdmissionRecord>? Admissions = null)
@@ -36,16 +36,16 @@ public sealed record TownRuntimeState(
     public long? FirstBuildingCompletedTick { get; init; } = AssignedBuildingIds is { Count: > 0 } ? FoundedTick : null;
 
     [JsonRequired]
-    public TownLandHearingState LandHearings { get; init; } = TownLandHearingState.Create();
+    public TownLandRecords LandRecords { get; init; } = TownLandRecords.Create();
 
     [JsonRequired]
-    public IReadOnlyList<TownConstructionProject> Projects { get; init; } = [];
+    public IReadOnlyList<TownProject> Projects { get; init; } = [];
 
     [JsonRequired]
     public IReadOnlyList<TownMarketState> Markets { get; init; } = [];
 
     [JsonRequired]
-    public TownNonviolentState Nonviolent { get; init; } = TownNonviolentState.Create();
+    public TownNonLandHearingState NonLandHearings { get; init; } = TownNonLandHearingState.Create();
 }
 
 /// <summary>
@@ -100,7 +100,7 @@ public static class TownBorderRules
             residentIds,
             [],
             Around(map, anchors),
-            originSite, Governance: TownGovernanceState.Create(residentIds), Government: TownGovernmentState.Create());
+            originSite, Council: TownCouncilState.Create(residentIds), Government: TownGovernmentState.Create());
     }
 
     /// <summary>

@@ -66,16 +66,16 @@ public sealed partial class AnimalPipelineTests
             inventory = InventoryAuthority.Relocate(inventory, "carry-" + id, id, home, inventory.GetLot(id).Quantity, carrierId: actor);
         var start = scenario == "carried" ? yard.Position : house.Position;
         state = At(state, actor, start, inventory, [cow]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         using var world = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), actor);
-        var instruction = world.SubmitInstruction(new("split-water-order", "owner", actor, OwnerInstructionKind.MustDo, "care for Moss"));
+        var instruction = world.SubmitInstruction(new("split-water-order", "owner", actor, OwnerInstructionKind.Order, "care for Moss"));
         var initialBytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(initialBytes, WorldRuntimeCodec.Encode(world.ExportState()));
         var canCare = scenario is not ("insufficient" or "reserved" or "broken" or "capacity");
         var checkedPartialReload = false;
         byte[]? expectedNext = null;
-        for (var tick = 0; tick < (canCare ? 20 : 12) && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status != "finished"; tick++)
+        for (var tick = 0; tick < (canCare ? 20 : 12) && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status != "finished"; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             var current = world.ExportState();
@@ -101,7 +101,7 @@ public sealed partial class AnimalPipelineTests
         var final = world.ExportState();
         using var loaded = RestoreYardCareSupply(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), actor);
         loaded.Validate();
-        var order = final.Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        var order = final.Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(canCare ? ("finished", 1) : ("blocked", 0), (order.Status, order.CompletedUnits));
         Assert.Equal(canCare, world.Animals.Single().CareUntilTick > world.WorldTick);
         Assert.Equal(canCare ? 1 : 0, final.Events.Count(item => item.Kind == "animal_cared"));

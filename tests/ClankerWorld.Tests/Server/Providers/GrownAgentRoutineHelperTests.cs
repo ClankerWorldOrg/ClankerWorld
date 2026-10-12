@@ -26,11 +26,11 @@ public sealed partial class ProviderConfigurationStoreTests
             var observation = RequestObservation(strategic: false) with
             {
                 RequiresPersonalProvider = true,
-                Self = new("inhabitant-test", "Zuri Ash", lifeStage, "Inventive", "Learn", "family", null, null, null),
-                MemoryCompactionCandidates = [new("private-source", "inhabitant-test", "experience", "friend", "A remembered promise.", 1)],
+                Self = new("agent-test", "Zuri Ash", lifeStage, "Inventive", "Learn", "family", null, null, null),
+                MemoryCompactionCandidates = [new("private-source", "agent-test", "experience", "friend", "A remembered promise.", 1)],
             };
             Assert.Equal(helper == "jev" ? DecisionProviderKind.Jev : DecisionProviderKind.OpenAiDecisions, router.KindFor(observation));
-            var runtime = new CognitionRuntime("inhabitant-test", router);
+            var runtime = new CognitionRuntime("agent-test", router);
             var response = await router.DecideAsync(runtime.IssueRequest(observation));
             var admitted = runtime.ApplyResponse(response);
             Assert.True(admitted.Accepted);
@@ -38,7 +38,7 @@ public sealed partial class ProviderConfigurationStoreTests
             Assert.Equal("safe_idle", admitted.Intention!.CandidateId);
             var score = Assert.Single(admitted.MemoryCompactionScores!);
             Assert.Equal("private-source", score.Id);
-            Assert.Equal("inhabitant-test", score.OwnerId);
+            Assert.Equal("agent-test", score.OwnerId);
             Assert.Equal(9_000, score.ImportanceBasisPoints);
             Assert.Equal(helper == "jev" ? "api.typesafe.ai" : "api.openai.com", handler.LastUri!.Host);
             Assert.Equal(helper == "jev" ? "/v1/systemone" : "/v1/decisions", handler.LastUri.AbsolutePath);
@@ -59,7 +59,7 @@ public sealed partial class ProviderConfigurationStoreTests
         {
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             _ = store.Configure(new("routine", "jev", "jev-test", "synthetic-jev-key", false));
-            _ = store.Configure(new("personal", "openai", "own-model", "synthetic-personal-key", false, "inhabitant-test"));
+            _ = store.Configure(new("personal", "openai", "own-model", "synthetic-personal-key", false, "agent-test"));
             var policy = new WorldJevPolicy();
             policy.Set(true, 1, new("decisions", "gpt-6-luna"));
             using var handler = new ProviderResponseHandler();
@@ -67,7 +67,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var observation = RequestObservation(strategic: false) with
             {
                 RequiresPersonalProvider = worldBorn,
-                Self = new("inhabitant-test", "Zuri Ash", lifeStage, "Inventive", "Learn", "family", null, null, null),
+                Self = new("agent-test", "Zuri Ash", lifeStage, "Inventive", "Learn", "family", null, null, null),
             };
             Assert.Equal(DecisionProviderKind.LargeLanguageModel, router.KindFor(observation));
             _ = await router.DecideAsync(new("minor", router.ProviderEpoch, observation));
@@ -92,7 +92,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var store = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"), EmptySeed());
             _ = store.Configure(new("routine", "jev", "jev-test", "synthetic-jev-key", false));
             _ = store.Configure(new("planning", "openai", "world-planner", "synthetic-world-key", false));
-            if (assigned) _ = store.Configure(new("personal", "openai", "birth-model", "synthetic-personal-key", false, "inhabitant-test"));
+            if (assigned) _ = store.Configure(new("personal", "openai", "birth-model", "synthetic-personal-key", false, "agent-test"));
             var policy = new WorldJevPolicy();
             policy.Set(requestKind != "off", 1, requestKind == "off" ? RoutineHelperSettings.Off : RoutineHelperSettings.Jev);
             using var handler = new ProviderResponseHandler();
@@ -100,7 +100,7 @@ public sealed partial class ProviderConfigurationStoreTests
             var observation = RequestObservation(strategic: requestKind == "planning") with
             {
                 RequiresPersonalProvider = true,
-                Self = new("inhabitant-test", "Zuri Ash", "Adult", "Inventive", "Learn", "family", null, null, null),
+                Self = new("agent-test", "Zuri Ash", "Adult", "Inventive", "Learn", "family", null, null, null),
                 NeedsName = requestKind == "name",
                 IsNameRetry = requestKind == "name-retry",
                 NeedsPersonality = requestKind == "identity",

@@ -21,30 +21,30 @@ public sealed class RetiredBuildingTests
         var sites = state.Map.Tiles.Where(tile => state.Map.IsBuildable(tile.Position) &&
                 !state.Map.MapObjects.Any(item => item.Position == tile.Position) &&
                 !state.Map.Resources.Any(item => item.Position == tile.Position) &&
-                !state.Inhabitants.Any(person => person.Position == tile.Position))
+                !state.Agents.Any(person => person.Position == tile.Position))
             .Select(tile => tile.Position).ToArray();
-        var (builder, helper) = (state.Inhabitants[0], state.Inhabitants[1]);
+        var (builder, helper) = (state.Agents[0], state.Agents[1]);
         var (shelterSite, storehouseSite) = (sites[^1], sites[0]);
         var inventory = state.Society.Society.Inventory;
-        inventory = InventoryAuthority.AddLot(inventory, "retired-tool", "tool", builder.InhabitantId, 1);
-        inventory = InventoryAuthority.AddLot(inventory, "retired-helper-tool", "tool", helper.InhabitantId, 1);
-        inventory = InventoryAuthority.AddLot(inventory, "retired-helper-wood", "wood", helper.InhabitantId, 6);
+        inventory = InventoryAuthority.AddLot(inventory, "retired-tool", "tool", builder.AgentId, 1);
+        inventory = InventoryAuthority.AddLot(inventory, "retired-helper-tool", "tool", helper.AgentId, 1);
+        inventory = InventoryAuthority.AddLot(inventory, "retired-helper-wood", "wood", helper.AgentId, 6);
         state = state with
         {
             Society = state.Society with
             {
                 Society = state.Society.Society with { Inventory = inventory },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == builder.InhabitantId ? person with
+            Agents = state.Agents.Select(person => person.AgentId == builder.AgentId ? person with
             {
                 Position = shelterSite,
-                HungerBasisPoints = 9_000,
+                FullnessBasisPoints = 9_000,
                 Project = new(TownConstructionCandidateIds.Building(shelter.CanonicalId, shelterSite),
                     shelter.DisplayName, seed.WorldTick, "working", 10, LastTransitionTick: seed.WorldTick),
-            } : person.InhabitantId == helper.InhabitantId ? person with
+            } : person.AgentId == helper.AgentId ? person with
             {
                 Position = storehouseSite,
-                HungerBasisPoints = 9_000,
+                FullnessBasisPoints = 9_000,
                 Project = new(TownConstructionCandidateIds.Building(storehouse.CanonicalId, storehouseSite),
                     storehouse.DisplayName, seed.WorldTick, "working", 0, LastTransitionTick: seed.WorldTick),
             } : person).ToArray(),
@@ -58,14 +58,14 @@ public sealed class RetiredBuildingTests
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Contains(world.WorldSimulation.Buildings, building =>
             building.DefinitionId == shelter.CanonicalId && building.Position == shelterSite);
-        Assert.Equal("working", world.Inhabitants.Single(person => person.InhabitantId == helper.InhabitantId).Project!.Stage);
+        Assert.Equal("working", world.Agents.Single(person => person.AgentId == helper.AgentId).Project!.Stage);
 
         for (var tick = 0; tick < 15 && !world.WorldSimulation.Buildings.Any(building =>
                  building.DefinitionId == storehouse.CanonicalId); tick++)
             await world.AdvanceOneTickAsync();
         Assert.Contains(world.WorldSimulation.Buildings, building =>
             building.DefinitionId == storehouse.CanonicalId && building.Position == storehouseSite);
-        Assert.Equal("completed", world.Inhabitants.Single(person => person.InhabitantId == helper.InhabitantId).Project!.Stage);
+        Assert.Equal("completed", world.Agents.Single(person => person.AgentId == helper.AgentId).Project!.Stage);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class RetiredBuildingTests
         seed.StageStarterContent();
         for (var tick = 0; tick < 3; tick++) await seed.AdvanceOneTickAsync();
         var state = seed.ExportState();
-        var actor = state.Society.Society.Inhabitants[0];
+        var actor = state.Society.Society.Agents[0];
         var registry = ContentPackageRegistry.Restore(state.Content);
         var study = BuildingDesign.Create("private-inventor's shelter study", "shelter", 7);
         registry.Propose(study, seed.WorldTick, actor.Id);
@@ -86,13 +86,13 @@ public sealed class RetiredBuildingTests
             {
                 Society = state.Society.Society with
                 {
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == actor.Id
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == actor.Id
                         ? person with { CurrentRole = SocietyWorkRole.Builder, Name = "private-inventor" }
                         : person).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor.Id
-                ? person with { HungerBasisPoints = 9_000, Proficiency = new SettlementProficiency(Building: 9) }
+            Agents = state.Agents.Select(person => person.AgentId == actor.Id
+                ? person with { FullnessBasisPoints = 9_000, Proficiency = new WorkProficiency(Building: 9) }
                 : person).ToArray(),
         };
         var provider = new RecordingProvider();
@@ -106,7 +106,7 @@ public sealed class RetiredBuildingTests
         Assert.Equal(ContentPackageLifecycle.Proposed, package.Lifecycle);
         Assert.Equal("shelter", BuildingDesign.Read(package.Manifest).Purpose);
         Assert.Equal(actor.Id, new OwnerWorldObservationStore(world).GetSnapshot().ContentPackages
-            .Single(item => item.PackageId == package.Manifest.PackageId).ProposedByInhabitantId);
+            .Single(item => item.PackageId == package.Manifest.PackageId).ProposedByAgentId);
         Assert.NotEmpty(provider.Candidates);
         Assert.DoesNotContain(provider.Candidates, id => id.StartsWith("invent:building:", StringComparison.Ordinal));
     }

@@ -21,7 +21,7 @@ public sealed partial class TownLandHearingRuntimeTests
         using var elected = NewWorld(election);
         await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, election);
         var state = elected.ExportState();
-        var household = state.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = state.Society.Society.GetAgent(Filer).HouseholdId!;
         var stock = state.Society.Society.Inventory.Lots.First(lot => lot.OwnerId == household &&
             lot.StorageBuildingId == PropertyHouse && lot.ContainerLotId is null && lot.Quantity > 1);
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "personal-held", household, Filer,
@@ -32,8 +32,8 @@ public sealed partial class TownLandHearingRuntimeTests
         Assert.True(stocked.DisplaceAdult(Waiver));
         var provider = new PropertyProvider { Request = true };
         using var world = WorldRuntime.Restore(stocked.ExportState(), _ => provider);
-        await PropertyUntil(world, () => world.Towns[0].LandHearings.Cases.Count > 0, 20);
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+        await PropertyUntil(world, () => world.Towns[0].LandRecords.Cases.Count > 0, 20);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("property", item.Kind);
         Assert.Equal(new[] { Filer, Waiver }, item.Property!.Snapshots[0].LivingFormerMemberIds);
         Assert.Equal(item.Revisions[0].PublishedTick + Day, item.Revisions[0].DeadlineTick);
@@ -48,7 +48,7 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         var provider = new HearingProvider { SeekMayor = false };
         using var world = NewWorld(provider);
-        var source = world.ExportState().Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var source = world.ExportState().Society.Society.GetAgent(Filer).HouseholdId!;
         var house = Assert.Single(world.ExportState().WorldSimulation!.Buildings,
             building => building.HouseholdId == source && world.ExportState().WorldContent!.Buildings.Any(definition =>
                 definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house", StringComparer.Ordinal)));
@@ -74,14 +74,14 @@ public sealed partial class TownLandHearingRuntimeTests
         var before = world.ExportState();
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(save, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var step = 0; step < 20 && world.Towns[0].LandHearings.Cases[0].Status == "pending"; step++)
+        for (var step = 0; step < 20 && world.Towns[0].LandRecords.Cases[0].Status == "pending"; step++)
         {
             PropertyPromptAll(world);
             PropertyPromptAll(replay);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("settled", item.Status);
         var transfer = Assert.IsType<TownPropertyTransfer>(item.Property!.Transfer);
         var ruling = Assert.Single(item.Rulings);
@@ -120,14 +120,14 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         var provider = new PropertyProvider { Waive = true };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(await PendingPropertyCase.Value), _ => provider);
-        await PropertyUntil(world, () => world.Towns[0].LandHearings.Cases[0].Reads.Any(read => read.AgentId == Judge) &&
-            world.Towns[0].LandHearings.Cases[0].Responses.Any(response => response.AgentId == Waiver && response.Kind == "waive"), 12);
-        var item = world.Towns[0].LandHearings.Cases[0];
+        await PropertyUntil(world, () => world.Towns[0].LandRecords.Cases[0].Reads.Any(read => read.AgentId == Judge) &&
+            world.Towns[0].LandRecords.Cases[0].Responses.Any(response => response.AgentId == Waiver && response.Kind == "waive"), 12);
+        var item = world.Towns[0].LandRecords.Cases[0];
         Assert.Empty(item.Property!.Consents);
         Assert.Null(item.Property.Transfer);
         // Invoke the adjudication boundary at the actual notice's deadline: the real case,
         // actual elected mandate and read evidence are retained; elapsed time supplies no agreement.
-        Assert.Throws<InvalidOperationException>(() => TownLandHearingRules.Rule(world.Towns[0].LandHearings, world.ExportState().Map,
+        Assert.Throws<InvalidOperationException>(() => TownLandHearingRules.Rule(world.Towns[0].LandRecords, world.ExportState().Map,
             item.Id, item.Revisions[0].Number, item.Judge!, item.Revisions[0].DeadlineTick,
             TownPropertyRules.Outcome(item.Property.Request), item.Evidence.Select(evidence => evidence.Id).ToArray(), [],
             "The notice period ended; inspect the property consent requirement.", world.HouseholdLandUseRights,
@@ -143,12 +143,12 @@ public sealed partial class TownLandHearingRuntimeTests
         var state = WorldRuntimeCodec.Decode(await PendingPropertyCase.Value);
         var moved = SocietyRules.CreateHousehold(state.Society.Society, "household:former-member", "Another household", [Waiver]);
         using var world = WorldRuntime.Restore(state with { Society = state.Society with { Society = moved.Checkpoint } }, _ => provider);
-        await PropertyUntil(world, () => world.Towns[0].LandHearings.Cases[0].Status == "settled", 20);
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+        await PropertyUntil(world, () => world.Towns[0].LandRecords.Cases[0].Status == "settled", 20);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Contains(item.Property!.Consents, consent => consent.AgentId == Waiver && !consent.Agreed);
         Assert.Equal("reject", Assert.Single(item.Rulings).Outcome.Kind);
         Assert.Null(item.Property.Transfer);
-        Assert.Empty(world.Towns[0].LandHearings.Adjustments);
+        Assert.Empty(world.Towns[0].LandRecords.Adjustments);
         Assert.Equal(item.Property.Request.SourceHouseholdId, world.ExportState().WorldSimulation!.Buildings.Single(building => building.InstanceId == PropertyHouse).HouseholdId);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new PropertyProvider());
@@ -161,9 +161,9 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         using var agreed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(await PendingPropertyCase.Value),
             _ => new PropertyProvider { Agree = true });
-        await PropertyUntil(agreed, () => agreed.Towns[0].LandHearings.Cases[0].Property!.Consents.Count == 2, 15);
+        await PropertyUntil(agreed, () => agreed.Towns[0].LandRecords.Cases[0].Property!.Consents.Count == 2, 15);
         var state = agreed.ExportState();
-        var item = state.Towns![0].LandHearings.Cases[0];
+        var item = state.Towns![0].LandRecords.Cases[0];
         var lot = item.Property!.Snapshots[0].SharedLots.First(stock => stock.ContainerLotId is null && stock.Quantity > 1);
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "changed-stock", lot.OwnerId, Filer,
             lot.Id, 1, "personal transfer before adjudication", destinationStorageBuildingId: lot.StorageBuildingId,
@@ -171,7 +171,7 @@ public sealed partial class TownLandHearingRuntimeTests
         using var world = WorldRuntime.Restore(state with
         { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } }, _ => new PropertyProvider());
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var current = world.Towns[0].LandHearings.Cases[0];
+        var current = world.Towns[0].LandRecords.Cases[0];
         Assert.Equal(2, current.Revisions.Count);
         Assert.Equal(current.Revisions[1].PublishedTick + Day, current.Revisions[1].DeadlineTick);
         Assert.Equal(2, current.Property!.Snapshots.Count);
@@ -191,7 +191,7 @@ public sealed partial class TownLandHearingRuntimeTests
     {
         var provider = new PropertyProvider { Agree = true, Rule = true };
         using var reclaimed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(await PendingPropertyCase.Value), _ => provider);
-        await PropertyUntil(reclaimed, () => reclaimed.Towns[0].LandHearings.Cases[0].Status == "settled", 20);
+        await PropertyUntil(reclaimed, () => reclaimed.Towns[0].LandRecords.Cases[0].Status == "settled", 20);
         var state = reclaimed.ExportState();
         // A legitimate receiving household is formed with the same Society operation used by
         // household_found. No House, stock, hearing, vote, permission or Town membership is added.
@@ -201,8 +201,8 @@ public sealed partial class TownLandHearingRuntimeTests
         var society = SocietyRules.CreateHousehold(state.Society.Society, recipient, "Receiving household", [Filer]);
         var onward = new PropertyProvider { Request = true, Target = recipient, Agree = true, Rule = true };
         using var world = WorldRuntime.Restore(state with { Society = state.Society with { Society = society.Checkpoint } }, _ => onward);
-        await PropertyUntil(world, () => world.Towns[0].LandHearings.Cases.Count == 2 && world.Towns[0].LandHearings.Cases[1].Status == "settled", 25);
-        var item = world.Towns[0].LandHearings.Cases[1];
+        await PropertyUntil(world, () => world.Towns[0].LandRecords.Cases.Count == 2 && world.Towns[0].LandRecords.Cases[1].Status == "settled", 25);
+        var item = world.Towns[0].LandRecords.Cases[1];
         Assert.Equal("grant", Assert.Single(item.Rulings).Outcome.Kind);
         var transfer = Assert.IsType<TownPropertyTransfer>(item.Property!.Transfer);
         Assert.Equal(recipient, transfer.ResultBuilding.HouseholdId);
@@ -221,7 +221,7 @@ public sealed partial class TownLandHearingRuntimeTests
     public async Task RemovingTheNoticedHouseAndAddingALandClaimKeepsThePropertyFileValid()
     {
         var state = WorldRuntimeCodec.Decode(await PendingPropertyCase.Value);
-        var item = state.Towns![0].LandHearings.Cases[0];
+        var item = state.Towns![0].LandRecords.Cases[0];
         var plot = item.Revisions[0].Tiles;
         var ground = state.Map.Tiles.First(tile => state.Map.IsBuildable(tile.Position) && !plot.Contains(tile.Position)).Position;
         var inventory = state.Society.Society.Inventory;
@@ -232,10 +232,10 @@ public sealed partial class TownLandHearingRuntimeTests
         using var world = WorldRuntime.Restore(state with
         { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } }, _ => new PropertyProvider());
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(2, world.Towns[0].LandHearings.Cases[0].Revisions.Count);
+        Assert.Equal(2, world.Towns[0].LandRecords.Cases[0].Revisions.Count);
         Assert.True(world.RemoveBuilding(PropertyHouse, state.Towns[0].Id, item.Property!.Request.SourceHouseholdId).Applied);
         Assert.True(world.RequestHouseholdLandUse("removed-property-new-party", Judge, state.Towns[0].Id, [plot[0]]).Applied);
-        var current = world.Towns[0].LandHearings.Cases[0];
+        var current = world.Towns[0].LandRecords.Cases[0];
         Assert.Equal(2, current.Revisions.Count);
         Assert.Equal(2, current.Property!.Snapshots.Count);
         Assert.Null(current.Judge); // The new claimant cannot remain this case's judge.
@@ -248,22 +248,22 @@ public sealed partial class TownLandHearingRuntimeTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new PropertyProvider());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Null(restored.Towns[0].LandHearings.Cases[0].Property!.Transfer);
+        Assert.Null(restored.Towns[0].LandRecords.Cases[0].Property!.Transfer);
     }
 
     private static void AssertDamagedPropertyFilesRefused(WorldRuntimeState state)
     {
         var town = state.Towns![0];
-        var item = town.LandHearings.Cases[0];
+        var item = town.LandRecords.Cases[0];
         var property = item.Property!;
         var duplicateRevision = item with { Revisions = [item.Revisions[0], item.Revisions[0]] };
-        var duplicateState = state with { Towns = [town with { LandHearings = town.LandHearings with { Cases = [duplicateRevision] } }] };
+        var duplicateState = state with { Towns = [town with { LandRecords = town.LandRecords with { Cases = [duplicateRevision] } }] };
         Assert.Throws<InvalidDataException>(() =>
         {
             using var invalid = WorldRuntime.Restore(duplicateState, _ => new PropertyProvider());
         });
         var duplicateDocument = JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
-        var revisions = duplicateDocument["state"]!["towns"]![0]!["landHearings"]!["cases"]![0]!["revisions"]!.AsArray();
+        var revisions = duplicateDocument["state"]!["towns"]![0]!["landRecords"]!["cases"]![0]!["revisions"]!.AsArray();
         revisions.Add(revisions[0]!.DeepClone());
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(System.Text.Encoding.UTF8.GetBytes(duplicateDocument.ToJsonString())));
         TownPropertyCase?[] damages = [null, property with { Consents = [] }, property with { Transfer = null },
@@ -272,13 +272,13 @@ public sealed partial class TownLandHearingRuntimeTests
             property with { Transfer = property.Transfer! with { ResultLots = property.Transfer.ResultLots.Select(lot => lot with { Quantity = lot.Quantity + 1 }).ToArray() } }];
         foreach (var damage in damages)
         {
-            var damaged = state with { Towns = [town with { LandHearings = town.LandHearings with { Cases = [item with { Property = damage }] } }] };
+            var damaged = state with { Towns = [town with { LandRecords = town.LandRecords with { Cases = [item with { Property = damage }] } }] };
             Assert.Throws<InvalidDataException>(() =>
             {
                 using var invalid = WorldRuntime.Restore(damaged, _ => new PropertyProvider());
             });
             var document = JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
-            document["state"]!["towns"]![0]!["landHearings"]!["cases"]![0]!["property"] =
+            document["state"]!["towns"]![0]!["landRecords"]!["cases"]![0]!["property"] =
                 damage is null ? null : JsonSerializer.SerializeToNode(damage, PropertyJsonOptions);
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(System.Text.Encoding.UTF8.GetBytes(document.ToJsonString())));
         }
@@ -319,24 +319,24 @@ public sealed partial class TownLandHearingRuntimeTests
             var choices = observation.Candidates;
             CognitionCandidate? Find(string action) => choices.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             var selected = Find("read") ?? Find("hearing_inspect") ?? Find("yes");
-            if (Collect is { } lot && observation.InhabitantId == Filer)
+            if (Collect is { } lot && observation.AgentId == Filer)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id == "household_collect:" + lot);
-            if (Request && observation.InhabitantId == PropertyFiler)
+            if (Request && observation.AgentId == PropertyFiler)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_property_request|" + BuildingId + "|", StringComparison.Ordinal) &&
                     (Target is null ? candidate.Id.EndsWith("|town", StringComparison.Ordinal) :
                         candidate.Description.Contains("grant household " + Target + " ", StringComparison.Ordinal)));
             if (Agree is { } agree)
-                selected ??= Find("hearing_property_" + (observation.InhabitantId == Refuser || !agree ? "refuse" : "accept"));
+                selected ??= Find("hearing_property_" + (observation.AgentId == Refuser || !agree ? "refuse" : "accept"));
             if (Waive) selected ??= Find("hearing_waive");
             selected ??= Find("hearing_answer");
-            if (observation.InhabitantId == Judge && (Rule || Reject))
+            if (observation.AgentId == Judge && (Rule || Reject))
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal) &&
                     (candidate.Id.EndsWith("|reclaim", StringComparison.Ordinal) || candidate.Id.EndsWith("|grant", StringComparison.Ordinal) || Reject &&
                         candidate.Id.EndsWith("|reject", StringComparison.Ordinal)));
             selected ??= choices.Single(candidate => candidate.Id == "safe_idle");
             var evidence = selected.Description.Split([' ', ';', ','], StringSplitOptions.RemoveEmptyEntries)
                 .Where(token => token.StartsWith("land-evidence:", StringComparison.Ordinal)).Select(token => token.Split('=')[0]).Distinct(StringComparer.Ordinal).ToArray();
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 choices.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandHearing: new(Statement: "Please decide this exact noticed property request using its ownership records and personal agreements.", EvidenceIds: evidence)));

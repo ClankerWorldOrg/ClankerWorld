@@ -18,7 +18,7 @@ public sealed class SocietyMultiLotBirthTests
         var birth = Assert.Single(committed.Checkpoint.Births);
         Assert.Equal(prepared.First, birth.PrimaryCaregiverId);
         Assert.Equal(prepared.Household, birth.HouseholdId);
-        Assert.Equal(SocietyAgeBand.Infant, committed.Checkpoint.GetInhabitant(birth.ChildId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, committed.Checkpoint.GetAgent(birth.ChildId).AgeBand);
         Assert.Equal(pot, committed.Checkpoint.Inventory.GetLot(pot.Id));
         Assert.DoesNotContain(committed.Checkpoint.Inventory.Lots, lot => prepared.OutputIds.Take(2).Contains(lot.Id));
         Assert.Equal(4, committed.Checkpoint.Inventory.Lots.Where(lot => prepared.OutputIds.Skip(2).Contains(lot.Id))
@@ -65,7 +65,7 @@ public sealed class SocietyMultiLotBirthTests
         var result = SocietyRules.CommitBirth(committed, altered);
         Assert.Null(result.CreatedId);
         Assert.Equal(committed.Inventory, result.Checkpoint.Inventory);
-        Assert.Equal(committed.Inhabitants, result.Checkpoint.Inhabitants);
+        Assert.Equal(committed.Agents, result.Checkpoint.Agents);
         Assert.Equal(committed.Households, result.Checkpoint.Households);
         Assert.Equal(committed.Relationships, result.Checkpoint.Relationships);
         Assert.Equal(committed.Births, result.Checkpoint.Births);
@@ -92,7 +92,7 @@ public sealed class SocietyMultiLotBirthTests
                 last, 2, "personal_food");
         if (fault == "foreign")
         {
-            var outsider = checkpoint.Inhabitants.First(person => person.HouseholdId != prepared.Household).Id;
+            var outsider = checkpoint.Agents.First(person => person.HouseholdId != prepared.Household).Id;
             inventory = InventoryAuthority.Transfer(inventory, "outside-food", prepared.Second, outsider, last, 2, "gift");
         }
         if (fault == "spoiled")
@@ -125,7 +125,7 @@ public sealed class SocietyMultiLotBirthTests
         var result = SocietyRules.CommitBirth(checkpoint, request);
         Assert.Null(result.CreatedId);
         Assert.Equal(inventory, result.Checkpoint.Inventory);
-        Assert.Equal(checkpoint.Inhabitants, result.Checkpoint.Inhabitants);
+        Assert.Equal(checkpoint.Agents, result.Checkpoint.Agents);
         Assert.Equal(checkpoint.Households, result.Checkpoint.Households);
         Assert.Equal(checkpoint.Relationships, result.Checkpoint.Relationships);
         Assert.Empty(result.Checkpoint.Births);

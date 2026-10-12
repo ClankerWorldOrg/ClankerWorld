@@ -24,13 +24,13 @@ public sealed class MarketConstructionRuntimeTests
         var townId = Assert.Single(initial.Towns!).Id;
         var ledger = new GatheringLedger(initial);
         Assert.Equal(0, scenario.World.WorldTick);
-        Assert.Equal(4, initial.Inhabitants.Count);
-        Assert.Empty(initial.Towns![0].Governance!.Proposals);
+        Assert.Equal(4, initial.Agents.Count);
+        Assert.Empty(initial.Towns![0].Council!.Proposals);
         Assert.Empty(initial.Towns[0].Projects);
         Assert.Empty(initial.Towns[0].Markets);
 
-        await UntilAsync(scenario, () => scenario.World.Towns[0].Governance!.Proposals.Count == 1, 80, ledger);
-        var pending = Assert.Single(scenario.World.Towns[0].Governance!.Proposals);
+        await UntilAsync(scenario, () => scenario.World.Towns[0].Council!.Proposals.Count == 1, 80, ledger);
+        var pending = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
         Assert.Equal(("project", "pending", policy.ProjectName), (pending.Kind, pending.Status, pending.Project!.Name));
         Assert.Equal(MarketContent.Hall2x2().CanonicalId, pending.Project.DefinitionId);
         var offeredId = $"civic|{townId}|project|market-2x2|{pending.Project.Site.X},{pending.Project.Site.Y}";
@@ -51,17 +51,17 @@ public sealed class MarketConstructionRuntimeTests
         AssertByteExactReload(scenario);
 
         await UntilAsync(scenario, () => scenario.World.Towns[0].Projects.Count == 1, 80, ledger);
-        var approval = Assert.Single(scenario.World.Towns[0].Governance!.Proposals);
+        var approval = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
         Assert.Equal("passed", approval.Status);
         Assert.Equal(3, approval.RequiredYes);
         Assert.True(approval.Votes.Count(vote => vote.Yes) >= approval.RequiredYes);
-        var notice = Assert.Single(scenario.World.Towns[0].Governance!.Notices,
+        var notice = Assert.Single(scenario.World.Towns[0].Council!.Notices,
             item => item.Kind == "proposal" && item.SubjectId == approval.Id);
         Assert.All(approval.Votes, vote =>
         {
             Assert.Contains(policy.Choices, choice => choice.Actor == vote.AgentId &&
                 choice.Id == $"civic|{townId}|{(vote.Yes ? "yes" : "no")}|{approval.Id}|");
-            Assert.Contains(scenario.World.Towns[0].Governance!.Knowledge,
+            Assert.Contains(scenario.World.Towns[0].Council!.Knowledge,
                 receipt => receipt.AgentId == vote.AgentId && receipt.NoticeId == notice.Id);
         });
         Assert.Empty(scenario.Project.Deliveries);
@@ -93,7 +93,7 @@ public sealed class MarketConstructionRuntimeTests
         }
         await policy.DonationStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(scenario.Project.Plan.Site,
-            scenario.World.Inhabitants.Single(person => person.InhabitantId == traveler.Actor).Position);
+            scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         var freshChoice = policy.Choices.Last(choice => choice.Actor == traveler.Actor &&
             choice.Id.StartsWith("town_project_donate:", StringComparison.Ordinal));
         Assert.NotEqual(travelChoice.Id, freshChoice.Id);
@@ -239,7 +239,7 @@ public sealed class MarketConstructionRuntimeTests
                 if (kind is not ("wood" or "stone" or "fiber")) continue;
                 var actor = string.Join(':', parts[..^2]);
                 var quantity = int.Parse(parts[^1], CultureInfo.InvariantCulture);
-                var position = current.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+                var position = current.Agents.Single(person => person.AgentId == actor).Position;
                 Assert.Contains(previous.Map.Resources, source =>
                     (source.Kind == kind || kind == "wood" && source.Kind == "construction") &&
                     current.Map.FootDistance(position, source.Position) <= 1 &&

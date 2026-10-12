@@ -18,7 +18,7 @@ public sealed partial class WorldExpansionOrderTests
         var house = Building(state, House);
         var source = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
                 state.Map.FootDistance(house.Position, point) >= 3 && state.Map.IsReachableOnFoot(house.Position, point) &&
-                state.Inhabitants.All(person => person.Position != point) && !state.RoadTiles!.Contains(point) &&
+                state.Agents.All(person => person.Position != point) && !state.RoadTiles!.Contains(point) &&
                 state.WorldSimulation!.Buildings.All(building => building.Position != point) &&
                 state.Map.Resources.All(resource => resource.Position != point))
             .OrderBy(point => state.Map.FootDistance(house.Position, point)).First();
@@ -45,9 +45,9 @@ public sealed partial class WorldExpansionOrderTests
             first, firstOrder.InstructionId)).Changed);
         provider.Wanted[first] = "household_leave";
         _ = preparing.SubmitInstruction(new OwnerInstructionRequest("leave-with-materials", "owner:test", first,
-            OwnerInstructionKind.Suggestive, "Leave the household."));
-        for (var tick = 0; tick < 32 && preparing.Society.GetInhabitant(first).HouseholdId is not null; tick++) await Tick(preparing);
-        Assert.Null(preparing.Society.GetInhabitant(first).HouseholdId);
+            OwnerInstructionKind.Suggestion, "Leave the household."));
+        for (var tick = 0; tick < 32 && preparing.Society.GetAgent(first).HouseholdId is not null; tick++) await Tick(preparing);
+        Assert.Null(preparing.Society.GetAgent(first).HouseholdId);
         provider.Wanted[first] = "safe_idle";
         var borrowed = preparing.Society.Inventory.GetLot(carried.Id);
         Assert.Equal((Household, first, 4), (borrowed.OwnerId, borrowed.CarrierId, borrowed.Quantity));
@@ -57,7 +57,7 @@ public sealed partial class WorldExpansionOrderTests
         {
             provider.Wanted[first] = "household_return:" + borrowed.Id;
             _ = preparing.SubmitInstruction(new OwnerInstructionRequest("return-expansion-materials", "owner:test", first,
-                OwnerInstructionKind.Suggestive, "Return the household's wood to its House."));
+                OwnerInstructionKind.Suggestion, "Return the household's wood to its House."));
             for (var tick = 0; tick < 64 && preparing.Society.Inventory.GetLot(borrowed.Id).StorageBuildingId != House; tick++)
                 await Tick(preparing);
             var returned = preparing.Society.Inventory.GetLot(borrowed.Id);
@@ -110,7 +110,7 @@ public sealed partial class WorldExpansionOrderTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var prefix = request.Observation.OperativeOrderInstructionId is not null ? "expand_building" :
-                Wanted.GetValueOrDefault(request.Observation.InhabitantId, "safe_idle");
+                Wanted.GetValueOrDefault(request.Observation.AgentId, "safe_idle");
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal))
                 ?? request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return new DeterministicDecisionProvider().DecideAsync(request with

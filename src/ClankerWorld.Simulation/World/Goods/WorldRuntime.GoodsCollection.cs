@@ -18,13 +18,13 @@ public sealed partial class WorldRuntime
     private GoodsReason? CollectGoodsExclusion(string actor, InventoryIndex index, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes)
     {
-        if (!inhabitants.TryGetValue(actor, out var person)) return GoodsReason.Custody;
+        if (!agents.TryGetValue(actor, out var person)) return GoodsReason.Custody;
         var root = index.Root(lot);
         if (root.CarrierId is { } carrier && carrier != actor) return GoodsReason.Custody;
         if (!MayCollectGoodsAt(actor, root)) return GoodsReason.Place;
         if (InventoryContainerRules.IsContainer(root.ItemKind) && !InventoryRules.CanMoveFamily(index, root))
             return GoodsReason.Reservation;
-        if (handcartHitches.Any(hitch => hitch.CartLotId == root.Id) || inhabitants.Values.Any(person =>
+        if (handcartHitches.Any(hitch => hitch.CartLotId == root.Id) || agents.Values.Any(person =>
                 PersonalEquipmentRules.IsSelected(person.Equipment, root.Id))) return GoodsReason.Custody;
         if (PersonalEquipmentRules.IsCarried(root, actor)) return null;
         var room = FreeCarryCapacity(actor);
@@ -36,7 +36,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? GoodsRouteExclusion(string actor, InventoryLot root,
         Dictionary<(GridPoint Position, int Range), bool>? routes)
     {
-        if (!inhabitants.TryGetValue(actor, out var person)) return GoodsReason.Custody;
+        if (!agents.TryGetValue(actor, out var person)) return GoodsReason.Custody;
         if (PersonalEquipmentRules.IsCarried(root, actor)) return null;
         var key = (HouseholdStockPosition(root), HouseholdStockInteractionRange(root));
         if (routes is not null && routes.TryGetValue(key, out var reachable)) return reachable ? null : GoodsReason.Route;

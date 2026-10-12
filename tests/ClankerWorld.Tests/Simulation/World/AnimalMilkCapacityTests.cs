@@ -23,7 +23,7 @@ public sealed partial class AnimalPipelineTests
         state = At(state, actor, yard.Position, inventory, [cow]);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray(),
         };
         using var producing = WorldRuntime.Restore(state, _ => new AnimalChooser());
         Assert.True((await producing.AdvanceOneTickAsync()).Advanced);
@@ -38,7 +38,7 @@ public sealed partial class AnimalPipelineTests
         var bytes = WorldRuntimeCodec.Encode(state);
         using var world = RestoreAnimalOrder(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        world.SubmitInstruction(new("capacity-collect", "owner", actor, OwnerInstructionKind.MustDo, "collect from Moss"));
+        world.SubmitInstruction(new("capacity-collect", "owner", actor, OwnerInstructionKind.Order, "collect from Moss"));
         for (var step = 0; step < 40 && world.Animals.Single().ReadyProductLotId is not null; step++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(2, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "milk").Sum(lot => lot.Quantity));

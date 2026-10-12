@@ -65,17 +65,17 @@ public sealed partial class WorldRuntime
     }
 
     /// <summary>Remembers the rest of a route after one step along it; the next tile is already taken.</summary>
-    private void RecordPlannedRoute(string inhabitantId, string reason, GridPoint destination, List<GridPoint> route)
+    private void RecordPlannedRoute(string agentId, string reason, GridPoint destination, List<GridPoint> route)
     {
         if (route.Count > 2)
-            plannedRoutes[inhabitantId] = new RoutePlan(reason, destination, route.GetRange(2, route.Count - 2));
+            plannedRoutes[agentId] = new RoutePlan(reason, destination, route.GetRange(2, route.Count - 2));
     }
 
     /// <summary>An agent waiting out a slow step keeps the route it was already walking.</summary>
-    private void KeepPlannedRoute(string inhabitantId, string reason, GridPoint destination)
+    private void KeepPlannedRoute(string agentId, string reason, GridPoint destination)
     {
-        if (previousPlannedRoutes.TryGetValue(inhabitantId, out var walking) &&
+        if (previousPlannedRoutes.TryGetValue(agentId, out var walking) &&
             walking.Destination == destination && string.Equals(walking.Reason, reason, StringComparison.Ordinal))
-            plannedRoutes[inhabitantId] = walking;
+            plannedRoutes[agentId] = walking;
     }
 }

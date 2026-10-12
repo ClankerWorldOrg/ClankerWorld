@@ -13,7 +13,7 @@ public enum CognitionRequestState
 }
 
 public sealed record CognitionIntention(
-    string InhabitantId,
+    string AgentId,
     string CandidateId,
     DecisionProviderKind Provider,
     double Confidence,
@@ -39,7 +39,7 @@ public sealed record CognitionEvent(
 
 public sealed record CognitionRuntimeState(
     int SchemaVersion,
-    string InhabitantId,
+    string AgentId,
     long RunEpoch,
     bool IsPaused,
     long DecisionGeneration,
@@ -49,7 +49,7 @@ public sealed record CognitionRuntimeState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0);
 
 public sealed record CognitionRuntimeSnapshot(
-    string InhabitantId,
+    string AgentId,
     DecisionProviderKind ProviderKind,
     long RunEpoch,
     bool IsPaused,
@@ -69,7 +69,7 @@ public sealed record CognitionAdmissionResult(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CognitionObserverGuidanceResult? ObserverGuidance = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<CognitionLandTile>? CivicLandTiles = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CognitionLandHearingChoice? CivicLandHearing = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CognitionNonviolentChoice? CivicNonviolent = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CognitionNonLandChoice? CivicNonLandHearing = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] CognitionMemorySummaryOption? MemorySummary = null);
 
 /// <summary>
@@ -98,32 +98,32 @@ public sealed class CognitionRuntime
     private long eventHistoryFloor;
 
     public CognitionRuntime(
-        string inhabitantId,
+        string agentId,
         IDecisionProvider? provider = null)
     {
-        InhabitantId = NormalizeRequiredText(inhabitantId, nameof(inhabitantId));
+        AgentId = NormalizeRequiredText(agentId, nameof(agentId));
         this.provider = provider ?? new DeterministicDecisionProvider();
     }
 
-    public string InhabitantId { get; }
+    public string AgentId { get; }
 
     public DecisionProviderKind ProviderKind => provider.Kind;
 
     public long ProviderEpoch => provider.ProviderEpoch;
 
-    public DecisionProviderKind ProviderKindFor(InhabitantObservation observation) => provider.KindFor(observation);
+    public DecisionProviderKind ProviderKindFor(AgentObservation observation) => provider.KindFor(observation);
 
     /// <summary>
     /// Reserves no state. A host may send this exact request outside the world
     /// tick, then admit its answer through IssueRequest/ApplyResponse only if
     /// the same decision point and provider binding are still current.
     /// </summary>
-    public CognitionDecisionRequest PreviewRequest(InhabitantObservation observation)
+    public CognitionDecisionRequest PreviewRequest(AgentObservation observation)
     {
         ArgumentNullException.ThrowIfNull(observation);
         observation.Validate();
-        if (!string.Equals(observation.InhabitantId, InhabitantId, StringComparison.Ordinal))
-            throw new ArgumentException("The observation belongs to a different inhabitant.", nameof(observation));
+        if (!string.Equals(observation.AgentId, AgentId, StringComparison.Ordinal))
+            throw new ArgumentException("The observation belongs to a different agent.", nameof(observation));
         lock (sync)
         {
             if (isPaused || inFlight is not null || observation.RunEpoch < runEpoch)
@@ -139,13 +139,13 @@ public sealed class CognitionRuntime
         CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
         provider.DecideAsync(request, cancellationToken);
 
-    public CognitionDecisionRequest IssueRequest(InhabitantObservation observation)
+    public CognitionDecisionRequest IssueRequest(AgentObservation observation)
     {
         ArgumentNullException.ThrowIfNull(observation);
         observation.Validate();
-        if (!string.Equals(observation.InhabitantId, InhabitantId, StringComparison.Ordinal))
+        if (!string.Equals(observation.AgentId, AgentId, StringComparison.Ordinal))
         {
-            throw new ArgumentException("The observation belongs to a different inhabitant.", nameof(observation));
+            throw new ArgumentException("The observation belongs to a different agent.", nameof(observation));
         }
 
         lock (sync)
@@ -157,7 +157,7 @@ public sealed class CognitionRuntime
 
             if (inFlight is not null)
             {
-                throw new InvalidOperationException("Only one cognition request may be in flight for an inhabitant.");
+                throw new InvalidOperationException("Only one cognition request may be in flight for an agent.");
             }
 
             if (observation.RunEpoch < runEpoch)
@@ -185,7 +185,7 @@ public sealed class CognitionRuntime
     /// and ApplyResponse separately to control latency and failure precisely.
     /// </summary>
     public async ValueTask<CognitionAdmissionResult> RequestAndDecideAsync(
-        InhabitantObservation observation,
+        AgentObservation observation,
         CancellationToken cancellationToken = default)
     {
         var request = IssueRequest(observation);
@@ -237,7 +237,7 @@ public sealed class CognitionRuntime
             var candidate = request.Observation.Candidates.Single(candidate =>
                 string.Equals(candidate.Id, response.SelectedCandidateId, StringComparison.Ordinal));
             var intention = new CognitionIntention(
-                InhabitantId,
+                AgentId,
                 candidate.Id,
                 response.Provider,
                 response.Confidence,
@@ -259,7 +259,7 @@ public sealed class CognitionRuntime
                 request.Observation.WorldId is { } worldId
                     ? new CognitionObserverGuidanceResult(
                         worldId,
-                        request.Observation.InhabitantId,
+                        request.Observation.AgentId,
                         request.RequestId,
                         request.Observation.RunEpoch,
                         request.Observation.DecisionGeneration,
@@ -274,7 +274,7 @@ public sealed class CognitionRuntime
                 intention,
                 response.Provider is DecisionProviderKind.Jev or DecisionProviderKind.OpenAiDecisions ? response.MemoryCompactionScores : null,
                 response.CivicProposal, response.CivicBallot,
-                observedGuidance, response.CivicLandTiles, response.CivicLandHearing, response.CivicNonviolent,
+                observedGuidance, response.CivicLandTiles, response.CivicLandHearing, response.CivicNonLandHearing,
                 response.MemorySummaryChoice is { } summaryChoice
                     ? request.Observation.MemorySummaryOptions!.Single(option => option.Choice == summaryChoice) : null);
         }
@@ -349,7 +349,7 @@ public sealed class CognitionRuntime
 
             return new CognitionRuntimeState(
                 StateSchemaVersion,
-                InhabitantId,
+                AgentId,
                 runEpoch,
                 isPaused,
                 decisionGeneration,
@@ -378,7 +378,7 @@ public sealed class CognitionRuntime
             throw new InvalidDataException($"Unsupported cognition state schema '{state.SchemaVersion}'.");
         }
 
-        var runtime = new CognitionRuntime(state.InhabitantId, provider);
+        var runtime = new CognitionRuntime(state.AgentId, provider);
         if (state.RunEpoch < 0 || state.DecisionGeneration < 0 || state.NextRequestSequence <= 0)
         {
             throw new InvalidDataException("Cognition state contains an invalid epoch or sequence.");
@@ -405,7 +405,7 @@ public sealed class CognitionRuntime
         lock (sync)
         {
             return new CognitionRuntimeSnapshot(
-                InhabitantId,
+                AgentId,
                 provider.Kind,
                 runEpoch,
                 isPaused,
@@ -432,7 +432,7 @@ public sealed class CognitionRuntime
             return Rejected($"{reason}:no_safe_idle");
         }
         var intention = new CognitionIntention(
-            InhabitantId,
+            AgentId,
             candidate.Id,
             DecisionProviderKind.Deterministic,
             1d,
@@ -456,9 +456,9 @@ public sealed class CognitionRuntime
             return "request_id";
         }
 
-        if (!string.Equals(response.InhabitantId, InhabitantId, StringComparison.Ordinal))
+        if (!string.Equals(response.AgentId, AgentId, StringComparison.Ordinal))
         {
-            return "inhabitant_id";
+            return "agent_id";
         }
 
         if (response.ProviderEpoch != request.ProviderEpoch || response.ProviderEpoch != provider.ProviderEpoch)
@@ -517,7 +517,7 @@ public sealed class CognitionRuntime
                 return "memory_compaction_not_requested";
             foreach (var score in memoryScores)
             {
-                if (!string.Equals(score.OwnerId, InhabitantId, StringComparison.Ordinal) ||
+                if (!string.Equals(score.OwnerId, AgentId, StringComparison.Ordinal) ||
                     !memoryCandidates.Any(candidate => candidate.Id == score.Id && candidate.OwnerId == score.OwnerId &&
                         candidate.Kind == score.Kind && candidate.SourceTick == score.SourceTick))
                     return "memory_compaction_source";
@@ -526,7 +526,7 @@ public sealed class CognitionRuntime
 
         if (response.MemorySummaryChoice is { } choice &&
             (response.Provider is not (DecisionProviderKind.Jev or DecisionProviderKind.OpenAiDecisions) ||
-                !(request.Observation.MemorySummaryOptions ?? []).Any(option => option.Choice == choice && option.OwnerId == InhabitantId)))
+                !(request.Observation.MemorySummaryOptions ?? []).Any(option => option.Choice == choice && option.OwnerId == AgentId)))
             return "memory_summary_not_requested";
         return null;
     }

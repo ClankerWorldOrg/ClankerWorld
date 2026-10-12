@@ -24,8 +24,8 @@ public sealed class OrderListObservationTests
         var state = genesis.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == Agent
-                ? item with { HungerBasisPoints = 9_000 }
+            Agents = state.Agents.Select(item => item.AgentId == Agent
+                ? item with { FullnessBasisPoints = 9_000 }
                 : item).ToArray(),
         };
         using var world = WorldRuntime.Restore(state);
@@ -36,22 +36,22 @@ public sealed class OrderListObservationTests
             .ToArray();
         var typo = Submit(world, "typo", "build a house");
         var suggestion = world.SubmitInstruction(new OwnerInstructionRequest("suggestion", "owner:test", Agent,
-            OwnerInstructionKind.Suggestive, "Rest by the fire tonight."));
+            OwnerInstructionKind.Suggestion, "Rest by the fire tonight."));
         var cancelled = world.CancelOrder(new OwnerOrderCancelRequest("cancel-last", "owner:test",
             world.ExportState().Society.Society.WorldId, Agent, queued[^1].InstructionId));
         Assert.True(cancelled.Changed);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var received = Received(world);
-        var orders = received.Where(item => item.Kind == "must_do").ToArray();
+        var orders = received.Where(item => item.Kind == "order").ToArray();
         // More orders than the card's four-message history holds all reach the game.
         Assert.Equal(
             new[] { replaced, current }.Concat(queued).Append(typo).Select(item => item.InstructionId).ToArray(),
             orders.Select(item => item.InstructionId).ToArray());
-        Assert.Contains(received, item => item.InstructionId == suggestion.InstructionId && item.Kind == "suggestive");
+        Assert.Contains(received, item => item.InstructionId == suggestion.InstructionId && item.Kind == "suggestion");
 
-        var held = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == current.InstructionId).Order!;
-        var shown = orders[1].Order!;
+        var held = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == current.InstructionId).Task!;
+        var shown = orders[1].Task!;
         Assert.Equal("blocked", shown.Status);
         Assert.Equal(held.Status, shown.Status);
         Assert.Equal("Waiting until hungry enough to eat.", shown.BlockedReason);
@@ -60,12 +60,12 @@ public sealed class OrderListObservationTests
         Assert.All(orders.Skip(2).Take(4), item =>
         {
             Assert.Equal("queued", item.State);
-            Assert.Equal("queued", item.Order!.Status);
+            Assert.Equal("queued", item.Task!.Status);
         });
         Assert.Equal(("completed", "cancelled", "Replaced by a newer order."),
-            (orders[0].State, orders[0].Order!.Status, orders[0].Order!.BlockedReason));
-        Assert.Equal(("completed", "cancelled"), (orders[6].State, orders[6].Order!.Status));
-        Assert.Equal(("completed", "not_understood"), (orders[7].State, orders[7].Order!.Status));
+            (orders[0].State, orders[0].Task!.Status, orders[0].Task!.BlockedReason));
+        Assert.Equal(("completed", "cancelled"), (orders[6].State, orders[6].Task!.Status));
+        Assert.Equal(("completed", "not_understood"), (orders[7].State, orders[7].Task!.Status));
 
         // A reload shows the same orders in the same states; nothing on the card depends on the old session.
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
@@ -74,12 +74,12 @@ public sealed class OrderListObservationTests
     }
 
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new OwnerInstructionRequest(key, "owner:test", Agent, OwnerInstructionKind.MustDo, text, queue));
+        world.SubmitInstruction(new OwnerInstructionRequest(key, "owner:test", Agent, OwnerInstructionKind.Order, text, queue));
 
     /// <summary>The agent's messages as the game reads them from the host's snapshot.</summary>
     private static OwnerWorldInstruction[] Received(WorldRuntime world) =>
         JsonSerializer.Deserialize<OwnerWorldInstruction[]>(
                 JsonSerializer.Serialize(new OwnerWorldObservationStore(world).GetSnapshot().Instructions, HostJson), GameJson)!
-            .Where(item => item.TargetInhabitantId == Agent)
+            .Where(item => item.TargetAgentId == Agent)
             .ToArray();
 }

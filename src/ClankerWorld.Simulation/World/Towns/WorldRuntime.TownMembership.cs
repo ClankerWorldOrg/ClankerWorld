@@ -19,35 +19,35 @@ public sealed partial class WorldRuntime
     internal static readonly IReadOnlyList<string> AdmissionLapseReasons =
         ["unavailable", "already_resident", "affiliation_changed", "joined_elsewhere", "acceptance_expired"];
 
-    private static TownProposal? PendingAdmission(TownRuntimeState town, string subject) => CivicSystem.PendingAdmission(town, subject);
-    private static TownProposal? AdmissionProposal(TownRuntimeState town, TownAdmissionRecord record) => CivicSystem.AdmissionProposal(town, record);
-    private TownAdmissionRecord? ApprovedAdmission(TownRuntimeState town, string subject) => CivicSystem.ApprovedAdmission(civicWorld, town, subject);
-    private bool HasPendingAdmission(string subject) => civicSystem.HasPendingAdmission(civicWorld, subject);
+    private static TownProposal? PendingAdmission(TownRuntimeState town, string subject) => TownSystem.PendingAdmission(town, subject);
+    private static TownProposal? AdmissionProposal(TownRuntimeState town, TownAdmissionRecord record) => TownSystem.AdmissionProposal(town, record);
+    private TownAdmissionRecord? ApprovedAdmission(TownRuntimeState town, string subject) => TownSystem.ApprovedAdmission(civicWorld, town, subject);
+    private bool HasPendingAdmission(string subject) => townSystem.HasPendingAdmission(civicWorld, subject);
     /// <summary>A Town where this adult has an undecided request or an approval to accept; it grants nothing yet.</summary>
-    private bool HasOpenAdmission(string subject, string? townId) => civicSystem.HasOpenAdmission(civicWorld, subject, townId);
+    private bool HasOpenAdmission(string subject, string? townId) => townSystem.HasOpenAdmission(civicWorld, subject, townId);
     /// <summary>One open request of one's own at a time, in any Town; a resident of another Town may ask to move.</summary>
-    private bool MayRequestOwnAdmission(string actor, TownRuntimeState town) => civicSystem.MayRequestOwnAdmission(civicWorld, actor, town);
+    private bool MayRequestOwnAdmission(string actor, TownRuntimeState town) => townSystem.MayRequestOwnAdmission(civicWorld, actor, town);
     /// <summary>A resident may ask the council to admit an unaffiliated adult; the adult must still accept.</summary>
-    private bool MayBeSponsoredForAdmission(string nominee, TownRuntimeState town) => civicSystem.MayBeSponsoredForAdmission(civicWorld, nominee, town);
+    private bool MayBeSponsoredForAdmission(string nominee, TownRuntimeState town) => townSystem.MayBeSponsoredForAdmission(civicWorld, nominee, town);
     /// <summary>
     /// A refused or withdrawn request for the same newcomer waits one unpaused
     /// world day unless the council changed, matching the proposal rules, so
     /// the choice is not offered while it would only be refused.
     /// </summary>
-    private bool AdmissionRetryWaits(TownRuntimeState town, string subject) => CivicSystem.AdmissionRetryWaits(civicWorld, town, subject);
+    private bool AdmissionRetryWaits(TownRuntimeState town, string subject) => TownSystem.AdmissionRetryWaits(civicWorld, town, subject);
     /// <summary>
     /// An adult standing in a Town they do not belong to may walk to its notice
     /// place, and so may an adult with no Town from anywhere: Add Agent inside a
     /// border makes a resident, so they usually start outside. Either way the
     /// notice place must be reachable on foot. Walking registers nothing.
     /// </summary>
-    private bool MayVisitAsNewcomer(string actor, TownRuntimeState town) => civicSystem.MayVisitAsNewcomer(civicWorld, actor, town);
+    private bool MayVisitAsNewcomer(string actor, TownRuntimeState town) => townSystem.MayVisitAsNewcomer(civicWorld, actor, town);
     /// <summary>Whether a tile close enough to read the Town's notices is reachable on foot.</summary>
-    private bool CanWalkToCivicBoard(string actor, TownRuntimeState town) => CivicSystem.CanWalkToCivicBoard(civicWorld, actor, town);
-    private bool MayAcceptAdmission(string actor, TownRuntimeState town, TownAdmissionRecord record) => civicSystem.MayAcceptAdmission(civicWorld, actor, town, record);
-    private string AdmissionRequestText(string actor, TownRuntimeState town) => civicSystem.AdmissionRequestText(civicWorld, actor, town);
-    private void AddTownAdmissionCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => civicSystem.AddTownAdmissionCandidates(civicWorld, candidates, actor, town);
-    private void AcceptTownAdmission(string actor, string townId, string proposalId) => civicSystem.AcceptTownAdmission(civicWorld, actor, townId, proposalId);
+    private bool CanWalkToCivicBoard(string actor, TownRuntimeState town) => TownSystem.CanWalkToCivicBoard(civicWorld, actor, town);
+    private bool MayAcceptAdmission(string actor, TownRuntimeState town, TownAdmissionRecord record) => townSystem.MayAcceptAdmission(civicWorld, actor, town, record);
+    private string AdmissionRequestText(string actor, TownRuntimeState town) => townSystem.AdmissionRequestText(civicWorld, actor, town);
+    private void AddTownAdmissionCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => townSystem.AddTownAdmissionCandidates(civicWorld, candidates, actor, town);
+    private void AcceptTownAdmission(string actor, string townId, string proposalId) => townSystem.AcceptTownAdmission(civicWorld, actor, townId, proposalId);
     /// <summary>
     /// Records each newly passed admission once and lapses approvals that no
     /// longer fit. Runs after every saved council decision and roster change,
@@ -55,23 +55,23 @@ public sealed partial class WorldRuntime
     /// approval cannot add a dead or already admitted person or leave anyone in
     /// two Towns, and every saved passed admission has its one outcome record.
     /// </summary>
-    private void SettleTownAdmissions() => civicSystem.SettleTownAdmissions(civicWorld);
-    private bool SettleNextTownAdmission() => civicSystem.SettleNextTownAdmission(civicWorld);
-    private void ApplyTownAdmission(string townId, string proposalId, string subject, TownAdmissionRecord? approved) => civicSystem.ApplyTownAdmission(civicWorld, townId, proposalId, subject, approved);
+    private void SettleTownAdmissions() => townSystem.SettleTownAdmissions(civicWorld);
+    private bool SettleNextTownAdmission() => townSystem.SettleNextTownAdmission(civicWorld);
+    private void ApplyTownAdmission(string townId, string proposalId, string subject, TownAdmissionRecord? approved) => townSystem.ApplyTownAdmission(civicWorld, townId, proposalId, subject, approved);
     /// <summary>
     /// A dependent joining their accepted guardian follows the guardian's recorded
     /// Town membership. The caller has already checked arrival and House capacity.
     /// This changes only rosters; it is not a separate adult admission proposal.
     /// </summary>
-    private bool MoveDependentToGuardianTown(string child, string guardian) => civicSystem.MoveDependentToGuardianTown(civicWorld, child, guardian);
-    private void LapseTownAdmission(string townId, TownAdmissionRecord record, string reason) => civicSystem.LapseTownAdmission(civicWorld, townId, record, reason);
-    private void SetTownAdmission(string townId, TownAdmissionRecord record) => civicSystem.SetTownAdmission(civicWorld, townId, record);
+    private bool MoveDependentToGuardianTown(string child, string guardian) => townSystem.MoveDependentToGuardianTown(civicWorld, child, guardian);
+    private void LapseTownAdmission(string townId, TownAdmissionRecord record, string reason) => townSystem.LapseTownAdmission(civicWorld, townId, record, reason);
+    private void SetTownAdmission(string townId, TownAdmissionRecord record) => townSystem.SetTownAdmission(civicWorld, townId, record);
     /// <summary>The adult and the living dependents they are primary caregiver for who share their current Town (or none).</summary>
-    private string[] TownCareGroup(string adult, string? fromTownId) => civicSystem.TownCareGroup(civicWorld, adult, fromTownId);
-    private string TownName(string townId) => civicSystem.TownName(civicWorld, townId);
+    private string[] TownCareGroup(string adult, string? fromTownId) => townSystem.TownCareGroup(civicWorld, adult, fromTownId);
+    private string TownName(string townId) => townSystem.TownName(civicWorld, townId);
     /// <summary>What this agent's own model is told about their Town: actual membership, rights and the admission they know of.</summary>
-    private string? TownMembershipNote(string actor) => civicSystem.TownMembershipNote(civicWorld, actor);
-    private static void ValidateTownAdmissions(IReadOnlyList<TownRuntimeState> savedTowns, SocietyCheckpoint society, int schemaVersion) => CivicSystem.ValidateTownAdmissions(savedTowns, society, schemaVersion);
+    private string? TownMembershipNote(string actor) => townSystem.TownMembershipNote(civicWorld, actor);
+    private static void ValidateTownAdmissions(IReadOnlyList<TownRuntimeState> savedTowns, SocietyCheckpoint society, int schemaVersion) => TownSystem.ValidateTownAdmissions(savedTowns, society, schemaVersion);
 }
 
 /// <summary>
@@ -103,12 +103,12 @@ public static class TownMembershipText
         ArgumentNullException.ThrowIfNull(towns);
         ArgumentNullException.ThrowIfNull(society);
         ArgumentNullException.ThrowIfNull(townsWithWarehouse);
-        var person = society.Inhabitants.FirstOrDefault(item => item.Id == agentId);
-        if (person is not { Status: SocietyInhabitantStatus.Active }) return null;
+        var person = society.Agents.FirstOrDefault(item => item.Id == agentId);
+        if (person is not { Status: SocietyAgentStatus.Active }) return null;
         knows ??= (_, _, _) => true;
         var adult = person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
         var home = towns.SingleOrDefault(town => town.ResidentIds.Contains(agentId, StringComparer.Ordinal));
-        var council = home?.Governance?.Form switch
+        var council = home?.Council?.Form switch
         {
             "representative" => "vote in its council elections",
             "leader" => "vote in its mayoral elections",
@@ -143,7 +143,7 @@ public static class TownMembershipText
     {
         ArgumentNullException.ThrowIfNull(towns);
         ArgumentNullException.ThrowIfNull(society);
-        if (!society.Inhabitants.Any(person => person.Id == agentId && person.Status == SocietyInhabitantStatus.Active &&
+        if (!society.Agents.Any(person => person.Id == agentId && person.Status == SocietyAgentStatus.Active &&
                 person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)) return null;
         knows ??= (_, _, _) => true;
         return KnownPendingAdmission(towns, agentId, knows) is not null ? null :
@@ -154,7 +154,7 @@ public static class TownMembershipText
         IReadOnlyList<TownRuntimeState> towns, string agentId, Func<TownRuntimeState, string, string, bool> knows)
     {
         foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
-            if (town.Governance?.Proposals.FirstOrDefault(proposal => proposal.Kind == "admission" &&
+            if (town.Council?.Proposals.FirstOrDefault(proposal => proposal.Kind == "admission" &&
                     proposal.SubjectId == agentId && proposal.Status == "pending") is { } pending && knows(town, "proposal", pending.Id))
                 return (town, pending);
         return null;
@@ -166,7 +166,7 @@ public static class TownMembershipText
         foreach (var town in towns.OrderBy(item => item.Id, StringComparer.Ordinal))
             if (town.Admissions?.LastOrDefault(record => record.SubjectId == agentId &&
                     record.Status == WorldRuntime.AdmissionApproved) is { } approved && knows(town, "result", approved.ProposalId) &&
-                town.Governance?.Proposals.SingleOrDefault(proposal => proposal.Id == approved.ProposalId) is { } proposal &&
+                town.Council?.Proposals.SingleOrDefault(proposal => proposal.Id == approved.ProposalId) is { } proposal &&
                 TownAdmissionDeadlineRules.IsOpen(proposal, worldTick, ticksPerDay) &&
                 TownAdmissionDeadlineRules.AcceptanceDeadline(proposal, ticksPerDay) is { } deadline)
                 return (town, deadline);
@@ -188,9 +188,9 @@ public static class TownMembershipText
             if (town.Id != homeId && town.Admissions?.LastOrDefault(record => record.SubjectId == agentId) is { } record &&
                 (record.Status == WorldRuntime.AdmissionApproved || record.Status == WorldRuntime.AdmissionLapsed && record.Reason == "acceptance_expired") &&
                 knows(town, "result", record.ProposalId) && TownAdmissionDeadlineRules.IsExpired(
-                    town.Governance?.Proposals.SingleOrDefault(proposal => proposal.Id == record.ProposalId), worldTick, day))
+                    town.Council?.Proposals.SingleOrDefault(proposal => proposal.Id == record.ProposalId), worldTick, day))
                 return $"{town.Name}'s admission approval expired without acceptance; ask again";
-        var closed = towns.Where(town => town.Id != homeId).SelectMany(town => (town.Governance?.Proposals ?? [])
+        var closed = towns.Where(town => town.Id != homeId).SelectMany(town => (town.Council?.Proposals ?? [])
                 .Where(proposal => proposal.Kind == "admission" && proposal.SubjectId == agentId &&
                     proposal.Status is "rejected" or "cancelled" && worldTick - proposal.SettledTick < day &&
                     // A refusal is posted as the proposal's result; a cancellation as the next council notice.

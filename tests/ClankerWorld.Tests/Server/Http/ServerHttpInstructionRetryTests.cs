@@ -26,7 +26,7 @@ public sealed partial class ServerHttpTests
             using (var client = host.CreateClient())
             {
                 deviceId = (await StartAndActivateAsync(host, client, key)).DeviceId;
-                action = new OwnerInstructionAction(idempotencyKey, "founder-mira", "suggestive", "wait safely",
+                action = new OwnerInstructionAction(idempotencyKey, "founder-mira", "suggestion", "wait safely",
                     host.Services.GetRequiredService<WorldRuntime>().Society.WorldId);
                 using var accepted = await SendSignedAsync(host, client, key, deviceId, path, action,
                     OwnerHttpBinding.InstructionPayload(action));

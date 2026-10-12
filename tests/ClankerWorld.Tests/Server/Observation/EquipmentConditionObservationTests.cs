@@ -23,7 +23,7 @@ public sealed class EquipmentConditionObservationTests
         using var original = new WorldRuntime("equipment-condition-proof");
         original.Pause();
         var state = original.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "condition-sack", "sack", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "condition-clothing", "clothing", actor, 1);
@@ -35,7 +35,7 @@ public sealed class EquipmentConditionObservationTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Equipment = new PersonalEquipment("condition-clothing", "condition-sack") }
                 : person).ToArray(),
         };
@@ -43,7 +43,7 @@ public sealed class EquipmentConditionObservationTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
 
         var snapshot = new OwnerWorldObservationStore(restored).GetSnapshot();
-        var equipment = snapshot.Inhabitants.Single(person => person.Id == actor).Equipment!;
+        var equipment = snapshot.Agents.Single(person => person.Id == actor).Equipment!;
 
         Assert.Equal("clothing", equipment.ClothingKind);
         Assert.Equal("sack", equipment.CarryAidKind);
@@ -57,7 +57,7 @@ public sealed class EquipmentConditionObservationTests
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         var client = JsonSerializer.Deserialize<Client.OwnerWorldSnapshot>(
             JsonSerializer.Serialize(snapshot, options), options)!;
-        var displayed = client.Inhabitants.Single(person => person.Id == actor).Equipment!;
+        var displayed = client.Agents.Single(person => person.Id == actor).Equipment!;
         Assert.Equal(shownPercent, displayed.ClothingConditionPercent);
         Assert.Equal(shownPercent, displayed.CarryAidConditionPercent);
         Assert.Equal(capacity, displayed.Capacity);

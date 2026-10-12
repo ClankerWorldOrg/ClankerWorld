@@ -98,15 +98,15 @@ internal static partial class TownTelemetry
     private static partial void LogLandTransfer(ILogger logger, long worldTick, string townId, string transferId,
         TownLandTransferTransitionKind transition, string status, int parties, int responses, int tiles);
 
-    public static void SiteRejected(ILogger logger, long worldTick, string townId, string inhabitantId,
+    public static void SiteRejected(ILogger logger, long worldTick, string townId, string agentId,
         string buildingId, int x, int y, string reason)
     {
-        LogTownSiteRejected(logger, worldTick, townId, inhabitantId, buildingId, x, y, reason);
+        LogTownSiteRejected(logger, worldTick, townId, agentId, buildingId, x, y, reason);
     }
 
     [LoggerMessage(EventId = 2266, Level = LogLevel.Information,
-        Message = "town_site_rejected tick={WorldTick} town={TownId} inhabitant={InhabitantId} building={BuildingId} x={X} y={Y} reason={Reason}")]
-    private static partial void LogTownSiteRejected(ILogger logger, long worldTick, string townId, string inhabitantId,
+        Message = "town_site_rejected tick={WorldTick} town={TownId} agent={AgentId} building={BuildingId} x={X} y={Y} reason={Reason}")]
+    private static partial void LogTownSiteRejected(ILogger logger, long worldTick, string townId, string agentId,
         string buildingId, int x, int y, string reason);
 
     public static void LayoutAccepted(ILogger logger, long worldTick, string outcome, int x, int y,

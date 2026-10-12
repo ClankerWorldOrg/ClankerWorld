@@ -47,7 +47,7 @@ public sealed class WorldToolRepairOrderTests
         Assert.Equal(actor, world.Society.Inventory.GetLot("target").OwnerId);
         foreach (var input in ToolProgressionRules.RepairMaterials(kind)) Assert.Equal(1, Quantity(world, actor, input.ResourceId));
         Assert.Single(world.ExportState().Events, item => item.Kind == "tool_repaired");
-        Assert.Equal(kind, Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions).Order!.TargetEquipmentKind);
+        Assert.Equal(kind, Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions).Task!.TargetEquipmentKind);
         world.Validate();
     }
 
@@ -179,7 +179,7 @@ public sealed class WorldToolRepairOrderTests
         Assert.Equal(0, Quantity(resumed, actor, "wood"));
         Assert.Equal(0, Quantity(resumed, Household(state), "wood"));
         Assert.Equal(state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith").Position,
-            resumed.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+            resumed.Agents.Single(person => person.AgentId == actor).Position);
     }
 
     [Theory]
@@ -245,7 +245,7 @@ public sealed class WorldToolRepairOrderTests
         var actor = Actor(state);
         var inventory = AddMaterials(AddTool(state.Society.Society.Inventory, actor, "target", "iron_knife"), actor, "iron_knife", 1);
         inventory = InventoryAuthority.AddLot(inventory, "survival-food", "berries", actor, 1);
-        state = WithInventory(state, inventory) with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { HungerBasisPoints = 1_000 } : person).ToArray() };
+        state = WithInventory(state, inventory) with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { FullnessBasisPoints = 1_000 } : person).ToArray() };
         using var world = Restore(state);
         var receipt = Submit(world, actor, "survival", "repair iron knife");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -296,7 +296,7 @@ public sealed class WorldToolRepairOrderTests
             order with { TargetResourceId = "tree" }, order with { ProgressUnit = "material_items" },
             order with { CompletedUnits = 2 }, order with { LastEffectId = "repair:equipment:wrong" },
         })
-            Assert.Throws<InvalidDataException>(() => Restore(saved with { Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Order = invalid } : item).ToArray() }));
+            Assert.Throws<InvalidDataException>(() => Restore(saved with { Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
         Assert.Throws<InvalidDataException>(() => Restore(saved with { SchemaVersion = 73 }));
     }
 
@@ -329,7 +329,7 @@ public sealed class WorldToolRepairOrderTests
                 }
             },
             Resources = state.Resources.Select(resource => resource with { State = resource.ResourceId == tree.Id && gather ? ResourceState.Available : ResourceState.Depleted }).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = house.Position, Equipment = new(CarryAidLotId: "basket") } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -376,7 +376,7 @@ public sealed class WorldToolRepairOrderTests
             },
             Resources = state.Resources.Select(resource => resource with
             { State = resource.ResourceId == tree.Id ? ResourceState.Available : ResourceState.Depleted }).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = tree.Position } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -410,7 +410,7 @@ public sealed class WorldToolRepairOrderTests
             storageBuildingId: house.InstanceId);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = house.Position } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -446,7 +446,7 @@ public sealed class WorldToolRepairOrderTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -457,7 +457,7 @@ public sealed class WorldToolRepairOrderTests
                 }
             },
             Towns = state.Towns!.Select(town => town with
-            { Governance = TownGovernanceState.Create(town.ResidentIds.Where(id => id != actor && checkpoint.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)) }).ToArray(),
+            { Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != actor && checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)) }).ToArray(),
         };
         using var world = Restore(WithInventory(state, AddMaterials(AddTool(state.Society.Society.Inventory, actor, "target", "iron_knife"), actor, "iron_knife", 1)));
         var receipt = Submit(world, actor, "child", "repair iron knife");
@@ -488,7 +488,7 @@ public sealed class WorldToolRepairOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "shared-stone", "stone", household, 1, storageBuildingId: house.InstanceId);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = house.Position } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -532,7 +532,7 @@ public sealed class WorldToolRepairOrderTests
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House(state));
         var inventory = AddTool(state.Society.Society.Inventory, actor, "target", "wooden_axe");
         inventory = InventoryAuthority.AddLot(inventory, "shared-wood", "wood", Household(state), 1, storageBuildingId: house.InstanceId);
-        return WithInventory(state, inventory) with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = house.Position } : person).ToArray() };
+        return WithInventory(state, inventory) with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = house.Position } : person).ToArray() };
     }
 
     private static WorldRuntimeState Prepared()
@@ -543,19 +543,19 @@ public sealed class WorldToolRepairOrderTests
         return WithInventory(state, state.Society.Society.Inventory with { Lots = [], Reservations = [] }) with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? smith.Position : person.Position,
+                Position = person.AgentId == actor ? smith.Position : person.Position,
                 Equipment = null,
                 Project = null,
                 Survival = new(),
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
         };
     }
     private static string Household(WorldRuntimeState state) => state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith").HouseholdId!;
-    private static string Actor(WorldRuntimeState state) => state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household(state) && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
+    private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Household(state) && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
     private static string House(WorldRuntimeState state) => state.WorldSimulation!.Buildings.First(building => building.HouseholdId == Household(state) && building.InstanceId.StartsWith("first-town-house", StringComparison.Ordinal)).InstanceId;
     private static InventoryCheckpoint AddTool(InventoryCheckpoint inventory, string actor, string id, string kind, int quantity = 1) => InventoryAuthority.AddLot(inventory, id, kind, actor, quantity, conditionBasisPoints: 3_000);
     private static InventoryCheckpoint AddMaterials(InventoryCheckpoint inventory, string actor, string kind, int quantity)
@@ -565,8 +565,8 @@ public sealed class WorldToolRepairOrderTests
     }
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) => state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new RepairChoices());
-    private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) => world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text, Queue: queue));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+    private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) => world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) => world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static int Quantity(WorldRuntime world, string actor, string kind) => world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == kind).Sum(lot => lot.Quantity);
     private static async Task Finish(WorldRuntime world, OwnerInstructionReceipt receipt, int maximum = 10)
     {
@@ -593,7 +593,7 @@ public sealed class WorldToolRepairOrderTests
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -611,7 +611,7 @@ public sealed class WorldToolRepairOrderTests
                 Returned.TrySetResult(true);
             }
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "repair_tool") ? "repair_tool" : "safe_idle";
-            return new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

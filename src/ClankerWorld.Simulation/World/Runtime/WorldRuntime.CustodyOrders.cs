@@ -17,7 +17,7 @@ public sealed partial class WorldRuntime
 
     private PlacedBuilding? CustodyOrderHouse(OwnerQueuedInstruction instruction, string? ownerId)
     {
-        var order = instruction.Order!;
+        var order = instruction.Task!;
         if (ownerId is null || HouseForHousehold(ownerId) is not { } house ||
             order.TargetPosition is { } requested && house.Position != requested) return null;
         if (order.TargetStorageBuildingId is not null &&
@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
         string? lotId = null)
     {
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        var order = current.Order!;
+        var order = current.Task!;
         if (order.TargetStorageBuildingId is null)
             order = order with
             {
@@ -39,21 +39,21 @@ public sealed partial class WorldRuntime
                 TargetStoragePosition = house.Position,
             };
         if (lotId is not null) order = order with { TargetLotId = lotId };
-        current = current with { Order = order };
+        current = current with { Task = order };
         instructionsByIdempotency[current.IdempotencyKey] = current;
         checkpointSchemaVersion = StateSchemaVersion;
         return current;
     }
 
     private IEnumerable<InventoryLot> ReturnOrderGoods(OwnerQueuedInstruction instruction) =>
-        ReturnableBorrowedGoods(instruction.TargetInhabitantId).Where(lot =>
-            lot.ItemKind == instruction.Order!.TargetItemKind &&
-            (instruction.Order.TargetLotId is null || lot.Id == instruction.Order.TargetLotId) &&
-            (instruction.Order.TargetStorageOwnerId is null || lot.OwnerId == instruction.Order.TargetStorageOwnerId));
+        ReturnableBorrowedGoods(instruction.TargetAgentId).Where(lot =>
+            lot.ItemKind == instruction.Task!.TargetItemKind &&
+            (instruction.Task.TargetLotId is null || lot.Id == instruction.Task.TargetLotId) &&
+            (instruction.Task.TargetStorageOwnerId is null || lot.OwnerId == instruction.Task.TargetStorageOwnerId));
 
-    private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? ReturnOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (!ReadyForBriefInteraction(actor)) return null;
         foreach (var lot in ReturnOrderGoods(instruction).OrderBy(lot => lot.Id, StringComparer.Ordinal))
         {
@@ -66,7 +66,7 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteReturnOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         var candidate = ReturnOrderCandidateFor(instruction, person);
         if (candidate?.DestinationId is not { } lotId)
@@ -77,22 +77,22 @@ public sealed partial class WorldRuntime
         var lot = ReturnOrderGoods(instruction).Single(item => item.Id == lotId);
         var house = CustodyOrderHouse(instruction, lot.OwnerId)!;
         instruction = BindCustodyOrder(instruction, house, lotId);
-        var order = instruction.Order!;
+        var order = instruction.Task!;
         var remaining = order.QuantityIsExplicit && !order.RepeatUntilCancelled
             ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
-        if (ReturnBorrowedGoods(instruction.TargetInhabitantId, lotId, remaining,
+        if (ReturnBorrowedGoods(instruction.TargetAgentId, lotId, remaining,
                 order.TargetStorageBuildingId, order.TargetStorageOwnerId, order.TargetStoragePosition) is not { } effect) return;
         var receipt = BorrowedReturnReceipt(effect.MoveId);
         CreditOrderEffect(instruction, receipt, order.ProgressUnit == "return_loads" ? 1 : effect.Quantity);
         // Another load may use another lot, but it must keep the original owner and House.
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        instructionsByIdempotency[instruction.IdempotencyKey] = current with { Order = current.Order! with { TargetLotId = null } };
+        instructionsByIdempotency[instruction.IdempotencyKey] = current with { Task = current.Task! with { TargetLotId = null } };
     }
 
-    private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string ReturnOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
-        var order = instruction.Order!;
+        var actor = instruction.TargetAgentId;
+        var order = instruction.Task!;
         if (!AgePermitsCandidate(actor, order.Action)) return "This agent is too young to return borrowed goods.";
         if (order.TargetStorageOwnerId is { } owner && CustodyOrderHouse(instruction, owner) is null)
             return "The selected return House moved, changed owner or is no longer available; the order keeps its original destination.";
@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime
         // Removal, reassignment and expansion are legitimate world changes. They
         // block the saved destination at execution time rather than corrupting it.
         foreach (var instruction in instructions)
-            if (instruction.Order is
+            if (instruction.Task is
                 {
                     Action: "store_material" or "store_equipment" or "store_goods" or "return_borrowed",
                     TargetStorageOwnerId: { } owner

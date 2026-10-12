@@ -44,7 +44,7 @@ public partial class Main
                     Towns = [new("keyboard-town", "Keyboard Town", "founded", 0, [], [], [new(0, 0)])],
                 };
                 var observation = new OwnerWorldReconnect(new OwnerWorldHandshake(new(1, 1),
-                    ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1"], []), new(snapshot, new(0, 0, [])));
                 if (!observationSession.TryAccept(observation, 0, out var failure))
                     throw new InvalidOperationException($"Placement baseline was refused: {failure}.");

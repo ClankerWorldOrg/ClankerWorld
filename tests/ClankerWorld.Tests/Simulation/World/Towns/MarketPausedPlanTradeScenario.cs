@@ -15,9 +15,9 @@ internal static class MarketPausedPlanTradeScenario
         const string alpha = "household:camp-alpha";
         const string beta = "household:camp-beta";
         var society = paidBoundary.Society.Society;
-        var seller = society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var seller = society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId == alpha && person.AgeBand == SocietyAgeBand.Adult).Id;
-        var buyer = society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var buyer = society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.HouseholdId == beta && person.AgeBand == SocietyAgeBand.Adult).Id;
         var market = Assert.Single(paidBoundary.Towns![0].Markets);
         Assert.Equal("completed", Assert.Single(paidBoundary.Towns[0].Projects, project => project.Id == market.ProjectId).Stage);
@@ -38,7 +38,7 @@ internal static class MarketPausedPlanTradeScenario
         // Near-event arrangement only: the recipe and both Houses are real, while
         // this valid paused/no-job plan and sale/payment/equipment stock are controlled.
         // The existing expired-project tests prove emergence of the pause itself.
-        var paused = new SettlementProject("build:recipe:" + recipe.CanonicalId, recipe.DisplayName,
+        var paused = new AgentProject("build:recipe:" + recipe.CanonicalId, recipe.DisplayName,
             society.WorldTick, "paused", 4, "Materials for this work are unavailable. Choose another task for now.",
             LastTransitionTick: society.WorldTick, RequiresFreshChoice: true);
         var inventory = InventoryAuthority.AddLot(society.Inventory, "paused-plan-alpha-cloth", "cloth", alpha, 1,
@@ -53,17 +53,17 @@ internal static class MarketPausedPlanTradeScenario
         var initial = paidBoundary with
         {
             Society = paidBoundary.Society with { Society = society with { Inventory = inventory } },
-            Inhabitants = paidBoundary.Inhabitants.Select(person => person.InhabitantId == seller || person.InhabitantId == buyer
+            Agents = paidBoundary.Agents.Select(person => person.AgentId == seller || person.AgentId == buyer
                 ? person with
                 {
-                    HungerBasisPoints = 9_500,
+                    FullnessBasisPoints = 9_500,
                     Survival = new SurvivalCondition(),
                     LastDecisionContext = null,
-                    Project = person.InhabitantId == buyer ? paused : person.Project,
+                    Project = person.AgentId == buyer ? paused : person.Project,
                     Equipment = (person.Equipment ?? new PersonalEquipment()) with
                     {
-                        ClothingLotId = "paused-plan-cloak:" + person.InhabitantId,
-                        CarryAidLotId = "paused-plan-sack:" + person.InhabitantId,
+                        ClothingLotId = "paused-plan-cloak:" + person.AgentId,
+                        CarryAidLotId = "paused-plan-sack:" + person.AgentId,
                     },
                 }
                 : person).ToArray(),
@@ -112,7 +112,7 @@ internal static class MarketPausedPlanTradeScenario
             Assert.Equal(trade.PaymentKind, offeredPayment.ItemKind);
             Assert.True(PersonalEquipmentRules.IsCarried(offeredPayment, buyer));
             Assert.True(MarketTradeRules.IsLoose(offeredPayment));
-            Assert.False(PersonalEquipmentRules.IsSelected(offering.Inhabitants.Single(person => person.InhabitantId == buyer).Equipment,
+            Assert.False(PersonalEquipmentRules.IsSelected(offering.Agents.Single(person => person.AgentId == buyer).Equipment,
                 offeredPayment.Id));
             Assert.Equal(3, InventoryRules.UsableQuantity(InventoryIndex.For(offering.Society.Inventory), offering.Society.Inventory.GetLot(receipt.LotId)));
             clothBefore = Quantity(offering, "cloth");
@@ -152,13 +152,13 @@ internal static class MarketPausedPlanTradeScenario
         {
             // A controlled provider phase change is not a production wake event.
             // Clear only its observation context after a completed phase; never alter travel.
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == policy.Seller || person.InhabitantId == policy.Buyer
+            Agents = state.Agents.Select(person => person.AgentId == policy.Seller || person.AgentId == policy.Buyer
                 ? person with { LastDecisionContext = null } : person).ToArray(),
         }, policy.CreateProvider);
 
-    private static WorldRuntimeState AssertReplay(WorldRuntime world, string buyer, SettlementProject paused, string recipeId)
+    private static WorldRuntimeState AssertReplay(WorldRuntime world, string buyer, AgentProject paused, string recipeId)
     {
-        Assert.Equal(paused, world.Inhabitants.Single(person => person.InhabitantId == buyer).Project);
+        Assert.Equal(paused, world.Agents.Single(person => person.AgentId == buyer).Project);
         Assert.DoesNotContain(world.WorldSimulation.ProductionJobs, job => job.WorkerId == buyer && job.RecipeId == recipeId);
         world.Validate();
         MarketObservationTests.AssertProjection(world);
@@ -166,7 +166,7 @@ internal static class MarketPausedPlanTradeScenario
         var decoded = WorldRuntimeCodec.Decode(encoded);
         Assert.Equal(encoded, WorldRuntimeCodec.Encode(decoded));
         using var restored = WorldRuntime.Restore(decoded);
-        Assert.Equal(paused, restored.Inhabitants.Single(person => person.InhabitantId == buyer).Project);
+        Assert.Equal(paused, restored.Agents.Single(person => person.AgentId == buyer).Project);
         restored.Validate();
         return decoded;
     }
@@ -174,12 +174,12 @@ internal static class MarketPausedPlanTradeScenario
     private static int Quantity(WorldRuntime world, string kind) => world.Society.Inventory.Lots
         .Where(lot => lot.ItemKind == kind).Sum(lot => lot.Quantity);
 
-    private static async Task UntilAsync(WorldRuntime world, Policy policy, SettlementProject paused, Func<bool> reached)
+    private static async Task UntilAsync(WorldRuntime world, Policy policy, AgentProject paused, Func<bool> reached)
     {
         for (var step = 0; step < 160 && !reached(); step++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(paused, world.Inhabitants.Single(person => person.InhabitantId == policy.Buyer).Project);
+            Assert.Equal(paused, world.Agents.Single(person => person.AgentId == policy.Buyer).Project);
         }
         Assert.True(reached(), $"Paused Market phase {policy.Mode} did not finish at tick {world.WorldTick}; chosen: " +
             JsonSerializer.Serialize(policy.Chosen.TakeLast(12).Select(item => new { item.Actor, item.Id, item.Tick })));

@@ -37,7 +37,7 @@ public sealed class UnreachableMaterialMemoryTests
         var policy = IdlePolicy();
         using var world = WorldRuntime.Restore(state, policy.CreateProvider);
         var receipt = world.SubmitInstruction(new("island-gather", "owner:test", Actor,
-            OwnerInstructionKind.MustDo, memory == "explicit-remote" ? "gather fiber from " + remote.Id : "gather fiber"));
+            OwnerInstructionKind.Order, memory == "explicit-remote" ? "gather fiber from " + remote.Id : "gather fiber"));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -49,13 +49,13 @@ public sealed class UnreachableMaterialMemoryTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         var result = world.ExportState();
-        var order = result.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = result.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         var explored = result.Events.Any(item => item.Kind == "exploration_started" && item.Detail.StartsWith(Actor + ":", StringComparison.Ordinal));
         if (memory == "explicit-remote")
         {
             Assert.False(explored);
             Assert.Equal(("blocked", 0, remote.Id), (order.Status, order.CompletedUnits, order.TargetResourceId));
-            Assert.Equal(Origin, result.Inhabitants.Single(person => person.InhabitantId == Actor).Position);
+            Assert.Equal(Origin, result.Agents.Single(person => person.AgentId == Actor).Position);
         }
         else if (memory == "local")
         {
@@ -86,16 +86,16 @@ public sealed class UnreachableMaterialMemoryTests
         inventory = InventoryAuthority.AddLot(inventory, "island-material-cloak", "rain_cloak", Actor, 1);
         state = PaidMarketWorld.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == Actor ? Origin : person.Position,
-                HungerBasisPoints = 9_500,
+                Position = person.AgentId == Actor ? Origin : person.Position,
+                FullnessBasisPoints = 9_500,
                 Survival = new SurvivalCondition(),
                 Project = null,
                 Exploration = null,
                 TravelCooldownTicks = 0,
                 LastDecisionContext = null,
-                Equipment = person.InhabitantId == Actor ? new("island-material-cloak", "island-material-basket") : person.Equipment,
+                Equipment = person.AgentId == Actor ? new("island-material-cloak", "island-material-basket") : person.Equipment,
             }).ToArray(),
         };
         return WorldRuntimeCodec.Encode(state);

@@ -13,7 +13,7 @@ public partial class Main
     {
         if (renderedMapSnapshot is not { } shown || terrainMap is null)
             throw new InvalidOperationException("The map panel checks need a world on screen.");
-        var snapshot = shown with { Inhabitants = [PanelSmokeAgent("map-smoke-mira", "Mira", new OwnerWorldPosition(1, 1))] };
+        var snapshot = shown with { Agents = [PanelSmokeAgent("map-smoke-mira", "Mira", new OwnerWorldPosition(1, 1))] };
         RenderMap(snapshot);
         try
         {

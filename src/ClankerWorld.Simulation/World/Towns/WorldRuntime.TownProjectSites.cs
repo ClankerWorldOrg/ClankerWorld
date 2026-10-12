@@ -14,7 +14,7 @@ public sealed partial class WorldRuntime
 
     // Proposed project sites, so a second proposal or a household request cannot overlap one while its vote is open.
     private HashSet<GridPoint> PendingTownProjectSiteTiles() => towns
-        .SelectMany(town => town.Governance?.Proposals ?? [])
+        .SelectMany(town => town.Council?.Proposals ?? [])
         .Where(proposal => proposal is { Kind: "project", Status: "pending", Project: { BoatPortId: null } })
         .SelectMany(proposal => TownProjectRules.Footprint(proposal.Project!).Append(proposal.Project!.Entrance)
             .Concat(proposal.Project!.BoatPortId is null && TownProjectRules.DefinitionFor(proposal.Project.DefinitionId) is { } definition &&
@@ -89,7 +89,7 @@ public sealed partial class WorldRuntime
         // expansions and protected project sites that can block a doorway.
         if (!map.IsBuildable(plan.Entrance) || occupied.Contains(plan.Entrance))
             return "The approved building's doorway is blocked.";
-        if (actor is not null && inhabitants.TryGetValue(actor, out var person) &&
+        if (actor is not null && agents.TryGetValue(actor, out var person) &&
             person.Position != plan.Site && FindUnoccupiedRoute(actor, person.Position, plan.Site, 0).Count == 0)
             return "No usable foot route reaches the approved construction site.";
         return null;
@@ -155,7 +155,7 @@ public sealed partial class WorldRuntime
         return standing.Length > 0 &&
             standing.All(stall => market.Occupancies.Any(occupancy => occupancy.StallBuildingId == stall.BuildingId && occupancy.EndedTick is null)) &&
             !town.Projects.Any(project => IsLiveTownProject(project) && project.Plan.DefinitionId == stallId && slots.Contains(project.Plan.Site)) &&
-            !(town.Governance?.Proposals ?? []).Any(proposal => proposal is { Kind: "project", Status: "pending", Project: not null } &&
+            !(town.Council?.Proposals ?? []).Any(proposal => proposal is { Kind: "project", Status: "pending", Project: not null } &&
                 proposal.Project.DefinitionId == stallId && slots.Contains(proposal.Project.Site));
     }
 

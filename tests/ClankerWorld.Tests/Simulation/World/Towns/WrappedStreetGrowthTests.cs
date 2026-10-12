@@ -92,7 +92,7 @@ public sealed class WrappedStreetGrowthTests
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default) => ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, request.ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, request.ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }));
     }

@@ -24,7 +24,7 @@ public static partial class HandcartTelemetry
     }
 
     [LoggerMessage(EventId = 2260, Level = LogLevel.Information,
-        Message = "handcart_activity tick={WorldTick} event={EventKind} inhabitant={InhabitantId} cart={CartId} condition={ConditionPercent} cargo={CargoQuantity}")]
+        Message = "handcart_activity tick={WorldTick} event={EventKind} agent={AgentId} cart={CartId} condition={ConditionPercent} cargo={CargoQuantity}")]
     private static partial void LogMilestone(ILogger logger, long worldTick, string eventKind,
-        string inhabitantId, string cartId, int conditionPercent, int cargoQuantity);
+        string agentId, string cartId, int conditionPercent, int cargoQuantity);
 }

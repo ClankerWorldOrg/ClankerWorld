@@ -344,7 +344,7 @@ public static class GameUiText
             "field_prepared" or "field_planted" or "field_harvested" or
             "field_ready" or "field_work_interrupted" or "field_returned_to_grass" or "crop_weather_loss" or
             "crop_moisture_effect" or "tree_planted" or "tree_replanted" or "child_born" or
-            "inhabitant_removed" or "estate_will_accepted" or "estate_will_default" or
+            "agent_removed" or "estate_will_accepted" or "estate_will_default" or
             "partnership_accepted" or "partnership_ended" or "caregiver_assigned" or
             "guardian_needed" or "guardian_assigned" or "guardian_placement_pending" or
             "guardian_placement_completed" or "guardian_placement_cancelled" or
@@ -353,8 +353,8 @@ public static class GameUiText
             "medical_treatment_started" or "medical_treatment_completed" or "medical_treatment_interrupted" or
             "child_collected_household" or "child_delivered_household" or
             "empty_vessel_picked_up" or
-            "council_policy_adopted" or "settlement_trade_completed" or
-            "business_trade_offered" or "business_trade_completed" or "business_trade_cancelled" or
+            "food_policy_adopted" or "barter_completed" or
+            "shop_trade_offered" or "shop_trade_completed" or "shop_trade_cancelled" or
             "store_stock_delivered" or "household_delivery_recovered" or
             "owner_stock_delivered" or
             "agent_recipe_learned" or "agent_knowledge_artifact_created" or "agent_knowledge_artifact_read" or "agent_knowledge_shared" or
@@ -362,7 +362,7 @@ public static class GameUiText
             "tool_request_placed" or "tool_request_accepted" or "tool_request_refused" or "tool_request_withdrawn" or
             "tool_request_ready" or "tool_request_completed" or "tool_request_interrupted" or
             "ornament_worn" or "ornament_removed" or "ornament_given" or
-            "inhabitant_building_proposed" or "instruction_not_understood" or "town_founding_started" or
+            "agent_building_proposed" or "instruction_not_understood" or "town_founding_started" or
             "town_civic_council" or "town_civic_election" or "town_civic_runoff" or "town_civic_proposal" or "town_civic_result" or "town_civic_cancelled" or
             "town_civic_law" or "town_civic_government" or "town_civic_mayor" or
             "town_project_approved" or "town_project_blocked" or "town_project_resumed" or "town_project_cancelled" or
@@ -398,7 +398,7 @@ public static class GameUiText
     public static string PartyName(OwnerWorldSnapshot? snapshot, string id)
     {
         ArgumentNullException.ThrowIfNull(id);
-        return snapshot?.Inhabitants.FirstOrDefault(person => person.Id == id)?.DisplayName
+        return snapshot?.Agents.FirstOrDefault(person => person.Id == id)?.DisplayName
             ?? snapshot?.Stockpiles.FirstOrDefault(stockpile => stockpile.OwnerId == id)?.Name
             ?? snapshot?.Towns.FirstOrDefault(town => town.Id == id)?.Name
             ?? (id.StartsWith("household:", StringComparison.Ordinal) ? "a household" : HumanizeIdentifier(id));
@@ -615,10 +615,10 @@ public static class GameUiText
                 "ballot" or "single" => "cast a council election ballot",
                 _ => "take part in Town affairs",
             };
-        if (normalized.StartsWith("council_", StringComparison.Ordinal))
+        if (normalized.StartsWith("food_policy_", StringComparison.Ordinal))
         {
-            return normalized.StartsWith("council_propose:", StringComparison.Ordinal) ? "suggest a food rule"
-                : normalized == "council_vote_yes" ? "vote for a food rule" : "vote against a food rule";
+            return normalized.StartsWith("food_policy_propose:", StringComparison.Ordinal) ? "suggest a food rule"
+                : normalized == "food_policy_vote_yes" ? "vote for a food rule" : "vote against a food rule";
         }
         if (normalized.StartsWith("trade_", StringComparison.Ordinal))
         {

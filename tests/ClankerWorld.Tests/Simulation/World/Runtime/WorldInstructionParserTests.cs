@@ -4,7 +4,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class WorldInstructionParserTests
 {
-    private const string TargetInhabitant = "founder-ilya";
+    private const string TargetAgent = "founder-ilya";
 
     [Theory]
     [InlineData("gather fruit not berries")]
@@ -29,17 +29,17 @@ public sealed class WorldInstructionParserTests
         using var world = new WorldRuntime("strict-order-parse");
 
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest(
-            "strict-unknown", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo, text));
+            "strict-unknown", "owner:test", TargetAgent, OwnerInstructionKind.Order, text));
 
         var state = world.ExportState();
         var instruction = Assert.Single(state.Instructions!, item => item.InstructionId == receipt.InstructionId);
         Assert.Equal(text, instruction.Text);
         Assert.Equal("strict-unknown", instruction.IdempotencyKey);
-        Assert.Equal("unknown", instruction.Order!.Action);
-        Assert.Equal("not_understood", instruction.Order.Status);
+        Assert.Equal("unknown", instruction.Task!.Action);
+        Assert.Equal("not_understood", instruction.Task.Status);
         Assert.Contains(receipt.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.Contains(state.Events, item => item.Kind == "instruction_not_understood" &&
-            item.Detail == $"{TargetInhabitant}:{receipt.InstructionId}");
+            item.Detail == $"{TargetAgent}:{receipt.InstructionId}");
         world.Validate();
     }
 
@@ -50,26 +50,26 @@ public sealed class WorldInstructionParserTests
     {
         using var world = new WorldRuntime($"unknown-does-not-replace-{queueUnknown}");
         var current = world.SubmitInstruction(new OwnerInstructionRequest(
-            "recognized-current", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo, "gather berries"));
+            "recognized-current", "owner:test", TargetAgent, OwnerInstructionKind.Order, "gather berries"));
         var queued = world.SubmitInstruction(new OwnerInstructionRequest(
-            "recognized-queued", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo,
+            "recognized-queued", "owner:test", TargetAgent, OwnerInstructionKind.Order,
             "eat berries", Queue: true));
 
         var unknown = world.SubmitInstruction(new OwnerInstructionRequest(
-            $"unknown-{queueUnknown}", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo,
+            $"unknown-{queueUnknown}", "owner:test", TargetAgent, OwnerInstructionKind.Order,
             "gather fruit not berries", Queue: queueUnknown));
 
         var state = world.ExportState();
         var savedCurrent = Assert.Single(state.Instructions!, item => item.InstructionId == current.InstructionId);
         var savedQueued = Assert.Single(state.Instructions!, item => item.InstructionId == queued.InstructionId);
         var savedUnknown = Assert.Single(state.Instructions!, item => item.InstructionId == unknown.InstructionId);
-        Assert.Equal("waiting", savedCurrent.Order!.Status);
-        Assert.Equal("queued", savedQueued.Order!.Status);
+        Assert.Equal("waiting", savedCurrent.Task!.Status);
+        Assert.Equal("queued", savedQueued.Task!.Status);
         Assert.DoesNotContain(current.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(queued.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.Equal("gather fruit not berries", savedUnknown.Text);
         Assert.Equal($"unknown-{queueUnknown}", savedUnknown.IdempotencyKey);
-        Assert.Equal("not_understood", savedUnknown.Order!.Status);
+        Assert.Equal("not_understood", savedUnknown.Task!.Status);
         Assert.Contains(unknown.InstructionId, state.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(state.Events, item => item.Kind == "instruction_order_cancelled" &&
             (item.Detail.Contains(current.InstructionId, StringComparison.Ordinal) ||
@@ -89,10 +89,10 @@ public sealed class WorldInstructionParserTests
         using var world = new WorldRuntime("strict-order-coordinates");
 
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest(
-            "coordinate-order", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo, text));
+            "coordinate-order", "owner:test", TargetAgent, OwnerInstructionKind.Order, text));
 
         var state = world.ExportState();
-        var order = Assert.Single(state.Instructions!, item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = Assert.Single(state.Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal("harvest_food", order.Action);
         Assert.Equal(new GridPoint(x, y), order.TargetPosition);
         world.Validate();
@@ -104,9 +104,9 @@ public sealed class WorldInstructionParserTests
         using var world = new WorldRuntime("strict-order-thousands");
 
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest(
-            "thousand-food", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo, "eat 1,000 berries"));
+            "thousand-food", "owner:test", TargetAgent, OwnerInstructionKind.Order, "eat 1,000 berries"));
 
-        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal("consume_food", order.Action);
         Assert.Equal(1000, order.RequestedUnits);
         Assert.True(order.QuantityIsExplicit);
@@ -124,9 +124,9 @@ public sealed class WorldInstructionParserTests
         using var world = new WorldRuntime("strict-supported-order-forms");
 
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest(
-            "supported-form", "owner:test", TargetInhabitant, OwnerInstructionKind.MustDo, text));
+            "supported-form", "owner:test", TargetAgent, OwnerInstructionKind.Order, text));
 
-        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal(action, order.Action);
         Assert.Equal("waiting", order.Status);
         Assert.Equal(text.StartsWith("keep ", StringComparison.Ordinal),

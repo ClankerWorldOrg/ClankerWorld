@@ -15,7 +15,7 @@ public sealed class TownGovernmentTests
         private readonly HashSet<string> known = new(adults.Length == 0 ? ["a", "b", "c", "d"] : adults, StringComparer.Ordinal);
         public string Id { get; init; } = "town:test";
         public string[] Adults { get; set; } = adults.Length == 0 ? ["a", "b", "c", "d"] : adults;
-        public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(adults.Length == 0 ? ["a", "b", "c", "d"] : adults);
+        public TownCouncilState Council { get; set; } = TownCouncilState.Create(adults.Length == 0 ? ["a", "b", "c", "d"] : adults);
         public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice("town:test",
             adults.Length == 0 ? ["a", "b", "c", "d"] : adults, Day);
         public long Tick { get; private set; }
@@ -29,8 +29,8 @@ public sealed class TownGovernmentTests
         public void Validate()
         {
             var society = SocietyRules.CreateGenesis("government-validation", known.Select(id => SocietyRules.CreateFounder(id, id))) with { WorldTick = Tick };
-            var town = new TownRuntimeState(Id, "Test Town", "founded", 0, Adults, [], [], Governance: Council, Government: Government);
-            TownGovernanceValidation.Validate(town, society, Day);
+            var town = new TownRuntimeState(Id, "Test Town", "founded", 0, Adults, [], [], Council: Council, Government: Government);
+            TownCouncilValidation.Validate(town, society, Day);
             TownGovernmentValidation.Validate(town, society, [], Day);
         }
         public Town Reload()
@@ -40,7 +40,7 @@ public sealed class TownGovernmentTests
                 Id = Id,
                 Tick = Tick,
                 Government = JsonSerializer.Deserialize<TownGovernmentState>(JsonSerializer.Serialize(Government))!,
-                Council = JsonSerializer.Deserialize<TownGovernanceState>(JsonSerializer.Serialize(Council))!,
+                Council = JsonSerializer.Deserialize<TownCouncilState>(JsonSerializer.Serialize(Council))!,
             };
             restored.known.UnionWith(known);
             restored.Validate();
@@ -171,7 +171,7 @@ public sealed class TownGovernmentTests
         var replay = new Town
         {
             Government = JsonSerializer.Deserialize<TownGovernmentState>(governmentJson)!,
-            Council = JsonSerializer.Deserialize<TownGovernanceState>(councilJson)!,
+            Council = JsonSerializer.Deserialize<TownCouncilState>(councilJson)!,
         };
         replay.Advance(town.Tick); // Both saved components pass their native validators on continuation.
         Assert.Equal(governmentJson, JsonSerializer.Serialize(replay.Government));
@@ -274,11 +274,11 @@ public sealed class TownGovernmentTests
             Contest = new(contestId, "handover", "land", changeId, "voting", 1, 10, 10, 20,
                 town.Adults, ["b"], [], [], 0),
         };
-        town.Council = TownGovernanceRules.PostNotice(town.Council, "government", changeId,
+        town.Council = TownCouncilRules.PostNotice(town.Council, "government", changeId,
             "Residents approved the government proposal. Incumbent authority continues until a valid handover, due by tick 40.", 10);
-        town.Council = TownGovernanceRules.PostNotice(town.Council, "mayor", contestId,
+        town.Council = TownCouncilRules.PostNotice(town.Council, "mayor", contestId,
             "An election is due for land disputes and permission expiries. Adult residents must personally agree to stand for these mandates; Council candidacy is not mayoral consent.", 10);
-        town.Council = TownGovernanceRules.PostNotice(town.Council, "mayor", contestId + ":1:10",
+        town.Council = TownCouncilRules.PostNotice(town.Council, "mayor", contestId + ":1:10",
             "Mayoral round 1: choose one of b for land disputes and permission expiries. Ballots may change until tick 20. Self-voting is allowed; a winner needs an actual vote in this round.", 10);
         town.Ballot("b", "b");
         town.Validate();
@@ -404,7 +404,7 @@ public sealed class TownGovernmentTests
     {
         var town = new Town();
         town.Propose(LandMayor);
-        town.Council = TownGovernanceRules.SubmitProposal(town.Council, "town:test", "a", "law", null, "Share work.", "same", town.Adults, 0, Day);
+        town.Council = TownCouncilRules.SubmitProposal(town.Council, "town:test", "a", "law", null, "Share work.", "same", town.Adults, 0, Day);
         town.Adults = ["a", "b", "c", "d", "e"];
         town.Advance(1);
         Assert.Equal("cancelled", town.Council.Proposals[0].Status);
@@ -454,7 +454,7 @@ public sealed class TownGovernmentTests
     public void BallotsAreRevisableAndCouncilConsentDoesNotSupplyMayoralConsent()
     {
         var town = new Town();
-        town.Council = TownGovernanceRules.Register(town.Council, "a", true, null, town.Adults, 0);
+        town.Council = TownCouncilRules.Register(town.Council, "a", true, null, town.Adults, 0);
         town.Yes(town.Propose(LandMayor), "a", "b", "c");
         Assert.Null(town.Government.Contest);
         town.Register("a"); town.Register("b");
@@ -520,9 +520,9 @@ public sealed class TownGovernmentTests
     public void ScheduledCouncilElectionInterruptsMayorAndResumesWithFreshBallots()
     {
         var town = new Town("a", "b", "c", "d", "e", "f", "g", "h");
-        foreach (var id in town.Adults.Take(3)) town.Council = TownGovernanceRules.Register(town.Council, id, true, null, town.Adults, 0);
+        foreach (var id in town.Adults.Take(3)) town.Council = TownCouncilRules.Register(town.Council, id, true, null, town.Adults, 0);
         town.Advance(0);
-        town.Council = TownGovernanceRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 0);
+        town.Council = TownCouncilRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 0);
         town.Advance(10);
         Assert.Equal(110, town.Council.TermEndTick);
         town.Advance(95); town.Register("d");
@@ -531,7 +531,7 @@ public sealed class TownGovernmentTests
         town.Advance(100);
         Assert.Equal("waiting", town.Government.Contest!.Stage);
         Assert.Empty(town.Government.Contest.Ballots);
-        town.Council = TownGovernanceRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 100);
+        town.Council = TownCouncilRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 100);
         town.Advance(110);
         Assert.Equal("voting", town.Government.Contest!.Stage);
         Assert.Equal(1, town.Government.Contest.Interruptions);
@@ -544,9 +544,9 @@ public sealed class TownGovernmentTests
     public void AddingALandMayorPreservesAnExistingSevenResidentRepresentativeCouncil()
     {
         var town = new Town("a", "b", "c", "d", "e", "f", "g", "h");
-        foreach (var id in town.Adults.Take(3)) town.Council = TownGovernanceRules.Register(town.Council, id, true, null, town.Adults, 0);
+        foreach (var id in town.Adults.Take(3)) town.Council = TownCouncilRules.Register(town.Council, id, true, null, town.Adults, 0);
         town.Advance(0);
-        town.Council = TownGovernanceRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 0);
+        town.Council = TownCouncilRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 0);
         town.Advance(10);
         var end = town.Council.TermEndTick;
         town.Adults = ["a", "b", "c", "d", "e", "f", "g"];
@@ -571,11 +571,11 @@ public sealed class TownGovernmentTests
         town.Ballot("a", "a");
         town.Advance(1);
         foreach (var actor in new[] { "a", "b", "c" })
-            town.Council = TownGovernanceRules.Register(town.Council, actor, true, null, town.Adults, 1);
+            town.Council = TownCouncilRules.Register(town.Council, actor, true, null, town.Adults, 1);
         for (var tick = 2L; tick < Day * 3 && town.Government.Changes[1].Status == "handover"; tick++)
         {
             if (town.Council.Election is { Stage: "main" } election && election.Ballots.Count == 0)
-                town.Council = TownGovernanceRules.VoteElection(town.Council, election.Id, "a", ["a", "b", "c"], tick);
+                town.Council = TownCouncilRules.VoteElection(town.Council, election.Id, "a", ["a", "b", "c"], tick);
             town.Advance(tick);
         }
 
@@ -600,11 +600,11 @@ public sealed class TownGovernmentTests
 
         // Willing candidates later must not be seated by a council election nobody approved.
         foreach (var actor in new[] { "a", "b", "c" })
-            town.Council = TownGovernanceRules.Register(town.Council, actor, true, null, town.Adults, town.Tick);
+            town.Council = TownCouncilRules.Register(town.Council, actor, true, null, town.Adults, town.Tick);
         for (var tick = town.Tick + 1; tick <= Day * 8; tick++)
         {
             if (town.Council.Election is { Stage: "main" } election && election.Ballots.Count == 0)
-                town.Council = TownGovernanceRules.VoteElection(town.Council, election.Id, "a", ["a", "b", "c"], tick);
+                town.Council = TownCouncilRules.VoteElection(town.Council, election.Id, "a", ["a", "b", "c"], tick);
             town.Advance(tick);
         }
         Assert.Null(town.Council.Election);
@@ -618,7 +618,7 @@ public sealed class TownGovernmentTests
         var town = new Town("a", "b", "c", "d", "e");
         town.Elect(BothMandates, "land+ordinary");
         Assert.Equal(("leader", "a"), (town.Council.Form, Assert.Single(town.Council.Members)));
-        town.Council = TownGovernanceRules.SubmitProposal(town.Council, town.Id, "a", "law", null, "Keep the well covered.",
+        town.Council = TownCouncilRules.SubmitProposal(town.Council, town.Id, "a", "law", null, "Keep the well covered.",
             $"council:{town.Council.Revision}", town.Adults, town.Tick, Day);
         var revision = town.Council.Revision;
         var elected = new TownArrangement(TownArrangementRules.ElectedCouncil, TownArrangementRules.NoOffice);
@@ -640,13 +640,13 @@ public sealed class TownGovernmentTests
         var allAdult = new TownArrangement(TownArrangementRules.AllAdultCouncil, TownArrangementRules.NoOffice);
         town.Yes(town.Propose(allAdult), "a", "b", "c");
         town.Adults = ["a", "b", "c", "d", "e", "f", "g", "h"];
-        foreach (var id in town.Adults.Take(3)) town.Council = TownGovernanceRules.Register(town.Council, id, true, null, town.Adults, 0);
+        foreach (var id in town.Adults.Take(3)) town.Council = TownCouncilRules.Register(town.Council, id, true, null, town.Adults, 0);
         town.Advance(1);
         Assert.Null(town.Council.Election);
         var elected = new TownArrangement(TownArrangementRules.ElectedCouncil, TownArrangementRules.NoOffice);
         town.Yes(town.Propose(elected), "a", "b", "c", "d", "e");
         Assert.Equal("all_adult", town.Council.Form);
-        town.Council = TownGovernanceRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 1);
+        town.Council = TownCouncilRules.VoteElection(town.Council, town.Council.Election!.Id, "a", ["a", "b", "c"], 1);
         town.Advance(11);
         Assert.Equal("representative", town.Council.Form);
         Assert.Equal(elected, town.Government.Arrangement);
@@ -708,7 +708,7 @@ public sealed class TownGovernmentTests
         var replay = new Town
         {
             Government = JsonSerializer.Deserialize<TownGovernmentState>(JsonSerializer.Serialize(town.Government))!,
-            Council = JsonSerializer.Deserialize<TownGovernanceState>(JsonSerializer.Serialize(town.Council))!
+            Council = JsonSerializer.Deserialize<TownCouncilState>(JsonSerializer.Serialize(town.Council))!
         };
         replay.Advance(Day);
         town.Ballot("c", "a"); replay.Ballot("c", "a");

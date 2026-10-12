@@ -9,7 +9,7 @@ public sealed partial class HouseToolsBehaviorTests
     public async Task TreeOrderFetchesARealSeedDeliveredIntoHouseholdStock()
     {
         var (state, actor, _) = PreparedTreeOrder();
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = Assert.Single(state.WorldSimulation!.Buildings, building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         // Transfer the actually harvested seeds to shared ground stock as setup;
@@ -21,11 +21,11 @@ public sealed partial class HouseToolsBehaviorTests
         state = WithInventory(state, inventory);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position } : person).ToArray(),
         };
         using var delivering = Restore(state);
-        var delivery = delivering.SubmitInstruction(new("share-native-seeds", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var delivery = delivering.SubmitInstruction(new("share-native-seeds", "owner:test", actor, OwnerInstructionKind.Order,
             "haul two tree seeds to my House"));
         for (var tick = 0; tick < 12 && Order(delivering, delivery).Status != "finished"; tick++)
             Assert.True((await delivering.AdvanceOneTickAsync()).Advanced);
@@ -35,7 +35,7 @@ public sealed partial class HouseToolsBehaviorTests
             lot.ItemKind == TreeGrowthRules.TreeSeedItem && lot.StorageBuildingId == house.InstanceId).Sum(lot => lot.Quantity));
         var (plantingState, _, target) = PreparedTreeOrder(delivering.ExportState());
         using var world = Restore(plantingState);
-        var receipt = world.SubmitInstruction(new("plant-shared-seed", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var receipt = world.SubmitInstruction(new("plant-shared-seed", "owner:test", actor, OwnerInstructionKind.Order,
             $"plant a conifer tree at {target.X},{target.Y}"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
@@ -60,7 +60,7 @@ public sealed partial class HouseToolsBehaviorTests
                 FreeNeighbors(state, actor, resource).Any()).OrderBy(resource => resource.Id, StringComparer.Ordinal).First();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = FreeNeighbors(state, actor, source).First(),
                 TravelCooldownTicks = 0,
@@ -86,7 +86,7 @@ public sealed partial class HouseToolsBehaviorTests
             item => item.LotId == seed.Id && item.Purpose == "orchard_replanting" && item.State == InventoryReservationState.Reserved);
         var (plantingState, _, target) = PreparedTreeOrder(harvesting.ExportState());
         using var world = Restore(plantingState);
-        var receipt = world.SubmitInstruction(new("native-orchard-order", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var receipt = world.SubmitInstruction(new("native-orchard-order", "owner:test", actor, OwnerInstructionKind.Order,
             $"plant an orchard tree at {target.X},{target.Y}"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -112,16 +112,16 @@ public sealed partial class HouseToolsBehaviorTests
         var (state, actor, _) = PreparedTreeOrder();
         if (stored)
         {
-            var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+            var household = state.Society.Society.GetAgent(actor).HouseholdId!;
             var house = Assert.Single(state.WorldSimulation!.Buildings, building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId).Tags.Contains("house"));
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Position = house.Position } : person).ToArray(),
             };
             using var storing = Restore(state);
-            var storage = storing.SubmitInstruction(new("store-capacity-seeds", "owner:test", actor, OwnerInstructionKind.MustDo,
+            var storage = storing.SubmitInstruction(new("store-capacity-seeds", "owner:test", actor, OwnerInstructionKind.Order,
                 "store two tree seeds"));
             for (var tick = 0; tick < 8 && Order(storing, storage).Status != "finished"; tick++)
                 Assert.True((await storing.AdvanceOneTickAsync()).Advanced);
@@ -131,14 +131,14 @@ public sealed partial class HouseToolsBehaviorTests
             state = storing.ExportState();
         }
         var free = PersonalEquipmentRules.FreeCapacity(state.Society.Society.Inventory, actor,
-            state.Inhabitants.Single(person => person.InhabitantId == actor).Equipment);
+            state.Agents.Single(person => person.AgentId == actor).Equipment);
         Assert.True(free > room);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "full-planting-load", "stone", actor, free - room));
         var (plantingState, _, target) = PreparedTreeOrder(state);
         using var world = Restore(plantingState);
         Assert.Equal(room, PersonalEquipmentRules.FreeCapacity(world.Society.Inventory, actor,
-            world.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
-        var receipt = world.SubmitInstruction(new("plant-with-load", "owner:test", actor, OwnerInstructionKind.MustDo,
+            world.Agents.Single(person => person.AgentId == actor).Equipment));
+        var receipt = world.SubmitInstruction(new("plant-with-load", "owner:test", actor, OwnerInstructionKind.Order,
             $"plant a conifer tree at {target.X},{target.Y}"));
         for (var tick = 0; tick < (plants ? 20 : 1) && Order(world, receipt).Status != "finished"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);

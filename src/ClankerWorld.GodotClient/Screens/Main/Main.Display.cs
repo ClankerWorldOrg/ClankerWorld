@@ -66,7 +66,7 @@ public partial class Main
     private void ScaleMapText(int factor)
     {
         AgentMarker.TextScale = factor;
-        foreach (var marker in inhabitantVisuals.Values)
+        foreach (var marker in agentVisuals.Values)
             marker.QueueRedraw();
         foreach (var label in mapObjectVisuals.Values)
             label.AddThemeFontSizeOverride("font_size", UiFonts.Body * factor);

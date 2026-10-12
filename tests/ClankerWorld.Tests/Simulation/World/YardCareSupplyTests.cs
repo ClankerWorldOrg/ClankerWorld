@@ -13,7 +13,7 @@ public sealed partial class AnimalPipelineTests
     {
         var (state, actor, home, yard) = CreateYard("animal-horse-cargo");
         var tiles = WorldContentSimulationRules.Footprint(state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == yard.DefinitionId), yard)
-            .Where(point => !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point)).ToArray();
+            .Where(point => !state.Agents.Any(person => person.AgentId != actor && person.Position == point)).ToArray();
         Assert.Contains(yard.Position, tiles);
         var horsePosition = tiles.First(point => point != yard.Position);
         var cowPosition = tiles.First(point => point != yard.Position && point != horsePosition);
@@ -47,15 +47,15 @@ public sealed partial class AnimalPipelineTests
                 containerLotId: "supply-personal-jug");
         }
         state = At(state, actor, horsePosition, inventory, [horse, sheep, cow]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         using var preparing = RestoreYardCareSupply(state, actor);
-        preparing.SubmitInstruction(new("supply-saddle", "owner", actor, OwnerInstructionKind.MustDo, "saddle Moss"));
+        preparing.SubmitInstruction(new("supply-saddle", "owner", actor, OwnerInstructionKind.Order, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
-        preparing.SubmitInstruction(new("supply-mount", "owner", actor, OwnerInstructionKind.MustDo, "mount Moss"));
+        preparing.SubmitInstruction(new("supply-mount", "owner", actor, OwnerInstructionKind.Order, "mount Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).RiderId == actor);
-        preparing.SubmitInstruction(new("supply-dismount", "owner", actor, OwnerInstructionKind.MustDo, "dismount Moss"));
+        preparing.SubmitInstruction(new("supply-dismount", "owner", actor, OwnerInstructionKind.Order, "dismount Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).RiderId is null);
-        var instruction = preparing.SubmitInstruction(new("supply-care", "owner", actor, OwnerInstructionKind.MustDo, "care for Fern"));
+        var instruction = preparing.SubmitInstruction(new("supply-care", "owner", actor, OwnerInstructionKind.Order, "care for Fern"));
         var bytes = WorldRuntimeCodec.Encode(preparing.ExportState());
         using var world = RestoreYardCareSupply(WorldRuntimeCodec.Decode(bytes), actor);
         using var replay = RestoreYardCareSupply(WorldRuntimeCodec.Decode(bytes), actor);
@@ -64,7 +64,7 @@ public sealed partial class AnimalPipelineTests
         var sawSupplyTrip = false;
         var sawCareApproach = false;
         byte[]? reloadedNext = null;
-        for (var tick = 0; tick < 12 && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status != "finished"; tick++)
+        for (var tick = 0; tick < 12 && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status != "finished"; tick++)
         {
             var previousEvent = world.ExportState().Events[^1].EventId;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -78,7 +78,7 @@ public sealed partial class AnimalPipelineTests
                 reloadedNext = null;
             }
             if (!carryInputs && !careAtStock && current.Events.Any(item => item.EventId > previousEvent &&
-                item.Kind == "inhabitant_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
+                item.Kind == "agent_moved" && item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
                 item.Detail.EndsWith(":animal_care", StringComparison.Ordinal)))
             {
                 sawCareApproach = true;
@@ -96,7 +96,7 @@ public sealed partial class AnimalPipelineTests
                 reloadedNext = WorldRuntimeCodec.Encode(savedTrip.ExportState());
             }
         }
-        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(("finished", 1), (order.Status, order.CompletedUnits));
         Assert.True(world.Animals.Single(animal => animal.Id == cow.Id).CareUntilTick > world.WorldTick);
         Assert.Null(world.Animals.Single(animal => animal.Id == horse.Id).RiderId);

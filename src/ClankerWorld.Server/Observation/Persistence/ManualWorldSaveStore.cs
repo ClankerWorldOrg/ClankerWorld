@@ -45,7 +45,7 @@ public sealed record SaveTimelinePosition(string? ContinuedFromId, string? Branc
 /// </summary>
 public sealed partial class ManualWorldSaveStore
 {
-    private sealed record Metadata(ManualWorldSave Save, IReadOnlyList<InhabitantProviderAssignment> Assignments,
+    private sealed record Metadata(ManualWorldSave Save, IReadOnlyList<AgentProviderAssignment> Assignments,
         WorldAutosaveSettings? AutosaveSettings, string? WorldId = null, string? Generation = null,
         [property: JsonIgnore] bool HasInvalidBranchMetadata = false, RecoveryProvenance? Recovery = null);
     private sealed record BranchMetadata(SaveBranch? Branch = null, string? ContinuedFromId = null,
@@ -79,16 +79,16 @@ public sealed partial class ManualWorldSaveStore
     }
 
     public ManualWorldSave Create(string name, WorldRuntime runtime,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings? autosaveSettings = null)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings? autosaveSettings = null)
         => CreateCore(name, runtime, assignments, autosaveSettings, isAutosave: false);
 
     public ManualWorldSave CreateAutosave(WorldRuntime runtime,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings autosaveSettings)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings autosaveSettings)
         => CreateCore("Autosave", runtime, assignments, autosaveSettings, isAutosave: true);
 
     /// <summary>Replace one selected named checkpoint, preserving its previous bytes in a new recovery checkpoint.</summary>
     public ManualSaveOverwriteReceipt Overwrite(string id, WorldRuntime runtime,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings? autosaveSettings = null)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings? autosaveSettings = null)
     {
         if (!IsId(id)) throw new ArgumentException("Invalid save ID.", nameof(id));
         ArgumentNullException.ThrowIfNull(runtime);
@@ -173,7 +173,7 @@ public sealed partial class ManualWorldSaveStore
     }
 
     private ManualWorldSave CreateCore(string name, WorldRuntime runtime,
-        IReadOnlyList<InhabitantProviderAssignment> assignments,
+        IReadOnlyList<AgentProviderAssignment> assignments,
         WorldAutosaveSettings? autosaveSettings, bool isAutosave, RecoveryProvenance? recovery = null)
     {
         ArgumentNullException.ThrowIfNull(runtime);
@@ -270,7 +270,7 @@ public sealed partial class ManualWorldSaveStore
     /// save then needs no extra copy of the world being left.
     /// </summary>
     public ManualWorldSave? FindUnchangedSave(WorldRuntime runtime,
-        IReadOnlyList<InhabitantProviderAssignment> assignments, WorldAutosaveSettings? autosaveSettings)
+        IReadOnlyList<AgentProviderAssignment> assignments, WorldAutosaveSettings? autosaveSettings)
     {
         ArgumentNullException.ThrowIfNull(runtime);
         ArgumentNullException.ThrowIfNull(assignments);
@@ -611,7 +611,7 @@ public sealed partial class ManualWorldSaveStore
     }
 
     /// <summary>Read the checkpoint and its routing/settings from one published generation.</summary>
-    public (WorldRuntimeState Checkpoint, IReadOnlyList<InhabitantProviderAssignment> Assignments,
+    public (WorldRuntimeState Checkpoint, IReadOnlyList<AgentProviderAssignment> Assignments,
         WorldAutosaveSettings? AutosaveSettings) ReadCommitted(string id)
     {
         if (!IsId(id)) throw new ArgumentException("Invalid save ID.", nameof(id));
@@ -625,7 +625,7 @@ public sealed partial class ManualWorldSaveStore
         }
     }
 
-    public IReadOnlyList<InhabitantProviderAssignment> ReadAssignments(string id)
+    public IReadOnlyList<AgentProviderAssignment> ReadAssignments(string id)
     {
         if (!IsId(id)) throw new ArgumentException("Invalid save ID.", nameof(id));
         lock (gate)

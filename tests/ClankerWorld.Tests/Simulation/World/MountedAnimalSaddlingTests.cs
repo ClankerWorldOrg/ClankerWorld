@@ -13,7 +13,7 @@ public sealed partial class AnimalPipelineTests
         var (state, actor, home, yard) = CreateYard("animal-horse-cargo");
         var tiles = WorldContentSimulationRules.Footprint(state.WorldContent!.Buildings.Single(definition =>
             definition.CanonicalId == yard.DefinitionId), yard).ToArray();
-        var targetPosition = tiles.First(point => point != yard.Position && !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point));
+        var targetPosition = tiles.First(point => point != yard.Position && !state.Agents.Any(person => person.AgentId != actor && person.Position == point));
         var day = state.WorldSystems!.Config.TicksPerDay;
         var horse = new AnimalState("mounted-saddle-horse", "Moss", "horse", "female", -(long)AnimalRules.Definition("horse").AdultDays * day,
             yard.Position, "household:" + home, home, yard.InstanceId, CareUntilTick: state.Society.Society.WorldTick + day);
@@ -24,25 +24,25 @@ public sealed partial class AnimalPipelineTests
         inventory = InventoryAuthority.Relocate(InventoryAuthority.AddLot(inventory, "01-target-saddle", "saddle", home, 1),
             "carry-target-saddle", "01-target-saddle", home, 1, carrierId: actor);
         state = At(state, actor, yard.Position, inventory, [horse, target]);
-        state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray() };
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Equipment = null } : person).ToArray() };
         using var preparing = RestoreMountedSaddling(state, actor);
-        preparing.SubmitInstruction(new("prepare-saddle", "owner", actor, OwnerInstructionKind.MustDo, "saddle Moss"));
+        preparing.SubmitInstruction(new("prepare-saddle", "owner", actor, OwnerInstructionKind.Order, "saddle Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
         Assert.Equal("00-mounted-saddle", preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId);
-        preparing.SubmitInstruction(new("prepare-mount", "owner", actor, OwnerInstructionKind.MustDo, "mount Moss"));
+        preparing.SubmitInstruction(new("prepare-mount", "owner", actor, OwnerInstructionKind.Order, "mount Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).RiderId == actor);
         if (dismountFirst)
         {
-            preparing.SubmitInstruction(new("prepare-dismount", "owner", actor, OwnerInstructionKind.MustDo, "dismount Moss"));
+            preparing.SubmitInstruction(new("prepare-dismount", "owner", actor, OwnerInstructionKind.Order, "dismount Moss"));
             await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).RiderId is null);
         }
-        var instruction = preparing.SubmitInstruction(new("saddle-other-horse", "owner", actor, OwnerInstructionKind.MustDo, "saddle Fern"));
+        var instruction = preparing.SubmitInstruction(new("saddle-other-horse", "owner", actor, OwnerInstructionKind.Order, "saddle Fern"));
         var bytes = WorldRuntimeCodec.Encode(preparing.ExportState());
         using var world = RestoreMountedSaddling(WorldRuntimeCodec.Decode(bytes), actor);
         using var replay = RestoreMountedSaddling(WorldRuntimeCodec.Decode(bytes), actor);
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var tick = 0; tick < 8 && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.Status != "finished"; tick++)
+        for (var tick = 0; tick < 8 && world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.Status != "finished"; tick++)
         {
             var wasRiding = world.Animals.Single(animal => animal.Id == horse.Id).RiderId == actor;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -52,14 +52,14 @@ public sealed partial class AnimalPipelineTests
             {
                 Assert.Null(world.Animals.Single(animal => animal.Id == target.Id).SaddleLotId);
                 Assert.Equal(actor, world.Society.Inventory.GetLot("01-target-saddle").CarrierId);
-                Assert.Equal(0, world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.CompletedUnits);
-                Assert.Equal(horse.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+                Assert.Equal(0, world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.CompletedUnits);
+                Assert.Equal(horse.Position, world.Agents.Single(person => person.AgentId == actor).Position);
             }
         }
-        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(("finished", 1), (order.Status, order.CompletedUnits));
         Assert.Equal("01-target-saddle", world.Animals.Single(animal => animal.Id == target.Id).SaddleLotId);
-        Assert.Equal(targetPosition, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(targetPosition, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Null(world.Animals.Single(animal => animal.Id == horse.Id).RiderId);
         Assert.Equal(horse.Position, world.Animals.Single(animal => animal.Id == horse.Id).Position);
         foreach (var animal in world.Animals)

@@ -33,7 +33,7 @@ internal static class WorldProductionOrderCatalog
     {
         ContentPackageManifest[] packages =
         [
-            StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(), HouseCookingContent.Create(), FarmContent.Create(),
+            StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), HouseCookingContent.Create(), FarmContent.Create(),
             AnimalContent.Create(), BlacksmithContent.Create(), TailorContent.Create(), PotteryContent.Create(), OrnamentContent.Create(), CareContent.Create(),
             RestaurantContent.Create(), RestaurantVariantContent.Create(),
         ];

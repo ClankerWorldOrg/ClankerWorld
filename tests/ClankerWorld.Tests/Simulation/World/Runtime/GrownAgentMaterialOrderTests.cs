@@ -48,7 +48,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         world.Resume();
         replay.Resume();
         var request = new OwnerInstructionRequest("native-descendant-gather", "owner:test", actor,
-            OwnerInstructionKind.MustDo, "gather fiber from settlement-fiber");
+            OwnerInstructionKind.Order, "gather fiber from settlement-fiber");
         var submitted = world.SubmitInstruction(request);
         Assert.Equal(submitted.InstructionId, replay.SubmitInstruction(request).InstructionId);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -85,7 +85,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var damaged = world.ExportState() with
             {
                 Instructions = world.ExportState().Instructions!.Select(item => item.InstructionId == submitted.InstructionId
-                    ? item with { Order = invalid } : item).ToArray()
+                    ? item with { Task = invalid } : item).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(damaged));
         }
@@ -103,7 +103,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Single(world.ExportState().Events, item => item.Kind == "material_gathered" &&
             item.Detail.StartsWith(actor + ":fiber:", StringComparison.Ordinal));
 
-        OwnerInstructionOrder Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == submitted.InstructionId).Order!;
+        OrderTask Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == submitted.InstructionId).Task!;
     }
 
     private sealed class NativeGatheringChoices : IDecisionProvider
@@ -117,8 +117,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             var choice = observation.Candidates.FirstOrDefault(item => item.Id is "inspect_material_site" or "gather_material")
                 ?? observation.Candidates.FirstOrDefault(item => item.Id == "safe_idle")
                 ?? observation.Candidates.Single(item => item.Id == "identity_optional");
-            Selected.Enqueue((observation.InhabitantId, observation.OperativeOrderInstructionId, choice.Id));
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, 0,
+            Selected.Enqueue((observation.AgentId, observation.OperativeOrderInstructionId, choice.Id));
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, 0,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 new Dictionary<string, double> { [choice.Id] = 1 }));
         }

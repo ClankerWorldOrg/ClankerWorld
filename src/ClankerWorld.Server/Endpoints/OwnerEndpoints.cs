@@ -76,11 +76,11 @@ internal static partial class OwnerEndpoints
     {
         kind = value?.Trim().ToLowerInvariant() switch
         {
-            "suggestive" => OwnerInstructionKind.Suggestive,
-            "must_do" => OwnerInstructionKind.MustDo,
+            "suggestion" => OwnerInstructionKind.Suggestion,
+            "order" => OwnerInstructionKind.Order,
             _ => default,
         };
-        return value is not null && (value.Trim().Equals("suggestive", StringComparison.OrdinalIgnoreCase) ||
-            value.Trim().Equals("must_do", StringComparison.OrdinalIgnoreCase));
+        return value is not null && (value.Trim().Equals("suggestion", StringComparison.OrdinalIgnoreCase) ||
+            value.Trim().Equals("order", StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -67,23 +67,23 @@ public sealed class CivicBallotProviderTests
         var provider = Provider(client);
         var response = await provider.DecideAsync(new("request", provider.ProviderEpoch, Observation(BallotCandidate)));
         var adults = Enumerable.Range(1, 8).Select(index => $"candidate:{index}").ToArray();
-        var governance = TownGovernanceState.Create(adults);
+        var council = TownCouncilState.Create(adults);
         foreach (var candidate in adults.Take(3))
-            governance = TownGovernanceRules.Register(governance, candidate, true, null, adults, 0);
-        governance = TownGovernanceRules.Advance(governance, "town:test", "synthetic-seed", adults, 0, 10);
+            council = TownCouncilRules.Register(council, candidate, true, null, adults, 0);
+        council = TownCouncilRules.Advance(council, "town:test", "synthetic-seed", adults, 0, 10);
 
         Assert.NotNull(response.CivicBallot);
         Assert.Equal(2, response.CivicBallot.Count);
         Assert.All(response.CivicBallot, choice => Assert.Equal("candidate:1", choice));
-        Assert.Throws<InvalidOperationException>(() => TownGovernanceRules.VoteElection(
-            governance, governance.Election!.Id, adults[0], response.CivicBallot!, 1));
-        Assert.Empty(governance.Election!.Ballots);
+        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.VoteElection(
+            council, council.Election!.Id, adults[0], response.CivicBallot!, 1));
+        Assert.Empty(council.Election!.Ballots);
     }
 
     private static OpenAiCompatibleDecisionProvider Provider(HttpClient client) =>
         new(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
 
-    private static InhabitantObservation Observation(string selectedCandidate) =>
+    private static AgentObservation Observation(string selectedCandidate) =>
         new("actor", 0, 0, 0, "digest", 8_000,
             [new("safe_idle", "Continue safely.", 0), new(selectedCandidate, "Choose this legal action.", 10)]);
 

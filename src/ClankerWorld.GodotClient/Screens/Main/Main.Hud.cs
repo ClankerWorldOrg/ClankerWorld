@@ -101,11 +101,11 @@ public partial class Main
 
         topBar.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore });
 
-        inhabitantsButton.Text = "0";
-        StyleButton(inhabitantsButton);
-        inhabitantsButton.Pressed += ToggleInhabitants;
-        AttachCorner(inhabitantsButton, agentsWarning, new Vector2(-12, 4));
-        hudRight.AddChild(inhabitantsButton);
+        agentsButton.Text = "0";
+        StyleButton(agentsButton);
+        agentsButton.Pressed += ToggleAgents;
+        AttachCorner(agentsButton, agentsWarning, new Vector2(-12, 4));
+        hudRight.AddChild(agentsButton);
 
         worldInfoButton.Text = "Info";
         worldInfoButton.TooltipText = "World Info: Towns and the world (I). T opens Towns.";
@@ -257,7 +257,7 @@ public partial class Main
     {
         PlaceUnderButton(worldOverviewPanel, mapButton);
         PlaceUnderButton(filtersPanel, filtersButton);
-        PlaceUnderButton(rosterPanel, inhabitantsButton);
+        PlaceUnderButton(rosterPanel, agentsButton);
         PlaceUnderButton(worldInfoPanel, worldInfoButton);
         // The Event Log often stays open while playing, so it sits flush with the right edge.
         if (eventsPanel.Visible)
@@ -281,7 +281,7 @@ public partial class Main
         var green = palette.Name == "dark" ? new Color("8DBA6A") : palette.Primary;
         mapButton.Icon = PixelIcons.Themed(PixelGlyph.Map, green, scale);
         filtersButton.Icon = PixelIcons.Themed(PixelGlyph.Filter, accent, scale);
-        inhabitantsButton.Icon = PixelIcons.Themed(PixelGlyph.Person, accent, scale);
+        agentsButton.Icon = PixelIcons.Themed(PixelGlyph.Person, accent, scale);
         worldInfoButton.Icon = PixelIcons.Themed(PixelGlyph.Info, green, scale);
         eventsButton.Icon = PixelIcons.Themed(PixelGlyph.Scroll, accent, scale);
         addAgentButton.Icon = PixelIcons.Themed(PixelGlyph.PersonPlus, green, scale);
@@ -308,11 +308,11 @@ public partial class Main
         pauseButton.ThemeTypeVariation = paused ? "EmberButton" : string.Empty;
         pauseButton.TooltipText = paused ? "Time is stopped. Resume the world (Space)" : "Pause the world (Space)";
 
-        var living = snapshot.Inhabitants.Where(person => !person.IsDraft && IsLiving(person)).ToArray();
-        var hungry = living.Where(person => GameUiText.FullnessState(person.HungerBasisPoints) is "hungry" or "very hungry")
+        var living = snapshot.Agents.Where(person => !person.IsDraft && IsLiving(person)).ToArray();
+        var hungry = living.Where(person => GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry")
             .Select(person => person.DisplayName).OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
-        inhabitantsButton.Text = living.Length.ToString(CultureInfo.InvariantCulture);
-        inhabitantsButton.TooltipText = $"Agents (R) · {living.Length} living" +
+        agentsButton.Text = living.Length.ToString(CultureInfo.InvariantCulture);
+        agentsButton.TooltipText = $"Agents (R) · {living.Length} living" +
             (hungry.Length == 0 ? string.Empty : $" · hungry: {string.Join(", ", hungry)}") +
             ". N selects the next agent.";
         agentsWarning.Visible = hungry.Length > 0;
@@ -469,7 +469,7 @@ public partial class Main
             };
             text.AddChild(facts);
             text.AddChild(ResidentPortraits(snapshot, town));
-            if (town.Governance is not null)
+            if (town.Council is not null)
                 text.AddChild(new Label
                 {
                     Text = TownCivicText(town, snapshot.WorldTick),
@@ -521,7 +521,7 @@ public partial class Main
 
     private string TownCivicText(OwnerWorldTown town, long tick)
     {
-        if (town.Governance is not { } council) return "";
+        if (town.Council is not { } council) return "";
         var lines = new List<string>
         {
             town.IsAbandoned ? "No active council. An adult here may explicitly resettle the Town." :
@@ -586,10 +586,10 @@ public partial class Main
             lines.Add($"Showing {town.LandHearings.Count} active or recent land hearings of {town.LandHearingCount}.");
         foreach (var hearing in town.LandHearings)
             lines.AddRange(LandHearingText.Details(hearing, DisplayWorldClock, town.Government?.Laws));
-        if (town.NonviolentCaseCount > town.NonviolentCases.Count)
-            lines.Add($"Showing {town.NonviolentCases.Count} active or recent non-land hearings of {town.NonviolentCaseCount}.");
-        foreach (var hearing in town.NonviolentCases)
-            lines.AddRange(NonviolentHearingText.Details(hearing, DisplayWorldClock, observedCalendarPace?.TicksPerDay ?? 1_440));
+        if (town.NonLandCaseCount > town.NonLandCases.Count)
+            lines.Add($"Showing {town.NonLandCases.Count} active or recent non-land hearings of {town.NonLandCaseCount}.");
+        foreach (var hearing in town.NonLandCases)
+            lines.AddRange(NonLandHearingText.Details(hearing, DisplayWorldClock, observedCalendarPace?.TicksPerDay ?? 1_440));
         if (town.LandTransferCount > town.LandTransfers.Count)
             lines.Add($"Showing {town.LandTransfers.Count} pending or recent permission transfers of {town.LandTransferCount}.");
         foreach (var transfer in town.LandTransfers)

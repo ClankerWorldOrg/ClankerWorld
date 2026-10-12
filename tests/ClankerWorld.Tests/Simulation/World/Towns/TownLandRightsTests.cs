@@ -76,11 +76,11 @@ public sealed class TownLandRightsTests
         using var world = CreateStartedTown("town-land-rights-requests");
         var state = world.ExportState();
         var map = state.Map;
-        var alpha = state.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-alpha").Id;
-        var beta = state.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-beta").Id;
+        var alpha = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var beta = state.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-beta").Id;
         var titled = world.TownLandTitles.SelectMany(item => item.Tiles).ToHashSet();
         var used = world.HouseholdLandUseRights.SelectMany(item => item.Tiles).ToHashSet();
-        var occupied = world.Inhabitants.Select(item => item.Position)
+        var occupied = world.Agents.Select(item => item.Position)
             .Concat(map.MapObjects.Select(item => item.Position))
             .Concat(map.Resources.Select(item => item.Position)).ToHashSet();
         var openTile = titled.OrderBy(item => item.Y).ThenBy(item => item.X).First(tile =>
@@ -96,9 +96,9 @@ public sealed class TownLandRightsTests
 
         const string addedAgent = "agent:00000000000000000000000000000091";
         Assert.Null(world.AddAgent(addedAgent, openTile));
-        Assert.Equal(openTile, Assert.Single(world.Inhabitants, item => item.InhabitantId == addedAgent).Position);
+        Assert.Equal(openTile, Assert.Single(world.Agents, item => item.AgentId == addedAgent).Position);
         Assert.Contains(addedAgent, Assert.Single(world.Towns).ResidentIds);
-        Assert.DoesNotContain(world.Society.Inhabitants, item => item.Id == addedAgent && item.HouseholdId is not null);
+        Assert.DoesNotContain(world.Society.Agents, item => item.Id == addedAgent && item.HouseholdId is not null);
 
         var firstBytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(firstBytes));
@@ -107,7 +107,7 @@ public sealed class TownLandRightsTests
             .IsDuplicate);
         Assert.Equal(firstBytes, WorldRuntimeCodec.Encode(reloaded.ExportState()));
 
-        var positionsBeforeDispute = reloaded.Inhabitants.ToDictionary(item => item.InhabitantId,
+        var positionsBeforeDispute = reloaded.Agents.ToDictionary(item => item.AgentId,
             item => item.Position, StringComparer.Ordinal);
         var reachabilityBeforeDispute = reloaded.ExportState().Map.IsReachableOnFoot(openTile, betaTile);
         Assert.True(reachabilityBeforeDispute);
@@ -120,7 +120,7 @@ public sealed class TownLandRightsTests
                 reloaded.HouseholdLandUseRequests));
         Assert.Throws<InvalidOperationException>(() => reloaded.ValidateAgentPlacement(
             "agent:00000000000000000000000000000092", betaTile));
-        Assert.Equal(positionsBeforeDispute, reloaded.Inhabitants.ToDictionary(item => item.InhabitantId,
+        Assert.Equal(positionsBeforeDispute, reloaded.Agents.ToDictionary(item => item.AgentId,
             item => item.Position, StringComparer.Ordinal));
         Assert.Equal(reachabilityBeforeDispute, reloaded.ExportState().Map.IsReachableOnFoot(openTile, betaTile));
         Assert.Equal(state.WorldSimulation!.Buildings, reloaded.WorldSimulation.Buildings);
@@ -184,8 +184,8 @@ public sealed class TownLandRightsTests
         var right = state.HouseholdLandUseRights![0];
         var town = Assert.Single(state.Towns!, item => item.Id == TownBorderRules.FirstTownId);
         var household = state.Society.Society.Households[0];
-        var agent = state.Society.Society.Inhabitants.First(person =>
-            person.HouseholdId == household.Id && person.Status == SocietyInhabitantStatus.Active);
+        var agent = state.Society.Society.Agents.First(person =>
+            person.HouseholdId == household.Id && person.Status == SocietyAgentStatus.Active);
         var plot = title.Tiles.Take(1).ToArray();
         var request = new HouseholdLandUseRequest("request:null-town", town.Id, household.Id,
             agent.Id, plot, state.Society.Society.WorldTick);
@@ -215,7 +215,7 @@ public sealed class TownLandRightsTests
             var nextOwner = previousOwner == "household:camp-alpha" ? "household:camp-beta" : "household:camp-alpha";
             var definition = world.WorldContent.Buildings.Single(item => item.CanonicalId == blacksmith.DefinitionId);
             var tile = WorldContentSimulationRules.Footprint(definition, blacksmith)
-                .First(point => world.Inhabitants.All(person => person.Position != point));
+                .First(point => world.Agents.All(person => person.Position != point));
             const string addedAgent = "agent:00000000000000000000000000000093";
             world.ValidateAgentPlacement(addedAgent, tile, previousOwner, TownBorderRules.FirstTownId);
             var before = world.ExportState();
@@ -230,7 +230,7 @@ public sealed class TownLandRightsTests
             Assert.Equal(previousTiles.Count, world.HouseholdLandUseRights.Sum(right => right.Tiles.Count));
             Assert.Equal(before.TownLandTitles, world.TownLandTitles);
             Assert.Equal(before.Society.Society.Inventory, world.Society.Inventory);
-            Assert.Equal(before.Inhabitants, world.ExportState().Inhabitants);
+            Assert.Equal(before.Agents, world.ExportState().Agents);
             world.ValidateAgentPlacement(addedAgent, tile, nextOwner, TownBorderRules.FirstTownId);
 
             var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -247,7 +247,7 @@ public sealed class TownLandRightsTests
                 Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(reloaded.ExportState()));
             }
 
-            var requester = reloaded.Society.Inhabitants.First(person => person.HouseholdId == previousOwner).Id;
+            var requester = reloaded.Society.Agents.First(person => person.HouseholdId == previousOwner).Id;
             var request = reloaded.RequestHouseholdLandUse("request:reassigned", requester,
                 TownBorderRules.FirstTownId, [tile]);
             Assert.True(request.Applied, request.Failure);
@@ -284,7 +284,7 @@ public sealed class TownLandRightsTests
         using var world = WorldRuntime.Restore(state);
         if (boundary == "disputed")
         {
-            var requester = world.Society.Inhabitants.First(person => person.HouseholdId == nextOwner).Id;
+            var requester = world.Society.Agents.First(person => person.HouseholdId == nextOwner).Id;
             var request = world.RequestHouseholdLandUse("request:before-transfer", requester, building.TownId!, [tile]);
             Assert.True(request.Applied, request.Failure);
             Assert.True(request.IsDisputed);
@@ -312,7 +312,7 @@ public sealed class TownLandRightsTests
             CreateStartedTown("town-land-rights-unrelated"), "first-town-blacksmith"), "first-town-farmhouse");
         var smith = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-blacksmith");
         var farm = world.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-farmhouse");
-        var requester = world.Society.Inhabitants.First(person => person.HouseholdId == farm.HouseholdId).Id;
+        var requester = world.Society.Agents.First(person => person.HouseholdId == farm.HouseholdId).Id;
         var request = world.RequestHouseholdLandUse("request:smith-dispute", requester, smith.TownId!, [smith.Position]);
         Assert.True(request.Applied, request.Failure);
         Assert.True(request.IsDisputed);

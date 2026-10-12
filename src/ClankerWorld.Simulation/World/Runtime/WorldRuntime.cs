@@ -67,8 +67,8 @@ public sealed partial class WorldRuntime : IDisposable
     private DeclarativeWorldContentState worldContent;
     private WorldContentSimulationState worldSimulation;
     private WorldAssetReservationLedger assetReservations;
-    private Dictionary<string, InhabitantState> inhabitants = new(StringComparer.Ordinal);
-    private Dictionary<string, DeceasedInhabitantState> deceasedInhabitants = new(StringComparer.Ordinal);
+    private Dictionary<string, AgentState> agents = new(StringComparer.Ordinal);
+    private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
     private WorldKnowledgeState knowledge = WorldKnowledgeState.Empty;
     private Dictionary<string, OwnerQueuedInstruction> instructionsByIdempotency =
@@ -79,8 +79,8 @@ public sealed partial class WorldRuntime : IDisposable
         new(StringComparer.Ordinal);
     private HashSet<string> completedInstructionIds = new(StringComparer.Ordinal);
     private WorldEventLog worldEventLog = new([]);
-    private readonly IResidentWorld residentWorld;
-    private readonly IEnvironmentResidentWorld environmentWorld;
+    private readonly IAgentWorld agentWorld;
+    private readonly IEnvironmentAgentWorld environmentWorld;
     private ReadOnlyCollection<WorldEventEntry> events => worldEventLog.Events;
     private long nextEventId => worldEventLog.NextEventId;
     private long eventHistoryFloor => worldEventLog.HistoryFloor;
@@ -89,11 +89,11 @@ public sealed partial class WorldRuntime : IDisposable
     private bool jevEnabled = true;
     private RoutineHelperSettings routineHelper = RoutineHelperSettings.Jev;
     private long jevPolicyRevision;
-    private FounderSetupState? founderSetup { get => civicSystem.State.FounderSetup; set => civicSystem.RestoreFounderSetup(value); }
-    private IReadOnlyList<TownRuntimeState> towns { get => civicSystem.State.Towns; set => civicSystem.RestoreTowns(value); }
-    private IReadOnlyList<TownLandTitleRecord> townLandTitles { get => civicSystem.State.TownLandTitles; set => civicSystem.RestoreTownLandTitles(value); }
-    private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => civicSystem.State.HouseholdLandUseRights; set => civicSystem.RestoreHouseholdLandUseRights(value); }
-    private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => civicSystem.State.HouseholdLandUseRequests; set => civicSystem.RestoreHouseholdLandUseRequests(value); }
+    private FounderSetupState? founderSetup { get => townSystem.State.FounderSetup; set => townSystem.RestoreFounderSetup(value); }
+    private IReadOnlyList<TownRuntimeState> towns { get => townSystem.State.Towns; set => townSystem.RestoreTowns(value); }
+    private IReadOnlyList<TownLandTitleRecord> townLandTitles { get => townSystem.State.TownLandTitles; set => townSystem.RestoreTownLandTitles(value); }
+    private IReadOnlyList<HouseholdLandUseRight> householdLandUseRights { get => townSystem.State.HouseholdLandUseRights; set => townSystem.RestoreHouseholdLandUseRights(value); }
+    private IReadOnlyList<HouseholdLandUseRequest> householdLandUseRequests { get => townSystem.State.HouseholdLandUseRequests; set => townSystem.RestoreHouseholdLandUseRequests(value); }
     private HashSet<GridPoint> roadTiles = [];
     private AnimalSystem animalSystem = new(AnimalWorldState.Empty);
     private AnimalWorldState animalWorld => animalSystem.State;
@@ -102,12 +102,12 @@ public sealed partial class WorldRuntime : IDisposable
     private List<HandcartHitch> handcartHitches = [];
     private ConversationSystem conversationSystem = new(new([], [], []));
     private readonly IConversationWorld conversationWorld;
-    private CivicSystem civicSystem = new(CivicState.Empty);
-    private readonly ICivicTownWorld civicWorld;
+    private TownSystem townSystem = new(CivicState.Empty);
+    private readonly ITownWorld civicWorld;
     private ReadOnlyCollection<AgentConversation> conversations => conversationSystem.State.Conversations;
     private ReadOnlyCollection<AgentMarriage> marriages => conversationSystem.State.Marriages;
     private IReadOnlyList<AgentConversationDailyBudget> conversationBudgets => conversationSystem.State.Budgets;
-    private GridPoint SettlementStoragePosition =>
+    private GridPoint SharedStoragePosition =>
         map.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
         worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
@@ -115,7 +115,7 @@ public sealed partial class WorldRuntime : IDisposable
     private GridPoint WeatherAnchor =>
         map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
-        SettlementStoragePosition;
+        SharedStoragePosition;
     private long nextInstructionSequence = 1;
     private readonly Dictionary<string, PendingHostedDecision> pendingHosted = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PendingConversationTurn> pendingConversationTurns = new(StringComparer.Ordinal);
@@ -159,7 +159,7 @@ public sealed partial class WorldRuntime : IDisposable
     {
         this.worldSeed = NormalizeRequiredText(worldSeed, nameof(worldSeed));
         conversationWorld = new ConversationWorldAdapter(this);
-        residentWorld = new ResidentWorldAdapter(this);
+        agentWorld = new AgentWorldAdapter(this);
         environmentWorld = new EnvironmentWorldAdapter(this);
         civicWorld = new CivicWorldAdapter(this);
         farmingWorld = new FarmingWorldAdapter(this);
@@ -227,7 +227,7 @@ public sealed partial class WorldRuntime : IDisposable
         // Out-of-season orchard trees start without fruit.
         SyncEcologyResourceStates();
 
-        AppendEvent("world_created", $"{this.worldSeed}:inhabitants:{inhabitants.Count}");
+        AppendEvent("world_created", $"{this.worldSeed}:agents:{agents.Count}");
         if (towns.Count > 0) AppendEvent("town_founding_started", TownBorderRules.FirstTownId);
         StartContinuityRule();
     }
@@ -306,8 +306,8 @@ public sealed partial class WorldRuntime : IDisposable
 
     public WorldKnowledgeState Knowledge => knowledge;
 
-    public IReadOnlyList<InhabitantState> Inhabitants => inhabitants.Values
-        .OrderBy(item => item.InhabitantId, StringComparer.Ordinal)
+    public IReadOnlyList<AgentState> Agents => agents.Values
+        .OrderBy(item => item.AgentId, StringComparer.Ordinal)
         .ToArray();
 
     public WorldRuntimeState ExportState()
@@ -370,7 +370,7 @@ public sealed partial class WorldRuntime : IDisposable
             ? preparedFarming.Fork() : new(new(state.Fields!.OrderBy(field => field.Position.Y)
                 .ThenBy(field => field.Position.X)), state.WorldSeed);
         if (trustedPreparedState && preparedCivic is not null)
-            runtime.civicSystem = new(preparedCivic);
+            runtime.townSystem = new(preparedCivic);
         else
         {
             runtime.founderSetup = state.FounderSetup;
@@ -386,23 +386,23 @@ public sealed partial class WorldRuntime : IDisposable
         runtime.bridgeTraffic = state.BridgeTraffic!;
         runtime.conversationSystem = new(trustedPreparedState && preparedConversations is not null
             ? preparedConversations : new(state.Conversations!, state.ConversationBudgets!, state.Marriages));
-        runtime.businessTrades = state.BusinessTrades!.ToList();
+        runtime.shopTrades = state.ShopTrades!.ToList();
         runtime.toolMakingRequests = state.ToolMakingRequests!.ToList();
         runtime.ApplyBridgeDecks();
         runtime.assetReservations = WorldAssetReservationLedger.Restore(state.AssetReservations);
         runtime.survivalState = state.Survival;
-        runtime.council = state.Council;
+        runtime.foodStewardship = state.FoodStewardship;
         runtime.continuity = state.Continuity!;
         RegionalWeatherRules.ValidateMap(runtime.worldSystems, runtime.map);
-        runtime.inhabitants.Clear();
-        foreach (var inhabitant in state.Inhabitants)
+        runtime.agents.Clear();
+        foreach (var agent in state.Agents)
         {
-            runtime.inhabitants.Add(inhabitant.InhabitantId, inhabitant);
+            runtime.agents.Add(agent.AgentId, agent);
         }
-        runtime.deceasedInhabitants.Clear();
-        foreach (var inhabitant in state.DeceasedInhabitants ?? [])
+        runtime.deceasedAgents.Clear();
+        foreach (var agent in state.DeceasedAgents ?? [])
         {
-            runtime.deceasedInhabitants.Add(inhabitant.InhabitantId, inhabitant);
+            runtime.deceasedAgents.Add(agent.AgentId, agent);
         }
 
         runtime.resources.Clear();
@@ -492,7 +492,7 @@ public sealed partial class WorldRuntime : IDisposable
                 // discards this proposal, including its resume event and epoch.
                 using var proposed = RestoreCore(CaptureState(), providerFactory, maxCognitionDispatchPerCycle,
                     trustedPreparedState: true, preparedConversations: conversationSystem.CheckpointState,
-                    preparedCivic: civicSystem.CheckpointState, preparedFarming: farmingSystem);
+                    preparedCivic: townSystem.CheckpointState, preparedFarming: farmingSystem);
                 proposed.Resume();
                 var persisted = persist(proposed.CaptureState());
                 if (persisted.HistoryArchiveHead != proposed.historyArchiveHead)
@@ -525,7 +525,7 @@ public sealed partial class WorldRuntime : IDisposable
         worldSeed,
         map,
         society.ExportState(),
-        inhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
+        agents.Values.OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray(),
         resources.OrderBy(item => item.Key, StringComparer.Ordinal)
             .Select(item => new ResourceStateEntry(item.Key, item.Value)).ToArray(),
         events.ToArray(),
@@ -537,14 +537,14 @@ public sealed partial class WorldRuntime : IDisposable
         worldSystems,
         worldContent,
         worldSimulation,
-        assetReservations.ExportState(), eventHistoryFloor, historyArchiveHead, survivalState, council,
-        deceasedInhabitants.Count == 0 ? null : deceasedInhabitants.Values.OrderBy(item => item.InhabitantId, StringComparer.Ordinal).ToArray(),
+        assetReservations.ExportState(), eventHistoryFloor, historyArchiveHead, survivalState, foodStewardship,
+        deceasedAgents.Count == 0 ? null : deceasedAgents.Values.OrderBy(item => item.AgentId, StringComparer.Ordinal).ToArray(),
         jevPolicyRevision == 0 && jevEnabled ? null : jevEnabled, jevPolicyRevision, founderSetup,
         geographyOptions, towns.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), knowledge,
         RoadTiles, Bridges, bridgeTraffic, fields.ToArray(),
         conversationSystem.CheckpointState.Conversations,
         conversationSystem.CheckpointState.Budgets,
-        TownLandTitles, HouseholdLandUseRights, HouseholdLandUseRequests, BusinessTrades, continuity,
+        TownLandTitles, HouseholdLandUseRights, HouseholdLandUseRequests, ShopTrades, continuity,
         orderCancellations.Values.OrderBy(item => item.Receipt.WorldTick)
             .ThenBy(item => item.IdempotencyKey, StringComparer.Ordinal).ToArray(), ToolMakingRequests,
         handcartHitches.OrderBy(item => item.CartLotId, StringComparer.Ordinal).ToArray())
@@ -558,6 +558,6 @@ public sealed partial class WorldRuntime : IDisposable
     };
 
     private void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) =>
-        worldEventLog.AppendEvent(residentWorld, kind, detail, eventPosition);
+        worldEventLog.AppendEvent(agentWorld, kind, detail, eventPosition);
 
 }

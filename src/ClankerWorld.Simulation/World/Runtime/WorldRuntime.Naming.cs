@@ -18,65 +18,65 @@ public sealed partial class WorldRuntime
             return;
         }
 
-        var inhabitantId = request.Observation.InhabitantId;
-        var inhabitant = society.Checkpoint.GetInhabitant(inhabitantId);
-        if (!inhabitant.NeedsName)
+        var agentId = request.Observation.AgentId;
+        var agent = society.Checkpoint.GetAgent(agentId);
+        if (!agent.NeedsName)
         {
             return;
         }
 
         var chosenName = CognitionDecisionResponse.NormalizeChosenName(response.ChosenName);
-        var chosenKey = chosenName is null ? null : InhabitantNameRules.CanonicalKey(chosenName);
+        var chosenKey = chosenName is null ? null : AgentNameRules.CanonicalKey(chosenName);
         if (chosenName is null || chosenKey is null)
         {
-            CloseNameRequest(inhabitantId);
-            AppendEvent("agent_name_unavailable", inhabitantId);
+            CloseNameRequest(agentId);
+            AppendEvent("agent_name_unavailable", agentId);
             return;
         }
 
-        var duplicate = InhabitantNameRules.IsTaken(society.Checkpoint, inhabitantId, chosenName);
+        var duplicate = AgentNameRules.IsTaken(society.Checkpoint, agentId, chosenName);
         if (!duplicate)
         {
-            if (!InhabitantNameRules.IsAllowedChildName(society.Checkpoint, inhabitantId, chosenName))
+            if (!AgentNameRules.IsAllowedChildName(society.Checkpoint, agentId, chosenName))
             {
-                CloseNameRequest(inhabitantId);
-                AppendEvent("agent_name_unavailable", inhabitantId);
+                CloseNameRequest(agentId);
+                AppendEvent("agent_name_unavailable", agentId);
                 return;
             }
-            society.Apply(checkpoint => SocietyRules.RenameInhabitant(checkpoint, inhabitantId, chosenName));
-            AppendEvent("agent_named", inhabitantId);
+            society.Apply(checkpoint => SocietyRules.RenameAgent(checkpoint, agentId, chosenName));
+            AppendEvent("agent_named", agentId);
             return;
         }
 
-        AppendEvent("agent_name_rejected", inhabitantId);
+        AppendEvent("agent_name_rejected", agentId);
         if (request.Observation.IsNameRetry)
         {
-            CloseNameRequest(inhabitantId);
-            AppendEvent("agent_name_retry_exhausted", inhabitantId);
+            CloseNameRequest(agentId);
+            AppendEvent("agent_name_retry_exhausted", agentId);
             return;
         }
 
         var queued = society.EnqueueCognition(new SocietyCognitionScheduleEntry(
             $"name-retry:{request.RequestId}",
-            inhabitantId,
-            PriorityFor(inhabitants[inhabitantId]),
+            agentId,
+            PriorityFor(agents[agentId]),
             WorldTick,
             [SocietyCognitionScheduler.NameRetryTriggerId],
             request.Observation with { IsNameRetry = false }));
         if (queued)
         {
-            AppendEvent("agent_name_retry_requested", inhabitantId);
+            AppendEvent("agent_name_retry_requested", agentId);
             return;
         }
 
         // The original queue entry has just been consumed, so this is only a
         // defensive bound for an unexpectedly full or unavailable queue.
-        CloseNameRequest(inhabitantId);
-        AppendEvent("agent_name_retry_unavailable", inhabitantId);
+        CloseNameRequest(agentId);
+        AppendEvent("agent_name_retry_unavailable", agentId);
     }
 
-    private void CloseNameRequest(string inhabitantId) =>
-        society.Apply(checkpoint => SocietyRules.CloseNaming(checkpoint, inhabitantId));
+    private void CloseNameRequest(string agentId) =>
+        society.Apply(checkpoint => SocietyRules.CloseNaming(checkpoint, agentId));
 
     private void CloseUnresolvedNameRetry(CognitionDecisionRequest request)
     {
@@ -85,15 +85,15 @@ public sealed partial class WorldRuntime
             return;
         }
 
-        var inhabitantId = request.Observation.InhabitantId;
-        var inhabitant = society.Checkpoint.GetInhabitant(inhabitantId);
-        if (!inhabitant.NeedsName)
+        var agentId = request.Observation.AgentId;
+        var agent = society.Checkpoint.GetAgent(agentId);
+        if (!agent.NeedsName)
         {
             return;
         }
 
-        CloseNameRequest(inhabitantId);
-        AppendEvent("agent_name_retry_unusable", inhabitantId);
+        CloseNameRequest(agentId);
+        AppendEvent("agent_name_retry_unusable", agentId);
     }
 
 }

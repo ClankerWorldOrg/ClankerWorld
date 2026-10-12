@@ -17,7 +17,7 @@ public sealed class OwnedToolCollectionCheckpointTests
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
         return WorldRuntimeCodec.Encode(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { Position = warehouse.Position } : person).ToArray(),
         });
     });
@@ -61,7 +61,7 @@ public sealed class OwnedToolCollectionCheckpointTests
                 (collected.OwnerId, collected.Quantity, collected.ConditionBasisPoints, collected.ProvenanceLotId));
             Assert.Null(collected.StorageBuildingId);
             Assert.Null(collected.GroundPosition);
-            Assert.Null(world.Society.GetInhabitant(Actor).HouseholdId);
+            Assert.Null(world.Society.GetAgent(Actor).HouseholdId);
             Assert.Equal(state.Events.Count(item => item.Kind == "equipment_collected" && item.Detail == Actor + ":" + kind) + 1,
                 world.ExportState().Events.Count(item => item.Kind == "equipment_collected" && item.Detail == Actor + ":" + kind));
             choices.Wanted = "safe_idle";
@@ -120,13 +120,13 @@ public sealed class OwnedToolCollectionCheckpointTests
             inventory = InventoryAuthority.Reserve(inventory, "tool-commitment", Actor, lotId, 1, "other_work", long.MaxValue);
         if (boundary == "full")
         {
-            var room = PersonalEquipmentRules.FreeCapacity(inventory, Actor, state.Inhabitants.Single(person => person.InhabitantId == Actor).Equipment);
+            var room = PersonalEquipmentRules.FreeCapacity(inventory, Actor, state.Agents.Single(person => person.AgentId == Actor).Equipment);
             inventory = InventoryAuthority.AddLot(inventory, "tool-ballast", "stone", Actor, room);
         }
         if (boundary == "foreign-house")
             inventory = InventoryAuthority.Relocate(inventory, "foreign-storage-fixture", lotId, Actor, 1, storageBuildingId: "first-town-house-a");
         if (boundary == "other-carrier")
-            inventory = InventoryAuthority.Relocate(inventory, "other-custody-fixture", lotId, Actor, 1, carrierId: state.Inhabitants[0].InhabitantId);
+            inventory = InventoryAuthority.Relocate(inventory, "other-custody-fixture", lotId, Actor, 1, carrierId: state.Agents[0].AgentId);
         state = WithInventory(state, inventory);
         var choices = new Choices("collect_wooden_axe");
         using var world = Restore(state, choices);
@@ -148,12 +148,12 @@ public sealed class OwnedToolCollectionCheckpointTests
     public async Task SharedHouseholdToolsStillBelongToTheirLenderAfterCollection()
     {
         var state = WorldRuntimeCodec.Decode(Generated.Value);
-        var household = state.Society.Society.GetInhabitant(Actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(Actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "shared-tool", "wooden_axe", household, 1, storageBuildingId: House)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor
+            Agents = state.Agents.Select(person => person.AgentId == Actor
                 ? person with { Position = house.Position } : person).ToArray(),
         };
         using var world = Restore(state, new Choices("collect_wooden_axe"));
@@ -183,9 +183,9 @@ public sealed class OwnedToolCollectionCheckpointTests
         Assert.Contains(world.ExportState().Events, item => item.Kind == "personal_goods_stored");
         choices.Wanted = "household_leave";
         Suggest(world, "leave-household", "Leave the household.");
-        for (var tick = 0; tick < 16 && world.Society.GetInhabitant(Actor).HouseholdId is not null; tick++)
+        for (var tick = 0; tick < 16 && world.Society.GetAgent(Actor).HouseholdId is not null; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Null(world.Society.GetInhabitant(Actor).HouseholdId);
+        Assert.Null(world.Society.GetAgent(Actor).HouseholdId);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "household_left");
         Assert.Equal(Actor, world.Society.Inventory.GetLot(lotId).OwnerId);
         Suggest(world, "collect-tool", "Collect the stored tool for work.");
@@ -195,7 +195,7 @@ public sealed class OwnedToolCollectionCheckpointTests
     private static string LotId(string kind) => "first-town-" + kind.Replace('_', '-');
     private static bool Carried(WorldRuntime world, string lotId) => PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot(lotId), Actor);
     private static void Suggest(WorldRuntime world, string key, string text) =>
-        world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Suggestive, text));
+        world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Suggestion, text));
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static WorldRuntime Restore(WorldRuntimeState state, Choices choices) =>
@@ -210,12 +210,12 @@ public sealed class OwnedToolCollectionCheckpointTests
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            var selected = request.Observation.InhabitantId == Actor && request.Observation.Candidates.Any(candidate => candidate.Id == Wanted)
+            var selected = request.Observation.AgentId == Actor && request.Observation.Candidates.Any(candidate => candidate.Id == Wanted)
                 ? Wanted : "safe_idle";
             Selected.Enqueue(selected);
-            if (request.Observation.InhabitantId == Actor)
+            if (request.Observation.AgentId == Actor)
                 foreach (var candidate in request.Observation.Candidates) Offered.Enqueue(candidate.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

@@ -60,9 +60,9 @@ public sealed class KnowledgeCopyOrderTests
             (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ProgressUnit,
                 Order(world, receipt).KnowledgeWritingProjectId, Order(world, receipt).KnowledgeCopySourceArtifactId));
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
-            item => item.InstructionId == receipt.InstructionId).Order!;
+            item => item.InstructionId == receipt.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(JsonSerializer.Serialize(projected, json), json)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldOrderTask>(JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal((kind, "copies", 1), (client.TargetKnowledgeKind, client.ProgressUnit, client.CompletedUnits));
         AssertReload(final);
     }
@@ -79,7 +79,7 @@ public sealed class KnowledgeCopyOrderTests
     {
         var state = await CopyReady("book");
         var actor = CopyActor(state);
-        var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != actor).AgentId;
         var source = Assert.Single(state.Knowledge!.Artifacts);
         var inventory = state.Society.Society.Inventory;
         if (boundary is "foreign" or "borrowed") inventory = InventoryAuthority.Transfer(inventory, "foreign-source", actor, other, source.LotId, 1, "return source");
@@ -87,7 +87,7 @@ public sealed class KnowledgeCopyOrderTests
             other, 1, carrierId: actor);
         if (boundary == "full")
         {
-            var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+            var household = state.Society.Society.GetAgent(actor).HouseholdId!;
             var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
             inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != "copy-paper").ToArray() };
@@ -124,25 +124,25 @@ public sealed class KnowledgeCopyOrderTests
         var state = await CopyReady("field_map");
         var actor = CopyActor(state);
         var source = Assert.Single(state.Knowledge!.Artifacts);
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var start = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             state.Map.FootDistance(point, house.Position) == 2 && state.Map.IsReachableOnFoot(point, house.Position) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         var inventory = state.Society.Society.Inventory with
         { Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.Id != "copy-paper").ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, "house-copy-paper", "paper", household, 2,
             inventory.WorldTick, storageBuildingId: house.InstanceId);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = start, TravelCooldownTicks = 0, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = Restore(state);
         var receipt = Submit(world, "house-copy", "copy a map");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.NotEqual(start, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(start, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Equal(source.Id, Order(world, receipt).KnowledgeCopySourceArtifactId);
         Assert.Null(Order(world, receipt).KnowledgeWritingProjectId);
         Assert.Empty(world.Knowledge.WritingProjects);
@@ -162,7 +162,7 @@ public sealed class KnowledgeCopyOrderTests
     {
         var state = await CopyReady("book");
         var actor = CopyActor(state);
-        var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != actor).AgentId;
         var source = Assert.Single(state.Knowledge!.Artifacts);
         using var starting = Restore(state);
         var receipt = Submit(starting, "source-loss", "copy a book");
@@ -205,7 +205,7 @@ public sealed class KnowledgeCopyOrderTests
         var receipt = Submit(world, "cancel-copy", "copy a book");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var job = Assert.Single(world.ExportState().Knowledge!.WritingProjects);
-        if (replace) Submit(world, "replace-copy", $"move to {world.Inhabitants[0].Position.X},{world.Inhabitants[0].Position.Y}");
+        if (replace) Submit(world, "replace-copy", $"move to {world.Agents[0].Position.X},{world.Agents[0].Position.Y}");
         else Assert.True(world.CancelOrder(new("cancel-copy-receipt", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
         Assert.Equal(("cancelled", 0, (string?)null),
             (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).KnowledgeWritingProjectId));
@@ -239,7 +239,7 @@ public sealed class KnowledgeCopyOrderTests
         state = world.ExportState();
         var author = state.Knowledge!.Artifacts[0].CreatorId;
         var target = state.Knowledge.Artifacts[0].Facts.First(fact => fact.Position !=
-            state.Inhabitants.Single(person => person.InhabitantId == author).Position).Position;
+            state.Agents.Single(person => person.AgentId == author).Position).Position;
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "new-copy-account-seed", TreeGrowthRules.SeedItem(TreeGrowthRules.Orchard), author, 1, state.Society.Society.WorldTick));
         using var writing = WorldRuntime.Restore(state,
@@ -271,7 +271,7 @@ public sealed class KnowledgeCopyOrderTests
         var state = await CopyReady("field_map");
         var actor = CopyActor(state);
         var source = Assert.Single(state.Knowledge!.Artifacts);
-        var target = source.Facts.First(fact => fact.Position != state.Inhabitants.Single(person => person.InhabitantId == actor).Position).Position;
+        var target = source.Facts.First(fact => fact.Position != state.Agents.Single(person => person.AgentId == actor).Position).Position;
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "copy-observation-seed", TreeGrowthRules.SeedItem(TreeGrowthRules.Orchard), actor, 1, state.Society.Society.WorldTick));
         using var world = Restore(state);
@@ -342,8 +342,8 @@ public sealed class KnowledgeCopyOrderTests
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "copy-urgent-food", "berries", actor, 4, state.Society.Society.WorldTick)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
-            { HungerBasisPoints = 1000, LastDecisionContext = null } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
+            { FullnessBasisPoints = 1000, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = Restore(state);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -368,18 +368,18 @@ public sealed class KnowledgeCopyOrderTests
         var instruction = state.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
         foreach (var changed in new[]
         {
-            instruction.Order! with { KnowledgeCopySourceArtifactId = "missing-artifact" },
-            instruction.Order! with { KnowledgeCopySourceArtifactId = null },
-            instruction.Order! with { Action = "write_knowledge", ProgressUnit = "artifacts", KnowledgeCopySourceArtifactId = null },
-            instruction.Order! with { CompletedUnits = 1, RepeatUntilCancelled = true, LastEffectId = "writing:artifact:knowledge-artifact-000001" },
+            instruction.Task! with { KnowledgeCopySourceArtifactId = "missing-artifact" },
+            instruction.Task! with { KnowledgeCopySourceArtifactId = null },
+            instruction.Task! with { Action = "write_knowledge", ProgressUnit = "artifacts", KnowledgeCopySourceArtifactId = null },
+            instruction.Task! with { CompletedUnits = 1, RepeatUntilCancelled = true, LastEffectId = "writing:artifact:knowledge-artifact-000001" },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
-        { Instructions = state.Instructions!.Select(item => item == instruction ? item with { Order = changed } : item).ToArray() }));
+        { Instructions = state.Instructions!.Select(item => item == instruction ? item with { Task = changed } : item).ToArray() }));
         AssertReload(state);
     }
 
     private static string CopyActor(WorldRuntimeState state) => state.Knowledge!.Artifacts.Count > 0
-        ? state.Inhabitants.First(person => person.InhabitantId != state.Knowledge.Artifacts[0].CreatorId).InhabitantId
-        : state.Inhabitants[0].InhabitantId;
+        ? state.Agents.First(person => person.AgentId != state.Knowledge.Artifacts[0].CreatorId).AgentId
+        : state.Agents[0].AgentId;
 
     private static string Account(AgentKnowledgeFact fact) => JsonSerializer.Serialize(new
     { fact.DiscovererId, fact.Position, fact.ResourceKinds, fact.Terrain });
@@ -389,25 +389,25 @@ public sealed class KnowledgeCopyOrderTests
     private static async Task<byte[]> MakeSource(string kind)
     {
         var state = await Prepared();
-        var author = state.Inhabitants[0].InhabitantId;
+        var author = state.Agents[0].AgentId;
         using var writing = WorldRuntime.Restore(Supplies(state, author, 2, 1),
             id => id == author ? new Choose("knowledge_write:" + kind) : new Idle());
         for (var tick = 0; tick < 16 && writing.ExportState().Knowledge!.Artifacts.Count == 0; tick++)
             Assert.True((await writing.AdvanceOneTickAsync()).Advanced);
         state = writing.ExportState();
         var source = Assert.Single(state.Knowledge!.Artifacts);
-        var reader = state.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
+        var reader = state.Agents.First(person => person.AgentId != author).AgentId;
         var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "give-paid-source", author,
             reader, source.LotId, 1, "give the actual written source");
         // The only fixture changes here are physical custody and a controlled
         // reader position/survival state. Knowledge comes from the native read action.
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.OrderBy(person => person.InhabitantId == reader ? 0 : 1).Select(person =>
-                person.InhabitantId == reader ? person with
+            Agents = state.Agents.OrderBy(person => person.AgentId == reader ? 0 : 1).Select(person =>
+                person.AgentId == reader ? person with
                 {
-                    Position = state.Inhabitants[0].Position,
-                    HungerBasisPoints = 9500,
+                    Position = state.Agents[0].Position,
+                    FullnessBasisPoints = 9500,
                     LastDecisionContext = null,
                     TravelCooldownTicks = 0
                 } : person).ToArray(),
@@ -433,7 +433,7 @@ public sealed class KnowledgeCopyOrderTests
             Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
             state = initial.ExportState();
         }
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var geometry = WorldRuntime.Restore(state, _ => new Idle());
         var occupied = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
@@ -442,16 +442,16 @@ public sealed class KnowledgeCopyOrderTests
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(point => !occupied.Contains(point) &&
                 !state.Towns!.Any(town => town.BorderTiles.Contains(point)) &&
                 TreeGrowthRules.GroundRefusal(state.Map, point) is null &&
-                state.Map.FootNeighbors(point).Any(next => state.Inhabitants.All(person => person.Position != next)) &&
-                state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
-        var stand = state.Map.FootNeighbors(target).First(point => state.Inhabitants.All(person => person.Position != point));
+                state.Map.FootNeighbors(point).Any(next => state.Agents.All(person => person.Position != next)) &&
+                state.Map.IsReachableOnFoot(state.Agents[0].Position, point))
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
+        var stand = state.Map.FootNeighbors(target).First(point => state.Agents.All(person => person.Position != point));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
-                HungerBasisPoints = 9500,
+                FullnessBasisPoints = 9500,
                 TravelCooldownTicks = 0,
                 LastDecisionContext = null,
                 Project = null,
@@ -483,10 +483,10 @@ public sealed class KnowledgeCopyOrderTests
         id => id == CopyActor(state) ? new DeterministicDecisionProvider() : new Idle());
 
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new(key, "owner:test", CopyActor(world.ExportState()), OwnerInstructionKind.MustDo, text, Queue: queue));
+        world.SubmitInstruction(new(key, "owner:test", CopyActor(world.ExportState()), OwnerInstructionKind.Order, text, Queue: queue));
 
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
 
     private static int Quantity(WorldRuntimeState state, string owner, string kind) =>
         state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == owner && lot.ItemKind == kind).Sum(lot => lot.Quantity);

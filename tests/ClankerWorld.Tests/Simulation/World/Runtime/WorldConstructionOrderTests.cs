@@ -84,7 +84,7 @@ public sealed partial class WorldConstructionOrderTests
         {
             [],
             [proof with { InputReservationIds = [] }],
-            [proof with { ActorId = state.Society.Society.Inhabitants.First(item => item.Id != setup.Actor).Id }],
+            [proof with { ActorId = state.Society.Society.Agents.First(item => item.Id != setup.Actor).Id }],
         })
             Assert.Throws<InvalidDataException>(() => Restore(saved with
             {
@@ -197,7 +197,7 @@ public sealed partial class WorldConstructionOrderTests
     {
         var setup = await Baseline.Value;
         var state = Decode(setup);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         using var world = Restore(state);
         var receipt = Submit(world, actor, "building-gate", "build one " + kind);
         await Tick(world);
@@ -220,7 +220,7 @@ public sealed partial class WorldConstructionOrderTests
         var state = Decode(setup);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == setup.Actor
+            Agents = state.Agents.Select(person => person.AgentId == setup.Actor
                 ? person with { LastDecisionContext = null } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, id => id == setup.Actor ? provider : new ConstructionChoices());
@@ -292,9 +292,9 @@ public sealed partial class WorldConstructionOrderTests
     {
         using var generated = NormalPathWorld.CreateGenerated("personal-storage-orders", _ => new ConstructionChoices());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
         var home = Home(state);
-        var previous = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var previous = state.Agents.Single(person => person.AgentId == actor).Position;
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != Alpha && lot.OwnerId != actor).ToArray(),
@@ -304,11 +304,11 @@ public sealed partial class WorldConstructionOrderTests
         state = WithInventory(state, inventory) with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? home.Position : person.Position == home.Position ? previous : person.Position,
-                HungerBasisPoints = 10_000,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Position = person.AgentId == actor ? home.Position : person.Position == home.Position ? previous : person.Position,
+                FullnessBasisPoints = 10_000,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 LastDecisionContext = null,
             }).ToArray(),
         };
@@ -339,10 +339,10 @@ public sealed partial class WorldConstructionOrderTests
     }
     private static string BuildClinic(GridPoint site) => string.Create(CultureInfo.InvariantCulture, $"build one Clinic at ({site.X}, {site.Y})");
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text, Queue: queue));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
-    private static InhabitantState Person(WorldRuntime world, string actor) => world.Inhabitants.Single(item => item.InhabitantId == actor);
+        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
+    private static AgentState Person(WorldRuntime world, string actor) => world.Agents.Single(item => item.AgentId == actor);
     private static void AssertInputs(WorldRuntime world, int wood, int stone)
     {
         Assert.Equal(wood, world.Society.Inventory.Lots.Where(item => item.OwnerId == Alpha && item.ItemKind == "wood").Sum(item => item.Quantity));
@@ -365,7 +365,7 @@ public sealed partial class WorldConstructionOrderTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();
@@ -373,7 +373,7 @@ public sealed partial class WorldConstructionOrderTests
             Observations.Enqueue(observation);
             var preferred = observation.OperativeOrderInstructionId is not null ? "construct_building" : nativeCandidate;
             var selected = preferred is not null && observation.Candidates.Any(candidate => candidate.Id == preferred) ? preferred : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 request.ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

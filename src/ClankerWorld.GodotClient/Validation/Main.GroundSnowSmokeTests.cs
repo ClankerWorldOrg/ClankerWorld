@@ -20,7 +20,7 @@ public partial class Main
         var map = new OwnerWorldSnapshot("ground-snow-smoke", 0, "ground-snow-map", [], [], [], null, 0)
         {
             PackedTerrain = new(256, 128, "terrain-kind-v1", Convert.ToBase64String(terrain)),
-            Inhabitants = [person],
+            Agents = [person],
             Animals = [cow],
             WeatherRegionSize = 32,
             WeatherRegions = [new(3, 1, "snow"), new(4, 1, "clear")],
@@ -29,7 +29,7 @@ public partial class Main
             Authoring = new(false, 0, 0, 0, "ground-snow-map", "ground-snow-map", "snow", "winter", []),
         };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         void Show()
         {
@@ -58,7 +58,7 @@ public partial class Main
             Check(terrainLayer.DrawnSnowTileCount > 0 && terrainLayer.GetChildCount() == 0,
                 "The real terrain draw must show cover without a node per tile.");
             person = person with { Position = new(121, 60) };
-            map = map with { WorldTick = 61, Inhabitants = [person] }; Show();
+            map = map with { WorldTick = 61, Agents = [person] }; Show();
             var agentPrints = terrainLayer.SnowFootprintCount;
             Check(agentPrints > 0, "A short authoritative agent move over snow must leave prints.");
             cow = cow with { Position = new(121, 62) };
@@ -74,16 +74,16 @@ public partial class Main
             Check(terrainLayer.SnowFootprintCount == printCount && terrainLayer.GroundSnowAt(120, 60) == 1,
                 "Paused frames must neither melt snow nor age footprints.");
             person = person with { Position = new(122, 60) };
-            map = map with { Inhabitants = [person] }; Show();
+            map = map with { Agents = [person] }; Show();
             Check(terrainLayer.SnowFootprintCount == printCount, "Paused authoring relocation is not a walk.");
             map = map with
             {
                 Authoring = map.Authoring! with { IsPaused = false },
                 WorldTick = 63,
-                Inhabitants = [person with { Position = new(150, 60) }]
+                Agents = [person with { Position = new(150, 60) }]
             }; Show();
             Check(terrainLayer.SnowFootprintCount == printCount, "A long jump must not draw a made-up trail.");
-            map = map with { WorldTick = 64, Inhabitants = [person with { Position = new(151, 60) }] }; Show();
+            map = map with { WorldTick = 64, Agents = [person with { Position = new(151, 60) }] }; Show();
             Check(terrainLayer.SnowFootprintCount == printCount, "Walking in a dry region must leave no snow prints.");
             cameraZoom = minimumCameraZoom; Show();
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
@@ -130,11 +130,11 @@ public partial class Main
                 WorldTick = 0,
                 WrapsEastWest = true,
                 WeatherRegions = [new(7, 1, "snow"), new(0, 1, "snow")],
-                Inhabitants = [person with { Position = new(255, 60) }],
+                Agents = [person with { Position = new(255, 60) }],
                 Animals = []
             }; Show();
             map = map with { WorldTick = 60 }; Show();
-            map = map with { WorldTick = 61, Inhabitants = [person with { Position = new(0, 60) }] }; Show();
+            map = map with { WorldTick = 61, Agents = [person with { Position = new(0, 60) }] }; Show();
             Check(terrainLayer.SnowFootprintCount is > 0 and < 12,
                 "A wrapped one-tile move leaves a short trail rather than crossing the whole map.");
             Check(terrainLayer.GroundSnowAt(-1, 60) == terrainLayer.GroundSnowAt(255, 60),

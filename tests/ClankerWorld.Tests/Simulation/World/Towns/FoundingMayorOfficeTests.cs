@@ -15,17 +15,17 @@ public sealed partial class TownGovernmentRuntimeTests
     public void FoundingJointElectionWaitsForTheScheduledCouncilElection()
     {
         string[] adults = ["a", "b", "c", "d", "e", "f", "g", "h"];
-        var council = TownGovernanceState.Create(adults);
+        var council = TownCouncilState.Create(adults);
         var government = TownGovernmentState.Create();
         foreach (var actor in adults.Take(3))
-            council = TownGovernanceRules.Register(council, actor, true, null, adults, 0);
+            council = TownCouncilRules.Register(council, actor, true, null, adults, 0);
         (council, government) = TownGovernmentRules.RegisterMayor(council, government, "a", "land+non_land", adults, 0);
         (council, government) = TownGovernmentRules.Advance(council, government, "town:queue", "Queue Town", "seed", adults, 0, Day);
         var councilElection = Assert.IsType<TownElection>(council.Election);
         Assert.Equal("main", councilElection.Stage);
         Assert.Equal("waiting", government.Contest!.Stage);
         Assert.Null(government.Contest.RoundDeadlineTick);
-        council = TownGovernanceRules.VoteElection(council, councilElection.Id, "a", adults.Take(3).ToArray(), 0);
+        council = TownCouncilRules.VoteElection(council, councilElection.Id, "a", adults.Take(3).ToArray(), 0);
         (council, government) = TownGovernmentRules.Advance(council, government, "town:queue", "Queue Town", "seed", adults, Day, Day);
         Assert.Equal("representative", council.Form);
         var mayorElection = Assert.IsType<TownMayoralContest>(government.Contest);
@@ -130,10 +130,10 @@ public sealed partial class TownGovernmentRuntimeTests
             var choice = observation.Candidates.FirstOrDefault(item => item.Id.Contains("|read|", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(item => item.Id.Contains("|mayor_vote|", StringComparison.Ordinal) &&
                     item.Id.EndsWith("|" + Author, StringComparison.Ordinal));
-            if (choice is null && observation.InhabitantId == Author)
+            if (choice is null && observation.AgentId == Author)
                 choice = observation.Candidates.FirstOrDefault(item => item.Id.Contains("|mayor_register|land+non_land|", StringComparison.Ordinal));
             choice ??= observation.Candidates.Single(item => item.Id == "safe_idle");
-            return new(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal));
         }

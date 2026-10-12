@@ -19,14 +19,14 @@ public sealed class TownLandClaimTests
         choices.Plot = plot;
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = town.OriginSite!.Value }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = town.OriginSite!.Value }).ToArray(),
         }, _ => new ClaimProvider(choices));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-        await Until(world, () => world.Towns[0].Governance!.Proposals.Count == 1);
+        await Until(world, () => world.Towns[0].Council!.Proposals.Count == 1);
         choices.Plot = null;
-        var proposal = Assert.Single(world.Towns[0].Governance!.Proposals);
+        var proposal = Assert.Single(world.Towns[0].Council!.Proposals);
         Assert.Equal("land_claim", proposal.Kind);
         Assert.Equal(TownLandRightsRules.OrderTiles(plot), proposal.LandClaimTiles);
         Assert.Equal(3, proposal.RequiredYes);
@@ -34,11 +34,11 @@ public sealed class TownLandClaimTests
         Assert.Equal(initial.HouseholdLandUseRights, world.HouseholdLandUseRights);
 
         choices.Voters.UnionWith(town.ResidentIds.Take(2));
-        await Until(world, () => world.Towns[0].Governance!.Proposals[0].Votes.Count == 2);
-        Assert.Equal("pending", world.Towns[0].Governance!.Proposals[0].Status);
+        await Until(world, () => world.Towns[0].Council!.Proposals[0].Votes.Count == 2);
+        Assert.Equal("pending", world.Towns[0].Council!.Proposals[0].Status);
         Assert.Equal(initial.TownLandTitles, world.TownLandTitles);
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
-        var projected = Assert.Single(snapshot.Towns[0].Governance!.Proposals);
+        var projected = Assert.Single(snapshot.Towns[0].Council!.Proposals);
         Assert.Contains(TownLandClaimRules.DescribeTiles(plot), projected.Text, StringComparison.Ordinal);
 
         world.Pause();
@@ -47,12 +47,12 @@ public sealed class TownLandClaimTests
         Assert.Equal(pending, WorldRuntimeCodec.Encode(reloaded.ExportState()));
         choices.Voters.Add(town.ResidentIds[2]);
         world.SubmitInstruction(new OwnerInstructionRequest("land-vote", "owner:test", town.ResidentIds[2],
-            OwnerInstructionKind.Suggestive, "Consider voting on the land claim."));
+            OwnerInstructionKind.Suggestion, "Consider voting on the land claim."));
         reloaded.SubmitInstruction(new OwnerInstructionRequest("land-vote", "owner:test", town.ResidentIds[2],
-            OwnerInstructionKind.Suggestive, "Consider voting on the land claim."));
+            OwnerInstructionKind.Suggestion, "Consider voting on the land claim."));
         world.Resume();
         reloaded.Resume();
-        for (var tick = 0; tick < 60 && world.Towns[0].Governance!.Proposals[0].Status == "pending"; tick++)
+        for (var tick = 0; tick < 60 && world.Towns[0].Council!.Proposals[0].Status == "pending"; tick++)
         {
             var previous = WorldRuntimeCodec.Encode(world.ExportState());
             Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -60,7 +60,7 @@ public sealed class TownLandClaimTests
             await world.AdvanceOneTickAsync();
             await reloaded.AdvanceOneTickAsync();
         }
-        Assert.True(world.Towns[0].Governance!.Proposals[0].Status == "passed", string.Join("\n", choices.Selected.TakeLast(50)));
+        Assert.True(world.Towns[0].Council!.Proposals[0].Status == "passed", string.Join("\n", choices.Selected.TakeLast(50)));
         var title = Assert.Single(world.TownLandTitles, t => t.Id == TownLandClaimRules.TitleId(proposal.Id));
         Assert.Equal(TownLandRightsRules.OrderTiles(plot), title.Tiles);
         Assert.All(plot, tile => Assert.Contains(tile, world.Towns[0].BorderTiles));
@@ -82,7 +82,7 @@ public sealed class TownLandClaimTests
         }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(approved with
         {
-            Towns = [approved.Towns![0] with { Governance = approved.Towns[0].Governance! with { Proposals = [] } }],
+            Towns = [approved.Towns![0] with { Council = approved.Towns[0].Council! with { Proposals = [] } }],
         }));
     }
 
@@ -93,27 +93,27 @@ public sealed class TownLandClaimTests
         var initial = source.ExportState();
         var town = initial.Towns![0];
         var plot = FindPlot(initial);
-        var state = Submit(town.Governance!, plot);
+        var state = Submit(town.Council!, plot);
         state = Submit(state, [plot[0]]);
         var other = initial.Map.Tiles.Select(t => t.Position).First(tile => !plot.Contains(tile) &&
             TownLandClaimRules.CanClaim(initial.Map, town, [tile], initial.TownLandTitles!));
         state = Submit(state, [other]);
         var first = state.Proposals[0];
         foreach (var voter in town.ResidentIds.Take(2))
-            state = TownGovernanceRules.VoteProposal(state, first.Id, voter, true, 0);
+            state = TownCouncilRules.VoteProposal(state, first.Id, voter, true, 0);
         foreach (var voter in town.ResidentIds)
-            state = TownGovernanceRules.LearnNotices(state, voter, state.Notices.Select(n => n.Id), 0);
+            state = TownCouncilRules.LearnNotices(state, voter, state.Notices.Select(n => n.Id), 0);
         var choices = new ClaimChoices { ProposalId = first.Id };
         choices.Voters.Add(town.ResidentIds[2]);
-        using var world = WorldRuntime.Restore(initial with { Towns = [town with { Governance = state }] }, _ => new ClaimProvider(choices));
-        await Until(world, () => world.Towns[0].Governance!.Proposals[0].Status == "passed");
-        Assert.Equal("cancelled", world.Towns[0].Governance!.Proposals[1].Status);
-        Assert.Equal("pending", world.Towns[0].Governance!.Proposals[2].Status);
+        using var world = WorldRuntime.Restore(initial with { Towns = [town with { Council = state }] }, _ => new ClaimProvider(choices));
+        await Until(world, () => world.Towns[0].Council!.Proposals[0].Status == "passed");
+        Assert.Equal("cancelled", world.Towns[0].Council!.Proposals[1].Status);
+        Assert.Equal("pending", world.Towns[0].Council!.Proposals[2].Status);
         Assert.Single(world.ExportState().Events, e => e.Kind == "town_land_claimed");
         world.Validate();
 
-        TownGovernanceState Submit(TownGovernanceState governance, GridPoint[] tiles) =>
-            TownGovernanceRules.SubmitProposal(governance, town.Id, town.ResidentIds[0], "land_claim", null,
+        TownCouncilState Submit(TownCouncilState council, GridPoint[] tiles) =>
+            TownCouncilRules.SubmitProposal(council, town.Id, town.ResidentIds[0], "land_claim", null,
                 "Claim adjoining land.", "same", town.ResidentIds, 0, initial.WorldSystems!.Config.TicksPerDay, landClaimTiles: tiles);
     }
 
@@ -137,18 +137,18 @@ public sealed class TownLandClaimTests
         Assert.False(Can(plot[0], far));
         Assert.False(TownLandClaimRules.CanClaim(initial.Map, town, plot,
             titles.Append(new("foreign", "town:other", [plot[0]], 0)).ToArray()));
-        var governance = Submit(town.Governance!, plot);
-        governance = Submit(governance, plot.Reverse().ToArray());
-        Assert.Single(governance.Proposals);
-        var proposal = governance.Proposals[0];
-        governance = TownGovernanceRules.Advance(governance, town.Id, initial.WorldSeed, town.ResidentIds,
+        var council = Submit(town.Council!, plot);
+        council = Submit(council, plot.Reverse().ToArray());
+        Assert.Single(council.Proposals);
+        var proposal = council.Proposals[0];
+        council = TownCouncilRules.Advance(council, town.Id, initial.WorldSeed, town.ResidentIds,
             proposal.DeadlineTick, initial.WorldSystems!.Config.TicksPerDay);
-        Assert.Equal("rejected", governance.Proposals[0].Status);
-        Assert.Throws<InvalidOperationException>(() => TownGovernanceRules.SubmitProposal(town.Governance!, town.Id,
+        Assert.Equal("rejected", council.Proposals[0].Status);
+        Assert.Throws<InvalidOperationException>(() => TownCouncilRules.SubmitProposal(town.Council!, town.Id,
             "outsider", "land_claim", null, "Claim adjoining land.", "same", town.ResidentIds, 0, 10, landClaimTiles: plot));
 
-        TownGovernanceState Submit(TownGovernanceState state, GridPoint[] tiles) =>
-            TownGovernanceRules.SubmitProposal(state, town.Id, town.ResidentIds[0], "land_claim", null,
+        TownCouncilState Submit(TownCouncilState state, GridPoint[] tiles) =>
+            TownCouncilRules.SubmitProposal(state, town.Id, town.ResidentIds[0], "land_claim", null,
                 "Claim adjoining land.", "same", town.ResidentIds, 0, initial.WorldSystems!.Config.TicksPerDay, landClaimTiles: tiles);
     }
 
@@ -162,16 +162,16 @@ public sealed class TownLandClaimTests
         var reader = new DescribedPlotProvider(town.ResidentIds[0]);
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = origin }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = origin }).ToArray(),
         }, _ => reader);
-        await Until(world, () => world.Towns[0].Governance!.Proposals.Count == 1);
+        await Until(world, () => world.Towns[0].Council!.Proposals.Count == 1);
         var description = reader.Description!;
         Assert.Contains(FormattableString.Invariant($"You stand at ({origin.X}, {origin.Y})"), description, StringComparison.Ordinal);
         var listed = DescribedPlotProvider.ListedTiles(description);
         Assert.InRange(listed.Length, 1, 6);
         Assert.All(listed, tile => Assert.True(TownLandClaimRules.CanClaim(initial.Map, town, [tile], initial.TownLandTitles!)));
         Assert.Equal(listed.OrderBy(tile => initial.Map.FootDistance(origin, tile)).ThenBy(tile => tile.Y).ThenBy(tile => tile.X), listed);
-        Assert.Equal([listed[0]], Assert.Single(world.Towns[0].Governance!.Proposals).LandClaimTiles);
+        Assert.Equal([listed[0]], Assert.Single(world.Towns[0].Council!.Proposals).LandClaimTiles);
     }
 
     [Fact]
@@ -232,11 +232,11 @@ public sealed class TownLandClaimTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var o = request.Observation;
-            var claim = o.InhabitantId == author && Description is null
+            var claim = o.AgentId == author && Description is null
                 ? o.Candidates.FirstOrDefault(c => c.Id.Contains("|claim_land|", StringComparison.Ordinal)) : null;
             var selected = claim ?? o.Candidates.Single(c => c.Id == "safe_idle");
             Description ??= claim?.Description;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: claim is null ? null : [.. ListedTiles(claim.Description).Take(1).Select(tile => new CognitionLandTile(tile.X, tile.Y))]));
@@ -251,13 +251,13 @@ public sealed class TownLandClaimTests
         {
             var o = request.Observation;
             var selected = o.Candidates.FirstOrDefault(c => c.Id.Contains("|read|", StringComparison.Ordinal)) ??
-                (choices.Voters.Contains(o.InhabitantId) ? o.Candidates.FirstOrDefault(c =>
+                (choices.Voters.Contains(o.AgentId) ? o.Candidates.FirstOrDefault(c =>
                     c.Id.Contains("|yes|", StringComparison.Ordinal) && (choices.ProposalId is null || c.Id.Contains(choices.ProposalId, StringComparison.Ordinal))) : null) ??
-                (choices.Author == o.InhabitantId && choices.Plot is not null
+                (choices.Author == o.AgentId && choices.Plot is not null
                     ? o.Candidates.FirstOrDefault(c => c.Id.Contains("|claim_land|", StringComparison.Ordinal)) : null) ??
                 o.Candidates.Single(c => c.Id == "safe_idle");
-            choices.Selected.Enqueue(o.WorldTick + "|" + o.InhabitantId + "|" + selected.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            choices.Selected.Enqueue(o.WorldTick + "|" + o.AgentId + "|" + selected.Id);
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: selected.Id.Contains("|claim_land|", StringComparison.Ordinal)

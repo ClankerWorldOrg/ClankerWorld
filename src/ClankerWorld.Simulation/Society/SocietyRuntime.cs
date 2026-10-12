@@ -38,7 +38,7 @@ public sealed class SocietyRuntime : IDisposable
         SocietyRules.Validate(checkpoint);
         society = checkpoint;
         cognition = new SocietyCognitionScheduler(
-            checkpoint.Inhabitants,
+            checkpoint.Agents,
             providerFactory,
             maxCognitionQueueLength,
             maxCognitionDispatchPerCycle);
@@ -79,7 +79,7 @@ public sealed class SocietyRuntime : IDisposable
         var scheduler = SocietyCognitionScheduler.Restore(
             state.Cognition,
             providerFactory);
-        scheduler.SyncInhabitants(state.Society.Inhabitants,
+        scheduler.SyncAgents(state.Society.Agents,
             state.Society.Births.Select(birth => birth.ChildId).ToHashSet(StringComparer.Ordinal));
         var runtime = new SocietyRuntime(
             state.Society,
@@ -102,7 +102,7 @@ public sealed class SocietyRuntime : IDisposable
             var result = operation(society);
             SocietyRules.Validate(result.Checkpoint);
             society = result.Checkpoint;
-            cognition.SyncInhabitants(society.Inhabitants,
+            cognition.SyncAgents(society.Agents,
                 society.Births.Select(birth => birth.ChildId).ToHashSet(StringComparer.Ordinal));
             return result;
         }
@@ -126,13 +126,13 @@ public sealed class SocietyRuntime : IDisposable
         gate.Wait();
         try
         {
-            var inhabitant = society.GetInhabitant(entry.InhabitantId);
-            if (inhabitant.Status != SocietyInhabitantStatus.Active)
+            var agent = society.GetAgent(entry.AgentId);
+            if (agent.Status != SocietyAgentStatus.Active)
             {
-                throw new InvalidOperationException("Dead inhabitants cannot receive cognition work.");
+                throw new InvalidOperationException("Dead agents cannot receive cognition work.");
             }
 
-            if (inhabitant.AgeBand == SocietyAgeBand.Infant)
+            if (agent.AgeBand == SocietyAgeBand.Infant)
             {
                 return false;
             }
@@ -142,7 +142,7 @@ public sealed class SocietyRuntime : IDisposable
                 throw new InvalidOperationException("Cognition cannot observe beyond the authoritative world tick.");
             }
 
-            var child = society.Births.Any(birth => birth.ChildId == inhabitant.Id);
+            var child = society.Births.Any(birth => birth.ChildId == agent.Id);
             return cognition.Enqueue(child
                 ? entry with { Observation = entry.Observation with { RequiresPersonalProvider = true } }
                 : entry);
@@ -173,14 +173,14 @@ public sealed class SocietyRuntime : IDisposable
         DispatchDeterministicCognitionAsync(null, null, cancellationToken);
 
     internal async ValueTask<SocietyDispatchCycleResult> DispatchDeterministicCognitionAsync(
-        IReadOnlySet<string>? excludedInhabitantIds, Func<InhabitantObservation, bool>? observationIsCurrent,
+        IReadOnlySet<string>? excludedAgentIds, Func<AgentObservation, bool>? observationIsCurrent,
         CancellationToken cancellationToken)
     {
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             return new SocietyDispatchCycleResult(society,
-                await cognition.DispatchDeterministicAsync(excludedInhabitantIds, observationIsCurrent,
+                await cognition.DispatchDeterministicAsync(excludedAgentIds, observationIsCurrent,
                     cancellationToken).ConfigureAwait(false));
         }
         finally
@@ -193,31 +193,31 @@ public sealed class SocietyRuntime : IDisposable
         PreviewHostedRequests(excludedIds, null);
 
     internal IReadOnlyList<SocietyDeferredCognitionRequest> PreviewHostedRequests(
-        IReadOnlySet<string> excludedIds, Func<InhabitantObservation, bool>? observationIsCurrent)
+        IReadOnlySet<string> excludedIds, Func<AgentObservation, bool>? observationIsCurrent)
     {
         gate.Wait();
         try { return cognition.PreviewHostedRequests(excludedIds, observationIsCurrent); }
         finally { gate.Release(); }
     }
 
-    public IReadOnlySet<string> PendingHostedInhabitantIds()
+    public IReadOnlySet<string> PendingHostedAgentIds()
     {
         gate.Wait();
-        try { return cognition.PendingHostedInhabitantIds(); }
+        try { return cognition.PendingHostedAgentIds(); }
         finally { gate.Release(); }
     }
 
-    public long CurrentProviderEpoch(string inhabitantId)
+    public long CurrentProviderEpoch(string agentId)
     {
         gate.Wait();
-        try { return cognition.CurrentProviderEpoch(inhabitantId); }
+        try { return cognition.CurrentProviderEpoch(agentId); }
         finally { gate.Release(); }
     }
 
-    internal void ClearCurrentIntention(string inhabitantId, long worldTick)
+    internal void ClearCurrentIntention(string agentId, long worldTick)
     {
         gate.Wait();
-        try { cognition.ClearCurrentIntention(inhabitantId, worldTick); }
+        try { cognition.ClearCurrentIntention(agentId, worldTick); }
         finally { gate.Release(); }
     }
 
@@ -230,10 +230,10 @@ public sealed class SocietyRuntime : IDisposable
         finally { gate.Release(); }
     }
 
-    internal void CompleteQueuedIdentityChoice(string inhabitantId, string personality, string aspiration)
+    internal void CompleteQueuedIdentityChoice(string agentId, string personality, string aspiration)
     {
         gate.Wait();
-        try { cognition.CompleteQueuedIdentityChoice(inhabitantId, society.GetInhabitant(inhabitantId).Name, personality, aspiration); }
+        try { cognition.CompleteQueuedIdentityChoice(agentId, society.GetAgent(agentId).Name, personality, aspiration); }
         finally { gate.Release(); }
     }
 
@@ -241,11 +241,11 @@ public sealed class SocietyRuntime : IDisposable
     {
         SocietyRules.Validate(society);
         cognition.Validate();
-        var activeIds = society.Inhabitants
-            .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        var activeIds = society.Agents
+            .Where(item => item.Status == SocietyAgentStatus.Active)
             .Select(item => item.Id)
             .OrderBy(item => item, StringComparer.Ordinal);
-        if (!activeIds.SequenceEqual(cognition.InhabitantIds.OrderBy(item => item, StringComparer.Ordinal)))
+        if (!activeIds.SequenceEqual(cognition.AgentIds.OrderBy(item => item, StringComparer.Ordinal)))
         {
             throw new InvalidDataException("Phase 4 society and cognition runtime populations disagree.");
         }

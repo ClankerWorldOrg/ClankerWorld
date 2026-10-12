@@ -23,18 +23,18 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var state = WorldRuntimeCodec.Decode(await (later ? ThirdHearingHousehold : FirstHearingHousehold).Value);
         var actor = HearingHouseholdActor(state, later);
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var choices = new NativeLandHearingChoices { Request = true, Consent = true, Rule = true };
         using var world = RestoreHouseholdHearing(state, choices);
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
-        await HouseholdHearingUntil(world, host, () => world.Towns[0].LandHearings.Cases.Any(item =>
+        await HouseholdHearingUntil(world, host, () => world.Towns[0].LandRecords.Cases.Any(item =>
             item.Property?.Transfer is { ResultBuilding.HouseholdId: null }), NativeHearingDay * 3);
         choices.Target = household;
         choices.Rule = false;
-        await HouseholdHearingUntil(world, host, () => world.Towns[0].LandHearings.Cases.Any(item =>
+        await HouseholdHearingUntil(world, host, () => world.Towns[0].LandRecords.Cases.Any(item =>
             item.Property?.Request.TargetHouseholdId == household), NativeHearingDay * 2);
-        var pending = world.Towns[0].LandHearings.Cases.Single(item => item.Property?.Request.TargetHouseholdId == household);
+        var pending = world.Towns[0].LandRecords.Cases.Single(item => item.Property?.Request.TargetHouseholdId == household);
         Assert.Null(pending.Property!.Transfer);
         Assert.Contains(choices.Selected, choice => choice.Choice.Contains("|hearing_property_request|", StringComparison.Ordinal) &&
             choice.Choice.EndsWith("|" + household, StringComparison.Ordinal));
@@ -53,9 +53,9 @@ public sealed partial class GrownAgentHelperMemoryTests
         { Target = household, Consent = true, Rule = true });
         replay.Resume();
         using var replayHost = new NativeConversationCheckpointHost(replay);
-        await HouseholdHearingPair(world, host, replay, replayHost, () => world.Towns[0].LandHearings.Cases
+        await HouseholdHearingPair(world, host, replay, replayHost, () => world.Towns[0].LandRecords.Cases
             .Single(item => item.Id == pending.Id).Property!.Transfer is not null, NativeHearingDay * 2);
-        var granted = world.Towns[0].LandHearings.Cases.Single(item => item.Id == pending.Id);
+        var granted = world.Towns[0].LandRecords.Cases.Single(item => item.Id == pending.Id);
         var transfer = granted.Property!.Transfer!;
         Assert.Equal(household, transfer.ResultBuilding.HouseholdId);
         Assert.Equal(household, world.WorldSimulation.Buildings.Single(item => item.InstanceId == NativeHearingHouse).HouseholdId);
@@ -79,15 +79,15 @@ public sealed partial class GrownAgentHelperMemoryTests
     public async Task NativeFoundedHouseholdExpiryAcceptsTheActualJudgeRuling(bool? later, string outcome)
     {
         var state = WorldRuntimeCodec.Decode(await (later is null ? ShortExpiryHearing : later.Value ? ThirdExpiryHearing : FirstExpiryHearing).Value);
-        var household = later is null ? "household:camp-alpha" : state.Society.Society.GetInhabitant(HearingHouseholdActor(state, later.Value)).HouseholdId!;
+        var household = later is null ? "household:camp-alpha" : state.Society.Society.GetAgent(HearingHouseholdActor(state, later.Value)).HouseholdId!;
         var actor = later is null ? state.Society.Society.GetHousehold(household).MemberIds[0] : HearingHouseholdActor(state, later.Value);
         var choices = new NativeHouseholdExpiryChoices(household, outcome);
         using var world = RestoreHouseholdHearing(state, choices);
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases, item => item.Kind == "expiry");
-        await HouseholdHearingUntil(world, host, () => world.Towns[0].LandHearings.Cases.Single(saved => saved.Id == item.Id).Status == "settled", 20);
-        var settled = world.Towns[0].LandHearings.Cases.Single(saved => saved.Id == item.Id);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases, item => item.Kind == "expiry");
+        await HouseholdHearingUntil(world, host, () => world.Towns[0].LandRecords.Cases.Single(saved => saved.Id == item.Id).Status == "settled", 20);
+        var settled = world.Towns[0].LandRecords.Cases.Single(saved => saved.Id == item.Id);
         var ruling = Assert.Single(settled.Rulings);
         Assert.Equal((NativeHearingJudge, outcome, household), (ruling.Judge.AgentId, ruling.Outcome.Kind, ruling.Outcome.HouseholdId));
         Assert.Contains(choices.Selected, choice => choice.Contains("|hearing_rule|", StringComparison.Ordinal) &&
@@ -119,7 +119,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     // population so repeated prompts cannot starve the last queued adult.
     private static WorldRuntime RestoreHouseholdHearing(WorldRuntimeState state, IDecisionProvider choices)
     {
-        var budget = state.Inhabitants.Count;
+        var budget = state.Agents.Count;
         state = state with { Society = state.Society with { Cognition = state.Society.Cognition with { MaxDispatchPerCycle = budget } } };
         return WorldRuntime.Restore(state, _ => choices, maxCognitionDispatchPerCycle: budget);
     }
@@ -132,16 +132,16 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var world = RestoreHouseholdHearing(state, choices);
         // Match the reported preparation: clear the two original homes through
         // actual adult departures, so another available home does not postpone founding.
-        var housed = world.Society.Inhabitants.Where(person => person.HouseholdId is not null &&
+        var housed = world.Society.Agents.Where(person => person.HouseholdId is not null &&
             world.WorldSimulation.Buildings.Any(building => building.HouseholdId == person.HouseholdId &&
                 world.WorldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house"))))
             .Select(person => person.Id).ToArray();
         foreach (var member in housed) Assert.True(world.DisplaceAdult(member));
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
-        await HouseholdHearingUntil(world, host, () => world.Society.GetInhabitant(actor).HouseholdId is { } home &&
+        await HouseholdHearingUntil(world, host, () => world.Society.GetAgent(actor).HouseholdId is { } home &&
             world.Society.GetHousehold(home).MemberIds.SequenceEqual([actor]), 40);
-        var household = world.Society.GetInhabitant(actor).HouseholdId!;
+        var household = world.Society.GetAgent(actor).HouseholdId!;
         Assert.InRange(household.Length, 1, DerivedId.MaximumLength);
         Assert.Contains("household_found", choices.Selected);
         Assert.Equal([actor], world.Society.GetHousehold(household).MemberIds);
@@ -151,7 +151,7 @@ public sealed partial class GrownAgentHelperMemoryTests
     private static async Task<byte[]> CreateHouseholdExpiryAsync(bool? later)
     {
         var state = WorldRuntimeCodec.Decode(await (later is null ? LaterHearingGovernment : later.Value ? ThirdHearingHousehold : FirstHearingHousehold).Value);
-        var household = later is null ? "household:camp-alpha" : state.Society.Society.GetInhabitant(HearingHouseholdActor(state, later.Value)).HouseholdId!;
+        var household = later is null ? "household:camp-alpha" : state.Society.Society.GetAgent(HearingHouseholdActor(state, later.Value)).HouseholdId!;
         var farm = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
         var definition = state.WorldContent!.Buildings.Single(building => building.CanonicalId == farm.DefinitionId);
         var plot = WorldContentSimulationRules.Footprint(definition, farm).ToHashSet();
@@ -170,7 +170,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         world.Resume();
         using var host = new NativeConversationCheckpointHost(world);
         await HouseholdHearingUntil(world, host, () => choices.Offered.Any(id => id.Contains("|hearing_rule|", StringComparison.Ordinal)), NativeHearingDay * 2);
-        Assert.Single(world.Towns[0].LandHearings.Cases, item => item.Kind == "expiry");
+        Assert.Single(world.Towns[0].LandRecords.Cases, item => item.Kind == "expiry");
         return host.Saved();
     }
 
@@ -218,7 +218,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var changed = state with
             {
                 Towns = state.Towns!.Select(town => town with
-                { LandHearings = town.LandHearings with { Cases = town.LandHearings.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray()
+                { LandRecords = town.LandRecords with { Cases = town.LandRecords.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(changed));
         }
@@ -233,7 +233,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var changed = state with
             {
                 Towns = state.Towns!.Select(town => town with
-                { LandHearings = town.LandHearings with { Cases = town.LandHearings.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray()
+                { LandRecords = town.LandRecords with { Cases = town.LandRecords.Cases.Select(saved => saved.Id == item.Id ? damaged : saved).ToArray() } }).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(changed));
         }
@@ -247,12 +247,12 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var selected = observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId == actor && candidate.Id == "household_found") ??
-                observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId == actor && candidate.Id.StartsWith("household_ask:", StringComparison.Ordinal)) ??
-                observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId != actor && candidate.Id == "household_refuse:" + actor) ??
+            var selected = observation.Candidates.FirstOrDefault(candidate => observation.AgentId == actor && candidate.Id == "household_found") ??
+                observation.Candidates.FirstOrDefault(candidate => observation.AgentId == actor && candidate.Id.StartsWith("household_ask:", StringComparison.Ordinal)) ??
+                observation.Candidates.FirstOrDefault(candidate => observation.AgentId != actor && candidate.Id == "household_refuse:" + actor) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             Selected.Enqueue(selected.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 new Dictionary<string, double> { [selected.Id] = 1 }));
         }
@@ -267,17 +267,17 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            foreach (var candidate in observation.Candidates) if (observation.InhabitantId == NativeHearingJudge) Offered.Enqueue(candidate.Id);
+            foreach (var candidate in observation.Candidates) if (observation.AgentId == NativeHearingJudge) Offered.Enqueue(candidate.Id);
             CognitionCandidate? Find(string action) => observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             var selected = Find("read") ?? Find("hearing_inspect") ?? Find("hearing_answer");
-            if (outcome is not null && observation.InhabitantId == NativeHearingJudge)
+            if (outcome is not null && observation.AgentId == NativeHearingJudge)
                 selected ??= observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal) && candidate.Id.EndsWith("|" + outcome, StringComparison.Ordinal));
             selected ??= observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             Selected.Enqueue(selected.Id);
             var evidence = selected.Description.Split([' ', ';', ','], StringSplitOptions.RemoveEmptyEntries)
                 .Where(token => token.StartsWith("land-evidence:", StringComparison.Ordinal)).Select(token => token.Split('=')[0]).Distinct(StringComparer.Ordinal).ToArray();
             var ruling = selected.Id.Contains("|hearing_rule|", StringComparison.Ordinal);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 new Dictionary<string, double> { [selected.Id] = 1 }, CivicLandHearing: new(
                     Statement: "Resolve this exact expired permission using its inspected record and actual personal responses.",

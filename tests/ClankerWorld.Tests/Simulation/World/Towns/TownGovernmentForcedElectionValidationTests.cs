@@ -159,7 +159,7 @@ public sealed partial class TownGovernmentHandoverTests
             }
             Assert.Null(Assert.Single(ordinary.Towns!).Government!.Changes[^1].ForcedCouncilElectionId);
             var forcedTown = Assert.Single(forced.Towns!);
-            Assert.Equal(Assert.IsType<TownElection>(forcedTown.Governance!.Election).Id,
+            Assert.Equal(Assert.IsType<TownElection>(forcedTown.Council!.Election).Id,
                 forcedTown.Government!.Changes[^1].ForcedCouncilElectionId);
 
             var currentBytes = WorldRuntimeCodec.Encode(forced);
@@ -217,7 +217,7 @@ public sealed partial class TownGovernmentHandoverTests
         var town = Assert.Single(state.Towns!);
         var adults = town.ResidentIds;
         var day = state.WorldSystems!.Config.TicksPerDay;
-        var council = town.Governance!;
+        var council = town.Council!;
         var startingGovernment = town.Government!;
         if (initiallyAllAdult)
         {
@@ -230,14 +230,14 @@ public sealed partial class TownGovernmentHandoverTests
             Assert.Equal(AllAdult, startingGovernment.Arrangement);
         }
         foreach (var actor in adults.Take(3))
-            council = TownGovernanceRules.Register(council, actor, true, null, adults, 0);
+            council = TownCouncilRules.Register(council, actor, true, null, adults, 0);
         var (proposedCouncil, government) = TownGovernmentRules.Propose(council, startingGovernment, town.Id,
             adults[0], target, false, adults, 0, day);
         var change = government.Changes[^1];
         foreach (var voter in adults.Take(3)) government = TownGovernmentRules.Vote(government, change.Id, voter, true, 0);
         (council, government) = TownGovernmentRules.Advance(proposedCouncil, government, town.Id, town.Name,
             state.WorldSeed, adults, 0, day);
-        return state with { Towns = [town with { Governance = council, Government = government }] };
+        return state with { Towns = [town with { Council = council, Government = government }] };
     }
 
     private static JsonObject SavedGovernmentChange(JsonNode document) =>

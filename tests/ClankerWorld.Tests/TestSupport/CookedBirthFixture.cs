@@ -23,7 +23,7 @@ internal static class CookedBirthFixture
     {
         var state = WorldRuntimeCodec.Decode(await Cooked.Value);
         const string household = "household:camp-alpha";
-        var parents = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == household)
+        var parents = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
             .OrderBy(person => person.Id, StringComparer.Ordinal).ToArray();
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
         var outputs = state.WorldSimulation.ProductionJobs.Where(job => job.RecipeId ==
@@ -50,7 +50,7 @@ internal static class CookedBirthFixture
         using var initial = NormalPathWorld.CreateGenerated("cooked-child-birth", _ => new BirthChooser("", "", ""));
         var state = initial.ExportState();
         const string household = "household:camp-alpha";
-        var parents = state.Society.Society.Inhabitants.Where(person => person.HouseholdId == household)
+        var parents = state.Society.Society.Agents.Where(person => person.HouseholdId == household)
             .OrderBy(person => person.Id, StringComparer.Ordinal).ToArray();
         Assert.Equal(2, parents.Length);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-house-a");
@@ -70,8 +70,8 @@ internal static class CookedBirthFixture
         var originalInputs = inventory.Lots.ToDictionary(lot => lot.Id, StringComparer.Ordinal);
         var partnerPoint = state.Map.Tiles.First(tile => state.Map.IsPassable(tile.Position) &&
             state.Map.FootDistance(house.Position, tile.Position) == 1 &&
-            state.Inhabitants.All(person => person.InhabitantId == parents[0].Id ||
-                person.InhabitantId == parents[1].Id || person.Position != tile.Position)).Position;
+            state.Agents.All(person => person.AgentId == parents[0].Id ||
+                person.AgentId == parents[1].Id || person.Position != tile.Position)).Position;
         using (var society = SocietyRuntime.Restore(state.Society))
         {
             society.Apply(checkpoint => SocietyRules.ProposeRelationship(checkpoint,
@@ -83,11 +83,11 @@ internal static class CookedBirthFixture
         }
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == parents[0].Id ? house.Position :
-                    person.InhabitantId == parents[1].Id ? partnerPoint : person.Position,
-                HungerBasisPoints = 10_000,
+                Position = person.AgentId == parents[0].Id ? house.Position :
+                    person.AgentId == parents[1].Id ? partnerPoint : person.Position,
+                FullnessBasisPoints = 10_000,
             }).ToArray(),
             WorldSystems = state.WorldSystems! with
             {

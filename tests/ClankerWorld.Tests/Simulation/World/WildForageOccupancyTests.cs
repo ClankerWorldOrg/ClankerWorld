@@ -21,13 +21,13 @@ public sealed class WildForageOccupancyTests
                 .Select(x => new GridPoint(near.Position.X + x, near.Position.Y + y)))
             .OrderBy(point => state.Map.FootDistance(origin, point)).ThenBy(point => point.Y).ThenBy(point => point.X).ToArray();
         Assert.All(points, point => Assert.True(state.Map.IsPassable(point)));
-        Assert.Equal(4, state.Inhabitants.Count);
+        Assert.Equal(4, state.Agents.Count);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select((person, index) => person with
+            Agents = state.Agents.Select((person, index) => person with
             {
                 Position = openNearer && index == 0 ? new(126, 60) : points[index],
-                HungerBasisPoints = 9_500,
+                FullnessBasisPoints = 9_500,
                 LastDecisionContext = null,
                 Project = null,
             }).ToArray(),
@@ -39,7 +39,7 @@ public sealed class WildForageOccupancyTests
             "horse", "female", -(long)AnimalRules.Definition("horse").AdultDays * day,
             point, "forage-blocker-herd", CareUntilTick: state.Society.Society.WorldTick + day)).ToArray();
         state = state with { AnimalWorld = new(true, horses.Prepend(cow).ToArray(), []) };
-        var occupied = state.Inhabitants.Select(person => person.Position).Concat(horses.Select(animal => animal.Position)).ToHashSet();
+        var occupied = state.Agents.Select(person => person.Position).Concat(horses.Select(animal => animal.Position)).ToHashSet();
         using (var search = new UnoccupiedRouteSearch(state.Map, origin, occupied, state.Map.FootStepCost))
         {
             Assert.Equal(openNearer, search.RouteTo(near.Position, 1).Count > 0);

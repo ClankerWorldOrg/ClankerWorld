@@ -15,7 +15,7 @@ public sealed partial class TownLandHearingRuntimeTests
         using var elected = NewWorld(election);
         await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, election);
         var state = elected.ExportState();
-        var household = elected.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = elected.Society.GetAgent(Filer).HouseholdId!;
         var definition = elected.WorldContent.Buildings.Single(item => item.LocalId == "store-1x1");
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in definition.BuildCosts)
@@ -38,13 +38,13 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new PropertyProvider { BuildingId = storeId, Request = true, Agree = true, Rule = true };
         var original = WorldRuntimeCodec.Encode(leaving.ExportState());
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(original), _ => provider);
-        for (var tick = 0; tick < 80 && !world.Towns[0].LandHearings.Cases.Any(item =>
+        for (var tick = 0; tick < 80 && !world.Towns[0].LandRecords.Cases.Any(item =>
                  item.Property is { Transfer: not null } property && property.Request.BuildingId == storeId); tick++)
         {
             PropertyPromptAll(world);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         }
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases, item => item.Property?.Request.BuildingId == storeId);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases, item => item.Property?.Request.BuildingId == storeId);
         Assert.Equal("settled", item.Status);
         var transfer = Assert.IsType<TownPropertyTransfer>(item.Property!.Transfer);
         Assert.Equal(household, transfer.PriorBuilding.HouseholdId);
@@ -71,14 +71,14 @@ public sealed partial class TownLandHearingRuntimeTests
         state = state with { Society = state.Society with { Society = formation.Checkpoint } };
         var onward = new PropertyProvider { BuildingId = storeId, Request = true, Target = recipient, Agree = true, Rule = true };
         using var granting = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => onward);
-        for (var tick = 0; tick < 80 && !granting.Towns[0].LandHearings.Cases.Any(item =>
+        for (var tick = 0; tick < 80 && !granting.Towns[0].LandRecords.Cases.Any(item =>
                  item.Property is { Transfer: not null } property && property.Request.BuildingId == storeId &&
                  property.Request.TargetHouseholdId == recipient); tick++)
         {
             PropertyPromptAll(granting);
             Assert.True((await granting.AdvanceOneTickAsync()).Advanced);
         }
-        var grant = Assert.Single(granting.Towns[0].LandHearings.Cases, item =>
+        var grant = Assert.Single(granting.Towns[0].LandRecords.Cases, item =>
             item.Property?.Request.BuildingId == storeId && item.Property.Request.TargetHouseholdId == recipient);
         Assert.Equal("settled", grant.Status);
         Assert.Equal(recipient, Assert.IsType<TownPropertyTransfer>(grant.Property!.Transfer).ResultBuilding.HouseholdId);
@@ -101,7 +101,7 @@ public sealed partial class TownLandHearingRuntimeTests
         Assert.Equal((Filer, 2, (string?)null), (carried.OwnerId, carried.Quantity, carried.StorageBuildingId));
         var remaining = collecting.Society.Inventory.GetLot(Assert.Single(personal, lot => lot.OwnerId == Waiver).Id);
         Assert.Equal((Waiver, storeId, 1), (remaining.OwnerId, remaining.StorageBuildingId, remaining.Quantity));
-        Assert.Single(collecting.Inhabitants.Single(person => person.InhabitantId == Filer).Departures!);
+        Assert.Single(collecting.Agents.Single(person => person.AgentId == Filer).Departures!);
         var saved = WorldRuntimeCodec.Encode(collecting.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new PropertyProvider { Collect = allowance.Id });
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));

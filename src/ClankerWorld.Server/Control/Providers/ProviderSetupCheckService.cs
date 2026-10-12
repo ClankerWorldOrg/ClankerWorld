@@ -153,13 +153,13 @@ public sealed class ProviderSetupCheckService(
     private static CognitionDecisionRequest CreateRequest() => new(
         "owner-model-setup-check",
         0,
-        new InhabitantObservation(
+        new AgentObservation(
             ModelName,
             WorldTick: 0,
             RunEpoch: 0,
             DecisionGeneration: 0,
             ObservationDigest: "sha256:owner-model-setup-check",
-            HungerBasisPoints: 5_000,
+            FullnessBasisPoints: 5_000,
             Candidates: [new CognitionCandidate(CandidateId, "Wait safely for a moment.")]));
 
     private static bool IsUnusableReply(Exception exception) => exception is

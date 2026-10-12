@@ -11,7 +11,7 @@ internal static class StorageRoutingTestFixture
             map.FootDistance(tile.Position, storage) <= range).Select(tile => tile.Position).ToArray();
         Assert.NotEmpty(positions);
         var placements = new Dictionary<string, GridPoint>(StringComparer.Ordinal);
-        foreach (var position in positions.Where(position => !initial.Inhabitants.Any(person => person.Position == position)))
+        foreach (var position in positions.Where(position => !initial.Agents.Any(person => person.Position == position)))
         {
             var id = $"agent:{placements.Count + 100:D32}";
             // Agents can walk onto passable gathering sites, although Add Agent
@@ -21,7 +21,7 @@ internal static class StorageRoutingTestFixture
                 map.FootDistance(tile.Position, storage) > range &&
                 !map.Resources.Any(resource => resource.Position == tile.Position) &&
                 !map.MapObjects.Any(item => item.Position == tile.Position) &&
-                !initial.Inhabitants.Any(person => person.Position == tile.Position) &&
+                !initial.Agents.Any(person => person.Position == tile.Position) &&
                 initial.Towns.Any(town => town.BorderTiles.Contains(tile.Position))).Position;
             initial.AddAgent(id, spare);
             placements.Add(id, position);
@@ -29,10 +29,10 @@ internal static class StorageRoutingTestFixture
         var state = initial.ExportState();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => placements.TryGetValue(person.InhabitantId, out var position)
+            Agents = state.Agents.Select(person => placements.TryGetValue(person.AgentId, out var position)
                 ? person with { Position = position } : person).ToArray(),
         };
-        Assert.All(positions, position => Assert.Contains(state.Inhabitants, person => person.Position == position));
+        Assert.All(positions, position => Assert.Contains(state.Agents, person => person.Position == position));
         return state;
     }
 }

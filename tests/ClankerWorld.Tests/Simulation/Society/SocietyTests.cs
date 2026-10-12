@@ -100,7 +100,7 @@ public sealed class SocietyTests
         var checkpoint = Genesis(TestConfig(), "alice", "bob", "cara", "child");
         checkpoint = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == "child"
+            Agents = checkpoint.Agents.Select(person => person.Id == "child"
                 ? person with
                 {
                     BirthTick = 0,
@@ -118,30 +118,30 @@ public sealed class SocietyTests
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("first-partnership", 1, SocietyRelationshipType.Partnership, "alice", "bob", 0)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "first-partnership", 1, "bob").Checkpoint;
-        var firstUnit = checkpoint.GetInhabitant("alice").DomesticFamilyUnitId;
-        Assert.Equal(firstUnit, checkpoint.GetInhabitant("bob").DomesticFamilyUnitId);
-        Assert.Equal(firstUnit, checkpoint.GetInhabitant("child").DomesticFamilyUnitId);
+        var firstUnit = checkpoint.GetAgent("alice").DomesticFamilyUnitId;
+        Assert.Equal(firstUnit, checkpoint.GetAgent("bob").DomesticFamilyUnitId);
+        Assert.Equal(firstUnit, checkpoint.GetAgent("child").DomesticFamilyUnitId);
 
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, "first-partnership", "alice").Checkpoint;
-        var separatedCaregiverUnit = checkpoint.GetInhabitant("alice").DomesticFamilyUnitId;
-        Assert.NotEqual(separatedCaregiverUnit, checkpoint.GetInhabitant("bob").DomesticFamilyUnitId);
-        Assert.Equal(separatedCaregiverUnit, checkpoint.GetInhabitant("child").DomesticFamilyUnitId);
+        var separatedCaregiverUnit = checkpoint.GetAgent("alice").DomesticFamilyUnitId;
+        Assert.NotEqual(separatedCaregiverUnit, checkpoint.GetAgent("bob").DomesticFamilyUnitId);
+        Assert.Equal(separatedCaregiverUnit, checkpoint.GetAgent("child").DomesticFamilyUnitId);
 
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("second-partnership", 1, SocietyRelationshipType.Partnership, "alice", "cara", checkpoint.WorldTick)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "second-partnership", 1, "cara").Checkpoint;
-        var newUnit = checkpoint.GetInhabitant("alice").DomesticFamilyUnitId;
-        Assert.Equal(newUnit, checkpoint.GetInhabitant("cara").DomesticFamilyUnitId);
-        Assert.Equal(newUnit, checkpoint.GetInhabitant("child").DomesticFamilyUnitId);
-        Assert.NotEqual(newUnit, checkpoint.GetInhabitant("bob").DomesticFamilyUnitId);
-        Assert.Equal("home-a", checkpoint.GetInhabitant("alice").HouseholdId);
-        Assert.Equal("home-b", checkpoint.GetInhabitant("bob").HouseholdId);
-        Assert.Equal("home-a", checkpoint.GetInhabitant("child").HouseholdId);
+        var newUnit = checkpoint.GetAgent("alice").DomesticFamilyUnitId;
+        Assert.Equal(newUnit, checkpoint.GetAgent("cara").DomesticFamilyUnitId);
+        Assert.Equal(newUnit, checkpoint.GetAgent("child").DomesticFamilyUnitId);
+        Assert.NotEqual(newUnit, checkpoint.GetAgent("bob").DomesticFamilyUnitId);
+        Assert.Equal("home-a", checkpoint.GetAgent("alice").HouseholdId);
+        Assert.Equal("home-b", checkpoint.GetAgent("bob").HouseholdId);
+        Assert.Equal("home-a", checkpoint.GetAgent("child").HouseholdId);
 
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(checkpoint));
-        Assert.Equal(newUnit, restored.GetInhabitant("child").DomesticFamilyUnitId);
-        Assert.Equal("alice", restored.GetInhabitant("child").PrimaryCaregiverId);
-        Assert.Equal("home-a", restored.GetInhabitant("child").HouseholdId);
+        Assert.Equal(newUnit, restored.GetAgent("child").DomesticFamilyUnitId);
+        Assert.Equal("alice", restored.GetAgent("child").PrimaryCaregiverId);
+        Assert.Equal("home-a", restored.GetAgent("child").HouseholdId);
     }
 
     [Fact]
@@ -149,39 +149,39 @@ public sealed class SocietyTests
     {
         var (checkpoint, childId) = BirthWithAcceptedCare();
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, "partnership-1", "alice").Checkpoint;
-        var separatedFamily = checkpoint.GetInhabitant(childId).DomesticFamilyUnitId;
-        Assert.Equal(separatedFamily, checkpoint.GetInhabitant("alice").DomesticFamilyUnitId);
-        Assert.NotEqual(separatedFamily, checkpoint.GetInhabitant("bob").DomesticFamilyUnitId);
+        var separatedFamily = checkpoint.GetAgent(childId).DomesticFamilyUnitId;
+        Assert.Equal(separatedFamily, checkpoint.GetAgent("alice").DomesticFamilyUnitId);
+        Assert.NotEqual(separatedFamily, checkpoint.GetAgent("bob").DomesticFamilyUnitId);
 
         var primaryCare = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == "alice" && edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted);
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, primaryCare.Id, "alice").Checkpoint;
-        Assert.Equal(separatedFamily, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
+        Assert.Equal(separatedFamily, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
 
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("partnership-2", 1, SocietyRelationshipType.Partnership, "alice", "cara", checkpoint.WorldTick)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "partnership-2", 1, "cara").Checkpoint;
 
-        Assert.NotEqual(separatedFamily, checkpoint.GetInhabitant("alice").DomesticFamilyUnitId);
-        Assert.Equal(separatedFamily, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
-        Assert.Null(checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
+        Assert.NotEqual(separatedFamily, checkpoint.GetAgent("alice").DomesticFamilyUnitId);
+        Assert.Equal(separatedFamily, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
+        Assert.Null(checkpoint.GetAgent(childId).PrimaryCaregiverId);
         Assert.Equal("alice", Assert.Single(checkpoint.Births).PrimaryCaregiverId);
-        Assert.Equal("home-a", checkpoint.GetInhabitant(childId).HouseholdId);
+        Assert.Equal("home-a", checkpoint.GetAgent(childId).HouseholdId);
     }
 
     [Fact]
     public void RevokingNonprimaryCareLeavesTheRecordedPrimaryCaregiver()
     {
         var (checkpoint, childId) = BirthWithAcceptedCare();
-        var birthFamily = checkpoint.GetInhabitant(childId).DomesticFamilyUnitId;
+        var birthFamily = checkpoint.GetAgent(childId).DomesticFamilyUnitId;
         var secondaryCare = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == "bob" && edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted);
 
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, secondaryCare.Id, "bob").Checkpoint;
 
-        Assert.Equal("alice", checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
+        Assert.Equal("alice", checkpoint.GetAgent(childId).PrimaryCaregiverId);
         Assert.True(SocietyRules.HasActivePrimaryCaregiver(checkpoint, childId));
-        Assert.Equal(birthFamily, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
+        Assert.Equal(birthFamily, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
         Assert.Equal("alice", Assert.Single(checkpoint.Births).PrimaryCaregiverId);
     }
 
@@ -192,7 +192,7 @@ public sealed class SocietyTests
         var caraMembership = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.HouseholdMembership &&
             edge.TargetId == "cara" && edge.State == SocietyRelationshipState.Accepted);
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, caraMembership.Id, "cara").Checkpoint;
-        Assert.Null(checkpoint.GetInhabitant("cara").HouseholdId);
+        Assert.Null(checkpoint.GetAgent("cara").HouseholdId);
 
         var formerPrimary = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == "alice" && edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted);
@@ -204,14 +204,14 @@ public sealed class SocietyTests
         var acceptedEdge = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == "cara" && edge.TargetId == childId && edge.State == SocietyRelationshipState.Accepted);
         Assert.Null(acceptedEdge.HouseholdId);
-        Assert.Equal("cara", checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
-        var familyUnit = checkpoint.GetInhabitant(childId).DomesticFamilyUnitId;
+        Assert.Equal("cara", checkpoint.GetAgent(childId).PrimaryCaregiverId);
+        var familyUnit = checkpoint.GetAgent(childId).DomesticFamilyUnitId;
 
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, acceptedEdge.Id, "cara").Checkpoint;
 
-        Assert.Null(checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
-        Assert.Equal(familyUnit, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
-        Assert.Equal("home-a", checkpoint.GetInhabitant(childId).HouseholdId);
+        Assert.Null(checkpoint.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(familyUnit, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
+        Assert.Equal("home-a", checkpoint.GetAgent(childId).HouseholdId);
         Assert.Equal("alice", Assert.Single(checkpoint.Births).PrimaryCaregiverId);
     }
 
@@ -228,7 +228,7 @@ public sealed class SocietyTests
         var birth = SocietyRules.CommitBirth(checkpoint, new SocietyBirthRequest(
             "cross-home-birth", 1, "alice", "bob", "home-a", ["alice"], ["alice", "bob"],
             "food-lot", 2, checkpoint.WorldTick, PrimaryCaregiverId: "alice"));
-        var child = birth.Checkpoint.GetInhabitant(Assert.IsType<string>(birth.CreatedId));
+        var child = birth.Checkpoint.GetAgent(Assert.IsType<string>(birth.CreatedId));
         var record = Assert.Single(birth.Checkpoint.Births);
         Assert.Throws<InvalidDataException>(() => SocietyRules.Validate(birth.Checkpoint with
         {
@@ -237,12 +237,12 @@ public sealed class SocietyTests
 
         Assert.Equal("home-a", child.HouseholdId);
         Assert.Equal("alice", child.PrimaryCaregiverId);
-        Assert.Equal(birth.Checkpoint.GetInhabitant("alice").DomesticFamilyUnitId, child.DomesticFamilyUnitId);
-        Assert.Equal("home-b", birth.Checkpoint.GetInhabitant("bob").HouseholdId);
+        Assert.Equal(birth.Checkpoint.GetAgent("alice").DomesticFamilyUnitId, child.DomesticFamilyUnitId);
+        Assert.Equal("home-b", birth.Checkpoint.GetAgent("bob").HouseholdId);
         Assert.Equal("alice", record.PrimaryCaregiverId);
         Assert.Equal("home-a", record.HouseholdId);
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(birth.Checkpoint));
-        Assert.Equal("home-a", restored.GetInhabitant(child.Id).HouseholdId);
+        Assert.Equal("home-a", restored.GetAgent(child.Id).HouseholdId);
         Assert.Equal("alice", Assert.Single(restored.Births).PrimaryCaregiverId);
         Assert.Contains(restored.Relationships, item => item.Type == SocietyRelationshipType.BiologicalParentage &&
             item.ProposerId == "bob" && item.TargetId == child.Id);
@@ -257,15 +257,15 @@ public sealed class SocietyTests
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("first-partnership", 1, SocietyRelationshipType.Partnership, "alice", "bob", checkpoint.WorldTick)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "first-partnership", 1, "bob").Checkpoint;
-        var birthUnit = checkpoint.GetInhabitant("alice").DomesticFamilyUnitId;
+        var birthUnit = checkpoint.GetAgent("alice").DomesticFamilyUnitId;
 
         var birth = SocietyRules.CommitBirth(checkpoint, new SocietyBirthRequest(
             "caregiver-reassignment", 1, "alice", "bob", "home-a", ["alice", "bob"], ["alice", "bob"],
             "food-lot", 2, checkpoint.WorldTick, PrimaryCaregiverId: "alice"));
         checkpoint = birth.Checkpoint;
         var childId = Assert.IsType<string>(birth.CreatedId);
-        Assert.Equal("alice", checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
-        Assert.Equal(birthUnit, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
+        Assert.Equal("alice", checkpoint.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(birthUnit, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
         Assert.Single(checkpoint.Relationships, item => item.Type == SocietyRelationshipType.Caregiver &&
             item.ProposerId == "bob" && item.TargetId == childId && item.State == SocietyRelationshipState.Accepted);
 
@@ -273,23 +273,23 @@ public sealed class SocietyTests
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("survivor-partnership", 1, SocietyRelationshipType.Partnership, "bob", "cara", checkpoint.WorldTick)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "survivor-partnership", 1, "cara").Checkpoint;
-        var survivorUnit = checkpoint.GetInhabitant("bob").DomesticFamilyUnitId;
+        var survivorUnit = checkpoint.GetAgent("bob").DomesticFamilyUnitId;
         Assert.NotEqual(birthUnit, survivorUnit);
-        Assert.Null(checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
-        Assert.Equal(birthUnit, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
+        Assert.Null(checkpoint.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(birthUnit, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
 
         var assumption = SocietyRules.AssumePrimaryCare(checkpoint, "bob", childId);
         Assert.Contains(assumption.NewEvents ?? [], item => item.Kind == "primary_caregiver_assumed");
         checkpoint = assumption.Checkpoint;
-        Assert.Equal("bob", checkpoint.GetInhabitant(childId).PrimaryCaregiverId);
-        Assert.Equal(survivorUnit, checkpoint.GetInhabitant(childId).DomesticFamilyUnitId);
+        Assert.Equal("bob", checkpoint.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(survivorUnit, checkpoint.GetAgent(childId).DomesticFamilyUnitId);
         Assert.Equal("alice", Assert.Single(checkpoint.Births).PrimaryCaregiverId);
         Assert.Single(checkpoint.Relationships, item => item.Type == SocietyRelationshipType.Caregiver &&
             item.ProposerId == "bob" && item.TargetId == childId && item.State == SocietyRelationshipState.Accepted);
 
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(checkpoint));
-        Assert.Equal("bob", restored.GetInhabitant(childId).PrimaryCaregiverId);
-        Assert.Equal(survivorUnit, restored.GetInhabitant(childId).DomesticFamilyUnitId);
+        Assert.Equal("bob", restored.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(survivorUnit, restored.GetAgent(childId).DomesticFamilyUnitId);
         Assert.Equal("alice", Assert.Single(restored.Births).PrimaryCaregiverId);
     }
 
@@ -316,11 +316,11 @@ public sealed class SocietyTests
         var committed = SocietyRules.CommitBirth(checkpoint, request);
         var retried = SocietyRules.CommitBirth(committed.Checkpoint, request);
 
-        Assert.Equal("world:inhabitant:birth-1", committed.CreatedId);
+        Assert.Equal("world:agent:birth-1", committed.CreatedId);
         Assert.Single(committed.Checkpoint.Births);
         Assert.Equal(1, committed.Checkpoint.Inventory.GetLot("food-lot").Quantity);
         Assert.Equal(committed.Checkpoint, retried.Checkpoint);
-        Assert.Equal(1, retried.Checkpoint.Inhabitants.Count(item => item.Id == committed.CreatedId));
+        Assert.Equal(1, retried.Checkpoint.Agents.Count(item => item.Id == committed.CreatedId));
         Assert.Contains(
             committed.Checkpoint.Relationships,
             relationship => relationship.Type == SocietyRelationshipType.BiologicalParentage &&
@@ -377,9 +377,9 @@ public sealed class SocietyTests
 
         var elderTick = checked(65L * config.TicksPerWorldYear);
         var aged = SocietyRules.AdvanceTo(naturalCheckpoint, elderTick).Checkpoint;
-        var elder = aged.GetInhabitant("elder");
+        var elder = aged.GetAgent("elder");
 
-        Assert.Equal(SocietyInhabitantStatus.Dead, elder.Status);
+        Assert.Equal(SocietyAgentStatus.Dead, elder.Status);
         Assert.Equal(SocietyAgeBand.Elder, elder.AgeBand);
         Assert.Equal(SocietyDeathCause.NaturalAge, elder.DeathCause);
         Assert.Single(aged.Estates);
@@ -403,7 +403,7 @@ public sealed class SocietyTests
     }
 
     [Fact]
-    public async Task MultipleInhabitantsHaveIndependentFairCognitionSchedules()
+    public async Task MultipleAgentsHaveIndependentFairCognitionSchedules()
     {
         var config = TestConfig();
         var founders = new[]
@@ -497,13 +497,13 @@ public sealed class SocietyTests
             runtime.Checkpoint.WorldTick,
             PrimaryCaregiverId: "alice");
         runtime.Apply(current => SocietyRules.CommitBirth(current, birth));
-        var childId = "world:inhabitant:birth-runtime";
+        var childId = "world:agent:birth-runtime";
 
-        Assert.Contains(childId, runtime.Capture().Cognition.Runtimes.Select(item => item.InhabitantId));
+        Assert.Contains(childId, runtime.Capture().Cognition.Runtimes.Select(item => item.AgentId));
         Assert.False(runtime.EnqueueCognition(Entry("infant-start", childId, 0, 0)));
-        Assert.DoesNotContain(runtime.Capture().Cognition.Queue, item => item.InhabitantId == childId);
+        Assert.DoesNotContain(runtime.Capture().Cognition.Queue, item => item.AgentId == childId);
         runtime.AdvanceTo(20); // The fixture's two-year infancy ends here.
-        Assert.Equal(SocietyAgeBand.Child, runtime.Checkpoint.GetInhabitant(childId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Child, runtime.Checkpoint.GetAgent(childId).AgeBand);
         Assert.True(runtime.EnqueueCognition(Entry("child-start", childId, 0, 20)));
         var queued = Assert.Single(runtime.Capture().Cognition.Queue);
         Assert.True(queued.Observation.RequiresPersonalProvider);
@@ -534,9 +534,9 @@ public sealed class SocietyTests
         using (restored)
         {
             restored.Validate();
-            Assert.DoesNotContain("bob", restored.Capture().Cognition.Runtimes.Select(item => item.InhabitantId));
-            Assert.Contains(childId, restored.Capture().Cognition.Runtimes.Select(item => item.InhabitantId));
-            Assert.Equal(SocietyInhabitantStatus.Dead, restored.Checkpoint.GetInhabitant("bob").Status);
+            Assert.DoesNotContain("bob", restored.Capture().Cognition.Runtimes.Select(item => item.AgentId));
+            Assert.Contains(childId, restored.Capture().Cognition.Runtimes.Select(item => item.AgentId));
+            Assert.Equal(SocietyAgentStatus.Dead, restored.Checkpoint.GetAgent("bob").Status);
         }
     }
 
@@ -607,8 +607,8 @@ public sealed class SocietyTests
             checkpoint,
             (config.ElderYears - config.AdultYears) * config.TicksPerWorldYear).Checkpoint;
 
-        Assert.Equal(SocietyInhabitantStatus.Active, atElderhood.GetInhabitant("survivor").Status);
-        Assert.Equal(SocietyAgeBand.Elder, atElderhood.GetInhabitant("survivor").AgeBand);
+        Assert.Equal(SocietyAgentStatus.Active, atElderhood.GetAgent("survivor").Status);
+        Assert.Equal(SocietyAgeBand.Elder, atElderhood.GetAgent("survivor").AgeBand);
     }
 
     private static SocietyCheckpoint Genesis(SocietyConfig config, params string[] ids)
@@ -655,17 +655,17 @@ public sealed class SocietyTests
 
     private static SocietyCognitionScheduleEntry Entry(
         string scheduleId,
-        string inhabitantId,
+        string agentId,
         int priority,
         long tick) =>
         new(
             scheduleId,
-            inhabitantId,
+            agentId,
             priority,
             tick,
             [$"trigger:{scheduleId}"],
-            new InhabitantObservation(
-                inhabitantId,
+            new AgentObservation(
+                agentId,
                 tick,
                 0,
                 0,

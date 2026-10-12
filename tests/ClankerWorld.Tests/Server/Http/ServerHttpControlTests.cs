@@ -36,10 +36,10 @@ public sealed partial class ServerHttpTests
             using var other = new WorldRuntime("delayed-world-settings-B");
             other.Pause();
             var entryB = catalog.Add("Other", other.ExportState());
-            var path = jev ? "/api/v1/owner/control/jev-assistance" : "/api/v1/owner/control/life-pace";
-            object Action(string worldId) => jev ? new OwnerJevAssistanceAction(false, worldId) : new OwnerLifePaceAction(365, worldId);
+            var path = jev ? "/api/v1/owner/control/jev-assistance" : "/api/v1/owner/control/aging-override";
+            object Action(string worldId) => jev ? new OwnerJevAssistanceAction(false, worldId) : new OwnerAgingOverrideAction(365, worldId);
             string Payload(object action) => action is OwnerJevAssistanceAction helper
-                ? OwnerHttpBinding.JevAssistancePayload(helper) : OwnerHttpBinding.LifePacePayload((OwnerLifePaceAction)action);
+                ? OwnerHttpBinding.JevAssistancePayload(helper) : OwnerHttpBinding.AgingOverridePayload((OwnerAgingOverrideAction)action);
             var actionA = Action(runtime.Society.WorldId);
             // Obtain real authorization while A is active; delay only delivery.
             var held = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, actionA, Payload(actionA));
@@ -61,7 +61,7 @@ public sealed partial class ServerHttpTests
             var signedA = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, actionA, Payload(actionA));
             using var tampered = await client.PostAsJsonAsync(path, signedA with { Action = Action(runtime.Society.WorldId) });
             Assert.Equal(HttpStatusCode.Unauthorized, tampered.StatusCode);
-            var legacyPayload = jev ? "clankerworld.owner-jev-assistance.v1\nenabled=false" : "clankerworld.owner-life-pace.v1\nrate=365";
+            var legacyPayload = jev ? "clankerworld.owner-jev-assistance.v1\nenabled=false" : "clankerworld.owner-aging-override.v1\nrate=365";
             var unscoped = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, Action(null!), legacyPayload);
             using var missingWorld = await client.PostAsJsonAsync(path, unscoped);
             Assert.Equal(HttpStatusCode.BadRequest, missingWorld.StatusCode);
@@ -229,7 +229,7 @@ public sealed partial class ServerHttpTests
     }
 
     [Fact]
-    public async Task LifePaceRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone()
+    public async Task AgingOverrideRequiresBoundSignedRequestAndPauseAndPersistsWithoutAgingAnyone()
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-life-http-");
         try
@@ -243,30 +243,30 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/control/resume", new OwnerControlAction("resume"), OwnerHttpBinding.EmptyPayload("resume"));
                 Assert.Equal(HttpStatusCode.OK, resume.StatusCode);
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
-                var births = runtime.Society.Inhabitants.Select(person => person.BirthTick).ToArray();
-                var action = new OwnerLifePaceAction(1_460, runtime.Society.WorldId);
-                const string path = "/api/v1/owner/control/life-pace";
-                using var running = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.LifePacePayload(action));
+                var births = runtime.Society.Agents.Select(person => person.BirthTick).ToArray();
+                var action = new OwnerAgingOverrideAction(1_460, runtime.Society.WorldId);
+                const string path = "/api/v1/owner/control/aging-override";
+                using var running = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
                 Assert.Equal(HttpStatusCode.Conflict, running.StatusCode);
                 Assert.Null(runtime.Society.LifeClock);
                 using var pause = await SendSignedAsync(host, client, key, device.DeviceId, "/api/v1/owner/control/pause",
                     new OwnerControlAction("pause"), OwnerHttpBinding.EmptyPayload("pause"));
                 Assert.Equal(HttpStatusCode.OK, pause.StatusCode);
-                var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.LifePacePayload(action));
+                var envelope = await CreateSignedRequestAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
                 using var tampered = await client.PostAsJsonAsync(path, envelope with { Action = action with { Rate = 365 } });
                 Assert.False(tampered.IsSuccessStatusCode);
                 Assert.Null(runtime.Society.LifeClock);
-                using var configured = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.LifePacePayload(action));
+                using var configured = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
                 Assert.Equal(HttpStatusCode.OK, configured.StatusCode);
                 Assert.True((await configured.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
-                using var repeated = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.LifePacePayload(action));
+                using var repeated = await SendSignedAsync(host, client, key, device.DeviceId, path, action, OwnerHttpBinding.AgingOverridePayload(action));
                 Assert.False((await repeated.Content.ReadFromJsonAsync<OwnerControlReceipt>())!.Changed);
-                Assert.Equal(births, runtime.Society.Inhabitants.Select(person => person.BirthTick));
+                Assert.Equal(births, runtime.Society.Agents.Select(person => person.BirthTick));
                 Assert.Equal(0, runtime.WorldTick);
                 Assert.True(runtime.Society.IsPaused);
                 var observation = host.Services.GetRequiredService<OwnerWorldObservationStore>();
-                Assert.Equal(1_460, observation.GetSnapshot().LifePaceRate);
-                Assert.Contains("owner-life-pace.v2", observation.GetOwnerHandshake().ServerCapabilities);
+                Assert.Equal(1_460, observation.GetSnapshot().AgingOverrideRate);
+                Assert.Contains("owner-aging-override.v2", observation.GetOwnerHandshake().ServerCapabilities);
             }
             using var restarted = new ServerWebApplicationFactory(directory.FullName, null, gameWorld: true);
             using var restartedClient = restarted.CreateClient();
@@ -303,9 +303,9 @@ public sealed partial class ServerHttpTests
         Assert.Contains("owner-observation.read.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-control.request.v1", reconnect.Handshake.ServerCapabilities);
         Assert.Contains("owner-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
-        Assert.Contains("owner-inhabitant-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
+        Assert.Contains("owner-agent-provider-configuration.v1", reconnect.Handshake.ServerCapabilities);
         Assert.True(factory.Services.GetRequiredService<OwnerClientPresenceLease>().HasActiveClient);
-        Assert.Equal(WorldRuntime.RequiredFounders, reconnect.Baseline.Snapshot.Inhabitants.Count);
+        Assert.Equal(WorldRuntime.RequiredFounders, reconnect.Baseline.Snapshot.Agents.Count);
         Assert.NotNull(reconnect.Baseline.Snapshot.Authoring);
 
         using var pause = await SendSignedAsync(
@@ -323,17 +323,17 @@ public sealed partial class ServerHttpTests
         var runtime = factory.Services.GetRequiredService<WorldRuntime>();
         var beforeInvalidInstruction = WorldRuntimeCodec.Encode(runtime.ExportState());
         var invalidAction = new OwnerInstructionAction("instruction-http-invalid", "missing-agent",
-            "must_do", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
+            "order", "Gather food.", reconnect.Baseline.Snapshot.WorldId);
         using var invalidInstruction = await SendSignedAsync(client, key, pairing.DeviceId,
             "/api/v1/owner/instructions", invalidAction, OwnerHttpBinding.InstructionPayload(invalidAction));
         Assert.Equal(HttpStatusCode.BadRequest, invalidInstruction.StatusCode);
-        Assert.Contains("No active inhabitant", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("No active agent", await invalidInstruction.Content.ReadAsStringAsync(), StringComparison.Ordinal);
         Assert.Equal(beforeInvalidInstruction, WorldRuntimeCodec.Encode(runtime.ExportState()));
 
         var instructionAction = new OwnerInstructionAction(
             "instruction-http-1",
-            reconnect.Baseline.Snapshot.Inhabitants[0].Id,
-            "must_do",
+            reconnect.Baseline.Snapshot.Agents[0].Id,
+            "order",
             "Gather food.",
             reconnect.Baseline.Snapshot.WorldId);
         using var instruction = await SendSignedAsync(
@@ -367,6 +367,6 @@ public sealed partial class ServerHttpTests
         var queued = Assert.Single(runtime.ExportState().Instructions!);
         Assert.Equal($"owner-device:{pairing.DeviceId}", queued.IssuerId);
         Assert.Equal(instructionReceipt.InstructionId, queued.InstructionId);
-        Assert.Equal(instructionAction.TargetInhabitantId, queued.TargetInhabitantId);
+        Assert.Equal(instructionAction.TargetAgentId, queued.TargetAgentId);
     }
 }

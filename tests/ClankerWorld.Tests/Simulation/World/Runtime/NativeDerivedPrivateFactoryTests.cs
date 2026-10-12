@@ -37,10 +37,10 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("ShelterOrderReceipt")]
     [InlineData("KnowledgeReadOrderEffectId")]
     [InlineData("CivicRoundToken")]
-    [InlineData("NonviolentReportToken")]
-    [InlineData("NonviolentOfferToken")]
-    [InlineData("NonviolentCaseToken")]
-    [InlineData("NonviolentActionToken")]
+    [InlineData("NonLandReportToken")]
+    [InlineData("NonLandOfferToken")]
+    [InlineData("NonLandCaseToken")]
+    [InlineData("NonLandActionToken")]
     [InlineData("LandHearingEvidenceId")]
     [InlineData("OrchardReplantingReservationId")]
     [InlineData("MedicalDoseId")]
@@ -78,8 +78,8 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("EstateSplitLotId-storage")]
     [InlineData("FinalWordsMemoryId")]
     [InlineData("ParenthoodRequestId")]
-    [InlineData("SettlementPartnershipId")]
-    [InlineData("SettlementCareId")]
+    [InlineData("NewPartnershipId")]
+    [InlineData("NewCareRelationshipId")]
     [InlineData("SoloHouseholdId")]
     [InlineData("DepartureTransferId")]
     [InlineData("PersonalMoveId")]
@@ -88,13 +88,13 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("ChildSocialMemoryId-learn")]
     [InlineData("LessonGratitudeMemoryId")]
     [InlineData("ProjectGratitudeMemoryId")]
-    [InlineData("SettlementTrustMemoryId")]
+    [InlineData("TrustMemoryId")]
     [InlineData("CartRepairReservationId")]
     [InlineData("NativeCartRepairId")]
     [InlineData("FoodPotTransferId")]
     [InlineData("RoadRouteId")]
-    [InlineData("SettlementTradeOfferId")]
-    [InlineData("BusinessTradeOfferId")]
+    [InlineData("DirectBarterOfferId")]
+    [InlineData("ShopTradeOfferId")]
     [InlineData("WritingProjectId")]
     [InlineData("WritingMaterialReservationId")]
     [InlineData("WritingMaterialTransferId")]
@@ -132,8 +132,8 @@ public sealed partial class GrownAgentHelperMemoryTests
     [InlineData("AnimalSaddleReservationId")]
     [InlineData("DeveloperVesselUnitId")]
     [InlineData("BoatTripId")]
-    [InlineData("NonviolentRemedyChoiceId")]
-    [InlineData("NonviolentRelayChoiceId")]
+    [InlineData("NonLandRemedyChoiceId")]
+    [InlineData("NonLandRelayChoiceId")]
     [InlineData("AnimalSupplyTripId")]
     [InlineData("AnimalPickupId")]
     [InlineData("AnimalOrderReceiptId")]
@@ -156,7 +156,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Contains(state.Society.Society.Relationships, edge => edge.Type == SocietyRelationshipType.BiologicalParentage &&
             edge.ProposerId == relative && edge.TargetId == actor);
         var society = state.Society.Society;
-        var position = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = state.Agents.Single(person => person.AgentId == actor).Position;
         var cartId = "cart:" + new string('c', 123);
         society = society with
         {
@@ -176,7 +176,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 Inventory = ClankerWorld.Simulation.Kernel.InventoryAuthority.AddLot(society.Inventory,
                 seedId, TreeGrowthRules.OrchardSeedItem, actor, TreeGrowthRules.OrchardSeedsPerPick)
             };
-        var home = society.GetInhabitant(actor).HouseholdId!;
+        var home = society.GetAgent(actor).HouseholdId!;
         society = society with
         {
             Households = society.Households.Select(household =>
@@ -199,7 +199,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             "KnowledgeReadOrderEffectId" => "read_knowledge",
             _ => "repair_handcart",
         };
-        var order = new OwnerInstructionOrder(action, "finished", 1, 1, "tasks", false, TargetAgentId: relative)
+        var order = new OrderTask(action, "finished", 1, 1, "tasks", false, TargetAgentId: relative)
         {
             TargetCartLotId = cartId,
             TargetItemKind = "wood",
@@ -207,8 +207,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             KnowledgeReadCompletion = new(society.WorldTick, [position]) { LearnedRecipes = [recipe] },
         };
         var instruction = new OwnerQueuedInstruction("instruction:" + new string('i', 116), "inventory-task", "owner:test",
-            actor, OwnerInstructionKind.MustDo, "Remember this completed work.", society.WorldTick,
-            society.RunEpoch, 1, OwnerInstructionState.Queued, Order: order);
+            actor, OwnerInstructionKind.Order, "Remember this completed work.", society.WorldTick,
+            society.RunEpoch, 1, OwnerInstructionState.Queued, Task: order);
         var owner = factory switch
         {
             "CognitionAgentId" => typeof(WorldMemoryRetrieval),
@@ -222,7 +222,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var townId = state.Towns![0].Id;
         var allegation = new TownViolationAllegation(sourceLot, actor, "taking", position, society.WorldTick,
             instruction.InstructionId, int.MaxValue, "The stock was moved.", [sourceLot]);
-        var file = new TownViolationCase(instruction.InstructionId, "key", townId, allegation, society.WorldTick, "open",
+        var file = new TownNonLandCase(instruction.InstructionId, "key", townId, allegation, society.WorldTick, "open",
             [new(int.MaxValue, [], "notice", society.WorldTick, society.WorldTick + 1)], [], [], [], [], [], null, [], [], null, [], [], []);
         var offer = new TownRemedyOffer(instruction.InstructionId, file.Id, sourceLot, int.MaxValue, [],
             TownHearingProcedure.Digest(new[] { actor, relative, sourceLot }), "Return the stock.", "notice", society.WorldTick,
@@ -258,9 +258,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             "ShelterOrderReceipt" => [instruction.InstructionId, order],
             "CivicRoundToken" => [new TownElection(instruction.InstructionId, "regular", "main", society.WorldTick,
                 society.WorldTick + 1, society.WorldTick + 10, 1, [actor, relative], [actor, relative], [], [], [], [])],
-            "NonviolentReportToken" => [allegation],
-            "NonviolentOfferToken" => [offer],
-            "NonviolentCaseToken" or "NonviolentActionToken" => [file],
+            "NonLandReportToken" => [allegation],
+            "NonLandOfferToken" => [offer],
+            "NonLandCaseToken" or "NonLandActionToken" => [file],
             "LandHearingEvidenceId" => [landFile, actor, "record", sourceLot],
             "OrchardReplantingReservationId" => [seedId],
             "MedicalDoseId" => [society.WorldTick, society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1, actor, relative],
@@ -291,19 +291,19 @@ public sealed partial class GrownAgentHelperMemoryTests
                 factory == "EstateSplitLotId-storage" ? building : null],
             "FinalWordsMemoryId" => [estateId, relative],
             "ParenthoodRequestId" or "SoloHouseholdId" => [actor, society.WorldTick],
-            "SettlementPartnershipId" or "SettlementCareId" => [actor, relative, society.WorldTick],
+            "NewPartnershipId" or "NewCareRelationshipId" => [actor, relative, society.WorldTick],
             "DepartureTransferId" => [actor, society.WorldTick, 1, sourceLot],
             "PersonalMoveId" => [actor, society.WorldTick, sourceLot],
             "ChildSocialMemoryId-converse" or "ChildSocialMemoryId-play" or "ChildSocialMemoryId-learn" =>
                 [factory["ChildSocialMemoryId-".Length..], actor, relative, society.WorldTick],
-            "LessonGratitudeMemoryId" => [actor, relative, SettlementSkillKind.Farming],
-            "ProjectGratitudeMemoryId" or "SettlementTrustMemoryId" => [actor, relative],
+            "LessonGratitudeMemoryId" => [actor, relative, SkillKind.Farming],
+            "ProjectGratitudeMemoryId" or "TrustMemoryId" => [actor, relative],
             "CartRepairReservationId" => [society.WorldTick, actor, "wood"],
             "NativeCartRepairId" => [society.WorldTick, actor, cartId],
             "FoodPotTransferId" => [society.WorldTick, actor],
             "RoadRouteId" => [townId, building],
-            "SettlementTradeOfferId" => [society.WorldTick, actor, relative],
-            "BusinessTradeOfferId" => [society.WorldTick, actor, building],
+            "DirectBarterOfferId" => [society.WorldTick, actor, relative],
+            "ShopTradeOfferId" => [society.WorldTick, actor, building],
             "WritingProjectId" => [actor, society.WorldTick, society.Inventory.Reservations.Count],
             "WritingMaterialReservationId" => [Assert.IsType<string>(typeof(WorldRuntime).GetMethod("WritingProjectId",
                 BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [actor, society.WorldTick, society.Inventory.Reservations.Count])), 1],
@@ -339,8 +339,8 @@ public sealed partial class GrownAgentHelperMemoryTests
                     society.Inventory.EventHistoryFloor + society.Inventory.Events.Count + 1]))],
             "DeveloperVesselUnitId" => [cartId, int.MaxValue],
             "BoatTripId" => [townId, building, cartId],
-            "NonviolentRemedyChoiceId" => [townId, sourceLot, cartId],
-            "NonviolentRelayChoiceId" => [townId, sourceLot, relative],
+            "NonLandRemedyChoiceId" => [townId, sourceLot, cartId],
+            "NonLandRelayChoiceId" => [townId, sourceLot, relative],
             "AnimalSupplyTripId" => [actor],
             "AnimalPickupId" => [actor, society.WorldTick, long.MaxValue],
             "AnimalOrderReceiptId" => [instruction.InstructionId, animalId, sourceLot],
@@ -379,7 +379,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             null, actor, restored.WorldTick, [new("safe_idle", summary, 0)], restored.Society);
         var memory = Assert.Single(recalled, memory => memory.Id == id);
         Assert.Equal((actor, subject, summary), (memory.OwnerId, memory.SubjectId, memory.Summary));
-        new InhabitantObservation(actor, restored.WorldTick, 0, 1, "sha256:factory-inventory", 0,
+        new AgentObservation(actor, restored.WorldTick, 0, 1, "sha256:factory-inventory", 0,
             [new("safe_idle", summary, 0)], RetrievedMemories: recalled).Validate();
     }
 }

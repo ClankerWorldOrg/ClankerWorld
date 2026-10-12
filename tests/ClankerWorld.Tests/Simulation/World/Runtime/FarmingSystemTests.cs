@@ -123,8 +123,8 @@ public sealed class FarmingSystemTests
         public SocietyCheckpoint Society { get; private set; } = SocietyRules.CreateHousehold(
             SocietyRules.CreateGenesis("farming-system", [SocietyRules.CreateFounder("agent", "Aster Ash")]),
             "household", "Home", ["agent"]).Checkpoint;
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; } =
-            new Dictionary<string, InhabitantState>();
+        public IReadOnlyDictionary<string, AgentState> Agents { get; } =
+            new Dictionary<string, AgentState>();
         public WorldContentSimulationState Simulation => WorldContentSimulationState.Empty;
         public DeclarativeWorldContentState Content { get; } = new([], []);
         public IReadOnlyList<TownRuntimeState> Towns => [];
@@ -138,21 +138,21 @@ public sealed class FarmingSystemTests
         public void SetMap(WorldMap map) => Map = map;
         public IEnumerable<GridPoint> RoadAndBridgeTiles() => Roads;
         public SocietyCognitionSchedulerState Cognition => throw new NotSupportedException();
-        public bool AdultResident(string actor) => throw new NotSupportedException();
+        public bool IsAdult(string actor) => throw new NotSupportedException();
         public PlacedBuilding? FarmhouseForHousehold(string householdId) => throw new NotSupportedException();
-        public bool NeedsUrgentFood(InhabitantState person) => throw new NotSupportedException();
-        public bool NeedsUrgentWarmth(InhabitantState person) => throw new NotSupportedException();
+        public bool NeedsUrgentFood(AgentState person) => throw new NotSupportedException();
+        public bool NeedsUrgentWarmth(AgentState person) => throw new NotSupportedException();
         public bool IsConversationBusy(string actor) => throw new NotSupportedException();
         public string? HouseholdFor(string actor) => throw new NotSupportedException();
         public HashSet<GridPoint> HouseholdLandHeldByOthers(string householdId) => throw new NotSupportedException();
         public int AvailableLotQuantity(InventoryLot lot) => throw new NotSupportedException();
         public void ApplySocietyTransition(Func<SocietyCheckpoint, SocietyOperationResult> transition) => throw new NotSupportedException();
-        public int SkilledWorkTicks(string actor, SettlementSkillKind skill, int ticks) => throw new NotSupportedException();
+        public int SkilledWorkTicks(string actor, SkillKind skill, int ticks) => throw new NotSupportedException();
         public IEnumerable<GridPoint> TownProjectProtectedSites() => throw new NotSupportedException();
         public IEnumerable<GridPoint> MarketSiteTiles() => throw new NotSupportedException();
         public void RecordAttemptedAction(string actor, string candidate) => throw new NotSupportedException();
         public void ApplyToolWork(string actor, params ToolWorkPlan[] plans) => throw new NotSupportedException();
-        public void CreditCompletedWork(string actor, string domain, SettlementSkillKind? skill = null) => throw new NotSupportedException();
+        public void CreditCompletedWork(string actor, string domain, SkillKind? skill = null) => throw new NotSupportedException();
         public WeatherKind WeatherAt(GridPoint position) => throw new NotSupportedException();
         public bool CanReachByFootOrSwimming(string actor, GridPoint from, GridPoint destination) => throw new NotSupportedException();
         public int FreeCarryCapacity(string actor) => throw new NotSupportedException();
@@ -160,12 +160,12 @@ public sealed class FarmingSystemTests
         public int PickupCarryCapacity(string actor, InventoryLot stock, GridPoint destination, int destinationRange = 0) => throw new NotSupportedException();
         public GridPoint HouseholdStockPosition(InventoryLot lot) => throw new NotSupportedException();
         public bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) => throw new NotSupportedException();
-        public void MoveToward(string actor, InhabitantState state, GridPoint destination, string reason, int interactionRange = 0) => throw new NotSupportedException();
+        public void MoveToward(string actor, AgentState state, GridPoint destination, string reason, int interactionRange = 0) => throw new NotSupportedException();
         public bool HasCarriedOwnItem(string actor, string kind) => throw new NotSupportedException();
         public InventoryLot? SharedItem(string kind, string actor, GridPoint? returnTo = null, int returnRange = 0) => throw new NotSupportedException();
         public IReadOnlyList<GridPoint> FindUnoccupiedRoute(string actor, GridPoint from, GridPoint destination, int range = 0) => throw new NotSupportedException();
         public bool IsWithinInteractionRange(GridPoint from, GridPoint destination, int range) => throw new NotSupportedException();
-        public void CollectEquipment(string actor, InhabitantState person, string kind, GridPoint? returnTo = null, int returnRange = 0) => throw new NotSupportedException();
+        public void CollectEquipment(string actor, AgentState person, string kind, GridPoint? returnTo = null, int returnRange = 0) => throw new NotSupportedException();
         public void SyncEcologyResourceStates() => throw new NotSupportedException();
         public bool RecordKnowledgeFact(string actor, GridPoint position) => throw new NotSupportedException();
         public long EdibleFoodHoldings(IEnumerable<string> owners) => throw new NotSupportedException();

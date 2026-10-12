@@ -14,8 +14,8 @@ public sealed partial class WorldRuntime
 
     private PlacedBuilding? ExpansionOrderBuilding(OwnerQueuedInstruction instruction)
     {
-        if (instruction.Order is not { Action: "expand_building", ExpansionBinding: { } binding } order ||
-            !AdultResident(instruction.TargetInhabitantId)) return null;
+        if (instruction.Task is not { Action: "expand_building", ExpansionBinding: { } binding } order ||
+            !IsAdult(instruction.TargetAgentId)) return null;
         var building = worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == binding.BuildingInstanceId);
         if (building is null || building.DefinitionId != binding.DefinitionId || building.Position != binding.ExpectedPosition ||
             (building.Footprint?.Revision ?? 0) != binding.ExpectedRevision || ExpansionOwner(building) != binding.OwnerId ||
@@ -23,35 +23,35 @@ public sealed partial class WorldRuntime
             WorldBuildingOrderCatalog.Find(worldContent, building.DefinitionId)?.BuildingKind != order.TargetBuildingKind)
             return null;
         return order.TargetBuildingKind is "house" or "animal-yard"
-            ? HouseholdFor(instruction.TargetInhabitantId) == building.HouseholdId ? building : null
-            : TownForResident(instruction.TargetInhabitantId) == building.TownId ? building : null;
+            ? HouseholdFor(instruction.TargetAgentId) == building.HouseholdId ? building : null
+            : TownForResident(instruction.TargetAgentId) == building.TownId ? building : null;
     }
 
     private static bool ExpansionJobMatchesOrder(BuildingExpansionJob job, OwnerQueuedInstruction instruction) =>
-        instruction.Order is { Action: "expand_building", ExpansionBinding: { } binding } &&
-        job.OrderInstructionId == instruction.InstructionId && job.WorkerId == instruction.TargetInhabitantId &&
+        instruction.Task is { Action: "expand_building", ExpansionBinding: { } binding } &&
+        job.OrderInstructionId == instruction.InstructionId && job.WorkerId == instruction.TargetAgentId &&
         job.BuildingInstanceId == binding.BuildingInstanceId && job.DefinitionId == binding.DefinitionId &&
         job.OwnerId == binding.OwnerId && job.ExpectedPosition == binding.ExpectedPosition &&
         job.ExpectedRevision == binding.ExpectedRevision && job.TargetPosition == binding.TargetPosition &&
         job.TargetFootprint == binding.TargetFootprint && job.StartedTick >= instruction.SubmittedTick;
 
     private BuildingExpansionJob? BoundExpansionJob(OwnerQueuedInstruction instruction) =>
-        instruction.Order?.ExpansionBinding?.JobId is { } id
+        instruction.Task?.ExpansionBinding?.JobId is { } id
             ? (worldSimulation.BuildingExpansions ?? []).SingleOrDefault(job => job.JobId == id &&
                 ExpansionJobMatchesOrder(job, instruction)) : null;
 
     private (GridPoint Position, BuildingFootprintRevision Footprint) ExpansionShapeForOrder(
         PlacedBuilding building, OwnerQueuedInstruction? instruction) =>
         ExpansionShapes(building).FirstOrDefault(shape =>
-            (instruction?.Order?.ExpansionBinding is not { } binding ||
+            (instruction?.Task?.ExpansionBinding is not { } binding ||
              shape.Position == binding.TargetPosition && shape.Footprint == binding.TargetFootprint) &&
             CanFitExpansion(building, shape.Position, shape.Footprint, out _));
 
-    private ExpansionOrderPlan? ExpansionPlanFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private ExpansionOrderPlan? ExpansionPlanFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
-        var order = instruction.Order!;
-        if (!AdultResident(actor) || !ReadyForBriefInteraction(actor)) return null;
+        var actor = instruction.TargetAgentId;
+        var order = instruction.Task!;
+        if (!IsAdult(actor) || !ReadyForBriefInteraction(actor)) return null;
         var candidates = order.ExpansionBinding is null
             ? worldSimulation.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal)
             : worldSimulation.Buildings.Where(building => ExpansionOrderBuilding(instruction)?.InstanceId == building.InstanceId);
@@ -73,23 +73,23 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private CognitionCandidate? ExpansionOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? ExpansionOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        if (!ReadyForBriefInteraction(instruction.TargetInhabitantId)) return null;
+        if (!ReadyForBriefInteraction(instruction.TargetAgentId)) return null;
         if (BoundExpansionJob(instruction) is { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job)
             return ExpansionOrderBuilding(instruction) is { } building &&
                 CanFitExpansion(building, job.TargetPosition, job.TargetFootprint, out _, job.JobId) &&
                 ExpansionOrderInputsAvailable(job, building) &&
-                (person.Position == building.Position || FindUnoccupiedRoute(person.InhabitantId, person.Position, building.Position, 0).Count > 0)
+                (person.Position == building.Position || FindUnoccupiedRoute(person.AgentId, person.Position, building.Position, 0).Count > 0)
                 ? new("expand_building", "Continue the ordered expansion using its committed materials.", 0, job.BuildingInstanceId) : null;
         return ExpansionPlanFor(instruction, person) is { } plan
             ? new("expand_building", "Bring the materials and complete the building's next permitted expansion.", 0, plan.Building.InstanceId) : null;
     }
 
-    private void ExecuteExpansionOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteExpansionOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
         instruction = instructionsByIdempotency[instruction.IdempotencyKey];
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (NeedsUrgentFood(person) || NeedsUrgentWarmth(person))
         {
             PauseExpansionForOrder(instruction);
@@ -128,11 +128,11 @@ public sealed partial class WorldRuntime
             SetOrderStatus(instruction, "blocked", ExpansionOrderBlockedReason(instruction));
             return;
         }
-        if (instruction.Order!.ExpansionBinding is null)
+        if (instruction.Task!.ExpansionBinding is null)
         {
             instruction = instruction with
             {
-                Order = instruction.Order with
+                Task = instruction.Task with
                 {
                     ExpansionBinding = new(plan.Building.InstanceId, plan.Building.DefinitionId, ExpansionOwner(plan.Building),
                     plan.Building.Position, plan.Building.Footprint?.Revision ?? 0, plan.Position, plan.Footprint),
@@ -149,7 +149,7 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[instruction.IdempotencyKey] = current with
         {
-            Order = current.Order! with { ExpansionBinding = current.Order!.ExpansionBinding! with { JobId = job.JobId } },
+            Task = current.Task! with { ExpansionBinding = current.Task!.ExpansionBinding! with { JobId = job.JobId } },
         };
     }
 
@@ -172,10 +172,10 @@ public sealed partial class WorldRuntime
     private void MaintainExpansionOrdersBeforeTick()
     {
         foreach (var instruction in instructionsByIdempotency.Values.Where(item =>
-                     item.Order is { Action: "expand_building" } order && IsActiveOrder(order.Status)).ToArray())
+                     item.Task is { Action: "expand_building" } order && IsActiveOrder(order.Status)).ToArray())
         {
             if (BoundExpansionJob(instruction) is not { State: WorldProductionJobState.Running or WorldProductionJobState.Paused } job) continue;
-            if (!inhabitants.TryGetValue(instruction.TargetInhabitantId, out var person) ||
+            if (!agents.TryGetValue(instruction.TargetAgentId, out var person) ||
                 ExpansionOrderBuilding(instruction) is not { } building || !ExpansionOrderInputsAvailable(job, building))
             {
                 CancelExpansionForOrder(instruction);
@@ -187,8 +187,8 @@ public sealed partial class WorldRuntime
                 PauseExpansionForOrder(instruction);
                 SetOrderStatus(instruction, "interrupted", "Food or warmth needs come first.");
             }
-            else if (person.Position != building.Position || IsConversationBusy(person.InhabitantId) ||
-                     instruction.Order!.WaitForDecisionAfterFailure)
+            else if (person.Position != building.Position || IsConversationBusy(person.AgentId) ||
+                     instruction.Task!.WaitForDecisionAfterFailure)
                 PauseExpansionForOrder(instruction);
         }
     }
@@ -238,10 +238,10 @@ public sealed partial class WorldRuntime
 
     private string ExpansionOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        if (!AdultResident(instruction.TargetInhabitantId)) return "An adult resident is needed to expand a building.";
-        if (instruction.Order!.ExpansionBinding is not null && ExpansionOrderBuilding(instruction) is null)
+        if (!IsAdult(instruction.TargetAgentId)) return "An adult resident is needed to expand a building.";
+        if (instruction.Task!.ExpansionBinding is not null && ExpansionOrderBuilding(instruction) is null)
             return "The selected building moved, changed owner or changed size; this order keeps its original building and expansion.";
-        if (instruction.Order.ExpansionBinding is { } binding && ExpansionOrderBuilding(instruction) is { } building &&
+        if (instruction.Task.ExpansionBinding is { } binding && ExpansionOrderBuilding(instruction) is { } building &&
             !CanFitExpansion(building, binding.TargetPosition, binding.TargetFootprint, out var failure, binding.JobId))
             return failure;
         return "The building needs more space, a permitted expansion site, reachable materials and an authorized worker before this order can continue.";
@@ -251,7 +251,7 @@ public sealed partial class WorldRuntime
         DeclarativeWorldContentState content, SocietyCheckpoint society, IReadOnlyList<TownRuntimeState>? savedTowns,
         IEnumerable<OwnerQueuedInstruction> instructions, long worldTick)
     {
-        var expansionInstructions = instructions.Where(item => item.Order?.Action == "expand_building").ToArray();
+        var expansionInstructions = instructions.Where(item => item.Task?.Action == "expand_building").ToArray();
         if (expansionInstructions.Select(item => item.InstructionId).Distinct(StringComparer.Ordinal).Count() != expansionInstructions.Length)
             throw new InvalidDataException("Expansion order identities are not unique.");
         var orders = expansionInstructions.ToDictionary(item => item.InstructionId, StringComparer.Ordinal);
@@ -260,14 +260,14 @@ public sealed partial class WorldRuntime
         {
             if (!orders.TryGetValue(job.OrderInstructionId!, out var instruction) || !ExpansionJobMatchesOrder(job, instruction) ||
                 job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused &&
-                    (!IsActiveOrder(instruction.Order!.Status) || instruction.Order.Status == "queued" ||
-                     instruction.Order.ExpansionBinding!.JobId != job.JobId) ||
+                    (!IsActiveOrder(instruction.Task!.Status) || instruction.Task.Status == "queued" ||
+                     instruction.Task.ExpansionBinding!.JobId != job.JobId) ||
                 job.State == WorldProductionJobState.Completed && job.CompletionTick > worldTick)
                 throw new InvalidDataException("An expansion job does not belong to its recorded owner order.");
         }
         foreach (var instruction in orders.Values)
         {
-            var order = instruction.Order!;
+            var order = instruction.Task!;
             if (order.ExpansionBinding is { } binding)
             {
                 var entry = WorldBuildingOrderCatalog.Find(content, binding.DefinitionId);

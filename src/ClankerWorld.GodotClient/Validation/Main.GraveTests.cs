@@ -10,7 +10,7 @@ public partial class Main
     {
         var (zoom, center) = (cameraZoom, cameraCenterTiles);
         // A deceased owner observation has an archived position and explicit death tick.
-        var dead = new OwnerWorldInhabitant("grave-a", "Past Resident", "dead", new(10, 10), 0,
+        var dead = new OwnerWorldAgent("grave-a", "Past Resident", "dead", new(10, 10), 0,
             [], [new("death-tick", "100")], new("deceased", null, null, [], string.Empty),
             new(new(10, 10), [new(10, 10)], [new(10, 10)]), false);
         var snapshot = original with
@@ -19,7 +19,7 @@ public partial class Main
             PackedTerrain = original.PackedTerrain! with { Data = Convert.ToBase64String(new byte[256 * 128]) },
             CalendarPace = new(10, 40),
             WorldTick = 150,
-            Inhabitants = [dead, dead with { Id = "grave-b", Position = new(12, 10) }],
+            Agents = [dead, dead with { Id = "grave-b", Position = new(12, 10) }],
             Resources = [],
             Objects = [],
             Fields = [],
@@ -101,7 +101,7 @@ public partial class Main
                 PackedTerrain = snapshot.PackedTerrain! with { Data = Convert.ToBase64String(terrain) },
                 MapManifestDigest = "blocked-grave-map",
                 Authoring = snapshot.Authoring! with { CurrentMapManifestDigest = "blocked-grave-map" },
-                Inhabitants = [dead],
+                Agents = [dead],
                 RoadTiles = [new(10, 10)],
                 PlacedBuildings = [new("grave-house", "test/house", new(9, 10), 0, "House", ["house"], Entrance: new(9, 11))],
                 Resources = [new("grave-tree", "wood", new(11, 10), false, "available", 1, TreeKind: "broadleaf")],
@@ -112,7 +112,7 @@ public partial class Main
                 throw new InvalidOperationException("A grave on a Road must choose the nearest legal ground, skipping water, the building and its tree.");
             var bridgeApproach = snapshot with
             {
-                Inhabitants = [dead],
+                Agents = [dead],
                 Bridges = [new("grave-traffic-bridge", "plank_span_1", "traffic", "east_west",
                     [new(10, 10), new(12, 10)], [new(11, 10)], 0)],
             };
@@ -131,7 +131,7 @@ public partial class Main
             vegetation[10 * 256 + 9] = 2; // forest styling must not conceal peak elevation
             var layered = snapshot with
             {
-                Inhabitants = [dead],
+                Agents = [dead],
                 RoadTiles = [new(11, 10)],
                 MapLayersDigest = "grave-layered-map",
                 PackedMapLayers = new(256, 128, "map-layers-v1",
@@ -145,7 +145,7 @@ public partial class Main
                 throw new InvalidOperationException("Grave ground must respect independent river, shallow-water and elevation layers over an older meadow projection.");
             var builtOver = snapshot with
             {
-                Inhabitants = [dead],
+                Agents = [dead],
                 PlacedBuildings =
                 [new("new-house", "test/house", new(10, 10), 151, "House", ["house"])]
             };
@@ -155,7 +155,7 @@ public partial class Main
                 throw new InvalidOperationException("Construction on a grave must relocate its derived marker off the occupied footprint.");
             RenderMap(snapshot with
             {
-                Inhabitants = [dead with { Lifecycle = "active" }, dead with { Id = "draft-death", IsDraft = true },
+                Agents = [dead with { Lifecycle = "active" }, dead with { Id = "draft-death", IsDraft = true },
                 dead with { Id = "missing-time", DecisionFactors = [] }, dead with { Id = "future-death", DecisionFactors = [new("death-tick", "999")] }]
             });
             await Settle();
@@ -176,7 +176,7 @@ public partial class Main
             {
                 WorldId = snapshot.WorldId + ":wrapped",
                 WrapsEastWest = true,
-                Inhabitants = [dead with { Position = new(0, 10) }],
+                Agents = [dead with { Position = new(0, 10) }],
                 RoadTiles = [new(0, 10), new(0, 9), new(1, 10), new(0, 11)]
             };
             RenderMap(wrapped);

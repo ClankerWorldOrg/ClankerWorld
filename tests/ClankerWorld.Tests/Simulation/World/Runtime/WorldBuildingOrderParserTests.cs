@@ -10,9 +10,9 @@ public sealed class WorldBuildingOrderParserTests
     private const string Actor = "founder-ilya";
     private static readonly ContentPackageManifest[] Packages =
     [
-        StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(), FarmContent.Create(),
+        StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), FarmContent.Create(),
         BlacksmithContent.Create(), TailorContent.Create(), SiloContent.Create(), CareContent.Create(),
-        BusinessContent.Create(), RestaurantContent.Create(), WarehouseContent.Create(),
+        StoreContent.Create(), RestaurantContent.Create(), WarehouseContent.Create(),
     ];
 
     [Theory]
@@ -39,7 +39,7 @@ public sealed class WorldBuildingOrderParserTests
         Assert.Equal((1, 0, "buildings", explicitQuantity, false),
             (order.RequestedUnits, order.CompletedUnits, order.ProgressUnit, order.QuantityIsExplicit,
                 order.RepeatUntilCancelled));
-        Assert.Equal("cancelled", world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order!.Status);
+        Assert.Equal("cancelled", world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task!.Status);
         Assert.Null(order.TargetPosition);
         Assert.Null(order.TargetItemKind);
         Assert.Null(order.TargetRecipeId);
@@ -67,7 +67,7 @@ public sealed class WorldBuildingOrderParserTests
         Assert.Equal(("expand_building", "waiting", kind, 1, "expansions", explicitQuantity, false),
             (order.Action, order.Status, order.TargetBuildingKind, order.RequestedUnits, order.ProgressUnit,
                 order.QuantityIsExplicit, order.RepeatUntilCancelled));
-        Assert.Equal("cancelled", world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order!.Status);
+        Assert.Equal("cancelled", world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task!.Status);
         Assert.Null(order.TargetDefinitionId);
         Assert.Null(order.ConstructionInstanceId);
         Assert.Null(order.ExpansionBinding);
@@ -104,12 +104,12 @@ public sealed class WorldBuildingOrderParserTests
         Assert.Null(rejected.TargetBuildingKind);
         Assert.Null(rejected.TargetDefinitionId);
         Assert.Null(rejected.ExpansionBinding);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
         Assert.Single(world.ExportState().Events, item => item.Kind == "instruction_not_understood");
     }
 
     [Theory]
-    [InlineData(BusinessContent.PackageId, "build Store")]
+    [InlineData(StoreContent.PackageId, "build Store")]
     [InlineData(RestaurantContent.PackageId, "build Restaurant")]
     [InlineData(WarehouseContent.PackageId, "expand my Town Warehouse")]
     public void StagedBuildingPackagesCannotBeRequestedBeforeActivation(string packageId, string text)
@@ -124,7 +124,7 @@ public sealed class WorldBuildingOrderParserTests
         var current = Submit(world, "current", "eat berries");
         var rejected = Submit(world, "inactive", text);
         Assert.Equal("not_understood", rejected.Status);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
         world.Validate();
     }
 
@@ -148,7 +148,7 @@ public sealed class WorldBuildingOrderParserTests
         Assert.Equal(action == "construct_building", orderJson.ContainsKey("targetDefinitionId"));
 
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 
@@ -188,7 +188,7 @@ public sealed class WorldBuildingOrderParserTests
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
     }
 
     [Theory]
@@ -206,7 +206,7 @@ public sealed class WorldBuildingOrderParserTests
         {
             Instructions = saved.Instructions!.Select(instruction => instruction with
             {
-                Order = instruction.Order! with { TargetAgentId = Actor },
+                Task = instruction.Task! with { TargetAgentId = Actor },
             }).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(mixed));
@@ -235,9 +235,9 @@ public sealed class WorldBuildingOrderParserTests
         });
     }
 
-    private static OwnerInstructionOrder Submit(WorldRuntime world, string key, string text)
+    private static OrderTask Submit(WorldRuntime world, string key, string text)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.MustDo, text));
-        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text));
+        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     }
 }

@@ -164,7 +164,7 @@ public sealed class SaveBranchTests : IDisposable
 
         Load(flood);
         Assert.Equal(flood.Id, store.FindUnchangedSave(runtime, [], null)?.Id);
-        InhabitantProviderAssignment[] changedRouting = [new("founder-scout", "planning", "openai", "new-model")];
+        AgentProviderAssignment[] changedRouting = [new("founder-scout", "planning", "openai", "new-model")];
         Assert.Null(store.FindUnchangedSave(runtime, changedRouting, null));
         Assert.Null(store.FindUnchangedSave(runtime, [],
             new WorldAutosaveSettings(WorldId, false, 5, 5, DateTimeOffset.UtcNow, 0)));

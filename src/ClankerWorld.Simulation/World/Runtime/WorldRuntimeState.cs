@@ -9,39 +9,39 @@ using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
-public sealed record InhabitantState(
-    string InhabitantId,
+public sealed record AgentState(
+    string AgentId,
     GridPoint Position,
-    int HungerBasisPoints,
+    int FullnessBasisPoints,
     int MoveWaitTicks,
     string Personality,
     string Aspiration,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? LastDecisionContext = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementProject? Project = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AgentProject? Project = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SurvivalCondition? Survival = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementLesson? Lesson = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementParenthood? Parenthood = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementProficiency? Proficiency = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SettlementSocialStanding>? SocialStanding = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<InhabitantThought>? RecentThoughts = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SkillLesson? Lesson = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ParenthoodPlan? Parenthood = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] WorkProficiency? Proficiency = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SocialStandingEntry>? SocialStanding = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<RecentThought>? RecentThoughts = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] int TravelCooldownTicks = 0,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementExploration? Exploration = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ExplorationState? Exploration = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool IdentityChoicePending = false,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ChildPersonalModelSelection? ChildModelSelection = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ModelAttempt? LastModelAttempt = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SettlementSkill>? Skills = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementHousing? Housing = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<SettlementDeparture>? Departures = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<LearnedSkill>? Skills = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] HousingState? Housing = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HouseholdDeparture>? Departures = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PersonalEquipment? Equipment = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<AgentIdentityMoment>? IdentityMoments = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementGuardianSearch? GuardianSearch = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GuardianSearchState? GuardianSearch = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MedicalConsentState? MedicalConsent = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MedicalTreatmentState? MedicalTreatment = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementGuardianPlacement? GuardianPlacement = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GuardianPlacementState? GuardianPlacement = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] MedicalSupplyTrip? MedicalSupplyTrip = null);
 
 /// <summary>A saved, ordered request for an adult to accept primary care of a dependent.</summary>
-public sealed record SettlementGuardianSearch(
+public sealed record GuardianSearchState(
     string Stage,
     long StartedTick,
     long StageStartedTick,
@@ -66,16 +66,16 @@ public sealed record ModelAttempt(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? LastAcceptedTick = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SetupBlocker = null);
 
-public sealed record InhabitantThought(long WorldTick, string Text);
+public sealed record RecentThought(long WorldTick, string Text);
 
 public sealed record ResourceStateEntry(string ResourceId, ResourceState State);
 
 /// <param name="TownId">The Town the agent lived in when they died, which their will may name as an heir.</param>
-public sealed record DeceasedInhabitantState(
-    string InhabitantId,
+public sealed record DeceasedAgentState(
+    string AgentId,
     long DeathTick,
     int AgeAtDeath,
-    InhabitantState LastPhysical,
+    AgentState LastPhysical,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TownId = null)
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -96,7 +96,7 @@ public sealed record WorldRuntimeState(
     string WorldSeed,
     WorldMap Map,
     SocietyWorldRuntimeState Society,
-    IReadOnlyList<InhabitantState> Inhabitants,
+    IReadOnlyList<AgentState> Agents,
     IReadOnlyList<ResourceStateEntry> Resources,
     IReadOnlyList<WorldEventEntry> Events,
     IReadOnlyList<OwnerQueuedInstruction>? Instructions = null,
@@ -108,9 +108,9 @@ public sealed record WorldRuntimeState(
     WorldAssetReservationLedgerState? AssetReservations = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long EventHistoryFloor = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? HistoryArchiveHead = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementSurvivalState? Survival = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementCouncil? Council = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DeceasedInhabitantState>? DeceasedInhabitants = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SurvivalState? Survival = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FoodStewardship? FoodStewardship = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<DeceasedAgentState>? DeceasedAgents = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? JevEnabled = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] long JevPolicyRevision = 0,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] FounderSetupState? FounderSetup = null,
@@ -126,8 +126,8 @@ public sealed record WorldRuntimeState(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<TownLandTitleRecord>? TownLandTitles = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HouseholdLandUseRight>? HouseholdLandUseRights = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HouseholdLandUseRequest>? HouseholdLandUseRequests = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<BusinessTradeState>? BusinessTrades = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] SettlementContinuity? Continuity = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<ShopTradeState>? ShopTrades = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] PopulationContinuity? Continuity = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<OwnerOrderCancellation>? OrderCancellations = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<ToolMakingRequestState>? ToolMakingRequests = null,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<HandcartHitch>? HandcartHitches = null)

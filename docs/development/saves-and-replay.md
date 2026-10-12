@@ -139,7 +139,7 @@ matched native save/reload, rollback and continuation comparisons.
 
 Society validation builds temporary indexes over the complete retained belief
 history. An owner's source turn can belong to only one correction lineage;
-known inhabitants and both sides of correction links are still checked, and
+known agents and both sides of correction links are still checked, and
 cyclic chains are refused. Encoding, decoding and recording or correcting a
 belief use the same integrity rules without per-belief whole-ledger scans.
 No belief, confidence, reporter, source turn or memory-compaction reference is
@@ -643,7 +643,7 @@ after infancy. Living and deceased profiles validate the descriptor against its
 recorded birth and schema. While provider storage is being recovered, the Model
 panel keeps showing the selected provider and model with a setup message.
 Birth bindings and owner role overrides retain the complete generated
-inhabitant ID. A valid long-seed newborn can bind both roles, including when
+agent ID. A valid long-seed newborn can bind both roles, including when
 reloading a birth saved before provider storage recovered; no identity is
 truncated or replaced. Repeated recovery preserves later owner overrides and
 the separate historical birth descriptor.
@@ -905,7 +905,7 @@ turn admission identity. Resume with compaction likewise keeps the conversation'
 existing pause state; only an actual load suspends it as restored and clears
 previous resume choices. A failed checkpoint write leaves the live state unchanged.
 
-World schema 40 saves each inhabitant's explicit domestic family unit
+World schema 40 saves each agent's explicit domestic family unit
 and primary caregiver, plus the caregiver, intended home and actual birth home
 for an agreed parenthood plan. Birth records retain the caregiver and actual
 household. House resident counts and limits are derived from active household
@@ -934,7 +934,7 @@ provided.
 
 World schema 47 records household departures, their original household, care group and once-only food allocation, plus optional physical inventory custody separate from ownership. Personal House storage retains the personal owner even after membership ends. A recorded departure allowance may also remain in a Store belonging to the former household until physical collection. Validation binds its lot, owner, edible kind and quantity to the departure; unrelated personal Store stock remains invalid. Death and successive settlements preserve that allowance through the archived departure, exact frozen lot and settlement IDs and matching Store location. Accepted wills may use the saved household fallback when a named heir is unavailable. Validation caps the combined Store portions at the original departure allocation. The same Store’s validated prior-household transfer history preserves the binding after Town reclamation and an onward grant, without authorizing unrelated personal stock. Every departing care-group member's unfinished House delivery restores household ownership and clears the former destination while preserving its quantity and physical carrier; leaving earns no delivery credit. Reload preserves collection rights, borrowed carried goods, the care group and unfinished housing task without awarding another allowance. Paused private jobs retain the original owners, exact input reservations and pause time; a leaver's own cart build is cancelled instead, releasing its carried materials. Their reserved workstation or expansion footprint stays occupied; a remaining authorized member can resume at the physical site with the same materials and remaining duration. Unavailable materials cancel the preserved job and release its remaining commitments. Invalid custody, departure records and unavailable carriers are refused. Older alpha checkpoints are refused and preserved; no migration is added.
 
-World schema 51 lets each living inhabitant record named adult medical
+World schema 51 lets each living agent record named adult medical
 permissions and an active medicine course. The course binds its patient and
 caregiver to the actual completed inventory reservation for the consumed dose,
 including the supply lot, owner and start time. Strict validation checks
@@ -1054,6 +1054,25 @@ instead of `saves/private-world.json`. A save under the old file name is
 not found, so the game starts without it and leaves it on disk. An older
 checkpoint opened by path is refused by schema with the usual reason and left
 unchanged; there is no migration. The version is provisional until merge.
+The same schema saves the game design's names: `agents`, `deceasedAgents`,
+`agentId` and `targetAgentId` instead of `inhabitants`, `deceasedInhabitants`,
+`inhabitantId` and `targetInhabitantId`; `fullnessBasisPoints` instead of
+`hungerBasisPoints`; `foodStewardship` instead of the world's `council` for
+the food-policy vote; `shopTrades` instead of `businessTrades`; and, for each
+Town, `council`, `landRecords` and `nonLandHearings` instead of `governance`,
+`landHearings` and `nonviolent`. An instruction's understood task is saved
+as `task` instead of `order`. Event kinds follow: `agent_*` instead of
+`inhabitant_*`, `barter_*` instead of `settlement_trade_*`, `shop_trade_*`
+instead of `business_trade_*`, `food_policy_*` and `food_steward_changed`
+instead of `council_*`, `hearth_content_staged` and `starting_resource*`
+instead of the `settlement_*` names. Generated IDs use `{world}:agent:` instead
+of `{world}:inhabitant:`, and `direct-barter:`, `shop-trade:`, `partnership:`,
+`care-relationship:` and `trust-memory:` instead of `settlement-trade:`,
+`business-trade:`, `settlement-partnership:`, `settlement-care:` and
+`settlement-trust:` ([derived identities](derived-identities.md)). The
+provider-configuration file, which keeps model keys outside the world, moves
+to its own schema 4 for the `AgentId` of each model assignment; an older file
+is upgraded in place, so saved keys keep working.
 
 World schema 98 adds optional structured storage changes to committed
 inventory events: a building ID, item kind and nonzero signed quantity.
@@ -1189,10 +1208,10 @@ No older-save migration or backfill is added.
 
 World schema 70 introduced the chosen-name marker. The current standalone
 `clankerworld.society/v4` and `clankerworld.society-runtime/v4` envelopes require
-`HasChosenName` for every inhabitant. This separates a chosen identity
+`HasChosenName` for every agent. This separates a chosen identity
 from a temporary label after automatic naming has ended. Loading rejects a
 missing marker, chosen names still awaiting naming, or duplicate normalized
-chosen first names across living and deceased inhabitants. Open and closed
+chosen first names across living and deceased agents. Open and closed
 placeholders may share first names. Choosing an identical placeholder text is
 a real rename; closing automatic naming preserves its unchosen marker.
 
@@ -1334,7 +1353,7 @@ current alpha cutoff.
 | Schema 66 | Personal-material storage orders retain their bounded material target, partial progress and committed relocation receipt. Queued work, cancellation and replay cannot move goods twice. Older alpha saves are refused and preserved without migration. |
 | Schema 68 | Typed Council project plans and one shared Town construction record per passed proposal, with exact physical load/reservation/release history, work and paid building identity. The first consumer is the Town Hall. Earlier alpha checkpoints are refused and preserved without migration. |
 | Schema 69 | Equipment-repair orders retain the equipment kind and progress in finished repairs, and an in-progress repair names the order it belongs to. Loading refuses mixed target fields, unearned progress and a repair bound to another order or item kind. Queue, cancellation and partial work replay without duplicate material costs; older alpha saves are refused and preserved without migration. |
-| Schema 70 and society/runtime v2 | Required chosen-name markers distinguish temporary labels from chosen identities, even after automatic naming ends. Chosen first names are unique across living and deceased inhabitants. Current-format reload and compaction retain the marker and pending retry; older alpha formats are refused and preserved without inference or migration. |
+| Schema 70 and society/runtime v2 | Required chosen-name markers distinguish temporary labels from chosen identities, even after automatic naming ends. Chosen first names are unique across living and deceased agents. Current-format reload and compaction retain the marker and pending retry; older alpha formats are refused and preserved without inference or migration. |
 | Schema 71 | Pending guardian placements retain exact accepted care authority, collecting or escorting progress, a selected House and current blocker. Household and Town membership change together only on valid arrival. Earlier alpha checkpoints are refused and preserved without migration. |
 | Schema 75 | Required Market lists bind paid halls and stalls to their completed Town projects, with named borrowing, physical stock receipts and exact inventory barter history. Earlier alpha checkpoints are refused and preserved without migration. |
 | Schema 79 | Paid stone and hanging street lanterns reuse the Town project ledger. The exact immutable definition, one-tile roadside site and adjacent Road tile bind their style and edge; altered budgets, geometry, receipts or orphan fixtures are refused. Earlier alpha saves are refused and preserved without migration. |
@@ -1422,7 +1441,7 @@ saved darkness field: time of day is derived from the saved tick, ticks per day
 and calendar offset. Current-format saves retain their saved clock; nights and
 their chill on outdoor warmth are derived from it without re-simulating
 recorded history. A world saved during dawn reloads at the same darkness and
-advances to the same bytes as the live world, which `SettlementSurvivalTests`
+advances to the same bytes as the live world, which `SurvivalTests`
 checks. Seasonal night length
 ([#891](https://github.com/compoodment/ClankerWorld/issues/891)) is derived the
 same way, from the saved tick and the saved season lengths, so it adds no saved
@@ -1550,7 +1569,7 @@ owner, passenger or request, duplicate physical or incoming dock claims, invalid
 water steps and an active passenger separated from the boat. Waiting requests
 hold no boat reservation; terminal history remains saved.
 
-Schema 108 adds `OwnerInstructionOrder.BoatTravel`, containing the stable
+Schema 108 adds `OrderTask.BoatTravel`, containing the stable
 destination Port ID and latest request ID, and optional `BoatTripRequest.OrderInstructionId`.
 Validation binds each ordered request to the same instruction, passenger and
 destination, disallows overlapping retries, and requires the latest actual
@@ -1601,7 +1620,7 @@ migration.
 ## Private memory archives
 
 New personal barter cooperation memories keep the complete owner, subject,
-summary and source tick. Their `settlement-trust:` keys remain unchanged at
+summary and source tick. Their `trust-memory:` keys remain unchanged at
 128 characters or fewer; longer directional keys use a deterministic SHA-256
 digest under the same prefix. The two traders retain distinct memories through
 strict reload and paired continuation. This changes newly completed exchanges

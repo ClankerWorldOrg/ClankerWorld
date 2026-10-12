@@ -246,12 +246,12 @@ internal static partial class OwnerEndpoints
 
             try
             {
-                if (request.Action.InhabitantId is { } target &&
-                    !observations.GetSnapshot().Inhabitants.Any(item => item.Id == target))
+                if (request.Action.AgentId is { } target &&
+                    !observations.GetSnapshot().Agents.Any(item => item.Id == target))
                 {
                     return Results.ValidationProblem(new Dictionary<string, string[]>
                     {
-                        ["inhabitantId"] = ["Choose an inhabitant in this world."],
+                        ["agentId"] = ["Choose an agent in this world."],
                     });
                 }
                 return Results.Ok(providers.Configure(request.Action));

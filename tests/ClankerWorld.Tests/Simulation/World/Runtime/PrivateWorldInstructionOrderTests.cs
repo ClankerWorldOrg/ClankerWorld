@@ -49,7 +49,7 @@ public sealed partial class WorldRuntimeTests
     {
         using var world = new WorldRuntime("whole-word-orders");
         var order = world.SubmitInstruction(new OwnerInstructionRequest("order", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, text));
+            OrderedAgent, OwnerInstructionKind.Order, text));
 
         var state = world.ExportState();
         var closed = state.Events.Where(item => item.Kind == "instruction_not_understood").ToArray();
@@ -75,8 +75,8 @@ public sealed partial class WorldRuntimeTests
             foodLotId, "berries", OrderedAgent, 1);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == OrderedAgent
-                ? item with { HungerBasisPoints = 3_000 }
+            Agents = state.Agents.Select(item => item.AgentId == OrderedAgent
+                ? item with { FullnessBasisPoints = 3_000 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -87,20 +87,20 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(state, id =>
             id == OrderedAgent ? provider : new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
 
-        var suggestions = Enumerable.Range(1, InhabitantObservation.MaximumObserverGuidanceCount + 1)
+        var suggestions = Enumerable.Range(1, AgentObservation.MaximumObserverGuidanceCount + 1)
             .Select(index => world.SubmitInstruction(new OwnerInstructionRequest(
-                $"bounded-guidance-{index}", "owner:test", OrderedAgent, OwnerInstructionKind.Suggestive,
+                $"bounded-guidance-{index}", "owner:test", OrderedAgent, OwnerInstructionKind.Suggestion,
                 $"Keep suggestion {index} in mind.")))
             .ToArray();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var firstPrompt = Assert.Single(provider.Requests);
         var firstGuidance = firstPrompt.ObserverGuidance ?? throw new InvalidOperationException();
-        Assert.Equal(InhabitantObservation.MaximumObserverGuidanceCount, firstGuidance.Count);
-        Assert.Equal(suggestions.Take(InhabitantObservation.MaximumObserverGuidanceCount)
+        Assert.Equal(AgentObservation.MaximumObserverGuidanceCount, firstGuidance.Count);
+        Assert.Equal(suggestions.Take(AgentObservation.MaximumObserverGuidanceCount)
             .Select(item => item.InstructionId).ToArray(), firstGuidance.Select(item => item.InstructionId).ToArray());
         var afterFirstPrompt = world.ExportState();
-        foreach (var suggestion in suggestions.Take(InhabitantObservation.MaximumObserverGuidanceCount))
+        foreach (var suggestion in suggestions.Take(AgentObservation.MaximumObserverGuidanceCount))
         {
             var saved = Assert.Single(afterFirstPrompt.Instructions!, item => item.InstructionId == suggestion.InstructionId);
             Assert.NotNull(saved.GuidancePromptedTick);
@@ -117,15 +117,15 @@ public sealed partial class WorldRuntimeTests
         Assert.Single(provider.Requests);
 
         var order = world.SubmitInstruction(new OwnerInstructionRequest(
-            "bounded-guidance-order", "owner:test", OrderedAgent, OwnerInstructionKind.MustDo,
+            "bounded-guidance-order", "owner:test", OrderedAgent, OwnerInstructionKind.Order,
             "Please eat the food now."));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         var orderPrompt = Assert.Single(provider.Requests, request =>
             request.ObserverGuidance?.Any(message => message.InstructionId == order.InstructionId) == true);
         var orderGuidance = orderPrompt.ObserverGuidance ?? throw new InvalidOperationException();
-        Assert.Equal(InhabitantObservation.MaximumObserverGuidanceCount, orderGuidance.Count);
-        Assert.Equal(suggestions.Take(InhabitantObservation.MaximumObserverGuidanceCount - 1)
+        Assert.Equal(AgentObservation.MaximumObserverGuidanceCount, orderGuidance.Count);
+        Assert.Equal(suggestions.Take(AgentObservation.MaximumObserverGuidanceCount - 1)
                 .Select(item => item.InstructionId).Append(order.InstructionId).ToArray(),
             orderGuidance.Select(item => item.InstructionId).ToArray());
         var afterOrder = world.ExportState();
@@ -144,8 +144,8 @@ public sealed partial class WorldRuntimeTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var afterOverflowPrompt = world.ExportState();
         var nextGuidance = provider.Requests[^1].ObserverGuidance ?? throw new InvalidOperationException();
-        Assert.Equal(InhabitantObservation.MaximumObserverGuidanceCount, nextGuidance.Count);
-        foreach (var suggestion in suggestions.Take(InhabitantObservation.MaximumObserverGuidanceCount))
+        Assert.Equal(AgentObservation.MaximumObserverGuidanceCount, nextGuidance.Count);
+        foreach (var suggestion in suggestions.Take(AgentObservation.MaximumObserverGuidanceCount))
             Assert.NotNull(Assert.Single(afterOverflowPrompt.Instructions!, item => item.InstructionId == suggestion.InstructionId)
                 .GuidancePromptedTick);
         Assert.Null(Assert.Single(afterOverflowPrompt.Instructions!, item =>
@@ -177,7 +177,7 @@ public sealed partial class WorldRuntimeTests
             _ => new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true),
         });
         _ = first.SubmitInstruction(new OwnerInstructionRequest("digest-message", "owner:test",
-            OrderedAgent, OwnerInstructionKind.Suggestive, "Try the berries beside the river."));
+            OrderedAgent, OwnerInstructionKind.Suggestion, "Try the berries beside the river."));
         Assert.True((await first.AdvanceOneTickAsync()).Advanced);
 
         var targetObservation = Assert.Single(targetProvider.Requests);
@@ -189,7 +189,7 @@ public sealed partial class WorldRuntimeTests
             ? changedProvider
             : new CountingSelectingProvider(DecisionProviderKind.Deterministic, chooseIdle: true));
         _ = changed.SubmitInstruction(new OwnerInstructionRequest("digest-message", "owner:test",
-            OrderedAgent, OwnerInstructionKind.Suggestive, "Try the berries beside the old bridge."));
+            OrderedAgent, OwnerInstructionKind.Suggestion, "Try the berries beside the old bridge."));
         Assert.True((await changed.AdvanceOneTickAsync()).Advanced);
 
         Assert.NotEqual(targetObservation.ObservationDigest, Assert.Single(changedProvider.Requests).ObservationDigest);
@@ -202,8 +202,8 @@ public sealed partial class WorldRuntimeTests
         using var genesis = new WorldRuntime("unsupported-then-valid-order");
         var initialState = genesis.ExportState() with
         {
-            Inhabitants = genesis.ExportState().Inhabitants.Select(person =>
-                person.InhabitantId == OrderedAgent ? person with { HungerBasisPoints = 3_000 } : person).ToArray(),
+            Agents = genesis.ExportState().Agents.Select(person =>
+                person.AgentId == OrderedAgent ? person with { FullnessBasisPoints = 3_000 } : person).ToArray(),
             Society = genesis.ExportState().Society with
             {
                 Society = genesis.ExportState().Society.Society with
@@ -217,16 +217,16 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(initialState, _ => provider);
 
         var unsupported = world.SubmitInstruction(new OwnerInstructionRequest("heat", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, "heat the house"));
+            OrderedAgent, OwnerInstructionKind.Order, "heat the house"));
         var closed = world.ExportState();
         Assert.Contains(unsupported.InstructionId, closed.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", Assert.Single(closed.Instructions!,
-            item => item.InstructionId == unsupported.InstructionId).Order!.Status);
+            item => item.InstructionId == unsupported.InstructionId).Task!.Status);
         Assert.Single(closed.Events, item => item.Kind == "instruction_not_understood" &&
             item.Detail == OrderedAgent + ":" + unsupported.InstructionId);
 
         var valid = world.SubmitInstruction(new OwnerInstructionRequest("eat", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, "eat berries"));
+            OrderedAgent, OwnerInstructionKind.Order, "eat berries"));
         var encoded = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded), _ => provider);
         Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -256,7 +256,7 @@ public sealed partial class WorldRuntimeTests
 
         var callsBefore = hosted.CallCount;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("hosted-eat", "owner:test",
-            OrderedAgent, OwnerInstructionKind.MustDo, "eat food"));
+            OrderedAgent, OwnerInstructionKind.Order, "eat food"));
         for (var tick = 0; tick < 60; tick++)
             await AdvanceWithHostedDecisionsAsync(world);
 
@@ -303,7 +303,7 @@ public sealed partial class WorldRuntimeTests
     public void MalformedInstructionIsRefusedBeforeTheWorldOrItsSaveChanges(string malformation)
     {
         var request = new OwnerInstructionRequest("malformed-message", "owner:test", OrderedAgent,
-            OwnerInstructionKind.Suggestive, "Rest when you can.");
+            OwnerInstructionKind.Suggestion, "Rest when you can.");
         request = malformation switch
         {
             "long idempotency key" => request with { IdempotencyKey = new string('k', 129) },
@@ -321,7 +321,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         // The refusal used no message number, so the next valid message is still the first.
         var accepted = world.SubmitInstruction(new OwnerInstructionRequest("valid-after-refusal", "owner:test",
-            OrderedAgent, OwnerInstructionKind.Suggestive, "Rest when you can."));
+            OrderedAgent, OwnerInstructionKind.Suggestion, "Rest when you can."));
         Assert.Equal("private-instruction-0000000001", accepted.InstructionId);
         Assert.Equal(accepted.InstructionId, Assert.Single(world.ExportState().Instructions!).InstructionId);
         world.Validate();
@@ -349,17 +349,17 @@ public sealed partial class WorldRuntimeTests
         using var world = new WorldRuntime("closed-unheard-messages");
         var heard = Enumerable.Range(1, heardCount)
             .Select(index => world.SubmitInstruction(new OwnerInstructionRequest($"heard-suggestion-{index}",
-                "owner:test", OrderedAgent, OwnerInstructionKind.Suggestive, $"Try the riverbank berries, idea {index}.")))
+                "owner:test", OrderedAgent, OwnerInstructionKind.Suggestion, $"Try the riverbank berries, idea {index}.")))
             .ToArray();
         var waiting = world.SubmitInstruction(new OwnerInstructionRequest("waiting-suggestion", "owner:test",
-            OrderedAgent, OwnerInstructionKind.Suggestive, "Rest when you can."));
+            OrderedAgent, OwnerInstructionKind.Suggestion, "Rest when you can."));
         // The game cannot act on these orders, so each closes at once and no personal model hears it.
         var closedOrders = Enumerable.Range(1, closedOrderCount)
             .Select(index => world.SubmitInstruction(new OwnerInstructionRequest($"closed-order-{index}",
-                "owner:test", OrderedAgent, OwnerInstructionKind.MustDo, $"build house number {index}")))
+                "owner:test", OrderedAgent, OwnerInstructionKind.Order, $"build house number {index}")))
             .ToArray();
         var otherAgentOrder = world.SubmitInstruction(new OwnerInstructionRequest("other-agent-order",
-            "owner:test", "founder-mira", OwnerInstructionKind.MustDo, "build a wall"));
+            "owner:test", "founder-mira", OwnerInstructionKind.Order, "build a wall"));
         var exported = world.ExportState();
         Assert.All(closedOrders.Append(otherAgentOrder), order =>
             Assert.Contains(order.InstructionId, exported.CompletedInstructionIds ?? []));
@@ -379,7 +379,7 @@ public sealed partial class WorldRuntimeTests
         foreach (var runtime in new[] { live, reloaded })
         {
             var projected = new OwnerWorldObservationStore(runtime).GetSnapshot().Instructions;
-            var forAgent = projected.Where(item => item.TargetInhabitantId == OrderedAgent).ToArray();
+            var forAgent = projected.Where(item => item.TargetAgentId == OrderedAgent).ToArray();
             // Open messages always stay; closed orders and closed suggestions are each
             // bounded to the newest few, heard or not, so more suggestions never hide orders.
             Assert.Equal(
@@ -388,19 +388,19 @@ public sealed partial class WorldRuntimeTests
                 forAgent.Select(item => item.InstructionId).ToArray());
             Assert.All(forAgent.Take(closedMessagesShown), item =>
             {
-                Assert.Equal("suggestive", item.Kind);
+                Assert.Equal("suggestion", item.Kind);
                 Assert.Equal("completed", item.State);
                 Assert.Equal("I will look there.", item.ObserverReply);
             });
             Assert.Equal("queued", forAgent[closedMessagesShown].State);
             Assert.All(forAgent.Skip(closedMessagesShown + 1), item =>
             {
-                Assert.Equal("must_do", item.Kind);
+                Assert.Equal("order", item.Kind);
                 Assert.Equal("completed", item.State);
                 Assert.Null(item.ObservedTick);
                 Assert.Null(item.ObserverReply);
             });
-            var otherAgent = Assert.Single(projected, item => item.TargetInhabitantId != OrderedAgent);
+            var otherAgent = Assert.Single(projected, item => item.TargetAgentId != OrderedAgent);
             Assert.Equal(otherAgentOrder.InstructionId, otherAgent.InstructionId);
             Assert.Equal("completed", otherAgent.State);
             Assert.Null(otherAgent.ObservedTick);
@@ -411,7 +411,7 @@ public sealed partial class WorldRuntimeTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 1;
-        public List<InhabitantObservation> Requests { get; } = [];
+        public List<AgentObservation> Requests { get; } = [];
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request,
@@ -425,7 +425,7 @@ public sealed partial class WorldRuntimeTests
                 .ThenBy(candidate => candidate.Id, StringComparer.Ordinal)
                 .First();
             return ValueTask.FromResult(new CognitionDecisionResponse(
-                request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+                request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1d,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,

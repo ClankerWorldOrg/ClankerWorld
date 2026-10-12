@@ -24,7 +24,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             .GetField("pendingHosted", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .GetValue(world)) : null;
         world.Resume();
-        world.SubmitInstruction(new("consider-native-household", "owner:test", actor, OwnerInstructionKind.Suggestive,
+        world.SubmitInstruction(new("consider-native-household", "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider founding your own household when existing households refuse your request to join."));
         var folder = Directory.CreateTempSubdirectory("native-land-household-");
         var prompted = new HashSet<(string Phase, string Id, long Generation)>();
@@ -36,22 +36,22 @@ public sealed partial class GrownAgentHelperMemoryTests
             presence.RecordAuthenticatedReconnect("land-household-owner");
             using var host = new WorldRuntimeService(world, file, presence);
             bool HasFoundedHousehold() => world.ExportState().Events.Any(item => item.Kind == "household_founded" &&
-                    item.Detail == actor + "|" + world.Society.GetInhabitant(actor).HouseholdId);
+                    item.Detail == actor + "|" + world.Society.GetAgent(actor).HouseholdId);
             for (var tick = 0; tick < 40 && !HasFoundedHousehold(); tick++)
             {
                 var before = world.ExportState();
-                var housingBefore = before.Inhabitants.Single(person => person.InhabitantId == actor).Housing;
+                var housingBefore = before.Agents.Single(person => person.AgentId == actor).Housing;
                 var request = housingBefore?.Request;
                 var phase = request?.HouseholdId ??
-                    $"{world.Society.GetInhabitant(actor).HouseholdId}:{housingBefore?.Refusals?.Count ?? 0}";
+                    $"{world.Society.GetAgent(actor).HouseholdId}:{housingBefore?.Refusals?.Count ?? 0}";
                 var recipients = request is null ? [actor] : request.Members
                     .Except(request.Approvals, StringComparer.Ordinal).Except(request.Rejections, StringComparer.Ordinal).ToArray();
                 var ordinal = 0;
                 foreach (var id in recipients.Order(StringComparer.Ordinal))
                 {
-                    if (before.Society.Society.GetInhabitant(id).Status != SocietyInhabitantStatus.Active)
+                    if (before.Society.Society.GetAgent(id).Status != SocietyAgentStatus.Active)
                         continue;
-                    var intention = before.Society.Cognition.Runtimes.Single(runtime => runtime.InhabitantId == id).CurrentIntention;
+                    var intention = before.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == id).CurrentIntention;
                     if (intention is not { CandidateId: "safe_idle" } || !prompted.Add((phase, id, intention.DecisionGeneration)))
                         continue;
                     // The fixture needs another personal opportunity, whereas a
@@ -59,7 +59,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     // One suggestion per admitted idle choice keeps replies free
                     // to make only the household choices actually offered.
                     world.SubmitInstruction(new($"native-household-{world.WorldTick}-{ordinal++}", "owner:test", id,
-                        OwnerInstructionKind.Suggestive, request is null
+                        OwnerInstructionKind.Suggestion, request is null
                             ? "Consider your next household choice, including founding after existing households refuse."
                             : "Consider the pending request to join your household and make your own choice."));
                 }
@@ -70,8 +70,8 @@ public sealed partial class GrownAgentHelperMemoryTests
                 {
                     var offered = await choices.FoundCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
                     Assert.Equal(foundRequest.RequestId, offered.RequestId);
-                    Assert.Equal(actor, offered.Observation.InhabitantId);
-                    Assert.Null(world.Society.GetInhabitant(actor).HouseholdId);
+                    Assert.Equal(actor, offered.Observation.AgentId);
+                    Assert.Null(world.Society.GetAgent(actor).HouseholdId);
                     var task = Assert.IsAssignableFrom<Task>(pending.GetType().GetProperty("Task")!.GetValue(pending));
                     world.Pause();
                     world.Resume();
@@ -81,16 +81,16 @@ public sealed partial class GrownAgentHelperMemoryTests
                     finally { choices.ReleaseFound.TrySetResult(); }
                     Assert.Equal(cancelledState, WorldRuntimeCodec.Encode(world.ExportState()));
                     Assert.Equal(cancelledCheckpoint, File.ReadAllBytes(file.Path));
-                    Assert.Null(world.Society.GetInhabitant(actor).HouseholdId);
+                    Assert.Null(world.Society.GetAgent(actor).HouseholdId);
                     foundCancellationChecked = true;
                 }
-                else if (heldIdentityReply && !identityWaitChecked && world.Inhabitants
-                    .Single(person => person.InhabitantId == identityActor).IdentityMoments?
+                else if (heldIdentityReply && !identityWaitChecked && world.Agents
+                    .Single(person => person.AgentId == identityActor).IdentityMoments?
                     .Any(moment => moment.Outcome == "requested") == true)
                 {
                     await WaitForRequests(world);
                     var identity = await choices.IdentityCalled.Task.WaitAsync(TimeSpan.FromSeconds(30));
-                    Assert.Equal(identityActor, identity.Observation.InhabitantId);
+                    Assert.Equal(identityActor, identity.Observation.AgentId);
                     Assert.NotNull(identity.Observation.IdentityMoment);
                     var heldState = WorldRuntimeCodec.Encode(world.ExportState());
                     var heldCheckpoint = File.ReadAllBytes(file.Path);
@@ -109,7 +109,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 var current = world.ExportState();
                 foreach (var (id, observation) in choices.QuietRefusals)
                 {
-                    var intention = current.Society.Cognition.Runtimes.Single(runtime => runtime.InhabitantId == id).CurrentIntention;
+                    var intention = current.Society.Cognition.Runtimes.Single(runtime => runtime.AgentId == id).CurrentIntention;
                     if (intention is { CandidateId: "safe_idle", Provider: DecisionProviderKind.LargeLanguageModel } &&
                         intention.RunEpoch == observation.RunEpoch && intention.DecisionGeneration == observation.DecisionGeneration &&
                         intention.ObservationDigest == observation.ObservationDigest)
@@ -126,10 +126,10 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 Assert.True(identityWaitChecked);
                 var identity = await choices.IdentityCalled.Task;
-                Assert.Contains(world.Inhabitants.Single(person => person.InhabitantId == identityActor).IdentityMoments!,
+                Assert.Contains(world.Agents.Single(person => person.AgentId == identityActor).IdentityMoments!,
                     moment => moment.Outcome == "kept" && moment.RequestedTick == identity.Observation.WorldTick);
             }
-            var household = world.Society.GetInhabitant(actor).HouseholdId;
+            var household = world.Society.GetAgent(actor).HouseholdId;
             Assert.Contains(choices.Selected, selected => selected.Contains(" choice=household_found ", StringComparison.Ordinal));
             Assert.NotNull(household);
             var founded = Assert.Single(world.ExportState().Events,
@@ -146,7 +146,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private sealed class NativeLandFormationChoices(string actor, bool quietFirstRefusal) : IDecisionProvider
     {
-        public ConcurrentDictionary<string, InhabitantObservation> QuietRefusals { get; } = new(StringComparer.Ordinal);
+        public ConcurrentDictionary<string, AgentObservation> QuietRefusals { get; } = new(StringComparer.Ordinal);
         public HashSet<string> QuietAdmissions { get; } = new(StringComparer.Ordinal);
         public ConcurrentQueue<string> Selected { get; } = new();
         public string? HeldIdentityId { get; init; }
@@ -159,7 +159,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         public long ProviderEpoch => 0;
         private async ValueTask<CognitionDecisionResponse> KeepIdentityAsync(CognitionDecisionRequest request, CancellationToken cancellationToken)
         {
-            if (request.Observation.InhabitantId == HeldIdentityId && IdentityCalled.TrySetResult(request))
+            if (request.Observation.AgentId == HeldIdentityId && IdentityCalled.TrySetResult(request))
                 await ReleaseIdentity.Task.WaitAsync(cancellationToken);
             return KeepNativeIdentity(request);
         }
@@ -172,18 +172,18 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             var observation = request.Observation;
             if (observation.IdentityMoment is not null) return KeepIdentityAsync(request, cancellationToken);
-            var own = observation.InhabitantId == actor;
+            var own = observation.AgentId == actor;
             var selected = observation.Candidates.FirstOrDefault(candidate => own && candidate.Id == "household_found") ??
                 observation.Candidates.FirstOrDefault(candidate => own && candidate.Id == "household_leave") ??
                 observation.Candidates.FirstOrDefault(candidate => own && candidate.Id.StartsWith("household_ask:", StringComparison.Ordinal)) ??
-                observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId != actor && candidate.Id == "household_refuse:" + actor) ??
+                observation.Candidates.FirstOrDefault(candidate => observation.AgentId != actor && candidate.Id == "household_refuse:" + actor) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             if (quietFirstRefusal && selected.Id == "household_refuse:" + actor &&
-                QuietRefusals.TryAdd(observation.InhabitantId, observation))
+                QuietRefusals.TryAdd(observation.AgentId, observation))
                 selected = observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            Selected.Enqueue($"tick={observation.WorldTick} actor={observation.InhabitantId} " +
+            Selected.Enqueue($"tick={observation.WorldTick} actor={observation.AgentId} " +
                 $"choice={selected.Id} guidance={observation.ObserverGuidance?.Count ?? 0}");
-            var response = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            var response = new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 new Dictionary<string, double> { [selected.Id] = 1 },
                 ChosenName: observation.NeedsName ? observation.Self!.Name : null,
@@ -199,7 +199,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var observation = request.Observation;
         var choice = Assert.Single(observation.Candidates);
         Assert.Equal("identity_optional", choice.Id);
-        return new(request.RequestId, observation.InhabitantId, DecisionProviderKind.LargeLanguageModel, request.ProviderEpoch,
+        return new(request.RequestId, observation.AgentId, DecisionProviderKind.LargeLanguageModel, request.ProviderEpoch,
             observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
             choice.Id, 1, new Dictionary<string, double> { [choice.Id] = 1 });
     }

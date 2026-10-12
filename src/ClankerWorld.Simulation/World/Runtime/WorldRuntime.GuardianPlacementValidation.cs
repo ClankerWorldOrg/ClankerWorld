@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private static void ValidateGuardianPlacements(
-        IEnumerable<InhabitantState> physical,
+        IEnumerable<AgentState> physical,
         SocietyCheckpoint checkpoint,
         IReadOnlyList<TownRuntimeState> towns,
         WorldMap map,
@@ -14,8 +14,8 @@ public sealed partial class WorldRuntime
         var physicalPeople = physical.ToArray();
         if (!physicalPeople.Any(person => person.GuardianPlacement is not null)) return;
 
-        var people = checkpoint.Inhabitants.ToDictionary(person => person.Id, StringComparer.Ordinal);
-        var physicalIds = physicalPeople.Select(person => person.InhabitantId).ToHashSet(StringComparer.Ordinal);
+        var people = checkpoint.Agents.ToDictionary(person => person.Id, StringComparer.Ordinal);
+        var physicalIds = physicalPeople.Select(person => person.AgentId).ToHashSet(StringComparer.Ordinal);
         var relationships = checkpoint.Relationships.ToDictionary(edge => edge.Id, StringComparer.Ordinal);
         var householdIds = checkpoint.Households.Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
         var townIds = towns.Select(town => town.Id).ToHashSet(StringComparer.Ordinal);
@@ -23,13 +23,13 @@ public sealed partial class WorldRuntime
         {
             if (state.GuardianPlacement is not { } placement) continue;
             if (schemaVersion < GuardianPlacementSchemaVersion ||
-                !people.TryGetValue(state.InhabitantId, out var child) ||
-                child.Status != SocietyInhabitantStatus.Active ||
+                !people.TryGetValue(state.AgentId, out var child) ||
+                child.Status != SocietyAgentStatus.Active ||
                 child.AgeBand is not (SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent) ||
                 state.GuardianSearch is not null ||
                 !GuardianPlacementId(placement.CaregiverId) ||
                 !people.TryGetValue(placement.CaregiverId, out var caregiver) ||
-                caregiver.Status != SocietyInhabitantStatus.Active ||
+                caregiver.Status != SocietyAgentStatus.Active ||
                 caregiver.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder) ||
                 !physicalIds.Contains(caregiver.Id) || child.PrimaryCaregiverId != caregiver.Id ||
                 !GuardianPlacementId(placement.CareRelationshipId) || placement.CareRevision <= 0 ||

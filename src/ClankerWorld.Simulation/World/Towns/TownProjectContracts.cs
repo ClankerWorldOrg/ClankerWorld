@@ -22,7 +22,7 @@ public sealed record TownProjectDelivery(string Id, string ContributorId, string
     string? ReservationId = null, long? ReleasedTick = null, string? ReleaseReason = null);
 
 /// <summary>One shared job per passed proposal; workers never own a separate copy of its budget.</summary>
-public sealed record TownConstructionProject(string Id, string ProposalId, TownProjectPayload Plan,
+public sealed record TownProject(string Id, string ProposalId, TownProjectPayload Plan,
     long ApprovedTick, string Stage, int WorkDone, long LastTransitionTick,
     IReadOnlyList<TownProjectDelivery> Deliveries, string? Blocker = null, string? CompletedBuildingId = null)
 {
@@ -117,7 +117,7 @@ public static class TownProjectRules
         first.Entrance == second.Entrance && first.BoatPortId == second.BoatPortId && first.Budget.SequenceEqual(second.Budget);
 
     /// <summary>Usable delivered stock or already spent project stock, never a cumulative delivery counter.</summary>
-    public static int DeliveredQuantity(TownConstructionProject project, string townId,
+    public static int DeliveredQuantity(TownProject project, string townId,
         InventoryCheckpoint inventory, string itemKind)
     {
         var work = WorkSite(project.Plan);

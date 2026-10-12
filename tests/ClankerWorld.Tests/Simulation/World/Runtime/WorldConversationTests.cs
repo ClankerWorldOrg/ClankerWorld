@@ -36,7 +36,7 @@ public sealed partial class WorldConversationTests
             var router = new ConfigurableDecisionProvider(store, new ConversationHttpClientFactory(handler),
                 usageStore: usage);
             using var world = NewWorld("configured-conversation", _ => router);
-            var initialPositions = world.Inhabitants.ToDictionary(item => item.InhabitantId, item => item.Position,
+            var initialPositions = world.Agents.ToDictionary(item => item.AgentId, item => item.Position,
                 StringComparer.Ordinal);
             var initialLots = world.Society.Inventory.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
             world.StartWorld();
@@ -142,7 +142,7 @@ public sealed partial class WorldConversationTests
 
             Assert.Equal(1, TrustScore(world, InitiatorId, InviteeId));
             Assert.Equal(1, TrustScore(world, InviteeId, InitiatorId));
-            Assert.Equal(initialPositions, world.Inhabitants.ToDictionary(item => item.InhabitantId, item => item.Position,
+            Assert.Equal(initialPositions, world.Agents.ToDictionary(item => item.AgentId, item => item.Position,
                 StringComparer.Ordinal));
             Assert.Equal(initialLots, world.Society.Inventory.Lots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray());
 
@@ -711,7 +711,7 @@ public sealed partial class WorldConversationTests
         new("personal", "openai", model, key, false, agentId, Guid.NewGuid().ToString("N"), $"{agentId} test credential");
 
     private static int TrustScore(WorldRuntime world, string ownerId, string subjectId) =>
-        world.Inhabitants.Single(item => item.InhabitantId == ownerId).SocialStanding?
+        world.Agents.Single(item => item.AgentId == ownerId).SocialStanding?
             .SingleOrDefault(item => item.SubjectId == subjectId)?.Trust ?? 0;
 
     private sealed class ConversationProvider(IReadOnlySet<string> assignedAgents) :
@@ -746,19 +746,19 @@ public sealed partial class WorldConversationTests
                     candidate.Id.StartsWith("conversation_wrapup_accept:", StringComparison.Ordinal)))
                 return new ValueTask<CognitionDecisionResponse>(WaitForPlanningCancellationAsync(cancellationToken));
             var selected = observation.Candidates.FirstOrDefault(candidate =>
-                !EndSuspendedConversations && observation.InhabitantId == InitiatorId && candidate.Id == $"talk:{InviteeId}") ??
+                !EndSuspendedConversations && observation.AgentId == InitiatorId && candidate.Id == $"talk:{InviteeId}") ??
                 observation.Candidates.FirstOrDefault(candidate => EndSuspendedConversations &&
                     candidate.Id.StartsWith("conversation_end:", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(candidate =>
                     candidate.Id.StartsWith("conversation_resume:", StringComparison.Ordinal) &&
-                    (OnlyResumingAgentId is null || observation.InhabitantId == OnlyResumingAgentId)) ??
+                    (OnlyResumingAgentId is null || observation.AgentId == OnlyResumingAgentId)) ??
                 observation.Candidates.FirstOrDefault(candidate =>
-                    observation.InhabitantId == InviteeId && candidate.Id.StartsWith("conversation_accept:", StringComparison.Ordinal)) ??
+                    observation.AgentId == InviteeId && candidate.Id.StartsWith("conversation_accept:", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(candidate => candidate.Id == "safe_idle") ??
                 observation.Candidates[0];
             return ValueTask.FromResult(new CognitionDecisionResponse(
                 request.RequestId,
-                observation.InhabitantId,
+                observation.AgentId,
                 Kind,
                 ProviderEpoch,
                 observation.RunEpoch,
@@ -840,7 +840,7 @@ public sealed partial class WorldConversationTests
 
         public Task? HeldDecisionStarted(CognitionDecisionRequest request)
         {
-            var agentId = request.Observation.InhabitantId;
+            var agentId = request.Observation.AgentId;
             var candidates = request.Observation.Candidates;
             if (holdInitialChoices && agentId == InitiatorId && !releaseInitiatorTalk.Task.IsCompleted &&
                 candidates.Any(candidate => candidate.Id == $"talk:{InviteeId}"))

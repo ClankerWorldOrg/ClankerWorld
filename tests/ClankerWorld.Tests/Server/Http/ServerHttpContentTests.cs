@@ -117,7 +117,7 @@ public sealed partial class ServerHttpTests
             var occupiedMapPositions = runtime.ExportState().Map.MapObjects.Select(item => item.Position)
                 .Concat(runtime.ExportState().Map.Resources.Select(item => item.Position))
                 .ToHashSet();
-            var worker = runtime.Inhabitants.First(item => !occupiedMapPositions.Contains(item.Position));
+            var worker = runtime.Agents.First(item => !occupiedMapPositions.Contains(item.Position));
             var placementAction = new OwnerBuildingPlacementAction(
                 "camp-kitchen-one",
                 building.CanonicalId,

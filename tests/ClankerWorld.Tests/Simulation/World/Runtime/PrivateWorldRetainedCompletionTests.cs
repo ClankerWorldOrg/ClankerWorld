@@ -16,8 +16,8 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 15, 60);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { Position = farStand, HungerBasisPoints = 0 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { Position = farStand, FullnessBasisPoints = 0 }
                 : item).ToArray(),
             Society = state.Society with
             {
@@ -27,12 +27,12 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
             ? provider
             : new ActionCoverageRecorder(chooseIdle: true));
-        GridPoint Position() => world.Inhabitants.Single(item => item.InhabitantId == HarvestInstructionActor).Position;
+        GridPoint Position() => world.Agents.Single(item => item.AgentId == HarvestInstructionActor).Position;
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         // Newer guidance keeps the actor queued after its held reply is accepted.
         world.SubmitInstruction(new OwnerInstructionRequest("retained-suggestion", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.Suggestive, "Find something to eat."));
+            HarvestInstructionActor, OwnerInstructionKind.Suggestion, "Find something to eat."));
         for (var tick = 0; tick < 3; tick++)
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         provider.Release.TrySetResult(true);
@@ -41,11 +41,11 @@ public sealed partial class WorldRuntimeTests
 
         var before = Position();
         var completion = await world.AdvanceOneTickNonBlockingAsync();
-        Assert.Contains(completion.Decisions, item => item.InhabitantId == HarvestInstructionActor &&
+        Assert.Contains(completion.Decisions, item => item.AgentId == HarvestInstructionActor &&
             item.Admission.Intention?.CandidateId == "seek_food");
-        Assert.Contains(world.ExportState().Society.Cognition.Queue, entry => entry.InhabitantId == HarvestInstructionActor);
+        Assert.Contains(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == HarvestInstructionActor);
         Assert.True(world.ExportState().Map.FootDistance(before, Position()) <= 1);
-        Assert.True(completion.Events.Count(item => item.Kind == "inhabitant_moved" &&
+        Assert.True(completion.Events.Count(item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal)) <= 1);
     }
 
@@ -64,15 +64,15 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 7, 40);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { Position = farStand, HungerBasisPoints = 10_000 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { Position = farStand, FullnessBasisPoints = 10_000 }
                 : item).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
             ? provider
             : new DeterministicDecisionProvider());
         var order = world.SubmitInstruction(new OwnerInstructionRequest("held-harvest", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather 2 berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather 2 berries from berry-patch"));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var call = CaptureHeldHarvestCall(world);
         Assert.Equal(order.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
@@ -91,12 +91,12 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(call.Request.Observation.ObservationDigest, Assert.Single(provider.Requests).ObservationDigest);
         Assert.Equal(frame, WorldRuntimeCodec.Encode(world.ExportState()));
         var suggestion = world.SubmitInstruction(new OwnerInstructionRequest("behind-finished-order", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.Suggestive, "Please rest a little afterwards."));
+            HarvestInstructionActor, OwnerInstructionKind.Suggestion, "Please rest a little afterwards."));
         for (var tick = 0; tick < 80 && Assert.Single(world.ExportState().Instructions!,
-                 item => item.InstructionId == order.InstructionId).Order!.Status != "finished"; tick++)
+                 item => item.InstructionId == order.InstructionId).Task!.Status != "finished"; tick++)
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.Equal("finished", Assert.Single(world.ExportState().Instructions!,
-            item => item.InstructionId == order.InstructionId).Order!.Status);
+            item => item.InstructionId == order.InstructionId).Task!.Status);
         Assert.Equal(1, provider.CallCount);
 
         var finishedFrame = WorldRuntimeCodec.Encode(world.ExportState());
@@ -147,11 +147,11 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 7, 40);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { Position = farStand, HungerBasisPoints = 10_000 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { Position = farStand, FullnessBasisPoints = 10_000 }
                 : item).ToArray(),
         };
-        var blockerId = state.Society.Society.Inhabitants
+        var blockerId = state.Society.Society.Agents
             .Where(item => item.Id != HarvestInstructionActor && item.AgeBand != ClankerWorld.Simulation.Society.SocietyAgeBand.Infant)
             .Select(item => item.Id).OrderBy(item => item, StringComparer.Ordinal).First();
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
@@ -165,12 +165,12 @@ public sealed partial class WorldRuntimeTests
         Assert.True(blocker.Started.Task.IsCompleted);
         var callsBefore = actorProvider.CallCount;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("queued-harvest", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather 2 berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather 2 berries from berry-patch"));
         for (var tick = 0; tick < 80 && Assert.Single(world.ExportState().Instructions!,
-                 item => item.InstructionId == order.InstructionId).Order!.Status != "finished"; tick++)
+                 item => item.InstructionId == order.InstructionId).Task!.Status != "finished"; tick++)
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.Equal("finished", Assert.Single(world.ExportState().Instructions!,
-            item => item.InstructionId == order.InstructionId).Order!.Status);
+            item => item.InstructionId == order.InstructionId).Task!.Status);
         Assert.Equal(callsBefore, actorProvider.CallCount);
         // One more tick after it finished while still queued.
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -195,7 +195,7 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public int CallCount => Volatile.Read(ref callCount);
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -238,11 +238,11 @@ public sealed partial class WorldRuntimeTests
         var farStand = FarFromBerries(state, 7, 40);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(item => item.InhabitantId == HarvestInstructionActor
-                ? item with { Position = farStand, HungerBasisPoints = 10_000 }
+            Agents = state.Agents.Select(item => item.AgentId == HarvestInstructionActor
+                ? item with { Position = farStand, FullnessBasisPoints = 10_000 }
                 : item).ToArray(),
         };
-        var blockerId = state.Society.Society.Inhabitants
+        var blockerId = state.Society.Society.Agents
             .Where(item => item.Id != HarvestInstructionActor && item.AgeBand != ClankerWorld.Simulation.Society.SocietyAgeBand.Infant)
             .Select(item => item.Id).OrderBy(item => item, StringComparer.Ordinal).First();
         using var world = WorldRuntime.Restore(state, id => id == HarvestInstructionActor
@@ -256,12 +256,12 @@ public sealed partial class WorldRuntimeTests
         Assert.True(blocker.Started.Task.IsCompleted);
         var callsBefore = actorProvider.CallCount;
         var order = world.SubmitInstruction(new OwnerInstructionRequest("queued-harvest-with-suggestion", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, "gather 2 berries from berry-patch"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, "gather 2 berries from berry-patch"));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var suggestion = world.SubmitInstruction(new OwnerInstructionRequest("suggestion-with-queued-order", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.Suggestive, "Rest a little afterwards."));
+            HarvestInstructionActor, OwnerInstructionKind.Suggestion, "Rest a little afterwards."));
         for (var tick = 0; tick < 80 && Assert.Single(world.ExportState().Instructions!,
-                 item => item.InstructionId == order.InstructionId).Order!.Status != "finished"; tick++)
+                 item => item.InstructionId == order.InstructionId).Task!.Status != "finished"; tick++)
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.Equal(callsBefore, actorProvider.CallCount);
 
@@ -293,7 +293,7 @@ public sealed partial class WorldRuntimeTests
     private static GridPoint FarFromBerries(WorldRuntimeState state, int nearest, int farthest)
     {
         var source = state.Map.Resources.Single(item => item.Id == "berry-patch");
-        var occupied = state.Inhabitants.Where(item => item.InhabitantId != HarvestInstructionActor)
+        var occupied = state.Agents.Where(item => item.AgentId != HarvestInstructionActor)
             .Select(item => item.Position).ToHashSet();
         return state.Map.Tiles.Select(item => item.Position)
             .Where(point => state.Map.IsPassable(point) && !occupied.Contains(point) &&
@@ -311,7 +311,7 @@ public sealed partial class WorldRuntimeTests
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public int CallCount => Volatile.Read(ref callCount);
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -340,7 +340,7 @@ public sealed partial class WorldRuntimeTests
                 throw new InvalidOperationException("Later calls stay pending in this test.");
             }
             var replies = (request.Observation.ObserverGuidance ?? [])
-                .Where(item => item.Kind == "suggestive" && item.ReplyAllowed)
+                .Where(item => item.Kind == "suggestion" && item.ReplyAllowed)
                 .Select(item => new CognitionObserverReply(item.InstructionId, "I will rest."))
                 .ToArray();
             return HostedResponse(request, Kind, ProviderEpoch, "safe_idle", replies);

@@ -76,7 +76,7 @@ public sealed class BuildingExpansionTests
         for (var tick = 0; tick < 24; tick++)
         {
             var result = await world.AdvanceOneTickAsync();
-            selected.AddRange(result.Decisions.Where(d => d.InhabitantId == actor && d.Admission.Intention is not null)
+            selected.AddRange(result.Decisions.Where(d => d.AgentId == actor && d.Admission.Intention is not null)
                 .Select(d => d.Admission.Intention!.CandidateId));
         }
         Assert.Contains(provider.Seen.SelectMany(r => r.Observation.Candidates), c => c.Id.Contains("|request_expansion_land|", StringComparison.Ordinal));
@@ -174,11 +174,11 @@ public sealed class BuildingExpansionTests
         var site = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             Enumerable.Range(-1, 3).SelectMany(dy => Enumerable.Range(-1, 3).Select(dx => new GridPoint(point.X + dx, point.Y + dy)))
                 .All(tile => fertility.CanFarm(tile) && !occupied.Contains(tile) &&
-                    !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == tile)));
+                    !state.Agents.Any(person => person.AgentId != actor && person.Position == tile)));
         var relocated = house with { Position = site, Entrance = null };
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = site } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = site } : person).ToArray(),
             WorldSimulation = state.WorldSimulation with
             {
                 Buildings = state.WorldSimulation.Buildings.Select(building => building.InstanceId == house.InstanceId ? relocated : building).ToArray(),
@@ -217,14 +217,14 @@ public sealed class BuildingExpansionTests
         Assert.True(seed.StartBuildingExpansion(actor, original.InstanceId).Applied);
         for (var tick = 0; tick < 20; tick++) Assert.True((await seed.AdvanceOneTickAsync()).Advanced);
         var state = seed.ExportState();
-        var firstWorker = state.Inhabitants.Single(person => person.InhabitantId == actor);
-        var firstSkill = Assert.Single(firstWorker.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building);
+        var firstWorker = state.Agents.Single(person => person.AgentId == actor);
+        var firstSkill = Assert.Single(firstWorker.Skills ?? [], skill => skill.Kind == SkillKind.Building);
         Assert.Equal(1, firstWorker.Proficiency!.Building);
         var house = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == original.InstanceId);
         var stored = state.Society.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId).Sum(lot => lot.Quantity);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = house.Position } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = house.Position } : person).ToArray(),
             Society = state.Society with
             {
                 Society = state.Society.Society with
@@ -251,9 +251,9 @@ public sealed class BuildingExpansionTests
         Assert.Single(reloaded.WorldSimulation.Buildings, item => item.HouseholdId == house.HouseholdId && item.DefinitionId == house.DefinitionId);
         Assert.Equal(256, new OwnerWorldObservationStore(reloaded).GetSnapshot().PlacedBuildings.Single(item => item.InstanceId == house.InstanceId).StorageCapacity);
         Assert.All(reloaded.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId), lot => Assert.Equal(house.HouseholdId, lot.OwnerId));
-        var secondWorker = reloaded.Inhabitants.Single(person => person.InhabitantId == actor);
+        var secondWorker = reloaded.Agents.Single(person => person.AgentId == actor);
         Assert.Equal(2, secondWorker.Proficiency!.Building);
-        Assert.Equal(firstSkill, Assert.Single(secondWorker.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building));
+        Assert.Equal(firstSkill, Assert.Single(secondWorker.Skills ?? [], skill => skill.Kind == SkillKind.Building));
         Assert.False(reloaded.StartBuildingExpansion(actor, house.InstanceId).Applied);
     }
 
@@ -285,7 +285,7 @@ public sealed class BuildingExpansionTests
     public async Task AHelperFromAnotherHouseholdCanDeliverMaterialsWithoutStockAccess()
     {
         using var seed = PreparedWorld("first-town-house-a", out var actor, out var house);
-        var helper = seed.Society.Inhabitants.First(person => person.HouseholdId != house.HouseholdId).Id;
+        var helper = seed.Society.Agents.First(person => person.HouseholdId != house.HouseholdId).Id;
         var definition = seed.WorldContent.Buildings.Single(item => item.LocalId == "blacksmith-1x2");
         var wood = definition.BuildCosts.Single(item => item.ResourceId == "wood").Amount;
         var state = seed.ExportState();
@@ -295,15 +295,15 @@ public sealed class BuildingExpansionTests
         };
         inventory = InventoryAuthority.AddLot(inventory, "helper-building-wood", "wood", helper, wood);
         var helperPosition = state.Map.FootNeighbors(house.Position).First(point =>
-            state.Map.IsBuildable(point) && !state.Inhabitants.Any(person => person.Position == point));
+            state.Map.IsBuildable(point) && !state.Agents.Any(person => person.Position == point));
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == helper
-                ? person with { Position = helperPosition, HungerBasisPoints = 9_000, LastDecisionContext = null }
-                : person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == helper
+                ? person with { Position = helperPosition, FullnessBasisPoints = 9_000, LastDecisionContext = null }
+                : person.AgentId == actor ? person with
                 {
-                    Project = new SettlementProject(TownConstructionCandidateIds.Building(definition.CanonicalId, house.Position),
+                    Project = new AgentProject(TownConstructionCandidateIds.Building(definition.CanonicalId, house.Position),
                         definition.DisplayName, seed.WorldTick, "acquiring"),
                 } : person).ToArray(),
         };
@@ -348,7 +348,7 @@ public sealed class BuildingExpansionTests
             world.WorldContent.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building) *
             BuildingStorageRules.NearlyFullPercent,
             "This House needs resident places while its storage is below the expansion threshold.");
-        var initialWorker = initial.Inhabitants.Single(person => person.InhabitantId == actor);
+        var initialWorker = initial.Agents.Single(person => person.AgentId == actor);
         Assert.Empty(initialWorker.Skills ?? []);
         Assert.Equal(0, initialWorker.Proficiency?.Building ?? 0);
         var cookingJob = Assert.Single(initial.WorldSimulation.ProductionJobs);
@@ -357,8 +357,8 @@ public sealed class BuildingExpansionTests
             initial.Society.Society.Inventory.GetReservation(id).State));
         using var restored = Reload(world);
         for (var tick = 0; tick < 19; tick++) Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        var working = restored.Inhabitants.Single(person => person.InhabitantId == actor);
-        Assert.DoesNotContain(working.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building);
+        var working = restored.Agents.Single(person => person.AgentId == actor);
+        Assert.DoesNotContain(working.Skills ?? [], skill => skill.Kind == SkillKind.Building);
         Assert.Equal(0, working.Proficiency?.Building ?? 0);
         Assert.Equal(WorldProductionJobState.Running, restored.WorldSimulation.BuildingExpansions!.Single().State);
         var stillSmall = new OwnerWorldObservationStore(restored).GetSnapshot().PlacedBuildings
@@ -379,8 +379,8 @@ public sealed class BuildingExpansionTests
             .Single(item => item.InstanceId == building.InstanceId);
         Assert.Equal(6, expandedCapacity.ResidentLimit);
         Assert.Equal(3, expandedCapacity.PermanentResidentCount);
-        var worker = restored.Inhabitants.Single(person => person.InhabitantId == actor);
-        var learned = Assert.Single(worker.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building);
+        var worker = restored.Agents.Single(person => person.AgentId == actor);
+        var learned = Assert.Single(worker.Skills ?? [], skill => skill.Kind == SkillKind.Building);
         Assert.Equal(expansion.CompletionTick, learned.LearnedTick);
         Assert.Null(learned.TeacherId);
         Assert.Equal(1, worker.Proficiency!.Building);
@@ -395,8 +395,8 @@ public sealed class BuildingExpansionTests
             Assert.Equal(lot.StorageBuildingId, actual.StorageBuildingId);
         });
         using var completed = Reload(restored);
-        var savedWorker = completed.Inhabitants.Single(person => person.InhabitantId == actor);
-        Assert.Equal(learned, Assert.Single(savedWorker.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building));
+        var savedWorker = completed.Agents.Single(person => person.AgentId == actor);
+        Assert.Equal(learned, Assert.Single(savedWorker.Skills ?? [], skill => skill.Kind == SkillKind.Building));
         Assert.Equal(worker.Proficiency, savedWorker.Proficiency);
         var visible = new OwnerWorldObservationStore(completed).GetSnapshot().PlacedBuildings.Single(item => item.InstanceId == building.InstanceId);
         Assert.Equal(128, visible.StorageCapacity);
@@ -425,7 +425,7 @@ public sealed class BuildingExpansionTests
         var towns = state.Towns!;
         bool IsClearFootprint(IEnumerable<GridPoint> footprint, GridPoint source) => footprint.All(point =>
             state.Map.IsBuildable(point) && !occupied.Contains(point) && point != source &&
-            !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == point) &&
+            !state.Agents.Any(person => person.AgentId != actor && person.Position == point) &&
             !towns.Where(town => town.Id != building.TownId).Any(town => town.BorderTiles.Contains(point)));
         GridPoint[] Rectangle(GridPoint position, int width, int height) =>
             Enumerable.Range(0, height).SelectMany(y => Enumerable.Range(0, width)
@@ -433,11 +433,11 @@ public sealed class BuildingExpansionTests
 
         var placement = state.Map.FootNeighbors(warehouse.Position)
             .Where(startingSite => state.Map.CanFootStep(warehouse.Position, startingSite) && !occupied.Contains(startingSite) &&
-                !state.Inhabitants.Any(person => person.Position == startingSite))
+                !state.Agents.Any(person => person.Position == startingSite))
             .SelectMany(startingSite => state.Map.FootNeighbors(startingSite)
                 .Where(site => Math.Abs(site.X - startingSite.X) + Math.Abs(site.Y - startingSite.Y) == 1 &&
                     state.Map.CanFootStep(site, startingSite) && state.Map.IsBuildable(site) && !occupied.Contains(site) &&
-                    !state.Inhabitants.Any(person => person.InhabitantId != actor && person.Position == site))
+                    !state.Agents.Any(person => person.AgentId != actor && person.Position == site))
                 .Select(site => (StartingSite: startingSite, Site: site)))
             .First(pair =>
             {
@@ -464,7 +464,7 @@ public sealed class BuildingExpansionTests
         building = building with { Position = houseSite, Entrance = null };
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = houseSite }
                 : person).ToArray(),
             WorldSimulation = state.WorldSimulation with
@@ -486,7 +486,7 @@ public sealed class BuildingExpansionTests
         using var firstStage = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? provider : new IdleProvider());
         var initialCapacity = HouseResidentCapacityRules.Calculate(
-            firstStage.Society.Inhabitants.Where(person => person.HouseholdId == householdId),
+            firstStage.Society.Agents.Where(person => person.HouseholdId == householdId),
             houseDefinition.Width, houseDefinition.Height);
         Assert.Equal(initialCapacity.Limit, initialCapacity.ResidentCount);
         var firstStageWood = firstStage.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
@@ -522,31 +522,31 @@ public sealed class BuildingExpansionTests
             .Concat(intermediate.RoadTiles!).ToHashSet();
         var firstAwayPosition = intermediate.Map.FootNeighbors(building.Position)
             .Where(step => intermediate.Map.CanFootStep(building.Position, step) && !occupiedAfterFirst.Contains(step) &&
-                !intermediate.Inhabitants.Any(person => !extraResidents.Contains(person.InhabitantId) && person.Position == step))
+                !intermediate.Agents.Any(person => !extraResidents.Contains(person.AgentId) && person.Position == step))
             .SelectMany(step => intermediate.Map.FootNeighbors(step).Where(point =>
                 intermediate.Map.FootDistance(building.Position, point) == 2 && intermediate.Map.CanFootStep(step, point) &&
                 intermediate.Map.IsBuildable(point) && !occupiedAfterFirst.Contains(point) &&
                 !futureBuildingTiles.Contains(point) && point != startingSite &&
-                !intermediate.Inhabitants.Any(person => !extraResidents.Contains(person.InhabitantId) && person.Position == point)))
+                !intermediate.Agents.Any(person => !extraResidents.Contains(person.AgentId) && person.Position == point)))
             .Distinct().First();
         var otherAwayPositions = intermediate.Map.Tiles.Select(tile => tile.Position)
             .Where(point => intermediate.Map.IsBuildable(point) && !occupiedAfterFirst.Contains(point) &&
                 !futureBuildingTiles.Contains(point) && point != startingSite && point != firstAwayPosition &&
-                !intermediate.Inhabitants.Any(person => !extraResidents.Contains(person.InhabitantId) && person.Position == point) &&
+                !intermediate.Agents.Any(person => !extraResidents.Contains(person.AgentId) && person.Position == point) &&
                 intermediate.Map.FootDistance(point, startingSite) >= 6)
             .OrderBy(point => point.Y).ThenBy(point => point.X).Take(3).ToArray();
         Assert.Equal(3, otherAwayPositions.Length);
         var residentPositions = new[] { firstAwayPosition }.Concat(otherAwayPositions).ToArray();
         intermediate = intermediate with
         {
-            Inhabitants = intermediate.Inhabitants.Select(person => extraResidents.Contains(person.InhabitantId)
-                ? person with { Position = residentPositions[Array.IndexOf(extraResidents, person.InhabitantId)] }
-                : person.InhabitantId == actor ? person with { Position = building.Position } : person).ToArray(),
+            Agents = intermediate.Agents.Select(person => extraResidents.Contains(person.AgentId)
+                ? person with { Position = residentPositions[Array.IndexOf(extraResidents, person.AgentId)] }
+                : person.AgentId == actor ? person with { Position = building.Position } : person).ToArray(),
         };
         Assert.Equal(2, intermediate.Map.FootDistance(building.Position, firstAwayPosition));
         var effective = BuildingStorageRules.EffectiveDefinition(houseDefinition, building);
         var fullHousehold = HouseResidentCapacityRules.Calculate(
-            intermediate.Society.Society.Inhabitants.Where(person => person.HouseholdId == householdId),
+            intermediate.Society.Society.Agents.Where(person => person.HouseholdId == householdId),
             effective.Width, effective.Height);
         Assert.Equal(fullHousehold.Limit, fullHousehold.ResidentCount);
         var inventory = intermediate.Society.Society.Inventory;
@@ -587,8 +587,8 @@ public sealed class BuildingExpansionTests
         var transitLot = Assert.Single(world.Society.Inventory.Lots, lot =>
             lot.OwnerId == actor && lot.DeliveryBuildingId == building.InstanceId && lot.ItemKind == "wood");
         Assert.Equal(2, transitLot.Quantity);
-        Assert.Equal(startingSite, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
-        Assert.Contains(world.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+        Assert.Equal(startingSite, world.Agents.Single(person => person.AgentId == actor).Position);
+        Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
             item.Detail.EndsWith(":building_expansion_material", StringComparison.Ordinal));
         Assert.Equal(secondStageWood, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
@@ -604,8 +604,8 @@ public sealed class BuildingExpansionTests
             Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
 
         var expansion = Assert.Single(resumed.WorldSimulation.BuildingExpansions!, job => job.State == WorldProductionJobState.Running);
-        Assert.Equal(building.Position, resumed.Inhabitants.Single(person => person.InhabitantId == actor).Position);
-        Assert.Contains(resumed.ExportState().Events, item => item.Kind == "inhabitant_moved" &&
+        Assert.Equal(building.Position, resumed.Agents.Single(person => person.AgentId == actor).Position);
+        Assert.Contains(resumed.ExportState().Events, item => item.Kind == "agent_moved" &&
             item.Detail.StartsWith(actor + ":", StringComparison.Ordinal) &&
             item.Detail.EndsWith(":building_expansion_delivery", StringComparison.Ordinal));
         Assert.All(expansion.InputReservationIds, id => Assert.Equal(InventoryReservationState.Reserved,
@@ -659,7 +659,7 @@ public sealed class BuildingExpansionTests
         using var world = PreparedWorld("first-town-house-a", out var actor, out var building);
         Assert.True(world.StartBuildingExpansion(actor, building.InstanceId).Applied);
         var saved = world.ExportState();
-        var initialWorker = saved.Inhabitants.Single(person => person.InhabitantId == actor);
+        var initialWorker = saved.Agents.Single(person => person.AgentId == actor);
         Assert.Empty(initialWorker.Skills ?? []);
         var job = saved.WorldSimulation!.BuildingExpansions!.Single();
         var extra = Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(dy =>
@@ -673,12 +673,12 @@ public sealed class BuildingExpansionTests
         Assert.Contains("Road", stale.WorldSimulation.BuildingExpansions!.Single().Failure);
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Released, stale.Society.Inventory.GetReservation(id).State));
         Assert.Equal(saved.Society.Society.Inventory.Lots.Sum(lot => lot.Quantity), stale.Society.Inventory.Lots.Sum(lot => lot.Quantity));
-        var worker = stale.Inhabitants.Single(person => person.InhabitantId == actor);
+        var worker = stale.Agents.Single(person => person.AgentId == actor);
         Assert.Empty(worker.Skills ?? []);
         Assert.Equal(initialWorker.Proficiency, worker.Proficiency);
         using var cancelled = Reload(stale);
         Assert.Equal(building, cancelled.WorldSimulation.Buildings.Single(item => item.InstanceId == building.InstanceId));
-        var savedWorker = cancelled.Inhabitants.Single(person => person.InhabitantId == actor);
+        var savedWorker = cancelled.Agents.Single(person => person.AgentId == actor);
         Assert.Empty(savedWorker.Skills ?? []);
         Assert.Equal(initialWorker.Proficiency, savedWorker.Proficiency);
     }
@@ -694,7 +694,7 @@ public sealed class BuildingExpansionTests
         var extra = Enumerable.Range(0, job.TargetFootprint.Height).SelectMany(dy => Enumerable.Range(0, job.TargetFootprint.Width)
             .Select(dx => new GridPoint(job.TargetPosition.X + dx, job.TargetPosition.Y + dy))).First(tile => !current.Contains(tile));
         var filer = world.Towns.Single(town => town.Id == building.TownId).ResidentIds
-            .First(id => world.Society.GetInhabitant(id).HouseholdId is not null);
+            .First(id => world.Society.GetAgent(id).HouseholdId is not null);
         var refused = world.RequestHouseholdLandUse("over-warehouse-work", filer, building.TownId!, [extra]);
         Assert.False(refused.Applied);
         Assert.Contains("expansion", refused.Failure, StringComparison.Ordinal);
@@ -708,13 +708,13 @@ public sealed class BuildingExpansionTests
         using var world = PreparedWorld("first-town-warehouse", out var actor, out var building);
         var started = world.StartBuildingExpansion(actor, building.InstanceId);
         Assert.True(started.Applied, started.Failure);
-        Assert.Empty(world.Inhabitants.Single(person => person.InhabitantId == actor).Skills ?? []);
+        Assert.Empty(world.Agents.Single(person => person.AgentId == actor).Skills ?? []);
         using var reloaded = Reload(world);
         for (var tick = 0; tick < 20; tick++) Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldProductionJobState.Completed, reloaded.WorldSimulation.BuildingExpansions!.Single().State);
         Assert.Null(reloaded.WorldSimulation.BuildingExpansions!.Single().Failure);
-        var worker = reloaded.Inhabitants.Single(person => person.InhabitantId == actor);
-        var learned = Assert.Single(worker.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building);
+        var worker = reloaded.Agents.Single(person => person.AgentId == actor);
+        var learned = Assert.Single(worker.Skills ?? [], skill => skill.Kind == SkillKind.Building);
         Assert.Equal(reloaded.WorldSimulation.BuildingExpansions!.Single().CompletionTick, learned.LearnedTick);
         Assert.Null(learned.TeacherId);
         Assert.Equal(1, worker.Proficiency!.Building);
@@ -730,8 +730,8 @@ public sealed class BuildingExpansionTests
             Assert.False(lot.ItemKind is "food" or "grain" or "flour");
         });
         using var completed = Reload(reloaded);
-        var savedWorker = completed.Inhabitants.Single(person => person.InhabitantId == actor);
-        Assert.Equal(learned, Assert.Single(savedWorker.Skills ?? [], skill => skill.Kind == SettlementSkillKind.Building));
+        var savedWorker = completed.Agents.Single(person => person.AgentId == actor);
+        Assert.Equal(learned, Assert.Single(savedWorker.Skills ?? [], skill => skill.Kind == SkillKind.Building));
         Assert.Equal(worker.Proficiency, savedWorker.Proficiency);
         var state = world.ExportState();
         var outsiderId = "agent:00000000000000000000000000000099";
@@ -744,13 +744,13 @@ public sealed class BuildingExpansionTests
     public void AnotherHouseholdCannotExpandTheHouseOrUseItsGuestInvitations()
     {
         using var world = PreparedWorld("first-town-house-a", out var actor, out var building);
-        var outsider = world.Society.Inhabitants.First(person => person.HouseholdId != building.HouseholdId).Id;
+        var outsider = world.Society.Agents.First(person => person.HouseholdId != building.HouseholdId).Id;
         Assert.False(world.StartBuildingExpansion(outsider, building.InstanceId).Applied);
         Assert.False(world.SetHouseGuestInvitation(outsider, building.InstanceId, actor, true).Applied);
         Assert.True(world.SetHouseGuestInvitation(actor, building.InstanceId, outsider, true).Applied);
         using var restored = Reload(world);
         var visible = new OwnerWorldObservationStore(restored).GetSnapshot().PlacedBuildings.Single(item => item.InstanceId == building.InstanceId);
-        Assert.Contains(restored.Society.Inhabitants.Single(person => person.Id == outsider).Name, visible.InvitedGuests!);
+        Assert.Contains(restored.Society.Agents.Single(person => person.Id == outsider).Name, visible.InvitedGuests!);
         var recipe = restored.WorldContent.Recipes.Single(item => item.LocalId == "house-meal");
         Assert.False(restored.StartProduction(recipe.CanonicalId, building.InstanceId, outsider).Applied);
         Assert.True(restored.SetHouseGuestInvitation(actor, building.InstanceId, outsider, false).Applied);
@@ -762,20 +762,20 @@ public sealed class BuildingExpansionTests
     public async Task InvitedGuestReceivesOnlyStormRefugeUntilAnyAdultHouseholdMemberRevokesIt()
     {
         using var world = PreparedWorld("first-town-house-a", out var actor, out var house);
-        var guest = world.Society.Inhabitants.First(person => person.HouseholdId != house.HouseholdId).Id;
+        var guest = world.Society.Agents.First(person => person.HouseholdId != house.HouseholdId).Id;
         Assert.True(world.SetHouseGuestInvitation(actor, house.InstanceId, guest, true).Applied);
         var state = world.ExportState();
         state = state with
         {
-            Survival = new SettlementSurvivalState(0, []),
+            Survival = new SurvivalState(0, []),
             WorldSimulation = state.WorldSimulation! with
             {
                 Buildings = state.WorldSimulation.Buildings.Select(item => item.InstanceId == house.InstanceId
                     ? item with { Footprint = new BuildingFootprintRevision(1, 2, 1) } : item).ToArray(),
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == guest
-                ? person with { Position = new GridPoint(house.Position.X, house.Position.Y + 1), HungerBasisPoints = 9_000, Survival = new SurvivalCondition(4_000) }
-                : person.InhabitantId == actor ? person with { Position = new GridPoint(house.Position.X + 1, house.Position.Y) } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == guest
+                ? person with { Position = new GridPoint(house.Position.X, house.Position.Y + 1), FullnessBasisPoints = 9_000, Survival = new SurvivalCondition(4_000) }
+                : person.AgentId == actor ? person with { Position = new GridPoint(house.Position.X + 1, house.Position.Y) } : person).ToArray(),
             WorldSystems = state.WorldSystems! with
             {
                 RegionalWeather = null,
@@ -789,14 +789,14 @@ public sealed class BuildingExpansionTests
         using var invited = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new IdleProvider());
         using var revoked = WorldRuntime.Restore(state, _ => new IdleProvider());
         Assert.NotEqual(VegetationCover.Forest, state.Map.VegetationAt(new GridPoint(house.Position.X, house.Position.Y + 1)));
-        var otherAdult = revoked.Society.Inhabitants.First(person => person.Id != actor && person.HouseholdId == house.HouseholdId).Id;
+        var otherAdult = revoked.Society.Agents.First(person => person.Id != actor && person.HouseholdId == house.HouseholdId).Id;
         Assert.True(revoked.SetHouseGuestInvitation(otherAdult, house.InstanceId, guest, false).Applied);
         Assert.False(invited.StartProduction(invited.WorldContent.Recipes.Single(item => item.LocalId == "house-meal").CanonicalId,
             house.InstanceId, guest).Applied);
         Assert.True((await invited.AdvanceOneTickAsync()).Advanced);
         Assert.True((await revoked.AdvanceOneTickAsync()).Advanced);
-        Assert.True(invited.Inhabitants.Single(person => person.InhabitantId == guest).Survival!.WarmthBasisPoints >
-            revoked.Inhabitants.Single(person => person.InhabitantId == guest).Survival!.WarmthBasisPoints);
+        Assert.True(invited.Agents.Single(person => person.AgentId == guest).Survival!.WarmthBasisPoints >
+            revoked.Agents.Single(person => person.AgentId == guest).Survival!.WarmthBasisPoints);
         Assert.Equal(invited.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId).Sum(lot => lot.Quantity),
             revoked.Society.Inventory.Lots.Where(lot => lot.StorageBuildingId == house.InstanceId).Sum(lot => lot.Quantity));
     }
@@ -835,7 +835,7 @@ public sealed class BuildingExpansionTests
         var householdId = house.HouseholdId!;
         var sourcePosition = state.Map.FootNeighbors(house.Position).First(point =>
             state.Map.CanFootStep(house.Position, point) && state.Map.IsBuildable(point) &&
-            !state.Inhabitants.Any(person => person.Position == point) &&
+            !state.Agents.Any(person => person.Position == point) &&
             !state.WorldSimulation!.Buildings.Any(item => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == item.DefinitionId), item).Contains(point)) &&
             !state.Map.Resources.Any(resource => resource.Position == point) &&
@@ -856,9 +856,9 @@ public sealed class BuildingExpansionTests
         inventory = InventoryAuthority.AddLot(inventory, "expansion-inbound-room-fill", "stone", householdId,
             houseCapacity - currentHouseStock - 1, storageBuildingId: house.InstanceId);
 
-        var otherCarrier = state.Society.Society.Inhabitants.First(person => person.HouseholdId == householdId &&
+        var otherCarrier = state.Society.Society.Agents.First(person => person.HouseholdId == householdId &&
             person.Id != actor && PersonalEquipmentRules.FreeCapacity(inventory, person.Id,
-                state.Inhabitants.Single(physical => physical.InhabitantId == person.Id).Equipment) > 0);
+                state.Agents.Single(physical => physical.AgentId == person.Id).Equipment) > 0);
         inventory = InventoryAuthority.AddLot(inventory, "expansion-other-inbound", "stone", otherCarrier.Id, 1);
         inventory = inventory with
         {
@@ -867,7 +867,7 @@ public sealed class BuildingExpansionTests
                 : lot).ToArray(),
         };
 
-        var physicalActor = state.Inhabitants.Single(person => person.InhabitantId == actor);
+        var physicalActor = state.Agents.Single(person => person.AgentId == actor);
         var freeCarry = PersonalEquipmentRules.FreeCapacity(inventory, actor, physicalActor.Equipment);
         Assert.True(freeCarry > 0);
         inventory = InventoryAuthority.AddLot(inventory, "expansion-carry-capacity-fill", "stone", actor, freeCarry);
@@ -876,7 +876,7 @@ public sealed class BuildingExpansionTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { LastDecisionContext = null, Project = null }
                 : person).ToArray(),
         };
@@ -913,7 +913,7 @@ public sealed class BuildingExpansionTests
             lot.OwnerId == actor && lot.ItemKind == "wood" && lot.DeliveryBuildingId == house.InstanceId);
         Assert.Equal(1, transit.Quantity);
         Assert.Equal(0, PersonalEquipmentRules.FreeCapacity(ready.Society.Inventory, actor,
-            ready.Inhabitants.Single(person => person.InhabitantId == actor).Equipment));
+            ready.Agents.Single(person => person.AgentId == actor).Equipment));
 
         var transitBytes = WorldRuntimeCodec.Encode(ready.ExportState());
         using var resumed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(transitBytes),
@@ -996,7 +996,7 @@ public sealed class BuildingExpansionTests
                             : resource).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = warehouse.Position, LastDecisionContext = null, Project = null }
                 : person).ToArray(),
         };
@@ -1012,7 +1012,7 @@ public sealed class BuildingExpansionTests
             Assert.True(step.Advanced);
             if (step.Events.Any(item => item.Kind == "building_expansion_material_picked_up" &&
                     item.Detail.Contains(townWoodId, StringComparison.Ordinal)))
-                pickupPosition = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+                pickupPosition = world.Agents.Single(person => person.AgentId == actor).Position;
         }
         Assert.Contains(provider.Seen.SelectMany(request => request.Observation.Candidates),
             candidate => candidate.Id == "expand_building:" + house.InstanceId);
@@ -1023,12 +1023,12 @@ public sealed class BuildingExpansionTests
             Assert.True(step.Advanced);
             if (!step.Events.Any(item => item.Kind == "building_expansion_material_picked_up" &&
                     item.Detail.Contains(townWoodId, StringComparison.Ordinal))) continue;
-            pickupPosition = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            pickupPosition = world.Agents.Single(person => person.AgentId == actor).Position;
             break;
         }
         if (pickupPosition is null)
         {
-            var person = world.Inhabitants.Single(item => item.InhabitantId == actor);
+            var person = world.Agents.Single(item => item.AgentId == actor);
             var recentEvents = string.Join(";", world.ExportState().Events.TakeLast(12)
                 .Select(item => $"{item.Kind}:{item.Detail}"));
             var cargo = string.Join(";", world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor)
@@ -1060,15 +1060,15 @@ public sealed class BuildingExpansionTests
     public async Task AnInvitedGuestCanReachAnOccupiedHouseDuringAStorm()
     {
         using var seed = PreparedWorld("first-town-house-a", out var actor, out var house);
-        var guest = seed.Society.Inhabitants.First(person => person.HouseholdId != house.HouseholdId).Id;
+        var guest = seed.Society.Agents.First(person => person.HouseholdId != house.HouseholdId).Id;
         Assert.True(seed.SetHouseGuestInvitation(actor, house.InstanceId, guest, true).Applied);
         var state = seed.ExportState();
         Assert.NotEqual(VegetationCover.Forest, state.Map.VegetationAt(new GridPoint(house.Position.X + 1, house.Position.Y)));
         state = state with
         {
-            Survival = new SettlementSurvivalState(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == guest
-                ? person with { Position = new GridPoint(house.Position.X + 1, house.Position.Y), HungerBasisPoints = 9_000, Survival = new SurvivalCondition(4_000) }
+            Survival = new SurvivalState(0, []),
+            Agents = state.Agents.Select(person => person.AgentId == guest
+                ? person with { Position = new GridPoint(house.Position.X + 1, house.Position.Y), FullnessBasisPoints = 9_000, Survival = new SurvivalCondition(4_000) }
                 : person).ToArray(),
             WorldSystems = state.WorldSystems! with
             {
@@ -1082,10 +1082,10 @@ public sealed class BuildingExpansionTests
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => new IdleProvider(id == guest ? "seek_warmth" : "safe_idle"));
-        for (var tick = 0; tick < 12 && world.Inhabitants.Single(person => person.InhabitantId == guest).Position != house.Position; tick++)
+        for (var tick = 0; tick < 12 && world.Agents.Single(person => person.AgentId == guest).Position != house.Position; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(house.Position, world.Inhabitants.Single(person => person.InhabitantId == guest).Position);
-        Assert.Equal(house.Position, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == guest).Position);
+        Assert.Equal(house.Position, world.Agents.Single(person => person.AgentId == actor).Position);
     }
 
     [Theory]
@@ -1162,7 +1162,7 @@ public sealed class BuildingExpansionTests
         var atWorkSite = WorldRuntimeCodec.Decode(saved);
         atWorkSite = atWorkSite with
         {
-            Inhabitants = atWorkSite.Inhabitants.Select(person => person.InhabitantId == remaining
+            Agents = atWorkSite.Agents.Select(person => person.AgentId == remaining
                 ? person with { Position = house.Position, LastDecisionContext = null } : person).ToArray(),
         };
         using var resuming = WorldRuntime.Restore(atWorkSite,
@@ -1182,7 +1182,7 @@ public sealed class BuildingExpansionTests
         building = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == buildingId);
         var targetBuilding = building;
         var definition = state.WorldContent!.Buildings.Single(item => item.CanonicalId == targetBuilding.DefinitionId);
-        actor = state.Society.Society.Inhabitants.First(person => targetBuilding.HouseholdId is null || person.HouseholdId == targetBuilding.HouseholdId).Id;
+        actor = state.Society.Society.Agents.First(person => targetBuilding.HouseholdId is null || person.HouseholdId == targetBuilding.HouseholdId).Id;
         var actorId = actor;
         var inventory = state.Society.Society.Inventory;
         inventory = InventoryAuthority.AddLot(inventory, "expansion-wood", "wood", building.HouseholdId ?? building.TownId!,
@@ -1201,7 +1201,7 @@ public sealed class BuildingExpansionTests
             .Concat(state.Map.MapObjects.Select(item => item.Position))
             .Concat(state.RoadTiles!)
             .Concat(state.Fields!.Select(field => field.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actorId).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actorId).Select(person => person.Position))
             .Concat(state.Towns!.Where(town => town.Id != targetBuilding.TownId).SelectMany(town => town.BorderTiles))
             .ToHashSet();
         var candidates = state.Map.Tiles.Select(tile => tile.Position)
@@ -1232,8 +1232,8 @@ public sealed class BuildingExpansionTests
             var placed = targetBuilding with { Position = site, Entrance = entrances[0] };
             var candidate = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actorId
-                    ? person with { Position = site, HungerBasisPoints = 9_000 } : person).ToArray(),
+                Agents = state.Agents.Select(person => person.AgentId == actorId
+                    ? person with { Position = site, FullnessBasisPoints = 9_000 } : person).ToArray(),
                 WorldSimulation = state.WorldSimulation with
                 {
                     Buildings = state.WorldSimulation.Buildings.Select(item => item.InstanceId == buildingId ? placed : item).ToArray(),
@@ -1275,7 +1275,7 @@ public sealed class BuildingExpansionTests
             .Concat(state.Map.MapObjects.Select(item => item.Position))
             .Concat(state.RoadTiles!)
             .Concat(state.Fields!.Select(item => item.Position))
-            .Concat(state.Inhabitants.Select(item => item.Position))
+            .Concat(state.Agents.Select(item => item.Position))
             .Concat(state.Towns!.SelectMany(item => item.BorderTiles))
             .ToHashSet();
         return state.Map.Tiles.Select(tile => tile.Position).First(point =>
@@ -1326,7 +1326,7 @@ public sealed class BuildingExpansionTests
         {
             Seen.Add(request);
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == preferred || personal && candidate.Id.StartsWith(preferred, StringComparison.Ordinal))?.Id ?? "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 selected, 1, request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected ? 1d : 0d)));
         }

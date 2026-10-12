@@ -93,11 +93,11 @@ public sealed record TownLandRightAdjustment(string Id, string Kind, long Tick,
 /// OriginalRights retains first-touched original grant pieces; requests retain their original Council receipts.
 /// Adjustments replay from those pieces to the current rights, including later legitimate building transfers.
 /// </summary>
-public sealed record TownLandHearingState(long Sequence, IReadOnlyList<TownLandCase> Cases,
+public sealed record TownLandRecords(long Sequence, IReadOnlyList<TownLandCase> Cases,
     IReadOnlyList<TownLandRightVersion> OriginalRights, IReadOnlyList<TownLandRightAdjustment> Adjustments)
 {
     [JsonRequired]
     public IReadOnlyList<TownLandTransferRequest> Transfers { get; init; } = [];
-    public static TownLandHearingState Create() => new(0, [], [], []);
-    public static TownLandHearingState Empty { get; } = Create();
+    public static TownLandRecords Create() => new(0, [], [], []);
+    public static TownLandRecords Empty { get; } = Create();
 }

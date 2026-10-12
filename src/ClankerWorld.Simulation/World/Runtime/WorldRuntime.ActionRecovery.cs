@@ -7,7 +7,7 @@ namespace ClankerWorld.Simulation.World;
 
 public enum WorldTickFailurePolicy { Strict, RefuseSingleAction }
 
-public sealed record WorldActionRefusal(string InhabitantId, string CandidateId,
+public sealed record WorldActionRefusal(string AgentId, string CandidateId,
     long RefusedTick, long RetryAfterTick, string Check);
 
 public sealed partial class WorldRuntime
@@ -24,49 +24,49 @@ public sealed partial class WorldRuntime
 
     private bool IsReplayChoice(string actor, string candidate)
     {
-        var person = inhabitants[actor];
+        var person = agents[actor];
         return CreateUnfilteredCandidates(actor, person, restrictForOrder: true).Any(choice => choice.Id == candidate) ||
             person.Project?.CandidateId == candidate ||
             FarmWorkFor(actor) is { Work: { } work } field && FarmCandidate(work.Kind, field.Position, work.Crop) == candidate ||
             person.Equipment?.Repair is not null && candidate == "repair_equipment" ||
             person.Lesson is { Stage: "accepted" or "training" } && candidate == "lesson_attend" ||
-            ActiveStudent(actor) is { } student && candidate == "lesson_teach:" + student.InhabitantId;
+            ActiveStudent(actor) is { } student && candidate == "lesson_teach:" + student.AgentId;
     }
 
     private bool IsRefusedAction(string id, string candidate) => candidate != "safe_idle" &&
-        actionRefusals.Any(refusal => refusal.InhabitantId == id && refusal.CandidateId == candidate && WorldTick < refusal.RetryAfterTick);
+        actionRefusals.Any(refusal => refusal.AgentId == id && refusal.CandidateId == candidate && WorldTick < refusal.RetryAfterTick);
 
     private void RecordActionRefusal(WorldActionRefusal refusal)
     {
-        if (PendingInstructionFor(refusal.InhabitantId) is { } order)
+        if (PendingInstructionFor(refusal.AgentId) is { } order)
             CancelActiveOrder(order, "game_error", "Cancelled because this choice caused a game error.");
-        if (FarmWorkFor(refusal.InhabitantId) is { Work: { } work } field &&
+        if (FarmWorkFor(refusal.AgentId) is { Work: { } work } field &&
             FarmCandidate(work.Kind, field.Position, work.Crop) == refusal.CandidateId) CancelFarmWork(field);
-        if (inhabitants[refusal.InhabitantId].Equipment?.Repair is not null && refusal.CandidateId == "repair_equipment")
-            CancelEquipmentRepair(refusal.InhabitantId);
-        if (inhabitants[refusal.InhabitantId].Project is { Stage: not ("completed" or "cancelled") } project &&
+        if (agents[refusal.AgentId].Equipment?.Repair is not null && refusal.CandidateId == "repair_equipment")
+            CancelEquipmentRepair(refusal.AgentId);
+        if (agents[refusal.AgentId].Project is { Stage: not ("completed" or "cancelled") } project &&
             project.CandidateId == refusal.CandidateId)
         {
             CancelProductionJobs(worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
-                .Where(job => job.JobId == project.JobId && job.WorkerId == refusal.InhabitantId &&
+                .Where(job => job.JobId == project.JobId && job.WorkerId == refusal.AgentId &&
                     job.State is WorldProductionJobState.Running or WorldProductionJobState.Paused)
                 .ToArray(), "production_action_refused");
-            SetProject(refusal.InhabitantId, project with
+            SetProject(refusal.AgentId, project with
             {
                 Stage = "cancelled",
                 RequiresFreshChoice = false,
                 Blocker = "This choice caused a game error.",
             });
         }
-        if (inhabitants[refusal.InhabitantId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson &&
+        if (agents[refusal.AgentId].Lesson is { Stage: not ("completed" or "cancelled" or "declined") } lesson &&
             refusal.CandidateId == "lesson_attend")
-            SetLesson(refusal.InhabitantId, lesson with { Stage = "cancelled" });
-        if (ActiveStudent(refusal.InhabitantId) is { } student && refusal.CandidateId == "lesson_teach:" + student.InhabitantId)
-            SetLesson(student.InhabitantId, student.Lesson! with { Stage = "cancelled" });
-        society.ClearCurrentIntention(refusal.InhabitantId, WorldTick);
-        actionRefusals.RemoveAll(item => item.InhabitantId == refusal.InhabitantId && item.CandidateId == refusal.CandidateId);
+            SetLesson(refusal.AgentId, lesson with { Stage = "cancelled" });
+        if (ActiveStudent(refusal.AgentId) is { } student && refusal.CandidateId == "lesson_teach:" + student.AgentId)
+            SetLesson(student.AgentId, student.Lesson! with { Stage = "cancelled" });
+        society.ClearCurrentIntention(refusal.AgentId, WorldTick);
+        actionRefusals.RemoveAll(item => item.AgentId == refusal.AgentId && item.CandidateId == refusal.CandidateId);
         actionRefusals.Add(refusal);
-        actionRefusals = actionRefusals.OrderBy(item => item.InhabitantId, StringComparer.Ordinal)
+        actionRefusals = actionRefusals.OrderBy(item => item.AgentId, StringComparer.Ordinal)
             .ThenBy(item => item.CandidateId, StringComparer.Ordinal).ToList();
         refusedActionCount = checked(refusedActionCount + 1);
         AppendEvent("action_refused", JsonSerializer.Serialize(refusal));
@@ -76,17 +76,17 @@ public sealed partial class WorldRuntime
     {
         if (state.ActionRefusals is null || state.RefusedActionCount < state.ActionRefusals.Count)
             throw new InvalidDataException("The saved action-refusal count is invalid.");
-        var identities = state.Society.Society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var identities = state.Society.Society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var seen = new HashSet<(string, string)>();
         foreach (var refusal in state.ActionRefusals)
-            if (refusal is null || !identities.Contains(refusal.InhabitantId) || string.IsNullOrWhiteSpace(refusal.CandidateId) ||
+            if (refusal is null || !identities.Contains(refusal.AgentId) || string.IsNullOrWhiteSpace(refusal.CandidateId) ||
                 refusal.CandidateId == "safe_idle" || refusal.CandidateId.Any(char.IsControl) ||
                 refusal.RefusedTick < 1 || refusal.RefusedTick > state.Society.Society.WorldTick ||
                 refusal.RetryAfterTick - refusal.RefusedTick != state.WorldSystems!.Config.TicksPerDay ||
                 refusal.RetryAfterTick <= state.Society.Society.WorldTick ||
                 string.IsNullOrEmpty(refusal.Check) || refusal.Check.Length > 96 ||
                 refusal.Check.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '.')) ||
-                !seen.Add((refusal.InhabitantId, refusal.CandidateId)))
+                !seen.Add((refusal.AgentId, refusal.CandidateId)))
                 throw new InvalidDataException("The saved action-refusal boundary is invalid.");
         var recorded = state.Events.Where(item => item.Kind == "action_refused").Select(item =>
         {
@@ -94,7 +94,7 @@ public sealed partial class WorldRuntime
             {
                 var refusal = JsonSerializer.Deserialize<WorldActionRefusal>(item.Detail);
                 if (refusal is null || refusal.RefusedTick != item.WorldTick ||
-                    item.Detail != JsonSerializer.Serialize(refusal) || !identities.Contains(refusal.InhabitantId) ||
+                    item.Detail != JsonSerializer.Serialize(refusal) || !identities.Contains(refusal.AgentId) ||
                     string.IsNullOrWhiteSpace(refusal.CandidateId) || refusal.CandidateId == "safe_idle" ||
                     refusal.CandidateId.Any(char.IsControl) || refusal.RefusedTick < 1 ||
                     refusal.RetryAfterTick <= refusal.RefusedTick ||
@@ -188,7 +188,7 @@ public sealed partial class WorldRuntime
             (current is null || current.ProviderEpoch == epoch);
         public DecisionProviderKind Kind => inner.Kind;
         public long ProviderEpoch => recording() ? epoch : inner.ProviderEpoch;
-        public DecisionProviderKind KindFor(InhabitantObservation observation) => inner.KindFor(observation);
+        public DecisionProviderKind KindFor(AgentObservation observation) => inner.KindFor(observation);
         public void Clear() => replies.Clear();
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {

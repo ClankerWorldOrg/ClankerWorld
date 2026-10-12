@@ -33,7 +33,7 @@ internal sealed partial class EnvironmentSystem(WorldSystemsState state)
         };
     }
 
-    internal void AddSettlementResources(WorldMap map, IReadOnlyList<MapResource> additions,
+    internal void AddStartingResources(WorldMap map, IReadOnlyList<MapResource> additions,
         IReadOnlySet<ChunkCoordinate> changedChunks, long worldTick) => State = State with
         {
             Ecology = State.Ecology with

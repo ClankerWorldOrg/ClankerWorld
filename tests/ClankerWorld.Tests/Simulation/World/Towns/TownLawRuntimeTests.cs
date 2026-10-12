@@ -21,7 +21,7 @@ public sealed class TownLawRuntimeTests
         var origin = initial.Towns![0].OriginSite!.Value;
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(p => p with { Position = origin, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = initial.Agents.Select(p => p with { Position = origin, FullnessBasisPoints = 8_000 }).ToArray(),
         }, id => providers.GetOrAdd(id, key => new LawProvider(key)));
         var before = world.ExportState();
         for (var tick = 0; tick < 120 && !(world.Towns[0].Government is { Laws: [{ Versions.Count: > 1 }, ..] }); tick++)
@@ -35,7 +35,7 @@ public sealed class TownLawRuntimeTests
         Assert.All(law.Versions[0].SiteTiles, tile => Assert.True(TownLandRightsRules.IsCoveredByTownTitle(tile, town.Id, world.ExportState().TownLandTitles!)));
         Assert.Equal("Cut only fallen wood near the notice place.", law.Versions[1].Rule);
         Assert.Equal(law.Versions[0].EndedTick, law.Versions[1].AdoptedTick);
-        var adoption = town.Governance!.Proposals.Single(p => p.Id == law.Versions[0].ProposalId);
+        var adoption = town.Council!.Proposals.Single(p => p.Id == law.Versions[0].ProposalId);
         Assert.Equal("passed", adoption.Status);
         Assert.Equal(adoption.SettledTick, law.Versions[0].AdoptedTick);
         Assert.Contains(providers[Author].Seen, id => id.Contains("|propose|site:", StringComparison.Ordinal));
@@ -85,13 +85,13 @@ public sealed class TownLawRuntimeTests
         var day = state.WorldSystems!.Config.TicksPerDay;
         var ids = town.ResidentIds;
         var site = state.TownLandTitles![0].Tiles.Take(2).ToArray();
-        var (council, government) = TownLawRules.ProposeAdoption(town.Governance!, town.Government!, town.Id, ids[0], "Grove: Leave the saplings.",
+        var (council, government) = TownLawRules.ProposeAdoption(town.Council!, town.Government!, town.Id, ids[0], "Grove: Leave the saplings.",
             TownLawRules.Site, site, ids, 0, day);
-        foreach (var voter in ids.Take(3)) council = TownGovernanceRules.VoteProposal(council, council.Proposals[0].Id, voter, true, 0);
+        foreach (var voter in ids.Take(3)) council = TownCouncilRules.VoteProposal(council, council.Proposals[0].Id, voter, true, 0);
         (council, government) = TownLawRules.Enact(council, government, town.Id, town.Name, 0);
         (council, government) = TownLawRules.ProposeAdoption(council, government, town.Id, ids[0], "Paths: Leave the path clear.",
             TownLawRules.Site, site, ids, 0, day);
-        var healthy = state with { Towns = [town with { Governance = council, Government = government }] };
+        var healthy = state with { Towns = [town with { Council = council, Government = government }] };
         var encoded = WorldRuntimeCodec.Encode(healthy);
         using (var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded)))
             Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -125,17 +125,17 @@ public sealed class TownLawRuntimeTests
         var town = initial.Towns![0];
         var day = initial.WorldSystems!.Config.TicksPerDay;
         var adults = town.ResidentIds;
-        var council = town.Governance!;
+        var council = town.Council!;
         var government = town.Government!;
         for (var i = 0; i < 8; i++)
         {
             (council, government) = TownLawRules.ProposeAdoption(council, government, town.Id, adults[0],
                 $"Rule {i}: Share work {i}.", TownLawRules.ResidentDuty, [], adults, 0, day);
-            foreach (var voter in adults.Take(3)) council = TownGovernanceRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
+            foreach (var voter in adults.Take(3)) council = TownCouncilRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
             (council, government) = TownLawRules.Enact(council, government, town.Id, town.Name, 0);
         }
-        council = TownGovernanceRules.LearnNotices(council, adults[0], council.Notices.Select(n => n.Id), 0);
-        town = town with { Governance = council, Government = government };
+        council = TownCouncilRules.LearnNotices(council, adults[0], council.Notices.Select(n => n.Id), 0);
+        town = town with { Council = council, Government = government };
         using var world = WorldRuntime.Restore(initial with { Towns = [town] });
         var candidates = new List<CognitionCandidate>();
         typeof(WorldRuntime).GetMethod("AddTownLawCandidates", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
@@ -146,12 +146,12 @@ public sealed class TownLawRuntimeTests
         Assert.EndsWith("|1", stale, StringComparison.Ordinal);
         (council, government) = TownLawRules.ProposeAmendment(council, government, town.Id, adults[1], first.Id,
             "Rule zero: Share the agreed work.", adults, 0, day);
-        foreach (var voter in adults.Take(3)) council = TownGovernanceRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
+        foreach (var voter in adults.Take(3)) council = TownCouncilRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
         (council, government) = TownLawRules.Enact(council, government, town.Id, town.Name, 0);
         Assert.Throws<InvalidOperationException>(() => TownLawRules.ProposeRepeal(council, government, town.Id, adults[0], first.Id, adults, 0, day, expectedVersion: 1));
         // Even after learning the new wording, an earlier delayed action cannot become consent to repeal it.
-        council = TownGovernanceRules.LearnNotices(council, adults[0], council.Notices.Select(n => n.Id), 0);
-        using var updated = WorldRuntime.Restore(initial with { Towns = [town with { Governance = council, Government = government }] });
+        council = TownCouncilRules.LearnNotices(council, adults[0], council.Notices.Select(n => n.Id), 0);
+        using var updated = WorldRuntime.Restore(initial with { Towns = [town with { Council = council, Government = government }] });
         var before = WorldRuntimeCodec.Encode(updated.ExportState());
         typeof(WorldRuntime).GetMethod("ApplyTownCivicCandidate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .Invoke(updated, [adults[0], stale, null, null, null, null, null]);
@@ -189,7 +189,7 @@ public sealed class TownLawRuntimeTests
                 }
             }
             selected ??= o.Candidates.Single(c => c.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, o.AgentId, Kind, ProviderEpoch,
                 o.RunEpoch, o.DecisionGeneration, o.ObservationDigest, selected.Id, 1,
                 o.Candidates.ToDictionary(c => c.Id, c => c.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicProposal: selected.Id.Contains("|propose|", StringComparison.Ordinal) || selected.Id.Contains("|amend|", StringComparison.Ordinal) ? text : null));

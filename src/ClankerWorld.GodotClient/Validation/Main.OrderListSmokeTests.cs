@@ -24,9 +24,9 @@ public partial class Main
             int requested = 1, int completed = 0, string? reason = null, string? reply = null)
         {
             var open = status is "queued" or "waiting" or "doing" or "interrupted" or "blocked";
-            return new OwnerWorldInstruction($"order-list-{sequence}", ilya.Id, "must_do", text, open ? "queued" : "completed",
+            return new OwnerWorldInstruction($"order-list-{sequence}", ilya.Id, "order", text, open ? "queued" : "completed",
                 sequence, 0, sequence, reply is null ? null : sequence, reply,
-                new OwnerWorldInstructionOrder(action, status, action == "unknown" ? 0 : requested, completed,
+                new OwnerWorldOrderTask(action, status, action == "unknown" ? 0 : requested, completed,
                     action == "unknown" ? "none" : "food_items", false, BlockedReason: reason));
         }
         var orders = new[]
@@ -43,8 +43,8 @@ public partial class Main
         };
         var snapshot = shown with
         {
-            Inhabitants = [ilya],
-            Instructions = [.. orders, new OwnerWorldInstruction("order-list-suggestion", ilya.Id, "suggestive",
+            Agents = [ilya],
+            Instructions = [.. orders, new OwnerWorldInstruction("order-list-suggestion", ilya.Id, "suggestion",
                 "Rest by the fire tonight.", "queued", 9, 0, 9)],
         };
         var displayWindow = GetWindow();
@@ -66,22 +66,22 @@ public partial class Main
                 if (uiLayer.Factor != factor)
                     throw new InvalidOperationException($"The order checks expected the interface the game picks for {size}, not {uiLayer.Factor * 100}%.");
                 RenderMap(snapshot);
-                selectedInhabitantId = ilya.Id;
+                selectedAgentId = ilya.Id;
                 ordersPanel.Hide();
                 // The Profile's width with no orders, so the order line and All orders can be checked not to widen it.
                 agentProfileRequested = true;
-                RenderSelectedInhabitantCard(snapshot with { Instructions = [] });
+                RenderSelectedAgentCard(snapshot with { Instructions = [] });
                 for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
                 PositionAgentProfile();
                 var profileWidth = agentProfilePanel.GetGlobalRect().Size.X;
                 agentProfileRequested = false;
-                RenderSelectedInhabitantCard(snapshot);
+                RenderSelectedAgentCard(snapshot);
                 for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-                PositionSelectedInhabitantCard(snapshot);
+                PositionSelectedAgentCard(snapshot);
 
                 // The quick card names the order they are on now, why it is held up and what waits behind it.
                 const string current = "Order: Blocked · Eating food · 0/3 food items · Waiting until hungry enough to eat.\n4 more orders queued";
-                var card = selectedInhabitantCard.GetGlobalRect();
+                var card = selectedAgentCard.GetGlobalRect();
                 if (quickCardOrderLabel.Text != current || quickCardOrderLabel.ThemeTypeVariation != "WarningLabel" ||
                     !quickCardOrderLabel.IsVisibleInTree() || !card.Grow(1).Encloses(quickCardOrderLabel.GetGlobalRect()) ||
                     !mapCanvas.GetGlobalRect().Grow(1).Encloses(card) || card.Size.X > (QuickCardWidth + 1) * factor)
@@ -142,7 +142,7 @@ public partial class Main
                         _ => item,
                     })],
                 };
-                RenderSelectedInhabitantCard(advanced);
+                RenderSelectedAgentCard(advanced);
                 text = ordersReaderText.GetParsedText();
                 var nowAt = At("Now\nWaiting · Going to a food site\nYou said: “Go to the berries at 2, 1.”");
                 var finishedAt = At("Finished · Eating food · 3/3 food items · Heard by their personal model\nYou said: “Eat three berries.”");
@@ -150,7 +150,7 @@ public partial class Main
                     finishedAt < At("Earlier") || At("Earlier") < At("Queued") || At("Queued") < nowAt ||
                     text.Contains("Blocked", StringComparison.Ordinal) || text.Split("You said:").Length - 1 != orders.Length)
                     throw new InvalidOperationException($"All orders and the order line must follow the host's next snapshot, at {size}: {profileOrderLabel.Text}\n{text}");
-                RenderSelectedInhabitantCard(snapshot);
+                RenderSelectedAgentCard(snapshot);
                 _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
                 if (ordersPanel.Visible || !agentProfilePanel.Visible)
                     throw new InvalidOperationException("Escape must close All orders before the Profile.");
@@ -175,7 +175,7 @@ public partial class Main
                 var order = status == "not_understood"
                     ? Order(1, "Biuld a house.", status, "unknown")
                     : Order(1, "Eat three berries.", status, requested: 3, completed: status == "finished" ? 3 : 1, reason: reason);
-                RenderSelectedInhabitantCard(snapshot with { Instructions = [order] });
+                RenderSelectedAgentCard(snapshot with { Instructions = [order] });
                 var style = status is "blocked" or "interrupted" ? "WarningLabel" : line.StartsWith("Last", StringComparison.Ordinal) ? "DimLabel" : "SoftLabel";
                 if (quickCardOrderLabel.Text != line || quickCardOrderLabel.ThemeTypeVariation != style || !quickCardOrderLabel.Visible)
                     throw new InvalidOperationException($"A {status} order must read \"{line}\" on the quick card: {quickCardOrderLabel.Text}");
@@ -183,29 +183,29 @@ public partial class Main
             // Guardian orders now share the same host list, and need a useful task name too.
             var guardian = Order(1, "Become guardian for Lina.", "blocked", "accept_guardianship",
                 requested: 1, reason: "Waiting to be asked by the child's guardian search.");
-            guardian = guardian with { Order = guardian.Order! with { ProgressUnit = "guardianships" } };
-            RenderSelectedInhabitantCard(snapshot with { Instructions = [guardian] });
+            guardian = guardian with { Task = guardian.Task! with { ProgressUnit = "guardianships" } };
+            RenderSelectedAgentCard(snapshot with { Instructions = [guardian] });
             if (quickCardOrderLabel.Text != "Order: Blocked · Becoming a guardian · 0/1 care assignments · Waiting to be asked by the child's guardian search.")
                 throw new InvalidOperationException($"Guardian orders need their own task name and progress wording: {quickCardOrderLabel.Text}");
             // So do orders to walk to an exact tile.
             var movement = Order(1, "Move to tile (12, 4).", "blocked", "move_to",
                 requested: 1, reason: "No open walking route reaches the requested tile right now.");
-            movement = movement with { Order = movement.Order! with { ProgressUnit = "arrivals", TargetX = 12, TargetY = 4 } };
-            RenderSelectedInhabitantCard(snapshot with { Instructions = [movement] });
+            movement = movement with { Task = movement.Task! with { ProgressUnit = "arrivals", TargetX = 12, TargetY = 4 } };
+            RenderSelectedAgentCard(snapshot with { Instructions = [movement] });
             if (quickCardOrderLabel.Text != "Order: Blocked · Going to a tile · 0/1 sites reached · No open walking route reaches the requested tile right now.")
                 throw new InvalidOperationException($"Movement orders need their own task name: {quickCardOrderLabel.Text}");
             var boatOrder = movement with
             {
-                Order = movement.Order! with
+                Task = movement.Task! with
                 {
                     Action = "travel_by_boat",
                     BlockedReason = "Waiting for dock space at the destination Port."
                 }
             };
-            RenderSelectedInhabitantCard(snapshot with { Instructions = [boatOrder] });
+            RenderSelectedAgentCard(snapshot with { Instructions = [boatOrder] });
             if (quickCardOrderLabel.Text != "Order: Blocked · Traveling to a Port by boat · 0/1 sites reached · Waiting for dock space at the destination Port.")
                 throw new InvalidOperationException($"Boat orders need their own task and waiting reason: {quickCardOrderLabel.Text}");
-            RenderSelectedInhabitantCard(snapshot with { Instructions = [] });
+            RenderSelectedAgentCard(snapshot with { Instructions = [] });
             if (quickCardOrderLabel.Visible || allOrdersButton.Visible)
                 throw new InvalidOperationException("An agent with no orders must show no order line and no All orders button.");
         }
@@ -213,14 +213,14 @@ public partial class Main
         {
             ordersPanel.Hide();
             agentProfileRequested = false;
-            selectedInhabitantId = null;
+            selectedAgentId = null;
             displayWindow.Size = originalWindowSize;
             displayWindow.ContentScaleMode = originalScaleMode;
             displayWindow.ContentScaleAspect = originalScaleAspect;
             displayWindow.ContentScaleSize = originalRenderSize;
             ApplyUiScale();
             cameraZoom = originalZoom;
-            RenderSelectedInhabitantCard(shown);
+            RenderSelectedAgentCard(shown);
             RenderMap(shown);
         }
     }

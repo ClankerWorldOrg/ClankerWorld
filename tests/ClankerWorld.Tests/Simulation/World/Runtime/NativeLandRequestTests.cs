@@ -21,14 +21,14 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var state = WorldRuntimeCodec.Decode(await (later ? LaterAdult : ConversationAdult).Value);
         var native = state.Society.Society.Births.OrderBy(birth => birth.CommittedTick).Last().ChildId;
-        var household = state.Society.Society.GetInhabitant(native).HouseholdId;
+        var household = state.Society.Society.GetAgent(native).HouseholdId;
         if (formedHousehold)
         {
             state = await FormNativeLandHouseholdAsync(state, native);
-            Assert.InRange(state.Society.Society.GetInhabitant(native).HouseholdId!.Length, 1, DerivedId.MaximumLength);
+            Assert.InRange(state.Society.Society.GetAgent(native).HouseholdId!.Length, 1, DerivedId.MaximumLength);
         }
-        var control = state.Society.Society.Inhabitants.First(person => person.Id != native && person.Id.Length <= 128 &&
-            person.Status == SocietyInhabitantStatus.Active && person.HouseholdId == household &&
+        var control = state.Society.Society.Agents.First(person => person.Id != native && person.Id.Length <= 128 &&
+            person.Status == SocietyAgentStatus.Active && person.HouseholdId == household &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).Id;
         var actor = shortControl ? control : native;
         Assert.InRange(native.Length, 1, DerivedId.MaximumLength);
@@ -40,7 +40,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         // Keep both actual positions and require an advertised plot for both.
         var query = typeof(WorldRuntime).GetMethod("RequestableLandNear", BindingFlags.Instance | BindingFlags.NonPublic)!;
         GridPoint[] Offered(string id) => (GridPoint[])query.Invoke(publicWorld,
-            [town, state.Inhabitants.Single(person => person.InhabitantId == id).Position, 6])!;
+            [town, state.Agents.Single(person => person.AgentId == id).Position, 6])!;
         var plot = Offered(native).Intersect(Offered(control)).First();
         var requestId = new string('r', 128);
         AssertLandRequestRefused(publicWorld, new string('r', 129), control, town.Id, [plot]);
@@ -54,7 +54,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.True(result.Applied, result.Failure);
         var request = Assert.IsType<HouseholdLandUseRequest>(result.Request);
         Assert.Equal(actor, request.RequestedByAgentId);
-        Assert.Equal(state.Society.Society.GetInhabitant(actor).HouseholdId, request.HouseholdId);
+        Assert.Equal(state.Society.Society.GetAgent(actor).HouseholdId, request.HouseholdId);
         AssertPendingLandRequest(publicWorld, state, actor, plot);
         var saved = WorldRuntimeCodec.Encode(publicWorld.ExportState());
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietProvider());
@@ -73,7 +73,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var world = WorldRuntime.Restore(state, _ => choices);
         world.Resume();
         world.SubmitInstruction(new OwnerInstructionRequest("consider-native-land", "owner:test", actor,
-            OwnerInstructionKind.Suggestive, $"Consider asking for household use of ({plot.X}, {plot.Y})."));
+            OwnerInstructionKind.Suggestion, $"Consider asking for household use of ({plot.X}, {plot.Y})."));
         var folder = Directory.CreateTempSubdirectory("native-land-request-");
         try
         {
@@ -136,7 +136,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             state = WorldRuntimeCodec.Decode(await Born.Value);
             actor = Assert.Single(state.Society.Society.Births).ChildId;
             town = state.Towns!.Single(item => item.ResidentIds.Contains(actor)).Id;
-            Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetInhabitant(actor).AgeBand);
+            Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetAgent(actor).AgeBand);
         }
         using var world = WorldRuntime.Restore(state, _ => new QuietProvider());
         AssertLandRequestRefused(world, "ineligible-person", actor, town,
@@ -156,13 +156,13 @@ public sealed partial class GrownAgentHelperMemoryTests
     {
         var request = Assert.Single(world.HouseholdLandUseRequests);
         Assert.Equal(actor, request.RequestedByAgentId);
-        Assert.Equal(initial.Society.Society.GetInhabitant(actor).HouseholdId, request.HouseholdId);
+        Assert.Equal(initial.Society.Society.GetAgent(actor).HouseholdId, request.HouseholdId);
         Assert.Equal("pending", request.Status);
         Assert.Equal([plot], request.Tiles);
         Assert.Empty(request.Consents);
         Assert.Equal(JsonSerializer.SerializeToUtf8Bytes(initial.HouseholdLandUseRights),
             JsonSerializer.SerializeToUtf8Bytes(world.HouseholdLandUseRights));
-        var proposal = Assert.Single(world.Towns.Single(town => town.Id == request.TownId).Governance!.Proposals,
+        var proposal = Assert.Single(world.Towns.Single(town => town.Id == request.TownId).Council!.Proposals,
             item => item.Id == request.CouncilProposalId);
         Assert.Equal(actor, proposal.AuthorId);
         Assert.Equal("pending", proposal.Status);
@@ -177,12 +177,12 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var selected = observation.InhabitantId == actor ? observation.Candidates.FirstOrDefault(candidate =>
+            var selected = observation.AgentId == actor ? observation.Candidates.FirstOrDefault(candidate =>
                 candidate.Id.Contains("|request_land_use|", StringComparison.Ordinal) &&
                 candidate.Description.Contains($"({plot.X}, {plot.Y})", StringComparison.Ordinal)) : null;
             selected ??= observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             Selected.Add(selected.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate == selected ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: selected.Id.Contains("|request_land_use|", StringComparison.Ordinal)

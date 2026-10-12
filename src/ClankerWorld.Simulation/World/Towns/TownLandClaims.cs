@@ -49,7 +49,7 @@ public static class TownLandClaimRules
     {
         var approvals = new HashSet<string>(StringComparer.Ordinal);
         foreach (var town in towns)
-            foreach (var proposal in town.Governance?.Proposals.Where(p => p.Kind == "land_claim") ?? [])
+            foreach (var proposal in town.Council?.Proposals.Where(p => p.Kind == "land_claim") ?? [])
             {
                 if (proposal.LandClaimTiles is not { Count: <= CognitionDecisionResponse.MaximumCivicLandTiles } tiles ||
                     !TownLandRightsRules.IsValidPlot(map, tiles, tick, proposal.OpenedTick) ||
@@ -74,8 +74,8 @@ public static class TownLandClaimRules
 
 public sealed partial class WorldRuntime
 {
-    private TownGovernanceState SubmitTownLandClaim(TownRuntimeState town, TownGovernanceState state,
-        string actor, IReadOnlyList<CognitionLandTile>? requested) => civicSystem.SubmitTownLandClaim(civicWorld, town, state, actor, requested);
-    private (TownRuntimeState Town, TownGovernanceState Governance) ApplyApprovedTownLandClaims(
-        TownRuntimeState town, TownGovernanceState updated) => civicSystem.ApplyApprovedTownLandClaims(civicWorld, town, updated);
+    private TownCouncilState SubmitTownLandClaim(TownRuntimeState town, TownCouncilState state,
+        string actor, IReadOnlyList<CognitionLandTile>? requested) => townSystem.SubmitTownLandClaim(civicWorld, town, state, actor, requested);
+    private (TownRuntimeState Town, TownCouncilState Council) ApplyApprovedTownLandClaims(
+        TownRuntimeState town, TownCouncilState updated) => townSystem.ApplyApprovedTownLandClaims(civicWorld, town, updated);
 }

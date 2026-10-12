@@ -10,7 +10,7 @@ public sealed class WorldDeliveryOrderParserTests
     private const string Actor = "founder-ilya";
     private static readonly ContentPackageManifest[] Packages =
     [
-        StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(), FarmContent.Create(),
+        StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), FarmContent.Create(),
         BlacksmithContent.Create(), TailorContent.Create(), PotteryContent.Create(), OrnamentContent.Create(),
         CareContent.Create(), HouseCookingContent.Create(), RestaurantContent.Create(),
     ];
@@ -102,7 +102,7 @@ public sealed class WorldDeliveryOrderParserTests
         Assert.Null(refused.DeliveryPurpose);
         Assert.Null(refused.TargetBuildingKind);
         Assert.Null(refused.TargetItemKind);
-        Assert.Equal(original, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(original, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class WorldDeliveryOrderParserTests
         Assert.False(orderJson.ContainsKey("deliveryLotId"));
         Assert.False(orderJson.ContainsKey("deliveryQuantity"));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
 
         (string Member, JsonNode? Value)[] corruptions =
@@ -172,7 +172,7 @@ public sealed class WorldDeliveryOrderParserTests
         {
             Instructions = saved.Instructions!.Select(item => item with
             {
-                Order = item.Order! with { TargetAgentId = Actor },
+                Task = item.Task! with { TargetAgentId = Actor },
             }).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(corrupt));
@@ -202,9 +202,9 @@ public sealed class WorldDeliveryOrderParserTests
         }
     }
 
-    private static OwnerInstructionOrder Submit(WorldRuntime world, string key, string text)
+    private static OrderTask Submit(WorldRuntime world, string key, string text)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.MustDo, text));
-        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text));
+        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     }
 }

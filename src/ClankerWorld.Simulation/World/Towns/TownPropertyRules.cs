@@ -48,25 +48,25 @@ public static class TownPropertyRules
                     SocietyRelationshipState.Dissolved or SocietyRelationshipState.EndedByDeath)
             .Select(edge => edge.TargetId)
             .Concat(society.Births.Where(birth => birth.HouseholdId == household && birth.CommittedTick <= tick).Select(birth => birth.ChildId))
-            .Distinct(StringComparer.Ordinal).Where(id => society.Inhabitants.Any(person => person.Id == id &&
+            .Distinct(StringComparer.Ordinal).Where(id => society.Agents.Any(person => person.Id == id &&
                 (person.DeathTick is null || person.DeathTick > tick))).Order(StringComparer.Ordinal).ToArray();
 
     public static bool HadMembers(SocietyCheckpoint society, string household, long tick) => society.Relationships.Any(edge =>
         edge.Type == SocietyRelationshipType.HouseholdMembership && edge.HouseholdId == household && edge.ProposedTick <= tick &&
         (edge.State == SocietyRelationshipState.Accepted && edge.EffectiveTick <= tick ||
             edge.State is SocietyRelationshipState.Revoked or SocietyRelationshipState.Dissolved or SocietyRelationshipState.EndedByDeath && edge.EffectiveTick > tick) &&
-        society.Inhabitants.Any(person => person.Id == edge.TargetId && (person.DeathTick is null || person.DeathTick > tick)));
+        society.Agents.Any(person => person.Id == edge.TargetId && (person.DeathTick is null || person.DeathTick > tick)));
 
     public static IReadOnlyList<string> RequiredConsent(TownPropertySnapshot snapshot) =>
         snapshot.LivingFormerMemberIds.Concat(snapshot.RecipientAdultIds).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 
     public static TownLandCaseParty[] Parties(IEnumerable<TownLandCaseParty> parties, TownPropertyCase property,
-        string townId, IReadOnlyList<SocietyInhabitant> inhabitants)
+        string townId, IReadOnlyList<SocietyAgent> agents)
     {
         var household = property.Request.SourceHouseholdId ?? property.Request.TargetHouseholdId!;
         var snapshot = property.Snapshots[^1];
         var owners = property.Request.SourceHouseholdId is not null ? snapshot.LivingFormerMemberIds : snapshot.RecipientAdultIds;
-        var adults = owners.Where(id => inhabitants.Any(person => person.Id == id && person.Status == SocietyInhabitantStatus.Active &&
+        var adults = owners.Where(id => agents.Any(person => person.Id == id && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)).Order(StringComparer.Ordinal).ToArray();
         return parties.Where(party => party.HouseholdId != household)
             .Append(new(TownLandCasePartyRules.HouseholdPartyId(household), "household", household, townId, adults))
@@ -82,7 +82,7 @@ public static class TownPropertyRules
             property.Consents.LastOrDefault(consent => consent.Revision == revision.Number && consent.AgentId == actor && consent.Tick <= tick) is { Agreed: true });
     }
 
-    public static TownLandHearingState Consent(TownLandHearingState state, string caseId, string actor, bool agreed,
+    public static TownLandRecords Consent(TownLandRecords state, string caseId, string actor, bool agreed,
         long tick, IReadOnlyList<TownCivicReceipt> receipts, IReadOnlyList<TownLandCaseParty> parties)
     {
         var item = state.Cases.Single(item => item.Id == caseId);
@@ -102,7 +102,7 @@ public static class TownPropertyRules
         return Replace(state, item with { Property = property with { Consents = property.Consents.Append(new(revision.Number, actor, agreed, tick)).ToArray() } });
     }
 
-    public static string? FilingRefusal(TownLandHearingState state, IReadOnlyList<GridPoint> tiles, TownPropertyCase property)
+    public static string? FilingRefusal(TownLandRecords state, IReadOnlyList<GridPoint> tiles, TownPropertyCase property)
     {
         if (state.Cases.Any(item => item.Status == "pending" && TownLandHearingRules.CurrentRevision(item).Tiles.Any(tiles.Contains)))
             return "An existing hearing on this plot must finish first.";
@@ -127,6 +127,6 @@ public static class TownPropertyRules
         return result.OrderBy(right => right.Id, StringComparer.Ordinal).ToArray();
     }
 
-    internal static TownLandHearingState Replace(TownLandHearingState state, TownLandCase item) =>
+    internal static TownLandRecords Replace(TownLandRecords state, TownLandCase item) =>
         state with { Cases = state.Cases.Select(current => current.Id == item.Id ? item : current).ToArray() };
 }

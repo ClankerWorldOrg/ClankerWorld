@@ -13,54 +13,54 @@ public sealed class RemedyRenegotiationCounterTests
     [InlineData(false, true, 1)]
     public async Task AcceptedCounterReplacesOnlyItsOriginalUnfinishedAgreement(bool renegotiate, bool counter, int counterRounds)
     {
-        const string subject = NonviolentRuntimeFixture.Subject;
-        const string witness = NonviolentRuntimeFixture.Witness;
-        var state = renegotiate ? await NonviolentRuntimeFixture.AcceptedRemedyAsync() : await NonviolentRuntimeFixture.FindingAsync();
+        const string subject = NonLandRuntimeFixture.Subject;
+        const string witness = NonLandRuntimeFixture.Witness;
+        var state = renegotiate ? await NonLandRuntimeFixture.AcceptedRemedyAsync() : await NonLandRuntimeFixture.FindingAsync();
         state = ShelterOrderTestFixture.WithClearWeather(state);
-        var original = renegotiate ? Assert.Single(state.Towns![0].Nonviolent.Agreements) : null;
+        var original = renegotiate ? Assert.Single(state.Towns![0].NonLandHearings.Agreements) : null;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "counter-witness-wood", "wood", witness, 2);
         var board = state.Towns![0].OriginSite!.Value;
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId is subject or witness ? board : person.Position,
-                HungerBasisPoints = 9_000,
+                Position = person.AgentId is subject or witness ? board : person.Position,
+                FullnessBasisPoints = 9_000,
                 Survival = person.Survival is { } survival ? survival with { WarmthBasisPoints = 9_000, IllnessBasisPoints = 0 } : null,
                 LastDecisionContext = null,
             }).ToArray(),
         };
-        if (!renegotiate) state = await NonviolentRuntimeFixture.OfferRemedyAsync(NonviolentRuntimeFixture.Strict(state), Terms(1));
+        if (!renegotiate) state = await NonLandRuntimeFixture.OfferRemedyAsync(NonLandRuntimeFixture.Strict(state), Terms(1));
         var phase = renegotiate ? "renegotiate" : "counter";
         var counterActor = witness;
         var provider = Choices();
-        using (var negotiating = NonviolentRuntimeFixture.Create(NonviolentRuntimeFixture.Strict(state), provider))
+        using (var negotiating = NonLandRuntimeFixture.Create(NonLandRuntimeFixture.Strict(state), provider))
         {
             if (renegotiate)
             {
-                var count = negotiating.Towns[0].Nonviolent.Offers.Count;
-                NonviolentRuntimeFixture.Wake(negotiating, subject, "request-remaining-remedy");
-                await NonviolentRuntimeFixture.UntilAsync(negotiating, () => negotiating.Towns[0].Nonviolent.Offers.Count > count, 8);
-                state = NonviolentRuntimeFixture.Strict(negotiating.ExportState());
+                var count = negotiating.Towns[0].NonLandHearings.Offers.Count;
+                NonLandRuntimeFixture.Wake(negotiating, subject, "request-remaining-remedy");
+                await NonLandRuntimeFixture.UntilAsync(negotiating, () => negotiating.Towns[0].NonLandHearings.Offers.Count > count, 8);
+                state = NonLandRuntimeFixture.Strict(negotiating.ExportState());
             }
             for (var round = 0; round < counterRounds; round++)
             {
                 phase = "counter";
                 counterActor = round % 2 == 0 ? witness : subject;
-                var count = negotiating.Towns[0].Nonviolent.Offers.Count;
-                NonviolentRuntimeFixture.Wake(negotiating, counterActor, "counter-remaining-remedy-" + round);
-                await NonviolentRuntimeFixture.UntilAsync(negotiating, () => negotiating.Towns[0].Nonviolent.Offers.Count > count, 8);
-                state = NonviolentRuntimeFixture.Strict(negotiating.ExportState());
+                var count = negotiating.Towns[0].NonLandHearings.Offers.Count;
+                NonLandRuntimeFixture.Wake(negotiating, counterActor, "counter-remaining-remedy-" + round);
+                await NonLandRuntimeFixture.UntilAsync(negotiating, () => negotiating.Towns[0].NonLandHearings.Offers.Count > count, 8);
+                state = NonLandRuntimeFixture.Strict(negotiating.ExportState());
             }
             phase = "accept";
-            NonviolentRuntimeFixture.Wake(negotiating, subject, "consent-subject-counter");
-            NonviolentRuntimeFixture.Wake(negotiating, witness, "consent-witness-counter");
-            await NonviolentRuntimeFixture.UntilAsync(negotiating, () => negotiating.Towns[0].Nonviolent.Agreements.Count == (renegotiate ? 2 : 1), 8);
-            state = NonviolentRuntimeFixture.Strict(negotiating.ExportState());
-            Assert.Empty(state.Towns![0].Nonviolent.Effects);
+            NonLandRuntimeFixture.Wake(negotiating, subject, "consent-subject-counter");
+            NonLandRuntimeFixture.Wake(negotiating, witness, "consent-witness-counter");
+            await NonLandRuntimeFixture.UntilAsync(negotiating, () => negotiating.Towns[0].NonLandHearings.Agreements.Count == (renegotiate ? 2 : 1), 8);
+            state = NonLandRuntimeFixture.Strict(negotiating.ExportState());
+            Assert.Empty(state.Towns![0].NonLandHearings.Effects);
         }
-        var replacement = state.Towns![0].Nonviolent.Agreements[^1];
+        var replacement = state.Towns![0].NonLandHearings.Agreements[^1];
         var totalWood = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity);
         Assert.Equal(1, Assert.Single(replacement.Terms, term => term.ContributorId == subject).Quantity);
         Assert.Equal(counter ? 2 : 1, Assert.Single(replacement.Terms, term => term.ContributorId == witness).Quantity);
@@ -73,21 +73,21 @@ public sealed class RemedyRenegotiationCounterTests
                 {
                     Towns = state.Towns.Select(town => town.Id == state.Towns[0].Id ? town with
                     {
-                        Nonviolent = town.Nonviolent with
+                        NonLandHearings = town.NonLandHearings with
                         {
-                            Agreements = town.Nonviolent.Agreements.Select(agreement => agreement.Id == replacement.Id
+                            Agreements = town.NonLandHearings.Agreements.Select(agreement => agreement.Id == replacement.Id
                                 ? agreement with { ReplacesAgreementId = invalid } : agreement).ToArray(),
                         },
                     } : town).ToArray(),
                 };
-                Assert.Throws<InvalidDataException>(() => NonviolentRuntimeFixture.Strict(corrupt));
+                Assert.Throws<InvalidDataException>(() => NonLandRuntimeFixture.Strict(corrupt));
             }
         phase = "perform";
-        using var world = NonviolentRuntimeFixture.Create(state, Choices());
-        NonviolentRuntimeFixture.Wake(world, subject, "perform-counter-subject");
-        NonviolentRuntimeFixture.Wake(world, witness, "perform-counter-witness");
+        using var world = NonLandRuntimeFixture.Create(state, Choices());
+        NonLandRuntimeFixture.Wake(world, subject, "perform-counter-subject");
+        NonLandRuntimeFixture.Wake(world, witness, "perform-counter-witness");
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        using var replay = NonviolentRuntimeFixture.Create(WorldRuntimeCodec.Decode(bytes), Choices());
+        using var replay = NonLandRuntimeFixture.Create(WorldRuntimeCodec.Decode(bytes), Choices());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < 6; tick++)
@@ -96,7 +96,7 @@ public sealed class RemedyRenegotiationCounterTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var ledger = world.Towns[0].Nonviolent;
+        var ledger = world.Towns[0].NonLandHearings;
         Assert.Equal(1, ledger.Effects.Where(effect => effect.ActorId == subject).Sum(effect => effect.Quantity));
         Assert.Equal(counter ? 2 : 1, ledger.Effects.Where(effect => effect.ActorId == witness).Sum(effect => effect.Quantity));
         Assert.All(ledger.Effects, effect =>
@@ -118,23 +118,23 @@ public sealed class RemedyRenegotiationCounterTests
         Assert.All(ledger.Offers.Where(offer => offer.AgreementId is null && offer.Responses.Any(response => response.Kind == "counter")),
             offer => Assert.Equal("countered", offer.Status));
         Assert.Equal(totalWood, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood").Sum(lot => lot.Quantity));
-        NonviolentRuntimeFixture.Strict(world.ExportState());
+        NonLandRuntimeFixture.Strict(world.ExportState());
 
         CognitionRemedyTerm[] Terms(int witnessQuantity) =>
         [new("return_goods", subject, witness, "wood", 1, null), new("return_goods", witness, subject, "wood", witnessQuantity, null)];
 
-        NonviolentTestProvider Choices() => new()
+        NonLandTestProvider Choices() => new()
         {
             Choose = observation =>
             {
-                if (observation.InhabitantId is not (subject or witness)) return null;
+                if (observation.AgentId is not (subject or witness)) return null;
                 if (phase == "perform") return observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("nonviolent_remedy:", StringComparison.Ordinal));
                 var informed = observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|law_case_inspect|", StringComparison.Ordinal)) ??
                     observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|remedy_read|", StringComparison.Ordinal));
                 if (informed is not null) return informed;
-                var action = phase == "accept" ? "remedy_accept" : phase == "counter" && observation.InhabitantId == counterActor ? "remedy_counter" :
-                    phase == "renegotiate" && observation.InhabitantId == subject ? "remedy_renegotiate" : null;
+                var action = phase == "accept" ? "remedy_accept" : phase == "counter" && observation.AgentId == counterActor ? "remedy_counter" :
+                    phase == "renegotiate" && observation.AgentId == subject ? "remedy_renegotiate" : null;
                 return action is null ? null : observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             },
             Payload = (_, candidate) => candidate.Id.Contains("|remedy_renegotiate|", StringComparison.Ordinal) ||

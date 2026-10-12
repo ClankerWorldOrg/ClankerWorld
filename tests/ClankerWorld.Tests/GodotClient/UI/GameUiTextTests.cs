@@ -343,12 +343,12 @@ public sealed class GameUiTextTests
     public void PartyNamesUseAgentHouseholdAndTownNamesInsteadOfIds()
     {
         var position = new OwnerWorldPosition(0, 0);
-        var agent = new OwnerWorldInhabitant("founder:1", "Rowan", "active", position, 8_000, [], [],
+        var agent = new OwnerWorldAgent("founder:1", "Rowan", "active", position, 8_000, [], [],
             new OwnerWorldRoute("idle", null, null, [], string.Empty),
             new OwnerWorldSpatialKnowledge(position, [position], [position]), false);
         var snapshot = new OwnerWorldSnapshot("names", 0, "names-map", [], [], [], null, 0)
         {
-            Inhabitants = [agent],
+            Agents = [agent],
             Stockpiles = [new OwnerWorldStockpile("household:camp-alpha", "Camp Alpha", [])],
             Towns = [new OwnerWorldTown("town:first", "First Town", "founding", 0, [], [], [])],
         };

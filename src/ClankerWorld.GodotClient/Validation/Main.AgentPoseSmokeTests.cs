@@ -12,7 +12,7 @@ public partial class Main
     /// observation says they are doing. Their bounded hit targets travel with
     /// the gliding drawing and arrive at the tile the host reported.
     /// </summary>
-    private async Task VerifyAgentPosesAsync(OwnerWorldSnapshot baseMap, OwnerWorldInhabitant template)
+    private async Task VerifyAgentPosesAsync(OwnerWorldSnapshot baseMap, OwnerWorldAgent template)
     {
         var expectedFacings = new (int Dx, int Dy, int Facing)[]
         {
@@ -46,11 +46,11 @@ public partial class Main
         SetProcess(false);
         try
         {
-            AgentMarker Show(int x, int y, OwnerWorldInhabitant? person = null)
+            AgentMarker Show(int x, int y, OwnerWorldAgent? person = null)
             {
                 var at = new OwnerWorldPosition(x, y);
-                RenderMap(map with { Inhabitants = [(person ?? walker) with { Position = at }] });
-                return inhabitantVisuals[walker.Id];
+                RenderMap(map with { Agents = [(person ?? walker) with { Position = at }] });
+                return agentVisuals[walker.Id];
             }
             void Expect(AgentMarker marker, int facing, AgentFrame frame, string when)
             {
@@ -142,12 +142,12 @@ public partial class Main
                 loose.Free();
             }
 
-            OwnerWorldInhabitant Doing(string? intention, IReadOnlyList<OwnerWorldInventoryEntry>? carried = null) => walker with
+            OwnerWorldAgent Doing(string? intention, IReadOnlyList<OwnerWorldInventoryEntry>? carried = null) => walker with
             {
                 PublicIntention = intention is null ? null : new OwnerWorldPublicIntention(intention, "busy", "deterministic", 3),
                 Inventory = carried ?? [],
             };
-            var activities = new (OwnerWorldInhabitant Agent, AgentFrame Expected, string What)[]
+            var activities = new (OwnerWorldAgent Agent, AgentFrame Expected, string What)[]
             {
             (Doing("haul_farm_grain", [new("grain", 2), new("clothing", 1)]), AgentFrame.Carry, "hauling grain"),
             (Doing("haul_farm_grain", [new("clothing", 1)]), AgentFrame.Still, "on the way to collect a load"),

@@ -9,7 +9,7 @@ public sealed partial class WorldRuntime
 {
     private const string KnowledgeReadOrderTask = "read one personally held written record, map or book and learn only its written contents";
 
-    private OwnerInstructionOrder? ParseKnowledgeReadOrder(string text)
+    private OrderTask? ParseKnowledgeReadOrder(string text)
     {
         text = text.Trim();
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
@@ -43,19 +43,19 @@ public sealed partial class WorldRuntime
     }
 
     private AgentKnowledgeArtifact? KnowledgeReadOrderArtifact(OwnerQueuedInstruction instruction) =>
-        instruction.Order!.TargetKnowledgeArtifactId is { } id
+        instruction.Task!.TargetKnowledgeArtifactId is { } id
             ? knowledge.Artifacts.FirstOrDefault(item => item.Id == id)
-            : HeldKnowledgeArtifacts(instruction.TargetInhabitantId).FirstOrDefault(item =>
-                (instruction.Order.TargetItemKind is null || item.Kind == instruction.Order.TargetItemKind) &&
-                HasUnknownArtifactContents(instruction.TargetInhabitantId, item));
+            : HeldKnowledgeArtifacts(instruction.TargetAgentId).FirstOrDefault(item =>
+                (instruction.Task.TargetItemKind is null || item.Kind == instruction.Task.TargetItemKind) &&
+                HasUnknownArtifactContents(instruction.TargetAgentId, item));
 
     private string? KnowledgeReadOrderBlocker(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
-        if (!AdultResident(actor)) return "Only an adult or elder resident can read this written item.";
+        var actor = instruction.TargetAgentId;
+        if (!IsAdult(actor)) return "Only an adult or elder resident can read this written item.";
         if (KnowledgeWritingFor(actor) is not null) return "Cancel this read order to finish the current writing work first.";
         var artifact = KnowledgeReadOrderArtifact(instruction);
-        if (artifact is null) return instruction.Order!.TargetKnowledgeArtifactId is null
+        if (artifact is null) return instruction.Task!.TargetKnowledgeArtifactId is null
             ? "Waiting for a personally held written item with something new to read."
             : "The named written item is no longer available.";
         if (!HeldKnowledgeArtifacts(actor).Any(item => item.Id == artifact.Id))
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
             return;
         }
         var artifact = KnowledgeReadOrderArtifact(instruction)!;
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var before = knowledge.Facts.Where(fact => fact.OwnerId == actor).Select(fact => fact.Position).ToHashSet();
         var beforeRecipes = knowledge.Recipes.Where(recipe => recipe.OwnerId == actor).Select(recipe => recipe.RecipeId).ToHashSet(StringComparer.Ordinal);
         var learned = ReadIfKnowledgeArtifact(artifact.LotId, artifact.CreatorId, actor);
@@ -99,7 +99,7 @@ public sealed partial class WorldRuntime
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         current = current with
         {
-            Order = current.Order! with
+            Task = current.Task! with
             { TargetKnowledgeArtifactId = artifact.Id, KnowledgeReadCompletion = new(WorldTick, sites) { LearnedRecipes = recipes } }
         };
         instructionsByIdempotency[current.IdempotencyKey] = current;
@@ -108,14 +108,14 @@ public sealed partial class WorldRuntime
 
     private static string KnowledgeReadOrderEffectId(OwnerQueuedInstruction instruction)
     {
-        var completion = instruction.Order!.KnowledgeReadCompletion!;
+        var completion = instruction.Task!.KnowledgeReadCompletion!;
         return DerivedId.Hash(
-            $"{instruction.InstructionId}|{instruction.TargetInhabitantId}|{instruction.Order.TargetKnowledgeArtifactId}|{completion.WorldTick}|" +
+            $"{instruction.InstructionId}|{instruction.TargetAgentId}|{instruction.Task.TargetKnowledgeArtifactId}|{completion.WorldTick}|" +
             string.Join(';', completion.LearnedSites.Select(point => $"{point.X},{point.Y}")) + "|" +
             string.Join(';', completion.LearnedRecipes), "read-order:");
     }
 
-    private static bool IsValidKnowledgeReadOrderShape(OwnerInstructionOrder order, OwnerQueuedInstruction instruction, long worldTick) =>
+    private static bool IsValidKnowledgeReadOrderShape(OrderTask order, OwnerQueuedInstruction instruction, long worldTick) =>
         order.TargetItemKind is null or "field_record" or "field_map" or "book" &&
         order.TargetAgentId is null && order.TargetFoodKind is null && order.TargetResourceId is null && order.TargetPosition is null &&
         order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
@@ -146,7 +146,7 @@ public sealed partial class WorldRuntime
 
     private static void ValidateKnowledgeReadOrderBindings(IEnumerable<OwnerQueuedInstruction> instructions, WorldKnowledgeState knowledge)
     {
-        var readingOrders = instructions.Where(instruction => instruction.Order is
+        var readingOrders = instructions.Where(instruction => instruction.Task is
         { Action: "read_knowledge", TargetKnowledgeArtifactId: not null }).ToArray();
         if (readingOrders.Length == 0) return;
         var artifacts = knowledge.Artifacts.ToDictionary(item => item.Id, StringComparer.Ordinal);
@@ -154,7 +154,7 @@ public sealed partial class WorldRuntime
         var recipes = knowledge.Recipes.ToDictionary(item => (item.OwnerId, item.RecipeId));
         foreach (var instruction in readingOrders)
         {
-            if (instruction.Order is not { Action: "read_knowledge", TargetKnowledgeArtifactId: { } id } order) continue;
+            if (instruction.Task is not { Action: "read_knowledge", TargetKnowledgeArtifactId: { } id } order) continue;
             artifacts.TryGetValue(id, out var artifact);
             if (artifact is not null && order.TargetItemKind is { } kind && kind != artifact.Kind)
                 throw new InvalidDataException("A reading order names another kind of written item.");
@@ -162,9 +162,9 @@ public sealed partial class WorldRuntime
             foreach (var site in completion.LearnedSites)
             {
                 var written = artifact?.Facts.FirstOrDefault(fact => fact.Position == site);
-                if (!facts.TryGetValue((instruction.TargetInhabitantId, site), out var learned) || learned.LearnedTick < completion.WorldTick ||
+                if (!facts.TryGetValue((instruction.TargetAgentId, site), out var learned) || learned.LearnedTick < completion.WorldTick ||
                     artifact is not null && written is null || learned.LearnedTick == completion.WorldTick &&
-                    (written is null || learned.Id != KnowledgeFactId(instruction.TargetInhabitantId, site) ||
+                    (written is null || learned.Id != KnowledgeFactId(instruction.TargetAgentId, site) ||
                      learned.Acquisition != "read" || learned.SourceArtifactId != id || learned.SourceAgentId != artifact!.CreatorId ||
                      !AgentKnowledgeRules.SameDiscovery(learned, written)))
                     throw new InvalidDataException("A reading order does not match its actual learned sites and provenance.");
@@ -172,8 +172,8 @@ public sealed partial class WorldRuntime
             foreach (var recipeId in completion.LearnedRecipes)
             {
                 var written = artifact?.Recipes.FirstOrDefault(recipe => recipe.RecipeId == recipeId);
-                if (written is null || !recipes.TryGetValue((instruction.TargetInhabitantId, recipeId), out var learned) ||
-                    learned.LearnedTick != completion.WorldTick || learned.Id != RecipeKnowledgeId(instruction.TargetInhabitantId, recipeId) ||
+                if (written is null || !recipes.TryGetValue((instruction.TargetAgentId, recipeId), out var learned) ||
+                    learned.LearnedTick != completion.WorldTick || learned.Id != RecipeKnowledgeId(instruction.TargetAgentId, recipeId) ||
                     learned.Acquisition != "read" || learned.SourceArtifactId != id || learned.SourceAgentId != artifact!.CreatorId ||
                     !AgentKnowledgeRules.SameRecipe(learned, written))
                     throw new InvalidDataException("A reading order does not match its actual learned recipes and provenance.");

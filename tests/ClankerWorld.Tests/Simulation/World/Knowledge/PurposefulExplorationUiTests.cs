@@ -12,9 +12,9 @@ public sealed partial class PurposefulExplorationTests
     {
         var (state, actor, _, _, _) = await MaterialCourse();
         using var world = Restore(state);
-        var receipt = world.SubmitInstruction(new("show-scout-purpose", "owner:test", actor, OwnerInstructionKind.MustDo, text));
+        var receipt = world.SubmitInstruction(new("show-scout-purpose", "owner:test", actor, OwnerInstructionKind.Order, text));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(new SettlementExplorationGoal("resource", target, receipt.InstructionId), Person(world, actor).Exploration!.Goal);
+        Assert.Equal(new ExplorationGoal("resource", target, receipt.InstructionId), Person(world, actor).Exploration!.Goal);
         AssertPurpose(world, actor, target);
         world.Pause();
         var paused = WorldRuntimeCodec.Encode(world.ExportState());
@@ -22,7 +22,7 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal(paused, WorldRuntimeCodec.Encode(loaded.ExportState()));
         AssertPurpose(loaded, actor, target);
         loaded.CancelOrder(new("cancel-shown-purpose", "owner:test", loaded.Society.WorldId, actor, receipt.InstructionId));
-        var visible = new OwnerWorldObservationStore(loaded).GetSnapshot().Inhabitants.Single(person => person.Id == actor);
+        var visible = new OwnerWorldObservationStore(loaded).GetSnapshot().Agents.Single(person => person.Id == actor);
         Assert.NotEqual("looking for " + target, visible.PublicIntention!.Summary);
         Assert.Equal("safe_idle", visible.PublicIntention.CandidateId);
         Assert.Equal(("cancelled", 0), (Order(loaded, receipt.InstructionId).Status, Order(loaded, receipt.InstructionId).CompletedUnits));
@@ -31,7 +31,7 @@ public sealed partial class PurposefulExplorationTests
 
     private static void AssertPurpose(WorldRuntime world, string actor, string target)
     {
-        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == actor);
+        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == actor);
         Assert.Equal("safe_idle", visible.PublicIntention!.CandidateId);
         Assert.Equal("looking for " + target, visible.PublicIntention.Summary);
         // Local Must Do execution retains the prior admitted model intention.

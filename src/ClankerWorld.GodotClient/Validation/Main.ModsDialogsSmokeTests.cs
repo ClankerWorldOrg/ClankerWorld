@@ -16,7 +16,7 @@ public partial class Main
         var proposer = PanelSmokeAgent("mods-smoke-mira", "Mira", new OwnerWorldPosition(0, 0));
         RenderModLibrary(sample with
         {
-            Inhabitants = [proposer],
+            Agents = [proposer],
             ContentPackages = [new OwnerWorldContentPackage("riverbend.pottery", "1.0.0", "sha256:package", "active",
                 null, null, null, 1, "sha256:manifest", "Riverbend pottery", proposer.Id)],
         });

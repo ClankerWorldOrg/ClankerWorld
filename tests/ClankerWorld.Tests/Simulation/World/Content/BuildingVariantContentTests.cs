@@ -130,7 +130,7 @@ public sealed class BuildingVariantContentTests
     }
 
     private static ContentPackageManifest[] Originals() =>
-        [StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(),
+        [StarterContent.Create(), HearthContent.Create(), HouseContent.Create(),
             FarmContent.Create(), BlacksmithContent.Create(), TailorContent.Create(),
             CareContent.Create(), RestaurantContent.Create(), OrnamentContent.Create()];
 

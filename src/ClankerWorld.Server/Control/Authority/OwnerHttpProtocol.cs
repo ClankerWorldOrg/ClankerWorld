@@ -57,7 +57,7 @@ public sealed record OwnerAutosaveConfigurationAction(bool Enabled, int Interval
 public sealed record OwnerDeveloperEditAction(string WorldId, long ExpectedEventId, string AgentId,
     string Operation, string Value, int Amount = 0, string? OtherAgentId = null);
 
-public sealed record OwnerLifePaceAction(int Rate, string WorldId);
+public sealed record OwnerAgingOverrideAction(int Rate, string WorldId);
 public sealed record OwnerJevAssistanceAction(bool Enabled, string WorldId);
 public sealed record OwnerRoutineHelperAction(string WorldId, string Provider, string Model, string? CredentialSlotId = null);
 
@@ -124,7 +124,7 @@ public sealed record OwnerProviderConfigurationAction(
     string? Model,
     string? ApiKey,
     bool ForgetCredential,
-    string? InhabitantId = null,
+    string? AgentId = null,
     string? CredentialSlotId = null,
     string? NewCredentialLabel = null,
     string? Thinking = null);
@@ -134,8 +134,8 @@ public sealed record OwnerProviderConfigurationAction(
 /// model reasons before answering: low, medium or high, or
 /// <see langword="null"/> for the model's own default, which saved files leave out.
 /// </summary>
-public sealed record InhabitantProviderAssignment(
-    string InhabitantId,
+public sealed record AgentProviderAssignment(
+    string AgentId,
     string Role,
     string Provider,
     string? Model = null,
@@ -176,12 +176,12 @@ public sealed record OwnerProviderConfigurationStatus(
     string PlanningProvider,
     long Revision,
     IReadOnlyList<OwnerProviderOptionStatus> Providers,
-    IReadOnlyList<InhabitantProviderAssignment>? Assignments = null,
+    IReadOnlyList<AgentProviderAssignment>? Assignments = null,
     IReadOnlyList<OwnerProviderCredentialStatus>? CredentialSlots = null);
 
 public sealed record OwnerInstructionAction(
     string IdempotencyKey,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     string WorldId,
@@ -189,7 +189,7 @@ public sealed record OwnerInstructionAction(
 
 public sealed record OwnerOrderCancelAction(
     string IdempotencyKey,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string OrderId,
     string WorldId);
 
@@ -330,11 +330,11 @@ public static class OwnerHttpBinding
         $"amount={action.Amount.ToString(CultureInfo.InvariantCulture)}",
         $"other-agent-id={EncodeOptional(action.OtherAgentId)}");
 
-    public const string LifePacePayloadDomain = "clankerworld.owner-life-pace.v2";
+    public const string AgingOverridePayloadDomain = "clankerworld.owner-aging-override.v2";
     public const string JevAssistancePayloadDomain = "clankerworld.owner-jev-assistance.v2";
 
-    public static string LifePacePayload(OwnerLifePaceAction action) => string.Join('\n',
-        LifePacePayloadDomain,
+    public static string AgingOverridePayload(OwnerAgingOverrideAction action) => string.Join('\n',
+        AgingOverridePayloadDomain,
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"rate={action.Rate.ToString(CultureInfo.InvariantCulture)}");
 
@@ -452,8 +452,8 @@ public static class OwnerHttpBinding
             $"model={EncodeOptional(action.Model)}",
             $"api-key-sha256={apiKeyDigest}",
             $"forget-credential={action.ForgetCredential.ToString().ToLowerInvariant()}");
-        if (action.InhabitantId is not null)
-            payload += "\ninhabitant=" + EncodeRequired(action.InhabitantId, nameof(action.InhabitantId));
+        if (action.AgentId is not null)
+            payload += "\nagent=" + EncodeRequired(action.AgentId, nameof(action.AgentId));
         if (action.CredentialSlotId is not null)
             payload += "\ncredential-slot=" + EncodeRequired(action.CredentialSlotId, nameof(action.CredentialSlotId));
         if (action.NewCredentialLabel is not null)
@@ -528,7 +528,7 @@ public static class OwnerHttpBinding
         action.Queue ? "clankerworld.owner-instruction.v3" : "clankerworld.owner-instruction.v2",
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"idempotency-key={EncodeRequired(action.IdempotencyKey, nameof(action.IdempotencyKey))}",
-        $"target-inhabitant-id={EncodeRequired(action.TargetInhabitantId, nameof(action.TargetInhabitantId))}",
+        $"target-agent-id={EncodeRequired(action.TargetAgentId, nameof(action.TargetAgentId))}",
         $"kind={EncodeRequired(action.Kind, nameof(action.Kind))}",
         $"text={EncodeRequired(action.Text, nameof(action.Text))}" +
             (action.Queue ? "\nqueue=true" : string.Empty));
@@ -538,7 +538,7 @@ public static class OwnerHttpBinding
         "clankerworld.owner-order-cancel.v1",
         $"world-id={EncodeRequired(action.WorldId, nameof(action.WorldId))}",
         $"idempotency-key={EncodeRequired(action.IdempotencyKey, nameof(action.IdempotencyKey))}",
-        $"target-inhabitant-id={EncodeRequired(action.TargetInhabitantId, nameof(action.TargetInhabitantId))}",
+        $"target-agent-id={EncodeRequired(action.TargetAgentId, nameof(action.TargetAgentId))}",
         $"order-id={EncodeRequired(action.OrderId, nameof(action.OrderId))}");
 
     public static string AuthoringPayload(OwnerAuthoringBatchAction action)

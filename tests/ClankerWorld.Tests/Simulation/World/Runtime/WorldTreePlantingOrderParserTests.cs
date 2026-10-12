@@ -15,13 +15,13 @@ public sealed class WorldTreePlantingOrderParserTests
     public void WholeTreeRequestsBecomeBoundedPersistentOrders(string text, string action, int quantity, bool repeat)
     {
         using var world = new WorldRuntime("tree-order-parser");
-        var actor = world.Inhabitants[0].InhabitantId;
-        var receipt = world.SubmitInstruction(new("parse-tree", "owner:test", actor, OwnerInstructionKind.MustDo, text));
+        var actor = world.Agents[0].AgentId;
+        var receipt = world.SubmitInstruction(new("parse-tree", "owner:test", actor, OwnerInstructionKind.Order, text));
         var instruction = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
         Assert.Equal(text, instruction.Text);
-        Assert.Equal((action, quantity, repeat, "trees", 0), (instruction.Order!.Action, instruction.Order.RequestedUnits,
-            instruction.Order.RepeatUntilCancelled, instruction.Order.ProgressUnit, instruction.Order.CompletedUnits));
-        Assert.Equal(text.Contains("12", StringComparison.Ordinal), instruction.Order.TargetPosition is not null);
+        Assert.Equal((action, quantity, repeat, "trees", 0), (instruction.Task!.Action, instruction.Task.RequestedUnits,
+            instruction.Task.RepeatUntilCancelled, instruction.Task.ProgressUnit, instruction.Task.CompletedUnits));
+        Assert.Equal(text.Contains("12", StringComparison.Ordinal), instruction.Task.TargetPosition is not null);
         world.Validate();
     }
 
@@ -36,14 +36,14 @@ public sealed class WorldTreePlantingOrderParserTests
     public void PartialOrUnsupportedTreeRequestsLeaveAnExistingOrderIntact(string text)
     {
         using var world = new WorldRuntime("tree-order-parser");
-        var actor = world.Inhabitants[0].InhabitantId;
-        var current = world.SubmitInstruction(new("existing-tree", "owner:test", actor, OwnerInstructionKind.MustDo, "plant trees"));
-        var receipt = world.SubmitInstruction(new("bad-tree", "owner:test", actor, OwnerInstructionKind.MustDo, text));
+        var actor = world.Agents[0].AgentId;
+        var current = world.SubmitInstruction(new("existing-tree", "owner:test", actor, OwnerInstructionKind.Order, "plant trees"));
+        var receipt = world.SubmitInstruction(new("bad-tree", "owner:test", actor, OwnerInstructionKind.Order, text));
         var state = world.ExportState();
-        Assert.Equal("waiting", Assert.Single(state.Instructions!, item => item.InstructionId == current.InstructionId).Order!.Status);
+        Assert.Equal("waiting", Assert.Single(state.Instructions!, item => item.InstructionId == current.InstructionId).Task!.Status);
         var unsupported = Assert.Single(state.Instructions!, item => item.InstructionId == receipt.InstructionId);
         Assert.Equal(text, unsupported.Text);
-        Assert.Equal("not_understood", unsupported.Order!.Status);
+        Assert.Equal("not_understood", unsupported.Task!.Status);
         world.Validate();
     }
 }

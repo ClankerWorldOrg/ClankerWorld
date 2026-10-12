@@ -20,20 +20,20 @@ internal static class PaidMarketWorld
     {
         var state = WorldRuntimeCodec.Decode(await Paid.Value);
         var inventory = state.Society.Society.Inventory;
-        foreach (var person in state.Inhabitants)
+        foreach (var person in state.Agents)
         {
-            inventory = InventoryAuthority.AddLot(inventory, "market-rules-cloak:" + person.InhabitantId, "rain_cloak", person.InhabitantId, 1);
-            inventory = InventoryAuthority.AddLot(inventory, "market-rules-sack:" + person.InhabitantId, "sack", person.InhabitantId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, "market-rules-cloak:" + person.AgentId, "rain_cloak", person.AgentId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, "market-rules-sack:" + person.AgentId, "sack", person.AgentId, 1);
         }
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = 9_500,
+                FullnessBasisPoints = 9_500,
                 Survival = new SurvivalCondition(),
                 Project = null,
                 LastDecisionContext = null,
-                Equipment = new PersonalEquipment("market-rules-cloak:" + person.InhabitantId, "market-rules-sack:" + person.InhabitantId),
+                Equipment = new PersonalEquipment("market-rules-cloak:" + person.AgentId, "market-rules-sack:" + person.AgentId),
             }).ToArray(),
         };
     }
@@ -54,11 +54,11 @@ internal static class PaidMarketWorld
 
     internal static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = position } : person).ToArray(),
+        Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = position } : person).ToArray(),
     };
 
     internal static string HouseholdOf(WorldRuntimeState state, string actor) =>
-        state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        state.Society.Society.GetAgent(actor).HouseholdId!;
 
     internal static PlacedBuilding HouseOf(WorldRuntimeState state, string household) =>
         state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
@@ -86,22 +86,22 @@ internal static class PaidMarketWorld
         var definition = MarketContent.Stall1x1();
         var plan = new TownProjectPayload("Another stall", definition.CanonicalId, MarketContent.StallSite(market.Site, slot),
             MarketContent.StallEntrance(market.Site, slot), definition.BuildCosts);
-        var governance = town.Governance!;
-        var approved = governance.Proposals.Single(item => item.Project?.DefinitionId == MarketContent.Hall2x2().CanonicalId) with
+        var council = town.Council!;
+        var approved = council.Proposals.Single(item => item.Project?.DefinitionId == MarketContent.Hall2x2().CanonicalId) with
         {
-            Id = town.Id + ":proposal:" + (governance.Sequence + 1).ToString(CultureInfo.InvariantCulture),
+            Id = town.Id + ":proposal:" + (council.Sequence + 1).ToString(CultureInfo.InvariantCulture),
             RequestKey = TownProjectRules.RequestKey(plan),
             Text = TownProjectRules.ProposalText(plan),
             Project = plan,
         };
-        var project = new TownConstructionProject(TownProjectRules.ProjectId(approved), approved.Id, plan,
+        var project = new TownProject(TownProjectRules.ProjectId(approved), approved.Id, plan,
             approved.SettledTick!.Value, "supplying", 0, state.Society.Society.WorldTick, []);
         projectId = project.Id;
         return state with
         {
             Towns = [town with
             {
-                Governance = governance with { Sequence = governance.Sequence + 1, Proposals = governance.Proposals.Append(approved).ToArray() },
+                Council = council with { Sequence = council.Sequence + 1, Proposals = council.Proposals.Append(approved).ToArray() },
                 Projects = town.Projects.Append(project).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             }],
         };

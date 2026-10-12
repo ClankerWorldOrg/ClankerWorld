@@ -79,8 +79,8 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
         initial = initial with
         {
             // Same start as the survival priority prototype: fine but not full, chilly.
-            Inhabitants = initial.Inhabitants.Select(person => person with
-            { HungerBasisPoints = 4_500, Survival = new SurvivalCondition(WarmthBasisPoints: 5_500), LastDecisionContext = null }).ToArray(),
+            Agents = initial.Agents.Select(person => person with
+            { FullnessBasisPoints = 4_500, Survival = new SurvivalCondition(WarmthBasisPoints: 5_500), LastDecisionContext = null }).ToArray(),
             WorldSystems = initial.WorldSystems! with
             {
                 RegionalWeather = null,
@@ -107,19 +107,19 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
             {
                 if (decision.Admission.Intention is { } intention)
                 {
-                    latestChoice[decision.InhabitantId] = intention.CandidateId;
-                    report.Choices.Add($"{world.WorldTick}:{decision.InhabitantId}:{intention.CandidateId}");
+                    latestChoice[decision.AgentId] = intention.CandidateId;
+                    report.Choices.Add($"{world.WorldTick}:{decision.AgentId}:{intention.CandidateId}");
                     report.CountChoice(Category(intention.CandidateId));
                 }
                 if (decision.Admission.FellBack) report.Fallbacks++;
             }
-            foreach (var person in world.Inhabitants)
+            foreach (var person in world.Agents)
             {
                 report.AgentTicks++;
-                if (latestChoice.TryGetValue(person.InhabitantId, out var choice) && Category(choice) == "survival")
+                if (latestChoice.TryGetValue(person.AgentId, out var choice) && Category(choice) == "survival")
                     report.SurvivalAgentTicks++;
-                if (person.HungerBasisPoints < 2_000) report.StarvingAgentTicks++;
-                if (person.HungerBasisPoints < 4_000) report.HungryAgentTicks++;
+                if (person.FullnessBasisPoints < 2_000) report.StarvingAgentTicks++;
+                if (person.FullnessBasisPoints < 4_000) report.HungryAgentTicks++;
                 if (person.Survival is { } condition)
                 {
                     if (condition.WarmthBasisPoints < 3_500) report.FreezingAgentTicks++;
@@ -133,7 +133,7 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
         var state = world.ExportState();
         report.FinalFood = Food(world);
         report.Meals = state.Events.Count(item => item.Kind == "food_consumed");
-        report.Deaths = world.Society.Inhabitants.Count(person => person.Status == SocietyInhabitantStatus.Dead);
+        report.Deaths = world.Society.Agents.Count(person => person.Status == SocietyAgentStatus.Dead);
         report.Decisions = measured.Calls;
         report.Failures = measured.Failures;
         report.RequestCharacters = measured.RequestCharacters;
@@ -333,10 +333,10 @@ public sealed class NeedWordingComparisonTests(ITestOutputHelper output)
             using var question = JsonDocument.Parse(input);
             var root = question.RootElement;
             var self = root.TryGetProperty("self", out var selfValue) && selfValue.ValueKind == JsonValueKind.Object ? selfValue : default;
-            var numbers = root.TryGetProperty("hunger_basis_points", out _) ||
+            var numbers = root.TryGetProperty("fullness_basis_points", out _) ||
                 self.ValueKind == JsonValueKind.Object && (self.TryGetProperty("warmth_basis_points", out _) || self.TryGetProperty("illness_basis_points", out _));
             var words = root.TryGetProperty("fullness", out var fullness) &&
-                fullness.GetString() == ModelNeedWords.Fullness(request.Observation.HungerBasisPoints) &&
+                fullness.GetString() == ModelNeedWords.Fullness(request.Observation.FullnessBasisPoints) &&
                 (self.ValueKind != JsonValueKind.Object ||
                     self.GetProperty("warmth").GetString() == (request.Observation.Self?.WarmthBasisPoints is { } warmth ? ModelNeedWords.Warmth(warmth) : null) &&
                     self.GetProperty("illness").GetString() == (request.Observation.Self?.IllnessBasisPoints is { } illness ? ModelNeedWords.Illness(illness) : null));

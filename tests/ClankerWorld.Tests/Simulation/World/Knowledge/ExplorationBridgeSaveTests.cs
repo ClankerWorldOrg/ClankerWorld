@@ -23,7 +23,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         IDecisionProvider ChooseProvider(string actor) => new ScoutProvider(
             actor == "founder:00000000000000000000000000000001", () => returnRequested);
         using var world = CreateScoutingWorld(ChooseProvider);
-        var actor = world.Inhabitants[0].InhabitantId;
+        var actor = world.Agents[0].AgentId;
         // The seeded visited memory starts at tick zero, so let the ordinary
         // scouting cooldown and idle admission expire without resetting them.
         for (var tick = 0; tick < 400 && Scout(world, actor).Exploration!.OutingPath.Count < 3; tick++)
@@ -34,7 +34,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
             if (previous != current) Assert.True(world.ExportState().Map.CanFootStep(previous, current));
         }
         var before = world.ExportState();
-        var exploration = Assert.IsType<SettlementExploration>(Scout(world, actor).Exploration);
+        var exploration = Assert.IsType<ExplorationState>(Scout(world, actor).Exploration);
         Assert.Equal([Start, FirstWater, SecondWater], exploration.OutingPath);
         Assert.True(before.Map.CanFootStep(Start, FirstWater));
         Assert.True(before.Map.CanFootStep(FirstWater, SecondWater));
@@ -99,7 +99,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
             Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
             Assert.Equal(committed, WorldRuntimeCodec.Encode(world.ExportState()));
             var returnSuggestion = new OwnerInstructionRequest("bridge-scout-return", "owner:test", actor,
-                OwnerInstructionKind.Suggestive, "Please return along your scouting route.");
+                OwnerInstructionKind.Suggestion, "Please return along your scouting route.");
             returnRequested = true;
             world.SubmitInstruction(returnSuggestion);
             recovery.SubmitInstruction(returnSuggestion);
@@ -143,8 +143,8 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         }
     }
 
-    private static InhabitantState Scout(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(item => item.InhabitantId == actor);
+    private static AgentState Scout(WorldRuntime world, string actor) =>
+        world.Agents.Single(item => item.AgentId == actor);
 
     internal static WorldRuntime CreateScoutingWorld(Func<string, IDecisionProvider>? chooseProvider = null)
     {
@@ -167,7 +167,7 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         for (var index = 0; index < founders.Length; index++) setup.PlaceFounder($"founder:{index + 1:D32}", founders[index]);
         setup.StartWorld();
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         Assert.True(RiverBridgeRules.TryResolve(map, BridgeId, out var crossing));
         Assert.Contains(FirstWater, crossing!.Span);
         var roadEnd = crossing.Entrances.Single(point => point.X == map.Width - 1);
@@ -184,11 +184,11 @@ public sealed class ExplorationBridgeSaveTests(ITestOutputHelper output)
         {
             RoadTiles = roads,
             Towns = [town with { BorderTiles = TownBorderRules.Expand(map, town, [roadEnd, WorkshopSite]) }],
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = Start,
-                HungerBasisPoints = 9_500,
-                Exploration = new SettlementExploration(visited, [], 0, false),
+                FullnessBasisPoints = 9_500,
+                Exploration = new ExplorationState(visited, [], 0, false),
             } : person).ToArray(),
         };
         return WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), chooseProvider);

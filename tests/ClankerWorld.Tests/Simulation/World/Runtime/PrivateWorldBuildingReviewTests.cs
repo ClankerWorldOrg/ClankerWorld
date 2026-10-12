@@ -88,12 +88,12 @@ public sealed partial class WorldExpansionOrderTests
             Household, 8, groundPosition: new(position.X, position.Y));
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = position,
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 LastDecisionContext = null,
-                Project = new SettlementProject(TownConstructionCandidateIds.Building(definition, position),
+                Project = new AgentProject(TownConstructionCandidateIds.Building(definition, position),
                     "House", state.Society.Society.WorldTick, "working", WorkDone: 10, LastTransitionTick: state.Society.Society.WorldTick),
             } : person).ToArray(),
         };
@@ -102,7 +102,7 @@ public sealed partial class WorldExpansionOrderTests
     private static void AssertOrdinaryHousePayment(WorldRuntime world, string actor,
         PlacedBuilding house, string materialId)
     {
-        var project = world.Inhabitants.Single(person => person.InhabitantId == actor).Project!;
+        var project = world.Agents.Single(person => person.AgentId == actor).Project!;
         Assert.Equal("completed", project.Stage);
         Assert.Null(project.OrderInstructionId);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.Id == materialId);

@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
     private void AdvanceBridgeTraffic()
     {
         if (bridgeTraffic.IsEmpty) return;
-        var positions = inhabitants.ToDictionary(item => item.Key, item => item.Value.Position, StringComparer.Ordinal);
+        var positions = agents.ToDictionary(item => item.Key, item => item.Value.Position, StringComparer.Ordinal);
         var pruned = BridgeTrafficRules.Prune(bridgeTraffic, map, WorldTick,
             society.Checkpoint.Config.TicksPerWorldDay, positions);
         if (!ReferenceEquals(pruned, bridgeTraffic))
@@ -114,7 +114,7 @@ public sealed partial class WorldRuntime
         WorldContentSimulationState simulation,
         DeclarativeWorldContentState content,
         SocietyCheckpoint society,
-        IEnumerable<InhabitantState> inhabitants)
+        IEnumerable<AgentState> agents)
     {
         RiverBridgeRules.ValidateSaved(savedBridges, map, roads, society.WorldTick);
         var ground = new GroundOccupancy(map, content, simulation);
@@ -122,8 +122,8 @@ public sealed partial class WorldRuntime
         if (savedBridges.Any(bridge => bridge.Entrances.Any(blocked.Contains)))
             throw new InvalidDataException("A saved bridge lands on a building, resource or map object.");
         BridgeTrafficRules.Validate(traffic, map, society.WorldTick, society.Config.TicksPerWorldDay,
-            society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal),
-            inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal),
+            society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal),
+            agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal),
             savedBridges);
     }
 }

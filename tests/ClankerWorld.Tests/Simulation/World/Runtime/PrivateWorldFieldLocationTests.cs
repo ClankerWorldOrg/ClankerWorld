@@ -152,7 +152,7 @@ public sealed partial class WorldFieldOrderTests
         Assert.Throws<InvalidDataException>(() => Restore(stateWithWork with
         {
             Instructions = stateWithWork.Instructions!.Select(item => item.InstructionId == plant.InstructionId
-                ? item with { Order = item.Order! with { TargetPosition = wrong } } : item).ToArray(),
+                ? item with { Task = item.Task! with { TargetPosition = wrong } } : item).ToArray(),
         }));
         world.Pause();
         using var restored = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));

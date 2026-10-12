@@ -7,43 +7,43 @@ public static class TownCaseJudgeRules
 {
     public static string RoundToken(TownCaseJudgeContest contest) =>
         DerivedId.Create(contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture));
-    public static bool IsBusy(TownNonviolentState state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
-    private static TownNonviolentState Replace(TownNonviolentState state, TownViolationCase item) =>
+    public static bool IsBusy(TownNonLandHearingState state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
+    private static TownNonLandHearingState Replace(TownNonLandHearingState state, TownNonLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
-    private static bool Willing(TownViolationCase item, string actor) => item.JudgeConsents.Any(c => c.AgentId == actor && c.WithdrawnTick is null);
-    private static bool Eligible(TownViolationCase item, string actor, IReadOnlyList<string> adults,
+    private static bool Willing(TownNonLandCase item, string actor) => item.JudgeConsents.Any(c => c.AgentId == actor && c.WithdrawnTick is null);
+    private static bool Eligible(TownNonLandCase item, string actor, IReadOnlyList<string> adults,
         IReadOnlyDictionary<string, string?> households, IReadOnlyList<TownCaseParty> parties) =>
-        adults.Contains(actor, StringComparer.Ordinal) && !TownNonviolentRules.JudgeConflict(actor,
+        adults.Contains(actor, StringComparer.Ordinal) && !TownNonLandRules.JudgeConflict(actor,
             households.GetValueOrDefault(actor), parties, item.DirectStakeIds.ToHashSet(StringComparer.Ordinal));
 
-    public static TownNonviolentState Register(TownNonviolentState state, string caseId, string actor,
+    public static TownNonLandHearingState Register(TownNonLandHearingState state, string caseId, string actor,
         IReadOnlyList<string> adultResidents, IReadOnlyDictionary<string, string?> households, long tick,
         IReadOnlyList<TownCaseParty>? currentParties = null)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
-        if (!Eligible(item, actor, adultResidents, households, currentParties ?? TownNonviolentRules.CurrentRevision(item).Parties))
+        if (!Eligible(item, actor, adultResidents, households, currentParties ?? TownNonLandRules.CurrentRevision(item).Parties))
             throw new InvalidOperationException("Only a willing, eligible and independent adult resident may seek this case mandate.");
         return Willing(item, actor) ? state : Replace(state, item with { JudgeConsents = item.JudgeConsents.Append(new(actor, tick)).ToArray() });
     }
 
-    public static TownNonviolentState Withdraw(TownNonviolentState state, string caseId, string actor, long tick)
+    public static TownNonLandHearingState Withdraw(TownNonLandHearingState state, string caseId, string actor, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         if (!Willing(item, actor)) throw new InvalidOperationException("There is no active consent for this case mandate.");
         state = Replace(state, item with { JudgeConsents = item.JudgeConsents.Select(c => c.AgentId == actor && c.WithdrawnTick is null ? c with { WithdrawnTick = tick } : c).ToArray() });
         return item.Judge is { Kind: "case_elected" } judge && judge.AgentId == actor ?
-            TownNonviolentRules.InvalidateJudge(state, caseId, tick, "willingness_withdrawn") : state;
+            TownNonLandRules.InvalidateJudge(state, caseId, tick, "willingness_withdrawn") : state;
     }
 
-    public static TownNonviolentState Resign(TownNonviolentState state, string caseId, string actor, long tick)
+    public static TownNonLandHearingState Resign(TownNonLandHearingState state, string caseId, string actor, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         if (item.Judge is not { Kind: "case_elected" } judge || judge.AgentId != actor) throw new InvalidOperationException("Only a current elected case judge may resign this case-only mandate.");
         if (Willing(item, actor)) state = Withdraw(state, caseId, actor, tick);
-        return TownNonviolentRules.InvalidateJudge(state, caseId, tick, "resigned");
+        return TownNonLandRules.InvalidateJudge(state, caseId, tick, "resigned");
     }
 
-    public static TownNonviolentState Vote(TownNonviolentState state, string caseId, string token,
+    public static TownNonLandHearingState Vote(TownNonLandHearingState state, string caseId, string token,
         string actor, string candidate, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
@@ -61,8 +61,8 @@ public static class TownCaseJudgeRules
         });
     }
 
-    public static (TownNonviolentState State, TownGovernanceState Council) Advance(TownNonviolentState state,
-        TownGovernanceState council, TownGovernmentState government, IReadOnlyList<string> adultResidents,
+    public static (TownNonLandHearingState State, TownCouncilState Council) Advance(TownNonLandHearingState state,
+        TownCouncilState council, TownGovernmentState government, IReadOnlyList<string> adultResidents,
         IReadOnlyDictionary<string, string?> households, long tick, int day, bool ordinaryContestBusy = false,
         IReadOnlyDictionary<string, IReadOnlyList<TownCaseParty>>? currentPartiesByCase = null)
     {
@@ -73,12 +73,12 @@ public static class TownCaseJudgeRules
         foreach (var saved in state.Cases.OrderBy(c => c.FiledTick).ThenBy(c => c.Id, StringComparer.Ordinal).ToArray())
         {
             var item = saved;
-            var parties = currentPartiesByCase?.GetValueOrDefault(item.Id) ?? TownNonviolentRules.CurrentRevision(item).Parties;
+            var parties = currentPartiesByCase?.GetValueOrDefault(item.Id) ?? TownNonLandRules.CurrentRevision(item).Parties;
             if (item.Judge is { } judge && (!Eligible(item, judge.AgentId, adults, households, parties) || government.Arrangement.NonLand != TownArrangementRules.Mayor ||
                     judge.Kind == "case_elected" && !Willing(item, judge.AgentId) ||
                     judge.Kind == "non_land_mayor" && (office?.HolderId != judge.AgentId || office.AuthorityId != judge.AuthorityId)))
             {
-                state = TownNonviolentRules.InvalidateJudge(state, item.Id, tick, "authority_or_eligibility_ended");
+                state = TownNonLandRules.InvalidateJudge(state, item.Id, tick, "authority_or_eligibility_ended");
                 item = state.Cases.Single(c => c.Id == item.Id);
             }
             if (item.Judge is not null || item.Status != "pending" && !item.ReopenRequests.Any(r => r.Status == "pending")) continue;
@@ -89,7 +89,7 @@ public static class TownCaseJudgeRules
             }
             if (office is not null && Eligible(item, office.HolderId!, adults, households, parties))
             {
-                state = TownNonviolentRules.AssignJudge(state, item.Id, new(office.HolderId!, "non_land_mayor", office.AuthorityId!, tick));
+                state = TownNonLandRules.AssignJudge(state, item.Id, new(office.HolderId!, "non_land_mayor", office.AuthorityId!, tick));
                 continue;
             }
             if (office is null && item.Contest is null && item.ContestHistory.Count == 0) continue;
@@ -108,7 +108,7 @@ public static class TownCaseJudgeRules
             contest = TownHearingProcedure.AdvanceContest(contest, adults, candidates, busyForCase, tick, day);
             if (contest.Stage == "voting" && contest.Round != previousRound)
             {
-                council = TownGovernanceRules.PostNotice(council, "nonviolent_hearing", RoundToken(contest),
+                council = TownCouncilRules.PostNotice(council, "nonviolent_hearing", RoundToken(contest),
                     "Choose one willing independent adult to decide this non-land case only: " + string.Join(", ", contest.Candidates) + ".", tick);
                 schedulerBusy = true;
             }
@@ -133,7 +133,7 @@ public static class TownCaseJudgeRules
                 contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()
             };
 
-    internal static TownViolationCase CancelContest(TownViolationCase item, long tick, string reason)
+    internal static TownNonLandCase CancelContest(TownNonLandCase item, long tick, string reason)
     {
         if (item.Contest is not { } contest) return item;
         if (contest.Stage == "voting") contest = SaveRound(contest, tick, "cancelled");

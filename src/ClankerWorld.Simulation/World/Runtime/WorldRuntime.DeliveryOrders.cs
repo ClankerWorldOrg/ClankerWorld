@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
             ? society.Checkpoint.Inventory.Lots.Where(lot => lot.ContainerLotId == carrier.Id && lot.ItemKind == kind)
                 .Sum(lot => lot.Quantity) : 0);
 
-    private bool DeliveryDestinationMatches(OwnerInstructionOrder order, PlacedBuilding building) =>
+    private bool DeliveryDestinationMatches(OrderTask order, PlacedBuilding building) =>
         worldContent.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId &&
             definition.Tags.Contains(order.TargetBuildingKind!, StringComparer.Ordinal)) &&
         (order.TargetPosition is null || building.Position == order.TargetPosition) &&
@@ -28,19 +28,19 @@ public sealed partial class WorldRuntime
             building.Position == order.TargetStoragePosition &&
             (order.DeliveryPurpose == "town_surplus" ? building.TownId : building.HouseholdId) == order.TargetStorageOwnerId);
 
-    private static int DeliveryOrderRemaining(OwnerInstructionOrder order) =>
+    private static int DeliveryOrderRemaining(OrderTask order) =>
         order.QuantityIsExplicit && !order.RepeatUntilCancelled ? order.RequestedUnits - order.CompletedUnits : int.MaxValue;
 
     private bool DeliveryCanReach(string actor, GridPoint from, GridPoint destination, int range = 0) =>
         IsWithinInteractionRange(from, destination, range) || FindUnoccupiedRoute(actor, from, destination, range).Count > 0;
 
-    private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, InhabitantState person,
-        OwnerInstructionOrder order, int maximumQuantity)
+    private DeliveryOrderPlan? HouseholdDeliveryOrderPlan(string actor, AgentState person,
+        OrderTask order, int maximumQuantity)
     {
         if (HouseholdFor(actor) is not { } householdId) return null;
         if (order.DeliveryPurpose == "household_food")
         {
-            if (person.HungerBasisPoints < 6_000 || HouseForHousehold(householdId) is not { } foodHouse ||
+            if (person.FullnessBasisPoints < 6_000 || HouseForHousehold(householdId) is not { } foodHouse ||
                 !DeliveryDestinationMatches(order, foodHouse) || PersonalSpareFood(actor, order.TargetItemKind, order.DeliveryLotId) is not { } food)
                 return null;
             var quantity = Math.Min(maximumQuantity, Math.Min(DestinationRoom(foodHouse.InstanceId),
@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
         return moved > 0 ? new("house_stock", house, householdId, stock, stock, moved, resourcesMoved) : null;
     }
 
-    private string? DeliveryRouteForCarried(OwnerInstructionOrder order, PlacedBuilding destination) => order.DeliveryPurpose switch
+    private string? DeliveryRouteForCarried(OrderTask order, PlacedBuilding destination) => order.DeliveryPurpose switch
     {
         "household_stock" when order.TargetBuildingKind is "farmhouse" or "silo" && FarmFieldRules.IsFarmStock(order.TargetItemKind!) => "farm_stock",
         "household_stock" when order.TargetBuildingKind == "house" => order.DeliveryRoute ?? "house_stock",
@@ -84,11 +84,11 @@ public sealed partial class WorldRuntime
             BlacksmithInputTarget(destination.InstanceId, order.TargetItemKind!) > 0 => order.DeliveryRoute ?? "blacksmith_input",
         "workstation_input" when worldContent.Recipes.Any(recipe => recipe.WorkstationBuildingId == destination.DefinitionId &&
             recipe.Inputs.Any(input => input.ResourceId == order.TargetItemKind)) => "workstation_input",
-        "store_stock" when BusinessRules.MaySell("store", order.TargetItemKind!) => "store_stock",
+        "store_stock" when ShopRules.MaySell("store", order.TargetItemKind!) => "store_stock",
         _ => null,
     };
 
-    private DeliveryOrderPlan? CarriedDeliveryOrderPlan(string actor, OwnerInstructionOrder order)
+    private DeliveryOrderPlan? CarriedDeliveryOrderPlan(string actor, OrderTask order)
     {
         var inventory = society.Checkpoint.Inventory;
         foreach (var lot in inventory.Lots.Where(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
@@ -100,7 +100,7 @@ public sealed partial class WorldRuntime
                 destination.HouseholdId != HouseholdFor(actor) || !DeliveryDestinationMatches(order, destination) ||
                 DeliveryRouteForCarried(order, destination) is not { } route ||
                 order.DeliveryRoute is not null && order.DeliveryRoute != route ||
-                PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id)) continue;
+                PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id)) continue;
             var vessel = InventoryContainerRules.IsContainer(lot.ItemKind);
             if (UnusableDeliveryStock(inventory, lot) || vessel && HasActiveContainerReservation(inventory, lot.Id)) continue;
             var available = vessel ? DeliveryResourceQuantity(lot, order.TargetItemKind!)
@@ -115,11 +115,11 @@ public sealed partial class WorldRuntime
         return null;
     }
 
-    private DeliveryOrderPlan? DeliveryPlanFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private DeliveryOrderPlan? DeliveryPlanFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
-        var order = instruction.Order!;
-        if (!AdultResident(actor) || !ReadyForBriefInteraction(actor) || DeliveryOrderRemaining(order) <= 0) return null;
+        var actor = instruction.TargetAgentId;
+        var order = instruction.Task!;
+        if (!IsAdult(actor) || !ReadyForBriefInteraction(actor) || DeliveryOrderRemaining(order) <= 0) return null;
         var boundLot = order.DeliveryLotId is { } boundId
             ? society.Checkpoint.Inventory.Lots.SingleOrDefault(lot => lot.Id == boundId) : null;
         if (order.DeliveryLotId is not null && (boundLot is null || boundLot.OwnerId != actor ||
@@ -151,12 +151,12 @@ public sealed partial class WorldRuntime
     }
 
     private (PlacedBuilding Building, string Route, MapResource Source)? DeliveryGatherFor(
-        OwnerQueuedInstruction instruction, InhabitantState person)
+        OwnerQueuedInstruction instruction, AgentState person)
     {
-        var order = instruction.Order!;
-        var actor = instruction.TargetInhabitantId;
+        var order = instruction.Task!;
+        var actor = instruction.TargetAgentId;
         if (order.DeliveryPurpose != "workstation_input" || order.DeliveryLotId is not null ||
-            CarriedHouseDelivery(actor) is not null || !AdultResident(actor) || !ReadyForBriefInteraction(actor)) return null;
+            CarriedHouseDelivery(actor) is not null || !IsAdult(actor) || !ReadyForBriefInteraction(actor)) return null;
         if (order.DeliveryRoute is null or "blacksmith_input" && HouseholdFor(actor) is { } householdId &&
             BlacksmithForHousehold(householdId) is { } smith && DeliveryDestinationMatches(order, smith) &&
             BlacksmithInputToGather(householdId, smith.InstanceId, actor, order.TargetItemKind) is { } missing &&
@@ -180,7 +180,7 @@ public sealed partial class WorldRuntime
         return need?.Source is { } source ? (need.Building, "workstation_input", source) : null;
     }
 
-    private CognitionCandidate? DeliveryOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person) =>
+    private CognitionCandidate? DeliveryOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person) =>
         DeliveryPlanFor(instruction, person) is { } plan
             ? new("deliver_stock", "Carry the requested goods to the selected building under its normal stocking rules.", 0, plan.Destination.InstanceId)
             : DeliveryGatherFor(instruction, person) is { } gather
@@ -190,10 +190,10 @@ public sealed partial class WorldRuntime
         string ownerId, string route, string? lotId = null, int? quantity = null)
     {
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
-        var order = current.Order!;
+        var order = current.Task!;
         current = current with
         {
-            Order = order with
+            Task = order with
             {
                 TargetStorageBuildingId = order.TargetStorageBuildingId ?? destination.InstanceId,
                 TargetStorageOwnerId = order.TargetStorageOwnerId ?? ownerId,
@@ -208,7 +208,7 @@ public sealed partial class WorldRuntime
         return current;
     }
 
-    private DeliveryNativeEffect? ApplyDeliveryOrderPlan(string actor, InhabitantState person,
+    private DeliveryNativeEffect? ApplyDeliveryOrderPlan(string actor, AgentState person,
         DeliveryOrderPlan plan)
     {
         var destination = plan.DirectDelivery ? plan.Destination.Position : HouseholdStockPosition(plan.Carrier);
@@ -237,15 +237,15 @@ public sealed partial class WorldRuntime
         return new(operation, movedId, plan.ResourceQuantity, plan.DirectDelivery);
     }
 
-    private void ExecuteDeliveryOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteDeliveryOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (DeliveryPlanFor(instruction, person) is not { } plan)
         {
             if (DeliveryGatherFor(instruction, person) is { } gather)
             {
                 instruction = BindDeliveryOrder(instruction, gather.Building, gather.Building.HouseholdId!, gather.Route);
-                GatherProjectMaterial(actor, person, instruction.Order!.TargetItemKind!, gather.Source, returnTo: gather.Building.Position);
+                GatherProjectMaterial(actor, person, instruction.Task!.TargetItemKind!, gather.Source, returnTo: gather.Building.Position);
                 return;
             }
             SetOrderStatus(instruction, "blocked", DeliveryOrderBlockedReason(instruction, person));
@@ -261,19 +261,19 @@ public sealed partial class WorldRuntime
             return;
         }
         CreditOrderEffect(instruction, StockDeliveryReceipt(effect.OperationId),
-            instruction.Order!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
+            instruction.Task!.ProgressUnit == "delivery_loads" ? 1 : effect.Quantity);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
         {
-            Order = current.Order! with { DeliveryLotId = null, DeliveryQuantity = null },
+            Task = current.Task! with { DeliveryLotId = null, DeliveryQuantity = null },
         };
     }
 
-    private string DeliveryOrderBlockedReason(OwnerQueuedInstruction instruction, InhabitantState person)
+    private string DeliveryOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var order = instruction.Order!;
-        var actor = instruction.TargetInhabitantId;
-        if (!AdultResident(actor)) return "An adult resident is needed to deliver goods.";
+        var order = instruction.Task!;
+        var actor = instruction.TargetAgentId;
+        if (!IsAdult(actor)) return "An adult resident is needed to deliver goods.";
         if (order.TargetStorageBuildingId is { } bound &&
             (worldSimulation.Buildings.SingleOrDefault(item => item.InstanceId == bound) is not { } building ||
              !DeliveryDestinationMatches(order, building) ||
@@ -288,9 +288,9 @@ public sealed partial class WorldRuntime
     private static void ValidateDeliveryOrderBindings(WorldContentSimulationState? simulation, SocietyCheckpoint society,
         IReadOnlyList<TownRuntimeState>? savedTowns, IEnumerable<OwnerQueuedInstruction> instructions)
     {
-        foreach (var instruction in instructions.Where(instruction => instruction.Order?.Action == "deliver_stock"))
+        foreach (var instruction in instructions.Where(instruction => instruction.Task?.Action == "deliver_stock"))
         {
-            var order = instruction.Order!;
+            var order = instruction.Task!;
             if (order.TargetStorageOwnerId is { } owner &&
                 !(order.DeliveryPurpose == "town_surplus" ? savedTowns?.Any(town => town.Id == owner) == true :
                     society.Households.Any(household => household.Id == owner)))

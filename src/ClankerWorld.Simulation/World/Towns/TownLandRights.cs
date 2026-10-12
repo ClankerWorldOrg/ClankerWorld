@@ -210,7 +210,7 @@ public static class TownLandRightsRules
 
         var townsById = towns.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var households = society.Households.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
-        var agents = society.Inhabitants.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var agents = society.Agents.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
         if (titles.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != titles.Count ||
             rights.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != rights.Count ||
             requests.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != requests.Count)
@@ -286,16 +286,16 @@ public sealed partial class WorldRuntime
         long? agreedEndTick = null)
     {
         gate.Wait();
-        try { return civicSystem.RequestHouseholdLandUse(civicWorld, requestId, requestedByAgentId, townId, requestedTiles, agreedEndTick); }
+        try { return townSystem.RequestHouseholdLandUse(civicWorld, requestId, requestedByAgentId, townId, requestedTiles, agreedEndTick); }
         finally { gate.Release(); }
     }
 
-    private (HouseholdLandUseRequestResult Result, TownGovernanceState State) FileHouseholdLandUse(
+    private (HouseholdLandUseRequestResult Result, TownCouncilState State) FileHouseholdLandUse(
         string requestId, string requestedByAgentId, string townId, IReadOnlyList<GridPoint> requestedTiles,
-        long? agreedEndTick, TownGovernanceState governance) => civicSystem.FileHouseholdLandUse(civicWorld, requestId, requestedByAgentId, townId, requestedTiles, agreedEndTick, governance);
+        long? agreedEndTick, TownCouncilState council) => townSystem.FileHouseholdLandUse(civicWorld, requestId, requestedByAgentId, townId, requestedTiles, agreedEndTick, council);
     private HouseholdLandUseRequestResult ExistingLandRequestResult(HouseholdLandUseRequest request,
-        bool isDuplicate) => civicSystem.ExistingLandRequestResult(civicWorld, request, isDuplicate);
-    private static HouseholdLandUseRequestResult RejectedLandRequest(string failure) => CivicSystem.RejectedLandRequest(failure);
-    private static bool ValidLandRequestText(string? value, int maximumLength) => CivicSystem.ValidLandRequestText(value, maximumLength);
-    private static bool SameLandRequest(HouseholdLandUseRequest left, HouseholdLandUseRequest right) => CivicSystem.SameLandRequest(left, right);
+        bool isDuplicate) => townSystem.ExistingLandRequestResult(civicWorld, request, isDuplicate);
+    private static HouseholdLandUseRequestResult RejectedLandRequest(string failure) => TownSystem.RejectedLandRequest(failure);
+    private static bool ValidLandRequestText(string? value, int maximumLength) => TownSystem.ValidLandRequestText(value, maximumLength);
+    private static bool SameLandRequest(HouseholdLandUseRequest left, HouseholdLandUseRequest right) => TownSystem.SameLandRequest(left, right);
 }

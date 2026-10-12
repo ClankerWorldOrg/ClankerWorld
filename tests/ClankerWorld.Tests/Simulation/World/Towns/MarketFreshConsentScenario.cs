@@ -23,10 +23,10 @@ internal static class MarketFreshConsentScenario
         Assert.Empty(market.StockReceipts);
         var stall = market.Stalls.OrderBy(item => item.SlotIndex).First();
         var position = boundary.WorldSimulation!.Buildings.Single(building => building.InstanceId == stall.BuildingId).Position;
-        var actor = boundary.Society.Society.Inhabitants.First(person =>
-            person.Status == SocietyInhabitantStatus.Active && person.HouseholdId is not null &&
+        var actor = boundary.Society.Society.Agents.First(person =>
+            person.Status == SocietyAgentStatus.Active && person.HouseholdId is not null &&
             person.AgeBand == SocietyAgeBand.Adult &&
-            boundary.Map.FootDistance(boundary.Inhabitants.Single(physical => physical.InhabitantId == person.Id).Position,
+            boundary.Map.FootDistance(boundary.Agents.Single(physical => physical.AgentId == person.Id).Position,
                 position) > 1).Id;
         var initial = WithInventory(boundary, InventoryAuthority.AddLot(boundary.Society.Society.Inventory,
             StockId, "wooden_axe", actor, 4));
@@ -37,9 +37,9 @@ internal static class MarketFreshConsentScenario
         initial = WithInventory(initial, InventoryAuthority.AddLot(initial.Society.Society.Inventory,
             "market-consent-sack", "sack", actor, 1)) with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = initial.Agents.Select(person => person.AgentId == actor ? person with
             {
-                HungerBasisPoints = 9_500,
+                FullnessBasisPoints = 9_500,
                 Survival = new SurvivalCondition(),
                 Equipment = new PersonalEquipment("market-consent-cloak", "market-consent-sack"),
             } : person).ToArray(),
@@ -147,14 +147,14 @@ internal static class MarketFreshConsentScenario
         var state = WithInventory(atSite, InventoryAuthority.AddLot(atSite.Society.Society.Inventory,
             "market-consent-order-berry", "berries", actor, 1)) with
         {
-            Inhabitants = atSite.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 3_000 } : person).ToArray(),
+            Agents = atSite.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 3_000 } : person).ToArray(),
         };
         var provider = new Choices(actor, observation => Deposit(observation, stallId));
         using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new Choices(id));
         var foodBefore = CarriedFoodQuantity(world, actor);
         var order = world.SubmitInstruction(new("market-consent-eat-order", "owner:test", actor,
-            OwnerInstructionKind.MustDo, "eat food"));
+            OwnerInstructionKind.Order, "eat food"));
         Assert.Contains(world.ExportState().Instructions!, item => item.InstructionId == order.InstructionId &&
             item.State == OwnerInstructionState.Queued);
         await UntilAsync(world, () => world.ExportState().CompletedInstructionIds!.Contains(order.InstructionId), 32);
@@ -176,7 +176,7 @@ internal static class MarketFreshConsentScenario
         var originalOffer = pending.Society.Society.Inventory.GetOffer(offerId);
         Assert.Equal(DirectBarterState.Open, originalOffer.State);
         var seller = trade.SellerAgentId;
-        var sellerPosition = pending.Inhabitants.Single(person => person.InhabitantId == seller).Position;
+        var sellerPosition = pending.Agents.Single(person => person.AgentId == seller).Position;
         var marketTiles = MarketContent.SiteTiles(market.Site).ToArray();
         // The actual House adjoins this plaza, so a House errand can stop inside it.
         // Use controlled personal ground stock on existing reachable Town land;
@@ -240,14 +240,14 @@ internal static class MarketFreshConsentScenario
             PersonalEquipmentRules.IsCarried(lot, actor) &&
             lot.ItemKind is "food" or "fruit" or "berries" or "wild_greens" or "cultivated_greens").Sum(lot => lot.Quantity);
 
-    private static CognitionCandidate? Deposit(InhabitantObservation observation, string stallId) =>
+    private static CognitionCandidate? Deposit(AgentObservation observation, string stallId) =>
         observation.Candidates.FirstOrDefault(candidate => candidate.DestinationId == stallId &&
             candidate.Id.StartsWith("market_deposit:", StringComparison.Ordinal) &&
             candidate.Description.StartsWith("Place 4 wooden_axe ", StringComparison.Ordinal));
 
     private static TownMarketState CurrentMarket(WorldRuntime world) => Assert.Single(Assert.Single(world.Towns).Markets);
-    private static InhabitantState Physical(WorldRuntime world, string actor) =>
-        world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static AgentState Physical(WorldRuntime world, string actor) =>
+        world.Agents.Single(person => person.AgentId == actor);
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static async Task StepAsync(WorldRuntime world)
@@ -305,7 +305,7 @@ internal static class MarketFreshConsentScenario
             });
     }
 
-    private sealed class Choices(string actor, Func<InhabitantObservation, CognitionCandidate?>? choose = null,
+    private sealed class Choices(string actor, Func<AgentObservation, CognitionCandidate?>? choose = null,
         DecisionProviderKind kind = DecisionProviderKind.LargeLanguageModel, bool fail = false,
         Func<CognitionDecisionRequest, CognitionCandidate, Task>? beforeReply = null) : IDecisionProvider
     {

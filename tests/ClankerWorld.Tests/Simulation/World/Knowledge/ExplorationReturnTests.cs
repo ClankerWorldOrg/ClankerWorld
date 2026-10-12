@@ -14,7 +14,7 @@ public sealed class ExplorationReturnTests
     {
         using var initial = new WorldRuntime("return-detour-regression");
         var state = initial.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var origin = scenario == "blocked" ? new GridPoint(2, 2) : new GridPoint(0, 0);
         var position = scenario switch
         {
@@ -38,13 +38,13 @@ public sealed class ExplorationReturnTests
         state = state with
         {
             Knowledge = new WorldKnowledgeState([fact], []),
-            Inhabitants = state.Inhabitants.Select((person, index) => person with
+            Agents = state.Agents.Select((person, index) => person with
             {
                 Position = index == 0 ? position : otherPositions[index - 1],
-                HungerBasisPoints = 9_500,
+                FullnessBasisPoints = 9_500,
                 MoveWaitTicks = index == 0 && scenario == "blocked" ? 29 : 0,
                 TravelCooldownTicks = 0,
-                Exploration = index == 0 ? new SettlementExploration(path, path, 0, true, [origin]) : null,
+                Exploration = index == 0 ? new ExplorationState(path, path, 0, true, [origin]) : null,
             }).ToArray(),
         };
         IDecisionProvider Provider(string id) => new ReturnProvider(id == actor);
@@ -55,7 +55,7 @@ public sealed class ExplorationReturnTests
         for (var tick = 0; tick < 5; tick++) Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         restored.Validate();
         var result = restored.ExportState();
-        var explorer = restored.Inhabitants.Single(person => person.InhabitantId == actor);
+        var explorer = restored.Agents.Single(person => person.AgentId == actor);
         Assert.Empty(explorer.Exploration!.OutingPath);
         Assert.DoesNotContain(result.Events, item => item.Kind == "exploration_aborted" && item.Detail == actor + ":interrupted_movement");
         Assert.Empty(result.Knowledge!.Artifacts);

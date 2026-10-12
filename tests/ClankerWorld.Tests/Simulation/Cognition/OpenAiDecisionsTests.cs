@@ -29,7 +29,7 @@ public sealed class OpenAiDecisionsTests
         var root = payload.RootElement;
         Assert.Equal("gpt-6-luna", root.GetProperty("model").GetString());
         using var input = JsonDocument.Parse(root.GetProperty("input").GetString()!);
-        Assert.Equal(5_000, input.RootElement.GetProperty("hunger_basis_points").GetInt32());
+        Assert.Equal(5_000, input.RootElement.GetProperty("fullness_basis_points").GetInt32());
         Assert.Equal(0, input.RootElement.GetProperty("memory_compaction_candidates")[0].GetProperty("source_index").GetInt32());
         Assert.DoesNotContain("private-source-id", handler.Body!);
         Assert.DoesNotContain("world_tick", handler.Body!);
@@ -95,7 +95,7 @@ public sealed class OpenAiDecisionsTests
         }
     }
 
-    private static InhabitantObservation Observation() => new("agent-test", 4, 0, 2, "sha256:test", 5_000,
+    private static AgentObservation Observation() => new("agent-test", 4, 0, 2, "sha256:test", 5_000,
         [new("safe_idle", "Wait safely.", 0), new("seek_food", "Travel to food.", 10)],
         MemoryCompactionCandidates: [new("private-source-id", "agent-test", "experience", "friend", "A remembered promise.", 1)]);
 

@@ -15,7 +15,7 @@ public partial class Main
     private async Task VerifyNightLightsAsync(OwnerWorldSnapshot map)
     {
         var (zoomBefore, centerBefore) = (cameraZoom, cameraCenterTiles);
-        var ada = new OwnerWorldInhabitant("agent:night-lights-ui", "Ada", "active", new(11, 10), 8_000, [], [],
+        var ada = new OwnerWorldAgent("agent:night-lights-ui", "Ada", "active", new(11, 10), 8_000, [], [],
             new OwnerWorldRoute("idle", null, null, [], string.Empty),
             new OwnerWorldSpatialKnowledge(new(11, 10), [new(11, 10)], [new(11, 10)]), false);
         OwnerWorldPlacedBuilding Building(string id, string tag, int x, int y, int width, int height, OwnerWorldPosition? entrance) =>
@@ -27,7 +27,7 @@ public partial class Main
         {
             WorldTick = 30,
             DarknessBasisPoints = 10_000,
-            Inhabitants = [ada],
+            Agents = [ada],
             Objects = [],
             PlacedBuildings =
             [
@@ -214,7 +214,7 @@ public partial class Main
         {
             WorldId = night.WorldId + ":night-seam",
             WrapsEastWest = true,
-            Inhabitants = [ada with { Position = new(east, 10) }],
+            Agents = [ada with { Position = new(east, 10) }],
             PlacedBuildings = [Building("wrapped-house", "house", east, 10, 1, 1, new(east, 11))],
             ProductionJobs = [],
         };
@@ -230,10 +230,10 @@ public partial class Main
         RenderMap(map);
         cameraZoom = maximumCameraZoom;
         cameraCenterTiles = new Vector2(18, 8);
-        // A completed street fitting works without inhabitants or production jobs.
+        // A completed street fitting works without agents or production jobs.
         var street = night with
         {
-            Inhabitants = [],
+            Agents = [],
             ProductionJobs = [],
             PlacedBuildings = night.PlacedBuildings.Where(building => StreetLanternLight.IsLantern(building.Tags)).ToArray(),
         };
@@ -319,7 +319,7 @@ public partial class Main
             var harbour = street with
             {
                 DarknessBasisPoints = 10_000,
-                Inhabitants = occupied ? [ada with { Position = new(18, 10) }] : [],
+                Agents = occupied ? [ada with { Position = new(18, 10) }] : [],
                 PlacedBuildings = [Building("port", "port", 18, 10, 2, 4, new(18, 14)) with { TownId = "night-harbour" }],
                 Towns = [new OwnerWorldTown("night-harbour", "Harbour", "founded", 0, residents, [], [])],
             };

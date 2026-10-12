@@ -39,16 +39,16 @@ internal static class MarketAdditionalStallScenario
         var initial = paidBoundary with
         {
             Society = paidBoundary.Society with { Society = paidBoundary.Society.Society with { Inventory = inventory } },
-            Inhabitants = paidBoundary.Inhabitants.Select(person => actors.Contains(person.InhabitantId)
+            Agents = paidBoundary.Agents.Select(person => actors.Contains(person.AgentId)
                 ? person with
                 {
-                    HungerBasisPoints = 9_500,
+                    FullnessBasisPoints = 9_500,
                     Survival = new SurvivalCondition(),
                     LastDecisionContext = null,
                     Equipment = (person.Equipment ?? new PersonalEquipment()) with
                     {
-                        ClothingLotId = "extra-stall-cloak:" + person.InhabitantId,
-                        CarryAidLotId = "extra-stall-sack:" + person.InhabitantId,
+                        ClothingLotId = "extra-stall-cloak:" + person.AgentId,
+                        CarryAidLotId = "extra-stall-sack:" + person.AgentId,
                     },
                 }
                 : person).ToArray(),
@@ -72,9 +72,9 @@ internal static class MarketAdditionalStallScenario
         Assert.All(world.Towns[0].Markets[0].Stalls, stall => Assert.Contains(world.Towns[0].Markets[0].Occupancies,
             occupancy => occupancy.StallBuildingId == stall.BuildingId && occupancy.EndedTick is null));
         world = phases.Resume("proposal");
-        await UntilAsync(world, policy, () => world.Towns[0].Governance!.Proposals.Any(item =>
+        await UntilAsync(world, policy, () => world.Towns[0].Council!.Proposals.Any(item =>
             item.Project?.DefinitionId == MarketContent.Stall1x1().CanonicalId), 32);
-        var pending = Assert.Single(world.Towns[0].Governance!.Proposals,
+        var pending = Assert.Single(world.Towns[0].Council!.Proposals,
             item => item.Project?.DefinitionId == MarketContent.Stall1x1().CanonicalId);
         Assert.Equal(("pending", Proposer, "Third stall"), (pending.Status, pending.AuthorId, pending.Project!.Name));
         Assert.Equal(new[] { ("fiber", 2), ("wood", 4) }, pending.Project.Budget.Select(cost => (cost.ResourceId, cost.Amount)));
@@ -87,17 +87,17 @@ internal static class MarketAdditionalStallScenario
 
         world = phases.Resume("approve");
         await UntilAsync(world, policy, () => world.Towns[0].Projects.Count == 2, 100);
-        var approval = world.Towns[0].Governance!.Proposals.Single(item => item.Id == pending.Id);
+        var approval = world.Towns[0].Council!.Proposals.Single(item => item.Id == pending.Id);
         Assert.Equal("passed", approval.Status);
         Assert.Equal(3, approval.RequiredYes);
         Assert.Equal(4, approval.Voters.Count);
         Assert.True(approval.Votes.Count(vote => vote.Yes) >= approval.RequiredYes);
         Assert.Equal(pending.CouncilRevision, approval.CouncilRevision);
-        var notice = Assert.Single(world.Towns[0].Governance!.Notices, item => item.Kind == "proposal" && item.SubjectId == approval.Id);
+        var notice = Assert.Single(world.Towns[0].Council!.Notices, item => item.Kind == "proposal" && item.SubjectId == approval.Id);
         Assert.All(approval.Votes, vote =>
         {
             Assert.Contains(policy.Choices, choice => choice.Actor == vote.AgentId && choice.Id == $"civic|{world.Towns[0].Id}|yes|{approval.Id}|");
-            Assert.Contains(world.Towns[0].Governance!.Knowledge, receipt => receipt.AgentId == vote.AgentId && receipt.NoticeId == notice.Id);
+            Assert.Contains(world.Towns[0].Council!.Knowledge, receipt => receipt.AgentId == vote.AgentId && receipt.NoticeId == notice.Id);
         });
         var projectId = Assert.Single(world.Towns[0].Projects, item => item.ProposalId == approval.Id).Id;
         Assert.Empty(Project(world, projectId).Deliveries);
@@ -200,7 +200,7 @@ internal static class MarketAdditionalStallScenario
         }
     }
 
-    private static TownConstructionProject Project(WorldRuntime world, string id) => world.Towns[0].Projects.Single(item => item.Id == id);
+    private static TownProject Project(WorldRuntime world, string id) => world.Towns[0].Projects.Single(item => item.Id == id);
     private static int ActiveBorrowers(WorldRuntime world) => world.Towns[0].Markets[0].Occupancies.Count(item => item.EndedTick is null);
     private static int Total(WorldRuntimeState state, string kind) => state.Society.Society.Inventory.Lots.Where(item => item.ItemKind == kind).Sum(item => item.Quantity);
     private static void AssertStrictRoundTrip(WorldRuntime world)
@@ -216,14 +216,14 @@ internal static class MarketAdditionalStallScenario
         for (var tick = 0; tick < ticks && !reached(); tick++)
         {
             var previousInventory = world.Society.Inventory;
-            var positions = world.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal);
+            var positions = world.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            foreach (var person in world.Inhabitants)
+            foreach (var person in world.Agents)
             {
-                var old = positions[person.InhabitantId];
+                var old = positions[person.AgentId];
                 if (old != person.Position) Assert.True(movementMap.CanFootStep(old, person.Position));
-                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.InhabitantId, person.Equipment),
-                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.InhabitantId, person.Equipment));
+                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.AgentId, person.Equipment),
+                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.AgentId, person.Equipment));
             }
             foreach (var delivery in world.Towns[0].Projects.SelectMany(item => item.Deliveries)
                          .Where(item => policy.PersonalDonations.Add(item.Id)))
@@ -261,7 +261,7 @@ internal static class MarketAdditionalStallScenario
             // borrow/travel sequence remains uninterrupted.
             World = WorldRuntime.Restore(retained with
             {
-                Inhabitants = retained.Inhabitants.Select(person => person with { LastDecisionContext = null }).ToArray(),
+                Agents = retained.Agents.Select(person => person with { LastDecisionContext = null }).ToArray(),
             }, policy.CreateProvider);
             return World;
         }

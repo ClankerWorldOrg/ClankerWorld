@@ -18,7 +18,7 @@ public sealed partial class AnimalPipelineTests
             state = setup.ExportState();
         }
         var source = swim ? new GridPoint(105, 49) : state.Map.FootNeighbors(yard.Position)
-            .First(point => state.Map.IsBuildable(point) && state.Inhabitants.All(person => person.Position != point));
+            .First(point => state.Map.IsBuildable(point) && state.Agents.All(person => person.Position != point));
         Assert.Equal(!swim, state.Map.IsReachableOnFoot(source, yard.Position));
         Assert.True(SwimmingRules.IsReachable(state.Map, source, yard.Position));
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
@@ -32,7 +32,7 @@ public sealed partial class AnimalPipelineTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = At(state, actor, source, inventory, [cow]).Inhabitants.Select(item => item with
+            Agents = At(state, actor, source, inventory, [cow]).Agents.Select(item => item with
             { Survival = new(), Equipment = null }).ToArray(),
         };
         var chooser = new ReturnPickupChooser("animal:supply");

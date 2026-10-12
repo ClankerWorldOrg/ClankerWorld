@@ -12,7 +12,7 @@ public sealed class GroundOccupancyTests
     {
         using var scenario = await TownProjectScenario.ApprovedAsync(initialTownStock: true);
         Assert.True(scenario.World.WorldTick > 0);
-        Assert.Equal("passed", Assert.Single(scenario.World.Towns[0].Governance!.Proposals).Status);
+        Assert.Equal("passed", Assert.Single(scenario.World.Towns[0].Council!.Proposals).Status);
         CheckQueries(scenario.World);
         scenario.Policy.Supply = true;
         await scenario.UntilAsync(() => scenario.Project.Stage == "completed", 320);
@@ -31,7 +31,7 @@ public sealed class GroundOccupancyTests
         var map = state.Map;
         var content = state.WorldContent!;
         var simulation = state.WorldSimulation!;
-        var towns = ReadField<CivicSystem>(world, "civicSystem").State.Towns;
+        var towns = ReadField<TownSystem>(world, "townSystem").State.Towns;
         var liveFields = ReadField<FarmingSystem>(world, "farmingSystem").State.Fields;
         var liveRoads = ReadField<HashSet<GridPoint>>(world, "roadTiles");
         var liveBridges = ReadField<List<BridgeState>>(world, "bridges");

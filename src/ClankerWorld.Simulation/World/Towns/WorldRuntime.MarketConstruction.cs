@@ -5,7 +5,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private void CompletePaidMarketConstruction(string townId, TownConstructionProject project, PlacedBuilding placed)
+    private void CompletePaidMarketConstruction(string townId, TownProject project, PlacedBuilding placed)
     {
         var town = towns.Single(item => item.Id == townId);
         if (project.Plan.DefinitionId == MarketContent.Hall2x2().CanonicalId)

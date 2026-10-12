@@ -28,20 +28,20 @@ public sealed partial class AnimalPipelineTests
         var source = disconnected ? new GridPoint(213, 2) : yard.Position;
         Assert.True(state.Map.IsBuildable(source));
         Assert.Equal(!disconnected, SwimmingRules.IsReachable(state.Map, yard.Position, source));
-        var reserve = 2 * state.Society.Society.Inhabitants.Count(person => person.HouseholdId == home &&
-            state.Inhabitants.Any(active => active.InhabitantId == person.Id));
+        var reserve = 2 * state.Society.Society.Agents.Count(person => person.HouseholdId == home &&
+            state.Agents.Any(active => active.AgentId == person.Id));
         inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "source-milk", "milk", home, reserve + 2,
             groundPosition: new(source.X, source.Y));
         state = At(state, actor, yard.Position, inventory, []) with
         { JevEnabled = false, RoutineHelper = RoutineHelperSettings.Off };
-        var chooser = new ReturnPickupChooser("business_stock_store");
+        var chooser = new ReturnPickupChooser("shop_stock_store");
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? chooser : new AnimalChooser());
         if (disconnected)
         {
             for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.DoesNotContain(chooser.Offered.SelectMany(items => items), id => id == "business_stock_store");
+            Assert.DoesNotContain(chooser.Offered.SelectMany(items => items), id => id == "shop_stock_store");
             Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot("source-milk").GroundPosition);
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "store_stock_collected");
         }
@@ -76,12 +76,12 @@ public sealed partial class AnimalPipelineTests
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         state = setup.ExportState();
         var source = swimOnly ? new GridPoint(105, 49) : state.Map.FootNeighbors(store.Position)
-            .First(point => state.Map.IsBuildable(point) && state.Inhabitants.All(person => person.Position != point));
+            .First(point => state.Map.IsBuildable(point) && state.Agents.All(person => person.Position != point));
         Assert.True(state.Map.IsBuildable(source));
         Assert.Equal(!swimOnly, state.Map.IsReachableOnFoot(source, store.Position));
         Assert.True(SwimmingRules.IsReachable(state.Map, source, store.Position));
-        var reserve = 2 * state.Society.Society.Inhabitants.Count(person => person.HouseholdId == home &&
-            state.Inhabitants.Any(active => active.InhabitantId == person.Id));
+        var reserve = 2 * state.Society.Society.Agents.Count(person => person.HouseholdId == home &&
+            state.Agents.Any(active => active.AgentId == person.Id));
         inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "return-ballast", "stone", actor, stones);
         // Keep physical ballast from becoming the Store's first sellable load.
@@ -93,13 +93,13 @@ public sealed partial class AnimalPipelineTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = At(state, actor, source, inventory, []).Inhabitants.Select(person => person with
+            Agents = At(state, actor, source, inventory, []).Agents.Select(person => person with
             {
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 Survival = new SurvivalCondition(WarmthBasisPoints: 10_000),
             }).ToArray(),
         };
-        var choices = new ReturnPickupChooser("business_stock_store");
+        var choices = new ReturnPickupChooser("shop_stock_store");
         var initial = WorldRuntimeCodec.Encode(state);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(initial),
             id => id == actor ? choices : new AnimalChooser());
@@ -110,7 +110,7 @@ public sealed partial class AnimalPipelineTests
         if (swimOnly && stones == 4)
         {
             for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.DoesNotContain(choices.Offered.SelectMany(items => items), id => id == "business_stock_store");
+            Assert.DoesNotContain(choices.Offered.SelectMany(items => items), id => id == "shop_stock_store");
             Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "store_stock_collected");
             Assert.Null(world.Society.Inventory.GetLot("return-milk").CarrierId);
             Assert.Equal(new InventoryGroundPosition(source.X, source.Y), world.Society.Inventory.GetLot("return-milk").GroundPosition);
@@ -128,7 +128,7 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(stones, world.Society.Inventory.GetLot("return-ballast").Quantity);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved),
-            id => id == actor ? new ReturnPickupChooser("business_stock_store") : new AnimalChooser());
+            id => id == actor ? new ReturnPickupChooser("shop_stock_store") : new AnimalChooser());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(replay.ExportState()));
         world.Validate();
         replay.Validate();
@@ -145,9 +145,9 @@ public sealed partial class AnimalPipelineTests
             var observation = request.Observation;
             Offered.Enqueue(observation.Candidates.Select(item => item.Id).ToArray());
             var choice = observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)) ??
-                (prefix == "business_stock_store" ? observation.Candidates.FirstOrDefault(item => item.Id == "haul_household_stock") : null) ??
+                (prefix == "shop_stock_store" ? observation.Candidates.FirstOrDefault(item => item.Id == "haul_household_stock") : null) ??
                 observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 choice.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == choice.Id ? 1d : 0d)));
         }

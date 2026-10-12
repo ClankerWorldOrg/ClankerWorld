@@ -16,19 +16,19 @@ public sealed class YardHousePrerequisiteTests
         var actor = forming.Society.GetHousehold("household:camp-alpha").MemberIds[0];
         choices.Actor = actor;
         choices.Leave = true;
-        await Until(forming, () => forming.Society.GetInhabitant(actor).HouseholdId is null);
+        await Until(forming, () => forming.Society.GetAgent(actor).HouseholdId is null);
         choices.Leave = false;
         choices.Form = true;
-        await Until(forming, () => forming.Society.GetInhabitant(actor).HouseholdId is not null);
+        await Until(forming, () => forming.Society.GetAgent(actor).HouseholdId is not null);
         choices.Form = false;
-        var home = forming.Society.GetInhabitant(actor).HouseholdId!;
+        var home = forming.Society.GetAgent(actor).HouseholdId!;
         Assert.NotEqual("household:camp-alpha", home);
         Assert.DoesNotContain(forming.WorldSimulation.Buildings, building => building.HouseholdId == home);
         Assert.Contains(forming.ExportState().Events, item => item.Kind == "household_founded" && item.Detail.StartsWith(actor + "|", StringComparison.Ordinal));
         var state = forming.ExportState();
-        var actorPosition = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var actorPosition = state.Agents.Single(person => person.AgentId == actor).Position;
         var titled = state.TownLandTitles!.SelectMany(title => title.Tiles).ToHashSet();
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position).ToHashSet();
         using var routes = new UnoccupiedRouteSearch(state.Map, actorPosition, occupied, state.Map.FootStepCost);
         var startingSitePosition = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) && !titled.Contains(point) &&
             state.Map.FootNeighbors(point).Count(neighbor => state.Map.IsBuildable(neighbor) && !titled.Contains(neighbor)) >= 4)
@@ -42,26 +42,26 @@ public sealed class YardHousePrerequisiteTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? startingSitePosition : person.Position,
-                HungerBasisPoints = 9500,
+                Position = person.AgentId == actor ? startingSitePosition : person.Position,
+                FullnessBasisPoints = 9500,
                 Survival = new SurvivalCondition(),
                 Project = null,
                 LastDecisionContext = null,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
             }).ToArray(),
         };
         var bytes = WorldRuntimeCodec.Encode(state);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => choices);
         if (houseFirst)
         {
-            var house = world.SubmitInstruction(new("yard-prerequisite-house", "owner", actor, OwnerInstructionKind.MustDo, "build a House"));
-            await Until(world, () => world.ExportState().Instructions!.Single(item => item.InstructionId == house.InstructionId).Order!.Status == "finished");
+            var house = world.SubmitInstruction(new("yard-prerequisite-house", "owner", actor, OwnerInstructionKind.Order, "build a House"));
+            await Until(world, () => world.ExportState().Instructions!.Single(item => item.InstructionId == house.InstructionId).Task!.Status == "finished");
             Assert.Single(world.WorldSimulation.Buildings, building => building.HouseholdId == home &&
                 world.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         }
-        var yard = world.SubmitInstruction(new("yard-prerequisite-yard", "owner", actor, OwnerInstructionKind.MustDo, "build an animal yard"));
+        var yard = world.SubmitInstruction(new("yard-prerequisite-yard", "owner", actor, OwnerInstructionKind.Order, "build an animal yard"));
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => choices);
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -94,7 +94,7 @@ public sealed class YardHousePrerequisiteTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(reload.ExportState()));
         world.Validate();
         reload.Validate();
-        OwnerInstructionOrder Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == yard.InstructionId).Order!;
+        OrderTask Order() => world.ExportState().Instructions!.Single(item => item.InstructionId == yard.InstructionId).Task!;
     }
 
     private static async Task Until(WorldRuntime world, Func<bool> ready)
@@ -113,7 +113,7 @@ public sealed class YardHousePrerequisiteTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var candidates = request.Observation.Candidates;
-            CognitionCandidate? selected = request.Observation.InhabitantId == Actor
+            CognitionCandidate? selected = request.Observation.AgentId == Actor
                 ? Leave ? candidates.FirstOrDefault(candidate => candidate.Id == "household_leave")
                     : Form ? candidates.FirstOrDefault(candidate => candidate.Id == "household_found") ?? candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("household_ask:", StringComparison.Ordinal))
                         : candidates.FirstOrDefault(candidate => candidate.Id == "construct_building")

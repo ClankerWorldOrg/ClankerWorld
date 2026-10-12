@@ -10,7 +10,7 @@ public sealed partial class WorldRuntimeTests
     {
         using var world = new WorldRuntime("instruction-key-retry");
         var request = new OwnerInstructionRequest(key, "owner:test", "founder-mira",
-            OwnerInstructionKind.Suggestive, "wait safely");
+            OwnerInstructionKind.Suggestion, "wait safely");
         var receipt = world.SubmitInstruction(request);
         Assert.Equal("retry-key", receipt.IdempotencyKey);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -20,8 +20,8 @@ public sealed partial class WorldRuntimeTests
         foreach (var conflicting in new[]
         {
             request with { IssuerId = "owner:other" },
-            request with { TargetInhabitantId = "missing-agent" },
-            request with { Kind = OwnerInstructionKind.MustDo },
+            request with { TargetAgentId = "missing-agent" },
+            request with { Kind = OwnerInstructionKind.Order },
             request with { Text = "gather food" },
         })
             Assert.Throws<InvalidOperationException>(() => world.SubmitInstruction(conflicting));

@@ -118,7 +118,7 @@ starts at cursor zero, so a younger world can be entered without restarting the
 client. Tick/event regression and terrain identity checks still apply within the
 new observation timeline.
 
-Life-pace and Jev actions additionally bind the selected world ID into their
+Aging-override and Jev actions additionally bind the selected world ID into their
 version-2 signed payloads. The host advertises both formats on challenge
 issuance; the client refuses to submit them to a host without that support.
 Both endpoints check the target world under the same mutation gate used by

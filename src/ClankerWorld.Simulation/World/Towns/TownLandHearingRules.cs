@@ -25,7 +25,7 @@ public static class TownLandHearingRules
     internal static bool ValidText(string? text, int max = MaximumTextLength) =>
         !string.IsNullOrWhiteSpace(text) && text.Length <= max && !text.Any(char.IsControl);
     internal static string[] Ordered(IEnumerable<string> ids) => ids.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-    private static TownLandHearingState Replace(TownLandHearingState state, TownLandCase item) =>
+    private static TownLandRecords Replace(TownLandRecords state, TownLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
 
     public static bool IsValidOutcome(TownLandRequestedOutcome outcome, long tick) =>
@@ -34,7 +34,7 @@ public static class TownLandHearingRules
             TownHearingProcedure.Id(outcome.HouseholdId) && (outcome.Kind is "end" or "reclaim" or "grant" ? outcome.AgreedEndTick is null :
                 outcome.AgreedEndTick is null || outcome.AgreedEndTick > tick));
 
-    public static TownLandHearingState File(TownLandHearingState state, string townId,
+    public static TownLandRecords File(TownLandRecords state, string townId,
         TownLandCaseFiling filing, IReadOnlyList<GridPoint> tiles, IReadOnlyList<HouseholdLandUseRight> currentRights,
         IReadOnlyList<TownLandCaseParty> parties, long tick, int day, string noticeId, TownPropertyCase? property = null)
     {
@@ -72,7 +72,7 @@ public static class TownLandHearingRules
     /// The same plot joins a pending case. Any other overlap with a pending case waits for it. A settled case bars its
     /// tiles until their permission terms change; an expiry review is also barred only by a ruling made at or after that end.
     /// </summary>
-    public static string? FilingRefusal(TownLandHearingState state, string townId, IReadOnlyList<GridPoint> tiles,
+    public static string? FilingRefusal(TownLandRecords state, string townId, IReadOnlyList<GridPoint> tiles,
         IReadOnlyList<HouseholdLandUseRight> currentRights, string? expiredRightId = null)
     {
         var overlapping = state.Cases.Where(c => c.TownId == townId && CurrentRevision(c).Tiles.Any(tiles.Contains)).ToArray();
@@ -90,7 +90,7 @@ public static class TownLandHearingRules
         }) ? "A hearing already settled this plot and its permissions have not changed since. Reopening that case needs new evidence or a procedural error." : null;
     }
 
-    public static TownLandHearingState Revise(TownLandHearingState state, string caseId,
+    public static TownLandRecords Revise(TownLandRecords state, string caseId,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandCaseParty> parties,
         IReadOnlyList<GridPoint> tiles, long tick, int day, string noticeId, bool assetsChanged = false)
     {
@@ -134,7 +134,7 @@ public static class TownLandHearingRules
     public static bool HasNoticeReceipt(TownLandCaseRevision revision, string actor, long tick, IReadOnlyList<TownCivicReceipt> receipts) =>
         TownHearingProcedure.HasNotice(revision.NoticeId, revision.PublishedTick, actor, tick, receipts);
 
-    public static TownLandHearingState Inspect(TownLandHearingState state, string caseId, int revision, string actor, long tick)
+    public static TownLandRecords Inspect(TownLandRecords state, string caseId, int revision, string actor, long tick)
     {
         var item = Exact(state, caseId, revision);
         if (tick < CurrentRevision(item).PublishedTick || !TownHearingProcedure.Id(actor)) throw new InvalidOperationException("The current case file must actually be inspected.");
@@ -143,7 +143,7 @@ public static class TownLandHearingRules
         return Replace(state, item with { Reads = item.Reads.Append(read).ToArray() });
     }
 
-    public static TownLandHearingState RelayRead(TownLandHearingState state, string caseId, int revision,
+    public static TownLandRecords RelayRead(TownLandRecords state, string caseId, int revision,
         string source, string recipient, long tick)
     {
         var item = Exact(state, caseId, revision);
@@ -160,7 +160,7 @@ public static class TownLandHearingRules
         });
     }
 
-    public static TownLandHearingState Respond(TownLandHearingState state, string caseId, int revision,
+    public static TownLandRecords Respond(TownLandRecords state, string caseId, int revision,
         string actor, string kind, string text, long tick, IReadOnlyList<TownCivicReceipt> receipts,
         IReadOnlyList<TownLandCaseParty> currentParties, string? partyId = null)
     {
@@ -179,7 +179,7 @@ public static class TownLandHearingRules
         });
     }
 
-    public static TownLandHearingState AddEvidence(TownLandHearingState state, string caseId, int revision,
+    public static TownLandRecords AddEvidence(TownLandRecords state, string caseId, int revision,
         TownLandEvidence evidence, IReadOnlyList<TownCivicReceipt> receipts)
     {
         var item = Exact(state, caseId, revision);
@@ -211,7 +211,7 @@ public static class TownLandHearingRules
             parties.SelectMany(p => p.AdultIds.Concat(p.RepresentativeId is { } representative ? new[] { representative } : [])),
             parties.Select(p => p.HouseholdId), directStakeIds);
 
-    public static TownLandHearingState AssignJudge(TownLandHearingState state, string caseId, TownLandCaseJudge judge)
+    public static TownLandRecords AssignJudge(TownLandRecords state, string caseId, TownLandCaseJudge judge)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         if (judge.Kind is not ("land_mayor" or "case_elected") || !TownHearingProcedure.Id(judge.AgentId) || !ValidText(judge.AuthorityId, 128))
@@ -220,7 +220,7 @@ public static class TownLandHearingRules
         return Replace(state, item with { Judge = judge });
     }
 
-    public static TownLandHearingState InvalidateJudge(TownLandHearingState state, string caseId, long tick, string reason)
+    public static TownLandRecords InvalidateJudge(TownLandRecords state, string caseId, long tick, string reason)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         return item.Judge is null ? state : Replace(state, item with
@@ -230,8 +230,8 @@ public static class TownLandHearingRules
         });
     }
 
-    public static (TownLandHearingState State, IReadOnlyList<HouseholdLandUseRight> Rights) Rule(
-        TownLandHearingState state, WorldMap map, string caseId, int revision, TownLandCaseJudge judge, long tick,
+    public static (TownLandRecords State, IReadOnlyList<HouseholdLandUseRight> Rights) Rule(
+        TownLandRecords state, WorldMap map, string caseId, int revision, TownLandCaseJudge judge, long tick,
         TownLandRequestedOutcome outcome, IReadOnlyList<string> evidenceIds, IReadOnlyList<string> lawIds, string reasons,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandCaseParty> currentParties, bool validAuthority,
         IReadOnlyList<HouseholdLandUseRequest>? pendingRequests = null)
@@ -347,7 +347,7 @@ public static class TownLandHearingRules
             !after.Any(r => r.Tiles.Contains(tile) && (r.AgreedEndTick is null || before.AgreedEndTick is { } end && r.AgreedEndTick >= end))));
     }
 
-    public static TownLandHearingState RecordBuildingTransfer(TownLandHearingState state, WorldMap map,
+    public static TownLandRecords RecordBuildingTransfer(TownLandRecords state, WorldMap map,
         string buildingId, IReadOnlyList<GridPoint> footprint, string targetHouseholdId,
         IReadOnlyList<HouseholdLandUseRight> beforeRights, IReadOnlyList<HouseholdLandUseRight> afterRights, long tick)
     {
@@ -362,7 +362,7 @@ public static class TownLandHearingRules
         return RecordAdjustment(state, adjustment) with { Sequence = state.Sequence + 1 };
     }
 
-    private static TownLandHearingState RecordAdjustment(TownLandHearingState state, TownLandRightAdjustment adjustment)
+    private static TownLandRecords RecordAdjustment(TownLandRecords state, TownLandRightAdjustment adjustment)
     {
         var produced = state.Adjustments.SelectMany(a => a.ResultRights).Select(r => r.Id).ToHashSet(StringComparer.Ordinal);
         var originals = state.OriginalRights.Concat(adjustment.PriorRights.Where(r => !produced.Contains(r.Id) &&
@@ -371,7 +371,7 @@ public static class TownLandHearingRules
     }
 
     /// <summary>Original grant pieces for the existing Council receipt validator, with untouched live pieces.</summary>
-    public static IReadOnlyList<HouseholdLandUseRight> OriginalGrantRights(TownLandHearingState state,
+    public static IReadOnlyList<HouseholdLandUseRight> OriginalGrantRights(TownLandRecords state,
         IReadOnlyList<HouseholdLandUseRight> currentRights)
     {
         var touched = state.OriginalRights.Select(r => r.Id).Concat(state.Adjustments.SelectMany(a => a.ResultRights).Select(r => r.Id))
@@ -380,7 +380,7 @@ public static class TownLandHearingRules
             .OrderBy(r => r.Id, StringComparer.Ordinal).ToArray();
     }
 
-    public static IReadOnlyList<HouseholdLandUseRight> ApplyAdjustments(TownLandHearingState state,
+    public static IReadOnlyList<HouseholdLandUseRight> ApplyAdjustments(TownLandRecords state,
         IReadOnlyList<HouseholdLandUseRight> originalRights)
     {
         var rights = originalRights.ToDictionary(r => r.Id, StringComparer.Ordinal);
@@ -396,7 +396,7 @@ public static class TownLandHearingRules
         return rights.Values.OrderBy(r => r.Id, StringComparer.Ordinal).ToArray();
     }
 
-    public static IReadOnlyList<TownLandRequestResolution> RequestResolutions(TownLandHearingState state,
+    public static IReadOnlyList<TownLandRequestResolution> RequestResolutions(TownLandRecords state,
         string caseId, string rulingId, IReadOnlyList<HouseholdLandUseRequest> requests)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
@@ -411,7 +411,7 @@ public static class TownLandHearingRules
     internal static bool SameRights(IEnumerable<HouseholdLandUseRight> a, IEnumerable<HouseholdLandUseRight> b) =>
         a.OrderBy(r => r.Id, StringComparer.Ordinal).Select(Version).SequenceEqual(b.OrderBy(r => r.Id, StringComparer.Ordinal).Select(Version));
 
-    public static TownLandHearingState RequestReopen(TownLandHearingState state, string caseId, string actor,
+    public static TownLandRecords RequestReopen(TownLandRecords state, string caseId, string actor,
         string kind, IReadOnlyList<string> evidenceIds, string reasons, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId && c.Status == "settled");
@@ -422,11 +422,11 @@ public static class TownLandHearingRules
         return Replace(state with { Sequence = state.Sequence + 1 }, item with { ReopenRequests = item.ReopenRequests.Append(request).ToArray() });
     }
 
-    public static bool ReopeningPlotIsAvailable(TownLandHearingState state, TownLandCase item) =>
+    public static bool ReopeningPlotIsAvailable(TownLandRecords state, TownLandCase item) =>
         !state.Cases.Any(other => other.Id != item.Id && other.TownId == item.TownId && other.Status == "pending" &&
             CurrentRevision(other).Tiles.Any(CurrentRevision(item).Tiles.Contains));
 
-    public static TownLandHearingState Reopen(TownLandHearingState state, string caseId, string requestId,
+    public static TownLandRecords Reopen(TownLandRecords state, string caseId, string requestId,
         TownLandCaseJudge judge, bool groundsEstablished, string assessment, IReadOnlyList<HouseholdLandUseRight> currentRights,
         IReadOnlyList<TownLandCaseParty> currentParties, long tick, int day, string noticeId, bool validAuthority)
     {
@@ -455,7 +455,7 @@ public static class TownLandHearingRules
         return Replace(state, item);
     }
 
-    public static bool MaterialNewEvidence(TownLandCase item, TownLandReopenRequest request, TownLandHearingState? state = null)
+    public static bool MaterialNewEvidence(TownLandCase item, TownLandReopenRequest request, TownLandRecords? state = null)
     {
         if (request.Kind != "material_evidence" || AssessedRuling(item, request) is not { } ruling) return false;
         var knownFacts = item.Evidence.Where(e => e.SubmittedTick <= ruling.Tick).ToArray();
@@ -499,9 +499,9 @@ public static class TownLandHearingRules
             r.Tick == assessed && item.Revisions.Single(v => v.Number == r.Revision).PublishedTick < assessed) is { } ruling &&
         ruling.Tick <= request.Tick ? ruling : null;
 
-    private static TownLandCase Pending(TownLandHearingState state, string id) =>
+    private static TownLandCase Pending(TownLandRecords state, string id) =>
         state.Cases.Single(c => c.Id == id && c.Status == "pending");
-    private static TownLandCase Exact(TownLandHearingState state, string id, int revision)
+    private static TownLandCase Exact(TownLandRecords state, string id, int revision)
     {
         var item = state.Cases.Single(c => c.Id == id);
         if (CurrentRevision(item).Number != revision) throw new InvalidOperationException("The case notice has changed.");

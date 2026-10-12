@@ -17,7 +17,7 @@ public sealed class TownDefaultEstateLawTests
     [Fact]
     public void MajorityAdoptionAmendmentAndRepealKeepTheRuleAtTheDeathTick()
     {
-        var civic = TownLawRules.ProposeEstateDefault(TownGovernanceState.Create(Adults), TownGovernmentState.Create(),
+        var civic = TownLawRules.ProposeEstateDefault(TownCouncilState.Create(Adults), TownGovernmentState.Create(),
             Town, "alice", 25, Adults, 2, 10);
         Assert.Null(TownEstateDefaultRules.AtDeath(civic.Government, 3));
         Assert.Throws<InvalidOperationException>(() => TownLawRules.ProposeEstateDefault(civic.Council, civic.Government,
@@ -123,7 +123,7 @@ public sealed class TownDefaultEstateLawTests
             .OrderBy(point => initial.Map.FootDistance(point, origin)).First();
         using var world = WorldRuntime.Restore(initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with { Position = noticeTile, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = initial.Agents.Select(person => person with { Position = noticeTile, FullnessBasisPoints = 8_000 }).ToArray(),
         }, Provider);
         for (var tick = 0; tick < 100 && world.Towns[0].Government!.Laws.Count == 0; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -164,7 +164,7 @@ public sealed class TownDefaultEstateLawTests
         society = society with
         {
             Inventory = inventory,
-            Inhabitants = society.Inhabitants.Select(person => allDie || person.Id == Author ? person with
+            Agents = society.Agents.Select(person => allDie || person.Id == Author ? person with
             {
                 BirthTick = society.LifeClock is null ? birth : person.BirthTick,
                 BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -175,18 +175,18 @@ public sealed class TownDefaultEstateLawTests
         var town = state.Towns![0];
         if (!allDie)
         {
-            var civic = TownLawRules.ProposeEstateDefault(town.Governance!, town.Government!, town.Id, town.ResidentIds[0],
+            var civic = TownLawRules.ProposeEstateDefault(town.Council!, town.Government!, town.Id, town.ResidentIds[0],
                 share, town.ResidentIds, 0, state.WorldSystems!.Config.TicksPerDay);
             var council = civic.Council;
-            foreach (var voter in town.ResidentIds.Take(3)) council = TownGovernanceRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
+            foreach (var voter in town.ResidentIds.Take(3)) council = TownCouncilRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
             civic = TownLawRules.Enact(council, civic.Government, town.Id, town.Name, 0);
-            town = town with { Governance = civic.Council, Government = civic.Government };
+            town = town with { Council = civic.Council, Government = civic.Government };
         }
         using var world = WorldRuntime.Restore(state with
         {
             Society = state.Society with { Society = society },
             Towns = [town],
-            Inhabitants = state.Inhabitants.Select(person => person with { Equipment = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with { Equipment = null }).ToArray(),
         }, Provider);
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         var estate = world.Society.Estates.Single(item => item.DeceasedId == Author);
@@ -204,7 +204,7 @@ public sealed class TownDefaultEstateLawTests
             Assert.Contains("50%", choice.Description, StringComparison.Ordinal);
             Assert.Contains(town.Name, choice.Description, StringComparison.Ordinal);
         }
-        Assert.Equal(Town, world.ExportState().DeceasedInhabitants!.Single(person => person.InhabitantId == Author).TownId);
+        Assert.Equal(Town, world.ExportState().DeceasedAgents!.Single(person => person.AgentId == Author).TownId);
         Assert.False(estate.Settled);
         // The native society test above covers the full unshortened hold. Here the
         // restored deadline is one tick away to exercise the world commit boundary.
@@ -244,7 +244,7 @@ public sealed class TownDefaultEstateLawTests
         var arrival = settling.ExportState();
         using var pickup = WorldRuntime.Restore(arrival with
         {
-            Inhabitants = arrival.Inhabitants.Select(person => person.InhabitantId == visitor ? person with
+            Agents = arrival.Agents.Select(person => person.AgentId == visitor ? person with
             {
                 Position = warehouse.Position,
                 TravelCooldownTicks = 0,
@@ -275,12 +275,12 @@ public sealed class TownDefaultEstateLawTests
         var state = generated.ExportState();
         var town = state.Towns![0];
         var ids = town.ResidentIds;
-        var civic = TownLawRules.ProposeEstateDefault(town.Governance!, town.Government!, town.Id, ids[0], 50,
+        var civic = TownLawRules.ProposeEstateDefault(town.Council!, town.Government!, town.Id, ids[0], 50,
             ids, 0, state.WorldSystems!.Config.TicksPerDay);
         var council = civic.Council;
-        foreach (var voter in ids.Take(3)) council = TownGovernanceRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
+        foreach (var voter in ids.Take(3)) council = TownCouncilRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, 0);
         civic = TownLawRules.Enact(council, civic.Government, town.Id, town.Name, 0);
-        var encoded = WorldRuntimeCodec.Encode(state with { Towns = [town with { Governance = civic.Council, Government = civic.Government }] });
+        var encoded = WorldRuntimeCodec.Encode(state with { Towns = [town with { Council = civic.Council, Government = civic.Government }] });
         using (var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded)))
             Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
         var document = JsonNode.Parse(encoded)!;
@@ -302,11 +302,11 @@ public sealed class TownDefaultEstateLawTests
         });
     }
 
-    private static (TownGovernanceState Council, TownGovernmentState Government) Pass(
-        (TownGovernanceState Council, TownGovernmentState Government) civic, long tick)
+    private static (TownCouncilState Council, TownGovernmentState Government) Pass(
+        (TownCouncilState Council, TownGovernmentState Government) civic, long tick)
     {
         var council = civic.Council;
-        foreach (var voter in Adults.Take(2)) council = TownGovernanceRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, tick);
+        foreach (var voter in Adults.Take(2)) council = TownCouncilRules.VoteProposal(council, council.Proposals[^1].Id, voter, true, tick);
         return TownLawRules.Enact(council, civic.Government, Town, "First Town", tick);
     }
 
@@ -332,7 +332,7 @@ public sealed class TownDefaultEstateLawTests
             var observation = request.Observation;
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("town_salvage:", StringComparison.Ordinal)) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }
@@ -351,7 +351,7 @@ public sealed class TownDefaultEstateLawTests
             if (isWill) Requests.Enqueue(request);
             var selected = observation.Candidates.Single(candidate => candidate.Id ==
                 (isWill ? CognitionWillContext.HouseholdCandidateId : "safe_idle"));
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 Will: isWill ? new CognitionWillChoice([]) : null));
@@ -373,7 +373,7 @@ public sealed class TownDefaultEstateLawTests
                 civic.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                 (actor == Author ? civic.FirstOrDefault(candidate => candidate.Id == "civic|town:first|estate_default|adopt|50") : null) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

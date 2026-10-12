@@ -20,7 +20,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider();
         using var world = NewWorld(provider);
         var generated = world.ExportState();
-        var household = generated.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = generated.Society.Society.GetAgent(Filer).HouseholdId!;
         var right = generated.HouseholdLandUseRights!.Where(item => item.HouseholdId == household)
             .OrderBy(item => item.Id, StringComparer.Ordinal).First();
         provider.Plot = right.Tiles.ToArray();
@@ -33,21 +33,21 @@ public sealed partial class TownLandHearingRuntimeTests
         var property = PrivateProperty(world.ExportState());
         var permissions = Permissions(world.ExportState());
         provider.HearingsEnabled = true;
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases.Count > 0, 20, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases.Count > 0, 20, provider);
 
-        var opened = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var opened = Assert.Single(world.Towns[0].LandRecords.Cases);
         var revision = Assert.Single(opened.Revisions);
         Assert.Equal("pending", opened.Status);
         Assert.Equal(right.Tiles, revision.Tiles);
         Assert.Equal(revision.PublishedTick + Day, revision.DeadlineTick);
         Assert.Equal(Filer, Assert.Single(opened.Filings).AgentId);
         Assert.Equal("confirm", revision.RequestedOutcome.Kind);
-        var governance = world.Towns[0].Governance!;
-        var notice = Assert.Single(governance.Notices, item => item.Id == revision.NoticeId);
+        var council = world.Towns[0].Council!;
+        var notice = Assert.Single(council.Notices, item => item.Id == revision.NoticeId);
         Assert.Equal("land_hearing", notice.Kind);
         Assert.Equal(opened.Id + ":1", notice.SubjectId);
-        Assert.Contains(governance.Knowledge, receipt => receipt.NoticeId == notice.Id && receipt.AgentId == Filer);
-        Assert.DoesNotContain(governance.Knowledge, receipt => receipt.NoticeId == notice.Id && receipt.AgentId == Judge);
+        Assert.Contains(council.Knowledge, receipt => receipt.NoticeId == notice.Id && receipt.AgentId == Filer);
+        Assert.DoesNotContain(council.Knowledge, receipt => receipt.NoticeId == notice.Id && receipt.AgentId == Judge);
         Assert.Empty(opened.Responses);
 
         var before = WorldRuntimeCodec.Encode(world.ExportState());
@@ -56,13 +56,13 @@ public sealed partial class TownLandHearingRuntimeTests
         var replayProvider = new HearingProvider { HearingsEnabled = true, Plot = provider.Plot };
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => replayProvider);
         Assert.Equal(before, WorldRuntimeCodec.Encode(replay.ExportState()));
-        for (var step = 0; step < Day * 2 && world.Towns[0].LandHearings.Cases[0].Status != "settled"; step++)
+        for (var step = 0; step < Day * 2 && world.Towns[0].LandRecords.Cases[0].Status != "settled"; step++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
-        var settled = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var settled = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("settled", settled.Status);
         var ruling = Assert.Single(settled.Rulings);
         Assert.Equal(1, ruling.Revision);
@@ -72,7 +72,7 @@ public sealed partial class TownLandHearingRuntimeTests
         Assert.Equal(office.ElectionId, ruling.Judge.AuthorityId);
         Assert.True(ruling.Tick < revision.DeadlineTick);
         Assert.Empty(ruling.AdjustmentIds);
-        Assert.Empty(world.Towns[0].LandHearings.Adjustments);
+        Assert.Empty(world.Towns[0].LandRecords.Adjustments);
         Assert.Contains(settled.Responses, response => response.Revision == 1 && response.AgentId == Filer && response.Kind == "answer");
         Assert.Contains(settled.Responses, response => response.Revision == 1 && response.AgentId == Waiver && response.Kind == "waive");
         Assert.Equal(new[] { Filer, Waiver }, settled.Responses.Select(response => response.AgentId).Distinct().Order(StringComparer.Ordinal));
@@ -120,7 +120,7 @@ public sealed partial class TownLandHearingRuntimeTests
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         var revision = Assert.Single(item.Revisions);
         Assert.Equal("pending", item.Status);
         Assert.Equal("expiry", item.Kind);
@@ -129,8 +129,8 @@ public sealed partial class TownLandHearingRuntimeTests
         Assert.Equal(1, revision.PublishedTick);
         Assert.Equal(1 + state.Society.Society.Config.TicksPerWorldDay, revision.DeadlineTick);
         Assert.Equal(original.Tiles, revision.Tiles);
-        Assert.Contains(world.Towns[0].Governance!.Notices, notice => notice.Id == revision.NoticeId && notice.Kind == "land_hearing");
-        Assert.DoesNotContain(world.Towns[0].Governance!.Knowledge, receipt => receipt.NoticeId == revision.NoticeId);
+        Assert.Contains(world.Towns[0].Council!.Notices, notice => notice.Id == revision.NoticeId && notice.Kind == "land_hearing");
+        Assert.DoesNotContain(world.Towns[0].Council!.Knowledge, receipt => receipt.NoticeId == revision.NoticeId);
         Assert.Empty(item.Responses);
         Assert.Empty(item.Rulings);
         Assert.Equal(permissions, Permissions(world.ExportState()));
@@ -153,7 +153,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider(DecisionProviderKind.Jev) { HearingsEnabled = true, SkipNoticeReads = true };
         using var world = NewWorld(provider);
         var original = world.ExportState();
-        var household = original.Society.Society.GetInhabitant(Filer).HouseholdId;
+        var household = original.Society.Society.GetAgent(Filer).HouseholdId;
         provider.Plot = original.HouseholdLandUseRights!.Where(item => item.HouseholdId == household)
             .OrderBy(item => item.Id, StringComparer.Ordinal).First().Tiles.ToArray();
         var acceptedFileChoice = false;
@@ -161,14 +161,14 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             var result = await world.AdvanceOneTickAsync();
             Assert.True(result.Advanced);
-            acceptedFileChoice |= result.Decisions.Any(decision => decision.InhabitantId == Filer &&
+            acceptedFileChoice |= result.Decisions.Any(decision => decision.AgentId == Filer &&
                 decision.Admission.Accepted && !decision.Admission.FellBack &&
                 decision.Admission.Intention is { Provider: DecisionProviderKind.Jev } intention &&
                 intention.CandidateId.Contains("|hearing_file|", StringComparison.Ordinal));
         }
         Assert.Contains(provider.Selected, item => item.Contains("|hearing_file|", StringComparison.Ordinal));
         Assert.True(acceptedFileChoice);
-        Assert.Empty(world.Towns[0].LandHearings.Cases);
+        Assert.Empty(world.Towns[0].LandRecords.Cases);
         Assert.Equal(Permissions(original), Permissions(world.ExportState()));
         Assert.Equal(PrivateProperty(original), PrivateProperty(world.ExportState()));
         world.Validate();
@@ -180,20 +180,20 @@ public sealed partial class TownLandHearingRuntimeTests
         var settled = await SettledDispute.Value;
         var provider = new HearingProvider { Plot = settled.Plot, InspectWhenOffered = true };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(settled.Save), _ => provider);
-        var adults = world.Towns[0].Governance!.Members;
+        var adults = world.Towns[0].Council!.Members;
         Assert.Contains(Judge, adults);
         Assert.Contains(Filer, adults);
         // Every adult stands at the notice place, is prompted for a fresh personal turn and reads whatever case file is offered.
         foreach (var adult in adults) Prompt(world, adult, "Read the land ruling posted at the notice place.");
         for (var step = 0; step < 8; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         var ruling = Assert.Single(item.Rulings);
         Assert.Equal("settled", item.Status);
         Assert.All(adults, adult => Assert.Single(item.Reads, read => read.AgentId == adult && read.ReadTick > ruling.Tick));
-        var ledger = world.Towns[0].LandHearings;
+        var ledger = world.Towns[0].LandRecords;
         for (var step = 0; step < 3; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Same(ledger, world.Towns[0].LandHearings);
+        Assert.Same(ledger, world.Towns[0].LandRecords);
 
         // The closed case now offers its parties only the grounded rehearing request, and other residents nothing.
         var about = "|" + TownLandHearingRules.RevisionToken(item) + "|";
@@ -222,12 +222,12 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider { Plot = settled.Plot, InspectWhenOffered = true, AcceptRehearings = true };
         using var world = WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Filer ? person with { Position = spot } : person).ToArray()
+            Agents = state.Agents.Select(person => person.AgentId == Filer ? person with { Position = spot } : person).ToArray()
         }, _ => provider);
-        var adults = world.Towns[0].Governance!.Members;
+        var adults = world.Towns[0].Council!.Members;
         foreach (var adult in adults) Prompt(world, adult, "Read the land ruling posted at the notice place.");
         for (var step = 0; step < 8; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var item = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal("settled", item.Status);
         Assert.All(adults, adult => Assert.Contains(item.Reads, read => read.AgentId == adult && read.ReadTick > item.Rulings[0].Tick));
         Assert.DoesNotContain(item.Evidence, evidence => evidence.Kind == "observation");
@@ -246,16 +246,16 @@ public sealed partial class TownLandHearingRuntimeTests
         using var changed = WorldRuntime.Restore(changedState, _ => provider);
         Prompt(changed, Judge, "Look at the notice place again.");
         Assert.True((await changed.AdvanceOneTickAsync()).Advanced);
-        Assert.Contains(changed.Towns[0].LandHearings.Cases[0].Evidence, evidence => evidence.Kind == "record" &&
+        Assert.Contains(changed.Towns[0].LandRecords.Cases[0].Evidence, evidence => evidence.Kind == "record" &&
             evidence.SourceRecordId == settled.RightId && evidence.Text.Contains(" agreed end " + (settled.End + Day) + ".", StringComparison.Ordinal));
 
         // The filer observes the plot, reads the updated file, cites the observation and the land mayor accepts it.
         provider.ObserveAndReopen = true;
         Prompt(world, Filer, "Look at your household's plot.");
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases[0].Evidence.Any(evidence => evidence.Kind == "observation"), 10, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Evidence.Any(evidence => evidence.Kind == "observation"), 10, provider);
         Prompt(world, Filer, "Read the case file again and consider whether the ruling should be heard again.");
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases[0].Status == "pending", 30, provider);
-        var reopened = world.Towns[0].LandHearings.Cases[0];
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Status == "pending", 30, provider);
+        var reopened = world.Towns[0].LandRecords.Cases[0];
         var request = Assert.Single(reopened.ReopenRequests);
         Assert.Equal(("material_evidence", "accepted", Filer), (request.Kind, request.Status, request.AgentId));
         var observed = Assert.Single(reopened.Evidence, evidence => evidence.Kind == "observation");
@@ -279,9 +279,9 @@ public sealed partial class TownLandHearingRuntimeTests
         while (world.WorldTick < settled.End) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
         // The dispute was ruled before the agreed end, so that ruling never reviewed the expiry.
-        Assert.Equal(2, world.Towns[0].LandHearings.Cases.Count);
-        var dispute = world.Towns[0].LandHearings.Cases[0];
-        var review = world.Towns[0].LandHearings.Cases[1];
+        Assert.Equal(2, world.Towns[0].LandRecords.Cases.Count);
+        var dispute = world.Towns[0].LandRecords.Cases[0];
+        var review = world.Towns[0].LandRecords.Cases[1];
         Assert.Equal(("dispute", "settled"), (dispute.Kind, dispute.Status));
         Assert.True(Assert.Single(dispute.Rulings).Tick < settled.End);
         Assert.Equal(("expiry", "pending", settled.End), (review.Kind, review.Status, review.FiledTick));
@@ -296,7 +296,7 @@ public sealed partial class TownLandHearingRuntimeTests
             offered.Any(id => id.Contains(rule, StringComparison.Ordinal)), 20, provider);
         Assert.Equal(["amend", "end", "renew"], provider.Offered[Judge].Where(id => id.Contains(rule, StringComparison.Ordinal))
             .Select(id => id.Split('|')[4]).Order(StringComparer.Ordinal));
-        Assert.Equal("pending", world.Towns[0].LandHearings.Cases[1].Status);
+        Assert.Equal("pending", world.Towns[0].LandRecords.Cases[1].Status);
         Assert.Equal(permissions, Permissions(world.ExportState()));
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -311,25 +311,25 @@ public sealed partial class TownLandHearingRuntimeTests
         var settled = await SettledDispute.Value;
         var state = WorldRuntimeCodec.Decode(settled.Save);
         var town = Assert.Single(state.Towns!);
-        var item = Assert.Single(town.LandHearings.Cases);
+        var item = Assert.Single(town.LandRecords.Cases);
         var tick = state.Society.Society.WorldTick;
         Assert.True(tick > item.Rulings[0].Tick);
         // Two parties ask for a rehearing over the same new observation. These are ordinary case records made through the rules.
         var observation = new TownLandEvidence("land-evidence:new-boundary-marker", 1, "observation", "firsthand", Filer, null, null,
             tick, Filer, tick, "Personally observed nearby plot: a new boundary marker stands on it.");
-        var ledger = TownLandHearingRules.AddEvidence(town.LandHearings, item.Id, 1, observation, town.Governance!.Knowledge);
+        var ledger = TownLandHearingRules.AddEvidence(town.LandRecords, item.Id, 1, observation, town.Council!.Knowledge);
         ledger = TownLandHearingRules.RequestReopen(ledger, item.Id, Filer, "material_evidence", [observation.Id], "A new marker changes the facts", tick);
         ledger = TownLandHearingRules.RequestReopen(ledger, item.Id, Waiver, "material_evidence", [observation.Id], "The same new marker", tick);
         var provider = new HearingProvider { Plot = settled.Plot, InspectWhenOffered = true, AcceptRehearings = true };
-        using var world = WorldRuntime.Restore(state with { Towns = [town with { LandHearings = ledger }] }, _ => provider);
+        using var world = WorldRuntime.Restore(state with { Towns = [town with { LandRecords = ledger }] }, _ => provider);
 
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases[0].Status == "pending", 20, provider);
-        var reopened = world.Towns[0].LandHearings.Cases[0];
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Status == "pending", 20, provider);
+        var reopened = world.Towns[0].LandRecords.Cases[0];
         Assert.Equal(["accepted", "pending"], reopened.ReopenRequests.Select(request => request.Status));
         Assert.Equal(2, reopened.Revisions.Count);
         var waiting = reopened.ReopenRequests[1];
         // The mayor reads the fresh notice's file, which still lists the other request.
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases[0].Reads.Any(read => read.AgentId == Judge && read.Revision == 2 &&
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases[0].Reads.Any(read => read.AgentId == Judge && read.Revision == 2 &&
             read.ReopenRequestIds.Contains(waiting.Id, StringComparer.Ordinal)), 20, provider);
         for (var step = 0; step < 3; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
@@ -339,7 +339,7 @@ public sealed partial class TownLandHearingRuntimeTests
             selected.Contains(waiting.Id, StringComparison.Ordinal));
         Assert.DoesNotContain(world.ExportState().Events, entry => entry.Kind == "town_civic_action_rejected" &&
             entry.Detail.EndsWith("|hearing_assess_reopen", StringComparison.Ordinal));
-        var current = world.Towns[0].LandHearings.Cases[0];
+        var current = world.Towns[0].LandRecords.Cases[0];
         Assert.Equal(("pending", "pending"), (current.Status, current.ReopenRequests[1].Status));
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -354,7 +354,7 @@ public sealed partial class TownLandHearingRuntimeTests
         var provider = new HearingProvider { SeekMayor = false };
         using var generated = NewWorld(provider);
         var initial = generated.ExportState();
-        var household = initial.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = initial.Society.Society.GetAgent(Filer).HouseholdId!;
         var lapsing = initial.HouseholdLandUseRights!.Where(right => right.HouseholdId == household && right.Tiles.Count > 1)
             .OrderBy(right => right.Id, StringComparer.Ordinal).First();
         var other = initial.HouseholdLandUseRights!.Where(right => right.HouseholdId != household)
@@ -363,8 +363,8 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             HouseholdLandUseRights = initial.HouseholdLandUseRights!.Select(right => right.Id == lapsing.Id ? right with { AgreedEndTick = 1 } : right).ToArray()
         }, _ => provider);
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases.Count == 1, 3, provider);
-        var review = Assert.Single(world.Towns[0].LandHearings.Cases);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases.Count == 1, 3, provider);
+        var review = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal(lapsing.Tiles, TownLandHearingRules.CurrentRevision(review).Tiles);
 
         // Part of a plot already under a pending hearing: the Council is not asked to vote on a filing that could not open.
@@ -372,30 +372,30 @@ public sealed partial class TownLandHearingRuntimeTests
         Prompt(world, Judge, "Consider asking the Council to authorize a Town land case.");
         await UntilAsync(world, () => world.ExportState().Events.Any(entry => entry.Kind == "town_civic_action_rejected" &&
             entry.Detail == world.Towns[0].Id + "|" + Judge + "|hearing_propose_town"), 10, provider);
-        Assert.DoesNotContain(world.Towns[0].Governance!.Proposals, proposal => proposal.Kind == "land_hearing");
+        Assert.DoesNotContain(world.Towns[0].Council!.Proposals, proposal => proposal.Kind == "land_hearing");
 
         // A renewal whose requested end date passes before the Council finishes voting.
         var end = world.WorldTick + 12;
         provider.TownProposals.Enqueue((other.Tiles.ToArray(), new(Statement: "Renew this household's recorded permission.",
             RequestedOutcome: "renew", HouseholdId: other.HouseholdId, AgreedEndTick: end)));
         Prompt(world, Judge, "Consider asking the Council to authorize a different Town land case.");
-        await UntilAsync(world, () => world.Towns[0].Governance!.Proposals.Any(proposal => proposal.Kind == "land_hearing"), 10, provider);
-        var opened = Assert.Single(world.Towns[0].Governance!.Proposals, proposal => proposal.Kind == "land_hearing");
+        await UntilAsync(world, () => world.Towns[0].Council!.Proposals.Any(proposal => proposal.Kind == "land_hearing"), 10, provider);
+        var opened = Assert.Single(world.Towns[0].Council!.Proposals, proposal => proposal.Kind == "land_hearing");
         Assert.Equal(("pending", Judge), (opened.Status, opened.AuthorId));
         while (world.WorldTick < end) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         provider.VoteYes = true;
         foreach (var voter in opened.Voters) Prompt(world, voter, "Consider your vote on the Town land case proposal.");
-        await UntilAsync(world, () => world.Towns[0].Governance!.Proposals.Single(proposal => proposal.Id == opened.Id).Status != "pending", 10, provider);
+        await UntilAsync(world, () => world.Towns[0].Council!.Proposals.Single(proposal => proposal.Id == opened.Id).Status != "pending", 10, provider);
 
-        var passed = world.Towns[0].Governance!.Proposals.Single(proposal => proposal.Id == opened.Id);
+        var passed = world.Towns[0].Council!.Proposals.Single(proposal => proposal.Id == opened.Id);
         Assert.Equal("passed", passed.Status);
         Assert.Equal(passed.RequiredYes, passed.Votes.Count(vote => vote.Yes));
         Assert.DoesNotContain(world.ExportState().Events, entry => entry.Kind == "town_civic_action_rejected" &&
             entry.Detail.EndsWith("|yes", StringComparison.Ordinal));
         for (var step = 0; step < 3; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var notice = Assert.Single(world.Towns[0].Governance!.Notices, entry => entry.Kind == "result" && entry.SubjectId == opened.Id + ":unopened");
+        var notice = Assert.Single(world.Towns[0].Council!.Notices, entry => entry.Kind == "result" && entry.SubjectId == opened.Id + ":unopened");
         Assert.Equal("The Town land hearing that the Council authorized could not open. Its requested end date has passed.", notice.Text);
-        Assert.Equal((review.Id, "pending"), (Assert.Single(world.Towns[0].LandHearings.Cases).Id, world.Towns[0].LandHearings.Cases[0].Status));
+        Assert.Equal((review.Id, "pending"), (Assert.Single(world.Towns[0].LandRecords.Cases).Id, world.Towns[0].LandRecords.Cases[0].Status));
         Assert.Equal(JsonSerializer.Serialize(other), JsonSerializer.Serialize(world.HouseholdLandUseRights.Single(right => right.Id == other.Id)));
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
@@ -416,7 +416,7 @@ public sealed partial class TownLandHearingRuntimeTests
         using var elected = NewWorld(provider);
         await UntilAsync(elected, () => elected.Towns[0].Government!.Offices.Any(office => office.HolderId == Judge), Day * 3, provider);
         var state = elected.ExportState();
-        var household = state.Society.Society.GetInhabitant(Filer).HouseholdId!;
+        var household = state.Society.Society.GetAgent(Filer).HouseholdId!;
         var right = state.HouseholdLandUseRights!.Where(item => item.HouseholdId == household)
             .OrderBy(item => item.Id, StringComparer.Ordinal).First();
         var end = state.Society.Society.WorldTick + Day * 3;
@@ -426,11 +426,11 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             HouseholdLandUseRights = state.HouseholdLandUseRights!.Select(item => item.Id == right.Id ? item with { AgreedEndTick = end } : item).ToArray()
         }, _ => provider);
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Cases is [{ Status: "settled" }], Day * 2, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Cases is [{ Status: "settled" }], Day * 2, provider);
         // Later records, such as a rehearing request, must postdate the ruling.
         provider.HearingsEnabled = false;
         for (var step = 0; step < 2; step++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("confirm", Assert.Single(Assert.Single(world.Towns[0].LandHearings.Cases).Rulings).Outcome.Kind);
+        Assert.Equal("confirm", Assert.Single(Assert.Single(world.Towns[0].LandRecords.Cases).Rulings).Outcome.Kind);
         return new(WorldRuntimeCodec.Encode(world.ExportState()), provider.Plot, right.Id, end);
     });
 
@@ -442,14 +442,14 @@ public sealed partial class TownLandHearingRuntimeTests
         // generated Town title, household allocations, buildings, goods and founder identities remain actual.
         return WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
-            { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = state.Agents.Select(person => person with
+            { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray(),
         }, _ => provider);
     }
 
     /// <summary>Asks for one fresh personal-model turn. It supplies no choice, answer or permission.</summary>
     private static void Prompt(WorldRuntime world, string agent, string text) =>
-        world.SubmitInstruction(new("prompt-" + world.WorldTick + "-" + agent[^1], "owner:test", agent, OwnerInstructionKind.Suggestive, text));
+        world.SubmitInstruction(new("prompt-" + world.WorldTick + "-" + agent[^1], "owner:test", agent, OwnerInstructionKind.Suggestion, text));
 
     private static async Task UntilAsync(WorldRuntime world, Func<bool> complete, int limit, HearingProvider provider)
     {
@@ -466,7 +466,7 @@ public sealed partial class TownLandHearingRuntimeTests
         Titles = state.TownLandTitles!.OrderBy(title => title.Id, StringComparer.Ordinal),
         Buildings = state.WorldSimulation!.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal),
         state.Fields,
-        Membership = state.Society.Society.Inhabitants.OrderBy(person => person.Id, StringComparer.Ordinal)
+        Membership = state.Society.Society.Agents.OrderBy(person => person.Id, StringComparer.Ordinal)
             .Select(person => new { person.Id, person.HouseholdId }),
         Lots = state.Society.Society.Inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Select(lot => new
@@ -490,12 +490,12 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             var document = JsonNode.Parse(encoded)!;
             var town = document["state"]!["towns"]![0]!;
-            var hearing = town["landHearings"]!;
+            var hearing = town["landRecords"]!;
             var item = hearing["cases"]![0]!;
             switch (damage)
             {
-                case "missing": town.AsObject().Remove("landHearings"); break;
-                case "null": town["landHearings"] = null; break;
+                case "missing": town.AsObject().Remove("landRecords"); break;
+                case "null": town["landRecords"] = null; break;
                 case "cases": hearing["cases"] = null; break;
                 case "case": hearing["cases"]![0] = null; break;
                 case "revisions": item["revisions"] = null; break;
@@ -521,10 +521,10 @@ public sealed partial class TownLandHearingRuntimeTests
         var saved = WorldRuntimeCodec.Decode(encoded);
         var savedTowns = saved.Towns!;
         var savedTown = savedTowns[0];
-        var ledger = savedTown.LandHearings;
+        var ledger = savedTown.LandRecords;
         var savedCase = Assert.Single(ledger.Cases);
         var savedRevision = Assert.Single(savedCase.Revisions);
-        foreach (var malformed in new TownLandHearingState[]
+        foreach (var malformed in new TownLandRecords[]
         {
             null!,
             ledger with { Cases = null! },
@@ -552,7 +552,7 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             var damaged = saved with
             {
-                Towns = savedTowns.Select(town => town.Id == savedTown.Id ? town with { LandHearings = malformed } : town).ToArray()
+                Towns = savedTowns.Select(town => town.Id == savedTown.Id ? town with { LandRecords = malformed } : town).ToArray()
             };
             Assert.Throws<InvalidDataException>(() =>
             {
@@ -587,51 +587,51 @@ public sealed partial class TownLandHearingRuntimeTests
         {
             var observation = request.Observation;
             var choices = observation.Candidates;
-            Offered[observation.InhabitantId] = choices.Select(candidate => candidate.Id).ToArray();
+            Offered[observation.AgentId] = choices.Select(candidate => candidate.Id).ToArray();
             var choice = SkipNoticeReads ? null : choices.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
             CognitionLandHearingChoice? hearing = null;
             IReadOnlyList<CognitionLandTile>? tiles = null;
-            if (AcceptRehearings && observation.InhabitantId == Judge)
+            if (AcceptRehearings && observation.AgentId == Judge)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_assess_reopen|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith(":accept", StringComparison.Ordinal));
-            if (ObserveAndReopen && !Observed && observation.InhabitantId == Filer)
+            if (ObserveAndReopen && !Observed && observation.AgentId == Filer)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_observe|", StringComparison.Ordinal));
             if (InspectWhenOffered)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal));
-            if (ObserveAndReopen && Observed && observation.InhabitantId == Filer)
+            if (ObserveAndReopen && Observed && observation.AgentId == Filer)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_reopen|", StringComparison.Ordinal) &&
                     candidate.Id.EndsWith("|material_evidence", StringComparison.Ordinal));
             if (VoteYes)
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|yes|", StringComparison.Ordinal));
-            if (choice is null && observation.InhabitantId == Judge && !TownProposals.IsEmpty)
+            if (choice is null && observation.AgentId == Judge && !TownProposals.IsEmpty)
                 choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_propose_town|", StringComparison.Ordinal));
             if (HearingsEnabled)
             {
                 if (ActingJudge is { } independent)
                 {
-                    if (observation.InhabitantId == independent)
+                    if (observation.AgentId == independent)
                         choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_judge_register|", StringComparison.Ordinal));
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_judge_vote|", StringComparison.Ordinal) &&
                         candidate.Id.EndsWith("|" + independent, StringComparison.Ordinal));
                 }
-                if (observation.InhabitantId == (ActingJudge ?? Judge))
+                if (observation.AgentId == (ActingJudge ?? Judge))
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal) && candidate.Id.EndsWith("|confirm", StringComparison.Ordinal)) ??
                         choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal));
-                if (observation.InhabitantId == CaseFiler)
+                if (observation.AgentId == CaseFiler)
                 {
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_answer|", StringComparison.Ordinal));
                     if (choice is null && !choices.Any(candidate => candidate.Id.Contains("|hearing_statement|", StringComparison.Ordinal) ||
                             candidate.Id.Contains("|hearing_inspect|", StringComparison.Ordinal) || candidate.Id.Contains("|hearing_reopen|", StringComparison.Ordinal)))
                         choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_file|", StringComparison.Ordinal));
                 }
-                if (observation.InhabitantId == Waiver)
+                if (observation.AgentId == Waiver)
                     choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_waive|", StringComparison.Ordinal));
             }
             if (Kind == DecisionProviderKind.LargeLanguageModel && SeekMayor)
             {
                 choice ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|government_yes|", StringComparison.Ordinal)) ??
                     choices.FirstOrDefault(candidate => candidate.Id.Contains("|mayor_vote|", StringComparison.Ordinal) && candidate.Id.EndsWith("|" + Judge, StringComparison.Ordinal));
-                if (choice is null && observation.InhabitantId == Judge)
+                if (choice is null && observation.AgentId == Judge)
                     choice = choices.FirstOrDefault(candidate => candidate.Id.Contains("|mayor_register|land+non_land|", StringComparison.Ordinal));
             }
             choice ??= choices.Single(candidate => candidate.Id == "safe_idle");
@@ -663,8 +663,8 @@ public sealed partial class TownLandHearingRuntimeTests
                     .Distinct(StringComparer.Ordinal).ToArray();
                 hearing = new(Statement: "The inspected public record and both personal responses support confirming this permission.", EvidenceIds: evidence);
             }
-            Selected.Enqueue(observation.InhabitantId + ":" + choice.Id);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            Selected.Enqueue(observation.AgentId + ":" + choice.Id);
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 choices.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: tiles, CivicLandHearing: hearing));

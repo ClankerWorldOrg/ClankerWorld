@@ -1,0 +1,153 @@
+using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Kernel;
+using ClankerWorld.Simulation.World;
+using ClankerWorld.Simulation.Society;
+
+namespace ClankerWorld.Tests;
+
+public sealed class ChildCarriedMilkTests
+{
+    private static readonly Lazy<Task<byte[]>> Family = new(CreateFamily);
+
+    // Existing adult and boat checks miss the child's ordinary candidate and final age gates.
+    [Theory]
+    [InlineData("child-milk")]
+    [InlineData("adult-milk")]
+    [InlineData("child-bread")]
+    [InlineData("broken-pot")]
+    [InlineData("reserved-milk")]
+    [InlineData("spoiled-milk")]
+    public async Task HungryResidentCanConsumeTheirOwnCarriedFood(string scenario)
+    {
+        var state = WorldRuntimeCodec.Decode(await Family.Value);
+        var child = Assert.Single(state.Society.Society.Births).ChildId;
+        var actor = scenario == "adult-milk" ? state.Society.Society.Births[0].PrimaryCaregiverId : child;
+        var milk = scenario != "child-bread";
+        var usable = scenario is "child-milk" or "adult-milk" or "child-bread";
+        var inventory = state.Society.Society.Inventory;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
+        var members = state.Society.Society.GetHousehold(home).MemberIds.ToHashSet(StringComparer.Ordinal);
+        inventory = inventory with
+        {
+            Lots = inventory.Lots.Where(lot => lot.OwnerId != home && !members.Contains(lot.OwnerId)).ToArray(),
+        };
+        if (scenario == "broken-pot") inventory = InventoryAuthority.AddLot(inventory, "child-milk-pot", "storage_pot", actor, 1);
+        inventory = InventoryAuthority.AddLot(inventory, "child-carried-food", milk ? "milk" : "bread", actor, 2,
+            containerLotId: scenario == "broken-pot" ? "child-milk-pot" : null);
+        if (scenario == "reserved-milk")
+            inventory = InventoryAuthority.Reserve(inventory, "child-milk-held", actor, "child-carried-food", 2,
+                "other-personal-work", long.MaxValue);
+        if (scenario == "broken-pot") inventory = inventory with
+        { Lots = inventory.Lots.Select(lot => lot.Id == "child-milk-pot" ? lot with { ConditionBasisPoints = 0 } : lot).ToArray() };
+        if (scenario == "spoiled-milk") inventory = inventory with
+        { Lots = inventory.Lots.Select(lot => lot.Id == "child-carried-food" ? lot with { FreshnessBasisPoints = 0 } : lot).ToArray() };
+        state = state with
+        {
+            Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
+            Agents = state.Agents.Select(person => person with
+            {
+                FullnessBasisPoints = person.AgentId == actor ? 1_500 : 10_000,
+                LastDecisionContext = null,
+                Project = null,
+                Survival = new(10_000),
+            }).ToArray(),
+        };
+        var choices = new FoodChoices(actor, milk ? "drink_milk" : "consume_food");
+        using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => choices);
+        var bytes = WorldRuntimeCodec.Encode(world.ExportState());
+        using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),
+            _ => new FoodChoices(actor, choices.Wanted));
+        Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
+        Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
+        for (var tick = 0; tick < 4; tick++)
+        {
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+            Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
+            Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+        }
+        var saved = WorldRuntimeCodec.Encode(world.ExportState());
+        using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
+        Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
+        Assert.Equal(usable, choices.Seen.Contains(choices.Wanted));
+        Assert.Equal(usable ? 1 : 2, world.Society.Inventory.GetLot("child-carried-food").Quantity);
+        Assert.Equal(actor, world.Society.Inventory.GetLot("child-carried-food").OwnerId);
+        var fullness = world.Agents.Single(person => person.AgentId == actor).FullnessBasisPoints;
+        Assert.True(usable ? fullness > 4_000 : fullness < 1_500);
+        if (milk)
+        {
+            Assert.Equal(usable ? 1 : 0, world.ExportState().Events.Count(item => item.Kind == "milk_drunk" && item.Detail == actor));
+            if (scenario == "broken-pot")
+                Assert.Equal((actor, 1, 0), (world.Society.Inventory.GetLot("child-milk-pot").OwnerId,
+                    world.Society.Inventory.GetLot("child-milk-pot").Quantity,
+                    world.Society.Inventory.GetLot("child-milk-pot").ConditionBasisPoints));
+            else Assert.Null(world.Society.Inventory.GetLot("child-carried-food").ContainerLotId);
+        }
+        if (actor == child)
+            Assert.DoesNotContain(choices.Seen, id => id.StartsWith("animal:", StringComparison.Ordinal));
+        world.Validate();
+    }
+
+    private static async Task<byte[]> CreateFamily()
+    {
+        using var initial = NormalPathWorld.CreateGenerated("child-carried-milk-audit", _ => new FoodChoices("", "safe_idle"));
+        Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
+        var state = initial.ExportState();
+        var checkpoint = state.Society.Society;
+        var home = checkpoint.GetHousehold("household:camp-alpha");
+        var parent = home.MemberIds[0];
+        var partner = home.MemberIds[1];
+        checkpoint = SocietyRules.ProposeRelationship(checkpoint, new("milk-parents", 1,
+            SocietyRelationshipType.Partnership, parent, partner, checkpoint.WorldTick)).Checkpoint;
+        checkpoint = SocietyRules.AcceptRelationship(checkpoint, "milk-parents", 1, partner).Checkpoint;
+        checkpoint = ChosenBirthNameTestFixture.NameParent(checkpoint, parent);
+        checkpoint = checkpoint with { Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "milk-birth-food", "food", home.Id, 4) };
+        var birth = SocietyRules.CommitBirth(checkpoint, new("milk-birth", 1, parent, partner, home.Id,
+            home.MemberIds, [parent, partner], "milk-birth-food", 4, checkpoint.WorldTick,
+            ChildName: ChosenBirthNameTestFixture.ChildName(checkpoint, parent, "Robin"), PrimaryCaregiverId: parent));
+        var child = Assert.IsType<string>(birth.CreatedId);
+        checkpoint = birth.Checkpoint;
+        var age = checkpoint.LifeTickAt(checkpoint.WorldTick) - 4 * checkpoint.Config.TicksPerLifecycleAge;
+        checkpoint = checkpoint with
+        {
+            Agents = checkpoint.Agents.Select(person => person.Id == child ? person with
+            {
+                BirthTick = age,
+                BirthLifeTick = checkpoint.LifeClock is null ? null : age,
+                AgeBand = SocietyAgeBand.Child,
+                LastLifecycleYearChecked = 4,
+            } : person).ToArray(),
+        };
+        var position = state.Map.FootNeighbors(state.Agents.Single(person => person.AgentId == parent).Position)
+            .First(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point));
+        state = state with
+        {
+            JevEnabled = false,
+            RoutineHelper = RoutineHelperSettings.Off,
+            Society = state.Society with { Society = checkpoint },
+            Agents = state.Agents.Append(new(child, position, 10_000, 0, "curious", "grow")).ToArray(),
+            Towns = state.Towns!.Select(town => town.ResidentIds.Contains(parent)
+                ? town with { ResidentIds = town.ResidentIds.Append(child).Order(StringComparer.Ordinal).ToArray() } : town).ToArray(),
+        };
+        return WorldRuntimeCodec.Encode(state);
+    }
+
+    private sealed class FoodChoices(string actor, string wanted) : IDecisionProvider
+    {
+        public string Wanted => wanted;
+        public HashSet<string> Seen { get; } = new(StringComparer.Ordinal);
+        public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
+        public long ProviderEpoch => 0;
+        public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
+        {
+            var chosen = "safe_idle";
+            if (request.Observation.AgentId == actor)
+            {
+                foreach (var candidate in request.Observation.Candidates) Seen.Add(candidate.Id);
+                if (Seen.Contains(wanted) && request.Observation.Candidates.Any(candidate => candidate.Id == wanted)) chosen = wanted;
+            }
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
+                ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
+                chosen, 1, new Dictionary<string, double> { [chosen] = 1 }));
+        }
+    }
+}

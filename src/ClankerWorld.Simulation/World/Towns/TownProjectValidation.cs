@@ -14,7 +14,7 @@ public static class TownProjectValidation
         IReadOnlyList<GridPoint> roads, IReadOnlyList<BridgeState> bridges)
     {
         var inventory = society.Inventory;
-        var known = society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+        var known = society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var projects = new HashSet<string>(StringComparer.Ordinal);
         var deliveries = new HashSet<string>(StringComparer.Ordinal);
         var reservations = new HashSet<string>(StringComparer.Ordinal);
@@ -33,7 +33,7 @@ public static class TownProjectValidation
                 var boat = project.Plan.BoatPortId is not null;
                 var geometry = port ? PortNavigationRules.Geometry(map, definition, project.Plan.Site) : null;
                 var requiredWork = TownProjectRules.RequiredWork(project.Plan);
-                var proposal = town.Governance?.Proposals.SingleOrDefault(item => item.Id == project.ProposalId);
+                var proposal = town.Council?.Proposals.SingleOrDefault(item => item.Id == project.ProposalId);
                 if (proposal is not { Kind: "project", Status: "passed", Project: not null } ||
                     project.Id != TownProjectRules.ProjectId(proposal) ||
                     !TownProjectRules.SameScope(project.Plan, proposal.Project) ||
@@ -113,8 +113,8 @@ public static class TownProjectValidation
                         inventory.Reservations.Any(receipt => receipt.LotId == lot.Id && receipt.State is
                             InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed) ||
                         !town.ResidentIds.Contains(delivery.ContributorId, StringComparer.Ordinal) ||
-                        !society.Inhabitants.Any(person => person.Id == delivery.ContributorId &&
-                            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
+                        !society.Agents.Any(person => person.Id == delivery.ContributorId &&
+                            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder))
                         throw Invalid("Incoming Town materials need actual adult resident custody.");
                 }
                 var allDelivered = project.Plan.Budget.All(cost => TownProjectRules.DeliveredQuantity(project, town.Id, inventory, cost.ResourceId) == cost.Amount);
@@ -137,7 +137,7 @@ public static class TownProjectValidation
                         throw Invalid("A completed Town building disagrees with its paid approval or retained removal.");
                 }
             }
-            foreach (var proposal in town.Governance?.Proposals.Where(item => item.Kind == "project" && item.Status == "passed") ?? [])
+            foreach (var proposal in town.Council?.Proposals.Where(item => item.Kind == "project" && item.Status == "passed") ?? [])
                 if (town.Projects.Count(project => project.ProposalId == proposal.Id) != 1)
                     throw Invalid("Each passed Town construction proposal requires one retained project.");
         }
@@ -148,7 +148,7 @@ public static class TownProjectValidation
     }
 
     private static void ValidateLiveSite(IReadOnlyList<TownRuntimeState> towns, TownRuntimeState town,
-        TownConstructionProject project, WorldMap map, WorldContentSimulationState simulation,
+        TownProject project, WorldMap map, WorldContentSimulationState simulation,
         DeclarativeWorldContentState content, IReadOnlyList<TownLandTitleRecord> titles,
         IReadOnlyList<HouseholdLandUseRight> rights, IReadOnlyList<HouseholdLandUseRequest> requests,
         IReadOnlyList<FarmFieldState> fields, IReadOnlyList<GridPoint> roads, IReadOnlyList<BridgeState> bridges)

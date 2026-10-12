@@ -70,7 +70,7 @@ public sealed class GeographyCandidateFailureTests
         Assert.True((await created.AdvanceOneTickAsync()).Advanced);
         created.Validate();
         Assert.Equal(5, created.ExportState().WorldSimulation!.Buildings.Count);
-        Assert.Equal(4, created.Inhabitants.Count);
+        Assert.Equal(4, created.Agents.Count);
 
         var bytes = WorldRuntimeCodec.Encode(created.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes),

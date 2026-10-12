@@ -363,29 +363,29 @@ public sealed partial class ServerHttpTests
                     "/api/v1/owner/providers/configure", personal, OwnerHttpBinding.ProviderConfigurationPayload(personal));
                 Assert.Equal(HttpStatusCode.OK, personalResponse.StatusCode);
                 var personalStatus = await personalResponse.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
-                Assert.Equal("founder-scout", Assert.Single(personalStatus!.Assignments!).InhabitantId);
+                Assert.Equal("founder-scout", Assert.Single(personalStatus!.Assignments!).AgentId);
                 Assert.Equal("openai", personalStatus.PlanningProvider);
 
-                var tampered = personal with { InhabitantId = "founder-rowan" };
+                var tampered = personal with { AgentId = "founder-rowan" };
                 using var tamperedResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
                     "/api/v1/owner/providers/configure", tampered, OwnerHttpBinding.ProviderConfigurationPayload(personal));
                 Assert.False(tamperedResponse.IsSuccessStatusCode);
                 Assert.Equal(personalStatus.Revision, host.Services.GetRequiredService<ProviderConfigurationStore>().CaptureStatus().Revision);
 
-                var missing = personal with { InhabitantId = "not-an-inhabitant" };
+                var missing = personal with { AgentId = "not-an-agent" };
                 using var missingResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
                     "/api/v1/owner/providers/configure", missing, OwnerHttpBinding.ProviderConfigurationPayload(missing));
                 Assert.Equal(HttpStatusCode.BadRequest, missingResponse.StatusCode);
                 Assert.Equal(personalStatus.Revision, host.Services.GetRequiredService<ProviderConfigurationStore>().CaptureStatus().Revision);
 
                 var inherit = new OwnerProviderConfigurationAction(
-                    "personal", "inherit", null, null, ForgetCredential: false, InhabitantId: "founder-scout");
+                    "personal", "inherit", null, null, ForgetCredential: false, AgentId: "founder-scout");
                 using var inheritResponse = await SendSignedAsync(host, client, key, pairedDevice.DeviceId,
                     "/api/v1/owner/providers/configure", inherit, OwnerHttpBinding.ProviderConfigurationPayload(inherit));
                 Assert.Equal(HttpStatusCode.OK, inheritResponse.StatusCode);
                 var inheritedStatus = await inheritResponse.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
                 Assert.NotNull(inheritedStatus);
-                var inheritedRows = inheritedStatus!.Assignments!.Where(item => item.InhabitantId == "founder-scout").ToArray();
+                var inheritedRows = inheritedStatus!.Assignments!.Where(item => item.AgentId == "founder-scout").ToArray();
                 Assert.Equal(2, inheritedRows.Length);
                 Assert.All(inheritedRows, assignment =>
                 {
@@ -434,7 +434,7 @@ public sealed partial class ServerHttpTests
                 var restored = await statusResponse.Content.ReadFromJsonAsync<OwnerProviderConfigurationStatus>();
                 Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
                 Assert.Equal("openai", restored!.PlanningProvider);
-                var restoredInheritRows = restored.Assignments!.Where(item => item.InhabitantId == "founder-scout").ToArray();
+                var restoredInheritRows = restored.Assignments!.Where(item => item.AgentId == "founder-scout").ToArray();
                 Assert.Equal(2, restoredInheritRows.Length);
                 Assert.All(restoredInheritRows, assignment => Assert.Equal("inherit", assignment.Provider));
 
@@ -485,7 +485,7 @@ public sealed partial class ServerHttpTests
             var slotId = Guid.NewGuid().ToString("N");
             const string secret = "delete-me-secret";
             _ = store.Configure(new("personal", "openai", "model", secret, false,
-                "inhabitant-test", slotId, "Discard"));
+                "agent-test", slotId, "Discard"));
             var action = new OwnerCredentialSlotDeletionAction(slotId);
             const string endpoint = "/api/v1/owner/providers/slots/delete";
             using var tampered = await SendSignedAsync(host, client, key, device.DeviceId,
@@ -509,7 +509,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.Conflict, assigned.StatusCode);
             Assert.DoesNotContain(secret, await assigned.Content.ReadAsStringAsync(), StringComparison.Ordinal);
 
-            _ = store.Configure(new("personal", "inherit", null, null, false, "inhabitant-test"));
+            _ = store.Configure(new("personal", "inherit", null, null, false, "agent-test"));
             using var removed = await SendSignedAsync(host, client, key, device.DeviceId,
                 endpoint, action, OwnerHttpBinding.CredentialSlotDeletionPayload(action));
             Assert.Equal(HttpStatusCode.OK, removed.StatusCode);

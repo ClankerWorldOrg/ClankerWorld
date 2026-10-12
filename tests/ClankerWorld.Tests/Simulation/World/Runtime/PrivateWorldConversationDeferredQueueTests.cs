@@ -20,23 +20,23 @@ public sealed partial class WorldConversationTests
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await held.Started.Task.WaitAsync(TimeSpan.FromSeconds(10));
         var guidance = world.SubmitInstruction(new OwnerInstructionRequest(
-            "guidance-during-talk", "owner:test", InitiatorId, OwnerInstructionKind.Suggestive,
+            "guidance-during-talk", "owner:test", InitiatorId, OwnerInstructionKind.Suggestion,
             "Remember the river path after this conversation."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         Assert.Contains(world.ExportState().Society.Cognition.Queue, entry =>
-            entry.InhabitantId == InitiatorId && entry.Observation.ObserverGuidance!.Any(message =>
+            entry.AgentId == InitiatorId && entry.Observation.ObserverGuidance!.Any(message =>
                 message.InstructionId == guidance.InstructionId));
 
         held.Release.TrySetResult();
         await AwaitConversationFixtureCallsAsync(world);
         var admitted = await world.AdvanceOneTickNonBlockingAsync();
-        Assert.Contains(admitted.Decisions, decision => decision.InhabitantId == InitiatorId &&
+        Assert.Contains(admitted.Decisions, decision => decision.AgentId == InitiatorId &&
             decision.Admission.Intention?.CandidateId == $"talk:{InviteeId}");
         var proposal = Assert.Single(world.Conversations);
         var proposedAt = world.WorldTick;
         Assert.Equal(AgentConversationStatus.Proposed, proposal.Status);
         await AwaitConversationFixtureCallsAsync(world);
-        Assert.Single(provider.PlanningRequests, request => request.Observation.InhabitantId == InitiatorId);
+        Assert.Single(provider.PlanningRequests, request => request.Observation.AgentId == InitiatorId);
 
         for (var tick = 0; tick < 64 && world.ExportState().Instructions!.Single(instruction =>
                  instruction.InstructionId == guidance.InstructionId).ObservedTick is null; tick++)
@@ -49,11 +49,11 @@ public sealed partial class WorldConversationTests
         Assert.NotNull(world.ExportState().Instructions!.Single(instruction =>
             instruction.InstructionId == guidance.InstructionId).ObservedTick);
         var later = Assert.Single(provider.PlanningRequests, request =>
-            request.Observation.InhabitantId == InitiatorId && request.Observation.ObserverGuidance!.Any(message =>
+            request.Observation.AgentId == InitiatorId && request.Observation.ObserverGuidance!.Any(message =>
                 message.InstructionId == guidance.InstructionId));
         Assert.True(later.Observation.WorldTick > proposedAt,
             "The retained guidance must use choices observed after the older talk action was applied.");
-        var calls = provider.PlanningRequests.Where(request => request.Observation.InhabitantId == InitiatorId).ToArray();
+        var calls = provider.PlanningRequests.Where(request => request.Observation.AgentId == InitiatorId).ToArray();
         Assert.Equal(calls.Length, calls.Select(request =>
             (request.RequestId, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest)).Distinct().Count());
@@ -87,7 +87,7 @@ public sealed partial class WorldConversationTests
         public async ValueTask<CognitionDecisionResponse> DecideAsync(
             CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Observation.InhabitantId == InitiatorId && Interlocked.Exchange(ref held, 1) == 0)
+            if (request.Observation.AgentId == InitiatorId && Interlocked.Exchange(ref held, 1) == 0)
             {
                 Started.TrySetResult();
                 await Release.Task.WaitAsync(cancellationToken);

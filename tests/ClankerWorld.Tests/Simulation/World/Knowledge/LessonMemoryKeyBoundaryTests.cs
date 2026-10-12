@@ -10,8 +10,8 @@ public sealed class LessonMemoryKeyBoundaryTests
     public void RecallKeepsItsCanonicalKeyBoundaryAndOwnerFilter()
     {
         using var world = new WorldRuntime("lesson-memory-boundary");
-        var owner = world.Society.Inhabitants[0].Id;
-        var teacher = world.Society.Inhabitants[1].Id;
+        var owner = world.Society.Agents[0].Id;
+        var teacher = world.Society.Agents[1].Id;
         var valid = new SocietySocialMemory(new string('x', 128), owner, teacher,
             "Learned crafting with the teacher.", "public", 0)
         { Kind = SocietyMemoryKind.Skill };

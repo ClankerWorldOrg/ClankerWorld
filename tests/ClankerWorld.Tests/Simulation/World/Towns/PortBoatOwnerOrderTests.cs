@@ -60,9 +60,9 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Null(Assert.Single(scenario.World.BoatRequests).BoatId);
         if (replace)
         {
-            var person = scenario.World.Inhabitants.Single(person => person.InhabitantId == BoatPolicy.Author);
+            var person = scenario.World.Agents.Single(person => person.AgentId == BoatPolicy.Author);
             scenario.World.SubmitInstruction(new("replace-voyage", "owner:test", BoatPolicy.Author,
-                OwnerInstructionKind.MustDo, FormattableString.Invariant($"move to ({person.Position.X}, {person.Position.Y})")));
+                OwnerInstructionKind.Order, FormattableString.Invariant($"move to ({person.Position.X}, {person.Position.Y})")));
         }
         else
             scenario.World.CancelOrder(new("cancel-voyage", "owner:test", scenario.World.Society.WorldId,
@@ -114,7 +114,7 @@ public sealed partial class PortBoatRuntimeTests
         {
             var origin = scenario.World.WorldSimulation.Buildings.Single(port => port.InstanceId == boat.Journey!.OriginPortId);
             scenario.World.SubmitInstruction(new("replacement-on-shore", "owner:test", BoatPolicy.Author,
-                OwnerInstructionKind.MustDo, FormattableString.Invariant($"move to ({origin.Entrance!.Value.X}, {origin.Entrance.Value.Y})")));
+                OwnerInstructionKind.Order, FormattableString.Invariant($"move to ({origin.Entrance!.Value.X}, {origin.Entrance.Value.Y})")));
         }
         else
             scenario.World.CancelOrder(new("cancel-aboard", "owner:test", scenario.World.Society.WorldId,
@@ -174,7 +174,7 @@ public sealed partial class PortBoatRuntimeTests
         var receipt = SubmitBoatOrder(scenario.World, "validate-voyage", BoatOrderDestination(scenario.World));
         var initial = scenario.World.ExportState();
         var instruction = initial.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
-        var order = instruction.Order!;
+        var order = instruction.Task!;
         foreach (var damaged in new[]
         {
             order with { BoatTravel = null },
@@ -186,12 +186,12 @@ public sealed partial class PortBoatRuntimeTests
             order with { RepeatUntilCancelled = true },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(initial with
-            { Instructions = [instruction with { Order = damaged }] }));
+            { Instructions = [instruction with { Task = damaged }] }));
         await scenario.UntilAsync(() => scenario.World.Boats[0].Journey is not null, 120);
         var state = scenario.World.ExportState();
         var request = Assert.Single(state.BoatTransport.Requests);
         var underwayInstruction = state.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
-        var inventedArrival = underwayInstruction.Order! with
+        var inventedArrival = underwayInstruction.Task! with
         {
             Status = "finished",
             CompletedUnits = 1,
@@ -199,7 +199,7 @@ public sealed partial class PortBoatRuntimeTests
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         {
-            Instructions = [underwayInstruction with { Order = inventedArrival }],
+            Instructions = [underwayInstruction with { Task = inventedArrival }],
             CompletedInstructionIds = state.CompletedInstructionIds!.Append(receipt.InstructionId).ToArray(),
         }));
         foreach (var damaged in new[]
@@ -237,14 +237,14 @@ public sealed partial class PortBoatRuntimeTests
         var destinationId = BoatOrderDestination(scenario.World);
         var destination = scenario.World.WorldSimulation.Buildings.Single(port => port.InstanceId == destinationId);
         var receipt = scenario.World.SubmitInstruction(new("visitor-boat-order", "owner:test", Visitor,
-            OwnerInstructionKind.MustDo, FormattableString.Invariant($"Travel by boat to Port at ({destination.Position.X}, {destination.Position.Y})")));
+            OwnerInstructionKind.Order, FormattableString.Invariant($"Travel by boat to Port at ({destination.Position.X}, {destination.Position.Y})")));
         for (var tick = 0; tick < 4; tick++) Assert.True((await scenario.World.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("blocked", BoatOrder(scenario.World, receipt).Status);
         Assert.Contains("permission", BoatOrder(scenario.World, receipt).BlockedReason, StringComparison.Ordinal);
         Assert.Empty(scenario.World.BoatRequests);
         var noticePlace = scenario.World.Towns[0].OriginSite!.Value;
         var move = scenario.World.SubmitInstruction(new("proposer-at-notice-place", "owner:test", BoatPolicy.Author,
-            OwnerInstructionKind.MustDo, FormattableString.Invariant($"move to ({noticePlace.X}, {noticePlace.Y})")));
+            OwnerInstructionKind.Order, FormattableString.Invariant($"move to ({noticePlace.X}, {noticePlace.Y})")));
         await scenario.UntilAsync(() => BoatOrder(scenario.World, move).Status == "finished", 40);
         policy.GrantAll = true;
         await scenario.UntilAsync(() => TownBoatAccessRules.Allows(scenario.World.Towns[0], Visitor, scenario.World.WorldTick), 120);
@@ -386,10 +386,10 @@ public sealed partial class PortBoatRuntimeTests
     private static OwnerInstructionReceipt SubmitBoatOrder(WorldRuntime world, string key, string destinationId, bool queue = false)
     {
         var destination = world.WorldSimulation.Buildings.Single(port => port.InstanceId == destinationId);
-        return world.SubmitInstruction(new(key, "owner:test", BoatPolicy.Author, OwnerInstructionKind.MustDo,
+        return world.SubmitInstruction(new(key, "owner:test", BoatPolicy.Author, OwnerInstructionKind.Order,
             FormattableString.Invariant($"Travel by boat to Port at ({destination.Position.X}, {destination.Position.Y})"), queue));
     }
 
-    private static OwnerInstructionOrder BoatOrder(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == receipt.InstructionId).Order!;
+    private static OrderTask BoatOrder(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == receipt.InstructionId).Task!;
 }

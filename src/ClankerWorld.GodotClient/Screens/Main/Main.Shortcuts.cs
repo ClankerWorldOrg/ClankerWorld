@@ -88,7 +88,7 @@ public partial class Main
                 PressTopBarAction(worldInfoButton);
                 return true;
             case Key.R:
-                PressTopBarAction(inhabitantsButton);
+                PressTopBarAction(agentsButton);
                 return true;
             case Key.T:
                 ToggleTowns();
@@ -100,7 +100,7 @@ public partial class Main
                 CycleSelectedAgent(key.ShiftPressed ? -1 : 1);
                 return true;
             case Key.C:
-                if (selectedInhabitantId is { } selected) CenterOnInhabitant(selected);
+                if (selectedAgentId is { } selected) CenterOnAgent(selected);
                 return true;
             case Key.H:
                 CenterOnHome();
@@ -129,18 +129,18 @@ public partial class Main
     private void CycleSelectedAgent(int step)
     {
         if (renderedMapSnapshot is not { } snapshot) return;
-        var living = snapshot.Inhabitants
+        var living = snapshot.Agents
             .Where(person => !person.IsDraft && IsLiving(person))
             .OrderBy(person => person.DisplayName, StringComparer.OrdinalIgnoreCase)
             .Select(person => person.Id)
             .ToArray();
         if (living.Length == 0) return;
-        var current = Array.IndexOf(living, selectedInhabitantId);
+        var current = Array.IndexOf(living, selectedAgentId);
         var next = current < 0
             ? (step > 0 ? 0 : living.Length - 1)
             : ((current + step) % living.Length + living.Length) % living.Length;
-        if (living[next] != selectedInhabitantId) SelectInhabitant(living[next]);
-        CenterOnInhabitant(living[next]);
+        if (living[next] != selectedAgentId) SelectAgent(living[next]);
+        CenterOnAgent(living[next]);
     }
 
     /// <summary>Returns the camera to where the world opens: its first Town, else its people or land.</summary>

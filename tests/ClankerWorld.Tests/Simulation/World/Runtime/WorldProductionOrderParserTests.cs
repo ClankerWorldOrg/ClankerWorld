@@ -10,7 +10,7 @@ public sealed partial class WorldProductionOrderParserTests
     private const string Actor = "founder-ilya";
     private static readonly ContentPackageManifest[] ShippedPackages =
     [
-        StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(), FarmContent.Create(),
+        StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), FarmContent.Create(),
         BlacksmithContent.Create(), TailorContent.Create(), HouseCookingContent.Create(),
         OrnamentContent.Create(), CareContent.Create(), RestaurantContent.Create(), RestaurantVariantContent.Create(),
     ];
@@ -93,7 +93,7 @@ public sealed partial class WorldProductionOrderParserTests
 
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 
@@ -107,7 +107,7 @@ public sealed partial class WorldProductionOrderParserTests
         var current = Submit(world, "current", "eat berries");
         var rejected = Submit(world, "ambiguous", ambiguous);
         Assert.Equal("not_understood", rejected.Status);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
 
         var accepted = Submit(world, "qualified", qualified);
         var recipe = Assert.Single(world.WorldContent.Recipes, item => item.LocalId == recipeLocalId);
@@ -129,7 +129,7 @@ public sealed partial class WorldProductionOrderParserTests
         var current = Submit(world, "current", "eat berries");
         var rejected = Submit(world, "inactive", "make two sacks");
         Assert.Equal("not_understood", rejected.Status);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
         Assert.DoesNotContain(world.WorldContent.Recipes, item => item.LocalId == "sew-sack");
         world.Validate();
     }
@@ -162,7 +162,7 @@ public sealed partial class WorldProductionOrderParserTests
         Assert.Equal(("unknown", "not_understood"), (rejected.Action, rejected.Status));
         Assert.Null(rejected.TargetRecipeId);
         Assert.Null(rejected.TargetOutputKind);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
         Assert.Single(world.ExportState().Events, item => item.Kind == "instruction_not_understood");
     }
 
@@ -176,7 +176,7 @@ public sealed partial class WorldProductionOrderParserTests
         var current = Submit(world, "current", "eat berries");
         var rejected = Submit(world, "partial-batch", text);
         Assert.Equal("not_understood", rejected.Status);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public sealed partial class WorldProductionOrderParserTests
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(damaged));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(original, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 
@@ -244,9 +244,9 @@ public sealed partial class WorldProductionOrderParserTests
         });
     }
 
-    private static OwnerInstructionOrder Submit(WorldRuntime world, string key, string text)
+    private static OrderTask Submit(WorldRuntime world, string key, string text)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.MustDo, text));
-        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text));
+        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     }
 }

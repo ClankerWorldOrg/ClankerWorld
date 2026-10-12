@@ -55,7 +55,7 @@ public sealed class OpenAiDecisionsProvider : IDecisionProvider
                 instructions = "Choose exactly one legal candidate for the agent's next small action. " +
                     (needFormat == ModelNeedFormat.Words
                         ? "fullness, warmth and illness give the current level in words and the scale from worst to best."
-                        : "hunger_basis_points is 0 starving to 10000 full; warmth_basis_points is 0 dangerously cold to 10000 warm; illness_basis_points is 0 well to 10000 severely ill.") +
+                        : "fullness_basis_points is 0 starving to 10000 full; warmth_basis_points is 0 dangerously cold to 10000 warm; illness_basis_points is 0 well to 10000 severely ill.") +
                     " A null need is unknown.",
                 choices = request.Observation.Candidates.Select(candidate => new { value = candidate.Id, description = candidate.Description }).ToArray(),
             },
@@ -155,7 +155,7 @@ public sealed class OpenAiDecisionsProvider : IDecisionProvider
             var usage = root.TryGetProperty("usage", out var reportedUsage)
                 ? new CognitionUsage(modelId, reportedUsage.GetProperty("input_tokens").GetInt32(), reportedUsage.GetProperty("output_tokens").GetInt32())
                 : null;
-            return new(request.RequestId, request.Observation.InhabitantId, DecisionProviderKind.OpenAiDecisions,
+            return new(request.RequestId, request.Observation.AgentId, DecisionProviderKind.OpenAiDecisions,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, choice.GetProperty("confidence").GetDouble(), probabilities,
                 usage, MemoryCompactionScores: scores.Count == 0 ? null : scores, MemorySummaryChoice: summaryChoice);

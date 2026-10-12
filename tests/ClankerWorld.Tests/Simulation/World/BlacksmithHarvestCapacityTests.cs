@@ -18,10 +18,10 @@ public sealed class BlacksmithHarvestCapacityTests
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var household = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
         var tree = state.Map.Resources.Where(resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
                 state.Map.IsPassable(resource.Position) && state.Map.IsReachableOnFoot(smith.Position, resource.Position) &&
-                state.Inhabitants.All(person => person.InhabitantId == actor || person.Position != resource.Position))
+                state.Agents.All(person => person.AgentId == actor || person.Position != resource.Position))
             .OrderBy(resource => state.Map.FootDistance(smith.Position, resource.Position)).ThenBy(resource => resource.Id, StringComparer.Ordinal).First();
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "harvest-axe", tool, actor, 1);
@@ -41,10 +41,10 @@ public sealed class BlacksmithHarvestCapacityTests
                         ? resource with { Quantity = 1 } : resource).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = tree.Position,
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Equipment = basket ? new PersonalEquipment(CarryAidLotId: "harvest-basket") : null,
                 Project = null,
                 LastDecisionContext = null,
@@ -95,7 +95,7 @@ public sealed class BlacksmithHarvestCapacityTests
             var selected = active ? request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "haul_smith_input") ??
                 request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == "gather_smith_input:wood") : null;
             selected ??= request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected.Id, 1, new Dictionary<string, double> { [selected.Id] = 1 }));
         }

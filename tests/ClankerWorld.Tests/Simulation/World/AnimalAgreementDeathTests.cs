@@ -63,7 +63,7 @@ public sealed partial class AnimalPipelineTests
             // the inspection provider's unchanged idle decision context.
             state = inspecting.ExportState() with
             {
-                Inhabitants = inspecting.ExportState().Inhabitants.Select(person => person.InhabitantId == seller
+                Agents = inspecting.ExportState().Agents.Select(person => person.AgentId == seller
                     ? person with { LastDecisionContext = null } : person).ToArray()
             };
             state = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state));
@@ -88,9 +88,9 @@ public sealed partial class AnimalPipelineTests
         bool dead, bool permissions, bool distant)
     {
         var (state, seller, home, yard) = CreateYard("animal-death-agreements");
-        var buyer = state.Society.Society.Inhabitants.First(person => person.Status == SocietyInhabitantStatus.Active &&
+        var buyer = state.Society.Society.Agents.First(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand == SocietyAgeBand.Adult && person.HouseholdId != home).Id;
-        var buyerHome = state.Society.Society.GetInhabitant(buyer).HouseholdId!;
+        var buyerHome = state.Society.Society.GetAgent(buyer).HouseholdId!;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "receiving-yard-wood", "wood", buyerHome, 8,
             groundPosition: new(yard.Position.X, yard.Position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "receiving-yard-rope", "rope", buyerHome, 2,
@@ -117,7 +117,7 @@ public sealed partial class AnimalPipelineTests
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = At(state, seller, yard.Position, inventory, [animal]).Inhabitants.Select(person => person.InhabitantId == buyer
+            Agents = At(state, seller, yard.Position, inventory, [animal]).Agents.Select(person => person.AgentId == buyer
                 ? person with { Position = buyerPosition } : person).ToArray()
         }, seller, buyer, animal.Id);
     }

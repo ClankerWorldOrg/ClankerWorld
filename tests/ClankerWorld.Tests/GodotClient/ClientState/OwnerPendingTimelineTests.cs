@@ -22,7 +22,7 @@ public sealed class OwnerPendingTimelineTests
             var pending = kind switch
             {
                 "instruction" => OwnerPendingSubmission.ForInstruction(binding,
-                    new("exact-instruction-key", "camp-alpha", "must_do", "Gather these exact berries.", "world-A", true)),
+                    new("exact-instruction-key", "camp-alpha", "order", "Gather these exact berries.", "world-A", true)),
                 "cancel" => OwnerPendingSubmission.ForOrderCancel(binding,
                     new("exact-cancel-key", "camp-alpha", "private-instruction-0000000007", "world-A")),
                 _ => OwnerPendingSubmission.ForAuthoring(binding,
@@ -71,7 +71,7 @@ public sealed class OwnerPendingTimelineTests
             var store = new OwnerPendingSubmissionStore(Path.Combine(directory.FullName, "pending.json"));
             var legacy = OwnerPendingSubmissionBinding.Create(new("authority-01", "installation-01"),
                 "device-01", "sha256:public-key", new Uri("https://clanker.tailnet.example:8443/"));
-            var action = new OwnerInstructionAction("legacy-key", "camp-alpha", "suggestive", "Keep this text.", "world-A");
+            var action = new OwnerInstructionAction("legacy-key", "camp-alpha", "suggestion", "Keep this text.", "world-A");
             Assert.True(store.TrySave(OwnerPendingSubmission.ForInstruction(legacy, action)));
             Assert.True(legacy.CanRetryIn("world-A", null));
             var timeline = new OwnerObserverTimeline("host-instance-a", 0);

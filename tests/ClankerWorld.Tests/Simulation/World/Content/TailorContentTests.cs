@@ -13,7 +13,7 @@ public sealed class TailorContentTests
     public async Task HouseholdTurnsFiberIntoClothAndClothingThroughOrdinaryChoicesAcrossReload()
     {
         var (state, shopId) = WorldWithTailorShop("tailor-flow", fiberInHouse: 6);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == Alpha).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == Alpha).Id;
         var weave = state.WorldContent!.Recipes.Single(item => item.LocalId == "weave-cloth");
         var sew = state.WorldContent.Recipes.Single(item => item.LocalId == "sew-clothing");
         Assert.Equal("cloth", Assert.Single(weave.Outputs).ResourceId);
@@ -23,7 +23,7 @@ public sealed class TailorContentTests
         Assert.DoesNotContain(state.WorldContent.Recipes, recipe => recipe.DisplayName == "Woven clothing");
         foreach (var (household, house) in new[] { (Alpha, "first-town-house-a"), (Beta, "first-town-house-b") })
         {
-            var members = state.Society.Society.Inhabitants.Count(person => person.HouseholdId == household);
+            var members = state.Society.Society.Agents.Count(person => person.HouseholdId == household);
             Assert.Equal(2, members);
             Assert.Equal(members, state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == household &&
                 lot.ItemKind == "clothing" && lot.StorageBuildingId == house).Sum(lot => lot.Quantity));
@@ -56,7 +56,7 @@ public sealed class TailorContentTests
                     var depleted = Assert.Single(world.WorldSystems.Ecology.Resources, resource => resource.Kind == "fiber" &&
                         nodesBefore.TryGetValue(resource.Id, out var before) && resource.Quantity < before);
                     Assert.Equal(nodesBefore[depleted.Id] - 1, depleted.Quantity);
-                    Assert.True(state.Map.FootDistance(world.Inhabitants.Single(person => person.InhabitantId == actor).Position,
+                    Assert.True(state.Map.FootDistance(world.Agents.Single(person => person.AgentId == actor).Position,
                         depleted.Position) <= 1);
                     observedFiniteGathering = true;
                 }
@@ -128,7 +128,7 @@ public sealed class TailorContentTests
 
     private static int HouseholdTotal(WorldRuntime world, string kind) => world.Society.Inventory.Lots
         .Where(lot => lot.ItemKind == kind && (lot.OwnerId == Alpha ||
-            world.Society.Inhabitants.Any(person => person.Id == lot.OwnerId && person.HouseholdId == Alpha)))
+            world.Society.Agents.Any(person => person.Id == lot.OwnerId && person.HouseholdId == Alpha)))
         .Sum(lot => lot.Quantity);
 
     /// <summary>Chooses among the allowed candidates by the built-in rules, otherwise stays idle.</summary>

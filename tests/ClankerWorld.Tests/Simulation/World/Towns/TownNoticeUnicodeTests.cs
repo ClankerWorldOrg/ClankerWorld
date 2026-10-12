@@ -26,9 +26,9 @@ public sealed class TownNoticeUnicodeTests
         var source = town.ResidentIds[1];
         var society = state.Society.Society;
         if (relay)
-            society = SocietyRules.RenameInhabitant(society, source, new string('L', 43) + " Vale").Checkpoint;
-        var name = society.GetInhabitant(actor).Name;
-        var sourceName = society.GetInhabitant(source).Name;
+            society = SocietyRules.RenameAgent(society, source, new string('L', 43) + " Vale").Checkpoint;
+        var name = society.GetAgent(actor).Name;
+        var sourceName = society.GetAgent(source).Name;
         var entryPrefix = relay ? $"Heard from {sourceName}: {town.Name}: " : $"Read Town notice: {town.Name}: ";
         var noticePrefix = $"law proposal by {name}: ";
         var entryCount = relay ? 3 : 1;
@@ -36,25 +36,25 @@ public sealed class TownNoticeUnicodeTests
         Assert.InRange(emojiIndex, noticePrefix.Length, 270);
         var filler = emojiIndex - noticePrefix.Length;
         var text = new string('a', filler) + "😀tail";
-        Assert.InRange(text.Length, 1, TownGovernanceRules.MaximumProposalText);
-        var governance = town.Governance!;
-        var firstNotice = governance.Notices.Count;
+        Assert.InRange(text.Length, 1, TownCouncilRules.MaximumProposalText);
+        var council = town.Council!;
+        var firstNotice = council.Notices.Count;
         for (var index = 0; index < entryCount; index++)
-            governance = TownGovernanceRules.SubmitProposal(governance, town.Id, actor, "law", null,
+            council = TownCouncilRules.SubmitProposal(council, town.Id, actor, "law", null,
                 index == entryCount - 1 ? text : new string((char)('b' + index), 256), "unicode-audit-" + index,
                 town.ResidentIds, society.WorldTick, state.WorldSystems!.Config.TicksPerDay);
-        var ids = governance.Notices.Skip(firstNotice).Select(notice => notice.Id).ToArray();
-        if (relay) governance = TownGovernanceRules.LearnNotices(governance, source, ids, society.WorldTick);
-        governance = TownGovernanceRules.LearnNotices(governance, actor, ids, society.WorldTick, relay ? source : null);
+        var ids = council.Notices.Skip(firstNotice).Select(notice => notice.Id).ToArray();
+        if (relay) council = TownCouncilRules.LearnNotices(council, source, ids, society.WorldTick);
+        council = TownCouncilRules.LearnNotices(council, actor, ids, society.WorldTick, relay ? source : null);
         state = state with
         {
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Towns = state.Towns.Select(item => item.Id == town.Id ? item with { Governance = governance } : item).ToArray(),
+            Towns = state.Towns.Select(item => item.Id == town.Id ? item with { Council = council } : item).ToArray(),
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Survival = person.Survival is { } survival ? survival with
                 { WarmthBasisPoints = 10_000, NutritionBasisPoints = 10_000, IllnessBasisPoints = 0 } : null,
                 LastDecisionContext = null,
@@ -62,20 +62,20 @@ public sealed class TownNoticeUnicodeTests
                 TravelCooldownTicks = 0,
             }).ToArray(),
         };
-        var observed = new ConcurrentQueue<InhabitantObservation>();
+        var observed = new ConcurrentQueue<AgentObservation>();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             _ => new CivicIdleProvider(observed));
-        for (var tick = 0; tick < 4 && !observed.Any(item => item.InhabitantId == actor); tick++)
+        for (var tick = 0; tick < 4 && !observed.Any(item => item.AgentId == actor); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var context = observed.First(item => item.InhabitantId == actor).Self!.CivicNote!;
+        var context = observed.First(item => item.AgentId == actor).Self!.CivicNote!;
         Assert.NotNull(context);
         Assert.StartsWith(entryPrefix, context, StringComparison.Ordinal);
         var limit = relay ? 1024 : entryPrefix.Length + 270;
         Assert.Equal(limit - (offset == 0 ? 1 : 0), context.Length);
-        Assert.Equal(governance.Knowledge, world.Towns[0].Governance!.Knowledge);
+        Assert.Equal(council.Knowledge, world.Towns[0].Council!.Knowledge);
         if (offset == -1) Assert.EndsWith("😀", context, StringComparison.Ordinal);
         else Assert.DoesNotContain("😀", context, StringComparison.Ordinal);
-        Assert.Equal(governance.Notices, world.Towns[0].Governance!.Notices);
+        Assert.Equal(council.Notices, world.Towns[0].Council!.Notices);
         world.Validate();
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
@@ -93,7 +93,7 @@ public sealed class TownNoticeUnicodeTests
         return WorldRuntimeCodec.Encode(world.ExportState());
     }
 
-    private sealed class CivicIdleProvider(ConcurrentQueue<InhabitantObservation> observed) : IDecisionProvider
+    private sealed class CivicIdleProvider(ConcurrentQueue<AgentObservation> observed) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
@@ -101,7 +101,7 @@ public sealed class TownNoticeUnicodeTests
         {
             observed.Enqueue(request.Observation);
             var selected = request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle").Id;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

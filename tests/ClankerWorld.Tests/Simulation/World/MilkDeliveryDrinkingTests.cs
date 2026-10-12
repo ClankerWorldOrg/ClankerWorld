@@ -18,13 +18,13 @@ public sealed class MilkDeliveryDrinkingTests
         using var generated = NormalPathWorld.CreateGenerated("milk-delivery-drinking-audit", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             generated.WorldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var point = state.Map.Tiles.Select(tile => tile.Position).First(position => state.Map.IsBuildable(position) &&
             state.Map.IsReachableOnFoot(house.Position, position) && state.Map.FootDistance(house.Position, position) is >= 40 and <= 42 &&
-            !state.Inhabitants.Any(person => person.Position == position));
+            !state.Agents.Any(person => person.Position == position));
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         var ground = new InventoryGroundPosition(point.X, point.Y);
         var owner = assigned ? household : actor;
@@ -35,11 +35,11 @@ public sealed class MilkDeliveryDrinkingTests
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Equipment = null,
-                Position = person.InhabitantId == actor ? point : person.Position,
-                HungerBasisPoints = 9_500,
+                Position = person.AgentId == actor ? point : person.Position,
+                FullnessBasisPoints = 9_500,
             }).ToArray(),
         };
         if (assigned)
@@ -54,8 +54,8 @@ public sealed class MilkDeliveryDrinkingTests
         }
         prepared = prepared with
         {
-            Inhabitants = prepared.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 3_500 } : person).ToArray(),
+            Agents = prepared.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 3_500 } : person).ToArray(),
         };
         var choice = deliver ? "haul_household_stock" : kind == "milk" ? "drink_milk" : "consume_food";
         var policy = new ChoiceProvider(choice);
@@ -80,7 +80,7 @@ public sealed class MilkDeliveryDrinkingTests
             Assert.Null(world.Society.Inventory.GetLot("promised-food").DeliveryBuildingId);
             Assert.Single(world.ExportState().Events, item => item.Kind == "household_stock_delivered");
         }
-        if (canDrink) Assert.True(world.ExportState().Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > 3_500);
+        if (canDrink) Assert.True(world.ExportState().Agents.Single(person => person.AgentId == actor).FullnessBasisPoints > 3_500);
         world.Validate();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var reload = Restore(WorldRuntimeCodec.Decode(saved), actor, new ChoiceProvider(choice));
@@ -106,7 +106,7 @@ public sealed class MilkDeliveryDrinkingTests
             Offered.Enqueue(observation.Candidates.Select(candidate => candidate.Id).ToArray());
             var selected = observation.Candidates.FirstOrDefault(candidate => candidate.Id == choice) ??
                 observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

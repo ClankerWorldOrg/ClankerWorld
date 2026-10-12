@@ -18,24 +18,24 @@ public sealed class TownCivicVisitContinuationTests
         town = initial.Towns![0];
         var board = town.OriginSite!.Value;
         var start = ReachableDistantPosition(initial, visitor, board);
-        var governance = TownGovernanceRules.SubmitProposal(town.Governance!, town.Id, town.ResidentIds[1],
+        var council = TownCouncilRules.SubmitProposal(town.Council!, town.Id, town.ResidentIds[1],
             "law", null, "Post harvest dates for the Town.", "same", town.ResidentIds, 0,
             initial.WorldSystems!.Config.TicksPerDay);
         var provider = new VisitOnceProvider();
         using var world = WorldRuntime.Restore(initial with
         {
-            Towns = [town with { Governance = governance }],
-            Inhabitants = initial.Inhabitants.Select(person => person with
+            Towns = [town with { Council = council }],
+            Agents = initial.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == visitor ? start : person.Position,
-                HungerBasisPoints = 8_000,
+                Position = person.AgentId == visitor ? start : person.Position,
+                FullnessBasisPoints = 8_000,
                 TravelCooldownTicks = 0,
             }).ToArray(),
         }, id => id == visitor ? provider : new ActionCoverageRecorder(chooseIdle: true));
 
         var first = await world.AdvanceOneTickAsync();
         Assert.True(first.Advanced);
-        var decision = Assert.Single(first.Decisions, result => result.InhabitantId == visitor);
+        var decision = Assert.Single(first.Decisions, result => result.AgentId == visitor);
         Assert.True(decision.Admission.Accepted);
         Assert.False(decision.Admission.FellBack);
         var firstObservation = Assert.Single(provider.Observations);
@@ -43,7 +43,7 @@ public sealed class TownCivicVisitContinuationTests
         Assert.Contains(visitor, world.Towns[0].ResidentIds);
         Assert.True(world.ExportState().Map.FootDistance(start, board) >= 6);
         Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
-        AssertNoFormalCivicChanges(world, governance);
+        AssertNoFormalCivicChanges(world, council);
 
         var positions = new HashSet<GridPoint> { start, Position(world, visitor) };
         // This reachable short trip fits within the ordinary 30-tick decision
@@ -54,7 +54,7 @@ public sealed class TownCivicVisitContinuationTests
             positions.Add(Position(world, visitor));
             Assert.Single(provider.Observations);
             Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
-            AssertNoFormalCivicChanges(world, governance);
+            AssertNoFormalCivicChanges(world, council);
         }
 
         var arrived = Position(world, visitor);
@@ -73,20 +73,20 @@ public sealed class TownCivicVisitContinuationTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(arrived, Position(world, visitor));
             Assert.Equal(1, VisitActionCount(world.ExportState(), town.Id, visitor));
-            AssertNoFormalCivicChanges(world, governance);
+            AssertNoFormalCivicChanges(world, council);
         }
         world.Validate();
     }
 
     private static GridPoint Position(WorldRuntime world, string visitor) =>
-        world.ExportState().Inhabitants.Single(person => person.InhabitantId == visitor).Position;
+        world.ExportState().Agents.Single(person => person.AgentId == visitor).Position;
 
     private static int VisitActionCount(WorldRuntimeState state, string town, string visitor) =>
         state.Events.Count(item => item.Kind == "town_civic_action" && item.Detail == $"{town}|{visitor}|visit");
 
-    private static void AssertNoFormalCivicChanges(WorldRuntime world, TownGovernanceState original)
+    private static void AssertNoFormalCivicChanges(WorldRuntime world, TownCouncilState original)
     {
-        var current = world.Towns[0].Governance!;
+        var current = world.Towns[0].Council!;
         Assert.Empty(current.Knowledge);
         Assert.Empty(current.Candidates);
         Assert.Null(current.Election);
@@ -100,7 +100,7 @@ public sealed class TownCivicVisitContinuationTests
 
     private static GridPoint ReachableDistantPosition(WorldRuntimeState state, string visitor, GridPoint board)
     {
-        var occupied = state.Inhabitants.Where(person => person.InhabitantId != visitor)
+        var occupied = state.Agents.Where(person => person.AgentId != visitor)
             .Select(person => person.Position).ToHashSet();
         foreach (var point in state.Map.Tiles.Select(tile => tile.Position)
                      .Where(point => state.Map.IsBuildable(point) && !occupied.Contains(point) &&
@@ -123,7 +123,7 @@ public sealed class TownCivicVisitContinuationTests
 
     private sealed class VisitOnceProvider : IDecisionProvider
     {
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public string? VisitId { get; private set; }
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
@@ -137,7 +137,7 @@ public sealed class TownCivicVisitContinuationTests
                 ? observation.Candidates.Single(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal))
                 : observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             VisitId ??= selected.Id;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1, observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

@@ -6,7 +6,7 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private IEnumerable<GridPoint> TownFoundingBuildingTiles(PlacedBuilding building) => CivicSystem.TownFoundingBuildingTiles(civicWorld, building);
-    private TownRuntimeState? TownFoundingLayout(string actor) => civicSystem.TownFoundingLayout(civicWorld, actor);
-    private void FoundTown(string actor, string candidate) => civicSystem.FoundTown(civicWorld, actor, candidate);
+    private IEnumerable<GridPoint> TownFoundingBuildingTiles(PlacedBuilding building) => TownSystem.TownFoundingBuildingTiles(civicWorld, building);
+    private TownRuntimeState? TownFoundingLayout(string actor) => townSystem.TownFoundingLayout(civicWorld, actor);
+    private void FoundTown(string actor, string candidate) => townSystem.FoundTown(civicWorld, actor, candidate);
 }

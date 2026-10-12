@@ -75,9 +75,9 @@ public partial class Main
 
     private void RenderDeveloperEdits(OwnerWorldSnapshot? snapshot, bool actionDisabled)
     {
-        var selected = snapshot?.Inhabitants.FirstOrDefault(person => person.Id == selectedInhabitantId);
+        var selected = snapshot?.Agents.FirstOrDefault(person => person.Id == selectedAgentId);
         developerEditAgent.Text = selected is null ? "Select an agent on the map or above." : $"Selected: {selected.DisplayName}";
-        var people = snapshot?.Inhabitants.Where(person => !person.IsDraft && IsLiving(person) && person.Id != selectedInhabitantId)
+        var people = snapshot?.Agents.Where(person => !person.IsDraft && IsLiving(person) && person.Id != selectedAgentId)
             .OrderBy(person => person.DisplayName, StringComparer.Ordinal).ThenBy(person => person.Id, StringComparer.Ordinal).ToArray() ?? [];
         var key = string.Join('\n', people.Select(person => person.Id + "\t" + person.DisplayName));
         if (key != developerEditPeopleKey)
@@ -104,7 +104,7 @@ public partial class Main
     private async Task ApplyDeveloperEditAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
-            renderedMapSnapshot is not { } snapshot || selectedInhabitantId is not { } agent)
+            renderedMapSnapshot is not { } snapshot || selectedAgentId is not { } agent)
             return;
         var operation = DeveloperEditOperation;
         var action = new OwnerDeveloperEditAction(snapshot.WorldId, snapshot.LatestEventId, agent, operation,

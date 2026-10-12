@@ -18,9 +18,9 @@ public sealed class PartnershipFamilyUnitTests
     {
         var (checkpoint, child) = BirthFamily();
         checkpoint = SocietyRules.AdvanceTo(checkpoint, checkpoint.Config.AdultYears * checkpoint.Config.TicksPerWorldYear).Checkpoint;
-        Assert.Equal(SocietyAgeBand.Adult, checkpoint.GetInhabitant(child).AgeBand);
+        Assert.Equal(SocietyAgeBand.Adult, checkpoint.GetAgent(child).AgeBand);
         var originalUnits = Units(checkpoint);
-        Assert.Equal(checkpoint.GetInhabitant("alice").DomesticFamilyUnitId, checkpoint.GetInhabitant(child).DomesticFamilyUnitId);
+        Assert.Equal(checkpoint.GetAgent("alice").DomesticFamilyUnitId, checkpoint.GetAgent(child).DomesticFamilyUnitId);
         Assert.Equal(4, Capacity(checkpoint).Limit);
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("adult-child-proposal", 1, SocietyRelationshipType.Partnership, child, "cara", checkpoint.WorldTick)).Checkpoint;
@@ -29,8 +29,8 @@ public sealed class PartnershipFamilyUnitTests
         if (action == "end-accepted")
         {
             checkpoint = SocietyRules.AcceptRelationship(checkpoint, "adult-child-proposal", 1, "cara").Checkpoint;
-            Assert.Equal(checkpoint.GetInhabitant(child).DomesticFamilyUnitId, checkpoint.GetInhabitant("cara").DomesticFamilyUnitId);
-            Assert.NotEqual(checkpoint.GetInhabitant("alice").DomesticFamilyUnitId, checkpoint.GetInhabitant(child).DomesticFamilyUnitId);
+            Assert.Equal(checkpoint.GetAgent(child).DomesticFamilyUnitId, checkpoint.GetAgent("cara").DomesticFamilyUnitId);
+            Assert.NotEqual(checkpoint.GetAgent("alice").DomesticFamilyUnitId, checkpoint.GetAgent(child).DomesticFamilyUnitId);
         }
         var closure = action == "refuse"
             ? SocietyRules.RefuseRelationship(checkpoint, "adult-child-proposal", 1, "cara")
@@ -40,13 +40,13 @@ public sealed class PartnershipFamilyUnitTests
         checkpoint = Roundtrip(checkpoint);
         Assert.Equal(action == "refuse" ? SocietyRelationshipState.Rejected : SocietyRelationshipState.Revoked,
             checkpoint.GetRelationship("adult-child-proposal").State);
-        Assert.All(checkpoint.Inhabitants, person => Assert.Equal("home", person.HouseholdId));
+        Assert.All(checkpoint.Agents, person => Assert.Equal("home", person.HouseholdId));
         AssertBirthHistory(checkpoint, child);
         if (action == "end-accepted")
         {
-            Assert.NotEqual(checkpoint.GetInhabitant(child).DomesticFamilyUnitId, checkpoint.GetInhabitant("cara").DomesticFamilyUnitId);
-            Assert.StartsWith("domestic:separate:", checkpoint.GetInhabitant(child).DomesticFamilyUnitId);
-            Assert.StartsWith("domestic:separate:", checkpoint.GetInhabitant("cara").DomesticFamilyUnitId);
+            Assert.NotEqual(checkpoint.GetAgent(child).DomesticFamilyUnitId, checkpoint.GetAgent("cara").DomesticFamilyUnitId);
+            Assert.StartsWith("domestic:separate:", checkpoint.GetAgent(child).DomesticFamilyUnitId);
+            Assert.StartsWith("domestic:separate:", checkpoint.GetAgent("cara").DomesticFamilyUnitId);
             Assert.Equal(3, Capacity(checkpoint).Limit);
         }
         else
@@ -61,24 +61,24 @@ public sealed class PartnershipFamilyUnitTests
     {
         var (checkpoint, child) = BirthFamily();
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, "parents", "alice").Checkpoint;
-        var originalChildUnit = checkpoint.GetInhabitant(child).DomesticFamilyUnitId;
-        Assert.Equal(checkpoint.GetInhabitant("alice").DomesticFamilyUnitId, originalChildUnit);
-        Assert.NotEqual(checkpoint.GetInhabitant("bob").DomesticFamilyUnitId, originalChildUnit);
+        var originalChildUnit = checkpoint.GetAgent(child).DomesticFamilyUnitId;
+        Assert.Equal(checkpoint.GetAgent("alice").DomesticFamilyUnitId, originalChildUnit);
+        Assert.NotEqual(checkpoint.GetAgent("bob").DomesticFamilyUnitId, originalChildUnit);
         var care = Assert.Single(checkpoint.Relationships, edge => edge.Type == SocietyRelationshipType.Caregiver &&
             edge.ProposerId == "alice" && edge.TargetId == child && edge.State == SocietyRelationshipState.Accepted);
         checkpoint = SocietyRules.RevokeRelationship(checkpoint, care.Id, "alice").Checkpoint;
         checkpoint = Roundtrip(checkpoint);
-        Assert.Null(checkpoint.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Null(checkpoint.GetAgent(child).PrimaryCaregiverId);
         var originalLimit = Capacity(checkpoint).Limit;
         checkpoint = SocietyRules.ProposeRelationship(checkpoint,
             new("new-partnership", 1, SocietyRelationshipType.Partnership, "alice", "cara", checkpoint.WorldTick)).Checkpoint;
         checkpoint = SocietyRules.AcceptRelationship(checkpoint, "new-partnership", 1, "cara").Checkpoint;
         checkpoint = Roundtrip(checkpoint);
-        Assert.Equal(originalChildUnit, checkpoint.GetInhabitant(child).DomesticFamilyUnitId);
-        Assert.NotEqual(checkpoint.GetInhabitant("alice").DomesticFamilyUnitId, checkpoint.GetInhabitant(child).DomesticFamilyUnitId);
-        Assert.Null(checkpoint.GetInhabitant(child).PrimaryCaregiverId);
+        Assert.Equal(originalChildUnit, checkpoint.GetAgent(child).DomesticFamilyUnitId);
+        Assert.NotEqual(checkpoint.GetAgent("alice").DomesticFamilyUnitId, checkpoint.GetAgent(child).DomesticFamilyUnitId);
+        Assert.Null(checkpoint.GetAgent(child).PrimaryCaregiverId);
         Assert.Equal(originalLimit, Capacity(checkpoint).Limit);
-        Assert.All(checkpoint.Inhabitants, person => Assert.Equal("home", person.HouseholdId));
+        Assert.All(checkpoint.Agents, person => Assert.Equal("home", person.HouseholdId));
         AssertBirthHistory(checkpoint, child);
     }
 
@@ -87,12 +87,12 @@ public sealed class PartnershipFamilyUnitTests
     {
         using var seed = NormalPathWorld.CreateGenerated("audit-town-invariants", _ => new Idle());
         var state = seed.ExportState();
-        var people = state.Society.Society.Inhabitants.Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
+        var people = state.Society.Society.Agents.Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
         var proposed = SocietyRules.ProposeRelationship(state.Society.Society,
             new("expiring-proposal", 1, SocietyRelationshipType.Partnership, people[0], people[1], 0)).Checkpoint;
         state = state with { Society = state.Society with { Society = proposed } };
         var originalUnits = Units(proposed);
-        var originalHouseholds = proposed.Inhabitants.Select(person => (person.Id, person.HouseholdId)).ToArray();
+        var originalHouseholds = proposed.Agents.Select(person => (person.Id, person.HouseholdId)).ToArray();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => new Idle());
         while (world.WorldTick < 120) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(SocietyRelationshipState.Proposed, world.Society.GetRelationship("expiring-proposal").State);
@@ -107,7 +107,7 @@ public sealed class PartnershipFamilyUnitTests
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
         Assert.Equal(Units(world.Society), Units(restored.Society));
         Assert.Equal(originalUnits, Units(world.Society));
-        Assert.Equal(originalHouseholds, world.Society.Inhabitants.Select(person => (person.Id, person.HouseholdId)));
+        Assert.Equal(originalHouseholds, world.Society.Agents.Select(person => (person.Id, person.HouseholdId)));
     }
 
     private static (SocietyCheckpoint Checkpoint, string Child) BirthFamily()
@@ -126,10 +126,10 @@ public sealed class PartnershipFamilyUnitTests
     }
 
     private static HouseResidentCapacityRules.Capacity Capacity(SocietyCheckpoint checkpoint) =>
-        HouseResidentCapacityRules.Calculate(checkpoint.Inhabitants.Where(person => person.HouseholdId == "home"), 1, 1);
+        HouseResidentCapacityRules.Calculate(checkpoint.Agents.Where(person => person.HouseholdId == "home"), 1, 1);
 
     private static (string Id, string? Family)[] Units(SocietyCheckpoint checkpoint) =>
-        checkpoint.Inhabitants.Select(person => (person.Id, person.DomesticFamilyUnitId)).ToArray();
+        checkpoint.Agents.Select(person => (person.Id, person.DomesticFamilyUnitId)).ToArray();
 
     private static void AssertBirthHistory(SocietyCheckpoint checkpoint, string child)
     {

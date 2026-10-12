@@ -7,8 +7,8 @@ public static class TownLandCaseJudgeRules
 {
     public static string RoundToken(TownLandCaseJudgeContest contest) =>
         DerivedId.Create(contest.Id + ":" + contest.Round.ToString(CultureInfo.InvariantCulture) + ":" + contest.Interruptions.ToString(CultureInfo.InvariantCulture));
-    public static bool IsBusy(TownLandHearingState state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
-    private static TownLandHearingState Replace(TownLandHearingState state, TownLandCase item) =>
+    public static bool IsBusy(TownLandRecords state) => state.Cases.Any(c => c.Contest is { Stage: "voting" });
+    private static TownLandRecords Replace(TownLandRecords state, TownLandCase item) =>
         state with { Cases = state.Cases.Select(c => c.Id == item.Id ? item : c).ToArray() };
     private static bool Willing(TownLandCase item, string actor) => item.JudgeConsents.Any(c => c.AgentId == actor && c.WithdrawnTick is null);
     private static bool Eligible(TownLandCase item, string actor, IReadOnlyList<string> adults,
@@ -16,7 +16,7 @@ public static class TownLandCaseJudgeRules
         adults.Contains(actor, StringComparer.Ordinal) && !TownLandHearingRules.JudgeConflict(actor,
             households.GetValueOrDefault(actor), parties, item.DirectStakeIds.ToHashSet(StringComparer.Ordinal));
 
-    public static TownLandHearingState Register(TownLandHearingState state, string caseId, string actor,
+    public static TownLandRecords Register(TownLandRecords state, string caseId, string actor,
         IReadOnlyList<string> adultResidents, IReadOnlyDictionary<string, string?> households, long tick,
         IReadOnlyList<TownLandCaseParty>? currentParties = null)
     {
@@ -26,7 +26,7 @@ public static class TownLandCaseJudgeRules
         return Willing(item, actor) ? state : Replace(state, item with { JudgeConsents = item.JudgeConsents.Append(new(actor, tick)).ToArray() });
     }
 
-    public static TownLandHearingState Withdraw(TownLandHearingState state, string caseId, string actor, long tick)
+    public static TownLandRecords Withdraw(TownLandRecords state, string caseId, string actor, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         if (!Willing(item, actor)) throw new InvalidOperationException("There is no active consent for this case mandate.");
@@ -35,7 +35,7 @@ public static class TownLandCaseJudgeRules
             TownLandHearingRules.InvalidateJudge(state, caseId, tick, "willingness_withdrawn") : state;
     }
 
-    public static TownLandHearingState Resign(TownLandHearingState state, string caseId, string actor, long tick)
+    public static TownLandRecords Resign(TownLandRecords state, string caseId, string actor, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
         if (item.Judge is not { Kind: "case_elected" } judge || judge.AgentId != actor) throw new InvalidOperationException("Only a current elected case judge may resign this case-only mandate.");
@@ -44,7 +44,7 @@ public static class TownLandCaseJudgeRules
         return Willing(item, actor) ? Withdraw(state, caseId, actor, tick) : state;
     }
 
-    public static TownLandHearingState Vote(TownLandHearingState state, string caseId, string token,
+    public static TownLandRecords Vote(TownLandRecords state, string caseId, string token,
         string actor, string candidate, long tick)
     {
         var item = state.Cases.Single(c => c.Id == caseId);
@@ -62,8 +62,8 @@ public static class TownLandCaseJudgeRules
         });
     }
 
-    public static (TownLandHearingState State, TownGovernanceState Council) Advance(TownLandHearingState state,
-        TownGovernanceState council, TownGovernmentState government, IReadOnlyList<string> adultResidents,
+    public static (TownLandRecords State, TownCouncilState Council) Advance(TownLandRecords state,
+        TownCouncilState council, TownGovernmentState government, IReadOnlyList<string> adultResidents,
         IReadOnlyDictionary<string, string?> households, long tick, int day, bool ordinaryContestBusy = false,
         IReadOnlyDictionary<string, IReadOnlyList<TownLandCaseParty>>? currentPartiesByCase = null)
     {
@@ -109,7 +109,7 @@ public static class TownLandCaseJudgeRules
             contest = FromNeutral(TownHearingProcedure.AdvanceContest(ToNeutral(contest), adults, candidates, busyForCase, tick, day));
             if (contest.Stage == "voting" && contest.Round != previousRound)
             {
-                council = TownGovernanceRules.PostNotice(council, "land_hearing", RoundToken(contest),
+                council = TownCouncilRules.PostNotice(council, "land_hearing", RoundToken(contest),
                     "Choose one willing independent adult to decide this land case only: " + string.Join(", ", contest.Candidates) + ".", tick);
                 schedulerBusy = true;
             }

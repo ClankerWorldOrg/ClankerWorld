@@ -25,10 +25,10 @@ public sealed class ChildInitialIdentityTests
     {
         var state = WorldRuntimeCodec.Decode(await LongParentInfancyEnds.Value);
         var parentId = Assert.Single(state.Society.Society.Births, birth =>
-            state.Society.Society.GetInhabitant(birth.ChildId).AgeBand == SocietyAgeBand.Adult).ChildId;
+            state.Society.Society.GetAgent(birth.ChildId).AgeBand == SocietyAgeBand.Adult).ChildId;
         var childId = Assert.Single(state.Society.Society.Births, birth => birth.ChildId != parentId).ChildId;
         Assert.InRange(parentId.Length, 1, DerivedId.MaximumLength);
-        Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetInhabitant(childId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetAgent(childId).AgeBand);
 
         using var handler = new ChildReplyHandler
         {
@@ -44,8 +44,8 @@ public sealed class ChildInitialIdentityTests
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         handler.StartGate?.TrySetResult(true);
         await handler.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal(SocietyAgeBand.Child, world.Society.GetInhabitant(childId).AgeBand);
-        var observation = Assert.Single(world.ExportState().Society.Cognition.Queue, entry => entry.InhabitantId == childId).Observation;
+        Assert.Equal(SocietyAgeBand.Child, world.Society.GetAgent(childId).AgeBand);
+        var observation = Assert.Single(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == childId).Observation;
         var background = Assert.IsAssignableFrom<IReadOnlyList<CognitionParentIdentity>>(observation.Self!.FamilyBackground);
         Assert.Equal(parentId, Assert.Single(background, parent => parent.ParentId == parentId).ParentId);
         Assert.Equal(2, background.Count);
@@ -58,18 +58,18 @@ public sealed class ChildInitialIdentityTests
             var saved = File.ReadAllBytes(file.Path);
             var loaded = WorldRuntimeCodec.Decode(saved);
             Assert.Equal(saved, WorldRuntimeCodec.Encode(loaded));
-            var retained = Assert.Single(loaded.Society.Cognition.Queue, entry => entry.InhabitantId == childId).Observation;
+            var retained = Assert.Single(loaded.Society.Cognition.Queue, entry => entry.AgentId == childId).Observation;
             Assert.Equal(parentId, Assert.Single(retained.Self!.FamilyBackground!, parent => parent.ParentId == parentId).ParentId);
 
             handler.Release.TrySetResult(true);
             await WaitForActualRequests(world);
-            for (var tick = 0; tick < 8 && world.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending; tick++)
+            for (var tick = 0; tick < 8 && world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            var child = world.Inhabitants.Single(person => person.InhabitantId == childId);
+            var child = world.Agents.Single(person => person.AgentId == childId);
             Assert.False(child.IdentityChoicePending);
             Assert.Equal(("Inventive and independent", "Study the hills"), (child.Personality, child.Aspiration));
             Assert.Single(handler.Bodies);
-            Assert.All(world.ExportState().Society.Cognition.Queue.Where(entry => entry.InhabitantId == childId),
+            Assert.All(world.ExportState().Society.Cognition.Queue.Where(entry => entry.AgentId == childId),
                 entry => Assert.Null(entry.Observation.Self!.FamilyBackground));
             file.Save(world);
             saved = File.ReadAllBytes(file.Path);
@@ -95,13 +95,13 @@ public sealed class ChildInitialIdentityTests
     {
         var state = WorldRuntimeCodec.Decode(await Born.Value);
         var birth = Assert.Single(state.Society.Society.Births);
-        var child = Assert.Single(state.Inhabitants, person => person.InhabitantId == birth.ChildId);
-        Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetInhabitant(birth.ChildId).AgeBand);
+        var child = Assert.Single(state.Agents, person => person.AgentId == birth.ChildId);
+        Assert.Equal(SocietyAgeBand.Infant, state.Society.Society.GetAgent(birth.ChildId).AgeBand);
         Assert.True(child.IdentityChoicePending);
         Assert.Equal(("undecided", "find a purpose"), (child.Personality, child.Aspiration));
         using var restored = WorldRuntime.Restore(state);
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        Assert.True(restored.Inhabitants.Single(person => person.InhabitantId == birth.ChildId).IdentityChoicePending);
+        Assert.True(restored.Agents.Single(person => person.AgentId == birth.ChildId).IdentityChoicePending);
         Assert.DoesNotContain(restored.ExportState().Events, item => item.Kind.StartsWith("agent_identity_", StringComparison.Ordinal) && item.Detail == birth.ChildId);
         var saved = WorldRuntimeCodec.Encode(restored.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved));
@@ -126,9 +126,9 @@ public sealed class ChildInitialIdentityTests
         using var world = WorldRuntime.Restore(state, id => id == childId ? model : new QuietProvider());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == childId ? replayModel : new QuietProvider());
-        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
         Assert.Empty(handler.Bodies);
-        for (var tick = 0; tick < 8 && world.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending; tick++)
+        for (var tick = 0; tick < 8 && world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
         {
             Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
             await WaitForActualRequests(world);
@@ -136,8 +136,8 @@ public sealed class ChildInitialIdentityTests
             await WaitForActualRequests(replay);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        Assert.Equal(3, world.Society.AgeAt(world.Society.GetInhabitant(childId), world.WorldTick));
-        var child = world.Inhabitants.Single(person => person.InhabitantId == childId);
+        Assert.Equal(3, world.Society.AgeAt(world.Society.GetAgent(childId), world.WorldTick));
+        var child = world.Agents.Single(person => person.AgentId == childId);
         Assert.False(child.IdentityChoicePending);
         Assert.Equal(("Inventive and independent", "Study the hills"), (child.Personality, child.Aspiration));
         var body = Assert.Single(handler.Bodies);
@@ -146,15 +146,15 @@ public sealed class ChildInitialIdentityTests
         Assert.Equal("Child", self.GetProperty("life_stage").GetString());
         Assert.True(question.RootElement.GetProperty("needs_personality").GetBoolean());
         Assert.True(question.RootElement.GetProperty("needs_aspiration").GetBoolean());
-        Assert.Equal(state.Society.Society.GetHousehold(world.Society.GetInhabitant(childId).HouseholdId!).Name,
+        Assert.Equal(state.Society.Society.GetHousehold(world.Society.GetAgent(childId).HouseholdId!).Name,
             self.GetProperty("household").GetString());
         Assert.Equal(Assert.Single(state.Towns!, town => town.ResidentIds.Contains(childId)).Name, self.GetProperty("town").GetString());
         var background = self.GetProperty("family_background").EnumerateArray().ToArray();
         Assert.Equal(2, background.Length);
         for (var index = 0; index < parents.Length; index++)
         {
-            var parent = state.Inhabitants.Single(person => person.InhabitantId == parents[index]);
-            Assert.Equal(state.Society.Society.GetInhabitant(parents[index]).Name, background[index].GetProperty("name").GetString());
+            var parent = state.Agents.Single(person => person.AgentId == parents[index]);
+            Assert.Equal(state.Society.Society.GetAgent(parents[index]).Name, background[index].GetProperty("name").GetString());
             Assert.Equal(parent.Personality, background[index].GetProperty("personality").GetString());
             Assert.Equal(parent.Aspiration, background[index].GetProperty("aspiration").GetString());
         }
@@ -165,7 +165,7 @@ public sealed class ChildInitialIdentityTests
             id => id == childId ? model : new QuietProvider());
         Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
         await WaitForActualRequests(restored);
-        Assert.False(restored.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending);
+        Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.Single(handler.Bodies);
     }
 
@@ -183,27 +183,27 @@ public sealed class ChildInitialIdentityTests
         var model = PersonalModel(client);
         using var world = WorldRuntime.Restore(state, id => id == childId ? model : new QuietProvider());
         await CompleteFirstChildReply(world, childId);
-        var child = world.Inhabitants.Single(person => person.InhabitantId == childId);
+        var child = world.Agents.Single(person => person.AgentId == childId);
         Assert.True(child.IdentityChoicePending);
         Assert.Equal(("undecided", "find a purpose"), (child.Personality, child.Aspiration));
         Assert.Single(handler.Bodies);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind.StartsWith("agent_identity_", StringComparison.Ordinal) && item.Detail == childId);
         world.Pause();
-        world.SetLifePace(1);
+        world.SetAgingOverride(1);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), id => id == childId ? model : new QuietProvider());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.True(restored.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending);
+        Assert.True(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         handler.Reply = "valid";
         restored.Resume();
         // Safe idle uses the normal 300-step reevaluation, not an immediate
         // identity retry. Other ordinary triggers may still prompt earlier.
-        for (var tick = 0; tick < 310 && restored.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending; tick++)
+        for (var tick = 0; tick < 310 && restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending; tick++)
         {
             Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
             await WaitForActualRequests(restored);
         }
-        Assert.False(restored.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending);
+        Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.Equal(2, handler.Bodies.Count);
         Assert.Single(restored.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == childId);
     }
@@ -226,7 +226,7 @@ public sealed class ChildInitialIdentityTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         held.Release.TrySetResult(true);
         await held.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.True(world.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending);
+        Assert.True(world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == childId);
         using var reply = new ChildReplyHandler();
         using var retryClient = new HttpClient(reply);
@@ -235,7 +235,7 @@ public sealed class ChildInitialIdentityTests
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Resume();
         await CompleteFirstChildReply(restored, childId);
-        Assert.False(restored.Inhabitants.Single(person => person.InhabitantId == childId).IdentityChoicePending);
+        Assert.False(restored.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.Single(held.Bodies);
         Assert.Single(reply.Bodies);
         Assert.Single(restored.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == childId);
@@ -248,7 +248,7 @@ public sealed class ChildInitialIdentityTests
             var step = await world.AdvanceOneTickNonBlockingAsync();
             Assert.True(step.Advanced);
             await WaitForActualRequests(world);
-            if (step.Decisions.Any(decision => decision.InhabitantId == childId)) return;
+            if (step.Decisions.Any(decision => decision.AgentId == childId)) return;
         }
         throw new TimeoutException("The first child decision did not finish.");
     }
@@ -273,20 +273,20 @@ public sealed class ChildInitialIdentityTests
             parentId = Assert.Single(firstGeneration.Society.Births).ChildId;
             Assert.InRange(parentId.Length, 1, DerivedId.MaximumLength);
             firstGeneration.Pause();
-            firstGeneration.SetLifePace(1460);
+            firstGeneration.SetAgingOverride(1460);
             firstGeneration.Resume();
-            for (var tick = 0; tick < 40 && firstGeneration.Society.GetInhabitant(parentId).AgeBand != SocietyAgeBand.Adult; tick++)
+            for (var tick = 0; tick < 40 && firstGeneration.Society.GetAgent(parentId).AgeBand != SocietyAgeBand.Adult; tick++)
                 Assert.True((await firstGeneration.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(SocietyAgeBand.Adult, firstGeneration.Society.GetInhabitant(parentId).AgeBand);
+            Assert.Equal(SocietyAgeBand.Adult, firstGeneration.Society.GetAgent(parentId).AgeBand);
             firstGeneration.Pause();
-            firstGeneration.SetLifePace(1);
+            firstGeneration.SetAgingOverride(1);
             firstGeneration.Resume();
             state = firstGeneration.ExportState();
         }
 
         const string partnerId = "founder:00000000000000000000000000000003";
-        Assert.Equal(SocietyAgeBand.Adult, state.Society.Society.GetInhabitant(partnerId).AgeBand);
-        var household = state.Society.Society.GetInhabitant(parentId).HouseholdId!;
+        Assert.Equal(SocietyAgeBand.Adult, state.Society.Society.GetAgent(partnerId).AgeBand);
+        var household = state.Society.Society.GetAgent(parentId).HouseholdId!;
         var home = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         using (var society = SocietyRuntime.Restore(state.Society))
@@ -297,7 +297,7 @@ public sealed class ChildInitialIdentityTests
             state = state with { Society = society.ExportState() };
         }
         var checkpoint = state.Society.Society;
-        foreach (var person in checkpoint.Inhabitants)
+        foreach (var person in checkpoint.Agents)
             checkpoint = ChosenBirthNameTestFixture.NameParent(checkpoint, person.Id);
         // Names, chosen traits, food and position are controlled fixture inputs;
         // both births, the long parent ID, aging and the observation are native.
@@ -309,10 +309,10 @@ public sealed class ChildInitialIdentityTests
         state = state with
         {
             Society = state.Society with { Society = checkpoint },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == parentId || person.InhabitantId == partnerId ? home.Position : person.Position,
-                HungerBasisPoints = 10_000,
+                Position = person.AgentId == parentId || person.AgentId == partnerId ? home.Position : person.Position,
+                FullnessBasisPoints = 10_000,
                 LastDecisionContext = null,
                 Parenthood = null,
                 IdentityChoicePending = false,
@@ -349,13 +349,13 @@ public sealed class ChildInitialIdentityTests
         state = state with
         {
             Society = state.Society with { Society = society },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Personality = person.InhabitantId == childId ? person.Personality : parents.Contains(person.InhabitantId)
-                    ? "Patient grower " + Array.IndexOf(parents, person.InhabitantId) : "unrelated-identity-sentinel",
-                Aspiration = person.InhabitantId == childId ? person.Aspiration : "Supply the Town",
-                IdentityChoicePending = person.InhabitantId == childId,
-                RecentThoughts = parents.Contains(person.InhabitantId) ? [new(state.Society.Society.WorldTick, "parent-private-sentinel")] : person.RecentThoughts,
+                Personality = person.AgentId == childId ? person.Personality : parents.Contains(person.AgentId)
+                    ? "Patient grower " + Array.IndexOf(parents, person.AgentId) : "unrelated-identity-sentinel",
+                Aspiration = person.AgentId == childId ? person.Aspiration : "Supply the Town",
+                IdentityChoicePending = person.AgentId == childId,
+                RecentThoughts = parents.Contains(person.AgentId) ? [new(state.Society.Society.WorldTick, "parent-private-sentinel")] : person.RecentThoughts,
             }).ToArray()
         };
         using var world = WorldRuntime.Restore(state, _ => new QuietProvider());
@@ -366,21 +366,21 @@ public sealed class ChildInitialIdentityTests
     private static async Task ApproachChildhoodAtOrdinaryRate(WorldRuntime world, string childId)
     {
         world.Pause();
-        world.SetLifePace(365);
+        world.SetAgingOverride(365);
         world.Resume();
-        while (world.Society.AgeAt(world.Society.GetInhabitant(childId), world.WorldTick + 1) < 3)
+        while (world.Society.AgeAt(world.Society.GetAgent(childId), world.WorldTick + 1) < 3)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+            Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
         }
         // Finish the boundary at the ordinary rate so completing the reply
         // does not age the child another whole day.
         world.Pause();
-        world.SetLifePace(1);
+        world.SetAgingOverride(1);
         world.Resume();
-        while (world.Society.AgeAt(world.Society.GetInhabitant(childId), world.WorldTick + 1) < 3)
+        while (world.Society.AgeAt(world.Society.GetAgent(childId), world.WorldTick + 1) < 3)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
     }
 
     private sealed class QuietProvider : IDecisionProvider

@@ -10,14 +10,14 @@ public sealed class RelocationObservationTests
     {
         using var world = HouseRelocationTestWorld.Restore(HouseRelocationTestWorld.Crowded());
         await HouseRelocationTestWorld.AdvanceTo(world, 1);
-        var actor = Assert.Single(HouseRelocationTestWorld.Noticed(world)).InhabitantId;
+        var actor = Assert.Single(HouseRelocationTestWorld.Noticed(world)).AgentId;
         var notice = Housing(world, actor);
         Assert.Contains("House overcrowded: 4 residents, 3 places", notice, StringComparison.Ordinal);
         Assert.Contains("about 24 world hours left", notice, StringComparison.Ordinal);
         Assert.Contains("Notice issued as the most recent arrival when no family had a majority", notice, StringComparison.Ordinal);
         Assert.Contains("Seek an accepting household", notice, StringComparison.Ordinal);
         Assert.DoesNotContain("No home", notice, StringComparison.OrdinalIgnoreCase);
-        var staying = world.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var staying = world.Agents.First(person => person.AgentId != actor).AgentId;
         Assert.Contains("1 adult has notice", Housing(world, staying), StringComparison.Ordinal);
 
         await HouseRelocationTestWorld.AdvanceTo(world, 4);
@@ -42,7 +42,7 @@ public sealed class RelocationObservationTests
             var initial = HouseRelocationTestWorld.Crowded(day: 120);
             initial = initial with
             {
-                Inhabitants = initial.Inhabitants.Select(person => person with { Personality = secret }).ToArray(),
+                Agents = initial.Agents.Select(person => person with { Personality = secret }).ToArray(),
             };
             using var world = HouseRelocationTestWorld.Restore(initial);
             world.Resume();
@@ -52,15 +52,15 @@ public sealed class RelocationObservationTests
             using var service = new WorldRuntimeService(world,
                 new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
             Assert.True(await service.TryAdvanceOnceAsync());
-            Assert.Contains(logger.Messages, message => message.Contains("settlement_housing tick=", StringComparison.Ordinal) &&
+            Assert.Contains(logger.Messages, message => message.Contains("housing_activity tick=", StringComparison.Ordinal) &&
                 message.Contains("event=relocation_notice", StringComparison.Ordinal));
-            var noticeActor = Assert.Single(HouseRelocationTestWorld.Noticed(world)).InhabitantId;
-            var departing = world.Inhabitants.First(person => person.InhabitantId != noticeActor).InhabitantId;
+            var noticeActor = Assert.Single(HouseRelocationTestWorld.Noticed(world)).AgentId;
+            var departing = world.Agents.First(person => person.AgentId != noticeActor).AgentId;
             // A separate departure creates room before the next notice check.
             Assert.True(world.DisplaceAdult(departing));
             Assert.True(await service.TryAdvanceOnceAsync());
             Assert.Empty(HouseRelocationTestWorld.Noticed(world));
-            Assert.Contains(logger.Messages, message => message.Contains("settlement_housing tick=", StringComparison.Ordinal) &&
+            Assert.Contains(logger.Messages, message => message.Contains("housing_activity tick=", StringComparison.Ordinal) &&
                 message.Contains("event=relocation_cancelled", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains(secret, StringComparison.Ordinal));
         }
@@ -68,5 +68,5 @@ public sealed class RelocationObservationTests
     }
 
     private static string Housing(WorldRuntime world, string actor) => new OwnerWorldObservationStore(world)
-        .GetSnapshot().Inhabitants.Single(person => person.Id == actor).DecisionFactors.Single(factor => factor.Key == "housing").Detail;
+        .GetSnapshot().Agents.Single(person => person.Id == actor).DecisionFactors.Single(factor => factor.Key == "housing").Detail;
 }

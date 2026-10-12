@@ -33,7 +33,7 @@ public sealed partial class ServerHttpTests
             other.Pause();
             var entryB = catalog.Add("Other", other.ExportState());
             Assert.NotEqual(worldA, other.Society.WorldId);
-            Assert.Contains(other.Inhabitants, person => person.InhabitantId == "founder-mira");
+            Assert.Contains(other.Agents, person => person.AgentId == "founder-mira");
 
             // Persist exactly the client-owned payload, as if the accepted receipt was lost.
             var authority = host.Services.GetRequiredService<OwnerAuthorityStore>().Identity;
@@ -41,9 +41,9 @@ public sealed partial class ServerHttpTests
                 device.DeviceId, device.PublicKeyFingerprint, client.BaseAddress!);
             var store = new OwnerPendingSubmissionStore(Path.Combine(directory.FullName, "pending.json"));
             var pending = OwnerPendingSubmission.ForInstruction(binding,
-                new ClientAction("world-bound-retry", "founder-mira", "suggestive", "wait safely", worldA));
+                new ClientAction("world-bound-retry", "founder-mira", "suggestion", "wait safely", worldA));
             Assert.True(store.TrySave(pending));
-            var action = new OwnerInstructionAction("world-bound-retry", "founder-mira", "suggestive", "wait safely", worldA);
+            var action = new OwnerInstructionAction("world-bound-retry", "founder-mira", "suggestion", "wait safely", worldA);
             const string path = "/api/v1/owner/instructions";
             using var accepted = await SendSignedAsync(host, client, key, device.DeviceId, path, action,
                 OwnerHttpBinding.InstructionPayload(action));
@@ -62,7 +62,7 @@ public sealed partial class ServerHttpTests
             Assert.Equal(HttpStatusCode.OK, selected.StatusCode);
             var retained = Assert.IsType<OwnerPendingSubmission>(store.TryLoad(binding));
             var payload = retained.Instruction!.ToAction();
-            var retry = new OwnerInstructionAction(payload.IdempotencyKey, payload.TargetInhabitantId,
+            var retry = new OwnerInstructionAction(payload.IdempotencyKey, payload.TargetAgentId,
                 payload.Kind, payload.Text, payload.WorldId);
             Assert.False(retained.Instruction.CanRetryIn(runtime.Society.WorldId));
             var beforeB = WorldRuntimeCodec.Encode(runtime.ExportState());

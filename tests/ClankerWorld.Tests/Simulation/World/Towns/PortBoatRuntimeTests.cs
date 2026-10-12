@@ -30,7 +30,7 @@ public sealed partial class PortBoatRuntimeTests
         Assert.All(town.Projects, project =>
         {
             Assert.Equal("completed", project.Stage);
-            var proposal = town.Governance!.Proposals.Single(proposal => proposal.Id == project.ProposalId);
+            var proposal = town.Council!.Proposals.Single(proposal => proposal.Id == project.ProposalId);
             Assert.Equal("passed", proposal.Status);
             Assert.True(proposal.Votes.Count(vote => vote.Yes) >= proposal.RequiredYes);
             Assert.All(project.Deliveries, delivery => Assert.Equal(InventoryReservationState.Completed,
@@ -58,7 +58,7 @@ public sealed partial class PortBoatRuntimeTests
         var membership = scenario.World.Towns.Select(town => (town.Id, Members: town.ResidentIds.ToArray())).ToArray();
         var boat = scenario.World.Boats[0];
         Assert.Equal(traveler, boat.Journey!.PassengerId);
-        Assert.Equal(boat.Position, scenario.World.Inhabitants.Single(person => person.InhabitantId == traveler).Position);
+        Assert.Equal(boat.Position, scenario.World.Agents.Single(person => person.AgentId == traveler).Position);
         Assert.Single(scenario.World.BoatRequests, request => request.Status == "underway");
         Assert.Contains(boat.Journey.ReservedDock, PortNavigationRules.Geometry(scenario.World.ExportState().Map,
             scenario.World.WorldContent.Buildings.Single(definition => definition.CanonicalId == scenario.World.WorldSimulation.Buildings
@@ -72,7 +72,7 @@ public sealed partial class PortBoatRuntimeTests
             (displayed.Id, displayed.TownId, displayed.Position.X, displayed.Position.Y, displayed.PassengerId));
         Assert.Equal("underway", displayed.Status);
         Assert.Equal(boat.Journey.ReservedDock.X, displayed.ReservedDock!.X);
-        Assert.Equal("boat_travel", client.Inhabitants.Single(person => person.Id == traveler).Route.Status);
+        Assert.Equal("boat_travel", client.Agents.Single(person => person.Id == traveler).Route.Status);
         Assert.Equal("underway", Assert.Single(client.BoatRequests).Status);
         Assert.Contains("Passenger:", Client.GameUiText.BoatDescription(displayed), StringComparison.Ordinal);
         policy.Trips = false;
@@ -172,8 +172,8 @@ public sealed partial class PortBoatRuntimeTests
             state.Map.FootDistance(tile.Position, boat.Position) <= 1).Position;
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == BoatPolicy.Author && urgentlyHungry
-                ? person with { HungerBasisPoints = 1000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == BoatPolicy.Author && urgentlyHungry
+                ? person with { FullnessBasisPoints = 1000 } : person).ToArray(),
             Society = state.Society with
             {
                 Society = state.Society.Society with
@@ -187,18 +187,18 @@ public sealed partial class PortBoatRuntimeTests
         using var scenario = new BoatScenario(state, policy);
         var foodBefore = scenario.World.Society.Inventory.Lots.Where(lot => lot.OwnerId == BoatPolicy.Author && lot.ItemKind == "food").Sum(lot => lot.Quantity);
         var receipt = scenario.World.SubmitInstruction(new("aboard-collect", "owner:test", BoatPolicy.Author,
-            OwnerInstructionKind.MustDo, "collect my rope"));
+            OwnerInstructionKind.Order, "collect my rope"));
         Assert.True((await scenario.World.AdvanceOneTickNonBlockingAsync()).Advanced);
         await policy.HeldStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Contains(policy.Observations, observation => observation.InhabitantId == BoatPolicy.Author);
+        Assert.Contains(policy.Observations, observation => observation.AgentId == BoatPolicy.Author);
         var lot = scenario.World.Society.Inventory.GetLot("waiting-shore-rope");
         Assert.Null(lot.CarrierId);
         Assert.Equal(new InventoryGroundPosition(shore.X, shore.Y), lot.GroundPosition);
-        Assert.Equal(0, scenario.World.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!.CompletedUnits);
+        Assert.Equal(0, scenario.World.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!.CompletedUnits);
         if (urgentlyHungry)
             Assert.Equal(foodBefore - 1, scenario.World.Society.Inventory.Lots.Where(lot => lot.OwnerId == BoatPolicy.Author && lot.ItemKind == "food").Sum(lot => lot.Quantity));
         Assert.Equal(scenario.World.Boats[0].Position,
-            scenario.World.Inhabitants.Single(person => person.InhabitantId == BoatPolicy.Author).Position);
+            scenario.World.Agents.Single(person => person.AgentId == BoatPolicy.Author).Position);
         scenario.World.Validate();
     }
 
@@ -223,7 +223,7 @@ public sealed partial class PortBoatRuntimeTests
                 {
                     Inventory = InventoryAuthority.AddLot(checkpoint.Inventory, "aboard-bequest-wood", "wood", BoatPolicy.Author, 2),
                     Config = checkpoint.Config with { BaseNaturalMortalityBasisPoints = 0, NaturalMortalitySlopeBasisPoints = 0 },
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == BoatPolicy.Author ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == BoatPolicy.Author ? person with
                     {
                         BirthTick = checkpoint.LifeClock is null ? birth : person.BirthTick,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -235,10 +235,10 @@ public sealed partial class PortBoatRuntimeTests
         };
         using var scenario = new BoatScenario(state, policy);
         var boatId = scenario.World.Boats[0].Id;
-        await scenario.UntilAsync(() => (scenario.World.ExportState().DeceasedInhabitants ?? [])
-            .Any(person => person.InhabitantId == BoatPolicy.Author), 4);
-        Assert.Equal(boatId, scenario.World.ExportState().DeceasedInhabitants!
-            .Single(person => person.InhabitantId == BoatPolicy.Author).BoatIdAtDeath);
+        await scenario.UntilAsync(() => (scenario.World.ExportState().DeceasedAgents ?? [])
+            .Any(person => person.AgentId == BoatPolicy.Author), 4);
+        Assert.Equal(boatId, scenario.World.ExportState().DeceasedAgents!
+            .Single(person => person.AgentId == BoatPolicy.Author).BoatIdAtDeath);
         Assert.Contains("travel-jug", scenario.World.Boats[0].GroundCargoLotIds!);
         if (settleTownWill)
         {
@@ -284,7 +284,7 @@ public sealed partial class PortBoatRuntimeTests
                 Assert.Equal(WorldRuntimeCodec.Encode(settling.World.ExportState()), WorldRuntimeCodec.Encode(settledReplay.World.ExportState()));
             }
             settling.World.SubmitInstruction(new("estate-clear-landing", "owner:test", Blockers[0],
-                OwnerInstructionKind.MustDo, MoveAwayFromPorts(settling.World)));
+                OwnerInstructionKind.Order, MoveAwayFromPorts(settling.World)));
             policy.IdleActors.Remove(Blockers[0]);
             await settling.UntilAsync(() => settling.World.Boats[0].Journey is null, 100);
             var landedJug = settling.World.Society.Inventory.GetLot("travel-jug");
@@ -352,7 +352,7 @@ public sealed partial class PortBoatRuntimeTests
             Assert.Equal(waiting.Position, current.Position);
             Assert.False(current.Journey!.Returning);
             Assert.Equal(waiting.Journey.ReservedDock, current.Journey.ReservedDock);
-            Assert.Equal(current.Position, scenario.World.Inhabitants.Single(person => person.InhabitantId == BoatPolicy.Author).Position);
+            Assert.Equal(current.Position, scenario.World.Agents.Single(person => person.AgentId == BoatPolicy.Author).Position);
         }
         await scenario.UntilAsync(() => scenario.World.Boats[0].Journey?.Returning == true, 4);
         Assert.True(scenario.World.WorldTick >= since + day);
@@ -399,7 +399,7 @@ public sealed partial class PortBoatRuntimeTests
         // Clear one landing through an ordinary owner movement instruction.
         // Scouting can legitimately be unavailable in the current weather.
         scenario.World.SubmitInstruction(new("clear-landing", "owner:test", Blockers[0],
-            OwnerInstructionKind.MustDo, MoveAwayFromPorts(scenario.World)));
+            OwnerInstructionKind.Order, MoveAwayFromPorts(scenario.World)));
         policy.IdleActors.Remove(Blockers[0]);
         await scenario.UntilAsync(() => scenario.World.Boats[0].Journey is not null, 30);
         Assert.Equal(Follower, scenario.World.Boats[0].Journey!.PassengerId);
@@ -425,7 +425,7 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal("household:" + Visitor, scenario.World.AddAgent(Visitor, outside));
         scenario.World.Resume();
         await scenario.World.AdvanceOneTickAsync();
-        Assert.DoesNotContain(policy.Observations.Where(observation => observation.InhabitantId == Visitor).SelectMany(observation => observation.Candidates),
+        Assert.DoesNotContain(policy.Observations.Where(observation => observation.AgentId == Visitor).SelectMany(observation => observation.Candidates),
             candidate => candidate.Id.StartsWith("boat_trip:", StringComparison.Ordinal));
         Assert.Empty(scenario.World.BoatRequests);
         policy.GrantAll = true;
@@ -473,7 +473,7 @@ public sealed partial class PortBoatRuntimeTests
             "owner" => boat with { TownId = "town:missing" },
             "payment" => boat with { ProjectId = state.Towns![0].Projects.First(project => project.Plan.BoatPortId is null).Id },
             "passenger" => boat with { Journey = journey with { PassengerId = Follower } },
-            "dock" => boat with { Journey = journey with { ReservedDock = state.Inhabitants[0].Position } },
+            "dock" => boat with { Journey = journey with { ReservedDock = state.Agents[0].Position } },
             "route" => boat with { Journey = journey with { WaterPath = [boat.Position, journey.ReservedDock] } },
             "request" => boat with { Journey = journey with { RequestId = "boat-request:missing" } },
             _ => throw new InvalidOperationException(),
@@ -499,7 +499,7 @@ public sealed partial class PortBoatRuntimeTests
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains(PortContent.PortTag)).ToArray();
         var board = world.Towns[0].OriginSite!.Value;
         var spot = state.Map.Tiles.Select(tile => tile.Position).Where(point => state.Map.IsBuildable(point) &&
-                state.Map.IsReachableOnFoot(board, point) && state.Inhabitants.All(person => person.Position != point) &&
+                state.Map.IsReachableOnFoot(board, point) && state.Agents.All(person => person.Position != point) &&
                 ports.All(port => state.Map.FootDistance(port.Position, point) >= 4))
             .OrderBy(point => state.Map.FootDistance(board, point)).ThenBy(point => point.Y).ThenBy(point => point.X).First();
         return spot;
@@ -563,11 +563,11 @@ public sealed partial class PortBoatRuntimeTests
                 inventory = InventoryAuthority.AddLot(inventory, "second-port-stock-" + kind, kind, TownBorderRules.FirstTownId,
                     kind == "wood" ? 16 : 4, groundPosition: new(policy.SecondPortSite.X, policy.SecondPortSite.Y));
         }
-        foreach (var person in state.Inhabitants)
+        foreach (var person in state.Agents)
         {
-            inventory = InventoryAuthority.AddLot(inventory, "travel-food:" + person.InhabitantId, "food", person.InhabitantId,
-                person.InhabitantId == BoatPolicy.Author ? 2 : 4);
-            inventory = InventoryAuthority.AddLot(inventory, "travel-clothing:" + person.InhabitantId, "clothing", person.InhabitantId, 1);
+            inventory = InventoryAuthority.AddLot(inventory, "travel-food:" + person.AgentId, "food", person.AgentId,
+                person.AgentId == BoatPolicy.Author ? 2 : 4);
+            inventory = InventoryAuthority.AddLot(inventory, "travel-clothing:" + person.AgentId, "clothing", person.AgentId, 1);
         }
         inventory = InventoryAuthority.AddLot(inventory, "travel-jug", InventoryContainerRules.WaterJug, BoatPolicy.Author, 1);
         inventory = InventoryAuthority.AddLot(inventory, "travel-water", InventoryContainerRules.FreshWater, BoatPolicy.Author, 1,
@@ -580,7 +580,7 @@ public sealed partial class PortBoatRuntimeTests
                 {
                     Inventory = inventory,
                     Config = state.Society.Society.Config with { TicksPerWorldDay = ticksPerDay },
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person with
+                    Agents = state.Society.Society.Agents.Select(person => person with
                     {
                         BirthTick = person.BirthTick / oldDay * ticksPerDay,
                         BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * ticksPerDay : null,
@@ -627,10 +627,10 @@ public sealed partial class PortBoatRuntimeTests
             Assert.True(done(), $"Expected boat phase was not reached at {World.WorldTick}; " +
                 string.Join("; ", World.Towns[0].Projects.Select(project => project.Plan.Name + ":" + project.Stage + ":" + project.Blocker)) +
                 "; civic events: " + string.Join("; ", World.ExportState().Events.Where(item => item.Kind != "tick_advanced").TakeLast(30).Select(item => item.Kind + ":" + item.Detail)) +
-                "; first Port offers: " + string.Join("; ", Policy.Observations.Take(4).Select(observation => observation.InhabitantId + ":" +
+                "; first Port offers: " + string.Join("; ", Policy.Observations.Take(4).Select(observation => observation.AgentId + ":" +
                     string.Join(",", observation.Candidates.Where(candidate => candidate.Id.Contains("|project|port-", StringComparison.Ordinal)).Select(candidate => candidate.Id)))) +
-                "; positions: " + string.Join("; ", World.Inhabitants.Select(person => person.InhabitantId + ":" + person.Position)) +
-                "; proposal votes: " + string.Join("; ", World.Towns[0].Governance!.Proposals.TakeLast(6)
+                "; positions: " + string.Join("; ", World.Agents.Select(person => person.AgentId + ":" + person.Position)) +
+                "; proposal votes: " + string.Join("; ", World.Towns[0].Council!.Proposals.TakeLast(6)
                     .Select(proposal => proposal.Text + ":" + proposal.Status + ":" + proposal.Votes.Count(vote => vote.Yes) + "/" + proposal.RequiredYes)) +
                 "; recent choices: " + string.Join("; ", Policy.Choices.TakeLast(16)));
         }
@@ -657,7 +657,7 @@ public sealed partial class PortBoatRuntimeTests
         internal TaskCompletionSource<bool> HeldStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal HashSet<string> IdleActors { get; } = new(StringComparer.Ordinal);
         internal ConcurrentQueue<string> Choices { get; } = new();
-        internal ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
         internal IDecisionProvider CreateProvider(string actor) => new Provider(this, actor);
         private sealed class Provider(BoatPolicy policy, string actor) : IDecisionProvider
         {

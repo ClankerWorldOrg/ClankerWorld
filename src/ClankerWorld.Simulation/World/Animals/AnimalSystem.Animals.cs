@@ -41,17 +41,17 @@ internal sealed partial class AnimalSystem
     internal bool HasAnimalSpace(IAnimalWorld world, string household, PlacedBuilding yard) =>
         AnimalPlacesUsed(household) < AnimalRules.PopulationCap && AnimalPlacesUsed(household, yard.InstanceId) < AnimalYardCapacity(world, yard);
     internal static bool AnimalHouseholdMember(IAnimalWorld world, string actor, AnimalState animal) => animal.HouseholdId is not null &&
-        world.AdultResident(actor) && world.HouseholdFor(actor) == animal.HouseholdId;
-    internal static bool MayCareForAnimal(IAnimalWorld world, string actor, AnimalState animal) => animal.DiedTick is null && world.AdultResident(actor) &&
+        world.IsAdult(actor) && world.HouseholdFor(actor) == animal.HouseholdId;
+    internal static bool MayCareForAnimal(IAnimalWorld world, string actor, AnimalState animal) => animal.DiedTick is null && world.IsAdult(actor) &&
         (AnimalHouseholdMember(world, actor, animal) || animal.CarePermissions.Contains(actor, StringComparer.Ordinal));
     internal static bool MayRideAnimal(IAnimalWorld world, string actor, AnimalState animal) => animal.Species == "horse" &&
-        animal.DiedTick is null && world.AdultResident(actor) &&
+        animal.DiedTick is null && world.IsAdult(actor) &&
         (AnimalHouseholdMember(world, actor, animal) || animal.RidingPermissions.Contains(actor, StringComparer.Ordinal));
     internal static GridPoint[] YardTiles(IAnimalWorld world, PlacedBuilding yard) => WorldContentSimulationRules.Footprint(
         world.Content.Buildings.Single(item => item.CanonicalId == yard.DefinitionId), yard).ToArray();
     internal GridPoint? FreeAnimalYardTile(IAnimalWorld world, PlacedBuilding yard, string? animalId = null, GridPoint? near = null) => YardTiles(world, yard)
         .Where(tile => world.Map.IsPassable(tile) && (near is null || world.Map.FootDistance(tile, near.Value) <= 1) && !State.Animals.Any(item => item.Id != animalId &&
-            item.DiedTick is null && item.Position == tile) && !world.Inhabitants.Values.Any(person => person.Position == tile))
+            item.DiedTick is null && item.Position == tile) && !world.Agents.Values.Any(person => person.Position == tile))
         .OrderBy(tile => tile.Y).ThenBy(tile => tile.X).Cast<GridPoint?>().FirstOrDefault();
 
     internal void SeedWildAnimals(IAnimalWorld world)
@@ -118,15 +118,15 @@ internal sealed partial class AnimalSystem
                 continue;
             }
             if (animal.HouseholdId is null) animal = AdvanceWildAnimalCare(world, animal, tick);
-            if (animal.TamingWork is { } taming && (!world.AdultResident(taming.ActorId) ||
-                    world.Inhabitants[taming.ActorId].Position != animal.Position))
+            if (animal.TamingWork is { } taming && (!world.IsAdult(taming.ActorId) ||
+                    world.Agents[taming.ActorId].Position != animal.Position))
                 SetAnimal(animal = animal with { TamingWork = null });
             if (animal.RiderId is { } rider && (!MayRideAnimal(world, rider, animal) || !AnimalRules.HasCare(animal, tick) ||
-                    !world.Inhabitants.TryGetValue(rider, out var person) || person.Position != animal.Position || world.PassengerBoat(rider) is not null))
+                    !world.Agents.TryGetValue(rider, out var person) || person.Position != animal.Position || world.PassengerBoat(rider) is not null))
                 EndAnimalRide(world, animal, "care_or_permission_lost");
             animal = Animal(animal.Id)!;
-            if (animal.LeaderId is { } leader && (!world.AdultResident(leader) || world.HouseholdFor(leader) != animal.HouseholdId ||
-                    !world.Inhabitants.TryGetValue(leader, out var leadingPerson) || leadingPerson.Position != animal.Position))
+            if (animal.LeaderId is { } leader && (!world.IsAdult(leader) || world.HouseholdFor(leader) != animal.HouseholdId ||
+                    !world.Agents.TryGetValue(leader, out var leadingPerson) || leadingPerson.Position != animal.Position))
                 SetAnimal(animal = animal with { LeaderId = null, LeadDestination = null });
             if (animal.ReadyProductLotId is { } lotId && world.Society.Inventory.Lots.FirstOrDefault(lot => lot.Id == lotId)
                     is not { FreshnessBasisPoints: > 0, ConditionBasisPoints: > 0 })
@@ -160,7 +160,7 @@ internal sealed partial class AnimalSystem
                 {
                     var yard = animal.YardId is null ? null : world.Simulation.Buildings.FirstOrDefault(item => item.InstanceId == animal.YardId);
                     var position = yard is null ? world.Map.FootNeighbors(animal.Position).Where(tile => world.Map.IsBuildable(tile) &&
-                        !world.Inhabitants.Values.Any(person => person.Position == tile) &&
+                        !world.Agents.Values.Any(person => person.Position == tile) &&
                         !State.Animals.Any(item => item.DiedTick is null && item.Position == tile)).Cast<GridPoint?>().FirstOrDefault()
                         : FreeAnimalYardTile(world, yard, near: animal.Position);
                     if (position is null) continue;
@@ -199,16 +199,16 @@ internal sealed partial class AnimalSystem
         foreach (var animal in State.Animals.ToArray())
         {
             if (animal.RiderId is { } rider && (!MayRideAnimal(world, rider, animal) || !AnimalRules.HasCare(animal, world.WorldTick) ||
-                    !world.Inhabitants.TryGetValue(rider, out var person) || person.Position != animal.Position))
+                    !world.Agents.TryGetValue(rider, out var person) || person.Position != animal.Position))
                 EndAnimalRide(world, animal, "care_or_permission_lost");
             if (animal.LeaderId is { } leader && (!AnimalHouseholdMember(world, leader, animal) ||
-                    world.Inhabitants[leader].Position != animal.Position))
+                    world.Agents[leader].Position != animal.Position))
                 SetAnimal(Animal(animal.Id)! with { LeaderId = null, LeadDestination = null });
         }
         State = State with
         {
             Offers = State.Offers.Where((offer) => ValidAnimalOffer(world, offer)).ToArray(),
-            SupplyTrips = State.SupplyTrips.Where(trip => world.AdultResident(trip.ActorId) &&
+            SupplyTrips = State.SupplyTrips.Where(trip => world.IsAdult(trip.ActorId) &&
                 world.Simulation.Buildings.Any(yard => yard.InstanceId == trip.YardId && MaySupplyAnimalYard(world, trip.ActorId, yard)) &&
                 world.Society.Inventory.Lots.Any(lot => lot.Id == trip.LotId && PersonalEquipmentRules.IsCarried(lot, trip.ActorId))).ToArray()
         };
@@ -253,7 +253,7 @@ internal sealed partial class AnimalSystem
             tick % 12 != 0 || AssignedAnimalYard(world, animal) is not { } yard || !YardTiles(world, yard).Contains(animal.Position)) return;
         var tiles = YardTiles(world, yard).ToHashSet();
         var next = world.Map.FootNeighbors(animal.Position).Where(tile => tiles.Contains(tile) && world.Map.CanFootStep(animal.Position, tile) &&
-            !world.Inhabitants.Values.Any(person => person.Position == tile) && !State.Animals.Any(item => item.DiedTick is null && item.Id != animal.Id && item.Position == tile))
+            !world.Agents.Values.Any(person => person.Position == tile) && !State.Animals.Any(item => item.DiedTick is null && item.Id != animal.Id && item.Position == tile))
             .OrderBy(tile => AnimalKey(animal.Id + ":" + tick + ":" + tile), StringComparer.Ordinal).Cast<GridPoint?>().FirstOrDefault();
         if (next is { } position) MoveAnimal(world, animal, position);
     }

@@ -50,7 +50,7 @@ public static class TownLawRules
     public const string ResidentDuty = "resident_duty";
     public const int SiteRadius = 2;
     public const int MaximumSubjectLength = 64;
-    public const int MaximumTextLength = TownGovernanceRules.MaximumProposalText;
+    public const int MaximumTextLength = TownCouncilRules.MaximumProposalText;
 
     public static bool IsScope(string? scope) => scope is Jurisdiction or Site or ResidentDuty;
 
@@ -129,8 +129,8 @@ public static class TownLawRules
         return applicable;
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) ProposeAdoption(
-        TownGovernanceState council, TownGovernmentState government, string townId, string actor, string text,
+    public static (TownCouncilState Council, TownGovernmentState Government) ProposeAdoption(
+        TownCouncilState council, TownGovernmentState government, string townId, string actor, string text,
         string scope, IReadOnlyList<GridPoint> siteTiles, IEnumerable<string> adults, long tick, int day)
     {
         if (!IsScope(scope) || scope == Site != siteTiles.Count > 0 || !TryParse(text, out var subject, out var rule))
@@ -141,8 +141,8 @@ public static class TownLawRules
             proposalId => new TownLawDraft(proposalId, "adopt", null, null, subject, rule, scope, site));
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) ProposeAmendment(
-        TownGovernanceState council, TownGovernmentState government, string townId, string actor, string lawId,
+    public static (TownCouncilState Council, TownGovernmentState Government) ProposeAmendment(
+        TownCouncilState council, TownGovernmentState government, string townId, string actor, string lawId,
         string text, IEnumerable<string> adults, long tick, int day, int? expectedVersion = null)
     {
         var law = government.Laws.SingleOrDefault(l => l.Id == lawId);
@@ -161,8 +161,8 @@ public static class TownLawRules
             proposalId => new TownLawDraft(proposalId, "amend", law.Id, current.Version, subject, rule, current.Scope, current.SiteTiles));
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) ProposeRepeal(
-        TownGovernanceState council, TownGovernmentState government, string townId, string actor, string lawId,
+    public static (TownCouncilState Council, TownGovernmentState Government) ProposeRepeal(
+        TownCouncilState council, TownGovernmentState government, string townId, string actor, string lawId,
         IEnumerable<string> adults, long tick, int day, int? expectedVersion = null)
     {
         var law = government.Laws.SingleOrDefault(l => l.Id == lawId);
@@ -179,8 +179,8 @@ public static class TownLawRules
             { BoatAccess = current.BoatAccess, EstateDefault = current.EstateDefault });
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) ProposeBoatAccess(
-        TownGovernanceState council, TownGovernmentState government, string townId, string actor,
+    public static (TownCouncilState Council, TownGovernmentState Government) ProposeBoatAccess(
+        TownCouncilState council, TownGovernmentState government, string townId, string actor,
         string? visitorId, IEnumerable<string> adults, long tick, int day)
     {
         var grant = new TownBoatAccessGrant(visitorId);
@@ -190,8 +190,8 @@ public static class TownLawRules
             proposalId => new TownLawDraft(proposalId, "adopt", null, null, subject, rule, Jurisdiction, []) { BoatAccess = grant });
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) ProposeEstateDefault(
-        TownGovernanceState council, TownGovernmentState government, string townId, string actor,
+    public static (TownCouncilState Council, TownGovernmentState Government) ProposeEstateDefault(
+        TownCouncilState council, TownGovernmentState government, string townId, string actor,
         int townSharePercent, IEnumerable<string> adults, long tick, int day)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(townSharePercent);
@@ -212,13 +212,13 @@ public static class TownLawRules
             id => draft with { ProposalId = id });
     }
 
-    private static (TownGovernanceState, TownGovernmentState) Submit(TownGovernanceState council,
+    private static (TownCouncilState, TownGovernmentState) Submit(TownCouncilState council,
         TownGovernmentState government, string townId, string actor, string text, string key,
         IEnumerable<string> adults, long tick, int day, Func<string, TownLawDraft> draft)
     {
         var before = council.Proposals.Count;
         var details = draft("");
-        council = TownGovernanceRules.SubmitProposal(council, townId, actor, "law", null, text,
+        council = TownCouncilRules.SubmitProposal(council, townId, actor, "law", null, text,
             "council:" + council.Revision.ToString(CultureInfo.InvariantCulture), adults, tick, day, key, VoteText(details));
         // An equivalent pending request merges into the open proposal and keeps its window.
         if (council.Proposals.Count == before) return (council, government);
@@ -230,7 +230,7 @@ public static class TownLawRules
     /// lost its target to an earlier change is kept as stale rather than
     /// rewriting a different wording.
     /// </summary>
-    public static (TownGovernanceState Council, TownGovernmentState Government) Enact(TownGovernanceState council,
+    public static (TownCouncilState Council, TownGovernmentState Government) Enact(TownCouncilState council,
         TownGovernmentState government, string townId, string townName, long tick)
     {
         var proposals = council.Proposals.ToDictionary(p => p.Id, StringComparer.Ordinal);
@@ -252,7 +252,7 @@ public static class TownLawRules
                 { BoatAccess = draft.BoatAccess, EstateDefault = draft.EstateDefault };
                 government = Replace(government with { Sequence = government.Sequence + 1, Laws = government.Laws.Append(new TownLaw(id, [version])).ToArray() },
                     draft with { Status = "enacted", LawId = id });
-                council = TownGovernanceRules.PostNotice(council, "law", id,
+                council = TownCouncilRules.PostNotice(council, "law", id,
                     $"Law {Number(id).ToString(CultureInfo.InvariantCulture)} adopted: {Text(draft.Subject, draft.Rule)} It applies to " +
                     $"{ScopeLabel(draft.Scope, townName, draft.SiteTiles.Count)} from tick {at.ToString(CultureInfo.InvariantCulture)}, not to earlier conduct. " +
                     (draft.EstateDefault is not null ? "It changes only default estates for deaths after adoption; valid wills always win."
@@ -265,7 +265,7 @@ public static class TownLawRules
             if (current.EndedTick is not null || current.Version != draft.BaseVersion)
             {
                 government = Replace(government, draft with { Status = "stale" });
-                council = TownGovernanceRules.PostNotice(council, "law", law.Id,
+                council = TownCouncilRules.PostNotice(council, "law", law.Id,
                     $"A passed proposal could not change law {Number(law.Id).ToString(CultureInfo.InvariantCulture)} because the law changed first. " +
                     "A fresh proposal is needed.", tick);
                 continue;
@@ -280,7 +280,7 @@ public static class TownLawRules
             {
                 Laws = government.Laws.Select(l => l.Id == law.Id ? law with { Versions = versions.ToArray() } : l).ToArray(),
             }, draft with { Status = "enacted" });
-            council = TownGovernanceRules.PostNotice(council, "law", law.Id, draft.Action == "amend"
+            council = TownCouncilRules.PostNotice(council, "law", law.Id, draft.Action == "amend"
                 ? $"Law {Number(law.Id).ToString(CultureInfo.InvariantCulture)} amended: {Text(draft.Subject, draft.Rule)} The new wording applies from tick {at.ToString(CultureInfo.InvariantCulture)}; earlier conduct keeps the earlier wording."
                 : $"Law {Number(law.Id).ToString(CultureInfo.InvariantCulture)} repealed: {draft.Subject}. It still applies to conduct before tick {at.ToString(CultureInfo.InvariantCulture)}.", tick);
         }

@@ -23,11 +23,11 @@ public sealed class ConstructionSiteProjectionTests
         var site = state.Map.Tiles.Select(tile => tile.Position).Last(position => state.Map.IsBuildable(position) &&
             !state.Map.MapObjects.Any(item => item.Position == position) &&
             !state.Map.Resources.Any(item => item.Position == position) &&
-            !state.Inhabitants.Any(person => person.Position == position));
-        var builder = state.Inhabitants[0];
+            !state.Agents.Any(person => person.Position == position));
+        var builder = state.Agents[0];
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == builder.InhabitantId ? person with
+            Agents = state.Agents.Select(person => person.AgentId == builder.AgentId ? person with
             {
                 Position = site,
                 Project = new(TownConstructionCandidateIds.Building(shelter.CanonicalId, site),
@@ -35,11 +35,11 @@ public sealed class ConstructionSiteProjectionTests
             } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
-        var household = world.Society.Inhabitants.Single(person => person.Id == builder.InhabitantId).HouseholdId;
+        var household = world.Society.Agents.Single(person => person.Id == builder.AgentId).HouseholdId;
 
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var visible = Assert.Single(snapshot.ConstructionSites);
-        Assert.Equal(("household:" + builder.InhabitantId, shelter.CanonicalId, shelter.DisplayName, site.X, site.Y, 4, 10, "working"),
+        Assert.Equal(("household:" + builder.AgentId, shelter.CanonicalId, shelter.DisplayName, site.X, site.Y, 4, 10, "working"),
             (visible.Id, visible.DefinitionId, visible.DisplayName, visible.Site.X, visible.Site.Y, visible.WorkDone, visible.WorkRequired, visible.Stage));
         Assert.Equal((shelter.Width, shelter.Height), (visible.Width, visible.Height));
         Assert.Equal(shelter.Tags, visible.Tags);

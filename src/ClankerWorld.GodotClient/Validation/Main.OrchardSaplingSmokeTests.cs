@@ -16,7 +16,7 @@ public partial class Main
         var wood = new OwnerWorldResource("wood-sapling", "construction", new(0, 0), true,
             "depleted", 0, 1, 1, 6, "spring", "broadleaf", true, TreeStage: "sapling");
         var conifer = wood with { Id = "conifer-sapling", TreeKind = "conifer", Position = new(3, 3) };
-        var map = sample with { Resources = [orchard, wood, conifer], PlacedBuildings = [], Inhabitants = [] };
+        var map = sample with { Resources = [orchard, wood, conifer], PlacedBuildings = [], Agents = [] };
         try
         {
             foreach (var stage in new[] { "sapling", "growing", "fruiting", "picked", "sapling" })

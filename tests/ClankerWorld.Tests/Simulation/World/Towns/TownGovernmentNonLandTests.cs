@@ -335,7 +335,7 @@ public sealed class TownGovernmentNonLandTests
     {
         private const string Id = "town:non-land-test";
         private static readonly string[] Adults = ["a", "b", "c", "d"];
-        public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(Adults);
+        public TownCouncilState Council { get; set; } = TownCouncilState.Create(Adults);
         public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice(Id, Adults, 10);
         public long Tick { get; private set; }
 
@@ -373,8 +373,8 @@ public sealed class TownGovernmentNonLandTests
         public void Validate()
         {
             var society = SocietyRules.CreateGenesis("non-land-government", Adults.Select(id => SocietyRules.CreateFounder(id, id))) with { WorldTick = Tick };
-            var town = new TownRuntimeState(Id, "Test Town", "founded", 0, Adults, [], [], Governance: Council, Government: Government);
-            TownGovernanceValidation.Validate(town, society, Day);
+            var town = new TownRuntimeState(Id, "Test Town", "founded", 0, Adults, [], [], Council: Council, Government: Government);
+            TownCouncilValidation.Validate(town, society, Day);
             TownGovernmentValidation.Validate(town, society, [], Day);
         }
 
@@ -392,7 +392,7 @@ public sealed class TownGovernmentNonLandTests
         public void Read(string change, string actor)
         {
             var notice = Council.Notices.Last(item => item.Kind == "government" && item.SubjectId == change);
-            Council = TownGovernanceRules.LearnNotice(Council, actor, notice.Id, Tick);
+            Council = TownCouncilRules.LearnNotice(Council, actor, notice.Id, Tick);
         }
 
         public void Accept(string change, string actor) =>
@@ -421,7 +421,7 @@ public sealed class TownGovernmentNonLandTests
             var replay = new Town
             {
                 Tick = Tick,
-                Council = JsonSerializer.Deserialize<TownGovernanceState>(JsonSerializer.Serialize(Council))!,
+                Council = JsonSerializer.Deserialize<TownCouncilState>(JsonSerializer.Serialize(Council))!,
                 Government = JsonSerializer.Deserialize<TownGovernmentState>(JsonSerializer.Serialize(Government))!
             };
             replay.Validate();

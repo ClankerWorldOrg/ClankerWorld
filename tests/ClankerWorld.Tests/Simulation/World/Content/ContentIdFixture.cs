@@ -40,7 +40,7 @@ internal static class ContentIdFixture
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker
+            Agents = state.Agents.Select(person => person.AgentId == worker
                 ? person with { Position = building.Position, Project = null, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new Idle());
@@ -75,7 +75,7 @@ internal static class ContentIdFixture
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind,
+            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind,
                 request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }));
     }

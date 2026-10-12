@@ -21,26 +21,26 @@ public sealed class NamingStateIntegrityTests
             [SocietyRules.CreateFounder("first", "Élodie Vale"), SocietyRules.CreateFounder("second", "Maia Lake")]);
         if (deceased) state = SocietyRules.Kill(state, "first", SocietyDeathCause.Accident).Checkpoint;
         var before = SocietyCheckpointCodec.Encode(state);
-        Assert.Throws<InhabitantNameTakenException>(() =>
-            SocietyRules.RenameInhabitant(state, "second", "e\u0301LODIE\u00a0Ridge"));
+        Assert.Throws<AgentNameTakenException>(() =>
+            SocietyRules.RenameAgent(state, "second", "e\u0301LODIE\u00a0Ridge"));
         Assert.Equal(before, SocietyCheckpointCodec.Encode(state));
 
         var corrupt = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.Id == "second"
+            Agents = state.Agents.Select(person => person.Id == "second"
                 ? person with { Name = "e\u0301LODIE\u00a0Ridge" } : person).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => SocietyRules.Validate(corrupt));
         Assert.Throws<InvalidDataException>(() => SocietyCheckpointCodec.Encode(corrupt));
         var document = JsonNode.Parse(before)!;
-        document["checkpoint"]!["inhabitants"]!.AsArray()
+        document["checkpoint"]!["agents"]!.AsArray()
             .Single(person => person!["id"]!.GetValue<string>() == "second")!["name"] = "e\u0301LODIE\u00a0Ridge";
         Assert.Throws<InvalidDataException>(() => SocietyCheckpointCodec.Decode(Encoding.UTF8.GetBytes(document.ToJsonString())));
 
-        var legal = SocietyRules.RenameInhabitant(state, "second", "Maia Grove").Checkpoint;
-        Assert.Equal("Maia Grove", SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(legal)).GetInhabitant("second").Name);
-        Assert.Equal(deceased ? SocietyInhabitantStatus.Dead : SocietyInhabitantStatus.Active,
-            legal.GetInhabitant("first").Status);
+        var legal = SocietyRules.RenameAgent(state, "second", "Maia Grove").Checkpoint;
+        Assert.Equal("Maia Grove", SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(legal)).GetAgent("second").Name);
+        Assert.Equal(deceased ? SocietyAgentStatus.Dead : SocietyAgentStatus.Active,
+            legal.GetAgent("first").Status);
     }
 
     [Fact]
@@ -50,20 +50,20 @@ public sealed class NamingStateIntegrityTests
             [Placeholder("first"), Placeholder("second")]);
         state = SocietyRules.CloseNaming(state, "first").Checkpoint;
         state = SocietyRules.CloseNaming(state, "second").Checkpoint;
-        Assert.All(state.Inhabitants, person =>
+        Assert.All(state.Agents, person =>
         {
             Assert.False(person.NeedsName);
             Assert.False(person.HasChosenName);
         });
         state = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(state));
-        state = SocietyRules.RenameInhabitant(state, "first", "New agent").Checkpoint;
-        Assert.True(state.GetInhabitant("first").HasChosenName);
-        Assert.False(state.GetInhabitant("second").HasChosenName);
+        state = SocietyRules.RenameAgent(state, "first", "New agent").Checkpoint;
+        Assert.True(state.GetAgent("first").HasChosenName);
+        Assert.False(state.GetAgent("second").HasChosenName);
         state = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(state));
-        Assert.Throws<InhabitantNameTakenException>(() => SocietyRules.RenameInhabitant(state, "second", "NEW Lake"));
-        var renamed = SocietyRules.RenameInhabitant(state, "first", "New Vale").Checkpoint;
-        Assert.True(renamed.GetInhabitant("first").HasChosenName);
-        Assert.Equal("New agent", renamed.GetInhabitant("second").Name);
+        Assert.Throws<AgentNameTakenException>(() => SocietyRules.RenameAgent(state, "second", "NEW Lake"));
+        var renamed = SocietyRules.RenameAgent(state, "first", "New Vale").Checkpoint;
+        Assert.True(renamed.GetAgent("first").HasChosenName);
+        Assert.Equal("New agent", renamed.GetAgent("second").Name);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class NamingStateIntegrityTests
             {
                 Society = state.Society.Society with
                 {
-                    Inhabitants = state.Society.Society.Inhabitants.Select(person => person.Id == SecondFounder
+                    Agents = state.Society.Society.Agents.Select(person => person.Id == SecondFounder
                         ? person with { Name = "ÉLODIE Grove" } : person).ToArray(),
                 },
             },
@@ -85,7 +85,7 @@ public sealed class NamingStateIntegrityTests
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(corrupt));
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(corrupt));
         var document = JsonNode.Parse(WorldRuntimeCodec.Encode(state))!;
-        document["state"]!["society"]!["society"]!["inhabitants"]!.AsArray()
+        document["state"]!["society"]!["society"]!["agents"]!.AsArray()
             .Single(person => person!["id"]!.GetValue<string>() == SecondFounder)!["name"] = "ÉLODIE Grove";
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(Encoding.UTF8.GetBytes(document.ToJsonString())));
         world.Validate();
@@ -101,7 +101,7 @@ public sealed class NamingStateIntegrityTests
         if (previousSchema) document["state"]!["schemaVersion"] = WorldRuntime.StateSchemaVersion - 1;
         else
         {
-            foreach (var person in document["state"]!["society"]!["society"]!["inhabitants"]!.AsArray())
+            foreach (var person in document["state"]!["society"]!["society"]!["agents"]!.AsArray())
                 Assert.True(person!.AsObject().Remove("hasChosenName"));
         }
         var bytes = Encoding.UTF8.GetBytes(document.ToJsonString());
@@ -123,7 +123,7 @@ public sealed class NamingStateIntegrityTests
         var society = SocietyRules.CreateGenesis("chosen-society-format", [Placeholder("first")]);
         var current = SocietyCheckpointCodec.Encode(society);
         var missing = JsonNode.Parse(current)!;
-        Assert.True(missing["checkpoint"]!["inhabitants"]![0]!.AsObject().Remove("hasChosenName"));
+        Assert.True(missing["checkpoint"]!["agents"]![0]!.AsObject().Remove("hasChosenName"));
         var error = Record.Exception(() => SocietyCheckpointCodec.Decode(Encoding.UTF8.GetBytes(missing.ToJsonString())));
         Assert.True(error is InvalidDataException or JsonException, error?.ToString() ?? "The chosen-name distinction must be required.");
 
@@ -145,9 +145,9 @@ public sealed class NamingStateIntegrityTests
         var decoded = SocietyRuntimeCodec.Decode(current);
         using var restored = SocietyRuntime.Restore(decoded);
         Assert.Equal(current, SocietyRuntimeCodec.Encode(restored.ExportState()));
-        Assert.True(restored.Checkpoint.GetInhabitant("first").HasChosenName);
-        Assert.False(restored.Checkpoint.GetInhabitant("second").HasChosenName);
-        Assert.False(restored.Checkpoint.GetInhabitant("second").NeedsName);
+        Assert.True(restored.Checkpoint.GetAgent("first").HasChosenName);
+        Assert.False(restored.Checkpoint.GetAgent("second").HasChosenName);
+        Assert.False(restored.Checkpoint.GetAgent("second").NeedsName);
 
         var oldHeader = JsonNode.Parse(current)!;
         oldHeader["format"] = "clankerworld.society-runtime/v1";
@@ -161,11 +161,11 @@ public sealed class NamingStateIntegrityTests
         Assert.Throws<InvalidDataException>(() => SocietyRuntimeCodec.Decode(Encoding.UTF8.GetBytes(oldSchema.ToJsonString())));
 
         var missing = JsonNode.Parse(current)!;
-        Assert.True(missing["state"]!["society"]!["inhabitants"]![0]!.AsObject().Remove("hasChosenName"));
+        Assert.True(missing["state"]!["society"]!["agents"]![0]!.AsObject().Remove("hasChosenName"));
         Assert.Throws<JsonException>(() => SocietyRuntimeCodec.Decode(Encoding.UTF8.GetBytes(missing.ToJsonString())));
     }
 
-    private static SocietyInhabitant Placeholder(string id) => SocietyRules.CreateFounder(id, "New agent") with
+    private static SocietyAgent Placeholder(string id) => SocietyRules.CreateFounder(id, "New agent") with
     {
         NeedsName = true,
         HasChosenName = false,

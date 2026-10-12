@@ -18,7 +18,7 @@ public partial class Main
         var cardBefore = buildingCardSnapshot;
         cameraZoom = maximumCameraZoom;
         cameraCenterTiles = new Vector2(12, 11);
-        OwnerWorldInhabitant Person(string id, string name, int x, int y) => new(id, name, "active", new(x, y), 8_000, [], [],
+        OwnerWorldAgent Person(string id, string name, int x, int y) => new(id, name, "active", new(x, y), 8_000, [], [],
             new OwnerWorldRoute("idle", null, null, [], string.Empty), new OwnerWorldSpatialKnowledge(new(x, y), [new(x, y)], [new(x, y)]), false);
         var house = new OwnerWorldPlacedBuilding("inside-house", "test/house", new(10, 10), 0, "House", ["house"], 1, 1, Entrance: new(10, 11));
         var yard = new OwnerWorldPlacedBuilding("inside-yard", "test/yard", new(13, 10), 0, "Animal yard", ["animal-yard"], 2, 2, Entrance: new(13, 12));
@@ -26,14 +26,14 @@ public partial class Main
         {
             PlacedBuildings = [house, yard],
             Animals = [],
-            Inhabitants = [Person("inside:ada", "Ada", 10, 10), Person("inside:ben", "Ben", 10, 10),
+            Agents = [Person("inside:ada", "Ada", 10, 10), Person("inside:ben", "Ben", 10, 10),
                 Person("inside:cy", "Cy", 10, 11), Person("inside:dee", "Dee", 13, 10)],
         };
         try
         {
             RenderMap(busy);
-            if (inhabitantVisuals["inside:ada"].Visible || inhabitantVisuals["inside:ben"].Visible ||
-                !inhabitantVisuals["inside:cy"].Visible || !inhabitantVisuals["inside:dee"].Visible)
+            if (agentVisuals["inside:ada"].Visible || agentVisuals["inside:ben"].Visible ||
+                !agentVisuals["inside:cy"].Visible || !agentVisuals["inside:dee"].Visible)
                 throw new InvalidOperationException("People inside a House must be hidden, and people outside it or in an open yard shown.");
             if (!occupancyBadges.TryGetValue("inside-house", out var badge) || badge.Count != 2 || occupancyBadges.ContainsKey("inside-yard") ||
                 badge.TooltipText != "2 people inside: Ada, Ben" || !badge.Visible)
@@ -42,8 +42,8 @@ public partial class Main
             if (badge.Position.X + badge.Size.X > corner.X || badge.Position.Y < corner.Y || badge.Position.X < corner.X - currentTileSize)
                 throw new InvalidOperationException("The badge must sit in the building's top-right corner.");
 
-            RenderMap(busy with { Inhabitants = [Person("inside:ada", "Ada", 10, 11), Person("inside:ben", "Ben", 11, 11)] });
-            if (occupancyBadges.ContainsKey("inside-house") || !inhabitantVisuals["inside:ada"].Visible || !inhabitantVisuals["inside:ben"].Visible)
+            RenderMap(busy with { Agents = [Person("inside:ada", "Ada", 10, 11), Person("inside:ben", "Ben", 11, 11)] });
+            if (occupancyBadges.ContainsKey("inside-house") || !agentVisuals["inside:ada"].Visible || !agentVisuals["inside:ben"].Visible)
                 throw new InvalidOperationException("People who leave must show again, and the empty House lose its badge.");
 
             var smith = house with
@@ -59,13 +59,13 @@ public partial class Main
             var split = busy with
             {
                 PlacedBuildings = [smith],
-                Inhabitants = [Person("inside:eli", "Eli", 10, 10), Person("inside:fern", "Fern", 11, 10)]
+                Agents = [Person("inside:eli", "Eli", 10, 10), Person("inside:fern", "Fern", 11, 10)]
             };
             RenderMap(split);
             selectedBuildingId = smith.InstanceId;
             buildingDetailsRequested = true;
             RenderBuildingCard(split);
-            if (inhabitantVisuals["inside:eli"].Visible || !inhabitantVisuals["inside:fern"].Visible ||
+            if (agentVisuals["inside:eli"].Visible || !agentVisuals["inside:fern"].Visible ||
                 !occupancyBadges.TryGetValue(smith.InstanceId, out var smithBadge) || smithBadge.Count != 1 ||
                 smithBadge.TooltipText != "1 person inside: Eli" || buildingPeopleSummary.Text != "1 inside" ||
                 buildingPeopleText.Text != "Inside: Eli")

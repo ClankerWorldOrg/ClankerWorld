@@ -18,7 +18,7 @@ public sealed partial class WorldRuntimeTests
         using var setup = CreateKnownBerryOrderWorld(providers);
         var initial = setup.ExportState();
         var source = initial.Map.Resources.Single(resource => resource.Id == "berry-patch");
-        var occupied = initial.Inhabitants.Where(person => person.InhabitantId != HarvestInstructionActor)
+        var occupied = initial.Agents.Where(person => person.AgentId != HarvestInstructionActor)
             .Select(person => person.Position).ToHashSet();
         occupied.UnionWith(initial.WorldSimulation!.Buildings.SelectMany(building =>
             WorldContentSimulationRules.Footprint(
@@ -34,8 +34,8 @@ public sealed partial class WorldRuntimeTests
                 route.All(step => !occupied.Contains(step)));
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
-                ? person with { Position = start, HungerBasisPoints = 3_000, TravelCooldownTicks = 1 }
+            Agents = initial.Agents.Select(person => person.AgentId == HarvestInstructionActor
+                ? person with { Position = start, FullnessBasisPoints = 3_000, TravelCooldownTicks = 1 }
                 : person).ToArray(),
             Society = initial.Society with
             {
@@ -49,15 +49,15 @@ public sealed partial class WorldRuntimeTests
         using var world = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(initial)), providers);
         var travel = world.SubmitInstruction(new OwnerInstructionRequest(
-            "delayed-travel", "owner:test", HarvestInstructionActor, OwnerInstructionKind.MustDo,
+            "delayed-travel", "owner:test", HarvestInstructionActor, OwnerInstructionKind.Order,
             "travel to berries"));
         var eat = world.SubmitInstruction(new OwnerInstructionRequest(
-            "eat-after-travel", "owner:test", HarvestInstructionActor, OwnerInstructionKind.MustDo,
+            "eat-after-travel", "owner:test", HarvestInstructionActor, OwnerInstructionKind.Order,
             "eat berries", Queue: true));
 
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var delayed = world.ExportState();
-        var delayedActor = delayed.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var delayedActor = delayed.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         Assert.Equal(start, delayedActor.Position);
         Assert.Equal(0, delayedActor.TravelCooldownTicks);
         Assert.Equal("doing", CancellationOrder(delayed, travel.InstructionId).Status);
@@ -82,7 +82,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal("finished", CancellationOrder(arrived, travel.InstructionId).Status);
         Assert.Equal(1, CancellationOrder(arrived, travel.InstructionId).CompletedUnits);
         Assert.StartsWith("arrival:berry-patch:", CancellationOrder(arrived, travel.InstructionId).LastEffectId);
-        var arrivalPosition = arrived.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor).Position;
+        var arrivalPosition = arrived.Agents.Single(person => person.AgentId == HarvestInstructionActor).Position;
         Assert.NotEqual(start, arrivalPosition);
         Assert.InRange(arrived.Map.FootDistance(arrivalPosition, source.Position), 0, 1);
         Assert.Equal(requestsAtArrivalStart, provider.Requests.Count);

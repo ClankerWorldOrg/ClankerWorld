@@ -28,7 +28,7 @@ public sealed class TownProjectSaveValidationTests
                 case "budget": project["plan"]!["budget"]![0]!["amount"] = 25; break;
                 case "duplicate": town["projects"]!.AsArray().Add(project.DeepClone()); break;
                 case "work": project["workDone"] = 11; break;
-                case "typed-payload": town["governance"]!["proposals"]![0]!.AsObject().Remove("project"); break;
+                case "typed-payload": town["council"]!["proposals"]![0]!.AsObject().Remove("project"); break;
                 case "future-transition": project["lastTransitionTick"] = scenario.World.WorldTick + 1; break;
             }
             var damaged = Encoding.UTF8.GetBytes(document.ToJsonString());

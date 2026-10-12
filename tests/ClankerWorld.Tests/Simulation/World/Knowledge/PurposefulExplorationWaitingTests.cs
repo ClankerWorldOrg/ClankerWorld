@@ -15,10 +15,10 @@ public sealed partial class PurposefulExplorationTests
         var provider = new HeldScoutProvider(choice, holdFromCall: 2);
         using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new ScoutProvider("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var goal = Assert.IsType<SettlementExplorationGoal>(Person(world, actor).Exploration!.Goal);
-        Assert.Equal(new SettlementExplorationGoal("resource", "wood"), goal);
-        Assert.Equal(choice, world.ExportState().Society.Cognition.Runtimes.Single(item => item.InhabitantId == actor).CurrentIntention!.CandidateId);
-        world.SubmitInstruction(new("held-scout-suggestion", "owner:test", actor, OwnerInstructionKind.Suggestive, "Think about your next task."));
+        var goal = Assert.IsType<ExplorationGoal>(Person(world, actor).Exploration!.Goal);
+        Assert.Equal(new ExplorationGoal("resource", "wood"), goal);
+        Assert.Equal(choice, world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == actor).CurrentIntention!.CandidateId);
+        world.SubmitInstruction(new("held-scout-suggestion", "owner:test", actor, OwnerInstructionKind.Suggestion, "Think about your next task."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         var pending = WorldRuntimeCodec.Encode(world.ExportState());
@@ -31,7 +31,7 @@ public sealed partial class PurposefulExplorationTests
         {
             var step = await world.AdvanceOneTickNonBlockingAsync();
             Assert.True(step.Advanced);
-            Assert.DoesNotContain(step.Decisions, item => item.InhabitantId == actor);
+            Assert.DoesNotContain(step.Decisions, item => item.AgentId == actor);
             Assert.Equal(goal, Person(world, actor).Exploration!.Goal);
             Assert.DoesNotContain(world.ExportState().Knowledge!.Facts, fact => fact.OwnerId == actor && fact.Position == source.Position);
         }
@@ -72,7 +72,7 @@ public sealed partial class PurposefulExplorationTests
         });
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Project = new(TownConstructionCandidateIds.Building(definition.CanonicalId, person.Position),
                     "Build a House", state.Society.Society.WorldTick, "paused",
@@ -85,7 +85,7 @@ public sealed partial class PurposefulExplorationTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -97,7 +97,7 @@ public sealed partial class PurposefulExplorationTests
                 await Task.Delay(Timeout.Infinite, cancellationToken);
             }
             Assert.Contains(request.Observation.Candidates, candidate => candidate.Id == choice);
-            return new(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            return new(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest,
                 choice, 1d, request.Observation.Candidates.ToDictionary(item => item.Id,
                     item => item.Id == choice ? 1d : 0d, StringComparer.Ordinal));

@@ -189,7 +189,7 @@ public partial class Main
             provider is "deterministic" or "inherit" || hostedAgent && !creatingSlot
                 ? null : EmptyToNull(cognitionApiKeyInput.Text),
             ForgetCredential: false,
-            InhabitantId: target,
+            AgentId: target,
             CredentialSlotId: creatingSlot ? Guid.NewGuid().ToString("N") : credentialChoice is null or "default" ? null : credentialChoice,
             NewCredentialLabel: creatingSlot ? EmptyToNull(cognitionCredentialLabelInput.Text) : null,
             Thinking: hostedAgent ? SelectedThinking(cognitionThinkingChoice) : null);
@@ -288,7 +288,7 @@ public partial class Main
     private string? SelectedCognitionTarget() => cognitionTargetChoice.Selected <= 0
         ? null : cognitionTargetChoice.GetItemMetadata(cognitionTargetChoice.Selected).AsString();
 
-    private bool SelectedTargetWasBornHere() => observationSession.Current?.Baseline.Snapshot.Inhabitants
+    private bool SelectedTargetWasBornHere() => observationSession.Current?.Baseline.Snapshot.Agents
         .FirstOrDefault(item => item.Id == SelectedCognitionTarget())?.Relationships
         .Any(item => item.Type == "biological_parentage" && item.Direction == "child") == true;
 
@@ -297,20 +297,20 @@ public partial class Main
         var target = SelectedCognitionTarget();
         cognitionTargetChoice.Clear();
         cognitionTargetChoice.AddItem("World defaults");
-        foreach (var inhabitant in observationSession.Current?.Baseline.Snapshot.Inhabitants ?? [])
+        foreach (var agent in observationSession.Current?.Baseline.Snapshot.Agents ?? [])
         {
-            cognitionTargetChoice.AddItem(inhabitant.DisplayName);
+            cognitionTargetChoice.AddItem(agent.DisplayName);
             var index = cognitionTargetChoice.ItemCount - 1;
-            cognitionTargetChoice.SetItemMetadata(index, inhabitant.Id);
-            if (inhabitant.Id == target)
+            cognitionTargetChoice.SetItemMetadata(index, agent.Id);
+            if (agent.Id == target)
             {
                 cognitionTargetChoice.Select(index);
             }
         }
     }
 
-    private InhabitantProviderAssignment? SelectedAssignment() => providerConfiguration?.Assignments?
-        .FirstOrDefault(item => item.InhabitantId == SelectedCognitionTarget() &&
+    private AgentProviderAssignment? SelectedAssignment() => providerConfiguration?.Assignments?
+        .FirstOrDefault(item => item.AgentId == SelectedCognitionTarget() &&
             item.Role == (SelectedRoleId() == "personal" ? "planning" : SelectedRoleId()));
 
     private string ActiveProviderForSelectedRole() => SelectedCognitionTarget() is not null
@@ -485,9 +485,9 @@ public partial class Main
     {
         var childId = SelectedCognitionTarget();
         var assignments = providerConfiguration?.Assignments ?? [];
-        var routine = assignments.FirstOrDefault(item => item.InhabitantId == childId && item.Role == "routine");
-        var planning = assignments.FirstOrDefault(item => item.InhabitantId == childId && item.Role == "planning");
-        var child = observationSession.Current?.Baseline.Snapshot.Inhabitants.FirstOrDefault(item => item.Id == childId);
+        var routine = assignments.FirstOrDefault(item => item.AgentId == childId && item.Role == "routine");
+        var planning = assignments.FirstOrDefault(item => item.AgentId == childId && item.Role == "planning");
+        var child = observationSession.Current?.Baseline.Snapshot.Agents.FirstOrDefault(item => item.Id == childId);
         var birthProvider = child?.DecisionFactors.FirstOrDefault(item => item.Key == "birth-model-provider")?.Detail;
         var birthModel = child?.DecisionFactors.FirstOrDefault(item => item.Key == "birth-model-id")?.Detail;
         if ((routine is null || planning is null) && IsHostedProvider(birthProvider) &&
@@ -525,7 +525,7 @@ public partial class Main
         };
     }
 
-    private string ChildModelRouteSummary(InhabitantProviderAssignment? assignment)
+    private string ChildModelRouteSummary(AgentProviderAssignment? assignment)
     {
         if (IsUnconfiguredChildRoute(assignment))
             return "no personal model (safe local; world defaults are not used)";
@@ -539,17 +539,17 @@ public partial class Main
             : modelName;
     }
 
-    private static bool IsUnconfiguredChildRoute(InhabitantProviderAssignment? assignment) =>
+    private static bool IsUnconfiguredChildRoute(AgentProviderAssignment? assignment) =>
         assignment is null || assignment.Provider is "deterministic" or "inherit";
 
     private static bool SameChildProviderRoute(
-        InhabitantProviderAssignment? left,
-        InhabitantProviderAssignment? right) =>
+        AgentProviderAssignment? left,
+        AgentProviderAssignment? right) =>
         IsUnconfiguredChildRoute(left) && IsUnconfiguredChildRoute(right) ||
         left is not null && right is not null && left.Provider == right.Provider &&
         left.Model == right.Model && left.CredentialSlotId == right.CredentialSlotId;
 
-    private bool ChildModelNeedsSetup(InhabitantProviderAssignment assignment)
+    private bool ChildModelNeedsSetup(AgentProviderAssignment assignment)
     {
         if (assignment.Provider is "deterministic" or "inherit") return false;
         if (assignment.CredentialSlotId is { } slotId)
@@ -759,11 +759,11 @@ public partial class Main
 
     private void OpenAgentModelEditor()
     {
-        if (selectedInhabitantId is null || registration is null || observationSession.Current is not { } current) return;
+        if (selectedAgentId is null || registration is null || observationSession.Current is not { } current) return;
         PopulateCognitionTargets();
         for (var index = 1; index < cognitionTargetChoice.ItemCount; index++)
         {
-            if (cognitionTargetChoice.GetItemMetadata(index).AsString() != selectedInhabitantId) continue;
+            if (cognitionTargetChoice.GetItemMetadata(index).AsString() != selectedAgentId) continue;
             cognitionTargetChoice.Select(index);
             PopulateProviderChoices(ActiveProviderForSelectedRole());
             PopulateCredentialChoices();
@@ -774,7 +774,7 @@ public partial class Main
             selectedAgentModelScroll.Show();
             UpdateAgentProfileCloseButton(living: true);
             RenderProviderConfiguration();
-            PositionSelectedInhabitantCard(current.Baseline.Snapshot);
+            PositionSelectedAgentCard(current.Baseline.Snapshot);
             _ = RefreshProviderConfigurationAsync();
             return;
         }

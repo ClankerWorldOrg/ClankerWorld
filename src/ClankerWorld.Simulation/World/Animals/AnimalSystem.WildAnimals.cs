@@ -32,7 +32,7 @@ internal sealed partial class AnimalSystem
         {
             var occupied = WildAnimalRouteOccupants(world, animal);
             var shore = world.FreshWaterShorePositions().Where(point => !State.Animals.Any(other => other.Id != animal.Id &&
-                    other.DiedTick is null && other.Position == point) && !world.Inhabitants.Values.Any(person => person.Position == point) &&
+                    other.DiedTick is null && other.Position == point) && !world.Agents.Values.Any(person => person.Position == point) &&
                     world.Map.FootDistance(animal.Position, point) <= 12 &&
                     world.Map.IsReachableOnFoot(animal.Position, point)).OrderBy(point => world.Map.FootDistance(animal.Position, point))
                 .ThenBy(point => point.Y).ThenBy(point => point.X)
@@ -65,6 +65,6 @@ internal sealed partial class AnimalSystem
     }
 
     internal static HashSet<GridPoint> WildAnimalRouteOccupants(IAnimalWorld world, AnimalState animal) =>
-        GroundOccupancy.Combine(world.Inhabitants.Values.Select(person => person.Position), world.Ground.AnimalPositions(animal.Id));
+        GroundOccupancy.Combine(world.Agents.Values.Select(person => person.Position), world.Ground.AnimalPositions(animal.Id));
 }
 

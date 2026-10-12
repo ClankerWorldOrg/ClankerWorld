@@ -27,11 +27,11 @@ const SuiteSlowerSeconds = 120;
 // earlier shard already names; "Class.Method" names one test method, or several that start with that
 // text. Normally `plan` splits the tests from measured timings.
 const PinnedShards = [
-  ['RestaurantBusinessPipelineTests', 'NativeOrchardObservationTests', 'PortBoatRuntimeTests', 'OrnamentTradeTests'],
+  ['RestaurantShopPipelineTests', 'NativeOrchardObservationTests', 'PortBoatRuntimeTests', 'OrnamentTradeTests'],
   ['WorldConstructionOrderTests', 'PersonalEquipmentTests', 'WorldFieldOrderTests', 'OrnamentProductionTests'],
   ['ConcreteMealTests', 'WorldDeliveryOrderTests', 'FarmFieldTests', 'HandcartRuntimeTests'],
-  ['SettlementParenthoodTests', 'WorldCollectionOrderTests', 'PotteryContentTests', 'ExplorationBridgeSaveTests'],
-  ['BusinessTradeTests', 'WorldExpansionOrderTests', 'ToolMakingRequestTests', 'BuildingExpansionTests'],
+  ['ParenthoodTests', 'WorldCollectionOrderTests', 'PotteryContentTests', 'ExplorationBridgeSaveTests'],
+  ['ShopTradeTests', 'WorldExpansionOrderTests', 'ToolMakingRequestTests', 'BuildingExpansionTests'],
   ['WorldRuntimeTests', 'NewbornModelBindingCheckpointTests', 'CookedMealBirthTests', 'TownReleasedMaterialRecoveryTests'],
   ['AnimalPipelineTests', 'TownMembershipTests', 'MarketConstructionRuntimeTests', 'WorldProductionOrderTests'],
 ];

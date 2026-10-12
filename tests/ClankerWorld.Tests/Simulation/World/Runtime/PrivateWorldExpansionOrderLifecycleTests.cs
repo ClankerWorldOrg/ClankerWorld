@@ -121,7 +121,7 @@ public sealed partial class WorldExpansionOrderTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthTick = nextTick - maximumDay * society.Config.TicksPerLifecycleAge,
                         BirthLifeTick = society.LifeClock is null ? null :
@@ -135,9 +135,9 @@ public sealed partial class WorldExpansionOrderTests
         using var world = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         using var replay = Reload(world);
         await TickTogether(world, replay);
-        Assert.Equal(SocietyInhabitantStatus.Dead, world.Society.GetInhabitant(actor).Status);
-        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetInhabitant(actor).DeathCause);
-        Assert.Equal(nextTick, world.Society.GetInhabitant(actor).DeathTick);
+        Assert.Equal(SocietyAgentStatus.Dead, world.Society.GetAgent(actor).Status);
+        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(actor).DeathCause);
+        Assert.Equal(nextTick, world.Society.GetAgent(actor).DeathTick);
         Assert.Equal(WorldProductionJobState.Cancelled, Job(world, job.JobId).State);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Null(Building(world.ExportState(), House).Footprint);
@@ -284,8 +284,8 @@ public sealed partial class WorldExpansionOrderTests
     private static WorldRuntimeState HungryWithMeal(WorldRuntimeState state, string actor) =>
         WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "urgent-food", "berries", actor, 1)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
         };
     private static WorldRuntimeState WithOtherProductionWorker(WorldRuntimeState state, out string other)
     {
@@ -296,7 +296,7 @@ public sealed partial class WorldExpansionOrderTests
         return WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "ordinary-fiber", "fiber", Household, 3, storageBuildingId: House)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == worker
+            Agents = state.Agents.Select(person => person.AgentId == worker
                 ? person with { Position = position } : person).ToArray(),
         };
     }

@@ -59,7 +59,7 @@ public sealed class TownRemedyRulesTests
         Assert.Equal("countered", state.Offers[0].Status);
         Assert.Equal(1, Assert.Single(state.Agreements).Terms[0].Quantity);
         Assert.Null(state.Agreements[0].ReplacesAgreementId);
-        Assert.Equal(JsonSerializer.Serialize(state), JsonSerializer.Serialize(TownNonviolentRulesTests.RoundTrip(state)));
+        Assert.Equal(JsonSerializer.Serialize(state), JsonSerializer.Serialize(TownNonLandRulesTests.RoundTrip(state)));
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public sealed class TownRemedyRulesTests
         Assert.Equal(1, TownRemedyRules.CompletedQuantity(state, agreement.Id, "goods"));
         Assert.Equal("pending", state.Agreements[0].Status);
         Assert.Throws<InvalidOperationException>(() => TownRemedyRules.RecordEffect(state, first with { Id = "different-effect" }));
-        var replay = TownNonviolentRulesTests.RoundTrip(state);
+        var replay = TownNonLandRulesTests.RoundTrip(state);
         state = TownRemedyRules.Advance(state, 43);
         replay = TownRemedyRules.Advance(replay, 43);
         Assert.Equal("overdue", state.Agreements[0].Status);
@@ -127,13 +127,13 @@ public sealed class TownRemedyRulesTests
     }
 
     private static TownRemedyTerm Goods(string actor, int quantity) => new("goods", "return_goods", actor, "witness", "wood", quantity, null);
-    private static TownNonviolentState Offered(IReadOnlyList<TownRemedyTerm> terms)
+    private static TownNonLandHearingState Offered(IReadOnlyList<TownRemedyTerm> terms)
     {
-        var state = TownNonviolentRulesTests.Settled();
+        var state = TownNonLandRulesTests.Settled();
         return TownRemedyRules.Offer(state, state.Cases[0].Id, state.Cases[0].Findings[0].Id, "judge", terms, 20,
             "A voluntary contribution to make things right.", 21, 10, "notice:offer", true);
     }
-    private static TownNonviolentState Respond(TownNonviolentState state, string actor, string kind = "accept", long tick = 22,
+    private static TownNonLandHearingState Respond(TownNonLandHearingState state, string actor, string kind = "accept", long tick = 22,
         IReadOnlyList<TownCivicReceipt>? receipts = null, bool feasible = true) => TownRemedyRules.Respond(state, state.Offers[0].Id,
             state.Offers[0].Revision, actor, kind, null, tick, 10, receipts ?? [new(actor, "notice:offer", 22)], feasible);
     private static TownRemedyEffect Effect(TownRestorativeAgreement agreement, int quantity, long tick, string receipt) =>

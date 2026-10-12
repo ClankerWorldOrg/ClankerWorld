@@ -17,11 +17,11 @@ public sealed partial class NativeOrchardObservationTests
         var (state, actor, target, blocked) = await ObserveEmptyTile((initial, site) =>
             initial.Map.FootNeighbors(site).Any(point => initial.Map.IsBuildable(point) && !BlockedTiles(initial).Contains(point) &&
                 initial.Map.FootNeighbors(point).OrderBy(next => next.Y).ThenBy(next => next.X).First() == site &&
-                initial.Inhabitants.All(person => person.Position != point)));
+                initial.Agents.All(person => person.Position != point)));
         var old = Assert.Single(state.Knowledge!.Facts, fact => fact.OwnerId == actor && fact.Position == target);
         var origin = state.Map.FootNeighbors(target).First(point => state.Map.IsBuildable(point) && !blocked.Contains(point) &&
             state.Map.FootNeighbors(point).OrderBy(next => next.Y).ThenBy(next => next.X).First() == target &&
-            state.Inhabitants.All(person => person.InhabitantId == actor || person.Position != point));
+            state.Agents.All(person => person.AgentId == actor || person.Position != point));
         using (var moving = Restore(state, actor))
         {
             await Move(moving, actor, origin, "leave-scout-site");
@@ -39,14 +39,14 @@ public sealed partial class NativeOrchardObservationTests
             Assert.Empty(Assert.Single(written.Facts, fact => fact.Position == target).ResourceKinds);
             Assert.DoesNotContain(state.Society.Society.Inventory.Lots, lot => lot.Id == "orchard-record-paper");
         }
-        var planter = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
-        var parked = state.Inhabitants.Single(person => person.InhabitantId == planter).Position;
+        var planter = state.Agents.First(person => person.AgentId != actor).AgentId;
+        var parked = state.Agents.Single(person => person.AgentId == planter).Position;
         if (scenario != "unchanged")
         {
             state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
                 "give-scout-orchard-seed", actor, planter, "orchard-observation-seed", 1, "give planting seed")) with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == planter
+                Agents = state.Agents.Select(person => person.AgentId == planter
                     ? person with { Position = target, TravelCooldownTicks = 0 } : person).ToArray(),
             };
             using var planting = Restore(state, actor);
@@ -66,14 +66,14 @@ public sealed partial class NativeOrchardObservationTests
             {
                 Facts = state.Knowledge.Facts.Where(fact => fact.OwnerId != actor || fact.Position != target).ToArray(),
             } : state.Knowledge,
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 TravelCooldownTicks = 0,
                 LastDecisionContext = null,
-                Exploration = new SettlementExploration(visited,
+                Exploration = new ExplorationState(visited,
                     scenario is "return" or "blocked_return" ? [target, origin] : [origin],
                     state.Society.Society.WorldTick, scenario is "return" or "blocked_return", []),
-            } : person.InhabitantId == planter ? person with
+            } : person.AgentId == planter ? person with
             {
                 Position = scenario == "blocked_return" ? target : parked,
             } : person).ToArray(),
@@ -84,19 +84,19 @@ public sealed partial class NativeOrchardObservationTests
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), Provider);
-        for (var tick = 0; tick < 10 && world.Inhabitants.Single(person => person.InhabitantId == actor).Position != target; tick++)
+        for (var tick = 0; tick < 10 && world.Agents.Single(person => person.AgentId == actor).Position != target; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            if (scenario != "first_visit" && world.Inhabitants.Single(person => person.InhabitantId == actor).Position != target)
+            if (scenario != "first_visit" && world.Agents.Single(person => person.AgentId == actor).Position != target)
                 Assert.Equal(FactKey(old), FactKey(Assert.Single(world.ExportState().Knowledge!.Facts,
                     fact => fact.OwnerId == actor && fact.Position == target)));
         }
         var final = world.ExportState();
         AssertReload(final);
         var observed = Assert.Single(final.Knowledge!.Facts, fact => fact.OwnerId == actor && fact.Position == target);
-        var position = final.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var position = final.Agents.Single(person => person.AgentId == actor).Position;
         output.WriteLine($"scenario={scenario}; actual_position={position}; target={target}; resources={string.Join(',', observed.ResourceKinds)}");
         if (scenario == "blocked_return") Assert.NotEqual(target, position);
         else Assert.Equal(target, position);

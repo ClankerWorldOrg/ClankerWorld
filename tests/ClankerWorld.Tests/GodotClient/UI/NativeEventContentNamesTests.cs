@@ -61,26 +61,26 @@ public sealed class NativeEventContentNamesTests
         var state = WorldRuntimeCodec.Decode(Baseline.Value);
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var owner = smith.HouseholdId!;
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "event-axe-wood", "wood", owner, 3,
             storageBuildingId: smith.InstanceId);
         state = WithInventory(state, inventory) with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? smith.Position : person.Position,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Position = person.AgentId == actor ? smith.Position : person.Position,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 Project = null,
                 LastDecisionContext = null,
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Survival = new(),
             }).ToArray(),
         };
         using var world = Restore(state);
         var recipe = world.WorldContent.Recipes.Single(item => item.LocalId == "wooden-axe");
         if (ownerOrder)
-            world.SubmitInstruction(new("event-make-axe", "owner:test", actor, OwnerInstructionKind.MustDo, "make one wooden axe"));
+            world.SubmitInstruction(new("event-make-axe", "owner:test", actor, OwnerInstructionKind.Order, "make one wooden axe"));
         else
         {
             var started = world.StartProduction(recipe.CanonicalId, smith.InstanceId, actor);
@@ -142,7 +142,7 @@ public sealed class NativeEventContentNamesTests
             var observation = request.Observation;
             var choice = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "produce_item")
                 ? "produce_item" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 request.ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 choice, 1, new Dictionary<string, double> { [choice] = 1 }));
         }

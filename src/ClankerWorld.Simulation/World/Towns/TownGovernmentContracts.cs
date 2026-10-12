@@ -86,7 +86,7 @@ public sealed record TownMayoralRound(int Number, long OpenedTick, long ClosedTi
 
 /// <summary>
 /// A Town's laws, protected government-change processes and mayor's office.
-/// The ordinary council itself stays in <see cref="TownGovernanceState"/>.
+/// The ordinary council itself stays in <see cref="TownCouncilState"/>.
 /// </summary>
 public sealed record TownGovernmentState(TownArrangement Arrangement, long Sequence,
     IReadOnlyList<TownLaw> Laws, IReadOnlyList<TownLawDraft> LawDrafts,

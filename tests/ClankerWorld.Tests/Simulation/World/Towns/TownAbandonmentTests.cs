@@ -20,7 +20,7 @@ public sealed partial class TownMembershipTests
         var model = new ScriptedModel();
         model.Scripts[caregiver] = [Civic(Second, "resettle")];
         state = Calm(At(state, original.OriginSite!.Value, caregiver));
-        var physical = state.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position);
+        var physical = state.Agents.ToDictionary(person => person.AgentId, person => person.Position);
         var buildings = state.WorldSimulation!.Buildings.ToArray();
         var stock = state.Society.Society.Inventory.Lots.ToArray();
         var rights = state.HouseholdLandUseRights;
@@ -31,7 +31,7 @@ public sealed partial class TownMembershipTests
         var revived = world.Towns.Single(town => town.Id == Second);
         Assert.Equal(new[] { caregiver }.Concat(children).Order(StringComparer.Ordinal), revived.ResidentIds);
         Assert.Empty(world.Towns.Single(town => town.Id == First).ResidentIds);
-        Assert.Equal([caregiver], revived.Governance!.Members);
+        Assert.Equal([caregiver], revived.Council!.Members);
         Assert.Equal(original.Id, revived.Id);
         Assert.Equal(original.Name, revived.Name);
         Assert.Equal(original.FoundedTick, revived.FoundedTick);
@@ -45,11 +45,11 @@ public sealed partial class TownMembershipTests
             world.Society.Inventory.Lots.Select(lot => (lot.Id, lot.OwnerId, lot.Quantity, lot.StorageBuildingId)));
         foreach (var child in children)
         {
-            var person = world.Society.GetInhabitant(child);
+            var person = world.Society.GetAgent(child);
             Assert.Equal((Alpha, caregiver), (person.HouseholdId, person.PrimaryCaregiverId));
-            Assert.Equal(physical[child], world.Inhabitants.Single(item => item.InhabitantId == child).Position);
+            Assert.Equal(physical[child], world.Agents.Single(item => item.AgentId == child).Position);
         }
-        Assert.DoesNotContain(revived.Governance.Knowledge, receipt => receipt.AgentId == caregiver);
+        Assert.DoesNotContain(revived.Council.Knowledge, receipt => receipt.AgentId == caregiver);
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_resettled");
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_revived");
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_abandoned" && item.Detail == First);
@@ -189,7 +189,7 @@ public sealed partial class TownMembershipTests
             world.Society.Inventory.GetLot("private-abandoned-wood").Quantity));
         Assert.Contains(actor, world.Towns.Single(town => town.Id == First).ResidentIds);
         Assert.Empty(world.Towns.Single(town => town.Id == Second).ResidentIds);
-        Assert.Empty(world.Towns.Single(town => town.Id == Second).Governance!.Members);
+        Assert.Empty(world.Towns.Single(town => town.Id == Second).Council!.Members);
         AssertRoundTrip(world);
         using var restored = Reopen(world.ExportState(), model);
         for (var tick = 0; tick < 4; tick++) Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
@@ -221,7 +221,7 @@ public sealed partial class TownMembershipTests
         Assert.Equal([child], town.ResidentIds);
         Assert.False(town.IsAbandoned);
         Assert.False(new OwnerWorldObservationStore(world).GetSnapshot().Towns.Single(item => item.Id == First).IsAbandoned);
-        Assert.Empty(town.Governance!.Members);
+        Assert.Empty(town.Council!.Members);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "town_abandoned" && item.Detail == First);
         AssertRoundTrip(world);
     }
@@ -236,7 +236,7 @@ public sealed partial class TownMembershipTests
             groundPosition: new(Board(state, Second).X, Board(state, Second).Y));
         // The resident is physically in the first Town and has no House or household.
         var departure = SocietyRules.LeaveHousehold(state.Society.Society, resident);
-        Assert.Null(departure.Checkpoint.GetInhabitant(resident).HouseholdId);
+        Assert.Null(departure.Checkpoint.GetAgent(resident).HouseholdId);
         var society = departure.Checkpoint;
         state = state with { Society = state.Society with { Society = society } };
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.OwnerId != resident).ToArray() };
@@ -343,7 +343,7 @@ public sealed partial class TownMembershipTests
             await Task.Delay(10);
             var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
-            completed = step.Decisions.Any(decision => decision.InhabitantId == visitor && decision.Admission.FellBack) ||
+            completed = step.Decisions.Any(decision => decision.AgentId == visitor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == visitor);
         }
         Assert.True(completed, "The host must process and refuse the previously valid salvage reply after revival.");
@@ -431,19 +431,19 @@ public sealed partial class TownMembershipTests
         var model = new ScriptedModel();
         model.Scripts[actor] = [Civic(Second, "resettle"), Civic(Second, "read"), Civic(Second, "yes"), Civic(Second, "repeal")];
         using var world = Reopen(Calm(At(state, Board(state, Second), actor)), model);
-        await AdvanceUntil(world, () => world.Towns.Single(town => town.Id == Second).Governance!.Proposals.Any(proposal => proposal.AuthorId == actor), 8);
+        await AdvanceUntil(world, () => world.Towns.Single(town => town.Id == Second).Council!.Proposals.Any(proposal => proposal.AuthorId == actor), 8);
         // A new owner suggestion opens another personal turn; proposing never casts an automatic vote.
-        world.SubmitInstruction(new("consider-repeal-vote", "owner:test", actor, OwnerInstructionKind.Suggestive,
+        world.SubmitInstruction(new("consider-repeal-vote", "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider your vote on the repeal you proposed."));
         await AdvanceUntil(world, () => world.Towns.Single(town => town.Id == Second).Government!.Laws[0].Versions[^1].EndedTick is not null, 12);
         var town = world.Towns.Single(item => item.Id == Second);
         var law = Assert.Single(town.Government!.Laws);
         Assert.Equal("Grove", law.Versions[0].Subject);
         Assert.NotNull(law.Versions[0].EndedByProposalId);
-        var repeal = town.Governance!.Proposals.Single(proposal => proposal.Id == law.Versions[0].EndedByProposalId);
+        var repeal = town.Council!.Proposals.Single(proposal => proposal.Id == law.Versions[0].EndedByProposalId);
         Assert.Equal("passed", repeal.Status);
         Assert.Equal([actor], repeal.Voters);
-        Assert.Equal([actor], town.Governance.Members);
+        Assert.Equal([actor], town.Council.Members);
         Assert.All(town.Government.Offices, office => Assert.Null(office.HolderId));
         AssertRoundTrip(world);
     }
@@ -460,7 +460,7 @@ public sealed partial class TownMembershipTests
             model.Scripts[actor] = [Civic(destination, "resettle")];
             using var world = Reopen(Calm(At(state, Board(state, destination), actor)), model);
             await AdvanceUntil(world, () => world.Towns.Single(town => town.Id == destination).ResidentIds.Contains(actor), 8);
-            Assert.Equal([actor], world.Towns.Single(town => town.Id == destination).Governance!.Members);
+            Assert.Equal([actor], world.Towns.Single(town => town.Id == destination).Council!.Members);
             Assert.Empty(world.Towns.Single(town => town.Id != destination).ResidentIds);
             Assert.Null(world.Towns.Single(town => town.Id == destination).AbandonedSinceTick);
             var transition = world.ExportState().Events.Last(item => item.Kind == "town_abandoned");
@@ -489,7 +489,7 @@ public sealed partial class TownMembershipTests
         var town = world.Towns.Single(item => item.Id == Second);
         var settler = Assert.Single(town.ResidentIds);
         Assert.Contains(settler, Founders[..2]);
-        Assert.Equal([settler], town.Governance!.Members);
+        Assert.Equal([settler], town.Council!.Members);
         Assert.Contains(Founders.First(actor => actor != settler), world.Towns.Single(item => item.Id == First).ResidentIds);
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_resettled");
         Assert.Single(world.ExportState().Events, item => item.Kind == "town_revived");
@@ -548,7 +548,7 @@ public sealed partial class TownMembershipTests
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Observation.InhabitantId != actor || Pending is not null ||
+            if (request.Observation.AgentId != actor || Pending is not null ||
                 !request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith("town_salvage:", StringComparison.Ordinal)))
                 return OtherChoices.DecideAsync(request, cancellationToken);
             Pending = request;
@@ -571,10 +571,10 @@ public sealed partial class TownMembershipTests
     {
         var town = Town(state, Second);
         var former = Founders[3];
-        var council = TownGovernanceState.Create([former]);
+        var council = TownCouncilState.Create([former]);
         var (proposed, government) = TownLawRules.ProposeAdoption(council, town.Government!, Second, former,
             "Grove: Leave the saplings.", TownLawRules.Jurisdiction, [], [former], 0, state.WorldSystems!.Config.TicksPerDay);
-        proposed = TownGovernanceRules.VoteProposal(proposed, proposed.Proposals[^1].Id, former, true, 0);
+        proposed = TownCouncilRules.VoteProposal(proposed, proposed.Proposals[^1].Id, former, true, 0);
         (proposed, government) = TownGovernmentRules.Advance(proposed, government, Second, town.Name, state.WorldSeed,
             [former], 0, state.WorldSystems.Config.TicksPerDay);
         Assert.Single(government.Laws);
@@ -583,7 +583,7 @@ public sealed partial class TownMembershipTests
         return state with
         {
             Towns = state.Towns!.Select(item => item.Id == Second
-            ? item with { Governance = proposed, Government = government } : item).ToArray()
+            ? item with { Council = proposed, Government = government } : item).ToArray()
         };
     }
 }

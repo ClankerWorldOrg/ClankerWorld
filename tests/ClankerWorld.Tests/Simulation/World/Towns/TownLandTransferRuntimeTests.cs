@@ -35,40 +35,40 @@ public sealed partial class TownLandTransferRuntimeTests
         Assert.Equal(new[] { Filer, SourcePartner }, grant.GrantAdults);
         provider.Plot = [grantPlot[0]];
         provider.AllowPropose = true;
-        world.SubmitInstruction(new("consider-transfer", "owner:test", Filer, OwnerInstructionKind.Suggestive,
+        world.SubmitInstruction(new("consider-transfer", "owner:test", Filer, OwnerInstructionKind.Suggestion,
             "Consider proposing a voluntary transfer of the specified part of your household's recorded permission."));
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers.Count == 1, 20, provider);
-        var proposed = Assert.Single(world.Towns[0].LandHearings.Transfers);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider);
+        var proposed = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal("pending", proposed.Status);
         Assert.Empty(proposed.Responses);
         Assert.Null(proposed.Receipt);
         Assert.Equal(provider.Plot, proposed.Tiles);
         Assert.Equal(sourceRight.Id, Assert.Single(proposed.RightVersions).Id);
-        Assert.Contains(world.Towns[0].Governance!.Knowledge, receipt => receipt.AgentId == Filer && receipt.NoticeId == proposed.NoticeId);
-        Assert.DoesNotContain(world.Towns[0].Governance!.Knowledge, receipt => receipt.AgentId == Beneficiary && receipt.NoticeId == proposed.NoticeId);
+        Assert.Contains(world.Towns[0].Council!.Knowledge, receipt => receipt.AgentId == Filer && receipt.NoticeId == proposed.NoticeId);
+        Assert.DoesNotContain(world.Towns[0].Council!.Knowledge, receipt => receipt.AgentId == Beneficiary && receipt.NoticeId == proposed.NoticeId);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         var replayProvider = provider.ReplayPolicy();
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(before), _ => replayProvider);
-        for (var step = 0; step < 40 && world.Towns[0].LandHearings.Transfers[0].Status == "pending"; step++)
+        for (var step = 0; step < 40 && world.Towns[0].LandRecords.Transfers[0].Status == "pending"; step++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
 
-        var completed = Assert.Single(world.Towns[0].LandHearings.Transfers);
+        var completed = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal("transferred", completed.Status);
         Assert.Equal(4, completed.Responses.Count);
         Assert.All(completed.Responses, response =>
         {
             Assert.Equal("accept", response.Kind);
-            Assert.Contains(world.Towns[0].Governance!.Knowledge, receipt => receipt.NoticeId == completed.NoticeId &&
+            Assert.Contains(world.Towns[0].Council!.Knowledge, receipt => receipt.NoticeId == completed.NoticeId &&
                 receipt.AgentId == response.AgentId && receipt.LearnedTick <= response.Tick);
         });
         var receipt = Assert.IsType<TownLandTransferReceipt>(completed.Receipt);
         Assert.Equal(4, receipt.Parties.Sum(party => party.AdultIds.Count));
-        var adjustment = Assert.Single(world.Towns[0].LandHearings.Adjustments);
+        var adjustment = Assert.Single(world.Towns[0].LandRecords.Adjustments);
         Assert.Equal("voluntary_transfer", adjustment.Kind);
         Assert.Equal(completed.Id, adjustment.TransferId);
         Assert.Equal(receipt.AdjustmentId, adjustment.Id);
@@ -81,7 +81,7 @@ public sealed partial class TownLandTransferRuntimeTests
             Assert.Equal(sourceRight.GrantSource, right.GrantSource);
         });
         Assert.Equal(grantReceipt, JsonSerializer.Serialize(world.HouseholdLandUseRequests.Single(item => item.Id == grant.Id)));
-        Assert.Empty(world.Towns[0].LandHearings.Cases);
+        Assert.Empty(world.Towns[0].LandRecords.Cases);
         Assert.Equal(2, world.Towns[0].Government!.Offices.Count);
         Assert.All(world.Towns[0].Government!.Offices, office => Assert.Null(office.HolderId));
         Assert.Equal(property, PrivateProperty(world.ExportState()));
@@ -130,16 +130,16 @@ public sealed partial class TownLandTransferRuntimeTests
                 request.Tiles.Any(right.Tiles.Contains)));
         provider.Plot = [plot[0]];
         provider.AllowPropose = true;
-        world.SubmitInstruction(new("consider-undisputed-subset", "owner:test", Filer, OwnerInstructionKind.Suggestive,
+        world.SubmitInstruction(new("consider-undisputed-subset", "owner:test", Filer, OwnerInstructionKind.Suggestion,
             "Consider a voluntary transfer of the undisputed part of your recorded permission."));
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers.Count == 1, 20, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider);
         var offered = Assert.IsType<string>(provider.ProposalDescription);
         Assert.Contains("Eligible source coordinates by beneficiary", offered, StringComparison.Ordinal);
         Assert.Contains(FormattableString.Invariant($"({plot[0].X}, {plot[0].Y})"), offered, StringComparison.Ordinal);
         Assert.DoesNotContain(FormattableString.Invariant($"({plot[1].X}, {plot[1].Y})"), offered, StringComparison.Ordinal);
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers[0].Status == "transferred", 40, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers[0].Status == "transferred", 40, provider);
 
-        var transfer = Assert.Single(world.Towns[0].LandHearings.Transfers);
+        var transfer = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal(new[] { plot[0] }, transfer.Tiles);
         Assert.Equal(4, transfer.Responses.Count);
         Assert.All(transfer.Responses, response => Assert.Equal("accept", response.Kind));
@@ -174,13 +174,13 @@ public sealed partial class TownLandTransferRuntimeTests
         try
         {
             for (var attempt = 0; attempt < 40 && (!provider.Started.Task.IsCompleted ||
-                     world.Towns[0].LandHearings.Transfers.Count == 0 || world.Towns[0].LandHearings.Transfers[0].Responses.Count < 3); attempt++)
+                     world.Towns[0].LandRecords.Transfers.Count == 0 || world.Towns[0].LandRecords.Transfers[0].Responses.Count < 3); attempt++)
             {
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
                 await Task.Delay(10);
             }
             await provider.Started.Task.WaitAsync(Deadline);
-            var pending = Assert.Single(world.Towns[0].LandHearings.Transfers);
+            var pending = Assert.Single(world.Towns[0].LandRecords.Transfers);
             Assert.Equal("pending", pending.Status);
             Assert.Equal(3, pending.Responses.Count);
             Assert.DoesNotContain(pending.Responses, response => response.AgentId == SourcePartner);
@@ -191,12 +191,12 @@ public sealed partial class TownLandTransferRuntimeTests
             Assert.Equal(provider.TargetHouseholdId, world.AddAgent(Newcomer, house.Position));
             var propertyAfterJoin = PrivateProperty(world.ExportState());
             provider.Release();
-            for (var attempt = 0; attempt < 20 && world.Towns[0].LandHearings.Transfers[0].Responses.Count < 4; attempt++)
+            for (var attempt = 0; attempt < 20 && world.Towns[0].LandRecords.Transfers[0].Responses.Count < 4; attempt++)
             {
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline)).Advanced);
                 await Task.Delay(10);
             }
-            pending = Assert.Single(world.Towns[0].LandHearings.Transfers);
+            pending = Assert.Single(world.Towns[0].LandRecords.Transfers);
             Assert.Equal("pending", pending.Status);
             Assert.Equal(4, pending.Responses.Count);
             Assert.DoesNotContain(pending.Responses, response => response.AgentId == Newcomer);
@@ -205,14 +205,14 @@ public sealed partial class TownLandTransferRuntimeTests
             world.Validate();
             provider.AllowNewcomer = true;
             // This prompts a fresh real personal provider turn; it supplies no acceptance or permission.
-            world.SubmitInstruction(new("consider-current-transfer", "owner:test", Newcomer, OwnerInstructionKind.Suggestive,
+            world.SubmitInstruction(new("consider-current-transfer", "owner:test", Newcomer, OwnerInstructionKind.Suggestion,
                 "Visit the notice place, read the proposed permission transfer and consider your own response."));
-            await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers[0].Status == "transferred", 80, provider);
-            var completed = Assert.Single(world.Towns[0].LandHearings.Transfers);
+            await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers[0].Status == "transferred", 80, provider);
+            var completed = Assert.Single(world.Towns[0].LandRecords.Transfers);
             var newConsent = Assert.Single(completed.Responses, response => response.AgentId == Newcomer);
             Assert.Equal(provider.TargetHouseholdId, newConsent.HouseholdId);
             Assert.Equal("accept", newConsent.Kind);
-            Assert.Contains(world.Towns[0].Governance!.Knowledge, learned => learned.AgentId == Newcomer &&
+            Assert.Contains(world.Towns[0].Council!.Knowledge, learned => learned.AgentId == Newcomer &&
                 learned.NoticeId == completed.NoticeId && learned.LearnedTick <= newConsent.Tick);
             Assert.Contains(Newcomer, Assert.Single(completed.Receipt!.Parties, party => party.Kind == "beneficiary").AdultIds);
             Assert.Equal(propertyAfterJoin, PrivateProperty(world.ExportState()));
@@ -246,20 +246,20 @@ public sealed partial class TownLandTransferRuntimeTests
         using var world = WorldRuntime.Restore(state, _ => provider);
         var permissions = Permissions(world.ExportState());
         var property = PrivateProperty(world.ExportState());
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers.Count == 1, 20, provider);
-        Assert.Empty(world.Towns[0].LandHearings.Transfers[0].Responses);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider);
+        Assert.Empty(world.Towns[0].LandRecords.Transfers[0].Responses);
         if (mode == "dispute")
         {
             var competing = world.RequestHouseholdLandUse("transfer-rival", Beneficiary, world.Towns[0].Id, provider.Plot);
             Assert.True(competing.Applied, competing.Failure);
             Assert.True(competing.IsDisputed);
         }
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers[0].Status != "pending", mode == "withdraw" ? Day * 2 : 20, provider);
-        var stopped = Assert.Single(world.Towns[0].LandHearings.Transfers);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers[0].Status != "pending", mode == "withdraw" ? Day * 2 : 20, provider);
+        var stopped = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal(status, stopped.Status);
         Assert.Equal(reason, stopped.Reason);
         Assert.Null(stopped.Receipt);
-        Assert.DoesNotContain(world.Towns[0].LandHearings.Adjustments, adjustment => adjustment.TransferId == stopped.Id);
+        Assert.DoesNotContain(world.Towns[0].LandRecords.Adjustments, adjustment => adjustment.TransferId == stopped.Id);
         Assert.Equal(permissions, Permissions(world.ExportState()));
         Assert.Equal(property, PrivateProperty(world.ExportState()));
         world.Validate();
@@ -287,11 +287,11 @@ public sealed partial class TownLandTransferRuntimeTests
             HouseholdLandUseRights = state.HouseholdLandUseRights!.Select(right =>
                 right.Tiles.Any(provider.Plot.Contains) ? right with { AgreedEndTick = end } : right).ToArray()
         }, _ => provider);
-        await UntilAsync(world, () => world.Towns[0].LandHearings.Transfers.Count == 1, 20, provider);
+        await UntilAsync(world, () => world.Towns[0].LandRecords.Transfers.Count == 1, 20, provider);
 
-        var proposed = Assert.Single(world.Towns[0].LandHearings.Transfers);
+        var proposed = Assert.Single(world.Towns[0].LandRecords.Transfers);
         Assert.Equal(end, Assert.Single(proposed.RightVersions).Right.AgreedEndTick);
-        var notice = Assert.Single(world.Towns[0].Governance!.Notices, entry => entry.Id == proposed.NoticeId);
+        var notice = Assert.Single(world.Towns[0].Council!.Notices, entry => entry.Id == proposed.NoticeId);
         Assert.Contains("same agreed end on world day 2. ", notice.Text, StringComparison.Ordinal);
         Assert.DoesNotContain("world day 1", notice.Text, StringComparison.Ordinal);
         world.Validate();
@@ -314,12 +314,12 @@ public sealed partial class TownLandTransferRuntimeTests
         for (var tick = 0; tick < 4; tick++)
         {
             var step = await world.AdvanceOneTickAsync();
-            admitted |= step.Decisions.Any(decision => decision.InhabitantId == Filer && decision.Admission.Accepted &&
+            admitted |= step.Decisions.Any(decision => decision.AgentId == Filer && decision.Admission.Accepted &&
                 !decision.Admission.FellBack && decision.Admission.Intention is { Provider: DecisionProviderKind.Jev } intention &&
                 intention.CandidateId.Contains(sell ? "|land_transfer_sell|" : "|land_transfer_propose|", StringComparison.Ordinal));
         }
         Assert.True(admitted);
-        Assert.Empty(world.Towns[0].LandHearings.Transfers);
+        Assert.Empty(world.Towns[0].LandRecords.Transfers);
         Assert.Equal(Permissions(before), Permissions(world.ExportState()));
         Assert.Equal(PrivateProperty(before), PrivateProperty(world.ExportState()));
         world.Validate();
@@ -327,8 +327,8 @@ public sealed partial class TownLandTransferRuntimeTests
 
     private static void Configure(TransferProvider provider, WorldRuntime world)
     {
-        provider.SourceHouseholdId = world.Society.GetInhabitant(Filer).HouseholdId!;
-        provider.TargetHouseholdId = world.Society.GetInhabitant(Beneficiary).HouseholdId!;
+        provider.SourceHouseholdId = world.Society.GetAgent(Filer).HouseholdId!;
+        provider.TargetHouseholdId = world.Society.GetAgent(Beneficiary).HouseholdId!;
         provider.Plot = world.HouseholdLandUseRights.Where(right => right.HouseholdId == provider.SourceHouseholdId)
             .OrderBy(right => right.Id, StringComparer.Ordinal).First().Tiles.ToArray();
     }
@@ -343,13 +343,13 @@ public sealed partial class TownLandTransferRuntimeTests
         if (generatedClock)
             return WorldRuntime.Restore(state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray()
+                Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray()
             }, _ => provider);
         // Existing generated title, plots, founders, buildings and stock remain actual.
         // The same scoped public-board proximity/comfort and shorter day fixture as the civic runtime tests is used.
         return WorldRuntime.Restore(state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = state.Agents.Select(person => person with { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray(),
             WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
             { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
             Society = state.Society with
@@ -357,7 +357,7 @@ public sealed partial class TownLandTransferRuntimeTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     { BirthTick = person.BirthTick / oldDay * Day, BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
                 }
             }
@@ -390,7 +390,7 @@ public sealed partial class TownLandTransferRuntimeTests
         Titles = state.TownLandTitles!.OrderBy(title => title.Id, StringComparer.Ordinal),
         Buildings = state.WorldSimulation!.Buildings.OrderBy(building => building.InstanceId, StringComparer.Ordinal),
         state.Fields,
-        Membership = state.Society.Society.Inhabitants.OrderBy(person => person.Id, StringComparer.Ordinal).Select(person => new { person.Id, person.HouseholdId }),
+        Membership = state.Society.Society.Agents.OrderBy(person => person.Id, StringComparer.Ordinal).Select(person => new { person.Id, person.HouseholdId }),
         TownMembers = state.Towns!.OrderBy(town => town.Id, StringComparer.Ordinal).Select(town => new { town.Id, town.ResidentIds }),
         Lots = state.Society.Society.Inventory.Lots.OrderBy(lot => lot.Id, StringComparer.Ordinal).Select(lot => new
         { lot.Id, lot.ItemKind, lot.OwnerId, lot.Quantity, lot.ProvenanceLotId, lot.StorageBuildingId, lot.DeliveryBuildingId, lot.ContainerLotId, lot.GroundPosition, lot.CarrierId })
@@ -448,19 +448,19 @@ public sealed partial class TownLandTransferRuntimeTests
             var observation = request.Observation;
             var candidates = observation.Candidates;
             CognitionCandidate? Pick(string action) => candidates.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
-            var proposal = AllowPropose && !Proposed && observation.InhabitantId == Filer
+            var proposal = AllowPropose && !Proposed && observation.AgentId == Filer
                 ? Pick(Sell ? "land_transfer_sell" : "land_transfer_propose") : null;
             var choice = Kind == DecisionProviderKind.Jev ? proposal : null;
             choice ??= Pick("read") ?? Pick("land_transfer_read") ??
-                (Sell && PaySales && Mode is null ? (PaymentActor is null || observation.InhabitantId == PaymentActor
+                (Sell && PaySales && Mode is null ? (PaymentActor is null || observation.AgentId == PaymentActor
                     ? (CollectSalePayment ? Pick("land_transfer_collect_payment") : null) ?? Pick("land_transfer_pay") : null) ?? Pick("land_transfer_meet") : null) ?? Pick("visit");
             if (choice is null && AcceptGrants)
-                choice = Pick("yes") ?? (observation.InhabitantId is Filer or SourcePartner ? Pick("accept_land_use") : null);
-            if (choice is null && Mode == "withdraw" && observation.InhabitantId == Filer) choice = Pick("land_transfer_withdraw");
-            if (choice is null && Mode == "decline" && observation.InhabitantId == SourcePartner) choice = Pick("land_transfer_decline");
-            if (choice is null && Mode is null && (observation.InhabitantId != Newcomer || AllowNewcomer)) choice = Pick("land_transfer_accept");
+                choice = Pick("yes") ?? (observation.AgentId is Filer or SourcePartner ? Pick("accept_land_use") : null);
+            if (choice is null && Mode == "withdraw" && observation.AgentId == Filer) choice = Pick("land_transfer_withdraw");
+            if (choice is null && Mode == "decline" && observation.AgentId == SourcePartner) choice = Pick("land_transfer_decline");
+            if (choice is null && Mode is null && (observation.AgentId != Newcomer || AllowNewcomer)) choice = Pick("land_transfer_accept");
             choice ??= proposal ?? candidates.Single(candidate => candidate.Id == "safe_idle");
-            if (Sell && HoldSellerMeeting && observation.InhabitantId is Filer or SourcePartner)
+            if (Sell && HoldSellerMeeting && observation.AgentId is Filer or SourcePartner)
                 choice = candidates.Single(candidate => candidate.Id == "safe_idle");
             var proposing = choice.Id.Contains("|land_transfer_propose|", StringComparison.Ordinal) ||
                 choice.Id.Contains("|land_transfer_sell|", StringComparison.Ordinal);
@@ -469,13 +469,13 @@ public sealed partial class TownLandTransferRuntimeTests
                 Proposed = true;
                 ProposalDescription = choice.Description;
             }
-            Selected.Enqueue(observation.InhabitantId + ":" + choice.Id);
-            var response = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            Selected.Enqueue(observation.AgentId + ":" + choice.Id);
+            var response = new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandTiles: proposing ? Plot.Select(tile => new CognitionLandTile(tile.X, tile.Y)).ToArray() : null,
                 CivicLandHearing: proposing ? new(HouseholdId: TargetHouseholdId, PaymentItemKind: Sell ? SaleItemKind : null, PaymentQuantity: Sell ? SaleQuantity : null) : null);
-            if (HoldPartner && observation.InhabitantId == SourcePartner && held is null && choice.Id.Contains("|land_transfer_accept|", StringComparison.Ordinal))
+            if (HoldPartner && observation.AgentId == SourcePartner && held is null && choice.Id.Contains("|land_transfer_accept|", StringComparison.Ordinal))
             {
                 held = response;
                 HeldCandidateId = choice.Id;

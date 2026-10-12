@@ -16,7 +16,7 @@ public sealed class MemorySummaryProviderTests
         var provider = new OpenAiCompatibleDecisionProvider(client, () => "test-key", new("https://model.test/v1/chat/completions"), "test-model");
         var sources = Enumerable.Range(0, 4).Select(index => new CognitionMemorySummarySource("source-" + index, "belief", 1,
             "friend", "hearsay", 4_200, "speaker", 2, index == 0)).ToArray();
-        var observation = new InhabitantObservation("agent", 8, 0, 1, "sha256:summary-wire", 10_000, [new("safe_idle", "Wait safely.", 0)])
+        var observation = new AgentObservation("agent", 8, 0, 1, "sha256:summary-wire", 10_000, [new("safe_idle", "Wait safely.", 0)])
         {
             RetrievedMemories = [new("memory-summary:wire", "agent", "agent", "Hearsay: an old private report.", 3,
                 Kind: "summary", Visibility: "private", IsCorrected: true, SummarySources: sources)],
@@ -77,7 +77,7 @@ public sealed class MemorySummaryProviderTests
         var sources = Enumerable.Range(0, 4).Select(index => new CognitionMemorySummarySource("source-" + index, "belief", 0,
             "friend", "hearsay", 4_200, "friend", null, false)).ToArray();
         var option = new CognitionMemorySummaryOption("agent", "recent", "Hearsay: the path may be muddy.", sources);
-        var observation = new InhabitantObservation("agent", 8, 0, 1, "sha256:summary", 10_000, [new("safe_idle", "Wait safely.", 0)])
+        var observation = new AgentObservation("agent", 8, 0, 1, "sha256:summary", 10_000, [new("safe_idle", "Wait safely.", 0)])
         { MemorySummaryOptions = [option] };
         var runtime = new CognitionRuntime("agent", provider);
         var request = runtime.IssueRequest(observation);
@@ -105,7 +105,7 @@ public sealed class MemorySummaryProviderTests
     {
         var provider = new PersonalProvider();
         var runtime = new CognitionRuntime("agent", provider);
-        var observation = new InhabitantObservation("agent", 8, 0, 1, "sha256:summary", 10_000, [new("safe_idle", "Wait safely.", 0)]);
+        var observation = new AgentObservation("agent", 8, 0, 1, "sha256:summary", 10_000, [new("safe_idle", "Wait safely.", 0)]);
         var request = runtime.IssueRequest(observation);
         var result = runtime.ApplyResponse(new(request.RequestId, "agent", provider.Kind, provider.ProviderEpoch, 0, 1,
             observation.ObservationDigest, "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }, MemorySummaryChoice: "recent"));

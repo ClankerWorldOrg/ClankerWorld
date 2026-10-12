@@ -17,17 +17,17 @@ public sealed partial class WorldConversationTests
         using var world = MarriedWorldSetup("remarriage-after-separation", Route);
         await AdvanceRemarriageUntil(world, () => world.Marriages.Any(item => item.CompletedTick is not null));
         world.Pause();
-        var firstName = world.Society.GetInhabitant(InitiatorId).Name;
-        var secondName = world.Society.GetInhabitant(InviteeId).Name;
+        var firstName = world.Society.GetAgent(InitiatorId).Name;
+        var secondName = world.Society.GetAgent(InviteeId).Name;
         var ended = world.ApplyDeveloperEdit(MarriageEdit(world, "end_partnership", InviteeId, InitiatorId));
         Assert.True(ended.Applied, ended.Failure);
-        Assert.Equal(firstName, world.Society.GetInhabitant(InitiatorId).Name);
-        Assert.Equal(secondName, world.Society.GetInhabitant(InviteeId).Name);
+        Assert.Equal(firstName, world.Society.GetAgent(InitiatorId).Name);
+        Assert.Equal(secondName, world.Society.GetAgent(InviteeId).Name);
         Assert.Equal(SocietyRelationshipState.Revoked, world.Society.GetRelationship("partnership:marriage-test").State);
         var history = Assert.Single(world.Marriages);
         Assert.Equal(world.WorldTick, history.EndedTick);
         Assert.Equal(SocietyRelationshipState.Revoked, history.EndReceipt!.State);
-        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(person => person.Id == InitiatorId).SocialNotes,
+        Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(person => person.Id == InitiatorId).SocialNotes,
             note => note.Contains("ended by separation", StringComparison.Ordinal));
         var newPartner = world.ApplyDeveloperEdit(MarriageEdit(world, "start_partnership", InitiatorId, ListenerId));
         Assert.True(newPartner.Applied, newPartner.Failure);
@@ -35,7 +35,7 @@ public sealed partial class WorldConversationTests
         Assert.True(world.ApplyDeveloperEdit(MarriageEdit(world, "start_partnership", InviteeId, DistantId)).Applied);
         Assert.True(AgentMarriageRules.CanPropose(world.Society, world.Marriages, InviteeId, DistantId));
         Assert.True(world.RenameAgent(InitiatorId, "Aster Vale"));
-        Assert.Equal(secondName, world.Society.GetInhabitant(InviteeId).Name);
+        Assert.Equal(secondName, world.Society.GetAgent(InviteeId).Name);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Route);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -49,7 +49,7 @@ public sealed partial class WorldConversationTests
         IDecisionProvider Route(string id) => id == InitiatorId ? first : new MarriagePersonalProvider(id);
         using var world = RemarriageWorldSetup("native-unilateral-marriage-ending", Route);
         await AdvanceRemarriageUntil(world, () => world.Marriages.Any(item => item.CompletedTick is not null));
-        var names = world.Society.Inhabitants.Select(person => person.Name).ToArray();
+        var names = world.Society.Agents.Select(person => person.Name).ToArray();
         world.Pause();
         first.EndPartnership = true;
         using var endingWorld = WorldRuntime.Restore(world.ExportState(), Route);
@@ -60,7 +60,7 @@ public sealed partial class WorldConversationTests
         Assert.False((await endingWorld.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(endingWorld.ExportState()));
         await AdvanceRemarriageUntil(endingWorld, () => endingWorld.Marriages[0].EndedTick is not null, maximumSteps: 340);
-        Assert.Equal(names, endingWorld.Society.Inhabitants.Select(person => person.Name));
+        Assert.Equal(names, endingWorld.Society.Agents.Select(person => person.Name));
         Assert.Equal(SocietyRelationshipState.Revoked, endingWorld.Marriages[0].EndReceipt!.State);
         Assert.Equal(endingWorld.WorldTick, endingWorld.Marriages[0].EndedTick);
         var ending = Assert.Single(endingWorld.ExportState().Events, item => item.Kind == "marriage_ended");
@@ -104,8 +104,8 @@ public sealed partial class WorldConversationTests
         replay.Pause();
         Assert.True(world.RenameAgent(InitiatorId, "Aster Vale"));
         Assert.True(replay.RenameAgent(InitiatorId, "Aster Vale"));
-        Assert.Equal("Willow Vale", world.Society.GetInhabitant(ListenerId).Name);
-        Assert.Equal("Rowan Ash", world.Society.GetInhabitant(InviteeId).Name);
+        Assert.Equal("Willow Vale", world.Society.GetAgent(ListenerId).Name);
+        Assert.Equal("Rowan Ash", world.Society.GetAgent(InviteeId).Name);
         Assert.Equal(JsonSerializer.SerializeToUtf8Bytes(previous), JsonSerializer.SerializeToUtf8Bytes(Assert.Single(world.Marriages, item => item.Id == previous.Id)));
         var complete = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Equal(complete, WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -135,7 +135,7 @@ public sealed partial class WorldConversationTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == InviteeId ? person with
+                    Agents = society.Agents.Select(person => person.Id == InviteeId ? person with
                     {
                         BirthTick = society.LifeTickAt(society.WorldTick) - 60L * society.Config.TicksPerWorldDay + 1,
                         BirthLifeTick = null,
@@ -149,9 +149,9 @@ public sealed partial class WorldConversationTests
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var marriage = Assert.Single(world.Marriages);
-        Assert.Equal(world.Society.GetInhabitant(InviteeId).DeathTick, marriage.EndedTick);
+        Assert.Equal(world.Society.GetAgent(InviteeId).DeathTick, marriage.EndedTick);
         Assert.Equal(SocietyRelationshipState.EndedByDeath, marriage.EndReceipt!.State);
-        Assert.Equal(state.Society.Society.GetInhabitant(InitiatorId).Name, world.Society.GetInhabitant(InitiatorId).Name);
+        Assert.Equal(state.Society.Society.GetAgent(InitiatorId).Name, world.Society.GetAgent(InitiatorId).Name);
         if (unfinished)
         {
             Assert.Null(marriage.CompletedTick);
@@ -182,7 +182,7 @@ public sealed partial class WorldConversationTests
         await AdvanceRemarriageUntil(world, () => world.Marriages.Count == 1 &&
             world.Conversations.Single(item => item.Id == world.Marriages[0].SurnameConversationId).Turns.Count == 1);
         world.Pause();
-        var names = world.Society.Inhabitants.Select(person => person.Name).ToArray();
+        var names = world.Society.Agents.Select(person => person.Name).ToArray();
         var beforeEnding = world.ExportState();
         var unfinishedSession = Assert.Single(beforeEnding.Conversations!,
             item => item.Id == Assert.Single(beforeEnding.Marriages).SurnameConversationId);
@@ -193,9 +193,9 @@ public sealed partial class WorldConversationTests
         Assert.Null(marriage.CompletedTick);
         Assert.Equal("participant_unavailable", marriage.SurnameReceipt!.Outcome);
         Assert.Equal(AgentConversationStatus.Closed, marriage.SurnameReceipt.Status);
-        Assert.Equal(names, world.Society.Inhabitants.Select(person => person.Name));
+        Assert.Equal(names, world.Society.Agents.Select(person => person.Name));
         Assert.True(world.RenameAgent(InitiatorId, "Aster Vale"));
-        Assert.Equal("Rowan Reed", world.Society.GetInhabitant(InviteeId).Name);
+        Assert.Equal("Rowan Reed", world.Society.GetAgent(InviteeId).Name);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), Route);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -263,7 +263,7 @@ public sealed partial class WorldConversationTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == InviteeId ? person with
+                    Agents = society.Agents.Select(person => person.Id == InviteeId ? person with
                     {
                         BirthTick = society.LifeTickAt(society.WorldTick) - 60L * society.Config.TicksPerWorldDay + 1,
                         BirthLifeTick = null,
@@ -276,7 +276,7 @@ public sealed partial class WorldConversationTests
         using var world = WorldRuntime.Restore(state, Route);
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(SocietyInhabitantStatus.Dead, world.Society.GetInhabitant(InviteeId).Status);
+        Assert.Equal(SocietyAgentStatus.Dead, world.Society.GetAgent(InviteeId).Status);
         Assert.Equal(original, JsonSerializer.SerializeToUtf8Bytes(Assert.Single(world.Marriages)));
         Assert.Single(world.ExportState().Events, item => item.Kind == "marriage_ended");
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());

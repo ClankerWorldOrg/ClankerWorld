@@ -13,7 +13,7 @@ public sealed partial class HouseToolsBehaviorTests
         using var generated = NormalPathWorld.CreateGenerated("smith-whole-load", _ => new IdleProvider());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         for (var count = 0; count < 2; count++)
         {
             var source = state.Map.Resources.Where(resource => TreeGrowthRules.IsWoodTree(resource.TreeKind) &&
@@ -23,7 +23,7 @@ public sealed partial class HouseToolsBehaviorTests
                 .OrderBy(resource => resource.Id, StringComparer.Ordinal).First();
             state = count == 0 ? BesideSource(state, actor, source, HouseToolsContent.CrudeWoodenAxe) : state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+                Agents = state.Agents.Select(person => person.AgentId == actor ? person with
                 {
                     Position = FreeNeighbors(state, actor, source).First(),
                     TravelCooldownTicks = 0,
@@ -45,12 +45,12 @@ public sealed partial class HouseToolsBehaviorTests
     private static (WorldRuntimeState State, string Actor, GridPoint Target) PreparedTreeOrder(WorldRuntimeState? saved = null)
     {
         var state = saved ?? WorldRuntimeCodec.Decode(NativeTreeOrderSeeds.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
             .Concat(state.Map.Resources.Select(resource => resource.Position))
             .Concat(state.Map.MapObjects.Select(item => item.Position))
-            .Concat(state.Inhabitants.Where(person => person.InhabitantId != actor).Select(person => person.Position))
+            .Concat(state.Agents.Where(person => person.AgentId != actor).Select(person => person.Position))
             .Concat(state.Towns!.SelectMany(town => town.BorderTiles)).ToHashSet();
         using var roads = Restore(state);
         blocked.UnionWith(roads.RoadTiles);
@@ -58,16 +58,16 @@ public sealed partial class HouseToolsBehaviorTests
             state.WorldSystems!.Chunks.Any(chunk => chunk.Coordinate == ChunkRules.ToChunkCoordinate(point, chunk.ChunkSize) &&
                 chunk.Resources.Count < state.WorldSystems.Config.MaxResourcesPerChunk);
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(Legal)
-            .Where(point => state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point) &&
+            .Where(point => state.Map.IsReachableOnFoot(state.Agents[0].Position, point) &&
                 state.Map.FootNeighbors(point).Any(Legal))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
         var stand = state.Map.FootNeighbors(target).First(Legal);
         return (state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
-                HungerBasisPoints = 9_000,
+                FullnessBasisPoints = 9_000,
                 TravelCooldownTicks = 0,
                 Project = null,
                 LastDecisionContext = null,
@@ -84,7 +84,7 @@ public sealed partial class HouseToolsBehaviorTests
     {
         var (state, actor, _) = PreparedTreeOrder();
         using var world = Restore(state);
-        var receipt = world.SubmitInstruction(new("tree-count", "owner:test", actor, OwnerInstructionKind.MustDo, text));
+        var receipt = world.SubmitInstruction(new("tree-count", "owner:test", actor, OwnerInstructionKind.Order, text));
         for (var tick = 0; tick < 20 && Order(world, receipt).CompletedUnits < count; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(count, Order(world, receipt).CompletedUnits);
@@ -115,7 +115,7 @@ public sealed partial class HouseToolsBehaviorTests
         var (state, actor, target) = PreparedTreeOrder();
         using var world = Restore(state);
         var text = (repeat ? "keep planting conifer trees" : "plant two conifer trees") + $" at {target.X},{target.Y}";
-        var receipt = world.SubmitInstruction(new("exact-trees", "owner:test", actor, OwnerInstructionKind.MustDo, text));
+        var receipt = world.SubmitInstruction(new("exact-trees", "owner:test", actor, OwnerInstructionKind.Order, text));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(1, Order(world, receipt).CompletedUnits);
         using var loaded = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
@@ -137,18 +137,18 @@ public sealed partial class HouseToolsBehaviorTests
         var (state, actor, target) = PreparedTreeOrder();
         var start = state.Map.Tiles.Select(tile => tile.Position)
             .Where(point => state.Map.IsPassable(point) && state.Map.FootDistance(point, target) is >= 4 and <= 6 &&
-                state.Map.IsReachableOnFoot(point, target) && !state.Inhabitants.Any(person => person.Position == point))
+                state.Map.IsReachableOnFoot(point, target) && !state.Agents.Any(person => person.Position == point))
             .OrderBy(point => state.Map.FootDistance(point, target)).First();
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
             ? person with { Position = start } : person).ToArray()
         };
         using var world = Restore(state);
-        var receipt = world.SubmitInstruction(new("walk-tree", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var receipt = world.SubmitInstruction(new("walk-tree", "owner:test", actor, OwnerInstructionKind.Order,
             $"plant a broadleaf tree at {target.X},{target.Y}"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.NotEqual(start, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.NotEqual(start, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Equal(2, PersonalQuantity(world, actor, TreeGrowthRules.TreeSeedItem));
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -156,7 +156,7 @@ public sealed partial class HouseToolsBehaviorTests
         if (mode == "cancel")
             Assert.True(loaded.CancelOrder(new("cancel-walk", "owner:test", loaded.Society.WorldId, actor, receipt.InstructionId)).Changed);
         else if (mode == "replace")
-            _ = loaded.SubmitInstruction(new("replace-walk", "owner:test", actor, OwnerInstructionKind.MustDo, "eat berries"));
+            _ = loaded.SubmitInstruction(new("replace-walk", "owner:test", actor, OwnerInstructionKind.Order, "eat berries"));
         for (var tick = 0; tick < (mode == "finish" ? 20 : 3) && (mode != "finish" || Order(loaded, receipt).Status != "finished"); tick++)
             Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(mode == "finish" ? ("finished", 1) : ("cancelled", 0),
@@ -195,7 +195,7 @@ public sealed partial class HouseToolsBehaviorTests
         if (cause is "foreign" or "missing")
         {
             var inventory = state.Society.Society.Inventory;
-            var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+            var other = state.Agents.First(person => person.AgentId != actor).AgentId;
             var seeds = inventory.Lots.Where(lot => lot.ItemKind == TreeGrowthRules.TreeSeedItem).ToArray();
             foreach (var seed in seeds)
                 inventory = cause == "foreign" ? InventoryAuthority.Transfer(inventory, "foreign-" + seed.Id,
@@ -206,7 +206,7 @@ public sealed partial class HouseToolsBehaviorTests
         }
         using var world = Restore(state);
         var seedCount = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == TreeGrowthRules.TreeSeedItem).Sum(lot => lot.Quantity);
-        var receipt = world.SubmitInstruction(new("refused-tree", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var receipt = world.SubmitInstruction(new("refused-tree", "owner:test", actor, OwnerInstructionKind.Order,
             $"plant a conifer tree at {target.X},{target.Y}"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("blocked", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -229,9 +229,9 @@ public sealed partial class HouseToolsBehaviorTests
     {
         var (state, actor, target) = PreparedTreeOrder();
         using var world = Restore(state);
-        var first = world.SubmitInstruction(new("queue-first-tree", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var first = world.SubmitInstruction(new("queue-first-tree", "owner:test", actor, OwnerInstructionKind.Order,
             $"plant a conifer tree at {target.X},{target.Y}"));
-        var second = world.SubmitInstruction(new("queue-second-tree", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var second = world.SubmitInstruction(new("queue-second-tree", "owner:test", actor, OwnerInstructionKind.Order,
             "plant a broadleaf tree", Queue: true));
         Assert.Equal("queued", Order(world, second).Status);
         for (var tick = 0; tick < 15 && Order(world, second).Status != "finished"; tick++)
@@ -258,7 +258,7 @@ public sealed partial class HouseToolsBehaviorTests
             Assert.Throws<InvalidDataException>(() => Restore(state with
             {
                 Instructions = state.Instructions!.Select(instruction => instruction.InstructionId == second.InstructionId
-                    ? instruction with { Order = corrupt } : instruction).ToArray(),
+                    ? instruction with { Task = corrupt } : instruction).ToArray(),
             }));
         world.Validate();
     }

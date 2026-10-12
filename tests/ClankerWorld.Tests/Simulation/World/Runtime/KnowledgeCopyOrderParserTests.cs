@@ -15,7 +15,7 @@ public sealed class KnowledgeCopyOrderParserTests
     [InlineData("copy a book until cancelled", "book", 1, true)]
     public void RecognizesOnlyCompleteCopyTasks(string text, string kind, int quantity, bool repeat)
     {
-        var order = WorldInstructionOrderParser.Parse(text, [], resource => resource.Kind);
+        var order = OrderTaskParser.Parse(text, [], resource => resource.Kind);
         Assert.NotNull(order);
         Assert.Equal(("copy_knowledge", kind, quantity, "copies", repeat),
             (order.Action, order.TargetKnowledgeKind, order.RequestedUnits, order.ProgressUnit, order.RepeatUntilCancelled));
@@ -33,5 +33,5 @@ public sealed class KnowledgeCopyOrderParserTests
     [InlineData("copy someone else's book")]
     [InlineData("keep copy a map")]
     public void UnsupportedCopyTextIsNotGuessed(string text) =>
-        Assert.Null(WorldInstructionOrderParser.Parse(text, [], resource => resource.Kind));
+        Assert.Null(OrderTaskParser.Parse(text, [], resource => resource.Kind));
 }

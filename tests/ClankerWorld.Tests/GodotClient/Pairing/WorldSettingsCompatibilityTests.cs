@@ -24,7 +24,7 @@ public sealed class WorldSettingsCompatibilityTests
         var authority = new OwnerAuthorityIdentity("server", "authority-world");
         Task<OwnerControlReceipt> Submit() => jev
             ? api.SetJevAssistanceAsync(origin, authority, "device", false, "selected-world-é", signer, CancellationToken.None)
-            : api.SetLifePaceAsync(origin, authority, "device", 365, "selected-world-é", signer, CancellationToken.None);
+            : api.SetAgingOverrideAsync(origin, authority, "device", 365, "selected-world-é", signer, CancellationToken.None);
         if (!supported)
         {
             await Assert.ThrowsAsync<OwnerActionCompatibilityException>(Submit);
@@ -49,12 +49,12 @@ public sealed class WorldSettingsCompatibilityTests
         {
             if (request.RequestUri!.AbsolutePath == OwnerPairingEndpoints.ChallengeIssue)
             {
-                var domain = jev ? HostBinding.JevAssistancePayloadDomain : HostBinding.LifePacePayloadDomain;
-                var legacy = jev ? "clankerworld.owner-jev-assistance.v1" : "clankerworld.owner-life-pace.v1";
+                var domain = jev ? HostBinding.JevAssistancePayloadDomain : HostBinding.AgingOverridePayloadDomain;
+                var legacy = jev ? "clankerworld.owner-jev-assistance.v1" : "clankerworld.owner-aging-override.v1";
                 return Reply(new OwnerChallenge(new("server", "authority-world"), "device", "challenge", "nonce",
                     DateTimeOffset.UtcNow.AddMinutes(1), supported ? [domain] : [legacy]));
             }
-            Assert.Equal(jev ? OwnerPairingEndpoints.OwnerJevAssistance : OwnerPairingEndpoints.OwnerLifePace,
+            Assert.Equal(jev ? OwnerPairingEndpoints.OwnerJevAssistance : OwnerPairingEndpoints.OwnerAgingOverride,
                 request.RequestUri.AbsolutePath);
             SettingsRequests++;
             var envelope = await request.Content!.ReadFromJsonAsync<JsonElement>(cancellationToken).ConfigureAwait(false);

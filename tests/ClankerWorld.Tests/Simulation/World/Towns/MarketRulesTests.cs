@@ -266,7 +266,7 @@ public sealed class MarketRulesTests
             StockReceipts = receipts,
         });
         Assert.Throws<InvalidDataException>(() => MarketTradeValidation.Validate(forged.Towns!, forged.Society.Society with { Inventory = inventory },
-            forged.Map, forged.WorldSimulation!, forged.WorldContent!, damage == "far-future-offer" ? long.MaxValue : worldTick, forged.Inhabitants));
+            forged.Map, forged.WorldSimulation!, forged.WorldContent!, damage == "far-future-offer" ? long.MaxValue : worldTick, forged.Agents));
     }
 
     [Fact]

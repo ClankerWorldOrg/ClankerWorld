@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
         gate.Wait();
         try
         {
-            if (!inhabitants.TryGetValue(childId, out var child) ||
+            if (!agents.TryGetValue(childId, out var child) ||
                 !society.Checkpoint.Births.Any(item => item.ChildId == childId))
             {
                 throw new InvalidOperationException("A personal model can only be bound to a child born in this world.");
@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
             }
 
             ValidateChildModelSelection(selection);
-            inhabitants[childId] = child with { ChildModelSelection = selection };
+            agents[childId] = child with { ChildModelSelection = selection };
             checkpointSchemaVersion = StateSchemaVersion;
             AppendEvent("child_model_selected", $"{childId}:{selection.ChoiceReason}");
         }

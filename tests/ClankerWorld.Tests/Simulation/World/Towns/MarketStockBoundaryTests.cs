@@ -75,12 +75,12 @@ public sealed class MarketStockBoundaryTests
         if (ownerOrder)
         {
             var receipt = world.SubmitInstruction(new("boundary-collect-order", "owner:test", Seller,
-                OwnerInstructionKind.MustDo, targeted ? $"collect two wood from ({stall.X}, {stall.Y})" : "collect two wood"));
+                OwnerInstructionKind.Order, targeted ? $"collect two wood from ({stall.X}, {stall.Y})" : "collect two wood"));
             var instruction = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId);
-            Assert.NotNull(instruction.Order);
-            Assert.Equal("collect_material", instruction.Order.Action);
-            Assert.Equal(targeted ? stall : (GridPoint?)null, instruction.Order.TargetPosition);
-            Assert.Equal(2, instruction.Order.RequestedUnits);
+            Assert.NotNull(instruction.Task);
+            Assert.Equal("collect_material", instruction.Task.Action);
+            Assert.Equal(targeted ? stall : (GridPoint?)null, instruction.Task.TargetPosition);
+            Assert.Equal(2, instruction.Task.RequestedUnits);
         }
         for (var tick = 0; tick < 12; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var lot = world.Society.Inventory.GetLot("boundary-personal-wood");
@@ -124,9 +124,9 @@ public sealed class MarketStockBoundaryTests
             "a-boundary-stall-food", "food", Household, 4, groundPosition: new(stall.X, stall.Y)));
         state = PaidMarketWorld.At(PaidMarketWorld.Borrowing(state, Seller, 0), Housemate, stall) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Housemate
-                ? person with { Position = stall, HungerBasisPoints = 1_000 }
-                : person.InhabitantId == Seller ? person with { Position = MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0) }
+            Agents = state.Agents.Select(person => person.AgentId == Housemate
+                ? person with { Position = stall, FullnessBasisPoints = 1_000 }
+                : person.AgentId == Seller ? person with { Position = MarketContent.StallEntrance(PaidMarketWorld.Market(state).Site, 0) }
                 : person).ToArray(),
         };
         var policy = new MarketRulesPolicy(DecisionProviderKind.Deterministic)

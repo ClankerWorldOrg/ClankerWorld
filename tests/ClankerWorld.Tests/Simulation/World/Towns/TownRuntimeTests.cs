@@ -33,7 +33,7 @@ public sealed class TownRuntimeTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == founderId ? person with
+                    Agents = society.Agents.Select(person => person.Id == founderId ? person with
                     {
                         BirthTick = birthTick,
                         BirthLifeTick = society.LifeClock is null ? null : birthTick,
@@ -59,9 +59,9 @@ public sealed class TownRuntimeTests
             var store = new OwnerWorldObservationStore(restored);
             var snapshot = JsonSerializer.Deserialize<GodotOwnerWorldSnapshot>(
                 JsonSerializer.Serialize(store.GetSnapshot(), GodotJsonOptions), GodotJsonOptions);
-            Assert.Equal("dead", snapshot!.Inhabitants.Single(person => person.Id == founderId).Lifecycle);
+            Assert.Equal("dead", snapshot!.Agents.Single(person => person.Id == founderId).Lifecycle);
             foreach (var (kind, expected) in new[]
-                     { ("inhabitant_removed", "Aster died."), ("town_resident_left", "Aster left First Town."),
+                     { ("agent_removed", "Aster died."), ("town_resident_left", "Aster left First Town."),
                        ("town_resident_joined", "Aster joined First Town.") })
             {
                 var accepted = store.GetEventsAfter(0).Events.First(item => item.Kind == kind && item.Detail.Contains(founderId, StringComparison.Ordinal));
@@ -91,7 +91,7 @@ public sealed class TownRuntimeTests
         // Exercise reachable food while the island resident actually needs a food errand.
         using var world = WorldRuntime.Restore(before with
         {
-            Inhabitants = before.Inhabitants.Select(person => person with { HungerBasisPoints = 4_000 }).ToArray(),
+            Agents = before.Agents.Select(person => person with { FullnessBasisPoints = 4_000 }).ToArray(),
         });
         var food = before.Map.Resources.Single(item => item.Id == "wild-16-0");
         Assert.False(before.Map.IsReachableFromStartingSiteOnFoot(food.Position));

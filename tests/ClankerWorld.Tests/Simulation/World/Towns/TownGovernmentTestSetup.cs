@@ -11,7 +11,7 @@ internal static class TownGovernmentTestSetup
     // Their Council ledger is initialized independently by each fixture.
     internal static TownGovernmentState WithoutOffice(string townId, string[] adults, int day)
     {
-        var council = TownGovernanceState.Create(adults);
+        var council = TownCouncilState.Create(adults);
         var government = TownGovernmentState.Create();
         (council, government) = TownGovernmentRules.Propose(council, government, townId, adults[0],
             NoOffice, false, adults, 0, day);

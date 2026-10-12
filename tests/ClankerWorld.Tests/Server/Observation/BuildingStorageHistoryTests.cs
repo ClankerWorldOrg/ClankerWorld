@@ -18,7 +18,7 @@ public sealed class BuildingStorageHistoryTests
         var house = state.WorldSimulation!.Buildings.First(building => state.WorldContent!.Buildings
             .Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var owner = house.HouseholdId!;
-        var carrier = state.Society.Society.Inhabitants.First(person => person.HouseholdId == owner).Id;
+        var carrier = state.Society.Society.Agents.First(person => person.HouseholdId == owner).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "history-stock", "wood", owner, 1,
             storageBuildingId: house.InstanceId);
         for (var index = 0; index <= WorldHistory.CompactionThreshold; index++)

@@ -87,7 +87,7 @@ public static partial class SocietyRules
     public static SocietyCheckpoint RecordAgentMemorySummary(SocietyCheckpoint checkpoint, string owner, SocietyMemorySummaryOption option)
     {
         Validate(checkpoint);
-        if (!checkpoint.Inhabitants.Any(person => person.Id == owner && person.Status == SocietyInhabitantStatus.Active) ||
+        if (!checkpoint.Agents.Any(person => person.Id == owner && person.Status == SocietyAgentStatus.Active) ||
             !SocietyMemorySummaryRules.Options(checkpoint, owner).Any(candidate => candidate.Choice == option.Choice &&
                 candidate.Text == option.Text && candidate.Sources.SequenceEqual(option.Sources)))
             throw new InvalidOperationException("A helper may summarize only its requested current private source batch.");
@@ -110,7 +110,7 @@ public static partial class SocietyRules
         var used = new HashSet<string>(StringComparer.Ordinal);
         foreach (var summary in checkpoint.MemorySummaries)
         {
-            if (!checkpoint.Inhabitants.Any(person => person.Id == summary.OwnerId) || summary.Sources is null ||
+            if (!checkpoint.Agents.Any(person => person.Id == summary.OwnerId) || summary.Sources is null ||
                 summary.Sources.Count is < SocietyMemorySummaryRules.MinimumSources or > SocietyMemorySummaryRules.MaximumSources ||
                 summary.CreatedTick < 0 || summary.CreatedTick > checkpoint.WorldTick || summary.Sources.Any(source => source is null) ||
                 summary.Id != SocietyMemorySummaryRules.Id(summary.OwnerId, summary.Sources) ||

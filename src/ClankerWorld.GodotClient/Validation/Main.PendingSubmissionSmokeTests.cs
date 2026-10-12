@@ -14,7 +14,7 @@ public partial class Main
         var previousKey = deviceKey;
         var previousUrl = worldUrlInput.Text;
         var previousObservation = observationSession.Current;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousText = instructionText.Text;
         var previousPending = pendingSubmission;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
@@ -24,12 +24,12 @@ public partial class Main
         const string worldId = "refused-request-world";
         const string agentId = "refused-request-agent";
         var position = new OwnerWorldPosition(1, 1);
-        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+        host.Reconnect = new(new(new(1, 1), ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
             "owner-control.request.v1", "paused-authoring.request.v1"], []), new(
             new(worldId, 0, "refused-request-map", [], [], [], null, 0)
             {
                 PackedTerrain = new(3, 3, "terrain-kind-v1", Convert.ToBase64String(new byte[9])),
-                Inhabitants = [new(agentId, "Rowan Lake", "active", position, 8_000, [], [],
+                Agents = [new(agentId, "Rowan Lake", "active", position, 8_000, [], [],
                     new("idle", null, null, [], string.Empty), new(position, [position], [position]), false)],
             }, new(0, 0, [])));
         try
@@ -42,7 +42,7 @@ public partial class Main
             if (!observationSession.TryAccept(host.Reconnect, 0, out var failure))
                 throw new InvalidOperationException($"The refusal fixture needs a valid baseline: {failure}");
             Render(host.Reconnect.Baseline.Snapshot, []);
-            selectedInhabitantId = agentId;
+            selectedAgentId = agentId;
             instructionText.Text = "Remember the orchard.";
             await SubmitInstructionAsync();
             RequireCleared();
@@ -53,7 +53,7 @@ public partial class Main
                 throw new InvalidOperationException("The refusal fixture needs a current paired world.");
             OwnerPendingSubmission[] requests =
             [
-                OwnerPendingSubmission.ForInstruction(binding, new("retry-refused", agentId, "suggestive", "Rest.", worldId)),
+                OwnerPendingSubmission.ForInstruction(binding, new("retry-refused", agentId, "suggestion", "Rest.", worldId)),
                 OwnerPendingSubmission.ForOrderCancel(binding, new("cancel-refused", agentId, "order", worldId)),
                 OwnerPendingSubmission.ForAuthoring(binding, new("authoring-refused", [new("weather", null, "clear", null, 0, 0, false)])),
             ];
@@ -83,7 +83,7 @@ public partial class Main
             worldUrlInput.Text = previousUrl;
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             instructionText.Text = previousText;
             pendingSubmission = previousPending;
             RenderPendingSubmission();

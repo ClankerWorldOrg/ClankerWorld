@@ -24,13 +24,13 @@ public sealed partial class WorldRuntime
         if (request.SourceHouseholdId is { } source)
         {
             var household = society.Checkpoint.Households.SingleOrDefault(household => household.Id == source);
-            if (household is null || household.MemberIds.Any(id => society.Checkpoint.GetInhabitant(id).Status == SocietyInhabitantStatus.Active))
+            if (household is null || household.MemberIds.Any(id => society.Checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active))
                 throw new InvalidOperationException("The household still has members; its property cannot be reclaimed.");
             former = TownPropertyRules.FormerMembers(society.Checkpoint, source, WorldTick);
         }
         else
         {
-            if (!town.LandHearings.Cases.Any(item => item.Property?.Transfer is { ResultBuilding.HouseholdId: null } transfer &&
+            if (!town.LandRecords.Cases.Any(item => item.Property?.Transfer is { ResultBuilding.HouseholdId: null } transfer &&
                     transfer.ResultBuilding.InstanceId == building.InstanceId && transfer.ResultBuilding.TownId == town.Id))
                 throw new InvalidOperationException("Only property previously recovered by a Town ruling can be granted this way.");
             var target = society.Checkpoint.Households.SingleOrDefault(household => household.Id == request.TargetHouseholdId);
@@ -87,15 +87,15 @@ public sealed partial class WorldRuntime
     private void AddTownPropertyCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town)
     {
         if (!NearCivicBoard(actor, town) || !TownAdults(town).Contains(actor, StringComparer.Ordinal) ||
-            town.Government is not { } government || town.Governance is not { } council) return;
+            town.Government is not { } government || town.Council is not { } council) return;
         var mayor = government.Arrangement.Ordinary == TownArrangementRules.Mayor && government.Offices.Any(office =>
             office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > WorldTick);
         var councillor = government.Arrangement.Ordinary is TownArrangementRules.Council or TownArrangementRules.ElectedCouncil or
             TownArrangementRules.AllAdultCouncil && council.Members.Contains(actor, StringComparer.Ordinal);
         if (!mayor && !councillor) return;
         var empty = society.Checkpoint.Households.Where(household => !household.MemberIds.Any(id =>
-            society.Checkpoint.GetInhabitant(id).Status == SocietyInhabitantStatus.Active)).Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
-        var recovered = town.LandHearings.Cases.Where(item => item.Property?.Transfer is { ResultBuilding.HouseholdId: null })
+            society.Checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active)).Select(household => household.Id).ToHashSet(StringComparer.Ordinal);
+        var recovered = town.LandRecords.Cases.Where(item => item.Property?.Transfer is { ResultBuilding.HouseholdId: null })
             .Select(item => item.Property!.Transfer!.ResultBuilding.InstanceId).ToHashSet(StringComparer.Ordinal);
         foreach (var building in worldSimulation.Buildings.Where(building => building.TownId == town.Id &&
                      (building.HouseholdId is { } source && empty.Contains(source) || building.HouseholdId is null && recovered.Contains(building.InstanceId)))
@@ -110,7 +110,7 @@ public sealed partial class WorldRuntime
                 try { snapshot = CaptureProperty(town, request, 1); }
                 catch (InvalidOperationException) { continue; }
                 var plot = WorldContentSimulationRules.Footprint(worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building).ToArray();
-                if (TownPropertyRules.FilingRefusal(town.LandHearings, plot, new(request, [snapshot], [])) is not null) continue;
+                if (TownPropertyRules.FilingRefusal(town.LandRecords, plot, new(request, [snapshot], [])) is not null) continue;
                 candidates.Add(new(CivicAction(town.Id, "hearing_property_request", building.InstanceId, target ?? "town"),
                     (mayor ? "Open" : "Ask the Council to authorize") + " a public property hearing to " +
                     (target is null ? "recover the empty household's " : "grant household " + target + " the recovered ") +
@@ -121,8 +121,8 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private (TownGovernanceState Council, TownLandHearingState LandHearings) RequestPropertyCase(TownRuntimeState town,
-        string actor, string subject, string choice, string statement, TownGovernanceState council, TownGovernmentState government)
+    private (TownCouncilState Council, TownLandRecords LandRecords) RequestPropertyCase(TownRuntimeState town,
+        string actor, string subject, string choice, string statement, TownCouncilState council, TownGovernmentState government)
     {
         var building = worldSimulation.Buildings.Single(building => CivicAgentToken(building.InstanceId) == subject);
         var request = new TownPropertyRequest(building.InstanceId, building.HouseholdId, choice == "town" ? null :
@@ -131,22 +131,22 @@ public sealed partial class WorldRuntime
         var tiles = TownLandRightsRules.OrderTiles(WorldContentSimulationRules.Footprint(
             worldContent.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId), building));
         var property = new TownPropertyCase(request, [snapshot], []);
-        if (TownPropertyRules.FilingRefusal(town.LandHearings, tiles, property) is { } refusal) throw new InvalidOperationException(refusal);
+        if (TownPropertyRules.FilingRefusal(town.LandRecords, tiles, property) is { } refusal) throw new InvalidOperationException(refusal);
         var outcome = TownPropertyRules.Outcome(request);
         if (government.Arrangement.Ordinary == TownArrangementRules.Mayor)
         {
             var office = government.Offices.Single(office => office.Mandates == "ordinary" && office.HolderId == actor && office.TermEndTick > WorldTick);
-            return OpenLandHearing(town, council, town.LandHearings, new(actor, "town", statement, outcome, WorldTick, office.ElectionId),
+            return OpenLandHearing(town, council, town.LandRecords, new(actor, "town", statement, outcome, WorldTick, office.ElectionId),
                 tiles, townRepresentative: actor, propertyRequest: request);
         }
         var filing = new TownLandFilingRequest(tiles, outcome, statement) { Property = request };
-        council = TownGovernanceRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,
+        council = TownCouncilRules.SubmitProposal(council, town.Id, actor, "land_hearing", null,
             "Authorize this Town property hearing.", "council:" + council.Revision, TownAdults(town), WorldTick, CivicDay,
             noticeText: TownLandGovernmentFilingRules.Describe(filing), landHearingRequest: filing);
-        return (council, town.LandHearings);
+        return (council, town.LandRecords);
     }
 
-    private TownLandHearingState TransferCaseProperty(TownRuntimeState town, TownLandHearingState hearings, string caseId, TownPropertySnapshot prior)
+    private TownLandRecords TransferCaseProperty(TownRuntimeState town, TownLandRecords hearings, string caseId, TownPropertySnapshot prior)
     {
         var item = hearings.Cases.Single(item => item.Id == caseId);
         var property = item.Property!;

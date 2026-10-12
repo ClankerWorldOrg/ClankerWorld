@@ -46,7 +46,7 @@ public static partial class SocietyRules
     {
         var youngest = checkpoint.Config.FounderStartingAge;
         var random = Pcg32XshRrV1.Create(checkpoint.WorldId,
-            FormattableString.Invariant($"society/adult-arrival-age:{checkpoint.Inhabitants.Count}"));
+            FormattableString.Invariant($"society/adult-arrival-age:{checkpoint.Agents.Count}"));
         return youngest + (int)(random.NextUInt() % (uint)(LatestArrivalAge(checkpoint.Config) - youngest + 1));
     }
 }

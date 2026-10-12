@@ -10,9 +10,9 @@ public sealed partial class WorldRuntime
     /// <summary>The name and its private permanent memory publish together, including for married spouses.</summary>
     private SocietyOperationResult RenameFromPlayer(SocietyCheckpoint checkpoint, string agentId, string name)
     {
-        var renamed = SocietyRules.RenameInhabitant(checkpoint, agentId, name);
+        var renamed = SocietyRules.RenameAgent(checkpoint, agentId, name);
         if (renamed.NewEvents is not { Count: > 0 }) return renamed;
-        var identity = renamed.Checkpoint.GetInhabitant(agentId);
+        var identity = renamed.Checkpoint.GetAgent(agentId);
         // The saved world-event ordinal distinguishes same-tick renames and survives setup undo and reload.
         var id = RenameMemoryId(agentId, nextEventId);
         var day = CivicDayNumber(checkpoint.WorldTick).ToString(CultureInfo.InvariantCulture);

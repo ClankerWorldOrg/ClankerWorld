@@ -96,13 +96,13 @@ public sealed class ServerObservationTests
     {
         var (state, farmer, household, point) = FarmFieldTests.PreparedFarmer("field-observation");
         var farmhouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-farmhouse");
-        var miller = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household && person.Id != farmer).Id;
+        var miller = state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != farmer).Id;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "observation-grain", "grain", household, 1,
             storageBuildingId: farmhouse.InstanceId);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == miller
-                ? person with { Position = farmhouse.Position, HungerBasisPoints = 10_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == miller
+                ? person with { Position = farmhouse.Position, FullnessBasisPoints = 10_000 } : person).ToArray(),
         };
         using var runtime = FarmFieldTests.Restore(state);
         var mill = runtime.WorldContent.Recipes.Single(recipe => recipe.LocalId == "mill-grain");
@@ -155,35 +155,35 @@ public sealed class ServerObservationTests
         using var genesis = new WorldRuntime("playtest-alpha");
         var state = genesis.ExportState();
         var society = state.Society.Society;
-        foreach (var inhabitant in society.Inhabitants)
+        foreach (var agent in society.Agents)
         {
-            society = ClankerWorld.Simulation.Society.SocietyRules.Kill(society, inhabitant.Id,
+            society = ClankerWorld.Simulation.Society.SocietyRules.Kill(society, agent.Id,
                 ClankerWorld.Simulation.Society.SocietyDeathCause.NaturalAge).Checkpoint;
         }
-        state = state with { Society = state.Society with { Society = society }, Inhabitants = [] };
+        state = state with { Society = state.Society with { Society = society }, Agents = [] };
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         var baseline = new OwnerWorldObservationStore(restored).GetReconnectBaseline(0);
-        Assert.Empty(baseline.Snapshot.Inhabitants);
+        Assert.Empty(baseline.Snapshot.Agents);
         Assert.Null(baseline.Snapshot.Actor);
         Assert.Equal(state.Society.Society.WorldTick, baseline.Snapshot.WorldTick);
     }
 
     [Fact]
-    public void OwnerInhabitantKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute()
+    public void OwnerAgentKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute()
     {
         using var runtime = new WorldRuntime("camp-alpha");
         var store = new OwnerWorldObservationStore(runtime);
 
         var snapshot = store.GetSnapshot();
-        var inhabitant = snapshot.Inhabitants[0];
-        var knowledge = inhabitant.SpatialKnowledge;
+        var agent = snapshot.Agents[0];
+        var knowledge = agent.SpatialKnowledge;
 
-        Assert.Equal(inhabitant.Position, knowledge.CurrentTile);
+        Assert.Equal(agent.Position, knowledge.CurrentTile);
         Assert.All(knowledge.PerceivedTiles, tile => Assert.Contains(tile, knowledge.KnownTiles));
-        Assert.All(inhabitant.Route.Steps, step => Assert.Contains(step, knowledge.KnownTiles));
-        if (inhabitant.Route.Destination is not null)
+        Assert.All(agent.Route.Steps, step => Assert.Contains(step, knowledge.KnownTiles));
+        if (agent.Route.Destination is not null)
         {
-            Assert.Contains(inhabitant.Route.Destination, knowledge.KnownTiles);
+            Assert.Contains(agent.Route.Destination, knowledge.KnownTiles);
         }
 
         Assert.Equal(
@@ -194,11 +194,11 @@ public sealed class ServerObservationTests
             knowledge.KnownTiles);
         Assert.True(
             knowledge.KnownTiles.Count < snapshot.Tiles.Count,
-            "The native projection must not expose the complete server map as inhabitant knowledge.");
+            "The native projection must not expose the complete server map as agent knowledge.");
     }
 
     [Fact]
-    public void WorldObservationProjectsTheActiveSettlementAndNeeds()
+    public void WorldObservationProjectsTheActiveTownAndNeeds()
     {
         using var runtime = new WorldRuntime("playtest-alpha");
         var store = new OwnerWorldObservationStore(runtime);
@@ -206,16 +206,16 @@ public sealed class ServerObservationTests
         var snapshot = store.GetSnapshot();
 
         Assert.Equal("playtest-alpha", snapshot.WorldId);
-        Assert.Equal(4, snapshot.Inhabitants.Count);
-        Assert.All(snapshot.Inhabitants, inhabitant =>
+        Assert.Equal(4, snapshot.Agents.Count);
+        Assert.All(snapshot.Agents, agent =>
         {
-            Assert.False(inhabitant.IsDraft);
-            Assert.Equal("active", inhabitant.Lifecycle);
-            Assert.Contains(inhabitant.DecisionFactors, factor => factor.Key == "personality");
-            Assert.Contains(inhabitant.DecisionFactors, factor => factor.Key == "household");
-            Assert.NotEmpty(inhabitant.SpatialKnowledge.PerceivedTiles);
+            Assert.False(agent.IsDraft);
+            Assert.Equal("active", agent.Lifecycle);
+            Assert.Contains(agent.DecisionFactors, factor => factor.Key == "personality");
+            Assert.Contains(agent.DecisionFactors, factor => factor.Key == "household");
+            Assert.NotEmpty(agent.SpatialKnowledge.PerceivedTiles);
             Assert.Contains(
-                inhabitant.Relationships,
+                agent.Relationships,
                 relationship => relationship.Type == "household_membership" &&
                     relationship.State == "accepted" &&
                     relationship.OtherPartyId == "household:camp-alpha");
@@ -224,7 +224,7 @@ public sealed class ServerObservationTests
         Assert.NotNull(snapshot.WorldSystems);
         Assert.Equal("spring", snapshot.WorldSystems!.Season);
         Assert.Equal(4, snapshot.WorldSystems.EcologyResourceCount);
-        Assert.Equal(4, snapshot.Inhabitants.Select(inhabitant => inhabitant.Id).Distinct().Count());
+        Assert.Equal(4, snapshot.Agents.Select(agent => agent.Id).Distinct().Count());
     }
 
     [Fact]
@@ -235,19 +235,19 @@ public sealed class ServerObservationTests
 
         var snapshot = new OwnerWorldObservationStore(runtime).GetSnapshot();
 
-        Assert.Contains(snapshot.Inhabitants, inhabitant =>
-            inhabitant.PublicIntention is { WorldTick: 1, Summary: not null });
+        Assert.Contains(snapshot.Agents, agent =>
+            agent.PublicIntention is { WorldTick: 1, Summary: not null });
         Assert.Equal(4, snapshot.Cognition!.Decisions!.Count);
         Assert.All(snapshot.Cognition.Decisions, decision =>
         {
             Assert.Equal(1, decision.WorldTick);
             Assert.Equal("deterministic", decision.Provider);
-            Assert.Contains(snapshot.Inhabitants, inhabitant => inhabitant.Id == decision.InhabitantId);
+            Assert.Contains(snapshot.Agents, agent => agent.Id == decision.AgentId);
         });
-        Assert.All(snapshot.Inhabitants.Where(inhabitant => inhabitant.PublicIntention is not null), inhabitant =>
+        Assert.All(snapshot.Agents.Where(agent => agent.PublicIntention is not null), agent =>
         {
-            Assert.DoesNotContain("chain", inhabitant.PublicIntention!.Summary, StringComparison.OrdinalIgnoreCase);
-            Assert.DoesNotContain("prompt", inhabitant.PublicIntention.Summary, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("chain", agent.PublicIntention!.Summary, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("prompt", agent.PublicIntention.Summary, StringComparison.OrdinalIgnoreCase);
         });
     }
 }

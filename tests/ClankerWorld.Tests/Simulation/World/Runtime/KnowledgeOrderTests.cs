@@ -22,7 +22,7 @@ public sealed class KnowledgeOrderTests
         string text, string kind, int paperCost, int clothCost, int sites)
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = Supplies(state, actor, 3, 2);
         using var world = Restore(state);
         var receipt = Submit(world, "ordered-writing", text);
@@ -51,9 +51,9 @@ public sealed class KnowledgeOrderTests
         Assert.All(project.Materials, input => Assert.Equal(InventoryReservationState.Completed,
             world.Society.Inventory.GetReservation(input.ReservationId).State));
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
-            item => item.InstructionId == receipt.InstructionId).Order!;
+            item => item.InstructionId == receipt.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(JsonSerializer.Serialize(projected, json), json)!;
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldOrderTask>(JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal((kind, "artifacts", 1), (client.TargetKnowledgeKind, client.ProgressUnit, client.CompletedUnits));
         AssertReload(final);
     }
@@ -62,7 +62,7 @@ public sealed class KnowledgeOrderTests
     public async Task PaperDoesNotInventKnowledgeForAWritingOrder()
     {
         var state = await Prepared(learn: false);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = Supplies(state, actor, 3, 2);
         using var world = Restore(state);
         var receipt = Submit(world, "unknown-map", "draw a map");
@@ -83,7 +83,7 @@ public sealed class KnowledgeOrderTests
     public async Task CancellationOrReplacementReleasesOnlyTheOrdersUnspentInputs(bool replace)
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = Supplies(state, actor, 3, 2);
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "unrelated-paper", actor,
             "ordered-paper", 1, "another commitment", long.MaxValue);
@@ -92,7 +92,7 @@ public sealed class KnowledgeOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var project = Assert.Single(world.ExportState().Knowledge!.WritingProjects);
         if (replace)
-            Submit(world, "replace-writing", "move to " + world.Inhabitants[0].Position.X + "," + world.Inhabitants[0].Position.Y);
+            Submit(world, "replace-writing", "move to " + world.Agents[0].Position.X + "," + world.Agents[0].Position.Y);
         else
         {
             var request = new OwnerOrderCancelRequest("cancel-writing-receipt", "owner:test", world.Society.WorldId,
@@ -118,7 +118,7 @@ public sealed class KnowledgeOrderTests
     public async Task QueuedWritingStartsAfterTheActiveOrderAndCreditsItsOwnItem()
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = Restore(Supplies(state, actor, 3, 2));
         var first = Submit(world, "first-writing", "write a record");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -145,8 +145,8 @@ public sealed class KnowledgeOrderTests
     public async Task WritingOrdersRefuseUnavailableMaterialsWithoutTakingOtherProperty(string text, string reason)
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var other = state.Agents.First(person => person.AgentId != actor).AgentId;
         state = Supplies(state, reason == "foreign" ? other : actor, reason == "missing-cloth" ? 2 : 1, 0);
         var inventory = state.Society.Society.Inventory;
         if (reason == "reserved")
@@ -155,7 +155,7 @@ public sealed class KnowledgeOrderTests
         if (reason == "full")
         {
             // Controlled carried wood fills the actor's capacity; the paper stays in shared House stock.
-            var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+            var household = state.Society.Society.GetAgent(actor).HouseholdId!;
             var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
             inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != "ordered-paper").ToArray() };
@@ -181,8 +181,8 @@ public sealed class KnowledgeOrderTests
     public async Task MoreWritingWaitsForNewPersonallyLearnedFactsAndPaysForEachArtifact(string text, bool repeat)
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var target = state.Knowledge!.Facts.First(fact => fact.OwnerId == actor && fact.Position != state.Inhabitants[0].Position).Position;
+        var actor = state.Agents[0].AgentId;
+        var target = state.Knowledge!.Facts.First(fact => fact.OwnerId == actor && fact.Position != state.Agents[0].Position).Position;
         state = Supplies(state, actor, 3, 0);
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "writing-observation-seed", TreeGrowthRules.SeedItem(TreeGrowthRules.Orchard), actor, 1, state.Society.Society.WorldTick));
@@ -215,7 +215,7 @@ public sealed class KnowledgeOrderTests
     public async Task StrictLoadRejectsBrokenWritingBindingsAndInventedCompletion()
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var world = Restore(Supplies(state, actor, 2, 1));
         var receipt = Submit(world, "strict-writing", "bind a book");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -227,9 +227,9 @@ public sealed class KnowledgeOrderTests
             working with { Knowledge = working.Knowledge with { WritingProjects = [project with { OrderInstructionId = "missing-order" }] } },
             working with { Knowledge = working.Knowledge with { WritingProjects = [project with { OrderInstructionId = null }] } },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
-                { Order = item.Order! with { TargetKnowledgeKind = "field_map" } } : item).ToArray() },
+                { Task = item.Task! with { TargetKnowledgeKind = "field_map" } } : item).ToArray() },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
-                { Order = item.Order! with { CompletedUnits = 1, LastEffectId = "writing:artifact:knowledge-artifact-000001", RepeatUntilCancelled = true } } : item).ToArray() },
+                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = "writing:artifact:knowledge-artifact-000001", RepeatUntilCancelled = true } } : item).ToArray() },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(broken));
         AssertReload(working);
     }
@@ -240,19 +240,19 @@ public sealed class KnowledgeOrderTests
     public async Task WritingCollectsPermittedHouseStockButRefusesAnotherHouseholdsStock(bool foreign)
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
-        if (foreign) household = state.Society.Society.Inhabitants.First(person => person.HouseholdId is { } home && home != household).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
+        if (foreign) household = state.Society.Society.Agents.First(person => person.HouseholdId is { } home && home != household).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var start = state.Map.Tiles.Select(tile => tile.Position).First(point =>
             state.Map.FootDistance(point, house.Position) == 2 && state.Map.IsReachableOnFoot(point, house.Position) &&
-            state.Inhabitants.All(person => person.Position != point));
+            state.Agents.All(person => person.Position != point));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "house-writing-paper", "paper", household,
             2, state.Society.Society.WorldTick, storageBuildingId: house.InstanceId);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             { Position = start, TravelCooldownTicks = 0, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -263,11 +263,11 @@ public sealed class KnowledgeOrderTests
         {
             Assert.Equal("blocked", Order(world, receipt).Status);
             AssertUnmovedLot(inventory.GetLot("house-writing-paper"), world.Society.Inventory.GetLot("house-writing-paper"));
-            Assert.Equal(start, world.Inhabitants[0].Position);
+            Assert.Equal(start, world.Agents[0].Position);
         }
         else
         {
-            Assert.NotEqual(start, world.Inhabitants[0].Position);
+            Assert.NotEqual(start, world.Agents[0].Position);
             await FinishTogether(world, receipt);
             Assert.Single(world.ExportState().Knowledge!.Artifacts);
             Assert.Equal((household, house.InstanceId, 1), (world.Society.Inventory.GetLot("house-writing-paper").OwnerId,
@@ -285,7 +285,7 @@ public sealed class KnowledgeOrderTests
     public async Task MatchingOrdinaryWritingCanBeAdoptedWhileDifferentWorkIsPreserved(string text, bool matching)
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = Supplies(state, actor, 3, 2);
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == actor ? new Choose("knowledge_write:field_map") : new Idle());
@@ -321,7 +321,7 @@ public sealed class KnowledgeOrderTests
     public async Task UrgentFoodInterruptsWritingWithoutLosingItsPaidWork()
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var starting = Restore(Supplies(state, actor, 2, 1));
         var receipt = Submit(starting, "hungry-writing", "bind a book");
         Assert.True((await starting.AdvanceOneTickAsync()).Advanced);
@@ -330,8 +330,8 @@ public sealed class KnowledgeOrderTests
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "writing-urgent-food", "berries", actor, 4, state.Society.Society.WorldTick)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
-            { HungerBasisPoints = 1000, LastDecisionContext = null } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
+            { FullnessBasisPoints = 1000, LastDecisionContext = null } : person).ToArray(),
         };
         using var world = Restore(state);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -347,7 +347,7 @@ public sealed class KnowledgeOrderTests
     public async Task APendingPersonalReplyContinuesItsReservedWritingUnderTheOriginalChoice()
     {
         var state = await Prepared();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var setup = WorldRuntime.Restore(Supplies(state, actor, 1, 0),
             id => id == actor ? new Choose("knowledge_write:field_map") : new Idle());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
@@ -355,11 +355,11 @@ public sealed class KnowledgeOrderTests
         var original = Assert.Single(state.Knowledge!.WritingProjects);
         Assert.Null(original.OrderInstructionId);
         Assert.Equal(original.CandidateId,
-            state.Society.Cognition.Runtimes.Single(item => item.InhabitantId == actor).CurrentIntention!.CandidateId);
+            state.Society.Cognition.Runtimes.Single(item => item.AgentId == actor).CurrentIntention!.CandidateId);
         var provider = new HeldPhysicalTaskDecisionProvider();
         using var world = WorldRuntime.Restore(state, id => id == actor ? provider : new Idle());
         world.SubmitInstruction(new("waiting-writing-guidance", "owner:test", actor,
-            OwnerInstructionKind.Suggestive, "Think about your next task."));
+            OwnerInstructionKind.Suggestion, "Think about your next task."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Contains(Assert.Single(provider.Requests).Candidates, candidate => candidate.Id == original.CandidateId);
@@ -391,7 +391,7 @@ public sealed class KnowledgeOrderTests
             Assert.True((await initial.AdvanceOneTickAsync()).Advanced);
             state = initial.ExportState();
         }
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var geometry = WorldRuntime.Restore(state, _ => new Idle());
         var occupied = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
@@ -400,16 +400,16 @@ public sealed class KnowledgeOrderTests
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(point => !occupied.Contains(point) &&
                 !state.Towns!.Any(town => town.BorderTiles.Contains(point)) &&
                 TreeGrowthRules.GroundRefusal(state.Map, point) is null &&
-                state.Map.FootNeighbors(point).Any(next => state.Inhabitants.All(person => person.Position != next)) &&
-                state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
-        var stand = state.Map.FootNeighbors(target).First(point => state.Inhabitants.All(person => person.Position != point));
+                state.Map.FootNeighbors(point).Any(next => state.Agents.All(person => person.Position != next)) &&
+                state.Map.IsReachableOnFoot(state.Agents[0].Position, point))
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
+        var stand = state.Map.FootNeighbors(target).First(point => state.Agents.All(person => person.Position != point));
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
-                HungerBasisPoints = 9500,
+                FullnessBasisPoints = 9500,
                 TravelCooldownTicks = 0,
                 LastDecisionContext = null,
                 Project = null,
@@ -438,13 +438,13 @@ public sealed class KnowledgeOrderTests
 
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(
         WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
-        id => id == state.Inhabitants[0].InhabitantId ? new DeterministicDecisionProvider() : new Idle());
+        id => id == state.Agents[0].AgentId ? new DeterministicDecisionProvider() : new Idle());
 
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new(key, "owner:test", world.Inhabitants[0].InhabitantId, OwnerInstructionKind.MustDo, text, Queue: queue));
+        world.SubmitInstruction(new(key, "owner:test", world.Agents[0].AgentId, OwnerInstructionKind.Order, text, Queue: queue));
 
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
 
     private static int Quantity(WorldRuntimeState state, string owner, string kind) =>
         state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == owner && lot.ItemKind == kind).Sum(lot => lot.Quantity);

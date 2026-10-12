@@ -11,8 +11,8 @@ internal static partial class OwnerEndpoints
     {
         MapDeveloperEdits(app);
 
-        app.MapPost("/api/v1/owner/control/life-pace", (
-            OwnerSignedHttpRequest<OwnerLifePaceAction> request,
+        app.MapPost("/api/v1/owner/control/aging-override", (
+            OwnerSignedHttpRequest<OwnerAgingOverrideAction> request,
             OwnerRequestAuthorizer authorizer,
             IServiceProvider services,
             OwnerWorldObservationStore observations,
@@ -23,9 +23,9 @@ internal static partial class OwnerEndpoints
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["action.rate"] = ["Life pace must be 1, 365 or 1460."] });
             }
             string payload;
-            try { payload = OwnerHttpBinding.LifePacePayload(action); }
+            try { payload = OwnerHttpBinding.AgingOverridePayload(action); }
             catch (ArgumentException) { return Results.BadRequest(new { error = "Read the current world's settings before changing life pace." }); }
-            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/life-pace", payload);
+            var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/control/aging-override", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
             lock (services.GetRequiredService<ProviderConfigurationStore>().WorldMutationGate)
             {
@@ -35,7 +35,7 @@ internal static partial class OwnerEndpoints
                 bool changed;
                 try
                 {
-                    changed = runtime.SetLifePace(action.Rate);
+                    changed = runtime.SetAgingOverride(action.Rate);
                 }
                 catch (InvalidOperationException)
                 {
@@ -43,8 +43,8 @@ internal static partial class OwnerEndpoints
                 }
                 // A retry must also persist a prior in-memory change whose first save failed.
                 services.GetRequiredService<WorldStateFile>().Save(runtime);
-                if (changed) OwnerLifePaceTelemetry.Changed(logger, runtime.WorldTick, action.Rate);
-                return Results.Ok(OwnerControlReceipt.From("life_pace", changed, observations.GetSnapshot()));
+                if (changed) OwnerAgingOverrideTelemetry.Changed(logger, runtime.WorldTick, action.Rate);
+                return Results.Ok(OwnerControlReceipt.From("aging_override", changed, observations.GetSnapshot()));
             }
         });
 

@@ -8,7 +8,7 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
-    private void ToggleInhabitants()
+    private void ToggleAgents()
     {
         var show = !rosterPanel.Visible;
         filtersPanel.Hide();
@@ -46,7 +46,7 @@ public partial class Main
 
     private void OpenFamilyTree()
     {
-        if (selectedInhabitantId is not { } id || observationSession.Current is not { } current)
+        if (selectedAgentId is not { } id || observationSession.Current is not { } current)
             return;
         ShowFamilyTree(current.Baseline.Snapshot, id);
     }
@@ -57,7 +57,7 @@ public partial class Main
         thoughtsPanel.Hide();
         ordersPanel.Hide();
         conversationPanel.Hide();
-        familyTreeView.SetPeople(snapshot.WorldId, snapshot.Inhabitants, id);
+        familyTreeView.SetPeople(snapshot.WorldId, snapshot.Agents, id);
         UpdateFamilyTreeStatus();
         rosterPanel.Hide();
         eventsPanel.Hide();
@@ -79,17 +79,17 @@ public partial class Main
     private void SelectFromFamilyTree(string id)
     {
         familyTreePanel.Hide();
-        selectedInhabitantId = id;
+        selectedAgentId = id;
         if (observationSession.Current is not { } current) return;
         var snapshot = current.Baseline.Snapshot;
-        RenderInhabitantList(snapshot);
-        RenderSelectedInhabitantCard(snapshot);
+        RenderAgentList(snapshot);
+        RenderSelectedAgentCard(snapshot);
         RenderMap(snapshot);
     }
 
     private void OpenMemories()
     {
-        if (selectedInhabitantId is null) return;
+        if (selectedAgentId is null) return;
         familyTreePanel.Hide();
         rosterPanel.Hide();
         eventsPanel.Hide();
@@ -362,9 +362,9 @@ public partial class Main
             AgentProfileBack();
             return true;
         }
-        if (selectedInhabitantCard.Visible)
+        if (selectedAgentCard.Visible)
         {
-            ClearInhabitantSelection();
+            ClearAgentSelection();
             return true;
         }
         // Developer tools often stay open while testing, so they close last.

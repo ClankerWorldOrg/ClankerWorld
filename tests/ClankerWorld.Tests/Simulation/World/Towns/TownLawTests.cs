@@ -14,19 +14,19 @@ public sealed class TownLawTests
         new("title:b", "town:other", [new(8, 8)], 0),
     ];
 
-    private static (TownGovernanceState Council, TownGovernmentState Government) Fresh() =>
-        (TownGovernanceState.Create(Adults), TownGovernmentState.Create());
+    private static (TownCouncilState Council, TownGovernmentState Government) Fresh() =>
+        (TownCouncilState.Create(Adults), TownGovernmentState.Create());
 
-    private static (TownGovernanceState, TownGovernmentState) Pass((TownGovernanceState Council, TownGovernmentState Government) civic,
+    private static (TownCouncilState, TownGovernmentState) Pass((TownCouncilState Council, TownGovernmentState Government) civic,
         long tick, params string[] voters)
     {
         var (council, government) = civic;
         var id = council.Proposals[^1].Id;
-        foreach (var voter in voters) council = TownGovernanceRules.VoteProposal(council, id, voter, true, tick);
+        foreach (var voter in voters) council = TownCouncilRules.VoteProposal(council, id, voter, true, tick);
         return TownLawRules.Enact(council, government, Town, "Test Town", tick);
     }
 
-    private static (TownGovernanceState, TownGovernmentState) Adopt(string text, string scope = TownLawRules.Jurisdiction,
+    private static (TownCouncilState, TownGovernmentState) Adopt(string text, string scope = TownLawRules.Jurisdiction,
         GridPoint[]? site = null, long tick = 0)
     {
         var (council, government) = Fresh();
@@ -180,8 +180,8 @@ public sealed class TownLawTests
     {
         var (council, government) = Fresh();
         (council, government) = TownLawRules.ProposeAdoption(council, government, Town, "a", Grove, TownLawRules.Jurisdiction, [], Adults, 0, Day);
-        council = TownGovernanceRules.VoteProposal(council, council.Proposals[0].Id, "a", true, 1);
-        council = TownGovernanceRules.Advance(council, Town, "seed", Adults, Day, Day);
+        council = TownCouncilRules.VoteProposal(council, council.Proposals[0].Id, "a", true, 1);
+        council = TownCouncilRules.Advance(council, Town, "seed", Adults, Day, Day);
         (council, government) = TownLawRules.Enact(council, government, Town, "Test Town", Day);
         Assert.Equal("rejected", council.Proposals[0].Status);
         Assert.Empty(government.Laws);
@@ -189,7 +189,7 @@ public sealed class TownLawTests
 
         (council, government) = TownLawRules.ProposeAdoption(council, government, Town, "a", "Wells: Keep the well covered.",
             TownLawRules.Jurisdiction, [], Adults, Day + 1, Day);
-        council = TownGovernanceRules.Advance(council, Town, "seed", Adults.Append("d").ToArray(), Day + 2, Day);
+        council = TownCouncilRules.Advance(council, Town, "seed", Adults.Append("d").ToArray(), Day + 2, Day);
         (_, government) = TownLawRules.Enact(council, government, Town, "Test Town", Day + 2);
         Assert.Empty(government.Laws);
         Assert.Equal("not_passed", government.LawDrafts[1].Status);
@@ -204,10 +204,10 @@ public sealed class TownLawTests
         var amendment = civic.Item1.Proposals[^1].Id;
         civic = TownLawRules.ProposeRepeal(civic.Item1, civic.Item2, Town, "b", lawId, Adults, 6, Day);
         var repeal = civic.Item1.Proposals[^1].Id;
-        var council = TownGovernanceRules.VoteProposal(civic.Item1, amendment, "a", true, 7);
-        council = TownGovernanceRules.VoteProposal(council, amendment, "b", true, 7);
-        council = TownGovernanceRules.VoteProposal(council, repeal, "b", true, 8);
-        council = TownGovernanceRules.VoteProposal(council, repeal, "c", true, 8);
+        var council = TownCouncilRules.VoteProposal(civic.Item1, amendment, "a", true, 7);
+        council = TownCouncilRules.VoteProposal(council, amendment, "b", true, 7);
+        council = TownCouncilRules.VoteProposal(council, repeal, "b", true, 8);
+        council = TownCouncilRules.VoteProposal(council, repeal, "c", true, 8);
         var (enactedCouncil, government) = TownLawRules.Enact(council, civic.Item2, Town, "Test Town", 8);
         Assert.True(TownLawRules.IsInForce(government.Laws[0]));
         Assert.Equal("Cut only fallen trees.", TownLawRules.Current(government.Laws[0]).Rule);

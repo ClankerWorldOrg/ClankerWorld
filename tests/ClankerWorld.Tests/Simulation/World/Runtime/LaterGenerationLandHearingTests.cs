@@ -21,8 +21,8 @@ public sealed partial class GrownAgentHelperMemoryTests
         var other = births[^2].ChildId;
         Assert.Equal(3, births.Length);
         Assert.InRange(actor.Length, 1, DerivedId.MaximumLength);
-        var actorName = state.Society.Society.GetInhabitant(actor).Name;
-        var otherName = state.Society.Society.GetInhabitant(other).Name;
+        var actorName = state.Society.Society.GetAgent(actor).Name;
+        var otherName = state.Society.Society.GetAgent(other).Name;
         var candidates = new HashSet<string>([actor, other], StringComparer.Ordinal);
         var choices = new NativeLandHearingChoices
         {
@@ -37,17 +37,17 @@ public sealed partial class GrownAgentHelperMemoryTests
         var house = world.WorldSimulation.Buildings.Single(item => item.InstanceId == NativeHearingHouse);
         foreach (var member in world.Society.GetHousehold(house.HouseholdId!).MemberIds.ToArray())
             Assert.True(world.DisplaceAdult(member));
-        await NativeHearingUntil(world, () => world.Towns[0].LandHearings.Cases.Count == 1, 20);
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases.Count == 1, 20);
         choices.Request = false;
         // A running round retains its opening candidate list. Let an early
         // one-candidate round fail without a ballot; both adults must personally
         // register before the next real round can offer both choices.
-        await NativeHearingUntil(world, () => world.Towns[0].LandHearings.Cases[0].Contest is { Stage: "voting" } contest &&
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases[0].Contest is { Stage: "voting" } contest &&
             contest.Candidates.SequenceEqual(candidates.Order(StringComparer.Ordinal)), NativeHearingDay * 3);
         choices.CaseVote = voter => voter == actor ? actorName : voter == other ? otherName : null;
-        await NativeHearingUntil(world, () => world.Towns[0].LandHearings.Cases[0].Contest is { } contest &&
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases[0].Contest is { } contest &&
             contest.TiedCandidates.Contains(actor) && contest.Rounds.Any(round => round.Result == "tie"), NativeHearingDay * 2);
-        var tied = world.Towns[0].LandHearings.Cases[0].Contest!;
+        var tied = world.Towns[0].LandRecords.Cases[0].Contest!;
         Assert.Contains(actor, tied.Voters);
         Assert.Contains(actor, tied.Candidates);
         Assert.Contains(actor, tied.TiedCandidates);
@@ -56,7 +56,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Contains(actor, round.Candidates);
         Assert.Contains(actor, round.TiedCandidates);
         var pending = WorldRuntimeCodec.Encode(world.ExportState());
-        AssertInvalidLaterElectionRosters(world.ExportState(), world.Towns[0].LandHearings.Cases[0], tied, actor, other);
+        AssertInvalidLaterElectionRosters(world.ExportState(), world.Towns[0].LandRecords.Cases[0], tied, actor, other);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(pending), _ => new NativeLandHearingChoices
         { Judge = actor, CaseCandidates = candidates, CaseVote = _ => actorName, Consent = true, Rule = true });
         Assert.Equal(pending, WorldRuntimeCodec.Encode(replay.ExportState()));
@@ -64,7 +64,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(pending, WorldRuntimeCodec.Encode(world.ExportState()));
         choices.CaseVote = _ => actorName;
         choices.Rule = true;
-        for (var step = 0; step < NativeHearingDay * 3 && world.Towns[0].LandHearings.Cases[0].Status == "pending"; step++)
+        for (var step = 0; step < NativeHearingDay * 3 && world.Towns[0].LandRecords.Cases[0].Status == "pending"; step++)
         {
             NativeHearingPromptAll(world);
             NativeHearingPromptAll(replay);
@@ -72,7 +72,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var item = world.Towns[0].LandHearings.Cases[0];
+        var item = world.Towns[0].LandRecords.Cases[0];
         Assert.Equal("settled", item.Status);
         var election = Assert.Single(item.ContestHistory, contest => contest.Stage == "completed");
         Assert.Equal(actor, election.WinnerId);
@@ -110,7 +110,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 var invalidState = state with
                 {
                     Towns = state.Towns!.Select(town => town with
-                    { LandHearings = town.LandHearings with { Cases = town.LandHearings.Cases.Select(saved => saved.Id == item.Id ? invalidCase : saved).ToArray() } }).ToArray()
+                    { LandRecords = town.LandRecords with { Cases = town.LandRecords.Cases.Select(saved => saved.Id == item.Id ? invalidCase : saved).ToArray() } }).ToArray()
                 };
                 Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(invalidState));
             }
@@ -154,7 +154,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         for (var generation = firstGeneration; generation <= lastGeneration; generation++)
         {
             var mate = "agent:" + generation.ToString("D32", System.Globalization.CultureInfo.InvariantCulture);
-            var household = world.Society.GetInhabitant(parent).HouseholdId!;
+            var household = world.Society.GetAgent(parent).HouseholdId!;
             var house = world.WorldSimulation.Buildings.First(item => item.HouseholdId == household &&
                 item.InstanceId.Contains("house-", StringComparison.Ordinal));
             // The small generated House has three places. Older adults leave
@@ -177,9 +177,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             world.LoadPausedCheckpoint(state with
             {
                 Society = state.Society with { Society = society },
-                Inhabitants = state.Inhabitants.Select(item => item with
+                Agents = state.Agents.Select(item => item with
                 {
-                    HungerBasisPoints = 10_000,
+                    FullnessBasisPoints = 10_000,
                     LastDecisionContext = null,
                     Survival = (item.Survival ?? new SurvivalCondition()) with { WarmthBasisPoints = 10_000, IllnessBasisPoints = 0 }
                 }).ToArray(),
@@ -188,9 +188,9 @@ public sealed partial class GrownAgentHelperMemoryTests
             choices.Second = mate;
             choices.Names[mate] = generation switch { 2 => "Ori", 3 => "Elin", 4 => "Daro", 5 => "Fia", _ => throw new ArgumentOutOfRangeException(nameof(lastGeneration)) };
             world.Resume();
-            for (var tick = 0; tick < 20 && world.Inhabitants.Single(item => item.InhabitantId == parent).Parenthood?.Stage != "preparing"; tick++)
+            for (var tick = 0; tick < 20 && world.Agents.Single(item => item.AgentId == parent).Parenthood?.Stage != "preparing"; tick++)
                 Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var preparation = world.Inhabitants.Single(item => item.InhabitantId == parent).Parenthood!;
+            var preparation = world.Agents.Single(item => item.AgentId == parent).Parenthood!;
             Assert.Equal("preparing", preparation.Stage);
             // The agreed plan and birth are native; skip only idle waiting, as in
             // the parenthood timing fixtures. The next real tick performs the birth.
@@ -213,7 +213,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     RegionalWeather = RegionalWeatherRules.Advance(systems, targetTick),
                     Climate = WeatherRules.Advance(systems.Climate, targetTick, state.WorldSeed, systems.Config),
                 },
-                Inhabitants = state.Inhabitants.Select(item => item with { LastDecisionContext = null }).ToArray(),
+                Agents = state.Agents.Select(item => item with { LastDecisionContext = null }).ToArray(),
             });
             world.Resume();
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -221,7 +221,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 System.Text.Json.JsonSerializer.Serialize(new
                 {
                     world.WorldTick,
-                    Parents = world.Inhabitants.Where(item => item.InhabitantId == parent || item.InhabitantId == mate),
+                    Parents = world.Agents.Where(item => item.AgentId == parent || item.AgentId == mate),
                     Events = world.ExportState().Events.TakeLast(8)
                 }));
             var birth = world.Society.Births.OrderBy(item => item.CommittedTick).Last();
@@ -233,24 +233,24 @@ public sealed partial class GrownAgentHelperMemoryTests
             choices.First = choices.Second = null;
             choices.Names[parent] = generation switch { 2 => "Lina", 3 => "Nara", 4 => "Rian", 5 => "Tess", _ => throw new ArgumentOutOfRangeException(nameof(lastGeneration)) };
             world.Pause();
-            world.SetLifePace(365);
+            world.SetAgingOverride(365);
             world.Resume();
-            for (var tick = 0; tick < 40 && world.Society.AgeAt(world.Society.GetInhabitant(parent), world.WorldTick) < 15; tick++)
+            for (var tick = 0; tick < 40 && world.Society.AgeAt(world.Society.GetAgent(parent), world.WorldTick) < 15; tick++)
             {
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
                 await WaitForRequests(world);
             }
             world.Pause();
-            world.SetLifePace(1);
+            world.SetAgingOverride(1);
             world.Resume();
-            for (var tick = 0; tick < 40 && (world.Society.GetInhabitant(parent).NeedsName ||
-                world.Inhabitants.Single(item => item.InhabitantId == parent).IdentityChoicePending); tick++)
+            for (var tick = 0; tick < 40 && (world.Society.GetAgent(parent).NeedsName ||
+                world.Agents.Single(item => item.AgentId == parent).IdentityChoicePending); tick++)
             {
                 Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
                 await WaitForRequests(world);
             }
-            Assert.Equal(SocietyAgeBand.Adult, world.Society.GetInhabitant(parent).AgeBand);
-            Assert.False(world.Society.GetInhabitant(parent).NeedsName);
+            Assert.Equal(SocietyAgeBand.Adult, world.Society.GetAgent(parent).AgeBand);
+            Assert.False(world.Society.GetAgent(parent).NeedsName);
             recordAdult?.Invoke(generation, WorldRuntimeCodec.Encode(world.ExportState()));
         }
         world.Pause();
@@ -270,14 +270,14 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            var prefix = observation.InhabitantId == First ? "parent_propose:" : observation.InhabitantId == Second ? "parent_accept:" : null;
+            var prefix = observation.AgentId == First ? "parent_propose:" : observation.AgentId == Second ? "parent_accept:" : null;
             var selected = prefix is null ? null : observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal));
             selected ??= observation.Candidates.FirstOrDefault(item => item.Id.StartsWith("care:", StringComparison.Ordinal));
             selected ??= observation.Candidates.Single(item => item.Id == "safe_idle");
             var surname = observation.Self?.AllowedChildSurnames is { Count: > 0 } surnames ? surnames[0] : "Moss";
             var name = observation.NeedsName || observation.IsNameRetry
-                ? Names.GetValueOrDefault(observation.InhabitantId, "Vale") + " " + surname : null;
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+                ? Names.GetValueOrDefault(observation.AgentId, "Vale") + " " + surname : null;
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 ChosenName: name, ChosenPersonality: observation.NeedsPersonality ? "Inventive and independent" : null,

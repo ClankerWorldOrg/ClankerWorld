@@ -20,7 +20,7 @@ public static class TownLandTransferRules
             .Select(household => new TownLandTransferParty(household, household == targetHouseholdId ? "beneficiary" : "source",
                 adultHouseholds.Where(pair => pair.Value == household).Select(pair => pair.Key).Order(StringComparer.Ordinal).ToArray())).ToArray();
 
-    public static bool CanPropose(TownLandHearingState state, WorldMap map, string townId, string actor,
+    public static bool CanPropose(TownLandRecords state, WorldMap map, string townId, string actor,
         IReadOnlyList<GridPoint> tiles, string targetHouseholdId, IReadOnlyList<HouseholdLandUseRight> currentRights,
         IReadOnlyList<TownLandTransferParty> parties, IReadOnlyList<HouseholdLandUseRequest> pendingRequests, long tick)
     {
@@ -33,7 +33,7 @@ public static class TownLandTransferRules
             parties.Any(party => party.AdultIds.Contains(actor, StringComparer.Ordinal)) && !HasOpenHearing(state, townId, tiles);
     }
 
-    public static TownLandHearingState Propose(TownLandHearingState state, WorldMap map, string townId, string filer,
+    public static TownLandRecords Propose(TownLandRecords state, WorldMap map, string townId, string filer,
         IReadOnlyList<GridPoint> tiles, string targetHouseholdId, IReadOnlyList<HouseholdLandUseRight> currentRights,
         IReadOnlyList<TownLandTransferParty> currentParties, IReadOnlyList<HouseholdLandUseRequest> pendingRequests,
         long tick, string noticeId, TownLandSalePrice? price = null)
@@ -55,7 +55,7 @@ public static class TownLandTransferRules
         return state with { Sequence = state.Sequence + 1, Transfers = state.Transfers.Append(request).ToArray() };
     }
 
-    public static TownLandHearingState Respond(TownLandHearingState state, string requestId, string termsToken,
+    public static TownLandRecords Respond(TownLandRecords state, string requestId, string termsToken,
         string actor, string partyHouseholdId, string kind, IReadOnlyList<TownCivicReceipt> receipts,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandTransferParty> currentParties,
         IReadOnlyList<HouseholdLandUseRequest> pendingRequests, long tick)
@@ -73,7 +73,7 @@ public static class TownLandTransferRules
         return Replace(state, request);
     }
 
-    public static TownLandHearingState Withdraw(TownLandHearingState state, string requestId, string actor, long tick)
+    public static TownLandRecords Withdraw(TownLandRecords state, string requestId, string actor, long tick)
     {
         var request = state.Transfers.Single(item => item.Id == requestId && item.Status == "pending");
         if (request.FilerId != actor || tick < request.ProposedTick) throw new InvalidOperationException("Only the actual filer may withdraw a pending transfer.");
@@ -91,7 +91,7 @@ public static class TownLandTransferRules
         ValidParties(request.RightVersions.Select(version => version.Right), request.TargetHouseholdId, currentParties) &&
         currentParties.All(party => party.AdultIds.Count > 0 && AcceptedAdults(request, party, receipts, tick).Count == party.AdultIds.Count);
 
-    public static (TownLandHearingState State, IReadOnlyList<HouseholdLandUseRight> Rights) Advance(TownLandHearingState state,
+    public static (TownLandRecords State, IReadOnlyList<HouseholdLandUseRight> Rights) Advance(TownLandRecords state,
         WorldMap map, IReadOnlyList<HouseholdLandUseRight> currentRights,
         IReadOnlyDictionary<string, IReadOnlyList<TownLandTransferParty>> partiesByRequest,
         IReadOnlyList<HouseholdLandUseRequest> pendingRequests, IReadOnlyList<TownCivicReceipt> receipts, long tick,
@@ -132,7 +132,7 @@ public static class TownLandTransferRules
         return (state, rights);
     }
 
-    internal static string? PendingFailure(TownLandHearingState state, TownLandTransferRequest request,
+    internal static string? PendingFailure(TownLandRecords state, TownLandTransferRequest request,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<HouseholdLandUseRequest> pendingRequests, long tick)
     {
         if (!SameSources(request.RightVersions, CurrentSources(request.TownId, request.Tiles, currentRights).Select(TownLandHearingRules.Snapshot))) return "rights_changed";
@@ -152,13 +152,13 @@ public static class TownLandTransferRules
     }
     internal static bool SameSources(IEnumerable<TownLandRightVersion> left, IEnumerable<TownLandRightVersion> right) =>
         left.Select(version => version.Id + ":" + version.Version).SequenceEqual(right.Select(version => version.Id + ":" + version.Version));
-    private static bool HasOpenHearing(TownLandHearingState state, string townId, IReadOnlyList<GridPoint> tiles) =>
+    private static bool HasOpenHearing(TownLandRecords state, string townId, IReadOnlyList<GridPoint> tiles) =>
         state.Cases.Any(item => item.TownId == townId && (item.Status == "pending" || item.ReopenRequests.Any(request => request.Status == "pending")) &&
             TownLandHearingRules.CurrentRevision(item).Tiles.Any(tiles.Contains));
     private static HouseholdLandUseRight[] CurrentSources(string townId, IReadOnlyList<GridPoint> tiles, IEnumerable<HouseholdLandUseRight> rights) =>
         rights.Where(right => right.TownId == townId && right.Tiles.Any(tiles.Contains)).OrderBy(right => right.Id, StringComparer.Ordinal).ToArray();
     private static TownLandTransferParty[] CopyParties(IEnumerable<TownLandTransferParty> parties) =>
         parties.Select(party => party with { AdultIds = party.AdultIds.ToArray() }).ToArray();
-    private static TownLandHearingState Replace(TownLandHearingState state, TownLandTransferRequest request) =>
+    private static TownLandRecords Replace(TownLandRecords state, TownLandTransferRequest request) =>
         state with { Transfers = state.Transfers.Select(item => item.Id == request.Id ? request : item).ToArray() };
 }

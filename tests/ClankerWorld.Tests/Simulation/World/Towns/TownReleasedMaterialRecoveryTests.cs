@@ -19,15 +19,15 @@ public sealed class TownReleasedMaterialRecoveryTests
             _ => new RecoveryChoice());
         for (var tick = 0; tick < 160 && StoredMaterials(world, warehouse.InstanceId) != 44; tick++)
         {
-            var before = world.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position);
+            var before = world.Agents.ToDictionary(person => person.AgentId, person => person.Position);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-            foreach (var person in world.Inhabitants)
+            foreach (var person in world.Agents)
             {
-                Assert.True(before[person.InhabitantId] == person.Position || state.Map.CanFootStep(before[person.InhabitantId], person.Position));
-                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.InhabitantId, person.Equipment),
-                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.InhabitantId, person.Equipment));
+                Assert.True(before[person.AgentId] == person.Position || state.Map.CanFootStep(before[person.AgentId], person.Position));
+                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, person.AgentId, person.Equipment),
+                    0, PersonalEquipmentRules.Capacity(world.Society.Inventory, person.AgentId, person.Equipment));
             }
         }
         Assert.Equal(44, TownProjectScenario.MaterialQuantity(world.Society.Inventory, TownBorderRules.FirstTownId));
@@ -73,13 +73,13 @@ public sealed class TownReleasedMaterialRecoveryTests
         if (situation == "urgent-food")
             state = state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 1_000 } : person).ToArray()
+                Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 1_000 } : person).ToArray()
             };
         if (situation == "urgent-warmth")
-            state = SettlementWeatherTestFixture.WithWeather(state with
+            state = WeatherTestFixture.WithWeather(state with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+                Agents = state.Agents.Select(person => person.AgentId == actor
                     ? person with { Survival = new SurvivalCondition(1_000) } : person).ToArray(),
             }, WeatherKind.Storm);
         var released = state.Towns![0].Projects[0].Deliveries.Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
@@ -106,7 +106,7 @@ public sealed class TownReleasedMaterialRecoveryTests
                 item.GroundPosition is not null);
             inventory = InventoryAuthority.ReleaseReservation(inventory, "recovery:fixture-claim:" + other.Id, "fixture_custody");
             inventory = InventoryAuthority.Relocate(inventory, "recovery:other-carrier", other.Id, other.OwnerId,
-                other.Quantity, carrierId: state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId);
+                other.Quantity, carrierId: state.Agents.First(person => person.AgentId != actor).AgentId);
             inventory = FillWarehouse(state, inventory, room: 2);
         }
         state = FoodCapacityTestFixture.WithInventory(state, inventory);
@@ -181,27 +181,27 @@ public sealed class TownReleasedMaterialRecoveryTests
         if (reservedRemainder)
             inventory = InventoryAuthority.Reserve(inventory, "recovery:held-claim", lot.OwnerId, lot.Id, 1,
                 "unrelated-job", long.MaxValue);
-        var household = state.Society.Society.Inhabitants.Single(person => person.Id == actor).HouseholdId!;
+        var household = state.Society.Society.Agents.Single(person => person.Id == actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household);
         inventory = InventoryAuthority.AddLot(inventory, "recovery:meal", "berries", household, 1,
             storageBuildingId: house.InstanceId);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
         };
         var policy = new RecoveryChoice(actor);
         using var world = WorldRuntime.Restore(state, _ => policy);
         if (ownerOrder)
         {
-            var origin = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+            var origin = state.Agents.Single(person => person.AgentId == actor).Position;
             var destination = state.Map.Tiles.Select(tile => tile.Position).Where(point => point.X < 100 && point.Y < 100 &&
                 state.Map.IsReachableOnFoot(origin, point)).OrderBy(point => Math.Abs(point.X - origin.X) + Math.Abs(point.Y - origin.Y)).First();
-            var receipt = world.SubmitInstruction(new("recovery:order", "owner:test", actor, OwnerInstructionKind.MustDo,
+            var receipt = world.SubmitInstruction(new("recovery:order", "owner:test", actor, OwnerInstructionKind.Order,
                 $"move to {destination.X},{destination.Y}"));
             var instruction = Assert.Single(world.ExportState().Instructions!, instruction => instruction.InstructionId == receipt.InstructionId);
-            Assert.NotNull(instruction.Order);
-            Assert.Equal("move_to", instruction.Order.Action);
+            Assert.NotNull(instruction.Task);
+            Assert.Equal("move_to", instruction.Task.Action);
         }
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var dropped = Assert.Single(world.Society.Inventory.Lots, item =>
@@ -217,13 +217,13 @@ public sealed class TownReleasedMaterialRecoveryTests
         Assert.Equal(InventoryReservationState.Reserved, otherClaim.State);
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())),
             _ => new RecoveryChoice(actor));
-        for (var tick = 0; tick < 30 && world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints <= 1_000; tick++)
+        for (var tick = 0; tick < 30 && world.Agents.Single(person => person.AgentId == actor).FullnessBasisPoints <= 1_000; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > 1_000);
+        Assert.True(world.Agents.Single(person => person.AgentId == actor).FullnessBasisPoints > 1_000);
         // Once there is room, collect and eat before dropping another Town load.
         Assert.Equal(actor, world.Society.Inventory.GetLot(otherLoad.Id).CarrierId);
         Assert.Equal(otherLoad.OwnerId, world.Society.Inventory.GetLot(otherLoad.Id).OwnerId);
@@ -242,7 +242,7 @@ public sealed class TownReleasedMaterialRecoveryTests
     {
         var (state, lot, actor) = await AtReleasedGroundAsync();
         var warehouse = state.WorldSimulation!.Buildings.Single(item => item.InstanceId == "first-town-warehouse");
-        var blockers = state.Inhabitants.Where(person => person.InhabitantId != actor).ToArray();
+        var blockers = state.Agents.Where(person => person.AgentId != actor).ToArray();
         var origin = state.Map.Tiles.Select(tile => tile.Position).First(point =>
         {
             var exits = SwimmingRules.Neighbors(state.Map, point).ToArray();
@@ -250,21 +250,21 @@ public sealed class TownReleasedMaterialRecoveryTests
                 exits.Length > 0 && exits.Length <= blockers.Length && exits.All(state.Map.IsPassable) &&
                 !exits.Contains(warehouse.Position);
         });
-        var positions = SwimmingRules.Neighbors(state.Map, origin).Select((point, index) => (blockers[index].InhabitantId, point))
-            .ToDictionary(item => item.InhabitantId, item => item.point);
+        var positions = SwimmingRules.Neighbors(state.Map, origin).Select((point, index) => (blockers[index].AgentId, point))
+            .ToDictionary(item => item.AgentId, item => item.point);
         state = FoodCapacityTestFixture.WithInventory(state, InventoryAuthority.Relocate(state.Society.Society.Inventory,
             "recovery:barrier-load", lot.Id, lot.OwnerId, lot.Quantity, carrierId: actor)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = origin }
-                : positions.TryGetValue(person.InhabitantId, out var blocked) ? person with { Position = blocked } : person).ToArray(),
+                : positions.TryGetValue(person.AgentId, out var blocked) ? person with { Position = blocked } : person).ToArray(),
         };
         var policy = new RecoveryChoice(actor);
         using var world = WorldRuntime.Restore(state, _ => policy);
         var before = world.Society.Inventory.GetLot(lot.Id);
         for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(before with { LastProcessedTick = world.WorldTick }, world.Society.Inventory.GetLot(lot.Id));
-        Assert.Equal(origin, world.Inhabitants.Single(person => person.InhabitantId == actor).Position);
+        Assert.Equal(origin, world.Agents.Single(person => person.AgentId == actor).Position);
         Assert.Contains(policy.Offers.SelectMany(ids => ids), id => id.StartsWith("town_project_return:", StringComparison.Ordinal));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "town_project_material_returned" && item.Detail.Contains(lot.Id, StringComparison.Ordinal));
         world.Validate();
@@ -280,14 +280,14 @@ public sealed class TownReleasedMaterialRecoveryTests
         var inventory = state.Society.Society.Inventory;
         foreach (var carried in inventory.Lots.Where(item => PersonalEquipmentRules.IsCarried(item, actor)).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, "recovery:clear:" + carried.Id, carried.Id, carried.OwnerId,
-                carried.Quantity, groundPosition: new(state.Inhabitants.Single(person => person.InhabitantId == actor).Position.X,
-                    state.Inhabitants.Single(person => person.InhabitantId == actor).Position.Y));
+                carried.Quantity, groundPosition: new(state.Agents.Single(person => person.AgentId == actor).Position.X,
+                    state.Agents.Single(person => person.AgentId == actor).Position.Y));
         var released = state.Towns![0].Projects[0].Deliveries.Where(delivery => delivery.ReleasedTick is not null)
             .Select(delivery => delivery.LotId).ToHashSet(StringComparer.Ordinal);
         foreach (var carried in inventory.Lots.Where(item => item.OwnerId == TownBorderRules.FirstTownId &&
             item.CarrierId is not null && released.Contains(item.Id)).ToArray())
         {
-            var position = state.Inhabitants.Single(person => person.InhabitantId == carried.CarrierId).Position;
+            var position = state.Agents.Single(person => person.AgentId == carried.CarrierId).Position;
             inventory = InventoryAuthority.Relocate(inventory, "recovery:released-clear:" + carried.Id, carried.Id,
                 carried.OwnerId, carried.Quantity, groundPosition: new(position.X, position.Y));
         }
@@ -299,11 +299,11 @@ public sealed class TownReleasedMaterialRecoveryTests
                 other.Id, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), other)), "unrelated-job", long.MaxValue);
         state = FoodCapacityTestFixture.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with
                 {
                     Position = new GridPoint(lot.GroundPosition!.Value.X, lot.GroundPosition.Value.Y),
-                    HungerBasisPoints = 9_500,
+                    FullnessBasisPoints = 9_500,
                     Project = null,
                     Equipment = null,
                     LastDecisionContext = null
@@ -335,9 +335,9 @@ public sealed class TownReleasedMaterialRecoveryTests
             CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
-            if (actor is null || observation.InhabitantId == actor)
+            if (actor is null || observation.AgentId == actor)
                 Offers.Add(observation.Candidates.Select(candidate => candidate.Id).ToArray());
-            var selected = actor is not null && observation.InhabitantId != actor
+            var selected = actor is not null && observation.AgentId != actor
                 ? observation.Candidates.Single(candidate => candidate.Id == "safe_idle")
                 : observation.Candidates.Where(candidate => candidate.DeterministicPriority <= 5 &&
                     (candidate.Id.StartsWith("town_project_return:", StringComparison.Ordinal) ||
@@ -347,7 +347,7 @@ public sealed class TownReleasedMaterialRecoveryTests
                 .ThenBy(candidate => candidate.Id.StartsWith("town_project_return:", StringComparison.Ordinal) ? 0 : 1).FirstOrDefault()
                 ?? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith("town_project_", StringComparison.Ordinal))
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
                 Kind, ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected.Id, 1, observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));

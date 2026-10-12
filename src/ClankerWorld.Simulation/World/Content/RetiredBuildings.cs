@@ -10,13 +10,13 @@ namespace ClankerWorld.Simulation.World;
 public static class RetiredBuildings
 {
     private static readonly string StarterDigest = StarterContent.Create().PackageDigest;
-    private static readonly string SettlementDigest = SettlementContent.Create().PackageDigest;
+    private static readonly string HearthDigest = HearthContent.Create().PackageDigest;
 
     public static bool Contains(BuildingDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (definition.PackageDigest == StarterDigest)
             return definition.LocalId is "shelter" or "storage" or "fire";
-        return definition.PackageDigest == SettlementDigest && definition.LocalId == "stone-hearth";
+        return definition.PackageDigest == HearthDigest && definition.LocalId == "stone-hearth";
     }
 }

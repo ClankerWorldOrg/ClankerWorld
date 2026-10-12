@@ -15,7 +15,7 @@ public static class TownGovernmentValidation
                 throw new InvalidDataException("A founded Town is missing its saved laws and government record.");
             return;
         }
-        if (town.Governance is not { } council)
+        if (town.Council is not { } council)
             throw new InvalidDataException("A Town's government record needs its saved council.");
         if (state.Laws is null || state.LawDrafts is null || state.Changes is null || state.OfficeHistory is null ||
             state.Consents is null || state.ContestHistory is null || state.Offices is null || state.NonLandGrants is null || state.MayoralRetryCircumstances is null ||
@@ -29,11 +29,11 @@ public static class TownGovernmentValidation
             .Concat(state.NonLandGrants.Select(grant => grant.Id)).ToArray();
         if (ids.Distinct(StringComparer.Ordinal).Count() != ids.Length)
             throw new InvalidDataException("A Town's saved law, government-change and election identities must be unique.");
-        ValidateLaws(town, state, council, titles, tick, society.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal));
+        ValidateLaws(town, state, council, titles, tick, society.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal));
         TownGovernmentStateValidation.Validate(town, state, council, society, day);
     }
 
-    private static void ValidateLaws(TownRuntimeState town, TownGovernmentState state, TownGovernanceState council,
+    private static void ValidateLaws(TownRuntimeState town, TownGovernmentState state, TownCouncilState council,
         IReadOnlyList<TownLandTitleRecord> titles, long tick, IReadOnlySet<string> known)
     {
         var proposals = council.Proposals.ToDictionary(p => p.Id, StringComparer.Ordinal);

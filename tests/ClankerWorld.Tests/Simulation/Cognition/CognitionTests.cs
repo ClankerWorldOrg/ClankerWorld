@@ -20,7 +20,7 @@ public sealed class CognitionTests
             client,
             () => "test-secret",
             new Uri("https://typesafe.test/v1/systemone"));
-        var observation = new InhabitantObservation(
+        var observation = new AgentObservation(
             "actor-scout",
             4,
             0,
@@ -79,7 +79,7 @@ public sealed class CognitionTests
         using var client = new HttpClient(handler);
         var provider = new JevDecisionProvider(client, () => "test-secret",
             new Uri("https://typesafe.test/v1/systemone"));
-        var observation = new InhabitantObservation(
+        var observation = new AgentObservation(
             "actor-scout", 4, 0, 1, "sha256:memory-score", 2_000,
             [new CognitionCandidate("safe_idle", "Continue safely.")],
             MemoryCompactionCandidates: [new CognitionMemoryCompactionCandidate(
@@ -117,7 +117,7 @@ public sealed class CognitionTests
             () => "openai-test-secret",
             new Uri("https://model.test/v1/chat/completions"),
             "test-model");
-        var observation = new InhabitantObservation(
+        var observation = new AgentObservation(
             "actor-scout",
             9,
             1,
@@ -202,11 +202,11 @@ public sealed class CognitionTests
         var provider = new OpenAiCompatibleDecisionProvider(
             client, () => "guidance-provider-secret", new Uri("https://model.test/v1/chat/completions"), "test-model");
         var suggestion = new CognitionObserverGuidance(suggestionId, "owner:private", "actor-scout",
-            "suggestive", "Try the shore berries after the rain.", 9, 1, 1, null, true);
+            "suggestion", "Try the shore berries after the rain.", 9, 1, 1, null, true);
         var order = new CognitionObserverGuidance(orderId, "owner:private", "actor-scout",
-            "must_do", "Please eat one carried food item now.", 9, 1, 2,
+            "order", "Please eat one carried food item now.", 9, 1, 2,
             "eat one carried food item", true);
-        var observation = new InhabitantObservation(
+        var observation = new AgentObservation(
             "actor-scout", 9, 1, 3, "sha256:guidance-provider-test", 3_000,
             [new CognitionCandidate("safe_idle", "Continue safely.")])
         {
@@ -225,7 +225,7 @@ public sealed class CognitionTests
         Assert.Equal(2, guidance.GetArrayLength());
         Assert.Equal(suggestionId, guidance[0].GetProperty("instruction_id").GetString());
         Assert.Equal("outside_observer", guidance[0].GetProperty("source").GetString());
-        Assert.Equal("suggestive", guidance[0].GetProperty("kind").GetString());
+        Assert.Equal("suggestion", guidance[0].GetProperty("kind").GetString());
         Assert.Equal("Try the shore berries after the rain.", guidance[0].GetProperty("text").GetString());
         Assert.True(guidance[0].GetProperty("reply_allowed").GetBoolean());
         Assert.Equal(orderId, guidance[1].GetProperty("instruction_id").GetString());
@@ -251,7 +251,7 @@ public sealed class CognitionTests
             client, () => "synthetic-test-key", new Uri("https://model.test/v1/chat/completions"), "test-model");
 
         static CognitionDecisionRequest Request(string actor, bool needsName, string requestId) =>
-            new(requestId, 2, new InhabitantObservation(actor, 9, 1, 3, "sha256:test-observation", 9_000,
+            new(requestId, 2, new AgentObservation(actor, 9, 1, 3, "sha256:test-observation", 9_000,
                 [new CognitionCandidate("safe_idle", "Continue safely.")], NeedsName: needsName));
 
         async Task<string> SystemPrompt(CognitionDecisionRequest request)
@@ -310,7 +310,7 @@ public sealed class CognitionTests
     [Fact]
     public void CognitionSelfContextRejectsAnotherOwnerAndOversizedThoughts()
     {
-        var observation = new InhabitantObservation("actor", 1, 0, 1, "digest", 5_000,
+        var observation = new AgentObservation("actor", 1, 0, 1, "digest", 5_000,
             [new CognitionCandidate("safe_idle", "Wait")],
             Self: new CognitionSelfContext("other", "Aster", "Adult", "Curious", "Explore", null, null, null, null));
         Assert.Throws<ArgumentException>(observation.Validate);
@@ -322,7 +322,7 @@ public sealed class CognitionTests
     [Fact]
     public void CognitionObservationRejectsAnotherActorsMemory()
     {
-        var observation = new InhabitantObservation(
+        var observation = new AgentObservation(
             "actor-scout", 9, 1, 3, "sha256:observation-9", 3_000,
             [new CognitionCandidate("safe_idle", "Continue safely.")],
             RetrievedMemories: [new CognitionMemoryExcerpt(
@@ -335,7 +335,7 @@ public sealed class CognitionTests
     {
         var provider = new ThrowingProvider();
         var runtime = new CognitionRuntime("actor-scout", provider);
-        var observation = new InhabitantObservation(
+        var observation = new AgentObservation(
             "actor-scout", 9, 0, 1, "sha256:owner-check", 2_000,
             [new CognitionCandidate("safe_idle", "Continue safely.")],
             MemoryCompactionCandidates: [new CognitionMemoryCompactionCandidate(

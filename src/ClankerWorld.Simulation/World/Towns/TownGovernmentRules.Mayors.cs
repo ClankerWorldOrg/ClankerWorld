@@ -2,8 +2,8 @@ namespace ClankerWorld.Simulation.World;
 
 public static partial class TownGovernmentRules
 {
-    public static (TownGovernanceState Council, TownGovernmentState Government) RegisterMayor(
-        TownGovernanceState council, TownGovernmentState state, string actor, string mandates,
+    public static (TownCouncilState Council, TownGovernmentState Government) RegisterMayor(
+        TownCouncilState council, TownGovernmentState state, string actor, string mandates,
         IEnumerable<string> adultResidents, long tick)
     {
         if (!Has(adultResidents, actor) || !TownArrangementRules.IsMandates(mandates))
@@ -14,8 +14,8 @@ public static partial class TownGovernmentRules
             $"{actor} personally agreed to seek election for {TownArrangementRules.MandateLabel(mandates)}. This grants no office.", tick), state);
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) WithdrawMayor(
-        TownGovernanceState council, TownGovernmentState state, string actor, string mandates, long tick)
+    public static (TownCouncilState Council, TownGovernmentState Government) WithdrawMayor(
+        TownCouncilState council, TownGovernmentState state, string actor, string mandates, long tick)
     {
         if (!state.Consents.Any(c => c.AgentId == actor && c.Mandates == mandates))
             throw new InvalidOperationException("There is no matching mayoral consent to withdraw.");
@@ -39,15 +39,15 @@ public static partial class TownGovernmentRules
         };
     }
 
-    public static (TownGovernanceState Council, TownGovernmentState Government) Resign(
-        TownGovernanceState council, TownGovernmentState state, string actor, string mandate, long tick)
+    public static (TownCouncilState Council, TownGovernmentState Government) Resign(
+        TownCouncilState council, TownGovernmentState state, string actor, string mandate, long tick)
     {
         var office = state.Offices.SingleOrDefault(o => o.Mandates == mandate && o.HolderId == actor);
         if (office is null) throw new InvalidOperationException("Only the current holder may resign this mandate.");
         return EndOffice(council, state, office, tick, "The holder resigned this mandate.");
     }
 
-    private static (TownGovernanceState, TownGovernmentState) EndOffice(TownGovernanceState council,
+    private static (TownCouncilState, TownGovernmentState) EndOffice(TownCouncilState council,
         TownGovernmentState state, TownOffice office, long tick, string reason)
     {
         // Ending the base term also ends its added duties. A previously captured iteration
@@ -72,7 +72,7 @@ public static partial class TownGovernmentRules
                 : "Cases under this mandate wait for a valid adjudicator."), tick), state);
     }
 
-    private static (TownGovernanceState, TownGovernmentState) AdvanceMayor(TownGovernanceState council,
+    private static (TownCouncilState, TownGovernmentState) AdvanceMayor(TownCouncilState council,
         TownGovernmentState state, string townId, string[] adults, long tick, int day, bool caseElectionActive)
     {
         if (state.Contest is { } live)
@@ -217,7 +217,7 @@ public static partial class TownGovernmentRules
             contest.Voters, contest.Candidates, contest.Ballots, contest.TiedCandidates)).ToArray()
         };
 
-    private static (TownGovernanceState, TownGovernmentState) ArchiveContest(TownGovernanceState council,
+    private static (TownCouncilState, TownGovernmentState) ArchiveContest(TownCouncilState council,
         TownGovernmentState state, string stage, string reason, string[] adults, long tick, int day)
     {
         var contest = state.Contest!;
@@ -232,7 +232,7 @@ public static partial class TownGovernmentRules
         return (Notice(council, "mayor", contest.Id, "Mayoral election " + stage + ". " + reason, tick), state);
     }
 
-    private static (TownGovernanceState, TownGovernmentState) SeatMayor(TownGovernanceState council,
+    private static (TownCouncilState, TownGovernmentState) SeatMayor(TownCouncilState council,
         TownGovernmentState state, TownMayoralContest contest, long tick, int day)
     {
         foreach (var mandate in contest.Mandates.Split('+'))

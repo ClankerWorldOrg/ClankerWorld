@@ -37,10 +37,10 @@ public sealed partial class PlayerRenameTests
             },
         };
         var bytes = WorldRuntimeCodec.Encode(state);
-        var observed = new List<InhabitantObservation>();
+        var observed = new List<AgentObservation>();
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new RenameMemoryProvider(observed));
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes), _ => new RenameMemoryProvider([]));
-        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(item => item.Id == First).RecentMemories;
+        var visible = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(item => item.Id == First).RecentMemories;
         Assert.Equal(16, visible.Count);
         Assert.Equal(names.Length, visible.Count(item => item.Permanent));
         Assert.Contains(visible, item => item.Summary == "I was renamed on day 1 to Rowan Vale." && item.Permanent);
@@ -50,12 +50,12 @@ public sealed partial class PlayerRenameTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
-        var own = Assert.Single(observed, item => item.InhabitantId == First);
+        var own = Assert.Single(observed, item => item.AgentId == First);
         Assert.Equal("Sage Harbor", own.Self!.Name);
         Assert.Equal(4, own.RetrievedMemories!.Count);
         Assert.Equal("I was renamed on day 1 to Sage Harbor.", own.RetrievedMemories[0].Summary);
         Assert.All(own.RetrievedMemories, item => Assert.Equal(First, item.OwnerId));
-        Assert.All(observed.Where(item => item.InhabitantId != First), item =>
+        Assert.All(observed.Where(item => item.AgentId != First), item =>
             Assert.DoesNotContain(item.RetrievedMemories ?? [], memory => memory.Id.StartsWith("player-rename:", StringComparison.Ordinal)));
         Assert.Equal(history, world.Society.Memories.Where(item => item.Permanent).ToArray());
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
@@ -80,7 +80,7 @@ public sealed partial class PlayerRenameTests
                 RegionalWeather = RegionalWeatherRules.Advance(systems, tick),
                 Climate = WeatherRules.Advance(systems.Climate, tick, state.WorldSeed, systems.Config),
             },
-            Inhabitants = state.Inhabitants.Select(item => item with { LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(item => item with { LastDecisionContext = null }).ToArray(),
         });
         Assert.True(world.RenameAgent(First, "Rowan Lake"));
         var history = world.Society.Memories.Where(item => item.OwnerId == First).ToArray();
@@ -134,7 +134,7 @@ public sealed partial class PlayerRenameTests
         world.Validate();
     }
 
-    private sealed class RenameMemoryProvider(List<InhabitantObservation> observed) : IDecisionProvider
+    private sealed class RenameMemoryProvider(List<AgentObservation> observed) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 1;
@@ -143,7 +143,7 @@ public sealed partial class PlayerRenameTests
         {
             lock (observed) observed.Add(request.Observation);
             var selected = request.Observation.Candidates.FirstOrDefault(item => item.Id == "safe_idle") ?? request.Observation.Candidates[0];
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId, Kind, ProviderEpoch,
                 request.Observation.RunEpoch, request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 new Dictionary<string, double> { [selected.Id] = 1 }));
         }

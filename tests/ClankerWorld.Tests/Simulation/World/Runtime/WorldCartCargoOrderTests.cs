@@ -10,7 +10,7 @@ public sealed class WorldCartCargoOrderTests
     {
         using var world = NormalPathWorld.CreateGenerated("cart-cargo-orders", _ => new IdleProvider());
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        return WorldRuntimeCodec.Encode(SettlementWeatherTestFixture.WithWeather(world.ExportState(), WeatherKind.Clear));
+        return WorldRuntimeCodec.Encode(WeatherTestFixture.WithWeather(world.ExportState(), WeatherKind.Clear));
     });
 
     [Theory]
@@ -21,11 +21,11 @@ public sealed class WorldCartCargoOrderTests
     public async Task ExactQuantityUsesSelectedCartAndSurvivesRollbackReloadAndReplay(string text, bool loaded, int moved, bool approach)
     {
         var state = await CargoState(loaded);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         if (approach)
         {
-            var site = state.Map.FootNeighbors(state.Inhabitants[0].Position)
-                .First(point => state.Map.IsPassable(point) && state.Inhabitants.All(person => person.Position != point));
+            var site = state.Map.FootNeighbors(state.Agents[0].Position)
+                .First(point => state.Map.IsPassable(point) && state.Agents.All(person => person.Position != point));
             state = WithInventory(state, state.Society.Society.Inventory with
             {
                 Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id is "z-cart" or "cargo"
@@ -34,7 +34,7 @@ public sealed class WorldCartCargoOrderTests
         }
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var receipt = world.SubmitInstruction(Request("cargo", actor, text));
-        var submitted = Assert.Single(world.ExportState().Instructions!).Order!;
+        var submitted = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal("z-cart", submitted.TargetCartLotId);
         Assert.Equal(moved, submitted.RequestedUnits);
         Assert.Equal("wood", submitted.TargetItemKind);
@@ -44,16 +44,16 @@ public sealed class WorldCartCargoOrderTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         for (var tick = 0; tick < (approach ? 8 : 4); tick++)
         {
-            var before = world.Inhabitants[0].Position;
+            var before = world.Agents[0].Position;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
-            var after = world.Inhabitants[0].Position;
+            var after = world.Agents[0].Position;
             if (before != after) Assert.True(state.Map.CanFootStep(before, after));
-            if (Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits > 0)
+            if (Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits > 0)
                 Assert.Equal(new InventoryGroundPosition(after.X, after.Y), world.Society.Inventory.GetLot("z-cart").GroundPosition);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var order = Assert.Single(world.ExportState().Instructions!).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal("finished", order.Status);
         Assert.Equal(moved, order.CompletedUnits);
         Assert.Equal(loaded ? 4 - moved : moved, CartCargo(world, "z-cart"));
@@ -63,7 +63,7 @@ public sealed class WorldCartCargoOrderTests
         Assert.Equal(receipt, world.SubmitInstruction(Request("cargo", actor, text)));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())), _ => new IdleProvider());
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(moved, Assert.Single(restored.ExportState().Instructions!).Order!.CompletedUnits);
+        Assert.Equal(moved, Assert.Single(restored.ExportState().Instructions!).Task!.CompletedUnits);
         if (text.EndsWith("ground", StringComparison.Ordinal))
             Assert.Equal(moved, world.Society.Inventory.Lots.Where(lot => lot.ItemKind == "wood" && lot.GroundPosition is not null).Sum(lot => lot.Quantity));
         else if (loaded)
@@ -77,16 +77,16 @@ public sealed class WorldCartCargoOrderTests
     public async Task PartialUnloadingRetainsItsSourceAndProgressWhenReloadedOrStopped(string next)
     {
         var state = await CargoState(true);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "ballast", "fiber", actor, 6));
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var receipt = world.SubmitInstruction(Request("partial", actor, "Unload 3 wood from cart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(2, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits);
+        Assert.Equal(2, Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits);
         Assert.Equal(2, CartCargo(world, "z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var partial = world.ExportState();
-        var order = Assert.Single(partial.Instructions!).Order!;
+        var order = Assert.Single(partial.Instructions!).Task!;
         Assert.Equal("blocked", order.Status);
         Assert.Contains("carrying space", order.BlockedReason!);
         Assert.Equal("cargo", order.TargetLotId);
@@ -100,15 +100,15 @@ public sealed class WorldCartCargoOrderTests
             using var freed = WorldRuntime.Restore(WithInventory(loaded.ExportState(), inventory with
             { Lots = inventory.Lots.Where(lot => lot.Id != "ballast").ToArray() }), _ => new IdleProvider());
             Assert.True((await freed.AdvanceOneTickAsync()).Advanced);
-            Assert.Equal(3, Assert.Single(freed.ExportState().Instructions!).Order!.CompletedUnits);
-            Assert.Equal("finished", Assert.Single(freed.ExportState().Instructions!).Order!.Status);
+            Assert.Equal(3, Assert.Single(freed.ExportState().Instructions!).Task!.CompletedUnits);
+            Assert.Equal("finished", Assert.Single(freed.ExportState().Instructions!).Task!.Status);
             Assert.Equal(1, CartCargo(freed, "z-cart"));
             Assert.Equal(2, freed.ExportState().Events.Count(item => item.Kind == "handcart_unloaded"));
         }
         else
         {
             Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
-            var cancelled = loaded.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+            var cancelled = loaded.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
             Assert.Equal("cancelled", cancelled.Status);
             Assert.Equal("cargo", cancelled.TargetLotId);
             Assert.Equal(2, cancelled.CompletedUnits);
@@ -123,31 +123,31 @@ public sealed class WorldCartCargoOrderTests
     public async Task PartialLoadingCountsAvailableSpaceAndResumesItsBoundStackAfterUrgentFood()
     {
         var state = await CargoState(false);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "cart-ballast", "fiber", actor, 30, containerLotId: "z-cart"));
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("partial-load", actor, "Load 3 wood into cart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(2, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits);
-        Assert.Equal("cargo", Assert.Single(world.ExportState().Instructions!).Order!.TargetLotId);
+        Assert.Equal(2, Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits);
+        Assert.Equal("cargo", Assert.Single(world.ExportState().Instructions!).Task!.TargetLotId);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Contains("space in", Assert.Single(world.ExportState().Instructions!).Order!.BlockedReason!);
+        Assert.Contains("space in", Assert.Single(world.ExportState().Instructions!).Task!.BlockedReason!);
         var partial = world.ExportState();
         var inventory = partial.Society.Society.Inventory;
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.Id != "cart-ballast").ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, "emergency-food", "berries", actor, 4);
         partial = WithInventory(partial, inventory) with
-        { Inhabitants = partial.Inhabitants.Select(person => person.InhabitantId == actor ? person with { HungerBasisPoints = 0 } : person).ToArray() };
+        { Agents = partial.Agents.Select(person => person.AgentId == actor ? person with { FullnessBasisPoints = 0 } : person).ToArray() };
         using var hungry = WorldRuntime.Restore(partial, _ => new IdleProvider());
         Assert.True((await hungry.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("interrupted", Assert.Single(hungry.ExportState().Instructions!).Order!.Status);
-        Assert.Equal(2, Assert.Single(hungry.ExportState().Instructions!).Order!.CompletedUnits);
-        Assert.Equal("cargo", Assert.Single(hungry.ExportState().Instructions!).Order!.TargetLotId);
+        Assert.Equal("interrupted", Assert.Single(hungry.ExportState().Instructions!).Task!.Status);
+        Assert.Equal(2, Assert.Single(hungry.ExportState().Instructions!).Task!.CompletedUnits);
+        Assert.Equal("cargo", Assert.Single(hungry.ExportState().Instructions!).Task!.TargetLotId);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(hungry.ExportState())), _ => new IdleProvider());
-        for (var tick = 0; tick < 12 && restored.ExportState().Instructions![0].Order!.Status != "finished"; tick++)
+        for (var tick = 0; tick < 12 && restored.ExportState().Instructions![0].Task!.Status != "finished"; tick++)
             Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(3, Assert.Single(restored.ExportState().Instructions!).Order!.CompletedUnits);
-        Assert.Equal("finished", Assert.Single(restored.ExportState().Instructions!).Order!.Status);
+        Assert.Equal(3, Assert.Single(restored.ExportState().Instructions!).Task!.CompletedUnits);
+        Assert.Equal("finished", Assert.Single(restored.ExportState().Instructions!).Task!.Status);
         Assert.Equal(3, CartCargo(restored, "z-cart"));
         Assert.Single(restored.Society.Inventory.Lots, lot => lot.Id == "cargo" && lot.Quantity == 1 && lot.ContainerLotId is null);
     }
@@ -165,8 +165,8 @@ public sealed class WorldCartCargoOrderTests
     public async Task NativeAccessAndReservationGuardsBlockWithoutFalseProgress(bool loaded, string blocker)
     {
         var state = await CargoState(loaded);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var other = state.Inhabitants[1].InhabitantId;
+        var actor = state.Agents[0].AgentId;
+        var other = state.Agents[1].AgentId;
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with
         {
@@ -179,7 +179,7 @@ public sealed class WorldCartCargoOrderTests
         };
         if (blocker == "stored-personal-stock")
         {
-            var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+            var household = state.Society.Society.GetAgent(actor).HouseholdId;
             var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && HouseholdBuildingKinds.KindOf(definition) == "house"));
             inventory = inventory with
@@ -188,7 +188,7 @@ public sealed class WorldCartCargoOrderTests
                 ? lot with { StorageBuildingId = house.InstanceId, GroundPosition = null }
                 : lot.ItemKind == "handcart" ? lot with { GroundPosition = new(house.Position.X, house.Position.Y) } : lot).ToArray()
             };
-            state = state with { Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with { Position = house.Position } : person).ToArray() };
+            state = state with { Agents = state.Agents.Select(person => person.AgentId == actor ? person with { Position = house.Position } : person).ToArray() };
         }
         if (blocker == "reserved-other-cargo")
             inventory = InventoryAuthority.AddLot(inventory, "held-other-cargo", "fiber", actor, 1, containerLotId: "z-cart");
@@ -197,7 +197,7 @@ public sealed class WorldCartCargoOrderTests
         using var world = WorldRuntime.Restore(WithInventory(state, inventory), _ => new IdleProvider());
         world.SubmitInstruction(Request("guard", actor, loaded ? "Unload 2 wood from cart z-cart onto the ground" : "Load 3 wood into cart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var order = Assert.Single(world.ExportState().Instructions!).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal("blocked", order.Status);
         Assert.Equal(0, order.CompletedUnits);
         Assert.Equal("z-cart", order.TargetCartLotId);
@@ -215,13 +215,13 @@ public sealed class WorldCartCargoOrderTests
     public async Task BrokenCartRecoveryPreservesPhysicallyDamagedCargo(bool spoiledFood)
     {
         var state = await CargoState(true);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         state = WithInventory(state, state.Society.Society.Inventory with
         { Lots = state.Society.Society.Inventory.Lots.Select(lot => lot.Id is "z-cart" or "cargo" ? lot with { ConditionBasisPoints = 0, ItemKind = lot.Id == "cargo" && spoiledFood ? "berries" : lot.ItemKind, FreshnessBasisPoints = lot.Id == "cargo" && spoiledFood ? 0 : lot.FreshnessBasisPoints } : lot).ToArray() });
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         world.SubmitInstruction(Request("recover", actor, spoiledFood ? "Unload 2 berries from cart z-cart onto the ground" : "Unload 2 wood from cart z-cart onto the ground"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal("finished", Assert.Single(world.ExportState().Instructions!).Order!.Status);
+        Assert.Equal("finished", Assert.Single(world.ExportState().Instructions!).Task!.Status);
         Assert.Equal(2, CartCargo(world, "z-cart"));
         var family = world.Society.Inventory.Lots.Where(lot => lot.ItemKind == (spoiledFood ? "berries" : "wood")).ToArray();
         Assert.Equal(4, family.Sum(lot => lot.Quantity));
@@ -238,8 +238,8 @@ public sealed class WorldCartCargoOrderTests
     public async Task HouseholdFoodPolicyLimitsActualLoadingAndFilledVesselsStaySeparate(string policy, int stock, int allowed)
     {
         var state = await CargoState(false);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && HouseholdBuildingKinds.KindOf(definition) == "house"));
         var inventory = state.Society.Society.Inventory;
@@ -253,21 +253,21 @@ public sealed class WorldCartCargoOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "pot-food", "berries", actor, 2, containerLotId: "filled-pot");
         state = WithInventory(state, inventory) with
         {
-            Council = new(actor, policy, inventory.WorldTick),
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-            ? person with { Position = house.Position, HungerBasisPoints = 6_000 } : person).ToArray()
+            FoodStewardship = new(actor, policy, inventory.WorldTick),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+            ? person with { Position = house.Position, FullnessBasisPoints = 6_000 } : person).ToArray()
         };
         using var world = WorldRuntime.Restore(state, _ => new IdleProvider());
         var food = world.SubmitInstruction(Request("food", actor, $"Load {(stock == 6 ? 3 : 1)} berries into cart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var status = allowed == 1 ? "finished" : "blocked";
-        Assert.Equal(status, Assert.Single(world.ExportState().Instructions!).Order!.Status);
-        Assert.Equal(allowed, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits);
+        Assert.Equal(status, Assert.Single(world.ExportState().Instructions!).Task!.Status);
+        Assert.Equal(allowed, Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits);
         world.SubmitInstruction(Request("pot", actor, "Load 1 storage pot into cart z-cart"));
         var instructions = world.ExportState().Instructions!;
-        Assert.Equal("not_understood", instructions.Single(item => item.IdempotencyKey == "pot").Order!.Status);
-        Assert.Equal(status, instructions.Single(item => item.InstructionId == food.InstructionId).Order!.Status);
+        Assert.Equal("not_understood", instructions.Single(item => item.IdempotencyKey == "pot").Task!.Status);
+        Assert.Equal(status, instructions.Single(item => item.InstructionId == food.InstructionId).Task!.Status);
         Assert.Equal(allowed, CartCargo(world, "z-cart"));
         Assert.Equal(0, CartCargo(world, "a-cart"));
         var source = world.Society.Inventory.GetLot("protected-food");
@@ -281,26 +281,26 @@ public sealed class WorldCartCargoOrderTests
     public async Task QuantityCanSpanRealStacksButMalformedSavedBindingsAndReceiptsAreRefused()
     {
         var state = await CargoState(false);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory;
         inventory = inventory with { Lots = inventory.Lots.Select(lot => lot.Id == "cargo" ? lot with { Quantity = 2 } : lot).ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, "next-cargo", "wood", actor, 2, groundPosition: inventory.GetLot("z-cart").GroundPosition);
         using var world = WorldRuntime.Restore(WithInventory(state, inventory), _ => new IdleProvider());
         world.SubmitInstruction(Request("stacks", actor, "Load 3 wood into cart z-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(2, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits);
-        Assert.Null(Assert.Single(world.ExportState().Instructions!).Order!.TargetLotId);
+        Assert.Equal(2, Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits);
+        Assert.Null(Assert.Single(world.ExportState().Instructions!).Task!.TargetLotId);
         using var loaded = WorldRuntime.Restore(world.ExportState(), _ => new IdleProvider());
         Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(3, Assert.Single(loaded.ExportState().Instructions!).Order!.CompletedUnits);
+        Assert.Equal(3, Assert.Single(loaded.ExportState().Instructions!).Task!.CompletedUnits);
         Assert.Equal(3, CartCargo(loaded, "z-cart"));
         var completed = loaded.ExportState();
-        var valid = Assert.Single(completed.Instructions!).Order!;
+        var valid = Assert.Single(completed.Instructions!).Task!;
         foreach (var invalid in new[] { valid with { CompletedUnits = 2 }, valid with { LastEffectId = "cart-cargo-order:" + new string('0', 64) },
             valid with { TargetItemKind = "storage_pot" }, valid with { TargetLotId = " bad " }, valid with { TargetCartLotId = "cargo" } })
         {
             Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(completed with
-            { Instructions = completed.Instructions!.Select(item => item with { Order = invalid }).ToArray() }));
+            { Instructions = completed.Instructions!.Select(item => item with { Task = invalid }).ToArray() }));
         }
     }
 
@@ -313,8 +313,8 @@ public sealed class WorldCartCargoOrderTests
     private static async Task<WorldRuntimeState> CargoState(bool loaded)
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var position = state.Inhabitants[0].Position;
+        var actor = state.Agents[0].AgentId;
+        var position = state.Agents[0].Position;
         var inventory = state.Society.Society.Inventory with { Lots = [], Reservations = [] };
         inventory = InventoryAuthority.AddLot(inventory, "a-cart", "handcart", actor, 1, groundPosition: new(position.X, position.Y));
         inventory = InventoryAuthority.AddLot(inventory, "z-cart", "handcart", actor, 1, groundPosition: new(position.X, position.Y));
@@ -323,13 +323,13 @@ public sealed class WorldCartCargoOrderTests
         return state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
-            { HungerBasisPoints = 9_500, Survival = new(), Equipment = null, LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }).ToArray(),
+            Agents = state.Agents.Select(person => person with
+            { FullnessBasisPoints = 9_500, Survival = new(), Equipment = null, LastDecisionContext = null, Project = null, TravelCooldownTicks = 0 }).ToArray(),
         };
     }
 
     private static OwnerInstructionRequest Request(string key, string actor, string text, bool queue = false) =>
-        new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text, queue);
+        new(key, "owner:test", actor, OwnerInstructionKind.Order, text, queue);
 
     private sealed class IdleProvider : IDecisionProvider
     {

@@ -36,7 +36,7 @@ public sealed class WorldShelterOrderParserTests
         Assert.Null(order.TargetPosition);
         Assert.Null(order.TargetDefinitionId);
         Assert.Null(order.LastEffectId);
-        Assert.Equal("cancelled", world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order!.Status);
+        Assert.Equal("cancelled", world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task!.Status);
         Assert.Equal(0, current.CompletedUnits);
         Assert.Equal(0, world.WorldTick);
         world.Validate();
@@ -59,7 +59,7 @@ public sealed class WorldShelterOrderParserTests
         Assert.False(json.ContainsKey("shelterCompletion"));
         Assert.False(json.ContainsKey("quantityIsExplicit"));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Task);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 
@@ -112,7 +112,7 @@ public sealed class WorldShelterOrderParserTests
         Assert.Null(rejected.ShelterBinding);
         Assert.Null(rejected.ShelterCompletion);
         Assert.Null(rejected.TargetBuildingKind);
-        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Order);
+        Assert.Equal(current, world.ExportState().Instructions!.Single(item => item.IdempotencyKey == "current").Task);
         Assert.Equal(0, provider.RequestCount);
         Assert.Equal(0, world.WorldTick);
         Assert.Single(world.ExportState().Events, item => item.Kind == "instruction_not_understood");
@@ -153,7 +153,7 @@ public sealed class WorldShelterOrderParserTests
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(JsonSerializer.SerializeToUtf8Bytes(document)));
         }
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
-        Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Order);
+        Assert.Equal(order, Assert.Single(restored.ExportState().Instructions!).Task);
     }
 
     [Fact]
@@ -196,16 +196,16 @@ public sealed class WorldShelterOrderParserTests
         {
             Instructions = state.Instructions!.Select(item => item with
             {
-                Order = item.Order! with { TargetAgentId = Actor },
+                Task = item.Task! with { TargetAgentId = Actor },
             }).ToArray(),
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(poisoned));
     }
 
-    private static OwnerInstructionOrder Submit(WorldRuntime world, string key, string text)
+    private static OrderTask Submit(WorldRuntime world, string key, string text)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.MustDo, text));
-        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var receipt = world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text));
+        return world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     }
 
     private sealed class UncalledModel : IDecisionProvider

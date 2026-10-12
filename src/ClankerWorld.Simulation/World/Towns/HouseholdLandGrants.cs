@@ -37,13 +37,13 @@ public static class HouseholdLandGrantRules
         IReadOnlyList<HouseholdLandUseRight> receiptRights = rights;
         foreach (var town in towns)
         {
-            if (!TownLandHearingValidation.HasRecords(town.LandHearings))
+            if (!TownLandHearingValidation.HasRecords(town.LandRecords))
                 throw new InvalidDataException("Saved Town hearing history must be present.");
-            receiptRights = TownLandHearingRules.OriginalGrantRights(town.LandHearings, receiptRights);
+            receiptRights = TownLandHearingRules.OriginalGrantRights(town.LandRecords, receiptRights);
         }
         foreach (var request in requests)
         {
-            var council = towns.Single(t => t.Id == request.TownId).Governance;
+            var council = towns.Single(t => t.Id == request.TownId).Council;
             var proposal = council?.Proposals.SingleOrDefault(p => p.Id == request.CouncilProposalId);
             if (request.Status is not ("pending" or "granted" or "rejected" or "withdrawn" or "hearing_resolved") ||
                 request.Status == "pending" && request.SettledTick is not null ||
@@ -63,7 +63,7 @@ public static class HouseholdLandGrantRules
             if (request.Status == "granted")
             {
                 if (proposal is not { Status: "passed" } || proposal.SettledTick > request.SettledTick ||
-                    request.GrantAdults.Count == 0 || !request.GrantAdults.SequenceEqual(TownGovernanceRules.Ordered(request.GrantAdults)) ||
+                    request.GrantAdults.Count == 0 || !request.GrantAdults.SequenceEqual(TownCouncilRules.Ordered(request.GrantAdults)) ||
                     request.GrantAdults.Any(id => !knownAgents.Contains(id) || !request.Consents.Any(c => c.AgentId == id && c.Accepted)) ||
                     request.AgreedEndTick is { } end && end <= request.SettledTick ||
                     !TownLandRightsRules.OrderTiles(grants.SelectMany(right => right.Tiles)).SequenceEqual(request.Tiles) ||
@@ -74,10 +74,10 @@ public static class HouseholdLandGrantRules
             else if (grants.Length != 0)
                 throw new InvalidDataException("An unfinished or refused land request cannot supply a use right.");
         }
-        TownLandHearingValidation.ValidateRequestResolutions(tick, towns.Select(town => town.LandHearings).ToArray(), requests);
+        TownLandHearingValidation.ValidateRequestResolutions(tick, towns.Select(town => town.LandRecords).ToArray(), requests);
         if (receiptRights.Any(right => right.GrantSource.StartsWith(GrantPrefix, StringComparison.Ordinal) &&
                 !requests.Any(request => request.Status == "granted" && GrantSource(request.Id) == right.GrantSource)) ||
-            towns.Any(town => town.Governance?.Proposals.Any(proposal => proposal.Kind == "land_use" &&
+            towns.Any(town => town.Council?.Proposals.Any(proposal => proposal.Kind == "land_use" &&
                 !requests.Any(request => request.TownId == town.Id && request.CouncilProposalId == proposal.Id &&
                     request.Id == proposal.SubjectId)) == true))
             throw new InvalidDataException("A saved land approval or use right is missing its household request.");
@@ -86,22 +86,22 @@ public static class HouseholdLandGrantRules
 
 public sealed partial class WorldRuntime
 {
-    private TownGovernanceState OpenLandUseProposal(TownRuntimeState town, TownGovernanceState state,
-        ref HouseholdLandUseRequest request) => civicSystem.OpenLandUseProposal(civicWorld, town, state, ref request);
-    private TownGovernanceState ResolveHouseholdLandRequests(TownRuntimeState town, TownGovernanceState state) => civicSystem.ResolveHouseholdLandRequests(civicWorld, town, state);
+    private TownCouncilState OpenLandUseProposal(TownRuntimeState town, TownCouncilState state,
+        ref HouseholdLandUseRequest request) => townSystem.OpenLandUseProposal(civicWorld, town, state, ref request);
+    private TownCouncilState ResolveHouseholdLandRequests(TownRuntimeState town, TownCouncilState state) => townSystem.ResolveHouseholdLandRequests(civicWorld, town, state);
     /// <summary>Land other households hold or have asked for; a Town building (null household) avoids all of it.</summary>
-    private HashSet<GridPoint> HouseholdLandHeldByOthers(string? household) => civicSystem.HouseholdLandHeldByOthers(civicWorld, household);
-    private bool IncludesForeignFieldWithoutUseRight(string household, IReadOnlyList<GridPoint> tiles) => civicSystem.IncludesForeignFieldWithoutUseRight(civicWorld, household, tiles);
-    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include) => CivicSystem.BuildingFootprintTiles(civicWorld, include);
+    private HashSet<GridPoint> HouseholdLandHeldByOthers(string? household) => townSystem.HouseholdLandHeldByOthers(civicWorld, household);
+    private bool IncludesForeignFieldWithoutUseRight(string household, IReadOnlyList<GridPoint> tiles) => townSystem.IncludesForeignFieldWithoutUseRight(civicWorld, household, tiles);
+    private HashSet<GridPoint> BuildingFootprintTiles(Func<PlacedBuilding, bool> include) => TownSystem.BuildingFootprintTiles(civicWorld, include);
     /// <summary>Tiles a running or paused expansion is building on, for the buildings <paramref name="include"/> selects.</summary>
-    private HashSet<GridPoint> ExpansionWorkTiles(Func<PlacedBuilding?, bool> include) => CivicSystem.ExpansionWorkTiles(civicWorld, include);
+    private HashSet<GridPoint> ExpansionWorkTiles(Func<PlacedBuilding?, bool> include) => TownSystem.ExpansionWorkTiles(civicWorld, include);
     /// <summary>Free Town-titled land nearest first: no use right, pending request, building, expansion, road, field or Town project site.</summary>
-    private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => civicSystem.RequestableLandNear(civicWorld, town, from, count);
-    private string LandUseTerms(HouseholdLandUseRequest request) => CivicSystem.LandUseTerms(civicWorld, request);
-    private void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => civicSystem.AddHouseholdLandCandidates(civicWorld, candidates, actor, town);
-    private GridPoint[]? ExpansionLandRequestTiles(string actor, PlacedBuilding building) => civicSystem.ExpansionLandRequestTiles(civicWorld, actor, building);
-    private TownGovernanceState SubmitExpansionLandRequest(TownRuntimeState town, TownGovernanceState state, string actor, string buildingId) => civicSystem.SubmitExpansionLandRequest(civicWorld, town, state, actor, buildingId);
-    private TownGovernanceState DecideHouseholdLandUse(TownGovernanceState state, string actor, string requestId, string action) => civicSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);
-    private TownGovernanceState SubmitPersonalLandUseRequest(TownRuntimeState town, TownGovernanceState state,
-        string actor, IReadOnlyList<CognitionLandTile>? landTiles) => civicSystem.SubmitPersonalLandUseRequest(civicWorld, town, state, actor, landTiles);
+    private GridPoint[] RequestableLandNear(TownRuntimeState town, GridPoint from, int count) => townSystem.RequestableLandNear(civicWorld, town, from, count);
+    private string LandUseTerms(HouseholdLandUseRequest request) => TownSystem.LandUseTerms(civicWorld, request);
+    private void AddHouseholdLandCandidates(List<CognitionCandidate> candidates, string actor, TownRuntimeState town) => townSystem.AddHouseholdLandCandidates(civicWorld, candidates, actor, town);
+    private GridPoint[]? ExpansionLandRequestTiles(string actor, PlacedBuilding building) => townSystem.ExpansionLandRequestTiles(civicWorld, actor, building);
+    private TownCouncilState SubmitExpansionLandRequest(TownRuntimeState town, TownCouncilState state, string actor, string buildingId) => townSystem.SubmitExpansionLandRequest(civicWorld, town, state, actor, buildingId);
+    private TownCouncilState DecideHouseholdLandUse(TownCouncilState state, string actor, string requestId, string action) => townSystem.DecideHouseholdLandUse(civicWorld, state, actor, requestId, action);
+    private TownCouncilState SubmitPersonalLandUseRequest(TownRuntimeState town, TownCouncilState state,
+        string actor, IReadOnlyList<CognitionLandTile>? landTiles) => townSystem.SubmitPersonalLandUseRequest(civicWorld, town, state, actor, landTiles);
 }

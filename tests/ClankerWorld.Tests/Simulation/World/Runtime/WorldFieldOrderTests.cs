@@ -36,7 +36,7 @@ public sealed partial class WorldFieldOrderTests
         Assert.Equal(("doing", 0, "fields"), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ProgressUnit));
         Assert.Equal(1, SeedQuantity(world, crop));
         Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(work.SeedReservationId!).State);
-        var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions).Order!;
+        var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions).Task!;
         Assert.Equal(crop, projected.TargetCropKind);
         await Finish(world, receipt);
         Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -59,10 +59,10 @@ public sealed partial class WorldFieldOrderTests
             RoutineHelper = RoutineHelperSettings.Off,
         };
         var blockedPoint = OtherPoint(state);
-        var blocker = state.Inhabitants.First(person => person.InhabitantId != Actor).InhabitantId;
+        var blocker = state.Agents.First(person => person.AgentId != Actor).AgentId;
         if (occupied) state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == blocker
+            Agents = state.Agents.Select(person => person.AgentId == blocker
                 ? person with { Position = blockedPoint, LastDecisionContext = null } : person).ToArray(),
         };
         var blockedId = nearbyFirst ? "zzz-planting-seed" : "aaa-planting-seed";
@@ -93,7 +93,7 @@ public sealed partial class WorldFieldOrderTests
         Assert.Equal(0, world.Society.Inventory.Lots.Where(lot => lot.Id == used || lot.ProvenanceLotId == used).Sum(lot => lot.Quantity));
         Assert.Equal((Household, 1), (world.Society.Inventory.GetLot(retained).OwnerId, world.Society.Inventory.GetLot(retained).Quantity));
         Assert.Single(world.ExportState().Events, item => item.Kind == "field_planted");
-        if (occupied) Assert.Equal(blockedPoint, world.Inhabitants.Single(person => person.InhabitantId == blocker).Position);
+        if (occupied) Assert.Equal(blockedPoint, world.Agents.Single(person => person.AgentId == blocker).Position);
         world.Validate();
         var final = WorldRuntimeCodec.Encode(world.ExportState());
         using var loaded = Restore(WorldRuntimeCodec.Decode(final));
@@ -293,7 +293,7 @@ public sealed partial class WorldFieldOrderTests
         for (var tick = 0; tick < 2; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var saved = world.ExportState();
         var reservation = Assert.Single(world.Fields).Work!.SeedReservationId!;
-        saved = saved with { Inhabitants = saved.Inhabitants.Select(person => person.InhabitantId == Actor ? person with { HungerBasisPoints = 1_000 } : person).ToArray() };
+        saved = saved with { Agents = saved.Agents.Select(person => person.AgentId == Actor ? person with { FullnessBasisPoints = 1_000 } : person).ToArray() };
         using var restored = Restore(saved);
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("interrupted", 0), (Order(restored, receipt).Status, Order(restored, receipt).CompletedUnits));
@@ -382,7 +382,7 @@ public sealed partial class WorldFieldOrderTests
             Order(world, receipt) with { LastEffectId = "field:work:unearned" },
         })
             Assert.Throws<InvalidDataException>(() => Restore(state with
-            { Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Order = invalid } : item).ToArray() }));
+            { Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
         Assert.Throws<InvalidDataException>(() => Restore(state with { SchemaVersion = 71 }));
     }
 
@@ -454,7 +454,7 @@ public sealed partial class WorldFieldOrderTests
             {
                 Society = checkpoint with
                 {
-                    Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == Actor ? person with
+                    Agents = checkpoint.Agents.Select(person => person.Id == Actor ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = checkpoint.LifeClock is null ? null : birth,
@@ -466,8 +466,8 @@ public sealed partial class WorldFieldOrderTests
             },
             Towns = state.Towns!.Select(town => town with
             {
-                Governance = TownGovernanceState.Create(town.ResidentIds.Where(id => id != Actor &&
-                    checkpoint.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
+                Council = TownCouncilState.Create(town.ResidentIds.Where(id => id != Actor &&
+                    checkpoint.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)),
             }).ToArray(),
         };
         using var world = Restore(state);
@@ -491,8 +491,8 @@ public sealed partial class WorldFieldOrderTests
         {
             Fields = [],
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
-            { HungerBasisPoints = 10_000, Survival = new(), LastDecisionContext = null, Position = person.InhabitantId == Actor ? Point : person.Position }).ToArray(),
+            Agents = state.Agents.Select(person => person with
+            { FullnessBasisPoints = 10_000, Survival = new(), LastDecisionContext = null, Position = person.AgentId == Actor ? Point : person.Position }).ToArray(),
         };
     }
     private static WorldRuntimeState WithFields(WorldRuntimeState state, params FarmFieldState[] fields) =>
@@ -503,9 +503,9 @@ public sealed partial class WorldFieldOrderTests
     private static int SeedQuantity(WorldRuntime world, string crop) => world.Society.Inventory.Lots.Where(lot => lot.ItemKind == FarmFieldRules.PlantingItem(crop)).Sum(lot => lot.Quantity);
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new FieldChoices());
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.MustDo, text, Queue: queue));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        world.SubmitInstruction(new(key, "owner:test", Actor, OwnerInstructionKind.Order, text, Queue: queue));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static async Task Finish(WorldRuntime world, OwnerInstructionReceipt receipt, int maximum = 14)
     {
         for (var tick = 0; tick < maximum && Order(world, receipt).Status != "finished"; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -536,14 +536,14 @@ public sealed partial class WorldFieldOrderTests
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var fertility = new LandFertility(state.Map, state.WorldSeed);
         return state.Map.Tiles.Select(tile => tile.Position).Where(point => point != Point && fertility.CanFarm(point) &&
-            !occupied.Contains(point) && !state.Inhabitants.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(Point, point))
+            !occupied.Contains(point) && !state.Agents.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(Point, point))
             .OrderBy(point => state.Map.FootDistance(Point, point)).First();
     }
     private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public Func<bool>? CanStart { get; set; }
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -562,7 +562,7 @@ public sealed partial class WorldFieldOrderTests
             }
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "work_field")
                 ? "work_field" : "safe_idle";
-            return new(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

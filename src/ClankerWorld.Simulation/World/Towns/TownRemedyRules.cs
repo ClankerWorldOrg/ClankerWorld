@@ -17,10 +17,10 @@ public static class TownRemedyRules
         });
     internal static bool ValidTerms(IReadOnlyList<TownRemedyTerm>? terms) => terms is { Count: > 0 and <= 8 } &&
         terms.All(ValidTerm) && terms.Select(t => t.Id).Distinct(StringComparer.Ordinal).Count() == terms.Count;
-    private static TownNonviolentState Replace(TownNonviolentState state, TownRemedyOffer offer) =>
+    private static TownNonLandHearingState Replace(TownNonLandHearingState state, TownRemedyOffer offer) =>
         state with { Offers = state.Offers.Select(o => o.Id == offer.Id ? offer : o).ToArray() };
 
-    public static TownNonviolentState Offer(TownNonviolentState state, string caseId, string findingId, string author,
+    public static TownNonLandHearingState Offer(TownNonLandHearingState state, string caseId, string findingId, string author,
         IReadOnlyList<TownRemedyTerm> terms, long completionTicks, string reason, long tick, int day, string noticeId,
         bool feasible, string? replacesOfferId = null, string? replacesAgreementId = null)
     {
@@ -38,17 +38,17 @@ public static class TownRemedyRules
             !TownHearingProcedure.Text(reason) || !TownHearingProcedure.Id(noticeId) || completionTicks <= 0 || day <= 0 || tick < finding.Tick ||
             (prior is null ? finding.Judge.AgentId != author && !item!.Revisions[^1].Parties.Any(p => p.SubjectId == author || p.RespondingAdultId == author) || replacesOfferId is not null :
                 prior.Status is not ("countered" or "accepted") || !prior.Terms.Any(t => t.ContributorId == author)) ||
-            !TownNonviolentRules.ReadCurrent(item!, author, tick) ||
+            !TownNonLandRules.ReadCurrent(item!, author, tick) ||
             state.Offers.Any(o => o.CaseId == caseId && o.FindingId == findingId && o.Status == "pending"))
             throw new InvalidOperationException("A voluntary offer needs a supported finding, feasible named contributions and current informed terms.");
         var duration = completionTicks;
-        var id = TownNonviolentRules.NextId(state, "offer");
+        var id = TownNonLandRules.NextId(state, "offer");
         var offer = new TownRemedyOffer(id, caseId, findingId, prior is null ? 1 : prior.Revision + 1, terms.ToArray(),
             TermsHash(terms, duration), reason, noticeId, tick, checked(tick + day), duration, "pending", [], replacesOfferId);
         return state with { Sequence = checked(state.Sequence + 1), Offers = state.Offers.Append(offer).ToArray() };
     }
 
-    public static TownNonviolentState Respond(TownNonviolentState state, string offerId, int revision, string actor,
+    public static TownNonLandHearingState Respond(TownNonLandHearingState state, string offerId, int revision, string actor,
         string kind, string? reason, long tick, int day, IReadOnlyList<TownCivicReceipt> receipts, bool feasible)
     {
         var offer = state.Offers.SingleOrDefault(o => o.Id == offerId && o.Revision == revision && o.Status == "pending");
@@ -65,7 +65,7 @@ public static class TownRemedyRules
         var previousAgreement = previousOffer?.AgreementId;
         // Renegotiation preserves already performed work. New terms are remaining commitments,
         // never a mechanism to copy old physical receipts into another agreement.
-        var agreement = new TownRestorativeAgreement(TownNonviolentRules.NextId(state, "agreement"), offer.Id, revision,
+        var agreement = new TownRestorativeAgreement(TownNonLandRules.NextId(state, "agreement"), offer.Id, revision,
             offer.TermsHash, offer.Terms, offer.Responses, tick, checked(tick + offer.CompletionTicks), "pending", previousAgreement);
         offer = offer with { Status = "accepted", AgreementId = agreement.Id };
         state = Replace(state with { Sequence = checked(state.Sequence + 1), Agreements = state.Agreements.Append(agreement).ToArray() }, offer);
@@ -74,7 +74,7 @@ public static class TownRemedyRules
         return state;
     }
 
-    internal static TownRemedyOffer? ReplacedAgreementOffer(TownNonviolentState state, TownRemedyOffer offer)
+    internal static TownRemedyOffer? ReplacedAgreementOffer(TownNonLandHearingState state, TownRemedyOffer offer)
     {
         HashSet<string> seen = new(StringComparer.Ordinal) { offer.Id };
         while (offer.ReplacesOfferId is { } priorId)
@@ -86,11 +86,11 @@ public static class TownRemedyRules
         return null;
     }
 
-    public static int CompletedQuantity(TownNonviolentState state, string agreementId, string termId) =>
+    public static int CompletedQuantity(TownNonLandHearingState state, string agreementId, string termId) =>
         checked(state.Effects.Where(e => e.AgreementId == agreementId && e.TermId == termId).Sum(e => e.Quantity));
-    public static bool IsSuperseded(TownNonviolentState state, string agreementId) =>
+    public static bool IsSuperseded(TownNonLandHearingState state, string agreementId) =>
         state.Agreements.Any(a => a.ReplacesAgreementId == agreementId);
-    public static TownNonviolentState RecordEffect(TownNonviolentState state, TownRemedyEffect effect)
+    public static TownNonLandHearingState RecordEffect(TownNonLandHearingState state, TownRemedyEffect effect)
     {
         var agreement = state.Agreements.SingleOrDefault(a => a.Id == effect.AgreementId);
         var term = agreement?.Terms.SingleOrDefault(t => t.Id == effect.TermId);
@@ -106,7 +106,7 @@ public static class TownRemedyRules
         return Advance(state, effect.Tick);
     }
 
-    public static TownNonviolentState Advance(TownNonviolentState state, long tick) => state with
+    public static TownNonLandHearingState Advance(TownNonLandHearingState state, long tick) => state with
     {
         Offers = state.Offers.Select(o => o.Status == "pending" && tick >= o.ResponseDeadlineTick ? o with { Status = "unanswered" } : o).ToArray(),
         Agreements = state.Agreements.Select(a => a with

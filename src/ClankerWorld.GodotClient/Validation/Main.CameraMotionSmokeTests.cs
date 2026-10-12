@@ -10,11 +10,11 @@ public partial class Main
         var original = renderedMapSnapshot!;
         var originalCenter = cameraCenterTiles;
         var originalZoom = cameraZoom;
-        var originalAgent = selectedInhabitantId;
+        var originalAgent = selectedAgentId;
         var originalBuilding = selectedBuildingId;
         var originalProfile = agentProfileRequested;
         var position = new OwnerWorldPosition(180, 64);
-        var person = new OwnerWorldInhabitant("camera-person", "Camera person", "active", position, 2_000, [], [],
+        var person = new OwnerWorldAgent("camera-person", "Camera person", "active", position, 2_000, [], [],
             new OwnerWorldRoute("idle", null, null, [], string.Empty),
             new OwnerWorldSpatialKnowledge(position, [position], [position]), false);
         var fixture = sample with
@@ -25,7 +25,7 @@ public partial class Main
             MapLayersDigest = null,
             Tiles = [],
             Resources = [],
-            Inhabitants = [person],
+            Agents = [person],
             Actor = null,
             Towns = [],
             RoadTiles = [],
@@ -36,18 +36,18 @@ public partial class Main
         {
             RenderMap(fixture);
             SetCameraAtImmediately(new(80, 64));
-            selectedInhabitantId = person.Id;
+            selectedAgentId = person.Id;
             agentProfileRequested = false;
-            RenderSelectedInhabitantCard(fixture);
+            RenderSelectedAgentCard(fixture);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            var cardPosition = selectedInhabitantCard.Position;
+            var cardPosition = selectedAgentCard.Position;
             var start = cameraCenterTiles;
             profileFindButton.EmitSignal(BaseButton.SignalName.Pressed);
             if (!cameraGliding || cameraCenterTiles != start)
                 throw new InvalidOperationException("Find must begin a glide from the shown camera without snapping.");
             AdvanceCameraMotion(CameraEasing.MoveSeconds / 2);
             var expected = start.Lerp(new(180.5f, 64.5f), 0.875f);
-            if (cameraCenterTiles.DistanceTo(expected) > 0.01f || selectedInhabitantCard.Position != cardPosition)
+            if (cameraCenterTiles.DistanceTo(expected) > 0.01f || selectedAgentCard.Position != cardPosition)
                 throw new InvalidOperationException("Find must use the approved cubic easing and hold the open card in place.");
             var retargetStart = cameraCenterTiles;
             CenterCameraAt(new(100, 64));
@@ -67,7 +67,7 @@ public partial class Main
                 keyboardMapTile = new(80, 64);
                 SetCameraAtImmediately(new(80, 64));
                 mapCanvas.GrabFocus();
-                CenterOnInhabitant(person.Id);
+                CenterOnAgent(person.Id);
                 AdvanceCameraMotion(CameraEasing.MoveSeconds / 2);
                 if (!cameraGliding || cameraCenterTiles.DistanceTo(new Vector2(80, 64).Lerp(new(180.5f, 64.5f), 0.875f)) > 0.01f)
                     throw new InvalidOperationException("Focused-map Find must retain its glide while the destination cursor is still offscreen.");
@@ -112,7 +112,7 @@ public partial class Main
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
 
             SetCameraAtImmediately(new(80, 64));
-            CenterOnInhabitant(person.Id);
+            CenterOnAgent(person.Id);
             for (var frame = 0; frame < 2; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (cameraCenterTiles.X <= 80 || !CameraMoving)
                 throw new InvalidOperationException("The actual native process frames must advance roster/agent camera travel.");
@@ -163,13 +163,13 @@ public partial class Main
         finally
         {
             CancelCameraMotion();
-            selectedInhabitantId = originalAgent;
+            selectedAgentId = originalAgent;
             selectedBuildingId = originalBuilding;
             agentProfileRequested = originalProfile;
             RenderMap(original);
             cameraZoom = originalZoom;
             SetCameraAtImmediately(originalCenter);
-            RenderSelectedInhabitantCard(original);
+            RenderSelectedAgentCard(original);
             RenderBuildingCard(original);
         }
     }

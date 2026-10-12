@@ -32,7 +32,7 @@ public partial class Main
             Authoring = new OwnerWorldAuthoringState(false, 0, 0, 0, "ui-map", "ui-map", "cloudy", "autumn", []),
         };
         var handshake = new OwnerWorldHandshake(new(1, 1),
-            ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+            ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
              "owner-control.request.v1", "paused-authoring.request.v1"], []);
         try
         {

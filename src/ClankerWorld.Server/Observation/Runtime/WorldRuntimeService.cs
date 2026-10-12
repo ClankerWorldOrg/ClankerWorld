@@ -27,8 +27,8 @@ public sealed partial class WorldRuntimeService(
     private readonly Dictionary<string, FrozenChildModelBinding> pendingChildModelBindings = new(StringComparer.Ordinal);
 
     [LoggerMessage(EventId = 2323, Level = LogLevel.Warning,
-        Message = "world_action_refused tick={WorldTick} inhabitant={InhabitantId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
-    private static partial void LogActionRefused(ILogger logger, long worldTick, string inhabitantId, string choiceKind, string check);
+        Message = "world_action_refused tick={WorldTick} agent={AgentId} choice_kind={ChoiceKind} check={Check} outcome=waiting")]
+    private static partial void LogActionRefused(ILogger logger, long worldTick, string agentId, string choiceKind, string check);
 
     private static string RefusedChoiceKind(string candidate) => candidate.Split(':', 2)[0] switch
     {
@@ -46,24 +46,24 @@ public sealed partial class WorldRuntimeService(
 
 
     [LoggerMessage(EventId = 2215, Level = LogLevel.Information,
-        Message = "work_practice tick={WorldTick} inhabitant={InhabitantId} building={Building} farming={Farming} crafting={Crafting}")]
-    private static partial void LogWorkPractice(ILogger logger, long worldTick, string inhabitantId, int building, int farming, int crafting);
+        Message = "work_practice tick={WorldTick} agent={AgentId} building={Building} farming={Farming} crafting={Crafting}")]
+    private static partial void LogWorkPractice(ILogger logger, long worldTick, string agentId, int building, int farming, int crafting);
 
     [LoggerMessage(EventId = 2216, Level = LogLevel.Information,
-        Message = "social_standing tick={WorldTick} inhabitant={InhabitantId} subject={SubjectId} trust={Trust} reason={Reason}")]
-    private static partial void LogSocialStanding(ILogger logger, long worldTick, string inhabitantId, string subjectId, int trust, string reason);
+        Message = "social_standing tick={WorldTick} agent={AgentId} subject={SubjectId} trust={Trust} reason={Reason}")]
+    private static partial void LogSocialStanding(ILogger logger, long worldTick, string agentId, string subjectId, int trust, string reason);
 
     [LoggerMessage(EventId = 2271, Level = LogLevel.Information,
-        Message = "tree_planting tick={WorldTick} inhabitant={InhabitantId} outcome={Outcome} detail={Detail}")]
-    private static partial void LogTreePlanting(ILogger logger, long worldTick, string inhabitantId, string outcome, string detail);
+        Message = "tree_planting tick={WorldTick} agent={AgentId} outcome={Outcome} detail={Detail}")]
+    private static partial void LogTreePlanting(ILogger logger, long worldTick, string agentId, string outcome, string detail);
 
     [LoggerMessage(EventId = 2218, Level = LogLevel.Information,
-        Message = "hosted_decision tick={WorldTick} inhabitant={InhabitantId} outcome={Outcome}")]
-    private static partial void LogHostedDecision(ILogger logger, long worldTick, string inhabitantId, string outcome);
+        Message = "hosted_decision tick={WorldTick} agent={AgentId} outcome={Outcome}")]
+    private static partial void LogHostedDecision(ILogger logger, long worldTick, string agentId, string outcome);
 
     [LoggerMessage(EventId = 2288, Level = LogLevel.Information,
-        Message = "agent_identity_changed tick={WorldTick} inhabitant={InhabitantId}")]
-    private static partial void LogIdentityChanged(ILogger logger, long worldTick, string inhabitantId);
+        Message = "agent_identity_changed tick={WorldTick} agent={AgentId}")]
+    private static partial void LogIdentityChanged(ILogger logger, long worldTick, string agentId);
 
     [LoggerMessage(EventId = 2255, Level = LogLevel.Information,
         Message = "estate_will tick={WorldTick} estate={EstateId} deceased={DeceasedId} outcome={Outcome} reason={Reason}")]
@@ -293,7 +293,7 @@ public sealed partial class WorldRuntimeService(
                 foreach (var worldEvent in result.Events.Where(item => item.Kind == "action_refused"))
                 {
                     var refusal = System.Text.Json.JsonSerializer.Deserialize<WorldActionRefusal>(worldEvent.Detail)!;
-                    LogActionRefused(logger, worldEvent.WorldTick, refusal.InhabitantId,
+                    LogActionRefused(logger, worldEvent.WorldTick, refusal.AgentId,
                         RefusedChoiceKind(refusal.CandidateId), refusal.Check);
                 }
             foreach (var (childId, binding) in preparedChildBindings)
@@ -354,7 +354,7 @@ public sealed partial class WorldRuntimeService(
                     LogAgentMemoryCompaction(logger, transition.WorldTick, transition.OwnerId,
                         transition.AssessedCount, transition.IndexSize);
                 }
-                var actors = runtime.Society.Inhabitants.Select(person => person.Id)
+                var actors = runtime.Society.Agents.Select(person => person.Id)
                     .OrderByDescending(id => id.Length).ToArray();
                 string? EventActor(string detail) => actors.FirstOrDefault(id => detail == id || detail.StartsWith(id + ":", StringComparison.Ordinal));
                 foreach (var worldEvent in result.Events.Where(item => item.Kind.StartsWith("hosted_decision_", StringComparison.Ordinal)))
@@ -385,8 +385,8 @@ public sealed partial class WorldRuntimeService(
                             outcome, reason);
                     }
                 }
-                var projects = runtime.Inhabitants.Where(person => person.Project is not null)
-                    .ToDictionary(person => person.InhabitantId, person => person.Project!, StringComparer.Ordinal);
+                var projects = runtime.Agents.Where(person => person.Project is not null)
+                    .ToDictionary(person => person.AgentId, person => person.Project!, StringComparer.Ordinal);
                 foreach (var worldEvent in result.Events.Where(item => item.Kind == "agent_identity_revised"))
                 {
                     var actor = EventActor(worldEvent.Detail);
@@ -398,7 +398,7 @@ public sealed partial class WorldRuntimeService(
                 foreach (var worldEvent in result.Events.Where(item => item.Kind == "work_practice_earned"))
                 {
                     var actor = EventActor(worldEvent.Detail);
-                    if (actor is not null && runtime.Inhabitants.FirstOrDefault(person => person.InhabitantId == actor)?.Proficiency is { } practice)
+                    if (actor is not null && runtime.Agents.FirstOrDefault(person => person.AgentId == actor)?.Proficiency is { } practice)
                         LogWorkPractice(logger, result.WorldTick, actor, practice.Building, practice.Farming, practice.Crafting);
                 }
                 foreach (var worldEvent in result.Events.Where(item => item.Kind == "social_standing_changed"))
@@ -407,7 +407,7 @@ public sealed partial class WorldRuntimeService(
                     if (actor is null || worldEvent.Detail.Length <= actor.Length + 1) continue;
                     var remainder = worldEvent.Detail[(actor.Length + 1)..];
                     var subject = actors.FirstOrDefault(id => remainder == id || remainder.StartsWith(id + ":", StringComparison.Ordinal));
-                    var standing = runtime.Inhabitants.FirstOrDefault(person => person.InhabitantId == actor)?.SocialStanding?
+                    var standing = runtime.Agents.FirstOrDefault(person => person.AgentId == actor)?.SocialStanding?
                         .FirstOrDefault(item => item.SubjectId == subject);
                     if (subject is null || standing is null) continue;
                     var reason = remainder.Length > subject.Length ? remainder[(subject.Length + 1)..] : "cooperation";
@@ -421,7 +421,7 @@ public sealed partial class WorldRuntimeService(
                     if (actor is null) continue;
                     var delivery = worldEvent.Kind is "owner_stock_picked_up" or "owner_stock_delivered";
                     var project = delivery ? null : projects.GetValueOrDefault(actor);
-                    LogSettlementActivity(logger, result.WorldTick, worldEvent.Kind, actor,
+                    LogProjectActivity(logger, result.WorldTick, worldEvent.Kind, actor,
                         worldEvent.Kind is "town_resources_stored" or "town_resource_collected"
                             ? "warehouse" : delivery ? "delivery" : project?.Stage ?? "helping", project?.WorkDone ?? 0,
                         worldEvent.Kind is not ("town_resources_stored" or "town_resource_collected") &&
@@ -433,10 +433,10 @@ public sealed partial class WorldRuntimeService(
                 {
                     var actor = EventActor(worldEvent.Detail);
                     if (actor is null) continue;
-                    if (runtime.Inhabitants.FirstOrDefault(person => person.InhabitantId == actor)?.Survival is { } condition)
+                    if (runtime.Agents.FirstOrDefault(person => person.AgentId == actor)?.Survival is { } condition)
                     {
-                        var illnessWorkPercent = SettlementIllnessRules.WorkRatePercent(condition.IllnessBasisPoints);
-                        var illnessTravelDelay = SettlementIllnessRules.TravelDelayTicks(condition.IllnessBasisPoints);
+                        var illnessWorkPercent = IllnessRules.WorkRatePercent(condition.IllnessBasisPoints);
+                        var illnessTravelDelay = IllnessRules.TravelDelayTicks(condition.IllnessBasisPoints);
                         LogSurvivalCondition(logger, result.WorldTick, actor, condition.WarmthBasisPoints, condition.IllnessBasisPoints,
                             illnessWorkPercent, illnessTravelDelay);
                     }
@@ -451,24 +451,24 @@ public sealed partial class WorldRuntimeService(
                         .FirstOrDefault(item => item.JobId == worldEvent.Detail);
                     if (job is not null) LogProductionCancelled(logger, result.WorldTick, job.JobId, job.WorkerId);
                 }
-                foreach (var worldEvent in result.Events.Where(item => item.Kind is "settlement_trade_offered" or
-                             "settlement_trade_declined" or "settlement_trade_completed" or "settlement_trade_cancelled"))
+                foreach (var worldEvent in result.Events.Where(item => item.Kind is "barter_offered" or
+                             "barter_declined" or "barter_completed" or "barter_cancelled"))
                 {
-                    LogSettlementTrade(logger, result.WorldTick, worldEvent.Kind);
+                    LogDirectBarter(logger, result.WorldTick, worldEvent.Kind);
                 }
                 foreach (var worldEvent in result.Events.Where(item => item.Kind.StartsWith("agent_knowledge_", StringComparison.Ordinal)))
                 {
                     LogKnowledgeEvent(worldEvent);
                 }
-                foreach (var worldEvent in result.Events.Where(item => item.Kind is "council_steward_changed" or
-                             "council_policy_proposed" or "council_vote_recorded" or "council_policy_adopted" or "council_policy_rejected"))
+                foreach (var worldEvent in result.Events.Where(item => item.Kind is "food_steward_changed" or
+                             "food_policy_proposed" or "food_policy_vote_recorded" or "food_policy_adopted" or "food_policy_rejected"))
                 {
-                    LogSettlementCouncil(logger, result.WorldTick, worldEvent.Kind);
+                    LogFoodStewardship(logger, result.WorldTick, worldEvent.Kind);
                 }
                 foreach (var worldEvent in result.Events.Where(item => item.Kind is "lesson_requested" or "lesson_accepted" or
                              "lesson_training" or "lesson_completed" or "lesson_declined" or "lesson_cancelled"))
                 {
-                    LogSettlementLesson(logger, result.WorldTick, worldEvent.Kind);
+                    LogLessonActivity(logger, result.WorldTick, worldEvent.Kind);
                 }
                 foreach (var worldEvent in result.Events.Where(item => item.Kind is "partnership_proposed" or "partnership_accepted" or
                              "partnership_refused" or "partnership_ended" or "partnership_expired" or
@@ -480,7 +480,7 @@ public sealed partial class WorldRuntimeService(
                              "caregiver_accepted" or "caregiver_refused" or "caregiver_proposal_expired" or "caregiver_ended" or
                              "dependent_cared_for"))
                 {
-                    LogSettlementFamily(logger, result.WorldTick, worldEvent.Kind);
+                    LogFamilyActivity(logger, result.WorldTick, worldEvent.Kind);
                 }
                 foreach (var worldEvent in result.Events.Where(item => item.Kind is "housing_request_made" or
                              "housing_answer_recorded" or "household_joined" or "housing_request_refused" or
@@ -489,12 +489,12 @@ public sealed partial class WorldRuntimeService(
                              "household_left" or "household_founded" or "personal_goods_collected" or "personal_goods_stored" or
                              "borrowed_goods_returned" or "replacement_care_accepted" or "household_work_resumed"))
                 {
-                    LogSettlementHousing(logger, result.WorldTick, worldEvent.Kind);
+                    LogHousingActivity(logger, result.WorldTick, worldEvent.Kind);
                 }
             }
         }
 
-        foreach (var decision in result.Decisions.OrderBy(item => item.InhabitantId, StringComparer.Ordinal))
+        foreach (var decision in result.Decisions.OrderBy(item => item.AgentId, StringComparer.Ordinal))
         {
             var intention = decision.Admission.Intention;
             if (logger?.IsEnabled(LogLevel.Information) == true)
@@ -503,7 +503,7 @@ public sealed partial class WorldRuntimeService(
                 LogCognitionDecision(
                     logger,
                     result.WorldTick,
-                    decision.InhabitantId,
+                    decision.AgentId,
                     decision.Admission.Accepted,
                     decision.Admission.FellBack,
                     decision.Admission.Outcome,
@@ -529,7 +529,7 @@ public sealed partial class WorldRuntimeService(
             lock (providers.WorldMutationGate)
             {
                 var configuration = providers.CaptureRuntimeConfiguration();
-                var people = runtime.Inhabitants.ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
+                var people = runtime.Agents.ToDictionary(item => item.AgentId, StringComparer.Ordinal);
                 foreach (var childId in pendingChildModelBindings.Keys.ToArray())
                 {
                     if (!people.TryGetValue(childId, out var child))
@@ -547,14 +547,14 @@ public sealed partial class WorldRuntimeService(
                 {
                     var selection = child.ChildModelSelection!;
                     var childRows = (configuration.Assignments ?? []).Where(item =>
-                        item.InhabitantId == child.InhabitantId &&
+                        item.AgentId == child.AgentId &&
                         item.Role is PlayerDecisionProviders.RoutineRole or PlayerDecisionProviders.PlanningRole).ToArray();
                     var birthRows = childRows.Where(item => item.SelectionReason is not null).ToArray();
                     if (selection.Provider is null)
                     {
                         if (birthRows.Length > 0)
                             throw new InvalidDataException("An unconfigured child has a saved birth model assignment.");
-                        if (!pendingChildModelBindings.ContainsKey(child.InhabitantId))
+                        if (!pendingChildModelBindings.ContainsKey(child.AgentId))
                             continue;
                     }
                     else
@@ -566,12 +566,12 @@ public sealed partial class WorldRuntimeService(
                             .All(role => childRows.Any(item => item.Role == role));
                         if (bothRolesConfigured)
                         {
-                            pendingChildModelBindings.Remove(child.InhabitantId);
+                            pendingChildModelBindings.Remove(child.AgentId);
                             continue;
                         }
                     }
-                    if (!pendingChildModelBindings.ContainsKey(child.InhabitantId))
-                        pendingChildModelBindings.Add(child.InhabitantId, new FrozenChildModelBinding(selection, null));
+                    if (!pendingChildModelBindings.ContainsKey(child.AgentId))
+                        pendingChildModelBindings.Add(child.AgentId, new FrozenChildModelBinding(selection, null));
                 }
 
                 foreach (var childId in pendingChildModelBindings.Keys.Order(StringComparer.Ordinal).ToArray())
@@ -610,7 +610,7 @@ public sealed partial class WorldRuntimeService(
         if (births.Length == 0) return [];
 
         var configuration = providers.CaptureRuntimeConfiguration();
-        var people = proposed.Inhabitants.ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
+        var people = proposed.Agents.ToDictionary(item => item.AgentId, StringComparer.Ordinal);
         var selections = new List<PreparedChildModelSelection>(births.Length);
         foreach (var childId in births)
         {
@@ -620,7 +620,7 @@ public sealed partial class WorldRuntimeService(
             if (initiator?.Parenthood is not { } plan)
                 throw new InvalidDataException("A newly born child has no initiating parent record.");
 
-            var selection = ChildModelSelectionResolver.Choose(initiator.InhabitantId, plan.PartnerId, configuration);
+            var selection = ChildModelSelectionResolver.Choose(initiator.AgentId, plan.PartnerId, configuration);
             var frozen = ProviderConfigurationStore.FreezeChildModelSelection(selection, configuration);
             preparedBindings.Add(childId, frozen);
             selections.Add(new PreparedChildModelSelection(childId, frozen.Selection));
@@ -645,7 +645,7 @@ public sealed partial class WorldRuntimeService(
         {
             var fields = worldEvent.Detail.Split('|', 5);
             var transferTown = fields.Length == 5 ? runtime.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
-            var transfer = transferTown?.LandHearings.Transfers.FirstOrDefault(item => item.Id == fields[1]);
+            var transfer = transferTown?.LandRecords.Transfers.FirstOrDefault(item => item.Id == fields[1]);
             if (transferTown is not null && transfer is not null)
                 TownTelemetry.LandTransfer(logger, worldEvent.WorldTick, transferTown.Id, transfer.Id, transferTransition,
                     transfer.Status, transfer.Parties.Count, transfer.Responses.Count, transfer.Tiles.Count);
@@ -672,7 +672,7 @@ public sealed partial class WorldRuntimeService(
         {
             var fields = worldEvent.Detail.Split('|', 5);
             var hearingTown = fields.Length >= 3 ? runtime.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
-            var hearing = hearingTown?.LandHearings?.Cases.FirstOrDefault(item => item.Id == fields[1]);
+            var hearing = hearingTown?.LandRecords?.Cases.FirstOrDefault(item => item.Id == fields[1]);
             if (hearingTown is not null && hearing is not null)
                 TownTelemetry.LandHearing(logger, worldEvent.WorldTick, hearingTown.Id, hearing.Id, hearingTransition,
                     hearing.Status, hearing.Revisions[^1].Number, hearing.Revisions[^1].Parties.Count,
@@ -696,15 +696,15 @@ public sealed partial class WorldRuntimeService(
         {
             var fields = worldEvent.Detail.Split('|', 3);
             var civicTown = fields.Length == 3 ? runtime.Towns.FirstOrDefault(t => t.Id == fields[0]) : null;
-            if (civicTown?.Governance is { } governance)
+            if (civicTown?.Council is { } council)
             {
-                var proposal = governance.Proposals.FirstOrDefault(p => p.Id == fields[1]);
-                var election = governance.Election?.Id == fields[1] ? governance.Election :
-                    governance.ElectionHistory.FirstOrDefault(e => e.Id == fields[1]);
+                var proposal = council.Proposals.FirstOrDefault(p => p.Id == fields[1]);
+                var election = council.Election?.Id == fields[1] ? council.Election :
+                    council.ElectionHistory.FirstOrDefault(e => e.Id == fields[1]);
                 var change = civicTown.Government?.Changes.FirstOrDefault(c => c.Id == fields[1]);
                 var mayor = civicTown.Government?.Contest ?? (civicTown.Government?.ContestHistory is { Count: > 0 } history ? history[^1] : null);
                 TownTelemetry.Civic(logger, worldEvent.WorldTick, civicTown.Id, civicTransition,
-                    governance.Form == "representative", governance.Members.Count, proposal?.Status ?? election?.Stage ?? change?.Status ?? mayor?.Stage ?? "none",
+                    council.Form == "representative", council.Members.Count, proposal?.Status ?? election?.Stage ?? change?.Status ?? mayor?.Stage ?? "none",
                     proposal?.Votes.Count(v => v.Yes) ?? change?.Votes.Count(v => v.Yes) ?? 0,
                     proposal?.Votes.Count(v => !v.Yes) ?? change?.Votes.Count(v => !v.Yes) ?? 0, election?.Ballots.Count ?? mayor?.Ballots.Count ?? 0);
             }
@@ -879,28 +879,28 @@ public sealed partial class WorldRuntimeService(
     }
 
     [LoggerMessage(EventId = 2212, Level = LogLevel.Information,
-        Message = "production_cancelled tick={WorldTick} job={JobId} inhabitant={InhabitantId} reason=worker_unavailable")]
-    private static partial void LogProductionCancelled(ILogger logger, long worldTick, string jobId, string inhabitantId);
+        Message = "production_cancelled tick={WorldTick} job={JobId} agent={AgentId} reason=worker_unavailable")]
+    private static partial void LogProductionCancelled(ILogger logger, long worldTick, string jobId, string agentId);
 
     [LoggerMessage(EventId = 2209, Level = LogLevel.Information,
-        Message = "settlement_lesson tick={WorldTick} event={EventKind}")]
-    private static partial void LogSettlementLesson(ILogger logger, long worldTick, string eventKind);
+        Message = "lesson_activity tick={WorldTick} event={EventKind}")]
+    private static partial void LogLessonActivity(ILogger logger, long worldTick, string eventKind);
 
     [LoggerMessage(EventId = 2210, Level = LogLevel.Information,
-        Message = "settlement_family tick={WorldTick} event={EventKind}")]
-    private static partial void LogSettlementFamily(ILogger logger, long worldTick, string eventKind);
+        Message = "family_activity tick={WorldTick} event={EventKind}")]
+    private static partial void LogFamilyActivity(ILogger logger, long worldTick, string eventKind);
 
     [LoggerMessage(EventId = 2208, Level = LogLevel.Information,
-        Message = "settlement_council tick={WorldTick} event={EventKind}")]
-    private static partial void LogSettlementCouncil(ILogger logger, long worldTick, string eventKind);
+        Message = "food_stewardship tick={WorldTick} event={EventKind}")]
+    private static partial void LogFoodStewardship(ILogger logger, long worldTick, string eventKind);
 
     [LoggerMessage(EventId = 2211, Level = LogLevel.Information,
-        Message = "settlement_housing tick={WorldTick} event={EventKind}")]
-    private static partial void LogSettlementHousing(ILogger logger, long worldTick, string eventKind);
+        Message = "housing_activity tick={WorldTick} event={EventKind}")]
+    private static partial void LogHousingActivity(ILogger logger, long worldTick, string eventKind);
 
     [LoggerMessage(EventId = 2207, Level = LogLevel.Information,
-        Message = "settlement_trade tick={WorldTick} event={EventKind}")]
-    private static partial void LogSettlementTrade(ILogger logger, long worldTick, string eventKind);
+        Message = "barter_activity tick={WorldTick} event={EventKind}")]
+    private static partial void LogDirectBarter(ILogger logger, long worldTick, string eventKind);
 
     [LoggerMessage(EventId = 2203, Level = LogLevel.Information,
         Message = "world_history_compacted tick={WorldTick} event_floor={EventFloor} recent_events={RecentEvents} boat_requests={BoatRequests} retired_boat_ranges={RetiredBoatRanges}")]
@@ -908,13 +908,13 @@ public sealed partial class WorldRuntimeService(
         int boatRequests, int retiredBoatRanges);
 
     [LoggerMessage(EventId = 2204, Level = LogLevel.Information,
-        Message = "settlement_activity tick={WorldTick} event={EventKind} inhabitant={InhabitantId} stage={Stage} work={WorkDone} blocked={Blocked}")]
-    private static partial void LogSettlementActivity(ILogger logger, long worldTick, string eventKind,
-        string inhabitantId, string stage, int workDone, bool blocked);
+        Message = "project_activity tick={WorldTick} event={EventKind} agent={AgentId} stage={Stage} work={WorkDone} blocked={Blocked}")]
+    private static partial void LogProjectActivity(ILogger logger, long worldTick, string eventKind,
+        string agentId, string stage, int workDone, bool blocked);
 
     [LoggerMessage(EventId = 2205, Level = LogLevel.Information,
-        Message = "survival_condition tick={WorldTick} inhabitant={InhabitantId} warmth={Warmth} illness={Illness} illness_work_percent={IllnessWorkPercent} illness_travel_delay={IllnessTravelDelay}")]
-    private static partial void LogSurvivalCondition(ILogger logger, long worldTick, string inhabitantId, int warmth, int illness,
+        Message = "survival_condition tick={WorldTick} agent={AgentId} warmth={Warmth} illness={Illness} illness_work_percent={IllnessWorkPercent} illness_travel_delay={IllnessTravelDelay}")]
+    private static partial void LogSurvivalCondition(ILogger logger, long worldTick, string agentId, int warmth, int illness,
         int illnessWorkPercent, int illnessTravelDelay);
 
     [LoggerMessage(EventId = 2206, Level = LogLevel.Information,
@@ -924,11 +924,11 @@ public sealed partial class WorldRuntimeService(
     [LoggerMessage(
         EventId = 2201,
         Level = LogLevel.Information,
-        Message = "cognition_decision tick={WorldTick} inhabitant={InhabitantId} accepted={Accepted} fallback={FellBack} outcome={Outcome} provider={Provider} candidate={CandidateId} confidence={Confidence} model={Model} input_tokens={InputTokens} output_tokens={OutputTokens}")]
+        Message = "cognition_decision tick={WorldTick} agent={AgentId} accepted={Accepted} fallback={FellBack} outcome={Outcome} provider={Provider} candidate={CandidateId} confidence={Confidence} model={Model} input_tokens={InputTokens} output_tokens={OutputTokens}")]
     private static partial void LogCognitionDecision(
         ILogger logger,
         long worldTick,
-        string inhabitantId,
+        string agentId,
         bool accepted,
         bool fellBack,
         string outcome,

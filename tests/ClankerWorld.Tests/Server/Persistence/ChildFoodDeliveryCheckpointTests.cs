@@ -65,14 +65,14 @@ public sealed class ChildFoodDeliveryCheckpointTests
             ? new DeterministicDecisionProvider() : new ActionCoverageRecorder(chooseIdle: true);
         using var world = WorldRuntime.Restore(state, Providers);
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest("store-last-slot", "owner:test", Adult,
-            OwnerInstructionKind.MustDo, "store wood"));
+            OwnerInstructionKind.Order, "store wood"));
         using var host = new CheckpointHost(world);
         await host.AdvanceAndCheckSaved();
 
         // Both choices were offered before either action. The first actor's
         // real storage order fills the House before the child's admitted action.
         Assert.True(child.Chosen.ContainsKey("child_help_food"));
-        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal(("finished", 1), (order.Status, order.CompletedUnits));
         Assert.Equal(House, world.Society.Inventory.GetLot("adult-spare-wood").StorageBuildingId);
         Assert.Equal((Child, 2), (world.Society.Inventory.GetLot(Food).OwnerId, world.Society.Inventory.GetLot(Food).Quantity));
@@ -109,7 +109,7 @@ public sealed class ChildFoodDeliveryCheckpointTests
                 Society = society with
                 {
                     Inventory = inventory,
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == Child ? person with
+                    Agents = society.Agents.Select(person => person.Id == Child ? person with
                     {
                         BirthTick = birth,
                         BirthLifeTick = society.LifeClock is null ? null : birth,
@@ -119,15 +119,15 @@ public sealed class ChildFoodDeliveryCheckpointTests
                     } : person).ToArray(),
                 },
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId is Child or Adult ? person with
+            Agents = state.Agents.Select(person => person.AgentId is Child or Adult ? person with
             {
                 Position = house.Position,
-                HungerBasisPoints = 9_000,
+                FullnessBasisPoints = 9_000,
                 LastDecisionContext = null,
             } : person).ToArray(),
-            Towns = state.Towns!.Select(town => town.Governance is { } council ? town with
+            Towns = state.Towns!.Select(town => town.Council is { } council ? town with
             {
-                Governance = council with { Members = council.Members.Where(id => id != Child).ToArray() },
+                Council = council with { Members = council.Members.Where(id => id != Child).ToArray() },
             } : town).ToArray(),
         };
         var bytes = WorldRuntimeCodec.Encode(state);

@@ -13,8 +13,8 @@ public sealed class FarmContentTests
     {
         using var seed = await PreparedWorldAsync("farmhouse-stock");
         var original = seed.ExportState();
-        var alpha = original.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-alpha").Id;
-        var beta = original.Society.Society.Inhabitants.First(item => item.HouseholdId == "household:camp-beta").Id;
+        var alpha = original.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-alpha").Id;
+        var beta = original.Society.Society.Agents.First(item => item.HouseholdId == "household:camp-beta").Id;
         var inventory = InventoryAuthority.AddLot(original.Society.Society.Inventory,
             "farmhouse-stone", "stone", "household:camp-alpha", 2);
         inventory = InventoryAuthority.AddLot(inventory, "field-grain", "grain", "household:camp-alpha", 8);
@@ -45,8 +45,8 @@ public sealed class FarmContentTests
 
         state = placing.ExportState() with
         {
-            Inhabitants = placing.ExportState().Inhabitants.Select(person => person.InhabitantId == alpha
-                ? person with { Position = state.Map.GetObject("storage").Position, HungerBasisPoints = 9_000 }
+            Agents = placing.ExportState().Agents.Select(person => person.AgentId == alpha
+                ? person with { Position = state.Map.GetObject("storage").Position, FullnessBasisPoints = 9_000 }
                 : person).ToArray(),
         };
         using var hauling = WorldRuntime.Restore(state,
@@ -79,8 +79,8 @@ public sealed class FarmContentTests
         Assert.True(started.Applied, started.Failure);
         for (var tick = 0; tick < mill.DurationTicks; tick++)
             Assert.True((await delivering.AdvanceOneTickAsync()).Advanced);
-        Assert.Contains(delivering.Inhabitants.Single(person => person.InhabitantId == alpha).Skills!,
-            skill => skill.Kind == SettlementSkillKind.Farming && skill.TeacherId is null);
+        Assert.Contains(delivering.Agents.Single(person => person.AgentId == alpha).Skills!,
+            skill => skill.Kind == SkillKind.Farming && skill.TeacherId is null);
         var flour = delivering.Society.Inventory.Lots.Single(lot => lot.OwnerId == "household:camp-alpha" &&
             lot.ItemKind == "flour" && lot.StorageBuildingId == placed.InstanceId);
         Assert.Equal(1, flour.Quantity);
@@ -177,8 +177,8 @@ public sealed class FarmContentTests
     {
         var (state, oldActor, oldHousehold, point) = await FarmFieldTests.ReadyFarmer("grain-field-owner");
         var household = state.Society.Society.Households.First(item => item.Id != oldHousehold).Id;
-        var actor = state.Society.Society.Inhabitants.First(item => item.HouseholdId == household).Id;
-        var originalPosition = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var actor = state.Society.Society.Agents.First(item => item.HouseholdId == household).Id;
+        var originalPosition = state.Agents.Single(person => person.AgentId == actor).Position;
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "second-farmer-hoe", "wooden_hoe", actor, 1)) with
         {
             Fields = [state.Fields!.Single() with { HouseholdId = household }],
@@ -187,8 +187,8 @@ public sealed class FarmContentTests
                 Buildings = state.WorldSimulation.Buildings.Select(building => building.InstanceId == "first-town-farmhouse"
                     ? building with { HouseholdId = household } : building).ToArray(),
             },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { Position = point, HungerBasisPoints = 10_000 } : person.InhabitantId == oldActor
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { Position = point, FullnessBasisPoints = 10_000 } : person.AgentId == oldActor
                     ? person with { Position = originalPosition } : person).ToArray(),
         };
         using var world = FarmFieldTests.Restore(state);
@@ -224,7 +224,7 @@ public sealed class FarmContentTests
         using var prepared = await PreparedWorldAsync(seed);
         var initial = prepared.ExportState();
         const string householdId = "household:camp-alpha";
-        var actor = initial.Society.Society.Inhabitants.First(item => item.HouseholdId == householdId).Id;
+        var actor = initial.Society.Society.Agents.First(item => item.HouseholdId == householdId).Id;
         const string potId = "farmhouse-test-pot";
         const string grainId = "farmhouse-test-grain";
         var inventory = InventoryAuthority.AddLot(initial.Society.Society.Inventory,
@@ -257,8 +257,8 @@ public sealed class FarmContentTests
 
         state = placing.ExportState() with
         {
-            Inhabitants = placing.ExportState().Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { Position = state.Map.GetObject("storage").Position, HungerBasisPoints = 9_000 }
+            Agents = placing.ExportState().Agents.Select(person => person.AgentId == actor
+                ? person with { Position = state.Map.GetObject("storage").Position, FullnessBasisPoints = 9_000 }
                 : person).ToArray(),
         };
         var world = WorldRuntime.Restore(state,
@@ -292,7 +292,7 @@ public sealed class FarmContentTests
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == candidateId) ??
                 request.Observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected.Id, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected.Id ? 1d : 0d)));

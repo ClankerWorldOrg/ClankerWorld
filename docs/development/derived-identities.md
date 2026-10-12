@@ -65,6 +65,17 @@ content-instance grammar. Its native-descendant row retains the actual native
 person. Rename handles use the production memory contract: private permanent
 contents, current source tick and the owner as subject.
 
+## Generated agent IDs
+
+A child born in the world gets `DerivedId.Create("{worldId}:agent:{request}")`
+from its accepted birth request. Saves made before the
+[#1364](https://github.com/compoodment/ClankerWorld/issues/1364) rename spelled
+it `:inhabitant:`; those saves are refused by schema, so no producer or reader
+accepts the old spelling. The same rename changed the text of these
+generators: `direct-barter:` (direct barter offers), `shop-trade:` (shop
+trades), `partnership:` and `care-relationship:` (relationship records) and
+`trust-memory:` (trust memories).
+
 ## Matching generated IDs
 
 Producers and strict validators must use the same factory and complete inputs.

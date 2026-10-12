@@ -5,20 +5,20 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private BoatTripRequest? BoundBoatRequest(OwnerQueuedInstruction instruction) =>
-        instruction.Order?.BoatTravel?.RequestId is { } id
+        instruction.Task?.BoatTravel?.RequestId is { } id
             ? boatTransport.Requests.FirstOrDefault(request => request.Id == id)
             : null;
 
     private CognitionCandidate? BoatOrderCandidate(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
-        if (instruction.Order?.BoatTravel is not { } binding || Port(binding.DestinationPortId) is not { } destination ||
+        var actor = instruction.TargetAgentId;
+        if (instruction.Task?.BoatTravel is not { } binding || Port(binding.DestinationPortId) is not { } destination ||
             !PortIsLegal(destination) || PassengerBoat(actor) is not null) return null;
         var waiting = WaitingBoatRequest(actor);
         if (waiting is not null && waiting.Id == binding.RequestId)
         {
-            if (Port(waiting.OriginPortId) is not { } origin || inhabitants[actor].Position == origin.Entrance ||
-                !CanWalkForTownProject(actor, inhabitants[actor].Position, origin.Entrance!.Value)) return null;
+            if (Port(waiting.OriginPortId) is not { } origin || agents[actor].Position == origin.Entrance ||
+                !CanWalkForTownProject(actor, agents[actor].Position, origin.Entrance!.Value)) return null;
         }
         else if (!ReadyToBoard(actor) || waiting is null &&
                  !BoatTripChoices(actor).Any(choice => choice.Destination.InstanceId == binding.DestinationPortId)) return null;
@@ -28,8 +28,8 @@ public sealed partial class WorldRuntime
 
     private void ExecuteBoatOrder(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
-        var binding = instruction.Order!.BoatTravel!;
+        var actor = instruction.TargetAgentId;
+        var binding = instruction.Task!.BoatTravel!;
         if (WaitingBoatRequest(actor) is { } waiting)
         {
             if (waiting.Id == binding.RequestId)
@@ -46,21 +46,21 @@ public sealed partial class WorldRuntime
             SetOrderStatus(instruction, "blocked", BoatOrderBlockedReason(instruction));
             return;
         }
-        if (inhabitants[actor].Position != choice.Origin.Entrance)
+        if (agents[actor].Position != choice.Origin.Entrance)
         {
-            MoveToward(actor, inhabitants[actor], choice.Origin.Entrance!.Value, "boat_departure", 0);
+            MoveToward(actor, agents[actor], choice.Origin.Entrance!.Value, "boat_departure", 0);
             return;
         }
         var request = QueueBoatTrip(actor, choice, instruction.InstructionId);
         var current = instructionsByIdempotency[instruction.IdempotencyKey];
         instructionsByIdempotency[current.IdempotencyKey] = current with
-        { Order = current.Order! with { BoatTravel = binding with { RequestId = request.Id } } };
+        { Task = current.Task! with { BoatTravel = binding with { RequestId = request.Id } } };
     }
 
     private string BoatOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
-        var binding = instruction.Order!.BoatTravel!;
+        var actor = instruction.TargetAgentId;
+        var binding = instruction.Task!.BoatTravel!;
         if (PassengerBoat(actor) is not null) return "The passenger must finish their current boat journey before starting another trip.";
         if (Port(binding.DestinationPortId) is not { } destination) return "The requested Port is no longer available.";
         if (!PortIsLegal(destination)) return "The destination Port or its land approach is blocked.";
@@ -68,7 +68,7 @@ public sealed partial class WorldRuntime
         {
             if (!CanUseTownBoat(request.BoatTownId, actor)) return "Waiting for permission to use the departure Town's boat.";
             if (Port(request.OriginPortId) is not { } origin || !PortIsLegal(origin)) return "The departure Port or its land approach is blocked.";
-            if (inhabitants[actor].Position != origin.Entrance) return "Waiting for an open walking route to the departure Port's land approach.";
+            if (agents[actor].Position != origin.Entrance) return "Waiting for an open walking route to the departure Port's land approach.";
             if (!ReadyToBoard(actor)) return "Only an unaccompanied adult with no cart, animal or unfinished work can board.";
             if (AvailablePortLanding(destination, actor) is null) return "Waiting for a free landing tile at the destination Port.";
             if (!FreePortDocks(destination).Any()) return "Waiting for dock space at the destination Port.";
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
         if (!ReadyToBoard(actor)) return "Only an unaccompanied adult with no cart, animal or unfinished work can board.";
         var departures = worldSimulation.Buildings.Where(port => port.InstanceId != destination.InstanceId &&
             Port(port.InstanceId) is not null && PortIsLegal(port)).ToArray();
-        var reachable = departures.Where(port => CanWalkForTownProject(actor, inhabitants[actor].Position, port.Entrance!.Value)).ToArray();
+        var reachable = departures.Where(port => CanWalkForTownProject(actor, agents[actor].Position, port.Entrance!.Value)).ToArray();
         if (reachable.Length == 0) return "Waiting for an open walking route to a usable departure Port.";
         var available = boatTransport.Boats.Where(boat => boat.Journey is null &&
             reachable.Any(port => port.InstanceId == boat.DockedPortId)).ToArray();
@@ -101,7 +101,7 @@ public sealed partial class WorldRuntime
     private OwnerQueuedInstruction? ActiveBoatOrder(BoatTripRequest request) =>
         request.OrderInstructionId is { } id
             ? instructionsByIdempotency.Values.FirstOrDefault(instruction => instruction.InstructionId == id &&
-                instruction.Order is { Action: "travel_by_boat", BoatTravel: { } binding } order &&
+                instruction.Task is { Action: "travel_by_boat", BoatTravel: { } binding } order &&
                 IsActiveOrder(order.Status) && binding.RequestId == request.Id)
             : null;
 
@@ -112,13 +112,13 @@ public sealed partial class WorldRuntime
 
     private void CreditBoatOrderArrival(BoatTripRequest request)
     {
-        if (ActiveBoatOrder(request) is { } instruction && instruction.Order!.BoatTravel!.DestinationPortId == request.DestinationPortId)
+        if (ActiveBoatOrder(request) is { } instruction && instruction.Task!.BoatTravel!.DestinationPortId == request.DestinationPortId)
             CreditOrderEffect(instruction, BoatOrderArrivalEffectId(request.Id), 1);
     }
 
     private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);
 
-    private static bool IsValidBoatOrderShape(OwnerInstructionOrder order) =>
+    private static bool IsValidBoatOrderShape(OrderTask order) =>
         order.BoatTravel is { DestinationPortId.Length: > 0 and <= DerivedId.MaximumLength } binding &&
         !binding.DestinationPortId.Any(char.IsControl) &&
         (binding.RequestId is null || binding.RequestId.Length is > 0 and <= DerivedId.MaximumLength && !binding.RequestId.Any(char.IsControl)) &&
@@ -131,7 +131,7 @@ public sealed partial class WorldRuntime
 
     private static void ValidateBoatOrderBindings(WorldRuntimeState state)
     {
-        if (!(state.Instructions ?? []).Any(instruction => instruction.Order?.Action == "travel_by_boat") &&
+        if (!(state.Instructions ?? []).Any(instruction => instruction.Task?.Action == "travel_by_boat") &&
             !state.BoatTransport.Requests.Any(request => request.OrderInstructionId is not null)) return;
         var instructions = (state.Instructions ?? []).ToDictionary(instruction => instruction.InstructionId, StringComparer.Ordinal);
         var requests = state.BoatTransport.Requests.ToDictionary(request => request.Id, StringComparer.Ordinal);
@@ -140,14 +140,14 @@ public sealed partial class WorldRuntime
         foreach (var request in requests.Values.Where(request => request.OrderInstructionId is not null))
         {
             if (!instructions.TryGetValue(request.OrderInstructionId!, out var instruction) ||
-                instruction.Order is not { Action: "travel_by_boat", BoatTravel: { } binding } ||
-                instruction.TargetInhabitantId != request.PassengerId || binding.DestinationPortId != request.DestinationPortId ||
+                instruction.Task is not { Action: "travel_by_boat", BoatTravel: { } binding } ||
+                instruction.TargetAgentId != request.PassengerId || binding.DestinationPortId != request.DestinationPortId ||
                 request.RequestedTick < instruction.SubmittedTick)
                 throw new InvalidDataException("An ordered boat request must retain its exact instruction, passenger and destination.");
         }
-        foreach (var instruction in instructions.Values.Where(instruction => instruction.Order?.Action == "travel_by_boat"))
+        foreach (var instruction in instructions.Values.Where(instruction => instruction.Task?.Action == "travel_by_boat"))
         {
-            var order = instruction.Order!;
+            var order = instruction.Task!;
             if (!IsValidBoatOrderShape(order)) throw new InvalidDataException("A boat order must retain one stable destination and real arrival progress.");
             var binding = order.BoatTravel!;
             var port = state.WorldSimulation?.Buildings.FirstOrDefault(port => port.InstanceId == binding.DestinationPortId);

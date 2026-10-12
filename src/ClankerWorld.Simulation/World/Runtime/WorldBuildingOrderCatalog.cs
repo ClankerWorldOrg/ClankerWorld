@@ -17,7 +17,7 @@ internal static class WorldBuildingOrderCatalog
         new(SiloContent.Silo1x1(), "silo"),
         new(CareContent.Clinic1x2(), "clinic"),
         new(RestaurantContent.Restaurant1x2(), "restaurant"),
-        new(ContentDefinitionPayloadCodec.ApplyPackage(new([], []), BusinessContent.Create()).Buildings
+        new(ContentDefinitionPayloadCodec.ApplyPackage(new([], []), StoreContent.Create()).Buildings
             .Single(building => building.LocalId == "store-1x1"), "store"),
         new(WarehouseContent.Warehouse2x2(), "warehouse"),
     ];

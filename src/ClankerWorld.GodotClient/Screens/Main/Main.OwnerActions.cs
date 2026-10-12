@@ -38,8 +38,8 @@ public partial class Main
             return;
         }
 
-        var selected = current.Baseline.Snapshot.Inhabitants
-            .FirstOrDefault(inhabitant => string.Equals(inhabitant.Id, selectedInhabitantId, StringComparison.Ordinal));
+        var selected = current.Baseline.Snapshot.Agents
+            .FirstOrDefault(agent => string.Equals(agent.Id, selectedAgentId, StringComparison.Ordinal));
         if (selected is null || selected.IsDraft)
         {
             SetStatus("Pick an agent first.", good: false);
@@ -61,7 +61,7 @@ public partial class Main
         var action = new OwnerInstructionAction(
             $"instruction_{OwnerPairingProtocol.CreateRequestId()}",
             selected.Id,
-            instructionOrderButton.ButtonPressed ? "must_do" : "suggestive",
+            instructionOrderButton.ButtonPressed ? "order" : "suggestion",
             text,
             current.Baseline.Snapshot.WorldId,
             instructionOrderButton.ButtonPressed && instructionQueueToggle.ButtonPressed);
@@ -93,7 +93,7 @@ public partial class Main
             SetStatus("Wait for the world to load before cancelling an order.", good: false);
             return;
         }
-        var order = PendingOrderToCancel(current.Baseline.Snapshot, selectedInhabitantId);
+        var order = PendingOrderToCancel(current.Baseline.Snapshot, selectedAgentId);
         if (order is null)
         {
             SetStatus("This agent has no waiting or active order to cancel.", good: false);
@@ -102,7 +102,7 @@ public partial class Main
 
         var action = new OwnerOrderCancelAction(
             $"cancel_order_{OwnerPairingProtocol.CreateRequestId()}",
-            order.TargetInhabitantId,
+            order.TargetAgentId,
             order.InstructionId,
             current.Baseline.Snapshot.WorldId);
         if (!TryBeginPendingOrderCancel(action, out var pending))
@@ -119,7 +119,7 @@ public partial class Main
             CompletePendingSubmission(pending);
     }
 
-    private static string InstructionSubmissionResultText(string kind, bool queue) => kind == "must_do"
+    private static string InstructionSubmissionResultText(string kind, bool queue) => kind == "order"
         ? queue ? "Order added to the queue." : "Order sent."
         : "Suggestion sent.";
 
@@ -265,14 +265,14 @@ public partial class Main
         }
     }
 
-    private async Task SaveLifePaceAsync()
+    private async Task SaveAgingOverrideAsync()
     {
         if (!TryGetOwner(out var authority, out var deviceId, out var signer) ||
             observationSession.Current?.Baseline.Snapshot.WorldId is not { } worldId) return;
-        var rate = lifePaceChoice.GetSelectedId();
+        var rate = agingOverrideChoice.GetSelectedId();
         await RunOwnerActionAsync(async () =>
         {
-            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetLifePaceAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
+            _ = await AwaitCurrentWorldResultAsync(ownerApi.SetAgingOverrideAsync(ResolveWorldUri(), authority, deviceId, rate, worldId, signer, CancellationToken.None));
             return "life pace saved; current ages preserved, future aging changed";
         });
     }
@@ -299,9 +299,9 @@ public partial class Main
 
     private async Task RenameSelectedAgentAsync()
     {
-        if (selectedInhabitantId is not { } agentId ||
+        if (selectedAgentId is not { } agentId ||
             observationSession.Current?.Baseline.Snapshot is not { } snapshot ||
-            snapshot.Inhabitants.All(person => person.Id != agentId))
+            snapshot.Agents.All(person => person.Id != agentId))
             return;
         var attempted = renameAgentInput.Text;
         var name = attempted.Trim();
@@ -327,7 +327,7 @@ public partial class Main
                 renameRow.Hide();
                 return result.Changed ? $"Renamed to {result.Name}" : "Name unchanged";
             }
-            catch (OwnerAgentNameTakenException) when (selectedInhabitantId == agentId &&
+            catch (OwnerAgentNameTakenException) when (selectedAgentId == agentId &&
                 renamingAgentId == agentId && renameRow.Visible && renameAgentInput.Text == attempted &&
                 IsCurrentWorldRequest(generation) &&
                 observationSession.Current?.Baseline.Snapshot.WorldId == worldId)
@@ -436,8 +436,8 @@ public partial class Main
         menuQuitToMainButton.Disabled = observationSession.AwaitingFreshBaseline || isOwnerAction;
         var snapshot = observationSession.Current?.Baseline.Snapshot;
         var paused = snapshot?.Authoring?.IsPaused == true;
-        var selected = snapshot?.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
+        var selected = snapshot?.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
         var actionDisabled = !paired || isOwnerAction || pendingSubmission is not null ||
             observationSession.AwaitingFreshBaseline;
         buildingManagementApply.Disabled = actionDisabled || buildingManagementChoice.ItemCount == 0;
@@ -448,7 +448,7 @@ public partial class Main
         apiKeyLabelInput.Editable = !actionDisabled;
         apiKeyInput.Editable = !actionDisabled;
         autosaveApplyButton.Disabled = actionDisabled || !paused || !autosaveSettingsLoaded;
-        var supportsLifePace = snapshot?.LifePaceRate is not null;
+        var supportsAgingOverride = snapshot?.AgingOverrideRate is not null;
         var supportsRoutineHelper = snapshot?.RoutineHelperProvider is not null &&
             observationSession.Current?.Handshake.ServerCapabilities.Contains("owner-routine-helper.v1", StringComparer.Ordinal) == true;
         routineHelperChoice.Disabled = actionDisabled || !paused || !supportsRoutineHelper;
@@ -458,15 +458,15 @@ public partial class Main
         applyRoutineHelperButton.Disabled = routineHelperChoice.Disabled ||
             helper != "off" && (helperModel.Length is < 1 or > 128 || helperModel.Any(char.IsControl));
         routineHelperKeyChoice.Disabled = routineHelperChoice.Disabled;
-        applyLifePaceButton.Disabled = actionDisabled || !paused || !supportsLifePace;
-        lifePaceChoice.Disabled = actionDisabled || !paused || !supportsLifePace;
-        applyLifePaceButton.TooltipText = !supportsLifePace ? "This host does not support life pacing." :
+        applyAgingOverrideButton.Disabled = actionDisabled || !paused || !supportsAgingOverride;
+        agingOverrideChoice.Disabled = actionDisabled || !paused || !supportsAgingOverride;
+        applyAgingOverrideButton.TooltipText = !supportsAgingOverride ? "This host does not support life pacing." :
             !paused ? "Pause the world before changing life pace." : "Apply future aging speed; existing ages are preserved.";
-        if (snapshot?.LifePaceRate is { } rate && (lastObservedLifePace != rate || lastLifePaceWorldId != snapshot.WorldId))
+        if (snapshot?.AgingOverrideRate is { } rate && (lastObservedAgingOverride != rate || lastAgingOverrideWorldId != snapshot.WorldId))
         {
-            lifePaceChoice.Select(lifePaceChoice.GetItemIndex(rate));
-            lastObservedLifePace = rate;
-            lastLifePaceWorldId = snapshot.WorldId;
+            agingOverrideChoice.Select(agingOverrideChoice.GetItemIndex(rate));
+            lastObservedAgingOverride = rate;
+            lastAgingOverrideWorldId = snapshot.WorldId;
         }
         worldUrlInput.Editable = registration is null && pendingPairing is null && !isPairingOperation && !isOwnerAction && !isRefreshing;
         connectButton.Disabled = registeredEndpointInvalid || pendingPairing is not null || isPairingOperation || isOwnerAction || isRefreshing;

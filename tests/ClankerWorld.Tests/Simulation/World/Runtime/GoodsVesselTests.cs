@@ -11,7 +11,7 @@ public sealed class GoodsVesselTests
     {
         using var generated = NormalPathWorld.CreateGenerated("query-vessel-refill", _ => new Idle());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants[0].Id;
+        var actor = state.Society.Society.Agents[0].Id;
         var inventory = state.Society.Society.Inventory;
         foreach (var (id, water) in new[] { ("vessel-a-broken", 0), ("vessel-b-reserved", 1), ("vessel-c-full", 4), ("vessel-d-ready", 1) })
         {
@@ -44,8 +44,8 @@ public sealed class GoodsVesselTests
     {
         using var generated = NormalPathWorld.CreateGenerated("query-eating", _ => new Idle());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants[0].Id;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Society.Society.Agents[0].Id;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.First(building => building.HouseholdId == home &&
             state.WorldContent!.Buildings.Any(definition => definition.CanonicalId == building.DefinitionId && definition.Tags.Contains("house")));
         var inventory = state.Society.Society.Inventory;
@@ -85,8 +85,8 @@ public sealed class GoodsVesselTests
     {
         using var generated = NormalPathWorld.CreateGenerated("query-physical-cargo", _ => new Idle());
         var state = generated.ExportState();
-        var actor = state.Society.Society.Inhabitants[0].Id;
-        var point = state.Inhabitants.First(person => person.InhabitantId == actor).Position;
+        var actor = state.Society.Society.Agents[0].Id;
+        var point = state.Agents.First(person => person.AgentId == actor).Position;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "cargo-cart", "handcart", actor, 1,
             groundPosition: new(point.X, point.Y));
         inventory = InventoryAuthority.AddLot(inventory, "cargo-flour", "flour", actor, 2, containerLotId: "cargo-cart");
@@ -128,7 +128,7 @@ public sealed class GoodsVesselTests
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 0;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default) =>
-            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, request.ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1, new Dictionary<string, double> { ["safe_idle"] = 1 }));
     }

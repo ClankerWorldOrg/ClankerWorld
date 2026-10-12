@@ -21,7 +21,7 @@ public sealed partial class TownGovernmentHandoverTests
         private readonly HashSet<string> known = new(adults, StringComparer.Ordinal);
         public string Id { get; init; } = "town:test";
         public string[] Adults { get; set; } = adults;
-        public TownGovernanceState Council { get; set; } = TownGovernanceState.Create(adults);
+        public TownCouncilState Council { get; set; } = TownCouncilState.Create(adults);
         public TownGovernmentState Government { get; set; } = TownGovernmentTestSetup.WithoutOffice("town:test", adults, Day);
         public long Tick { get; private set; }
         public void Advance(long tick)
@@ -34,8 +34,8 @@ public sealed partial class TownGovernmentHandoverTests
         public void Validate()
         {
             var society = SocietyRules.CreateGenesis("government-validation", known.Select(id => SocietyRules.CreateFounder(id, id))) with { WorldTick = Tick };
-            var town = new TownRuntimeState(Id, "Test Town", "founded", 0, Adults, [], [], Governance: Council, Government: Government);
-            TownGovernanceValidation.Validate(town, society, Day);
+            var town = new TownRuntimeState(Id, "Test Town", "founded", 0, Adults, [], [], Council: Council, Government: Government);
+            TownCouncilValidation.Validate(town, society, Day);
             TownGovernmentValidation.Validate(town, society, [], Day);
         }
         public byte[] Save() => JsonSerializer.SerializeToUtf8Bytes(
@@ -70,20 +70,20 @@ public sealed partial class TownGovernmentHandoverTests
             (Council, Government) = TownGovernmentRules.RegisterMayor(Council, Government, actor, mandates, Adults, Tick);
         public void RegisterCouncil(params string[] actors)
         {
-            foreach (var actor in actors) Council = TownGovernanceRules.Register(Council, actor, true, null, Adults, Tick);
+            foreach (var actor in actors) Council = TownCouncilRules.Register(Council, actor, true, null, Adults, Tick);
         }
         // Everyone votes: council ballot for a,b,c and mayoral ballot for the first candidate.
         public void VoteEverything(long tick)
         {
             if (Council.Election is { Stage: "main" } election && election.Ballots.Count == 0)
-                Council = TownGovernanceRules.VoteElection(Council, election.Id, "a", election.Candidates.Take(3).ToArray(), tick);
+                Council = TownCouncilRules.VoteElection(Council, election.Id, "a", election.Candidates.Take(3).ToArray(), tick);
             if (Government.Contest is { Stage: "voting" } contest && contest.Ballots.Count == 0 && contest.Candidates.Count > 0)
                 Government = TownGovernmentRules.VoteMayor(Government, TownGovernmentRules.RoundToken(contest), "a", contest.Candidates[0], tick);
         }
     }
 
     private sealed record TownSave(string Id, string[] Known, string[] Adults, long Tick,
-        TownGovernanceState Council, TownGovernmentState Government);
+        TownCouncilState Council, TownGovernmentState Government);
 
 
     // Council candidates are willing before approval, so the council is ready before the mayor.
@@ -147,7 +147,7 @@ public sealed partial class TownGovernmentHandoverTests
         for (var tick = approve + 1; tick <= termEnd + Day; tick++)
         {
             if (town.Council.Election is { Stage: "main" } election && election.Ballots.Count == 0)
-                town.Council = TownGovernanceRules.VoteElection(town.Council, election.Id, "d", ["a", "b", "c"], tick);
+                town.Council = TownCouncilRules.VoteElection(town.Council, election.Id, "d", ["a", "b", "c"], tick);
             town.Advance(tick);
         }
         Assert.Equal("cancelled", town.Government.Changes[^1].Status);
@@ -165,7 +165,7 @@ public sealed partial class TownGovernmentHandoverTests
         town.VoteEverything(0);
         town.Advance(10);
         town.Adults = ["a", "b", "c", "d", "e"];
-        foreach (var actor in new[] { "a", "b", "c" }) town.Council = TownGovernanceRules.WithdrawCandidate(town.Council, actor, 11);
+        foreach (var actor in new[] { "a", "b", "c" }) town.Council = TownCouncilRules.WithdrawCandidate(town.Council, actor, 11);
         for (var tick = 11L; tick <= 115; tick++) town.Advance(tick);
         Assert.Equal(("all_adult", "candidates"), (town.Council.Form, town.Council.Fallback));
         town.Advance(120);

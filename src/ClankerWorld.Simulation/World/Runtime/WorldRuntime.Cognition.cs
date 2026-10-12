@@ -18,98 +18,98 @@ public sealed partial class WorldRuntime
     {
         var cognitionState = society.Capture().Cognition;
         var runtimes = cognitionState.Runtimes
-            .ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
+            .ToDictionary(item => item.AgentId, StringComparer.Ordinal);
         var namingRetries = cognitionState.Queue
             .Where(entry => entry.TriggerIds.Contains(
                 SocietyCognitionScheduler.NameRetryTriggerId, StringComparer.Ordinal))
-            .Select(entry => entry.InhabitantId)
+            .Select(entry => entry.AgentId)
             .ToHashSet(StringComparer.Ordinal);
         var staleRunDecisions = cognitionState.Queue
             .Where(entry => entry.Observation.RunEpoch != society.Checkpoint.RunEpoch)
-            .Select(entry => entry.InhabitantId)
+            .Select(entry => entry.AgentId)
             .ToHashSet(StringComparer.Ordinal);
         // Retained work has already advanced LastDecisionContext. Once its
         // earlier call ends, rebuild it even if the ordinary cadence is quiet.
         var awaitingDispatch = cognitionState.Queue
-            .Where(entry => !activeHostedIds.Contains(entry.InhabitantId))
-            .Select(entry => entry.InhabitantId)
+            .Where(entry => !activeHostedIds.Contains(entry.AgentId))
+            .Select(entry => entry.AgentId)
             .ToHashSet(StringComparer.Ordinal);
-        var waitingHosted = society.PendingHostedInhabitantIds();
+        var waitingHosted = society.PendingHostedAgentIds();
         var waitingOrderDecisions = cognitionState.Queue
-            .Where(entry => waitingHosted.Contains(entry.InhabitantId) &&
+            .Where(entry => waitingHosted.Contains(entry.AgentId) &&
                 entry.Observation.OperativeOrderInstructionId is not null &&
                 IsOrderDecisionObservationCurrent(entry.Observation) &&
-                (!awaitingDispatch.Contains(entry.InhabitantId) ||
+                (!awaitingDispatch.Contains(entry.AgentId) ||
                  IsUndeliveredFinishedOrderDecision(entry.Observation)))
-            .Select(entry => entry.InhabitantId)
+            .Select(entry => entry.AgentId)
             .ToHashSet(StringComparer.Ordinal);
         var staleOrderDecisions = cognitionState.Queue
-            .Where(entry => waitingHosted.Contains(entry.InhabitantId) &&
+            .Where(entry => waitingHosted.Contains(entry.AgentId) &&
                 entry.Observation.OperativeOrderInstructionId is not null &&
                 !IsOrderDecisionObservationCurrent(entry.Observation))
-            .Select(entry => entry.InhabitantId)
+            .Select(entry => entry.AgentId)
             .ToHashSet(StringComparer.Ordinal);
-        foreach (var inhabitant in society.Checkpoint.Inhabitants
-                     .Where(item => item.Status == SocietyInhabitantStatus.Active)
+        foreach (var agent in society.Checkpoint.Agents
+                     .Where(item => item.Status == SocietyAgentStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (inhabitant.AgeBand == SocietyAgeBand.Infant)
+            if (agent.AgeBand == SocietyAgeBand.Infant)
             {
                 continue;
             }
             // Submission already closes these. Recognition can change between
             // versions, so orders that are already waiting follow the same rule.
-            CloseOrdersNotUnderstood(inhabitant.Id);
-            var physical = inhabitants[inhabitant.Id];
-            var operativeOrder = PendingInstructionFor(inhabitant.Id);
-            if (waitingOrderDecisions.Contains(inhabitant.Id) && !HasNewObserverGuidanceFor(inhabitant.Id))
+            CloseOrdersNotUnderstood(agent.Id);
+            var physical = agents[agent.Id];
+            var operativeOrder = PendingInstructionFor(agent.Id);
+            if (waitingOrderDecisions.Contains(agent.Id) && !HasNewObserverGuidanceFor(agent.Id))
                 continue;
             if (HasWaitingIdentityMoment(physical) && !NeedsUrgentFood(physical) && !NeedsUrgentWarmth(physical) &&
-                !IsConversationBusy(inhabitant.Id))
+                !IsConversationBusy(agent.Id))
                 continue;
-            if (FarmWorkFor(inhabitant.Id) is not null && operativeOrder is null &&
+            if (FarmWorkFor(agent.Id) is not null && operativeOrder is null &&
                 !NeedsUrgentFood(physical) && !NeedsUrgentWarmth(physical) &&
-                !staleRunDecisions.Contains(inhabitant.Id) &&
-                !awaitingDispatch.Contains(inhabitant.Id) &&
-                !ShouldDispatchConversationChoice(inhabitant.Id) && GuardianPlacementCandidate(inhabitant.Id) is null)
+                !staleRunDecisions.Contains(agent.Id) &&
+                !awaitingDispatch.Contains(agent.Id) &&
+                !ShouldDispatchConversationChoice(agent.Id) && GuardianPlacementCandidate(agent.Id) is null)
                 continue;
             if (operativeOrder is not null && physical.Project is { Stage: not ("completed" or "cancelled") } orderedProject &&
                 !IsProductionOrderProject(operativeOrder, orderedProject) &&
                 !IsConstructionOrderProject(operativeOrder, orderedProject))
             {
-                SetProject(inhabitant.Id, orderedProject with { Stage = "paused", Blocker = "Following an owner order." });
-                physical = inhabitants[inhabitant.Id];
+                SetProject(agent.Id, orderedProject with { Stage = "paused", Blocker = "Following an owner order." });
+                physical = agents[agent.Id];
             }
             if (physical.Project is { Stage: not ("completed" or "cancelled") } project &&
                 operativeOrder is null &&
                 (NeedsUrgentFood(physical) || NeedsUrgentWarmth(physical) && !IsProtectiveProject(project)))
             {
-                SetProject(inhabitant.Id, project with
+                SetProject(agent.Id, project with
                 {
                     Stage = "paused",
                     Blocker = NeedsUrgentWarmth(physical) ? "Seeking warmth" : "Meeting food needs",
                 });
-                physical = inhabitants[inhabitant.Id];
+                physical = agents[agent.Id];
             }
-            if (IsConversationBusy(inhabitant.Id) && !ShouldDispatchConversationChoice(inhabitant.Id))
+            if (IsConversationBusy(agent.Id) && !ShouldDispatchConversationChoice(agent.Id))
                 continue;
-            var conversationChoiceContext = ConversationChoiceContextFor(inhabitant.Id);
-            var candidates = CreateCandidates(inhabitant.Id, physical)
+            var conversationChoiceContext = ConversationChoiceContextFor(agent.Id);
+            var candidates = CreateCandidates(agent.Id, physical)
                 .Select(candidate => candidate with { DestinationName = DestinationNameForModel(candidate.DestinationId) })
                 .ToList();
             if ((operativeOrder is null || !IsProductionOrderProject(operativeOrder, physical.Project)) &&
-                PauseExpiredUnfillableHouseholdRecipeProject(inhabitant.Id))
+                PauseExpiredUnfillableHouseholdRecipeProject(agent.Id))
             {
-                physical = inhabitants[inhabitant.Id];
-                candidates = CreateCandidates(inhabitant.Id, physical)
+                physical = agents[agent.Id];
+                candidates = CreateCandidates(agent.Id, physical)
                     .Select(candidate => candidate with { DestinationName = DestinationNameForModel(candidate.DestinationId) })
                     .ToList();
             }
-            var current = runtimes[inhabitant.Id].CurrentIntention;
-            if (!namingRetries.Contains(inhabitant.Id) && !staleOrderDecisions.Contains(inhabitant.Id) &&
-                !staleRunDecisions.Contains(inhabitant.Id) &&
-                !awaitingDispatch.Contains(inhabitant.Id) &&
-                !NeedsCognition(inhabitant.Id, current, candidates, conversationChoiceContext))
+            var current = runtimes[agent.Id].CurrentIntention;
+            if (!namingRetries.Contains(agent.Id) && !staleOrderDecisions.Contains(agent.Id) &&
+                !staleRunDecisions.Contains(agent.Id) &&
+                !awaitingDispatch.Contains(agent.Id) &&
+                !NeedsCognition(agent.Id, current, candidates, conversationChoiceContext))
             {
                 continue;
             }
@@ -117,49 +117,49 @@ public sealed partial class WorldRuntime
             var generation = checked((int)(WorldTick + 1));
             var checkpoint = society.Checkpoint;
             var compaction = (checkpoint.MemoryCompactions ?? [])
-                .SingleOrDefault(item => item.OwnerId == inhabitant.Id);
+                .SingleOrDefault(item => item.OwnerId == agent.Id);
             var retrievedMemories = WorldMemoryRetrieval.Retrieve(
                 checkpoint.Memories,
                 checkpoint.Beliefs ?? [],
                 compaction,
-                inhabitant.Id,
+                agent.Id,
                 WorldTick,
                 candidates, checkpoint);
-            var observerGuidance = ObserverGuidanceFor(inhabitant.Id);
-            var requiresPersonalProvider = checkpoint.Births.Any(birth => birth.ChildId == inhabitant.Id);
-            var knownMapFacts = KnownMapFactsForCognition(inhabitant.Id);
-            var self = new CognitionSelfContext(inhabitant.Id, inhabitant.Name, inhabitant.AgeBand.ToString(),
-                physical.Personality, physical.Aspiration, CognitionHouseholdId(inhabitant.HouseholdId),
+            var observerGuidance = ObserverGuidanceFor(agent.Id);
+            var requiresPersonalProvider = checkpoint.Births.Any(birth => birth.ChildId == agent.Id);
+            var knownMapFacts = KnownMapFactsForCognition(agent.Id);
+            var self = new CognitionSelfContext(agent.Id, agent.Name, agent.AgeBand.ToString(),
+                physical.Personality, physical.Aspiration, CognitionHouseholdId(agent.HouseholdId),
                 physical.Survival?.WarmthBasisPoints, physical.Survival?.IllnessBasisPoints,
                 physical.RecentThoughts is { Count: > 0 } thoughts ? thoughts[^1].Text : null,
-                checkpoint.Households.SingleOrDefault(item => item.Id == inhabitant.HouseholdId)?.Name,
-                towns.SingleOrDefault(item => item.ResidentIds.Contains(inhabitant.Id, StringComparer.Ordinal))?.Name,
-                GuardianPlacementModelNote(inhabitant.Id), EquipmentNote(inhabitant.Id), ContinuityNote(inhabitant.Id),
-                DepartureNote: DepartureNote(inhabitant.Id), CivicNote: CivicNote(inhabitant.Id),
-                MedicalCareNote: MedicalCareNoteCore(inhabitant.Id), TownMembershipNote: TownMembershipNote(inhabitant.Id),
-                ToolMakingRequestNote: ToolMakingRequestNoteCore(inhabitant.Id),
-                AllowedChildSurnames: inhabitant.NeedsName && InhabitantNameRules.RequiresParentSurname(checkpoint, inhabitant.Id)
-                    ? InhabitantNameRules.AllowedChildSurnames(checkpoint, inhabitant.Id) : null,
-                MarriageNote: marriages.Where(item => AgentMarriageRules.HasParticipant(item, inhabitant.Id))
+                checkpoint.Households.SingleOrDefault(item => item.Id == agent.HouseholdId)?.Name,
+                towns.SingleOrDefault(item => item.ResidentIds.Contains(agent.Id, StringComparer.Ordinal))?.Name,
+                GuardianPlacementModelNote(agent.Id), EquipmentNote(agent.Id), ContinuityNote(agent.Id),
+                DepartureNote: DepartureNote(agent.Id), CivicNote: CivicNote(agent.Id),
+                MedicalCareNote: MedicalCareNoteCore(agent.Id), TownMembershipNote: TownMembershipNote(agent.Id),
+                ToolMakingRequestNote: ToolMakingRequestNoteCore(agent.Id),
+                AllowedChildSurnames: agent.NeedsName && AgentNameRules.RequiresParentSurname(checkpoint, agent.Id)
+                    ? AgentNameRules.AllowedChildSurnames(checkpoint, agent.Id) : null,
+                MarriageNote: marriages.Where(item => AgentMarriageRules.HasParticipant(item, agent.Id))
                     .OrderBy(item => item.EndReceipt is not null).ThenByDescending(item => item.AcceptedTick)
                     .ThenBy(item => item.Id, StringComparer.Ordinal).FirstOrDefault() is { } marriage
-                    ? AgentMarriageRules.Note(marriage, inhabitant.Id, checkpoint) : null,
-                FamilyBackground: InitialChildFamilyBackground(inhabitant.Id, physical),
-                KnownRecipes: knowledge.Recipes.Where(item => item.OwnerId == inhabitant.Id)
+                    ? AgentMarriageRules.Note(marriage, agent.Id, checkpoint) : null,
+                FamilyBackground: InitialChildFamilyBackground(agent.Id, physical),
+                KnownRecipes: knowledge.Recipes.Where(item => item.OwnerId == agent.Id)
                     .OrderByDescending(item => item.LearnedTick).ThenBy(item => item.RecipeId, StringComparer.Ordinal).Take(16)
                     .Select(item => worldContent.Recipes.Single(recipe => recipe.CanonicalId == item.RecipeId).DisplayName).ToArray(),
                 Skills: (physical.Skills ?? []).OrderBy(skill => skill.Kind)
                     .Select(skill => skill.Kind.ToString().ToLowerInvariant()).ToArray());
-            var observation = new InhabitantObservation(
-                inhabitant.Id,
+            var observation = new AgentObservation(
+                agent.Id,
                 WorldTick,
                 society.Checkpoint.RunEpoch,
                 generation,
-                ObservationDigest(inhabitant.Id, checkpoint.WorldId, physical, candidates, retrievedMemories,
+                ObservationDigest(agent.Id, checkpoint.WorldId, physical, candidates, retrievedMemories,
                     [], knownMapFacts, self, observerGuidance),
-                physical.HungerBasisPoints,
+                physical.FullnessBasisPoints,
                 candidates,
-                NeedsName: inhabitant.NeedsName,
+                NeedsName: agent.NeedsName,
                 RequiresPersonalProvider: requiresPersonalProvider,
                 RetrievedMemories: retrievedMemories,
                 KnownMapFacts: knownMapFacts, Self: self,
@@ -171,20 +171,20 @@ public sealed partial class WorldRuntime
                 ConversationChoiceContext = conversationChoiceContext,
                 OperativeOrderInstructionId = operativeOrder?.InstructionId,
             };
-            if (jevEnabled && AdultResident(inhabitant.Id) && providerFactory is not null)
+            if (jevEnabled && IsAdult(agent.Id) && providerFactory is not null)
             {
                 try
                 {
-                    var provider = providerFactory(inhabitant.Id);
+                    var provider = providerFactory(agent.Id);
                     if (provider.KindFor(observation) is DecisionProviderKind.Jev or DecisionProviderKind.OpenAiDecisions)
                     {
                         var memoryCandidates = WorldMemoryRetrieval.Unassessed(
                             checkpoint.Memories,
                             checkpoint.Beliefs ?? [],
                             compaction,
-                            inhabitant.Id,
+                            agent.Id,
                             WorldTick);
-                        var summaryOptions = WorldMemoryRetrieval.SummaryOptions(checkpoint, inhabitant.Id);
+                        var summaryOptions = WorldMemoryRetrieval.SummaryOptions(checkpoint, agent.Id);
                         if (memoryCandidates.Count > 0 || summaryOptions.Count > 0)
                         {
                             observation = observation with
@@ -192,7 +192,7 @@ public sealed partial class WorldRuntime
                                 MemoryCompactionCandidates = memoryCandidates,
                                 MemorySummaryOptions = summaryOptions,
                                 ObservationDigest = ObservationDigest(
-                                    inhabitant.Id, checkpoint.WorldId, physical, candidates, retrievedMemories,
+                                    agent.Id, checkpoint.WorldId, physical, candidates, retrievedMemories,
                                     memoryCandidates, knownMapFacts, self, observerGuidance, summaryOptions),
                             };
                         }
@@ -205,15 +205,15 @@ public sealed partial class WorldRuntime
                 }
             }
             var accepted = society.EnqueueCognition(new SocietyCognitionScheduleEntry(
-                $"tick:{WorldTick}:{inhabitant.Id}",
-                inhabitant.Id,
+                $"tick:{WorldTick}:{agent.Id}",
+                agent.Id,
                 PriorityFor(physical),
                 WorldTick,
                 ["routine_tick"],
                 observation));
             if (!accepted)
             {
-                AppendEvent("cognition_backpressure", inhabitant.Id);
+                AppendEvent("cognition_backpressure", agent.Id);
             }
             else
             {
@@ -231,7 +231,7 @@ public sealed partial class WorldRuntime
                 }
                 if (observerGuidance.Length > 0)
                     checkpointSchemaVersion = StateSchemaVersion;
-                inhabitants[inhabitant.Id] = inhabitants[inhabitant.Id] with
+                agents[agent.Id] = agents[agent.Id] with
                 {
                     LastDecisionContext = DecisionContext(physical, candidates, conversationChoiceContext),
                 };
@@ -239,44 +239,44 @@ public sealed partial class WorldRuntime
         }
     }
 
-    private bool IsOrderDecisionObservationCurrent(InhabitantObservation observation) =>
+    private bool IsOrderDecisionObservationCurrent(AgentObservation observation) =>
         observation.WorldId == society.Checkpoint.WorldId &&
         observation.RunEpoch == society.Checkpoint.RunEpoch &&
-        (observation.OperativeOrderInstructionId == PendingInstructionFor(observation.InhabitantId)?.InstructionId ||
+        (observation.OperativeOrderInstructionId == PendingInstructionFor(observation.AgentId)?.InstructionId ||
             IsFinishedOrderDecisionAwaitingReply(observation));
 
-    private bool IsUndeliveredFinishedOrderDecision(InhabitantObservation observation) =>
+    private bool IsUndeliveredFinishedOrderDecision(AgentObservation observation) =>
         IsFinishedOrderDecisionAwaitingReply(observation) && instructionsByIdempotency.Values.Any(item =>
             item.InstructionId == observation.OperativeOrderInstructionId && item.ObservedTick is null);
 
-    private bool IsFinishedOrderDecisionAwaitingReply(InhabitantObservation observation)
+    private bool IsFinishedOrderDecisionAwaitingReply(AgentObservation observation)
     {
         if (observation.OperativeOrderInstructionId is not { } orderId ||
             observation.WorldId != society.Checkpoint.WorldId ||
             observation.RunEpoch != society.Checkpoint.RunEpoch)
             return false;
         var instruction = instructionsByIdempotency.Values.SingleOrDefault(item =>
-            item.InstructionId == orderId && item.TargetInhabitantId == observation.InhabitantId &&
-            item.Kind == OwnerInstructionKind.MustDo && item.Order?.Status == "finished" &&
+            item.InstructionId == orderId && item.TargetAgentId == observation.AgentId &&
+            item.Kind == OwnerInstructionKind.Order && item.Task?.Status == "finished" &&
             item.ObserverReply is null && completedInstructionIds.Contains(orderId));
         // Local work can finish while its original personal reply is held.
         // Keep that exact message available for acknowledgement, never execution.
         return instruction is not null && observation.ObserverGuidance?.Any(message =>
             message.InstructionId == orderId && message.IssuerId == instruction.IssuerId &&
-            message.TargetInhabitantId == instruction.TargetInhabitantId && message.Kind == "must_do" &&
+            message.TargetAgentId == instruction.TargetAgentId && message.Kind == "order" &&
             message.Text == instruction.Text && message.SubmittedTick == instruction.SubmittedTick &&
             message.RunEpoch == instruction.RunEpoch && message.SubmissionSequence == instruction.SubmissionSequence &&
-            message.UnderstoodTask == UnderstoodTaskFor(instruction.Order?.Action) && message.ReplyAllowed) == true;
+            message.UnderstoodTask == UnderstoodTaskFor(instruction.Task?.Action) && message.ReplyAllowed) == true;
     }
 
     private bool NeedsCognition(
-        string inhabitantId,
+        string agentId,
         CognitionIntention? current,
         List<CognitionCandidate> candidates,
         string? conversationChoiceContext)
     {
         if (conversationChoiceContext is not null &&
-            !HasPromptedConversationChoice(inhabitants[inhabitantId].LastDecisionContext, conversationChoiceContext))
+            !HasPromptedConversationChoice(agents[agentId].LastDecisionContext, conversationChoiceContext))
         {
             return true;
         }
@@ -284,12 +284,12 @@ public sealed partial class WorldRuntime
         // A new instruction prompts one fresh decision. If it cannot progress
         // yet, it waits for the agent's usual decisions instead of requesting
         // another (possibly paid) decision on every tick.
-        if (HasNewObserverGuidanceFor(inhabitantId))
+        if (HasNewObserverGuidanceFor(agentId))
         {
             return true;
         }
 
-        if (HasNewGuardianCandidate(inhabitants[inhabitantId].LastDecisionContext, candidates))
+        if (HasNewGuardianCandidate(agents[agentId].LastDecisionContext, candidates))
         {
             return true;
         }
@@ -297,15 +297,15 @@ public sealed partial class WorldRuntime
         // Cancellation or replacement ends an order-bound intention even when
         // its generic food candidate remains legal for ordinary personal plans.
         if (current?.OperativeOrderInstructionId is { } orderId &&
-            orderId != PendingInstructionFor(inhabitantId)?.InstructionId)
+            orderId != PendingInstructionFor(agentId)?.InstructionId)
             return true;
 
-        if (PendingInstructionFor(inhabitantId) is { Order: { } order })
+        if (PendingInstructionFor(agentId) is { Task: { } order })
         {
             return current is null || checked(WorldTick - current.WorldTick) >= CognitionReevaluationIntervalTicks;
         }
 
-        if (CanContinueEquipmentRepair(inhabitantId) || CanContinueLesson(inhabitantId) || CanContinueProject(inhabitants[inhabitantId]))
+        if (CanContinueEquipmentRepair(agentId) || CanContinueLesson(agentId) || CanContinueProject(agents[agentId]))
         {
             return false;
         }
@@ -323,7 +323,7 @@ public sealed partial class WorldRuntime
         // Finishing a project frees its inputs and work site for the next
         // craft. Reconsider once instead of repeating the old recipe before
         // the usual reevaluation interval has elapsed.
-        if (inhabitants[inhabitantId].Project is { Stage: "completed" } completed &&
+        if (agents[agentId].Project is { Stage: "completed" } completed &&
             current.CandidateId == completed.CandidateId && current.WorldTick <= completed.LastTransitionTick)
         {
             return true;
@@ -341,7 +341,7 @@ public sealed partial class WorldRuntime
 
         if (current.CandidateId == "safe_idle")
         {
-            var physical = inhabitants[inhabitantId];
+            var physical = agents[agentId];
             return DecisionContext(physical, candidates, conversationChoiceContext) != physical.LastDecisionContext ||
                 checked(WorldTick - current.WorldTick) >= 300;
         }
@@ -350,7 +350,7 @@ public sealed partial class WorldRuntime
     }
 
     private string DecisionContext(
-        InhabitantState state,
+        AgentState state,
         List<CognitionCandidate> candidates,
         string? conversationChoiceContext = null)
     {
@@ -410,78 +410,78 @@ public sealed partial class WorldRuntime
         Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(conversationChoiceContext)));
 
     private HashSet<string> ApplyContinuingIntentions(
-        IEnumerable<string> dispatchedInhabitantIds,
-        IEnumerable<string> pendingHostedInhabitantIds)
+        IEnumerable<string> dispatchedAgentIds,
+        IEnumerable<string> pendingHostedAgentIds)
     {
-        var dispatched = dispatchedInhabitantIds.ToHashSet(StringComparer.Ordinal);
-        var pendingHosted = pendingHostedInhabitantIds.ToHashSet(StringComparer.Ordinal);
+        var dispatched = dispatchedAgentIds.ToHashSet(StringComparer.Ordinal);
+        var pendingHosted = pendingHostedAgentIds.ToHashSet(StringComparer.Ordinal);
         var orderActorsHandledThisTick = new HashSet<string>(StringComparer.Ordinal);
         var runtimes = society.Capture().Cognition.Runtimes
-            .ToDictionary(item => item.InhabitantId, StringComparer.Ordinal);
-        foreach (var inhabitant in society.Checkpoint.Inhabitants
-                     .Where(item => item.Status == SocietyInhabitantStatus.Active)
+            .ToDictionary(item => item.AgentId, StringComparer.Ordinal);
+        foreach (var agent in society.Checkpoint.Agents
+                     .Where(item => item.Status == SocietyAgentStatus.Active)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            if (withheldActions?.Contains(inhabitant.Id) == true) continue;
-            if (dispatched.Contains(inhabitant.Id) || !inhabitants.TryGetValue(inhabitant.Id, out var state))
+            if (withheldActions?.Contains(agent.Id) == true) continue;
+            if (dispatched.Contains(agent.Id) || !agents.TryGetValue(agent.Id, out var state))
             {
                 continue;
             }
-            if (attemptedActions is not null && runtimes[inhabitant.Id].CurrentIntention is { } attempted)
-                attemptedActions[inhabitant.Id] = attempted.CandidateId;
-            if (PassengerBoat(inhabitant.Id) is not null)
+            if (attemptedActions is not null && runtimes[agent.Id].CurrentIntention is { } attempted)
+                attemptedActions[agent.Id] = attempted.CandidateId;
+            if (PassengerBoat(agent.Id) is not null)
             {
-                if ((!pendingHosted.Contains(inhabitant.Id) || PendingInstructionFor(inhabitant.Id) is not null) && NeedsUrgentFood(state) &&
-                    CreateCandidates(inhabitant.Id, state).Any(candidate => candidate.Id == "consume_food"))
-                    ApplyCandidate(inhabitant.Id, state, "consume_food", reportIdle: false);
+                if ((!pendingHosted.Contains(agent.Id) || PendingInstructionFor(agent.Id) is not null) && NeedsUrgentFood(state) &&
+                    CreateCandidates(agent.Id, state).Any(candidate => candidate.Id == "consume_food"))
+                    ApplyCandidate(agent.Id, state, "consume_food", reportIdle: false);
                 continue;
             }
-            var order = PendingInstructionFor(inhabitant.Id);
-            var waitingForModel = pendingHosted.Contains(inhabitant.Id);
+            var order = PendingInstructionFor(agent.Id);
+            var waitingForModel = pendingHosted.Contains(agent.Id);
             if (waitingForModel && (order is null || !NeedsUrgentFood(state) && !NeedsUrgentWarmth(state)))
             {
                 // A delayed reply supplies no new choice. Urgent survival and nearby
                 // practical care may interrupt the task the agent already chose.
-                if (order is null) orderActorsHandledThisTick.Add(inhabitant.Id);
-                if (TryApplyWaitingRoutine(inhabitant.Id, state))
+                if (order is null) orderActorsHandledThisTick.Add(agent.Id);
+                if (TryApplyWaitingRoutine(agent.Id, state))
                 {
-                    orderActorsHandledThisTick.Add(inhabitant.Id);
+                    orderActorsHandledThisTick.Add(agent.Id);
                     if (order is not null) SetOrderStatus(order, "interrupted", "Caring for a nearby dependent.");
                     continue;
                 }
             }
-            if (order is null && ContinueGuardianPlacement(inhabitant.Id)) continue;
-            if (IsConversationBusy(inhabitant.Id))
+            if (order is null && ContinueGuardianPlacement(agent.Id)) continue;
+            if (IsConversationBusy(agent.Id))
             {
                 continue;
             }
-            if (inhabitant.AgeBand == SocietyAgeBand.Infant)
+            if (agent.AgeBand == SocietyAgeBand.Infant)
             {
                 continue;
             }
             if (order is not null)
             {
-                orderActorsHandledThisTick.Add(inhabitant.Id);
+                orderActorsHandledThisTick.Add(agent.Id);
                 var orderCandidate = OrderCandidateFor(order, state);
                 var urgentCandidate = NeedsUrgentFood(state) || NeedsUrgentWarmth(state)
-                    ? UrgentSurvivalCandidateFor(inhabitant.Id, state, order)
+                    ? UrgentSurvivalCandidateFor(agent.Id, state, order)
                     : null;
                 if (ShouldInterruptOrder(state, order, orderCandidate, urgentCandidate))
                 {
                     SetOrderStatus(order, "interrupted", "Food or warmth needs come first.");
-                    if (urgentCandidate is not null && IsMarketFoodCandidate(inhabitant.Id, urgentCandidate.Id) &&
-                        runtimes[inhabitant.Id].CurrentIntention is { Provider: DecisionProviderKind.LargeLanguageModel } orderMarketIntention &&
+                    if (urgentCandidate is not null && IsMarketFoodCandidate(agent.Id, urgentCandidate.Id) &&
+                        runtimes[agent.Id].CurrentIntention is { Provider: DecisionProviderKind.LargeLanguageModel } orderMarketIntention &&
                         orderMarketIntention.OperativeOrderInstructionId == order.InstructionId &&
-                        IsMarketFoodCandidate(inhabitant.Id, orderMarketIntention.CandidateId))
-                        ContinueMarketWalk(inhabitant.Id, orderMarketIntention.CandidateId);
+                        IsMarketFoodCandidate(agent.Id, orderMarketIntention.CandidateId))
+                        ContinueMarketWalk(agent.Id, orderMarketIntention.CandidateId);
                     else if (urgentCandidate is not null)
-                        ApplyCandidate(inhabitant.Id, state, urgentCandidate.Id, reportIdle: false);
+                        ApplyCandidate(agent.Id, state, urgentCandidate.Id, reportIdle: false);
                     continue;
                 }
-                if (order.Order!.WaitForDecisionAfterFailure)
+                if (order.Task!.WaitForDecisionAfterFailure)
                 {
                     if (urgentCandidate is not null)
-                        ApplyCandidate(inhabitant.Id, state, urgentCandidate.Id, reportIdle: false);
+                        ApplyCandidate(agent.Id, state, urgentCandidate.Id, reportIdle: false);
                     continue;
                 }
                 if (orderCandidate is not null)
@@ -492,23 +492,23 @@ public sealed partial class WorldRuntime
                 SetOrderStatus(order, "blocked", OrderBlockedReason(order, state));
                 continue;
             }
-            if (CanContinueEquipmentRepair(inhabitant.Id))
+            if (CanContinueEquipmentRepair(agent.Id))
             {
-                ContinueEquipmentRepair(inhabitant.Id);
+                ContinueEquipmentRepair(agent.Id);
                 continue;
             }
-            if (CanContinueLesson(inhabitant.Id, waitingForModel))
+            if (CanContinueLesson(agent.Id, waitingForModel))
             {
-                ContinueLesson(inhabitant.Id, waitingForModel);
+                ContinueLesson(agent.Id, waitingForModel);
                 continue;
             }
-            if (ContinueFarmWork(inhabitant.Id)) continue;
+            if (ContinueFarmWork(agent.Id)) continue;
             if (CanContinueProject(state, waitingForModel))
             {
-                ContinueProject(inhabitant.Id, state);
+                ContinueProject(agent.Id, state);
                 continue;
             }
-            if (runtimes[inhabitant.Id].CurrentIntention is not { } intention)
+            if (runtimes[agent.Id].CurrentIntention is not { } intention)
             {
                 continue;
             }
@@ -517,52 +517,52 @@ public sealed partial class WorldRuntime
                 intention.OperativeOrderInstructionId != order?.InstructionId)
                 continue;
 
-            if (intention.CandidateId.StartsWith(NonviolentRemedyPrefix, StringComparison.Ordinal))
+            if (intention.CandidateId.StartsWith(NonLandRemedyPrefix, StringComparison.Ordinal))
             {
                 // Continue only the physical contribution the agent already chose. Every step
                 // checks the live agreement, remaining goods, access and care needs again.
                 if (intention.Provider == DecisionProviderKind.LargeLanguageModel)
                     foreach (var town in towns.ToArray())
-                        if (ApplyNonviolentRemedyAction(town, inhabitant.Id, intention.CandidateId)) break;
+                        if (ApplyNonLandRemedyAction(town, agent.Id, intention.CandidateId)) break;
                 continue;
             }
-            if (intention.CandidateId.StartsWith(NonviolentRelayPrefix, StringComparison.Ordinal)) continue;
+            if (intention.CandidateId.StartsWith(NonLandRelayPrefix, StringComparison.Ordinal)) continue;
             if (intention.CandidateId.StartsWith("civic|", StringComparison.Ordinal))
             {
                 // Formal civic acts require a fresh admitted personal choice. Only the physical trip
                 // toward the notice place continues locally between ordinary model turns.
                 var civic = intention.CandidateId.Split('|');
                 if (civic.Length == 5 && civic[2] == "visit" && intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ContinueTownCivicVisit(inhabitant.Id, intention.CandidateId);
+                    ContinueTownCivicVisit(agent.Id, intention.CandidateId);
                 else if (civic.Length == 5 && civic[2] is "land_transfer_collect_payment" or "land_transfer_pay" or "land_transfer_meet" &&
                     intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ContinueTownLandSaleWalk(inhabitant.Id, intention.CandidateId);
+                    ContinueTownLandSaleWalk(agent.Id, intention.CandidateId);
                 continue;
             }
             if (IsTownProjectDonationCandidate(intention.CandidateId))
             {
                 if (intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ContinueTownProjectDonationWalk(inhabitant.Id, intention.CandidateId);
+                    ContinueTownProjectDonationWalk(agent.Id, intention.CandidateId);
                 continue;
             }
             if (IsMarketCandidate(intention.CandidateId))
             {
                 if (intention.Provider == DecisionProviderKind.LargeLanguageModel && intention.OperativeOrderInstructionId is null)
-                    ContinueMarketWalk(inhabitant.Id, intention.CandidateId);
+                    ContinueMarketWalk(agent.Id, intention.CandidateId);
                 continue;
             }
             if (IsOrnamentCandidate(intention.CandidateId))
             {
                 if (intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ContinueOrnamentWalk(inhabitant.Id, intention.CandidateId);
+                    ContinueOrnamentWalk(agent.Id, intention.CandidateId);
                 continue;
             }
             if (waitingForModel && !CanContinuePendingTask(state, intention.CandidateId)) continue;
             // Safe idle is always offered outside the conversation/order branches
             // above. EnqueueDueCognition still rebuilds choices to reconsider work.
             if (intention.CandidateId != "safe_idle" &&
-                !CreateCandidates(inhabitant.Id, state).Any(candidate => candidate.Id == intention.CandidateId)) continue;
-            ApplyCandidate(inhabitant.Id, state, intention.CandidateId, reportIdle: false);
+                !CreateCandidates(agent.Id, state).Any(candidate => candidate.Id == intention.CandidateId)) continue;
+            ApplyCandidate(agent.Id, state, intention.CandidateId, reportIdle: false);
         }
 
         return orderActorsHandledThisTick;
@@ -575,14 +575,14 @@ public sealed partial class WorldRuntime
         var handledOrders = orderActorsHandledThisTick.ToHashSet(StringComparer.Ordinal);
         foreach (var id in waitingIds.OrderBy(item => item, StringComparer.Ordinal))
         {
-            if (!inhabitants.TryGetValue(id, out var state)) continue;
+            if (!agents.TryGetValue(id, out var state)) continue;
             if (handledOrders.Contains(id) || HasGuardianPlacementTask(id) && guardianPlacementActions.Contains(id)) continue;
             if (PendingInstructionFor(id) is not null) continue;
             TryApplyWaitingRoutine(id, state);
         }
     }
 
-    private bool TryApplyWaitingRoutine(string id, InhabitantState state)
+    private bool TryApplyWaitingRoutine(string id, AgentState state)
     {
         if (withheldActions?.Contains(id) == true) return false;
         if (NeedsUrgentFood(state) || NeedsUrgentWarmth(state))
@@ -595,9 +595,9 @@ public sealed partial class WorldRuntime
             if (candidate is not null) ApplyCandidate(id, state, candidate.Id, reportIdle: false);
             return true;
         }
-        if (!AdultResident(id) || !ReadyForBriefInteraction(id)) return false;
-        var nearby = ChildrenNeedingCare(id).Select(child => child.InhabitantId).Concat(IllDependentsNeedingCare(id))
-            .Where(dependent => IsWithinInteractionRange(state.Position, inhabitants[dependent].Position, ResourceInteractionRange))
+        if (!IsAdult(id) || !ReadyForBriefInteraction(id)) return false;
+        var nearby = ChildrenNeedingCare(id).Select(child => child.AgentId).Concat(IllDependentsNeedingCare(id))
+            .Where(dependent => IsWithinInteractionRange(state.Position, agents[dependent].Position, ResourceInteractionRange))
             .ToHashSet(StringComparer.Ordinal);
         if (nearby.Count == 0) return false;
         var care = CreateCandidates(id, state, restrictForOrder: false).Where(candidate =>
@@ -617,12 +617,12 @@ public sealed partial class WorldRuntime
         "harvest_food" or "seek_food" or "wear_clothing" or "tend_fire" or "seek_warmth" ||
         id.StartsWith(TownProjectReturnPrefix, StringComparison.Ordinal);
 
-    private bool CanContinuePendingTask(InhabitantState state, string id) =>
+    private bool CanContinuePendingTask(AgentState state, string id) =>
         IsWaitingSurvivalCandidate(id) || IsTownProjectCandidate(id) || id is "knowledge_continue" or "haul_household_stock" or
             "store_household_food" or "store_town_resources" or "haul_farm_grain" or "haul_farm_flour" or
             "haul_smith_input" or "gather_smith_ore" or "deliver_smith_ore" or "collect_water_jug" or "return_water_jug" or
             "store_food_in_pot" ||
-        KnowledgeWritingFor(state.InhabitantId) is { OrderInstructionId: null } writing && writing.CandidateId == id ||
+        KnowledgeWritingFor(state.AgentId) is { OrderInstructionId: null } writing && writing.CandidateId == id ||
         id == "explore" && state.Exploration?.OutingPath.Count > 0 ||
         state.Exploration is { Returning: false, OutingPath.Count: > 0, Goal: { OrderInstructionId: null } goal } &&
             ExplorationGoalCandidateId(goal) == id ||
@@ -643,47 +643,47 @@ public sealed partial class WorldRuntime
     private void ApplyDecision(SocietyCognitionDispatchResult decision)
     {
         if (attemptedActions is not null && decision.Admission.Intention is { } attempted)
-            attemptedActions[decision.InhabitantId] = attempted.CandidateId;
-        if (withheldActions?.Contains(decision.InhabitantId) == true) return;
+            attemptedActions[decision.AgentId] = attempted.CandidateId;
+        if (withheldActions?.Contains(decision.AgentId) == true) return;
         if (decision.Admission.Accepted && !decision.Admission.FellBack &&
             decision.Admission.Intention?.Provider is DecisionProviderKind.Jev or DecisionProviderKind.OpenAiDecisions &&
             decision.Admission.MemorySummary is { } summary)
         {
-            ApplyMemorySummary(decision.InhabitantId, summary);
+            ApplyMemorySummary(decision.AgentId, summary);
         }
         if (decision.Admission.Accepted && !decision.Admission.FellBack &&
             decision.Admission.Intention?.Provider is DecisionProviderKind.Jev or DecisionProviderKind.OpenAiDecisions &&
             decision.Admission.MemoryCompactionScores is { Count: > 0 } memoryScores)
         {
-            ApplyMemoryCompaction(decision.InhabitantId, memoryScores);
+            ApplyMemoryCompaction(decision.AgentId, memoryScores);
         }
 
         if (!decision.Admission.Accepted || decision.Admission.Intention is null ||
-            !inhabitants.TryGetValue(decision.InhabitantId, out var state))
+            !agents.TryGetValue(decision.AgentId, out var state))
         {
-            AppendEvent("cognition_rejected", $"{decision.InhabitantId}:{decision.Admission.Outcome}");
+            AppendEvent("cognition_rejected", $"{decision.AgentId}:{decision.Admission.Outcome}");
             return;
         }
 
-        _ = ApplyObserverGuidanceResult(decision.InhabitantId, decision.Admission);
+        _ = ApplyObserverGuidanceResult(decision.AgentId, decision.Admission);
         if (ApplyMedicalConsentDecision(decision) || ApplyOrnamentDecision(decision) || ApplyAnimalConsentDecision(decision))
             return;
-        var pendingInstruction = PendingInstructionFor(decision.InhabitantId);
+        var pendingInstruction = PendingInstructionFor(decision.AgentId);
         var candidateId = decision.Admission.Intention.CandidateId;
-        if (PassengerBoat(decision.InhabitantId) is not null && candidateId is not ("consume_food" or "drink_milk" or "safe_idle"))
+        if (PassengerBoat(decision.AgentId) is not null && candidateId is not ("consume_food" or "drink_milk" or "safe_idle"))
         {
-            AppendEvent("boat_action_blocked", $"{decision.InhabitantId}:stay_aboard");
+            AppendEvent("boat_action_blocked", $"{decision.AgentId}:stay_aboard");
             return;
         }
-        if (PassengerBoat(decision.InhabitantId) is not null)
+        if (PassengerBoat(decision.AgentId) is not null)
         {
-            ApplyCandidate(decision.InhabitantId, state, candidateId, reportIdle: true);
+            ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
             return;
         }
-        if (candidateId != "safe_idle") guardianPlacementActions.Add(decision.InhabitantId);
+        if (candidateId != "safe_idle") guardianPlacementActions.Add(decision.AgentId);
         if (decision.Admission.Intention.OperativeOrderInstructionId != pendingInstruction?.InstructionId)
         {
-            AppendEvent("instruction_order_stale_decision", decision.InhabitantId);
+            AppendEvent("instruction_order_stale_decision", decision.AgentId);
             return;
         }
 
@@ -697,22 +697,22 @@ public sealed partial class WorldRuntime
             if (decision.Admission.FellBack)
             {
                 SetOrderStatus(order, "blocked", "The order will try again after a short wait.", waitForDecision: true);
-                ApplyCandidate(decision.InhabitantId, state, candidateId, reportIdle: true);
+                ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
             }
             else
             {
                 var orderCandidate = OrderCandidateFor(order, state);
                 var urgentCandidate = NeedsUrgentFood(state) || NeedsUrgentWarmth(state)
-                    ? UrgentSurvivalCandidateFor(decision.InhabitantId, state, order)
+                    ? UrgentSurvivalCandidateFor(decision.AgentId, state, order)
                     : null;
                 if (ShouldInterruptOrder(state, order, orderCandidate, urgentCandidate))
                 {
                     SetOrderStatus(order, "interrupted", "Food or warmth needs come first.");
                     if (decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel &&
-                        IsMarketFoodCandidate(decision.InhabitantId, candidateId))
-                        ApplyMarketCandidate(decision.InhabitantId, state, candidateId);
+                        IsMarketFoodCandidate(decision.AgentId, candidateId))
+                        ApplyMarketCandidate(decision.AgentId, state, candidateId);
                     else if (urgentCandidate is not null)
-                        ApplyCandidate(decision.InhabitantId, state, urgentCandidate.Id, reportIdle: true);
+                        ApplyCandidate(decision.AgentId, state, urgentCandidate.Id, reportIdle: true);
                 }
                 else if (orderCandidate is not null)
                 {
@@ -721,7 +721,7 @@ public sealed partial class WorldRuntime
                 else
                 {
                     SetOrderStatus(order, "blocked", OrderBlockedReason(order, state));
-                    ApplyCandidate(decision.InhabitantId, state, "safe_idle", reportIdle: true);
+                    ApplyCandidate(decision.AgentId, state, "safe_idle", reportIdle: true);
                 }
             }
         }
@@ -730,44 +730,44 @@ public sealed partial class WorldRuntime
             if (candidateId.StartsWith("civic|", StringComparison.Ordinal))
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ApplyTownCivicCandidate(decision.InhabitantId, candidateId, decision.Admission.CivicProposal,
-                        decision.Admission.CivicBallot, decision.Admission.CivicLandTiles, decision.Admission.CivicLandHearing, decision.Admission.CivicNonviolent);
+                    ApplyTownCivicCandidate(decision.AgentId, candidateId, decision.Admission.CivicProposal,
+                        decision.Admission.CivicBallot, decision.Admission.CivicLandTiles, decision.Admission.CivicLandHearing, decision.Admission.CivicNonLandHearing);
             }
             else if (candidateId.StartsWith("nonviolent_remedy:", StringComparison.Ordinal) || candidateId.StartsWith("nonviolent_relay:", StringComparison.Ordinal))
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
                     foreach (var town in towns.ToArray())
-                        if (ApplyNonviolentRemedyAction(town, decision.InhabitantId, candidateId)) break;
+                        if (ApplyNonLandRemedyAction(town, decision.AgentId, candidateId)) break;
             }
             else if (IsTownProjectDonationCandidate(candidateId))
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ApplyTownProjectDonation(decision.InhabitantId, candidateId);
+                    ApplyTownProjectDonation(decision.AgentId, candidateId);
             }
             else if (IsMarketCandidate(candidateId))
             {
                 if (!decision.Admission.FellBack && decision.Admission.Intention.Provider == DecisionProviderKind.LargeLanguageModel)
-                    ApplyMarketCandidate(decision.InhabitantId, state, candidateId);
+                    ApplyMarketCandidate(decision.AgentId, state, candidateId);
             }
             else if (!ApplyToolMakingRequestDecision(decision))
-                ApplyCandidate(decision.InhabitantId, state, candidateId, reportIdle: true);
+                ApplyCandidate(decision.AgentId, state, candidateId, reportIdle: true);
         }
 
     }
 
     private List<string> ApplyObserverGuidanceResult(
-        string inhabitantId,
+        string agentId,
         CognitionAdmissionResult admission)
     {
         if (!admission.Accepted || admission.FellBack ||
             admission.Intention?.Provider != DecisionProviderKind.LargeLanguageModel ||
             admission.ObserverGuidance is not { } result ||
             result.WorldId != society.Checkpoint.WorldId ||
-            result.InhabitantId != inhabitantId ||
+            result.AgentId != agentId ||
             result.RunEpoch != admission.Intention.RunEpoch ||
             result.DecisionGeneration != admission.Intention.DecisionGeneration ||
             result.ObservationDigest != admission.Intention.ObservationDigest ||
-            !inhabitants.ContainsKey(inhabitantId))
+            !agents.ContainsKey(agentId))
             return [];
 
         var replies = result.Replies.ToDictionary(reply => reply.InstructionId, StringComparer.Ordinal);
@@ -777,17 +777,17 @@ public sealed partial class WorldRuntime
             var instruction = instructionsByIdempotency.Values.SingleOrDefault(item =>
                 item.InstructionId == message.InstructionId);
             if (instruction is null || instruction.IssuerId != message.IssuerId ||
-                instruction.TargetInhabitantId != inhabitantId ||
-                instruction.TargetInhabitantId != message.TargetInhabitantId ||
+                instruction.TargetAgentId != agentId ||
+                instruction.TargetAgentId != message.TargetAgentId ||
                 ToWireValue(instruction.Kind) != message.Kind || instruction.Text != message.Text ||
                 instruction.SubmittedTick != message.SubmittedTick || instruction.RunEpoch != message.RunEpoch ||
                 instruction.SubmissionSequence != message.SubmissionSequence ||
-                (instruction.Kind == OwnerInstructionKind.MustDo &&
-                 UnderstoodTaskFor(instruction.Order?.Action) != message.UnderstoodTask) ||
-                (instruction.Kind == OwnerInstructionKind.Suggestive && message.UnderstoodTask is not null) ||
+                (instruction.Kind == OwnerInstructionKind.Order &&
+                 UnderstoodTaskFor(instruction.Task?.Action) != message.UnderstoodTask) ||
+                (instruction.Kind == OwnerInstructionKind.Suggestion && message.UnderstoodTask is not null) ||
                 (instruction.ObserverReply is null) != message.ReplyAllowed ||
                 completedInstructionIds.Contains(instruction.InstructionId) &&
-                    !(instruction.Kind == OwnerInstructionKind.MustDo && instruction.Order?.Status == "finished"))
+                    !(instruction.Kind == OwnerInstructionKind.Order && instruction.Task?.Status == "finished"))
                 continue;
 
             var observerReply = replies.TryGetValue(instruction.InstructionId, out var reply)
@@ -801,8 +801,8 @@ public sealed partial class WorldRuntime
             checkpointSchemaVersion = StateSchemaVersion;
             // A reply for an order that has since finished is set aside as stale,
             // so a suggestion it carried stays open for the next fresh request.
-            if (instruction.Kind == OwnerInstructionKind.Suggestive &&
-                admission.Intention.OperativeOrderInstructionId == PendingInstructionFor(inhabitantId)?.InstructionId &&
+            if (instruction.Kind == OwnerInstructionKind.Suggestion &&
+                admission.Intention.OperativeOrderInstructionId == PendingInstructionFor(agentId)?.InstructionId &&
                 completedInstructionIds.Add(instruction.InstructionId))
                 completedSuggestions.Add(instruction.InstructionId);
         }
@@ -810,45 +810,45 @@ public sealed partial class WorldRuntime
         return completedSuggestions;
     }
 
-    private void ApplyCandidate(string inhabitantId, InhabitantState state, string candidateId, bool reportIdle) =>
-        ApplyRegisteredCandidate(inhabitantId, state, candidateId, reportIdle);
+    private void ApplyCandidate(string agentId, AgentState state, string candidateId, bool reportIdle) =>
+        ApplyRegisteredCandidate(agentId, state, candidateId, reportIdle);
 
-    private void ApplyRegisteredCandidate(string inhabitantId, InhabitantState state, string candidateId, bool reportIdle)
+    private void ApplyRegisteredCandidate(string agentId, AgentState state, string candidateId, bool reportIdle)
     {
-        if (withheldActions?.Contains(inhabitantId) == true || IsRefusedAction(inhabitantId, candidateId)) return;
-        if (attemptedActions is not null) attemptedActions[inhabitantId] = candidateId;
-        if (candidateId != "safe_idle") guardianPlacementActions.Add(inhabitantId);
-        if (TryRegisteredAction(ActionPhase.BeforeAge, new(inhabitantId, state, candidateId, reportIdle))) return;
-        if (!AgePermitsCandidate(inhabitantId, candidateId))
+        if (withheldActions?.Contains(agentId) == true || IsRefusedAction(agentId, candidateId)) return;
+        if (attemptedActions is not null) attemptedActions[agentId] = candidateId;
+        if (candidateId != "safe_idle") guardianPlacementActions.Add(agentId);
+        if (TryRegisteredAction(ActionPhase.BeforeAge, new(agentId, state, candidateId, reportIdle))) return;
+        if (!AgePermitsCandidate(agentId, candidateId))
         {
-            AppendEvent("age_action_rejected", $"{inhabitantId}:{candidateId}");
+            AppendEvent("age_action_rejected", $"{agentId}:{candidateId}");
             return;
         }
-        if (inhabitants[inhabitantId].Equipment?.Repair is not null && candidateId != "repair_equipment")
+        if (agents[agentId].Equipment?.Repair is not null && candidateId != "repair_equipment")
         {
-            CancelEquipmentRepair(inhabitantId);
-            state = inhabitants[inhabitantId];
+            CancelEquipmentRepair(agentId);
+            state = agents[agentId];
         }
-        if (PendingInstructionFor(inhabitantId) is null && ContinueFarmWork(inhabitantId)) return;
-        if (TryRegisteredAction(ActionPhase.Ordinary, new(inhabitantId, state, candidateId, reportIdle))) return;
-        if (reportIdle) AppendEvent("inhabitant_idle", inhabitantId);
+        if (PendingInstructionFor(agentId) is null && ContinueFarmWork(agentId)) return;
+        if (TryRegisteredAction(ActionPhase.Ordinary, new(agentId, state, candidateId, reportIdle))) return;
+        if (reportIdle) AppendEvent("agent_idle", agentId);
     }
 
     private void ApplyBuildDecision(
-        string inhabitantId,
-        InhabitantState state,
+        string agentId,
+        AgentState state,
         string candidateId)
     {
         if (!TownConstructionCandidateIds.TryParse(candidateId, out var selection))
         {
-            AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:unknown_target");
+            AppendEvent("build_rejected", $"{agentId}:{candidateId}:unknown_target");
             return;
         }
 
         if (selection.IsBuilding)
         {
             var definition = worldContent.Buildings.SingleOrDefault(item => item.CanonicalId == selection.DefinitionId);
-            var layout = CreateTownLayoutContext(inhabitantId, selection.SitePosition, definition);
+            var layout = CreateTownLayoutContext(agentId, selection.SitePosition, definition);
             TownConstructionSiteCandidate? rankedSite = null;
             if (definition is not null)
             {
@@ -863,59 +863,59 @@ public sealed partial class WorldRuntime
 
             if (definition is null || rankedSite is null)
             {
-                AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:selected_site_no_longer_legal");
+                AppendEvent("build_rejected", $"{agentId}:{candidateId}:selected_site_no_longer_legal");
                 if (selection.SitePosition is { } rejectedSite && definition is not null)
                     AppendEvent("town_layout_site_rejected",
-                        $"{TownForResident(inhabitantId) ?? "none"}|{inhabitantId}|{definition.CanonicalId}|{rejectedSite.X}|{rejectedSite.Y}|site_unavailable");
+                        $"{TownForResident(agentId) ?? "none"}|{agentId}|{definition.CanonicalId}|{rejectedSite.X}|{rejectedSite.Y}|site_unavailable");
                 return;
             }
             var householdProperty = definition.Tags.Any(IsHouseholdBuildingTag);
             var houseOwner = householdProperty
-                ? society.Checkpoint.GetInhabitant(inhabitantId).HouseholdId : null;
+                ? society.Checkpoint.GetAgent(agentId).HouseholdId : null;
             if (householdProperty && houseOwner is null)
             {
-                AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:household_required");
+                AppendEvent("build_rejected", $"{agentId}:{candidateId}:household_required");
                 return;
             }
             if (definition.Tags.Contains("house", StringComparer.Ordinal) && houseOwner is not null &&
                 HouseForHousehold(houseOwner) is not null)
             {
-                AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:existing_house");
+                AppendEvent("build_rejected", $"{agentId}:{candidateId}:existing_house");
                 return;
             }
 
             var position = rankedSite.Position;
             if (state.Position != position)
             {
-                MoveToward(inhabitantId, state, position, "build");
+                MoveToward(agentId, state, position, "build");
                 return;
             }
 
-            var constructionOrder = ConstructionInstructionForProject(inhabitantId, state.Project);
+            var constructionOrder = ConstructionInstructionForProject(agentId, state.Project);
             if (state.Project?.OrderInstructionId is not null && (constructionOrder is null ||
                 state.Project.WorkDone < ProjectWorkTicks ||
                 !TryConstructionOrderSite(constructionOrder, state, out _, out _, out _, out _)))
             {
-                AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:ordered_project_changed");
+                AppendEvent("build_rejected", $"{agentId}:{candidateId}:ordered_project_changed");
                 return;
             }
-            var materialOwner = BuildingConstructionOwner(inhabitantId, definition);
+            var materialOwner = BuildingConstructionOwner(agentId, definition);
             var placement = PlaceBuildingCore(
-                constructionOrder?.Order!.ConstructionInstanceId ?? BuildInstanceId(inhabitantId, definition),
+                constructionOrder?.Task!.ConstructionInstanceId ?? BuildInstanceId(agentId, definition),
                 definition.CanonicalId,
                 position,
                 "build_completed",
-                TownForResident(inhabitantId),
+                TownForResident(agentId),
                 houseOwner,
                 materialOwner,
                 constructionOrder?.InstructionId);
             if (!placement.Applied)
             {
-                AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:{placement.Failure}");
+                AppendEvent("build_rejected", $"{agentId}:{candidateId}:{placement.Failure}");
             }
             else
             {
-                CreditCompletedWork(inhabitantId, "building");
+                CreditCompletedWork(agentId, "building");
                 if (constructionOrder is not null)
                     RecordConstructionOrderCompletion(constructionOrder, materialOwner);
             }
@@ -925,91 +925,91 @@ public sealed partial class WorldRuntime
 
         var recipeId = selection.DefinitionId;
         var recipe = worldContent.Recipes.SingleOrDefault(item => item.CanonicalId == recipeId);
-        if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out var sitePosition, inhabitantId))
+        if (recipe is null || !TryFindRecipeSite(recipe, out var siteId, out var sitePosition, agentId))
         {
-            AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:no_valid_site");
+            AppendEvent("build_rejected", $"{agentId}:{candidateId}:no_valid_site");
             return;
         }
 
         if (state.Position != sitePosition)
         {
-            MoveToward(inhabitantId, state, sitePosition, "build");
+            MoveToward(agentId, state, sitePosition, "build");
             return;
         }
 
-        var productionInstruction = PendingInstructionFor(inhabitantId);
+        var productionInstruction = PendingInstructionFor(agentId);
         var orderInstructionId = productionInstruction is not null &&
             IsProductionOrderProject(productionInstruction, state.Project) &&
-            state.Project?.WorkDone == ProjectWorkTicks && productionInstruction.Order!.ProductionBuildingId == siteId
+            state.Project?.WorkDone == ProjectWorkTicks && productionInstruction.Task!.ProductionBuildingId == siteId
                 ? productionInstruction.InstructionId : null;
-        var started = StartProductionCore(recipe.CanonicalId, siteId, inhabitantId, "build_started", orderInstructionId);
+        var started = StartProductionCore(recipe.CanonicalId, siteId, agentId, "build_started", orderInstructionId);
         if (!started.Applied)
         {
-            AppendEvent("build_rejected", $"{inhabitantId}:{candidateId}:{started.Failure}");
+            AppendEvent("build_rejected", $"{agentId}:{candidateId}:{started.Failure}");
         }
     }
 
     private List<CognitionCandidate> CreateCandidates(
-        string inhabitantId,
-        InhabitantState state,
+        string agentId,
+        AgentState state,
         bool restrictForOrder = true)
-        => CreateRegisteredCandidates(inhabitantId, state, restrictForOrder);
+        => CreateRegisteredCandidates(agentId, state, restrictForOrder);
 
-    private List<CognitionCandidate> CreateRegisteredCandidates(string inhabitantId, InhabitantState state, bool restrictForOrder)
+    private List<CognitionCandidate> CreateRegisteredCandidates(string agentId, AgentState state, bool restrictForOrder)
     {
-        var candidates = CreateUnfilteredCandidates(inhabitantId, state, restrictForOrder);
+        var candidates = CreateUnfilteredCandidates(agentId, state, restrictForOrder);
         if (actionRefusals.Count > 0)
-            candidates.RemoveAll(candidate => IsRefusedAction(inhabitantId, candidate.Id));
+            candidates.RemoveAll(candidate => IsRefusedAction(agentId, candidate.Id));
         if (candidates.Count == 0) candidates.Add(new("safe_idle", "Wait safely.", 100));
         return candidates;
     }
 
     private List<CognitionCandidate> CreateUnfilteredCandidates(
-        string inhabitantId, InhabitantState state, bool restrictForOrder)
+        string agentId, AgentState state, bool restrictForOrder)
     {
-        if (PassengerBoat(inhabitantId) is not null)
+        if (PassengerBoat(agentId) is not null)
         {
             var aboard = new List<CognitionCandidate> { new("safe_idle", "Stay aboard while the boat travels or waits for a safe Port.", 100) };
-            if (PreferredFood(inhabitantId, inhabitantId).Any() && state.HungerBasisPoints < ComfortableFullness)
+            if (PreferredFood(agentId, agentId).Any() && state.FullnessBasisPoints < ComfortableFullness)
                 aboard.Add(new("consume_food", "Eat one carried food item aboard the boat.", 0));
-            if (CarriedMilk(inhabitantId) is not null && state.HungerBasisPoints < ComfortableFullness)
+            if (CarriedMilk(agentId) is not null && state.FullnessBasisPoints < ComfortableFullness)
                 aboard.Add(new("drink_milk", "Drink one portion of your carried milk.", 0));
             return aboard;
         }
-        var currentConversation = ConversationFor(inhabitantId);
+        var currentConversation = ConversationFor(agentId);
         var candidates = currentConversation is null
             ? new List<CognitionCandidate>()
-            : ConversationCandidates(inhabitantId).ToList();
+            : ConversationCandidates(agentId).ToList();
         if (currentConversation is not null &&
             (currentConversation.Status is AgentConversationStatus.Ready or AgentConversationStatus.AwaitingSpeaker or AgentConversationStatus.WrapUp ||
-             currentConversation.Status == AgentConversationStatus.Proposed && currentConversation.InitiatorId == inhabitantId))
+             currentConversation.Status == AgentConversationStatus.Proposed && currentConversation.InitiatorId == agentId))
         {
             if (candidates.Count == 0)
                 candidates.Add(new CognitionCandidate("safe_idle", "Continue safely without starting a new task.", 100));
             return candidates;
         }
-        var context = new ChoiceContext(candidates, inhabitantId, state, currentConversation is not null);
+        var context = new ChoiceContext(candidates, agentId, state, currentConversation is not null);
         AddRegisteredChoices(ChoiceGroup.Prelude, context);
-        if (AdultResident(inhabitantId)) AddRegisteredChoices(ChoiceGroup.Adult, context);
-        if (!NeedsUrgentWarmth(state) && ChildResident(inhabitantId)) AddRegisteredChoices(ChoiceGroup.Child, context);
-        if (!NeedsUrgentFood(state) && AdultResident(inhabitantId))
+        if (IsAdult(agentId)) AddRegisteredChoices(ChoiceGroup.Adult, context);
+        if (!NeedsUrgentWarmth(state) && IsChild(agentId)) AddRegisteredChoices(ChoiceGroup.Child, context);
+        if (!NeedsUrgentFood(state) && IsAdult(agentId))
         {
-            var inhabitant = society.Checkpoint.GetInhabitant(inhabitantId);
+            var agent = society.Checkpoint.GetAgent(agentId);
             var reachableToolCache = new Dictionary<(ToolFamily Family, int Tier), ToolDefinition?>();
-            var accessibleWarehouses = new Lazy<PlacedBuilding[]>(() => WarehousesAccessibleTo(inhabitantId).ToArray(),
+            var accessibleWarehouses = new Lazy<PlacedBuilding[]>(() => WarehousesAccessibleTo(agentId).ToArray(),
                 LazyThreadSafetyMode.None);
             var buildingsWithoutSites = new List<string>();
             AddRegisteredChoices(ChoiceGroup.UnhurriedAdult, context with
             {
-                Inhabitant = inhabitant,
+                Agent = agent,
                 ReachableTools = reachableToolCache,
                 AccessibleWarehouses = accessibleWarehouses,
                 BuildingsWithoutSites = buildingsWithoutSites,
             });
         }
-        if (NeedsUrgentFood(state) && AdultResident(inhabitantId)) AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
+        if (NeedsUrgentFood(state) && IsAdult(agentId)) AddRegisteredChoices(ChoiceGroup.UrgentAdult, context);
         AddRegisteredChoices(ChoiceGroup.Final, context);
-        if (restrictForOrder && PendingInstructionFor(inhabitantId) is { } order)
+        if (restrictForOrder && PendingInstructionFor(agentId) is { } order)
             return RestrictCandidatesForOrder(candidates, order, state);
         return candidates;
     }
@@ -1017,7 +1017,7 @@ public sealed partial class WorldRuntime
     private List<CognitionCandidate> RestrictCandidatesForOrder(
         List<CognitionCandidate> candidates,
         OwnerQueuedInstruction order,
-        InhabitantState state)
+        AgentState state)
     {
         var safeIdle = candidates.Single(item => item.Id == "safe_idle");
         var urgent = NeedsUrgentFood(state) || NeedsUrgentWarmth(state);
@@ -1026,19 +1026,19 @@ public sealed partial class WorldRuntime
             : null;
         if (TalkOrderHasConversation(order))
             return candidates.Where(item => item.Id == "safe_idle" || item.Id.StartsWith("conversation_", StringComparison.Ordinal) ||
-                urgent && IsSurvivalCandidate(state.InhabitantId, item.Id)).ToList();
+                urgent && IsSurvivalCandidate(state.AgentId, item.Id)).ToList();
         var taskCandidate = OrderCandidateFor(order, state);
         if (ShouldInterruptOrder(state, order, taskCandidate, urgentCandidate))
             taskCandidate = null;
         if (taskCandidate is null)
         {
-            return candidates.Where(item => item.Id == "safe_idle" || urgent && IsSurvivalCandidate(state.InhabitantId, item.Id))
+            return candidates.Where(item => item.Id == "safe_idle" || urgent && IsSurvivalCandidate(state.AgentId, item.Id))
                 .ToList();
         }
 
         var selected = candidates.Where(item => item.Id == taskCandidate.Id ||
-            urgent && IsSurvivalCandidate(state.InhabitantId, item.Id)).ToList();
-        if (IsShelterOrder(order.Order!.Action))
+            urgent && IsSurvivalCandidate(state.AgentId, item.Id)).ToList();
+        if (IsShelterOrder(order.Task!.Action))
             selected.RemoveAll(item => item.Id == taskCandidate.Id);
         if (selected.All(item => item.Id != taskCandidate.Id)) selected.Add(taskCandidate);
         if (selected.All(item => item.Id != safeIdle.Id)) selected.Add(safeIdle);
@@ -1047,14 +1047,14 @@ public sealed partial class WorldRuntime
 
     private void AddBuildCandidates(
         List<CognitionCandidate> candidates,
-        SocietyInhabitant inhabitant,
-        InhabitantState state,
+        SocietyAgent agent,
+        AgentState state,
         Dictionary<(ToolFamily Family, int Tier), ToolDefinition?> reachableToolCache,
         Lazy<PlacedBuilding[]> accessibleWarehouses,
         List<string> buildingsWithoutSites)
     {
-        if (inhabitant.HouseholdId is { } planningHousehold)
-            AddHouseholdBuildingPlans(candidates, inhabitant, state, planningHousehold, buildingsWithoutSites);
+        if (agent.HouseholdId is { } planningHousehold)
+            AddHouseholdBuildingPlans(candidates, agent, state, planningHousehold, buildingsWithoutSites);
 
         // Work follows what the household holds, not a role: crops need the
         // household's Farmhouse, and workstation recipes need a building the
@@ -1071,13 +1071,13 @@ public sealed partial class WorldRuntime
                 worldContent.Buildings.Any(definition => definition.CanonicalId == workstationId &&
                     definition.Tags.Any(IsHouseholdBuildingTag));
             var personalCart = IsHandcartRecipe(recipe);
-            var recipeOwner = personalCart ? inhabitant.Id : ProductionOwnerFor(null, inhabitant.Id);
-            if (personalCart && (!HasCarriedUnreservedQuantities(inhabitant.Id, recipe.Inputs) ||
-                society.Checkpoint.Inventory.Lots.Any(lot => lot.ItemKind == InventoryContainerRules.Handcart && lot.OwnerId == inhabitant.Id)))
+            var recipeOwner = personalCart ? agent.Id : ProductionOwnerFor(null, agent.Id);
+            if (personalCart && (!HasCarriedUnreservedQuantities(agent.Id, recipe.Inputs) ||
+                society.Checkpoint.Inventory.Lots.Any(lot => lot.ItemKind == InventoryContainerRules.Handcart && lot.OwnerId == agent.Id)))
                 continue;
-            if (!NeedsRecipeOutput(recipe, recipeOwner, inhabitant.Id) || AnotherAgentWaitsForWorkSite(inhabitant.Id, recipe) ||
-                !CanAcquireProjectInputs(recipe.Inputs, recipeOwner, inhabitant.Id, reachableToolCache, accessibleWarehouses) ||
-                !TryFindRecipeSite(recipe, out var siteId, out var position, inhabitant.Id) ||
+            if (!NeedsRecipeOutput(recipe, recipeOwner, agent.Id) || AnotherAgentWaitsForWorkSite(agent.Id, recipe) ||
+                !CanAcquireProjectInputs(recipe.Inputs, recipeOwner, agent.Id, reachableToolCache, accessibleWarehouses) ||
+                !TryFindRecipeSite(recipe, out var siteId, out var position, agent.Id) ||
                 householdWorkstation && !personalCart &&
                 (recipeOwner is null || !HasIngredientsAtBuilding(recipe.Inputs, recipeOwner, siteId)))
             {
@@ -1100,17 +1100,17 @@ public sealed partial class WorldRuntime
         return society.Checkpoint.Households.SingleOrDefault(item => item.Id == id)?.Name ??
             Animal(id)?.Name ??
             towns.SingleOrDefault(item => item.Id == id)?.Name ??
-            society.Checkpoint.Inhabitants.SingleOrDefault(item => item.Id == id)?.Name ??
+            society.Checkpoint.Agents.SingleOrDefault(item => item.Id == id)?.Name ??
             map.Resources.SingleOrDefault(item => item.Id == id)?.Kind.Replace('_', ' ');
     }
 
-    private int PriorityFor(InhabitantState state) =>
+    private int PriorityFor(AgentState state) =>
         NeedsUrgentFood(state) || NeedsUrgentWarmth(state) ? 20 : 0;
 
     private static string ObservationDigest(
-        string inhabitantId,
+        string agentId,
         string worldId,
-        InhabitantState state,
+        AgentState state,
         IReadOnlyList<CognitionCandidate> candidates,
         IReadOnlyList<CognitionMemoryExcerpt> memories,
         IReadOnlyList<CognitionMemoryCompactionCandidate> compactionCandidates,
@@ -1121,10 +1121,10 @@ public sealed partial class WorldRuntime
     {
         var text = new StringBuilder()
             .Append("clankerworld.private-world-observation/v2|")
-            .Append(inhabitantId).Append('|')
+            .Append(agentId).Append('|')
             .Append(worldId.Length).Append(':').Append(worldId).Append('|')
             .Append(state.Position.X).Append(',').Append(state.Position.Y).Append('|')
-            .Append(state.HungerBasisPoints).Append('|')
+            .Append(state.FullnessBasisPoints).Append('|')
             .Append(string.Join(',', candidates.Select(candidate => candidate.Id)));
         foreach (var memory in memories)
             text.Append('|').Append(memory.Id.Length).Append(':').Append(memory.Id)
@@ -1162,7 +1162,7 @@ public sealed partial class WorldRuntime
         foreach (var message in observerGuidance)
             text.Append("|observer=").Append(message.InstructionId.Length).Append(':').Append(message.InstructionId)
                 .Append('|').Append(message.IssuerId.Length).Append(':').Append(message.IssuerId)
-                .Append('|').Append(message.TargetInhabitantId.Length).Append(':').Append(message.TargetInhabitantId)
+                .Append('|').Append(message.TargetAgentId.Length).Append(':').Append(message.TargetAgentId)
                 .Append('|').Append(message.Kind)
                 .Append('|').Append(message.Text.Length).Append(':').Append(message.Text)
                 .Append('|').Append(message.SubmittedTick)

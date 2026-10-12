@@ -8,8 +8,8 @@ public static partial class SocietyRules
     /// </summary>
     public static IReadOnlyList<string> MovingCareGroup(SocietyCheckpoint checkpoint, string adultId)
     {
-        var home = checkpoint.GetInhabitant(adultId).HouseholdId;
-        return checkpoint.Inhabitants.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var home = checkpoint.GetAgent(adultId).HouseholdId;
+        return checkpoint.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
                 (person.Id == adultId || IsYoungerDependent(person) && person.PrimaryCaregiverId == adultId &&
                     person.HouseholdId == home))
             .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
@@ -19,15 +19,15 @@ public static partial class SocietyRules
     public static SocietyOperationResult LeaveHousehold(SocietyCheckpoint checkpoint, string adultId)
     {
         Validate(checkpoint);
-        var adult = checkpoint.GetInhabitant(adultId);
+        var adult = checkpoint.GetAgent(adultId);
         if (!IsAdult(adult) || adult.HouseholdId is not { } home)
             return Reject(checkpoint, "household_departure_rejected", $"{adultId}:not_an_adult_member");
         var group = MovingCareGroup(checkpoint, adultId).ToHashSet(StringComparer.Ordinal);
-        if (checkpoint.Inhabitants.Any(person => group.Contains(person.Id) && person.HouseholdId != home))
+        if (checkpoint.Agents.Any(person => group.Contains(person.Id) && person.HouseholdId != home))
             return Reject(checkpoint, "household_departure_rejected", $"{adultId}:care_group_not_together");
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person => group.Contains(person.Id)
+            Agents = checkpoint.Agents.Select(person => group.Contains(person.Id)
                 ? person with { HouseholdId = null } : person).ToArray(),
             Households = checkpoint.Households.Select(household => household.Id == home
                 ? household with
@@ -46,10 +46,10 @@ public static partial class SocietyRules
     public static SocietyOperationResult JoinHouseholdCareGroup(SocietyCheckpoint checkpoint, string adultId, string householdId)
     {
         Validate(checkpoint);
-        if (!IsAdult(checkpoint.GetInhabitant(adultId)))
+        if (!IsAdult(checkpoint.GetAgent(adultId)))
             return Reject(checkpoint, "household_join_rejected", $"{adultId}:not_an_adult");
         var group = MovingCareGroup(checkpoint, adultId);
-        if (group.Any(id => checkpoint.GetInhabitant(id).HouseholdId is not null))
+        if (group.Any(id => checkpoint.GetAgent(id).HouseholdId is not null))
             return Reject(checkpoint, "household_join_rejected", $"{adultId}:existing_household");
         var next = checkpoint;
         foreach (var id in group)
@@ -61,9 +61,9 @@ public static partial class SocietyRules
     public static SocietyOperationResult AcceptReplacementCare(SocietyCheckpoint checkpoint, string adultId, string childId)
     {
         Validate(checkpoint);
-        var adult = checkpoint.GetInhabitant(adultId);
-        var child = checkpoint.GetInhabitant(childId);
-        if (!IsAdult(adult) || !IsYoungerDependent(child) || child.Status != SocietyInhabitantStatus.Active ||
+        var adult = checkpoint.GetAgent(adultId);
+        var child = checkpoint.GetAgent(childId);
+        if (!IsAdult(adult) || !IsYoungerDependent(child) || child.Status != SocietyAgentStatus.Active ||
             adult.HouseholdId is null || adult.HouseholdId != child.HouseholdId || child.PrimaryCaregiverId == adultId ||
             !HasActivePrimaryCaregiver(checkpoint, childId))
             return Reject(checkpoint, "care_assignment_rejected", "replacement_not_eligible");

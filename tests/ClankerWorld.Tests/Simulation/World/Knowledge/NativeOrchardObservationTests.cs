@@ -18,11 +18,11 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         var planter = actor;
         if (anotherPlanter)
         {
-            planter = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+            planter = state.Agents.First(person => person.AgentId != actor).AgentId;
             state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
                 "give-revisit-seed", actor, planter, "orchard-observation-seed", 1, "give planting seed")) with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == planter ? person with
+                Agents = state.Agents.Select(person => person.AgentId == planter ? person with
                 {
                     Position = state.Map.FootNeighbors(target).First(),
                     TravelCooldownTicks = 0,
@@ -75,7 +75,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
                 state.Map.IsPassable(point) && state.Map.FootDistance(point, target) == 5 && state.Map.IsReachableOnFoot(target, point))
             .OrderBy(point => point.Y).ThenBy(point => point.X).First();
         await Move(world, actor, away, "leave-orchard");
-        var receipt = world.SubmitInstruction(new("harvest-known-orchard", "owner:test", actor, OwnerInstructionKind.MustDo,
+        var receipt = world.SubmitInstruction(new("harvest-known-orchard", "owner:test", actor, OwnerInstructionKind.Order,
             "harvest fruit from " + result.TreeId));
         var orderTicks = 0;
         for (; orderTicks < 30 && Order(world, receipt).Status != "finished"; orderTicks++)
@@ -97,7 +97,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         Func<WorldRuntimeState, GridPoint, bool>? chooseTarget = null)
     {
         var state = GeographyGeneratorTests.StartedGeneratedWorld(new GeographyOptions("orchard-knowledge-audit", WorldSizePreset.Small));
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         using var initial = Restore(state, actor);
         var blocked = state.WorldSimulation!.Buildings.SelectMany(building => WorldContentSimulationRules.Footprint(
                 state.WorldContent!.Buildings.Single(item => item.CanonicalId == building.DefinitionId), building))
@@ -105,17 +105,17 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
             .Concat(state.Map.MapObjects.Select(item => item.Position)).ToHashSet();
         var target = state.Map.Tiles.Select(tile => tile.Position).Where(point => !blocked.Contains(point) &&
                 TreeGrowthRules.GroundRefusal(state.Map, point) is null &&
-                state.Map.IsReachableOnFoot(state.Inhabitants[0].Position, point) && (chooseTarget?.Invoke(state, point) ?? true))
-            .OrderBy(point => state.Map.FootDistance(state.Inhabitants[0].Position, point)).First();
+                state.Map.IsReachableOnFoot(state.Agents[0].Position, point) && (chooseTarget?.Invoke(state, point) ?? true))
+            .OrderBy(point => state.Map.FootDistance(state.Agents[0].Position, point)).First();
         var stand = state.Map.FootNeighbors(target).First(point =>
-            !state.Inhabitants.Skip(1).Any(person => person.Position == point));
+            !state.Agents.Skip(1).Any(person => person.Position == point));
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "orchard-observation-seed", TreeGrowthRules.OrchardSeedItem, actor, 1);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = stand,
-                HungerBasisPoints = 9000,
+                FullnessBasisPoints = 9000,
                 TravelCooldownTicks = 0,
                 LastDecisionContext = null,
                 Project = null,
@@ -199,7 +199,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         await Until(writing, () => writing.ExportState().Knowledge!.Artifacts.Count == 1);
         state = writing.ExportState();
         var source = Assert.Single(state.Knowledge!.Artifacts);
-        var reader = state.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
+        var reader = state.Agents.First(person => person.AgentId != author).AgentId;
         // The original physical record is transferred as setup; reading, copying,
         // planting and cancellation below run the ordinary gameplay actions.
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
@@ -214,7 +214,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         state = FarmFieldTests.WithInventory(state, InventoryAuthority.Transfer(state.Society.Society.Inventory,
             "give-orchard-seed", author, reader, "orchard-observation-seed", 1, "give planting seed")) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == reader ? person with
+            Agents = state.Agents.Select(person => person.AgentId == reader ? person with
             {
                 Position = target,
                 TravelCooldownTicks = 0,
@@ -336,7 +336,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
 
     private static void RequestWriting(WorldRuntime world, string actor, string key) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Suggestive, "Read or write the field record."));
+        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Suggestion, "Read or write the field record."));
 
     private static async Task Until(WorldRuntime world, Func<bool> done)
     {
@@ -361,7 +361,7 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var candidates = request.Observation.Candidates;
-            var selected = request.Observation.InhabitantId == actor
+            var selected = request.Observation.AgentId == actor
                 ? candidates.FirstOrDefault(item => item.Id.StartsWith(Prefix, StringComparison.Ordinal))
                   ?? candidates.FirstOrDefault(item => item.Id == "knowledge_continue") : null;
             selected ??= candidates.Single(item => item.Id == "safe_idle");
@@ -375,12 +375,12 @@ public sealed partial class NativeOrchardObservationTests(ITestOutputHelper outp
     private static WorldRuntime Restore(WorldRuntimeState state, string actor) => WorldRuntime.Restore(
         WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), id => id == actor ? new DeterministicDecisionProvider() : new Idle());
 
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
 
     private static async Task Move(WorldRuntime world, string actor, GridPoint target, string key)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, $"move to {target.X},{target.Y}"));
+        var receipt = world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, $"move to {target.X},{target.Y}"));
         for (var tick = 0; tick < 35 && Order(world, receipt).Status != "finished"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("finished", Order(world, receipt).Status);

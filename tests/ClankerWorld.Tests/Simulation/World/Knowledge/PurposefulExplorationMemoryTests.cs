@@ -12,7 +12,7 @@ public sealed partial class PurposefulExplorationTests
         var (state, actor, _, source, _) = await MaterialCourse();
         state = UnpaidWoodProject(state, actor);
         var resourceTiles = state.Map.Resources.Select(resource => resource.Position).ToHashSet();
-        var start = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var start = state.Agents.Single(person => person.AgentId == actor).Position;
         // Controlled unrelated starting memory, not played visits or injected discoveries.
         // It includes neither a source position nor any matching Forest terrain.
         var facts = state.Map.Tiles.Where(tile => state.Map.IsPassable(tile.Position) &&
@@ -32,7 +32,7 @@ public sealed partial class PurposefulExplorationTests
         var choice = $"explore_for:{kind}:{target}";
         using var world = WorldRuntime.Restore(state, id => new ScoutProvider(id == actor ? choice : "safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(new SettlementExplorationGoal(kind, target), Person(world, actor).Exploration!.Goal);
+        Assert.Equal(new ExplorationGoal(kind, target), Person(world, actor).Exploration!.Goal);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved),
             id => new ScoutProvider(id == actor ? choice : "safe_idle"));

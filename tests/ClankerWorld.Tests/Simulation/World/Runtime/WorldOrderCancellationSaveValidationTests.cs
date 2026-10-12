@@ -57,7 +57,7 @@ public sealed class WorldOrderCancellationSaveValidationTests
             IdempotencyKey = " " + checkpoint.Request.IdempotencyKey + " ",
             IssuerId = " " + checkpoint.Request.IssuerId + " ",
             WorldId = " " + checkpoint.Request.WorldId + " ",
-            TargetInhabitantId = " " + checkpoint.Request.TargetInhabitantId + " ",
+            TargetAgentId = " " + checkpoint.Request.TargetAgentId + " ",
             OrderId = " " + checkpoint.Request.OrderId + " ",
         };
 
@@ -69,7 +69,7 @@ public sealed class WorldOrderCancellationSaveValidationTests
     {
         using var world = new WorldRuntime("cancellation-checkpoint-validation");
         var instruction = world.SubmitInstruction(new OwnerInstructionRequest(
-            "checkpoint-order", "owner:test", "founder-ilya", OwnerInstructionKind.MustDo, text));
+            "checkpoint-order", "owner:test", "founder-ilya", OwnerInstructionKind.Order, text));
         var request = new OwnerOrderCancelRequest(
             "checkpoint-cancel", "owner:test", world.Society.WorldId, "founder-ilya", instruction.InstructionId);
         var receipt = world.CancelOrder(request);

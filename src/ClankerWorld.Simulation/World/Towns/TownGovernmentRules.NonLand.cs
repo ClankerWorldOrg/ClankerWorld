@@ -18,8 +18,8 @@ public static partial class TownGovernmentRules
         !state.Offices.Any(office => office.HolderId == actor && office.Mandates is "land" or "ordinary");
 
     /// <summary>Personally accepts only the added duties in an actually learned, exact incumbent proposal.</summary>
-    public static (TownGovernanceState Council, TownGovernmentState Government) AcceptNonLandDuties(
-        TownGovernanceState council, TownGovernmentState state, string changeId, string actor,
+    public static (TownCouncilState Council, TownGovernmentState Government) AcceptNonLandDuties(
+        TownCouncilState council, TownGovernmentState state, string changeId, string actor,
         IEnumerable<string> adultResidents, long tick)
     {
         if (!CanAcceptNonLandDuties(council, state, changeId, actor, adultResidents, tick))
@@ -32,7 +32,7 @@ public static partial class TownGovernmentRules
             actor + " accepted the proposed non-land adjudication duties for the remainder of the named elected term. Authority still waits for protected handover.", tick), state);
     }
 
-    public static bool CanAcceptNonLandDuties(TownGovernanceState council, TownGovernmentState state,
+    public static bool CanAcceptNonLandDuties(TownCouncilState council, TownGovernmentState state,
         string changeId, string actor, IEnumerable<string> adultResidents, long tick) =>
         state.Changes.SingleOrDefault(item => item.Id == changeId) is
         { Status: "queued" or "voting" or "handover", NonLandExtension: { } extension } change &&
@@ -87,7 +87,7 @@ public static partial class TownGovernmentRules
         state.Arrangement.NonLand == TownArrangementRules.NoOffice &&
         change.NonLandExtension is { ConsentTick: not null } extension && ExtensionBaseCurrent(state, extension, tick);
 
-    private static (TownGovernanceState, TownGovernmentState) ExtendNonLandOffice(TownGovernanceState council,
+    private static (TownCouncilState, TownGovernmentState) ExtendNonLandOffice(TownCouncilState council,
         TownGovernmentState state, TownGovernmentChange change, long tick)
     {
         var extension = change.NonLandExtension!;

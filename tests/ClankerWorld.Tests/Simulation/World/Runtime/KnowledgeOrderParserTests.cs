@@ -16,7 +16,7 @@ public sealed class KnowledgeOrderParserTests
     [InlineData("write a book until cancelled", "book", 1, true)]
     public void RecognizesOnlyCompleteWritingTasks(string text, string kind, int quantity, bool repeat)
     {
-        var order = WorldInstructionOrderParser.Parse(text, [], resource => resource.Kind);
+        var order = OrderTaskParser.Parse(text, [], resource => resource.Kind);
         Assert.NotNull(order);
         Assert.Equal(("write_knowledge", kind, quantity, "artifacts", repeat),
             (order.Action, order.TargetKnowledgeKind, order.RequestedUnits, order.ProgressUnit, order.RepeatUntilCancelled));
@@ -35,5 +35,5 @@ public sealed class KnowledgeOrderParserTests
     [InlineData("write a map of an unknown Town")]
     [InlineData("keep draw a map")]
     public void UnsupportedWritingTextIsNotGuessed(string text) =>
-        Assert.Null(WorldInstructionOrderParser.Parse(text, [], resource => resource.Kind));
+        Assert.Null(OrderTaskParser.Parse(text, [], resource => resource.Kind));
 }

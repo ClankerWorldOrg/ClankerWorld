@@ -150,8 +150,8 @@ public sealed class AnimalSystemTests
         public SocietyCheckpoint Society { get; private set; } = SocietyRules.CreateHousehold(
             SocietyRules.CreateGenesis("animal-system", [SocietyRules.CreateFounder("agent", "Aster Ash")]),
             "household", "Home", ["agent"]).Checkpoint;
-        public IReadOnlyDictionary<string, InhabitantState> Inhabitants { get; } =
-            new Dictionary<string, InhabitantState> { ["agent"] = new("agent", new(1, 1), 5000, 0, "curious", "care") };
+        public IReadOnlyDictionary<string, AgentState> Agents { get; } =
+            new Dictionary<string, AgentState> { ["agent"] = new("agent", new(1, 1), 5000, 0, "curious", "care") };
         public WorldContentSimulationState Simulation => WorldContentSimulationState.Empty;
         public DeclarativeWorldContentState Content { get; } = new([], []);
         public WorldSystemsState Environment { get; set; } = WorldSystemsRules.CreateGenesis("animal-system");
@@ -159,8 +159,8 @@ public sealed class AnimalSystemTests
         public List<(string Kind, string Detail, GridPoint? Position)> Events { get; } = [];
         public List<string> ReplacedResources { get; } = [];
         public int EcologySyncs { get; private set; }
-        public bool AdultResident(string actor) => actor == "agent";
-        public string HouseholdFor(string actor) => Society.GetInhabitant(actor).HouseholdId!;
+        public bool IsAdult(string actor) => actor == "agent";
+        public string HouseholdFor(string actor) => Society.GetAgent(actor).HouseholdId!;
         public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => Events.Add((kind, detail, eventPosition));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => Society = Society with { Inventory = transition(Society.Inventory) };
         public int AvailableLotQuantity(InventoryLot lot) => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(Society.Inventory), lot));
@@ -196,13 +196,13 @@ public sealed class AnimalSystemTests
         public bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity) => throw new NotSupportedException();
         public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => throw new NotSupportedException();
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => throw new NotSupportedException();
-        public List<GridPoint> FindUnoccupiedRoute(string inhabitantId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => throw new NotSupportedException();
+        public List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => throw new NotSupportedException();
         public int FreeCarryCapacity(string actor) => throw new NotSupportedException();
         public PlacedBuilding? HouseholdBuildingWithTag(string householdId, string tag) => throw new NotSupportedException();
         public GridPoint HouseholdStockPosition(InventoryLot lot) => throw new NotSupportedException();
         public bool IsWithinInteractionRange(GridPoint origin, GridPoint destination, int interactionRange) => throw new NotSupportedException();
-        public void MoveToward(string inhabitantId, InhabitantState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => throw new NotSupportedException();
-        public OwnerQueuedInstruction? PendingInstructionFor(string inhabitantId) => throw new NotSupportedException();
+        public void MoveToward(string agentId, AgentState state, GridPoint destination, string reason, int interactionRange = 0, int horseMovementBudget = 100) => throw new NotSupportedException();
+        public OwnerQueuedInstruction? PendingInstructionFor(string agentId) => throw new NotSupportedException();
         public int PhysicalUnreservedQuantity(InventoryLot lot) => throw new NotSupportedException();
         public int PickupCarryCapacity(string actor, ClankerWorld.Simulation.Kernel.InventoryLot stock, GridPoint destination, int destinationRange = 0) => throw new NotSupportedException();
         public GoodsMatch? RecheckGoods(GoodsRequest request, string lotId) => throw new NotSupportedException();
@@ -210,6 +210,6 @@ public sealed class AnimalSystemTests
         public void StageBuiltInContent(string packageId, string requiredActivePackageId, Func<ContentPackageManifest> create, string eventKind) => throw new NotSupportedException();
         public bool VesselFits(InventoryLot lot, int room) => throw new NotSupportedException();
         public IReadOnlyList<ContentPackageRecord> Packages => throw new NotSupportedException();
-        public void SetInhabitant(string id, InhabitantState state) => throw new NotSupportedException();
+        public void SetAgent(string id, AgentState state) => throw new NotSupportedException();
     }
 }

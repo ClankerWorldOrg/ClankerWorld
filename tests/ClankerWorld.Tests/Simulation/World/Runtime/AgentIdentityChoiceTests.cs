@@ -19,11 +19,11 @@ public sealed class AgentIdentityChoiceTests
         var model = new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model");
         using var world = NormalPathWorld.CreateGenerated("identity-choice", id => id == AgentId ? model : new DeterministicDecisionProvider());
         await AdvanceUntilDecision(world);
-        var physical = world.Inhabitants.Single(item => item.InhabitantId == AgentId);
+        var physical = world.Agents.Single(item => item.AgentId == AgentId);
         Assert.Equal("Patient and curious", physical.Personality);
         Assert.Equal("Explore the riverbanks", physical.Aspiration);
         Assert.False(physical.IdentityChoicePending);
-        var profile = new OwnerWorldObservationStore(world).GetSnapshot().Inhabitants.Single(item => item.Id == AgentId);
+        var profile = new OwnerWorldObservationStore(world).GetSnapshot().Agents.Single(item => item.Id == AgentId);
         Assert.Contains(profile.DecisionFactors, item => item.Key == "personality" && item.Detail == physical.Personality);
         Assert.Contains(profile.DecisionFactors, item => item.Key == "aspiration" && item.Detail == physical.Aspiration);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == AgentId);
@@ -32,7 +32,7 @@ public sealed class AgentIdentityChoiceTests
         world.Pause();
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(saved, id => id == AgentId ? model : new DeterministicDecisionProvider());
-        Assert.Equal(physical.Personality, restored.Inhabitants.Single(item => item.InhabitantId == AgentId).Personality);
+        Assert.Equal(physical.Personality, restored.Agents.Single(item => item.AgentId == AgentId).Personality);
         restored.Resume();
         for (var tick = 0; tick < 310 && handler.Bodies.Count < 2; tick++)
             await restored.AdvanceOneTickNonBlockingAsync();
@@ -44,8 +44,8 @@ public sealed class AgentIdentityChoiceTests
         Assert.False(question.RootElement.GetProperty("needs_personality").GetBoolean());
         Assert.False(question.RootElement.GetProperty("needs_aspiration").GetBoolean());
         await AdvanceUntilDecision(restored);
-        Assert.Equal(physical.Personality, restored.Inhabitants.Single(item => item.InhabitantId == AgentId).Personality);
-        Assert.Equal(physical.Aspiration, restored.Inhabitants.Single(item => item.InhabitantId == AgentId).Aspiration);
+        Assert.Equal(physical.Personality, restored.Agents.Single(item => item.AgentId == AgentId).Personality);
+        Assert.Equal(physical.Aspiration, restored.Agents.Single(item => item.AgentId == AgentId).Aspiration);
         Assert.Single(restored.ExportState().Events, item => item.Kind == "agent_identity_chosen");
     }
 
@@ -68,7 +68,7 @@ public sealed class AgentIdentityChoiceTests
         });
         world.Pause();
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
-        var physical = restored.Inhabitants.Single(item => item.InhabitantId == AgentId);
+        var physical = restored.Agents.Single(item => item.AgentId == AgentId);
         Assert.Equal("undecided", physical.Personality);
         Assert.Equal("find a purpose", physical.Aspiration);
         Assert.False(physical.IdentityChoicePending);
@@ -87,8 +87,8 @@ public sealed class AgentIdentityChoiceTests
         model.Release.TrySetResult(true);
         await model.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
         using var restored = WorldRuntime.Restore(saved);
-        Assert.True(restored.Inhabitants.Single(item => item.InhabitantId == AgentId).IdentityChoicePending);
-        Assert.Equal("undecided", world.Inhabitants.Single(item => item.InhabitantId == AgentId).Personality);
+        Assert.True(restored.Agents.Single(item => item.AgentId == AgentId).IdentityChoicePending);
+        Assert.Equal("undecided", world.Agents.Single(item => item.AgentId == AgentId).Personality);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind.StartsWith("agent_identity_", StringComparison.Ordinal));
     }
 
@@ -97,7 +97,7 @@ public sealed class AgentIdentityChoiceTests
         for (var attempt = 0; attempt < 20; attempt++)
         {
             var step = await world.AdvanceOneTickNonBlockingAsync();
-            if (step.Decisions.Any(item => item.InhabitantId == AgentId && item.Admission.Accepted)) return;
+            if (step.Decisions.Any(item => item.AgentId == AgentId && item.Admission.Accepted)) return;
             await Task.Delay(10);
         }
         throw new TimeoutException("The synthetic personal reply was not admitted.");
@@ -153,7 +153,7 @@ public sealed class AgentIdentityChoiceTests
             Started.TrySetResult(true);
             await Release.Task;
             Returned.TrySetResult(true);
-            return new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, "safe_idle", 1d, new Dictionary<string, double> { ["safe_idle"] = 1d },
                 ChosenPersonality: "Late identity", ChosenAspiration: "Late aspiration");

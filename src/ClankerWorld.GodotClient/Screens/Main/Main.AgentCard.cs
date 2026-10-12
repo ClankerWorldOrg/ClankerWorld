@@ -65,7 +65,7 @@ public partial class Main
         BuildThoughtsReader();
         BuildOrdersReader();
         BuildConversationReader();
-        uiLayer.AddChild(selectedInhabitantCard);
+        uiLayer.AddChild(selectedAgentCard);
         uiLayer.AddChild(agentProfilePanel);
         uiLayer.AddChild(thoughtsPanel);
         uiLayer.AddChild(ordersPanel);
@@ -89,7 +89,7 @@ public partial class Main
         heading.AddChild(findAgentButton);
         StyleIconButton(clearSelectionButton, PixelGlyph.Close);
         clearSelectionButton.TooltipText = "Close (Esc)";
-        clearSelectionButton.Pressed += ClearInhabitantSelection;
+        clearSelectionButton.Pressed += ClearAgentSelection;
         heading.AddChild(clearSelectionButton);
         body.AddChild(heading);
 
@@ -119,11 +119,11 @@ public partial class Main
         actions.AddChild(quickCardSpeakButton);
         body.AddChild(actions);
 
-        AddPanelContents(selectedInhabitantCard, body);
-        selectedInhabitantCard.ThemeTypeVariation = "HudPanel";
-        selectedInhabitantCard.CustomMinimumSize = new Vector2(QuickCardWidth, 0);
-        selectedInhabitantCard.ZIndex = 70;
-        selectedInhabitantCard.Hide();
+        AddPanelContents(selectedAgentCard, body);
+        selectedAgentCard.ThemeTypeVariation = "HudPanel";
+        selectedAgentCard.CustomMinimumSize = new Vector2(QuickCardWidth, 0);
+        selectedAgentCard.ZIndex = 70;
+        selectedAgentCard.Hide();
     }
 
     private void BuildAgentProfile()
@@ -209,8 +209,8 @@ public partial class Main
         foreach (var meter in new[] { profileFullnessMeter, profileWarmthMeter, profileDietMeter, profileIllnessMeter })
             profileMeters.AddChild(meter);
         selectedAgentOverview.AddChild(profileMeters);
-        ConfigureTextPanel(inhabitantDetails, 90);
-        selectedAgentOverview.AddChild(inhabitantDetails);
+        ConfigureTextPanel(agentDetails, 90);
+        selectedAgentOverview.AddChild(agentDetails);
 
         // The Profile shows the latest thoughts; clicking them, or Read all,
         // opens every recent one in a larger reader beside it.
@@ -419,7 +419,7 @@ public partial class Main
 
     private void OpenThoughtsReader()
     {
-        if (SelectedInhabitant() is not { } inhabitant || agentCardSnapshot is not { } snapshot) return;
+        if (SelectedAgent() is not { } agent || agentCardSnapshot is not { } snapshot) return;
         memoriesPanel.Hide();
         familyTreePanel.Hide();
         ordersPanel.Hide();
@@ -428,18 +428,18 @@ public partial class Main
         worldOverviewPanel.Hide();
         worldInfoPanel.Hide();
         conversationPanel.Hide();
-        RenderThoughtsReader(snapshot, inhabitant);
+        RenderThoughtsReader(snapshot, agent);
         thoughtsPanel.Show();
         ApplyResponsiveLayout();
     }
 
     /// <summary>Every recent private thought, newest first, under a heading for each day.</summary>
-    private void RenderThoughtsReader(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant inhabitant)
+    private void RenderThoughtsReader(OwnerWorldSnapshot snapshot, OwnerWorldAgent agent)
     {
-        thoughtsReaderTitle.Text = thoughtsReaderTitle.TooltipText = IsDeceased(inhabitant) ? $"{inhabitant.DisplayName} · thoughts, historical" : $"{inhabitant.DisplayName} · thoughts";
-        var thoughts = inhabitant.RecentPrivateThoughts.Reverse()
+        thoughtsReaderTitle.Text = thoughtsReaderTitle.TooltipText = IsDeceased(agent) ? $"{agent.DisplayName} · thoughts, historical" : $"{agent.DisplayName} · thoughts";
+        var thoughts = agent.RecentPrivateThoughts.Reverse()
             .Select(thought => (Clock: SplitClock(DisplayWorldClock(thought.WorldTick)), thought.Text)).ToArray();
-        var signature = inhabitant.Id + "|" + UiTheme.Current.Name + "\n" +
+        var signature = agent.Id + "|" + UiTheme.Current.Name + "\n" +
             string.Join("\n", thoughts.Select(item => $"{item.Clock.Date}|{item.Clock.Time}|{item.Text}"));
         if (renderedThoughtsReader == signature) return;
         renderedThoughtsReader = signature;
@@ -527,7 +527,7 @@ public partial class Main
 
     private void CenterOnSelectedAgent()
     {
-        if (selectedInhabitantId is { } id) CenterOnInhabitant(id);
+        if (selectedAgentId is { } id) CenterOnAgent(id);
     }
 
     /// <summary>Opens the Profile from the quick card; Speak also puts the cursor in the message box.</summary>
@@ -535,7 +535,7 @@ public partial class Main
     {
         agentProfileRequested = true;
         if (agentCardSnapshot is { } snapshot)
-            RenderSelectedInhabitantCard(snapshot);
+            RenderSelectedAgentCard(snapshot);
         if (speak && instructionText.Editable)
         {
             instructionText.CallDeferred(Control.MethodName.GrabFocus);
@@ -554,21 +554,21 @@ public partial class Main
     {
         if (selectedAgentModelScroll.Visible)
             CloseAgentModelEditor();
-        else if (SelectedInhabitant() is { } selected && !IsDeceased(selected))
+        else if (SelectedAgent() is { } selected && !IsDeceased(selected))
             agentProfileRequested = false;
         else
         {
-            ClearInhabitantSelection();
+            ClearAgentSelection();
             return;
         }
         renameRow.Hide();
         if (agentCardSnapshot is { } snapshot)
-            RenderSelectedInhabitantCard(snapshot);
+            RenderSelectedAgentCard(snapshot);
     }
 
-    private OwnerWorldInhabitant? SelectedInhabitant() =>
-        agentCardSnapshot?.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
+    private OwnerWorldAgent? SelectedAgent() =>
+        agentCardSnapshot?.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
 
     private void ToggleRenameRow()
     {
@@ -588,8 +588,8 @@ public partial class Main
         profileCloseButton.TooltipText = back ? "Back (Esc)" : "Close (Esc)";
     }
 
-    private static bool IsDeceased(OwnerWorldInhabitant inhabitant) =>
-        string.Equals(inhabitant.Lifecycle, "dead", StringComparison.OrdinalIgnoreCase);
+    private static bool IsDeceased(OwnerWorldAgent agent) =>
+        string.Equals(agent.Lifecycle, "dead", StringComparison.OrdinalIgnoreCase);
 
     private static string Sentence(string text) =>
         text.Length == 0 ? text : char.ToUpper(text[0], CultureInfo.CurrentCulture) + text[1..];
@@ -601,12 +601,12 @@ public partial class Main
         return date == SplitClock(DisplayWorldClock(now)).Date ? time : $"{date} · {time}";
     }
 
-    private void RenderSelectedInhabitantCard(OwnerWorldSnapshot snapshot)
+    private void RenderSelectedAgentCard(OwnerWorldSnapshot snapshot)
     {
         agentCardSnapshot = snapshot;
-        var inhabitant = snapshot.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
-        if (inhabitant is null)
+        var agent = snapshot.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
+        if (agent is null)
         {
             CloseAgentModelEditor();
             agentProfileRequested = false;
@@ -617,20 +617,20 @@ public partial class Main
             selectedActorNameLabel.Text = string.Empty;
             selectedActorSummaryLabel.Text = string.Empty;
             selectedActorConditionLabel.Text = string.Empty;
-            SetPanelText(inhabitantDetails, string.Empty);
+            SetPanelText(agentDetails, string.Empty);
             privateThoughtHistory.Text = string.Empty;
             SetPanelText(instructionHistory, string.Empty);
             memoriesPanel.Hide();
             thoughtsPanel.Hide();
             ordersPanel.Hide();
-            selectedInhabitantCard.Hide();
+            selectedAgentCard.Hide();
             agentProfilePanel.Hide();
             return;
         }
 
         // One quick card at a time: choosing an agent closes a building's card.
         if (selectedBuildingId is not null) ClearBuildingSelection();
-        string? Factor(string key) => inhabitant.DecisionFactors.FirstOrDefault(factor => factor.Key == key)?.Detail;
+        string? Factor(string key) => agent.DecisionFactors.FirstOrDefault(factor => factor.Key == key)?.Detail;
         var ageBand = Factor("age-band");
         var ageYears = Factor("age-years");
         var ageDays = Factor("age-days");
@@ -638,27 +638,27 @@ public partial class Main
         var deathCause = Factor("death-cause");
         var willStatus = Factor("will-status");
         var role = Factor("role");
-        var isDeceased = IsDeceased(inhabitant);
-        var waitingForDecision = inhabitant.DecisionFactors.Any(factor => factor.Key == "decision-pending");
-        var decision = snapshot.Cognition?.Decisions?.FirstOrDefault(item => item.InhabitantId == inhabitant.Id);
-        if (selectedAgentModelScroll.Visible && SelectedCognitionTarget() != inhabitant.Id)
+        var isDeceased = IsDeceased(agent);
+        var waitingForDecision = agent.DecisionFactors.Any(factor => factor.Key == "decision-pending");
+        var decision = snapshot.Cognition?.Decisions?.FirstOrDefault(item => item.AgentId == agent.Id);
+        if (selectedAgentModelScroll.Visible && SelectedCognitionTarget() != agent.Id)
             CloseAgentModelEditor();
 
         // Name, age and one plain sentence for what they are doing, shared by both cards.
-        quickCardNameLabel.Text = quickCardNameLabel.TooltipText = inhabitant.DisplayName;
-        selectedActorNameLabel.Text = inhabitant.DisplayName;
+        quickCardNameLabel.Text = quickCardNameLabel.TooltipText = agent.DisplayName;
+        selectedActorNameLabel.Text = agent.DisplayName;
         // Draft and refused names stay in the open field for the player to change,
         // while the labels above keep showing the name the host holds.
-        if (!renameRow.Visible || renamingAgentId != inhabitant.Id) refusedAgentRename.Forget();
-        if (!refusedAgentRename.Keeps(snapshot.WorldId, inhabitant.Id, renameAgentInput.Text) &&
-            (renamingAgentId != inhabitant.Id || !renameRow.Visible))
+        if (!renameRow.Visible || renamingAgentId != agent.Id) refusedAgentRename.Forget();
+        if (!refusedAgentRename.Keeps(snapshot.WorldId, agent.Id, renameAgentInput.Text) &&
+            (renamingAgentId != agent.Id || !renameRow.Visible))
         {
-            renameAgentInput.Text = inhabitant.DisplayName;
-            renamingAgentId = inhabitant.Id;
+            renameAgentInput.Text = agent.DisplayName;
+            renamingAgentId = agent.Id;
         }
         agentPortraitTexture.Atlas = AgentSprites.Atlas(32);
-        agentPortraitTexture.Region = AgentSprites.Region(AgentSprites.VariantFor(inhabitant.Id), AgentSprites.StageIndex(ageBand), 32);
-        selectedActorNameLabel.TooltipText = inhabitant.DisplayName;
+        agentPortraitTexture.Region = AgentSprites.Region(AgentSprites.VariantFor(agent.Id), AgentSprites.StageIndex(ageBand), 32);
+        selectedActorNameLabel.TooltipText = agent.DisplayName;
         selectedActorSummaryLabel.Text = string.Join(" · ", new[]
         {
             isDeceased ? "Dead" : null,
@@ -671,7 +671,7 @@ public partial class Main
             ? $"Life ended{(deathCause is null ? "" : " · " + Pretty(deathCause))}."
             : waitingForDecision
             ? "Deciding what to do next"
-            : Sentence(GameUiText.ActivityPhrase(inhabitant.PublicIntention?.CandidateId, inhabitant.PublicIntention?.Summary));
+            : Sentence(GameUiText.ActivityPhrase(agent.PublicIntention?.CandidateId, agent.PublicIntention?.Summary));
         // The Model line names whose model made their latest choice, such as OpenAI.
         var modelStatus = GameUiText.ModelStatus(Factor("model-status"));
         var modelProvider = decision is { } latest && IsModelProvider(latest.Provider) ? ProviderDisplayName(latest.Provider) + " · " : string.Empty;
@@ -679,8 +679,8 @@ public partial class Main
         profileActivityLabel.Text = quickCardActivityLabel.Text;
 
         // How they are: bars where the host reports a value, and plain facts beside them.
-        var fullness = NeedPercent(inhabitant.HungerBasisPoints);
-        var survival = inhabitant.Survival;
+        var fullness = NeedPercent(agent.FullnessBasisPoints);
+        var survival = agent.Survival;
         quickFullnessMeter.Percent = fullness;
         profileFullnessMeter.Percent = fullness;
         foreach (var meter in new[] { quickWarmthMeter, quickIllnessMeter, profileWarmthMeter, profileDietMeter, profileIllnessMeter })
@@ -693,9 +693,9 @@ public partial class Main
         }
         quickCardMeters.Visible = !isDeceased;
         profileMeters.Visible = !isDeceased;
-        var carrying = inhabitant.Inventory.Count == 0
+        var carrying = agent.Inventory.Count == 0
             ? "Carrying nothing"
-            : "Carrying " + string.Join(", ", inhabitant.Inventory.Select(item => $"{GameUiText.ItemName(item.Kind).ToLowerInvariant()} ({item.Quantity})"));
+            : "Carrying " + string.Join(", ", agent.Inventory.Select(item => $"{GameUiText.ItemName(item.Kind).ToLowerInvariant()} ({item.Quantity})"));
         selectedActorConditionLabel.Text = isDeceased
             ? survival is null ? "Historical record" :
                 $"At death · Warmth {survival.WarmthBasisPoints / 100}% · Illness {survival.IllnessBasisPoints / 100}% · Diet {survival.NutritionBasisPoints / 100}%"
@@ -706,15 +706,15 @@ public partial class Main
         var details = new List<string>();
         if (Factor("personality") is { } personality) details.Add("Personality: " + personality);
         if (Factor("aspiration") is { } aspiration) details.Add("Aspiration: " + aspiration);
-        details.AddRange(inhabitant.DecisionFactors.Where(factor => factor.Key == "identity-change")
+        details.AddRange(agent.DecisionFactors.Where(factor => factor.Key == "identity-change")
             .Select(factor => factor.Detail));
-        if (!isDeceased && !string.IsNullOrWhiteSpace(inhabitant.MedicalCareNote))
-            details.Add(inhabitant.MedicalCareNote);
+        if (!isDeceased && !string.IsNullOrWhiteSpace(agent.MedicalCareNote))
+            details.Add(agent.MedicalCareNote);
         if (!isDeceased && Factor("knowledge-writing") is { } writingProgress)
             details.Add(writingProgress);
-        if (!isDeceased && !string.IsNullOrWhiteSpace(inhabitant.ToolMakingRequestNote))
-            details.Add(inhabitant.ToolMakingRequestNote);
-        if (!isDeceased && inhabitant.Equipment is { } equipment)
+        if (!isDeceased && !string.IsNullOrWhiteSpace(agent.ToolMakingRequestNote))
+            details.Add(agent.ToolMakingRequestNote);
+        if (!isDeceased && agent.Equipment is { } equipment)
         {
             details.Add($"Cargo: {equipment.CarriedQuantity}/{equipment.Capacity}" +
                 (equipment.CarriedQuantity > equipment.Capacity ? " · Full; store or set down a load before picking up more." : ""));
@@ -727,39 +727,39 @@ public partial class Main
             if (equipment.RepairItemKind is { } repairItem)
                 details.Add($"Repairing {Pretty(repairItem).ToLowerInvariant()} · {equipment.RepairWorkDone}/{equipment.RepairWorkRequired}");
         }
-        foreach (var cart in snapshot.Handcarts.Where(cart => cart.OwnerId == inhabitant.Id || cart.PullerId == inhabitant.Id))
+        foreach (var cart in snapshot.Handcarts.Where(cart => cart.OwnerId == agent.Id || cart.PullerId == agent.Id))
             details.Add(GameUiText.HandcartDescription(cart));
-        foreach (var animal in snapshot.Animals.Where(animal => animal.RiderId == inhabitant.Id || animal.LeaderId == inhabitant.Id))
+        foreach (var animal in snapshot.Animals.Where(animal => animal.RiderId == agent.Id || animal.LeaderId == agent.Id))
             details.Add(GameUiText.AnimalDescription(animal));
         if (!isDeceased && Factor("last-model-choice") is { } lastModelChoice)
             details.Add("Last model choice: " + Sentence(GameUiText.ActivityPhrase(lastModelChoice, null)));
         if (!isDeceased && Factor("model-setup-blocker") == "unsupported_request")
             details.Add("This model rejected the request format. Choose a compatible model in Model settings.");
-        if (inhabitant.Project is { } project)
+        if (agent.Project is { } project)
         {
             details.Add($"{project.Label} · {Pretty(project.Stage)} · {project.WorkDone}/{project.WorkRequired}");
             if (project.Blocker is not null) details.Add(project.Blocker);
         }
         if (role is not null and not "unassigned") details.Add($"Role: {Pretty(role)}");
         if (!isDeceased)
-            details.AddRange(inhabitant.DecisionFactors.Where(factor => factor.Key == "guardian-care")
+            details.AddRange(agent.DecisionFactors.Where(factor => factor.Key == "guardian-care")
                 .Select(factor => factor.Detail));
         if (Factor("housing") is { } housing && !isDeceased) details.Add(housing);
-        if (!isDeceased && inhabitant.DecisionFactors.FirstOrDefault(factor => factor.Key == "town-membership") is { } townMembership)
+        if (!isDeceased && agent.DecisionFactors.FirstOrDefault(factor => factor.Key == "town-membership") is { } townMembership)
         {
             details.Add(townMembership.Detail);
             if (townMembership.AcceptanceDeadlineTick is { } deadline)
                 details.Add($"Acceptance deadline: {DisplayWorldClock(deadline)} · Paused time does not count.");
         }
-        if (inhabitant.Lesson is { } lesson)
+        if (agent.Lesson is { } lesson)
             details.Add($"Learning {Pretty(lesson.Skill)} with {lesson.TeacherName} · {Pretty(lesson.Stage)} · {lesson.Progress}/{lesson.Required}");
-        foreach (var skill in inhabitant.Skills ?? [])
+        foreach (var skill in agent.Skills ?? [])
             details.Add($"{Pretty(skill.Kind)} skill · {(skill.TeacherName is { } teacher ? "taught by " + teacher : "learned by doing")} · {DisplayWorldClock(skill.LearnedTick)}");
-        if (inhabitant.Proficiency is { } practice)
+        if (agent.Proficiency is { } practice)
             details.Add($"Practice · Building {practice.Building}/30 · Farming {practice.Farming}/30 · Crafting {practice.Crafting}/30");
         if (isDeceased)
         {
-            details.AddRange(GameUiText.FinalWillLines(willStatus, inhabitant.FinalWill));
+            details.AddRange(GameUiText.FinalWillLines(willStatus, agent.FinalWill));
         }
         else if (!waitingForDecision)
         {
@@ -768,33 +768,33 @@ public partial class Main
             else if (decision.FellBack) details.Add("The model gave no usable choice, so built-in rules chose this.");
             else if (!IsModelProvider(decision.Provider)) details.Add($"{ProviderDisplayName(decision.Provider)} made their latest choice.");
         }
-        SetPanelText(inhabitantDetails, string.Join("\n", details));
-        inhabitantDetails.Visible = details.Count > 0;
-        inhabitantDetails.TooltipText = decision is null ? "" :
+        SetPanelText(agentDetails, string.Join("\n", details));
+        agentDetails.Visible = details.Count > 0;
+        agentDetails.TooltipText = decision is null ? "" :
             $"Last accepted decision\nRole: {decision.Role ?? "not reported"}\nModel: {decision.Model ?? "not reported"}\nConfidence: {decision.Confidence:P0}\n" +
             $"Latency: {decision.LatencyMilliseconds?.ToString(CultureInfo.CurrentCulture) ?? "—"} ms\n" +
             $"Tokens in/out: {decision.InputTokens?.ToString(CultureInfo.CurrentCulture) ?? "—"}/{decision.OutputTokens?.ToString(CultureInfo.CurrentCulture) ?? "—"}";
-        if (inhabitant.Proficiency is not null)
-            inhabitantDetails.TooltipText += (inhabitantDetails.TooltipText.Length == 0 ? "" : "\n") +
+        if (agent.Proficiency is not null)
+            agentDetails.TooltipText += (agentDetails.TooltipText.Length == 0 ? "" : "\n") +
                 "Practice: each completed project earns one point in its domain, up to 30. Every 10 points adds one work per preparation step. Materials, permissions and crop growth time are unchanged.";
 
         thoughtsHeading.Text = isDeceased ? "THOUGHTS · HISTORICAL" : "THOUGHTS";
-        privateThoughtHistory.Text = inhabitant.RecentPrivateThoughts.Count == 0
+        privateThoughtHistory.Text = agent.RecentPrivateThoughts.Count == 0
             ? "None recorded yet."
-            : $"{ThoughtTime(inhabitant.RecentPrivateThoughts[^1].WorldTick, snapshot.WorldTick)}  {GameUiText.PlainEllipses(inhabitant.RecentPrivateThoughts[^1].Text)}";
+            : $"{ThoughtTime(agent.RecentPrivateThoughts[^1].WorldTick, snapshot.WorldTick)}  {GameUiText.PlainEllipses(agent.RecentPrivateThoughts[^1].Text)}";
         // Keep the task that Cancel task targets, then the newest open messages
         // before closed ones, within the same four-message history.
-        var pendingOrder = PendingOrderToCancel(snapshot, inhabitant.Id);
+        var pendingOrder = PendingOrderToCancel(snapshot, agent.Id);
         var recentInstructions = snapshot.Instructions
-            .Where(item => item.TargetInhabitantId == inhabitant.Id)
+            .Where(item => item.TargetAgentId == agent.Id)
             .OrderBy(item => item.InstructionId == pendingOrder?.InstructionId ? 0 : item.State == "completed" ? 2 : 1)
             .ThenByDescending(item => item.SubmissionSequence)
             .Take(4)
             .OrderBy(item => item.SubmissionSequence)
             .Select(item =>
             {
-                var status = item.Kind == "must_do"
-                    ? InstructionOrderSummary(item)
+                var status = item.Kind == "order"
+                    ? OrderTaskSummary(item)
                     : item.ObservedTick is null ? "Suggestion waiting for their personal model" : "Suggestion heard by their personal model";
                 var reply = item.ObserverReply is null ? string.Empty : $"\nAgent reply: “{item.ObserverReply}”";
                 return $"{status}\n“You said: {item.Text}”{reply}";
@@ -805,12 +805,12 @@ public partial class Main
         SetPanelText(instructionHistory, recentInstructions.Length == 0
             ? "No messages yet."
             : string.Join("\n\n", recentInstructions));
-        RenderOrderSummary(snapshot, inhabitant, isDeceased);
+        RenderOrderSummary(snapshot, agent, isDeceased);
 
-        RenderProfilePeople(snapshot, inhabitant);
-        RenderMemoryCards(snapshot, inhabitant);
-        RenderThoughtsReader(snapshot, inhabitant);
-        RenderOrdersReader(snapshot, inhabitant);
+        RenderProfilePeople(snapshot, agent);
+        RenderMemoryCards(snapshot, agent);
+        RenderThoughtsReader(snapshot, agent);
+        RenderOrdersReader(snapshot, agent);
 
         modelSettingsButton.Disabled = isDeceased || registration is null;
         findAgentButton.Visible = !isDeceased;
@@ -821,23 +821,23 @@ public partial class Main
         // The dead have no place on the map, so their profile opens directly.
         var showProfile = agentProfileRequested || isDeceased;
         agentProfilePanel.Visible = showProfile;
-        selectedInhabitantCard.Visible = !showProfile;
-        PositionSelectedInhabitantCard(snapshot);
+        selectedAgentCard.Visible = !showProfile;
+        PositionSelectedAgentCard(snapshot);
         PositionAgentProfile();
     }
 
-    private static OwnerWorldInstruction? PendingOrderToCancel(OwnerWorldSnapshot snapshot, string? inhabitantId) =>
-        snapshot.Instructions.Where(item => item.TargetInhabitantId == inhabitantId &&
-                item.Order is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" })
+    private static OwnerWorldInstruction? PendingOrderToCancel(OwnerWorldSnapshot snapshot, string? agentId) =>
+        snapshot.Instructions.Where(item => item.TargetAgentId == agentId &&
+                item.Task is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" })
             .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
 
     /// <summary>
     /// One order's state as the host reports it, such as "Blocked · Eating food ·
     /// 0/3 food items" followed by why it is held up or was replaced.
     /// </summary>
-    private static string InstructionOrderSummary(OwnerWorldInstruction instruction, bool includeHeard = true)
+    private static string OrderTaskSummary(OwnerWorldInstruction instruction, bool includeHeard = true)
     {
-        var order = instruction.Order;
+        var order = instruction.Task;
         if (order is null)
             return instruction.State == "completed"
                 ? instruction.ObservedTick is null ? "Order closed · not reported as heard" : "Heard by their personal model · order closed"

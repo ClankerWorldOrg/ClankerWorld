@@ -43,7 +43,7 @@ public sealed partial class WorldRuntime
         if (through != transport.Sequence)
             throw new InvalidDataException("The boat request sequence has missing live or archived authority.");
         var tick = state.Society.Society.WorldTick;
-        var people = state.Society.Society.Inhabitants.ToDictionary(person => person.Id, StringComparer.Ordinal);
+        var people = state.Society.Society.Agents.ToDictionary(person => person.Id, StringComparer.Ordinal);
         var towns = new Dictionary<string, TownRuntimeState>(StringComparer.Ordinal);
         foreach (var town in state.Towns ?? [])
             if (town is null || string.IsNullOrWhiteSpace(town.Id) || !towns.TryAdd(town.Id, town))
@@ -98,10 +98,10 @@ public sealed partial class WorldRuntime
                         journey.WaterPath[index - 1].X != journey.WaterPath[index].X && journey.WaterPath[index - 1].Y != journey.WaterPath[index].Y)
                         throw new InvalidDataException("A saved boat route must follow connected cardinal water tiles.");
                 Claim(journey.ReservedDock, boat.Id);
-                if (passenger.Status == SocietyInhabitantStatus.Active &&
-                        !state.Inhabitants.Any(person => person.InhabitantId == passenger.Id && person.Position == boat.Position) ||
-                    passenger.Status == SocietyInhabitantStatus.Dead &&
-                        !(state.DeceasedInhabitants ?? []).Any(person => person.InhabitantId == passenger.Id && person.BoatIdAtDeath == boat.Id) ||
+                if (passenger.Status == SocietyAgentStatus.Active &&
+                        !state.Agents.Any(person => person.AgentId == passenger.Id && person.Position == boat.Position) ||
+                    passenger.Status == SocietyAgentStatus.Dead &&
+                        !(state.DeceasedAgents ?? []).Any(person => person.AgentId == passenger.Id && person.BoatIdAtDeath == boat.Id) ||
                     (state.Conversations ?? []).Any(conversation => conversation.Status != AgentConversationStatus.Closed &&
                         AgentConversationRules.IsParticipant(conversation, passenger.Id)))
                     throw new InvalidDataException("An underway passenger must stay aboard and out of unfinished conversations.");
@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
             }
             else if (boat.DockedPortId is null || !Geometry(boat.DockedPortId).DockingTiles.Contains(boat.Position))
                 throw new InvalidDataException("An idle boat must be moored in a real Port's docking space.");
-            if (boat.Journey is { } cargoJourney && people[cargoJourney.PassengerId].Status == SocietyInhabitantStatus.Dead)
+            if (boat.Journey is { } cargoJourney && people[cargoJourney.PassengerId].Status == SocietyAgentStatus.Dead)
             {
                 var physicalCargo = state.Society.Society.Inventory.Lots.Where(lot => lot.Quantity > 0 &&
                     lot.ContainerLotId is null && lot.GroundPosition == new InventoryGroundPosition(boat.Position.X, boat.Position.Y))
@@ -124,7 +124,7 @@ public sealed partial class WorldRuntime
             if (boat.GroundCargoLotIds is { } cargo)
             {
                 if (cargo.Distinct(StringComparer.Ordinal).Count() != cargo.Count || boat.Journey is not { } estateJourney ||
-                    !people.TryGetValue(estateJourney.PassengerId, out var deceased) || deceased.Status != SocietyInhabitantStatus.Dead)
+                    !people.TryGetValue(estateJourney.PassengerId, out var deceased) || deceased.Status != SocietyAgentStatus.Dead)
                     throw new InvalidDataException("Only a deceased passenger's unique estate cargo may remain aboard.");
                 foreach (var id in cargo)
                 {
@@ -151,7 +151,7 @@ public sealed partial class WorldRuntime
                 request.Status is "arrived" or "returned" && !transport.Boats.Any(boat => boat.Id == request.BoatId))
                 throw new InvalidDataException("The saved boat queue contains a missing traveler, duplicate active request or invalid outcome.");
         }
-        foreach (var person in state.DeceasedInhabitants ?? [])
+        foreach (var person in state.DeceasedAgents ?? [])
             if (person.BoatIdAtDeath is { } id && !transport.Boats.Any(boat => boat.Id == id))
                 throw new InvalidDataException("A boat death must retain its actual communal asset.");
         ValidateBoatOrderBindings(state);

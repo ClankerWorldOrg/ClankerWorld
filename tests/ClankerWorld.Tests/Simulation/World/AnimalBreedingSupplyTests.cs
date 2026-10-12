@@ -101,14 +101,14 @@ public sealed class AnimalBreedingSupplyTests
         using var setup = NormalPathWorld.CreateGenerated("animal-breeding-vessel-audit", _ => new Idle());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var home = state.Society.Society.GetInhabitant(state.Inhabitants[0].InhabitantId).HouseholdId!;
+        var home = state.Society.Society.GetAgent(state.Agents[0].AgentId).HouseholdId!;
         var definition = state.WorldContent!.Buildings.Single(item => item.Tags.Contains(AnimalContent.YardTag));
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "breeding-yard-cost-" + cost.ResourceId, cost.ResourceId, home, cost.Amount);
         using var builder = WorldRuntime.Restore(state with
         { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } });
-        foreach (var tile in state.Map.Tiles.OrderBy(item => state.Map.FootDistance(item.Position, state.Inhabitants[0].Position)))
+        foreach (var tile in state.Map.Tiles.OrderBy(item => state.Map.FootDistance(item.Position, state.Agents[0].Position)))
             if (builder.PlaceBuilding("breeding-yard", definition.CanonicalId, tile.Position, home).Applied) break;
         var yard = Assert.Single(builder.WorldSimulation.Buildings, item => item.InstanceId == "breeding-yard");
         foreach (var cost in definition.BuildCosts) Assert.Equal(
@@ -125,8 +125,8 @@ public sealed class AnimalBreedingSupplyTests
             AnimalWorld = new(true, [male, female], []),
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
-            Inhabitants = state.Inhabitants.Select(person => person with
-            { HungerBasisPoints = 9_500, Survival = new(), Project = null, LastDecisionContext = null }).ToArray(),
+            Agents = state.Agents.Select(person => person with
+            { FullnessBasisPoints = 9_500, Survival = new(), Project = null, LastDecisionContext = null }).ToArray(),
         };
         using var checkedWorld = WorldRuntime.Restore(state, _ => new Idle());
         checkedWorld.Validate();
@@ -142,7 +142,7 @@ public sealed class AnimalBreedingSupplyTests
         {
             var observation = request.Observation;
             var selected = observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

@@ -5,10 +5,10 @@ namespace ClankerWorld.Simulation.World;
 /// <summary>Validates durable case provenance, windows, mandates and the exact permission adjustment chain.</summary>
 public static class TownLandHearingValidation
 {
-    public static void Validate(WorldMap map, long tick, string townId, TownLandHearingState state,
+    public static void Validate(WorldMap map, long tick, string townId, TownLandRecords state,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandTitleRecord> titles,
         IReadOnlySet<string> knownAgents, IReadOnlySet<string> knownHouseholds,
-        TownGovernanceState? council, int day, TownGovernmentState? government = null,
+        TownCouncilState? council, int day, TownGovernmentState? government = null,
         IReadOnlyList<string>? adultResidents = null, IReadOnlyDictionary<string, string?>? agentHouseholds = null,
         IReadOnlyDictionary<string, IReadOnlyList<TownLandCaseParty>>? currentPartiesByCase = null,
         Func<TownLandCase, IReadOnlyList<TownLandCaseParty>>? currentPartiesResolver = null)
@@ -117,7 +117,7 @@ public static class TownLandHearingValidation
 
     private static void ValidateCase(WorldMap map, long tick, string townId, TownLandCase item,
         IReadOnlyList<TownLandTitleRecord> titles, IReadOnlySet<string> agents, IReadOnlySet<string> households,
-        TownGovernanceState? council, int day, TownGovernmentState? government, TownLandHearingState state,
+        TownCouncilState? council, int day, TownGovernmentState? government, TownLandRecords state,
         IReadOnlyList<HouseholdLandUseRight> currentRights)
     {
         foreach (var revision in item.Revisions)
@@ -265,14 +265,14 @@ public static class TownLandHearingValidation
     }
 
     /// <summary>The null checks that let another validator read a ledger before its own full validation has run.</summary>
-    internal static bool HasRecords(TownLandHearingState? state) =>
+    internal static bool HasRecords(TownLandRecords? state) =>
         state is { Cases: not null, OriginalRights: not null, Adjustments: not null } &&
         state.OriginalRights.All(v => v?.Right?.Tiles is not null) &&
         state.Adjustments.All(a => a is { PriorRights: not null, ResultRights: not null } &&
             a.PriorRights.All(v => v?.Right?.Tiles is not null) && a.ResultRights.All(r => r?.Tiles is not null)) &&
         state.Cases.All(c => c is { Rulings: not null, Revisions: not null } && c.Rulings.All(r => r is not null) && c.Revisions.All(r => r?.Tiles is not null));
 
-    public static void ValidateRequestResolutions(long tick, IReadOnlyList<TownLandHearingState> states,
+    public static void ValidateRequestResolutions(long tick, IReadOnlyList<TownLandRecords> states,
         IReadOnlyList<HouseholdLandUseRequest> requests)
     {
         // This runs before each ledger's own validation, so a duplicated or missing record is refused here, not assumed away.

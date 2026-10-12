@@ -32,7 +32,7 @@ public sealed class StreetLanternRuntimeTests
         Assert.DoesNotContain(scenario.World.WorldSimulation.Buildings, building => building.DefinitionId == definition.CanonicalId);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count == 1, 80);
         var project = scenario.Project;
-        var proposal = Assert.Single(scenario.World.Towns[0].Governance!.Proposals);
+        var proposal = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
         Assert.Equal(("project", "passed", TownProjectScenario.Author, 3),
             (proposal.Kind, proposal.Status, proposal.AuthorId, proposal.RequiredYes));
         Assert.Equal(3, proposal.Votes.Count(vote => vote.Yes));
@@ -46,7 +46,7 @@ public sealed class StreetLanternRuntimeTests
         Assert.Equal(0, project.WorkDone);
         Assert.DoesNotContain(scenario.World.WorldSimulation.Buildings, building => building.DefinitionId == definition.CanonicalId);
         AssertConstructionSite(scenario.World, project, definition);
-        Assert.Contains(scenario.Decisions, decision => decision.InhabitantId == TownProjectScenario.Author &&
+        Assert.Contains(scenario.Decisions, decision => decision.AgentId == TownProjectScenario.Author &&
             decision.Admission is { Accepted: true, FellBack: false } &&
             decision.Admission.Intention is { Provider: DecisionProviderKind.LargeLanguageModel } intention &&
             intention.CandidateId == scenario.Policy.ProposalCandidate);
@@ -56,7 +56,7 @@ public sealed class StreetLanternRuntimeTests
         Assert.Equal(1, Math.Abs(project.Plan.Site.X - project.Plan.Entrance.X) + Math.Abs(project.Plan.Site.Y - project.Plan.Entrance.Y));
         Assert.DoesNotContain(project.Plan.Site, roads);
         Assert.Contains(project.Plan.Entrance, roads);
-        Assert.All(proposal.Votes, vote => Assert.Contains(scenario.Decisions, decision => decision.InhabitantId == vote.AgentId &&
+        Assert.All(proposal.Votes, vote => Assert.Contains(scenario.Decisions, decision => decision.AgentId == vote.AgentId &&
             decision.Admission is { Accepted: true, FellBack: false } &&
             decision.Admission.Intention is { Provider: DecisionProviderKind.LargeLanguageModel } intention &&
             intention.CandidateId.Contains("|yes|" + proposal.Id + "|", StringComparison.Ordinal)));
@@ -138,7 +138,7 @@ public sealed class StreetLanternRuntimeTests
     });
 
     /// <summary>An approved lantern waiting for its materials reaches the client as a site on its planned Road edge.</summary>
-    private static void AssertConstructionSite(WorldRuntime world, TownConstructionProject project, BuildingDefinition definition)
+    private static void AssertConstructionSite(WorldRuntime world, TownProject project, BuildingDefinition definition)
     {
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
         var client = JsonSerializer.Deserialize<GodotSnapshot>(JsonSerializer.Serialize(snapshot, TownProjectScenario.JsonOptions), TownProjectScenario.JsonOptions)!;
@@ -154,7 +154,7 @@ public sealed class StreetLanternRuntimeTests
         Assert.Equal(site.Tags, received.Tags);
     }
 
-    private static void AssertProjection(WorldRuntime world, TownConstructionProject project, BuildingDefinition definition, string style)
+    private static void AssertProjection(WorldRuntime world, TownProject project, BuildingDefinition definition, string style)
     {
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
@@ -193,7 +193,7 @@ public sealed class StreetLanternRuntimeTests
             var document = JsonNode.Parse(source)!;
             var state = document["state"]!;
             var project = state["towns"]![0]!["projects"]![0]!;
-            var proposal = state["towns"]![0]!["governance"]!["proposals"]![0]!;
+            var proposal = state["towns"]![0]!["council"]!["proposals"]![0]!;
             if (damage == "budget")
             {
                 foreach (var plan in new[] { project["plan"]!, proposal["project"]! })
@@ -233,7 +233,7 @@ public sealed class StreetLanternRuntimeTests
         Assert.Equal(source, WorldRuntimeCodec.Encode(world.ExportState()));
 
         // Isolate the orphan-fixture check from generic missing-proposal or orphan-receipt checks.
-        var orphanTown = state.Towns[0] with { Projects = [], Governance = state.Towns[0].Governance! with { Proposals = [] } };
+        var orphanTown = state.Towns[0] with { Projects = [], Council = state.Towns[0].Council! with { Proposals = [] } };
         var paidReceipts = project.Deliveries.Select(item => item.ReservationId).ToHashSet(StringComparer.Ordinal);
         var withoutReceipts = state.Society.Society with
         {
@@ -254,7 +254,7 @@ internal sealed class StreetLanternScenario : IDisposable
     internal WorldRuntime World { get; private set; }
     internal StreetLanternPolicy Policy { get; }
     internal List<SocietyCognitionDispatchResult> Decisions { get; } = [];
-    internal TownConstructionProject Project => Assert.Single(World.Towns[0].Projects);
+    internal TownProject Project => Assert.Single(World.Towns[0].Projects);
     private readonly WorldMap map;
 
     private StreetLanternScenario(WorldRuntime world, StreetLanternPolicy policy, WorldMap map)
@@ -287,22 +287,22 @@ internal sealed class StreetLanternScenario : IDisposable
     {
         for (var tick = 0; tick < maximumTicks && !reached(); tick++)
         {
-            var before = World.Inhabitants.ToDictionary(person => person.InhabitantId, person => person.Position, StringComparer.Ordinal);
+            var before = World.Agents.ToDictionary(person => person.AgentId, person => person.Position, StringComparer.Ordinal);
             var step = await World.AdvanceOneTickAsync();
             Assert.True(step.Advanced);
             Decisions.AddRange(step.Decisions);
             if (replay is not null) Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
-            foreach (var person in World.Inhabitants)
+            foreach (var person in World.Agents)
             {
-                if (before.TryGetValue(person.InhabitantId, out var old) && old != person.Position)
+                if (before.TryGetValue(person.AgentId, out var old) && old != person.Position)
                     Assert.True(map.CanFootStep(old, person.Position), "Lantern workers must use real foot routes.");
-                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(World.Society.Inventory, person.InhabitantId, person.Equipment),
-                    0, PersonalEquipmentRules.Capacity(World.Society.Inventory, person.InhabitantId, person.Equipment));
+                Assert.InRange(PersonalEquipmentRules.CarriedQuantity(World.Society.Inventory, person.AgentId, person.Equipment),
+                    0, PersonalEquipmentRules.Capacity(World.Society.Inventory, person.AgentId, person.Equipment));
             }
         }
         Assert.True(reached(), $"Lantern phase not reached at tick {World.WorldTick}; " +
             JsonSerializer.Serialize(World.Towns[0].Projects, TownProjectScenario.JsonOptions) + "; offers: " +
-            string.Join("; ", Policy.Observations.TakeLast(4).Select(observation => observation.InhabitantId + ":" +
+            string.Join("; ", Policy.Observations.TakeLast(4).Select(observation => observation.AgentId + ":" +
                 string.Join(",", observation.Candidates.Select(candidate => candidate.Id)))));
     }
 
@@ -315,7 +315,7 @@ internal sealed class StreetLanternPolicy(string style) : IDecisionProvider
     internal bool Proposed { get; set; }
     internal bool Supply { get; set; }
     internal string? ProposalCandidate { get; private set; }
-    internal ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+    internal ConcurrentQueue<AgentObservation> Observations { get; } = new();
     public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
     public long ProviderEpoch => 1;
 
@@ -331,7 +331,7 @@ internal sealed class StreetLanternPolicy(string style) : IDecisionProvider
             candidates.FirstOrDefault(candidate => candidate.Id.Contains("|yes|", StringComparison.Ordinal)) ??
             candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal));
         string? text = null;
-        if (selected is null && observation.InhabitantId == TownProjectScenario.Author && !Proposed)
+        if (selected is null && observation.AgentId == TownProjectScenario.Author && !Proposed)
         {
             selected = candidates.FirstOrDefault(candidate => candidate.Id.Contains("|project|" + style + "-lantern|", StringComparison.Ordinal));
             if (selected is not null) { Proposed = true; ProposalCandidate = selected.Id; text = Name; }
@@ -344,7 +344,7 @@ internal sealed class StreetLanternPolicy(string style) : IDecisionProvider
             }
         selected ??= candidates.FirstOrDefault(candidate => candidate.Id.Contains("|visit|", StringComparison.Ordinal));
         selected ??= candidates.Single(candidate => candidate.Id == "safe_idle");
-        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+        return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
             observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
             candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal), CivicProposal: text));
     }

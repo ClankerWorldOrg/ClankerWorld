@@ -176,7 +176,7 @@ internal static class WorldMemoryRetrieval
             .Select(belief => new SourceRecord(
                 belief.Id,
                 ownerId,
-                CognitionAgentId(belief.AboutInhabitantId ?? ownerId),
+                CognitionAgentId(belief.AboutAgentId ?? ownerId),
                 Bounded(belief.Statement, MaximumSummaryLength),
                 belief.FormedTick,
                 "belief",

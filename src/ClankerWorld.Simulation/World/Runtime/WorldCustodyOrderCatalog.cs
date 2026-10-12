@@ -48,7 +48,7 @@ internal static class WorldCustodyOrderCatalog
     internal static bool IsGoodsKind(string? kind) => kind is not null && All.Any(goods => goods.ItemKind == kind);
 
     internal static bool IsReturnKind(string? kind) => IsGoodsKind(kind) || PreparedFoods.Any(food => food.ItemKind == kind) ||
-        WorldInstructionOrderParser.IsMaterialKind(kind) ||
-        WorldInstructionOrderParser.IsEquipmentKind(kind) ||
-        WorldInstructionOrderParser.IsToolKind(kind);
+        OrderTaskParser.IsMaterialKind(kind) ||
+        OrderTaskParser.IsEquipmentKind(kind) ||
+        OrderTaskParser.IsToolKind(kind);
 }

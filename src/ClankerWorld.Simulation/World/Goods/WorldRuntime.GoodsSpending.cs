@@ -20,7 +20,7 @@ public sealed partial class WorldRuntime
     private GoodsReason? SpendingGoodsExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot)
     {
         var actor = request.Actor!;
-        if (!inhabitants.ContainsKey(actor)) return GoodsReason.Custody;
+        if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
         var root = index.Root(lot);
         if (root.DeliveryBuildingId is not null) return GoodsReason.Delivery;
         if (request.Use == GoodsUse.StorePersonal)
@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
             if (lot.OwnerId != actor) return GoodsReason.Owner;
             if (lot.ContainerLotId is not null) return GoodsReason.Place;
             if (!PersonalEquipmentRules.IsCarried(lot, actor) ||
-                PersonalEquipmentRules.IsSelected(inhabitants[actor].Equipment, lot.Id)) return GoodsReason.Custody;
+                PersonalEquipmentRules.IsSelected(agents[actor].Equipment, lot.Id)) return GoodsReason.Custody;
             if (InventoryContainerRules.IsContainer(lot.ItemKind) && !InventoryRules.CanMoveFamily(index, lot))
                 return GoodsReason.Reservation;
             return null;

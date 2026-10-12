@@ -58,7 +58,7 @@ public partial class Main
     /// and 200%, reads out the tile, frame time, tick time and agents, jumps
     /// the camera to a chosen agent and draws the selected agent's route.
     /// </summary>
-    private async Task VerifyDeveloperToolsAsync(OwnerWorldSnapshot occupied, OwnerWorldInhabitant founder)
+    private async Task VerifyDeveloperToolsAsync(OwnerWorldSnapshot occupied, OwnerWorldAgent founder)
     {
         // Rowan walks from (2, 0) down the east side toward food at (3, 3).
         var walker = founder with
@@ -73,13 +73,13 @@ public partial class Main
             Position = minePosition,
             SpatialKnowledge = new OwnerWorldSpatialKnowledge(minePosition, [minePosition], [minePosition]),
         };
-        var world = occupied with { Inhabitants = [walker, other], WorldTick = 77, LastTickMilliseconds = 4.2, RefusedActionCount = 12 };
+        var world = occupied with { Agents = [walker, other], WorldTick = 77, LastTickMilliseconds = 4.2, RefusedActionCount = 12 };
         var window = GetWindow();
         var originalSize = window.Size;
         var originalRenderSize = window.ContentScaleSize;
         var originalZoom = cameraZoom;
-        selectedInhabitantId = null;
-        selectedInhabitantCard.Hide();
+        selectedAgentId = null;
+        selectedAgentCard.Hide();
         ClearTileSelection();
         ClearBuildingSelection();
         foreach (var panel in new Control[] { rosterPanel, eventsPanel, worldInfoPanel, filtersPanel, worldOverviewPanel, controlsPanel, agentProfilePanel })
@@ -109,7 +109,7 @@ public partial class Main
             var tools = new Control[]
             {
                 developerEditKind, developerEditValue, developerEditAmount, developerEditOther, developerEditApply,
-                lifePaceChoice, applyLifePaceButton, retryPendingSubmissionButton, forgetPendingSubmissionButton,
+                agingOverrideChoice, applyAgingOverrideButton, retryPendingSubmissionButton, forgetPendingSubmissionButton,
                 authoringKind, authoringId, submitAuthoringButton, pairingApprovalId, approvePairingButton,
                 refreshDevicesButton, pairedDeviceList, revokeDeviceButton,
             };
@@ -154,8 +154,8 @@ public partial class Main
             developerAgentList.EmitSignal(ItemList.SignalName.ItemSelected, 0);
             AdvanceCameraMotion(CameraEasing.MoveSeconds);
             var after = cameraCenterTiles.DistanceTo(new Vector2(0.5f, 3.5f));
-            if (selectedInhabitantId != other.Id || after >= before || after > 1)
-                throw new InvalidOperationException($"Choosing an agent must select them and move the camera to them: selected={selectedInhabitantId} distance {before} → {after}.");
+            if (selectedAgentId != other.Id || after >= before || after > 1)
+                throw new InvalidOperationException($"Choosing an agent must select them and move the camera to them: selected={selectedAgentId} distance {before} → {after}.");
 
             // Direct edits follow the selected living agent and require pause.
             var paused = world with { Authoring = new(true, 0, 0, 0, "initial", "current", "clear", "spring", []) };
@@ -182,7 +182,7 @@ public partial class Main
                 throw new InvalidOperationException("Animal placement must offer the species and sex without quantity or partner fields.");
             developerEditKind.Select(0);
             ConfigureDeveloperEdit();
-            RenderDeveloperEdits(paused with { Inhabitants = [other with { Lifecycle = "dead" }] }, actionDisabled: false);
+            RenderDeveloperEdits(paused with { Agents = [other with { Lifecycle = "dead" }] }, actionDisabled: false);
             if (!developerEditApply.Disabled)
                 throw new InvalidOperationException("Historical profiles cannot be edited.");
             RenderDeveloperEdits(paused, actionDisabled: true);
@@ -197,7 +197,7 @@ public partial class Main
             var stride = currentTileSize + TileGap;
             var expected = new[] { new Vector2(2.5f, 0.5f), new(3.5f, 1.5f), new(3.5f, 2.5f), new(3.5f, 3.5f) }
                 .Select(point => point * stride).ToArray();
-            if (selectedInhabitantId != walker.Id || !plannedPathLayer.Points.SequenceEqual(expected) ||
+            if (selectedAgentId != walker.Id || !plannedPathLayer.Points.SequenceEqual(expected) ||
                 plannedPathLayer.Destination != new Vector2(3.5f, 3.5f) * stride ||
                 !developerRouteLabel.Text.Contains("3 steps left toward 3, 3", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Show planned path must draw the selected agent's route: {string.Join(' ', plannedPathLayer.Points)} | {developerRouteLabel.Text}.");
@@ -219,7 +219,7 @@ public partial class Main
 
             // Escape closes the panel last, before it would open the Pause Menu.
             _Input(new InputEventKey { Keycode = Key.F12, Pressed = true });
-            selectedInhabitantCard.Hide();
+            selectedAgentCard.Hide();
             agentProfilePanel.Hide();
             _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
             if (developerPanel.Visible || gameMenuPanel.Visible)
@@ -232,8 +232,8 @@ public partial class Main
             window.Size = originalSize;
             window.ContentScaleSize = originalRenderSize;
             cameraZoom = originalZoom;
-            selectedInhabitantId = null;
-            selectedInhabitantCard.Hide();
+            selectedAgentId = null;
+            selectedAgentCard.Hide();
             for (var frame = 0; frame < 3; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             ApplyResponsiveLayout();
             RenderMap(occupied);

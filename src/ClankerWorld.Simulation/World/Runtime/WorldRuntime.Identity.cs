@@ -5,14 +5,14 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
-    private CognitionParentIdentity[]? InitialChildFamilyBackground(string id, InhabitantState physical)
+    private CognitionParentIdentity[]? InitialChildFamilyBackground(string id, AgentState physical)
     {
         if (!physical.IdentityChoicePending || !society.Checkpoint.Births.Any(birth => birth.ChildId == id)) return null;
         return society.Checkpoint.Relationships.Where(edge => edge.Type == SocietyRelationshipType.BiologicalParentage && edge.TargetId == id)
             .Select(edge => edge.ProposerId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).Select(parentId =>
             {
-                var identity = inhabitants.GetValueOrDefault(parentId) ?? deceasedInhabitants.GetValueOrDefault(parentId)?.LastPhysical;
-                return new CognitionParentIdentity(parentId, society.Checkpoint.GetInhabitant(parentId).Name,
+                var identity = agents.GetValueOrDefault(parentId) ?? deceasedAgents.GetValueOrDefault(parentId)?.LastPhysical;
+                return new CognitionParentIdentity(parentId, society.Checkpoint.GetAgent(parentId).Name,
                     identity is { IdentityChoicePending: false } ? identity.Personality : null,
                     identity is { IdentityChoicePending: false } ? identity.Aspiration : null);
             }).ToArray();
@@ -24,7 +24,7 @@ public sealed partial class WorldRuntime
         if (!admission.Accepted || admission.FellBack ||
             response is not { Provider: DecisionProviderKind.LargeLanguageModel } ||
             !request.Observation.NeedsPersonality && !request.Observation.NeedsAspiration ||
-            !inhabitants.TryGetValue(id, out var physical) || !physical.IdentityChoicePending)
+            !agents.TryGetValue(id, out var physical) || !physical.IdentityChoicePending)
             return;
 
         var personality = CognitionDecisionResponse.NormalizeIdentityText(response.ChosenPersonality);
@@ -33,7 +33,7 @@ public sealed partial class WorldRuntime
         // reply leaves the ordinary next decision to ask again, without a
         // separate identity request or inheriting a parent's traits.
         if (society.Checkpoint.Births.Any(birth => birth.ChildId == id) && (personality is null || aspiration is null)) return;
-        inhabitants[id] = physical with
+        agents[id] = physical with
         {
             Personality = personality ?? physical.Personality,
             Aspiration = aspiration ?? physical.Aspiration,

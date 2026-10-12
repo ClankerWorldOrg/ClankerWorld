@@ -32,7 +32,7 @@ public sealed partial class ConcreteMealTests
         var (state, actor, household, site, recipe) = Prepared(localId, restaurant,
             localId.StartsWith("restaurant-2x2-", StringComparison.Ordinal) ? "restaurant-2x2" : "restaurant-1x2");
         using var world = CookingOrderWorld(state, actor);
-        var receipt = world.SubmitInstruction(new("named-cooking", "owner:test", actor, OwnerInstructionKind.MustDo, text));
+        var receipt = world.SubmitInstruction(new("named-cooking", "owner:test", actor, OwnerInstructionKind.Order, text));
         Assert.Equal(("produce_item", recipe.CanonicalId, recipe.Outputs[0].ResourceId, "output_items", 2),
             (CookingOrder(world, receipt).Action, CookingOrder(world, receipt).TargetRecipeId,
                 CookingOrder(world, receipt).TargetOutputKind, CookingOrder(world, receipt).ProgressUnit,
@@ -82,6 +82,6 @@ public sealed partial class ConcreteMealTests
     private static WorldRuntime CookingOrderWorld(WorldRuntimeState state, string actor) =>
         WorldRuntime.Restore(state, id => new Chooser(id == actor ? ["produce_item"] : []));
 
-    private static OwnerInstructionOrder CookingOrder(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+    private static OrderTask CookingOrder(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
 }

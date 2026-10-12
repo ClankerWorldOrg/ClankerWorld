@@ -12,7 +12,7 @@ public sealed class GoodsCollectionTests
         using var generated = NormalPathWorld.CreateGenerated("goods-collection-boundaries", _ => new Choice());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, actor);
         var house = PaidMarketWorld.HouseOf(state, household);
         var inventory = state.Society.Society.Inventory with
@@ -72,7 +72,7 @@ public sealed class GoodsCollectionTests
         }
         Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
         var changed = InventoryAuthority.Relocate(inventory, "other-housemate-collected", "collect-fitting-jug", household, 1,
-            carrierId: state.Inhabitants.Single(person => person.InhabitantId != actor && PaidMarketWorld.HouseholdOf(state, person.InhabitantId) == household).InhabitantId);
+            carrierId: state.Agents.Single(person => person.AgentId != actor && PaidMarketWorld.HouseholdOf(state, person.AgentId) == household).AgentId);
         using var next = WorldRuntime.Restore(PaidMarketWorld.WithInventory(state, changed), _ => new Choice());
         Assert.Null(next.RecheckGoods(request, "collect-fitting-jug"));
         Assert.Null(next.RecheckGoods(request, "collect-fitting-water"));
@@ -92,7 +92,7 @@ public sealed class GoodsCollectionTests
         using var generated = NormalPathWorld.CreateGenerated("goods-collection-tool", _ => new Choice());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var home = PaidMarketWorld.HouseholdOf(state, actor);
         var house = PaidMarketWorld.HouseOf(state, home);
         var inventory = state.Society.Society.Inventory with
@@ -129,13 +129,13 @@ public sealed class GoodsCollectionTests
 
     private static WorldRuntimeState Prepared(WorldRuntimeState state, string actor, GridPoint position) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person with
+        Agents = state.Agents.Select(person => person with
         {
-            Position = person.InhabitantId == actor ? position : person.Position,
-            Equipment = person.InhabitantId == actor ? null : person.Equipment,
+            Position = person.AgentId == actor ? position : person.Position,
+            Equipment = person.AgentId == actor ? null : person.Equipment,
             LastDecisionContext = null,
             Project = null,
-            HungerBasisPoints = 9_500,
+            FullnessBasisPoints = 9_500,
             Survival = new SurvivalCondition { WarmthBasisPoints = 10_000, NutritionBasisPoints = 10_000 },
         }).ToArray(),
         JevEnabled = false,
@@ -151,7 +151,7 @@ public sealed class GoodsCollectionTests
         {
             var selected = request.Observation.Candidates.FirstOrDefault(candidate => candidate.Id == wanted)?.Id ?? "safe_idle";
             return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId,
-                request.Observation.InhabitantId, Kind, request.ProviderEpoch, request.Observation.RunEpoch,
+                request.Observation.AgentId, Kind, request.ProviderEpoch, request.Observation.RunEpoch,
                 request.Observation.DecisionGeneration, request.Observation.ObservationDigest, selected, 1,
                 request.Observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected ? 1d : 0d)));
         }

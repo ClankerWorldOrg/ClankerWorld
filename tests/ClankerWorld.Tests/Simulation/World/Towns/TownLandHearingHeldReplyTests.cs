@@ -22,7 +22,7 @@ public sealed class TownLandHearingHeldReplyTests
         try
         {
             var initial = world.ExportState();
-            var household = world.Society.GetInhabitant(Actor).HouseholdId!;
+            var household = world.Society.GetAgent(Actor).HouseholdId!;
             var originalRights = JsonSerializer.Serialize(initial.HouseholdLandUseRights);
             var originalBuildings = JsonSerializer.Serialize(initial.WorldSimulation!.Buildings);
             var refreshed = false;
@@ -30,9 +30,9 @@ public sealed class TownLandHearingHeldReplyTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline);
                 Assert.True(step.Advanced);
-                if (!refreshed && world.Towns[0].LandHearings.Cases.Count > 0)
+                if (!refreshed && world.Towns[0].LandRecords.Cases.Count > 0)
                 {
-                    world.SubmitInstruction(new("consider-hearing", "owner:test", Actor, OwnerInstructionKind.Suggestive,
+                    world.SubmitInstruction(new("consider-hearing", "owner:test", Actor, OwnerInstructionKind.Suggestion,
                         "Read the posted land hearing and consider your own response."));
                     refreshed = true;
                 }
@@ -50,13 +50,13 @@ public sealed class TownLandHearingHeldReplyTests
             await provider.Started.Task.WaitAsync(Deadline);
             Assert.NotNull(provider.ReadCandidateId);
             Assert.Contains("|read|", provider.ReadCandidateId, StringComparison.Ordinal);
-            var item = Assert.Single(world.Towns[0].LandHearings.Cases);
+            var item = Assert.Single(world.Towns[0].LandRecords.Cases);
             var oldRevision = Assert.Single(item.Revisions);
             Assert.Equal("expiry", item.Kind);
             Assert.Equal(1, oldRevision.PublishedTick);
             Assert.Equal(41, oldRevision.DeadlineTick);
             Assert.Contains("|" + action + "|" + item.Id + ":1|", provider.HeldCandidateId!, StringComparison.Ordinal);
-            Assert.Contains(world.Towns[0].Governance!.Knowledge,
+            Assert.Contains(world.Towns[0].Council!.Knowledge,
                 receipt => receipt.AgentId == Actor && receipt.NoticeId == oldRevision.NoticeId);
             Assert.Empty(item.Responses);
             var oldParty = Assert.Single(oldRevision.Parties, party => party.HouseholdId == household);
@@ -66,7 +66,7 @@ public sealed class TownLandHearingHeldReplyTests
             var house = world.WorldSimulation.Buildings.First(building => building.HouseholdId == household &&
                 building.InstanceId.Contains("house-", StringComparison.Ordinal));
             Assert.Equal(household, world.AddAgent(Newcomer, house.Position));
-            Assert.Equal(household, world.Society.GetInhabitant(Newcomer).HouseholdId);
+            Assert.Equal(household, world.Society.GetAgent(Newcomer).HouseholdId);
             await Task.Run(provider.Release).WaitAsync(Deadline);
             await WaitForHostedCompletionAsync(world);
 
@@ -75,16 +75,16 @@ public sealed class TownLandHearingHeldReplyTests
             {
                 var step = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(Deadline);
                 Assert.True(step.Advanced);
-                if (step.Decisions.Any(decision => decision.InhabitantId == Actor) ||
+                if (step.Decisions.Any(decision => decision.AgentId == Actor) ||
                     step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == Actor)) completed = step;
             }
             Assert.NotNull(completed);
-            Assert.True(completed.Decisions.Any(decision => decision.InhabitantId == Actor && decision.Admission.FellBack) ||
+            Assert.True(completed.Decisions.Any(decision => decision.AgentId == Actor && decision.Admission.FellBack) ||
                 completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == Actor ||
                     item.Kind == "town_civic_action_rejected" && item.Detail == world.Towns[0].Id + "|" + Actor + "|" + action),
                 "The completed old response must be refused by admission or by the hearing's current-action preflight.");
 
-            item = Assert.Single(world.Towns[0].LandHearings.Cases);
+            item = Assert.Single(world.Towns[0].LandRecords.Cases);
             Assert.Equal("pending", item.Status);
             Assert.Equal(2, item.Revisions.Count);
             Assert.Equal(oldRevision, item.Revisions[0]);
@@ -96,13 +96,13 @@ public sealed class TownLandHearingHeldReplyTests
             Assert.All(oldParty.AdultIds, adult => Assert.Contains(adult, Assert.Single(current.Parties, party => party.HouseholdId == household).AdultIds));
             Assert.Contains(Newcomer, Assert.Single(current.Parties, party => party.HouseholdId == household).AdultIds);
             Assert.NotEqual(oldRevision.NoticeId, current.NoticeId);
-            Assert.Contains(world.Towns[0].Governance!.Notices,
+            Assert.Contains(world.Towns[0].Council!.Notices,
                 notice => notice.Id == current.NoticeId && notice.SubjectId == item.Id + ":2" && notice.PostedTick == current.PublishedTick);
-            Assert.DoesNotContain(world.Towns[0].Governance!.Knowledge,
+            Assert.DoesNotContain(world.Towns[0].Council!.Knowledge,
                 receipt => receipt.AgentId == Actor && receipt.NoticeId == current.NoticeId);
             Assert.Empty(item.Responses);
             Assert.Empty(item.Rulings);
-            Assert.Empty(world.Towns[0].LandHearings.Adjustments);
+            Assert.Empty(world.Towns[0].LandRecords.Adjustments);
             Assert.Equal(originalRights, JsonSerializer.Serialize(world.HouseholdLandUseRights));
             Assert.Equal(originalBuildings, JsonSerializer.Serialize(world.WorldSimulation.Buildings));
             Assert.Equal(initial.TownLandTitles, world.TownLandTitles);
@@ -113,7 +113,7 @@ public sealed class TownLandHearingHeldReplyTests
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded), _ => new ActionCoverageRecorder(chooseIdle: true));
             restored.Validate();
             Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
-            var savedCase = Assert.Single(restored.Towns[0].LandHearings.Cases);
+            var savedCase = Assert.Single(restored.Towns[0].LandRecords.Cases);
             Assert.Equal(current.DeadlineTick, savedCase.Revisions[^1].DeadlineTick);
             Assert.Empty(savedCase.Responses);
             Assert.Equal(originalRights, JsonSerializer.Serialize(restored.HouseholdLandUseRights));
@@ -135,15 +135,15 @@ public sealed class TownLandHearingHeldReplyTests
         var state = generated.ExportState();
         var society = state.Society.Society;
         var oldDay = society.Config.TicksPerWorldDay;
-        var household = society.GetInhabitant(Actor).HouseholdId;
+        var household = society.GetAgent(Actor).HouseholdId;
         // A household can hold several connected starter allocations; only this real right is near expiry.
         var rights = Assert.IsAssignableFrom<IReadOnlyList<HouseholdLandUseRight>>(state.HouseholdLandUseRights);
         var ending = rights.First(right => right.HouseholdId == household);
         return WorldRuntime.Restore(state with
         {
             HouseholdLandUseRights = rights.Select(right => right.Id == ending.Id ? right with { AgreedEndTick = 1 } : right).ToArray(),
-            Inhabitants = state.Inhabitants.Select(person => person with
-            { Position = state.Towns![0].OriginSite!.Value, HungerBasisPoints = 8_000 }).ToArray(),
+            Agents = state.Agents.Select(person => person with
+            { Position = state.Towns![0].OriginSite!.Value, FullnessBasisPoints = 8_000 }).ToArray(),
             WorldSystems = RegionalWeatherRules.Initialize(state.WorldSystems! with
             { Config = state.WorldSystems.Config with { TicksPerDay = Day, CalendarOffsetTicks = 0 }, RegionalWeather = null }, state.Map),
             Society = state.Society with
@@ -151,7 +151,7 @@ public sealed class TownLandHearingHeldReplyTests
                 Society = society with
                 {
                     Config = society.Config with { TicksPerWorldDay = Day },
-                    Inhabitants = society.Inhabitants.Select(person => person with
+                    Agents = society.Agents.Select(person => person with
                     { BirthTick = person.BirthTick / oldDay * Day, BirthLifeTick = person.BirthLifeTick is { } birth ? birth / oldDay * Day : null }).ToArray()
                 }
             }
@@ -186,7 +186,7 @@ public sealed class TownLandHearingHeldReplyTests
             var choice = released ? null : observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|read|", StringComparison.Ordinal)) ??
                 observation.Candidates.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
             choice ??= observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            var value = new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            var value = new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandHearing: choice.Id.Contains("|hearing_answer|", StringComparison.Ordinal) ? new(Statement: "I personally answer this noticed hearing.") : null);

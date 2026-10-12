@@ -70,7 +70,7 @@ public sealed record ResourceView(string Id, string Kind, PositionView Position,
 public sealed record ActorView(
     string Id,
     PositionView Position,
-    int HungerBasisPoints,
+    int FullnessBasisPoints,
     int FoodItems,
     int WoodItems);
 
@@ -110,7 +110,7 @@ public sealed record SpatialKnowledgeView(
     IReadOnlyList<PositionView> KnownTiles);
 
 /// <summary>
-/// A safe owner-facing summary of what an inhabitant is currently trying to
+/// A safe owner-facing summary of what an agent is currently trying to
 /// do. This is an intention label, never private model chain-of-thought.
 /// </summary>
 public sealed record PublicIntentionView(
@@ -119,7 +119,7 @@ public sealed record PublicIntentionView(
     string Provider,
     long WorldTick);
 
-public sealed record InhabitantRelationshipView(
+public sealed record AgentRelationshipView(
     string RelationshipId,
     string OtherPartyId,
     string Type,
@@ -138,7 +138,7 @@ public sealed record AgentBeliefView(
     string? SourceAgentId,
     string? SourceAgentName,
     long? SourceEventId,
-    string? AboutInhabitantId,
+    string? AboutAgentId,
     bool IsCorrected,
     long? CorrectedTick);
 public sealed record AgentKnowledgeFactView(
@@ -179,12 +179,12 @@ public sealed record CalendarPaceView(
 /// An inspection projection, never an editable actor record. A founder draft
 /// is visible as such but is not a living simulation actor yet.
 /// </summary>
-public sealed record InhabitantView(
+public sealed record AgentView(
     string Id,
     string DisplayName,
     string Lifecycle,
     PositionView Position,
-    int HungerBasisPoints,
+    int FullnessBasisPoints,
     IReadOnlyList<InventoryEntryView> Inventory,
     IReadOnlyList<DecisionFactorView> DecisionFactors,
     RouteView Route,
@@ -208,7 +208,7 @@ public sealed record InhabitantView(
 
     public IReadOnlyList<string> SocialNotes { get; init; } = [];
 
-    public IReadOnlyList<InhabitantRelationshipView> Relationships { get; init; } = [];
+    public IReadOnlyList<AgentRelationshipView> Relationships { get; init; } = [];
 
     public IReadOnlyList<PrivateThoughtView> RecentPrivateThoughts { get; init; } = [];
 
@@ -249,7 +249,7 @@ public sealed record SocialStandingView(string SubjectId, string SubjectName, in
 
 public sealed record InstructionView(
     string InstructionId,
-    string TargetInhabitantId,
+    string TargetAgentId,
     string Kind,
     string Text,
     string State,
@@ -258,9 +258,9 @@ public sealed record InstructionView(
     long SubmissionSequence,
     long? ObservedTick = null,
     string? ObserverReply = null,
-    InstructionOrderView? Order = null);
+    OrderTaskView? Task = null);
 
-public sealed record InstructionOrderView(
+public sealed record OrderTaskView(
     string Action,
     string Status,
     int RequestedUnits,
@@ -289,8 +289,8 @@ public sealed record InstructionOrderView(
 
 public sealed record CognitionEventView(long EventId, long WorldTick, string Kind, string Detail);
 
-public sealed record InhabitantDecisionView(
-    string InhabitantId, string Provider, string CandidateId, long WorldTick,
+public sealed record AgentDecisionView(
+    string AgentId, string Provider, string CandidateId, long WorldTick,
     double Confidence, string? Model, int? InputTokens, int? OutputTokens,
     string? Role = null, long? LatencyMilliseconds = null, bool FellBack = false);
 
@@ -301,7 +301,7 @@ public sealed record CognitionView(
     string? CurrentCandidateId,
     string? CurrentDecisionProvider,
     IReadOnlyList<CognitionEventView> Events,
-    IReadOnlyList<InhabitantDecisionView>? Decisions = null);
+    IReadOnlyList<AgentDecisionView>? Decisions = null);
 
 public sealed record ContentPackageView(
     string PackageId,
@@ -314,7 +314,7 @@ public sealed record ContentPackageView(
     long? ActivationTick,
     string? ManifestDigest = null,
     string? DisplayName = null,
-    string? ProposedByInhabitantId = null);
+    string? ProposedByAgentId = null);
 
 public sealed record ContentGovernanceEventView(
     long EventId,
@@ -362,7 +362,7 @@ public sealed record PlacedBuildingView(
     bool HasDominantFamily = false,
     bool IsOvercrowded = false)
 {
-    public IReadOnlyList<BusinessTradeView> Trades { get; init; } = [];
+    public IReadOnlyList<ShopTradeView> Trades { get; init; } = [];
     public IReadOnlyList<ToolMakingRequestView> ToolMakingRequests { get; init; } = [];
     public bool AllowsHouseholdOwner { get; init; }
     public IReadOnlyList<BuildingStorageChangeView>? RecentStorageChanges { get; init; }
@@ -374,7 +374,7 @@ public sealed record BuildingStorageChangeView(long EventId, long WorldTick, str
 public sealed record ToolMakingRequestView(string Id, string RequesterName, string RecipeId,
     string RecipeName, string ItemKind, string Status, string? Blocker, string? OfferId = null);
 
-public sealed record BusinessTradeView(string OfferId, string BuyerName, string GoodsKind, int GoodsQuantity,
+public sealed record ShopTradeView(string OfferId, string BuyerName, string GoodsKind, int GoodsQuantity,
     string PaymentKind, int PaymentQuantity, string Status, string? CancellationReason);
 
 public sealed record ProductionJobView(
@@ -431,7 +431,7 @@ public sealed record TownView(
     /// <summary>An abandoned Town that has stood empty for a full season; its buildings look falling apart.</summary>
     public bool FallingApart { get; init; }
 
-    public TownGovernanceView? Governance { get; init; }
+    public TownCouncilView? Council { get; init; }
     public IReadOnlyList<TownProjectView> Projects { get; init; } = [];
     public TownGovernmentView? Government { get; init; }
     public IReadOnlyList<MarketView> Markets { get; init; } = [];
@@ -439,8 +439,8 @@ public sealed record TownView(
     public int LandHearingCount { get; init; }
     public IReadOnlyList<LandTransferView> LandTransfers { get; init; } = [];
     public int LandTransferCount { get; init; }
-    public IReadOnlyList<TownNonviolentCaseView> NonviolentCases { get; init; } = [];
-    public int NonviolentCaseCount { get; init; }
+    public IReadOnlyList<TownNonLandCaseView> NonLandCases { get; init; } = [];
+    public int NonLandCaseCount { get; init; }
 }
 
 public sealed record LandTransferPartyView(string HouseholdId, string Kind, string HouseholdName, string RosterKind,
@@ -577,7 +577,7 @@ public sealed record TownProjectView(string Id, string ProposalId, string Name,
 public sealed record CivicCandidateView(string Id, string Name, int Votes);
 public sealed record TownElectionView(string Id, string Kind, string Stage, int Seats, long DeadlineTick,
     IReadOnlyList<CivicCandidateView> Candidates, IReadOnlyList<string> SettledNames);
-public sealed record TownGovernanceView(string Form, string Fallback, IReadOnlyList<string> MemberNames,
+public sealed record TownCouncilView(string Form, string Fallback, IReadOnlyList<string> MemberNames,
     long? TermEndTick, long RetryTick, IReadOnlyList<string> WillingCandidateNames,
     IReadOnlyList<CivicProposalView> Proposals, TownElectionView? Election)
 {
@@ -666,8 +666,8 @@ public sealed record WorldSnapshotView(
     public IReadOnlyList<BoatView> Boats { get; init; } = [];
     public IReadOnlyList<BoatTripRequestView> BoatRequests { get; init; } = [];
     public IReadOnlyList<StockpileView> Stockpiles { get; init; } = [];
-    public CouncilView? Council { get; init; }
-    public int? LifePaceRate { get; init; }
+    public FoodStewardshipView? FoodStewardship { get; init; }
+    public int? AgingOverrideRate { get; init; }
     public CalendarPaceView? CalendarPace { get; init; }
     /// <summary>
     /// How dark the world is now, decided by the host from the world clock:
@@ -697,7 +697,7 @@ public sealed record WorldSnapshotView(
     /// The inspectable population projection. <see cref="Actor"/> remains for
     /// older diagnostic clients.
     /// </summary>
-    public IReadOnlyList<InhabitantView> Inhabitants { get; init; } = [];
+    public IReadOnlyList<AgentView> Agents { get; init; } = [];
 
     /// <summary>Recent public dialogue only; private thoughts never enter this projection.</summary>
     public IReadOnlyList<ConversationView> Conversations { get; init; } = [];
@@ -723,7 +723,7 @@ public sealed record WorldSnapshotView(
     public IReadOnlyList<ProductionJobView> ProductionJobs { get; init; } = [];
 }
 
-public sealed record CouncilView(string? StewardName, string FoodPolicy, string? ProposedPolicy, int Approvals, int Rejections, int Voters);
+public sealed record FoodStewardshipView(string? StewardName, string FoodPolicy, string? ProposedPolicy, int Approvals, int Rejections, int Voters);
 
 public sealed record EventSliceView(long SnapshotTick, long AfterEventId, IReadOnlyList<EventView> Events,
     long EventHistoryFloor = 0, bool ResetRequired = false);
@@ -789,7 +789,7 @@ public sealed record RestorativeAgreementView(string Id, string OfferId, int Off
 {
     public bool Superseded { get; init; }
 }
-public sealed record TownNonviolentCaseView(string Id, string Status, long FiledTick, long? SettledTick,
+public sealed record TownNonLandCaseView(string Id, string Status, long FiledTick, long? SettledTick,
     string SubjectId, string SubjectName, string ConductKind, PositionView Position, long ConductTick,
     string Statement, TownLawView? ApplicableLaw, int AllegedLawVersion,
     IReadOnlyList<CaseRevisionView> Revisions, IReadOnlyList<CaseFilingView> Filings,

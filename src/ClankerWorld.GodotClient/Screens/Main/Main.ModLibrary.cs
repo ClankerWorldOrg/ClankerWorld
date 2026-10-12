@@ -83,9 +83,9 @@ public partial class Main
             var meta = new HFlowContainer();
             meta.AddThemeConstantOverride("h_separation", 6);
             meta.AddThemeConstantOverride("v_separation", 2);
-            if (package.ProposedByInhabitantId is { } id)
+            if (package.ProposedByAgentId is { } id)
             {
-                var proposer = snapshot.Inhabitants.FirstOrDefault(person => person.Id == id);
+                var proposer = snapshot.Agents.FirstOrDefault(person => person.Id == id);
                 if (proposer is not null)
                     meta.AddChild(new TextureRect { Texture = AgentPortrait(proposer, IsLiving(proposer)), StretchMode = TextureRect.StretchModeEnum.KeepCentered, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
                 meta.AddChild(new Label { Text = $"Proposed by {proposer?.DisplayName ?? "an agent"} ·", ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });

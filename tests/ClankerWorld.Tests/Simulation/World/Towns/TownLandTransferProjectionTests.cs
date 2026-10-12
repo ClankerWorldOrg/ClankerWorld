@@ -20,26 +20,26 @@ public sealed class TownLandTransferProjectionTests
         // A bounded term exercises the full public permission contract; generated private property stays intact.
         var permission = initial.HouseholdLandUseRights![0] with { AgreedEndTick = 72 };
         var rights = initial.HouseholdLandUseRights!.Select(right => right.Id == permission.Id ? permission : right).ToArray();
-        var people = initial.Society.Society.Inhabitants;
-        var adults = people.Where(person => person.Status == SocietyInhabitantStatus.Active &&
+        var people = initial.Society.Society.Agents;
+        var adults = people.Where(person => person.Status == SocietyAgentStatus.Active &&
             person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .ToDictionary(person => person.Id, person => person.HouseholdId, StringComparer.Ordinal);
         var households = initial.Society.Society.Households;
         var target = households.First(household => household.Id != permission.HouseholdId && adults.ContainsValue(household.Id));
         var parties = TownLandTransferRules.PartiesFor(rights, permission.Tiles, target.Id, adults);
         var filer = parties.Single(party => party.Kind == "source").AdultIds[0];
-        var governance = town.Governance!;
-        var noticeId = "notice:" + (governance.Notices.Count + 1);
-        var ledger = TownLandTransferRules.Propose(town.LandHearings, initial.Map, town.Id, filer, permission.Tiles,
+        var council = town.Council!;
+        var noticeId = "notice:" + (council.Notices.Count + 1);
+        var ledger = TownLandTransferRules.Propose(town.LandRecords, initial.Map, town.Id, filer, permission.Tiles,
             target.Id, rights, parties, [], 0, noticeId);
         var transfer = Assert.Single(ledger.Transfers);
-        governance = TownGovernanceRules.PostNotice(governance, "land_transfer", TownLandTransferRules.TermsToken(transfer),
+        council = TownCouncilRules.PostNotice(council, "land_transfer", TownLandTransferRules.TermsToken(transfer),
             "The affected households may separately accept this existing permission transfer.", 0);
-        governance = TownGovernanceRules.LearnNotice(governance, filer, noticeId, 0);
+        council = TownCouncilRules.LearnNotice(council, filer, noticeId, 0);
         var publishedState = initial with
         {
             HouseholdLandUseRights = rights,
-            Towns = [town with { Governance = governance, LandHearings = ledger }],
+            Towns = [town with { Council = council, LandRecords = ledger }],
         };
         using var published = WorldRuntime.Restore(publishedState, _ => new ActionCoverageRecorder(chooseIdle: true));
         var before = WorldRuntimeCodec.Encode(published.ExportState());
@@ -75,10 +75,10 @@ public sealed class TownLandTransferProjectionTests
 
         var source = parties.Single(party => party.Kind == "source");
         var answered = TownLandTransferRules.Respond(ledger, transfer.Id, TownLandTransferRules.TermsToken(transfer), filer,
-            source.HouseholdId, "accept", governance.Knowledge, rights, parties, [], 0);
+            source.HouseholdId, "accept", council.Knowledge, rights, parties, [], 0);
         using var accepted = WorldRuntime.Restore(publishedState with
         {
-            Towns = [town with { Governance = governance, LandHearings = answered }],
+            Towns = [town with { Council = council, LandRecords = answered }],
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         var acceptedSnapshot = new OwnerWorldObservationStore(accepted).GetSnapshot();
         var acceptedClient = JsonSerializer.Deserialize<GodotSnapshot>(JsonSerializer.Serialize(acceptedSnapshot, JsonOptions), JsonOptions)!;

@@ -8,15 +8,15 @@ public partial class Main
 {
     private void VerifyToolMakingPresentation()
     {
-        const string customerId = "world:inhabitant:birth:founder:customer:agent:parent:1";
-        const string smithId = "world:inhabitant:birth:founder:smith:agent:parent:2";
+        const string customerId = "world:agent:birth:founder:customer:agent:parent:1";
+        const string smithId = "world:agent:birth:founder:smith:agent:parent:2";
         const string requestId = "tool-making-request:ui-proof";
         const string buildingId = "blacksmith:household:river:1";
         const string recipeId = "clankerworld-tools-v1/stone-pickaxe";
         const string missing = "The Blacksmith needs stone and wood at its workplace.";
         const string full = "The Blacksmith has no room for the finished tool.";
         var position = new OwnerWorldPosition(0, 0);
-        OwnerWorldInhabitant Person(string id, string name) => new(id, name, "active", position, 8_000, [], [],
+        OwnerWorldAgent Person(string id, string name) => new(id, name, "active", position, 8_000, [], [],
             new("idle", null, null, [], ""), new(position, [], []), false);
         var request = new OwnerWorldToolMakingRequest(requestId, "Mira", recipeId,
             "Stone pickaxe", "stone_pickaxe", "accepted", missing);
@@ -28,7 +28,7 @@ public partial class Main
         var fixture = new OwnerWorldSnapshot("tool-making-ui-smoke", 1, "tool-making-ui-map",
             [new(0, 0, "meadow")], [], [], null, 4)
         {
-            Inhabitants = [Person(customerId, "Mira") with
+            Agents = [Person(customerId, "Mira") with
                 { ToolMakingRequestNote = "River Blacksmith accepted your stone pickaxe request. " + missing },
                 Person(smithId, "Orin")],
             PlacedBuildings = [shop],
@@ -38,12 +38,12 @@ public partial class Main
             ?? throw new InvalidOperationException("The tool-making observation must parse through the owner wire.");
         var parsed = snapshot.PlacedBuildings.Single().ToolMakingRequests.Single();
         if (parsed.RequesterName != "Mira" || parsed.RecipeId != recipeId || parsed.Status != "accepted" ||
-            parsed.Blocker != missing || snapshot.Inhabitants.Single(person => person.Id == customerId).ToolMakingRequestNote is null)
+            parsed.Blocker != missing || snapshot.Agents.Single(person => person.Id == customerId).ToolMakingRequestNote is null)
             throw new InvalidOperationException("The owner wire must retain the actual request, requester, recipe, status and blocker.");
         var oldBuildingSelection = selectedBuildingId;
         var oldBuildingDetails = buildingDetailsRequested;
         var oldBuildingSnapshot = buildingCardSnapshot;
-        var oldAgentSelection = selectedInhabitantId;
+        var oldAgentSelection = selectedAgentId;
         var oldProfileRequested = agentProfileRequested;
         var oldAgentSnapshot = agentCardSnapshot;
         try
@@ -75,10 +75,10 @@ public partial class Main
             if (!facts.Contains("Tool ready · payment still to be agreed", StringComparison.Ordinal) || facts.Contains(full, StringComparison.Ordinal))
                 throw new InvalidOperationException("A finished tool must clear the blocker while preserving that payment still needs agreement.");
 
-            selectedInhabitantId = customerId;
+            selectedAgentId = customerId;
             agentProfileRequested = true;
-            RenderSelectedInhabitantCard(snapshot);
-            if (!inhabitantDetails.GetParsedText().Contains("River Blacksmith accepted your stone pickaxe request.", StringComparison.Ordinal))
+            RenderSelectedAgentCard(snapshot);
+            if (!agentDetails.GetParsedText().Contains("River Blacksmith accepted your stone pickaxe request.", StringComparison.Ordinal))
                 throw new InvalidOperationException("The agent card must show its own request note from the wire.");
             OwnerWorldEvent[] events = [
                 new(1, 1, "tool_request_placed", customerId + ":" + requestId),
@@ -87,7 +87,7 @@ public partial class Main
                 new(4, 1, "tool_request_completed", customerId + ":" + requestId),
             ];
             var handshake = new OwnerWorldHandshake(new(1, 1),
-                ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+                ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                  "owner-control.request.v1", "paused-authoring.request.v1"], []);
             if (!observationSession.TryAccept(new(handshake, new(snapshot, new(1, 0, events))), 0, out var failure))
                 throw new InvalidOperationException("The tool-making Event Log observation was rejected: " + failure);
@@ -98,7 +98,7 @@ public partial class Main
                 !log.Contains("Orin agreed to make the tool.", StringComparison.Ordinal) ||
                 !log.Contains("handed over once it's paid for", StringComparison.Ordinal) ||
                 !log.Contains("was paid for and handed over", StringComparison.Ordinal) ||
-                log.Contains("world:inhabitant", StringComparison.Ordinal) || log.Contains(requestId, StringComparison.Ordinal))
+                log.Contains("world:agent", StringComparison.Ordinal) || log.Contains(requestId, StringComparison.Ordinal))
                 throw new InvalidOperationException("Tool-request history must reach the player log with complete agent names and separate production and purchase outcomes.");
         }
         finally
@@ -113,11 +113,11 @@ public partial class Main
             buildingDetailsRequested = oldBuildingDetails;
             buildingCardSnapshot = oldBuildingSnapshot;
             if (oldBuildingSnapshot is not null && oldBuildingSelection is not null) RenderBuildingCard(oldBuildingSnapshot);
-            RenderSelectedInhabitantCard(fixture with { Inhabitants = [] });
-            selectedInhabitantId = oldAgentSelection;
+            RenderSelectedAgentCard(fixture with { Agents = [] });
+            selectedAgentId = oldAgentSelection;
             agentProfileRequested = oldProfileRequested;
             agentCardSnapshot = oldAgentSnapshot;
-            if (oldAgentSnapshot is not null) RenderSelectedInhabitantCard(oldAgentSnapshot);
+            if (oldAgentSnapshot is not null) RenderSelectedAgentCard(oldAgentSnapshot);
         }
     }
 }

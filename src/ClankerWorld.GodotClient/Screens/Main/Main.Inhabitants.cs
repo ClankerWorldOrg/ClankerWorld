@@ -14,13 +14,13 @@ public partial class Main
     private string? renderedRosterWorldId;
     private string? renderedRosterTheme;
 
-    private static RosterPresentation RosterPresentationFor(OwnerWorldInhabitant person)
+    private static RosterPresentation RosterPresentationFor(OwnerWorldAgent person)
     {
         var living = IsLiving(person);
         var activity = !living ? string.Empty : person.DecisionFactors.Any(factor => factor.Key == "decision-pending")
             ? "deciding what to do"
             : GameUiText.ActivityPhrase(person.PublicIntention?.CandidateId, person.PublicIntention?.Summary);
-        var fullness = living ? GameUiText.FullnessState(person.HungerBasisPoints) : string.Empty;
+        var fullness = living ? GameUiText.FullnessState(person.FullnessBasisPoints) : string.Empty;
         return new(person.Id, person.DisplayName, living, activity,
             fullness is "hungry" or "very hungry" ? fullness : string.Empty,
             living && person.Survival is { WarmthBasisPoints: < 4_000 },
@@ -28,68 +28,68 @@ public partial class Main
             AgentSprites.StageIndex(person.DecisionFactors.FirstOrDefault(factor => factor.Key == "age-band")?.Detail));
     }
 
-    private void RenderInhabitantList(OwnerWorldSnapshot snapshot)
+    private void RenderAgentList(OwnerWorldSnapshot snapshot)
     {
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var selectionFound = false;
         // The living come first, each with what they are doing; the deceased
         // follow under their own heading so history stays inspectable.
-        var inhabitants = snapshot.Inhabitants
-            .Where(inhabitant => !inhabitant.IsDraft)
-            .OrderBy(inhabitant => IsLiving(inhabitant) ? 0 : 1)
-            .ThenBy(inhabitant => inhabitant.DisplayName, StringComparer.OrdinalIgnoreCase)
+        var agents = snapshot.Agents
+            .Where(agent => !agent.IsDraft)
+            .OrderBy(agent => IsLiving(agent) ? 0 : 1)
+            .ThenBy(agent => agent.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        var presentation = inhabitants.Select(RosterPresentationFor).ToArray();
+        var presentation = agents.Select(RosterPresentationFor).ToArray();
         if (renderedRosterWorldId == snapshot.WorldId && renderedRosterTheme == UiTheme.Current.Name &&
             renderedRosterPresentation is { } previous && presentation.SequenceEqual(previous))
         {
             RefreshRosterSelection();
             return;
         }
-        inhabitantList.Clear();
-        var living = inhabitants.Count(IsLiving);
-        var deceased = inhabitants.Length - living;
-        var hungry = inhabitants.Count(person => IsLiving(person) &&
-            GameUiText.FullnessState(person.HungerBasisPoints) is "hungry" or "very hungry");
-        rosterSummaryLabel.Text = inhabitants.Length == 0
+        agentList.Clear();
+        var living = agents.Count(IsLiving);
+        var deceased = agents.Length - living;
+        var hungry = agents.Count(person => IsLiving(person) &&
+            GameUiText.FullnessState(person.FullnessBasisPoints) is "hungry" or "very hungry");
+        rosterSummaryLabel.Text = agents.Length == 0
             ? "No one lives here yet."
             : (deceased == 0 ? $"{living} living" : $"{living} living · {deceased} deceased") +
               (hungry == 0 ? string.Empty : $" · {hungry} hungry");
 
-        foreach (var inhabitant in inhabitants)
+        foreach (var agent in agents)
         {
-            if (!IsLiving(inhabitant) && living > 0 && inhabitantList.ItemCount == living)
+            if (!IsLiving(agent) && living > 0 && agentList.ItemCount == living)
             {
-                var header = inhabitantList.AddItem("Deceased", selectable: false);
-                inhabitantList.SetItemCustomFgColor(header, UiTheme.Current.InkMuted);
+                var header = agentList.AddItem("Deceased", selectable: false);
+                agentList.SetItemCustomFgColor(header, UiTheme.Current.InkMuted);
             }
-            var rowText = RosterRow(inhabitant);
-            var row = inhabitantList.AddItem(rowText);
-            inhabitantList.SetItemMetadata(row, inhabitant.Id);
+            var rowText = RosterRow(agent);
+            var row = agentList.AddItem(rowText);
+            agentList.SetItemMetadata(row, agent.Id);
             // The full row, in case a long activity is clipped at this width.
-            inhabitantList.SetItemTooltip(row, rowText + "\n" + (IsLiving(inhabitant)
+            agentList.SetItemTooltip(row, rowText + "\n" + (IsLiving(agent)
                 ? "Select to find this agent on the map and open their card."
                 : "Select to open this historical profile."));
-            if (!IsLiving(inhabitant)) inhabitantList.SetItemCustomFgColor(row, UiTheme.Current.InkMuted);
-            if (string.Equals(inhabitant.Id, previousSelection, StringComparison.Ordinal))
+            if (!IsLiving(agent)) agentList.SetItemCustomFgColor(row, UiTheme.Current.InkMuted);
+            if (string.Equals(agent.Id, previousSelection, StringComparison.Ordinal))
             {
                 selectionFound = true;
-                inhabitantList.Select(row);
+                agentList.Select(row);
             }
         }
         // Fit the list to its rows instead of reserving a tall empty box.
-        var rowHeight = inhabitantList.GetThemeFont("font").GetHeight(inhabitantList.GetThemeFontSize("font_size")) +
-            inhabitantList.GetThemeConstant("v_separation") + 4;
-        inhabitantList.CustomMinimumSize = new Vector2(inhabitantList.CustomMinimumSize.X,
-            Math.Clamp(inhabitantList.ItemCount * rowHeight + 12, 40, 360));
+        var rowHeight = agentList.GetThemeFont("font").GetHeight(agentList.GetThemeFontSize("font_size")) +
+            agentList.GetThemeConstant("v_separation") + 4;
+        agentList.CustomMinimumSize = new Vector2(agentList.CustomMinimumSize.X,
+            Math.Clamp(agentList.ItemCount * rowHeight + 12, 40, 360));
         rosterPanel.Size = rosterPanel.GetCombinedMinimumSize();
 
         if (!selectionFound)
         {
-            selectedInhabitantId = null;
-            inhabitantList.DeselectAll();
+            selectedAgentId = null;
+            agentList.DeselectAll();
         }
-        RenderRosterCards(inhabitants);
+        RenderRosterCards(agents);
         rosterPanel.Size = rosterPanel.GetCombinedMinimumSize();
         renderedRosterPresentation = presentation;
         renderedRosterWorldId = snapshot.WorldId;
@@ -98,42 +98,42 @@ public partial class Main
 
     private void RefreshRosterSelection()
     {
-        var card = selectedInhabitantId is { } id ? rosterCardIds.IndexOf(id) : -1;
-        if (card < 0) selectedInhabitantId = null;
+        var card = selectedAgentId is { } id ? rosterCardIds.IndexOf(id) : -1;
+        if (card < 0) selectedAgentId = null;
         var selectedCards = rosterCards.GetSelectedItems();
         var cardMatches = card < 0 ? selectedCards.Length == 0 : selectedCards.Length == 1 && selectedCards[0] == card;
-        var selectedRows = inhabitantList.GetSelectedItems();
-        var selectedRowId = selectedRows.Length == 1 ? inhabitantList.GetItemMetadata(selectedRows[0]).AsString() : null;
-        if (cardMatches && selectedRowId == selectedInhabitantId) return;
-        inhabitantList.DeselectAll();
+        var selectedRows = agentList.GetSelectedItems();
+        var selectedRowId = selectedRows.Length == 1 ? agentList.GetItemMetadata(selectedRows[0]).AsString() : null;
+        if (cardMatches && selectedRowId == selectedAgentId) return;
+        agentList.DeselectAll();
         if (card >= 0)
-            for (var row = 0; row < inhabitantList.ItemCount; row++)
-                if (inhabitantList.GetItemMetadata(row).AsString() == selectedInhabitantId)
+            for (var row = 0; row < agentList.ItemCount; row++)
+                if (agentList.GetItemMetadata(row).AsString() == selectedAgentId)
                 {
-                    inhabitantList.Select(row);
+                    agentList.Select(row);
                     break;
                 }
         if (!cardMatches) rosterCards.Select(card);
     }
 
-    private static bool IsLiving(OwnerWorldInhabitant inhabitant) =>
-        string.Equals(inhabitant.Lifecycle, "active", StringComparison.OrdinalIgnoreCase);
+    private static bool IsLiving(OwnerWorldAgent agent) =>
+        string.Equals(agent.Lifecycle, "active", StringComparison.OrdinalIgnoreCase);
 
-    private static string RosterRow(OwnerWorldInhabitant inhabitant)
+    private static string RosterRow(OwnerWorldAgent agent)
     {
-        if (!IsLiving(inhabitant)) return $"{inhabitant.DisplayName}  ·  died";
-        var activity = inhabitant.DecisionFactors.Any(factor => factor.Key == "decision-pending")
+        if (!IsLiving(agent)) return $"{agent.DisplayName}  ·  died";
+        var activity = agent.DecisionFactors.Any(factor => factor.Key == "decision-pending")
             ? "deciding what to do"
-            : GameUiText.ActivityPhrase(inhabitant.PublicIntention?.CandidateId, inhabitant.PublicIntention?.Summary);
-        var fullness = GameUiText.FullnessState(inhabitant.HungerBasisPoints);
-        return $"{inhabitant.DisplayName}  ·  {activity}" +
+            : GameUiText.ActivityPhrase(agent.PublicIntention?.CandidateId, agent.PublicIntention?.Summary);
+        var fullness = GameUiText.FullnessState(agent.FullnessBasisPoints);
+        return $"{agent.DisplayName}  ·  {activity}" +
             (fullness is "hungry" or "very hungry" ? $"  ·  {fullness}" : string.Empty);
     }
 
     /// <summary>Moves the camera to a living agent; historical profiles have no map position to show.</summary>
-    private void CenterOnInhabitant(string inhabitantId)
+    private void CenterOnAgent(string agentId)
     {
-        if (renderedMapSnapshot?.Inhabitants.FirstOrDefault(person => person.Id == inhabitantId) is not { } person ||
+        if (renderedMapSnapshot?.Agents.FirstOrDefault(person => person.Id == agentId) is not { } person ||
             person.IsDraft || !IsLiving(person))
             return;
         CenterKeyboardCameraAt(new Vector2(person.Position.X + 0.5f, person.Position.Y + 0.5f));

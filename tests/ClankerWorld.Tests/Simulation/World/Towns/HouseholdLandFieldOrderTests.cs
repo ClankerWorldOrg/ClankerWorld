@@ -12,20 +12,20 @@ public sealed partial class HouseholdLandGrantTests
     {
         using var source = Create("household-grant", new Choices());
         var (farmer, household, point) = FarmerAndUnclaimedTitledPlot(source.ExportState());
-        var applicant = source.Society.Inhabitants.First(person => person.HouseholdId != household).Id;
+        var applicant = source.Society.Agents.First(person => person.HouseholdId != household).Id;
         var filing = source.RequestHouseholdLandUse("ordered-field-boundary", applicant, source.Towns[0].Id, [point]);
         Assert.True(filing.Applied, filing.Failure);
         using var world = WorldRuntime.Restore(EquipFarmerForLandTest(source.ExportState(), farmer, point),
             _ => new BoundaryFieldOrderProvider());
         var receipt = world.SubmitInstruction(new("protected-field-order", "owner:test", farmer,
-            OwnerInstructionKind.MustDo, exactTile ? $"till a field at ({point.X}, {point.Y})" : "till a field"));
+            OwnerInstructionKind.Order, exactTile ? $"till a field at ({point.X}, {point.Y})" : "till a field"));
         for (var tick = 0; tick < 16; tick++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var current = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+            var current = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
             if (current.Status is "finished" or "blocked") break;
         }
-        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.DoesNotContain(world.Fields, field => field.Position == point);
         if (exactTile)
         {
@@ -59,7 +59,7 @@ public sealed partial class HouseholdLandGrantTests
             var observation = request.Observation;
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "work_field")
                 ? "work_field" : "safe_idle";
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 request.ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 selected, 1, new Dictionary<string, double> { [selected] = 1 }));
         }

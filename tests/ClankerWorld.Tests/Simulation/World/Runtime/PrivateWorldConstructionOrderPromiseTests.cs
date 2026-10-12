@@ -30,7 +30,7 @@ public sealed partial class WorldConstructionOrderTests
         inventory = InventoryAuthority.AddLot(inventory, "house-builder-basket", "basket", setup.Actor, 1);
         state = WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == setup.Actor
+            Agents = state.Agents.Select(person => person.AgentId == setup.Actor
                 ? person with { Equipment = new(CarryAidLotId: "house-builder-basket"), LastDecisionContext = null }
                 : person).ToArray(),
         };

@@ -27,7 +27,7 @@ public sealed class WorldSelectionFailureTests
             var original = File.ReadAllBytes(path);
             var providers = new ProviderConfigurationStore(Path.Combine(directory.FullName, "providers.json"),
                 new("deterministic", null, null, null, null, null, null));
-            providers.RestoreWorldAssignments([new(world.Inhabitants[0].InhabitantId,
+            providers.RestoreWorldAssignments([new(world.Agents[0].AgentId,
                 PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.Deterministic)]);
             var assignments = providers.CaptureRuntimeConfiguration().Assignments!;
             var autosave = new WorldAutosaveStore(path, world.Society.WorldId, mutationGate: providers.WorldMutationGate);

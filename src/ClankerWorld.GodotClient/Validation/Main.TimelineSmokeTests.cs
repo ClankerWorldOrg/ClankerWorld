@@ -13,7 +13,7 @@ public partial class Main
         var previousKey = deviceKey;
         var previousUrl = worldUrlInput.Text;
         var previousObservation = observationSession.Current;
-        var previousSelection = selectedInhabitantId;
+        var previousSelection = selectedAgentId;
         var previousPendingSubmission = pendingSubmission;
         var previousProviderConfiguration = providerConfiguration;
         var previousCi = System.Environment.GetEnvironmentVariable("CI");
@@ -46,14 +46,14 @@ public partial class Main
         OwnerWorldReconnect World(long generation, long tick, int eventCount, bool paused = false)
         {
             var position = new OwnerWorldPosition(1, 1);
-            OwnerWorldInhabitant Agent(string id, string name) => new(id, name, "active", position, 8_000, [], [],
+            OwnerWorldAgent Agent(string id, string name) => new(id, name, "active", position, 8_000, [], [],
                 new("idle", null, null, [], string.Empty), new(position, [position], [position]), false);
             var snapshot = new OwnerWorldSnapshot(worldId, tick, "timeline-ui-map",
                 Enumerable.Range(0, 9).Select(index => new OwnerWorldTile(index % 3, index / 3, "meadow")).ToArray(),
                 [], [], null, eventCount)
             {
                 PackedTerrain = new(3, 3, "terrain-kind-v1", Convert.ToBase64String(new byte[9])),
-                Inhabitants = [Agent(agentId, "Rowan Lake"), Agent(listenerId, "Aster Vale")],
+                Agents = [Agent(agentId, "Rowan Lake"), Agent(listenerId, "Aster Vale")],
                 Handcarts = [new("timeline-cart", agentId, "Rowan Lake", new(tick == 19 ? 0 : 1, 1),
                     32, 100, null, null, [])],
                 Conversations = [new("timeline-ui-conversation", agentId, "Rowan Lake", listenerId, "Aster Vale",
@@ -66,7 +66,7 @@ public partial class Main
                 .Select(id => new OwnerWorldEvent(id, tick, "timeline_smoke", $"generation:{generation}"))
                 .ToArray();
             return new(new(new(1, 1),
-                    ["owner-observation.read.v1", "inhabitant-inspection.read.v1", "spatial-knowledge.read.v1",
+                    ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
                      "owner-control.request.v1", "paused-authoring.request.v1", "owner-observation-timeline.v1"], []),
                 new(snapshot, new(tick, 0, events), new("timeline-ui-host", generation)));
         }
@@ -94,7 +94,7 @@ public partial class Main
                         throw new InvalidOperationException("A handcart must keep its held heading until a fresh timeline is accepted, then start facing south.");
                 }
                 CheckCartFacing(6);
-                selectedInhabitantId = agentId;
+                selectedAgentId = agentId;
                 var retained = OwnerPendingSubmission.ForInstruction(
                     OwnerPendingSubmissionBinding.Create(host.Authority, "smoke-device", signer.PublicKeyFingerprint,
                         new Uri(host.Address), observationSession.Timeline, worldId),
@@ -135,7 +135,7 @@ public partial class Main
                 VerifyRetainedInstruction();
                 if (!observationSession.AwaitingFreshBaseline || observationSession.RequestGeneration == generation ||
                     observationSession.Current?.Baseline.Snapshot.WorldId != worldId ||
-                    observationSession.Current?.Baseline.Snapshot.WorldTick != 20 || selectedInhabitantId != agentId ||
+                    observationSession.Current?.Baseline.Snapshot.WorldTick != 20 || selectedAgentId != agentId ||
                     !knownEvents.ContainsKey(2) || !ReferenceEquals(terrainMap, heldTerrain) || !choosingFirstTownSite)
                     throw new InvalidOperationException("A same-world rewind must hold the old display while invalidating its requests.");
                 if (!ReferenceEquals(mapObjectVisuals["handcart:timeline-cart"], heldCart))
@@ -165,7 +165,7 @@ public partial class Main
                 await RefreshAsync();
                 VerifyRetainedInstruction();
                 if (observationSession.AwaitingFreshBaseline || observationSession.Timeline?.Generation != 2 ||
-                    observationSession.Current?.Baseline.Snapshot.WorldTick != 5 || selectedInhabitantId is not null ||
+                    observationSession.Current?.Baseline.Snapshot.WorldTick != 5 || selectedAgentId is not null ||
                     knownEvents.ContainsKey(2) || knownEvents.Count != 1 || knownEvents[1].Detail != "generation:2" ||
                     ReferenceEquals(terrainMap, heldTerrain) || manualSaveOverlay.Visible || choosingFirstTownSite ||
                     observationSession.Current?.Baseline.Snapshot.FounderSetup?.CanChooseTownSite != true)
@@ -315,7 +315,7 @@ public partial class Main
                 ResetDisplayedWorldContext();
                 host.Reconnect = World(20, 20, 2, paused: true);
                 await RefreshAsync();
-                selectedInhabitantId = agentId;
+                selectedAgentId = agentId;
                 developerEditKind.Select(0);
                 ConfigureDeveloperEdit();
                 developerEditAmount.Value = 50;
@@ -339,7 +339,7 @@ public partial class Main
                     var replacementStatus = statusLabel.Text;
                     releaseEdit.SetResult();
                     await editing.WaitAsync(TimeSpan.FromSeconds(5));
-                    if (statusLabel.Text != replacementStatus || isOwnerAction || selectedInhabitantId is not null ||
+                    if (statusLabel.Text != replacementStatus || isOwnerAction || selectedAgentId is not null ||
                         observationSession.Timeline?.Generation != 21 || observationSession.Current?.Baseline.Snapshot.WorldTick != 5)
                         throw new InvalidOperationException("A late developer-edit success or failure must not replace the new timeline's status, selection or baseline.");
                 }
@@ -367,7 +367,7 @@ public partial class Main
             observationSession.ReplaceRegistration(previousRegistration);
             if (previousObservation is not null)
                 observationSession.TryAccept(previousObservation, previousObservation.Baseline.Events.AfterEventId, out _);
-            selectedInhabitantId = previousSelection;
+            selectedAgentId = previousSelection;
             pendingSubmission = previousPendingSubmission;
             providerConfiguration = previousProviderConfiguration;
             RenderPendingSubmission();

@@ -21,11 +21,11 @@ public sealed class PartialCargoRecoveryTests
     public async Task ActualDismountDropsOnlyLooseSurplusAndKeepsTheOriginalClaim(int reserved, int carried, int dropped)
     {
         var state = WithCargo(WorldRuntimeCodec.Decode(await Mounted.Value), 12, reserved);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var original = state.Society.Society.Inventory;
         using var world = Restore(state, actor, new Choices("animal_order"));
         using var replay = Restore(Copy(state), actor, new Choices("animal_order"));
-        var order = new OwnerInstructionRequest("partial-dismount", "owner:test", actor, OwnerInstructionKind.MustDo, "dismount Moss");
+        var order = new OwnerInstructionRequest("partial-dismount", "owner:test", actor, OwnerInstructionKind.Order, "dismount Moss");
         _ = world.SubmitInstruction(order);
         _ = replay.SubmitInstruction(order);
         await RefuseAsync(world);
@@ -35,7 +35,7 @@ public sealed class PartialCargoRecoveryTests
         var inventory = world.Society.Inventory;
         Assert.Equal(carried, inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "stone" &&
             PersonalEquipmentRules.IsCarried(lot, actor)).Sum(lot => lot.Quantity));
-        var point = world.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var point = world.Agents.Single(person => person.AgentId == actor).Position;
         Assert.Equal(dropped, inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "stone" &&
             lot.GroundPosition == new InventoryGroundPosition(point.X, point.Y)).Sum(lot => lot.Quantity));
         Assert.Equal(carried, inventory.GetLot(Stone).Quantity);
@@ -54,8 +54,8 @@ public sealed class PartialCargoRecoveryTests
     public async Task NativeFoodRecoveryStoresOnlyUnreservedStoneAndEatsActualHouseBread(int reserved, bool recovers)
     {
         var state = WithCargo(WorldRuntimeCodec.Decode(await Hungry.Value), 8, reserved);
-        var actor = state.Inhabitants[0].InhabitantId;
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId!;
         var original = state.Society.Society.Inventory;
         var choices = new Choices("make_room_for_food", "collect_shared_food", "consume_food");
         using var world = Restore(state, actor, choices);
@@ -75,7 +75,7 @@ public sealed class PartialCargoRecoveryTests
             Assert.Equal(state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
                 state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house")).InstanceId,
                 stored.StorageBuildingId);
-            Assert.True(world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints > 1_500);
+            Assert.True(world.Agents.Single(person => person.AgentId == actor).FullnessBasisPoints > 1_500);
             Assert.True(inventory.Lots.Where(lot => lot.ItemKind == "bread").Sum(lot => lot.Quantity) < 8);
         }
         else Assert.Equal(8, inventory.GetLot("partial-cargo-bread").Quantity);
@@ -89,7 +89,7 @@ public sealed class PartialCargoRecoveryTests
     public async Task AClaimOnVesselContentsPreservesTheWholeFamilyDuringDismount(string vesselKind, string contentsKind)
     {
         var state = WithCargo(WorldRuntimeCodec.Decode(await Mounted.Value), 12, 1);
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, Jug, vesselKind, actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, Contents, contentsKind, actor, 2, containerLotId: Jug);
         inventory = InventoryAuthority.Reserve(inventory, "protected-cargo-family", actor, Contents,
@@ -97,7 +97,7 @@ public sealed class PartialCargoRecoveryTests
         state = WithInventory(state, inventory);
         using var world = Restore(state, actor, new Choices("animal_order"));
         using var replay = Restore(Copy(state), actor, new Choices("animal_order"));
-        var order = new OwnerInstructionRequest("protected-dismount", "owner:test", actor, OwnerInstructionKind.MustDo, "dismount Moss");
+        var order = new OwnerInstructionRequest("protected-dismount", "owner:test", actor, OwnerInstructionKind.Order, "dismount Moss");
         _ = world.SubmitInstruction(order);
         _ = replay.SubmitInstruction(order);
         await RefuseAsync(world);
@@ -120,14 +120,14 @@ public sealed class PartialCargoRecoveryTests
         using var setup = NormalPathWorld.CreateGenerated("animal-horse-cargo", _ => new Choices("safe_idle"));
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = setup.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var definition = state.WorldContent!.Buildings.Single(item => item.Tags.Contains("animal-yard"));
         var inventory = state.Society.Society.Inventory;
         foreach (var cost in definition.BuildCosts)
             inventory = InventoryAuthority.AddLot(inventory, "partial-yard-cost-" + cost.ResourceId, cost.ResourceId, home, cost.Amount);
         using var builder = WorldRuntime.Restore(WithInventory(state, inventory));
-        foreach (var tile in state.Map.Tiles.OrderBy(item => state.Map.FootDistance(item.Position, state.Inhabitants[0].Position)))
+        foreach (var tile in state.Map.Tiles.OrderBy(item => state.Map.FootDistance(item.Position, state.Agents[0].Position)))
             if (builder.PlaceBuilding("partial-cargo-yard", definition.CanonicalId, tile.Position, home).Applied) break;
         var yard = Assert.Single(builder.WorldSimulation.Buildings, building => building.InstanceId == "partial-cargo-yard");
         foreach (var cost in definition.BuildCosts)
@@ -140,10 +140,10 @@ public sealed class PartialCargoRecoveryTests
         inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "partial-cargo-saddle", "saddle", home, 1);
         state = WithInventory(state, inventory) with { AnimalWorld = new(true, [horse], []) };
         using var world = Restore(state, actor, new Choices("animal_order"));
-        _ = world.SubmitInstruction(new("partial-saddle", "owner:test", actor, OwnerInstructionKind.MustDo, "saddle Moss"));
+        _ = world.SubmitInstruction(new("partial-saddle", "owner:test", actor, OwnerInstructionKind.Order, "saddle Moss"));
         for (var tick = 0; tick < 30 && world.Animals.Single().SaddleLotId is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("partial-cargo-saddle", world.Animals.Single().SaddleLotId);
-        _ = world.SubmitInstruction(new("partial-mount", "owner:test", actor, OwnerInstructionKind.MustDo, "mount Moss"));
+        _ = world.SubmitInstruction(new("partial-mount", "owner:test", actor, OwnerInstructionKind.Order, "mount Moss"));
         for (var tick = 0; tick < 30 && world.Animals.Single().RiderId is null; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(actor, world.Animals.Single().RiderId);
         world.Validate();
@@ -155,8 +155,8 @@ public sealed class PartialCargoRecoveryTests
         using var world = NormalPathWorld.CreateGenerated("child-carried-milk-audit", _ => new Choices("safe_idle"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var state = world.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
-        var home = state.Society.Society.GetInhabitant(actor).HouseholdId!;
+        var actor = state.Agents[0].AgentId;
+        var home = state.Society.Society.GetAgent(actor).HouseholdId!;
         var house = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == home &&
             state.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId).Tags.Contains("house"));
         var inventory = state.Society.Society.Inventory with
@@ -167,19 +167,19 @@ public sealed class PartialCargoRecoveryTests
 
     private static WorldRuntimeState WithCargo(WorldRuntimeState state, int quantity, int reserved)
     {
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory with { Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId != actor).ToArray() };
         inventory = InventoryAuthority.AddLot(inventory, Stone, "stone", actor, quantity);
         if (reserved > 0)
         {
-            var other = state.Inhabitants.First(person => person.InhabitantId != actor).InhabitantId;
+            var other = state.Agents.First(person => person.AgentId != actor).AgentId;
             inventory = InventoryAuthority.AddLot(inventory, Wood, "wood", other, 1);
             // A real open kernel offer is an explicit pending-work fixture, not a fabricated runtime trade.
             inventory = InventoryAuthority.CreateDirectBarterOffer(inventory, new(Offer, 1, actor, other, Stone, reserved, Wood, 1, inventory.WorldTick + 1_000));
         }
         return WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             { Equipment = null, Project = null, LastDecisionContext = null }).ToArray()
         };
     }
@@ -201,10 +201,10 @@ public sealed class PartialCargoRecoveryTests
     {
         JevEnabled = false,
         RoutineHelper = RoutineHelperSettings.Off,
-        Inhabitants = state.Inhabitants.Select(person => person with
+        Agents = state.Agents.Select(person => person with
         {
-            Position = person.InhabitantId == actor ? position : person.Position,
-            HungerBasisPoints = person.InhabitantId == actor ? fullness : 9_500,
+            Position = person.AgentId == actor ? position : person.Position,
+            FullnessBasisPoints = person.AgentId == actor ? fullness : 9_500,
             Survival = new(),
             Project = null,
             LastDecisionContext = null
@@ -246,7 +246,7 @@ public sealed class PartialCargoRecoveryTests
             RoomOffered |= observation.Candidates.Any(item => item.Id == "make_room_for_food");
             var selected = prefixes.Select(prefix => observation.Candidates.FirstOrDefault(item => item.Id.StartsWith(prefix, StringComparison.Ordinal)))
                 .FirstOrDefault(item => item is not null) ?? observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 observation.Candidates.ToDictionary(item => item.Id, item => item.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

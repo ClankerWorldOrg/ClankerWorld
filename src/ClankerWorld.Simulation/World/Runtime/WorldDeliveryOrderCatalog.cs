@@ -30,7 +30,7 @@ internal static class WorldDeliveryOrderCatalog
             "household_food" => buildingKind == "house" && (itemKind is "food" or "berries" or "fruit" or "wild_greens" or "cultivated_greens" ||
                 WorldCustodyOrderCatalog.PreparedFoods.Any(food => food.ItemKind == itemKind)),
             "town_surplus" => buildingKind == "warehouse" && itemKind is "wood" or "stone" or "fiber" or "tree_seed",
-            "store_stock" => buildingKind == "store" && BusinessRules.MaySell("store", itemKind),
+            "store_stock" => buildingKind == "store" && ShopRules.MaySell("store", itemKind),
             _ => false,
         };
     }

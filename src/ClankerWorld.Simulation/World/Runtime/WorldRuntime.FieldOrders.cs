@@ -21,12 +21,12 @@ public sealed partial class WorldRuntime
     private bool CanWalkToFieldOrderSite(string actor, GridPoint from, GridPoint destination, int range = 0) =>
         IsWithinInteractionRange(from, destination, range) || FindUnoccupiedRoute(actor, from, destination, range).Count > 0;
 
-    private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, InhabitantState person)
+    private GridPoint? FieldOrderSite(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         var household = HouseholdFor(actor);
-        if (!AdultResident(actor) || FarmhouseForHousehold(household) is not { } farmhouse) return null;
-        var order = instruction.Order!;
+        if (!IsAdult(actor) || FarmhouseForHousehold(household) is not { } farmhouse) return null;
+        var order = instruction.Task!;
         var kind = FieldOrderKind(order.Action);
         if (kind is FarmWorkKind.Till or FarmWorkKind.Tend &&
             ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hoe) is null) return null;
@@ -50,14 +50,14 @@ public sealed partial class WorldRuntime
             .OrderBy(field => map.FootDistance(person.Position, field.Position))
             .ThenBy(field => field.Position.Y).ThenBy(field => field.Position.X)
             .Where(field => CanWalkToFieldOrderSite(actor, person.Position, field.Position) &&
-                (kind != FarmWorkKind.Plant || !HasOtherInhabitantClaimedPlanting(field, actor) &&
+                (kind != FarmWorkKind.Plant || !HasOtherAgentClaimedPlanting(field, actor) &&
                     PlantingStock(actor, field, order.TargetCropKind!, requirePickupRoute: true) is not null))
             .Select(field => (GridPoint?)field.Position).FirstOrDefault();
     }
 
-    private CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, InhabitantState person)
+    private CognitionCandidate? FieldOrderCandidateFor(OwnerQueuedInstruction instruction, AgentState person)
     {
-        if (FarmWorkFor(instruction.TargetInhabitantId) is { Work: { } work })
+        if (FarmWorkFor(instruction.TargetAgentId) is { Work: { } work })
             return new("work_field", work.OrderInstructionId == instruction.InstructionId
                 ? "Finish the requested field work with its real tools and planting stock."
                 : "End the previous field work and release unused planting stock before starting this task.", 0);
@@ -65,9 +65,9 @@ public sealed partial class WorldRuntime
             new("work_field", "Walk to a suitable household field and complete the requested work.", 0);
     }
 
-    private void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, InhabitantState person)
+    private void ExecuteFieldOrderStep(OwnerQueuedInstruction instruction, AgentState person)
     {
-        var actor = instruction.TargetInhabitantId;
+        var actor = instruction.TargetAgentId;
         if (FarmWorkFor(actor) is { Work: { } work } current)
         {
             if (work.OrderInstructionId == instruction.InstructionId)
@@ -87,22 +87,22 @@ public sealed partial class WorldRuntime
             SetOrderStatus(instruction, "blocked", FieldOrderBlockedReason(instruction));
             return;
         }
-        ApplyFieldCandidate(actor, person, FarmCandidate(FieldOrderKind(instruction.Order!.Action), site,
-            instruction.Order.TargetCropKind), instruction.InstructionId);
+        ApplyFieldCandidate(actor, person, FarmCandidate(FieldOrderKind(instruction.Task!.Action), site,
+            instruction.Task.TargetCropKind), instruction.InstructionId);
     }
 
     private string FieldOrderBlockedReason(OwnerQueuedInstruction instruction)
     {
-        var actor = instruction.TargetInhabitantId;
-        if (!AgePermitsCandidate(actor, instruction.Order!.Action)) return "This agent is too young to work on fields.";
-        if (instruction.Order.TargetPosition is { } target && !map.Contains(target))
+        var actor = instruction.TargetAgentId;
+        if (!AgePermitsCandidate(actor, instruction.Task!.Action)) return "This agent is too young to work on fields.";
+        if (instruction.Task.TargetPosition is { } target && !map.Contains(target))
             return "The requested tile is outside this world.";
         if (FarmhouseForHousehold(HouseholdFor(actor)) is null) return "The agent needs a household with a Farmhouse.";
-        var kind = FieldOrderKind(instruction.Order.Action);
+        var kind = FieldOrderKind(instruction.Task.Action);
         if (kind is FarmWorkKind.Till or FarmWorkKind.Tend &&
             ToolProgressionRules.PlanWork(society.Checkpoint.Inventory, actor, ToolFamily.Hoe) is null)
             return "Carry a usable hoe for this field work.";
-        if (instruction.Order.TargetPosition is not null)
+        if (instruction.Task.TargetPosition is not null)
             return kind switch
             {
                 FarmWorkKind.Till => "The requested tile needs free farmable land near the household's Farmhouse and an open walking route.",
@@ -121,7 +121,7 @@ public sealed partial class WorldRuntime
 
     private void CancelFieldWorkForOrder(OwnerQueuedInstruction instruction)
     {
-        if (FarmWorkFor(instruction.TargetInhabitantId) is { Work: { } work } field &&
+        if (FarmWorkFor(instruction.TargetAgentId) is { Work: { } work } field &&
             work.OrderInstructionId == instruction.InstructionId)
             CancelFarmWork(field);
     }
@@ -132,10 +132,10 @@ public sealed partial class WorldRuntime
         foreach (var field in savedFields)
         {
             if (field.Work is not { OrderInstructionId: { } orderId } work) continue;
-            var instruction = instructions.Where(item => item.TargetInhabitantId == work.WorkerId &&
-                    item.Kind == OwnerInstructionKind.MustDo && item.Order is { } order && IsActiveOrder(order.Status))
+            var instruction = instructions.Where(item => item.TargetAgentId == work.WorkerId &&
+                    item.Kind == OwnerInstructionKind.Order && item.Task is { } order && IsActiveOrder(order.Status))
                 .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
-            if (instruction is null || instruction.InstructionId != orderId || instruction.Order is not { } task ||
+            if (instruction is null || instruction.InstructionId != orderId || instruction.Task is not { } task ||
                 !IsFieldOrder(task.Action) || task.Status == "queued" || FieldOrderKind(task.Action) != work.Kind ||
                 work.LastWorkedTick < instruction.SubmittedTick ||
                 task.TargetPosition is { } target && target != field.Position ||

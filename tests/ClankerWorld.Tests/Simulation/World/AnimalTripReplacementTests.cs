@@ -34,14 +34,14 @@ public sealed partial class AnimalPipelineTests
         inventory = InventoryAuthority.AddLot(inventory, "replacement-water", "fresh_water", home, 2, containerLotId: "replacement-water-jug");
         state = At(state, actor, house.Position, inventory, [moss, fern]) with
         {
-            Inhabitants = At(state, actor, house.Position, inventory, [moss, fern]).Inhabitants.Select(person =>
-            person.InhabitantId == actor ? person with { Equipment = null } : person).ToArray()
+            Agents = At(state, actor, house.Position, inventory, [moss, fern]).Agents.Select(person =>
+            person.AgentId == actor ? person with { Equipment = null } : person).ToArray()
         };
         using var setup = WorldRuntime.Restore(state, _ => new AnimalChooser());
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         Assert.NotNull(setup.Animals.Single(animal => animal.Id == moss.Id).ReadyProductLotId);
         using var collecting = RestoreAnimalOrder(setup.ExportState(), actor);
-        var old = collecting.SubmitInstruction(new("replacement-collect", "owner", actor, OwnerInstructionKind.MustDo, "collect from Moss"));
+        var old = collecting.SubmitInstruction(new("replacement-collect", "owner", actor, OwnerInstructionKind.Order, "collect from Moss"));
         Assert.DoesNotContain(collecting.ExportState().AnimalWorld.SupplyTrips, trip => trip.ActorId == actor);
         if (reloadBeforeReplacement)
         {
@@ -49,9 +49,9 @@ public sealed partial class AnimalPipelineTests
             using var pendingReload = RestoreAnimalOrder(WorldRuntimeCodec.Decode(pending), actor);
             Assert.Equal(pending, WorldRuntimeCodec.Encode(pendingReload.ExportState()));
         }
-        if (finishFirst) await Until(collecting, () => collecting.ExportState().Instructions!.Single(instruction => instruction.InstructionId == old.InstructionId).Order!.Status == "finished");
+        if (finishFirst) await Until(collecting, () => collecting.ExportState().Instructions!.Single(instruction => instruction.InstructionId == old.InstructionId).Task!.Status == "finished");
         if (cancelFirst) Assert.True(collecting.CancelOrder(new("replacement-cancel", "owner", collecting.Society.WorldId, actor, old.InstructionId)).Changed);
-        var current = collecting.SubmitInstruction(new("replacement-care", "owner", actor, OwnerInstructionKind.MustDo, "care for Fern"));
+        var current = collecting.SubmitInstruction(new("replacement-care", "owner", actor, OwnerInstructionKind.Order, "care for Fern"));
         Assert.DoesNotContain(collecting.ExportState().AnimalWorld.SupplyTrips, trip => trip.ActorId == actor);
         var checkpoint = collecting.ExportState();
         var bytes = WorldRuntimeCodec.Encode(checkpoint);
@@ -60,15 +60,15 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var step = 0; step < 80 && world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == current.InstructionId).Order!.Status != "finished"; step++)
+        for (var step = 0; step < 80 && world.ExportState().Instructions!.Single(instruction => instruction.InstructionId == current.InstructionId).Task!.Status != "finished"; step++)
         {
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         var final = world.ExportState();
-        Assert.Equal(finishFirst ? "finished" : "cancelled", final.Instructions!.Single(instruction => instruction.InstructionId == old.InstructionId).Order!.Status);
-        var order = final.Instructions!.Single(instruction => instruction.InstructionId == current.InstructionId).Order!;
+        Assert.Equal(finishFirst ? "finished" : "cancelled", final.Instructions!.Single(instruction => instruction.InstructionId == old.InstructionId).Task!.Status);
+        var order = final.Instructions!.Single(instruction => instruction.InstructionId == current.InstructionId).Task!;
         Assert.Equal(("finished", 1), (order.Status, order.CompletedUnits));
         Assert.True(world.Animals.Single(animal => animal.Id == fern.Id).CareUntilTick > world.WorldTick);
         Assert.Equal(4, world.Society.Inventory.Lots.Where(lot => lot.Id.StartsWith("replacement-feed", StringComparison.Ordinal)).Sum(lot => lot.Quantity));

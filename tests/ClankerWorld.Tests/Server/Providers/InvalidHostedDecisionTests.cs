@@ -37,7 +37,7 @@ public sealed class InvalidHostedDecisionTests
             {
                 var result = await world.AdvanceOneTickNonBlockingAsync();
                 started |= result.Events.Any(item => item.Kind == "hosted_decision_started" && item.Detail == "founder-scout");
-                admission = result.Decisions.FirstOrDefault(item => item.InhabitantId == "founder-scout")?.Admission;
+                admission = result.Decisions.FirstOrDefault(item => item.AgentId == "founder-scout")?.Admission;
                 await Task.Delay(30);
             }
             Assert.True(started);
@@ -48,7 +48,7 @@ public sealed class InvalidHostedDecisionTests
             Assert.Equal("safe_idle", admission.Intention!.CandidateId);
             Assert.Equal(1, handler.RequestCount);
             Assert.Equal(1, usage.Capture().Attempts);
-            Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.InhabitantId == "founder-scout");
+            Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
         }
         finally { directory.Delete(recursive: true); }
     }

@@ -30,7 +30,7 @@ public partial class Main
         if (renderedMapSnapshot is not { } shown || terrainMap is null)
             throw new InvalidOperationException("The panel picture checks need a world on screen.");
         var person = PanelSmokeAgent("panel-smoke-mira", "Mira", new OwnerWorldPosition(0, 0));
-        var snapshot = shown with { Inhabitants = [person] };
+        var snapshot = shown with { Agents = [person] };
         RenderMap(snapshot);
         try
         {
@@ -97,7 +97,7 @@ public partial class Main
     }
 
     /// <summary>A living adult standing on a tile, for checks that need an agent in the world.</summary>
-    private static OwnerWorldInhabitant PanelSmokeAgent(string id, string name, OwnerWorldPosition position) =>
+    private static OwnerWorldAgent PanelSmokeAgent(string id, string name, OwnerWorldPosition position) =>
         new(id, name, "active", position, 8_000, [], [], new OwnerWorldRoute("idle", null, null, [], string.Empty),
             new OwnerWorldSpatialKnowledge(position, [position], [position]), false)
         {

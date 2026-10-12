@@ -16,11 +16,11 @@ public sealed class ContentOrderRollbackSafetyTests
     public void RollbackPreservesUnboundOrdersIncludingCancelledHistory(string text, string action, bool cancelled)
     {
         using var world = CreateWorld();
-        var receipt = world.SubmitInstruction(new("order", "owner:test", Actor, OwnerInstructionKind.MustDo, text));
+        var receipt = world.SubmitInstruction(new("order", "owner:test", Actor, OwnerInstructionKind.Order, text));
         if (cancelled)
             Assert.True(world.CancelOrder(new("cancel", "owner:test", world.Society.WorldId,
                 Actor, receipt.InstructionId)).Changed);
-        var order = Assert.Single(world.ExportState().Instructions!).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal((action, cancelled ? "cancelled" : "waiting"), (order.Action, order.Status));
         Assert.Null(order.ProductionBuildingId);
         Assert.Null(order.TargetStorageBuildingId);
@@ -44,12 +44,12 @@ public sealed class ContentOrderRollbackSafetyTests
     public void UnrelatedRollbackLeavesDeliveryAndProductionOrdersLoadable()
     {
         using var world = CreateWorld();
-        world.SubmitInstruction(new("delivery", "owner:test", Actor, OwnerInstructionKind.MustDo,
+        world.SubmitInstruction(new("delivery", "owner:test", Actor, OwnerInstructionKind.Order,
             "supply fresh water to my Clinic"));
-        world.SubmitInstruction(new("production", "owner:test", Actor, OwnerInstructionKind.MustDo,
+        world.SubmitInstruction(new("production", "owner:test", Actor, OwnerInstructionKind.Order,
             "prepare medicine", Queue: true));
         var before = world.ExportState().Instructions!.ToArray();
-        Assert.Equal(OrderActions, before.Select(item => item.Order!.Action));
+        Assert.Equal(OrderActions, before.Select(item => item.Task!.Action));
 
         var receipt = world.RollbackContent(PotteryContent.PackageId, "withdraw unrelated pottery");
 
@@ -66,7 +66,7 @@ public sealed class ContentOrderRollbackSafetyTests
     {
         ContentPackageManifest[] packages =
         [
-            StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(),
+            StarterContent.Create(), HearthContent.Create(), HouseContent.Create(),
             TailorContent.Create(), CareContent.Create(), PotteryContent.Create(),
         ];
         var resolution = ContentPackageResolver.Resolve(packages, packages.Select(package => package.PackageId));

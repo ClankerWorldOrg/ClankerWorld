@@ -20,8 +20,8 @@ public sealed partial class AnimalPipelineTests
         inventory = inventory with { Lots = inventory.Lots.Where(lot => lot.OwnerId != actor).ToArray() };
         state = At(state, actor, yard.Position, inventory, [cow]) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { Position = yard.Position, HungerBasisPoints = 9500, Equipment = null }
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { Position = yard.Position, FullnessBasisPoints = 9500, Equipment = null }
                 : person).ToArray(),
         };
         using var producing = WorldRuntime.Restore(state, _ => new AnimalChooser());
@@ -34,7 +34,7 @@ public sealed partial class AnimalPipelineTests
 
         using var world = RestoreAnimalOrder(producing.ExportState(), actor);
         world.SubmitInstruction(new("ordinary-milk-collect", "owner", actor,
-            OwnerInstructionKind.MustDo, "collect from Moss"));
+            OwnerInstructionKind.Order, "collect from Moss"));
         for (var step = 0; step < 8 && world.Animals.Single().ReadyProductLotId is not null; step++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
@@ -58,7 +58,7 @@ public sealed partial class AnimalPipelineTests
         using var generated = NormalPathWorld.CreateGenerated("ordinary-milk-spoilage", _ => new AnimalChooser());
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
         var state = generated.ExportState();
-        var actor = state.Inhabitants[0].InhabitantId;
+        var actor = state.Agents[0].AgentId;
         var inventory = state.Society.Society.Inventory;
         if (foodPot) inventory = InventoryAuthority.AddLot(inventory, "spoilage-pot", "storage_pot", actor, 1);
         inventory = InventoryAuthority.AddLot(inventory, "spoilage-milk", "milk", actor, 2,

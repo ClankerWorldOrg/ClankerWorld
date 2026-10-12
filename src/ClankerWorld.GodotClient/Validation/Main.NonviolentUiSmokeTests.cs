@@ -5,7 +5,7 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
-    private async Task RunNonviolentTownUiChecks(OwnerWorldSnapshot sample, OwnerWorldTown town)
+    private async Task RunNonLandTownUiChecks(OwnerWorldSnapshot sample, OwnerWorldTown town)
     {
         var wasVisible = worldInfoPanel.Visible;
         var showedTowns = WorldInfoShowsTowns;
@@ -25,7 +25,7 @@ public partial class Main
             3_810, 4_170, 1_080, "pending", [], [], null, null);
         var agreement = new OwnerRestorativeAgreement("agreement-ui", offer.Id, 1, [term], [consent], 3_830, 4_910,
             "pending", null, []);
-        var item = new OwnerTownNonviolentCase("case-ui", "settled", 3_600, 3_800, "subject-ui", "Mira Vale",
+        var item = new OwnerTownNonLandCase("case-ui", "settled", 3_600, 3_800, "subject-ui", "Mira Vale",
             "harvest", new(1, 1), 3_500, "A report about the protected grove.",
             new("law-ui", "Grove harvest", "Leave young trees standing.", "site", 1, 1, 3_000, null) { Site = [new(1, 1)] }, 1,
             [new(1, "case-notice-ui", 3_600, 3_960, parties)],
@@ -42,8 +42,8 @@ public partial class Main
                     NonLandAuthorized = true,
                     NonLandAuthority = new("mayor-ui", "Tess Rowan", "grant-ui", 3_650, 2_000, 9_200),
                 },
-                NonviolentCaseCount = 1,
-                NonviolentCases = [item],
+                NonLandCaseCount = 1,
+                NonLandCases = [item],
             };
             ShowWorldInfoPage(towns: true);
             worldInfoPanel.Show();
@@ -81,7 +81,7 @@ public partial class Main
                 Offers = [],
                 CurrentParties = [parties[0], parties[1] with { RespondingAdultId = "new-caregiver-ui", RespondingAdultName = "Tess Rowan", NoticeAware = false }],
             };
-            Render(sample with { Towns = [projectedTown with { NonviolentCases = [pending] }], WorldTick = 3_900 }, []);
+            Render(sample with { Towns = [projectedTown with { NonLandCases = [pending] }], WorldTick = 3_900 }, []);
             var supported = VisibleText();
             if (!supported.Contains("At this notice: Ash Vale · affected · caregiver support: Sol Reed", StringComparison.Ordinal) ||
                 !supported.Contains("Current required responders:", StringComparison.Ordinal) ||
@@ -91,7 +91,7 @@ public partial class Main
             // Same Town, tick and membership: only personal consent changes. The real list cache must refresh.
             projectedTown = projectedTown with
             {
-                NonviolentCases = [item with
+                NonLandCases = [item with
             {
                 Offers = [offer with { Status = "accepted", Responses = [consent], NoticeAwareContributorIds = [term.ContributorId], AgreementId = agreement.Id }],
                 Agreements = [agreement],
@@ -107,7 +107,7 @@ public partial class Main
             foreach (var completed in new[] { false, true })
             {
                 var changed = agreement with { Status = completed ? "completed" : "overdue", Effects = completed ? [effect] : [] };
-                var changedTown = projectedTown with { NonviolentCases = [projectedTown.NonviolentCases[0] with { Agreements = [changed] }] };
+                var changedTown = projectedTown with { NonLandCases = [projectedTown.NonLandCases[0] with { Agreements = [changed] }] };
                 Render(sample with { Towns = [changedTown], WorldTick = 5_000 }, []);
                 var visible = VisibleText();
                 if (!visible.Contains(completed ? "completed through recorded work" : "overdue; incomplete work remains voluntary", StringComparison.Ordinal) ||
@@ -118,7 +118,7 @@ public partial class Main
             }
             var replacedTown = projectedTown with
             {
-                NonviolentCases = [projectedTown.NonviolentCases[0] with
+                NonLandCases = [projectedTown.NonLandCases[0] with
             {
                 Agreements = [agreement with { Superseded = true }],
             }]
@@ -130,7 +130,7 @@ public partial class Main
             foreach (var (status, expected) in new[] { ("declined", "declined"), ("unanswered", "unanswered when the response period ended"),
                          ("countered", "counteroffer proposed"), ("superseded", "replaced by later terms") })
             {
-                var changedTown = projectedTown with { NonviolentCases = [item with { Offers = [offer with { Status = status }], Agreements = [] }] };
+                var changedTown = projectedTown with { NonLandCases = [item with { Offers = [offer with { Status = status }], Agreements = [] }] };
                 Render(sample with { Towns = [changedTown], WorldTick = 5_000 }, []);
                 if (!VisibleText().Contains("Voluntary remedy offer · " + expected, StringComparison.Ordinal) ||
                     VisibleText().Contains("Voluntary agreement", StringComparison.Ordinal))

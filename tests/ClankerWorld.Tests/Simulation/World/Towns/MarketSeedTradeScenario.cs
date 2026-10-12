@@ -14,11 +14,11 @@ internal static class MarketSeedTradeScenario
     {
         const string alpha = "household:camp-alpha";
         var society = paidBoundary.Society.Society;
-        var buyer = society.Inhabitants.First(person => person.HouseholdId == alpha && person.Status == SocietyInhabitantStatus.Active &&
+        var buyer = society.Agents.First(person => person.HouseholdId == alpha && person.Status == SocietyAgentStatus.Active &&
             person.AgeBand == SocietyAgeBand.Adult).Id;
-        var seller = society.Inhabitants.First(person => person.HouseholdId != alpha && person.HouseholdId is not null &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
-        var sellerHousehold = society.GetInhabitant(seller).HouseholdId!;
+        var seller = society.Agents.First(person => person.HouseholdId != alpha && person.HouseholdId is not null &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
+        var sellerHousehold = society.GetAgent(seller).HouseholdId!;
         var market = Assert.Single(paidBoundary.Towns![0].Markets);
         Assert.Equal("completed", Assert.Single(paidBoundary.Towns[0].Projects, project => project.Id == market.ProjectId).Stage);
         Assert.Empty(market.Occupancies);
@@ -58,16 +58,16 @@ internal static class MarketSeedTradeScenario
         initial = initial with
         {
             Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == buyer || person.InhabitantId == seller
+            Agents = initial.Agents.Select(person => person.AgentId == buyer || person.AgentId == seller
                 ? person with
                 {
-                    HungerBasisPoints = 9_500,
+                    FullnessBasisPoints = 9_500,
                     Survival = new SurvivalCondition(),
                     LastDecisionContext = null,
                     Equipment = (person.Equipment ?? new PersonalEquipment()) with
                     {
-                        ClothingLotId = "seed-proof-cloak:" + person.InhabitantId,
-                        CarryAidLotId = "seed-proof-sack:" + person.InhabitantId,
+                        ClothingLotId = "seed-proof-cloak:" + person.AgentId,
+                        CarryAidLotId = "seed-proof-sack:" + person.AgentId,
                     },
                 }
                 : person).ToArray(),
@@ -190,7 +190,7 @@ internal static class MarketSeedTradeScenario
     {
         // Controlled phase wake after completion; preserve every actual position,
         // field, lot, reservation and project. Never force arrival or authority.
-        Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == policy.Buyer || person.InhabitantId == policy.Seller
+        Agents = state.Agents.Select(person => person.AgentId == policy.Buyer || person.AgentId == policy.Seller
             ? person with { LastDecisionContext = null } : person).ToArray(),
     }, policy.CreateProvider);
 

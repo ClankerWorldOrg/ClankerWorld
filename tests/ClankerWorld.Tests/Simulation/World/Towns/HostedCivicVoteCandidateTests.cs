@@ -19,10 +19,10 @@ public sealed class HostedCivicVoteCandidateTests
         using var provider = new HostedVoteProvider(yes);
         IDecisionProvider For(string actor) => actor == Author ? provider : new ActionCoverageRecorder(chooseIdle: true);
         using var world = NormalPathWorld.CreateGenerated("hosted-civic-vote-empty-final-field", For);
-        for (var tick = 0; tick < 40 && !world.Towns[0].Governance!.Proposals.Any(p => p.Votes.Any(v => v.AgentId == Author)); tick++)
+        for (var tick = 0; tick < 40 && !world.Towns[0].Council!.Proposals.Any(p => p.Votes.Any(v => v.AgentId == Author)); tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
 
-        var proposal = Assert.Single(world.Towns[0].Governance!.Proposals);
+        var proposal = Assert.Single(world.Towns[0].Council!.Proposals);
         Assert.Equal(ProposalText, proposal.Text);
         Assert.True(proposal.Votes.Count == 1,
             $"Expected the eligible vote to land; got {proposal.Votes.Count} votes after {provider.OmittedVoteReplies} malformed hosted vote replies.");
@@ -37,7 +37,7 @@ public sealed class HostedCivicVoteCandidateTests
         var encoded = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(encoded), For);
         Assert.Equal(encoded, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal(vote, Assert.Single(restored.Towns[0].Governance!.Proposals.Single().Votes));
+        Assert.Equal(vote, Assert.Single(restored.Towns[0].Council!.Proposals.Single().Votes));
         world.Resume();
         restored.Resume();
         for (var tick = 0; tick < 4; tick++)
@@ -75,7 +75,7 @@ public sealed class HostedCivicVoteCandidateTests
         var runtime = new CognitionRuntime("actor", provider);
         var candidates = offered.Select(id => new CognitionCandidate(id, "An offered personal choice.", 10))
             .Prepend(new("safe_idle", "Continue safely.", 0)).ToArray();
-        var observation = new InhabitantObservation("actor", 0, 0, 0, "digest", 8_000, candidates);
+        var observation = new AgentObservation("actor", 0, 0, 0, "digest", 8_000, candidates);
 
         var admission = await runtime.RequestAndDecideAsync(observation);
 

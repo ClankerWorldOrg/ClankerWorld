@@ -20,24 +20,24 @@ public sealed partial class PlayerRenameTests
         var saved = initial.ExportState();
         if (deceased)
         {
-            var physical = saved.Inhabitants.Single(person => person.InhabitantId == First);
+            var physical = saved.Agents.Single(person => person.AgentId == First);
             var society = SocietyRules.Kill(saved.Society.Society, First, SocietyDeathCause.Accident).Checkpoint;
             saved = saved with
             {
                 Society = saved.Society with { Society = society },
-                Inhabitants = saved.Inhabitants.Where(person => person.InhabitantId != First).ToArray(),
-                DeceasedInhabitants = [new(First, 0, society.AgeAt(society.GetInhabitant(First), 0), physical)],
+                Agents = saved.Agents.Where(person => person.AgentId != First).ToArray(),
+                DeceasedAgents = [new(First, 0, society.AgeAt(society.GetAgent(First), 0), physical)],
                 Towns = saved.Towns!.Select(town =>
                 {
                     var residents = town.ResidentIds.Where(id => id != First).ToArray();
-                    var adults = residents.Where(id => society.Inhabitants.Any(person => person.Id == id &&
-                        person.Status == SocietyInhabitantStatus.Active &&
+                    var adults = residents.Where(id => society.Agents.Any(person => person.Id == id &&
+                        person.Status == SocietyAgentStatus.Active &&
                         person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder));
                     // Complete the council transition that follows death in the normal runtime.
                     return town with
                     {
                         ResidentIds = residents,
-                        Governance = TownGovernanceRules.Advance(town.Governance!, town.Id, saved.WorldSeed,
+                        Council = TownCouncilRules.Advance(town.Council!, town.Id, saved.WorldSeed,
                             adults, society.WorldTick, saved.WorldSystems!.Config.TicksPerDay),
                     };
                 }).ToArray(),
@@ -51,10 +51,10 @@ public sealed partial class PlayerRenameTests
                 item.Summary == "I was renamed on day 1 to Élodie Shore.");
         }
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.Throws<InhabitantNameTakenException>(() => world.RenameAgent(Second, proposed));
+        Assert.Throws<AgentNameTakenException>(() => world.RenameAgent(Second, proposed));
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.True(world.RenameAgent(Second, "Marin Lake"));
-        Assert.True(world.Society.GetInhabitant(Second).HasChosenName);
+        Assert.True(world.Society.GetAgent(Second).HasChosenName);
     }
 
     [Theory]
@@ -70,7 +70,7 @@ public sealed partial class PlayerRenameTests
             {
                 Society = saved.Society.Society with
                 {
-                    Inhabitants = saved.Society.Society.Inhabitants.Select(person =>
+                    Agents = saved.Society.Society.Agents.Select(person =>
                         person.Id is First or Second ? person with { Name = "New agent" } : person).ToArray(),
                 },
             },
@@ -85,24 +85,24 @@ public sealed partial class PlayerRenameTests
                 },
             };
         using var world = WorldRuntime.Restore(saved);
-        Assert.Equal(!namingClosed, world.Society.GetInhabitant(First).NeedsName);
-        Assert.False(world.Society.GetInhabitant(First).HasChosenName);
-        Assert.False(world.Society.GetInhabitant(Second).HasChosenName);
+        Assert.Equal(!namingClosed, world.Society.GetAgent(First).NeedsName);
+        Assert.False(world.Society.GetAgent(First).HasChosenName);
+        Assert.False(world.Society.GetAgent(Second).HasChosenName);
         Assert.True(world.RenameAgent(First, "New agent"));
-        Assert.False(world.Society.GetInhabitant(First).NeedsName);
-        Assert.True(world.Society.GetInhabitant(First).HasChosenName);
-        Assert.Equal("New agent", world.Society.GetInhabitant(First).Name);
-        Assert.Equal(!namingClosed, world.Society.GetInhabitant(Second).NeedsName);
+        Assert.False(world.Society.GetAgent(First).NeedsName);
+        Assert.True(world.Society.GetAgent(First).HasChosenName);
+        Assert.Equal("New agent", world.Society.GetAgent(First).Name);
+        Assert.Equal(!namingClosed, world.Society.GetAgent(Second).NeedsName);
         var beforeRetry = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False(world.RenameAgent(First, "New agent"));
         Assert.Equal(beforeRetry, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.True(world.RenameAgent(First, "NEW AGENT"));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(
             WorldRuntimeCodec.Encode(world.ExportState())));
-        Assert.True(restored.Society.GetInhabitant(First).HasChosenName);
-        Assert.False(restored.Society.GetInhabitant(Second).HasChosenName);
+        Assert.True(restored.Society.GetAgent(First).HasChosenName);
+        Assert.False(restored.Society.GetAgent(Second).HasChosenName);
         var beforeConflict = WorldRuntimeCodec.Encode(restored.ExportState());
-        Assert.Throws<InhabitantNameTakenException>(() => restored.RenameAgent(Second, "New Lake"));
+        Assert.Throws<AgentNameTakenException>(() => restored.RenameAgent(Second, "New Lake"));
         Assert.Equal(beforeConflict, WorldRuntimeCodec.Encode(restored.ExportState()));
     }
 
@@ -122,11 +122,11 @@ public sealed partial class PlayerRenameTests
         };
         saved = saved with { Conversations = [conversation] };
         using var world = WorldRuntime.Restore(saved);
-        var person = world.Society.GetInhabitant(First);
+        var person = world.Society.GetAgent(First);
         Assert.True(world.RenameAgent(First, "Rowan Lake"));
         Assert.Contains(world.Society.Memories, memory => memory.OwnerId == First &&
             memory.Summary == "I was renamed on day 1 to Rowan Lake.");
-        Assert.Equal(person with { Name = "Rowan Lake" }, world.Society.GetInhabitant(First));
+        Assert.Equal(person with { Name = "Rowan Lake" }, world.Society.GetAgent(First));
         Assert.Equal(saved.Society.Society.Households, world.Society.Households);
         Assert.Equal(saved.Society.Society.Relationships, world.Society.Relationships);
         Assert.Equal(saved.Society.Society.Inventory, world.Society.Inventory);
@@ -136,7 +136,7 @@ public sealed partial class PlayerRenameTests
         var beforeRetry = WorldRuntimeCodec.Encode(restored.ExportState());
         Assert.False(restored.RenameAgent(First, "Rowan Lake"));
         Assert.Equal(beforeRetry, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal(First, restored.Society.GetInhabitant(First).Id);
+        Assert.Equal(First, restored.Society.GetAgent(First).Id);
         var history = restored.Society.Memories.Where(item => item.OwnerId == First).ToArray();
         Assert.Equal(2, history.Length);
         Assert.All(history, memory =>

@@ -40,25 +40,25 @@ public sealed partial class WorldRuntime
     private static string ExpansionMaterialReservationId(string jobId, int ordinal) => DerivedId.Create($"{jobId}:material:{ordinal}");
     private static string TreePlantingReceipt(string treeId) => DerivedId.Create("tree:plant:" + treeId);
     private static string ParenthoodRequestId(string actor, long requestedTick) => DerivedId.Create($"family:{actor}:{requestedTick}");
-    private static string SettlementPartnershipId(string actor, string target, long tick) => DerivedId.Create($"settlement-partnership:{actor}:{target}:{tick}");
-    private static string SettlementCareId(string actor, string target, long tick) => DerivedId.Create($"settlement-care:{actor}:{target}:{tick}");
+    private static string NewPartnershipId(string actor, string target, long tick) => DerivedId.Create($"partnership:{actor}:{target}:{tick}");
+    private static string NewCareRelationshipId(string actor, string target, long tick) => DerivedId.Create($"care-relationship:{actor}:{target}:{tick}");
     private static string SoloHouseholdId(string actor, long tick) => DerivedId.Create($"household:solo:{actor}:{tick}");
     private static string DepartureTransferId(string actor, long tick, int ordinal, string lot) => DerivedId.Create($"departure:{actor}:{tick}:{ordinal}:{lot}");
     private static string PersonalMoveId(string actor, long tick, string lot) => DerivedId.Create($"personal:{actor}:{tick}:{lot}");
     private static string ChildSocialMemoryId(string kind, string actor, string target, long tick) =>
         DerivedId.Create($"child-social:{kind}:{actor}:{target}:{tick}", $"child-social:{kind}:sha256:");
-    private static string LessonGratitudeMemoryId(string student, string teacher, SettlementSkillKind skill) =>
+    private static string LessonGratitudeMemoryId(string student, string teacher, SkillKind skill) =>
         DerivedId.Create($"lesson-gratitude:{student}:{teacher}:{skill}", "lesson-gratitude:sha256:");
     private static string ProjectGratitudeMemoryId(string requester, string helper) =>
         DerivedId.Create($"project-gratitude:{requester}:{helper}", "project-gratitude:sha256:");
-    private static string SettlementTrustMemoryId(string owner, string subject) =>
-        DerivedId.Create($"settlement-trust:{owner}:{subject}", "settlement-trust:sha256:");
+    private static string TrustMemoryId(string owner, string subject) =>
+        DerivedId.Create($"trust-memory:{owner}:{subject}", "trust-memory:sha256:");
     private static string CartRepairReservationId(long tick, string actor, string material) => DerivedId.Create($"cart-repair:{tick}:{actor}:{material}");
     private static string NativeCartRepairId(long tick, string actor, string cart) => DerivedId.Create($"repair-handcart:{tick}:{actor}:{cart}");
     private static string FoodPotTransferId(long tick, string actor) => DerivedId.Create($"food-pot:{tick}:{actor}");
     private static string RoadRouteId(string town, string building) => DerivedId.Create($"road:{town}:{building}");
-    private static string SettlementTradeOfferId(long tick, string actor, string other) => DerivedId.Create($"{SettlementTradePrefix}{tick}:{actor}:{other}");
-    private static string BusinessTradeOfferId(long tick, string actor, string building) => DerivedId.Create($"{BusinessTradePrefix}{tick}:{actor}:{building}");
+    private static string DirectBarterOfferId(long tick, string actor, string other) => DerivedId.Create($"{DirectBarterPrefix}{tick}:{actor}:{other}");
+    private static string ShopTradeOfferId(long tick, string actor, string building) => DerivedId.Create($"{ShopTradePrefix}{tick}:{actor}:{building}");
     private static string WritingProjectId(string actor, long tick, int reservationCount) =>
         DerivedId.Hash($"{actor}|{tick}|{reservationCount}", "knowledge-work-");
     private static string WritingMaterialReservationId(string project, int ordinal) => DerivedId.Create($"{project}:{ordinal}");
@@ -105,10 +105,10 @@ public sealed partial class WorldRuntime
         DerivedId.Hash($"{rider}:{tick}:{eventId}:{lot}", "dismount-cargo-", 24);
     private static string AnimalOfferId(string actor, string animal, long tick, long eventId) =>
         DerivedId.Hash($"{actor}:{animal}:{tick}:{eventId}", "animal-offer-", 24);
-    private static string AutomaticBuildingId(string inhabitant, BuildingDefinition definition) =>
-        inhabitant.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
-            ? DerivedId.Create($"build-{inhabitant}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")
-            : DerivedId.Hash(inhabitant + "\n" + definition.CanonicalId, "build-v2-");
+    private static string AutomaticBuildingId(string agent, BuildingDefinition definition) =>
+        agent.All(character => char.IsLower(character) || char.IsDigit(character) || character is '.' or '-' or '_')
+            ? DerivedId.Create($"build-{agent}-{definition.PackageDigest[7..15]}-{definition.LocalId}", "build-sha256-")
+            : DerivedId.Hash(agent + "\n" + definition.CanonicalId, "build-v2-");
     private static string ReplacementBuildingId(string original, int replacement) =>
         DerivedId.Hash(original + "\n" + replacement.ToString(CultureInfo.InvariantCulture), "build-replacement-");
     private static string TownSalvageOperationId(long tick, string actor, string candidate) =>
@@ -116,8 +116,8 @@ public sealed partial class WorldRuntime
     private static string DeveloperVesselUnitId(string source, int ordinal) => DerivedId.Create(source + ":" + ordinal);
     private static string BoatTripId(string town, string origin, string destination) =>
         DerivedId.Hash(JsonSerializer.Serialize(new[] { town, origin, destination }), BoatTripPrefix);
-    private static string NonviolentRemedyChoiceId(string town, string agreement, string term) =>
-        DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Agreement = agreement, Term = term }), NonviolentRemedyPrefix);
-    private static string NonviolentRelayChoiceId(string town, string act, string listener) =>
-        DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Act = act, Listener = listener }), NonviolentRelayPrefix);
+    private static string NonLandRemedyChoiceId(string town, string agreement, string term) =>
+        DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Agreement = agreement, Term = term }), NonLandRemedyPrefix);
+    private static string NonLandRelayChoiceId(string town, string act, string listener) =>
+        DerivedId.Hash(JsonSerializer.Serialize(new { Town = town, Act = act, Listener = listener }), NonLandRelayPrefix);
 }

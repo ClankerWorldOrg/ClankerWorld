@@ -20,17 +20,17 @@ public sealed partial class GrownAgentHelperMemoryTests
         var society = initial.Society.Society;
         var participants = nativeBorn
             ? society.Births.OrderBy(birth => birth.CommittedTick).Select(birth => birth.ChildId)
-                .Where(id => society.GetInhabitant(id).Status == SocietyInhabitantStatus.Active &&
-                    society.GetInhabitant(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).TakeLast(2).ToArray()
-            : society.Inhabitants.Where(person => person.HouseholdId == "household:camp-alpha" &&
-                    person.Status == SocietyInhabitantStatus.Active && !society.Births.Any(birth => birth.ChildId == person.Id))
+                .Where(id => society.GetAgent(id).Status == SocietyAgentStatus.Active &&
+                    society.GetAgent(id).AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder).TakeLast(2).ToArray()
+            : society.Agents.Where(person => person.HouseholdId == "household:camp-alpha" &&
+                    person.Status == SocietyAgentStatus.Active && !society.Births.Any(birth => birth.ChildId == person.Id))
                 .Take(2).Select(person => person.Id).ToArray();
         Assert.Equal(2, participants.Length);
         var requester = participants[0];
         var helper = participants[1];
         Assert.InRange(requester.Length, 1, DerivedId.MaximumLength);
         Assert.InRange(helper.Length, 1, DerivedId.MaximumLength);
-        var household = Assert.IsType<string>(society.GetInhabitant(requester).HouseholdId);
+        var household = Assert.IsType<string>(society.GetAgent(requester).HouseholdId);
         var house = initial.WorldSimulation!.Buildings.First(building => building.HouseholdId == household &&
             initial.WorldContent!.Buildings.Single(definition => definition.CanonicalId == building.DefinitionId)
                 .Tags.Contains("house", StringComparer.Ordinal));
@@ -56,10 +56,10 @@ public sealed partial class GrownAgentHelperMemoryTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = initial.Society with { Society = society with { Inventory = inventory } },
-            Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == requester
+            Agents = initial.Agents.Select(person => person.AgentId == requester
                 ? person with
                 {
-                    Project = new SettlementProject("build:recipe:" + rope.CanonicalId, rope.DisplayName, society.WorldTick,
+                    Project = new AgentProject("build:recipe:" + rope.CanonicalId, rope.DisplayName, society.WorldTick,
                         "paused", Blocker: "Awaiting fiber", LastTransitionTick: society.WorldTick, RequiresFreshChoice: true),
                     LastDecisionContext = null,
                 }
@@ -106,8 +106,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 Assert.Equal(0, world.DestinationRoom(house.InstanceId));
                 for (var tick = 0; tick < 8; tick++) await Step();
-                Assert.Contains(choices.Observations, observation => observation.InhabitantId == helper);
-                Assert.DoesNotContain(choices.Observations.Where(observation => observation.InhabitantId == helper),
+                Assert.Contains(choices.Observations, observation => observation.AgentId == helper);
+                Assert.DoesNotContain(choices.Observations.Where(observation => observation.AgentId == helper),
                     observation => observation.Candidates.Any(candidate => candidate.Id == "assist:fiber"));
                 Assert.Equal(0, choices.AssistChosen);
                 Assert.DoesNotContain(world.Society.Memories, Gratitude);
@@ -127,10 +127,10 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Null(delivered.DeliveryBuildingId);
             Assert.Equal(SocietyMemoryKind.Relationship, memory.Kind);
             Assert.Equal("public", memory.Visibility);
-            Assert.Equal($"Grateful for {society.GetInhabitant(helper).Name}'s help with project materials.", memory.Summary);
-            var standing = Assert.Single(world.Inhabitants.Single(person => person.InhabitantId == requester).SocialStanding!,
+            Assert.Equal($"Grateful for {society.GetAgent(helper).Name}'s help with project materials.", memory.Summary);
+            var standing = Assert.Single(world.Agents.Single(person => person.AgentId == requester).SocialStanding!,
                 item => item.SubjectId == helper);
-            var previousTrust = initial.Inhabitants.Single(person => person.InhabitantId == requester)
+            var previousTrust = initial.Agents.Single(person => person.AgentId == requester)
                 .SocialStanding?.SingleOrDefault(item => item.SubjectId == helper)?.Trust ?? 0;
             Assert.Equal(Math.Min(10, previousTrust + 2), standing.Trust);
             Assert.Equal(memory.SourceTick, standing.LastChangedTick);
@@ -144,15 +144,15 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal(memory, Assert.Single(restored.Society.Memories, Gratitude));
             Assert.Equal(delivered, restored.Society.Inventory.GetLot(fiber));
             restored.SubmitInstruction(new("project-recall-guidance", "owner:test", requester,
-                OwnerInstructionKind.Suggestive, memory.Summary));
+                OwnerInstructionKind.Suggestion, memory.Summary));
             using var resumedHost = new WorldRuntimeService(restored, reloadFile, presence);
-            for (var tick = 0; tick < 12 && !capture.Observations.Any(observation => observation.InhabitantId == requester &&
+            for (var tick = 0; tick < 12 && !capture.Observations.Any(observation => observation.AgentId == requester &&
                      observation.WorldTick > memory.SourceTick); tick++)
             {
                 Assert.True(await resumedHost.TryAdvanceOnceAsync());
                 await WaitForRequests(restored);
             }
-            var observation = capture.Observations.First(item => item.InhabitantId == requester && item.WorldTick > memory.SourceTick);
+            var observation = capture.Observations.First(item => item.AgentId == requester && item.WorldTick > memory.SourceTick);
             observation.Validate();
             var recalled = Assert.Single(observation.RetrievedMemories!, item => item.Id == memory.Id);
             Assert.Equal((memory.Summary, memory.SourceTick, "public"), (recalled.Summary, recalled.SourceTick, recalled.Visibility));
@@ -181,7 +181,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             // Ordinary inventory processing advances its timestamp, while the
             // delivered quantity, owner and physical custody remain unchanged.
             Assert.Equal(delivered with { LastProcessedTick = original.WorldTick }, original.Society.Inventory.GetLot(fiber));
-            Assert.Equal(standing, Assert.Single(original.Inhabitants.Single(person => person.InhabitantId == requester)
+            Assert.Equal(standing, Assert.Single(original.Agents.Single(person => person.AgentId == requester)
                 .SocialStanding!, item => item.SubjectId == helper));
             Assert.Single(original.ExportState().Events, item => item.Kind == handoff.Kind && item.Detail == handoff.Detail);
         }
@@ -190,7 +190,7 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     private sealed class ProjectRecallChoices(string? helper) : IDecisionProvider
     {
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public int AssistChosen;
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 0;
@@ -198,10 +198,10 @@ public sealed partial class GrownAgentHelperMemoryTests
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             Observations.Enqueue(request.Observation);
-            var selected = request.Observation.InhabitantId == helper &&
+            var selected = request.Observation.AgentId == helper &&
                 request.Observation.Candidates.Any(candidate => candidate.Id == "assist:fiber") ? "assist:fiber" : "safe_idle";
             if (selected == "assist:fiber") Interlocked.Increment(ref AssistChosen);
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.InhabitantId,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, request.Observation.AgentId,
                 Kind, ProviderEpoch, request.Observation.RunEpoch, request.Observation.DecisionGeneration,
                 request.Observation.ObservationDigest, selected, 1, request.Observation.Candidates.ToDictionary(candidate => candidate.Id,
                     candidate => candidate.Id == selected ? 1d : 0d, StringComparer.Ordinal)));

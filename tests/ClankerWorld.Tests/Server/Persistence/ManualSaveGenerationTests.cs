@@ -23,7 +23,7 @@ public sealed class ManualSaveGenerationTests
             runtime.Pause();
             var store = new ManualWorldSaveStore(path);
             var oldSettings = new WorldAutosaveSettings(runtime.Society.WorldId, true, 5, 5, DateTimeOffset.UtcNow, 0);
-            var oldAssignments = new InhabitantProviderAssignment[] { new("founder-scout", "planning", "openai", "old-model") };
+            var oldAssignments = new AgentProviderAssignment[] { new("founder-scout", "planning", "openai", "old-model") };
             var name = finalCharacter is null ? "Selected"
                 : new string('W', prefixLength) + finalCharacter + new string('W', 80 - prefixLength - finalCharacter.Length);
             var recoveryName = finalCharacter is null ? "Before overwriting: Selected"
@@ -32,7 +32,7 @@ public sealed class ManualSaveGenerationTests
             var original = WorldRuntimeCodec.Encode(store.Read(save.Id));
             runtime.SetJevEnabled(false);
             var newSettings = oldSettings with { Enabled = false, IntervalMinutes = 1 };
-            var newAssignments = new InhabitantProviderAssignment[] { oldAssignments[0] with { Model = "new-model" } };
+            var newAssignments = new AgentProviderAssignment[] { oldAssignments[0] with { Model = "new-model" } };
             var first = store.Overwrite(save.Id, runtime, newAssignments, newSettings);
             Assert.Single(CheckpointFiles(path, save.Id));
             var reopened = new ManualWorldSaveStore(path);
@@ -106,7 +106,7 @@ public sealed class ManualSaveGenerationTests
             runtime.Pause();
             var store = new ManualWorldSaveStore(path);
             var settings = new WorldAutosaveSettings(runtime.Society.WorldId, true, 5, 5, DateTimeOffset.UtcNow, 0);
-            var assignments = new InhabitantProviderAssignment[] { new("founder-scout", "planning", "openai", "old-model") };
+            var assignments = new AgentProviderAssignment[] { new("founder-scout", "planning", "openai", "old-model") };
             var save = store.Create("Selected", runtime, assignments, settings);
             var original = WorldRuntimeCodec.Encode(store.Read(save.Id));
             runtime.SetJevEnabled(false);

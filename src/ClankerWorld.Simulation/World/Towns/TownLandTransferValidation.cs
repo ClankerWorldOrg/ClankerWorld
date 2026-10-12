@@ -7,9 +7,9 @@ namespace ClankerWorld.Simulation.World;
 
 public static class TownLandTransferValidation
 {
-    public static void Validate(WorldMap map, long tick, string townId, TownLandHearingState state,
+    public static void Validate(WorldMap map, long tick, string townId, TownLandRecords state,
         IReadOnlyList<HouseholdLandUseRight> currentRights, IReadOnlyList<TownLandTitleRecord> titles,
-        IReadOnlySet<string> agents, IReadOnlySet<string> households, TownGovernanceState? council)
+        IReadOnlySet<string> agents, IReadOnlySet<string> households, TownCouncilState? council)
     {
         Check(state.Transfers is not null && state.Transfers.All(request => request is not null), "Saved voluntary transfer records must be present.");
         Check(state.Transfers.Select(request => request.Id).Distinct(StringComparer.Ordinal).Count() == state.Transfers.Count,
@@ -99,7 +99,7 @@ public static class TownLandTransferValidation
         }
     }
 
-    public static void ValidateSalePayments(WorldMap map, TownLandHearingState state, InventoryCheckpoint inventory)
+    public static void ValidateSalePayments(WorldMap map, TownLandRecords state, InventoryCheckpoint inventory)
     {
         foreach (var request in state.Transfers.Where(item => item.Price is not null && item.Status == "transferred"))
         {
@@ -130,7 +130,7 @@ public static class TownLandTransferValidation
         }
     }
 
-    public static void ValidateAdjustment(WorldMap map, TownLandHearingState state, TownLandRightAdjustment adjustment)
+    public static void ValidateAdjustment(WorldMap map, TownLandRecords state, TownLandRightAdjustment adjustment)
     {
         var request = state.Transfers.SingleOrDefault(item => item.Id == adjustment.TransferId);
         Check(request is { Status: "transferred", Receipt: { } } && request.Receipt.AdjustmentId == adjustment.Id &&

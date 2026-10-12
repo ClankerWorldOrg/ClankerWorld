@@ -26,7 +26,7 @@ public partial class Main
         var ilya = PanelSmokeAgent("world-info-ilya", "Ilya", new OwnerWorldPosition(2, 1));
         var snapshot = shown with
         {
-            Inhabitants = [mira, ilya],
+            Agents = [mira, ilya],
             Towns = [new OwnerWorldTown("town:river", "Riverbend", "founded", 0, [mira.Id, ilya.Id], [], [new OwnerWorldPosition(1, 1)])],
             Stockpiles =
             [
@@ -84,7 +84,7 @@ public partial class Main
             // Many notes make the Town details scroll inside a panel that stays on screen.
             RenderTownExtras(snapshot with
             {
-                Inhabitants = [mira with { SocialNotes = [.. Enumerable.Range(1, 2).Select(index => $"Talked with Ilya about the harvest, part {index}.")] },
+                Agents = [mira with { SocialNotes = [.. Enumerable.Range(1, 2).Select(index => $"Talked with Ilya about the harvest, part {index}.")] },
                     .. Enumerable.Range(0, 30).Select(index => PanelSmokeAgent($"world-info-{index}", $"Agent {index}", new OwnerWorldPosition(index % 8, 2)) with
                     {
                         SocialNotes = [$"Agent {index} shared food with a neighbour and planned tomorrow's work."],
@@ -105,12 +105,12 @@ public partial class Main
         }
     }
 
-    private async Task VerifyTownPortraitRefreshAsync(OwnerWorldSnapshot snapshot, OwnerWorldInhabitant resident)
+    private async Task VerifyTownPortraitRefreshAsync(OwnerWorldSnapshot snapshot, OwnerWorldAgent resident)
     {
         var child = resident with { DisplayName = "Robin0 Vale", DecisionFactors = [new("age-band", "child")] };
         var catalog = snapshot with
         {
-            Inhabitants = [.. snapshot.Inhabitants.Where(person => person.Id != child.Id), child],
+            Agents = [.. snapshot.Agents.Where(person => person.Id != child.Id), child],
             Towns = [snapshot.Towns[0], .. Enumerable.Range(1, 20).Select(index =>
                 snapshot.Towns[0] with { Id = $"town:portrait-{index}", Name = $"Portrait Town {index}", ResidentIds = [] })],
         };
@@ -139,7 +139,7 @@ public partial class Main
             if (Portrait(child.DisplayName).GetInstanceId() != beforeId)
                 throw new InvalidOperationException("An unchanged Town observation must reuse its resident portrait.");
             child = child with { DisplayName = "Liora Vale" };
-            catalog = catalog with { Inhabitants = [.. catalog.Inhabitants.Select(person => person.Id == child.Id ? child : person)] };
+            catalog = catalog with { Agents = [.. catalog.Agents.Select(person => person.Id == child.Id ? child : person)] };
             RenderTownList(catalog); await Settle();
             var renamed = Portrait("Liora Vale");
             if (renamed.GetInstanceId() == beforeId || !Pixels(renamed).SequenceEqual(childPixels) ||
@@ -150,12 +150,12 @@ public partial class Main
             if (Portrait("Liora Vale").GetInstanceId() != renamed.GetInstanceId())
                 throw new InvalidOperationException("After a rename, unchanged observations must reuse the refreshed portrait.");
             child = child with { DecisionFactors = [new("age-band", "adult")] };
-            catalog = catalog with { Inhabitants = [.. catalog.Inhabitants.Select(person => person.Id == child.Id ? child : person)] };
+            catalog = catalog with { Agents = [.. catalog.Agents.Select(person => person.Id == child.Id ? child : person)] };
             RenderTownList(catalog);
             var adultPixels = Pixels(Portrait("Liora Vale"));
             if (adultPixels.SequenceEqual(childPixels)) throw new InvalidOperationException("A resident's changed age band must still refresh the portrait art.");
             child = child with { Lifecycle = "deceased" };
-            catalog = catalog with { Inhabitants = [.. catalog.Inhabitants.Select(person => person.Id == child.Id ? child : person)] };
+            catalog = catalog with { Agents = [.. catalog.Agents.Select(person => person.Id == child.Id ? child : person)] };
             RenderTownList(catalog);
             if (Pixels(Portrait("Liora Vale")).SequenceEqual(adultPixels))
                 throw new InvalidOperationException("A resident's death must still refresh the portrait background.");
@@ -225,7 +225,7 @@ public partial class Main
         // Each independently changing count must invalidate its derived grid.
         Func<OwnerWorldSnapshot, OwnerWorldSnapshot>[] changes =
         [
-            value => value with { Inhabitants = [value.Inhabitants[0]] },
+            value => value with { Agents = [value.Agents[0]] },
             value => value with { Towns = [] },
             value => value with { Stockpiles = [] },
             value => value with { PlacedBuildings = [.. value.PlacedBuildings, new("world-info-building", "test-building", new(0, 0), 0)] },

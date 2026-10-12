@@ -10,7 +10,7 @@ public sealed class SwimmingCartRepairReturnTests
     {
         using var generated = NormalPathWorld.CreateGenerated("cart-cargo-orders", _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await generated.AdvanceOneTickAsync()).Advanced);
-        return WorldRuntimeCodec.Encode(SettlementWeatherTestFixture.WithWeather(generated.ExportState(), WeatherKind.Clear));
+        return WorldRuntimeCodec.Encode(WeatherTestFixture.WithWeather(generated.ExportState(), WeatherKind.Clear));
     });
 
     [Theory]
@@ -20,14 +20,14 @@ public sealed class SwimmingCartRepairReturnTests
     {
         var state = WorldRuntimeCodec.Decode(await Fixture.Value);
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == FoodCapacityTestFixture.House);
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == house.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == house.HouseholdId).Id;
         Assert.True(state.Map.IsPassable(house.Position));
-        Assert.DoesNotContain(state.Inhabitants, person => person.InhabitantId != actor && person.Position == house.Position);
+        Assert.DoesNotContain(state.Agents, person => person.AgentId != actor && person.Position == house.Position);
         var remote = state.Map.Resources.OrderBy(resource => state.Map.FootDistance(resource.Position, house.Position))
             .First(resource => state.Map.IsPassable(resource.Position) &&
                 !state.Map.IsReachableOnFoot(resource.Position, house.Position) &&
                 SwimmingRules.IsReachable(state.Map, resource.Position, house.Position) &&
-                state.Inhabitants.All(person => person.Position != resource.Position)).Position;
+                state.Agents.All(person => person.Position != resource.Position)).Position;
         var cartPosition = footReturn ? house.Position : remote;
         Assert.Equal(footReturn, state.Map.IsReachableOnFoot(house.Position, cartPosition));
         Assert.True(SwimmingRules.IsReachable(state.Map, house.Position, cartPosition));
@@ -49,10 +49,10 @@ public sealed class SwimmingCartRepairReturnTests
         Assert.True(PersonalEquipmentRules.Capacity(inventory, actor, null) > SwimmingRules.MaximumCarriedUnits);
         state = FarmFieldTests.WithInventory(state, inventory) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor ? person with
+            Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
                 Position = house.Position,
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Survival = new(10_000),
                 Equipment = null,
                 Project = null,
@@ -62,12 +62,12 @@ public sealed class SwimmingCartRepairReturnTests
             } : person).ToArray(),
         };
         using var world = WorldRuntime.Restore(state, _ => new ActionCoverageRecorder(chooseIdle: true));
-        world.SubmitInstruction(new("swim-repair-order", "owner:test", actor, OwnerInstructionKind.MustDo,
+        world.SubmitInstruction(new("swim-repair-order", "owner:test", actor, OwnerInstructionKind.Order,
             "Repair cart swim-repair-cart"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(footReturn ? actor : house.HouseholdId, world.Society.Inventory.GetLot("swim-repair-rope").OwnerId);
         Assert.Equal(footReturn ? 5 : 4, PersonalEquipmentRules.CarriedQuantity(world.Society.Inventory, actor, null));
-        var order = Assert.Single(world.ExportState().Instructions!).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal("swim-repair-cart", order.TargetCartLotId);
         Assert.Equal(0, order.CompletedUnits);
         Assert.Null(order.LastEffectId);

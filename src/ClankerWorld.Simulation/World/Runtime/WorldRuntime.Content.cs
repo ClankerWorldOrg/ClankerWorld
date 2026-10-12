@@ -95,10 +95,10 @@ public sealed partial class WorldRuntime
                 throw new InvalidOperationException("Initial content is available only to a fresh paused generated world.");
             ContentPackageManifest[] manifests =
             [
-                StarterContent.Create(), SettlementContent.Create(), HouseContent.Create(), HouseToolsContent.Create(),
+                StarterContent.Create(), HearthContent.Create(), HouseContent.Create(), HouseToolsContent.Create(),
                 WarehouseContent.Create(), FarmContent.Create(), BlacksmithContent.Create(),
                 HouseCookingContent.Create(), PotteryContent.Create(), SiloContent.Create(), TailorContent.Create(),
-                RestaurantContent.Create(), BusinessContent.Create(), CareContent.Create(), OrnamentContent.Create(), TownHallContent.Create(),
+                RestaurantContent.Create(), StoreContent.Create(), CareContent.Create(), OrnamentContent.Create(), TownHallContent.Create(),
                 KnowledgeContent.Create(), MarketContent.Create(), StreetLanternContent.Create(), PortContent.Create(),
                 FarmhouseVariantContent.Create(), BlacksmithVariantContent.Create(), TailorVariantContent.Create(),
                 ClinicVariantContent.Create(), RestaurantVariantContent.Create(), AnimalContent.Create(),
@@ -368,8 +368,8 @@ public sealed partial class WorldRuntime
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The workstation has no free production capacity.");
             var workPosition = placed.Position;
 
-            var worker = society.Checkpoint.Inhabitants.SingleOrDefault(item => item.Id == normalizedWorkerId);
-            if (worker is null || worker.Status != SocietyInhabitantStatus.Active)
+            var worker = society.Checkpoint.Agents.SingleOrDefault(item => item.Id == normalizedWorkerId);
+            if (worker is null || worker.Status != SocietyAgentStatus.Active)
             {
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The production worker is not active.");
             }
@@ -397,7 +397,7 @@ public sealed partial class WorldRuntime
                 return ProductionStartResult.Rejected(normalizedRecipeId,
                     MissingProductionIngredients(recipe, worker.HouseholdId!, placed!.InstanceId));
 
-            if (!inhabitants.TryGetValue(normalizedWorkerId, out var physical) || physical.Position != workPosition)
+            if (!agents.TryGetValue(normalizedWorkerId, out var physical) || physical.Position != workPosition)
             {
                 return ProductionStartResult.Rejected(normalizedRecipeId, "The worker must be standing at the build site.");
             }
@@ -469,7 +469,7 @@ public sealed partial class WorldRuntime
             var manifest = GetContentManifest(packageId);
             if (towns.SelectMany(town => town.Projects).Any(project => project.Plan.DefinitionId
                     .StartsWith(manifest.PackageDigest + "/", StringComparison.Ordinal)) ||
-                towns.SelectMany(town => town.Governance?.Proposals ?? []).Any(proposal =>
+                towns.SelectMany(town => town.Council?.Proposals ?? []).Any(proposal =>
                     proposal.Status is "pending" or "passed" && proposal.Project is { } plan &&
                     plan.DefinitionId.StartsWith(manifest.PackageDigest + "/", StringComparison.Ordinal)))
                 throw new InvalidOperationException("This content is referenced by retained Town construction approvals and material receipts.");
@@ -479,22 +479,22 @@ public sealed partial class WorldRuntime
                     packageRecipes.Contains(request.RecipeId)))
                 throw new InvalidOperationException("Content referenced by active tool requests requires an explicit migration before removal.");
             var remainingSimulation = WorldContentSimulationRules.RemovePackage(worldSimulation, manifest.PackageDigest);
-            if (inhabitants.Values.Any(person => person.Project is { } project &&
+            if (agents.Values.Any(person => person.Project is { } project &&
                 (project.CandidateId.StartsWith($"build:building:{manifest.PackageDigest}/", StringComparison.Ordinal) ||
                  project.CandidateId.StartsWith($"build:recipe:{manifest.PackageDigest}/", StringComparison.Ordinal))))
             {
-                throw new InvalidOperationException("Content referenced by settlement projects requires an explicit migration before removal.");
+                throw new InvalidOperationException("Content referenced by agent projects requires an explicit migration before removal.");
             }
             var remainingContent = ContentDefinitionApplicator.RemovePackage(worldContent, manifest.PackageDigest);
             var completed = completedInstructionIds.ToArray();
-            var people = society.Checkpoint.Inhabitants.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
+            var people = society.Checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
             // Cancelled orders remain checkpoint history and still need their original content targets.
             if (instructionsByIdempotency.Values.Any(instruction =>
-                instruction.Order is { Action: "produce_item" or "deliver_stock" or "construct_building" or "expand_building" } order &&
+                instruction.Task is { Action: "produce_item" or "deliver_stock" or "construct_building" or "expand_building" } order &&
                 !IsValidSavedOrder(order, instruction, completed, people, WorldTick, remainingContent)))
                 throw new InvalidOperationException("Content referenced by owner orders requires an explicit migration before removal.");
             if (instructionsByIdempotency.Values.Any(instruction =>
-                instruction.Order?.ShelterBinding?.DefinitionId is { } definitionId &&
+                instruction.Task?.ShelterBinding?.DefinitionId is { } definitionId &&
                 !remainingContent.Buildings.Any(definition => definition.CanonicalId == definitionId)))
                 throw new InvalidOperationException("Content referenced by shelter orders requires an explicit migration before removal.");
             var record = contentRegistry.Rollback(packageId, WorldTick, reason);

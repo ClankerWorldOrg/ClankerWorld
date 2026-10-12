@@ -90,8 +90,8 @@ public sealed partial class WorldDeliveryOrderTests
         state = initial.ExportState();
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "urgent-berries", "berries", actor, 1)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
         };
         using var world = Restore(state);
         await Tick(world);
@@ -197,7 +197,7 @@ public sealed partial class WorldDeliveryOrderTests
             Assert.Throws<InvalidDataException>(() => Restore(saved with
             {
                 Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Order = bad } : item).ToArray(),
+                    ? item with { Task = bad } : item).ToArray(),
             }));
         var provider = new DeliveryChoices(DecisionProviderKind.LargeLanguageModel);
         using var unsupported = WorldRuntime.Restore(state, id => id == actor ? provider : new DeliveryChoices());

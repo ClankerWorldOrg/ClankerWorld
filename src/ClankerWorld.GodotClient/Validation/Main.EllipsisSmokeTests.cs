@@ -80,17 +80,17 @@ public partial class Main
             SocialNotes = [$"Talked with Rowan{ellipsis} briefly."],
             Project = new OwnerWorldProject("Kiln", "building", 1, 10, $"Waiting for clay{ellipsis}", 0),
         };
-        var snapshot = shown with { Inhabitants = [ash] };
-        var council = new OwnerTownGovernance("assembly", "none", ["Ash"], null, 0, [],
+        var snapshot = shown with { Agents = [ash] };
+        var council = new OwnerTownCouncil("assembly", "none", ["Ash"], null, 0, [],
             [new OwnerCivicProposal("ellipsis-proposal", "law", $"Share the harvest{ellipsis}", "passed", 1, 0, 1, 0)], null);
-        var selected = selectedInhabitantId;
+        var selected = selectedAgentId;
         // An Event Log row looks its event up for the icon; use an id no real event has.
         const long EventId = -2026;
-        knownEvents[EventId] = new OwnerWorldEvent(EventId, 1, "inhabitant_spoke", ash.Id, null);
+        knownEvents[EventId] = new OwnerWorldEvent(EventId, 1, "agent_spoke", ash.Id, null);
         try
         {
-            selectedInhabitantId = ash.Id;
-            RenderSelectedInhabitantCard(snapshot);
+            selectedAgentId = ash.Id;
+            RenderSelectedAgentCard(snapshot);
             RenderTownExtras(snapshot);
             RenderEventRows([(EventId, false, "08:00", $"Ash said{ellipsis} hello")], false);
             RenderModLibrary(snapshot with
@@ -108,8 +108,8 @@ public partial class Main
                 ["Mod Library"] = ModLibraryText(),
                 ["status"] = statusLabel.Text,
                 ["Event Log"] = string.Join("\n", eventRows.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>().Select(label => label.Text)),
-                ["council"] = TownCivicText(shown.Towns.Count > 0 ? shown.Towns[0] with { Governance = council } :
-                    new OwnerWorldTown("town:ellipsis", "Ellipsis", "founded", 0, [], [], []) { Governance = council }, 0),
+                ["council"] = TownCivicText(shown.Towns.Count > 0 ? shown.Towns[0] with { Council = council } :
+                    new OwnerWorldTown("town:ellipsis", "Ellipsis", "founded", 0, [], [], []) { Council = council }, 0),
             };
             var wrong = texts.Where(pair => pair.Value.Contains(ellipsis, StringComparison.Ordinal) || !pair.Value.Contains("...", StringComparison.Ordinal))
                 .Select(pair => $"{pair.Key}: {pair.Value.ReplaceLineEndings(" / ")}").ToArray();
@@ -119,8 +119,8 @@ public partial class Main
         finally
         {
             knownEvents.Remove(EventId);
-            selectedInhabitantId = selected;
-            RenderSelectedInhabitantCard(shown);
+            selectedAgentId = selected;
+            RenderSelectedAgentCard(shown);
             RenderTownExtras(shown);
             RenderModLibrary(shown);
             statusToast.Hide();

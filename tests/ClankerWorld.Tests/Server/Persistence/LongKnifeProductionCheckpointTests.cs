@@ -29,8 +29,8 @@ public sealed partial class LongInventoryActionCheckpointTests
             JevEnabled = false,
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == Actor ? person with
-            { Position = house.Position, HungerBasisPoints = 10_000, Survival = new() } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == Actor ? person with
+            { Position = house.Position, FullnessBasisPoints = 10_000, Survival = new() } : person).ToArray(),
         };
         Assert.Equal(lotId, ToolProgressionRules.PlanWork(inventory, Actor, ToolFamily.Knife)!.ToolLotId);
         var choices = new CookingOrderChoices();
@@ -42,7 +42,7 @@ public sealed partial class LongInventoryActionCheckpointTests
         var potatoes = Quantity(world, house.HouseholdId!, "potatoes");
         var wood = Quantity(world, house.HouseholdId!, "wood");
         var knives = inventory.Lots.Where(lot => lot.OwnerId == Actor && lot.ItemKind == "iron_knife").Sum(lot => lot.Quantity);
-        var receipt = world.SubmitInstruction(new("cook-lineage", "owner:test", Actor, OwnerInstructionKind.MustDo, "cook house potato meal"));
+        var receipt = world.SubmitInstruction(new("cook-lineage", "owner:test", Actor, OwnerInstructionKind.Order, "cook house potato meal"));
         Assert.Equal("produce_item", Order(world, receipt.InstructionId).Action);
         using var host = new CheckpointHost(world);
         for (var tick = 0; tick < 30 && world.WorldSimulation.ProductionJobs.Count == 0; tick++)

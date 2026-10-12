@@ -18,7 +18,7 @@ public partial class Main
         {
             WorldId = map.WorldId + ":stock",
             PackedTerrain = map.PackedTerrain! with { Data = Convert.ToBase64String(new byte[256 * 128]) },
-            Inhabitants = [],
+            Agents = [],
             Objects = [],
             Resources = [],
             Fields = [],

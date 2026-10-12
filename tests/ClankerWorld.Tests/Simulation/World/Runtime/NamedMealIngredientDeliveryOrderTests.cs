@@ -11,7 +11,7 @@ public sealed partial class WorldDeliveryOrderTests
         WithBuilding(Restaurant, RestaurantContent.Restaurant1x2().CanonicalId));
     private const string MealStore = "named-meal-store";
     private static readonly Lazy<byte[]> MealStoreBaseline = new(() => WithBuilding(MealStore,
-        ContentDefinitionPayloadCodec.ApplyPackage(new([], []), BusinessContent.Create()).Buildings
+        ContentDefinitionPayloadCodec.ApplyPackage(new([], []), StoreContent.Create()).Buildings
             .Single(building => building.LocalId == "store-1x1").CanonicalId));
 
     [Theory]

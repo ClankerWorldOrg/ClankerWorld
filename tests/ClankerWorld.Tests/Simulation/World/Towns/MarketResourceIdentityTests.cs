@@ -15,11 +15,11 @@ public sealed class MarketResourceIdentityTests
     public async Task LongResourceStockAndPaymentSurviveNativeMarketPhases(int resourceLength)
     {
         var state = await PaidMarketWorld.StateAsync();
-        var seller = state.Society.Society.Inhabitants.First(person => person.HouseholdId is not null &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
+        var seller = state.Society.Society.Agents.First(person => person.HouseholdId is not null &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
-        var buyer = state.Society.Society.Inhabitants.First(person => person.HouseholdId is not null && person.HouseholdId != household &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
+        var buyer = state.Society.Society.Agents.First(person => person.HouseholdId is not null && person.HouseholdId != household &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand == SocietyAgeBand.Adult).Id;
         var stockKind = new string('x', resourceLength);
         var paymentKind = new string('y', resourceLength);
         new ContentQuantity(stockKind, 2).Validate();
@@ -69,7 +69,7 @@ public sealed class MarketResourceIdentityTests
                 // Every actual position, lot, offer, receipt and occupancy remains intact.
                 using var world = WorldRuntime.Restore(initial with
                 {
-                    Inhabitants = initial.Inhabitants.Select(person => person.InhabitantId == buyer || person.InhabitantId == seller
+                    Agents = initial.Agents.Select(person => person.AgentId == buyer || person.AgentId == seller
                         ? person with { LastDecisionContext = null } : person).ToArray(),
                 }, policy.CreateProvider);
                 file.Save(world);

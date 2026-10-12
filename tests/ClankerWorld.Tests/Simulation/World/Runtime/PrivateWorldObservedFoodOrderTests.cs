@@ -11,22 +11,22 @@ public sealed partial class WorldRuntimeTests
     [InlineData(true, "fruit")]
     public async Task FullMapMemoryDoesNotBlockAnObservedFoodHarvestAcrossReload(bool orchard, string kind)
     {
-        using var setup = CreateHarvestInstructionWorld(orchard, hungerBasisPoints: 9_500);
+        using var setup = CreateHarvestInstructionWorld(orchard, fullnessBasisPoints: 9_500);
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = FullFoodOrderMemory(setup.ExportState());
-        var actor = state.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var actor = state.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         var target = state.Map.Resources.Where(resource => orchard ? resource.TreeKind == "orchard" : resource.Id == "berry-patch")
             .OrderBy(resource => state.Map.FootDistance(actor.Position, resource.Position)).First();
         using var ordered = WorldRuntime.Restore(state, _ => new DeterministicDecisionProvider());
         ordered.Validate();
         var receipt = ordered.SubmitInstruction(new OwnerInstructionRequest("observed-food", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, $"gather {kind} from {target.Id}"));
+            HarvestInstructionActor, OwnerInstructionKind.Order, $"gather {kind} from {target.Id}"));
         var checkpoint = WorldRuntimeCodec.Encode(ordered.ExportState());
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(checkpoint), _ => new DeterministicDecisionProvider());
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var harvested = world.ExportState();
-        var order = harvested.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = harvested.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal("finished", order.Status);
         Assert.Equal(1, order.CompletedUnits);
         Assert.Contains(receipt.InstructionId, harvested.CompletedInstructionIds!);
@@ -38,7 +38,7 @@ public sealed partial class WorldRuntimeTests
             WorldRuntimeCodec.Encode(harvested)), _ => new DeterministicDecisionProvider());
         replayed.Resume();
         Assert.True((await replayed.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(1, replayed.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!.CompletedUnits);
+        Assert.Equal(1, replayed.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!.CompletedUnits);
         Assert.Single(replayed.ExportState().Events, item => item.Kind == "instruction_applied" && item.Detail == receipt.InstructionId + ":harvest_food");
         replayed.Validate();
     }
@@ -48,13 +48,13 @@ public sealed partial class WorldRuntimeTests
     [InlineData(true)]
     public async Task FullMapMemoryKeepsUnobservedExactFoodTargetsPrivate(bool nameResource)
     {
-        using var setup = CreateHarvestInstructionWorld(orchard: false, hungerBasisPoints: 9_500);
+        using var setup = CreateHarvestInstructionWorld(orchard: false, fullnessBasisPoints: 9_500);
         Assert.True((await setup.AdvanceOneTickAsync()).Advanced);
         var state = FullFoodOrderMemory(setup.ExportState());
-        var actor = state.Inhabitants.Single(person => person.InhabitantId == HarvestInstructionActor);
+        var actor = state.Agents.Single(person => person.AgentId == HarvestInstructionActor);
         var target = state.Map.Resources.First(resource => resource.Kind == "food" &&
             state.Map.FootDistance(actor.Position, resource.Position) > 20 && state.Map.IsReachableOnFoot(actor.Position, resource.Position));
-        var other = state.Inhabitants.First(person => person.InhabitantId != HarvestInstructionActor).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != HarvestInstructionActor).AgentId;
         var otherFact = new AgentKnowledgeFact("other-food-order-site", other, other, target.Position,
             state.Map.TerrainKindAt(target.Position)!.Value.ToString(), ["berries"], state.Society.Society.WorldTick, "firsthand");
         state = state with { Knowledge = state.Knowledge! with { Facts = state.Knowledge.Facts.Append(otherFact).ToArray() } };
@@ -65,11 +65,11 @@ public sealed partial class WorldRuntimeTests
         var food = target.NaturalObjectKind == "wild_greens" ? "wild greens" : "berries";
         var text = nameResource ? $"gather {food} from {target.Id}" : $"gather {food} at ({target.Position.X},{target.Position.Y})";
         var receipt = world.SubmitInstruction(new OwnerInstructionRequest("private-food", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.MustDo, text));
+            HarvestInstructionActor, OwnerInstructionKind.Order, text));
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var final = world.ExportState();
-        var order = final.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        var order = final.Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
         Assert.Equal(0, order.CompletedUnits);
         Assert.DoesNotContain(receipt.InstructionId, final.CompletedInstructionIds!);
         Assert.DoesNotContain(world.Society.Inventory.Lots, lot => lot.OwnerId == HarvestInstructionActor && lot.ItemKind is "berries" or "wild_greens");
@@ -91,7 +91,7 @@ public sealed partial class WorldRuntimeTests
         Assert.Equal(AgentKnowledgeRules.MaximumFactsPerAgent, facts.Length);
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == HarvestInstructionActor
+            Agents = state.Agents.Select(person => person.AgentId == HarvestInstructionActor
                 ? person with { Survival = new SurvivalCondition() } : person).ToArray(),
             Knowledge = state.Knowledge! with
             {

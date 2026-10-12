@@ -242,7 +242,7 @@ public sealed partial class WorldFireOrderTests
 
     private static WorldRuntimeState Prepared(bool walking = false, int fuel = 2)
     {
-        var state = SettlementWeatherTestFixture.WithWeather(ShelterOrderTestFixture.Prepared(), WeatherKind.Clear);
+        var state = WeatherTestFixture.WithWeather(ShelterOrderTestFixture.Prepared(), WeatherKind.Clear);
         var actor = Actor(state);
         var house = House(state);
         if (walking)
@@ -270,9 +270,9 @@ public sealed partial class WorldFireOrderTests
         return replay;
     }
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text, Queue: queue));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static int Wood(WorldRuntime world, string id) => world.Society.Inventory.Lots.Where(item => item.Id == id).Sum(item => item.Quantity);
     private static async Task Tick(WorldRuntime world) => Assert.True((await world.AdvanceOneTickAsync()).Advanced);
     private static async Task TickTogether(WorldRuntime world, WorldRuntime replay)
@@ -321,7 +321,7 @@ public sealed partial class WorldFireOrderTests
             }
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(item => item.Id == "tend_fire")
                 ? "tend_fire" : "safe_idle";
-            return new(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

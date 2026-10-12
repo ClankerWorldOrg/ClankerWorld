@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace ClankerWorld.Simulation.World;
 
-internal sealed record CivicState(SettlementCouncil? Council, ReadOnlyCollection<TownRuntimeState> Towns)
+internal sealed record CivicState(FoodStewardship? FoodStewardship, ReadOnlyCollection<TownRuntimeState> Towns)
 {
     internal FounderSetupState? FounderSetup { get; init; }
     internal ReadOnlyCollection<TownLandTitleRecord> TownLandTitles { get; init; } = Array.AsReadOnly(Array.Empty<TownLandTitleRecord>());

@@ -31,7 +31,7 @@ public static class HouseContent
                 [new("basket", 1)], 20, house.CanonicalId, ["carry-aid"]),
         ];
         return StarterContent.BuildManifest(PackageId, version, digest, [house], recipes,
-            [new ContentDependency(SettlementContent.PackageId,
+            [new ContentDependency(HearthContent.PackageId,
                 new ContentVersionRange(version, ContentVersion.Parse("2.0.0")))]);
     }
 }

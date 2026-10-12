@@ -17,7 +17,7 @@ public static partial class SocietyRules
     /// Creates an adult of the given age at world tick 0, or at the adult
     /// threshold when no age is given. The age must lie in the arrival range.
     /// </summary>
-    public static SocietyInhabitant CreateFounder(
+    public static SocietyAgent CreateFounder(
         string id,
         string name,
         string? providerBindingId = null,
@@ -33,11 +33,11 @@ public static partial class SocietyRules
             throw new ArgumentOutOfRangeException(nameof(startingAge));
         }
 
-        return new SocietyInhabitant(
+        return new SocietyAgent(
             NormalizeRequiredText(id, nameof(id)),
             NormalizeRequiredText(name, nameof(name)),
             checked(-age * effectiveConfig.TicksPerLifecycleAge),
-            SocietyInhabitantStatus.Active,
+            SocietyAgentStatus.Active,
             effectiveConfig.AgeBandAt(age),
             ValidateBasisPoints(healthBasisPoints, nameof(healthBasisPoints)),
             null,
@@ -51,14 +51,14 @@ public static partial class SocietyRules
 
     public static SocietyCheckpoint CreateGenesis(
         string worldId,
-        IEnumerable<SocietyInhabitant>? founders = null,
+        IEnumerable<SocietyAgent>? founders = null,
         IEnumerable<InventoryLot>? lots = null,
         SocietyConfig? config = null,
         string? worldDefaultProviderBindingId = null)
     {
         var effectiveConfig = config ?? new SocietyConfig();
         effectiveConfig.Validate();
-        var inhabitants = (founders ??
+        var agents = (founders ??
                 [CreateFounder("founder-scout", "Scout", config: effectiveConfig)])
             .Select(person => person with
             {
@@ -68,7 +68,7 @@ public static partial class SocietyRules
             })
             .OrderBy(item => item.Id, StringComparer.Ordinal)
             .ToArray();
-        ValidateInhabitants(inhabitants, effectiveConfig, 0);
+        ValidateAgents(agents, effectiveConfig, 0);
         var inventory = InventoryAuthority.CreateGenesis(lots ?? []);
         return new SocietyCheckpoint(
             NormalizeRequiredText(worldId, nameof(worldId)),
@@ -77,7 +77,7 @@ public static partial class SocietyRules
             false,
             effectiveConfig,
             NormalizeOptionalText(worldDefaultProviderBindingId),
-            inhabitants,
+            agents,
             [],
             [],
             [],
@@ -99,7 +99,7 @@ public static partial class SocietyRules
         var householdName = NormalizeRequiredText(name, nameof(name));
         var requestedMembers = memberIds?.ToArray() ?? throw new ArgumentNullException(nameof(memberIds));
         var members = requestedMembers.Length == 0 && checkpoint.WorldTick == 0 &&
-            checkpoint.Inhabitants.Count == 0
+            checkpoint.Agents.Count == 0
                 ? []
                 : CanonicalIds(requestedMembers, nameof(memberIds));
         if (checkpoint.Households.Any(item => item.Id == id))
@@ -110,14 +110,14 @@ public static partial class SocietyRules
         foreach (var memberId in members)
         {
             EnsureActive(checkpoint, memberId);
-            if (checkpoint.GetInhabitant(memberId).HouseholdId is not null)
+            if (checkpoint.GetAgent(memberId).HouseholdId is not null)
             {
-                throw new InvalidOperationException("An inhabitant cannot join a second primary household.");
+                throw new InvalidOperationException("An agent cannot join a second primary household.");
             }
         }
 
         var household = new SocietyHousehold(id, householdName, members, []);
-        var inhabitants = checkpoint.Inhabitants.Select(item => members.Contains(item.Id, StringComparer.Ordinal)
+        var agents = checkpoint.Agents.Select(item => members.Contains(item.Id, StringComparer.Ordinal)
                 ? item with { HouseholdId = id }
                 : item)
             .OrderBy(item => item.Id, StringComparer.Ordinal)
@@ -142,7 +142,7 @@ public static partial class SocietyRules
 
         var next = checkpoint with
         {
-            Inhabitants = inhabitants,
+            Agents = agents,
             Households = checkpoint.Households.Append(household)
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             Relationships = relationships.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -152,14 +152,14 @@ public static partial class SocietyRules
 
     public static SocietyOperationResult PlaceFounder(
         SocietyCheckpoint checkpoint,
-        SocietyInhabitant founder,
+        SocietyAgent founder,
         string householdId)
     {
         Validate(checkpoint);
         ArgumentNullException.ThrowIfNull(founder);
         if (checkpoint.WorldTick != 0 || !checkpoint.IsPaused ||
-            founder.Status != SocietyInhabitantStatus.Active || founder.HouseholdId is not null ||
-            checkpoint.Inhabitants.Any(person => person.Id == founder.Id))
+            founder.Status != SocietyAgentStatus.Active || founder.HouseholdId is not null ||
+            checkpoint.Agents.Any(person => person.Id == founder.Id))
             throw new InvalidOperationException("A founder can only be placed once during paused world setup.");
         var household = checkpoint.GetHousehold(householdId);
         var memberIds = household.MemberIds.Append(founder.Id).Order(StringComparer.Ordinal).ToArray();
@@ -172,7 +172,7 @@ public static partial class SocietyRules
             new[] { householdId, founder.Id }.Order(StringComparer.Ordinal).ToArray());
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Append(founder with
+            Agents = checkpoint.Agents.Append(founder with
             {
                 HouseholdId = householdId,
                 NeedsName = true,
@@ -193,8 +193,8 @@ public static partial class SocietyRules
         Validate(checkpoint);
         if (!checkpoint.IsPaused || checkpoint.WorldTick != 0)
             throw new InvalidOperationException("Founder placement can only be undone during paused setup.");
-        var founder = checkpoint.Inhabitants.SingleOrDefault(item => item.Id == founderId);
-        if (founder is null || founder.Status != SocietyInhabitantStatus.Active ||
+        var founder = checkpoint.Agents.SingleOrDefault(item => item.Id == founderId);
+        if (founder is null || founder.Status != SocietyAgentStatus.Active ||
             founder.HouseholdId is not { } householdId ||
             checkpoint.Relationships.Any(item =>
                 (item.ProposerId == founderId || item.TargetId == founderId) &&
@@ -203,7 +203,7 @@ public static partial class SocietyRules
             throw new InvalidOperationException("This founder cannot be removed from setup.");
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Where(item => item.Id != founderId).ToArray(),
+            Agents = checkpoint.Agents.Where(item => item.Id != founderId).ToArray(),
             // Undo removes this not-yet-started person, including their personal setup history.
             Memories = checkpoint.Memories.Where(item => item.OwnerId != founderId && item.SubjectId != founderId).ToArray(),
             Households = checkpoint.Households.Select(item => item.Id == householdId
@@ -216,12 +216,12 @@ public static partial class SocietyRules
     }
 
     public static SocietyOperationResult AddAdult(
-        SocietyCheckpoint checkpoint, string inhabitantId, string? householdId)
+        SocietyCheckpoint checkpoint, string agentId, string? householdId)
     {
         Validate(checkpoint);
-        var id = NormalizeRequiredText(inhabitantId, nameof(inhabitantId));
+        var id = NormalizeRequiredText(agentId, nameof(agentId));
         var home = householdId is null ? null : NormalizeRequiredText(householdId, nameof(householdId));
-        if (checkpoint.Inhabitants.Any(person => person.Id == id))
+        if (checkpoint.Agents.Any(person => person.Id == id))
             throw new InvalidOperationException("The new agent ID already exists.");
         var existingHousehold = home is null ? null :
             checkpoint.Households.FirstOrDefault(household => household.Id == home);
@@ -261,7 +261,7 @@ public static partial class SocietyRules
         }
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Append(person).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            Agents = checkpoint.Agents.Append(person).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             Households = households,
             Relationships = relationships,
         };
@@ -274,13 +274,13 @@ public static partial class SocietyRules
     /// the resulting membership.
     /// </summary>
     public static SocietyOperationResult JoinHousehold(
-        SocietyCheckpoint checkpoint, string inhabitantId, string householdId)
+        SocietyCheckpoint checkpoint, string agentId, string householdId)
     {
         Validate(checkpoint);
-        var id = NormalizeRequiredText(inhabitantId, nameof(inhabitantId));
+        var id = NormalizeRequiredText(agentId, nameof(agentId));
         var home = NormalizeRequiredText(householdId, nameof(householdId));
         EnsureActive(checkpoint, id);
-        if (checkpoint.GetInhabitant(id).HouseholdId is not null)
+        if (checkpoint.GetAgent(id).HouseholdId is not null)
             return Reject(checkpoint, "household_join_rejected", $"{id}:existing_household");
         var household = checkpoint.Households.FirstOrDefault(item => item.Id == home);
         if (household is null)
@@ -297,7 +297,7 @@ public static partial class SocietyRules
             "household", home, new[] { home, id }.Order(StringComparer.Ordinal).ToArray());
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person =>
+            Agents = checkpoint.Agents.Select(person =>
                 person.Id == id ? person with { HouseholdId = home } : person).ToArray(),
             Households = checkpoint.Households.Select(item => item.Id == home
                 ? item with
@@ -312,54 +312,54 @@ public static partial class SocietyRules
         return Commit(next, "household_joined", $"{id}:{home}", id);
     }
 
-    public static SocietyOperationResult RenameInhabitant(
-        SocietyCheckpoint checkpoint, string inhabitantId, string name)
+    public static SocietyOperationResult RenameAgent(
+        SocietyCheckpoint checkpoint, string agentId, string name)
     {
         Validate(checkpoint);
-        var id = NormalizeRequiredText(inhabitantId, nameof(inhabitantId));
+        var id = NormalizeRequiredText(agentId, nameof(agentId));
         var chosen = NormalizeRequiredText(name, nameof(name));
         if (chosen.Length > 48 || chosen.Any(char.IsControl))
             throw new ArgumentException("Choose a name of at most 48 characters without control characters.", nameof(name));
-        var existing = checkpoint.GetInhabitant(id);
+        var existing = checkpoint.GetAgent(id);
         if (existing.Name == chosen && existing.HasChosenName && !existing.NeedsName)
             return new SocietyOperationResult(checkpoint);
-        if (InhabitantNameRules.CanonicalKey(chosen) is null)
+        if (AgentNameRules.CanonicalKey(chosen) is null)
             throw new ArgumentException("Choose a valid name.", nameof(name));
-        if (InhabitantNameRules.IsTaken(checkpoint, id, chosen))
-            throw new InhabitantNameTakenException();
-        if (!InhabitantNameRules.IsAllowedChildName(checkpoint, id, chosen))
+        if (AgentNameRules.IsTaken(checkpoint, id, chosen))
+            throw new AgentNameTakenException();
+        if (!AgentNameRules.IsAllowedChildName(checkpoint, id, chosen))
             throw new ArgumentException("Choose one of the child's parents' surnames.", nameof(name));
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person =>
+            Agents = checkpoint.Agents.Select(person =>
                 person.Id == id ? person with { Name = chosen, NeedsName = false, HasChosenName = true } : person).ToArray(),
         };
-        if (existing.HasChosenName && InhabitantNameRules.SurnameKey(existing.Name) is not null &&
-            InhabitantNameRules.SurnameKey(chosen) is null &&
+        if (existing.HasChosenName && AgentNameRules.SurnameKey(existing.Name) is not null &&
+            AgentNameRules.SurnameKey(chosen) is null &&
             next.Relationships.Any(relationship => relationship.ProposerId == id &&
                 relationship.Type == SocietyRelationshipType.BiologicalParentage &&
                 relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.EndedByDeath &&
-                InhabitantNameRules.RequiresParentSurname(next, relationship.TargetId) &&
-                InhabitantNameRules.AllowedChildSurnames(next, relationship.TargetId).Count == 0))
+                AgentNameRules.RequiresParentSurname(next, relationship.TargetId) &&
+                AgentNameRules.AllowedChildSurnames(next, relationship.TargetId).Count == 0))
         {
             throw new ArgumentException("Keep a biological parent's surname available for each minor child.", nameof(name));
         }
-        return Commit(next, "inhabitant_renamed", id, id);
+        return Commit(next, "agent_renamed", id, id);
     }
 
     /// <summary>Ends automatic naming without promoting the retained placeholder to a chosen name.</summary>
-    public static SocietyOperationResult CloseNaming(SocietyCheckpoint checkpoint, string inhabitantId)
+    public static SocietyOperationResult CloseNaming(SocietyCheckpoint checkpoint, string agentId)
     {
         Validate(checkpoint);
-        var id = NormalizeRequiredText(inhabitantId, nameof(inhabitantId));
-        var existing = checkpoint.GetInhabitant(id);
+        var id = NormalizeRequiredText(agentId, nameof(agentId));
+        var existing = checkpoint.GetAgent(id);
         if (!existing.NeedsName) return new SocietyOperationResult(checkpoint);
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person =>
+            Agents = checkpoint.Agents.Select(person =>
                 person.Id == id ? person with { NeedsName = false } : person).ToArray(),
         };
-        return Commit(next, "inhabitant_naming_closed", id, id);
+        return Commit(next, "agent_naming_closed", id, id);
     }
 
     public static SocietyOperationResult ProposeRelationship(
@@ -432,7 +432,7 @@ public static partial class SocietyRules
                 return Reject(checkpoint, "relationship_rejected", $"{relationshipId}:missing_household");
             }
 
-            if (checkpoint.GetInhabitant(relationship.TargetId).HouseholdId is not null)
+            if (checkpoint.GetAgent(relationship.TargetId).HouseholdId is not null)
             {
                 return Reject(checkpoint, "relationship_rejected", $"{relationshipId}:existing_household");
             }
@@ -524,19 +524,19 @@ public static partial class SocietyRules
 
     public static SocietyOperationResult AssignRole(
         SocietyCheckpoint checkpoint,
-        string inhabitantId,
+        string agentId,
         SocietyWorkRole role)
     {
         Validate(checkpoint);
-        EnsureActive(checkpoint, inhabitantId);
+        EnsureActive(checkpoint, agentId);
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(item => item.Id == inhabitantId
+            Agents = checkpoint.Agents.Select(item => item.Id == agentId
                     ? item with { CurrentRole = role }
                     : item)
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
         };
-        return Commit(next, "work_role_assigned", $"{inhabitantId}:{role}", inhabitantId);
+        return Commit(next, "work_role_assigned", $"{agentId}:{role}", agentId);
     }
 
     public static SocietyOperationResult RecordSocialMemory(
@@ -546,9 +546,9 @@ public static partial class SocietyRules
         Validate(checkpoint);
         ArgumentNullException.ThrowIfNull(memory);
         // A player can also rename a deceased person; their permanent history remains inspectable.
-        if (memory.Permanent) _ = checkpoint.GetInhabitant(memory.OwnerId);
+        if (memory.Permanent) _ = checkpoint.GetAgent(memory.OwnerId);
         else EnsureActive(checkpoint, memory.OwnerId);
-        if (!checkpoint.Inhabitants.Any(item => item.Id == memory.SubjectId) ||
+        if (!checkpoint.Agents.Any(item => item.Id == memory.SubjectId) ||
             checkpoint.AllMemories().Any(item => item.Id == memory.Id))
         {
             throw new InvalidOperationException("A social memory requires a known subject and unique ID.");
@@ -849,8 +849,8 @@ public static partial class SocietyRules
                 : Reject(checkpoint, "birth_rejected", $"{request.Id}:revision_conflict");
         }
 
-        var firstParent = checkpoint.GetInhabitant(request.FirstParentId);
-        var secondParent = checkpoint.GetInhabitant(request.SecondParentId);
+        var firstParent = checkpoint.GetAgent(request.FirstParentId);
+        var secondParent = checkpoint.GetAgent(request.SecondParentId);
         var household = checkpoint.GetHousehold(request.HouseholdId);
         if (!CanHaveChildren(firstParent) || !CanHaveChildren(secondParent) ||
             !request.ConsentingParentIds.OrderBy(item => item, StringComparer.Ordinal)
@@ -858,23 +858,23 @@ public static partial class SocietyRules
             !HasActivePartnership(checkpoint, firstParent.Id, secondParent.Id) ||
             request.PrimaryCaregiverId is not { } primaryCaregiverId ||
             primaryCaregiverId != firstParent.Id && primaryCaregiverId != secondParent.Id ||
-            checkpoint.GetInhabitant(primaryCaregiverId).HouseholdId != household.Id ||
+            checkpoint.GetAgent(primaryCaregiverId).HouseholdId != household.Id ||
             request.CaregiverIds.Count == 0 ||
             request.CaregiverIds.Any(id => !household.MemberIds.Contains(id, StringComparer.Ordinal) ||
-                !IsAdult(checkpoint.GetInhabitant(id))) ||
+                !IsAdult(checkpoint.GetAgent(id))) ||
             !request.CaregiverIds.Contains(primaryCaregiverId, StringComparer.Ordinal))
         {
             return Reject(checkpoint, "birth_rejected", $"{request.Id}:readiness_or_consent");
         }
 
-        var childId = DerivedId.Create($"{checkpoint.WorldId}:inhabitant:{request.Id}");
+        var childId = DerivedId.Create($"{checkpoint.WorldId}:agent:{request.Id}");
         if (request.ChildName is { } childName)
         {
-            if (InhabitantNameRules.CanonicalKey(childName) is null)
+            if (AgentNameRules.CanonicalKey(childName) is null)
                 throw new ArgumentException("Choose a valid child name.", nameof(request));
-            if (InhabitantNameRules.IsTaken(checkpoint, childId, childName))
-                throw new InhabitantNameTakenException();
-            if (!InhabitantNameRules.HasParentSurname(childName, [firstParent, secondParent]))
+            if (AgentNameRules.IsTaken(checkpoint, childId, childName))
+                throw new AgentNameTakenException();
+            if (!AgentNameRules.HasParentSurname(childName, [firstParent, secondParent]))
                 throw new ArgumentException("Choose one of the child's parents' surnames.", nameof(request));
         }
 
@@ -906,12 +906,12 @@ public static partial class SocietyRules
             return Reject(checkpoint, "birth_rejected", $"{request.Id}:reservation_failed");
         }
 
-        var primaryCaregiver = checkpoint.GetInhabitant(primaryCaregiverId);
-        var child = new SocietyInhabitant(
+        var primaryCaregiver = checkpoint.GetAgent(primaryCaregiverId);
+        var child = new SocietyAgent(
             childId,
             request.ChildName is null ? "Child" : NormalizeRequiredText(request.ChildName, nameof(request.ChildName)),
             checkpoint.WorldTick,
-            SocietyInhabitantStatus.Active,
+            SocietyAgentStatus.Active,
             SocietyAgeBand.Infant,
             10_000,
             household.Id,
@@ -945,7 +945,7 @@ public static partial class SocietyRules
         };
         var next = checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Append(child).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+            Agents = checkpoint.Agents.Append(child).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             Households = checkpoint.Households.Select(item => item.Id == household.Id ? updatedHousehold : item)
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             Relationships = relationships.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -971,17 +971,17 @@ public static partial class SocietyRules
         }
 
         var current = checkpoint;
-        var boundaryEvents = new List<(long Tick, string InhabitantId, int AgeYears)>();
-        foreach (var inhabitant in checkpoint.Inhabitants.Where(item => item.Status == SocietyInhabitantStatus.Active))
+        var boundaryEvents = new List<(long Tick, string AgentId, int AgeYears)>();
+        foreach (var agent in checkpoint.Agents.Where(item => item.Status == SocietyAgentStatus.Active))
         {
-            var oldAge = checkpoint.AgeAt(inhabitant, checkpoint.WorldTick);
-            var newAge = checkpoint.AgeAt(inhabitant, targetTick);
-            for (var age = Math.Max(oldAge + 1, inhabitant.LastLifecycleYearChecked + 1); age <= newAge; age++)
+            var oldAge = checkpoint.AgeAt(agent, checkpoint.WorldTick);
+            var newAge = checkpoint.AgeAt(agent, targetTick);
+            for (var age = Math.Max(oldAge + 1, agent.LastLifecycleYearChecked + 1); age <= newAge; age++)
             {
                 boundaryEvents.Add((
-                    checkpoint.LifeClock?.WorldTickFor(checked((inhabitant.BirthLifeTick ?? inhabitant.BirthTick) + age * checkpoint.Config.TicksPerLifecycleAge))
-                        ?? checked(inhabitant.BirthTick + age * checkpoint.Config.TicksPerLifecycleAge),
-                    inhabitant.Id,
+                    checkpoint.LifeClock?.WorldTickFor(checked((agent.BirthLifeTick ?? agent.BirthTick) + age * checkpoint.Config.TicksPerLifecycleAge))
+                        ?? checked(agent.BirthTick + age * checkpoint.Config.TicksPerLifecycleAge),
+                    agent.Id,
                     checked((int)age)));
             }
         }
@@ -998,10 +998,10 @@ public static partial class SocietyRules
 
             var transitionDetails = new List<string>();
             var mortalityIds = new List<string>();
-            foreach (var boundary in boundaryGroup.OrderBy(item => item.InhabitantId, StringComparer.Ordinal))
+            foreach (var boundary in boundaryGroup.OrderBy(item => item.AgentId, StringComparer.Ordinal))
             {
-                var inhabitant = current.GetInhabitant(boundary.InhabitantId);
-                if (inhabitant.Status != SocietyInhabitantStatus.Active)
+                var agent = current.GetAgent(boundary.AgentId);
+                if (agent.Status != SocietyAgentStatus.Active)
                 {
                     continue;
                 }
@@ -1009,7 +1009,7 @@ public static partial class SocietyRules
                 var nextBand = current.Config.AgeBandAt(boundary.AgeYears);
                 current = current with
                 {
-                    Inhabitants = current.Inhabitants.Select(item => item.Id == inhabitant.Id
+                    Agents = current.Agents.Select(item => item.Id == agent.Id
                             ? item with
                             {
                                 AgeBand = nextBand,
@@ -1018,26 +1018,26 @@ public static partial class SocietyRules
                             : item)
                         .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
                 };
-                if (nextBand != inhabitant.AgeBand)
+                if (nextBand != agent.AgeBand)
                 {
-                    transitionDetails.Add($"{inhabitant.Id}:{inhabitant.AgeBand}:{nextBand}");
+                    transitionDetails.Add($"{agent.Id}:{agent.AgeBand}:{nextBand}");
                 }
 
                 var risk = current.Config.NaturalMortalityRiskBasisPoints(boundary.AgeYears);
-                if (risk > 0 && MortalityRoll(current.WorldId, inhabitant.Id, boundary.AgeYears) < risk)
+                if (risk > 0 && MortalityRoll(current.WorldId, agent.Id, boundary.AgeYears) < risk)
                 {
-                    mortalityIds.Add(inhabitant.Id);
+                    mortalityIds.Add(agent.Id);
                 }
             }
 
             current = CommitMany(
                 current,
                 transitionDetails.Select(detail => ("age_band_transition", detail)));
-            foreach (var inhabitantId in mortalityIds)
+            foreach (var agentId in mortalityIds)
             {
-                if (current.GetInhabitant(inhabitantId).Status == SocietyInhabitantStatus.Active)
+                if (current.GetAgent(agentId).Status == SocietyAgentStatus.Active)
                 {
-                    current = Kill(current, inhabitantId, SocietyDeathCause.NaturalAge, current.WorldTick).Checkpoint;
+                    current = Kill(current, agentId, SocietyDeathCause.NaturalAge, current.WorldTick).Checkpoint;
                 }
             }
         }
@@ -1056,20 +1056,20 @@ public static partial class SocietyRules
 
     public static SocietyOperationResult Kill(
         SocietyCheckpoint checkpoint,
-        string inhabitantId,
+        string agentId,
         SocietyDeathCause cause,
         long? deathTick = null)
     {
         Validate(checkpoint);
-        var inhabitant = checkpoint.GetInhabitant(inhabitantId);
-        if (inhabitant.Status == SocietyInhabitantStatus.Dead)
+        var agent = checkpoint.GetAgent(agentId);
+        if (agent.Status == SocietyAgentStatus.Dead)
         {
             return new SocietyOperationResult(checkpoint, null, []);
         }
 
         var tick = deathTick ?? checkpoint.WorldTick;
         ArgumentOutOfRangeException.ThrowIfLessThan(tick, checkpoint.WorldTick);
-        return Kill(checkpoint with { WorldTick = tick }, inhabitantId, cause, tick);
+        return Kill(checkpoint with { WorldTick = tick }, agentId, cause, tick);
     }
 
     public static SocietyOperationResult MarkWillStarted(SocietyCheckpoint checkpoint, string estateId)
@@ -1146,8 +1146,8 @@ public static partial class SocietyRules
         if (heirs is null || heirs.Count is 0 or > CognitionWillContext.MaximumNamedHeirs ||
             heirs.Distinct(StringComparer.Ordinal).Count() != heirs.Count ||
             heirs.Any(id => id == estate.DeceasedId || !townHeirIds.Contains(id) &&
-                !checkpoint.Inhabitants.Any(person => person.Id == id &&
-                    (!requireLivingHeirs || person.Status == SocietyInhabitantStatus.Active))) ||
+                !checkpoint.Agents.Any(person => person.Id == id &&
+                    (!requireLivingHeirs || person.Status == SocietyAgentStatus.Active))) ||
             directive.Split is not (CognitionWillContext.EqualSplit or CognitionWillContext.ItemSplit) ||
             directive.Split == CognitionWillContext.EqualSplit && directive.LotHeirs is { Count: > 0 })
             return null;
@@ -1235,7 +1235,7 @@ public static partial class SocietyRules
         {
             throw new InvalidDataException("The biological life clock is invalid.");
         }
-        ValidateInhabitants(checkpoint.Inhabitants, checkpoint.Config, checkpoint.WorldTick, checkpoint.LifeClock);
+        ValidateAgents(checkpoint.Agents, checkpoint.Config, checkpoint.WorldTick, checkpoint.LifeClock);
         EnsureCanonicalIds(checkpoint.Households.Select(item => item.Id), "households");
         EnsureCanonicalIds(checkpoint.Relationships.Select(item => item.Id), "relationships");
         EnsureCanonicalIds(checkpoint.Organizations.Select(item => item.Id), "organizations");
@@ -1243,7 +1243,7 @@ public static partial class SocietyRules
         ValidateMemoryArchive(checkpoint);
         foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.StartsWith("player-rename:", StringComparison.Ordinal)))
         {
-            if (!memory.Permanent || !checkpoint.Inhabitants.Any(person => person.Id == memory.OwnerId) || memory.SubjectId != memory.OwnerId ||
+            if (!memory.Permanent || !checkpoint.Agents.Any(person => person.Id == memory.OwnerId) || memory.SubjectId != memory.OwnerId ||
                 memory.Visibility != "private" || memory.TombstonedTick is not null ||
                 memory.SourceTick < 0 || memory.SourceTick > checkpoint.WorldTick ||
                 !IsCanonicalBoundedText(memory.Summary, 256))
@@ -1256,12 +1256,12 @@ public static partial class SocietyRules
         EnsureCanonicalIds(checkpoint.Births.Select(item => item.RequestId), "births");
         foreach (var birth in checkpoint.Births)
         {
-            var child = checkpoint.Inhabitants.SingleOrDefault(person => person.Id == birth.ChildId);
+            var child = checkpoint.Agents.SingleOrDefault(person => person.Id == birth.ChildId);
             if (birth.Revision <= 0 || birth.CommittedTick < 0 || birth.CommittedTick > checkpoint.WorldTick ||
                 string.IsNullOrWhiteSpace(birth.PrimaryCaregiverId) ||
                 string.IsNullOrWhiteSpace(birth.HouseholdId) ||
                 string.IsNullOrWhiteSpace(birth.DomesticFamilyUnitId) || child is null ||
-                !checkpoint.Inhabitants.Any(person => person.Id == birth.PrimaryCaregiverId) ||
+                !checkpoint.Agents.Any(person => person.Id == birth.PrimaryCaregiverId) ||
                 !checkpoint.Households.Any(household => household.Id == birth.HouseholdId) ||
                 !checkpoint.Relationships.Any(relationship =>
                     relationship.Type == SocietyRelationshipType.BiologicalParentage &&
@@ -1271,8 +1271,8 @@ public static partial class SocietyRules
         foreach (var estate in checkpoint.Estates)
         {
             if (estate.CreatedTick < 0 || estate.ExpiryTick < estate.CreatedTick ||
-                !checkpoint.Inhabitants.Any(item => item.Id == estate.DeceasedId &&
-                    item.Status == SocietyInhabitantStatus.Dead) ||
+                !checkpoint.Agents.Any(item => item.Id == estate.DeceasedId &&
+                    item.Status == SocietyAgentStatus.Dead) ||
                 estate.WillStatus is not (null or "pending" or "accepted" or "default") ||
                 !IsValidWill(checkpoint, estate))
                 throw new InvalidDataException("An estate record is malformed.");
@@ -1289,9 +1289,9 @@ public static partial class SocietyRules
         {
             EnsureCanonicalIds(household.MemberIds, $"household:{household.Id}:members");
             EnsureCanonicalIds(household.CaregiverIds, $"household:{household.Id}:caregivers");
-            if (household.MemberIds.Any(id => !checkpoint.Inhabitants.Any(item => item.Id == id)))
+            if (household.MemberIds.Any(id => !checkpoint.Agents.Any(item => item.Id == id)))
             {
-                throw new InvalidDataException("Households cannot reference unknown inhabitants.");
+                throw new InvalidDataException("Households cannot reference unknown agents.");
             }
         }
 
@@ -1365,7 +1365,7 @@ public static partial class SocietyRules
             if (string.IsNullOrWhiteSpace(compaction.OwnerId) || compaction.OwnerId != compaction.OwnerId.Trim() ||
                 compaction.OwnerId.Any(char.IsControl) || compaction.Sources is null ||
                 compaction.Sources.Count is < 1 or > 256 ||
-                !checkpoint.Inhabitants.Any(item => item.Id == compaction.OwnerId))
+                !checkpoint.Agents.Any(item => item.Id == compaction.OwnerId))
                 throw new InvalidDataException("An agent memory compaction is malformed.");
 
             var expected = compaction.Sources.OrderBy(item => item.Kind)
@@ -1417,10 +1417,10 @@ public static partial class SocietyRules
             throw new InvalidDataException("An agent belief has invalid bounded fields.");
 
         index ??= new SocietyBeliefValidationIndex(checkpoint);
-        if (!index.KnowsInhabitant(belief.OwnerId) ||
-            belief.SourceAgentId is { } sourceAgent && !index.KnowsInhabitant(sourceAgent) ||
-            belief.AboutInhabitantId is { } subject && !index.KnowsInhabitant(subject))
-            throw new InvalidDataException("An agent belief references an unknown inhabitant.");
+        if (!index.KnowsAgent(belief.OwnerId) ||
+            belief.SourceAgentId is { } sourceAgent && !index.KnowsAgent(sourceAgent) ||
+            belief.AboutAgentId is { } subject && !index.KnowsAgent(subject))
+            throw new InvalidDataException("An agent belief references an unknown agent.");
 
         if ((belief.Provenance == SocietyBeliefProvenance.Hearsay &&
              (belief.SourceAgentId is null || belief.SourceAgentId == belief.OwnerId)) ||
@@ -1446,7 +1446,7 @@ public static partial class SocietyRules
         Statement = NormalizeBeliefStatement(belief.Statement),
         SourceAgentId = NormalizeOptionalText(belief.SourceAgentId),
         SourceTurnId = NormalizeOptionalText(belief.SourceTurnId),
-        AboutInhabitantId = NormalizeOptionalText(belief.AboutInhabitantId),
+        AboutAgentId = NormalizeOptionalText(belief.AboutAgentId),
         SupersedesBeliefId = NormalizeOptionalText(belief.SupersedesBeliefId),
         SupersededByBeliefId = NormalizeOptionalText(belief.SupersededByBeliefId),
     };
@@ -1485,7 +1485,7 @@ public static partial class SocietyRules
         if (estate.WillHeirIds is not { Count: > 0 and <= CognitionWillContext.MaximumNamedHeirs } heirs ||
             heirs.Distinct(StringComparer.Ordinal).Count() != heirs.Count ||
             heirs.Any(id => string.IsNullOrWhiteSpace(id) || id == estate.DeceasedId ||
-                !id.StartsWith("town:", StringComparison.Ordinal) && !checkpoint.Inhabitants.Any(person => person.Id == id)) ||
+                !id.StartsWith("town:", StringComparison.Ordinal) && !checkpoint.Agents.Any(person => person.Id == id)) ||
             estate.WillSplit is not (CognitionWillContext.EqualSplit or CognitionWillContext.ItemSplit) ||
             estate.FrozenLots is not { } frozen || estate.WillBequests is not { } bequests ||
             bequests.Any(item => item.Quantity <= 0 || !heirs.Contains(item.HeirId, StringComparer.Ordinal)) ||
@@ -1533,26 +1533,26 @@ public static partial class SocietyRules
 
     private static SocietyOperationResult Kill(
         SocietyCheckpoint checkpoint,
-        string inhabitantId,
+        string agentId,
         SocietyDeathCause cause,
         long deathTick)
     {
-        var inhabitant = checkpoint.GetInhabitant(inhabitantId);
-        var estateId = EstateId(inhabitant.Id, deathTick);
+        var agent = checkpoint.GetAgent(agentId);
+        var estateId = EstateId(agent.Id, deathTick);
         var householdBeneficiaries = checkpoint.Households
-            .Where(household => household.MemberIds.Contains(inhabitant.Id, StringComparer.Ordinal))
+            .Where(household => household.MemberIds.Contains(agent.Id, StringComparer.Ordinal))
             .SelectMany(household => household.MemberIds.Concat(household.CaregiverIds))
-            .Where(id => id != inhabitant.Id)
-            .Where(id => checkpoint.GetInhabitant(id).Status == SocietyInhabitantStatus.Active)
+            .Where(id => id != agent.Id)
+            .Where(id => checkpoint.GetAgent(id).Status == SocietyAgentStatus.Active)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(id => id, StringComparer.Ordinal)
             .ToArray();
-        var frozenLots = checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == inhabitant.Id)
+        var frozenLots = checkpoint.Inventory.Lots.Where(lot => lot.OwnerId == agent.Id)
             .OrderBy(lot => lot.Id, StringComparer.Ordinal)
             .Select(lot => new SocietyEstateLot(lot.Id, lot.ItemKind, lot.Quantity, lot.StorageBuildingId)).ToArray();
-        var inventory = MoveOwnedLotsToEstate(checkpoint.Inventory, inhabitant.Id, estateId, deathTick);
+        var inventory = MoveOwnedLotsToEstate(checkpoint.Inventory, agent.Id, estateId, deathTick);
         var relationships = checkpoint.Relationships.Select(relationship =>
-                relationship.ProposerId == inhabitant.Id || relationship.TargetId == inhabitant.Id
+                relationship.ProposerId == agent.Id || relationship.TargetId == agent.Id
                     ? relationship with
                     {
                         State = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
@@ -1568,22 +1568,22 @@ public static partial class SocietyRules
         var next = checkpoint with
         {
             WorldTick = deathTick,
-            Inhabitants = checkpoint.Inhabitants.Select(item => item.Id == inhabitant.Id
+            Agents = checkpoint.Agents.Select(item => item.Id == agent.Id
                     ? item with
                     {
-                        Status = SocietyInhabitantStatus.Dead,
+                        Status = SocietyAgentStatus.Dead,
                         HealthBasisPoints = 0,
                         DeathTick = deathTick,
                         DeathCause = cause,
                     }
-                    : item.PrimaryCaregiverId == inhabitant.Id
+                    : item.PrimaryCaregiverId == agent.Id
                         ? item with { PrimaryCaregiverId = null }
                         : item)
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             Relationships = relationships,
             Estates = checkpoint.Estates.Append(new SocietyEstate(
                     estateId,
-                    inhabitant.Id,
+                    agent.Id,
                     deathTick,
                     checked(deathTick + checkpoint.Config.EstateEscrowDays *
                         (long)checkpoint.Config.TicksPerWorldDay),
@@ -1592,9 +1592,9 @@ public static partial class SocietyRules
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
             Inventory = inventory,
         };
-        var result = Commit(next, "death_committed", $"{inhabitant.Id}:{cause}:{deathTick}", inhabitant.Id);
+        var result = Commit(next, "death_committed", $"{agent.Id}:{cause}:{deathTick}", agent.Id);
         foreach (var relationship in relationships.Where(item =>
-                     (item.ProposerId == inhabitant.Id || item.TargetId == inhabitant.Id) &&
+                     (item.ProposerId == agent.Id || item.TargetId == agent.Id) &&
                      item.State == SocietyRelationshipState.EndedByDeath))
         {
             result = Commit(result.Checkpoint, "relationship_ended_by_death", relationship.Id);
@@ -1636,8 +1636,8 @@ public static partial class SocietyRules
                      item.WillStatus != "pending" && item.ExpiryTick <= targetTick)
                      .OrderBy(item => item.Id, StringComparer.Ordinal))
         {
-            bool IsLiving(string id) => current.Inhabitants.Any(item =>
-                item.Id == id && item.Status == SocietyInhabitantStatus.Active);
+            bool IsLiving(string id) => current.Agents.Any(item =>
+                item.Id == id && item.Status == SocietyAgentStatus.Active);
             var beneficiaries = estate.BeneficiaryIds
                 .Where(IsLiving)
                 .OrderBy(id => id, StringComparer.Ordinal).ToArray();
@@ -1799,7 +1799,7 @@ public static partial class SocietyRules
             };
             current = Commit(current, "estate_settled", estate.Id).Checkpoint;
             if (estate.FinalWords is not { } words) continue;
-            var speaker = current.GetInhabitant(estate.DeceasedId).Name;
+            var speaker = current.GetAgent(estate.DeceasedId).Name;
             foreach (var listener in listeners)
             {
                 var memoryId = FinalWordsMemoryId(estate.Id, listener);
@@ -1881,8 +1881,8 @@ public static partial class SocietyRules
 
     private static string? ResolveNewbornProvider(
         SocietyCheckpoint checkpoint,
-        SocietyInhabitant firstParent,
-        SocietyInhabitant secondParent,
+        SocietyAgent firstParent,
+        SocietyAgent secondParent,
         SocietyBirthRequest request) =>
         request.ProviderPolicy switch
         {
@@ -1930,18 +1930,18 @@ public static partial class SocietyRules
             : household.CaregiverIds;
         if (relationship.Type == SocietyRelationshipType.Caregiver &&
             relationship.State == SocietyRelationshipState.Accepted &&
-            checkpoint.GetInhabitant(relationship.TargetId) is { } dependent && IsYoungerDependent(dependent) &&
-            dependent.HouseholdId == household.Id && checkpoint.GetInhabitant(relationship.ProposerId).HouseholdId == household.Id &&
+            checkpoint.GetAgent(relationship.TargetId) is { } dependent && IsYoungerDependent(dependent) &&
+            dependent.HouseholdId == household.Id && checkpoint.GetAgent(relationship.ProposerId).HouseholdId == household.Id &&
             !HasActivePrimaryCaregiver(checkpoint, dependent.Id))
             checkpoint = SetPrimaryCaregiver(checkpoint, relationship.ProposerId, dependent.Id);
         return checkpoint with
         {
-            Inhabitants = relationship.Type == SocietyRelationshipType.HouseholdMembership
-                ? checkpoint.Inhabitants.Select(item => item.Id == relationship.TargetId
+            Agents = relationship.Type == SocietyRelationshipType.HouseholdMembership
+                ? checkpoint.Agents.Select(item => item.Id == relationship.TargetId
                         ? item with { HouseholdId = household.Id }
                         : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray()
-                : checkpoint.Inhabitants,
+                : checkpoint.Agents,
             Households = checkpoint.Households.Select(item => item.Id == household.Id
                     ? item with { MemberIds = members, CaregiverIds = caregivers }
                     : item)
@@ -1963,28 +1963,28 @@ public static partial class SocietyRules
         }
 
         var clearPrimaryCaregiver = revokedAcceptedCare && relationship.Type == SocietyRelationshipType.Caregiver &&
-            checkpoint.GetInhabitant(relationship.TargetId).PrimaryCaregiverId == relationship.ProposerId &&
+            checkpoint.GetAgent(relationship.TargetId).PrimaryCaregiverId == relationship.ProposerId &&
             !checkpoint.Relationships.Any(other => other.Type == SocietyRelationshipType.Caregiver &&
                 other.State == SocietyRelationshipState.Accepted && other.ProposerId == relationship.ProposerId &&
                 other.TargetId == relationship.TargetId);
-        var inhabitants = relationship.Type == SocietyRelationshipType.HouseholdMembership
-            ? checkpoint.Inhabitants.Select(item => item.Id == relationship.TargetId
+        var agents = relationship.Type == SocietyRelationshipType.HouseholdMembership
+            ? checkpoint.Agents.Select(item => item.Id == relationship.TargetId
                     ? item with { HouseholdId = null }
                     : item)
                 .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray()
             : clearPrimaryCaregiver
-                ? checkpoint.Inhabitants.Select(item => item.Id == relationship.TargetId
+                ? checkpoint.Agents.Select(item => item.Id == relationship.TargetId
                         ? item with { PrimaryCaregiverId = null }
                         : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray()
-                : checkpoint.Inhabitants;
+                : checkpoint.Agents;
         if (relationship.HouseholdId is not { } householdId)
-            return clearPrimaryCaregiver ? checkpoint with { Inhabitants = inhabitants } : checkpoint;
+            return clearPrimaryCaregiver ? checkpoint with { Agents = agents } : checkpoint;
 
         var household = checkpoint.GetHousehold(householdId);
         return checkpoint with
         {
-            Inhabitants = inhabitants,
+            Agents = agents,
             Households = checkpoint.Households.Select(item => item.Id == household.Id
                     ? item with
                     {
@@ -2011,7 +2011,7 @@ public static partial class SocietyRules
         var unitId = DomesticPartnershipId(relationship.Id);
         return checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person =>
+            Agents = checkpoint.Agents.Select(person =>
                 participants.Contains(person.Id) || IsYoungerDependent(person) &&
                     person.PrimaryCaregiverId is { } caregiver && participants.Contains(caregiver)
                     ? person with { DomesticFamilyUnitId = unitId }
@@ -2030,7 +2030,7 @@ public static partial class SocietyRules
             StringComparer.Ordinal);
         return checkpoint with
         {
-            Inhabitants = checkpoint.Inhabitants.Select(person =>
+            Agents = checkpoint.Agents.Select(person =>
                 participants.Contains(person.Id)
                     ? person with { DomesticFamilyUnitId = unitByCaregiver[person.Id] }
                     : IsYoungerDependent(person) && person.PrimaryCaregiverId is { } caregiver &&
@@ -2040,11 +2040,11 @@ public static partial class SocietyRules
         };
     }
 
-    private static bool IsYoungerDependent(SocietyInhabitant person) =>
-        person.Status == SocietyInhabitantStatus.Active &&
+    private static bool IsYoungerDependent(SocietyAgent person) =>
+        person.Status == SocietyAgentStatus.Active &&
         person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent;
 
-    private static string DomesticPersonUnit(string inhabitantId) => DerivedId.Create($"domestic:person:{inhabitantId}");
+    private static string DomesticPersonUnit(string agentId) => DerivedId.Create($"domestic:person:{agentId}");
 
     private static SocietyOperationResult Commit(
         SocietyCheckpoint checkpoint,
@@ -2091,27 +2091,27 @@ public static partial class SocietyRules
             ((item.ProposerId == firstId && item.TargetId == secondId) ||
              (item.ProposerId == secondId && item.TargetId == firstId)));
 
-    private static bool IsAdult(SocietyInhabitant inhabitant) =>
-        inhabitant.Status == SocietyInhabitantStatus.Active &&
-        inhabitant.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
+    private static bool IsAdult(SocietyAgent agent) =>
+        agent.Status == SocietyAgentStatus.Active &&
+        agent.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder;
 
     // Elders may care for a child but cannot be its parents.
-    private static bool CanHaveChildren(SocietyInhabitant inhabitant) =>
-        inhabitant.Status == SocietyInhabitantStatus.Active && inhabitant.AgeBand == SocietyAgeBand.Adult;
+    private static bool CanHaveChildren(SocietyAgent agent) =>
+        agent.Status == SocietyAgentStatus.Active && agent.AgeBand == SocietyAgeBand.Adult;
 
     private static void EnsureActive(SocietyCheckpoint checkpoint, string id)
     {
-        if (checkpoint.GetInhabitant(id).Status != SocietyInhabitantStatus.Active)
+        if (checkpoint.GetAgent(id).Status != SocietyAgentStatus.Active)
         {
-            throw new InvalidOperationException($"Inhabitant '{id}' is not active.");
+            throw new InvalidOperationException($"Agent '{id}' is not active.");
         }
     }
 
     private static void EnsureBarterParty(SocietyCheckpoint checkpoint, string id)
     {
         EnsureLivingParty(checkpoint, id);
-        var inhabitant = checkpoint.Inhabitants.FirstOrDefault(item => item.Id == id);
-        if (inhabitant is not null && inhabitant.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder))
+        var agent = checkpoint.Agents.FirstOrDefault(item => item.Id == id);
+        if (agent is not null && agent.AgeBand is not (SocietyAgeBand.Adult or SocietyAgeBand.Elder))
         {
             throw new InvalidOperationException("Only adults and elders can participate in barter offers.");
         }
@@ -2121,8 +2121,8 @@ public static partial class SocietyRules
         SocietyCheckpoint checkpoint,
         string id)
     {
-        if (!checkpoint.Inhabitants.Any(item =>
-                item.Id == id && item.Status == SocietyInhabitantStatus.Active) &&
+        if (!checkpoint.Agents.Any(item =>
+                item.Id == id && item.Status == SocietyAgentStatus.Active) &&
             !checkpoint.Households.Any(item => item.Id == id) &&
             !checkpoint.Organizations.Any(item => item.Id == id))
         {
@@ -2195,56 +2195,56 @@ public static partial class SocietyRules
         return true;
     }
 
-    private static void ValidateInhabitants(
-        IReadOnlyList<SocietyInhabitant> inhabitants,
+    private static void ValidateAgents(
+        IReadOnlyList<SocietyAgent> agents,
         SocietyConfig config,
         long worldTick,
         SocietyLifeClock? lifeClock = null)
     {
-        EnsureCanonicalIds(inhabitants.Select(item => item.Id), "inhabitants");
+        EnsureCanonicalIds(agents.Select(item => item.Id), "agents");
         var chosenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var inhabitant in inhabitants)
+        foreach (var agent in agents)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(inhabitant.Name);
-            if (inhabitant.HasChosenName &&
-                (inhabitant.NeedsName || InhabitantNameRules.FirstNameKey(inhabitant.Name) is not { } firstName ||
+            ArgumentException.ThrowIfNullOrWhiteSpace(agent.Name);
+            if (agent.HasChosenName &&
+                (agent.NeedsName || AgentNameRules.FirstNameKey(agent.Name) is not { } firstName ||
                  !chosenNames.Add(firstName)))
                 throw new InvalidDataException("Chosen first names must be valid, unique and no longer awaiting naming.");
-            if (string.IsNullOrWhiteSpace(inhabitant.DomesticFamilyUnitId) ||
-                inhabitant.PrimaryCaregiverId is { } caregiverId &&
-                    (caregiverId == inhabitant.Id || !inhabitants.Any(person => person.Id == caregiverId)))
-                throw new InvalidDataException("An inhabitant's domestic family unit or primary caregiver is invalid.");
-            if (inhabitant.BirthTick > worldTick ||
-                inhabitant.BirthLifeTick is { } birthLife && (lifeClock is null || birthLife > lifeClock.At(worldTick)) ||
-                inhabitant.HealthBasisPoints is < 0 or > 10_000 ||
-                inhabitant.LastLifecycleYearChecked < 0 ||
-                inhabitant.Status == SocietyInhabitantStatus.Active && inhabitant.DeathTick is not null ||
-                inhabitant.Status == SocietyInhabitantStatus.Dead && inhabitant.DeathTick is null)
+            if (string.IsNullOrWhiteSpace(agent.DomesticFamilyUnitId) ||
+                agent.PrimaryCaregiverId is { } caregiverId &&
+                    (caregiverId == agent.Id || !agents.Any(person => person.Id == caregiverId)))
+                throw new InvalidDataException("An agent's domestic family unit or primary caregiver is invalid.");
+            if (agent.BirthTick > worldTick ||
+                agent.BirthLifeTick is { } birthLife && (lifeClock is null || birthLife > lifeClock.At(worldTick)) ||
+                agent.HealthBasisPoints is < 0 or > 10_000 ||
+                agent.LastLifecycleYearChecked < 0 ||
+                agent.Status == SocietyAgentStatus.Active && agent.DeathTick is not null ||
+                agent.Status == SocietyAgentStatus.Dead && agent.DeathTick is null)
             {
-                throw new InvalidDataException("An inhabitant lifecycle record is malformed.");
+                throw new InvalidDataException("An agent lifecycle record is malformed.");
             }
 
-            var birth = inhabitant.BirthLifeTick ?? inhabitant.BirthTick;
+            var birth = agent.BirthLifeTick ?? agent.BirthTick;
             var lifeTick = lifeClock?.At(worldTick) ?? worldTick;
             var expectedBand = config.AgeBandAt(birth, lifeTick);
-            if (inhabitant.Status == SocietyInhabitantStatus.Active &&
-                inhabitant.AgeBand != expectedBand &&
-                birth + config.TicksPerLifecycleAge * inhabitant.LastLifecycleYearChecked <= lifeTick)
+            if (agent.Status == SocietyAgentStatus.Active &&
+                agent.AgeBand != expectedBand &&
+                birth + config.TicksPerLifecycleAge * agent.LastLifecycleYearChecked <= lifeTick)
             {
                 throw new InvalidDataException(
-                    $"An active inhabitant has a stale age band: {inhabitant.Id}:{inhabitant.AgeBand}:{expectedBand}:" +
-                    $"tick={worldTick}:birth={inhabitant.BirthTick}:last={inhabitant.LastLifecycleYearChecked}.");
+                    $"An active agent has a stale age band: {agent.Id}:{agent.AgeBand}:{expectedBand}:" +
+                    $"tick={worldTick}:birth={agent.BirthTick}:last={agent.LastLifecycleYearChecked}.");
             }
         }
     }
 
     private static int MortalityRoll(
         string worldId,
-        string inhabitantId,
+        string agentId,
         int ageYears)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(
-            $"clankerworld.society-mortality/v1|{worldId}|{inhabitantId}|{ageYears}"));
+            $"clankerworld.society-mortality/v1|{worldId}|{agentId}|{ageYears}"));
         return checked((int)(BitConverter.ToUInt32(bytes, 0) % 10_000));
     }
 

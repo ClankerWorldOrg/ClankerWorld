@@ -47,7 +47,7 @@ public partial class Main
             }
             else
             {
-                PositionSelectedInhabitantCard(snapshot);
+                PositionSelectedAgentCard(snapshot);
                 PositionBuildingQuickCard(snapshot);
             }
         }
@@ -121,30 +121,30 @@ public partial class Main
             Math.Clamp(centeredY, minimumY, maximumY));
     }
 
-    private void PositionSelectedInhabitantCard(OwnerWorldSnapshot snapshot)
+    private void PositionSelectedAgentCard(OwnerWorldSnapshot snapshot)
     {
         var ui = UiSize;
-        if (!selectedInhabitantCard.Visible || ui.X <= 0 || ui.Y <= 0)
+        if (!selectedAgentCard.Visible || ui.X <= 0 || ui.Y <= 0)
         {
             return;
         }
 
-        var inhabitant = snapshot.Inhabitants.FirstOrDefault(item =>
-            string.Equals(item.Id, selectedInhabitantId, StringComparison.Ordinal));
-        if (inhabitant is null)
+        var agent = snapshot.Agents.FirstOrDefault(item =>
+            string.Equals(item.Id, selectedAgentId, StringComparison.Ordinal));
+        if (agent is null)
         {
             return;
         }
 
-        selectedInhabitantCard.CustomMinimumSize = new Vector2(Math.Min(QuickCardWidth, Math.Max(1, ui.X - 24)), 0);
+        selectedAgentCard.CustomMinimumSize = new Vector2(Math.Min(QuickCardWidth, Math.Max(1, ui.X - 24)), 0);
         // The map is drawn at screen resolution; the card lives in interface pixels.
         var stride = currentTileSize + TileGap;
         var tile = currentTileSize / (float)uiLayer.Factor;
-        var target = inhabitantVisuals.TryGetValue(inhabitant.Id, out var marker) && marker.Visible
+        var target = agentVisuals.TryGetValue(agent.Id, out var marker) && marker.Visible
             ? new Rect2((mapStage.Position + marker.Position) / uiLayer.Factor, marker.Size / uiLayer.Factor)
-            : new Rect2((mapStage.Position + new Vector2(inhabitant.Position.X * stride, inhabitant.Position.Y * stride)) / uiLayer.Factor,
+            : new Rect2((mapStage.Position + new Vector2(agent.Position.X * stride, agent.Position.Y * stride)) / uiLayer.Factor,
                 new Vector2(tile, tile));
-        PlaceQuickCard(selectedInhabitantCard, target);
+        PlaceQuickCard(selectedAgentCard, target);
     }
 
     /// <summary>

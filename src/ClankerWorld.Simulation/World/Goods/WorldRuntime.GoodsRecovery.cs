@@ -19,7 +19,7 @@ public sealed partial class WorldRuntime
         Dictionary<(GridPoint Position, int Range), bool>? routes)
     {
         var actor = request.Actor!;
-        if (!inhabitants.ContainsKey(actor)) return GoodsReason.Custody;
+        if (!agents.ContainsKey(actor)) return GoodsReason.Custody;
         if (PersonalRecoveryPropertyExclusion(actor, index, lot) is { } reason) return reason;
         if (!MayRecoverPersonalGoodsAt(actor, lot)) return GoodsReason.Place;
         if (request.Use == GoodsUse.RecoveryHoldings) return null;
@@ -46,15 +46,15 @@ public sealed partial class WorldRuntime
 
     private bool MayRecoverPersonalGoodsAt(string actor, InventoryLot lot) => lot.GroundPosition is not null ||
         lot.StorageBuildingId is { } storageId && worldSimulation.Buildings.Any(building => building.InstanceId == storageId &&
-            (building.HouseholdId is { } home && (society.Checkpoint.GetInhabitant(actor).HouseholdId == home ||
-             inhabitants[actor].Departures?.Any(departure => departure.HouseholdId == home) == true ||
+            (building.HouseholdId is { } home && (society.Checkpoint.GetAgent(actor).HouseholdId == home ||
+             agents[actor].Departures?.Any(departure => departure.HouseholdId == home) == true ||
              HasCareGroupDepartureFrom(actor, home) || IsStoredSettledBequest(actor, lot, storageId)) ||
-             towns.Any(town => town.LandHearings.Cases.Any(item => item.Property?.Transfer?.PriorBuilding.InstanceId == storageId))));
+             towns.Any(town => town.LandRecords.Cases.Any(item => item.Property?.Transfer?.PriorBuilding.InstanceId == storageId))));
 
     private GoodsReason? PersonalRecoveryRouteExclusion(string actor, InventoryLot lot,
         Dictionary<(GridPoint Position, int Range), bool>? routes)
     {
-        var position = inhabitants[actor].Position;
+        var position = agents[actor].Position;
         var key = (HouseholdStockPosition(lot), lot.GroundPosition is not null ? ResourceInteractionRange : 1);
         if (routes is not null && routes.TryGetValue(key, out var reachable)) return reachable ? null : GoodsReason.Route;
         reachable = IsWithinInteractionRange(position, key.Item1, key.Item2) ||

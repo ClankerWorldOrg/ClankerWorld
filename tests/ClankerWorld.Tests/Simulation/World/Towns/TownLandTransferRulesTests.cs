@@ -14,23 +14,23 @@ public sealed class TownLandTransferRulesTests
     [Fact]
     public void TheCurrentLedgerContractRequiresTransfersWhileAnEmptyLedgerRoundtripsNormally()
     {
-        var json = JsonSerializer.Serialize(TownLandHearingState.Create());
+        var json = JsonSerializer.Serialize(TownLandRecords.Create());
         var document = JsonNode.Parse(json)!.AsObject();
-        Assert.Empty(document[nameof(TownLandHearingState.Transfers)]!.AsArray());
-        Assert.Empty(JsonSerializer.Deserialize<TownLandHearingState>(json)!.Transfers);
-        document.Remove(nameof(TownLandHearingState.Transfers));
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<TownLandHearingState>(document.ToJsonString()));
-        document[nameof(TownLandHearingState.Transfers)] = null;
-        var nullLedger = JsonSerializer.Deserialize<TownLandHearingState>(document.ToJsonString())!;
-        Assert.Throws<InvalidDataException>(() => Validate(nullLedger, Rights(), TownGovernanceState.Create(Agents), 0));
+        Assert.Empty(document[nameof(TownLandRecords.Transfers)]!.AsArray());
+        Assert.Empty(JsonSerializer.Deserialize<TownLandRecords>(json)!.Transfers);
+        document.Remove(nameof(TownLandRecords.Transfers));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<TownLandRecords>(document.ToJsonString()));
+        document[nameof(TownLandRecords.Transfers)] = null;
+        var nullLedger = JsonSerializer.Deserialize<TownLandRecords>(document.ToJsonString())!;
+        Assert.Throws<InvalidDataException>(() => Validate(nullLedger, Rights(), TownCouncilState.Create(Agents), 0));
 
         var (pending, council) = Proposed();
-        council = TownGovernanceRules.LearnNotice(council, "a", "notice:1", 1);
+        council = TownCouncilRules.LearnNotice(council, "a", "notice:1", 1);
         pending = Respond(pending, pending.Transfers[0], "a", "alpha", "accept", council, Parties);
         Assert.Single(pending.Transfers[0].Responses);
         var pendingDocument = JsonNode.Parse(JsonSerializer.Serialize(pending))!.AsObject();
-        pendingDocument.Remove(nameof(TownLandHearingState.Transfers));
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<TownLandHearingState>(pendingDocument.ToJsonString()));
+        pendingDocument.Remove(nameof(TownLandRecords.Transfers));
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<TownLandRecords>(pendingDocument.ToJsonString()));
         Validate(pending, Rights(), council, 2);
     }
 
@@ -43,7 +43,7 @@ public sealed class TownLandTransferRulesTests
         Assert.Empty(council.Knowledge);
         Assert.Same(state, TownLandTransferRules.Propose(state, Map(), "town", "b", Plot, "beta", Rights(), Parties, [], 0, "notice:unused"));
         Assert.Throws<InvalidOperationException>(() => Respond(state, request, "a", "alpha", "accept", council, Parties));
-        council = TownGovernanceRules.LearnNotice(council, "a", request.NoticeId, 1);
+        council = TownCouncilRules.LearnNotice(council, "a", request.NoticeId, 1);
         Assert.Throws<InvalidOperationException>(() => TownLandTransferRules.Respond(state, request.Id, "stale-terms", "a", "alpha", "accept",
             council.Knowledge, Rights(), Parties, [], 2));
         state = Respond(state, request, "a", "alpha", "accept", council, Parties);
@@ -64,7 +64,7 @@ public sealed class TownLandTransferRulesTests
         foreach (var party in Parties)
             foreach (var adult in party.AdultIds)
             {
-                council = TownGovernanceRules.LearnNotice(council, adult, "notice:1", 1);
+                council = TownCouncilRules.LearnNotice(council, adult, "notice:1", 1);
                 state = Respond(state, state.Transfers[0], adult, party.HouseholdId, "accept", council, Parties);
             }
         TownLandTransferParty[] grown = [Parties[0] with { AdultIds = ["a", "a2", "new-adult"] }, Parties[1]];
@@ -73,7 +73,7 @@ public sealed class TownLandTransferRulesTests
         Assert.Equal(token, TownLandTransferRules.TermsToken(pending.Transfers[0]));
         Assert.Equal(2, TownLandTransferRules.AcceptedAdults(pending.Transfers[0], grown[0], council.Knowledge, 3).Count);
         Assert.Throws<InvalidOperationException>(() => Respond(pending, pending.Transfers[0], "new-adult", "alpha", "accept", council, grown));
-        council = TownGovernanceRules.LearnNotice(council, "new-adult", "notice:1", 3);
+        council = TownCouncilRules.LearnNotice(council, "new-adult", "notice:1", 3);
         state = TownLandTransferRules.Respond(pending, pending.Transfers[0].Id, token, "new-adult", "alpha", "accept", council.Knowledge,
             unchanged, grown, [], 4);
         var (completed, rights) = Advance(state, council, grown, 4);
@@ -100,20 +100,20 @@ public sealed class TownLandTransferRulesTests
     {
         GridPoint[] plot = [new(3, 0), new(4, 0)];
         TownLandTransferParty[] parties = [Parties[0], new("beta", "source", ["b"]), new("gamma", "beneficiary", ["c"])];
-        var state = TownLandTransferRules.Propose(TownLandHearingState.Create(), Map(), "town", "c", plot, "gamma", Rights(), parties, [], 0, "notice:1");
+        var state = TownLandTransferRules.Propose(TownLandRecords.Create(), Map(), "town", "c", plot, "gamma", Rights(), parties, [], 0, "notice:1");
         var request = state.Transfers[0];
-        var council = TownGovernanceRules.PostNotice(TownGovernanceState.Create(Agents), "land_transfer", TownLandTransferRules.TermsToken(request),
+        var council = TownCouncilRules.PostNotice(TownCouncilState.Create(Agents), "land_transfer", TownLandTransferRules.TermsToken(request),
             "Transfer the existing permissions from both source households to gamma", 0);
         foreach (var party in parties.Where(party => party.HouseholdId != "beta"))
             foreach (var adult in party.AdultIds)
             {
-                council = TownGovernanceRules.LearnNotice(council, adult, "notice:1", 1);
+                council = TownCouncilRules.LearnNotice(council, adult, "notice:1", 1);
                 state = Respond(state, request, adult, party.HouseholdId, "accept", council, parties);
             }
         var (pending, _) = Advance(state, council, parties, 3);
         Assert.Equal("pending", pending.Transfers[0].Status);
         Assert.Empty(pending.Adjustments);
-        council = TownGovernanceRules.LearnNotice(council, "b", "notice:1", 3);
+        council = TownCouncilRules.LearnNotice(council, "b", "notice:1", 3);
         state = Respond(pending, request, "b", "beta", "accept", council, parties, 3);
         var (completed, rights) = Advance(state, council, parties, 3);
         Assert.Equal("transferred", completed.Transfers[0].Status);
@@ -133,7 +133,7 @@ public sealed class TownLandTransferRulesTests
         foreach (var party in Parties)
             foreach (var adult in party.AdultIds)
             {
-                council = TownGovernanceRules.LearnNotice(council, adult, "notice:1", 1);
+                council = TownCouncilRules.LearnNotice(council, adult, "notice:1", 1);
                 state = Respond(state, state.Transfers[0], adult, party.HouseholdId, "accept", council, Parties);
             }
         TownLandTransferParty[] moved = [Parties[0] with { AdultIds = ["a2"] }, Parties[1] with { AdultIds = ["a", "b"] }];
@@ -156,8 +156,8 @@ public sealed class TownLandTransferRulesTests
     public void ADeclineOrTheFilersWithdrawalPreservesEarlierResponsesAndMovesNoPermissions()
     {
         var (state, council) = Proposed();
-        council = TownGovernanceRules.LearnNotice(council, "a", "notice:1", 1);
-        council = TownGovernanceRules.LearnNotice(council, "b", "notice:1", 1);
+        council = TownCouncilRules.LearnNotice(council, "a", "notice:1", 1);
+        council = TownCouncilRules.LearnNotice(council, "b", "notice:1", 1);
         state = Respond(state, state.Transfers[0], "a", "alpha", "accept", council, Parties);
         var rejected = Respond(state, state.Transfers[0], "b", "beta", "decline", council, Parties);
         Assert.Equal("rejected", rejected.Transfers[0].Status);
@@ -179,7 +179,7 @@ public sealed class TownLandTransferRulesTests
     [InlineData("unrecorded")]
     public void ProvisionalDisputedOrUnrecordedLandCannotUseTheConsensualRoute(string blocker)
     {
-        var state = TownLandHearingState.Create();
+        var state = TownLandRecords.Create();
         var rights = Rights();
         HouseholdLandUseRequest[] claims = blocker == "disputed" ? [new("claim", "town", "gamma", "c", Plot, 0)] : [];
         if (blocker == "expired") rights = rights.Select(right => right.Id == "right:alpha" ? right with { AgreedEndTick = 0 } : right).ToArray();
@@ -196,7 +196,7 @@ public sealed class TownLandTransferRulesTests
     public void AChangedExactPermissionInvalidatesTheProposalWithoutRewritingItsTermsOrConsents()
     {
         var (state, council) = Proposed();
-        council = TownGovernanceRules.LearnNotice(council, "a", "notice:1", 1);
+        council = TownCouncilRules.LearnNotice(council, "a", "notice:1", 1);
         state = Respond(state, state.Transfers[0], "a", "alpha", "accept", council, Parties);
         var request = state.Transfers[0];
         GridPoint[] footprint = [new(0, 0)];
@@ -222,12 +222,12 @@ public sealed class TownLandTransferRulesTests
         foreach (var party in Parties)
             foreach (var adult in party.AdultIds)
             {
-                council = TownGovernanceRules.LearnNotice(council, adult, "notice:1", 1);
+                council = TownCouncilRules.LearnNotice(council, adult, "notice:1", 1);
                 state = Respond(state, state.Transfers[0], adult, party.HouseholdId, "accept", council, Parties);
             }
         var (completed, rights) = Advance(state, council, Parties, 3);
         Validate(completed, rights, council, 3);
-        var roundtrip = JsonSerializer.Deserialize<TownLandHearingState>(JsonSerializer.Serialize(completed))!;
+        var roundtrip = JsonSerializer.Deserialize<TownLandRecords>(JsonSerializer.Serialize(completed))!;
         Validate(roundtrip, rights, council, 3);
         var missing = completed with { Transfers = [completed.Transfers[0] with { Responses = completed.Transfers[0].Responses.Where(response => response.AgentId != "a2").ToArray() }] };
         Assert.Throws<InvalidDataException>(() => Validate(missing, rights, council, 3));
@@ -248,25 +248,25 @@ public sealed class TownLandTransferRulesTests
         Assert.Throws<InvalidDataException>(() => Validate(expiredClosure, rights, council, 80));
     }
 
-    private static (TownLandHearingState State, TownGovernanceState Council) Proposed()
+    private static (TownLandRecords State, TownCouncilState Council) Proposed()
     {
-        var state = TownLandTransferRules.Propose(TownLandHearingState.Create(), Map(), "town", "a", Plot, "beta", Rights(), Parties, [], 0, "notice:1");
-        var council = TownGovernanceRules.PostNotice(TownGovernanceState.Create(Agents), "land_transfer", TownLandTransferRules.TermsToken(state.Transfers[0]),
+        var state = TownLandTransferRules.Propose(TownLandRecords.Create(), Map(), "town", "a", Plot, "beta", Rights(), Parties, [], 0, "notice:1");
+        var council = TownCouncilRules.PostNotice(TownCouncilState.Create(Agents), "land_transfer", TownLandTransferRules.TermsToken(state.Transfers[0]),
             "Transfer only the noticed existing permission to beta; every source and beneficiary adult must agree", 0);
         return (state, council);
     }
-    private static TownLandHearingState Respond(TownLandHearingState state, TownLandTransferRequest request, string actor, string household,
-        string kind, TownGovernanceState council, IReadOnlyList<TownLandTransferParty> parties, long tick = 2) =>
+    private static TownLandRecords Respond(TownLandRecords state, TownLandTransferRequest request, string actor, string household,
+        string kind, TownCouncilState council, IReadOnlyList<TownLandTransferParty> parties, long tick = 2) =>
         TownLandTransferRules.Respond(state, request.Id, TownLandTransferRules.TermsToken(request), actor, household, kind, council.Knowledge, Rights(), parties, [], tick);
-    private static (TownLandHearingState State, IReadOnlyList<HouseholdLandUseRight> Rights) Advance(TownLandHearingState state,
-        TownGovernanceState council, IReadOnlyList<TownLandTransferParty> parties, long tick) => TownLandTransferRules.Advance(state, Map(), Rights(),
+    private static (TownLandRecords State, IReadOnlyList<HouseholdLandUseRight> Rights) Advance(TownLandRecords state,
+        TownCouncilState council, IReadOnlyList<TownLandTransferParty> parties, long tick) => TownLandTransferRules.Advance(state, Map(), Rights(),
         state.Transfers.ToDictionary(request => request.Id, _ => parties, StringComparer.Ordinal), [], council.Knowledge, tick);
     private static HouseholdLandUseRight[] Rights() =>
         [new("right:alpha", "town", "alpha", [new(0, 0), new(1, 0), new(2, 0), new(3, 0)], 0, "grant:alpha", 80),
          new("right:beta", "town", "beta", [new(4, 0), new(5, 0)], 0, "grant:beta", 100)];
     private static WorldMap Map() => new(8, 2, 0,
         (from y in Enumerable.Range(0, 2) from x in Enumerable.Range(0, 8) select new TerrainTile(new(x, y), TerrainKind.Meadow)).ToArray(), [], [], "transfer-fixture");
-    private static void Validate(TownLandHearingState state, IReadOnlyList<HouseholdLandUseRight> rights, TownGovernanceState council, long tick) =>
+    private static void Validate(TownLandRecords state, IReadOnlyList<HouseholdLandUseRight> rights, TownCouncilState council, long tick) =>
         TownLandHearingValidation.Validate(Map(), tick, "town", state, rights,
             [new("title", "town", [new(0, 0), new(1, 0), new(2, 0), new(3, 0), new(4, 0), new(5, 0)], 0)],
             Agents.ToHashSet(StringComparer.Ordinal), Households.ToHashSet(StringComparer.Ordinal), council, 10);

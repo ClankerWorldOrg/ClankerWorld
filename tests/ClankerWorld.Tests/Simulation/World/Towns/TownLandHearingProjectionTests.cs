@@ -24,8 +24,8 @@ public sealed class TownLandHearingProjectionTests
                 ? right with { AgreedEndTick = 1 } : right).ToArray(),
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var actual = Assert.Single(world.Towns[0].LandHearings.Cases);
-        var notice = Assert.Single(world.Towns[0].Governance!.Notices,
+        var actual = Assert.Single(world.Towns[0].LandRecords.Cases);
+        var notice = Assert.Single(world.Towns[0].Council!.Notices,
             item => item.Id == actual.Revisions[0].NoticeId);
         Assert.Equal("land_hearing", notice.Kind);
         var beforeObservation = WorldRuntimeCodec.Encode(world.ExportState());
@@ -50,8 +50,8 @@ public sealed class TownLandHearingProjectionTests
         Assert.Equal(notice.Id, received.NoticeId);
 
         var household = initial.Society.Society.Households.Single(item => item.Id == permission.HouseholdId);
-        var adults = initial.Society.Society.Inhabitants.Where(person => person.HouseholdId == household.Id &&
-            person.Status == SocietyInhabitantStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
+        var adults = initial.Society.Society.Agents.Where(person => person.HouseholdId == household.Id &&
+            person.Status == SocietyAgentStatus.Active && person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder)
             .OrderBy(person => person.Id, StringComparer.Ordinal).ToArray();
         var party = Assert.Single(projected.Parties);
         var clientParty = Assert.Single(received.Parties);
@@ -74,7 +74,7 @@ public sealed class TownLandHearingProjectionTests
         var publicJson = JsonSerializer.Serialize(projected, JsonOptions);
         foreach (var privateField in new[] { "rawReply", "recentPrivateThoughts", "recentMemories", "providerMessages" })
             Assert.DoesNotContain("\"" + privateField + "\"", publicJson, StringComparison.Ordinal);
-        Assert.DoesNotContain(world.Towns[0].Governance!.Knowledge, receipt => receipt.NoticeId == notice.Id);
+        Assert.DoesNotContain(world.Towns[0].Council!.Knowledge, receipt => receipt.NoticeId == notice.Id);
         Assert.Equal(beforeObservation, WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
@@ -91,15 +91,15 @@ public sealed class TownLandHearingProjectionTests
                 ? right with { AgreedEndTick = 1 } : right).ToArray(),
         }, _ => new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var notice = Assert.Single(Assert.Single(world.Towns[0].LandHearings.Cases).Revisions);
+        var notice = Assert.Single(Assert.Single(world.Towns[0].LandRecords.Cases).Revisions);
         var originalParty = Assert.Single(notice.Parties);
         var departing = originalParty.AdultIds[0];
         world.Pause();
         Assert.True(world.DisplaceAdult(departing));
-        Assert.Null(world.Society.GetInhabitant(departing).HouseholdId);
+        Assert.Null(world.Society.GetAgent(departing).HouseholdId);
         world.Resume();
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var actual = Assert.Single(world.Towns[0].LandHearings.Cases);
+        var actual = Assert.Single(world.Towns[0].LandRecords.Cases);
         Assert.Equal(notice, Assert.Single(actual.Revisions));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
@@ -114,7 +114,7 @@ public sealed class TownLandHearingProjectionTests
         Assert.Equal(originalParty.Id, current.Id);
         Assert.Equal(originalParty.AdultIds.Where(id => id != departing), current.AdultIds);
         Assert.DoesNotContain(departing, current.AdultIds);
-        Assert.Equal(current.AdultIds.Select(id => world.Society.GetInhabitant(id).Name), current.AdultNames);
+        Assert.Equal(current.AdultIds.Select(id => world.Society.GetAgent(id).Name), current.AdultNames);
         Assert.Empty(current.NoticeAwareAdultIds);
         Assert.Empty(hearing.Responses);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -128,29 +128,29 @@ public sealed class TownLandHearingProjectionTests
         var state = generated.ExportState();
         var town = Assert.Single(state.Towns!);
         var permission = state.HouseholdLandUseRights![0];
-        var filer = town.Governance!.Members[0];
+        var filer = town.Council!.Members[0];
         var day = state.Society.Society.Config.TicksPerWorldDay;
         var request = new TownLandFilingRequest(permission.Tiles, new("confirm"), "Review the Town's recorded use permission");
-        var council = TownGovernanceRules.SubmitProposal(town.Governance!, town.Id, filer, "land_hearing", null,
+        var council = TownCouncilRules.SubmitProposal(town.Council!, town.Id, filer, "land_hearing", null,
             "Authorize this exact land hearing", "recorded permission", town.ResidentIds, 0, day, landHearingRequest: request);
         var proposal = Assert.Single(council.Proposals);
         foreach (var voter in proposal.Voters.Take(proposal.RequiredYes))
-            council = TownGovernanceRules.VoteProposal(council, proposal.Id, voter, true, 0);
+            council = TownCouncilRules.VoteProposal(council, proposal.Id, voter, true, 0);
         Assert.Equal("passed", Assert.Single(council.Proposals).Status);
-        town = town with { Governance = council };
+        town = town with { Council = council };
         var parties = TownLandCasePartyRules.CurrentParties(town, permission.Tiles, state.HouseholdLandUseRights!, [],
-            state.Society.Society.Inhabitants, 0, townRepresentative: filer);
+            state.Society.Society.Agents, 0, townRepresentative: filer);
         var noticeId = "notice:" + (council.Notices.Count + 1);
-        var ledger = TownLandHearingRules.File(town.LandHearings, town.Id,
+        var ledger = TownLandHearingRules.File(town.LandRecords, town.Id,
             new(filer, "town", request.Statement, request.RequestedOutcome, 0, proposal.Id), permission.Tiles,
             state.HouseholdLandUseRights!, parties, 0, day, noticeId);
         var actual = Assert.Single(ledger.Cases);
-        council = TownGovernanceRules.PostNotice(council, "land_hearing", TownLandHearingRules.RevisionToken(actual),
+        council = TownCouncilRules.PostNotice(council, "land_hearing", TownLandHearingRules.RevisionToken(actual),
             "Affected adults may respond to this formal land hearing.", 0);
         var remaining = town.ResidentIds.Where(id => id != filer).ToArray();
         // Capture the lawful all-adult Council after the author loses Town standing; keep the published case untouched.
-        council = TownGovernanceRules.Advance(council, town.Id, state.WorldSeed, remaining, 0, day);
-        town = town with { Governance = council, LandHearings = ledger, ResidentIds = remaining };
+        council = TownCouncilRules.Advance(council, town.Id, state.WorldSeed, remaining, 0, day);
+        town = town with { Council = council, LandRecords = ledger, ResidentIds = remaining };
         using var world = WorldRuntime.Restore(state with { Towns = [town] }, _ => new ActionCoverageRecorder(chooseIdle: true));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var snapshot = new OwnerWorldObservationStore(world).GetSnapshot();
@@ -160,7 +160,7 @@ public sealed class TownLandHearingProjectionTests
             (hearing.Revision, hearing.NoticeId, hearing.PublishedTick, hearing.DeadlineTick));
         var published = Assert.Single(hearing.Parties, party => party.Kind == "town");
         Assert.Equal(filer, published.RepresentativeId);
-        Assert.Equal(state.Society.Society.GetInhabitant(filer).Name, published.RepresentativeName);
+        Assert.Equal(state.Society.Society.GetAgent(filer).Name, published.RepresentativeName);
         var current = Assert.Single(hearing.CurrentParties, party => party.Kind == "town");
         Assert.Null(current.RepresentativeId);
         Assert.Null(current.RepresentativeName);

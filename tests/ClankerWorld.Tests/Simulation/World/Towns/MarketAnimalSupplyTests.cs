@@ -13,15 +13,15 @@ public sealed class MarketAnimalSupplyTests
     public async Task AnimalSupplyLeavesHouseholdSaleStockUntilTheSellerLeaves(bool leaveFirst, bool yardStock)
     {
         var state = await PaidMarketWorld.StateAsync();
-        var seller = state.Inhabitants[0].InhabitantId;
+        var seller = state.Agents[0].AgentId;
         var household = PaidMarketWorld.HouseholdOf(state, seller);
-        var collector = state.Society.Society.Inhabitants.First(person => person.HouseholdId == household && person.Id != seller).Id;
+        var collector = state.Society.Society.Agents.First(person => person.HouseholdId == household && person.Id != seller).Id;
         var market = PaidMarketWorld.Market(state);
         var inventory = InventoryAuthority.AddLot(state.Society.Society.Inventory, "market-yard-wood", "wood", household, 8);
         inventory = InventoryAuthority.AddLot(inventory, "market-yard-rope", "rope", household, 2);
         using var placing = WorldRuntime.Restore(PaidMarketWorld.WithInventory(state, inventory));
         var definition = placing.WorldContent.Buildings.Single(item => item.Tags.Contains("animal-yard"));
-        var yard = state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Inhabitants[0].Position))
+        var yard = state.Map.Tiles.OrderBy(tile => state.Map.FootDistance(tile.Position, state.Agents[0].Position))
             .Select(tile => placing.PlaceBuilding("market-supply-yard", definition.CanonicalId,
                 tile.Position, household)).First(result => result.Applied);
         Assert.Equal(inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "wood").Sum(lot => lot.Quantity) - 8,
@@ -117,6 +117,6 @@ public sealed class MarketAnimalSupplyTests
 
     private static WorldRuntimeState Fresh(WorldRuntimeState state) => state with
     {
-        Inhabitants = state.Inhabitants.Select(person => person with { LastDecisionContext = null, Project = null, HungerBasisPoints = 9_500 }).ToArray(),
+        Agents = state.Agents.Select(person => person with { LastDecisionContext = null, Project = null, FullnessBasisPoints = 9_500 }).ToArray(),
     };
 }

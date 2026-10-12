@@ -31,7 +31,7 @@ public sealed partial class AnimalPipelineTests
         var initial = WorldRuntimeCodec.Encode(producing.ExportState());
         using var world = RestoreMountedCollection(WorldRuntimeCodec.Decode(initial), actor);
         Assert.Equal(initial, WorldRuntimeCodec.Encode(world.ExportState()));
-        var instruction = world.SubmitInstruction(new("collect-credit", "owner", actor, OwnerInstructionKind.MustDo,
+        var instruction = world.SubmitInstruction(new("collect-credit", "owner", actor, OwnerInstructionKind.Order,
             repeat ? "repeat collect from Moss" : "collect from Moss"));
         var queued = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -51,7 +51,7 @@ public sealed partial class AnimalPipelineTests
         Assert.Equal(alreadyCarried ? actor : null, world.Society.Inventory.GetLot("collection-credit-jug").CarrierId);
         Assert.Equal(alreadyCarried ? null : yard.InstanceId, world.Society.Inventory.GetLot("collection-credit-jug").StorageBuildingId);
         Assert.NotEqual(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(reservationId).State);
-        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!;
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!;
         Assert.Equal(1, order.CompletedUnits);
         if (repeat) Assert.NotEqual("finished", order.Status);
         else Assert.Equal("finished", order.Status);
@@ -64,7 +64,7 @@ public sealed partial class AnimalPipelineTests
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             Assert.True((await loaded.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(loaded.ExportState()));
-            Assert.Equal(1, loaded.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Order!.CompletedUnits);
+            Assert.Equal(1, loaded.ExportState().Instructions!.Single(item => item.InstructionId == instruction.InstructionId).Task!.CompletedUnits);
             Assert.Equal(2, loaded.Society.Inventory.GetLot(productId).Quantity);
         }
     }

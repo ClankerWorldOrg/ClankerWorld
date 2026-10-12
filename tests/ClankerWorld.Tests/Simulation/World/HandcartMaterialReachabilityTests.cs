@@ -23,7 +23,7 @@ public sealed class HandcartMaterialReachabilityTests
         var state = setup.ExportState();
         var smith = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-blacksmith");
         var house = state.WorldSimulation.Buildings.Single(building => building.InstanceId == "first-town-house-b");
-        var actor = state.Society.Society.Inhabitants.First(person => person.HouseholdId == smith.HouseholdId).Id;
+        var actor = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var household = smith.HouseholdId!;
         var remote = new GridPoint(238, 85);
         Assert.True(state.Map.IsBuildable(remote));
@@ -48,13 +48,13 @@ public sealed class HandcartMaterialReachabilityTests
             if (fittings == "reserved") inventory = InventoryAuthority.Reserve(inventory, "cart-route-held", household,
                 "cart-route-fittings", 2, "other-work", long.MaxValue);
         }
-        state = SettlementWeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
+        state = WeatherTestFixture.WithWeather(state, WeatherKind.Clear) with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? smith.Position : person.Position,
-                HungerBasisPoints = 10_000,
+                Position = person.AgentId == actor ? smith.Position : person.Position,
+                FullnessBasisPoints = 10_000,
                 Survival = person.Survival is { } survival ? survival with
                 { WarmthBasisPoints = 10_000, NutritionBasisPoints = 10_000, IllnessBasisPoints = 0 } : null,
                 LastDecisionContext = null,
@@ -123,7 +123,7 @@ public sealed class HandcartMaterialReachabilityTests
             foreach (var candidate in observation.Candidates) Offered.Enqueue(candidate.Id);
             var chosen = observation.Candidates.FirstOrDefault(item => item.Id == preferred) ??
                 observation.Candidates.Single(item => item.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind,
                 ProviderEpoch, observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest,
                 chosen.Id, 1, observation.Candidates.ToDictionary(item => item.Id, item => item.Id == chosen.Id ? 1d : 0d)));
         }

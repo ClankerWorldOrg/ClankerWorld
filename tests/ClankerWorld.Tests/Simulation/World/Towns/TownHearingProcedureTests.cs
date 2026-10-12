@@ -11,13 +11,13 @@ public sealed class TownHearingProcedureTests
         string[] adults = ["subject", "judge", "witness"];
         var households = new Dictionary<string, string?>
         { ["subject"] = "subject-home", ["judge"] = "judge-home", ["witness"] = "witness-home" };
-        var council = TownGovernanceState.Create(adults);
+        var council = TownCouncilState.Create(adults);
         var government = TownGovernmentState.Create() with
         {
             Arrangement = TownArrangementRules.Initial with { NonLand = TownArrangementRules.Mayor },
             Offices = [new("non_land", "subject", 0, 1_000, null, null, "election:subject")],
         };
-        var state = TownNonviolentRulesTests.Pending();
+        var state = TownNonLandRulesTests.Pending();
         (state, council) = TownCaseJudgeRules.Advance(state, council, government, adults, households, 10, 10);
         Assert.Equal("failed", Assert.Single(state.Cases[0].ContestHistory).Stage);
         var failed = JsonSerializer.Serialize(state);

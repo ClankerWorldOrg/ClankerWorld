@@ -16,7 +16,7 @@ internal sealed partial class AnimalSystem
     internal void SaddleAnimal(IAnimalWorld world, string actor, AnimalState animal)
     {
         if (!AnimalHouseholdMember(world, actor, animal) || animal.Species != "horse" || animal.SaddleLotId is not null ||
-            world.Inhabitants[actor].Position != animal.Position) return;
+            world.Agents[actor].Position != animal.Position) return;
         var saddle = AnimalSuppliesAtHand(world, actor, animal).FirstOrDefault(lot => lot.ItemKind == "saddle" &&
             lot.OwnerId == animal.HouseholdId && lot.ContainerLotId is null);
         if (saddle is null) return;
@@ -35,7 +35,7 @@ internal sealed partial class AnimalSystem
     {
         if (animal.RiderId is not { } rider) return;
         SetAnimal(animal with { RiderId = null });
-        if (world.Inhabitants.TryGetValue(rider, out var person))
+        if (world.Agents.TryGetValue(rider, out var person))
         {
             // Put down the excess at the rider's actual position. Held job inputs stay held;
             // losing a mount never cancels a reservation or changes property ownership.

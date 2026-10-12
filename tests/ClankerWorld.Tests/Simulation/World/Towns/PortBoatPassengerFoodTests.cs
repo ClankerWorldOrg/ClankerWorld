@@ -35,12 +35,12 @@ public sealed partial class PortBoatRuntimeTests
         state = state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 1_500 } : person).ToArray()
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 1_500 } : person).ToArray()
         };
         var provider = new PassengerFoodProvider(actor, food == "meal" ? "consume_food" : "drink_milk");
         using var world = WorldRuntime.Restore(state, _ => provider);
-        world.SubmitInstruction(new("passenger-consider-food", "owner:test", actor, OwnerInstructionKind.Suggestive,
+        world.SubmitInstruction(new("passenger-consider-food", "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider your carried food while traveling."));
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
@@ -59,12 +59,12 @@ public sealed partial class PortBoatRuntimeTests
         var usable = food is "land" or "milk" or "meal";
         Assert.Equal(usable ? 1 : 2, world.Society.Inventory.GetLot("passenger-food").Quantity);
         Assert.Equal(drinkCount + (usable && kind == "milk" ? 1 : 0), world.ExportState().Events.Count(item => item.Kind == "milk_drunk"));
-        var hunger = world.Inhabitants.Single(person => person.InhabitantId == actor).HungerBasisPoints;
+        var hunger = world.Agents.Single(person => person.AgentId == actor).FullnessBasisPoints;
         Assert.Equal(usable ? 4_484 : 1_484, hunger);
         var jug = world.Society.Inventory.GetLot("travel-jug");
         Assert.Equal((actor, 1, 10_000), (jug.OwnerId, jug.Quantity, jug.ConditionBasisPoints));
         if (aboard)
-            Assert.All(provider.Observed.Where(observation => observation.InhabitantId == actor), observation =>
+            Assert.All(provider.Observed.Where(observation => observation.AgentId == actor), observation =>
                 Assert.All(observation.Candidates, candidate => Assert.True(candidate.Id is "safe_idle" or "consume_food" or "drink_milk", candidate.Id)));
         if (food == "reserved") Assert.Equal(InventoryReservationState.Reserved,
             world.Society.Inventory.GetReservation("passenger-food-held").State);
@@ -79,14 +79,14 @@ public sealed partial class PortBoatRuntimeTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Deterministic;
         public long ProviderEpoch => 1;
-        internal ConcurrentQueue<InhabitantObservation> Observed { get; } = new();
+        internal ConcurrentQueue<AgentObservation> Observed { get; } = new();
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             var observation = request.Observation;
             Observed.Enqueue(observation);
-            var choice = observation.Candidates.FirstOrDefault(candidate => observation.InhabitantId == actor && candidate.Id == preferred)
+            var choice = observation.Candidates.FirstOrDefault(candidate => observation.AgentId == actor && candidate.Id == preferred)
                 ?? observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, choice.Id, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == choice.Id ? 1d : 0d, StringComparer.Ordinal)));
         }

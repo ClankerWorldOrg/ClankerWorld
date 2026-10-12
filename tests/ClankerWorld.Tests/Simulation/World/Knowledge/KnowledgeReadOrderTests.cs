@@ -19,8 +19,8 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Func<string, IDecisionProvider> factory = _ => new ChoosingProvider(reader);
         using var world = WorldRuntime.Restore(state, factory);
         var receipt = world.SubmitInstruction(new("read-real-artifact", "owner:test", reader,
-            OwnerInstructionKind.MustDo, command + (exact ? " " + artifact.Id : string.Empty)));
-        var order = Assert.Single(world.ExportState().Instructions!).Order!;
+            OwnerInstructionKind.Order, command + (exact ? " " + artifact.Id : string.Empty)));
+        var order = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal("read_knowledge", order.Action);
         Assert.Equal(0, order.CompletedUnits);
         var initial = WorldRuntimeCodec.Encode(world.ExportState());
@@ -32,7 +32,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
         var final = world.ExportState();
-        Assert.Equal(("finished", 1), (Assert.Single(final.Instructions!).Order!.Status, Assert.Single(final.Instructions!).Order!.CompletedUnits));
+        Assert.Equal(("finished", 1), (Assert.Single(final.Instructions!).Task!.Status, Assert.Single(final.Instructions!).Task!.CompletedUnits));
         var learned = final.Knowledge!.Facts.Where(fact => fact.OwnerId == reader).ToArray();
         Assert.Equal(artifact.Facts.Count, learned.Length);
         Assert.All(learned, fact =>
@@ -48,11 +48,11 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var held = final.Society.Society.Inventory.GetLot(artifact.LotId);
         // Inventory time may advance; reading changes none of the physical lot.
         Assert.Equal(state.Society.Society.Inventory.GetLot(artifact.LotId) with { LastProcessedTick = held.LastProcessedTick }, held);
-        Assert.Equal(artifact.Id, Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions).Order!.TargetKnowledgeArtifactId);
+        Assert.Equal(artifact.Id, Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions).Task!.TargetKnowledgeArtifactId);
         Assert.Single(final.Events, item => item.Kind == "agent_knowledge_artifact_read" && item.Detail.Contains(artifact.Id, StringComparison.Ordinal));
         using var reloaded = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(final)), factory);
         Assert.True((await reloaded.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(1, Assert.Single(reloaded.ExportState().Instructions!).Order!.CompletedUnits);
+        Assert.Equal(1, Assert.Single(reloaded.ExportState().Instructions!).Task!.CompletedUnits);
         Assert.Single(reloaded.ExportState().Events, item => item.Kind == "agent_knowledge_artifact_read" && item.Detail.Contains(artifact.Id, StringComparison.Ordinal));
     }
 
@@ -65,7 +65,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
     {
         var (state, artifact, reader) = await WrittenReadOrderState();
         using var setup = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
-        setup.SubmitInstruction(new("blocked-read", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + artifact.Id));
+        setup.SubmitInstruction(new("blocked-read", "owner:test", reader, OwnerInstructionKind.Order, "Read " + artifact.Id));
         state = setup.ExportState();
         var inventory = state.Society.Society.Inventory;
         if (obstacle == "foreign") inventory = InventoryAuthority.Transfer(inventory, "withhold-read-item", reader, artifact.CreatorId, artifact.LotId, 1, "withhold it");
@@ -74,15 +74,15 @@ public sealed partial class PhysicalKnowledgePipelineTests
         {
             Lots = inventory.Lots.Select(lot => lot.Id == artifact.LotId ? lot with
             {
-                GroundPosition = new(state.Inhabitants.Single(person => person.InhabitantId == reader).Position.X,
-                    state.Inhabitants.Single(person => person.InhabitantId == reader).Position.Y)
+                GroundPosition = new(state.Agents.Single(person => person.AgentId == reader).Position.X,
+                    state.Agents.Single(person => person.AgentId == reader).Position.Y)
             } : lot).ToArray()
         };
         var blocked = WithInventory(state, inventory);
         if (obstacle == "missing") blocked = blocked with { Knowledge = blocked.Knowledge! with { Artifacts = [], EarlierFacts = [] } };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(blocked)), _ => new ChoosingProvider(reader));
         for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var order = Assert.Single(world.ExportState().Instructions!).Order!;
+        var order = Assert.Single(world.ExportState().Instructions!).Task!;
         Assert.Equal("blocked", order.Status);
         Assert.Contains(obstacle == "missing" ? "no longer available" : "personally owned, carried and available", order.BlockedReason);
         Assert.Equal(artifact.Id, order.TargetKnowledgeArtifactId);
@@ -95,21 +95,21 @@ public sealed partial class PhysicalKnowledgePipelineTests
     public async Task ReadOrderDoesNotCreditAnotherReadersLearningAndWaitsForOwnershipToReturn()
     {
         var (state, artifact, reader) = await WrittenReadOrderState();
-        var other = state.Inhabitants.First(person => person.InhabitantId != reader && person.InhabitantId != artifact.CreatorId).InhabitantId;
+        var other = state.Agents.First(person => person.AgentId != reader && person.AgentId != artifact.CreatorId).AgentId;
         using var setup = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
-        setup.SubmitInstruction(new("wait-for-my-item", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + artifact.Id));
+        setup.SubmitInstruction(new("wait-for-my-item", "owner:test", reader, OwnerInstructionKind.Order, "Read " + artifact.Id));
         state = setup.ExportState();
         var loan = InventoryAuthority.Transfer(state.Society.Society.Inventory, "give-to-other-reader", reader, other, artifact.LotId, 1, "give to another reader");
         using var world = WorldRuntime.Restore(WithInventory(state, loan), _ => new ChoosingProvider(other, "knowledge_read:" + artifact.Id));
         await AdvanceUntil(world, () => world.Knowledge.Facts.Any(fact => fact.OwnerId == other), 8);
-        Assert.Equal(0, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits);
+        Assert.Equal(0, Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits);
         Assert.DoesNotContain(world.Knowledge.Facts, fact => fact.OwnerId == reader);
         var afterOtherRead = world.ExportState();
         var returned = InventoryAuthority.Transfer(afterOtherRead.Society.Society.Inventory, "give-back-for-reading", other, reader, artifact.LotId, 1, "return the item");
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(WithInventory(afterOtherRead, returned))), _ => new ChoosingProvider(reader));
-        await AdvanceUntil(restored, () => Assert.Single(restored.ExportState().Instructions!).Order!.Status == "finished", 8);
-        Assert.Equal(artifact.Id, Assert.Single(restored.ExportState().Instructions!).Order!.TargetKnowledgeArtifactId);
-        Assert.Equal(1, Assert.Single(restored.ExportState().Instructions!).Order!.CompletedUnits);
+        await AdvanceUntil(restored, () => Assert.Single(restored.ExportState().Instructions!).Task!.Status == "finished", 8);
+        Assert.Equal(artifact.Id, Assert.Single(restored.ExportState().Instructions!).Task!.TargetKnowledgeArtifactId);
+        Assert.Equal(1, Assert.Single(restored.ExportState().Instructions!).Task!.CompletedUnits);
         Assert.Equal(JsonSerializer.Serialize(afterOtherRead.Knowledge!.Facts.Where(fact => fact.OwnerId == other)),
             JsonSerializer.Serialize(restored.Knowledge.Facts.Where(fact => fact.OwnerId == other)));
     }
@@ -121,11 +121,11 @@ public sealed partial class PhysicalKnowledgePipelineTests
     {
         var (state, artifact, reader) = await WrittenReadOrderState("book", 2, 1);
         using var world = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
-        var read = world.SubmitInstruction(new("cancel-reading", "owner:test", reader, OwnerInstructionKind.MustDo, "Read a book"));
-        if (replace) world.SubmitInstruction(new("instead-of-reading", "owner:test", reader, OwnerInstructionKind.MustDo, "Move to (1000,1000)"));
+        var read = world.SubmitInstruction(new("cancel-reading", "owner:test", reader, OwnerInstructionKind.Order, "Read a book"));
+        if (replace) world.SubmitInstruction(new("instead-of-reading", "owner:test", reader, OwnerInstructionKind.Order, "Move to (1000,1000)"));
         else world.CancelOrder(new("cancel-read-receipt", "owner:test", world.Society.WorldId, reader, read.InstructionId));
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == read.InstructionId).Order!;
+        var order = world.ExportState().Instructions!.Single(item => item.InstructionId == read.InstructionId).Task!;
         Assert.Equal(("cancelled", 0), (order.Status, order.CompletedUnits));
         Assert.DoesNotContain(world.Knowledge.Facts, fact => fact.OwnerId == reader);
         Assert.Equal(reader, world.Society.Inventory.GetLot(artifact.LotId).OwnerId);
@@ -139,26 +139,26 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var (state, artifact, reader) = await WrittenReadOrderState();
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "reading-food", "berries", reader, 3, state.Society.Society.WorldTick));
         using var world = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
-        var hold = world.SubmitInstruction(new("hold-reading", "owner:test", reader, OwnerInstructionKind.MustDo, "Move to (1000,1000)"));
-        var read = world.SubmitInstruction(new("queued-reading", "owner:test", reader, OwnerInstructionKind.MustDo, "Read a map", Queue: true));
-        world.SubmitInstruction(new("reading-typo", "owner:test", reader, OwnerInstructionKind.MustDo, "Read a mapp"));
+        var hold = world.SubmitInstruction(new("hold-reading", "owner:test", reader, OwnerInstructionKind.Order, "Move to (1000,1000)"));
+        var read = world.SubmitInstruction(new("queued-reading", "owner:test", reader, OwnerInstructionKind.Order, "Read a map", Queue: true));
+        world.SubmitInstruction(new("reading-typo", "owner:test", reader, OwnerInstructionKind.Order, "Read a mapp"));
         var queued = world.ExportState();
-        Assert.Equal("queued", queued.Instructions!.Single(item => item.InstructionId == read.InstructionId).Order!.Status);
+        Assert.Equal("queued", queued.Instructions!.Single(item => item.InstructionId == read.InstructionId).Task!.Status);
         queued = queued with
         {
-            Inhabitants = queued.Inhabitants.Select(person => person.InhabitantId == reader
-            ? person with { HungerBasisPoints = 0 } : person).ToArray()
+            Agents = queued.Agents.Select(person => person.AgentId == reader
+            ? person with { FullnessBasisPoints = 0 } : person).ToArray()
         };
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(queued)), _ => new ChoosingProvider(reader));
         restored.CancelOrder(new("release-reading", "owner:test", restored.Society.WorldId, reader, hold.InstructionId));
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
         var interrupted = restored.ExportState();
-        Assert.Equal("interrupted", interrupted.Instructions!.Single(item => item.InstructionId == read.InstructionId).Order!.Status);
+        Assert.Equal("interrupted", interrupted.Instructions!.Single(item => item.InstructionId == read.InstructionId).Task!.Status);
         Assert.DoesNotContain(interrupted.Knowledge!.Facts, fact => fact.OwnerId == reader);
         Assert.True(interrupted.Society.Society.Inventory.GetLot("reading-food").Quantity < 3);
         using var eatingReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(interrupted)), _ => new ChoosingProvider(reader));
-        await AdvanceUntil(eatingReload, () => eatingReload.ExportState().Instructions!.Single(item => item.InstructionId == read.InstructionId).Order!.Status == "finished", 12);
-        Assert.Equal(artifact.Id, eatingReload.ExportState().Instructions!.Single(item => item.InstructionId == read.InstructionId).Order!.TargetKnowledgeArtifactId);
+        await AdvanceUntil(eatingReload, () => eatingReload.ExportState().Instructions!.Single(item => item.InstructionId == read.InstructionId).Task!.Status == "finished", 12);
+        Assert.Equal(artifact.Id, eatingReload.ExportState().Instructions!.Single(item => item.InstructionId == read.InstructionId).Task!.TargetKnowledgeArtifactId);
         Assert.Single(eatingReload.ExportState().Events, item => item.Kind == "agent_knowledge_artifact_read");
     }
 
@@ -167,22 +167,22 @@ public sealed partial class PhysicalKnowledgePipelineTests
     {
         var (state, artifact, reader) = await WrittenReadOrderState();
         using var world = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
-        world.SubmitInstruction(new("atomic-reading", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + artifact.Id));
+        world.SubmitInstruction(new("atomic-reading", "owner:test", reader, OwnerInstructionKind.Order, "Read " + artifact.Id));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var completed = world.ExportState();
         var instruction = Assert.Single(completed.Instructions!);
-        Assert.Equal(1, instruction.Order!.CompletedUnits);
+        Assert.Equal(1, instruction.Task!.CompletedUnits);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Order = instruction.Order with { TargetKnowledgeArtifactId = "another-artifact" } }] }));
+        { Instructions = [instruction with { Task = instruction.Task with { TargetKnowledgeArtifactId = "another-artifact" } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Order = instruction.Order with { LastEffectId = "read-order:forged" } }] }));
+        { Instructions = [instruction with { Task = instruction.Task with { LastEffectId = "read-order:forged" } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Knowledge = completed.Knowledge! with { Facts = completed.Knowledge!.Facts.Where(fact => fact.OwnerId != reader).ToArray() } }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Order = instruction.Order with { KnowledgeReadCompletion = instruction.Order.KnowledgeReadCompletion! with { LearnedSites = [] } } }] }));
+        { Instructions = [instruction with { Task = instruction.Task with { KnowledgeReadCompletion = instruction.Task.KnowledgeReadCompletion! with { LearnedSites = [] } } }] }));
         Assert.Single(completed.Events, item => item.Kind == "agent_knowledge_artifact_read");
     }
 
@@ -193,12 +193,12 @@ public sealed partial class PhysicalKnowledgePipelineTests
         // for the boundary, with a real explored and written source.
         using var generated = NormalPathWorld.CreateGenerated("read-order-knowledge-cap", _ => new ActionCoverageRecorder(chooseIdle: true));
         var initial = generated.ExportState();
-        var author = initial.Inhabitants[0].InhabitantId;
-        var reader = initial.Inhabitants[1].InhabitantId;
+        var author = initial.Agents[0].AgentId;
+        var reader = initial.Agents[1].AgentId;
         initial = initial with
         {
-            Inhabitants = initial.Inhabitants.Select(person => person with
-            { HungerBasisPoints = 9_500 }).ToArray()
+            Agents = initial.Agents.Select(person => person with
+            { FullnessBasisPoints = 9_500 }).ToArray()
         };
         var scout = new ChoosingProvider(author, "explore");
         using var exploring = WorldRuntime.Restore(initial, _ => scout);
@@ -208,9 +208,9 @@ public sealed partial class PhysicalKnowledgePipelineTests
         // the writing budget or add unrelated facts to the capacity fixture.
         scout.Prefixes = ["explore_return"];
         exploring.SubmitInstruction(new("return-before-capacity-map", "owner:test", author,
-            OwnerInstructionKind.Suggestive, "Return from scouting before writing the map."));
-        await AdvanceUntil(exploring, () => exploring.ExportState().Inhabitants.Single(person =>
-            person.InhabitantId == author).Exploration is { OutingPath.Count: 0 }, 12);
+            OwnerInstructionKind.Suggestion, "Return from scouting before writing the map."));
+        await AdvanceUntil(exploring, () => exploring.ExportState().Agents.Single(person =>
+            person.AgentId == author).Exploration is { OutingPath.Count: 0 }, 12);
         Assert.Contains(exploring.ExportState().Events, item => item.Kind == "exploration_completed");
         var explored = exploring.ExportState();
         using var writing = WorldRuntime.Restore(WithInventory(explored, AddWritingSupplies(explored, author, 1, 0)), _ =>
@@ -230,9 +230,9 @@ public sealed partial class PhysicalKnowledgePipelineTests
             Assert.Equal(full ? 128 : 127, existing.Length);
             using var world = WorldRuntime.Restore(state with
             { Knowledge = state.Knowledge! with { Facts = state.Knowledge!.Facts.Concat(existing).ToArray() } }, _ => new ChoosingProvider(reader));
-            world.SubmitInstruction(new("capacity-read", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + artifact.Id));
+            world.SubmitInstruction(new("capacity-read", "owner:test", reader, OwnerInstructionKind.Order, "Read " + artifact.Id));
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-            var order = Assert.Single(world.ExportState().Instructions!, item => item.IdempotencyKey == "capacity-read").Order!;
+            var order = Assert.Single(world.ExportState().Instructions!, item => item.IdempotencyKey == "capacity-read").Task!;
             Assert.Equal(128, world.Knowledge.Facts.Count(fact => fact.OwnerId == reader));
             Assert.Equal(JsonSerializer.Serialize(existing), JsonSerializer.Serialize(world.Knowledge.Facts.Where(fact => fact.OwnerId == reader && fact.Acquisition == "firsthand")));
             if (full)
@@ -257,7 +257,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
     {
         var (state, artifact, reader) = await WrittenReadOrderState();
         using var world = WorldRuntime.Restore(state, _ => new ChoosingProvider(reader));
-        world.SubmitInstruction(new("historical-read", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + artifact.Id));
+        world.SubmitInstruction(new("historical-read", "owner:test", reader, OwnerInstructionKind.Order, "Read " + artifact.Id));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var read = world.ExportState();
         var firsthand = read.Knowledge!.Facts.Select(fact => fact.OwnerId == reader ? fact with
@@ -269,7 +269,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         firsthand = firsthand.Select(fact => fact.OwnerId == reader ? fact with { LearnedTick = later.Society.Society.WorldTick } : fact).ToArray();
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(
             later with { Knowledge = later.Knowledge! with { Facts = firsthand } })), _ => new ChoosingProvider(reader));
-        Assert.Equal(JsonSerializer.Serialize(Assert.Single(read.Instructions!).Order), JsonSerializer.Serialize(Assert.Single(restored.ExportState().Instructions!).Order));
+        Assert.Equal(JsonSerializer.Serialize(Assert.Single(read.Instructions!).Task), JsonSerializer.Serialize(Assert.Single(restored.ExportState().Instructions!).Task));
     }
 
     [Fact]
@@ -286,16 +286,16 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var inventory = InventoryAuthority.Transfer(written.Society.Society.Inventory, "hold-other-book", book.CreatorId, reader, book.LotId, 1, "give the alternative book");
         inventory = InventoryAuthority.Transfer(inventory, "withhold-named-map", reader, map.CreatorId, map.LotId, 1, "withhold the selected map");
         using var world = WorldRuntime.Restore(WithInventory(written, inventory), _ => new ChoosingProvider(reader));
-        world.SubmitInstruction(new("exact-map-title", "owner:test", reader, OwnerInstructionKind.MustDo, "Read " + map.Title));
+        world.SubmitInstruction(new("exact-map-title", "owner:test", reader, OwnerInstructionKind.Order, "Read " + map.Title));
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Equal(map.Id, Assert.Single(world.ExportState().Instructions!).Order!.TargetKnowledgeArtifactId);
-        Assert.Equal(("blocked", 0), (Assert.Single(world.ExportState().Instructions!).Order!.Status, Assert.Single(world.ExportState().Instructions!).Order!.CompletedUnits));
+        Assert.Equal(map.Id, Assert.Single(world.ExportState().Instructions!).Task!.TargetKnowledgeArtifactId);
+        Assert.Equal(("blocked", 0), (Assert.Single(world.ExportState().Instructions!).Task!.Status, Assert.Single(world.ExportState().Instructions!).Task!.CompletedUnits));
         Assert.DoesNotContain(world.Knowledge.Facts, fact => fact.OwnerId == reader);
         var waiting = world.ExportState();
         inventory = InventoryAuthority.Transfer(waiting.Society.Society.Inventory, "return-selected-map", map.CreatorId, reader, map.LotId, 1, "return the selected map");
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(WithInventory(waiting, inventory))), _ => new ChoosingProvider(reader));
-        await AdvanceUntil(restored, () => Assert.Single(restored.ExportState().Instructions!).Order!.Status == "finished", 8);
-        Assert.Equal(map.Id, Assert.Single(restored.ExportState().Instructions!).Order!.TargetKnowledgeArtifactId);
+        await AdvanceUntil(restored, () => Assert.Single(restored.ExportState().Instructions!).Task!.Status == "finished", 8);
+        Assert.Equal(map.Id, Assert.Single(restored.ExportState().Instructions!).Task!.TargetKnowledgeArtifactId);
         Assert.All(restored.Knowledge.Facts.Where(fact => fact.OwnerId == reader), fact => Assert.Equal(map.Id, fact.SourceArtifactId));
     }
 
@@ -308,7 +308,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         await AdvanceUntil(writing, () => writing.Knowledge.Artifacts.Count == 1, 64);
         var written = writing.ExportState();
         var artifact = Assert.Single(written.Knowledge!.Artifacts);
-        var reader = written.Inhabitants.First(person => person.InhabitantId != author).InhabitantId;
+        var reader = written.Agents.First(person => person.AgentId != author).AgentId;
         var transferred = InventoryAuthority.Transfer(written.Society.Society.Inventory, "give-read-order-artifact",
             author, reader, artifact.LotId, 1, "give the actual written artifact");
         return (WithInventory(written, transferred), artifact, reader);

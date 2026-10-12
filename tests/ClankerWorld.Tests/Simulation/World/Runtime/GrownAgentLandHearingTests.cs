@@ -23,12 +23,12 @@ public sealed partial class GrownAgentHelperMemoryTests
         var birth = Assert.Single(state.Society.Society.Births);
         Assert.InRange(birth.ChildId.Length, 1, DerivedId.MaximumLength);
         var actor = nativeBorn ? birth.ChildId : birth.PrimaryCaregiverId;
-        var person = state.Society.Society.GetInhabitant(actor);
+        var person = state.Society.Society.GetAgent(actor);
         Assert.Equal(SocietyAgeBand.Adult, person.AgeBand);
         var right = state.HouseholdLandUseRights!.First(item => item.HouseholdId == person.HouseholdId);
         var tick = state.Society.Society.WorldTick;
         TownLandCaseParty[] parties = [new("native-owner-party", "household", person.HouseholdId, right.TownId, [actor])];
-        var hearings = TownLandHearingRules.File(TownLandHearingState.Create(), right.TownId,
+        var hearings = TownLandHearingRules.File(TownLandRecords.Create(), right.TownId,
             new(actor, "dispute", "Please confirm my household's actual land right.", new("confirm"), tick),
             right.Tiles, [right], parties, tick, 40, "native-land-inspection-notice");
         var item = Assert.Single(hearings.Cases);
@@ -85,14 +85,14 @@ public sealed partial class GrownAgentHelperMemoryTests
         var former = world.Society.GetHousehold(house.HouseholdId!).MemberIds.ToArray();
         foreach (var member in former) Assert.True(world.DisplaceAdult(member));
         Assert.Empty(world.Society.GetHousehold(house.HouseholdId!).MemberIds);
-        await NativeHearingUntil(world, () => world.Towns[0].LandHearings.Cases.Count == 1, 20);
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases.Count == 1, 20);
         choices.Consent = true;
         choices.Rule = true;
-        await NativeHearingUntil(world, () => world.Towns[0].LandHearings.Cases[0].Status == "settled", 25);
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases[0].Status == "settled", 25);
         Assert.Null(world.WorldSimulation.Buildings.Single(item => item.InstanceId == house.InstanceId).HouseholdId);
-        Assert.Equal("reclaim", Assert.Single(world.Towns[0].LandHearings.Cases[0].Rulings).Outcome.Kind);
+        Assert.Equal("reclaim", Assert.Single(world.Towns[0].LandRecords.Cases[0].Rulings).Outcome.Kind);
         choices.Target = recipient;
-        await NativeHearingUntil(world, () => world.Towns[0].LandHearings.Cases.Count == 2, 20);
+        await NativeHearingUntil(world, () => world.Towns[0].LandRecords.Cases.Count == 2, 20);
         choices.Request = false;
         var pending = WorldRuntimeCodec.Encode(world.ExportState());
         using var replay = WorldRuntime.Restore(WorldRuntimeCodec.Decode(pending),
@@ -102,7 +102,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(pending, WorldRuntimeCodec.Encode(world.ExportState()));
         // A recipient who also represents the Town can still owe the separate
         // Town response opportunity. Allow its actual full notice window.
-        for (var step = 0; step < NativeHearingDay + 10 && world.Towns[0].LandHearings.Cases[1].Status == "pending"; step++)
+        for (var step = 0; step < NativeHearingDay + 10 && world.Towns[0].LandRecords.Cases[1].Status == "pending"; step++)
         {
             NativeHearingPromptAll(world);
             NativeHearingPromptAll(replay);
@@ -110,7 +110,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         }
-        var item = world.Towns[0].LandHearings.Cases[1];
+        var item = world.Towns[0].LandRecords.Cases[1];
         Assert.Equal("settled", item.Status);
         Assert.Equal("grant", Assert.Single(item.Rulings).Outcome.Kind);
         Assert.Equal(choices.Judge, Assert.Single(item.Rulings).Judge.AgentId);
@@ -123,7 +123,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Contains(actor, item.DirectStakeIds);
         var record = Assert.Single(item.Evidence, evidence => evidence.SourceRecordId == TownPropertyRules.RecordId(item, 1));
         Assert.Contains(item.Reads, read => read.AgentId == actor && read.Revision == 1 && read.EvidenceIds.Contains(record.Id));
-        Assert.Contains(world.Towns[0].Governance!.Knowledge, receipt => receipt.AgentId == actor && receipt.NoticeId == item.Revisions[0].NoticeId);
+        Assert.Contains(world.Towns[0].Council!.Knowledge, receipt => receipt.AgentId == actor && receipt.NoticeId == item.Revisions[0].NoticeId);
         Assert.Contains(choices.Selected, choice => choice.Actor == actor && choice.Choice.Contains("|hearing_inspect|", StringComparison.Ordinal));
         Assert.Contains(choices.Selected, choice => choice.Actor == actor && choice.Choice.Contains("|hearing_property_accept|", StringComparison.Ordinal));
         world.Validate();
@@ -165,8 +165,8 @@ public sealed partial class GrownAgentHelperMemoryTests
             {
                 Towns = current.Towns!.Select(town => town with
                 {
-                    LandHearings = town.LandHearings with
-                    { Cases = town.LandHearings.Cases.Select(entry => entry.Id == item.Id ? invalid : entry).ToArray() }
+                    LandRecords = town.LandRecords with
+                    { Cases = town.LandRecords.Cases.Select(entry => entry.Id == item.Id ? invalid : entry).ToArray() }
                 }).ToArray()
             };
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(current)));
@@ -202,7 +202,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         society = society with
         {
             Config = society.Config with { TicksPerWorldDay = day },
-            Inhabitants = society.Inhabitants.Select(person => person with
+            Agents = society.Agents.Select(person => person with
             { BirthLifeTick = life - (life - (person.BirthLifeTick ?? person.BirthTick)) * day / oldDay }).ToArray(),
         };
         return state with
@@ -234,12 +234,12 @@ public sealed partial class GrownAgentHelperMemoryTests
                 state.WorldSystems.WorldTick, state.WorldSeed, worldConfig),
                 RegionalWeather = null
             }, state.Map),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
                 Position = state.Towns![0].OriginSite!.Value,
                 Project = null,
                 LastDecisionContext = null,
-                HungerBasisPoints = 9_500,
+                FullnessBasisPoints = 9_500,
                 Survival = person.Survival! with { WarmthBasisPoints = 10_000, IllnessBasisPoints = 0 }
             }).ToArray(),
         };
@@ -248,9 +248,9 @@ public sealed partial class GrownAgentHelperMemoryTests
     private static void NativeHearingPromptAll(WorldRuntime world)
     {
         var index = 0;
-        foreach (var person in world.Inhabitants)
-            world.SubmitInstruction(new("native-hearing-" + world.WorldTick + "-" + index++, "owner:test", person.InhabitantId,
-                OwnerInstructionKind.Suggestive, "Consider the current public hearing and make your own informed choice."));
+        foreach (var person in world.Agents)
+            world.SubmitInstruction(new("native-hearing-" + world.WorldTick + "-" + index++, "owner:test", person.AgentId,
+                OwnerInstructionKind.Suggestion, "Consider the current public hearing and make your own informed choice."));
     }
 
     private static async Task NativeHearingUntil(WorldRuntime world, Func<bool> done, int limit)
@@ -285,33 +285,33 @@ public sealed partial class GrownAgentHelperMemoryTests
             var observation = request.Observation;
             var choices = observation.Candidates;
             CognitionCandidate? Find(string action) => choices.FirstOrDefault(candidate => candidate.Id.Contains("|" + action + "|", StringComparison.Ordinal));
-            var selected = Find("read") ?? (observation.InhabitantId == IgnoredLandObserver ? null : Find("hearing_inspect")) ?? Find("yes");
+            var selected = Find("read") ?? (observation.AgentId == IgnoredLandObserver ? null : Find("hearing_inspect")) ?? Find("yes");
             if (Elect)
             {
                 // Only Judge registers; select the actually offered ballot,
                 // including its bounded token for a native-born candidate.
                 selected ??= Find("government_yes") ?? Find("mayor_vote");
-                if (observation.InhabitantId == Judge)
+                if (observation.AgentId == Judge)
                     selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|mayor_register|land|", StringComparison.Ordinal)) ??
                         choices.FirstOrDefault(candidate => candidate.Id.Contains("|government_propose|council+mayor|", StringComparison.Ordinal));
             }
-            if (Request && observation.InhabitantId == Filer)
+            if (Request && observation.AgentId == Filer)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_property_request|" + NativeHearingHouse + "|", StringComparison.Ordinal) &&
                     (Target is null ? candidate.Id.EndsWith("|town", StringComparison.Ordinal) : candidate.Description.Contains("grant household " + Target + " ", StringComparison.Ordinal)));
             if (Consent) selected ??= Find("hearing_property_accept");
-            if (CaseCandidates.Contains(observation.InhabitantId)) selected ??= Find("hearing_judge_register");
-            if (CaseVote?.Invoke(observation.InhabitantId) is { } candidateName)
+            if (CaseCandidates.Contains(observation.AgentId)) selected ??= Find("hearing_judge_register");
+            if (CaseVote?.Invoke(observation.AgentId) is { } candidateName)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_judge_vote|", StringComparison.Ordinal) &&
                     candidate.Description.Contains("ballot for " + candidateName + " as judge", StringComparison.Ordinal));
             selected ??= Find("hearing_answer");
-            if (Rule && observation.InhabitantId == Judge)
+            if (Rule && observation.AgentId == Judge)
                 selected ??= choices.FirstOrDefault(candidate => candidate.Id.Contains("|hearing_rule|", StringComparison.Ordinal) &&
                     (candidate.Id.EndsWith("|reclaim", StringComparison.Ordinal) || candidate.Id.EndsWith("|grant", StringComparison.Ordinal)));
             selected ??= choices.Single(candidate => candidate.Id == "safe_idle");
-            Selected.Enqueue((observation.InhabitantId, selected.Id));
+            Selected.Enqueue((observation.AgentId, selected.Id));
             var evidence = selected.Description.Split([' ', ';', ','], StringSplitOptions.RemoveEmptyEntries)
                 .Where(token => token.StartsWith("land-evidence:", StringComparison.Ordinal)).Select(token => token.Split('=')[0]).Distinct(StringComparer.Ordinal).ToArray();
-            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.InhabitantId, Kind, ProviderEpoch,
+            return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId, Kind, ProviderEpoch,
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected.Id, 1,
                 choices.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
                 CivicLandHearing: new(Statement: "Decide this noticed property request using actual ownership records and personal agreements.", EvidenceIds: evidence)));

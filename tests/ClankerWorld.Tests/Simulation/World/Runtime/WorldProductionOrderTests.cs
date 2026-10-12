@@ -69,9 +69,9 @@ public sealed class WorldProductionOrderTests
         Assert.Equal(2, Produced(world, "sack"));
         Assert.Equal(2, world.ExportState().Events.Count(item => item.Kind == "recipe_completed"));
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
-            item => item.InstructionId == receipt.InstructionId).Order!;
+            item => item.InstructionId == receipt.InstructionId).Task!;
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldInstructionOrder>(
+        var client = JsonSerializer.Deserialize<ClankerWorld.GodotClient.UI.OwnerWorldOrderTask>(
             JsonSerializer.Serialize(projected, json), json)!;
         Assert.Equal(("sack", "output_items", 2, 2),
             (client.TargetOutputKind, client.ProgressUnit, client.RequestedUnits, client.CompletedUnits));
@@ -124,7 +124,7 @@ public sealed class WorldProductionOrderTests
     public async Task ProductionCannotSubstituteUnavailableInputsOrAnotherWorkstation(string boundary)
     {
         var state = Prepared(House);
-        var other = state.Society.Society.Inhabitants.First(person => person.HouseholdId == "household:camp-beta").Id;
+        var other = state.Society.Society.Agents.First(person => person.HouseholdId == "household:camp-beta").Id;
         state = Stock(state, boundary == "off-site" ? Shop : House, "fiber", 3,
             boundary == "foreign-owner" ? other : Household);
         if (boundary == "reserved")
@@ -153,7 +153,7 @@ public sealed class WorldProductionOrderTests
     {
         var state = Stock(Prepared(Shop), House, "fiber", 3);
         var actor = Actor(state);
-        var start = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var start = state.Agents.Single(person => person.AgentId == actor).Position;
         var destination = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House).Position;
         Assert.NotEqual(start, destination);
         using var world = Restore(state);
@@ -184,8 +184,8 @@ public sealed class WorldProductionOrderTests
         state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
             "urgent-food", "berries", actor, 1)) with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+            Agents = state.Agents.Select(person => person.AgentId == actor
+                ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
         };
         using var world = Restore(state);
         await Tick(world);
@@ -272,7 +272,7 @@ public sealed class WorldProductionOrderTests
         var house = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == House);
         state = state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = house.Position } : person).ToArray(),
         };
         using var world = Restore(state);
@@ -315,8 +315,8 @@ public sealed class WorldProductionOrderTests
             state = WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
                 "last-meal", "berries", actor, 1)) with
             {
-                Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
-                    ? person with { HungerBasisPoints = 1_000 } : person).ToArray(),
+                Agents = state.Agents.Select(person => person.AgentId == actor
+                    ? person with { FullnessBasisPoints = 1_000 } : person).ToArray(),
             };
             using var interrupted = Restore(state);
             await Tick(interrupted);
@@ -332,7 +332,7 @@ public sealed class WorldProductionOrderTests
             {
                 Society = society with
                 {
-                    Inhabitants = society.Inhabitants.Select(person => person.Id == actor ? person with
+                    Agents = society.Agents.Select(person => person.Id == actor ? person with
                     {
                         BirthTick = nextTick - maximumDay * society.Config.TicksPerLifecycleAge,
                         BirthLifeTick = society.LifeClock is null ? null :
@@ -345,11 +345,11 @@ public sealed class WorldProductionOrderTests
         };
         using var world = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)));
         using var replay = Reload(world);
-        Assert.Equal(SocietyInhabitantStatus.Active, world.Society.GetInhabitant(actor).Status);
+        Assert.Equal(SocietyAgentStatus.Active, world.Society.GetAgent(actor).Status);
         await TickTogether(world, replay);
-        Assert.Equal(SocietyInhabitantStatus.Dead, world.Society.GetInhabitant(actor).Status);
-        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetInhabitant(actor).DeathCause);
-        Assert.Equal(nextTick, world.Society.GetInhabitant(actor).DeathTick);
+        Assert.Equal(SocietyAgentStatus.Dead, world.Society.GetAgent(actor).Status);
+        Assert.Equal(SocietyDeathCause.NaturalAge, world.Society.GetAgent(actor).DeathCause);
+        Assert.Equal(nextTick, world.Society.GetAgent(actor).DeathTick);
         Assert.Equal(WorldProductionJobState.Cancelled, Job(world, job.JobId).State);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         Assert.Equal(0, Produced(world, "rope"));
@@ -368,7 +368,7 @@ public sealed class WorldProductionOrderTests
         using var initial = Restore(state);
         var repeating = Submit(initial, actor, "repeat-rope", "keep making rope until cancelled");
         var queued = initial.SubmitInstruction(new("queued-basket", "owner:test", actor,
-            OwnerInstructionKind.MustDo, "make a basket", Queue: true));
+            OwnerInstructionKind.Order, "make a basket", Queue: true));
         for (var tick = 0; tick < 80 && Order(initial, repeating).CompletedUnits < 2; tick++) await Tick(initial);
         Assert.Equal(2, Order(initial, repeating).CompletedUnits);
         Assert.True(Order(initial, repeating).RepeatUntilCancelled);
@@ -450,7 +450,7 @@ public sealed class WorldProductionOrderTests
             var corrupt = saved with
             {
                 Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Order = invalid } : item).ToArray(),
+                    ? item with { Task = invalid } : item).ToArray(),
             };
             Assert.Throws<InvalidDataException>(() => Restore(corrupt));
         }
@@ -468,7 +468,7 @@ public sealed class WorldProductionOrderTests
         {
             var corrupt = saved with
             {
-                Inhabitants = saved.Inhabitants.Select(person => person.InhabitantId == Actor(saved)
+                Agents = saved.Agents.Select(person => person.AgentId == Actor(saved)
                     ? person with { Project = invalid } : person).ToArray(),
             };
             Assert.Throws<InvalidDataException>(() => Restore(corrupt));
@@ -538,12 +538,12 @@ public sealed class WorldProductionOrderTests
         return state with
         {
             JevEnabled = true,
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                Position = person.InhabitantId == actor ? position : person.Position,
-                Equipment = person.InhabitantId == actor ? null : person.Equipment,
+                Position = person.AgentId == actor ? position : person.Position,
+                Equipment = person.AgentId == actor ? null : person.Equipment,
                 Survival = new(),
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 LastDecisionContext = null,
             }).ToArray(),
         };
@@ -554,8 +554,8 @@ public sealed class WorldProductionOrderTests
             kind, owner, count, storageBuildingId: building));
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
-    private static string Actor(WorldRuntimeState state) => state.Society.Society.Inhabitants.First(person => person.HouseholdId == Household).Id;
-    private static InhabitantState Person(WorldRuntime world, string actor) => world.Inhabitants.Single(person => person.InhabitantId == actor);
+    private static string Actor(WorldRuntimeState state) => state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
+    private static AgentState Person(WorldRuntime world, string actor) => world.Agents.Single(person => person.AgentId == actor);
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new ProductionChoices());
     private static WorldRuntime Reload(WorldRuntime world)
     {
@@ -565,9 +565,9 @@ public sealed class WorldProductionOrderTests
         return restored;
     }
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text));
-    private static OwnerInstructionOrder Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
-        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Order!;
+        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text));
+    private static OrderTask Order(WorldRuntime world, OwnerInstructionReceipt receipt) =>
+        world.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
     private static WorldProductionJob Job(WorldRuntime world, string id) => world.WorldSimulation.ProductionJobs.Single(job => job.JobId == id);
     private static int Quantity(WorldRuntime world, string owner, string kind) =>
         world.Society.Inventory.Lots.Where(lot => lot.OwnerId == owner && lot.ItemKind == kind).Sum(lot => lot.Quantity);
@@ -597,7 +597,7 @@ public sealed class WorldProductionOrderTests
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
-        public ConcurrentQueue<InhabitantObservation> Requests { get; } = new();
+        public ConcurrentQueue<AgentObservation> Requests { get; } = new();
         public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -614,7 +614,7 @@ public sealed class WorldProductionOrderTests
             }
             var selected = observation.OperativeOrderInstructionId is not null && observation.Candidates.Any(candidate => candidate.Id == "produce_item")
                 ? "produce_item" : "safe_idle";
-            return new(request.RequestId, observation.InhabitantId, Kind, request.ProviderEpoch, observation.RunEpoch,
+            return new(request.RequestId, observation.AgentId, Kind, request.ProviderEpoch, observation.RunEpoch,
                 observation.DecisionGeneration, observation.ObservationDigest, selected, 1, new Dictionary<string, double> { [selected] = 1 });
         }
     }

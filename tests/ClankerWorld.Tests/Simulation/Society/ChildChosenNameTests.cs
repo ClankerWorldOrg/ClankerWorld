@@ -18,7 +18,7 @@ public sealed class ChildChosenNameTests
     {
         var checkpoint = BirthCheckpoint();
         var result = SocietyRules.CommitBirth(checkpoint, BirthRequest(checkpoint) with { ChildName = name });
-        var child = result.Checkpoint.GetInhabitant(Assert.IsType<string>(result.CreatedId));
+        var child = result.Checkpoint.GetAgent(Assert.IsType<string>(result.CreatedId));
         Assert.Equal(name, child.Name);
         Assert.True(child.HasChosenName);
         Assert.False(child.NeedsName);
@@ -29,11 +29,11 @@ public sealed class ChildChosenNameTests
             result.Checkpoint.Inventory.GetReservation("birth:naming-birth:food").State);
 
         // An already admitted name remains valid when a parent later changes theirs.
-        var renamedParent = SocietyRules.RenameInhabitant(result.Checkpoint, "first", "Morgan Dune").Checkpoint;
-        renamedParent = SocietyRules.RenameInhabitant(renamedParent, "second", "Élodie Brook").Checkpoint;
+        var renamedParent = SocietyRules.RenameAgent(result.Checkpoint, "first", "Morgan Dune").Checkpoint;
+        renamedParent = SocietyRules.RenameAgent(renamedParent, "second", "Élodie Brook").Checkpoint;
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(renamedParent));
-        Assert.Equal(name, restored.GetInhabitant(child.Id).Name);
-        Assert.True(restored.GetInhabitant(child.Id).HasChosenName);
+        Assert.Equal(name, restored.GetAgent(child.Id).Name);
+        Assert.True(restored.GetAgent(child.Id).HasChosenName);
     }
 
     [Theory]
@@ -45,7 +45,7 @@ public sealed class ChildChosenNameTests
         var saved = SocietyCheckpointCodec.Encode(checkpoint);
         var request = BirthRequest(checkpoint) with { ChildName = name };
         if (duplicate)
-            Assert.Throws<InhabitantNameTakenException>(() => SocietyRules.CommitBirth(checkpoint, request));
+            Assert.Throws<AgentNameTakenException>(() => SocietyRules.CommitBirth(checkpoint, request));
         else
             Assert.Throws<ArgumentException>(() => SocietyRules.CommitBirth(checkpoint, request));
         Assert.Equal(saved, SocietyCheckpointCodec.Encode(checkpoint));
@@ -56,7 +56,7 @@ public sealed class ChildChosenNameTests
         // Even an unavailable food source cannot mask the earlier name refusal.
         request = request with { FoodLotId = "missing-food" };
         if (duplicate)
-            Assert.Throws<InhabitantNameTakenException>(() => SocietyRules.CommitBirth(checkpoint, request));
+            Assert.Throws<AgentNameTakenException>(() => SocietyRules.CommitBirth(checkpoint, request));
         else
             Assert.Throws<ArgumentException>(() => SocietyRules.CommitBirth(checkpoint, request));
     }
@@ -67,7 +67,7 @@ public sealed class ChildChosenNameTests
         var checkpoint = BirthCheckpoint();
         var first = SocietyRules.CommitBirth(checkpoint, BirthRequest(checkpoint));
         var second = SocietyRules.CommitBirth(first.Checkpoint, BirthRequest(first.Checkpoint) with { Id = "second-birth" });
-        var children = second.Checkpoint.Births.Select(birth => second.Checkpoint.GetInhabitant(birth.ChildId)).ToArray();
+        var children = second.Checkpoint.Births.Select(birth => second.Checkpoint.GetAgent(birth.ChildId)).ToArray();
         Assert.Equal(2, children.Length);
         Assert.All(children, child =>
         {
@@ -76,14 +76,14 @@ public sealed class ChildChosenNameTests
             Assert.True(child.NeedsName);
         });
 
-        var named = SocietyRules.RenameInhabitant(second.Checkpoint, "first", "Child Vale").Checkpoint;
-        Assert.True(named.GetInhabitant("first").HasChosenName);
+        var named = SocietyRules.RenameAgent(second.Checkpoint, "first", "Child Vale").Checkpoint;
+        Assert.True(named.GetAgent("first").HasChosenName);
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(named));
         Assert.All(children, child =>
         {
-            Assert.Equal(child.Name, restored.GetInhabitant(child.Id).Name);
-            Assert.False(restored.GetInhabitant(child.Id).HasChosenName);
-            Assert.True(restored.GetInhabitant(child.Id).NeedsName);
+            Assert.Equal(child.Name, restored.GetAgent(child.Id).Name);
+            Assert.False(restored.GetAgent(child.Id).HasChosenName);
+            Assert.True(restored.GetAgent(child.Id).NeedsName);
         });
     }
 
@@ -96,11 +96,11 @@ public sealed class ChildChosenNameTests
         checkpoint = SocietyRules.Kill(birth.Checkpoint, "second", SocietyDeathCause.Accident).Checkpoint;
         Assert.Contains(checkpoint.Relationships, edge => edge.TargetId == child && edge.ProposerId == "second" &&
             edge.Type == SocietyRelationshipType.BiologicalParentage && edge.State == SocietyRelationshipState.EndedByDeath);
-        var named = SocietyRules.RenameInhabitant(checkpoint, child, "Nori Reed").Checkpoint;
+        var named = SocietyRules.RenameAgent(checkpoint, child, "Nori Reed").Checkpoint;
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(named));
-        Assert.Equal("Nori Reed", restored.GetInhabitant(child).Name);
-        Assert.True(restored.GetInhabitant(child).HasChosenName);
-        Assert.False(restored.GetInhabitant(child).NeedsName);
+        Assert.Equal("Nori Reed", restored.GetAgent(child).Name);
+        Assert.True(restored.GetAgent(child).HasChosenName);
+        Assert.False(restored.GetAgent(child).NeedsName);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class ChildChosenNameTests
     {
         var (state, childId) = RuntimeBirth(ownerWorld: true);
         using var world = WorldRuntime.Restore(state, _ => new QuietProvider());
-        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Throws<ArgumentException>(() => world.RenameAgent(childId, "Nori Ridge"));
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -117,7 +117,7 @@ public sealed class ChildChosenNameTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietProvider());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
-        var child = restored.Society.GetInhabitant(childId);
+        var child = restored.Society.GetAgent(childId);
         Assert.Equal("Nori Reed", child.Name);
         Assert.True(child.HasChosenName);
         Assert.False(child.NeedsName);
@@ -136,33 +136,33 @@ public sealed class ChildChosenNameTests
         if (alreadyNamed) Assert.True(world.RenameAgent(childId, "Nori Vale"));
 
         Assert.True(world.RenameAgent(first, "Ansel"));
-        Assert.Equal(["Reed"], InhabitantNameRules.AllowedChildSurnames(world.Society, childId));
+        Assert.Equal(["Reed"], AgentNameRules.AllowedChildSurnames(world.Society, childId));
         var beforeRefusal = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Throws<ArgumentException>(() => world.RenameAgent(second, "Bela"));
         Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(world.ExportState()));
 
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(beforeRefusal), _ => new QuietProvider());
         Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal(alreadyNamed ? "Nori Vale" : "Child", restored.Society.GetInhabitant(childId).Name);
-        Assert.Throws<InhabitantNameTakenException>(() => restored.RenameAgent(childId, "Ansel Reed"));
+        Assert.Equal(alreadyNamed ? "Nori Vale" : "Child", restored.Society.GetAgent(childId).Name);
+        Assert.Throws<AgentNameTakenException>(() => restored.RenameAgent(childId, "Ansel Reed"));
         Assert.Equal(beforeRefusal, WorldRuntimeCodec.Encode(restored.ExportState()));
         Assert.True(restored.RenameAgent(childId, alreadyNamed ? "Dara Reed" : "Nori Reed"));
         var named = WorldRuntimeCodec.Encode(restored.ExportState());
         using var namedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(named), _ => new QuietProvider());
         Assert.Equal(named, WorldRuntimeCodec.Encode(namedReload.ExportState()));
-        Assert.Equal(alreadyNamed ? "Dara Reed" : "Nori Reed", namedReload.Society.GetInhabitant(childId).Name);
-        Assert.True(namedReload.Society.GetInhabitant(childId).HasChosenName);
-        Assert.False(namedReload.Society.GetInhabitant(childId).NeedsName);
+        Assert.Equal(alreadyNamed ? "Dara Reed" : "Nori Reed", namedReload.Society.GetAgent(childId).Name);
+        Assert.True(namedReload.Society.GetAgent(childId).HasChosenName);
+        Assert.False(namedReload.Society.GetAgent(childId).NeedsName);
     }
 
     [Fact]
     public void ParentSurnameGuardDoesNotRequireASurnameBeforeAnyChildExists()
     {
         var checkpoint = BirthCheckpoint();
-        var renamed = SocietyRules.RenameInhabitant(checkpoint, "first", "Ansel").Checkpoint;
+        var renamed = SocietyRules.RenameAgent(checkpoint, "first", "Ansel").Checkpoint;
         var restored = SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(renamed));
-        Assert.Equal("Ansel", restored.GetInhabitant("first").Name);
-        Assert.True(restored.GetInhabitant("first").HasChosenName);
+        Assert.Equal("Ansel", restored.GetAgent("first").Name);
+        Assert.True(restored.GetAgent("first").HasChosenName);
         Assert.Empty(restored.Births);
     }
 
@@ -174,18 +174,18 @@ public sealed class ChildChosenNameTests
         var provider = new ChildNameProvider("e\u0301LODIE Vale");
         using var world = WorldRuntime.Restore(state, id => id == childId ? provider : new QuietProvider());
         world.Resume();
-        var placeholder = world.Society.GetInhabitant(childId).Name;
+        var placeholder = world.Society.GetAgent(childId).Name;
         Assert.Equal("Child", placeholder);
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetInhabitant(childId).AgeBand);
+        Assert.Equal(SocietyAgeBand.Infant, world.Society.GetAgent(childId).AgeBand);
         Assert.Empty(provider.Observations);
-        Assert.True(world.Society.GetInhabitant(childId).NeedsName);
+        Assert.True(world.Society.GetAgent(childId).NeedsName);
 
         await AdvanceUntilAsync(world, () => world.ExportState().Events.Any(item =>
             item.Kind == "agent_name_retry_requested" && item.Detail == childId));
-        Assert.Equal(SocietyAgeBand.Child, world.Society.GetInhabitant(childId).AgeBand);
-        Assert.Equal(placeholder, world.Society.GetInhabitant(childId).Name);
-        Assert.False(world.Society.GetInhabitant(childId).HasChosenName);
+        Assert.Equal(SocietyAgeBand.Child, world.Society.GetAgent(childId).AgeBand);
+        Assert.Equal(placeholder, world.Society.GetAgent(childId).Name);
+        Assert.False(world.Society.GetAgent(childId).HasChosenName);
         var firstRequest = Assert.Single(provider.Observations);
         Assert.True(firstRequest.NeedsName);
         Assert.True(firstRequest.RequiresPersonalProvider);
@@ -197,26 +197,26 @@ public sealed class ChildChosenNameTests
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         var decoded = WorldRuntimeCodec.Decode(saved);
         Assert.Contains(SocietyCognitionScheduler.NameRetryTriggerId,
-            Assert.Single(decoded.Society.Cognition.Queue, item => item.InhabitantId == childId).TriggerIds);
+            Assert.Single(decoded.Society.Cognition.Queue, item => item.AgentId == childId).TriggerIds);
         var retryProvider = new ChildNameProvider("Nori Reed");
         using var restored = WorldRuntime.Restore(decoded, id => id == childId ? retryProvider : new QuietProvider());
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
         restored.Resume();
-        await AdvanceUntilAsync(restored, () => !restored.Society.GetInhabitant(childId).NeedsName);
+        await AdvanceUntilAsync(restored, () => !restored.Society.GetAgent(childId).NeedsName);
         var retry = Assert.Single(retryProvider.Observations);
         Assert.True(retry.IsNameRetry);
         Assert.True(retry.RequiresPersonalProvider);
         Assert.Equal(["Reed", "Vale"], retry.Self!.AllowedChildSurnames);
-        Assert.Equal("Nori Reed", restored.Society.GetInhabitant(childId).Name);
-        Assert.True(restored.Society.GetInhabitant(childId).HasChosenName);
-        Assert.Equal(state.Society.Society.GetInhabitant(childId).PrimaryCaregiverId,
-            restored.Society.GetInhabitant(childId).PrimaryCaregiverId);
-        Assert.Equal(state.Society.Society.GetInhabitant(childId).HouseholdId,
-            restored.Society.GetInhabitant(childId).HouseholdId);
+        Assert.Equal("Nori Reed", restored.Society.GetAgent(childId).Name);
+        Assert.True(restored.Society.GetAgent(childId).HasChosenName);
+        Assert.Equal(state.Society.Society.GetAgent(childId).PrimaryCaregiverId,
+            restored.Society.GetAgent(childId).PrimaryCaregiverId);
+        Assert.Equal(state.Society.Society.GetAgent(childId).HouseholdId,
+            restored.Society.GetAgent(childId).HouseholdId);
         restored.Pause();
         var namedSave = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(restored.ExportState()));
-        Assert.Equal("Nori Reed", namedSave.Society.Society.GetInhabitant(childId).Name);
-        Assert.True(namedSave.Society.Society.GetInhabitant(childId).HasChosenName);
+        Assert.Equal("Nori Reed", namedSave.Society.Society.GetAgent(childId).Name);
+        Assert.True(namedSave.Society.Society.GetAgent(childId).HasChosenName);
     }
 
     [Theory]
@@ -227,15 +227,15 @@ public sealed class ChildChosenNameTests
         var (state, childId) = RuntimeBirth(unnamedParents);
         var provider = new ChildNameProvider("Nori Ridge");
         using var world = WorldRuntime.Restore(state, id => id == childId ? provider : new QuietProvider());
-        var placeholder = world.Society.GetInhabitant(childId).Name;
+        var placeholder = world.Society.GetAgent(childId).Name;
         world.Resume();
-        await AdvanceUntilAsync(world, () => !world.Society.GetInhabitant(childId).NeedsName);
+        await AdvanceUntilAsync(world, () => !world.Society.GetAgent(childId).NeedsName);
         var request = Assert.Single(provider.Observations);
         Assert.False(request.IsNameRetry);
         Assert.Equal(unnamedParents ? Array.Empty<string>() : ["Reed", "Vale"], request.Self!.AllowedChildSurnames);
-        Assert.Equal(placeholder, world.Society.GetInhabitant(childId).Name);
-        Assert.False(world.Society.GetInhabitant(childId).HasChosenName);
-        Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.InhabitantId == childId &&
+        Assert.Equal(placeholder, world.Society.GetAgent(childId).Name);
+        Assert.False(world.Society.GetAgent(childId).HasChosenName);
+        Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == childId &&
             item.TriggerIds.Contains(SocietyCognitionScheduler.NameRetryTriggerId, StringComparer.Ordinal));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_name_retry_requested" && item.Detail == childId);
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
@@ -280,16 +280,16 @@ public sealed class ChildChosenNameTests
         }
         original.Pause();
         var state = original.ExportState();
-        var checkpoint = SocietyRules.RenameInhabitant(state.Society.Society, first, "Morgan Vale").Checkpoint;
-        checkpoint = SocietyRules.RenameInhabitant(checkpoint, second, "Élodie Reed").Checkpoint;
+        var checkpoint = SocietyRules.RenameAgent(state.Society.Society, first, "Morgan Vale").Checkpoint;
+        checkpoint = SocietyRules.RenameAgent(checkpoint, second, "Élodie Reed").Checkpoint;
         if (unnamedParents)
             checkpoint = checkpoint with
             {
-                Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == first || person.Id == second
+                Agents = checkpoint.Agents.Select(person => person.Id == first || person.Id == second
                     ? person with { HasChosenName = false } : person).ToArray(),
             };
         checkpoint = Partner(checkpoint, first, second);
-        var household = checkpoint.GetInhabitant(first).HouseholdId!;
+        var household = checkpoint.GetAgent(first).HouseholdId!;
         var birth = SocietyRules.CommitBirth(checkpoint, new SocietyBirthRequest(birthRequestId, 1, first, second,
             household, [first, second], [first, second], "food:camp-alpha", 2, checkpoint.WorldTick,
             PrimaryCaregiverId: first));
@@ -303,23 +303,23 @@ public sealed class ChildChosenNameTests
             var birthTick = checkpoint.WorldTick + 2 - childStartAge * checkpoint.Config.TicksPerLifecycleAge;
             checkpoint = checkpoint with
             {
-                Inhabitants = checkpoint.Inhabitants.Select(person => person.Id == childId
+                Agents = checkpoint.Agents.Select(person => person.Id == childId
                     ? person with { BirthTick = birthTick, LastLifecycleYearChecked = childStartAge - 1 }
                     : person).ToArray(),
             };
         }
-        var parent = state.Inhabitants.Single(person => person.InhabitantId == first);
+        var parent = state.Agents.Single(person => person.AgentId == first);
         var childPosition = state.Map.Tiles.Select(tile => tile.Position)
-            .Where(position => state.Map.IsBuildable(position) && !state.Inhabitants.Any(person => person.Position == position))
+            .Where(position => state.Map.IsBuildable(position) && !state.Agents.Any(person => person.Position == position))
             .OrderBy(position => Math.Abs(position.X - parent.Position.X) + Math.Abs(position.Y - parent.Position.Y)).First();
         return (state with
         {
             Society = state.Society with { Society = checkpoint },
-            Survival = state.Survival ?? new SettlementSurvivalState(checkpoint.WorldTick, []),
+            Survival = state.Survival ?? new SurvivalState(checkpoint.WorldTick, []),
             Towns = state.Towns!.Select(town => town.ResidentIds.Contains(first, StringComparer.Ordinal)
                 ? town with { ResidentIds = town.ResidentIds.Append(childId).Order(StringComparer.Ordinal).ToArray() }
                 : town).ToArray(),
-            Inhabitants = state.Inhabitants.Append(new InhabitantState(childId, childPosition,
+            Agents = state.Agents.Append(new AgentState(childId, childPosition,
                 10_000, 0, "curious", "grow with the household", Survival: new SurvivalCondition(WarmthBasisPoints: 10_000))).ToArray(),
         }, childId);
     }
@@ -352,7 +352,7 @@ public sealed class ChildChosenNameTests
 
     private sealed class ChildNameProvider(string name) : IDecisionProvider
     {
-        public ConcurrentQueue<InhabitantObservation> Observations { get; } = new();
+        public ConcurrentQueue<AgentObservation> Observations { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
@@ -365,7 +365,7 @@ public sealed class ChildChosenNameTests
     private static CognitionDecisionResponse Reply(CognitionDecisionRequest request, DecisionProviderKind kind, string? name)
     {
         var observation = request.Observation;
-        return new(request.RequestId, observation.InhabitantId, kind, 1, observation.RunEpoch,
+        return new(request.RequestId, observation.AgentId, kind, 1, observation.RunEpoch,
             observation.DecisionGeneration, observation.ObservationDigest, "safe_idle", 1,
             observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == "safe_idle" ? 1d : 0d,
                 StringComparer.Ordinal), ChosenName: name);

@@ -14,7 +14,7 @@ internal static class ShelterOrderTestFixture
     internal static WorldRuntimeState Prepared() => WorldRuntimeCodec.Decode(Baseline.Value);
 
     internal static string Actor(WorldRuntimeState state, string household = Alpha) =>
-        state.Society.Society.Inhabitants.First(person => person.HouseholdId == household).Id;
+        state.Society.Society.Agents.First(person => person.HouseholdId == household).Id;
 
     internal static PlacedBuilding House(WorldRuntimeState state, string household = Alpha) =>
         state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&
@@ -25,10 +25,10 @@ internal static class ShelterOrderTestFixture
 
     internal static WorldRuntimeState At(WorldRuntimeState state, string actor, GridPoint position)
     {
-        var oldPosition = state.Inhabitants.Single(person => person.InhabitantId == actor).Position;
+        var oldPosition = state.Agents.Single(person => person.AgentId == actor).Position;
         return state with
         {
-            Inhabitants = state.Inhabitants.Select(person => person.InhabitantId == actor
+            Agents = state.Agents.Select(person => person.AgentId == actor
                 ? person with { Position = position, LastDecisionContext = null }
                 : person.Position == position ? person with { Position = oldPosition } : person).ToArray(),
         };
@@ -76,7 +76,7 @@ internal static class ShelterOrderTestFixture
 
     internal static GridPoint Approach(WorldRuntimeState state, GridPoint destination, int distance = 4)
     {
-        var occupied = state.Inhabitants.Select(person => person.Position).ToHashSet();
+        var occupied = state.Agents.Select(person => person.Position).ToHashSet();
         var seen = new HashSet<GridPoint> { destination };
         var pending = new Queue<(GridPoint Point, int Distance)>();
         pending.Enqueue((destination, 0));
@@ -102,9 +102,9 @@ internal static class ShelterOrderTestFixture
         {
             JevEnabled = true,
             Survival = new(0, []),
-            Inhabitants = state.Inhabitants.Select(person => person with
+            Agents = state.Agents.Select(person => person with
             {
-                HungerBasisPoints = 10_000,
+                FullnessBasisPoints = 10_000,
                 Survival = new(),
                 Equipment = null,
                 Project = null,

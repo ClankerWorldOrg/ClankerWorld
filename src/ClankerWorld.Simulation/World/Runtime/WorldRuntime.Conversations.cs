@@ -212,9 +212,9 @@ public sealed partial class WorldRuntime
     private AgentConversationTurnRequest CreateConversationRequest(AgentConversation conversation, string speakerId)
     {
         var otherId = speakerId == conversation.InitiatorId ? conversation.InviteeId : conversation.InitiatorId;
-        var speaker = society.Checkpoint.GetInhabitant(speakerId);
-        var other = society.Checkpoint.GetInhabitant(otherId);
-        var physical = inhabitants[speakerId];
+        var speaker = society.Checkpoint.GetAgent(speakerId);
+        var other = society.Checkpoint.GetAgent(otherId);
+        var physical = agents[speakerId];
         var purpose = conversation.Kind == AgentConversationKind.MarriageSurname
             ? AgentConversationPurpose.SurnameChoice
             : conversation.AwaitingWrapUp

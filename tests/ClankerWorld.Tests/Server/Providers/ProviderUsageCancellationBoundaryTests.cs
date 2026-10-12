@@ -34,7 +34,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
             Assert.DoesNotContain(fixture.World.ExportState().Events,
                 item => item.Kind == "hosted_decision_completed");
             Assert.Single(fixture.World.ExportState().Society.Cognition.Queue,
-                entry => entry.InhabitantId == HeldConfiguredUsageWorld.Actor);
+                entry => entry.AgentId == HeldConfiguredUsageWorld.Actor);
         }
         finally
         {
@@ -127,7 +127,7 @@ public sealed class ProviderUsageCancellationBoundaryTests
         public TaskCompletionSource AwaitingReply { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public DecisionProviderKind Kind => inner.Kind;
         public long ProviderEpoch => inner.ProviderEpoch;
-        public DecisionProviderKind KindFor(InhabitantObservation observation) => inner.KindFor(observation);
+        public DecisionProviderKind KindFor(AgentObservation observation) => inner.KindFor(observation);
 
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
             CancellationToken cancellationToken = default)

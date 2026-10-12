@@ -21,11 +21,11 @@ public sealed class SplitTownServiceDonationTests
     public async Task RealSplitCarriedStoneCanFulfillAcceptedTownServiceAndRemainSaveable(
         bool split, bool ordinaryDonation, int reservedQuantity)
     {
-        var state = await NonviolentRuntimeFixture.FindingAsync();
-        const string actor = NonviolentRuntimeFixture.Subject;
+        var state = await NonLandRuntimeFixture.FindingAsync();
+        const string actor = NonLandRuntimeFixture.Subject;
         var town = state.Towns![0];
         var warehouse = state.WorldSimulation!.Buildings.Single(building => building.InstanceId == "first-town-warehouse");
-        var household = state.Society.Society.GetInhabitant(actor).HouseholdId;
+        var household = state.Society.Society.GetAgent(actor).HouseholdId;
         var inventory = state.Society.Society.Inventory with
         {
             Lots = state.Society.Society.Inventory.Lots.Where(lot => lot.ItemKind != "stone" ||
@@ -34,21 +34,21 @@ public sealed class SplitTownServiceDonationTests
         inventory = InventoryAuthority.AddLot(inventory, "split-service-stone", "stone", actor, 8);
         inventory = InventoryAuthority.AddLot(inventory, "split-service-sack", "sack", actor, 1);
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
-        var equip = new NonviolentTestProvider
+        var equip = new NonLandTestProvider
         {
-            Choose = observation => observation.InhabitantId == actor
+            Choose = observation => observation.AgentId == actor
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id == "equip_carry_aid") : null,
         };
-        using (var setup = NonviolentRuntimeFixture.Create(state, equip))
+        using (var setup = NonLandRuntimeFixture.Create(state, equip))
         {
-            NonviolentRuntimeFixture.Wake(setup, actor, "equip-service-sack");
-            await NonviolentRuntimeFixture.UntilAsync(setup, () => setup.Inhabitants.Single(person =>
-                person.InhabitantId == actor).Equipment?.CarryAidLotId == "split-service-sack", 4);
-            state = NonviolentRuntimeFixture.Strict(setup.ExportState());
+            NonLandRuntimeFixture.Wake(setup, actor, "equip-service-sack");
+            await NonLandRuntimeFixture.UntilAsync(setup, () => setup.Agents.Single(person =>
+                person.AgentId == actor).Equipment?.CarryAidLotId == "split-service-sack", 4);
+            state = NonLandRuntimeFixture.Strict(setup.ExportState());
         }
-        state = await NonviolentRuntimeFixture.AcceptRemedyAsync(state,
+        state = await NonLandRuntimeFixture.AcceptRemedyAsync(state,
             [new("public_service_goods", actor, town.Id, "stone", 4, warehouse.InstanceId)]);
-        using (var preparing = NonviolentRuntimeFixture.Create(state, new NonviolentTestProvider()))
+        using (var preparing = NonLandRuntimeFixture.Create(state, new NonLandTestProvider()))
         {
             if (split)
             {
@@ -58,7 +58,7 @@ public sealed class SplitTownServiceDonationTests
                     lot.ItemKind == "stone" && PersonalEquipmentRules.IsCarried(lot, actor)).Select(lot => lot.Quantity).Order());
             }
             await Command(preparing, actor, "reach-service-warehouse", $"go to ({warehouse.Position.X},{warehouse.Position.Y})");
-            state = NonviolentRuntimeFixture.Strict(preparing.ExportState());
+            state = NonLandRuntimeFixture.Strict(preparing.ExportState());
         }
         if (reservedQuantity > 0)
         {
@@ -68,16 +68,16 @@ public sealed class SplitTownServiceDonationTests
             held = InventoryAuthority.Reserve(held, "independent-stone-work", actor, source.Id, reservedQuantity,
                 "independent_work", held.WorldTick + 1_000);
             state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = held } } };
-            state = NonviolentRuntimeFixture.Strict(state);
+            state = NonLandRuntimeFixture.Strict(state);
         }
         var prefix = ordinaryDonation ? "store_town_resources" : "nonviolent_remedy:";
-        var completion = new NonviolentTestProvider
+        var completion = new NonLandTestProvider
         {
-            Choose = observation => observation.InhabitantId == actor
+            Choose = observation => observation.AgentId == actor
                 ? observation.Candidates.FirstOrDefault(candidate => candidate.Id.StartsWith(prefix, StringComparison.Ordinal)) : null,
         };
-        using var world = NonviolentRuntimeFixture.Create(state, completion);
-        NonviolentRuntimeFixture.Wake(world, actor, "complete-split-service");
+        using var world = NonLandRuntimeFixture.Create(state, completion);
+        NonLandRuntimeFixture.Wake(world, actor, "complete-split-service");
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -90,7 +90,7 @@ public sealed class SplitTownServiceDonationTests
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(1));
             presence.RecordAuthenticatedReconnect("owner:test");
             using var service = new WorldRuntimeService(world, file, presence);
-            for (var tick = 0; tick < 4 && world.Towns[0].Nonviolent.Effects.Count == 0; tick++)
+            for (var tick = 0; tick < 4 && world.Towns[0].NonLandHearings.Effects.Count == 0; tick++)
                 Assert.True(await service.TryAdvanceOnceAsync());
             _ = WorldRuntimeCodec.Decode(File.ReadAllBytes(path));
             world.Pause();
@@ -108,24 +108,24 @@ public sealed class SplitTownServiceDonationTests
         }
         if (reservedQuantity == 4)
         {
-            Assert.Empty(world.Towns[0].Nonviolent.Effects);
-            Assert.Empty(world.Towns[0].Nonviolent.NativeReceipts);
-            Assert.Equal("pending", Assert.Single(world.Towns[0].Nonviolent.Agreements).Status);
+            Assert.Empty(world.Towns[0].NonLandHearings.Effects);
+            Assert.Empty(world.Towns[0].NonLandHearings.NativeReceipts);
+            Assert.Equal("pending", Assert.Single(world.Towns[0].NonLandHearings.Agreements).Status);
             Assert.Equal(8, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "stone").Sum(lot => lot.Quantity));
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation("independent-stone-work").State);
-            Assert.DoesNotContain(completion.Observations.Where(observation => observation.InhabitantId == actor)
+            Assert.DoesNotContain(completion.Observations.Where(observation => observation.AgentId == actor)
                 .SelectMany(observation => observation.Candidates), candidate =>
                 candidate.Id == "store_town_resources" || candidate.Id.StartsWith("nonviolent_remedy:", StringComparison.Ordinal));
-            NonviolentRuntimeFixture.Strict(world.ExportState());
+            NonLandRuntimeFixture.Strict(world.ExportState());
             return;
         }
         var donated = 4 - reservedQuantity;
-        Assert.Equal(reservedQuantity == 0 ? "completed" : "pending", Assert.Single(world.Towns[0].Nonviolent.Agreements).Status);
-        Assert.Equal(donated, Assert.Single(world.Towns[0].Nonviolent.Effects).Quantity);
+        Assert.Equal(reservedQuantity == 0 ? "completed" : "pending", Assert.Single(world.Towns[0].NonLandHearings.Agreements).Status);
+        Assert.Equal(donated, Assert.Single(world.Towns[0].NonLandHearings.Effects).Quantity);
         Assert.Equal(8 - donated, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == actor && lot.ItemKind == "stone").Sum(lot => lot.Quantity));
         Assert.Equal(donated, world.Society.Inventory.Lots.Where(lot => lot.OwnerId == town.Id && lot.ItemKind == "stone" &&
             lot.StorageBuildingId == warehouse.InstanceId).Sum(lot => lot.Quantity));
-        var receiptProof = Assert.Single(world.Towns[0].Nonviolent.NativeReceipts);
+        var receiptProof = Assert.Single(world.Towns[0].NonLandHearings.NativeReceipts);
         Assert.Equal(split ? 4 : 8, receiptProof.SourceQuantityBefore);
         Assert.Equal((split ? 4 : 8) - reservedQuantity, receiptProof.AvailableQuantityBefore);
         Assert.Equal(8L - reservedQuantity, receiptProof.CarriedAvailableQuantityBefore);
@@ -135,18 +135,18 @@ public sealed class SplitTownServiceDonationTests
             Assert.Equal(InventoryReservationState.Reserved, reservation.State);
             Assert.Equal(reservedQuantity, reservation.Quantity);
         }
-        var completed = NonviolentRuntimeFixture.Strict(world.ExportState());
+        var completed = NonLandRuntimeFixture.Strict(world.ExportState());
         // Restart both continuations, rather than mixing a hosted runtime's
         // in-flight reply scheduling with the blocking replay boundary.
-        using var first = NonviolentRuntimeFixture.Create(completed, completion);
-        using var replay = NonviolentRuntimeFixture.Create(completed, completion);
+        using var first = NonLandRuntimeFixture.Create(completed, completion);
+        using var replay = NonLandRuntimeFixture.Create(completed, completion);
         for (var tick = 0; tick < 3; tick++)
         {
             Assert.True((await first.AdvanceOneTickAsync()).Advanced);
             Assert.True((await replay.AdvanceOneTickAsync()).Advanced);
         }
-        Assert.Single(first.Towns[0].Nonviolent.Effects);
-        Assert.Single(first.Towns[0].Nonviolent.NativeReceipts);
+        Assert.Single(first.Towns[0].NonLandHearings.Effects);
+        Assert.Single(first.Towns[0].NonLandHearings.NativeReceipts);
         Assert.Equal(WorldRuntimeCodec.Encode(first.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
         if (split && ordinaryDonation && reservedQuantity == 0)
         {
@@ -163,10 +163,10 @@ public sealed class SplitTownServiceDonationTests
                 {
                     Towns = [savedTown with
                     {
-                        Nonviolent = savedTown.Nonviolent with
+                        NonLandHearings = savedTown.NonLandHearings with
                         {
                             NativeReceipts = [invalid],
-                            Effects = savedTown.Nonviolent.Effects.Select(effect => effect with { NativeReceiptVersion = invalid.Version }).ToArray(),
+                            Effects = savedTown.NonLandHearings.Effects.Select(effect => effect with { NativeReceiptVersion = invalid.Version }).ToArray(),
                         },
                     }],
                 };
@@ -178,8 +178,8 @@ public sealed class SplitTownServiceDonationTests
 
     private static async Task Command(WorldRuntime world, string actor, string key, string text)
     {
-        var receipt = world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.MustDo, text));
-        await NonviolentRuntimeFixture.UntilAsync(world,
+        var receipt = world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text));
+        await NonLandRuntimeFixture.UntilAsync(world,
             () => world.ExportState().CompletedInstructionIds!.Contains(receipt.InstructionId), 80);
     }
 }

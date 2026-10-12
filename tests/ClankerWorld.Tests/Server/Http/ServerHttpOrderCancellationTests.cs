@@ -31,14 +31,14 @@ public sealed partial class ServerHttpTests
                 var runtime = host.Services.GetRequiredService<WorldRuntime>();
                 runtime.Pause();
                 var instruction = new OwnerInstructionAction(
-                    "order-submit-01", "founder-mira", "must_do", "gather berries", runtime.Society.WorldId);
+                    "order-submit-01", "founder-mira", "order", "gather berries", runtime.Society.WorldId);
                 using var submitted = await SendSignedAsync(host, client, key, deviceId, instructionPath,
                     instruction, OwnerHttpBinding.InstructionPayload(instruction));
                 Assert.Equal(HttpStatusCode.OK, submitted.StatusCode);
                 orderReceipt = (await submitted.Content.ReadFromJsonAsync<OwnerInstructionReceipt>())!;
                 var waiting = Assert.Single(runtime.ExportState().Instructions!,
                     item => item.InstructionId == orderReceipt.InstructionId);
-                Assert.Equal("waiting", waiting.Order!.Status);
+                Assert.Equal("waiting", waiting.Task!.Status);
 
                 cancellation = new OwnerOrderCancelAction(
                     "order-cancel-01", "founder-mira", orderReceipt.InstructionId, runtime.Society.WorldId);
@@ -60,7 +60,7 @@ public sealed partial class ServerHttpTests
                 foreach (var invalidIdentity in new[]
                 {
                     cancellation with { IdempotencyKey = new string('k', 129) },
-                    cancellation with { TargetInhabitantId = "founder-mira\u0001" },
+                    cancellation with { TargetAgentId = "founder-mira\u0001" },
                 })
                 {
                     using var invalid = await SendSignedAsync(host, client, key, deviceId, cancellationPath,
@@ -85,14 +85,14 @@ public sealed partial class ServerHttpTests
                 var message = Assert.Single(new OwnerWorldObservationStore(runtime).GetSnapshot().Instructions,
                     item => item.InstructionId == orderReceipt.InstructionId);
                 Assert.Equal("completed", message.State);
-                Assert.Equal("cancelled", message.Order!.Status);
+                Assert.Equal("cancelled", message.Task!.Status);
 
                 var stateFile = host.Services.GetRequiredService<WorldStateFile>();
                 var saved = WorldRuntimeCodec.Decode(File.ReadAllBytes(stateFile.Path));
                 Assert.Contains(saved.OrderCancellations!, item =>
                     item.IdempotencyKey == cancellation.IdempotencyKey && item.Receipt == cancellationReceipt);
                 Assert.Equal("cancelled", Assert.Single(saved.Instructions!,
-                    item => item.InstructionId == orderReceipt.InstructionId).Order!.Status);
+                    item => item.InstructionId == orderReceipt.InstructionId).Task!.Status);
                 var afterCancellation = WorldRuntimeCodec.Encode(runtime.ExportState());
 
                 using var exactRetry = await SendSignedAsync(host, client, key, deviceId, cancellationPath,

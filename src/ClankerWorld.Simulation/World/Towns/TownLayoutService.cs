@@ -35,7 +35,7 @@ public sealed record TownLayoutBuilding(PlacedBuilding Building, BuildingDefinit
 
 /// <summary>
 /// Immutable runtime facts used by every construction-site query in one
-/// inhabitant decision or project continuation. Candidate anchors are clipped
+/// agent decision or project continuation. Candidate anchors are clipped
 /// to the bounds of the first Town's border plus its spare-land margin.
 /// </summary>
 public sealed class TownLayoutContext

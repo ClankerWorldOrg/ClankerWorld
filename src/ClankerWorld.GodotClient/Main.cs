@@ -30,9 +30,9 @@ public partial class Main : Control
     private readonly GameDisplayPreferencesStore displayPreferencesStore = new(
         GameUserPath("game-display-preferences.json"));
     private readonly Dictionary<long, OwnerWorldEvent> knownEvents = [];
-    private readonly Dictionary<string, AgentMarker> inhabitantVisuals = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AgentMarker> agentVisuals = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Label> mapObjectVisuals = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, float> inhabitantCanonicalXs = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, float> agentCanonicalXs = new(StringComparer.Ordinal);
     private readonly Dictionary<string, float> mapObjectCanonicalXs = new(StringComparer.Ordinal);
     // Panels over the map, and the full-screen menus, both drawn at UI Scale.
     private readonly ScaledLayer uiLayer = new() { Name = "Interface" };
@@ -87,7 +87,7 @@ public partial class Main : Control
     private readonly Button mapButton = new();
     private readonly Button worldInfoButton = new();
     private readonly Label clockLabel = new();
-    private readonly Button inhabitantsButton = new();
+    private readonly Button agentsButton = new();
     private readonly Button eventsButton = new();
     private readonly Button menuButton = new();
     private readonly ColorRect topBarShade = new();
@@ -112,7 +112,7 @@ public partial class Main : Control
     private readonly Control objectLayer = new();
     private readonly Control entityLayer = new();
     private readonly Label rosterSummaryLabel = new();
-    private readonly PanelContainer selectedInhabitantCard = new();
+    private readonly PanelContainer selectedAgentCard = new();
     private readonly VBoxContainer selectedAgentOverview = new();
     private readonly ScrollContainer selectedAgentModelScroll = new();
     private readonly VBoxContainer selectedAgentModelContent = new();
@@ -129,8 +129,8 @@ public partial class Main : Control
     private readonly FamilyTreeView familyTreeView = new();
     private readonly ScrollContainer familyTreeScroll = new();
     private readonly Label familyTreeStatus = new();
-    private readonly ItemList inhabitantList = new();
-    private readonly RichTextLabel inhabitantDetails = new();
+    private readonly ItemList agentList = new();
+    private readonly RichTextLabel agentDetails = new();
     private readonly Label privateThoughtHistory = new();
     private readonly Button memoriesButton = new();
     private readonly PanelContainer memoriesPanel = new();
@@ -165,15 +165,15 @@ public partial class Main : Control
     ];
     private readonly OptionButton clockFormatChoice = new();
     private readonly OptionButton dateFormatChoice = new();
-    private readonly OptionButton lifePaceChoice = new();
+    private readonly OptionButton agingOverrideChoice = new();
     private readonly OptionButton routineHelperChoice = new();
     private readonly ModelPicker routineHelperModelPicker = new();
     private readonly OptionButton routineHelperKeyChoice = new();
     private readonly Button applyRoutineHelperButton = new();
     private string? observedRoutineHelperContext;
-    private readonly Button applyLifePaceButton = new();
-    private int? lastObservedLifePace;
-    private string? lastLifePaceWorldId;
+    private readonly Button applyAgingOverrideButton = new();
+    private int? lastObservedAgingOverride;
+    private string? lastAgingOverrideWorldId;
 
     private readonly BoldTextButton pauseButton = new() { Captions = ["Pause", "Paused"] };
     private readonly LineEdit instructionText = new();
@@ -223,7 +223,7 @@ public partial class Main : Control
     private string? usagePauseWorldId;
     private bool wasObservedPaused;
     private OwnerPendingSubmission? pendingSubmission;
-    private string? selectedInhabitantId;
+    private string? selectedAgentId;
     private string? renamingAgentId;
     private readonly RefusedAgentRename refusedAgentRename = new();
     private bool isRefreshing;

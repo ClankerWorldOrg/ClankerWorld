@@ -9,20 +9,20 @@ public sealed partial class WorldRuntime
 
     private bool CanSwim(string actor, GridPoint? origin = null, int additionalCarriedUnits = 0)
     {
-        var person = inhabitants[actor];
+        var person = agents[actor];
         if (PassengerBoat(actor) is not null || AttachedHandcart(actor) is not null ||
             animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))
             return false;
         // A swimmer can always make their way out if their condition changes mid-crossing.
         if (SwimmingRules.IsSwimmingWater(map, origin ?? person.Position)) return true;
         return MovingCareGroup(actor).All(id => SwimmingStartingCondition(id, id == actor ? additionalCarriedUnits : 0)) &&
-            !inhabitants.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor);
+            !agents.Values.Any(child => child.GuardianPlacement?.CaregiverId == actor);
     }
 
     private bool SwimmingStartingCondition(string actor, int additionalCarriedUnits = 0)
     {
-        var person = inhabitants[actor];
-        return person.GuardianPlacement is null && society.Checkpoint.GetInhabitant(actor).AgeBand != SocietyAgeBand.Infant &&
+        var person = agents[actor];
+        return person.GuardianPlacement is null && society.Checkpoint.GetAgent(actor).AgeBand != SocietyAgeBand.Infant &&
             (person.Survival?.WarmthBasisPoints ?? 10_000) >= SwimmingRules.MinimumStartingWarmth &&
             (person.Survival?.IllnessBasisPoints ?? 0) <= SwimmingRules.MaximumStartingIllness &&
             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, person.Equipment) <=
@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
     // interaction beside a resource or storage building. No inventory is changed.
     private GridPoint? PickupPosition(string actor, GridPoint source, int sourceRange)
     {
-        var position = inhabitants[actor].Position;
+        var position = agents[actor].Position;
         if (IsWithinInteractionRange(position, source, sourceRange)) return position;
         var approach = FindUnoccupiedRoute(actor, position, source, sourceRange);
         return approach.Count == 0 ? null : approach[^1];
@@ -59,7 +59,7 @@ public sealed partial class WorldRuntime
             FindUnoccupiedRoute(actor, origin, destination, destinationRange, allowSwimming: false).Count > 0)
             return capacity;
         var swimmingRoom = Math.Max(0, SwimmingRules.MaximumCarriedUnits -
-            PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment));
+            PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment));
         return swimmingRoom > 0 && FindUnoccupiedRoute(actor, origin, destination, destinationRange,
             additionalCarriedUnits: 1).Count > 0 ? Math.Min(capacity, swimmingRoom) : 0;
     }
@@ -91,7 +91,7 @@ public sealed partial class WorldRuntime
             return true;
         var required = ProjectMaterialCarryUnits(actor, itemKind, source, useHarvestBonus);
         var swimmingRoom = Math.Max(0, SwimmingRules.MaximumCarriedUnits -
-            PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, inhabitants[actor].Equipment));
+            PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, agents[actor].Equipment));
         // After the foot return failed, an oversized harvest cannot gain a route by searching again.
         return required <= swimmingRoom && required <=
             PickupCarryCapacity(actor, source.Position, destination, destinationRange, ResourceInteractionRange);
