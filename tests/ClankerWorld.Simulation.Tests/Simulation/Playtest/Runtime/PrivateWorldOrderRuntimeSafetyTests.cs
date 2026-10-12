@@ -420,11 +420,13 @@ public sealed partial class PrivateWorldRuntimeTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes(bool delayedStartup)
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(true, 4000)]
+    public async Task HeldReplyDoesNotEatNewHarvestUntilTheNextTickAfterTheOrderFinishes(
+        bool delayedStartup, int entryDelayMilliseconds)
     {
-        var provider = new HeldOrderReplyProvider();
+        var provider = new HeldOrderReplyProvider(entryDelayMilliseconds: entryDelayMilliseconds);
         using var setup = CreateKnownBerryOrderWorld(_ => new DeterministicDecisionProvider());
         var state = setup.ExportState();
         state = state with
@@ -478,22 +480,17 @@ public sealed partial class PrivateWorldRuntimeTests
             Assert.False(call.Task.IsCompleted);
             var beforeEntry = PrivateWorldRuntimeCodec.Encode(world.ExportState());
             preparation.TrySetResult(true);
-            try { await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3)); }
-            catch (TimeoutException exception)
-            {
-                var frame = world.ExportState();
-                throw new TimeoutException($"Held harvest startup at tick {frame.Society.Society.WorldTick}: " +
-                    $"provider calls={provider.CallCount}, captured task completed={call.Task.IsCompleted}, " +
-                    $"order={frame.Instructions!.Single(item => item.InstructionId == order.InstructionId).Order!.Status}, " +
-                    $"harvest events={frame.Events.Count(item => item.Kind == "food_harvested" && item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal))}, " +
-                    $"food events={frame.Events.Count(item => item.Kind == "food_consumed" && item.Detail == HarvestInstructionActor)}.", exception);
-            }
+            await AwaitHarvestPhase(provider.Started.Task, "provider entry after the two physical frames");
             Assert.Equal(beforeEntry, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
+            var enteredCall = CaptureHeldHarvestCall(world);
+            Assert.Same(call.Request, enteredCall.Request);
+            Assert.Same(call.Task, enteredCall.Task);
             Assert.Equal(1, provider.CallCount);
             Assert.Equal(call.Request.Observation.ObservationDigest, Assert.Single(provider.Requests).ObservationDigest);
 
             provider.Release.TrySetResult(true);
-            await call.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            await AwaitHarvestPhase(call.Task, "the captured eating-check hosted call to complete");
+            Assert.Equal(beforeEntry, PrivateWorldRuntimeCodec.Encode(world.ExportState()));
             Assert.True(provider.Returned.Task.IsCompletedSuccessfully);
             Assert.Equal(call.Request.RequestId, (await provider.Returned.Task).RequestId);
             for (var tick = 0; tick < 5 && !world.ExportState().Events.Any(item =>
@@ -524,7 +521,7 @@ public sealed partial class PrivateWorldRuntimeTests
             provider.Release.TrySetResult(true);
             provider.ReturnAllowed.TrySetResult(true);
             world.CancelPendingHostedDecisions();
-            await call.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            await AwaitHarvestPhase(call.Task, "cancelled eating-check cleanup");
         }
     }
 
@@ -656,7 +653,7 @@ public sealed partial class PrivateWorldRuntimeTests
         catch (TimeoutException) { Assert.Fail("Timed out waiting for held harvest " + phase + "."); }
     }
 
-    private sealed class HeldOrderReplyProvider(bool deferReturn = false) : IDecisionProvider
+    private sealed class HeldOrderReplyProvider(bool deferReturn = false, int entryDelayMilliseconds = 0) : IDecisionProvider
     {
         private int callCount;
 
@@ -675,6 +672,8 @@ public sealed partial class PrivateWorldRuntimeTests
             CancellationToken cancellationToken = default)
         {
             if (PreparationGate is { } preparation) await preparation.WaitAsync(cancellationToken);
+            // The controlled entry row outlives the former three-second wait.
+            if (entryDelayMilliseconds > 0) await Task.Delay(entryDelayMilliseconds, cancellationToken);
             request.Validate();
             Interlocked.Increment(ref callCount);
             Requests.Enqueue(request.Observation);
