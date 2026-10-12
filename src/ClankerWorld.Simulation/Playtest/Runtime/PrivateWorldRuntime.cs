@@ -16,12 +16,11 @@ namespace ClankerWorld.Simulation.Playtest;
 /// The live private-world composition for the first complete single-player
 /// alpha. Society owns identity, lifecycle, relationships, and inventory;
 /// this composition owns the map, physical positions/needs, cognition cadence,
-/// and the world-facing event stream. It is intentionally separate from the
-/// legacy one-actor owner fixture while the owner protocol is migrated.
+/// and the world-facing event stream.
 /// </summary>
 public sealed partial class PrivateWorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 126;
+    public const int StateSchemaVersion = 127;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;

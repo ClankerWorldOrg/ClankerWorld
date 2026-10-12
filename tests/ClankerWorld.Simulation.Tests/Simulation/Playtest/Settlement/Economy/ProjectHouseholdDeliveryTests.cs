@@ -261,7 +261,7 @@ public sealed class ProjectHouseholdDeliveryTests
         var protectedClaims = new List<InventoryReservation>();
         foreach (var lot in inventory.Lots.Where(lot => lot.OwnerId == Household && lot.ItemKind == "wood").ToArray())
         {
-            var available = PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+            var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot));
             if (available == 0) continue;
             var id = "project-fixture-existing-wood:" + lot.Id;
             inventory = InventoryFixture.Reserve(inventory, id, Household, lot.Id, available,

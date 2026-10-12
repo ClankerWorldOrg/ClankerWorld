@@ -89,17 +89,19 @@ public sealed class CalendarOffsetTests
         Assert.Throws<ArgumentOutOfRangeException>(() => (Config() with { CalendarOffsetTicks = 360 }).Validate());
         Assert.Throws<ArgumentOutOfRangeException>(() => WorldCalendarRules.FromTick(-1, Config()));
         var morning = WorldSystemsRules.CreateGenesis("offset-schema", Config());
-        foreach (var oldSchema in new[] { 1, 2 })
+        foreach (var oldSchema in Enumerable.Range(1, WorldSystemsRules.SchemaVersion - 1))
         {
             Assert.Throws<InvalidDataException>(() => WorldSystemsCodec.Encode(morning with { SchemaVersion = oldSchema }));
             var legacy = WorldSystemsRules.CreateGenesis("offset-schema", Config() with { CalendarOffsetTicks = 0 }) with
             {
                 SchemaVersion = oldSchema,
             };
-            var bytes = WorldSystemsCodec.Encode(legacy);
-            Assert.DoesNotContain("calendarOffsetTicks", Encoding.UTF8.GetString(bytes), StringComparison.OrdinalIgnoreCase);
-            Assert.Equal(bytes, WorldSystemsCodec.Encode(WorldSystemsCodec.Decode(bytes)));
+            Assert.Throws<InvalidDataException>(() => WorldSystemsCodec.Encode(legacy));
         }
+        var zeroOffset = WorldSystemsRules.CreateGenesis("offset-schema", Config() with { CalendarOffsetTicks = 0 });
+        var bytes = WorldSystemsCodec.Encode(zeroOffset);
+        Assert.DoesNotContain("calendarOffsetTicks", Encoding.UTF8.GetString(bytes), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(bytes, WorldSystemsCodec.Encode(WorldSystemsCodec.Decode(bytes)));
         var invalid = JsonNode.Parse(WorldSystemsCodec.Encode(morning))!;
         invalid["state"]!["config"]!["calendarOffsetTicks"] = 360;
         Assert.Throws<ArgumentOutOfRangeException>(() => WorldSystemsCodec.Decode(Encoding.UTF8.GetBytes(invalid.ToJsonString())));

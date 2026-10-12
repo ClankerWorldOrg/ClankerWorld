@@ -41,7 +41,7 @@ public sealed partial class AnimalPipelineTests
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId is not null);
         Assert.Equal("finished", preparing.ExportState().Instructions!.Single(item => item.InstructionId == saddle.InstructionId).Order!.Status);
         Assert.Equal("mounted-care-saddle", preparing.Animals.Single(animal => animal.Id == horse.Id).SaddleLotId);
-        Assert.Equal(0, PersonalEquipmentRules.AvailableQuantity(preparing.Society.Inventory, preparing.Society.Inventory.GetLot("mounted-care-saddle")));
+        Assert.Equal(0, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(preparing.Society.Inventory), preparing.Society.Inventory.GetLot("mounted-care-saddle"))));
         var mount = preparing.SubmitInstruction(new("mounted-care-mount", "owner", actor, OwnerInstructionKind.MustDo, "mount Moss"));
         await Until(preparing, () => preparing.Animals.Single(animal => animal.Id == horse.Id).RiderId == actor);
         Assert.Equal("finished", preparing.ExportState().Instructions!.Single(item => item.InstructionId == mount.InstructionId).Order!.Status);

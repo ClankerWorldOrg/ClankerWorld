@@ -1087,10 +1087,10 @@ public sealed class PotteryContentTests
         var capacity = PersonalEquipmentRules.Capacity(inventory, actor, null);
         inventory = InventoryFixture.AddLot(inventory, "needed-jug-ballast", "test_cargo", actor, capacity - 4);
         Assert.Equal(4, PersonalEquipmentRules.FreeCapacity(inventory, actor, null));
-        Assert.Equal(2, PersonalEquipmentRules.AvailableQuantity(inventory, inventory.GetLot(waterId)));
+        Assert.Equal(2, Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), inventory.GetLot(waterId))));
         Assert.Equal(2, inventory.Lots.Where(lot => lot.OwnerId == householdId &&
             lot.StorageBuildingId == house.InstanceId && lot.ItemKind == InventoryContainerRules.FreshWater)
-            .Sum(lot => PersonalEquipmentRules.AvailableQuantity(inventory, lot)));
+            .Sum(lot => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot))));
         state = SetActorCondition(state with
         {
             Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } },

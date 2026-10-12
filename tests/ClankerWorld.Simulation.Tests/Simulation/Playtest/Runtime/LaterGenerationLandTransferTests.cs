@@ -68,7 +68,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             var index = 0;
             foreach (var lot in inventory.Lots.Where(lot => PersonalEquipmentRules.IsGarment(lot.ItemKind)).ToArray())
             {
-                var quantity = PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+                var quantity = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot));
                 if (quantity > 0)
                     inventory = InventoryFixture.Reserve(inventory, "quiet-transfer-clothing-" + index++,
                         lot.OwnerId, lot.Id, quantity, "fixture-clothing-hold", inventory.WorldTick + 1_000);

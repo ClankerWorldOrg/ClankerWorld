@@ -61,6 +61,10 @@ public sealed class WorldAssetReservationTests
 
         Assert.False(rejected.IsSuccess);
         Assert.Equal("world_storage_breach", rejected.FailureCode);
+        Assert.Equal("error|world_storage_breach|durable_storage|11|10|11\n" +
+            "error|world_cache_breach|decoded_cache|11|10|11\n" +
+            "error|world_gpu_breach|gpu|11|10|11", rejected.Diagnostic);
+        Assert.All(rejected.Diagnostics, diagnostic => Assert.Equal(AssetDiagnosticSeverity.Error, diagnostic.Severity));
         Assert.Single(ledger.ExportState().Reservations);
         Assert.Empty(ledger.GetPackageReservations("second"));
     }
@@ -124,7 +128,10 @@ public sealed class WorldAssetReservationTests
                 "cache" => request with { DecodedCacheBytes = long.MaxValue },
                 _ => request with { GpuBytes = long.MaxValue },
             }).ToArray();
-        Assert.Equal("asset_reservation_overflow", ledger.TryReservePackage("large", requests, 0).FailureCode);
+        var rejected = ledger.TryReservePackage("large", requests, 0);
+        Assert.Equal("asset_reservation_overflow", rejected.FailureCode);
+        Assert.Equal("error|asset_reservation_overflow|assets|Aggregate asset charges exceed supported integer limits.||" +
+            "Aggregate asset charges exceed supported integer limits.", rejected.Diagnostic);
         Assert.Empty(ledger.ExportState().Reservations);
         Assert.Empty(ledger.ExportState().Events);
         Assert.True(ledger.TryReservePackage("limit", requests.Take(1), 0).IsSuccess);

@@ -436,11 +436,11 @@ public sealed class WorkstationSourceReserveTests
         Assert.Equal(stoneBefore - 2, inventory.Lots.Where(lot => lot.OwnerId == household && lot.ItemKind == "stone").Sum(lot => lot.Quantity));
         var claims = new List<string>();
         foreach (var lot in inventory.Lots.Where(lot => lot.OwnerId == household &&
-            !InventoryContainerRules.IsContainer(lot.ItemKind) && PersonalEquipmentRules.AvailableQuantity(inventory, lot) > 0).ToArray())
+            !InventoryContainerRules.IsContainer(lot.ItemKind) && Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)) > 0).ToArray())
         {
             var id = "independent-existing:" + lot.Id;
             inventory = InventoryFixture.Reserve(inventory, id, household, lot.Id,
-                PersonalEquipmentRules.AvailableQuantity(inventory, lot), "independent-existing-work", long.MaxValue);
+                Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot)), "independent-existing-work", long.MaxValue);
             claims.Add(id);
         }
         // These controls isolate cooking reserves. Give each adult usable shared

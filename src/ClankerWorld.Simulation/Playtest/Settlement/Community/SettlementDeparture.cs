@@ -52,7 +52,7 @@ public sealed partial class PrivateWorldRuntime
         foreach (var lot in nextInventory.Lots.Where(lot => lot.OwnerId == householdId && lot.CarrierId is null &&
                      lot.ContainerLotId is null && IsEdibleFood(lot.ItemKind)).OrderBy(lot => lot.Id, StringComparer.Ordinal).ToArray())
         {
-            var available = PersonalEquipmentRules.AvailableQuantity(nextInventory, lot);
+            var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(nextInventory), lot));
             var quantity = Math.Min(2 - allowance, available);
             if (quantity <= 0) continue;
             var transferId = DepartureTransferId(actor, WorldTick, inhabitants[actor].Departures?.Count ?? 0, lot.Id);

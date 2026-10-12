@@ -1,0 +1,1 @@
+- Remove the unused one-agent fixture world and prototype faction, currency and culture save records. The host now rejects fixture mode; normal private worlds keep their existing gameplay. Earlier alpha saves are refused and preserved without migration because the save format changes.

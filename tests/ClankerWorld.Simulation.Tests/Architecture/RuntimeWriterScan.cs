@@ -24,24 +24,8 @@ internal static class RuntimeWriterScan
             .Select(property => property.Name).ToArray();
         var writers = properties.Append("$collection").ToDictionary(name => name,
             _ => new SortedSet<string>(StringComparer.Ordinal), StringComparer.Ordinal);
-        var source = Path.Combine(root, "src/ClankerWorld.Simulation");
-        var paths = Directory.EnumerateFiles(source, "*.cs", SearchOption.AllDirectories)
-            .Where(path => !Path.GetRelativePath(source, path).Split(Path.DirectorySeparatorChar).Any(part => part is "obj" or "bin"))
-            .Append(Path.Combine(root, "src/ClankerWorld.Shared/AgentPlacementRules.cs"));
-        var trees = paths.Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), path: path)).ToList();
-        trees.Add(CSharpSyntaxTree.ParseText("global using System; global using System.Collections.Generic; " +
-            "global using System.IO; global using System.Linq; global using System.Net.Http; " +
-            "global using System.Threading; global using System.Threading.Tasks;"));
-        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
-            .Select(path => MetadataReference.CreateFromFile(path));
-        var compilation = CSharpCompilation.Create("RuntimeWriterGuard", trees, references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        // GeneratedRegex implementations are emitted by the real build, outside this
-        // source scan. All other binding failures must fail closed rather than hide a writer.
-        var errors = compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error &&
-            !IsGeneratedRegexDeclaration(diagnostic)).Take(10).ToArray();
-        if (errors.Length > 0) throw new InvalidDataException(string.Join("\n", errors.Select(error => error.ToString())));
-        foreach (var tree in trees.Where(tree => tree.FilePath.Length > 0))
+        var compilation = CreateCompilation(root);
+        foreach (var tree in compilation.SyntaxTrees.Where(tree => tree.FilePath.Length > 0))
         {
             var model = compilation.GetSemanticModel(tree);
             var filename = Path.GetRelativePath(root, tree.FilePath).Replace(Path.DirectorySeparatorChar, '/');
@@ -70,6 +54,28 @@ internal static class RuntimeWriterScan
             }
         }
         return new SortedDictionary<string, string[]>(writers.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray()), StringComparer.Ordinal);
+    }
+
+    internal static CSharpCompilation CreateCompilation(string root)
+    {
+        var source = Path.Combine(root, "src/ClankerWorld.Simulation");
+        var paths = Directory.EnumerateFiles(source, "*.cs", SearchOption.AllDirectories)
+            .Where(path => !Path.GetRelativePath(source, path).Split(Path.DirectorySeparatorChar).Any(part => part is "obj" or "bin"))
+            .Append(Path.Combine(root, "src/ClankerWorld.Shared/AgentPlacementRules.cs"));
+        var trees = paths.Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), path: path)).ToList();
+        trees.Add(CSharpSyntaxTree.ParseText("global using System; global using System.Collections.Generic; " +
+            "global using System.IO; global using System.Linq; global using System.Net.Http; " +
+            "global using System.Threading; global using System.Threading.Tasks;"));
+        var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
+            .Select(path => MetadataReference.CreateFromFile(path));
+        var compilation = CSharpCompilation.Create("RuntimeWriterGuard", trees, references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        // GeneratedRegex implementations are emitted by the real build, outside this
+        // source scan. All other binding failures must fail closed rather than hide a writer.
+        var errors = compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error &&
+            !IsGeneratedRegexDeclaration(diagnostic)).Take(10).ToArray();
+        if (errors.Length > 0) throw new InvalidDataException(string.Join("\n", errors.Select(error => error.ToString())));
+        return compilation;
     }
 
     private static bool IsInhabitant(ITypeSymbol? type) => type?.ToDisplayString() == "ClankerWorld.Simulation.Playtest.PlaytestInhabitantState";

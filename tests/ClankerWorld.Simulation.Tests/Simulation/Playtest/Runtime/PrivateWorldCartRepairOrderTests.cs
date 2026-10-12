@@ -89,7 +89,7 @@ public sealed class PrivateWorldCartRepairOrderTests
         if (blocker == "missing")
             foreach (var lot in inventory.Lots.Where(lot => lot.ItemKind == "iron_fittings").ToArray())
             {
-                var available = PersonalEquipmentRules.AvailableQuantity(inventory, lot);
+                var available = Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(inventory), lot));
                 if (available > 0) inventory = InventoryFixture.Reserve(inventory, "protected-" + lot.Id, lot.OwnerId,
                     lot.Id, available, "other_work", inventory.WorldTick + 100);
             }

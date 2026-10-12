@@ -2,7 +2,7 @@
 title: What works today
 type: product-status
 status: active
-updated: 2026-10-10
+updated: 2026-10-12
 ---
 
 # What works today
@@ -1720,7 +1720,7 @@ Save World before saving or overwriting, and clears when space recovers.
 Unknown space is shown separately. These checks never prevent a save or delay
 an emergency checkpoint; an actual disk-full write can still fail.
 
-A written [private-server deployment checklist](development/private-server-deployment.md)
+A written [remote world server deployment checklist](development/remote-server-deployment.md)
 is available for manual server updates. It covers staging a build, preserving
 installation state, checking the updated server while paused and rolling back
 if needed. The staged deployment command remains unfinished; the portable
@@ -1790,8 +1790,10 @@ IDs, including full definition IDs and resource kinds. Longer IDs are refused
 before a package is recorded. Accepted IDs work in crafting, wills, land-sale
 prices and resource knowledge. A will shows a short goods label while keeping
 the full identity for inheritance.
-Asset-validation and rights tools are built but not connected to a complete
-creator experience. Arbitrary generated scripts are disabled. The agreed
+Canonical asset IDs, reservation budgets and host approval catalog checks are
+built; the test-only PNG normalizer and its rights tooling have been retired.
+A complete creator experience is unfinished. Arbitrary generated scripts are
+disabled. The agreed
 [invention sandbox](game-design/inventions-and-mods.md#inventions-mods-and-technology)
 is unfinished. Multiplayer and public worlds are outside the current plan.
 

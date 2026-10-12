@@ -278,8 +278,7 @@ public sealed partial class OwnerWorldObservationStore
         "owner-device-pairing.v1",
     ];
 
-    private readonly OwnerWorldRuntime? ownerRuntime;
-    private readonly PrivateWorldRuntime? privateRuntime;
+    private readonly PrivateWorldRuntime privateRuntime;
     private readonly object mapProjectionGate = new();
     private MapProjectionBasis? mapProjectionBasis;
 
@@ -302,11 +301,6 @@ public sealed partial class OwnerWorldObservationStore
         }
     }
 
-    public OwnerWorldObservationStore(OwnerWorldRuntime runtime)
-    {
-        ownerRuntime = runtime ?? throw new ArgumentNullException(nameof(runtime));
-    }
-
     public OwnerWorldObservationStore(PrivateWorldRuntime runtime)
     {
         privateRuntime = runtime ?? throw new ArgumentNullException(nameof(runtime));
@@ -314,145 +308,44 @@ public sealed partial class OwnerWorldObservationStore
 
     public ViewerHandshake GetOwnerHandshake() => new(
         new ProtocolVersion(Major: 1, Minor: 1),
-        privateRuntime is null ? OwnerServerCapabilities.ToArray() : [.. OwnerServerCapabilities, "owner-life-pace.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
+        [.. OwnerServerCapabilities, "owner-life-pace.v2", "owner-jev-assistance.v2", "owner-routine-helper.v1", "owner-building-design.v1", "owner-terrain-delta.v1", "owner-observation-timeline.v1"],
         OwnerClientCapabilities.ToArray());
 
     public ViewerWorldSnapshot GetSnapshot()
     {
-        if (privateRuntime is null) return ToSnapshot(ownerRuntime!.Capture(0).Snapshot);
         var (state, diagnostics) = privateRuntime.ExportStateWithDiagnostics();
         return ToSnapshot(state, diagnostics);
     }
 
     public ViewerEventSlice GetEventsAfter(long afterEventId)
     {
-        if (privateRuntime is not null)
-        {
-            var state = privateRuntime.ExportState();
-            return new ViewerEventSlice(
-                state.Society.Society.WorldTick,
-                afterEventId,
-                state.Events
-                    .Where(worldEvent => worldEvent.EventId > afterEventId)
-                    .Select(ToEvent)
-                    .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor);
-        }
-
-        var capture = ownerRuntime!.Capture(afterEventId);
+        var state = privateRuntime.ExportState();
         return new ViewerEventSlice(
-            capture.Snapshot.World.Identity.WorldTick,
-            capture.AfterEventId,
-            capture.Events.Select(ToEvent).ToArray());
+            state.Society.Society.WorldTick,
+            afterEventId,
+            state.Events
+                .Where(worldEvent => worldEvent.EventId > afterEventId)
+                .Select(ToEvent)
+                .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor);
     }
 
     public ViewerReconnectBaseline GetReconnectBaseline(long afterEventId,
         string? knownTerrainWorldId = null, string? knownTerrainDigest = null,
         string? knownMapLayersDigest = null)
     {
-        if (privateRuntime is not null)
-        {
-            var (state, diagnostics, timeline) = privateRuntime.ExportObservation();
-            var privateSnapshot = ToSnapshot(state, diagnostics, knownTerrainWorldId, knownTerrainDigest,
-                knownMapLayersDigest);
-            return new ViewerReconnectBaseline(
-                privateSnapshot,
-                new ViewerEventSlice(
-                    privateSnapshot.WorldTick,
-                    afterEventId,
-                    state.Events
-                        .Where(worldEvent => worldEvent.EventId > afterEventId)
-                        .Select(ToEvent)
-                        .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor),
-                new ViewerObserverTimeline(timeline.InstanceId, timeline.Generation));
-        }
-
-        var capture = ownerRuntime!.Capture(afterEventId);
-        var snapshot = ToSnapshot(capture.Snapshot);
+        var (state, diagnostics, timeline) = privateRuntime.ExportObservation();
+        var snapshot = ToSnapshot(state, diagnostics, knownTerrainWorldId, knownTerrainDigest,
+            knownMapLayersDigest);
         return new ViewerReconnectBaseline(
             snapshot,
             new ViewerEventSlice(
                 snapshot.WorldTick,
-                capture.AfterEventId,
-                capture.Events.Select(ToEvent).ToArray()));
-    }
-
-    private static ViewerWorldSnapshot ToSnapshot(OwnerWorldSnapshot state)
-    {
-        var map = state.CurrentMap;
-        var resourceStates = state.World.Resources.ToDictionary(resource => resource.Id, StringComparer.Ordinal);
-        var actor = ToActor(state.World.Actor);
-        return new ViewerWorldSnapshot(
-            state.World.Identity.WorldId,
-            state.World.Identity.WorldTick,
-            state.CurrentMapManifestDigest,
-            map.Tiles
-                .OrderBy(tile => tile.Position.Y)
-                .ThenBy(tile => tile.Position.X)
-                .Select(tile => new ViewerTile(tile.Position.X, tile.Position.Y, ToWireValue(tile.Terrain)))
-                .ToArray(),
-            map.CampObjects
-                .Where(mapObject => mapObject.Kind != "bedroll")
-                .OrderBy(mapObject => mapObject.Id, StringComparer.Ordinal)
-                .Select(mapObject => new ViewerMapObject(mapObject.Id, mapObject.Kind, ToPosition(mapObject.Position)))
-                .ToArray(),
-            map.Resources
-                .OrderBy(resource => resource.Id, StringComparer.Ordinal)
-                .Select(resource => new ViewerResource(
-                    resource.Id,
-                    resource.Kind,
-                    ToPosition(resource.Position),
-                    resource.IsRenewable,
-                    resourceStates.TryGetValue(resource.Id, out var runtimeResource)
-                        ? ToWireValue(runtimeResource.State)
-                        : "available"))
-                .ToArray(),
-            actor,
-            state.LatestGlobalEventId)
-        {
-            Inhabitants = CreateInhabitants(state),
-            Authoring = new ViewerAuthoringState(
-                state.IsPaused,
-                state.RunEpoch,
-                state.Revision,
-                state.TopologyRevision,
-                state.InitialMapManifestDigest,
-                state.CurrentMapManifestDigest,
-                state.Climate.Weather,
-                state.Climate.Season,
-                state.ApprovedAssetReferences
-                    .OrderBy(reference => reference.AssetId, StringComparer.Ordinal)
-                    .Select(reference => $"{reference.AssetId}@{reference.AssetDigest}")
-                    .ToArray()),
-            Instructions = state.Instructions
-                .OrderBy(instruction => instruction.SubmissionSequence)
-                .Select(instruction => new ViewerInstruction(
-                    instruction.InstructionId,
-                    instruction.TargetInhabitantId,
-                    ToWireValue(instruction.Kind),
-                    instruction.Text,
-                    ToWireValue(instruction.State),
-                    instruction.SubmittedTick,
-                    instruction.RunEpoch,
-                    instruction.SubmissionSequence))
-                .ToArray(),
-            Cognition = state.Cognition is null
-                ? null
-                : new ViewerCognition(
-                    state.Cognition.ProviderKind.ToString().ToLowerInvariant(),
-                    state.Cognition.IsPaused,
-                    state.Cognition.InFlightRequestId,
-                    state.Cognition.CurrentIntention?.CandidateId,
-                    state.Cognition.CurrentIntention?.Provider.ToString().ToLowerInvariant(),
-                    state.Cognition.Events
-                        .OrderBy(worldEvent => worldEvent.EventId)
-                        .TakeLast(12)
-                        .Select(worldEvent => new ViewerCognitionEvent(
-                            worldEvent.EventId,
-                            worldEvent.WorldTick,
-                            worldEvent.Kind,
-                            worldEvent.Detail))
-                        .ToArray()),
-        };
+                afterEventId,
+                state.Events
+                    .Where(worldEvent => worldEvent.EventId > afterEventId)
+                    .Select(ToEvent)
+                    .ToArray(), state.EventHistoryFloor, afterEventId < state.EventHistoryFloor),
+            new ViewerObserverTimeline(timeline.InstanceId, timeline.Generation));
     }
 
     private static bool RequiresWorldCreation(PrivateWorldRuntimeState state)
@@ -566,7 +459,7 @@ public sealed partial class OwnerWorldObservationStore
                         .OrderBy(lot => lot.OwnerId, StringComparer.Ordinal).ThenBy(lot => lot.ItemKind, StringComparer.Ordinal)
                         .ThenBy(lot => lot.Id, StringComparer.Ordinal).Select(lot => new ViewerMarketStock(
                             lot.Id, lot.ContainerLotId, lot.OwnerId, MarketOwnerName(lot.OwnerId), lot.ItemKind,
-                            lot.Quantity, MarketTradeRules.AvailableQuantity(inventory, lot))).ToArray();
+                            lot.Quantity, InventoryRules.UsableQuantity(InventoryIndex.For(inventory), lot))).ToArray();
                     var trades = market.Trades.Where(trade => trade.StallBuildingId == stall.BuildingId)
                         .OrderByDescending(trade => inventory.GetOffer(trade.OfferId).State == DirectBarterState.Open)
                         .ThenByDescending(trade => trade.ProposedTick).ThenBy(trade => trade.OfferId, StringComparer.Ordinal)
@@ -912,9 +805,6 @@ public sealed partial class OwnerWorldObservationStore
                     systems.Climate.Season.ToString().ToLowerInvariant(),
                     campWeather.ToString().ToLowerInvariant(),
                     systems.Ecology.Resources.Count,
-                    systems.Factions.Factions.Count,
-                    systems.Currency.Accounts.Count,
-                    systems.Culture.Cultures.Count,
                     systems.Chunks.Count,
                     state.WorldContent?.Buildings.Count ?? 0,
                     state.WorldContent?.Recipes.Count ?? 0,
@@ -1113,78 +1003,6 @@ public sealed partial class OwnerWorldObservationStore
             .ToArray();
     }
 
-    private static List<ViewerInhabitant> CreateInhabitants(OwnerWorldSnapshot state)
-    {
-        var inhabitants = new List<ViewerInhabitant>
-        {
-            ToProtectedActor(state),
-        };
-        inhabitants.AddRange(state.FounderDrafts
-            .OrderBy(draft => draft.Id, StringComparer.Ordinal)
-            .Select(ToFounderDraft));
-        return inhabitants;
-    }
-
-    private static ViewerInhabitant ToProtectedActor(OwnerWorldSnapshot state)
-    {
-        var world = state.World;
-        var actor = world.Actor;
-        var route = DetermineFixtureRoute(world);
-        var perceived = KnownNearby(world.Map, actor.Position).ToArray();
-        var known = KnownFixtureTopology(actor.Position, perceived, route);
-        var cognition = state.Cognition;
-        var decisionFactors = new List<ViewerDecisionFactor>
-        {
-            new(
-                "decision-source",
-                cognition is null
-                    ? "deterministic fixture"
-                    : $"{cognition.ProviderKind.ToString().ToLowerInvariant()} provider"),
-            new("hunger", $"{actor.HungerBasisPoints} basis points"),
-            new("fixture-topology", world.Map.ManifestDigest),
-        };
-        if (cognition?.CurrentIntention is { } intention)
-        {
-            decisionFactors.Add(new ViewerDecisionFactor("current-intention", intention.CandidateId));
-            decisionFactors.Add(new ViewerDecisionFactor("intention-provider", intention.Provider.ToString().ToLowerInvariant()));
-        }
-
-        return new ViewerInhabitant(
-            actor.Id,
-            "Scout",
-            "active_fixture",
-            ToPosition(actor.Position),
-            actor.HungerBasisPoints,
-            [
-                new ViewerInventoryEntry("food", actor.FoodItems),
-                new ViewerInventoryEntry("wood", actor.WoodItems),
-            ],
-            decisionFactors,
-            route,
-            new ViewerSpatialKnowledge(ToPosition(actor.Position), perceived, known),
-            IsDraft: false)
-        {
-            PublicIntention = cognition?.CurrentIntention is { } publicIntention
-                ? ToPublicIntention(publicIntention.CandidateId, publicIntention.Provider.ToString().ToLowerInvariant(), publicIntention.WorldTick)
-                : null,
-        };
-    }
-
-    private static ViewerInhabitant ToFounderDraft(OwnerFounderDraft draft) => new(
-        draft.Id,
-        draft.DisplayName,
-        "authoring_draft",
-        ToPosition(draft.Position),
-        0,
-        [],
-        [
-            new ViewerDecisionFactor("status", "paused authoring draft; not active in the protected fixture"),
-            new ViewerDecisionFactor("created-revision", draft.CreatedRevision.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-        ],
-        new ViewerRoute("not_active", null, null, [], string.Empty),
-        new ViewerSpatialKnowledge(ToPosition(draft.Position), [ToPosition(draft.Position)], [ToPosition(draft.Position)]),
-        IsDraft: true);
-
     private static ViewerInhabitant ToPlaytestInhabitant(
         PrivateWorldRuntimeState state,
         SocietyInhabitant inhabitant,
@@ -1198,7 +1016,7 @@ public sealed partial class OwnerWorldObservationStore
             .GroupBy(lot => lot.ItemKind).Select(group => new ViewerInventoryEntry(group.Key, group.Sum(lot => lot.Quantity))).ToArray();
         var route = DeterminePlaytestRoute(state, physical, inventory, travelMap);
         var perceived = KnownNearby(state.Map, physical.Position).ToArray();
-        var known = KnownFixtureTopology(physical.Position, perceived, route);
+        var known = KnownLocalTopology(physical.Position, perceived, route);
         var household = state.Society.Society.Households
             .FirstOrDefault(item => item.Id == inhabitant.HouseholdId);
         var decisionFactors = new List<ViewerDecisionFactor>
@@ -2020,39 +1838,6 @@ public sealed partial class OwnerWorldObservationStore
     private static bool IsWithinInteractionRange(GridPoint origin, GridPoint destination) =>
         Math.Abs(origin.X - destination.X) + Math.Abs(origin.Y - destination.Y) <= 1;
 
-    private static ViewerRoute DetermineFixtureRoute(HarnessWorld world)
-    {
-        var actor = world.Actor;
-        if (actor.FoodItems > 0)
-        {
-            return new ViewerRoute("consume", null, null, [], world.Map.ManifestDigest);
-        }
-
-        var berry = world.Map.GetResource("berry-patch");
-        if (world.GetResource(berry.Id).State == ResourceState.Available)
-        {
-            return RouteTo(world.Map, actor.Position, berry.Position, "harvest", berry.Id);
-        }
-
-        return new ViewerRoute("fixture_complete", null, null, [], world.Map.ManifestDigest);
-    }
-
-    private static ViewerRoute RouteTo(
-        SeededMap map,
-        GridPoint origin,
-        GridPoint destination,
-        string status,
-        string destinationId)
-    {
-        var steps = origin == destination
-            ? []
-            : DeterministicRouteFinder.Find(map, origin, destination)
-                .Skip(1)
-                .Select(ToPosition)
-                .ToArray();
-        return new ViewerRoute(status, destinationId, ToPosition(destination), steps, map.ManifestDigest);
-    }
-
     private static IEnumerable<ViewerPosition> KnownNearby(SeededMap map, GridPoint origin) => map.Tiles
         .Where(tile => Math.Abs(tile.Position.X - origin.X) <= 1 && Math.Abs(tile.Position.Y - origin.Y) <= 1)
         .OrderBy(tile => tile.Position.Y)
@@ -2060,13 +1845,13 @@ public sealed partial class OwnerWorldObservationStore
         .Select(tile => ToPosition(tile.Position));
 
     /// <summary>
-    /// The deterministic fixture has no persistent cognitive map. Its truthful
+    /// The local projection has no persistent cognitive map. Its truthful
     /// knowledge is therefore limited to the current local perception and the
     /// route/destination it has already committed to follow. The server still
     /// owns the full map for routing, but must not accidentally project that
     /// omniscience as inhabitant knowledge.
     /// </summary>
-    private static ViewerPosition[] KnownFixtureTopology(
+    private static ViewerPosition[] KnownLocalTopology(
         GridPoint currentPosition,
         IReadOnlyList<ViewerPosition> perceived,
         ViewerRoute route)
@@ -2083,19 +1868,6 @@ public sealed partial class OwnerWorldObservationStore
             .ThenBy(position => position.X)
             .ToArray();
     }
-
-    private static ViewerActor ToActor(HarnessActor actor) => new(
-        actor.Id,
-        ToPosition(actor.Position),
-        actor.HungerBasisPoints,
-        actor.FoodItems,
-        actor.WoodItems);
-
-    private static ViewerEvent ToEvent(OwnerWorldEvent worldEvent) => new(
-        worldEvent.EventId,
-        worldEvent.WorldTick,
-        worldEvent.Kind,
-        worldEvent.Detail);
 
     private static ViewerEvent ToEvent(PlaytestWorldEvent worldEvent) => new(
         worldEvent.EventId,

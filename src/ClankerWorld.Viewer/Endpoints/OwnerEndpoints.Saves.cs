@@ -9,7 +9,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    private static void MapSaves(WebApplication app, bool isPrivateWorld)
+    private static void MapSaves(WebApplication app)
     {
         app.MapPost("/api/v1/owner/saves/disk-status", (
             OwnerSignedHttpRequest<OwnerControlAction> request,
@@ -21,7 +21,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/disk-status",
                 OwnerHttpBinding.EmptyPayload("save-disk-status"));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Save-space status requires a private world." });
             return Results.Ok(disk.Capture());
         });
 
@@ -36,7 +35,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/list",
                 OwnerHttpBinding.EmptyPayload("list-saves"));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Manual saves require a private world." });
             return Results.Ok(saves.List(runtime.Society.WorldId));
         });
 
@@ -51,7 +49,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/timeline",
                 OwnerHttpBinding.EmptyPayload("save-timeline"));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Manual saves require a private world." });
             return Results.Ok(saves.CurrentPosition(runtime.Society.WorldId));
         });
 
@@ -65,7 +62,6 @@ internal static partial class OwnerEndpoints
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/autosave/status",
                 OwnerHttpBinding.EmptyPayload("autosave-status"));
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Autosave settings require a private world." });
             return Results.Ok(autosave.Capture());
         });
 
@@ -88,7 +84,6 @@ internal static partial class OwnerEndpoints
             }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/autosave/configure", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Autosave settings require a private world." });
             lock (providers.WorldMutationGate)
             {
                 if (action.WorldId != runtime.Society.WorldId || action.WorldId != autosave.Capture().WorldId)
@@ -133,7 +128,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "A save name is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/create", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Manual saves require a private world." });
             try
             {
                 ManualWorldSave saved;
@@ -171,7 +165,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "A selected save ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/overwrite", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Manual saves require a private world." });
             try
             {
                 ManualSaveOverwriteReceipt result;
@@ -222,7 +215,6 @@ internal static partial class OwnerEndpoints
             catch (ArgumentException) { return Results.BadRequest(new { error = "A save ID is required." }); }
             var authorization = authorizer.Authorize(request, "POST", "/api/v1/owner/saves/load", payload);
             if (!authorization.IsSuccess) return OwnerFailures.ToHttpResult(authorization.Failure);
-            if (!isPrivateWorld) return Results.Conflict(new { error = "Manual saves require a private world." });
             lock (providers.WorldMutationGate)
             {
                 if (!runtime.Society.IsPaused)

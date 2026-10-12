@@ -9,7 +9,7 @@ namespace ClankerWorld.Viewer.Endpoints;
 
 internal static partial class OwnerEndpoints
 {
-    public static void MapOwnerEndpoints(this WebApplication app, bool isPrivateWorld)
+    public static void MapOwnerEndpoints(this WebApplication app)
     {
         app.MapGet("/api/v1/status", () => Results.Ok(new
         {
@@ -19,15 +19,15 @@ internal static partial class OwnerEndpoints
         }));
         MapPairing(app);
         MapObservation(app);
-        MapRuntimeControl(app, isPrivateWorld);
-        MapWorlds(app, isPrivateWorld);
-        MapSaves(app, isPrivateWorld);
-        MapStartupRecovery(app, isPrivateWorld);
-        MapDeletion(app, isPrivateWorld);
-        MapRecoveryCleanup(app, isPrivateWorld);
-        MapSetup(app, isPrivateWorld);
-        MapInstructions(app, isPrivateWorld);
-        MapContent(app, isPrivateWorld);
+        MapRuntimeControl(app);
+        MapWorlds(app);
+        MapSaves(app);
+        MapStartupRecovery(app);
+        MapDeletion(app);
+        MapRecoveryCleanup(app);
+        MapSetup(app);
+        MapInstructions(app);
+        MapContent(app);
         MapDevices(app);
         MapProviders(app);
 

@@ -7,7 +7,7 @@ updated: 2026-10-11
 
 # Developer guide
 
-These pages are for people changing the code or running the private server.
+These pages are for people changing the code or running a world server.
 For the game itself, start with [playing](../playing.md),
 [what works today](../what-works.md) or [game design](../game-design/README.md).
 
@@ -25,7 +25,7 @@ For the game itself, start with [playing](../playing.md),
 | Draw, review or change game art | [Pixel-art style guide](art-style.md) |
 | Approve devices or understand request security | [Device pairing](device-pairing.md) |
 | Change saves, recovery or replay | [Saves and replay](saves-and-replay.md) |
-| Update a private server with backups and rollback | [Private-server deployment](private-server-deployment.md) |
+| Update a remote world server with backups and rollback | [Remote world server deployment](remote-server-deployment.md) |
 | Choose versions and publish a release | [Releasing](releasing.md) |
 | Change a label or a label workflow | [Labels](labels.md) |
 | See measurements from merged prototypes | [Survival priorities](survival-priority-prototype.md), [Weather episodes](weather-episode-prototype.md), [Need wording](need-wording-comparison.md) |

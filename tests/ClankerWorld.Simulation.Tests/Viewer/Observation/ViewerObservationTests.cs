@@ -173,11 +173,11 @@ public sealed class ViewerObservationTests
     [Fact]
     public void OwnerInhabitantKnowledgeIsBoundedToLocalPerceptionAndItsCommittedRoute()
     {
-        var runtime = new OwnerWorldRuntime("camp-alpha");
+        using var runtime = new PrivateWorldRuntime("camp-alpha");
         var store = new OwnerWorldObservationStore(runtime);
 
         var snapshot = store.GetSnapshot();
-        var inhabitant = Assert.Single(snapshot.Inhabitants);
+        var inhabitant = snapshot.Inhabitants[0];
         var knowledge = inhabitant.SpatialKnowledge;
 
         Assert.Equal(inhabitant.Position, knowledge.CurrentTile);
@@ -196,7 +196,7 @@ public sealed class ViewerObservationTests
             knowledge.KnownTiles);
         Assert.True(
             knowledge.KnownTiles.Count < snapshot.Tiles.Count,
-            "The fixture must not project the complete server map as inhabitant knowledge.");
+            "The native projection must not expose the complete server map as inhabitant knowledge.");
     }
 
     [Fact]
@@ -226,7 +226,6 @@ public sealed class ViewerObservationTests
         Assert.NotNull(snapshot.WorldSystems);
         Assert.Equal("spring", snapshot.WorldSystems!.Season);
         Assert.Equal(4, snapshot.WorldSystems.EcologyResourceCount);
-        Assert.Equal(1, snapshot.WorldSystems.FactionCount);
         Assert.Equal(4, snapshot.Inhabitants.Select(inhabitant => inhabitant.Id).Distinct().Count());
     }
 
