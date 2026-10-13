@@ -67,7 +67,10 @@ public sealed record OwnerWorldBoat(string Id, string TownId, string TownName, O
 public sealed record OwnerWorldBoatTripRequest(string Id, long Sequence, string PassengerId, string PassengerName,
     string BoatTownId, string OriginPortId, string DestinationPortId, string Status, string? BoatId);
 
-public sealed record OwnerWorldGroundStock(OwnerWorldPosition Position, string OwnerId, string Kind, int Quantity);
+public sealed record OwnerWorldGroundStock(OwnerWorldPosition Position, string OwnerId, string Kind, int Quantity)
+{
+    public string OwnerName { get; init; } = "Unknown owner";
+}
 
 public sealed record OwnerWorldObject(string Id, string Kind, OwnerWorldPosition Position);
 

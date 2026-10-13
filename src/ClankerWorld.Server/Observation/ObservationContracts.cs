@@ -48,7 +48,10 @@ public sealed record BoatView(string Id, string TownId, string TownName, Positio
 public sealed record BoatTripRequestView(string Id, long Sequence, string PassengerId, string PassengerName,
     string BoatTownId, string OriginPortId, string DestinationPortId, string Status, string? BoatId);
 
-public sealed record GroundStockView(PositionView Position, string OwnerId, string Kind, int Quantity);
+public sealed record GroundStockView(PositionView Position, string OwnerId, string Kind, int Quantity)
+{
+    public string OwnerName { get; init; } = "Unknown owner";
+}
 public sealed record WorldPreviewView(PackedTerrainView Terrain, PositionView StartingSite,
     string ManifestDigest, int ResourceSites = 0)
 {
