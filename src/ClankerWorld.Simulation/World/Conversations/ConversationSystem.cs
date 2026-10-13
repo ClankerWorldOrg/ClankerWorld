@@ -553,7 +553,7 @@ public sealed class ConversationSystem(ConversationState state)
                 world.Society.AllBeliefs().Any(item => item.OwnerId == ownerId && item.SourceTurnId == turn.Id))
                 continue;
             var belief = new SocietyAgentBelief(
-                ConversationMemoryClaimId(turn.Id, ownerId),
+                Identity.Parse(ConversationMemoryClaimId(turn.Id, ownerId)),
                 ownerId,
                 turn.Text,
                 SocietyBeliefProvenance.Hearsay,

@@ -1536,9 +1536,9 @@ public sealed partial class OwnerWorldObservationStore
     private static int LegacyTrustScore(WorldRuntimeState state, string ownerId, string subjectId) =>
         Math.Min(10, state.Society.Society.Memories.Where(memory => memory.OwnerId == ownerId &&
                 memory.SubjectId == subjectId && memory.TombstonedTick is null)
-            .Sum(memory => memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
+            .Sum(memory => memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
 
     private static AgentRelationshipView[] RelationshipsFor(
         WorldRuntimeState state,

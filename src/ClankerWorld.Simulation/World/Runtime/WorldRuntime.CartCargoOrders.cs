@@ -112,7 +112,7 @@ public sealed partial class WorldRuntime
         ApplyHandcartCandidate(instruction.TargetAgentId, person, prefix + cargo.Id, cart.Id, order.RequestedUnits - order.CompletedUnits);
         var moved = loading ? CargoQuantity(cart.Id) - before : before - CargoQuantity(cart.Id);
         if (moved <= 0) return;
-        CreditOrderEffect(instruction, CartCargoOrderEffectId(instruction, order.CompletedUnits + moved), moved);
+        CreditOrderEffect(instruction, Identity.Parse(CartCargoOrderEffectId(instruction, order.CompletedUnits + moved)), moved);
         // A fully moved stack is no longer a source. The next step can bind another eligible
         // stack of this same good; a partially moved or newly blocked source stays bound.
         var updated = instructionsByIdempotency[instruction.IdempotencyKey];

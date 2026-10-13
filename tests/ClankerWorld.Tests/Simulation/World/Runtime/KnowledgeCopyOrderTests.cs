@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -371,7 +372,7 @@ public sealed class KnowledgeCopyOrderTests
             instruction.Task! with { KnowledgeCopySourceArtifactId = "missing-artifact" },
             instruction.Task! with { KnowledgeCopySourceArtifactId = null },
             instruction.Task! with { Action = "write_knowledge", ProgressUnit = "artifacts", KnowledgeCopySourceArtifactId = null },
-            instruction.Task! with { CompletedUnits = 1, RepeatUntilCancelled = true, LastEffectId = "writing:artifact:knowledge-artifact-000001" },
+            instruction.Task! with { CompletedUnits = 1, RepeatUntilCancelled = true, LastEffectId = Identity.Parse("writing:artifact:knowledge-artifact-000001") },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         { Instructions = state.Instructions!.Select(item => item == instruction ? item with { Task = changed } : item).ToArray() }));
         AssertReload(state);

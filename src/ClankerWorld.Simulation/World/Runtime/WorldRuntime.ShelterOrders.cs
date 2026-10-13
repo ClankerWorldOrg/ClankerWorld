@@ -205,7 +205,7 @@ public sealed partial class WorldRuntime
         current = instructionsByIdempotency[current.IdempotencyKey];
         current = current with { Task = current.Task! with { ShelterCompletion = completion } };
         instructionsByIdempotency[current.IdempotencyKey] = current;
-        CreditOrderEffect(current, ShelterOrderReceipt(current.InstructionId, current.Task!), 1);
+        CreditOrderEffect(current, Identity.Parse(ShelterOrderReceipt(current.InstructionId, current.Task!)), 1);
     }
 
     private string ShelterOrderBlockedReason(OwnerQueuedInstruction instruction, AgentState person)

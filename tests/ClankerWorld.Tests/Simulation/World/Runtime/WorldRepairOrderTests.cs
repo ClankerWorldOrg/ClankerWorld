@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -227,7 +228,7 @@ public sealed class WorldRepairOrderTests
             valid with { TargetEquipmentKind = "sword" }, valid with { TargetEquipmentKind = "basket" },
             valid with { TargetMaterialKind = "wood" }, valid with { TargetFoodKind = "berries" },
             valid with { TargetResourceId = "tree" }, valid with { TargetPosition = new(1, 1) },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "repair:equipment:unearned" },
+            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = Identity.Parse("repair:equipment:unearned") },
             valid with { TargetAgentId = actor },
         })
         {
@@ -350,7 +351,7 @@ public sealed class WorldRepairOrderTests
         var receipt = Submit(world, actor, "long", "repair one garment");
         await Finish(world, receipt);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var restored = Restore(WorldRuntimeCodec.Decode(bytes));

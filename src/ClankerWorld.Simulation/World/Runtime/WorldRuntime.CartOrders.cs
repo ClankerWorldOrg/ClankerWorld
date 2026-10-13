@@ -118,7 +118,7 @@ public sealed partial class WorldRuntime
         ApplyHandcartCandidate(instruction.TargetAgentId, person, parking ? "park_handcart" : AttachCartPrefix + cart.Id);
         var isAttached = AttachedHandcart(instruction.TargetAgentId)?.Id == cart.Id;
         if (parking ? wasAttached && !isAttached : !wasAttached && isAttached)
-            CreditOrderEffect(instruction, CartOrderEffectId(instruction), 1);
+            CreditOrderEffect(instruction, Identity.Parse(CartOrderEffectId(instruction)), 1);
     }
 
     private static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>

@@ -53,7 +53,7 @@ public sealed partial class WorldDeliveryOrderTests
         Assert.Equal(("finished", 2), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
         Assert.Null(Order(world, receipt).DeliveryLotId);
         Assert.Null(Order(world, receipt).DeliveryQuantity);
-        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId!);
+        Assert.StartsWith("delivery:stock:", Order(world, receipt).LastEffectId!.Value);
         var delivered = world.Society.Inventory.GetLot(shipment.Id);
         Assert.Equal((Alpha, House, 2, 6_000), (delivered.OwnerId, delivered.StorageBuildingId, delivered.Quantity, delivered.ConditionBasisPoints));
         Assert.Null(delivered.DeliveryBuildingId);

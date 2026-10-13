@@ -131,7 +131,7 @@ public sealed partial class WorldRuntime
                 Task = current.Task! with { KnowledgeCopySourceArtifactId = null },
             };
         }
-        CreditOrderEffect(instruction, AgentKnowledgeRules.WritingReceiptId(artifactId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(AgentKnowledgeRules.WritingReceiptId(artifactId)), 1);
     }
 
     private void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction)

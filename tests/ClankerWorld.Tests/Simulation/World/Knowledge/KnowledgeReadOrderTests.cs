@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -178,7 +179,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Instructions = [instruction with { Task = instruction.Task with { TargetKnowledgeArtifactId = "another-artifact" } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Task = instruction.Task with { LastEffectId = "read-order:forged" } }] }));
+        { Instructions = [instruction with { Task = instruction.Task with { LastEffectId = Identity.Parse("read-order:forged") } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Knowledge = completed.Knowledge! with { Facts = completed.Knowledge!.Facts.Where(fact => fact.OwnerId != reader).ToArray() } }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with

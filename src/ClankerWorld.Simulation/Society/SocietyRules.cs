@@ -558,7 +558,7 @@ public static partial class SocietyRules
         {
             Memories = checkpoint.Memories.Append(memory with
             { Summary = NormalizeRequiredText(memory.Summary, nameof(memory.Summary)) })
-                .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
         };
         return Commit(next, "social_memory_recorded", memory.Id, memory.Id);
     }
@@ -582,7 +582,7 @@ public static partial class SocietyRules
         return checkpoint with
         {
             Beliefs = (checkpoint.Beliefs ?? []).Append(normalized)
-                .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
         };
     }
 
@@ -623,9 +623,9 @@ public static partial class SocietyRules
                 ? item with { SupersededByBeliefId = replacement.Id, SupersededTick = checkpoint.WorldTick }
                 : item)
             .Append(replacement)
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
-        var archived = checkpoint.ArchivedBeliefs.Select(item => item.Belief.Id).ToHashSet(StringComparer.Ordinal);
-        var byId = revised.ToDictionary(item => item.Id, StringComparer.Ordinal);
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
+        var archived = checkpoint.ArchivedBeliefs.Select(item => item.Belief.Id.Value).ToHashSet(StringComparer.Ordinal);
+        var byId = revised.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         return checkpoint with
         {
             Beliefs = revised.Where(item => !archived.Contains(item.Id)).ToArray(),
@@ -680,10 +680,10 @@ public static partial class SocietyRules
         var boundedSources = combined.Values
             .OrderByDescending(item => item.SourceTick)
             .ThenBy(item => item.Kind)
-            .ThenBy(item => item.SourceId, StringComparer.Ordinal)
+            .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal)
             .Take(256)
             .OrderBy(item => item.Kind)
-            .ThenBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
+            .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
         var compactions = (checkpoint.MemoryCompactions ?? [])
             .Where(item => item.OwnerId != owner)
             .Append(new SocietyAgentMemoryCompaction(owner, boundedSources))
@@ -1239,9 +1239,9 @@ public static partial class SocietyRules
         EnsureCanonicalIds(checkpoint.Households.Select(item => item.Id), "households");
         EnsureCanonicalIds(checkpoint.Relationships.Select(item => item.Id), "relationships");
         EnsureCanonicalIds(checkpoint.Organizations.Select(item => item.Id), "organizations");
-        EnsureCanonicalIds(checkpoint.Memories.Select(item => item.Id), "memories");
+        EnsureCanonicalIds(checkpoint.Memories.Select(item => item.Id.Value), "memories");
         ValidateMemoryArchive(checkpoint);
-        foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.StartsWith("player-rename:", StringComparison.Ordinal)))
+        foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.Value.StartsWith("player-rename:", StringComparison.Ordinal)))
         {
             if (!memory.Permanent || !checkpoint.Agents.Any(person => person.Id == memory.OwnerId) || memory.SubjectId != memory.OwnerId ||
                 memory.Visibility != "private" || memory.TombstonedTick is not null ||
@@ -1328,11 +1328,11 @@ public static partial class SocietyRules
 
     private static void ValidateAgentBeliefs(SocietyCheckpoint checkpoint)
     {
-        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => item.Id), "agent beliefs");
-        var beliefs = checkpoint.AllBeliefs().OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
-        EnsureCanonicalIds(beliefs.Select(item => item.Id), "agent beliefs");
+        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => item.Id.Value), "agent beliefs");
+        var beliefs = checkpoint.AllBeliefs().OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
+        EnsureCanonicalIds(beliefs.Select(item => item.Id.Value), "agent beliefs");
         if (beliefs.Length == 0) return;
-        var byId = beliefs.ToDictionary(item => item.Id, StringComparer.Ordinal);
+        var byId = beliefs.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         var index = new SocietyBeliefValidationIndex(checkpoint, byId);
         foreach (var belief in beliefs)
         {
@@ -1358,8 +1358,8 @@ public static partial class SocietyRules
     {
         var compactions = checkpoint.MemoryCompactions ?? [];
         EnsureCanonicalIds(compactions.Select(item => item.OwnerId), "agent memory compactions");
-        var memoryById = checkpoint.AllMemories().ToDictionary(item => item.Id, StringComparer.Ordinal);
-        var beliefById = checkpoint.AllBeliefs().ToDictionary(item => item.Id, StringComparer.Ordinal);
+        var memoryById = checkpoint.AllMemories().ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
+        var beliefById = checkpoint.AllBeliefs().ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         foreach (var compaction in compactions)
         {
             if (string.IsNullOrWhiteSpace(compaction.OwnerId) || compaction.OwnerId != compaction.OwnerId.Trim() ||
@@ -1369,7 +1369,7 @@ public static partial class SocietyRules
                 throw new InvalidDataException("An agent memory compaction is malformed.");
 
             var expected = compaction.Sources.OrderBy(item => item.Kind)
-                .ThenBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
+                .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
             if (!compaction.Sources.SequenceEqual(expected) ||
                 compaction.Sources.Select(item => $"{item.Kind}:{item.SourceId}")
                     .Distinct(StringComparer.Ordinal).Count() != compaction.Sources.Count)
@@ -1441,14 +1441,14 @@ public static partial class SocietyRules
 
     private static SocietyAgentBelief NormalizeBelief(SocietyAgentBelief belief) => belief with
     {
-        Id = NormalizeRequiredText(belief.Id, nameof(belief.Id)),
+        Id = Identity.Parse(NormalizeRequiredText(belief.Id, nameof(belief.Id))),
         OwnerId = NormalizeRequiredText(belief.OwnerId, nameof(belief.OwnerId)),
         Statement = NormalizeBeliefStatement(belief.Statement),
         SourceAgentId = NormalizeOptionalText(belief.SourceAgentId),
         SourceTurnId = NormalizeOptionalText(belief.SourceTurnId),
         AboutAgentId = NormalizeOptionalText(belief.AboutAgentId),
-        SupersedesBeliefId = NormalizeOptionalText(belief.SupersedesBeliefId),
-        SupersededByBeliefId = NormalizeOptionalText(belief.SupersededByBeliefId),
+        SupersedesBeliefId = Identity.ParseOptional(NormalizeOptionalText(belief.SupersedesBeliefId)),
+        SupersededByBeliefId = Identity.ParseOptional(NormalizeOptionalText(belief.SupersededByBeliefId)),
     };
 
     private static string NormalizeBeliefStatement(string statement)
@@ -1794,7 +1794,7 @@ public static partial class SocietyRules
             {
                 var memoryId = FinalWordsMemoryId(estate.Id, listener);
                 current = RecordSocialMemory(current, new SocietySocialMemory(
-                    memoryId, listener, estate.DeceasedId,
+                    Identity.Parse(memoryId), listener, estate.DeceasedId,
                     $"{speaker}'s final words were: '{words}'", "private", targetTick)
                 { Kind = SocietyMemoryKind.LifeEvent }).Checkpoint;
             }

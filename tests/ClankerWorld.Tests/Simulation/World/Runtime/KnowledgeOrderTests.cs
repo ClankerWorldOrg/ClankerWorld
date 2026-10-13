@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -229,7 +230,7 @@ public sealed class KnowledgeOrderTests
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
                 { Task = item.Task! with { TargetKnowledgeKind = "field_map" } } : item).ToArray() },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
-                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = "writing:artifact:knowledge-artifact-000001", RepeatUntilCancelled = true } } : item).ToArray() },
+                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = Identity.Parse("writing:artifact:knowledge-artifact-000001"), RepeatUntilCancelled = true } } : item).ToArray() },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(broken));
         AssertReload(working);
     }

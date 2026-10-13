@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -162,9 +163,9 @@ public sealed partial class WorldCollectionOrderTests
             valid with { TargetEquipmentKind = "basket" }, valid with { TargetCropKind = "greens" },
             valid with { TargetPosition = new(10_000_001, 1) }, valid with { TargetResourceId = "berry-patch" },
             valid with { RequestedUnits = 0 }, valid with { CompletedUnits = -1 },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "collect:personal:unearned" },
+            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = Identity.Parse("collect:personal:unearned") },
             valid with { QuantityIsExplicit = false, ProgressUnit = "collection_loads" },
-            valid with { CompletedUnits = 1, LastEffectId = "food:consumed:wrong-action" },
+            valid with { CompletedUnits = 1, LastEffectId = Identity.Parse("food:consumed:wrong-action") },
         })
         {
             var corrupt = saved with

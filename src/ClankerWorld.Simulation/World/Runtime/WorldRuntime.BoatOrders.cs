@@ -113,7 +113,7 @@ public sealed partial class WorldRuntime
     private void CreditBoatOrderArrival(BoatTripRequest request)
     {
         if (ActiveBoatOrder(request) is { } instruction && instruction.Task!.BoatTravel!.DestinationPortId == request.DestinationPortId)
-            CreditOrderEffect(instruction, BoatOrderArrivalEffectId(request.Id), 1);
+            CreditOrderEffect(instruction, Identity.Parse(BoatOrderArrivalEffectId(request.Id)), 1);
     }
 
     private static string BoatOrderArrivalEffectId(string requestId) => DerivedId.Create("boat-arrival:" + requestId);

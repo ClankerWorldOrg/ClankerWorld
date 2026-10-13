@@ -30,7 +30,7 @@ public sealed partial class WorldRuntime
                 if (ContinueEquipmentRepair(actor) is { } effect)
                 {
                     var receipt = EquipmentRepairReceipt(actor, effect.StartedTick, effect.LotId);
-                    CreditOrderEffect(instruction, receipt, 1);
+                    CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 return;
             }

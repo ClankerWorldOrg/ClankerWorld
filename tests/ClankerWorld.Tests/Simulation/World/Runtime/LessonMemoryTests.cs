@@ -45,7 +45,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(completed.Lesson.LastTransitionTick, skill.LearnedTick);
         Assert.Equal(beforeTrust + 2, completed.SocialStanding!.Single(item => item.SubjectId == teacher).Trust);
         var memory = Assert.Single(world.Society.Memories, item => item.OwnerId == student && item.SubjectId == teacher &&
-            item.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
+            item.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
         Assert.Equal("Learned crafting with " + world.Society.GetAgent(teacher).Name + ".", memory.Summary);
         Assert.Equal("public", memory.Visibility);
         Assert.Equal(SocietyMemoryKind.Skill, memory.Kind);
@@ -81,7 +81,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(memory.Summary, excerpt.Summary);
         Assert.Equal(memory.SourceTick, excerpt.SourceTick);
         Assert.Equal(memory.Visibility, excerpt.Visibility);
-        Assert.InRange(memory.Id.Length, 1, 128);
+        Assert.InRange(memory.Id.Value.Length, 1, 128);
         for (var tick = 0; tick < 2; tick++)
         {
             await reloadHost.Step();
@@ -93,7 +93,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(beforeTrust + 2, continued.SocialStanding!.Single(item => item.SubjectId == teacher).Trust);
         Assert.Equal(memory, Assert.Single(reload.Society.Memories, item => item.Id == memory.Id));
         Assert.Single(reload.Society.Memories, item => item.OwnerId == student && item.SubjectId == teacher &&
-            item.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
+            item.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
     }
 
     private sealed class NativeLessonChoices(bool student) : IDecisionProvider

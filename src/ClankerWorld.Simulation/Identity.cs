@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -20,13 +21,16 @@ public sealed record Identity : IComparable<Identity>
         return new(value);
     }
 
+    public static Identity? ParseOptional(string? value) => value is null ? null : Parse(value);
+
     public int CompareTo(Identity? other) => StringComparer.Ordinal.Compare(Value, other?.Value);
     public static bool operator <(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) < 0;
     public static bool operator <=(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) <= 0;
     public static bool operator >(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) > 0;
     public static bool operator >=(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) >= 0;
     public override string ToString() => Value;
-    public static implicit operator string(Identity value) => value.Value;
+    [return: NotNullIfNotNull(nameof(value))]
+    public static implicit operator string?(Identity? value) => value?.Value;
 }
 
 public sealed class IdentityJsonConverter : JsonConverter<Identity>

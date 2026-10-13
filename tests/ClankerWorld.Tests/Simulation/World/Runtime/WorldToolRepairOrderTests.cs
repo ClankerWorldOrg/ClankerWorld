@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -283,7 +284,7 @@ public sealed class WorldToolRepairOrderTests
         await Finish(world, receipt);
         var order = Order(world, receipt);
         Assert.Equal("finished", order.Status);
-        Assert.InRange(order.LastEffectId!.Length, 1, 512);
+        Assert.InRange(order.LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var resumed = Restore(WorldRuntimeCodec.Decode(bytes));
@@ -294,7 +295,7 @@ public sealed class WorldToolRepairOrderTests
             order with { TargetMaterialKind = "iron" }, order with { TargetFoodKind = "berries" },
             order with { TargetPosition = new(1, 2) }, order with { TargetCropKind = "grain" },
             order with { TargetResourceId = "tree" }, order with { ProgressUnit = "material_items" },
-            order with { CompletedUnits = 2 }, order with { LastEffectId = "repair:equipment:wrong" },
+            order with { CompletedUnits = 2 }, order with { LastEffectId = Identity.Parse("repair:equipment:wrong") },
         })
             Assert.Throws<InvalidDataException>(() => Restore(saved with { Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
         Assert.Throws<InvalidDataException>(() => Restore(saved with { SchemaVersion = 73 }));

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ClankerWorld.Simulation.Cognition;
@@ -14,10 +15,10 @@ public sealed class PrivateMemoryArchiveTests
         using var renamed = Restore(WorldRuntimeCodec.Encode(NearBoundary(generated: true)));
         var owner = renamed.Society.Agents[0].Id;
         Assert.True(renamed.RenameAgent(owner, "Archiveproof Vale"));
-        var original = Assert.Single(renamed.Society.Memories, item => item.Id.StartsWith("player-rename:", StringComparison.Ordinal));
+        var original = Assert.Single(renamed.Society.Memories, item => item.Id.Value.StartsWith("player-rename:", StringComparison.Ordinal));
         Assert.True(original.Permanent);
         Assert.Equal((owner, owner, 5L, SocietyMemoryKind.Experience), (original.OwnerId, original.SubjectId, original.SourceTick, original.Kind));
-        var ordinary = new SocietySocialMemory("ordinary-rename-age-control", owner, owner, "An ordinary private experience.", "private", original.SourceTick);
+        var ordinary = new SocietySocialMemory(Identity.Parse("ordinary-rename-age-control"), owner, owner, "An ordinary private experience.", "private", original.SourceTick);
         var state = renamed.ExportState();
         state = WithSources(state, state.Society.Society.Memories.Append(ordinary).ToArray(), state.Society.Society.Beliefs ?? []);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
@@ -81,19 +82,19 @@ public sealed class PrivateMemoryArchiveTests
         var other = state.Agents[1].AgentId;
         var memories = new List<SocietySocialMemory>
         {
-            new("old-low", owner, other, "An old private conversation.", "private", 0),
-            new("old-cutoff", owner, other, "A useful remembered path.", "private", 0),
-            new("recent", owner, other, "A recent ordinary experience.", "private", 4),
-            new("foreign", other, owner, "Someone else's hidden location.", "private", 0),
+            new(Identity.Parse("old-low"), owner, other, "An old private conversation.", "private", 0),
+            new(Identity.Parse("old-cutoff"), owner, other, "A useful remembered path.", "private", 0),
+            new(Identity.Parse("recent"), owner, other, "A recent ordinary experience.", "private", 4),
+            new(Identity.Parse("foreign"), other, owner, "Someone else's hidden location.", "private", 0),
         };
         foreach (var kind in new[] { SocietyMemoryKind.LifeEvent, SocietyMemoryKind.Relationship, SocietyMemoryKind.Skill, SocietyMemoryKind.Commitment })
-            memories.Add(new("protected-" + kind, owner, other, "Permanent " + kind, "private", 0) { Kind = kind });
-        var rumor = new SocietyAgentBelief("old-rumor", owner, "Someone said the old path was muddy.",
+            memories.Add(new(Identity.Parse("protected-" + kind), owner, other, "Permanent " + kind, "private", 0) { Kind = kind });
+        var rumor = new SocietyAgentBelief(Identity.Parse("old-rumor"), owner, "Someone said the old path was muddy.",
             SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: other);
         var protectedBeliefs = memories.Where(item => item.Kind != SocietyMemoryKind.Experience).Select(item =>
-            new SocietyAgentBelief("belief-" + item.Kind, owner, item.Summary, SocietyBeliefProvenance.Firsthand, 7_000, 0) { Kind = item.Kind }).ToArray();
+            new SocietyAgentBelief(Identity.Parse("belief-" + item.Kind), owner, item.Summary, SocietyBeliefProvenance.Firsthand, 7_000, 0) { Kind = item.Kind }).ToArray();
         state = WithSources(state, memories, protectedBeliefs.Append(rumor).OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), [new(owner,
-            [new("old-cutoff", SocietyMemorySourceKind.Experience, 0, 2_500, 8_000, 0)])]);
+            [new(Identity.Parse("old-cutoff"), SocietyMemorySourceKind.Experience, 0, 2_500, 8_000, 0)])]);
         var bytes = WorldRuntimeCodec.Encode(state);
         using var world = Restore(bytes);
         Assert.False((await world.AdvanceOneTickAsync(commitPermitted: () => false)).Advanced);
@@ -135,7 +136,7 @@ public sealed class PrivateMemoryArchiveTests
     {
         var state = NearBoundary();
         var owner = state.Agents[0].AgentId;
-        state = WithSources(state, [new("open-task-memory", owner, state.Agents[1].AgentId, "An unfinished task.", "private", 0)], []);
+        state = WithSources(state, [new(Identity.Parse("open-task-memory"), owner, state.Agents[1].AgentId, "An unfinished task.", "private", 0)], []);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
         var receipt = world.SubmitInstruction(new("blocked-task", "owner:test", owner, OwnerInstructionKind.Order, "keep gathering wood"));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
@@ -159,12 +160,12 @@ public sealed class PrivateMemoryArchiveTests
         var state = NearBoundary();
         var owner = state.Agents[0].AgentId;
         var other = state.Agents[1].AgentId;
-        var rumor = new SocietyAgentBelief("old-rumor", owner, "Mira said the tool was missing.", SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: other);
+        var rumor = new SocietyAgentBelief(Identity.Parse("old-rumor"), owner, "Mira said the tool was missing.", SocietyBeliefProvenance.Hearsay, 4_200, 0, SourceAgentId: other);
         state = WithSources(state, [], [rumor]);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var corrected = world.CorrectAgentBelief(owner, rumor.Id,
-            new("seen-tool", owner, "I saw the tool beside the House.", SocietyBeliefProvenance.Firsthand, 9_600, world.WorldTick));
+            new(Identity.Parse("seen-tool"), owner, "I saw the tool beside the House.", SocietyBeliefProvenance.Firsthand, 9_600, world.WorldTick));
         var source = Assert.Single(world.Society.ArchivedBeliefs).Belief;
         Assert.Equal((rumor.Statement, rumor.SourceAgentId, rumor.ConfidenceBasisPoints, corrected.Id),
             (source.Statement, source.SourceAgentId, source.ConfidenceBasisPoints, source.SupersededByBeliefId));
@@ -173,7 +174,7 @@ public sealed class PrivateMemoryArchiveTests
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.Throws<InvalidOperationException>(() => world.RecordAgentBelief(rumor));
         Assert.Throws<InvalidOperationException>(() => world.CorrectAgentBelief(other, corrected.Id,
-            new("stolen-correction", other, "My correction.", SocietyBeliefProvenance.Inference, 5_000, world.WorldTick)));
+            new(Identity.Parse("stolen-correction"), other, "My correction.", SocietyBeliefProvenance.Inference, 5_000, world.WorldTick)));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var loaded = Restore(bytes);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(loaded.ExportState()));
@@ -196,7 +197,7 @@ public sealed class PrivateMemoryArchiveTests
     {
         var state = NearBoundary();
         var owner = state.Agents[0].AgentId;
-        state = WithSources(state, [new("old-low", owner, state.Agents[1].AgentId, "Private memory.", "private", 0)], []);
+        state = WithSources(state, [new(Identity.Parse("old-low"), owner, state.Agents[1].AgentId, "Private memory.", "private", 0)], []);
         using var world = Restore(WorldRuntimeCodec.Encode(state));
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
@@ -223,7 +224,7 @@ public sealed class PrivateMemoryArchiveTests
             Society = state.Society with
             {
                 Society = state.Society.Society with
-                { Memories = memories.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(), Beliefs = beliefs, MemoryCompactions = compactions }
+                { Memories = memories.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(), Beliefs = beliefs, MemoryCompactions = compactions }
             },
         };
 

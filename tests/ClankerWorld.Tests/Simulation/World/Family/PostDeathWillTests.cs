@@ -72,7 +72,7 @@ public sealed class PostDeathWillTests
             ("founder-mira", "Scout's final words were: 'Keep the orchard going.'"),
             ("founder-rowan", "Scout's final words were: 'Keep the orchard going.'"),
         ], FinalWordMemories(reloaded));
-        Assert.All(reloaded.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal)),
+        Assert.All(reloaded.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal)),
             memory => Assert.Equal("private", memory.Visibility));
         Assert.DoesNotContain(reloaded.Memories, memory => memory.OwnerId == "founder-ilya" &&
             memory.Summary.Contains("final words", StringComparison.Ordinal));
@@ -123,7 +123,7 @@ public sealed class PostDeathWillTests
             (childStone.OwnerId, childStone.Quantity, childStone.CarrierId, childStone.StorageBuildingId, childStone.GroundPosition));
         Assert.Equal(5 + 3 + 1, settled.Inventory.Lots.Where(lot => lot.ProvenanceLotId is "rope-lot" or "seed-lot" or "stone-lot")
             .Sum(lot => lot.Quantity));
-        Assert.DoesNotContain(settled.Memories, memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal));
+        Assert.DoesNotContain(settled.Memories, memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -418,7 +418,7 @@ public sealed class PostDeathWillTests
             .ToArray();
 
     private static (string OwnerId, string Summary)[] FinalWordMemories(SocietyCheckpoint checkpoint) =>
-        checkpoint.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal))
+        checkpoint.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal))
             .Select(memory => (memory.OwnerId, memory.Summary))
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ToArray();
 

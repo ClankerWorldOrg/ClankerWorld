@@ -102,7 +102,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         {
             var summary = "I remember bounded" + generator.Replace("-", "", StringComparison.Ordinal) + " work.";
             var checkpoint = SocietyRules.RecordSocialMemory(society with { Inventory = inventory },
-                new(id, owner, recipient, summary, "private", society.WorldTick)).Checkpoint;
+                new(Identity.Parse(id), owner, recipient, summary, "private", society.WorldTick)).Checkpoint;
             var bytes = WorldRuntimeCodec.Encode(state with
             { Society = state.Society with { Society = checkpoint } });
             using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Observation;
@@ -185,9 +186,9 @@ public sealed partial class WorldCollectionOrderTests
             valid with { TargetCropKind = "greens" }, valid with { TargetResourceId = "stone" },
             valid with { TargetPosition = new(10_000_001, 1) }, valid with { RequestedUnits = 0 },
             valid with { CompletedUnits = -1 }, valid with { ProgressUnit = "repairs" },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "collect:personal:unearned" },
+            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = Identity.Parse("collect:personal:unearned") },
             valid with { QuantityIsExplicit = false, ProgressUnit = "collection_loads" },
-            valid with { CompletedUnits = 1, LastEffectId = "repair:tool:wrong-action" },
+            valid with { CompletedUnits = 1, LastEffectId = Identity.Parse("repair:tool:wrong-action") },
         })
         {
             var corrupt = saved with

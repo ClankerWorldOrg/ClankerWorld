@@ -227,7 +227,7 @@ public sealed partial class WorldRuntime
                 var memoryId = TrustMemoryId(owner, subject);
                 if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId || memory.Id == memoryKey))
                 {
-                    society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(memoryId, owner, subject,
+                    society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new(Identity.Parse(memoryId), owner, subject,
                         $"Completed a mutually accepted exchange with {checkpoint.GetAgent(subject).Name}.", "public", WorldTick)
                     { Kind = SocietyMemoryKind.Relationship }));
                 }
