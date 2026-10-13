@@ -25,7 +25,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
             if (worldSettingsContent.Visible) RequestRoutineHelperModels();
             PopulateAgentModelTargets();
@@ -78,7 +78,7 @@ public partial class Main
             await RunOwnerActionAsync(async () =>
             {
                 providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
-                    ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                    ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
                 PopulateCredentialChoices();
                 return $"{ProviderDisplayName(provider)} will handle {RoleDisplayName(role).ToLowerInvariant()} at the agent's next model choice";
             });
@@ -120,7 +120,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureProviderAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             return $"Forgot the saved {ProviderDisplayName(provider)} key.";
         });
         if (IsCurrentWorldRequest(generation))
@@ -155,7 +155,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.DeleteCredentialSlotAsync(
-                ResolveWorldUri(), authority, deviceId, slotId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, slotId, signer, OwnerRequestToken));
             PopulateCredentialChoices();
             RenderProviderConfiguration();
             return $"Deleted the saved key {slot.Label}.";

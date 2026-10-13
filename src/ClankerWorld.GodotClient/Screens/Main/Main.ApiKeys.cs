@@ -75,7 +75,7 @@ public partial class Main
         try
         {
             var status = await AwaitCurrentWorldResultAsync(ownerApi.GetProviderStatusAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             if (!IsCurrentWorldRequest(generation) || read != apiKeysRead ||
                 !ReferenceEquals(owner, registration) || !apiKeysPanel.IsVisibleInTree()) return;
             providerConfiguration = status;
@@ -118,7 +118,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             providerConfiguration = await AwaitCurrentWorldResultAsync(ownerApi.CreateCredentialSlotAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             saved = true;
             RefreshRoutineHelperKeys(SelectedRoutineHelperKey());
             RenderSavedApiKeys();

@@ -160,6 +160,15 @@ observation refreshes cannot silently authorize a different ownership change.
 
 ## Response-loss recovery
 
+The game's `OwnerRequest<T>` runner owns each action's deadline and control
+cleanup. Its context binds ordinary actions to the observation generation and
+the sending panel's visibility and selection. A late answer or refusal from a
+closed panel or an earlier world cannot update the new panel. Pause waits for
+the existing action; duplicate ordinary actions still do not queue. Load,
+create, select and startup recovery deliberately replace the timeline and keep
+their registration binding. Every outcome restores the controls, while the
+pending-submission store below decides whether an uncertain action can be retried.
+
 Instructions and order cancellations are server-idempotent, but a client can
 still lose the response after the server commits one. The Godot client's retry
 protocol also retains authoring batches, which the native host currently refuses

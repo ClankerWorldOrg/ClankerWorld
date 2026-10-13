@@ -672,7 +672,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             result = await AwaitCurrentWorldResultAsync(ownerApi.ReassignBuildingAsync(ResolveWorldUri(), authority, deviceId, action,
-                signer, CancellationToken.None));
+                signer, OwnerRequestToken));
             return result.Applied ? "Building owner changed" : result.Failure ?? "The building could not be reassigned.";
         });
         if (IsCurrentWorldRequest(generation) && result is { } changed)
@@ -715,7 +715,7 @@ public partial class Main
         {
             result = await AwaitCurrentWorldResultAsync(ownerApi.RemoveBuildingAsync(ResolveWorldUri(), authority, deviceId,
                 action,
-                signer, CancellationToken.None));
+                signer, OwnerRequestToken));
             return result.Applied ? "Building removed" : result.Failure ?? "The building could not be removed.";
         });
         if (!IsCurrentWorldRequest(generation) || result is not { } removed) return;

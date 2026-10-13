@@ -32,7 +32,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var approval = await AwaitCurrentWorldResultAsync(ownerApi.ApprovePairingAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             pairingApprovalCode.Text = string.Empty;
             return $"Approved device {approval.DeviceId}. That device still has to finish pairing itself.";
         });
@@ -62,7 +62,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var revoked = await AwaitCurrentWorldResultAsync(ownerApi.RevokeDeviceAsync(
-                ResolveWorldUri(), authority, deviceId, action, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, action, signer, OwnerRequestToken));
             revokeDeviceId.Text = string.Empty;
             return $"Revoked device {revoked.DeviceId}.";
         });
@@ -79,7 +79,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             pairedDevices = await AwaitCurrentWorldResultAsync(ownerApi.ListDevicesAsync(
-                ResolveWorldUri(), authority, deviceId, signer, CancellationToken.None));
+                ResolveWorldUri(), authority, deviceId, signer, OwnerRequestToken));
             RenderPairedDevices();
             return pairedDevices.Length == 1 ? "Loaded 1 paired device." : $"Loaded {pairedDevices.Length} paired devices.";
         });

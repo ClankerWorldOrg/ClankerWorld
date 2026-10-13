@@ -156,7 +156,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var updated = await AwaitCurrentWorldResultAsync(ownerApi.ConfigureAutosaveAsync(ResolveWorldUri(), authority,
-                deviceId, action, signer, CancellationToken.None));
+                deviceId, action, signer, OwnerRequestToken));
             autosaveSettingsStatus.Text = updated.Enabled
                 ? $"Autosave every {updated.IntervalMinutes} minutes; " +
                   (updated.RotationCount == 0 ? "keep latest only." : $"keep {updated.RotationCount} copies.")
@@ -728,7 +728,7 @@ public partial class Main
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!IsCurrentWorldRequest(generation)) throw new ObsoleteWorldRequestException();
             var saved = await AwaitCurrentWorldResultAsync(ownerApi.CreateManualSaveAsync(ResolveWorldUri(), authority,
-                deviceId, name, signer, CancellationToken.None));
+                deviceId, name, signer, OwnerRequestToken));
             manualSaveOverlay.Hide();
             manualSaveName.Text = string.Empty;
             return "World saved.";
@@ -758,7 +758,7 @@ public partial class Main
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
             if (!IsCurrentWorldRequest(generation)) throw new ObsoleteWorldRequestException();
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.OverwriteManualSaveAsync(ResolveWorldUri(), authority,
-                deviceId, id, signer, CancellationToken.None));
+                deviceId, id, signer, OwnerRequestToken));
             manualSaveOverlay.Hide();
             return $"Saved over {receipt.Saved.Name}. The old version is kept as a recovery copy.";
         });
@@ -785,14 +785,14 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             await AwaitCurrentWorldResultAsync(ownerApi.SetPausedAsync(ResolveWorldUri(), authority, deviceId, true,
-                signer, CancellationToken.None));
+                signer, OwnerRequestToken));
             // A lost response cannot tell us whether the host committed the
             // rewind. Reconnect from zero either way, instead of rejecting a
             // valid older world as a regressing observation.
             // A pulse may accept the fresh baseline before the load receipt.
             // This explicit transition still needs to finish closing its menus.
             await observationSession.ChangeTimelineAsync(() => ownerApi.LoadManualSaveAsync(ResolveWorldUri(), authority,
-                deviceId, save.Id, signer, CancellationToken.None));
+                deviceId, save.Id, signer, OwnerRequestToken));
             manualSaveOverlay.Hide();
             worldMenuOverlay.Hide();
             mainMenuOverlay.Hide();
@@ -800,7 +800,7 @@ public partial class Main
             resumeWorldOnContinue = false;
             menuPausedWorld = false;
             return $"Loaded {save.Name}. Your previous world is saved too.";
-        });
+        }, changesTimeline: true);
     }
     private void ConfirmSaveDeletion()
     {
@@ -839,7 +839,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.DeleteAsync(ResolveWorldUri(), authority, deviceId,
-                action, signer, CancellationToken.None));
+                action, signer, OwnerRequestToken));
             if (action.Kind == "save") await OpenManualSavesAsync(manualSaveLoadMode);
             else await RefreshWorldListAsync();
             if (!IsCurrentWorldRequest(generation)) throw new ObsoleteWorldRequestException();

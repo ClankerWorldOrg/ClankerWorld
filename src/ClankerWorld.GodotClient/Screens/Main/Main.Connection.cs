@@ -373,37 +373,22 @@ public partial class Main
     private bool IsCurrentWorldRequest(long generation) =>
         generation == observationSession.RequestGeneration && !observationSession.AwaitingFreshBaseline;
 
-    private sealed class ObsoleteWorldRequestException : OperationCanceledException { }
+    private sealed class ObsoleteWorldRequestException : ObsoleteOwnerRequestException { }
 
-    // A request already sent may still commit on the host. Only its late local
-    // result is discarded here; this never retries or rewrites its payload.
-    private async Task<T> AwaitCurrentWorldResultAsync<T>(Task<T> request)
+    private readonly AsyncLocal<OwnerRequestContext?> ownerRequestContext = new();
+    private CancellationToken OwnerRequestToken => ownerRequestContext.Value?.CancellationToken ?? CancellationToken.None;
+
+    // The context is captured by the runner before anything is sent.
+    private Task<T> AwaitCurrentWorldResultAsync<T>(Task<T> request) =>
+        (ownerRequestContext.Value ?? CaptureOwnerRequestContext()).AwaitAsync(request);
+
+    private Task AwaitCurrentWorldResultAsync(Task request) =>
+        (ownerRequestContext.Value ?? CaptureOwnerRequestContext()).AwaitAsync(request);
+
+    private OwnerRequestContext CaptureOwnerRequestContext()
     {
         var generation = observationSession.RequestGeneration;
-        try
-        {
-            var result = await request;
-            if (generation != observationSession.RequestGeneration) throw new ObsoleteWorldRequestException();
-            return result;
-        }
-        catch (Exception) when (generation != observationSession.RequestGeneration)
-        {
-            throw new ObsoleteWorldRequestException();
-        }
-    }
-
-    private async Task AwaitCurrentWorldResultAsync(Task request)
-    {
-        var generation = observationSession.RequestGeneration;
-        try
-        {
-            await request;
-            if (generation != observationSession.RequestGeneration) throw new ObsoleteWorldRequestException();
-        }
-        catch (Exception) when (generation != observationSession.RequestGeneration)
-        {
-            throw new ObsoleteWorldRequestException();
-        }
+        return new OwnerRequestContext(() => IsCurrentWorldRequest(generation), OwnerRequestToken);
     }
 
     private async Task ConnectUsingCurrentUrlAsync()

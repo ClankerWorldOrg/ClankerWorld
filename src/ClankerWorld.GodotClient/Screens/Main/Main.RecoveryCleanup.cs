@@ -53,7 +53,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var preview = await AwaitCurrentWorldResultAsync(ownerApi.PreviewRecoveryCleanupAsync(ResolveWorldUri(), authority,
-                deviceId, new("preview", worldId, count), signer, CancellationToken.None));
+                deviceId, new("preview", worldId, count), signer, OwnerRequestToken));
             if (!manualSaveOverlay.Visible || listedSaveWorldId != worldId || preview.WorldId != worldId)
                 throw new ObsoleteWorldRequestException();
             ShowRecoveryCleanupPreview(preview);
@@ -84,7 +84,7 @@ public partial class Main
         await RunOwnerActionAsync(async () =>
         {
             var receipt = await AwaitCurrentWorldResultAsync(ownerApi.CleanRecoveryHistoryAsync(ResolveWorldUri(), authority,
-                deviceId, new("apply", preview.WorldId, preview.KeepCount, preview.Digest), signer, CancellationToken.None));
+                deviceId, new("apply", preview.WorldId, preview.KeepCount, preview.Digest), signer, OwnerRequestToken));
             await OpenManualSavesAsync(manualSaveLoadMode);
             return $"Removed {receipt.RemovedIds.Count} recovery copies.";
         }, waitForTurn: true);
