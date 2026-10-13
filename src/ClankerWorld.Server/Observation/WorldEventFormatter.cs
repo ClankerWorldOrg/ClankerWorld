@@ -149,9 +149,9 @@ public static class WorldEventFormatter
         var townProjectSubject = townProjectName == "a Town project" ? "A Town project" : townProjectName;
         var marketFields = worldEvent.Kind.StartsWith("market_", StringComparison.Ordinal)
             ? worldEvent.Detail.Split('|') : Array.Empty<string>();
-        var marketSeller = marketFields.Length > 3 ? Name(snapshot, marketFields[3]) : "Someone";
-        var marketBuyer = marketFields.Length > 4 ? Name(snapshot, marketFields[4]) : "a customer";
-        var marketBuyerSubject = marketFields.Length > 4 ? marketBuyer : "A customer";
+        var marketSeller = marketFields is [_, _, _, _, ..] ? Name(snapshot, marketFields[3]) : "Someone";
+        var marketBuyer = marketFields is [_, _, _, _, _, ..] ? Name(snapshot, marketFields[4]) : "a customer";
+        var marketBuyerSubject = marketFields is [_, _, _, _, _, ..] ? marketBuyer : "A customer";
         var animalName = snapshot?.Animals.Where(animal => worldEvent.Detail.Split(':').Contains(animal.Id, StringComparer.Ordinal))
             .OrderBy(animal => worldEvent.Detail.IndexOf(animal.Id, StringComparison.Ordinal)).FirstOrDefault()?.Name ?? "An animal";
 
@@ -178,7 +178,7 @@ public static class WorldEventFormatter
             "milk_drunk" => $"{Name(snapshot, worldEvent.Detail)} drank milk.",
             "world_created" => "A new world has begun.",
             "world_started" => "Time started. Your agents now live on their own.",
-            "weather_changed" when parts.Length >= 2 => $"The weather turned to {ThingAt(1).ToLowerInvariant()}.",
+            "weather_changed" when parts is [_, _, ..] => $"The weather turned to {ThingAt(1).ToLowerInvariant()}.",
             "building_placed" => $"A new {ThingAt(1)} was built.",
             "building_expansion_started" => $"Work began on more storage for the {buildingName}.",
             "building_expanded" => $"The {buildingName} now has more storage.",
@@ -202,7 +202,7 @@ public static class WorldEventFormatter
             "field_work_interrupted" => "Work on a field stopped before it was finished.",
             "field_returned_to_grass" => "A field nobody worked for a season went back to grass.",
             "crop_weather_loss" => $"{(parts[^1] == "snow" ? "Snow" : "A storm")} damaged a crop, so its harvest will be smaller.",
-            "crop_moisture_effect" when parts.Length >= 3 => parts[^2] == "wet"
+            "crop_moisture_effect" when parts is [_, _, _, ..] => parts[^2] == "wet"
                 ? "Damp soil gave a crop a bigger harvest."
                 : "Dry soil gave a crop a smaller harvest.",
             "food_harvested" => $"{Name(snapshot, BeforeLastField(worldEvent.Detail))} gathered food.",
@@ -358,7 +358,7 @@ public static class WorldEventFormatter
             "town_founded" when worldEvent.Detail.Contains('|') => $"{Name(snapshot, Field(worldEvent.Detail, 1))} founded {civicTownName}.",
             "town_founded" => TownNamed(snapshot, worldEvent.Detail, null) is { } founded
                 ? $"{founded}, your first Town, was founded." : "Your first Town was founded.",
-            "bridge_built" when parts.Length > 0 && parts[0] == "road" => "A bridge was built where a new Road crosses the river.",
+            "bridge_built" when parts is ["road", ..] => "A bridge was built where a new Road crosses the river.",
             "bridge_built" => "Agents crossed a river here so often that a bridge was built.",
             "household_work_resumed" => $"{Name(snapshot, worldEvent.Detail.Split('|')[0])} picked up household work that had been left unfinished.",
             "household_left" => DescribeHouseholdDeparture(snapshot, worldEvent.Detail),
@@ -454,10 +454,10 @@ public static class WorldEventFormatter
     private static string DescribeLandHearing(EventView worldEvent, WorldSnapshotView? snapshot)
     {
         var fields = worldEvent.Detail.Split('|', 5);
-        var town = fields.Length >= 2 ? snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
-        var caseId = fields.Length >= 2 ? fields[1] : "";
-        var number = caseId.Length > 0 ? caseId[(caseId.LastIndexOf(':') + 1)..] : "";
-        var subject = number.Length > 0 ? "land case " + number : "a land case";
+        var town = fields is [_, _, ..] ? snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
+        var caseId = fields is [_, _, ..] ? fields[1] : "";
+        var number = !string.IsNullOrEmpty(caseId) ? caseId[(caseId.LastIndexOf(':') + 1)..] : "";
+        var subject = !string.IsNullOrEmpty(number) ? "land case " + number : "a land case";
         var townName = town?.Name ?? "A Town";
         var actor = fields.Length == 5 ? snapshot?.Agents.FirstOrDefault(item => item.Id == fields[3])?.DisplayName : null;
         var action = fields.Length == 5 ? fields[4] : "";
@@ -497,12 +497,12 @@ public static class WorldEventFormatter
         // Town, agent and proposal IDs contain colons; match their complete known identities.
         var town = snapshot.Towns.OrderByDescending(item => item.Id.Length)
             .FirstOrDefault(item => IsLeadingId(detail, item.Id));
-        if (town?.Projects.FirstOrDefault(project => IsLeadingId(detail, town.Id + ":" + project.Id)) is { } townProject)
+        if (town?.Projects.FirstOrDefault(project => detail.Length > town.Id.Length && IsLeadingId(detail[(town.Id.Length + 1)..], project.Id)) is { } townProject)
             return townProject;
         var person = snapshot.Agents.OrderByDescending(item => item.Id.Length)
             .FirstOrDefault(item => IsLeadingId(detail, item.Id));
         var projects = snapshot.Towns.SelectMany(item => item.Projects).ToArray();
-        if (person is not null && projects.FirstOrDefault(project => IsLeadingId(detail, person.Id + ":" + project.Id)) is { } personProject)
+        if (person is not null && projects.FirstOrDefault(project => detail.Length > person.Id.Length && IsLeadingId(detail[(person.Id.Length + 1)..], project.Id)) is { } personProject)
             return personProject;
         // The actor may no longer appear in the observation. Match the retained
         // project's full ID at a field boundary, before any later payload IDs.
@@ -520,7 +520,7 @@ public static class WorldEventFormatter
     {
         var fields = detail.Split('|');
         var actor = Name(snapshot, fields[0]);
-        return fields.Length > 2 && fields[2] == "displaced"
+        return fields is [_, _, _, ..] && fields[2] == "displaced"
             ? $"{actor} moved out of their overcrowded House. They can go back for their belongings."
             : $"{actor} left their household. They can go back for their belongings.";
     }
@@ -529,7 +529,7 @@ public static class WorldEventFormatter
     {
         var fields = detail.Split('|');
         var actor = Name(snapshot, fields[0]);
-        return (fields.Length > 2 ? fields[2] : string.Empty) switch
+        return (fields is [_, _, _, ..] ? fields[2] : string.Empty) switch
         {
             "volunteer" => $"{actor} volunteered to move out of their overcrowded House.",
             "latest_unrelated_arrival" => $"{actor} must move out of their overcrowded House. They're the newest arrival who isn't family.",
@@ -541,7 +541,7 @@ public static class WorldEventFormatter
     private static string DescribeRelocationCancellation(WorldSnapshotView? snapshot, string detail)
     {
         var fields = detail.Split('|');
-        var reason = (fields.Length > 2 ? fields[2] : string.Empty) switch
+        var reason = (fields is [_, _, _, ..] ? fields[2] : string.Empty) switch
         {
             "room" => "the House now has enough places",
             "care" => "their dependent children still need their care",
