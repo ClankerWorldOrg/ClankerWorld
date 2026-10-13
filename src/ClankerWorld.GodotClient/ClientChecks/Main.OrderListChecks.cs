@@ -159,11 +159,13 @@ public partial class Main
                 };
                 RenderSelectedAgentCard(replaced);
                 var (now, queued, _) = OrdersFor(replaced, ilya.Id);
+                text = ordersReaderText.GetParsedText();
+                var replacementAt = At("You said: “Eat two berries.”");
+                var queuedAt = At("Queued");
                 if (now?.InstructionId != "order-list-10" || PendingOrderToCancel(replaced, ilya.Id)?.InstructionId != now.InstructionId ||
                     !queued.Select(item => item.InstructionId).SequenceEqual(orders.Skip(4).Select(item => item.InstructionId)) ||
                     !profileOrderLabel.Text.StartsWith("Order: Waiting · Eating food", StringComparison.Ordinal) ||
-                    ordersReaderText.GetParsedText().IndexOf("You said: “Eat two berries.”", StringComparison.Ordinal) >
-                    ordersReaderText.GetParsedText().IndexOf("Queued", StringComparison.Ordinal))
+                    replacementAt < 0 || queuedAt < 0 || replacementAt > queuedAt)
                     throw new InvalidOperationException("A newer replacement must lead the preserved queue on the card, in All orders and for Cancel task.");
                 RenderSelectedAgentCard(snapshot);
                 _UnhandledKeyInput(new InputEventKey { Keycode = Key.Escape, Pressed = true });
