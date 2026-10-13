@@ -404,7 +404,13 @@ public sealed class OrnamentPersonalUseTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         // An active order narrows the choices to the order, so a gift cannot be chosen under one.
         if (mustDo) Assert.DoesNotContain(provider.Offered, candidate => candidate.Id.StartsWith("gift_ornament:", StringComparison.Ordinal));
-        else Assert.Contains(provider.Offered, candidate => candidate.Id.StartsWith("gift_ornament:", StringComparison.Ordinal) && candidate.DestinationId == recipient);
+        else
+        {
+            var offered = Assert.Single(provider.Offered, candidate => candidate.Id.StartsWith("gift_ornament:", StringComparison.Ordinal) && candidate.DestinationId == recipient);
+            var plan = Assert.IsType<GiftOrnamentActionPlan>(offered.ActionPlan);
+            Assert.Equal((Ornament, recipient), (plan.Selected.StockId, plan.Selected.RecipientId));
+            Assert.Equal(offered.Id, plan.Choice.Encode());
+        }
         var applied = kind == DecisionProviderKind.LargeLanguageModel && !fail && !mustDo;
         Assert.Equal(applied ? recipient : actor, world.Society.Inventory.GetLot(Ornament).OwnerId);
         Assert.Equal(applied ? null : Ornament, Physical(world, actor).Equipment?.OrnamentLotId);
@@ -437,7 +443,11 @@ public sealed class OrnamentPersonalUseTests
         var removing = action == "remove_ornament";
         if (removing) Assert.True(world.WearOrnament(actor, Ornament).Applied);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
-        Assert.Contains(provider.Offered, candidate => candidate.Id.StartsWith(action, StringComparison.Ordinal));
+        var offered = Assert.Single(provider.Offered, candidate => candidate.Id.StartsWith(action, StringComparison.Ordinal));
+        var plan = Assert.IsAssignableFrom<OrnamentActionPlan>(offered.ActionPlan);
+        if (removing) Assert.Equal(Ornament, Assert.IsType<RemoveOrnamentActionPlan>(plan).StockId);
+        else Assert.Equal(Ornament, Assert.IsType<WearOrnamentActionPlan>(plan).Selected.StockId);
+        Assert.Equal(offered.Id, plan.Choice.Encode());
         var worn = removing ? kind != DecisionProviderKind.LargeLanguageModel : kind == DecisionProviderKind.LargeLanguageModel;
         Assert.Equal(worn ? Ornament : null, Physical(world, actor).Equipment?.OrnamentLotId);
         Assert.Equal((actor, 1), (world.Society.Inventory.GetLot(Ornament).OwnerId, world.Society.Inventory.GetLot(Ornament).Quantity));

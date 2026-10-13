@@ -1,0 +1,1 @@
+- Ornament choices keep the selected unit and recipient through admission and application, with plain refusals for changed stock or recipients. Wear, removal and gifts still require a fresh personal choice, and their one-unit costs and property rules remain unchanged.
