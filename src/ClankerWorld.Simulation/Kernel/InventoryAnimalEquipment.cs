@@ -4,10 +4,12 @@ public static partial class InventoryAuthority
 {
     /// <summary>Moves an animal's complete held product without releasing its custody.</summary>
     public static InventoryCheckpoint MoveAnimalProduct(InventoryCheckpoint checkpoint, string productId,
-        string reservationId, string animalId, InventoryGroundPosition from, InventoryGroundPosition to, int wrappingWidth = 0)
+        string reservationId, string animalId, InventoryGroundPosition from, InventoryGroundPosition to, int wrappingWidth = 0,
+        IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         ValidateCheckpoint(checkpoint);
         var product = checkpoint.GetLot(productId);
+        EnsureHoldAccess(checkpoint, product, holdAccess);
         var held = checkpoint.GetReservation(reservationId);
         if (product.ItemKind is not ("eggs" or "wool" or "milk") || product.GroundPosition != from ||
             product.CarrierId is not null || product.StorageBuildingId is not null || product.ContainerLotId is not null ||
@@ -22,10 +24,12 @@ public static partial class InventoryAuthority
 
     /// <summary>Moves one fitted saddle with its animal after the runtime checks the physical step.</summary>
     public static InventoryCheckpoint MoveAnimalSaddle(InventoryCheckpoint checkpoint, string saddleId,
-        string reservationId, string animalId, InventoryGroundPosition from, InventoryGroundPosition to, int wrappingWidth = 0)
+        string reservationId, string animalId, InventoryGroundPosition from, InventoryGroundPosition to, int wrappingWidth = 0,
+        IReadOnlyList<InventoryHold>? holdAccess = null)
     {
         ValidateCheckpoint(checkpoint);
         var saddle = checkpoint.GetLot(saddleId);
+        EnsureHoldAccess(checkpoint, saddle, holdAccess);
         var held = checkpoint.GetReservation(reservationId);
         if (saddle.ItemKind != "saddle" || saddle.Quantity != 1 || saddle.GroundPosition != from ||
             saddle.CarrierId is not null || saddle.StorageBuildingId is not null || saddle.ContainerLotId is not null ||

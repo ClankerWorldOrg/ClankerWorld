@@ -11,6 +11,18 @@ This page owns save implementation and recovery requirements. The
 [player guide](../playing.md#save-and-return) explains the controls;
 [game design](../game-design/saves.md) owns the intended experience.
 
+## Stock holds
+
+World schema 129 adds optional typed holds to inventory lots and the matching
+authorization to reservations. Each hold records a purpose and an exact holder;
+the inventory core checks both, including vessel families. Splits keep their
+holds, and a saved reservation rechecks its authorization before consumption or
+barter settlement. Hold lists have unique entries in purpose/holder order and
+participate in checkpoint bytes and inventory digests. Empty lists are omitted.
+Current-format reload and continued transitions retain the holds; refused
+operations leave the supplied checkpoint unchanged. Earlier alpha worlds are
+refused and preserved without migration. This number is provisional until merge.
+
 ## Mod content identities
 
 Content IDs use the 512-character import limit in
