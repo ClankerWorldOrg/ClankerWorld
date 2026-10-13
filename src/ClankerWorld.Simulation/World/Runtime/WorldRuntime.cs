@@ -440,7 +440,7 @@ public sealed partial class WorldRuntime : IDisposable
             runtime.instructionReceipts.Add(
                 instruction.IdempotencyKey,
                 new OwnerInstructionReceipt(
-                    instruction.InstructionId,
+                    Identity.Parse(instruction.InstructionId),
                     instruction.IdempotencyKey,
                     instruction.SubmittedTick,
                     instruction.RunEpoch,

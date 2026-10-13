@@ -125,7 +125,7 @@ public static class TownLandTransferRules
                 Status = "transferred",
                 SettledTick = tick,
                 Reason = null,
-                Receipt = new(adjustment.Id, tick, CopyParties(parties)) { Payment = payment }
+                Receipt = new(Identity.Parse(adjustment.Id), tick, CopyParties(parties)) { Payment = payment }
             });
             rights = after;
         }

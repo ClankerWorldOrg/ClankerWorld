@@ -104,7 +104,7 @@ public sealed class QueuedCognitionContextTests
             Assert.Equal(2, provider.Requests.Count);
             Assert.Equal(1, Accepted(world));
             var fresh = provider.Requests.Last();
-            Assert.Equal(message.InstructionId, Assert.Single(fresh.ObserverGuidance!).InstructionId);
+            Assert.Equal(message.InstructionId.Value, Assert.Single(fresh.ObserverGuidance!).InstructionId);
             Assert.Null(Instruction(world, message.InstructionId).ObservedTick);
 
             var active = world;
@@ -123,7 +123,7 @@ public sealed class QueuedCognitionContextTests
                 var resumed = Assert.Single(replacement.Requests);
                 Assert.NotEqual(fresh.RunEpoch, resumed.RunEpoch);
                 Assert.Equal(restored.Society.RunEpoch, resumed.RunEpoch);
-                Assert.Equal(message.InstructionId, Assert.Single(resumed.ObserverGuidance!).InstructionId);
+                Assert.Equal(message.InstructionId.Value, Assert.Single(resumed.ObserverGuidance!).InstructionId);
 
                 // The obsolete provider deliberately ignores cancellation and answers after the new epoch started.
                 provider.ReleaseSecond.TrySetResult(true);
@@ -140,7 +140,7 @@ public sealed class QueuedCognitionContextTests
 
             await AdvanceUntil(active, () => Instruction(active, message.InstructionId).ObservedTick is not null);
             Assert.Equal(reload ? "Reply after reload." : "Fresh reply.", Instruction(active, message.InstructionId).ObserverReply);
-            Assert.Contains(message.InstructionId, active.ExportState().CompletedInstructionIds ?? []);
+            Assert.Contains(message.InstructionId.Value, active.ExportState().CompletedInstructionIds ?? []);
             Assert.Equal(2, provider.Requests.Count);
             if (replacement is not null) Assert.Single(replacement.Requests);
             active.Validate();
@@ -238,7 +238,7 @@ public sealed class QueuedCognitionContextTests
             Assert.Equal(person.Personality, fresh.Self.Personality);
             Assert.Equal(person.Aspiration, fresh.Self.Aspiration);
             Assert.Equal(world.Society.GetAgent(Actor).Name, fresh.Self.Name);
-            Assert.Equal(message.InstructionId, Assert.Single(fresh.ObserverGuidance!).InstructionId);
+            Assert.Equal(message.InstructionId.Value, Assert.Single(fresh.ObserverGuidance!).InstructionId);
             provider.ReleaseSecond.TrySetResult(true);
             await AdvanceUntil(world, () => Instruction(world, message.InstructionId).ObservedTick is not null);
             Assert.Equal(2, provider.Requests.Count);
@@ -295,7 +295,7 @@ public sealed class QueuedCognitionContextTests
             var fresh = Assert.Single(replacement.Requests);
             Assert.NotEqual(oldEpoch, fresh.RunEpoch);
             Assert.Equal(restored.Society.RunEpoch, fresh.RunEpoch);
-            Assert.Equal(message.InstructionId, Assert.Single(fresh.ObserverGuidance!).InstructionId);
+            Assert.Equal(message.InstructionId.Value, Assert.Single(fresh.ObserverGuidance!).InstructionId);
             Assert.Equal(field.Work.RemainingTicks - 1, Assert.Single(restored.Fields).Work!.RemainingTicks);
             provider.ReleaseSecond.TrySetResult(true);
             await ModelWorkHarness.For(world).WaitAsync(provider.SecondReturned.Task);

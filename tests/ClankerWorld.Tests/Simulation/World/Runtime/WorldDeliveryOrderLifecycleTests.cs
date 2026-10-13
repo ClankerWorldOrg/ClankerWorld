@@ -204,7 +204,7 @@ public sealed partial class WorldDeliveryOrderTests
         var unknown = Submit(unsupported, actor, "unsupported-delivery", "supply two photons to my Clinic");
         Assert.Equal("not_understood", Order(unsupported, unknown).Status);
         Assert.Empty(provider.Requests);
-        Assert.Contains(unknown.InstructionId, unsupported.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, unsupported.ExportState().CompletedInstructionIds!);
         Assert.DoesNotContain(unsupported.ExportState().Events, item => item.Kind is "owner_stock_picked_up" or "owner_stock_delivered");
     }
 

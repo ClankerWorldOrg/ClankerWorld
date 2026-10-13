@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text;
 using ClankerWorld.Simulation.Kernel;
 
@@ -34,7 +35,7 @@ public sealed class InventoryAuthorityTests
     public void EitherPartyCanDeclineWithoutTransferringOrRetainingReservations(string party)
     {
         var offered = InventoryAuthority.CreateDirectBarterOffer(Genesis(),
-            new DirectBarterProposal("decline", 1, "alpha", "bravo", "alpha-wood", 1, "bravo-food", 1, 20));
+            new DirectBarterProposal(Identity.Parse("decline"), 1, "alpha", "bravo", "alpha-wood", 1, "bravo-food", 1, 20));
         offered = InventoryAuthority.AcceptDirectBarterOffer(offered, "decline", 1, "alpha");
         var bytes = InventoryCheckpointCodec.Encode(offered);
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.CancelDirectBarterOffer(offered, "decline", 2, party));
@@ -52,7 +53,7 @@ public sealed class InventoryAuthorityTests
     public void ExpiredBarterCannotAcquireEitherPartysAcceptance(bool firstAlreadyAccepted)
     {
         var offered = InventoryAuthority.CreateDirectBarterOffer(Genesis(),
-            new DirectBarterProposal("expiry", 1, "alpha", "bravo", "alpha-wood", 1, "bravo-food", 1, 2));
+            new DirectBarterProposal(Identity.Parse("expiry"), 1, "alpha", "bravo", "alpha-wood", 1, "bravo-food", 1, 2));
         if (firstAlreadyAccepted)
         {
             offered = InventoryAuthority.AcceptDirectBarterOffer(offered, "expiry", 1, "alpha");
@@ -131,7 +132,7 @@ public sealed class InventoryAuthorityTests
             new InventoryLot("food", "food", "bravo", 5, 10_000, 10_000, 0),
         ]);
         var offered = InventoryAuthority.CreateDirectBarterOffer(genesis,
-            new DirectBarterProposal("offer", 1, "alpha", "bravo", "wood", 7, "food", 3, 100));
+            new DirectBarterProposal(Identity.Parse("offer"), 1, "alpha", "bravo", "wood", 7, "food", 3, 100));
         var before = InventoryCheckpointCodec.Encode(offered);
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.SplitLot(offered, "wood", 4, "wood-split"));
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.SplitLot(offered, "food", 3, "food-split"));
@@ -226,7 +227,7 @@ public sealed class InventoryAuthorityTests
     [Fact]
     public void ExactRevisionAcceptanceSettlesAtomicallyAndRejectsStaleAcceptanceWithoutMutation()
     {
-        var proposal = new DirectBarterProposal("offer-1", 3, "alpha", "bravo", "alpha-wood", 2, "bravo-food", 1, 10);
+        var proposal = new DirectBarterProposal(Identity.Parse("offer-1"), 3, "alpha", "bravo", "alpha-wood", 2, "bravo-food", 1, 10);
         var offered = InventoryAuthority.CreateDirectBarterOffer(Genesis(), proposal);
         var firstAccepted = InventoryAuthority.AcceptDirectBarterOffer(offered, "offer-1", 3, "alpha");
         var beforeStaleState = InventoryDigest.State(firstAccepted);
@@ -254,8 +255,8 @@ public sealed class InventoryAuthorityTests
                 new InventoryLot("lot|1", "berries,🍓\nkind", "owner|1", 2, 10_000, 9_000, 7, "source|lot"),
                 new InventoryLot("other-lot", "food", "other,owner", 1, 10_000, 10_000, 7),
             ],
-            [new InventoryReservation("reserve|1", "owner|1", "lot|1", 1, "meal\nwith|separators", 12, true, InventoryReservationState.Reserved)],
-            [new DirectBarterOffer("offer|1", 2, "owner|1", "other,owner", "lot|1", 1, "other-lot", 1, 20, DirectBarterState.Open, ["owner|1", "other\nowner"])],
+            [new InventoryReservation(Identity.Parse("reserve|1"), "owner|1", "lot|1", 1, "meal\nwith|separators", 12, true, InventoryReservationState.Reserved)],
+            [new DirectBarterOffer(Identity.Parse("offer|1"), 2, "owner|1", "other,owner", "lot|1", 1, "other-lot", 1, 20, DirectBarterState.Open, ["owner|1", "other\nowner"])],
             [new InventoryEvent(1, 7, "event|kind", "detail,with\nseparators")]);
 
         var restored = InventoryCheckpointCodec.Decode(InventoryCheckpointCodec.Encode(checkpoint));

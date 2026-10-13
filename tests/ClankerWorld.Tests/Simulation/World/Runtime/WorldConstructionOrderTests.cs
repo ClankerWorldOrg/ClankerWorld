@@ -28,7 +28,7 @@ public sealed partial class WorldConstructionOrderTests
             (order.Action, order.ProgressUnit, order.RequestedUnits, order.CompletedUnits, order.TargetBuildingKind));
         Assert.Equal((Alpha, setup.Site, project.StartedTick),
             (order.ConstructionOwnerId, order.ConstructionPosition, order.ConstructionStartedTick));
-        Assert.Equal(receipt.InstructionId, project.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, project.OrderInstructionId);
         Assert.Equal(setup.CandidateId, project.CandidateId);
         Assert.NotNull(order.ConstructionInstanceId);
         Assert.Null(order.LastEffectId);
@@ -67,7 +67,7 @@ public sealed partial class WorldConstructionOrderTests
             (proof.InstructionId, proof.ActorId, proof.BuildingInstanceId, proof.DefinitionId, proof.OwnerId, proof.MaterialOwnerId, proof.Position));
         Assert.Equal(building.PlacedTick, proof.CompletedTick);
         Assert.Equal(order.ConstructionStartedTick, proof.StartedTick);
-        Assert.Equal(paid.Select(item => item.Id).Order(StringComparer.Ordinal), proof.InputReservationIds.Order(StringComparer.Ordinal));
+        Assert.Equal(paid.Select(item => item.Id).Order(), proof.InputReservationIds.Order());
         Assert.Single(world.ExportState().Events, item => item.Kind == "build_completed");
         AssertUnrelatedPaidPlacementPreservesReceipt(world, proof);
         var removed = world.RemoveBuilding(building.InstanceId, building.TownId, Alpha);
@@ -238,7 +238,7 @@ public sealed partial class WorldConstructionOrderTests
         Assert.Equal(ordinary.CandidateId, remaining.CandidateId);
         Assert.True(remaining.StartedTick > ordinary.StartedTick);
         Assert.Equal(0, remaining.WorkDone);
-        Assert.Equal(receipt.InstructionId, remaining.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, remaining.OrderInstructionId);
         Assert.NotEqual("cancelled", remaining.Stage);
         AssertInputs(world, 10, 4);
         using var replay = Reload(world);

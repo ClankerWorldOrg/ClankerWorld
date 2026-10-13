@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using System.Collections.Concurrent;
 using System.Text.Json;
@@ -463,7 +464,7 @@ public sealed class TownProjectRuntimeTests
             GroundPosition: remote ? new(9, 9) : new(4, 4))]);
         inventory = InventoryAuthority.Reserve(inventory, "paid-load", owner, "load", 4, "town-project:project", 10);
         var project = new TownProject("project", "proposal", plan, 0, "supplying", 0, 0,
-            [new("delivery", "worker", "source", "load", "wood", 4, 0, 0, "paid-load")]);
+            [new("delivery", "worker", "source", "load", "wood", 4, 0, 0, Identity.Parse("paid-load"))]);
         Assert.Equal(expected, TownProjectRules.DeliveredQuantity(project, TownBorderRules.FirstTownId, inventory, "wood"));
         Assert.Equal(4, inventory.GetLot("load").Quantity);
         Assert.Equal(InventoryReservationState.Reserved, inventory.GetReservation("paid-load").State);

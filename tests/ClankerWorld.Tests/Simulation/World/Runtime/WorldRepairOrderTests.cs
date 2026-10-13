@@ -33,7 +33,7 @@ public sealed class WorldRepairOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("doing", 0, "repairs"), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ProgressUnit));
         var work = Assert.IsType<EquipmentRepairWork>(world.Agents.Single(person => person.AgentId == actor).Equipment?.Repair);
-        Assert.Equal(receipt.InstructionId, work.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, work.OrderInstructionId);
         Assert.Equal(3_000, world.Society.Inventory.GetLot("repair-target").ConditionBasisPoints);
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Task!;
@@ -262,14 +262,14 @@ public sealed class WorldRepairOrderTests
         {
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
-                Equipment = new(Repair: new("repair-existing", Shop, started, 0, ["ordinary-repair-cloth"])),
+                Equipment = new(Repair: new("repair-existing", Shop, started, 0, [Identity.Parse("ordinary-repair-cloth")])),
             } : person).ToArray(),
         };
         using var world = Restore(state);
         var receipt = Submit(world, actor, "take-over", "repair clothing");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation("ordinary-repair-cloth").State);
-        Assert.Equal(receipt.InstructionId, world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!.OrderInstructionId);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         await Finish(world, receipt);
         Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));

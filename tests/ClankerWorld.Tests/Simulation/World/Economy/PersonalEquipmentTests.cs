@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -230,6 +231,32 @@ public sealed class PersonalEquipmentTests
         var working = first.ExportState();
         var repair = Assert.IsType<EquipmentRepairWork>(working.Agents.Single(item => item.AgentId == actor).Equipment?.Repair);
         Assert.Equal(2, first.Society.Inventory.GetLot("repair-cloth").Quantity);
+        var originalMaterial = repair.MaterialReservationIds[0];
+        WorldRuntimeState WithSavedMaterialKey(string value)
+        {
+            var key = Identity.ParseStored(value);
+            var changedInventory = working.Society.Society.Inventory with
+            {
+                Reservations = working.Society.Society.Inventory.Reservations.Select(item => item.Id == originalMaterial
+                    ? item with { Id = key } : item).OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
+            };
+            return WithInventory(working, changedInventory) with
+            {
+                Agents = working.Agents.Select(item => item.AgentId == actor ? item with
+                {
+                    Equipment = item.Equipment! with
+                    { Repair = repair with { MaterialReservationIds = repair.MaterialReservationIds.Select(id => id == originalMaterial ? key : id).ToArray() } },
+                } : item).ToArray(),
+            };
+        }
+        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithSavedMaterialKey("control\0material"), Provider));
+        // The skilled row resumes and cancels with an existing legal long input
+        // reference. The ordinary row keeps the native generated key.
+        if (skilled)
+        {
+            working = WithSavedMaterialKey(new string('x', 129));
+            repair = working.Agents.Single(item => item.AgentId == actor).Equipment!.Repair!;
+        }
         using var resumed = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(working)), Provider);
         for (var tick = 0; tick < 12 && resumed.ExportState().Agents.Single(item => item.AgentId == actor).Equipment?.Repair is not null; tick++)
             Assert.True((await resumed.AdvanceOneTickAsync()).Advanced);
@@ -283,7 +310,7 @@ public sealed class PersonalEquipmentTests
             Assert.True((await ordered.AdvanceOneTickAsync()).Advanced);
 
         var after = ordered.ExportState();
-        Assert.Contains(order.InstructionId, after.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, after.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(after.Society.Society.Inventory.Lots, lot => lot.Id == "order-berries");
         Assert.Null(after.Agents.Single(item => item.AgentId == actor).Equipment?.Repair);
         Assert.Equal(2, ordered.Society.Inventory.GetLot("order-cloth").Quantity);
@@ -322,7 +349,7 @@ public sealed class PersonalEquipmentTests
                 Project = pausedPlan,
                 LastDecisionContext = null,
                 Equipment = new(ClothingLotId: coatId,
-                    Repair: new(coatId, shopId, started, 0, [reservationId])),
+                    Repair: new(coatId, shopId, started, 0, [Identity.Parse(reservationId)])),
             } : person).ToArray(),
         };
         var provider = new HeldRepairPlanningProvider();
@@ -342,7 +369,7 @@ public sealed class PersonalEquipmentTests
         Assert.Equal(1, provider.Calls);
         Assert.True(world.WorldTick - started > 120);
         var final = world.ExportState();
-        Assert.DoesNotContain(receipt.InstructionId, final.CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(receipt.InstructionId.Value, final.CompletedInstructionIds ?? []);
         var saved = WorldRuntimeCodec.Encode(final);
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new Choices([]));
         Assert.Null(restored.Agents.Single(person => person.AgentId == actor).Equipment?.Repair);
@@ -381,7 +408,7 @@ public sealed class PersonalEquipmentTests
         inventory = InventoryAuthority.AddLot(inventory, clothId, "cloth", actor, 2);
         inventory = InventoryAuthority.Reserve(inventory, reservationId, actor, clothId, 1,
             "equipment_repair", started + 120);
-        var repair = new EquipmentRepairWork(coatId, shopId, started, 0, [reservationId]);
+        var repair = new EquipmentRepairWork(coatId, shopId, started, 0, [Identity.Parse(reservationId)]);
         state = WithWeather(WithInventory(state, inventory), WeatherKind.Clear) with
         {
             Conversations = [AgentConversationRules.Propose(conversationId, other, actor,

@@ -71,7 +71,7 @@ public sealed partial class TownLandTransferRuntimeTests
         var adjustment = Assert.Single(world.Towns[0].LandRecords.Adjustments);
         Assert.Equal("voluntary_transfer", adjustment.Kind);
         Assert.Equal(completed.Id, adjustment.TransferId);
-        Assert.Equal(receipt.AdjustmentId, adjustment.Id);
+        Assert.Equal(receipt.AdjustmentId.Value, adjustment.Id);
         Assert.All(grantPlot, tile =>
         {
             var right = Assert.Single(world.HouseholdLandUseRights, right => right.Tiles.Contains(tile));

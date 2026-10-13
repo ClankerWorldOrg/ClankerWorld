@@ -55,7 +55,7 @@ public sealed partial class WorldRuntime
             !society.Checkpoint.Households.Any(household => household.Id == householdId)))
             throw new InvalidDataException("A House references a missing household.");
         var inventoryReservationIds = society.Checkpoint.Inventory.Reservations
-            .Select(item => item.Id)
+            .Select(item => item.Id.Value)
             .ToHashSet(StringComparer.Ordinal);
         var productionOwners = society.Checkpoint.Households.Select(home => home.Id)
             .Concat(society.Checkpoint.Agents.Select(person => person.Id)).ToHashSet(StringComparer.Ordinal);

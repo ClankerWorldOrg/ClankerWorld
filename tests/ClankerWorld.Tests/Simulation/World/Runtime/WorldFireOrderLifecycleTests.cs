@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Diagnostics;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -229,7 +230,7 @@ public sealed partial class WorldFireOrderTests
         foreach (var bad in new[]
         {
             order with { ShelterCompletion = null },
-            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = "missing-fuel-payment" } },
+            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = Identity.Parse("missing-fuel-payment") } },
             order with { ShelterCompletion = order.ShelterCompletion with { WorldTick = world.WorldTick + 1 } },
             order with { ShelterBinding = order.ShelterBinding! with { OwnerId = Beta } },
         })

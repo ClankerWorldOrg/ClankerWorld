@@ -117,7 +117,7 @@ public sealed partial class WorldRuntime
         var purpose = job.JobId + ":input";
         var receipts = inventory.Reservations.Where(receipt => receipt.Purpose == purpose).ToArray();
         if (receipts.Length == 0 || job.InputReservationIds is not { Count: > 0 } ||
-            !job.InputReservationIds.Order(StringComparer.Ordinal).SequenceEqual(receipts.Select(receipt => receipt.Id).Order(StringComparer.Ordinal)))
+            !job.InputReservationIds.Order().SequenceEqual(receipts.Select(receipt => receipt.Id).Order()))
             return false;
         if (recipe is null) return true;
         var matched = 0;

@@ -221,7 +221,7 @@ public sealed class WorldToolRepairOrderTests
             await AdvanceUntil(world, () => provider.Started.Task.IsCompleted,
                 "The hosted repair-planning request did not start within forty native ticks.");
             if (delayedStartup) Assert.True(world.WorldTick >= startAfter);
-            Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, Assert.Single(provider.Requests).OperativeOrderInstructionId);
             Assert.Equal(0, Order(world, receipt).CompletedUnits);
             Assert.True(world.CancelOrder(new("stop", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);

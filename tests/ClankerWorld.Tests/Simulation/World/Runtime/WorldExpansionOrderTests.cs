@@ -41,7 +41,7 @@ public sealed partial class WorldExpansionOrderTests
             (binding.BuildingInstanceId, binding.DefinitionId, binding.OwnerId, binding.ExpectedPosition, binding.ExpectedRevision));
         Assert.Equal((job.JobId, job.TargetPosition, job.TargetFootprint),
             (binding.JobId, binding.TargetPosition, binding.TargetFootprint));
-        Assert.Equal(receipt.InstructionId, job.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
         Assert.Equal(original, Building(world.ExportState(), buildingId));
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Reserved,
             world.Society.Inventory.GetReservation(id).State));
@@ -203,7 +203,7 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Empty(world.Society.Inventory.Reservations);
         Assert.Null(Order(world, receipt).ExpansionBinding);
         var job = await StartJob(world, receipt);
-        Assert.Equal(receipt.InstructionId, job.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, job.OrderInstructionId);
         using var replay = Reload(world);
         await TickTogether(world, replay);
     }

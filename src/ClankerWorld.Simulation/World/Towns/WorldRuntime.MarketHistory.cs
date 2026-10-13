@@ -50,11 +50,11 @@ public static class MarketHistory
 
         var activeClaims = inventory.Reservations.Where(claim => claim.State is InventoryReservationState.Reserved or
                 InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed)
-            .Select(claim => claim.Id).ToHashSet(StringComparer.Ordinal);
+            .Select(claim => claim.Id.Value).ToHashSet(StringComparer.Ordinal);
         var keepTrades = market.Trades.Where(trade => trade.SettledTick is not null || trade.CancellationReason is not null)
             .OrderByDescending(trade => trade.SettledTick ?? trade.ProposedTick)
-            .ThenBy(trade => trade.OfferId, StringComparer.Ordinal).Take(RecentRecordLimit)
-            .Concat(open).Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .ThenBy(trade => trade.OfferId.Value, StringComparer.Ordinal).Take(RecentRecordLimit)
+            .Concat(open).Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         foreach (var receipt in market.StockReceipts.Where(receipt => keepReceipts.Contains(receipt.Sequence)))
             if (receipt.TradeOfferId is { } offer) keepTrades.Add(offer);
         foreach (var trade in market.Trades)
@@ -75,7 +75,7 @@ public static class MarketHistory
             keepOccupancies.Add(trade.OccupancyId);
 
         var retiredOffers = market.Trades.Where(trade => !keepTrades.Contains(trade.OfferId))
-            .Select(trade => trade.OfferId).ToHashSet(StringComparer.Ordinal);
+            .Select(trade => trade.OfferId.Value).ToHashSet(StringComparer.Ordinal);
         var removedReceipts = market.StockReceipts.Where(receipt => !keepReceipts.Contains(receipt.Sequence)).ToArray();
         if (retiredOffers.Count == 0 && removedReceipts.Length == 0 && keepOccupancies.Count == market.Occupancies.Count)
             return new(market, retiredOffers);

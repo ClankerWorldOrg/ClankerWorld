@@ -29,7 +29,7 @@ public static class TownNonLandValidation
 IdentityRules.Reference(effect.NativeReceiptId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(effect.NativeReceiptVersion, int.MaxValue, requireTrimmed: true), "A remedy effect needs actual named physical provenance.");
         Unique(state.Cases.Select(c => c.Key));
         Unique(state.Cases.Select(c => c.Id).Concat(state.Cases.SelectMany(c => c.Findings.Select(f => f.Id)))
-            .Concat(state.Cases.SelectMany(c => c.ReopenRequests.Select(r => r.Id))).Concat(state.Offers.Select(o => o.Id))
+            .Concat(state.Cases.SelectMany(c => c.ReopenRequests.Select(r => r.Id))).Concat(state.Offers.Select(o => o.Id.Value))
             .Concat(state.Agreements.Select(a => a.Id)).Concat(state.Effects.Select(e => e.Id)));
         Check(state.Sequence >= state.Cases.Count + state.Cases.Sum(c => c.Findings.Count + c.ReopenRequests.Count) +
             state.Offers.Count + state.Agreements.Count, "The nonviolent record sequence cannot precede its saved records.");
@@ -38,7 +38,7 @@ IdentityRules.Reference(effect.NativeReceiptId, int.MaxValue, requireTrimmed: tr
         foreach (var item in state.Cases) ValidateCase(map, society, town, item, people, households, titles, day);
         foreach (var offer in state.Offers) ValidateOffer(state, town, offer, people, tick, day);
         foreach (var agreement in state.Agreements) ValidateAgreement(state, agreement, tick);
-        Unique(state.Effects.Select(e => e.NativeReceiptId));
+        Unique(state.Effects.Select(e => e.NativeReceiptId.Value));
         foreach (var effect in state.Effects)
         {
             var agreement = state.Agreements.SingleOrDefault(a => a.Id == effect.AgreementId);
