@@ -567,7 +567,7 @@ public sealed class MedicalTreatmentConsentTests
         WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory, "medical-test-dose", "medicine", owner, quantity));
 
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        WithCheckpoint(state, state.Society.Society with { Inventory = inventory });
+        WithCheckpoint(state, state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) });
 
     private static WorldRuntimeState WithCheckpoint(WorldRuntimeState state, SocietyCheckpoint checkpoint) =>
         state with { Society = state.Society with { Society = checkpoint } };

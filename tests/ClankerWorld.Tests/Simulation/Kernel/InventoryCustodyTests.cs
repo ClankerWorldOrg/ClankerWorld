@@ -10,10 +10,10 @@ public sealed class InventoryCustodyTests
         var inventory = InventoryAuthority.AddLot(InventoryAuthority.CreateGenesis([]), "wood", "wood", "first", 4,
             storageBuildingId: "house");
         Assert.Equal(new InventoryStorageChange("house", "wood", 4), Assert.Single(inventory.Events[^1].StorageChanges!));
-        var split = InventoryAuthority.SplitLot(inventory, "wood", 1, "split-wood");
+        var split = InventoryAuthority.SplitLot(inventory, "wood", 1, "split-wood", holdAccess: StockHoldTestState.Access(inventory, "wood"));
         Assert.Null(split.Events[^1].StorageChanges);
         var transferred = InventoryAuthority.Transfer(split, "gift", "first", "second", "split-wood", 1,
-            "gift", destinationStorageBuildingId: "house");
+            "gift", destinationStorageBuildingId: "house", holdAccess: StockHoldTestState.Access(split, "split-wood"));
         Assert.Null(transferred.Events[^1].StorageChanges);
         Assert.Equal(4, transferred.Lots.Sum(lot => lot.Quantity));
         Assert.Equal("second", transferred.GetLot("split-wood").OwnerId);
@@ -29,9 +29,9 @@ public sealed class InventoryCustodyTests
             [new("axe", "stone_axe", "household", 1, 0, 10_000, 0, CarrierId: "departing-adult")]);
         var before = InventoryCheckpointCodec.Encode(inventory);
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(inventory, "take", "axe",
-            "departing-adult", 1, carrierId: "departing-adult"));
+            "departing-adult", 1, carrierId: "departing-adult", holdAccess: StockHoldTestState.Access(inventory, "axe")));
         Assert.Equal(before, InventoryCheckpointCodec.Encode(inventory));
-        var returned = InventoryAuthority.Relocate(inventory, "return", "axe", "household", 1, storageBuildingId: "old-house");
+        var returned = InventoryAuthority.Relocate(inventory, "return", "axe", "household", 1, storageBuildingId: "old-house", holdAccess: StockHoldTestState.Access(inventory, "axe"));
         Assert.Equal(("household", "old-house", 0),
             (returned.GetLot("axe").OwnerId, returned.GetLot("axe").StorageBuildingId, returned.GetLot("axe").ConditionBasisPoints));
         Assert.Null(returned.GetLot("axe").CarrierId);
@@ -42,13 +42,13 @@ public sealed class InventoryCustodyTests
     {
         var inventory = InventoryAuthority.CreateGenesis(
             [new("food", "food", "household", 6, 10_000, 7_000, 0, StorageBuildingId: "house")]);
-        inventory = InventoryAuthority.Reserve(inventory, "care", "household", "food", 2, "child_food", 20);
+        inventory = InventoryAuthority.Reserve(inventory, "care", "household", "food", 2, "child_food", 20, holdAccess: StockHoldTestState.Access(inventory, "food"));
         Assert.Null(inventory.Events[^1].StorageChanges);
         var before = InventoryCheckpointCodec.Encode(inventory);
         Assert.Throws<InvalidOperationException>(() => InventoryAuthority.Relocate(inventory, "too-much", "food",
-            "household", 5, carrierId: "adult"));
+            "household", 5, carrierId: "adult", holdAccess: StockHoldTestState.Access(inventory, "food")));
         Assert.Equal(before, InventoryCheckpointCodec.Encode(inventory));
-        var moved = InventoryAuthority.Relocate(inventory, "pickup", "food", "household", 4, carrierId: "adult");
+        var moved = InventoryAuthority.Relocate(inventory, "pickup", "food", "household", 4, carrierId: "adult", holdAccess: StockHoldTestState.Access(inventory, "food"));
         var remaining = moved.GetLot("food");
         var carried = Assert.Single(moved.Lots, lot => lot.CarrierId == "adult");
         var pickup = moved.Events[^1];
@@ -77,7 +77,7 @@ public sealed class InventoryCustodyTests
         var inventory = InventoryAuthority.CreateGenesis(
             [new("wood", "wood", "household", 3, 6_000, 10_000, 0, CarrierId: "borrower")]);
         var donated = InventoryAuthority.Transfer(inventory, "donation", "household", "recipient", "wood",
-            partial ? 1 : 3, "donation", destinationStorageBuildingId: "recipient-house");
+            partial ? 1 : 3, "donation", destinationStorageBuildingId: "recipient-house", holdAccess: StockHoldTestState.Access(inventory, "wood"));
         var received = Assert.Single(donated.Lots, lot => lot.OwnerId == "recipient");
         Assert.Null(received.CarrierId);
         Assert.Equal("recipient-house", received.StorageBuildingId);
@@ -104,7 +104,7 @@ public sealed class InventoryCustodyTests
             [new("coat", "clothing", "adult", 1, 10_000, 10_000, 0, StorageBuildingId: "source")]);
         var before = InventoryCheckpointCodec.Encode(inventory);
         Assert.Throws<InvalidDataException>(() => InventoryAuthority.Relocate(inventory, "invalid", "coat", "adult", 1,
-            carrierId: carrier, storageBuildingId: storage, groundPosition: onGround ? new(2, 3) : null));
+            carrierId: carrier, storageBuildingId: storage, groundPosition: onGround ? new(2, 3) : null, holdAccess: StockHoldTestState.Access(inventory, "coat")));
         Assert.Equal(before, InventoryCheckpointCodec.Encode(inventory));
     }
 }

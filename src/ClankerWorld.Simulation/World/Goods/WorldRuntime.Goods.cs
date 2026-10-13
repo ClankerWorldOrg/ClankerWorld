@@ -52,7 +52,6 @@ public sealed partial class WorldRuntime
         Dictionary<(GridPoint Position, int Range), bool>? routes = null, Dictionary<string, int>? deliveries = null)
     {
         if (request.Use == GoodsUse.Salvage) return SalvageGoodsExclusion(request.Actor!, index, lot);
-        if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } promise) return promise;
         if (GoodsInventoryQuery.IsRecovery(request.Use)) return RecoveryGoodsExclusion(request, index, lot, routes);
         if (request.Use is GoodsUse.Spend or GoodsUse.Sell or GoodsUse.StorePersonal)
             return SpendingGoodsExclusion(request, index, lot);
@@ -63,8 +62,10 @@ public sealed partial class WorldRuntime
         {
             var root = index.Root(lot);
             if (!FoodRules.IsEdible(lot.ItemKind)) return GoodsReason.Kind;
+            if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } eatingPromise) return eatingPromise;
             return PersonalEquipmentRules.IsCarried(root, request.Actor!) ? null : GoodsReason.Custody;
         }
+        if (GoodsInventoryQuery.PromiseExclusion(request, index, lot) is { } promise) return promise;
         if (request.Use == GoodsUse.Deliver) return DeliveryGoodsExclusion(request, index, lot, routes, deliveries);
         if (request.Use == GoodsUse.Collect) return CollectGoodsExclusion(request.Actor!, index, lot, routes);
         if (request.Use == GoodsUse.ReachableHoldings) return GoodsRouteExclusion(request.Actor!, index.Root(lot), routes);

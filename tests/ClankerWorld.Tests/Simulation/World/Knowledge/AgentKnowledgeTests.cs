@@ -31,7 +31,7 @@ public sealed class AgentKnowledgeTests
         using var world = WorldRuntime.Restore(initial with
         {
             Agents = initial.Agents.Select(person => person with { FullnessBasisPoints = 9_500 }).ToArray(),
-            Society = initial.Society with { Society = initial.Society.Society with { Inventory = inventory } },
+            Society = initial.Society with { Society = initial.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } },
         }, _ => provider);
         for (var tick = 0; tick < 75; tick++)
             _ = await world.AdvanceOneTickAsync();
@@ -168,7 +168,7 @@ public sealed class AgentKnowledgeTests
                      lot.CarrierId is null && lot.StorageBuildingId is null && lot.GroundPosition is null).ToArray())
             inventory = InventoryAuthority.Relocate(inventory, $"death:{creator}:{lot.Id}", lot.Id, estate.Id, lot.Quantity,
                 groundPosition: new InventoryGroundPosition(physical.Position.X, physical.Position.Y));
-        dead = dead with { Inventory = inventory };
+        dead = dead with { Inventory = StockHoldTestState.Custody(inventory) };
         // Bounded test clock: accelerate only this valid fixture's escrow deadline.
         dead = dead with { Estates = [estate with { ExpiryTick = state.Society.Society.WorldTick + 1 }] };
         var heir = dead.Agents.Where(person => person.Status == SocietyAgentStatus.Active).Last().Id;
@@ -323,7 +323,7 @@ public sealed class AgentKnowledgeTests
             Agents = state.Agents.Select(person => person with { FullnessBasisPoints = 9_500 }).ToArray(),
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             },
         };
         using var world = WorldRuntime.Restore(state, id => id == sellerId
@@ -394,7 +394,7 @@ public sealed class AgentKnowledgeTests
             Knowledge = new WorldKnowledgeState([fact], artifacts),
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             },
         };
 
@@ -486,7 +486,7 @@ public sealed class AgentKnowledgeTests
                 (state.Knowledge?.Artifacts ?? []).Append(artifact).ToArray()),
             Society = state.Society with
             {
-                Society = state.Society.Society with { Inventory = inventory },
+                Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) },
             },
         };
     }

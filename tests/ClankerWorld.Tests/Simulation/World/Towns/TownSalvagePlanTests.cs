@@ -22,8 +22,8 @@ public sealed partial class TownMembershipTests
         for (var tick = 0; tick < 8 && model.ObservationsOf(actor).Length == 0; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = Assert.Single(model.ObservationsOf(actor).SelectMany(observation => observation.Candidates)
-            .Select(candidate => candidate.ActionPlan).OfType<TownStockActionPlan>()
-            .Where(item => item.Choice.StockId == "planned-salvage-pot"));
+            .Select(candidate => candidate.ActionPlan).OfType<TownStockActionPlan>(),
+            item => item.Choice.StockId == "planned-salvage-pot");
         Assert.Equal(2, plan.Family!.Count);
         Assert.True(world.CheckActionPlan(plan).Allowed);
         var checkpoint = world.ExportState();

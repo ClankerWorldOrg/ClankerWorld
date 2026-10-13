@@ -515,7 +515,7 @@ public sealed partial class WorldCollectionOrderTests
     private static string Actor(WorldRuntimeState state) =>
         state.Society.Society.Agents.First(person => person.HouseholdId == Household).Id;
     private static WorldRuntimeState WithInventory(WorldRuntimeState state, InventoryCheckpoint inventory) =>
-        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
+        state with { Society = state.Society with { Society = state.Society.Society with { Inventory = StockHoldTestState.Custody(inventory) } } };
     private static WorldRuntime Restore(WorldRuntimeState state) => WorldRuntime.Restore(state, _ => new CollectionChoices());
     private static OwnerInstructionReceipt Submit(WorldRuntime world, string actor, string key, string text, bool queue = false) =>
         world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Order, text, Queue: queue));

@@ -88,17 +88,10 @@ public static partial class InventoryAuthority
             if (lot.Holds is null && lot.DeliveryBuildingId is null && lot.CarrierId is null) continue;
             prior ??= InventoryIndex.For(before);
             var source = prior.Find(lot.Id) ?? (lot.ProvenanceLotId is { } id ? prior.Find(id) : null);
-            var holds = (lot.Holds ?? []).ToList();
-            if (source?.DeliveryBuildingId is { } oldDelivery && lot.DeliveryBuildingId != oldDelivery)
-                holds.Remove(new(InventoryHoldPurpose.Delivery, oldDelivery));
-            if (source?.CarrierId is { } oldBorrower && (lot.CarrierId != oldBorrower || lot.OwnerId == oldBorrower))
-                holds.Remove(new(InventoryHoldPurpose.Borrowed, oldBorrower));
-            if (lot.DeliveryBuildingId is { } delivery) holds.Add(new(InventoryHoldPurpose.Delivery, delivery));
-            if (lot.CarrierId is { } borrower && borrower != lot.OwnerId) holds.Add(new(InventoryHoldPurpose.Borrowed, borrower));
-            var canonical = CanonicalHoldAccess(holds);
-            if ((lot.Holds ?? []).SequenceEqual(canonical ?? [])) continue;
+            var next = InventoryHoldRules.WithCustody(source ?? lot with { CarrierId = null, DeliveryBuildingId = null }, lot);
+            if (ReferenceEquals(next, lot)) continue;
             updated ??= lots.ToArray();
-            updated[i] = lot with { Holds = canonical };
+            updated[i] = next;
         }
         return updated ?? lots;
     }
@@ -120,6 +113,20 @@ public static partial class InventoryAuthority
 
 public static class InventoryHoldRules
 {
+    public static InventoryLot WithCustody(InventoryLot previous, InventoryLot next)
+    {
+        var holds = (next.Holds ?? []).ToList();
+        if (previous.DeliveryBuildingId is { } oldDelivery && next.DeliveryBuildingId != oldDelivery)
+            holds.Remove(new(InventoryHoldPurpose.Delivery, oldDelivery));
+        if (previous.CarrierId is { } oldBorrower && (next.CarrierId != oldBorrower || next.OwnerId == oldBorrower))
+            holds.Remove(new(InventoryHoldPurpose.Borrowed, oldBorrower));
+        if (next.DeliveryBuildingId is { } delivery) holds.Add(new(InventoryHoldPurpose.Delivery, delivery));
+        if (next.CarrierId is { } borrower && borrower != next.OwnerId) holds.Add(new(InventoryHoldPurpose.Borrowed, borrower));
+        var canonical = holds.Count == 0 ? null : new InventoryHoldSet(holds.Distinct().OrderBy(hold => hold.Purpose)
+            .ThenBy(hold => hold.HolderId, StringComparer.Ordinal));
+        return (next.Holds ?? []).SequenceEqual(canonical ?? []) ? next : next with { Holds = canonical };
+    }
+
     public static IReadOnlyList<InventoryHold> BorrowedBy(string actor) => [new(InventoryHoldPurpose.Borrowed, actor)];
 
     public static IReadOnlyList<InventoryHold> DeliveryFor(string actor, string? building) => building is null
