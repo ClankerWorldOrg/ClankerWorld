@@ -12,9 +12,10 @@ public sealed record AnimalProductChoice(AnimalProductKind Kind, string? AnimalI
 
 public sealed record AnimalProductActionPlan(string AgentId, AnimalProductChoice Choice, string StockId,
     string OwnerId, string ItemKind, string RootId, int Quantity, GridPoint Position,
-    string? ReservationId, string? DismountAnimalId, ReadOnlyCollection<GridPoint> Route)
+    string? ReservationId, PlannedAnimalDismount? Dismount, ReadOnlyCollection<GridPoint> Route)
     : ActionPlan(AgentId, Choice.Encode())
 {
+    public string? DismountAnimalId => Dismount?.AnimalId;
     public override string Activity => Choice.Kind switch
     {
         AnimalProductKind.Milk => "drink the milk",

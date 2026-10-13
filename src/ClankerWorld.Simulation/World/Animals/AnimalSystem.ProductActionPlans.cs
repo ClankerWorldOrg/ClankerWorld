@@ -28,7 +28,7 @@ internal sealed partial class AnimalSystem
         var dismount = choice.Kind == AnimalProductKind.Product
             ? State.Animals.FirstOrDefault(other => other.RiderId == actor && other.Id != animalId)?.Id : null;
         return new(actor, choice, lot.Id, lot.OwnerId, lot.ItemKind, index.Root(lot).Id, lot.Quantity,
-            animal.Position, animal.ReadyProductReservationId, dismount,
+            animal.Position, animal.ReadyProductReservationId, dismount is null ? null : PlanAnimalDismount(world, actor, Animal(dismount)!),
             world.Reach(actor, animal.Position, ReachPurpose.AnimalProduct, 0, 0, SwimmingPolicy.WhenCapable));
     }
 
@@ -67,6 +67,7 @@ internal sealed partial class AnimalSystem
         if (plan.Choice.Kind == AnimalProductKind.Product &&
             State.Animals.FirstOrDefault(other => other.Id != animal.Id && other.RiderId == plan.Actor)?.Id != plan.DismountAnimalId)
             return ActionCheck.Refuse(ActionRefusalReason.Mounted, "the selected mount has changed");
+        if (plan.Dismount is { } dismountPlan && CheckAnimalDismount(world, dismountPlan) is { Allowed: false } dismountCheck) return dismountCheck;
         return plan.DismountAnimalId is not null || animal.LeaderId == plan.Actor || world.Agents[plan.Actor].Position == plan.Position ||
             world.Reach(plan.Actor, plan.Position, ReachPurpose.AnimalProduct, 0, 0, SwimmingPolicy.WhenCapable).Count > 0
                 ? new() : ActionCheck.Refuse(ActionRefusalReason.OutOfReach, "the selected animal stock is out of reach now");
@@ -82,7 +83,7 @@ internal sealed partial class AnimalSystem
             return;
         }
         var animal = Animal(plan.Choice.AnimalId!)!;
-        if (plan.DismountAnimalId is { } mount) { EndAnimalRide(world, Animal(mount)!, "dismounted"); return; }
+        if (plan.Dismount is { } dismount) { CompleteAnimalDismount(world, dismount, "dismounted"); return; }
         if (world.Agents[plan.Actor].Position != plan.Position && animal.LeaderId != plan.Actor)
         {
             world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Position,

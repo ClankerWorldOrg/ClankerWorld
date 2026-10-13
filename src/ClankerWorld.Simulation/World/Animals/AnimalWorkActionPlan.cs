@@ -13,11 +13,12 @@ public sealed record PlannedAnimalInput(string StockId, string OwnerId, string I
 
 public sealed record AnimalWorkActionPlan(string ActorId, AnimalWorkSelection Choice, string? AnimalHouseholdId,
     string? AnimalYardId, GridPoint Position, IReadOnlyList<PlannedAnimalInput> Inputs,
-    AnimalSupplyActionPlan? SupplyPreparation, string? DismountAnimalId, bool ApproachOnly,
+    AnimalSupplyActionPlan? SupplyPreparation, PlannedAnimalDismount? Dismount, bool ApproachOnly,
     string? ReceivingHouseholdId, string? ReceivingYardId, GridPoint? ReceivingYardPosition,
     AnimalTamingWork? InitialTamingWork, int WorkTicks, int CareTicks, IReadOnlyList<GridPoint> Route)
     : ActionPlan(ActorId, Choice.Encode())
 {
+    public string? DismountAnimalId => Dismount?.AnimalId;
     public override string Activity => Choice.Kind switch
     { AnimalWorkKind.Care => "care for the animal", AnimalWorkKind.Tame => "tame the animal", _ => "saddle the horse" };
 }

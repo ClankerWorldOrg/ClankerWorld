@@ -171,6 +171,7 @@ public sealed class AnimalSystemTests
         public int AvailableLotQuantity(InventoryLot lot) => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(Society.Inventory), lot));
         public InventoryLot? AttachedHandcart(string actor) => null;
         public BoatState? PassengerBoat(string actor) => null;
+        public IReadOnlyList<GoodsMatch> DismountCargo(string actor) => throw new NotSupportedException();
         public GoodsAnswer FindGoods(GoodsRequest request) => GoodsInventoryQuery.FindConsumableGoods(Society.Inventory, request, (_, _) => null);
         public long HoldingsTotal(IEnumerable<string> owners, GoodsKinds kinds) => GoodsInventoryQuery.FindGoods(Society.Inventory,
             new(GoodsUse.Holdings, null, new(owners.ToArray()), kinds), (_, _) => null,

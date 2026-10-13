@@ -38,9 +38,7 @@ internal sealed partial class AnimalSystem
                 yield return new("lead_home", animal.Id);
             if (animal.Species == "horse" && animal.SaddleLotId is null && AnimalHouseholdMember(world, actor, animal))
                 yield return new("saddle", animal.Id);
-            if (MayRideAnimal(world, actor, animal) && animal.SaddleLotId is not null && animal.RiderId is null && animal.LeaderId is null &&
-                AnimalRules.HasCare(animal, world.WorldTick) && AnimalRules.IsAdult(animal, world.WorldTick, AnimalDayTicks(world)) &&
-                world.AttachedHandcart(actor) is null && !State.Animals.Any(item => item.RiderId == actor || item.LeaderId == actor))
+            if (MayMountAnimal(world, actor, animal))
                 yield return new("mount", animal.Id);
         }
     }
@@ -61,6 +59,9 @@ internal sealed partial class AnimalSystem
             var productPlan = choice.Action is "collect" or "collect_hide" ? PlanAnimalProduct(world, actor,
                 new(choice.Action == "collect" ? AnimalProductKind.Product : AnimalProductKind.Hide, animal.Id)) : null;
             if (choice.Action is "collect" or "collect_hide" && (productPlan is null || !CheckAnimalProductPlan(world, productPlan).Allowed)) continue;
+            var travelPlan = choice.Action is "mount" or "dismount" or "lead_home" ? PlanAnimalTravel(world, actor,
+                new(choice.Action == "mount" ? AnimalTravelKind.Mount : choice.Action == "dismount" ? AnimalTravelKind.Dismount : AnimalTravelKind.LeadHome, animal.Id)) : null;
+            if (choice.Action is "mount" or "dismount" or "lead_home" && (travelPlan is null || !CheckAnimalTravelPlan(world, travelPlan).Allowed)) continue;
             var description = choice.Action switch
             {
                 "tame" => $"Approach and tame {animal.Name} for your household with two feed and one jug water; lead it to the animal yard.",
@@ -74,13 +75,15 @@ internal sealed partial class AnimalSystem
             };
             candidates.Add(new(choice.Id, description, choice.Action == "lead_home" ? 13 : choice.Action == "care" ? 15 :
                 choice.Action is "collect" or "collect_hide" ? 16 : 110, animal.Id)
-            { ActionPlan = (ActionPlan?)productPlan ?? workPlan });
+            { ActionPlan = (ActionPlan?)productPlan ?? (ActionPlan?)workPlan ?? travelPlan });
         }
         AddAnimalSupplyCandidates(world, candidates, actor);
         AddAnimalPermissionAndTradeCandidates(world, candidates, actor);
     }
     internal bool ApplyAnimalCandidate(IAnimalWorld world, string actor, string candidateId, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is AnimalTravelActionPlan travelPlan)
+        { ApplyAnimalTravelPlan(world, travelPlan); return true; }
         if (originalPlan is AnimalTripActionPlan tripPlan)
         { ApplyAnimalTripPlan(world, tripPlan); return true; }
         if (originalPlan is AnimalWorkActionPlan workPlan)
@@ -110,19 +113,8 @@ internal sealed partial class AnimalSystem
                 ApplyAnimalWorkPlan(world, plan);
             return true;
         }
-        var animal = Animal(choice.AnimalId)!;
-        var person = world.Agents[actor];
-        if (choice.Action == "dismount") { EndAnimalRide(world, animal, "dismounted"); return true; }
-        if (person.Position != animal.Position && animal.LeaderId != actor)
-        {
-            world.MoveToward(actor, person, animal.Position, "animal_" + choice.Action);
-            return true;
-        }
-        switch (choice.Action)
-        {
-            case "lead_home": LeadAnimalHome(world, actor, animal); break;
-            case "mount": SetAnimal(animal with { RiderId = actor }); world.AppendEvent("horse_mounted", actor + ":" + animal.Id, animal.Position); break;
-        }
+        if (PlanAnimalTravel(world, actor, new(choice.Action == "mount" ? AnimalTravelKind.Mount : choice.Action == "dismount" ? AnimalTravelKind.Dismount : AnimalTravelKind.LeadHome, choice.AnimalId)) is { } travel)
+            ApplyAnimalTravelPlan(world, travel);
         return true;
     }
     internal static IEnumerable<InventoryLot> AnimalSuppliesAtHand(IAnimalWorld world, string actor, AnimalState animal)
@@ -280,19 +272,11 @@ internal sealed partial class AnimalSystem
         world.AppendEvent("animal_hide_collected", actor + ":" + animal.Id, animal.Position);
     }
 
-    internal void LeadAnimalHome(IAnimalWorld world, string actor, AnimalState animal)
+    private void CompleteAnimalLead(IAnimalWorld world, AnimalTravelActionPlan plan, AnimalState animal)
     {
-        if (!AnimalHouseholdMember(world, actor, animal) || AssignedAnimalYard(world, animal) is not { } yard ||
-            animal.RiderId is not null || animal.LeaderId is not (null) && animal.LeaderId != actor) return;
-        if (YardTiles(world, yard).Contains(animal.Position))
-        {
-            SetAnimal(animal with { LeaderId = null, LeadDestination = null, YardId = yard.InstanceId });
-            return;
-        }
-        var destination = FreeAnimalYardTile(world, yard, animal.Id);
-        if (destination is null) return;
-        SetAnimal(animal with { LeaderId = actor, LeadDestination = destination });
-        world.MoveToward(actor, world.Agents[actor], destination.Value, "lead_animal_home");
+        if (plan.ReleaseLead)
+        { SetAnimal(animal with { LeaderId = null, LeadDestination = null, YardId = plan.YardId }); return; }
+        SetAnimal(animal with { LeaderId = plan.Actor, LeadDestination = plan.Destination });
+        world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Destination!.Value, "lead_animal_home");
     }
 }
-

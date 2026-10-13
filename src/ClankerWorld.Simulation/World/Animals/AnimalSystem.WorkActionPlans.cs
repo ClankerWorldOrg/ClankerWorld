@@ -32,7 +32,7 @@ internal sealed partial class AnimalSystem
         }).ToArray());
         var dismount = preparation is null && choice.Kind is AnimalWorkKind.Care or AnimalWorkKind.Saddle
             ? State.Animals.FirstOrDefault(other => other.Id != animal.Id && other.RiderId == actor)?.Id : null;
-        return new(actor, choice, animal.HouseholdId, animal.YardId, animal.Position, selected, preparation, dismount,
+        return new(actor, choice, animal.HouseholdId, animal.YardId, animal.Position, selected, preparation, dismount is null ? null : PlanAnimalDismount(world, actor, Animal(dismount)!),
             inputs is null && preparation is null, household, yard?.InstanceId, yard?.Position, animal.TamingWork,
             animal.TamingWork?.ActorId == actor ? animal.TamingWork.WorkTicks + 1 : 1, AnimalDayTicks(world),
             world.Reach(actor, animal.Position, ReachPurpose.AnimalWork, 0, 0, SwimmingPolicy.WhenCapable));
@@ -64,6 +64,7 @@ internal sealed partial class AnimalSystem
         if (plan.Choice.Kind is AnimalWorkKind.Care or AnimalWorkKind.Saddle &&
             State.Animals.FirstOrDefault(other => other.Id != animal.Id && other.RiderId == plan.Actor)?.Id != plan.DismountAnimalId)
             return ActionCheck.Refuse(ActionRefusalReason.Mounted, "the selected mount has changed");
+        if (plan.Dismount is { } dismountPlan && CheckAnimalDismount(world, dismountPlan) is { Allowed: false } dismountCheck) return dismountCheck;
         var index = InventoryIndex.For(world.Society.Inventory);
         foreach (var input in plan.Inputs)
         {
@@ -90,7 +91,7 @@ internal sealed partial class AnimalSystem
     {
         if (CheckAnimalWorkPlan(world, plan).Refusal is { } refusal) { world.RefuseChoice(plan, refusal); return; }
         if (plan.SupplyPreparation is { } preparation) { ApplyAnimalSupplyPlan(world, preparation); return; }
-        if (plan.DismountAnimalId is { } mount) { EndAnimalRide(world, Animal(mount)!, "dismounted"); return; }
+        if (plan.Dismount is { } dismount) { CompleteAnimalDismount(world, dismount, "dismounted"); return; }
         var animal = Animal(plan.Choice.AnimalId)!;
         if (world.Agents[plan.Actor].Position != plan.Position && animal.LeaderId != plan.Actor)
         { world.MoveToward(plan.Actor, world.Agents[plan.Actor], plan.Position, "animal_" + plan.Choice.Action); return; }
