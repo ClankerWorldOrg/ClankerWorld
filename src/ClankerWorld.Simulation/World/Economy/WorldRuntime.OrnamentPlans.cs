@@ -4,8 +4,10 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    // Pending instructions include suggestions. Mandatory orders are gated by
+    // the fresh personal admission in ApplyOrnamentDecision.
     private static readonly ActorCapabilityPolicy OrnamentPolicy = new(ActionLifeStages.Adults,
-        AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: false);
+        AllowUrgentFood: true, AllowUrgentWarmth: true, AllowActiveOrder: true);
 
     private bool IsOrnamentSource(string actor, InventoryLot lot) => lot.ContainerLotId is null &&
         (IsPersonallyCarriedOrnament(lot, actor) || HouseholdFor(actor) is { } household && lot.OwnerId == household &&

@@ -454,6 +454,35 @@ public sealed class OrnamentPersonalUseTests
         Assert.NotEmpty(WorldRuntimeCodec.Encode(world.ExportState()));
     }
 
+    [Theory]
+    [InlineData("wear_ornament:")]
+    [InlineData("remove_ornament")]
+    [InlineData("gift_ornament:")]
+    public async Task AnOwnerSuggestionKeepsFreshPersonalOrnamentAuthorityAndItsReplyAcrossReload(string action)
+    {
+        var state = Prepared(local: true);
+        var actor = Actor(state);
+        var recipient = Recipient(state);
+        const string reply = "I made my own choice.";
+        var provider = new OrnamentChoices(action, DecisionProviderKind.LargeLanguageModel,
+            destination: action == "gift_ornament:" ? recipient : null, observerReply: reply);
+        using var world = Restore(WithInventory(state, InventoryAuthority.AddLot(state.Society.Society.Inventory,
+            Ornament, "gold_ornament", actor, 1)), actor, provider);
+        if (action == "remove_ornament") Assert.True(world.WearOrnament(actor, Ornament).Applied);
+        var instruction = world.SubmitInstruction(new("ornament-plan-suggestion", "owner:test", actor,
+            OwnerInstructionKind.Suggestion, "Tell me what you would like to wear or give."));
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Contains(provider.Offered, candidate => candidate.Id.StartsWith(action, StringComparison.Ordinal));
+        Assert.Equal(action == "wear_ornament:" ? Ornament : null, Physical(world, actor).Equipment?.OrnamentLotId);
+        Assert.Equal(action == "gift_ornament:" ? recipient : actor, world.Society.Inventory.GetLot(Ornament).OwnerId);
+        var observed = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == instruction.InstructionId);
+        Assert.NotNull(observed.ObservedTick);
+        Assert.Equal(reply, observed.ObserverReply);
+        Assert.Contains(instruction.InstructionId, world.ExportState().CompletedInstructionIds!);
+        using var replay = Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState())));
+        Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
+    }
+
     [Fact]
     public async Task APersonalOrnamentChoiceCannotInterruptActualPaidFieldWorkAcrossReload()
     {
