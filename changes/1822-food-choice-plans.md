@@ -1,0 +1,1 @@
+- Ordinary eating, household food collection and wild-food choices keep the selected serving or resource. Changed supplies and routes get plain refusals, while nourishment, serving quantities, orchard seeds and boat-passenger eating retain their existing behavior.
