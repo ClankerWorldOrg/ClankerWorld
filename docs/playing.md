@@ -2,7 +2,7 @@
 title: Playing the current game
 type: player-guide
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Playing the current game
@@ -47,7 +47,7 @@ finish pairing and return you to the same menu.
 For an already paired device, **Connect** checks the saved server connection
 and shows the result below the address. It does not start a new pairing.
 
-A game folder that carries its own `host` folder runs the world on your PC
+A game folder that carries its own `server` folder runs the world on your PC
 instead. Starting `ClankerWorld.exe` then starts that world server, pairs with
 it without a code and opens the Main Menu. Quitting saves the world and stops
 the server. Your saves, keys and model-call count are kept in
