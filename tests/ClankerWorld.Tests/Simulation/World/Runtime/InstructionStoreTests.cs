@@ -84,6 +84,8 @@ public sealed class InstructionStoreTests
         }
         var suggestion = Instruction(101, FirstAgent) with { Kind = OwnerInstructionKind.Suggestion, Task = null };
         store.Add(suggestion.IdempotencyKey, suggestion);
+        store[suggestion.IdempotencyKey] = suggestion with { ObservedTick = 2 };
+        Assert.Same(pending, store.FirstActiveFor(FirstAgent));
         var saved = store.Values.ToArray();
         store.Clear();
         Assert.Empty(store.Values);
