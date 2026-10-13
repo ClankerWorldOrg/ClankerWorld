@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace ClankerWorld.Tests;
 
+[Collection("Offered choice invariants")]
 public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
 {
     [Fact]
@@ -160,3 +161,7 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         Assert.True(state.Agents.Count > 4);
     }
 }
+
+// Keep the bounded PR sweep's timing independent of other CPU-heavy worlds.
+[CollectionDefinition("Offered choice invariants", DisableParallelization = true)]
+public sealed class OfferedChoiceInvariantCollection;

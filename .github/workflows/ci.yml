@@ -228,7 +228,7 @@ jobs:
           FILTER: ${{ needs.scope.outputs[format('filter-{0}', matrix.shard)] }}
         run: |
           test -n "$FILTER"
-          dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "$FILTER" --logger "trx;LogFileName=timings.trx" --results-directory "$RUNNER_TEMP/test-results"
+          dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter "$FILTER" --logger "trx;LogFileName=timings.trx" --logger "console;verbosity=normal" --results-directory "$RUNNER_TEMP/test-results"
       - name: Report the slowest tests
         if: ${{ !cancelled() }}
         run: node .github/scripts/ci-plan.js slow "$RUNNER_TEMP/test-results"
