@@ -96,7 +96,7 @@ public sealed partial class ServerHttpTests
             var presence = host.Services.GetRequiredService<OwnerClientPresenceLease>();
             presence.RecordAuthenticatedReconnect("disk-stall-test");
             using var service = new WorldRuntimeService(runtime, file, presence);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(runtime));
             Assert.False(release.IsSet);
             using var restored = file.LoadOrCreate(runtime.ExportState().WorldSeed);
             Assert.Equal(runtime.WorldTick, restored.WorldTick);
