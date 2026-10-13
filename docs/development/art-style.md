@@ -2,7 +2,7 @@
 title: Pixel-art style guide
 type: development-reference
 status: active
-updated: 2026-10-09
+updated: 2026-10-13
 ---
 
 # Pixel-art style guide
@@ -130,7 +130,7 @@ count/branch badge ink and historical-list text. Deceased family buttons
 retain full text opacity and say **died**.
 
 Status must have a word, number, shape or tooltip as well as color. For
-example, branches have numbers, hunger is named in the Agents tooltip,
+example, branches have numbers, fullness is named in the Agents tooltip,
 condition bars have captions and amounts, and deceased profiles have text
 labels. Light and Dark share this baseline; separate high-contrast and
 color-blind modes are outside it.
