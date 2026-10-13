@@ -188,7 +188,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "ApplyBoatCandidate", [], [], static (runtime, action) =>
     {
-        return runtime.ApplyBoatCandidate(action.AgentId, action.CandidateId);
+        return runtime.ApplyBoatCandidate(action.AgentId, action.CandidateId, action.Plan);
     }),
         RegisterAnimalActions(),
         new(ActionPhase.Ordinary, "ApplyHandcartCandidate", [], [], static (runtime, action) =>

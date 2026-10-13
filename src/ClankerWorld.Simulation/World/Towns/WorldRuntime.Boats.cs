@@ -9,8 +9,8 @@ namespace ClankerWorld.Simulation.World;
 public sealed partial class WorldRuntime
 {
     private const int BoatStepTicks = 3; // Provisional travel speed.
-    private const string BoatTripPrefix = "boat_trip:";
-    private sealed record BoatTripChoice(string Id, string TownId, PlacedBuilding Origin, PlacedBuilding Destination);
+    private const string BoatTripPrefix = BoatTripActionChoice.Prefix;
+    private sealed record BoatTripChoice(string Id, string TownId, PlacedBuilding Origin, PlacedBuilding Destination, BoatTripActionPlan? Plan = null);
 
     private BoatState? PassengerBoat(string actor) => boatTransport.Boats.FirstOrDefault(boat => boat.Journey?.PassengerId == actor);
     private BoatTripRequest? WaitingBoatRequest(string actor) => boatTransport.Requests.FirstOrDefault(request =>
@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
                      .OrderBy(port => port.InstanceId, StringComparer.Ordinal))
         {
             var approach = origin.Entrance!.Value;
-            if (!CanWalkForTownProject(actor, agents[actor].Position, approach)) continue;
+            if (Reach(actor, approach, ReachPurpose.BoatDeparture, 0, 0, SwimmingPolicy.WhenCapable).Count == 0) continue;
             foreach (var townId in boatTransport.Boats.Where(boat => boat.DockedPortId == origin.InstanceId)
                          .Select(boat => boat.TownId).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
             {
@@ -54,11 +54,8 @@ public sealed partial class WorldRuntime
                 foreach (var destination in worldSimulation.Buildings.Where(port => port.InstanceId != origin.InstanceId &&
                              Port(port.InstanceId) is not null && PortIsLegal(port)).OrderBy(port => port.InstanceId, StringComparer.Ordinal))
                 {
-                    // Geography is enough to request a trip; a full dock does not reserve a boat.
-                    if (!boatTransport.Boats.Where(boat => boat.TownId == townId && boat.DockedPortId == origin.InstanceId && boat.Journey is null)
-                            .Any(boat => PortNavigationRules.WaterRoute(map, boat.Position,
-                                PortGeometryFor(destination).DockingTiles, PortObstacles()).Count > 0)) continue;
-                    yield return new(BoatTripId(townId, origin.InstanceId, destination.InstanceId), townId, origin, destination);
+                    if (PlanBoatTrip(actor, townId, origin, destination) is { } plan && CheckBoatTripPlan(plan).Allowed)
+                        yield return new(plan.CandidateId, townId, origin, destination, plan);
                 }
             }
         }
@@ -68,41 +65,30 @@ public sealed partial class WorldRuntime
     {
         if (WaitingBoatRequest(actor) is { } waiting)
         {
-            candidates.Add(new("boat_cancel:" + waiting.Id, "Cancel your waiting boat trip and release unused reservations.", 90));
-            if (Port(waiting.OriginPortId) is { } origin && agents[actor].Position != origin.Entrance)
-                candidates.Add(new("boat_queue:" + waiting.Id, "Return to the Port's land approach to wait for your boat trip.", 80));
+            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Cancel, waiting.Id)) is { } cancel && CheckBoatWaitingPlan(cancel).Allowed)
+                candidates.Add(new(cancel.CandidateId, "Cancel your waiting boat trip and release unused reservations.", 90) { ActionPlan = cancel });
+            if (PlanBoatWaiting(actor, new(BoatWaitingKind.Queue, waiting.Id)) is { } queue && agents[actor].Position != queue.Approach && CheckBoatWaitingPlan(queue).Allowed)
+                candidates.Add(new(queue.CandidateId, "Return to the Port's land approach to wait for your boat trip.", 80) { ActionPlan = queue });
             return;
         }
         foreach (var choice in BoatTripChoices(actor))
             candidates.Add(new(choice.Id,
                 FormattableString.Invariant($"Request a communal boat trip to the Port at ({choice.Destination.Position.X}, {choice.Destination.Position.Y}), carrying your goods; wait at the departure Port's land approach."),
-                80, choice.Destination.InstanceId));
+                80, choice.Destination.InstanceId)
+            { ActionPlan = choice.Plan });
     }
 
-    private bool ApplyBoatCandidate(string actor, string candidateId)
+    private bool ApplyBoatCandidate(string actor, string candidateId, ActionPlan? originalPlan = null)
     {
-        if (candidateId.StartsWith("boat_cancel:", StringComparison.Ordinal))
+        if (originalPlan is BoatTripActionPlan trip) { ApplyBoatTripPlan(trip); return true; }
+        if (originalPlan is BoatWaitingActionPlan waiting) { ApplyBoatWaitingPlan(waiting); return true; }
+        if (BoatWaitingChoice.Decode(candidateId) is { } choice)
         {
-            if (WaitingBoatRequest(actor) is { } request && candidateId == "boat_cancel:" + request.Id)
-                SetBoatRequest(request with { Status = "cancelled", SettledTick = WorldTick });
-            return true;
-        }
-        if (candidateId.StartsWith("boat_queue:", StringComparison.Ordinal))
-        {
-            if (WaitingBoatRequest(actor) is { } request && candidateId == "boat_queue:" + request.Id &&
-                Port(request.OriginPortId) is { } origin)
-                MoveToward(actor, agents[actor], origin.Entrance!.Value, "boat_queue", 0);
+            if (PlanBoatWaiting(actor, choice) is { } plan) ApplyBoatWaitingPlan(plan);
             return true;
         }
         if (!candidateId.StartsWith(BoatTripPrefix, StringComparison.Ordinal)) return false;
-        var choice = BoatTripChoices(actor).FirstOrDefault(choice => choice.Id == candidateId);
-        if (choice is null) return true;
-        if (agents[actor].Position != choice.Origin.Entrance)
-        {
-            MoveToward(actor, agents[actor], choice.Origin.Entrance!.Value, "boat_departure", 0);
-            return true;
-        }
-        QueueBoatTrip(actor, choice);
+        if (BoatTripChoices(actor).FirstOrDefault(choice => choice.Id == candidateId)?.Plan is { } planned) ApplyBoatTripPlan(planned);
         return true;
     }
 

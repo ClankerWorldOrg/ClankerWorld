@@ -372,6 +372,10 @@ inputs before the existing native commit and receipt.
 Cart build-material collection retains its recipe, Blacksmith, stock, place and
 quantity. Planning and checking share the full-set eligibility rule; pickup
 rechecks the same material and its carrying route back to the selected Smith.
+Boat request choices retain their Town, Ports, approach and a boat route proving
+geography. Queue and cancel choices retain the exact waiting request. Shared
+checks run at offer, admission and apply; native queue processing still assigns
+a free boat and dock, including requests made while the destination is full.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new
