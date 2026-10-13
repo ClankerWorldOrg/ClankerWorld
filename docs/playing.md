@@ -102,7 +102,8 @@ restarted, check whether your request already took effect before sending it
 again. Check and send again then releases the old saved request; an instruction
 for the same agent and world is ready to review in their Profile before you
 press Send. Discard it restores the other controls but does not undo anything
-the server already accepted.
+the server already accepted. Use **Tab** or **Shift+Tab** to reach the recovery
+buttons and **Enter** to choose one; focus then returns to the screen underneath.
 
 ### Report a problem
 
