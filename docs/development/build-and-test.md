@@ -86,9 +86,13 @@ bound and preserves complete checkpoint bytes. Private release gates complete
 inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
 uses the same request; another row delays real provider entry for six seconds.
-Reply and actual wrapper-completion waits retain their
-five-second bounds; the completion loop retains eight world ticks. The remaining
-deadline, stale-generation, thought exclusion, physical-property, later ordinary
+Reply and actual wrapper-completion waits retain their five-second bounds.
+Completion reuses the shared request-task wait, which also finishes when no
+call is pending; saved attempt status is not a live task boundary. A deferred-return
+row holds the provider after reply construction and checks that the shared wait
+remains incomplete with checkpoint bytes unchanged. The completion loop retains
+eight world ticks. The remaining deadline, stale-generation, thought exclusion,
+physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
 
 The held quantified-harvest fixture captures the actor's exact outstanding
@@ -234,6 +238,30 @@ License. Keep `fusion-pixel-OFL.txt` beside it; the export preset's include
 filter copies that licence into the game data. Do not edit the font file: the
 licence reserves the name Fusion Pixel for unmodified copies. The heading
 lettering, Timber, is drawn in code in `UI/Theme/TimberFont.cs`.
+
+## Testing model work
+
+Use `ModelWorkHarness.For(world)` for tests of the nonblocking tick. `TickAsync`
+commits one tick, then runs scheduled model work; it never admits a reply in
+that same tick. Pass `runPendingWork: false` to keep work registered without
+starting it, and call `RunPendingWork` when the test permits provider entry.
+`ScriptedProvider.Hold()` returns a `HeldCall`: check `IsEntered`, then use
+`Reply(choice)` or `Fail()` to complete the actual runtime wrapper. Inline
+provider gates keep reply completion independent of the thread pool.
+
+`SettleAsync` starts pending work and finishes returned wrappers while held
+calls remain held. `PendingModelWork` snapshots all four live queues, with the
+request and actual completion task. Observe registered, started and finished
+calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
+come from the live runtime. Admission includes its committed world tick. A
+refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
+for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
+Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
+will and conversation deadlines; production uses `TimeProvider.System`.
+
+The harness has its own proof tests. #1862 moves the existing proof fixtures
+onto it, and #1818 moves the remaining clock waits. New model tests use the
+harness and no reflection into runtime queues.
 
 ## Which checks to run
 
@@ -595,7 +623,9 @@ headings in every Markdown file, that each entry in `changes/` starts with
 a `- ` bullet, and that game-design chapters don't describe what is built,
 such as "not built yet" or "remains unfinished". They do not check that any particular page exists. The
 documentation test reads each page with both LF and CRLF line endings, and CI
-also runs it on a Windows checkout. That job is separate from a Windows game
+also runs it on a Windows checkout. When the change needs code checks, that
+job also runs `IdentityTextBoundaryTests` against the native checkout paths and
+the base commit's identity/text allowances. That job is separate from a Windows game
 playtest and from the native provider-storage checks.
 
 To find sentences a change may have made false, search every page for the
@@ -714,3 +744,14 @@ the [playtest results procedure](../../playtest/README.md#keeping-the-list-curre
 Do not deploy, change credentials or modify the active playtest save just to
 run a check; that needs the owner's separate go-ahead. Use a disposable world
 for setup, placement and damaged-save cases.
+
+## Hard test worlds
+
+`NormalPathWorld.CreateGenerated` defaults to 128-character saved founder IDs
+and names containing accents, emoji and combining marks. The fixture prepares
+these identities through the Society founder operations after validating ordinary
+GUID placement; the game's founder placement grammar stays unchanged. Tests
+refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals.
+`SecondGenerationFixture.Add` adds a child through an accepted Society birth,
+including food consumption, parentage, care and household membership, then adds
+the physical agent and Town residency. It retains the production-generated child ID.

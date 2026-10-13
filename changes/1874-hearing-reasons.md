@@ -1,0 +1,1 @@
+- Town hearing records explain why a judge left or a case election was cancelled, including what happens next for the case.

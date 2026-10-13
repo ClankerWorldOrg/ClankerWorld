@@ -44,7 +44,7 @@ public sealed partial class WorldRuntime
         var actor = instruction.TargetAgentId;
         var order = instruction.Task!;
         return society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                lot.OwnerId == actor && IsValidInstructionIdentifier(lot.Id) &&
+                lot.OwnerId == actor && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id) &&
                 (order.Action == "load_handcart" ? CanPullHandcart(lot) && CargoQuantity(lot.Id) < InventoryContainerRules.HandcartCapacity :
                     CartCargoLots(actor, lot.Id).Any(cargo => cargo.ItemKind == order.TargetItemKind)))
@@ -130,7 +130,7 @@ public sealed partial class WorldRuntime
     {
         var order = instruction.Task!;
         return IsCartCargoKind(order.TargetItemKind) &&
-            (order.TargetCartLotId is null || IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+            (order.TargetCartLotId is null || IdentityRules.Reference(order.TargetCartLotId, OwnerQueuedInstruction.MaximumIdentifierLength) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
             (order.TargetLotId is null || order.TargetCartLotId is not null) &&
             order.RequestedUnits is >= 1 and <= 1000 && order.CompletedUnits >= 0 && order.CompletedUnits <= order.RequestedUnits &&
             !order.RepeatUntilCancelled && order.QuantityIsExplicit && order.ProgressUnit == "goods_items" &&

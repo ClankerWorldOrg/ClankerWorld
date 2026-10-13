@@ -194,7 +194,7 @@ internal sealed partial class TownSystem
     {
         if (landTiles is not { Count: > 0 and <= CognitionDecisionResponse.MaximumCivicLandTiles })
             throw new InvalidOperationException("Choose exact land tiles for the household request.");
-        var (result, updated) = FileHouseholdLandUse(world, TownRecordIds.LandRequest(town.Id, state.Notices.Count + 1),
+        var (result, updated) = FileHouseholdLandUse(world, TownRecordIds.LandRequest(town.Id, TownCouncilRules.NextNoticeSequence(state)),
             actor, town.Id, landTiles.Select(t => new GridPoint(t.X, t.Y)).ToArray(), null, state);
         if (!result.Applied) throw new InvalidOperationException(result.Failure);
         return updated;

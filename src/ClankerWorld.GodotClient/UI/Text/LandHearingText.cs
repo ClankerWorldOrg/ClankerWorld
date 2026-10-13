@@ -101,7 +101,7 @@ public static class LandHearingText
             : hearing.SettledTick is not null ? "Waiting for an eligible judge who is willing to assess the rehearing request; current rights stay in effect."
             : "Waiting for an eligible judge who is willing to hear the case; existing rights stay protected.");
         foreach (var term in hearing.JudgeHistory)
-            lines.Add("Former judge: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + Words(term.Reason));
+            lines.Add("Former judge: " + Judge(term.Judge) + " · ended " + clock(term.EndedTick) + " · " + term.Reason);
         if (hearing.JudgeElection is { } election) AddElection(lines, election, clock, false);
         else if (hearing.LatestJudgeElection is { } latest) AddElection(lines, latest, clock, true);
 
@@ -193,7 +193,7 @@ public static class LandHearingText
         if (election.Stage == "waiting") lines.Add("Waiting for the Town's other election to finish.");
         if (election.Candidates.Count > 0) lines.Add(string.Join(" · ", election.Candidates.Select(candidate => $"{candidate.Name}: {candidate.Votes} votes")));
         if (election.WinnerName is { } winner) lines.Add("Selected for this case: " + winner);
-        if (election.Reason is { } reason) lines.Add(Words(reason));
+        if (election.Reason is { } reason) lines.Add(reason);
     }
 
     private static string Judge(OwnerLandHearingJudge judge) => judge.AgentName +

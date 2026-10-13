@@ -480,7 +480,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"World schema {ConversationSchemaVersion} requires conversation state and daily budgets.");
         if (state.SchemaVersion >= OrderLifecycleSchemaVersion && state.OrderCancellations is null)
             throw new InvalidDataException($"World schema {OrderLifecycleSchemaVersion} requires order-cancellation retry state.");
-        var hasArchivedEvents = state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
+        var hasArchivedEvents = WorldHistory.RequiredRecordCounts(state).Count > 0 || state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
             state.Society.Society.Inventory.EventHistoryFloor > 0 || state.Society.Cognition.EventHistoryFloor > 0 ||
             state.Society.Cognition.Runtimes.Any(runtime => runtime.EventHistoryFloor > 0);
         if ((hasArchivedEvents && state.HistoryArchiveHead is null) ||
@@ -660,9 +660,9 @@ public sealed partial class WorldRuntime
                 instruction.InstructionId.Length > OwnerQueuedInstruction.MaximumIdentifierLength ||
                 instruction.InstructionId != $"private-instruction-{instruction.SubmissionSequence.ToString("D10", System.Globalization.CultureInfo.InvariantCulture)}" ||
                 !instructionIds.Add(instruction.InstructionId) ||
-                !IsValidInstructionIdentifier(instruction.IdempotencyKey) ||
+                !IdentityRules.Reference(instruction.IdempotencyKey, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !idempotencyKeys.Add(instruction.IdempotencyKey) ||
-                !IsValidInstructionIdentifier(instruction.IssuerId) ||
+                !IdentityRules.Reference(instruction.IssuerId, OwnerQueuedInstruction.MaximumIdentifierLength) ||
                 !people.Contains(instruction.TargetAgentId) ||
                 instruction.Kind is not (OwnerInstructionKind.Suggestion or OwnerInstructionKind.Order) ||
                 instruction.State != OwnerInstructionState.Queued ||
@@ -793,7 +793,7 @@ public sealed partial class WorldRuntime
 
         if (IsCartCargoOrder(order.Action)) return IsValidCartCargoOrder(instruction);
         if (IsCartOrder(order.Action))
-            return (order.TargetCartLotId is null || IsValidInstructionIdentifier(order.TargetCartLotId) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
+            return (order.TargetCartLotId is null || IdentityRules.Reference(order.TargetCartLotId, OwnerQueuedInstruction.MaximumIdentifierLength) && order.TargetCartLotId == order.TargetCartLotId.Trim()) &&
                 order.RequestedUnits == 1 && order.CompletedUnits is >= 0 and <= 1 && !order.RepeatUntilCancelled && !order.QuantityIsExplicit &&
                 order.ProgressUnit == "cart_tasks" && order.TargetFoodKind is null && order.TargetAgentId is null && order.TargetResourceId is null && order.TargetPosition is null &&
                 order.Status != "not_understood" && (order.Status == "finished") == (order.CompletedUnits == 1) &&

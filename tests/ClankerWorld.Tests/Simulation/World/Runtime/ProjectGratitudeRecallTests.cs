@@ -159,7 +159,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             Assert.Equal((memory.Summary, memory.SourceTick, "public"), (recalled.Summary, recalled.SourceTick, recalled.Visibility));
             Assert.InRange(memory.Id.Length, 1, 128);
             if (nativeBorn) Assert.StartsWith("project-gratitude:sha256:", memory.Id, StringComparison.Ordinal);
-            else Assert.Equal($"project-gratitude:{requester}:{helper}", memory.Id);
+            else Assert.Equal(DerivedId.Create($"project-gratitude:{requester}:{helper}", "project-gratitude:sha256:"), memory.Id);
 
             // Cancel actual external work before the checkpoint fork. Both
             // continuations use the same native blocking admission boundary.

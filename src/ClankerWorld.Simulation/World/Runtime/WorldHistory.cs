@@ -8,7 +8,7 @@ public sealed record WorldHistorySegment(string? Parent, IReadOnlyList<ArchivedE
 public sealed record WorldHistoryCompaction(WorldRuntimeState State, WorldHistorySegment Segment);
 
 /// <summary>Pure compaction plan; persistence must durably archive the segment before installing its state.</summary>
-public static class WorldHistory
+public static partial class WorldHistory
 {
     public const int RecentEventLimit = 1024;
     public const int CompactionThreshold = 2048;
@@ -25,8 +25,7 @@ public static class WorldHistory
             .Where(instruction => instruction.Task?.Action == "travel_by_boat")
             .Select(instruction => instruction.Task!.BoatTravel?.RequestId)
             .OfType<string>().ToHashSet(StringComparer.Ordinal);
-        var retired = closed.Take(Math.Max(0, closed.Length - RecentBoatRequestLimit))
-            .Where(request => !boundRequests.Contains(request.Id)).ToArray();
+        var retired = Retire(closed, RecentBoatRequestLimit, request => boundRequests.Contains(request.Id));
         if (retired.Length > 0)
         {
             var retiredIds = retired.Select(request => request.Id).ToHashSet(StringComparer.Ordinal);
@@ -37,6 +36,7 @@ public static class WorldHistory
             };
         }
         var archived = new List<ArchivedEventBatch>();
+        var towns = CompactCouncils(state.Towns!, archived);
         var world = Window("world", state.Events, item => item.EventId, state.EventHistoryFloor, archived);
         var society = state.Society.Society;
         var social = Window("society", society.Events, item => item.EventId, society.EventHistoryFloor, archived);
@@ -57,6 +57,7 @@ public static class WorldHistory
         {
             SchemaVersion = WorldRuntime.StateSchemaVersion,
             BoatTransport = transport,
+            Towns = towns,
             Events = world.Events,
             EventHistoryFloor = world.Floor,
             Society = state.Society with

@@ -698,8 +698,9 @@ fire expiry or removal of the building.
 
 Weapon-repair orders remain outside the current catalogue.
 
-A recognized new order replaces the active and queued orders unless **Queue**
-is selected. **Cancel task** stops a waiting or active order. An order
+A recognized new order replaces the current order unless **Queue** is selected.
+The replacement runs first; existing queued orders keep their place, targets and
+remaining amounts. **Cancel task** stops a waiting or active order. An order
 the game cannot understand preserves the current task and its queue. Explicit
 source names must match exactly; the game does not quietly choose another
 source or food. Unsupported, mixed, negated or incomplete requests close as not
@@ -1750,6 +1751,8 @@ The rotating autosave schedule recovers within its configured interval after
 the server's clock moves backwards, including across a restart.
 Rotation keeps the newest copies on each known branch despite earlier future
 dates, while named manual saves remain separate.
+Damaged autosaves stay on disk and do not count toward rotation, so reducing
+the count or turning rotation off keeps a verified usable predecessor.
 
 If the active saved state cannot open on restart, the server stays available for
 pairing and an authenticated **Recover world** screen. It offers the last
