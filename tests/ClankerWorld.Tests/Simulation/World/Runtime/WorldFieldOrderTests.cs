@@ -402,8 +402,7 @@ public sealed partial class WorldFieldOrderTests
     [InlineData(true, true)]
     public async Task ACancelledHeldModelReplyCannotSpendTheReleasedSeed(bool explicitLocation, bool delayedStartup = false)
     {
-        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true,
-            entryDelayMilliseconds: delayedStartup ? 1_000 : 0);
+        var provider = new FieldChoices(DecisionProviderKind.LargeLanguageModel, hold: true);
         using var world = WorldRuntime.Restore(WithFields(WithSeeds(Prepared(), "grain", 1), new FarmFieldState(Point, Household, FarmFieldStage.Prepared)),
             actor => actor == Actor ? provider : new FieldChoices());
         var text = "plant grain" + (explicitLocation ? $" at ({Point.X}, {Point.Y})" : "");
@@ -411,7 +410,7 @@ public sealed partial class WorldFieldOrderTests
         var startAfterTick = world.WorldTick + 3;
         // Preserve the deliberate two-extra-tick entry row, then freeze that
         // working frame: further polling ticks could spend the reserved seed.
-        if (delayedStartup) provider.CanStart = () => world.WorldTick >= startAfterTick;
+        if (delayedStartup) ModelWorkHarness.For(world).Scheduler.CanStart = () => world.WorldTick >= startAfterTick;
         try
         {
             var entryFrame = delayedStartup ? startAfterTick : world.WorldTick + 1;
@@ -424,7 +423,7 @@ public sealed partial class WorldFieldOrderTests
             var reservation = working.SeedReservationId!;
             Assert.Equal(InventoryReservationState.Reserved, world.Society.Inventory.GetReservation(reservation).State);
             var entering = WorldRuntimeCodec.Encode(world.ExportState());
-            await Task.WhenAny(provider.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+            await Task.WhenAny(provider.Started.Task, task);
             Assert.True(provider.Started.Task.IsCompleted, "The registered field worker finished before held provider entry.");
             Assert.False(task.IsCompleted);
             Assert.Equal(receipt.InstructionId, Assert.Single(provider.Requests).OperativeOrderInstructionId);
@@ -433,10 +432,10 @@ public sealed partial class WorldFieldOrderTests
             Assert.True(world.CancelOrder(new("stop-held", "owner:test", world.Society.WorldId, Actor, receipt.InstructionId)).Changed);
             var cancelled = WorldRuntimeCodec.Encode(world.ExportState());
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             await task;
             Assert.Equal(cancelled, WorldRuntimeCodec.Encode(world.ExportState()));
-            for (var tick = 0; tick < 8; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            for (var tick = 0; tick < 8; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(1, SeedQuantity(world, "grain"));
             Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation(reservation).State);
@@ -543,13 +542,13 @@ public sealed partial class WorldFieldOrderTests
             using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync(cancellationToken: deadline.Token)).Advanced);
+                Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
             }
             catch (OperationCanceledException) when (deadline.IsCancellationRequested)
             {
                 Assert.Fail($"World tick {world.WorldTick} stalled during poll {tick + 1} of 40.");
             }
-            if (!done()) await Task.Delay(5);
+            if (!done()) await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(done(), failureMessage);
     }
@@ -564,20 +563,16 @@ public sealed partial class WorldFieldOrderTests
             !occupied.Contains(point) && !state.Agents.Any(person => person.Position == point) && state.Map.IsReachableOnFoot(Point, point))
             .OrderBy(point => state.Map.FootDistance(Point, point)).First();
     }
-    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false,
-        int entryDelayMilliseconds = 0) : IDecisionProvider
+    private sealed class FieldChoices(DecisionProviderKind kind = DecisionProviderKind.Deterministic, bool hold = false) : IDecisionProvider
     {
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public Func<bool>? CanStart { get; set; }
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
-            while (CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
-            if (entryDelayMilliseconds > 0) await Task.Delay(entryDelayMilliseconds, cancellationToken);
             request.Validate();
             var observation = request.Observation;
             Requests.Enqueue(observation);
