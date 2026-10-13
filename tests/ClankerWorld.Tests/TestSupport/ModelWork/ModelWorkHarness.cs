@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
+using ClankerWorld.Server.Runtime;
 
 namespace ClankerWorld.Tests;
 
@@ -18,6 +19,17 @@ public sealed class ModelWorkHarness : IModelWorkObserver
     {
         World = world;
         World.ConfigureModelWork(Scheduler, this, timeProvider);
+    }
+
+    public static async Task WaitForExistingAsync(WorldRuntime world, Func<ModelWorkSnapshot, bool>? include = null,
+        params Task[] additionalTasks)
+    {
+        // Blocking fixtures can still use the production scheduler. Read their
+        // public snapshots without changing a scheduler after calls have started.
+        if (Attached.TryGetValue(world, out var harness)) harness.RunPendingWork();
+        await Task.WhenAll(world.PendingModelWork.Where(item => include?.Invoke(item) ?? true)
+            .Select(item => item.Completion).Concat(additionalTasks))
+            .WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     public static ModelWorkHarness For(WorldRuntime world, TimeProvider? timeProvider = null) =>
@@ -41,10 +53,29 @@ public sealed class ModelWorkHarness : IModelWorkObserver
             .Select(item => item.Completion));
     }
 
+    public async Task WaitForAllAsync(Func<ModelWorkSnapshot, bool>? include = null)
+    {
+        RunPendingWork();
+        await Task.WhenAll(Pending.Where(item => include?.Invoke(item) ?? true).Select(item => item.Completion))
+            .WaitAsync(TimeSpan.FromSeconds(30));
+    }
+
+    public Task WaitForKindAsync(ModelWorkKind kind) => WaitForAllAsync(item => item.Transition.Kind == kind);
+    public Task WaitForDecisionAsync(string actor) => WaitForAllAsync(item => item.Transition.Kind == ModelWorkKind.Decision &&
+        item.Transition.ActorId == actor);
+    public bool DecisionsFinished(params string[] actors) => actors.All(actor => Pending.Any(item =>
+        item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == actor && item.Completion.IsCompleted));
+
     public async Task WaitAsync(Task signal)
     {
         RunPendingWork();
         await signal.WaitAsync(TimeSpan.FromSeconds(30));
+    }
+
+    public async Task<T> WaitAsync<T>(Task<T> signal)
+    {
+        await WaitAsync((Task)signal);
+        return await signal;
     }
 
     public async Task<WorldStepResult> TickUntilAdmittedAsync(string actor, int maxTicks)
@@ -73,6 +104,26 @@ public sealed class ModelWorkHarness : IModelWorkObserver
 
 public static class ModelWorkTestExtensions
 {
+    public static async ValueTask<WorldStepResult> TickModelWorkAsync(this WorldRuntime world,
+        Func<bool>? commitPermitted,
+        Func<WorldRuntime, IReadOnlyList<WorldEventEntry>, IReadOnlyList<PreparedChildModelSelection>> prepareChildModelSelections,
+        CancellationToken cancellationToken = default)
+    {
+        var harness = ModelWorkHarness.For(world);
+        var step = await world.AdvanceOneTickNonBlockingAsync(commitPermitted, prepareChildModelSelections, cancellationToken);
+        await harness.SettleAsync();
+        return step;
+    }
+
+    public static async ValueTask<bool> AdvanceWithModelWorkAsync(this WorldRuntimeService service,
+        WorldRuntime world, CancellationToken cancellationToken = default)
+    {
+        var harness = ModelWorkHarness.For(world);
+        var result = await service.TryAdvanceOnceAsync(cancellationToken);
+        await harness.SettleAsync();
+        return result;
+    }
+
     public static ValueTask<WorldStepResult> TickModelWorkAsync(this WorldRuntime world,
         Func<bool>? commitPermitted = null, CancellationToken cancellationToken = default) =>
         ModelWorkHarness.For(world).TickAsync(commitPermitted, cancellationToken: cancellationToken);
