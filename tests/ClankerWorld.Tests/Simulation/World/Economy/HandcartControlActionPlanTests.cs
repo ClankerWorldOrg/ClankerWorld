@@ -90,8 +90,6 @@ public sealed partial class HandcartRuntimeTests
         var (state, actor, _) = await ControlFixture(HandcartControlKind.Park);
         var inventory = InventoryAuthority.Reserve(state.Society.Society.Inventory, "control-cargo-other-work", actor,
             "control-cargo", 4, "other_work", long.MaxValue);
-        inventory = InventoryAuthority.Reserve(inventory, "control-cart-other-work", actor,
-            "control-cart", 1, "other_work", long.MaxValue);
         state = state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
         using var parked = WorldRuntime.Restore(state, _ => new ControlChooser(actor, HandcartControlKind.Park, true));
         Assert.True((await parked.AdvanceOneTickAsync()).Advanced);
