@@ -157,7 +157,8 @@ public sealed partial class WorldRuntime
                 decisions.AddRange(dispatched.Decisions);
                 foreach (var decision in dispatched.Decisions) ApplyDecision(decision);
             }
-            CompleteActionPhase(decisions.Select(decision => decision.AgentId));
+            var handledActors = ApplyContinuingIntentions(decisions.Select(decision => decision.AgentId), []);
+            CompleteActionPhase(handledActors);
             return decisions;
         }
         finally { gate.Release(); }

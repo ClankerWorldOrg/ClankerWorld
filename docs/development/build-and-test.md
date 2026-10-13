@@ -760,12 +760,13 @@ the physical agent and Town residency. It retains the production-generated child
 
 `OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
 split stock, a broken vessel, a borrowed Market stall, a full carrier, occupied
-tiles, a swimmer, a mounted rider and a boat passenger. Paid buildings, borrowing,
-birth and transport use the shared native operations. Each native queued choice
+tiles, a swimmer, a mounted rider and a boat passenger. Birth, split stock and paid
+building inputs use shared native operations. Stall occupancy, mounted-animal and
+underway-boat records are controlled strict-valid fixture state. Each native queued choice
 runs in its own trusted server trial copy, through normal admission, action
 application and post-action reconciliation. The test requires a strict save
-round-trip and progress or a refusal reason. It does not recover or skip a
-throwing action.
+round-trip, acceptance of the exact offered choice without fallback, and progress
+or a native refusal reason. It does not recover or skip a throwing action.
 
 The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
 with:

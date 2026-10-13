@@ -58,11 +58,8 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
                                 actual.Candidates.Any(offered => offered.Id == candidate.Id));
                             StrictCheckpoint(trial);
                             var after = trial.ExportState();
-                            if (!decision.Admission.Accepted || decision.Admission.FellBack)
-                            {
-                                Assert.False(string.IsNullOrWhiteSpace(decision.Admission.Outcome));
-                                continue;
-                            }
+                            Assert.True(decision.Admission.Accepted, decision.Admission.Outcome);
+                            Assert.False(decision.Admission.FellBack, decision.Admission.Outcome);
                             Assert.Equal(candidate.Id, decision.Admission.Intention!.CandidateId);
                             var refusal = after.Events.Where(entry => entry.EventId > original.Events[^1].EventId &&
                                 entry.Detail.Contains(observation.AgentId, StringComparison.Ordinal))
