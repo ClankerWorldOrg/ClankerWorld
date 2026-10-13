@@ -21,6 +21,7 @@ public sealed partial class WorldConversationTests
         var idle = new PlanningOnlyConversationProvider(new ConversationProvider(new HashSet<string>(StringComparer.Ordinal)));
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == farmer || id == other ? speaker : idle);
+        var harness = ModelWorkHarness.For(world);
         world.Resume();
         using var deadline = new CancellationTokenSource();
         // Await fresh resume decisions before advancing more work. A farmer who
@@ -29,6 +30,7 @@ public sealed partial class WorldConversationTests
             Assert.True((await world.AdvanceOneTickAsync(deadline.Token)).Advanced);
         Assert.Contains(speaker.PlanningRequests, request => request.Observation.AgentId == farmer &&
             request.Observation.Candidates.Any(candidate => candidate.Id == "conversation_resume:conversation:farmer-resume"));
+        harness.RunPendingWork();
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, world.Conversations.Single().Status);
         var remaining = Assert.Single(world.Fields).Work!.RemainingTicks;
         Assert.InRange(remaining, 1, initialRemaining);
