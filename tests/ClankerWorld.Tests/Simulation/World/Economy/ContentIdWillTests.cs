@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
@@ -39,7 +40,7 @@ public sealed partial class ShopTradeTests
             actor => actor == deceased ? provider : new ContentIdFixture.Idle());
         Assert.True((await world.TickModelWorkAsync()).Advanced);
         if (world.Society.Estates.Single(item => item.DeceasedId == deceased).WillStatus == "pending")
-            await provider.Called.Task;
+            await ModelWorkHarness.WaitForSignalAsync(provider.Called.Task);
         for (var tick = 0; tick < 12 && !world.Society.Estates.Any(estate => estate.DeceasedId == deceased && estate.WillStatus == "accepted"); tick++)
             Assert.True((await world.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(world.Society.Estates, item => item.DeceasedId == deceased);
@@ -88,7 +89,7 @@ public sealed partial class ShopTradeTests
             Items = context.Items;
             Calls++;
             Called.TrySetResult();
-            var heir = Assert.Single(context.Heirs, item => item.Key == "will:heir:" + heirId).Key;
+            var heir = Assert.Single(context.Heirs, item => item.Key == DerivedId.Create("will:heir:" + heirId, "will:heir:sha256:")).Key;
             // The production lot is the only x-prefixed good. Reply with its offered key, never its kind or lot ID.
             var item = Assert.Single(context.Items, item => item.Kind.StartsWith('x'));
             var choice = new CognitionWillChoice([heir], CognitionWillContext.ItemSplit,

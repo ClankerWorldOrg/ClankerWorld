@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
@@ -197,7 +198,6 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 40 && provider.TurnRequests.Count == 0; attempt++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
 
         var request = Assert.Single(provider.TurnRequests);
@@ -239,7 +239,6 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 40 && world.Conversations.All(item => item.Turns.Count == 0); attempt++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
 
         var conversation = Assert.Single(world.Conversations, item => item.Turns.Count > 0);
@@ -253,7 +252,6 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 40 && world.Conversations.Single().Turns.Count < 2; attempt++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
 
         conversation = Assert.Single(world.Conversations, item => item.Turns.Count >= 2);
@@ -325,7 +323,6 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 80 && restored.Conversations.Single().Turns.Count < 3; attempt++)
         {
             _ = await restored.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
 
         var resumedConversation = Assert.Single(restored.Conversations);
@@ -373,18 +370,18 @@ public sealed partial class WorldConversationTests
         }
 
         var oldClaim = new SocietyAgentBelief(
-            oldBeliefId, ListenerId, old.Turn.Text, SocietyBeliefProvenance.Hearsay,
+            Identity.Parse(oldBeliefId), ListenerId, old.Turn.Text, SocietyBeliefProvenance.Hearsay,
             5_000, old.Turn.WorldTick, old.Turn.SpeakerId, SourceTurnId: old.Turn.Id);
         society = SocietyRules.RecordAgentBelief(society, oldClaim);
         var correctedClaim = SocietyRules.CorrectAgentBelief(society, ListenerId, oldClaim.Id,
             new SocietyAgentBelief(
-                correctionId, ListenerId, "I later learned the speaker had been mistaken about the trail.",
+                Identity.Parse(correctionId), ListenerId, "I later learned the speaker had been mistaken about the trail.",
                 SocietyBeliefProvenance.Hearsay, 7_500, old.Turn.WorldTick,
                 old.Turn.SpeakerId, SourceTurnId: old.Turn.Id));
         society = SocietyRules.RecordAgentMemoryCompaction(correctedClaim, ListenerId,
         [
             new SocietyAgentMemoryImportance(
-                correctionId, SocietyMemorySourceKind.Belief, old.Turn.WorldTick, 8_000, 8_500,
+                Identity.Parse(correctionId), SocietyMemorySourceKind.Belief, old.Turn.WorldTick, 8_000, 8_500,
                 old.Turn.WorldTick),
         ]);
 
@@ -394,7 +391,7 @@ public sealed partial class WorldConversationTests
             society = SocietyRules.AdvanceTo(society, archiveTick).Checkpoint;
             society = SocietyMemoryArchiveRules.Archive(society,
                 new HashSet<string>(StringComparer.Ordinal), new HashSet<string>(StringComparer.Ordinal));
-            Assert.Equal(oldBeliefId, Assert.Single(society.ArchivedBeliefs).Belief.Id);
+            Assert.Equal(oldBeliefId, Assert.Single(society.ArchivedBeliefs).Belief.Id.Value);
             var systems = initial.WorldSystems!;
             while (systems.WorldTick < archiveTick) systems = WorldSystemsRules.AdvanceOneTick(systems);
             initial = initial with { WorldSystems = systems };
@@ -410,7 +407,6 @@ public sealed partial class WorldConversationTests
                  item.Status != AgentConversationStatus.Proposed); attempt++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
 
         var newConversation = Assert.Single(world.Conversations, item => item.Status == AgentConversationStatus.Proposed);
@@ -424,8 +420,8 @@ public sealed partial class WorldConversationTests
         Assert.Null(retainedCorrection.SourceTurnId);
         Assert.Equal(old.Turn.SpeakerId, retainedCorrection.SourceAgentId);
         Assert.Equal("I later learned the speaker had been mistaken about the trail.", retainedCorrection.Statement);
-        Assert.Equal(correctionId, retainedOldClaim.SupersededByBeliefId);
-        Assert.Equal(oldBeliefId, retainedCorrection.SupersedesBeliefId);
+        Assert.Equal(correctionId, retainedOldClaim.SupersededByBeliefId?.Value);
+        Assert.Equal(oldBeliefId, retainedCorrection.SupersedesBeliefId?.Value);
         Assert.Contains(Assert.Single(afterTrim.MemoryCompactions!, item => item.OwnerId == ListenerId).Sources,
             item => item.Kind == SocietyMemorySourceKind.Belief && item.SourceId == correctionId);
 
@@ -433,7 +429,6 @@ public sealed partial class WorldConversationTests
                  .Turns.Count == 0; attempt++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
         var firstNewTurn = Assert.Single(world.Conversations.Single(item => item.Id == newConversation.Id).Turns);
         Assert.Contains(ListenerId, firstNewTurn.ListenerIds);
@@ -455,7 +450,6 @@ public sealed partial class WorldConversationTests
                      .Turns.Count < 2; attempt++)
             {
                 _ = await reloaded.TickModelWorkAsync();
-                await ModelWorkHarness.For(world).SettleAsync();
             }
             var retainedConversation = Assert.Single(reloaded.Conversations, item => item.Id == newConversation.Id);
             Assert.True(retainedConversation.Turns.Count >= 2);
@@ -518,7 +512,6 @@ public sealed partial class WorldConversationTests
                  item.Status != AgentConversationStatus.Suspended); attempt++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
 
         var conversation = Assert.Single(world.Conversations);
@@ -549,7 +542,7 @@ public sealed partial class WorldConversationTests
         var timeout = await Assert.ThrowsAsync<TimeoutException>(async () =>
             await AgentConversationProviderExecution.SpeakAsync(
                 provider, request, TimeSpan.FromMilliseconds(25), CancellationToken.None));
-        await provider.CancellationObserved.Task;
+        await ModelWorkHarness.WaitForSignalAsync(provider.CancellationObserved.Task);
 
         Assert.Equal(AgentConversationInterruption.ProviderTimedOut,
             AgentConversationFailureClassifier.Classify(timeout));
@@ -590,17 +583,17 @@ public sealed partial class WorldConversationTests
             // this tick holds, so the tick never finished. Ticks run on another
             // thread with a deadline, so that fails rather than hangs.
             static Task<WorldStepResult> TickAsync(WorldRuntime runtime) =>
-                Task.Run(() => runtime.TickModelWorkAsync().AsTask());
+                Task.Run(() => runtime.AdvanceOneTickNonBlockingAsync().AsTask()).WaitAsync(TimeSpan.FromSeconds(30));
             for (var attempt = 0; attempt < 60 && provider.TurnRequests.Count == 0; attempt++)
             {
                 _ = await TickAsync(world);
-                await ModelWorkHarness.For(world).SettleAsync();
+                await Task.Delay(5);
             }
             Assert.NotEmpty(provider.TurnRequests);
-            using var deadline = new CancellationTokenSource();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             while (!log.Messages.Any(message => message.Contains(
                        "provider_usage_limit_reached outcome=paused scope=installation", StringComparison.Ordinal)))
-                await ModelWorkHarness.For(world).SettleAsync();
+                await Task.Delay(10, deadline.Token);
 
             Assert.True(world.Society.IsPaused);
             Assert.True(WorldRuntimeCodec.Decode(File.ReadAllBytes(statePath)).Society.Society.IsPaused);
@@ -687,7 +680,7 @@ public sealed partial class WorldConversationTests
         harness.RunPendingWork();
         var tasks = world.PendingModelWork.Select(pending => pending.DecisionRequest is { } request
             ? handler.HeldDecisionStarted(request) ?? pending.Completion : pending.Completion);
-        await Task.WhenAll(tasks);
+        await ModelWorkHarness.WaitForSignalAsync(Task.WhenAll(tasks));
         Assert.True((await harness.TickAsync()).Advanced);
     }
 

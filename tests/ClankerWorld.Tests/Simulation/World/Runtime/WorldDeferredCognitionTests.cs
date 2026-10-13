@@ -149,7 +149,7 @@ public sealed class WorldDeferredCognitionTests
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         // Retained work is refreshed on the tick after the first reply is admitted.
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.SecondFailed.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.SecondFailed.Task);
         await ModelWorkHarness.For(world).SettleAsync();
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
 
@@ -312,7 +312,7 @@ public sealed class WorldDeferredCognitionTests
         Assert.True((await world.TickModelWorkAsync()).Advanced);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.SecondStarted.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.SecondStarted.Task);
         Assert.True(provider.SecondObservation!.IsNameRetry);
         var completedBeforeCancellation = world.ExportState().Events.Count(item =>
             item.Kind == "hosted_decision_completed");
@@ -337,7 +337,7 @@ public sealed class WorldDeferredCognitionTests
             : new DeterministicDecisionProvider());
         restored.Resume();
         Assert.True((await restored.TickModelWorkAsync()).Advanced);
-        await restoredProvider.FirstReturned.Task;
+        await ModelWorkHarness.For(restored).WaitAsync(restoredProvider.FirstReturned.Task);
         var completed = await AdvanceUntilAcceptedAsync(restored, NameTargetId);
         Assert.True(Assert.Single(completed.Decisions, item => item.AgentId == NameTargetId).Admission.Accepted);
         Assert.True(Assert.Single(restoredProvider.ObservedRequests).IsNameRetry);
@@ -357,7 +357,7 @@ public sealed class WorldDeferredCognitionTests
         await world.TickModelWorkAsync();
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.SecondStarted.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.SecondStarted.Task);
         world.Pause();
         var saved = world.ExportState();
         saved = saved with
@@ -465,23 +465,23 @@ public sealed class WorldDeferredCognitionTests
         using var world = new WorldRuntime("deferred-founder", id =>
             id == "founder-scout" ? modelProvider : new QuietDecisionProvider());
 
-        var first = await world.TickModelWorkAsync().AsTask();
+        var first = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
         Assert.True(first.Advanced);
         Assert.Equal(1, world.WorldTick);
         Assert.Contains(first.Decisions, item => item.AgentId != "founder-scout" && item.Admission.Accepted);
-        await modelProvider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Started.Task);
         Assert.Contains(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
         Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Agents
                 .Single(item => item.Id == "founder-scout").DecisionFactors,
             item => item.Key == "decision-pending");
 
         for (var tick = 0; tick < 3; tick++)
-            Assert.True((await world.TickModelWorkAsync().AsTask()).Advanced);
+            Assert.True((await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask())).Advanced);
         Assert.Equal(4, world.WorldTick);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
 
         modelProvider.Release.TrySetResult(true);
-        await modelProvider.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Returned.Task);
         var admitted = await AdvanceUntilAcceptedAsync(world, "founder-scout");
         Assert.Contains(admitted.Events, item => item.Kind == "hosted_decision_completed");
         Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
@@ -495,12 +495,12 @@ public sealed class WorldDeferredCognitionTests
         using var world = CreateNameTestWorld("private-thoughts", modelProvider);
         world.StartWorld();
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await modelProvider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Started.Task);
         Assert.True(modelProvider.NeedsNameObserved);
         Assert.True(world.RenameAgent(NameTargetId, "Player-picked"));
         Assert.False(world.Society.IsPaused);
         modelProvider.Release.TrySetResult(true);
-        await modelProvider.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Returned.Task);
         var admitted = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         Assert.False(Assert.Single(admitted.Decisions, item => item.AgentId == NameTargetId).Admission.FellBack);
         Assert.Equal("Player-picked", world.Society.GetAgent(NameTargetId).Name);
@@ -528,7 +528,7 @@ public sealed class WorldDeferredCognitionTests
         var first = world.SubmitInstruction(new OwnerInstructionRequest("observer-first", "owner:test", targetId,
             OwnerInstructionKind.Suggestion, "Try the berries beside the river."));
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await staleProvider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(staleProvider.Started.Task);
         var initialObservation = Assert.Single(staleProvider.ObservedRequests);
         Assert.Equal(world.Society.WorldId, initialObservation.WorldId);
         Assert.Equal(targetId, initialObservation.AgentId);
@@ -537,7 +537,7 @@ public sealed class WorldDeferredCognitionTests
         world.Pause();
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         staleProvider.Release.TrySetResult(true);
-        await staleProvider.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(staleProvider.Returned.Task);
         var pausedInstruction = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == first.InstructionId);
         Assert.Null(pausedInstruction.ObservedTick);
         Assert.Null(pausedInstruction.ObserverReply);
@@ -550,7 +550,7 @@ public sealed class WorldDeferredCognitionTests
             OwnerInstructionKind.Suggestion, "Look for a grove after you eat."));
         restored.Resume();
         Assert.True((await restored.TickModelWorkAsync()).Advanced);
-        await replacement.Started.Task;
+        await ModelWorkHarness.For(restored).WaitAsync(replacement.Started.Task);
         var retryObservation = Assert.Single(replacement.ObservedRequests);
         Assert.Equal(saved.Society.Society.WorldId, retryObservation.WorldId);
         Assert.Equal(targetId, retryObservation.AgentId);
@@ -586,7 +586,17 @@ public sealed class WorldDeferredCognitionTests
     {
         for (var tick = 0; tick < 20; tick++)
         {
+            var pending = world.PendingModelWork.FirstOrDefault(item =>
+                item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == agentId);
+            var checkpoint = WorldRuntimeCodec.Encode(world.ExportState());
             await ModelWorkHarness.For(world).WaitForDecisionAsync(agentId);
+            if (pending is not null)
+            {
+                var current = Assert.Single(world.PendingModelWork, item =>
+                    item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == agentId);
+                Assert.Same(pending.Completion, current.Completion);
+                Assert.Equal(checkpoint, WorldRuntimeCodec.Encode(world.ExportState()));
+            }
             var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
             if (step.Decisions.Any(item => item.AgentId == agentId && item.Admission.Accepted)) return step;

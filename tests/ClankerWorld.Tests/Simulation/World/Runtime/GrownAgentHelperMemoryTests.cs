@@ -121,7 +121,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var willWorld = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
         Assert.True((await willWorld.TickModelWorkAsync()).Advanced);
-        var will = await provider.WillCalled.Task;
+        var will = await ModelWorkHarness.For(willWorld).WaitAsync(provider.WillCalled.Task);
         will.Validate();
         Assert.Equal(modelHouseholdId, will.Self!.HouseholdId);
         Assert.Equal(householdId, willWorld.Society.GetAgent(actor).HouseholdId);
@@ -254,10 +254,10 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
         var sourceTick = state.Society.Society.WorldTick;
         var memories = Enumerable.Range(0, 3).Select(index => new SocietySocialMemory(
-            $"grown-memory-{index}", childId, childId, $"A private remembered promise {index}.", "private", sourceTick)).ToArray();
-        var foreign = new SocietySocialMemory("foreign-memory", state.Society.Society.Births[0].PrimaryCaregiverId, childId,
+            Identity.Create($"grown-memory-{index}"), childId, childId, $"A private remembered promise {index}.", "private", sourceTick)).ToArray();
+        var foreign = new SocietySocialMemory(Identity.Parse("foreign-memory"), state.Society.Society.Births[0].PrimaryCaregiverId, childId,
             "Another person's private promise.", "private", sourceTick);
-        var belief = new SocietyAgentBelief("grown-birth-belief", childId, "I remember my own birth.",
+        var belief = new SocietyAgentBelief(Identity.Parse("grown-birth-belief"), childId, "I remember my own birth.",
             SocietyBeliefProvenance.Firsthand, 8_000, sourceTick, SourceAgentId: childId,
             SourceEventId: Assert.Single(state.Events, item => item.Kind == "child_born").EventId,
             AboutAgentId: childId);
@@ -358,7 +358,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         var actor = birth.PrimaryCaregiverId;
         var reporter = nativeReporter ? birth.ChildId : state.Society.Society.Agents
             .First(person => person.Id != actor && person.Id.Length <= 128).Id;
-        var belief = new SocietyAgentBelief("reporter-belief", actor, "The family remembers a promise.",
+        var belief = new SocietyAgentBelief(Identity.Parse("reporter-belief"), actor, "The family remembers a promise.",
             SocietyBeliefProvenance.Hearsay, 6_500, state.Society.Society.WorldTick,
             SourceAgentId: reporter, AboutAgentId: reporter,
             SourceEventId: Assert.Single(state.Events, item => item.Kind == "child_born").EventId);
@@ -425,8 +425,8 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     internal static async Task WaitForRequests(WorldRuntime world, params Task[] additionalTasks)
     {
-        await ModelWorkHarness.WaitForExistingAsync(world, item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision);
-        await Task.WhenAll(additionalTasks);
+        await ModelWorkHarness.WaitForExistingAsync(world,
+            item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision, additionalTasks);
     }
 
     private static async Task<byte[]> CreateBornAsync()

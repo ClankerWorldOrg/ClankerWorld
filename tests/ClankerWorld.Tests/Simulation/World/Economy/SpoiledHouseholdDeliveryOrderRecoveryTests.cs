@@ -70,8 +70,8 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var final = world.ExportState();
         var finished = RecoveryFoodOrder(final, receipt.InstructionId);
         Assert.Equal(("finished", 1), (finished.Status, finished.CompletedUnits));
-        Assert.StartsWith("consume:", finished.LastEffectId);
-        Assert.InRange(finished.LastEffectId!.Length, 1, 512);
+        Assert.StartsWith("consume:", finished.LastEffectId?.Value);
+        Assert.InRange(finished.LastEffectId!.Value.Length, 1, 512);
         Assert.Contains(receipt.InstructionId, final.CompletedInstructionIds ?? []);
         Assert.Single(final.Events, item => item.Kind == "household_food_collected" &&
             item.Detail == $"{actor}:{UrgentRecoveryMeal}:1");
@@ -98,7 +98,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             var request = Assert.Single(provider.Requests);
             Assert.Null(request.OperativeOrderInstructionId);
             Assert.Contains(request.Candidates, candidate => candidate.Id == "recover_household_delivery");

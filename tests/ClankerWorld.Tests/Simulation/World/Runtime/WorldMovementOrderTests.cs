@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -361,7 +362,7 @@ public sealed partial class WorldRuntimeTests
             order with { RequestedUnits = 2 },
             order with { RepeatUntilCancelled = true },
             order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
+            order with { LastEffectId = Identity.Parse("invented") },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
             {

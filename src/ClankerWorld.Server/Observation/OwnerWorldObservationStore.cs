@@ -7,10 +7,9 @@ using ClankerWorld.Simulation.Kernel;
 namespace ClankerWorld.Server.Observation;
 
 /// <summary>
-/// Server-side projection of the world runtime and the fixture world. It converts the
-/// protected simulation records into stable view DTOs while retaining the
-/// distinction between the live fixture topology, cognition state, and paused
-/// authoring state.
+/// Server-side projection of the supported world runtime. It converts protected
+/// simulation records into stable owner views, including cognition and native
+/// world metadata.
 /// </summary>
 public sealed partial class OwnerWorldObservationStore
 {
@@ -244,7 +243,10 @@ public sealed partial class OwnerWorldObservationStore
                         HouseholdName(response.HouseholdId), response.AgentId, AgentName(response.AgentId), response.Kind, response.Tick,
                         response.PartyAdults.ToArray())).ToArray(), request.Status, request.SettledTick, request.Reason, request.Receipt?.AdjustmentId)
                 {
-                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity) : null,
+                    Price = request.Price is { } price ? new(price.SellerHouseholdId, HouseholdName(price.SellerHouseholdId), price.ItemKind, price.Quantity)
+                    {
+                        ItemName = GoodsNameText.ForQuantity(price.ItemKind, price.Quantity, state.Content),
+                    } : null,
                     Payment = request.Receipt?.Payment is { } payment ? new(payment.BuyerAgentId, AgentName(payment.BuyerAgentId),
                         payment.SellerAgentId, AgentName(payment.SellerAgentId), ToPosition(payment.Position), request.Receipt.Tick) : null
                 };
@@ -530,7 +532,8 @@ public sealed partial class OwnerWorldObservationStore
                 inventory.Where(item => item.Kind == "food").Sum(item => item.Quantity),
                 inventory.Where(item => item.Kind == "wood").Sum(item => item.Quantity));
         }
-        var jobs = state.WorldSimulation?.ProductionJobs.Concat(state.WorldSimulation.CropBuilds ?? []).ToArray() ?? [];
+        var jobs = state.WorldSimulation is { } jobSimulation
+            ? WorldHistory.ProductionJobsForInspection(jobSimulation) : [];
         var latestEventId = state.Events.Count == 0 ? 0 : state.Events[^1].EventId;
         var terrainUnchanged = state.Geography is not null &&
             string.Equals(knownTerrainWorldId, state.Society.Society.WorldId, StringComparison.Ordinal) &&
@@ -602,7 +605,10 @@ public sealed partial class OwnerWorldObservationStore
                 .OrderBy(group => group.Key.Position.Y).ThenBy(group => group.Key.Position.X)
                 .ThenBy(group => group.Key.ItemKind, StringComparer.Ordinal).ThenBy(group => group.Key.OwnerId, StringComparer.Ordinal)
                 .Select(group => new GroundStockView(new(group.Key.Position.X, group.Key.Position.Y), group.Key.OwnerId,
-                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))).ToArray(),
+                    group.Key.ItemKind, group.Sum(lot => lot.Quantity))
+                {
+                    OwnerName = MarketOwnerName(group.Key.OwnerId),
+                }).ToArray(),
             WrapsEastWest = state.Geography?.WrapEastWest == true,
             Generation = state.Geography is { } geography
                 ? new WorldGenerationView(geography.Seed, geography.Size.ToString(), geography.ClimateMode.ToString(),
@@ -1536,9 +1542,9 @@ public sealed partial class OwnerWorldObservationStore
     private static int LegacyTrustScore(WorldRuntimeState state, string ownerId, string subjectId) =>
         Math.Min(10, state.Society.Society.Memories.Where(memory => memory.OwnerId == ownerId &&
                 memory.SubjectId == subjectId && memory.TombstonedTick is null)
-            .Sum(memory => memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
-                : memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
+            .Sum(memory => memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal) ? 2
+                : memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ? 1 : 0));
 
     private static AgentRelationshipView[] RelationshipsFor(
         WorldRuntimeState state,
@@ -1571,11 +1577,7 @@ public sealed partial class OwnerWorldObservationStore
             { Returning: false, OutingPath.Count: > 0, Goal: { Kind: "resource", OrderInstructionId: { } id } goal } exploration ||
             exploration.OutingPath[^1] != physical.Position)
             return null;
-        var instruction = (state.Instructions ?? []).Where(item =>
-                item.TargetAgentId == physical.AgentId && item.Kind == OwnerInstructionKind.Order &&
-                item.Task is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" } &&
-                !(state.CompletedInstructionIds ?? []).Contains(item.InstructionId, StringComparer.Ordinal))
-            .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+        var instruction = WorldRuntime.FirstActiveOrderFor(state.Instructions ?? [], physical.AgentId);
         if (instruction is null || instruction.InstructionId != id || instruction.Task is not
             { Status: "doing", TargetResourceId: null, TargetPosition: null } order)
             return null;

@@ -11,7 +11,7 @@ namespace ClankerWorld.Tests;
 public sealed class TownDefaultEstateLawTests
 {
     private const string Town = "town:first";
-    private const string Author = "founder:00000000000000000000000000000001";
+    private const string Author = NormalPathWorld.Founder1;
     private static readonly string[] Adults = ["alice", "bob", "cara"];
 
     [Fact]

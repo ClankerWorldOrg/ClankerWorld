@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
@@ -289,8 +290,8 @@ public sealed partial class WorldStorageOrderTests
             valid with { TargetAgentId = Actor(state) },
             valid with { TargetPosition = new(10_000_001, 1) }, valid with { TargetResourceId = "tree" },
             valid with { RequestedUnits = 0 }, valid with { CompletedUnits = -1 },
-            valid with { ProgressUnit = "harvests" }, valid with { LastEffectId = "store:personal:unearned" },
-            valid with { CompletedUnits = 1, LastEffectId = "gather:material:wrong-action" },
+            valid with { ProgressUnit = "harvests" }, valid with { LastEffectId = Identity.Parse("store:personal:unearned") },
+            valid with { CompletedUnits = 1, LastEffectId = Identity.Parse("gather:material:wrong-action") },
         })
         {
             var corrupt = saved with
@@ -313,7 +314,7 @@ public sealed partial class WorldStorageOrderTests
         var receipt = Submit(world, actor, "long-lot", "store wood");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -437,7 +438,7 @@ public sealed partial class WorldStorageOrderTests
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
-            var invoked = await AwaitStorageSignal(provider.Invoked.Task, "receive the native request");
+            var invoked = await AwaitStorageSignal(world, provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
             Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
@@ -447,7 +448,7 @@ public sealed partial class WorldStorageOrderTests
             }
             Assert.Equal(firstFrame, WorldRuntimeCodec.Encode(world.ExportState()));
             entryGate.TrySetResult(true);
-            var started = await AwaitStorageSignal(provider.Started.Task, "validate and hold the operative request");
+            var started = await AwaitStorageSignal(world, provider.Started.Task, "validate and hold the operative request");
             Assert.Same(invoked.Observation, started);
             Assert.Same(started, Assert.Single(provider.Requests));
             // Existing chosen work can continue while a model waits. Keep the
@@ -456,7 +457,7 @@ public sealed partial class WorldStorageOrderTests
             Assert.Equal(1, Order(world, receipt).CompletedUnits);
             Assert.True(world.CancelOrder(new("cancel-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            var returned = await AwaitStorageSignal(provider.Returned.Task, "return the late reply");
+            var returned = await AwaitStorageSignal(world, provider.Returned.Task, "return the late reply");
             Assert.Equal(invoked.RequestId, returned.RequestId);
             Assert.Equal(actor, returned.AgentId);
             Assert.Equal(kind == "basket" ? "store_equipment" : "store_material", returned.SelectedCandidateId);
@@ -476,9 +477,9 @@ public sealed partial class WorldStorageOrderTests
         }
     }
 
-    private static async Task<T> AwaitStorageSignal<T>(Task<T> signal, string phase)
+    private static async Task<T> AwaitStorageSignal<T>(WorldRuntime world, Task<T> signal, string phase)
     {
-        try { return await signal; }
+        try { return await ModelWorkHarness.For(world).WaitAsync(signal); }
         catch (TimeoutException exception)
         {
             throw new TimeoutException($"The held storage provider did not {phase} within thirty seconds.", exception);

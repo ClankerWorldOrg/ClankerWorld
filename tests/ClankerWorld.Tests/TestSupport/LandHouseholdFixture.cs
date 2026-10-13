@@ -14,7 +14,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         WorldRuntimeState state, string actor, bool quietFirstRefusal = false, bool heldIdentityReply = false,
         bool cancelFoundReply = false)
     {
-        const string identityActor = "founder:00000000000000000000000000000001";
+        const string identityActor = NormalPathWorld.Founder1;
         var choices = new NativeLandFormationChoices(actor, quietFirstRefusal)
         { HeldIdentityId = heldIdentityReply ? identityActor : null, HoldFoundReply = cancelFoundReply };
         Func<WorldRuntime, Task> awaitRequests = WaitForTransferChoices;
@@ -65,7 +65,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                 if (cancelFoundReply && !foundCancellationChecked && world.PendingModelWork.FirstOrDefault(item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == actor) is { DecisionRequest: { } foundRequest } pending &&
                     foundRequest.Observation.Candidates.Any(candidate => candidate.Id == "household_found"))
                 {
-                    var offered = await choices.FoundCalled.Task;
+                    var offered = await ModelWorkHarness.For(world).WaitAsync(choices.FoundCalled.Task);
                     Assert.Equal(foundRequest.RequestId, offered.RequestId);
                     Assert.Equal(actor, offered.Observation.AgentId);
                     Assert.Null(world.Society.GetAgent(actor).HouseholdId);
@@ -74,7 +74,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     world.Resume();
                     var cancelledState = WorldRuntimeCodec.Encode(world.ExportState());
                     var cancelledCheckpoint = File.ReadAllBytes(file.Path);
-                    try { await task; }
+                    try { await ModelWorkHarness.For(world).WaitAsync(task); }
                     finally { choices.ReleaseFound.TrySetResult(); }
                     Assert.Equal(cancelledState, WorldRuntimeCodec.Encode(world.ExportState()));
                     Assert.Equal(cancelledCheckpoint, File.ReadAllBytes(file.Path));
@@ -86,7 +86,7 @@ public sealed partial class GrownAgentHelperMemoryTests
                     .Any(moment => moment.Outcome == "requested") == true)
                 {
                     await WaitForRequests(world);
-                    var identity = await choices.IdentityCalled.Task;
+                    var identity = await ModelWorkHarness.For(world).WaitAsync(choices.IdentityCalled.Task);
                     Assert.Equal(identityActor, identity.Observation.AgentId);
                     Assert.NotNull(identity.Observation.IdentityMoment);
                     var heldState = WorldRuntimeCodec.Encode(world.ExportState());

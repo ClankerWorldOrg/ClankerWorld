@@ -19,14 +19,14 @@ public static class TownNonLandValidation
         // Establish the shape of every file before any cross-case reference lookup.
         foreach (var item in state.Cases) Shape(item);
         foreach (var offer in state.Offers)
-            Check(TownHearingProcedure.DerivedIdentity(offer.Id) && TownHearingProcedure.DerivedIdentity(offer.CaseId) && TownHearingProcedure.DerivedIdentity(offer.FindingId) && TownRemedyRules.ValidTerms(offer.Terms) &&
+            Check(IdentityRules.Reference(offer.Id, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(offer.CaseId, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(offer.FindingId, DerivedId.MaximumLength, requireTrimmed: true) && TownRemedyRules.ValidTerms(offer.Terms) &&
                 offer.Responses is not null && offer.Responses.All(r => r is not null), "A remedy offer must retain its typed terms and responses.");
         foreach (var agreement in state.Agreements)
-            Check(TownHearingProcedure.DerivedIdentity(agreement.Id) && TownHearingProcedure.DerivedIdentity(agreement.OfferId) && TownRemedyRules.ValidTerms(agreement.Terms) &&
+            Check(IdentityRules.Reference(agreement.Id, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(agreement.OfferId, DerivedId.MaximumLength, requireTrimmed: true) && TownRemedyRules.ValidTerms(agreement.Terms) &&
                 agreement.Consents is not null && agreement.Consents.All(r => r is not null), "An agreement must retain its terms and personal consents.");
         foreach (var effect in state.Effects)
-            Check(TownHearingProcedure.DerivedIdentity(effect.Id) && TownHearingProcedure.DerivedIdentity(effect.AgreementId) && Id(effect.TermId) && Id(effect.ActorId) &&
-                Id(effect.NativeReceiptId) && Id(effect.NativeReceiptVersion), "A remedy effect needs actual named physical provenance.");
+            Check(IdentityRules.Reference(effect.Id, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(effect.AgreementId, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(effect.TermId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(effect.ActorId, int.MaxValue, requireTrimmed: true) &&
+IdentityRules.Reference(effect.NativeReceiptId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(effect.NativeReceiptVersion, int.MaxValue, requireTrimmed: true), "A remedy effect needs actual named physical provenance.");
         Unique(state.Cases.Select(c => c.Key));
         Unique(state.Cases.Select(c => c.Id).Concat(state.Cases.SelectMany(c => c.Findings.Select(f => f.Id)))
             .Concat(state.Cases.SelectMany(c => c.ReopenRequests.Select(r => r.Id))).Concat(state.Offers.Select(o => o.Id))
@@ -53,17 +53,17 @@ public static class TownNonLandValidation
 
     private static void Shape(TownNonLandCase item)
     {
-        Check(TownHearingProcedure.DerivedIdentity(item.Id) && Id(item.Key) && Id(item.TownId) && TownNonLandRules.ValidAllegation(item.Allegation) &&
+        Check(IdentityRules.Reference(item.Id, DerivedId.MaximumLength, requireTrimmed: true) && IdentityRules.Reference(item.Key, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(item.TownId, int.MaxValue, requireTrimmed: true) && TownNonLandRules.ValidAllegation(item.Allegation) &&
             item.Revisions is { Count: > 0 } && item.Filings is { Count: > 0 } && item.Evidence is not null && item.Reads is not null &&
             item.Responses is not null && item.Findings is not null && item.JudgeHistory is not null && item.JudgeConsents is not null &&
             item.ContestHistory is not null && item.ReopenRequests is not null && Canonical(item.DirectStakeIds), "A case must retain its complete file.");
         Check(item.Revisions.All(r => r is not null && TownNonLandRules.ValidParties(r.Parties)) &&
             item.Filings.All(f => f is not null && f.EvidenceIds is not null) &&
             item.Evidence.All(e => e is not null) && item.Reads.All(r => r is not null && r.EvidenceIds is not null && r.ReopenRequestIds is not null && r.ResponseIds is not null && r.FindingIds is not null) &&
-            item.Responses.All(r => r is not null) && item.Findings.All(f => f is not null && TownHearingProcedure.DerivedIdentity(f.Id) && f.Judge is not null &&
+            item.Responses.All(r => r is not null) && item.Findings.All(f => f is not null && IdentityRules.Reference(f.Id, DerivedId.MaximumLength, requireTrimmed: true) && f.Judge is not null &&
                 f.EvidenceIds is not null && TownNonLandRules.ValidParties(f.Parties)) &&
             item.JudgeHistory.All(h => h is not null && h.Judge is not null) && item.JudgeConsents.All(c => c is not null) &&
-            item.ContestHistory.All(c => c is not null) && item.ReopenRequests.All(r => r is not null && TownHearingProcedure.DerivedIdentity(r.Id) && r.EvidenceIds is not null),
+            item.ContestHistory.All(c => c is not null) && item.ReopenRequests.All(r => r is not null && IdentityRules.Reference(r.Id, DerivedId.MaximumLength, requireTrimmed: true) && r.EvidenceIds is not null),
             "A nonviolent case cannot contain incomplete file entries.");
     }
 
@@ -93,7 +93,7 @@ public static class TownNonLandValidation
         foreach (var revision in item.Revisions)
         {
             Check(revision.PublishedTick >= item.FiledTick && revision.PublishedTick <= tick &&
-                revision.DeadlineTick >= revision.PublishedTick && revision.DeadlineTick - revision.PublishedTick == day && Id(revision.NoticeId) &&
+                revision.DeadlineTick >= revision.PublishedTick && revision.DeadlineTick - revision.PublishedTick == day && IdentityRules.Reference(revision.NoticeId, int.MaxValue, requireTrimmed: true) &&
                 town.Council?.Notices.Any(n => n.Id == revision.NoticeId && n.Kind == "law_case" &&
                     n.SubjectId == DerivedId.Create(item.Id + ":" + revision.Number.ToString(CultureInfo.InvariantCulture)) && n.PostedTick == revision.PublishedTick) == true,
                 "A hearing needs its actual published notice and a complete response day.");
@@ -102,8 +102,8 @@ public static class TownNonLandValidation
         }
         Check(item.DirectStakeIds.All(people.ContainsKey), "Direct stakes must name known people.");
         foreach (var filing in item.Filings)
-            Check(Id(filing.AgentId) && people.ContainsKey(filing.AgentId) && filing.Kind is "witness" or "affected" or "town" &&
-                Text(filing.Statement) && filing.Tick >= item.FiledTick && filing.Tick <= tick && Canonical(filing.EvidenceIds) &&
+            Check(IdentityRules.Reference(filing.AgentId, int.MaxValue, requireTrimmed: true) && people.ContainsKey(filing.AgentId) && filing.Kind is "witness" or "affected" or "town" &&
+BoundedText.IsValid(filing.Statement, 1024, requireTrimmed: true) && filing.Tick >= item.FiledTick && filing.Tick <= tick && Canonical(filing.EvidenceIds) &&
                 (filing.Kind != "town" || ValidTownFiling(town, item, filing)), "A filing must retain a specific informed reporter and source.");
         Unique(item.Evidence.Select(e => e.Id));
         foreach (var evidence in item.Evidence)
@@ -117,14 +117,14 @@ public static class TownNonLandValidation
             var revision = item.Revisions.SingleOrDefault(r => r.Number == response.Revision);
             var party = revision?.Parties.SingleOrDefault(p => p.Id == response.PartyId);
             Check(revision is not null && party is not null && response.AgentId == party.RespondingAdultId && response.RepresentedAgentId == party.SubjectId &&
-                response.Kind is "answer" or "waive" && Text(response.Text) && response.Tick <= tick &&
+                response.Kind is "answer" or "waive" && BoundedText.IsValid(response.Text, 1024, requireTrimmed: true) && response.Tick <= tick &&
                 TownNonLandRules.HasNoticeReceipt(revision, response.AgentId, response.Tick, town.Council!.Knowledge),
                 "A response must belong to the noticed person or their recorded caregiver support.");
         }
         for (var index = 0; index < item.Reads.Count; index++)
         {
             var read = item.Reads[index];
-            Check(Id(read.AgentId) && people.ContainsKey(read.AgentId) && read.ReadTick <= tick && Canonical(read.EvidenceIds) && Canonical(read.ReopenRequestIds) && Canonical(read.ResponseIds) && Canonical(read.FindingIds) &&
+            Check(IdentityRules.Reference(read.AgentId, int.MaxValue, requireTrimmed: true) && people.ContainsKey(read.AgentId) && read.ReadTick <= tick && Canonical(read.EvidenceIds) && Canonical(read.ReopenRequestIds) && Canonical(read.ResponseIds) && Canonical(read.FindingIds) &&
                 item.Revisions.Any(r => r.Number == read.Revision && r.PublishedTick <= read.ReadTick) &&
                 read.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= read.ReadTick)) &&
                 read.ReopenRequestIds.All(id => item.ReopenRequests.Any(r => r.Id == id && r.Tick <= read.ReadTick)) &&
@@ -143,7 +143,7 @@ public static class TownNonLandValidation
         }
         Check(OrderedTimes(item.Reads.Select(r => r.ReadTick)), "File reads must preserve their chronology.");
         foreach (var consent in item.JudgeConsents)
-            Check(Id(consent.AgentId) && people.ContainsKey(consent.AgentId) && consent.Tick >= item.FiledTick && consent.Tick <= tick &&
+            Check(IdentityRules.Reference(consent.AgentId, int.MaxValue, requireTrimmed: true) && people.ContainsKey(consent.AgentId) && consent.Tick >= item.FiledTick && consent.Tick <= tick &&
                 (consent.WithdrawnTick is null || consent.WithdrawnTick >= consent.Tick && consent.WithdrawnTick <= tick), "A case judge needs their own recorded willingness.");
         Unique(item.JudgeConsents.Where(c => c.WithdrawnTick is null).Select(c => c.AgentId));
         foreach (var contest in item.ContestHistory.Concat(item.Contest is { } live ? [live] : []))
@@ -162,7 +162,7 @@ public static class TownNonLandValidation
         }
         foreach (var term in item.JudgeHistory)
         {
-            Check(term.EndedTick >= term.Judge.AssignedTick && term.EndedTick <= tick && Text(term.Reason), "An ended assignment must retain its actual end and reason.");
+            Check(term.EndedTick >= term.Judge.AssignedTick && term.EndedTick <= tick && BoundedText.IsValid(term.Reason, 1024, requireTrimmed: true), "An ended assignment must retain its actual end and reason.");
             ValidateJudge(term.Judge, item, town.Government, people, term.Judge.AssignedTick);
         }
         foreach (var finding in item.Findings) ValidateFinding(town, item, finding, people, households, society);
@@ -170,12 +170,12 @@ public static class TownNonLandValidation
             "A settled case must retain its finding; reopening keeps prior findings without a false settlement time.");
         foreach (var request in item.ReopenRequests)
         {
-            Check(Id(request.AgentId) && people.ContainsKey(request.AgentId) && request.Tick >= item.FiledTick && request.Tick <= tick &&
+            Check(IdentityRules.Reference(request.AgentId, int.MaxValue, requireTrimmed: true) && people.ContainsKey(request.AgentId) && request.Tick >= item.FiledTick && request.Tick <= tick &&
                 request.Kind is "material_evidence" or "procedural_error" && request.Status is "pending" or "accepted" or "rejected" &&
-                Text(request.Reasons) && Canonical(request.EvidenceIds) && request.EvidenceIds.Count > 0 &&
+BoundedText.IsValid(request.Reasons, 1024, requireTrimmed: true) && Canonical(request.EvidenceIds) && request.EvidenceIds.Count > 0 &&
                 request.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= request.Tick)), "A reopening request must identify real submitted grounds.");
             Check(request.Status == "pending" ? request.AssessedBy is null && request.AssessedTick is null && request.Assessment is null :
-                request.AssessedBy is not null && request.AssessedTick >= request.Tick && request.AssessedTick <= tick && Text(request.Assessment),
+                request.AssessedBy is not null && request.AssessedTick >= request.Tick && request.AssessedTick <= tick && BoundedText.IsValid(request.Assessment, 1024, requireTrimmed: true),
                 "A reopening assessment needs its actual judge, time and reasons.");
             if (request.AssessedBy is { } assessor)
             {
@@ -207,7 +207,7 @@ public static class TownNonLandValidation
                 (authority is null || o.ElectionId == authority) && o.StartTick <= tick && o.EndTick >= tick));
 
     private static bool ValidTownFiling(TownRuntimeState town, TownNonLandCase item, TownViolationFiling filing) =>
-        Id(filing.AuthorityId) && (OrdinaryMayorAt(town, filing.AgentId, filing.AuthorityId, filing.Tick) ||
+IdentityRules.Reference(filing.AuthorityId, int.MaxValue, requireTrimmed: true) && (OrdinaryMayorAt(town, filing.AgentId, filing.AuthorityId, filing.Tick) ||
             town.Council?.Proposals.Any(p => p.Id == filing.AuthorityId && p.Kind == "law_case" && p.Status == "passed" &&
                 p.AuthorId == filing.AgentId && p.SettledTick <= filing.Tick && p.NonLandRequest is { } request &&
                 TownNonLandRules.CaseKey(town.Id, request.Allegation) == item.Key) == true);
@@ -229,7 +229,7 @@ public static class TownNonLandValidation
         var revision = item.Revisions.SingleOrDefault(r => r.Number == finding.Revision);
         Check(revision is not null && finding.Tick >= revision.PublishedTick && finding.Tick <= society.WorldTick &&
             finding.Result is "supported" or "unsupported" && finding.Standard == TownNonLandRules.CivilStandard &&
-            finding.Consequence is "none" or "explanation" or "warning" or "censure" && Text(finding.Reasons) && Text(finding.Uncertainty) &&
+            finding.Consequence is "none" or "explanation" or "warning" or "censure" && BoundedText.IsValid(finding.Reasons, 1024, requireTrimmed: true) && BoundedText.IsValid(finding.Uncertainty, 1024, requireTrimmed: true) &&
             Canonical(finding.EvidenceIds) && finding.EvidenceIds.All(id => item.Evidence.Any(e => e.Id == id && e.SubmittedTick <= finding.Tick)),
             "A finding requires its noticed case, civil standard, sources, reasons and uncertainty.");
         ValidateParties(finding.Parties, people, households, society);
@@ -255,7 +255,7 @@ public static class TownNonLandValidation
     private static void ValidateJudge(TownCaseJudge judge, TownNonLandCase item, TownGovernmentState? government,
         Dictionary<string, SocietyAgent> people, long at)
     {
-        Check(Id(judge.AuthorityId) && Id(judge.AgentId) && people.ContainsKey(judge.AgentId) && judge.AssignedTick >= item.FiledTick && judge.AssignedTick <= at &&
+        Check(IdentityRules.Reference(judge.AuthorityId, int.MaxValue, requireTrimmed: true) && IdentityRules.Reference(judge.AgentId, int.MaxValue, requireTrimmed: true) && people.ContainsKey(judge.AgentId) && judge.AssignedTick >= item.FiledTick && judge.AssignedTick <= at &&
             government is not null && TownGovernmentRules.NonLandScopeAt(government, at, includeEndingTick: true) &&
             (judge.Kind == "non_land_mayor" ? TownGovernmentRules.NonLandAuthorityAt(government, judge.AgentId, judge.AuthorityId, at) :
                 judge.Kind == "case_elected" && item.ContestHistory.Any(c => c.Id == judge.AuthorityId && c.Stage == "completed" &&
@@ -266,7 +266,7 @@ public static class TownNonLandValidation
     private static void ValidateContest(TownCaseJudgeContest contest, TownNonLandCase item,
         Dictionary<string, SocietyAgent> people, long tick, int day, bool live)
     {
-        Check(TownHearingProcedure.DerivedIdentity(contest.Id) && contest.Stage is "waiting" or "voting" or "completed" or "failed" or "cancelled" &&
+        Check(IdentityRules.Reference(contest.Id, DerivedId.MaximumLength, requireTrimmed: true) && contest.Stage is "waiting" or "voting" or "completed" or "failed" or "cancelled" &&
             live == (contest.Stage is "waiting" or "voting") && contest.OpenedTick >= item.FiledTick && contest.OpenedTick <= tick &&
             contest.Voters is not null && contest.Candidates is not null && contest.Ballots is not null && contest.TiedCandidates is not null &&
             contest.Rounds is not null && contest.Rounds.All(r => r is not null), "A case election must retain its real rounds and status.");
@@ -292,7 +292,7 @@ public static class TownNonLandValidation
             if (r.Result == "tie") { Check(top.Length > 1 && r.TiedCandidates.SequenceEqual(top), "A saved tie requires actual tied votes."); tied = top; }
             if (r.Result == "winner") Check(top.Length == 1 && top[0] == contest.WinnerId, "A case winner needs a unique positive vote count.");
         }
-        Check(contest.Stage != "completed" || contest.Rounds.Count > 0 && contest.Rounds[^1].Result == "winner" && contest.WinnerId is { } winner && Id(winner) && people.ContainsKey(winner), "A completed case election needs its actual winner.");
+        Check(contest.Stage != "completed" || contest.Rounds.Count > 0 && contest.Rounds[^1].Result == "winner" && contest.WinnerId is { } winner && IdentityRules.Reference(winner, int.MaxValue, requireTrimmed: true) && people.ContainsKey(winner), "A completed case election needs its actual winner.");
     }
 
     private static void ValidateOffer(TownNonLandHearingState state, TownRuntimeState town, TownRemedyOffer offer,
@@ -302,7 +302,7 @@ public static class TownNonLandValidation
         var finding = item?.Findings.SingleOrDefault(f => f.Id == offer.FindingId);
         Check(finding is { Result: "supported" } && offer.PublishedTick >= finding.Tick && offer.PublishedTick <= tick &&
             offer.Revision > 0 && offer.ResponseDeadlineTick >= offer.PublishedTick && offer.ResponseDeadlineTick - offer.PublishedTick == day && offer.CompletionTicks > 0 &&
-            offer.TermsHash == TownRemedyRules.TermsHash(offer.Terms, offer.CompletionTicks) && Text(offer.Reason) &&
+            offer.TermsHash == TownRemedyRules.TermsHash(offer.Terms, offer.CompletionTicks) && BoundedText.IsValid(offer.Reason, 1024, requireTrimmed: true) &&
             offer.Status is "pending" or "accepted" or "declined" or "unanswered" or "countered" or "superseded" &&
             offer.Terms.All(t => people.ContainsKey(t.ContributorId)) &&
             town.Council?.Notices.Any(n => n.Id == offer.NoticeId && n.Kind == "remedy" && n.SubjectId == offer.Id && n.PostedTick == offer.PublishedTick) == true,
@@ -355,10 +355,8 @@ public static class TownNonLandValidation
     private static bool Ballots(IReadOnlyList<string> voters, IReadOnlyList<string> candidates, IReadOnlyList<TownMayoralBallot>? ballots) =>
         ballots is not null && ballots.All(b => b is not null && voters.Contains(b.AgentId) && candidates.Contains(b.CandidateId)) &&
         ballots.Select(b => b.AgentId).Distinct(StringComparer.Ordinal).Count() == ballots.Count;
-    private static bool Id(string? value) => TownHearingProcedure.Id(value);
-    private static bool Text(string? value) => TownHearingProcedure.Text(value);
-    private static bool Canonical(IReadOnlyList<string>? values) => values is not null && values.All(Id) && values.SequenceEqual(TownHearingProcedure.Ordered(values));
+    private static bool Canonical(IReadOnlyList<string>? values) => values is not null && values.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && values.SequenceEqual(TownHearingProcedure.Ordered(values));
     private static bool OrderedTimes(IEnumerable<long> values) => values.SequenceEqual(values.Order());
-    private static void Unique(IEnumerable<string> values) { var all = values.ToArray(); Check(all.All(Id) && all.Distinct(StringComparer.Ordinal).Count() == all.Length, "Saved civil record identities must be unique."); }
+    private static void Unique(IEnumerable<string> values) { var all = values.ToArray(); Check(all.All(id => IdentityRules.Reference(id, requireTrimmed: true)) && all.Distinct(StringComparer.Ordinal).Count() == all.Length, "Saved civil record identities must be unique."); }
     private static void Check([DoesNotReturnIf(false)] bool valid, string reason) { if (!valid) throw new InvalidDataException(reason); }
 }

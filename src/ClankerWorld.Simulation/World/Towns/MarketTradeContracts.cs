@@ -55,7 +55,7 @@ public static class MarketTradeValidation
             foreach (var market in town.Markets)
             {
                 if (market is null || !markets.Add(market.Id) || market.Id != MarketContent.MarketId(market.ProjectId) ||
-                    !Bounded(market.HallBuildingId, 512) || market.Stalls is null || market.Occupancies is null ||
+                    !BoundedText.IsValid(market.HallBuildingId, 512, requireTrimmed: true) || market.Stalls is null || market.Occupancies is null ||
                     market.StockReceipts is null || market.Trades is null ||
                     market.Stalls.Any(item => item is null) || market.Occupancies.Any(item => item is null) ||
                     market.StockReceipts.Any(item => item is null) || market.Trades.Any(item => item is null) ||
@@ -78,7 +78,7 @@ public static class MarketTradeValidation
                 foreach (var stall in market.Stalls)
                 {
                     if (stall is null || !stalls.Add(stall.BuildingId) || stall.SlotIndex is < 0 or >= MarketContent.MaximumStalls ||
-                        !Bounded(stall.ProjectId, 512) || stall.BuiltTick < 0 || stall.BuiltTick > worldTick ||
+                        !BoundedText.IsValid(stall.ProjectId, 512, requireTrimmed: true) || stall.BuiltTick < 0 || stall.BuiltTick > worldTick ||
                         stall.RemovedTick is { } removed && (removed < stall.BuiltTick || removed > worldTick))
                         throw Invalid("A Market stall has invalid paid-building identity or lifetime.");
                     var position = MarketContent.StallSite(market.Site, stall.SlotIndex);
@@ -95,13 +95,13 @@ public static class MarketTradeValidation
                 }
                 foreach (var occupancy in market.Occupancies)
                 {
-                    if (occupancy is null || !occupancies.Add(occupancy.Id) || !Bounded(occupancy.Id, 128) ||
+                    if (occupancy is null || !occupancies.Add(occupancy.Id) || !BoundedText.IsValid(occupancy.Id, 128, requireTrimmed: true) ||
                         !market.Stalls.Any(stall => stall.BuildingId == occupancy.StallBuildingId) ||
                         !people.Contains(occupancy.SellerAgentId) || !households.Contains(occupancy.SellerHouseholdId) ||
                         occupancy.StartedTick < 0 || occupancy.StartedTick > worldTick ||
                         occupancy.EndedTick is { } ended && (ended < occupancy.StartedTick || ended > worldTick) ||
                         (occupancy.EndedTick is null) != (occupancy.ReleaseReason is null) ||
-                        occupancy.ReleaseReason is { } reason && !Bounded(reason, 160))
+                        occupancy.ReleaseReason is { } reason && !BoundedText.IsValid(reason, 160, requireTrimmed: true))
                         throw Invalid("A retained Market borrowing record is malformed.");
                     if (occupancy.EndedTick is null)
                     {
@@ -135,7 +135,7 @@ public static class MarketTradeValidation
                         receipt.OwnerId != occupancy.SellerAgentId && receipt.OwnerId != occupancy.SellerHouseholdId ||
                         // Native inventory splits and moves retain their full lot lineage.
                         // Validate the complete references against the exact deposit below.
-                        !Bounded(receipt.SourceLotId, int.MaxValue) || !Bounded(receipt.LotId, int.MaxValue) || !ResourceKind(receipt.ItemKind) ||
+                        !BoundedText.IsValid(receipt.SourceLotId, int.MaxValue, requireTrimmed: true) || !BoundedText.IsValid(receipt.LotId, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(receipt.ItemKind, int.MaxValue, requireTrimmed: true) ||
                         receipt.Quantity is <= 0 or > MarketTradeRules.LoadQuantity ||
                         receipt.DepositedTick < occupancy.StartedTick || receipt.DepositedTick > worldTick ||
                         occupancy.EndedTick is { } endedAt && receipt.DepositedTick > endedAt ||
@@ -180,7 +180,7 @@ public static class MarketTradeValidation
                         trade.Position != MarketContent.StallSite(market.Site, stall.SlotIndex) ||
                         trade.ProposedTick < occupancy.StartedTick || trade.ProposedTick > worldTick ||
                         occupancy.EndedTick is { } end && trade.ProposedTick > end ||
-                        !ResourceKind(trade.GoodsKind) || !ResourceKind(trade.PaymentKind) || trade.GoodsKind == trade.PaymentKind ||
+                        !IdentityRules.Reference(trade.GoodsKind, int.MaxValue, requireTrimmed: true) || !IdentityRules.Reference(trade.PaymentKind, int.MaxValue, requireTrimmed: true) || trade.GoodsKind == trade.PaymentKind ||
                         trade.StockReceiptSequence < 0 || trade.StockReceiptSequence >= market.NextStockReceiptSequence ||
                         offer.Revision != 1 || offer.FirstPartyId != trade.GoodsOwnerId || offer.SecondPartyId != trade.BuyerId ||
                         offer.FirstQuantity != 1 || offer.SecondQuantity != 1 ||
@@ -224,7 +224,7 @@ public static class MarketTradeValidation
                             market.StockReceipts.Count(receipt => receipt.TradeOfferId == offer.Id) != 1)
                             throw Invalid("A settled Market trade must keep both acceptances and its physical household payment.");
                     }
-                    else if (trade.SettledTick is not null || !Bounded(trade.CancellationReason, 160) ||
+                    else if (trade.SettledTick is not null || !BoundedText.IsValid(trade.CancellationReason, 160, requireTrimmed: true) ||
                         !offer.AcceptedBy.SequenceEqual([trade.BuyerId], StringComparer.Ordinal))
                         throw Invalid("A cancelled Market trade must retain its refusal and release exact claims.");
                 }
@@ -234,13 +234,6 @@ public static class MarketTradeValidation
             !trades.Contains(offer.Id)))
             throw Invalid("A Market offer is missing its named physical stall binding.");
     }
-
-    // Match accepted inventory/content identities without shortening them in trade history.
-    private static bool ResourceKind(string? value) => value is { Length: > 0 } &&
-        value == value.Trim() && !value.Any(char.IsControl);
-
-    private static bool Bounded(string? value, int maximum) => value is { Length: > 0 } &&
-        value.Length <= maximum && value == value.Trim() && !value.Any(char.IsControl);
 
     private static InvalidDataException Invalid(string detail) => new(detail);
 }

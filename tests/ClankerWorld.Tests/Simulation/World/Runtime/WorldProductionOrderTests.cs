@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -11,7 +12,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class WorldProductionOrderTests
+public sealed partial class WorldProductionOrderTests
 {
     private const string Household = "household:first";
     private const string House = "first-town-house-a";
@@ -405,14 +406,14 @@ public sealed class WorldProductionOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             for (var tick = 0; tick < 20 && world.WorldSimulation.ProductionJobs.Count == 0; tick++)
                 Assert.True((await world.TickModelWorkAsync()).Advanced);
             var job = Assert.Single(world.WorldSimulation.ProductionJobs);
             Assert.True(world.CancelOrder(new("stop-held-production", "owner:test", world.Society.WorldId,
                 actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             while (world.WorldTick <= job.CompletionTick + 2)
                 Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -440,7 +441,7 @@ public sealed class WorldProductionOrderTests
             order with
             {
                 CompletedUnits = 1,
-                LastEffectId = "produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId))),
+                LastEffectId = Identity.Parse("produce:job:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(job.JobId)))),
             },
             order with { ProductionJobId = "production-9999999999" },
             order with { ProductionBuildingId = Shop },

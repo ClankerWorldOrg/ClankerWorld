@@ -48,7 +48,7 @@ public sealed partial class WorldShelterOrderTests
         var proof = Assert.IsType<OwnerShelterCompletion>(Order(world, receipt).ShelterCompletion);
         Assert.Equal((world.WorldTick, home.Position), (proof.WorldTick, proof.Position));
         Assert.Null(proof.FuelReservationId);
-        Assert.NotEmpty(Order(world, receipt).LastEffectId!);
+        Assert.NotEmpty(Order(world, receipt).LastEffectId!.Value);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "age_action_rejected");
         await TickTogether(world, replay);
         Assert.Equal(proof, Order(world, receipt).ShelterCompletion);

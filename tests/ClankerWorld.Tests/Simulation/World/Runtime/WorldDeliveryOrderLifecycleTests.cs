@@ -161,10 +161,10 @@ public sealed partial class WorldDeliveryOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("cancel-held-delivery", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             for (var tick = 0; tick < 4; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Null(Order(world, receipt).LastEffectId);

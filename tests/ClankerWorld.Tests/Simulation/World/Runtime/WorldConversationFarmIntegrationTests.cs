@@ -23,7 +23,7 @@ public sealed partial class WorldConversationTests
             id => id == farmer || id == other ? speaker : idle);
         var harness = ModelWorkHarness.For(world);
         world.Resume();
-        using var deadline = new CancellationTokenSource();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         // Await fresh resume decisions before advancing more work. A farmer who
         // has agreed may otherwise keep working while the other reply is pending.
         while (world.Conversations.Single().Status != AgentConversationStatus.AwaitingSpeaker)
@@ -37,7 +37,6 @@ public sealed partial class WorldConversationTests
         for (var tick = 0; tick < 3; tick++)
         {
             Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
-            await ModelWorkHarness.For(world).SettleAsync();
             Assert.Equal(remaining, Assert.Single(world.Fields).Work!.RemainingTicks);
         }
 
@@ -49,7 +48,6 @@ public sealed partial class WorldConversationTests
                 ? await world.AdvanceOneTickAsync(deadline.Token)
                 : await world.TickModelWorkAsync(cancellationToken: deadline.Token);
             Assert.True(step.Advanced);
-            await ModelWorkHarness.For(world).SettleAsync();
             if (world.Conversations.Single().Status is AgentConversationStatus.Ready or
                 AgentConversationStatus.AwaitingSpeaker or AgentConversationStatus.WrapUp)
                 Assert.Equal<int?>(remaining, Assert.Single(world.Fields).Work?.RemainingTicks);
@@ -79,7 +77,6 @@ public sealed partial class WorldConversationTests
         for (var tick = 0; tick < 20 && world.Conversations.Single().Status != AgentConversationStatus.AwaitingSpeaker; tick++)
         {
             _ = await world.TickModelWorkAsync();
-            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, world.Conversations.Single().Status);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
