@@ -480,7 +480,7 @@ public sealed partial class WorldRuntime
             throw new InvalidDataException($"World schema {ConversationSchemaVersion} requires conversation state and daily budgets.");
         if (state.SchemaVersion >= OrderLifecycleSchemaVersion && state.OrderCancellations is null)
             throw new InvalidDataException($"World schema {OrderLifecycleSchemaVersion} requires order-cancellation retry state.");
-        var hasArchivedEvents = state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
+        var hasArchivedEvents = WorldHistory.RequiredRecordCounts(state).Count > 0 || state.EventHistoryFloor > 0 || state.Society.Society.EventHistoryFloor > 0 ||
             state.Society.Society.Inventory.EventHistoryFloor > 0 || state.Society.Cognition.EventHistoryFloor > 0 ||
             state.Society.Cognition.Runtimes.Any(runtime => runtime.EventHistoryFloor > 0);
         if ((hasArchivedEvents && state.HistoryArchiveHead is null) ||

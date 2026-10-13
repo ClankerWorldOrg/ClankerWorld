@@ -1,4 +1,5 @@
 using ClankerWorld.Simulation.Kernel;
+using System.Text.Json.Serialization;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -25,6 +26,9 @@ public sealed record TownCouncilState(string Form, string Fallback, long Revisio
     TownElection? Election, IReadOnlyList<TownElection> ElectionHistory,
     IReadOnlyList<TownCivicNotice> Notices, IReadOnlyList<TownCivicReceipt> Knowledge)
 {
+    [JsonRequired] public long ArchivedElectionCount { get; init; }
+    [JsonRequired] public long ArchivedNoticeCount { get; init; }
+
     public static TownCouncilState Create(IEnumerable<string> adults) =>
         new("all_adult", "initial", 0, TownCouncilRules.Ordered(adults), null, 0, "", 0,
             [], [], null, [], [], []);
@@ -416,9 +420,12 @@ public static class TownCouncilRules
     public static TownCouncilState PostNotice(TownCouncilState state, string kind, string subject, string text, long tick) =>
         Notice(state, kind, subject, text, tick);
 
+    public static long NextNoticeSequence(TownCouncilState state) => checked(state.ArchivedNoticeCount + state.Notices.Count + 1);
+    public static string NextNoticeId(TownCouncilState state) => "notice:" + NextNoticeSequence(state).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
     private static TownCouncilState Notice(TownCouncilState state, string kind, string subject, string text, long tick)
     {
-        var id = "notice:" + (state.Notices.Count + 1);
+        var id = NextNoticeId(state);
         return state with { Notices = state.Notices.Append(new TownCivicNotice(id, kind, subject, text, tick)).ToArray() };
     }
 
