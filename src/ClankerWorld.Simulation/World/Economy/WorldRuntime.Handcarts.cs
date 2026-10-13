@@ -10,14 +10,13 @@ public sealed record HandcartHitch(string CartLotId, string PullerId);
 public sealed partial class WorldRuntime
 {
     private static readonly string[] CartRepairKinds = ["wood", "iron_fittings", "rope"];
-    private const string AttachCartPrefix = "attach_handcart:";
+    private const string AttachCartPrefix = HandcartControlChoice.AttachPrefix;
     private const string LoadCartPrefix = "load_handcart:";
     private const string UnloadCartPrefix = "unload_handcart:";
     private const string UnloadCartGroundPrefix = "unload_handcart_ground:";
     private const string CollectCartMaterialPrefix = "collect_handcart_material:";
     private const string CollectCartRepairPrefix = "collect_handcart_repair:";
     private const string RepairCartPrefix = "repair_handcart:";
-    private const string TransferCartPrefix = "give_handcart:";
     private const string PullCartPrefix = "pull_handcart:";
     // Generic cart controls have no delivery intention. Keep them selectable by models without
     // letting the built-in chooser shuffle goods or pull between arbitrary buildings ahead of safe idle.
@@ -181,18 +180,14 @@ public sealed partial class WorldRuntime
         }
         if (AttachedHandcart(actor) is null && !animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor))
         {
-            foreach (var cart in inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                         lot.OwnerId == actor && CanPullHandcart(lot)).OrderBy(lot => lot.Id, StringComparer.Ordinal))
-            {
-                var position = new GridPoint(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y);
-                if (position == person.Position || FindUnoccupiedRoute(actor, person.Position, position, 0).Count > 0)
-                    candidates.Add(new(AttachCartPrefix + cart.Id,
-                        "Reach and attach your parked handcart to carry a larger load.", UnassignedCartPriority));
-            }
+            foreach (var cart in HandcartControlStock(actor))
+                AddHandcartControlCandidate(candidates, PlanHandcartControl(actor, new(HandcartControlKind.Attach, cart.Id), cart),
+                    "Reach and attach your parked handcart to carry a larger load.");
         }
         else if (AttachedHandcart(actor) is not null)
         {
-            candidates.Add(new("park_handcart", "Park the handcart here with its cargo kept inside.", UnassignedCartPriority));
+            AddHandcartControlCandidate(candidates, PlanHandcartControl(actor, new(HandcartControlKind.Park)),
+                "Park the handcart here with its cargo kept inside.");
             foreach (var building in worldSimulation.Buildings.OrderBy(item => item.InstanceId, StringComparer.Ordinal))
             {
                 if (building.Position == person.Position) continue;
@@ -242,12 +237,19 @@ public sealed partial class WorldRuntime
             foreach (var recipient in agents.Values.Where(item => item.AgentId != actor &&
                          IsAdult(item.AgentId) && IsWithinInteractionRange(person.Position, item.Position, 1))
                          .OrderBy(item => item.AgentId, StringComparer.Ordinal))
-                candidates.Add(new(TransferCartPrefix + recipient.AgentId,
-                    $"Give your parked handcart and its cargo to {society.Checkpoint.GetAgent(recipient.AgentId).Name} here.", UnassignedCartPriority));
+                AddHandcartControlCandidate(candidates, PlanHandcartControl(actor, new(HandcartControlKind.Give, recipient.AgentId), nearby),
+                    $"Give your parked handcart and its cargo to {society.Checkpoint.GetAgent(recipient.AgentId).Name} here.");
     }
 
-    private bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue)
+    private bool ApplyHandcartCandidate(string actor, AgentState person, string candidateId, string? targetCartId = null, int maximumQuantity = int.MaxValue, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is HandcartControlActionPlan controlPlan)
+        { ApplyHandcartControlPlan(controlPlan); return true; }
+        if (HandcartControlChoice.Decode(candidateId) is { } control)
+        {
+            if (PlanHandcartControl(actor, control) is { } plan) ApplyHandcartControlPlan(plan);
+            return true;
+        }
         if (candidateId.StartsWith(CollectCartMaterialPrefix, StringComparison.Ordinal))
         {
             var kind = candidateId[CollectCartMaterialPrefix.Length..];
@@ -275,21 +277,6 @@ public sealed partial class WorldRuntime
                 CollectEquipment(actor, person, kind);
             return true;
         }
-        if (candidateId.StartsWith(AttachCartPrefix, StringComparison.Ordinal))
-        {
-            var id = candidateId[AttachCartPrefix.Length..];
-            var cart = society.Checkpoint.Inventory.Lots.FirstOrDefault(lot => lot.Id == id &&
-                lot.ItemKind == InventoryContainerRules.Handcart && lot.OwnerId == actor);
-            if (cart is null || AttachedHandcart(actor) is not null || !CanPullHandcart(cart) ||
-                animalWorld.Animals.Any(animal => animal.RiderId == actor || animal.LeaderId == actor)) return true;
-            var position = new GridPoint(cart.GroundPosition!.Value.X, cart.GroundPosition.Value.Y);
-            if (person.Position != position) { MoveToward(actor, person, position, "attach_handcart"); return true; }
-            if (handcartHitches.Any(hitch => hitch.CartLotId == id)) return true;
-            handcartHitches.Add(new(id, actor));
-            AppendEvent("handcart_attached", $"{actor}:{id}");
-            return true;
-        }
-        if (candidateId == "park_handcart") { ParkHandcart(actor); return true; }
         if (candidateId.StartsWith(PullCartPrefix, StringComparison.Ordinal))
         {
             var building = worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == candidateId[PullCartPrefix.Length..]);
@@ -301,8 +288,7 @@ public sealed partial class WorldRuntime
         var ontoGround = candidateId.StartsWith(UnloadCartGroundPrefix, StringComparison.Ordinal);
         var isUnload = ontoGround || candidateId.StartsWith(UnloadCartPrefix, StringComparison.Ordinal);
         var isRepair = candidateId.StartsWith(RepairCartPrefix, StringComparison.Ordinal);
-        var isTransfer = candidateId.StartsWith(TransferCartPrefix, StringComparison.Ordinal);
-        if (!isLoad && !isUnload && !isRepair && !isTransfer) return false;
+        if (!isLoad && !isUnload && !isRepair) return false;
         var cartHere = targetCartId is not null
             ? NearbyOwnedHandcarts(actor, person.Position).FirstOrDefault(cart => cart.Id == targetCartId)
             : isRepair ? society.Checkpoint.Inventory.Lots.FirstOrDefault(lot =>
@@ -376,16 +362,25 @@ public sealed partial class WorldRuntime
                 NativeCartRepairId(WorldTick, actor, cartHere.Id), person.Position, reservations);
             AppendEvent("handcart_repaired", $"{actor}:{cartHere.Id}");
         }
-        else if (isTransfer && AttachedHandcart(actor) is null)
-        {
-            var recipient = candidateId[TransferCartPrefix.Length..];
-            if (!agents.TryGetValue(recipient, out var other) || !IsAdult(recipient) ||
-                !IsWithinInteractionRange(person.Position, other.Position, 1)) return true;
-            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{WorldTick}:{actor}",
-                actor, recipient, cartHere.Id, 1, "handcart_given", destinationGroundPosition: cartHere.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
-            AppendEvent("handcart_transferred", $"{actor}:{cartHere.Id}:{recipient}");
-        }
         return true;
+    }
+
+    private void CompleteHandcartControl(HandcartControlActionPlan plan, InventoryLot cart)
+    {
+        if (plan.Choice.Kind == HandcartControlKind.Attach)
+        {
+            handcartHitches.Add(new(cart.Id, plan.Actor));
+            AppendEvent("handcart_attached", $"{plan.Actor}:{cart.Id}");
+        }
+        else if (plan.Choice.Kind == HandcartControlKind.Park) ParkHandcart(plan.Actor);
+        else
+        {
+            var actor = plan.Actor;
+            var recipient = plan.Choice.TargetId!;
+            ApplyInventoryTransition(inventory => InventoryAuthority.Transfer(inventory, $"cart-gift:{WorldTick}:{actor}",
+                actor, recipient, cart.Id, 1, "handcart_given", destinationGroundPosition: cart.GroundPosition, holdAccess: InventoryHoldRules.BorrowedBy(actor)));
+            AppendEvent("handcart_transferred", $"{actor}:{cart.Id}:{recipient}");
+        }
     }
 
     private static void ValidateHandcarts(IReadOnlyList<HandcartHitch> hitches, InventoryCheckpoint inventory,
