@@ -11,7 +11,8 @@ internal static class HearingReasonText
         "willingness_withdrawn" => "This judge is no longer willing to hear the case; another eligible judge must be assigned before it can continue.",
         "resigned" => "This judge resigned from the case; another eligible judge must be assigned before it can continue.",
         "authorized_judge_available" => "An eligible judge with authority to hear the case is now available, so this election was cancelled.",
-        "case_closed" => "The case was settled, so this election was cancelled.",
+        "case_closed" => "The case was settled.",
+        "reopening_rejected" => "The judge rejected reopening the case; the existing ruling stays in effect.",
         _ => reason,
     };
 }
