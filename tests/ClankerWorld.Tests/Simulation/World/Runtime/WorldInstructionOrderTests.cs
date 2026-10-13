@@ -361,8 +361,13 @@ public sealed partial class WorldRuntimeTests
         var otherAgentOrder = world.SubmitInstruction(new OwnerInstructionRequest("other-agent-order",
             "owner:test", "founder-mira", OwnerInstructionKind.Order, "build a wall"));
         var exported = world.ExportState();
-        Assert.All(closedOrders.Append(otherAgentOrder), order =>
+        Assert.All(closedOrders.TakeLast(closedMessagesShown).Append(otherAgentOrder), order =>
             Assert.Contains(order.InstructionId, exported.CompletedInstructionIds ?? []));
+        Assert.All(closedOrders.Take(closedOrderCount - closedMessagesShown), order =>
+        {
+            Assert.DoesNotContain(order.InstructionId, exported.CompletedInstructionIds ?? []);
+            Assert.DoesNotContain(exported.Instructions!, item => item.InstructionId == order.InstructionId);
+        });
         // The oldest suggestions were heard by a personal model and answered.
         var heardIds = heard.Select(item => item.InstructionId).ToHashSet(StringComparer.Ordinal);
         var withHeardMessages = exported with
