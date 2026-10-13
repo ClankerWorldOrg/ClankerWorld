@@ -44,8 +44,9 @@ public sealed partial class HandcartRuntimeTests
         var owner = state.Society.Society.Agents.First(person => person.HouseholdId != smith.HouseholdId).Id;
         var obstacle = state.Society.Society.Agents.First(person => person.HouseholdId == smith.HouseholdId).Id;
         var origin = state.Agents.Single(person => person.AgentId == owner).Position;
-        var inventory = InventoryAuthority.Transfer(state.Society.Society.Inventory, "pull-fixture-owner", actor, owner,
-            "control-cart", 1, "fixture", destinationGroundPosition: new(origin.X, origin.Y));
+        var inventory = owner == actor ? state.Society.Society.Inventory :
+            InventoryAuthority.Transfer(state.Society.Society.Inventory, "pull-fixture-owner", actor, owner,
+                "control-cart", 1, "fixture", destinationGroundPosition: new(origin.X, origin.Y));
         state = AtPosition(state, owner, origin, inventory) with
         {
             HandcartHitches = [new("control-cart", owner)],

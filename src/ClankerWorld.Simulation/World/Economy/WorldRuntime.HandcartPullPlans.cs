@@ -36,9 +36,10 @@ public sealed partial class WorldRuntime
         if (agents[plan.Actor].Position != plan.Origin || worldSimulation.Buildings.FirstOrDefault(building =>
                 building.InstanceId == plan.Choice.BuildingId)?.Position != plan.Destination)
             return ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "the selected cart or destination has moved");
-        return CanPullHandcart(society.Checkpoint.Inventory.GetLot(plan.CartId)) ? new() :
-            ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected cart is broken or its cargo is promised now");
         // An absent route is an existing wait step, with native movement-blocked events.
+        var cart = society.Checkpoint.Inventory.GetLot(plan.CartId);
+        return CanPullHandcart(cart) && InventoryRules.CanMoveFamily(InventoryIndex.For(society.Checkpoint.Inventory), cart)
+            ? new() : ActionCheck.Refuse(ActionRefusalReason.StockUnavailable, "the selected cart is broken or its cargo is promised now");
     }
 
     private void ApplyHandcartPullPlan(HandcartPullActionPlan plan)
