@@ -136,8 +136,9 @@ boundary while waiting for provider entry.
 The held lesson-continuation fixture captures the actual registered request
 and model task, permits at most six additional native ticks, then observes
 provider entry at a frozen checkpoint with a thirty-second diagnostic bound.
-Its deferred-entry cases hold preparation until two more ticks commit; one also
-delays worker entry by four seconds. The same registered call must stay pending,
+Its delayed-start rows hold the manual scheduler until tick three. A separate
+row keeps entry disabled through all six additional ticks, captures the frozen
+checkpoint, then releases entry without advancing the world. The same call must stay pending,
 and waiting must leave checkpoint bytes unchanged. The progress baseline is
 captured only after entry, with room for three further lesson steps. The offered
 partnership answer stays held throughout; denied-tick bytes, continued training,

@@ -70,11 +70,11 @@ public sealed class LearningTests
             var presence = new OwnerClientPresenceLease(TimeSpan.FromMinutes(5));
             presence.RecordAuthenticatedReconnect("test-owner");
             using var service = new WorldRuntimeService(world, file, presence);
-            for (var tick = 0; tick < 3; tick++) Assert.True(await service.TryAdvanceOnceAsync());
+            for (var tick = 0; tick < 3; tick++) Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.Equal("declined", world.Agents.Single(person => person.AgentId == "founder-scout").Lesson!.Stage);
             Assert.Equal(beforeRole, world.Society.GetAgent("founder-scout").CurrentRole);
             Assert.False(world.Society.IsPaused);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             using var reloaded = file.LoadOrCreate(world.ExportState().WorldSeed);
             Assert.Equal(world.WorldTick, reloaded.WorldTick);
         }
@@ -264,7 +264,7 @@ public sealed class LearningTests
             presence.RecordAuthenticatedReconnect("owner");
             var logger = new RecordingLogger<WorldRuntimeService>();
             using var service = new WorldRuntimeService(world, new WorldStateFile(Path.Combine(directory.FullName, "world.json")), presence, logger);
-            Assert.True(await service.TryAdvanceOnceAsync());
+            Assert.True(await service.AdvanceWithModelWorkAsync(world));
             Assert.Contains(logger.Messages, message => message.Contains("lesson_activity", StringComparison.Ordinal) &&
                 message.Contains("event=lesson_requested", StringComparison.Ordinal));
             Assert.DoesNotContain(logger.Messages, message => message.Contains("lesson-free-text-secret", StringComparison.Ordinal));
@@ -297,10 +297,10 @@ public sealed class LearningTests
     }
 
     [Theory]
-    [InlineData(false, 0)]
-    [InlineData(true, 0)]
-    [InlineData(true, 4000)]
-    public async Task APendingPersonalReplyContinuesAnAcceptedLessonWithoutAnsweringAPartnership(bool delayedStartup, int entryDelayMilliseconds)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task APendingPersonalReplyContinuesAnAcceptedLessonWithoutAnsweringAPartnership(bool delayedStartup, bool deferSchedulerEntry)
     {
         var state = await PreparedState();
         var learner = state.Society.Society.Agents.Single(person => person.CurrentRole == SocietyWorkRole.Trader).Id;
@@ -319,28 +319,29 @@ public sealed class LearningTests
         state = state with { Society = state.Society with { Society = proposal.Checkpoint } };
         var provider = new HeldPhysicalTaskDecisionProvider();
         using var world = WorldRuntime.Restore(state,
-            actor => actor == teacher ? new DelayedLessonEntryProvider(provider, entryDelayMilliseconds) : new LessonProvider("safe_idle"));
+            actor => actor == teacher ? provider : new LessonProvider("safe_idle"));
         var startAfter = world.WorldTick + 3;
-        provider.CanStart = () => !delayedStartup || world.WorldTick >= startAfter;
+        var harness = ModelWorkHarness.For(world);
+        var entryAllowed = !deferSchedulerEntry;
+        harness.Scheduler.CanStart = () => entryAllowed && (!delayedStartup || world.WorldTick >= startAfter);
         world.SubmitInstruction(new("waiting-lesson-guidance", "owner:test", teacher,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var modelCalls = Assert.IsAssignableFrom<System.Collections.IDictionary>(typeof(WorldRuntime)
-            .GetField("pendingModelCalls", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .GetValue(world));
-        var call = modelCalls[teacher]!;
-        Assert.NotNull(call);
-        var request = Assert.IsType<CognitionDecisionRequest>(call.GetType().GetProperty("Request")!.GetValue(call));
-        var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
+        Assert.True((await harness.TickAsync()).Advanced);
+        var call = Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == teacher);
+        var request = Assert.IsType<CognitionDecisionRequest>(call.DecisionRequest);
+        var task = call.Completion;
         // Keep the six-tick physical bound, then observe actual provider entry
         // at a frozen checkpoint without spending lesson progress on scheduling.
         for (var tick = 0; tick < 6 && !provider.Started.Task.IsCompleted; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
         var entering = WorldRuntimeCodec.Encode(world.ExportState());
-        await Task.WhenAny(provider.Started.Task, task).WaitAsync(TimeSpan.FromSeconds(30));
+        if (deferSchedulerEntry) Assert.False(provider.Started.Task.IsCompleted);
+        entryAllowed = true;
+        harness.RunPendingWork();
+        await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(provider.Started.Task, task));
         Assert.True(provider.Started.Task.IsCompleted, $"Held lesson request {request.RequestId} finished before provider entry.");
-        Assert.Same(call, modelCalls[teacher]);
-        Assert.Same(task, call.GetType().GetProperty("Task")!.GetValue(call));
+        Assert.Same(task, Assert.Single(world.PendingModelWork, item => item.Transition.ActorId == teacher).Completion);
+        Assert.Same(task, call.Completion);
         Assert.False(task.IsCompleted);
         Assert.Same(request.Observation, Assert.Single(provider.Requests));
         Assert.Equal(entering, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -349,9 +350,9 @@ public sealed class LearningTests
         var before = world.Agents.Single(person => person.AgentId == learner).Lesson!;
         Assert.InRange(before.Progress, 3, 17);
         var bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
-        for (var tick = 0; tick < 3; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        for (var tick = 0; tick < 3; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(before.Progress + 3, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         Assert.Equal(SocietyRelationshipState.Proposed,
             world.Society.Relationships.Single(item => item.Id == "waiting-lesson-partnership").State);
@@ -361,23 +362,11 @@ public sealed class LearningTests
         Assert.False(task.IsCompleted);
         world.Pause();
         bytes = WorldRuntimeCodec.Encode(world.ExportState());
-        await task.WaitAsync(TimeSpan.FromSeconds(30));
-        Assert.False(modelCalls.Contains(teacher));
+        await ModelWorkHarness.WaitForSignalAsync(task);
+        Assert.DoesNotContain(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == teacher);
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(world.ExportState()));
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(restored.ExportState()));
-    }
-
-    private sealed class DelayedLessonEntryProvider(HeldPhysicalTaskDecisionProvider inner, int delayMilliseconds) : IDecisionProvider
-    {
-        public DecisionProviderKind Kind => inner.Kind;
-        public long ProviderEpoch => inner.ProviderEpoch;
-        public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
-        {
-            while (inner.CanStart?.Invoke() == false) await Task.Delay(1, cancellationToken);
-            if (delayMilliseconds > 0) await Task.Delay(delayMilliseconds, cancellationToken);
-            return await inner.DecideAsync(request, cancellationToken);
-        }
     }
 
     private static async Task<WorldRuntimeState> PreparedState()
