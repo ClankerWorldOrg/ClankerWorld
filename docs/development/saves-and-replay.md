@@ -647,6 +647,12 @@ agent ID. A valid long-seed newborn can bind both roles, including when
 reloading a birth saved before provider storage recovered; no identity is
 truncated or replaced. Repeated recovery preserves later owner overrides and
 the separate historical birth descriptor.
+Shutdown completes pending newborn bindings in installation provider storage
+before acknowledging a saved world. Frozen bindings are staged before a prepared
+birth becomes visible, so shutdown during tick publication retains the original key.
+A failed binding refuses shutdown for a
+paused retry, retaining the frozen original default key even if that default
+changes. Key bytes never enter the world checkpoint; its format is unchanged.
 
 Schema 50 saves an unresolved dependent-guardian search, including its current
 relative, household or Town stage, start tick and offered adults. Each stage
@@ -699,12 +705,13 @@ The paired authority identity belongs to the installation, not the selected
 simulation world.
 
 Load World checks each inactive checkpoint against the current runtime before
-marking it compatible. The server keeps only a process-local structural verdict
-and history head for each catalog identity, keyed by a SHA-256 hash of the
-checkpoint bytes. File replacement, catalog-identity changes and a server restart
-force a new structural check. Every list still verifies the referenced history
-chain and current model credentials;
-selection reads and restores the checkpoint again before changing worlds.
+marking it compatible. The server keeps a process-local structural proof,
+including the history head and saved helper selection, for each catalog identity.
+A SHA-256 hash of the checkpoint bytes identifies the proof. File replacement,
+catalog-identity changes and a server restart force a new structural check.
+Every list still verifies the referenced history chain and current model
+credentials; selection reads and restores the checkpoint again before changing
+worlds.
 Checking a changed checkpoint can therefore still be slow, especially on a
 large generated map, while repeated unchanged lists avoid rebuilding worlds.
 After a server start, a background task makes the structural check for each
@@ -1230,7 +1237,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 128. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 130. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1859,7 +1866,39 @@ Inventory lot splits leave all actively reserved stock in the original lot,
 including production and barter commitments. Only the unreserved remainder can
 move to the new lot; rejected splits leave state and event history unchanged.
 
+## Bounded Council history
+
+World schema 129 adds required cumulative retired-election and retired-notice
+counts. Checkpoint compaction uses the existing recent-window/dependency pattern:
+eight settled elections and 32 recent notices remain, together with forced
+Council elections, notices for retained contests, and each agent's three recent
+learned notice sources. Every retained notice keeps its read and relay chain.
+Other civic notices remain authority for laws, permissions and hearings.
+Notice numbering includes retired notices, so new notices and linked case
+records cannot reuse an earlier identity.
+
+Full retired elections, notices and their knowledge receipts go into the same
+digest-addressed segments as event prefixes. Archive publication precedes the
+smaller checkpoint and live-state replacement; a failed write leaves both
+unchanged. Required counts must match the reachable archive on load and world
+compatibility checks. Current-format reload and replay preserve retry state,
+latest visible outcomes and learned sources. Earlier alpha schemas are refused
+and preserved without migration. The version is provisional until merge.
+
 ## Checkpoints, history and backups
+
+Schema 130 adds the required inventory `ArchivedRepairReservationCount`.
+Checkpoint compaction keeps the latest 32 completed or released repair-input
+reservations, ordered by their deadline and identity, plus the exact receipts
+required by retained cart orders and native hearing remedies. Active claims and
+other consumption purposes remain intact. Full older repair records enter the
+existing digest-addressed archive before the smaller checkpoint is published
+or installed in memory. Loading verifies the cumulative count against that
+archive; failed writes leave the previous live ledger and save intact.
+Inventory transitions and estate handling preserve the count. New repair
+identities still derive from the advancing world clock and complete actor/input
+scope. Earlier alpha checkpoints are refused and preserved without migration.
+The schema number is provisional until merge.
 
 The active recovery checkpoint is encoded and fsync-written after every advanced
 one-second tick. Older history is compacted into digest-addressed segments.
@@ -1896,7 +1935,11 @@ branch position rather than a possibly corrected clock. If play continues from
 an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
-rotation, and every required history segment must verify. A damaged newer autosave is retained and skipped. No usable
+rotation, and every required history segment must verify. Model preflight includes
+the saved OpenAI Decisions helper's selected key as well as agent assignments.
+Load World rechecks that key's availability even when its structural checkpoint
+proof is cached; a missing named key never substitutes the installation default.
+A damaged newer autosave is retained and skipped. No usable
 candidate leaves recovery pending; named saves and other worlds are not automatic
 fallbacks. An older alpha schema receives a format explanation, never a migration.
 
@@ -2059,6 +2102,21 @@ unchanged, and model routing and autosave choices match. Browsing running
 autosaves therefore does not create empty branches, while a missing or damaged
 checkpoint cannot replace a recovery copy. If loading fails, the branch record
 is restored along with the world.
+
+A manual load first records a private `pending-load.json` intent in `.manual`,
+naming the selected save, its before-load copy, effective autosave settings and
+the previous timeline. The intent stays until checkpoint, model assignments,
+autosave settings and loaded timeline all commit. Startup finishes that intent
+before opening the active world, including loads within the same world. If a
+load fails, its intent switches to rollback before restoring the before-load
+copy; an interrupted rollback therefore resumes in the same direction. The
+source snapshots remain unchanged. While its intent is pending, the shared save
+mutation gate refuses snapshot changes and world switching, including requests
+already admitted before shutdown. An unfinished live rollback stops the host;
+an unreadable intent or failed recovery stops startup and preserves the files.
+Include this intent in an installation
+backup; older binaries cannot resolve it, so complete recovery before rollback.
+No world schema or replay event changes.
 
 The branch record is written before a new save's metadata is published, so an
 interruption leaves it pointing at an unlisted save whose position still keeps the

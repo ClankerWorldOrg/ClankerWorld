@@ -121,7 +121,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         using var willWorld = WorldRuntime.Restore(
             WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
         Assert.True((await willWorld.TickModelWorkAsync()).Advanced);
-        var will = await provider.WillCalled.Task;
+        var will = await ModelWorkHarness.For(willWorld).WaitAsync(provider.WillCalled.Task);
         will.Validate();
         Assert.Equal(modelHouseholdId, will.Self!.HouseholdId);
         Assert.Equal(householdId, willWorld.Society.GetAgent(actor).HouseholdId);
@@ -425,8 +425,8 @@ public sealed partial class GrownAgentHelperMemoryTests
 
     internal static async Task WaitForRequests(WorldRuntime world, params Task[] additionalTasks)
     {
-        await ModelWorkHarness.WaitForExistingAsync(world, item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision);
-        await Task.WhenAll(additionalTasks);
+        await ModelWorkHarness.WaitForExistingAsync(world,
+            item => item.Transition.Kind == ClankerWorld.Simulation.Cognition.ModelWorkKind.Decision, additionalTasks);
     }
 
     private static async Task<byte[]> CreateBornAsync()

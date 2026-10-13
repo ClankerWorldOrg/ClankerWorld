@@ -576,7 +576,7 @@ public sealed class WorldToolRepairOrderTests
     {
         for (var tick = 0; tick < 40 && !done(); tick++)
         {
-            using var deadline = new CancellationTokenSource();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             try
             {
                 Assert.True((await world.TickModelWorkAsync(cancellationToken: deadline.Token)).Advanced);
@@ -597,7 +597,6 @@ public sealed class WorldToolRepairOrderTests
         public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
         public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
-        public Func<bool>? CanStart { get; set; }
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();

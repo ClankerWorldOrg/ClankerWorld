@@ -352,7 +352,7 @@ public sealed partial class WorldCollectionOrderTests
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
             var firstFrame = WorldRuntimeCodec.Encode(world.ExportState());
-            var invoked = await AwaitCollectionSignal(provider.Invoked.Task, "receive the native request");
+            var invoked = await AwaitCollectionSignal(world, provider.Invoked.Task, "receive the native request");
             Assert.Equal(actor, invoked.Observation.AgentId);
             Assert.Equal(receipt.InstructionId, invoked.Observation.OperativeOrderInstructionId);
             if (delayedStartup)
@@ -362,7 +362,7 @@ public sealed partial class WorldCollectionOrderTests
             }
             Assert.Equal(firstFrame, WorldRuntimeCodec.Encode(world.ExportState()));
             entryGate.TrySetResult(true);
-            var started = await AwaitCollectionSignal(provider.Started.Task, "validate and hold the operative request");
+            var started = await AwaitCollectionSignal(world, provider.Started.Task, "validate and hold the operative request");
             Assert.Same(invoked.Observation, started);
             Assert.Same(started, Assert.Single(provider.Requests));
             // Chosen work can continue during model waits. Keep the first
@@ -372,7 +372,7 @@ public sealed partial class WorldCollectionOrderTests
             Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("collect-held-a"), actor));
             Assert.True(world.CancelOrder(new("cancel-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            var returned = await AwaitCollectionSignal(provider.Returned.Task, "return the late reply");
+            var returned = await AwaitCollectionSignal(world, provider.Returned.Task, "return the late reply");
             Assert.Equal(invoked.RequestId, returned.RequestId);
             Assert.Equal(actor, returned.AgentId);
             Assert.Equal(kind switch { "fruit" => "collect_food", "basket" => "collect_equipment", _ => "collect_material" },
@@ -394,9 +394,9 @@ public sealed partial class WorldCollectionOrderTests
         }
     }
 
-    private static async Task<T> AwaitCollectionSignal<T>(Task<T> signal, string phase)
+    private static async Task<T> AwaitCollectionSignal<T>(WorldRuntime world, Task<T> signal, string phase)
     {
-        try { return await signal; }
+        try { return await ModelWorkHarness.For(world).WaitAsync(signal); }
         catch (TimeoutException exception)
         {
             throw new TimeoutException($"The held collection provider did not {phase} within thirty seconds.", exception);

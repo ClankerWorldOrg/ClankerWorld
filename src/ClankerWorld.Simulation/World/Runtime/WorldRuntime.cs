@@ -18,7 +18,7 @@ namespace ClankerWorld.Simulation.World;
 /// </summary>
 public sealed partial class WorldRuntime : IDisposable
 {
-    public const int StateSchemaVersion = 128;
+    public const int StateSchemaVersion = 130;
     // Founded Towns save laws, protected government changes and the mayor's office from this schema.
     public const int TownGovernmentSchemaVersion = 55;
     public const int ObserverGuidanceSchemaVersion = 41;
@@ -107,11 +107,13 @@ public sealed partial class WorldRuntime : IDisposable
     private ReadOnlyCollection<AgentConversation> conversations => conversationSystem.State.Conversations;
     private ReadOnlyCollection<AgentMarriage> marriages => conversationSystem.State.Marriages;
     private IReadOnlyList<AgentConversationDailyBudget> conversationBudgets => conversationSystem.State.Budgets;
-    private GridPoint SharedStoragePosition =>
-        map.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
-        worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
-        towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
-        map.Resources.First(item => item.Id == "berry-patch").Position;
+    private GridPoint SharedStoragePosition => StartingStoragePosition(map, worldSimulation, towns);
+    private static GridPoint StartingStoragePosition(WorldMap sourceMap, WorldContentSimulationState? simulation,
+        IReadOnlyList<TownRuntimeState>? sourceTowns) =>
+        sourceMap.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
+        simulation?.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
+        sourceTowns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
+        sourceMap.Resources.First(item => item.Id == "berry-patch").Position;
     private GridPoint WeatherAnchor =>
         map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??

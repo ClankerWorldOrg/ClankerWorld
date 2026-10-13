@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class AgentIdentityChoiceTests
 {
-    private const string AgentId = "founder:00000000000000000000000000000001";
+    private const string AgentId = NormalPathWorld.Founder1;
 
     [Fact]
     public async Task FirstPersonalReplyChoosesIdentityInANormalWorldAndRestoredRequestsKeepIt()

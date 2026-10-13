@@ -98,10 +98,10 @@ public sealed partial class WorldFireOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("stop-held-fire", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
             for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {

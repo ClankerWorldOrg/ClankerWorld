@@ -324,17 +324,15 @@ public sealed partial class WorldRuntimeTests
         var receipt = SubmitMaterialOrder(world, "held", $"keep gathering fiber from {source.Id}");
         try
         {
-            // The tick dispatches the call itself; only the thread-pool start of the
-            // provider is left to scheduling, which a loaded parallel run can delay.
-            var deadline = TimeSpan.FromSeconds(10);
+            // Commit native dispatch, then enter the held provider through the scheduler.
             var dispatch = await world.TickModelWorkAsync();
             Assert.True(dispatch.Advanced);
             Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == HarvestInstructionActor);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.Equal(1, CancellationOrder(world.ExportState(), receipt.InstructionId).CompletedUnits);
             CancelTravelOrder(world, receipt.InstructionId, "cancel-held-material");
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             for (var tick = 0; tick < 8; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal("cancelled", CancellationOrder(world.ExportState(), receipt.InstructionId).Status);
             Assert.Equal(2, world.WorldSystems.Ecology.GetResource(source.Id).Quantity);
