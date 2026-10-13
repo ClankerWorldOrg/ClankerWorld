@@ -175,9 +175,7 @@ public sealed partial class LongInventoryActionCheckpointTests
             item.Detail == Actor + ":model_unavailable");
         for (var step = 0; step < 32 && !Failed(); step++)
         {
-            // Hosted replies run on the worker pool. Let the completed failure
-            // reach the next host tick without assuming identical reply timing.
-            await Task.Delay(5);
+            await ModelWorkHarness.For(world).WaitForDecisionAsync(Actor);
             await host.AdvanceAndCheckSaved();
         }
         Assert.True(Failed(), "The host must apply the controlled later model failure.");
@@ -211,7 +209,7 @@ public sealed partial class LongInventoryActionCheckpointTests
 
         public async Task AdvanceAndCheckSaved()
         {
-            Assert.True(await service.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.True(await service.AdvanceWithModelWorkAsync(world), string.Join("\n", logger.Messages));
             Assert.False(world.Society.IsPaused);
             var saved = File.ReadAllBytes(file.Path);
             Assert.Equal(world.WorldTick, WorldRuntimeCodec.Decode(saved).Society.Society.WorldTick);

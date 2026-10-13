@@ -230,6 +230,12 @@ starting it, and call `RunPendingWork` when the test permits provider entry.
 provider gates keep reply completion independent of the thread pool. Use the
 harness's `WaitAsync` for expected provider signals: its thirty-second bound
 diagnoses missing signals without advancing native ticks or controlling entry.
+A synchronously blocking provider needs a controlled worker to run pending work;
+use static `WaitForSignalAsync(signal, deadline)` for its entry and worker guards
+so waiting does not start queued work on the waiting thread. When a host tick
+owns an uncommitted deterministic request, include that tick in
+`WaitForExistingAsync(runtime, predicate, tick)` so the actual host operation
+shares the failure bound even while the live model queues are empty.
 
 `SettleAsync` starts pending work and finishes returned wrappers while held
 calls remain held. `PendingModelWork` snapshots all four live queues, with the
