@@ -13,7 +13,8 @@ public sealed partial class WorldRuntime
     private void RefuseChoice(ActionPlan plan, ActionRefusal refusal)
     {
         var name = society.Checkpoint.Agents.SingleOrDefault(person => person.Id == plan.Actor)?.Name ?? "Someone";
-        AppendEvent("choice_refused", $"{name} didn't {ChildActionLabel(plan.CandidateId)}: {refusal.Explanation}.");
+        if (agents.ContainsKey(plan.Actor)) society.ClearCurrentIntention(plan.Actor, WorldTick);
+        AppendEvent("choice_refused", $"{name} didn't {plan.Activity}: {refusal.Explanation}.");
     }
 
     private Society.SocietyCognitionDispatchResult CheckAcceptedPlan(Society.SocietyCognitionDispatchResult decision)

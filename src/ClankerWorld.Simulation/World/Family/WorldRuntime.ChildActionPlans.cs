@@ -116,7 +116,7 @@ public sealed partial class WorldRuntime
                     {
                         if (!PersonalEquipmentRules.IsCarried(lot, actor) || lot.ContainerLotId is not null ||
                             lot.DeliveryBuildingId != house.InstanceId || lot.Quantity != plan.Quantity ||
-                            lot.Quantity > ChildHelpingLoad || ChildHelpingRoom(actor) < 0 ||
+                            lot.Quantity > ChildHelpingLoad ||
                             PersonalEquipmentRules.CarriedQuantity(society.Checkpoint.Inventory, actor, state.Equipment) > ChildHelpingLoad ||
                             AvailableLotQuantity(lot) != lot.Quantity || !CanDeliverHouseDelivery(lot) ||
                             !ChildHelpingReachable(actor, state.Position, 0, house))
@@ -171,15 +171,4 @@ public sealed partial class WorldRuntime
         else ApplyChildHelpingPlan(plan);
     }
 
-    private static string ChildActionLabel(string candidate) => ChildChoice.Parse(candidate)?.Kind switch
-    {
-        ChildActionKind.Converse => "talk with someone",
-        ChildActionKind.Play => "play together",
-        ChildActionKind.Learn => "learn from an adult",
-        ChildActionKind.HelpFood => "take spare food home",
-        ChildActionKind.Carry => "carry goods home",
-        ChildActionKind.GatherFood => "gather food",
-        ChildActionKind.GatherWood => "gather wood",
-        _ => "carry out the choice",
-    };
 }

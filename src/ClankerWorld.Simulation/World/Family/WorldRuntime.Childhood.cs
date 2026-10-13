@@ -28,22 +28,17 @@ public sealed partial class WorldRuntime
     private void AddChildCandidates(List<CognitionCandidate> candidates, string actor, AgentState state)
     {
         var availableTargets = 0;
-        foreach (var target in agents.Keys.Where(id => id != actor &&
-                     !LifeStageRules.IsInfant(society.Checkpoint.GetAgent(id).AgeBand))
+        foreach (var target in agents.Keys.Where(id => id != actor)
                  .OrderBy(id => map.FootDistance(state.Position, agents[id].Position))
                  .ThenBy(id => id, StringComparer.Ordinal))
         {
-            if (NeedsUrgentFood(state) && !IsWithinInteractionRange(state.Position, agents[target].Position, ResourceInteractionRange))
-                continue;
-            if (Reach(actor, agents[target].Position, ReachPurpose.ChildSocial, ResourceInteractionRange, 0, SwimmingPolicy.WhenCapable).Count == 0)
-                continue;
             var candidateCount = candidates.Count;
-            if (ChildSocialAvailable(actor, target, "converse"))
-                OfferChildChoice(candidates, actor, new(ChildActionKind.Converse, target), "Talk with a nearby person and remember the encounter.", 38, target);
-            if (ChildSocialAvailable(actor, target, "play"))
-                OfferChildChoice(candidates, actor, new(ChildActionKind.Play, target), "Play together and build a friendship.", 34, target);
-            if (IsAdult(target) && ChildSocialAvailable(actor, target, "learn"))
-                OfferChildChoice(candidates, actor, new(ChildActionKind.Learn, target), "Learn a simple observation from an adult without taking an adult work role.", 42, target);
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Converse, target),
+                "Talk with a nearby person and remember the encounter.", 38, target);
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Play, target),
+                "Play together and build a friendship.", 34, target);
+            OfferChildChoice(candidates, actor, new(ChildActionKind.Learn, target),
+                "Learn a simple observation from an adult without taking an adult work role.", 42, target);
             if (candidates.Count > candidateCount && ++availableTargets == 3) break;
         }
 

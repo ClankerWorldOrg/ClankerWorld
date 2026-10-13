@@ -16,7 +16,7 @@ public sealed class WorldEventTextTests
         const string reason = "Éloïse 🌿 didn't carry goods home: the selected goods are no longer available.";
         var worldEvent = new OwnerWorldEvent(1, 1, "choice_refused", reason);
         Assert.True(GameUiText.IsPlayerFacingEvent(worldEvent.Kind));
-        Assert.Equal(reason, WorldEventText.Describe(worldEvent));
+        Assert.Equal(reason, WorldEventText.Describe(worldEvent, null));
         Assert.Single(GameUiText.PlayerEvents([worldEvent]));
     }
 

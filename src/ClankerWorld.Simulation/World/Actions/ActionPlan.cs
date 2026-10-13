@@ -1,7 +1,10 @@
 namespace ClankerWorld.Simulation.World;
 
 /// <summary>A server-only choice plan. It is never part of a prompt or checkpoint.</summary>
-public abstract record ActionPlan(string Actor, string CandidateId);
+public abstract record ActionPlan(string Actor, string CandidateId)
+{
+    public abstract string Activity { get; }
+}
 
 public enum ActionRefusalReason { ActorUnavailable, LifeStage, Boat, UrgentNeed, ActiveOrder, TargetUnavailable, StockUnavailable, Capacity, OutOfReach }
 

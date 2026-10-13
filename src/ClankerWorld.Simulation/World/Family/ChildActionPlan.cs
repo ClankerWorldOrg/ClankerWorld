@@ -33,4 +33,17 @@ public readonly record struct ChildChoice(ChildActionKind Kind, string? Target =
 public sealed record ChildActionPlan(string ActorId, ChildChoice Choice, GridPoint Destination,
     int InteractionRange, IReadOnlyList<GridPoint> Route, string? HouseholdId = null,
     string? HouseId = null, string? StockId = null, string? ItemKind = null, int Quantity = 0,
-    bool IsDelivery = false) : ActionPlan(ActorId, Choice.Id);
+    bool IsDelivery = false) : ActionPlan(ActorId, Choice.Id)
+{
+    public override string Activity => Choice.Kind switch
+    {
+        ChildActionKind.Converse => "talk with someone",
+        ChildActionKind.Play => "play together",
+        ChildActionKind.Learn => "learn from an adult",
+        ChildActionKind.HelpFood => "take spare food home",
+        ChildActionKind.Carry => "carry goods home",
+        ChildActionKind.GatherFood => "gather food",
+        ChildActionKind.GatherWood => "gather wood",
+        _ => throw new InvalidOperationException("Unknown child activity."),
+    };
+}
