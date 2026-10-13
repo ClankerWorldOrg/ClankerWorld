@@ -122,20 +122,16 @@ public sealed partial class GrownAgentHelperMemoryTests
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
         if (nativeBorn)
-            await RepeatNativeBarterWithoutReplacingMemory(reload.ExportState(), first, second, payment.Id, beforeTrust, recallFirst);
+            await RepeatNativeBarterWithoutReplacingMemory(reload.ExportState(), first, second, payment.Id, beforeTrust);
     }
 
     private static async Task RepeatNativeBarterWithoutReplacingMemory(WorldRuntimeState state,
-        string first, string second, string paymentId, Dictionary<string, int> beforeTrust, bool legacyKeys)
+        string first, string second, string paymentId, Dictionary<string, int> beforeTrust)
     {
         var checkpoint = state.Society.Society;
-        // These are the memories earned above, not fabricated experience. Only
-        // rebind their keys to the old saved format for the compatibility row.
-        var savedMemories = checkpoint.Memories.Select(memory => legacyKeys &&
-            memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
-            (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)
-                ? memory with { Id = Identity.Parse("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId) } : memory)
-            .OrderBy(memory => memory.Id, StringComparer.Ordinal).ToArray();
+        // Repeat with the actual saved handles. Older alpha key spellings do
+        // not need a compatibility fixture; no migration runs during loading.
+        var savedMemories = checkpoint.Memories.ToArray();
         var previous = savedMemories.Where(memory => memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)).ToArray();
         Assert.Equal(2, previous.Length);
