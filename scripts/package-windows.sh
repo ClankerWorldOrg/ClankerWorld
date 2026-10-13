@@ -62,6 +62,7 @@ else
     mkdir -p "${staged_repo_root}"
     git -C "${repo_root}" archive "${revision}" \
         global.json Directory.Build.props src/ClankerWorld.Server src/ClankerWorld.Simulation \
+        src/ClankerWorld.Shared/Contracts \
         src/ClankerWorld.Shared/BuildInformation.cs \
         src/ClankerWorld.Shared/AgentPlacementRules.cs | tar -C "${staged_repo_root}" -xf -
     staged_server_project="${staged_repo_root}/src/ClankerWorld.Server/ClankerWorld.Server.csproj"
