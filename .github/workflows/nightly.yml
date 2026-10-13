@@ -138,3 +138,19 @@ jobs:
             echo "Removing ${tag}"
             gh release delete "${tag}" --yes --cleanup-tag
           done
+
+  model-work:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+      - name: Verify controlled model work with one processor
+        env:
+          DOTNET_PROCESSOR_COUNT: 1
+        run: dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter FullyQualifiedName~ModelWorkHarnessTests
