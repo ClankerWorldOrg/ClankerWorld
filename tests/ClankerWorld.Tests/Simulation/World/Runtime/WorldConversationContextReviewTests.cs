@@ -122,6 +122,7 @@ public sealed partial class WorldConversationTests
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id is InitiatorId or InviteeId ? provider : new DeterministicDecisionProvider());
+        var harness = ModelWorkHarness.For(world);
         world.Resume();
         using var resumeDeadline = new CancellationTokenSource();
         // Await both fresh resume decisions before spending lesson ticks. The
@@ -130,6 +131,7 @@ public sealed partial class WorldConversationTests
         {
             Assert.True((await world.AdvanceOneTickAsync(resumeDeadline.Token)).Advanced);
         }
+        harness.RunPendingWork();
         Assert.Equal(AgentConversationStatus.AwaitingSpeaker, world.Conversations.Single().Status);
         var progress = world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress;
         Assert.InRange(progress, 3, 19);
