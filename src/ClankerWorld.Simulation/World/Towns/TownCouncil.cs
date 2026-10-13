@@ -421,7 +421,7 @@ public static class TownCouncilRules
         Notice(state, kind, subject, text, tick);
 
     public static long NextNoticeSequence(TownCouncilState state) => checked(state.ArchivedNoticeCount + state.Notices.Count + 1);
-    public static string NextNoticeId(TownCouncilState state) => "notice:" + NextNoticeSequence(state).ToString(System.Globalization.CultureInfo.InvariantCulture);
+    public static string NextNoticeId(TownCouncilState state) => DerivedId.Numbered("notice:", NextNoticeSequence(state));
 
     private static TownCouncilState Notice(TownCouncilState state, string kind, string subject, string text, long tick)
     {

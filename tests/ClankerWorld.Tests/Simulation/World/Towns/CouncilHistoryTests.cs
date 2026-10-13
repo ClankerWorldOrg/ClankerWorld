@@ -16,6 +16,7 @@ public sealed class CouncilHistoryTests
         Assert.Equal(8, plan.State.Towns![0].Council!.ElectionHistory.Count);
         Assert.Equal(32, plan.State.Towns[0].Council!.Notices.Count);
         Assert.Equal(48, state.Towns![0].Council!.ElectionHistory.Count);
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(plan.State));
     }
 
     [Fact]
@@ -58,6 +59,25 @@ public sealed class CouncilHistoryTests
             var segment = JsonSerializer.Deserialize<WorldHistorySegment>(File.ReadAllBytes(head))!;
             Assert.Equal(40, segment.Streams.Single(batch => batch.Name.StartsWith("council-elections:", StringComparison.Ordinal)).Events.GetArrayLength());
             Assert.Equal(15, segment.Streams.Single(batch => batch.Name.StartsWith("council-notices:", StringComparison.Ordinal)).Events.GetArrayLength());
+            var forged = compacted with
+            {
+                Towns = [compacted.Towns[0] with
+                { Council = retained with { ArchivedElectionCount = retained.ArchivedElectionCount + 1 } }]
+            };
+            var forgedBytes = WorldRuntimeCodec.Encode(forged);
+            File.WriteAllBytes(file.Path, forgedBytes);
+            Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(state.WorldSeed));
+            Assert.Equal(forgedBytes, File.ReadAllBytes(file.Path));
+            File.WriteAllBytes(file.Path, bytes);
+            var renewedCouncil = TownCouncilRules.Advance(retained with { RetryTick = 0 }, town.Id,
+                state.WorldSeed, town.ResidentIds, 0, state.WorldSystems!.Config.TicksPerDay);
+            using var renewed = WorldRuntime.Restore(compacted with { Towns = [town with { Council = renewedCouncil }] });
+            Assert.True(file.Save(renewed));
+            Assert.Equal(41, renewed.ExportState().Towns![0].Council!.ArchivedElectionCount);
+            Assert.Equal(8, renewed.ExportState().Towns![0].Council!.ElectionHistory.Count);
+            using var extended = file.LoadOrCreate(state.WorldSeed);
+            Assert.Equal(WorldRuntimeCodec.Encode(renewed.ExportState()), WorldRuntimeCodec.Encode(extended.ExportState()));
+            File.WriteAllBytes(file.Path, bytes);
             File.WriteAllText(head, "corrupt");
             Assert.Throws<InvalidDataException>(() => file.LoadOrCreate(state.WorldSeed));
             Assert.Equal(bytes, File.ReadAllBytes(file.Path));
@@ -102,7 +122,7 @@ public sealed class CouncilHistoryTests
         // original contest even after its handover has settled.
         var change = new TownGovernmentChange("change", "request", "arrangement", town.Government!.Arrangement,
             town.ResidentIds[0], "same", 0, "completed", 0, 360, town.ResidentIds, [], 0, 1080, 0)
-            { ForcedCouncilElectionId = first.Id };
+        { ForcedCouncilElectionId = first.Id };
         state = state with { Towns = [town with { Government = town.Government with { Changes = [change] } }] };
         var plan = WorldHistory.Prepare(state);
         Assert.Contains(first, plan.State.Towns![0].Council!.ElectionHistory);
