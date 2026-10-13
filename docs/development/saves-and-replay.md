@@ -1237,7 +1237,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 130. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 131. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1887,7 +1887,7 @@ and preserved without migration. The version is provisional until merge.
 
 ## Bounded production history
 
-World schema 130 adds the required cumulative `ArchivedProductionJobCount`.
+World schema 131 adds the required cumulative `ArchivedProductionJobCount`.
 The shared checkpoint planner keeps all running and paused work and the newest
 32 terminal jobs by start tick, then identity. It also keeps exact jobs still
 used by recipe accounts, written recipes, unfinished projects, tool requests and
