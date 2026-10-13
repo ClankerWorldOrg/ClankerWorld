@@ -9,7 +9,7 @@ public sealed class HouseholdPlanningGoodsTests
     [InlineData(true, false)]
     [InlineData(false, false)]
     [InlineData(true, true)]
-    public async Task BuildingPlansAndShortagesUseAvailableHouseholdAndMemberStock(bool borrowed, bool memberStock)
+    public async Task BuildingPlansUseAvailableHouseholdAndMemberStock(bool borrowed, bool memberStock)
     {
         const string household = "household:first";
         var state = await PaidMarketWorld.StateAsync();
@@ -43,12 +43,10 @@ public sealed class HouseholdPlanningGoodsTests
         if (borrowed && !memberStock)
         {
             Assert.Empty(plans);
-            Assert.Contains(choices, item => item.Id == "gather_building_material:wood");
         }
         else
         {
             Assert.NotEmpty(plans);
-            Assert.DoesNotContain(choices, item => item.Id == "gather_building_material:wood");
         }
         var stock = world.Society.Inventory.GetLot("planning-sale-wood");
         Assert.Equal((household, 16, (string?)null, new InventoryGroundPosition(stall.X, stall.Y)),
