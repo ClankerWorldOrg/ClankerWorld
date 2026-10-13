@@ -394,6 +394,9 @@ looking for their committed goods in an unreserved answer.
 `StorePersonal` selects carried, unworn personal property for storage, including
 damaged or spoiled goods, and refuses delivery promises and reserved vessel
 families. Storage still checks destination room and the transfer authority.
+Whole-lot custody moves retain the source identity. Only a partial move creates
+a split identity and checks whether it already exists; an earlier split cannot
+block moving the whole remainder. Ownership and reservation checks still apply.
 Physical Market stock counts also remain physical, including damaged contents,
 so usable sale selection cannot undercount occupied space. These queries add no
 route, saved state or persistent world cache.
