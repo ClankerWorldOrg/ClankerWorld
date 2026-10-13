@@ -2,7 +2,7 @@
 title: Remote world server deployment
 type: development-reference
 status: active
-updated: 2026-09-30
+updated: 2026-10-13
 ---
 
 # Remote world server deployment
@@ -29,14 +29,14 @@ contents, private thoughts or raw model replies.
    [build and test checks](build-and-test.md#which-checks-to-run), including
    locked restore, formatting, Release tests, Godot checks and Windows export
    when distributing a matching client. Publish the server from that same
-   checkout with `dotnet publish src/ClankerWorld.Server -c Release`. Record the
-   publish directory, game version and SHA-256 hashes of the exact artifacts.
+   checkout with `dotnet publish src/ClankerWorld.Server/ClankerWorld.Server.csproj --configuration Release --no-restore --output /path/to/staged-server`.
+   Record the publish directory, game version and SHA-256 hashes of the exact artifacts.
 3. Check save, generator and signed-action compatibility against the current
-   host. During alpha an older save may be refused, but must be preserved.
+   server. During alpha an older save may be refused, but must be preserved.
    Obtain the owner's explicit choice before a fresh-world reset. Never
    discover an incompatible save by replacing the running application first.
    See [Saves and replay](saves-and-replay.md) and
-   [Matching client and host builds](releasing.md#matching-client-and-host-builds).
+   [Matching client and server builds](releasing.md#matching-client-and-server-builds).
 4. Stage the verified binaries in a separate versioned directory. Keep the
    existing binaries and service configuration available for rollback. Check
    free space for the complete private backup and staged release, and that the
@@ -57,7 +57,7 @@ versioned binary directories. The relevant configuration keys are:
 | `ClankerWorld:Providers:UsagePath` | Installation-lifetime paid-attempt accounting |
 | `ClankerWorld:Assets:CatalogPath` | Approved asset catalog and the assets it refers to |
 
-When `Providers:UsagePath` is unset, the current host uses `provider-usage.json`
+When `ClankerWorld:Providers:UsagePath` is unset, the server uses `provider-usage.json`
 beside the provider configuration file. An older process or different working
 directory may have used another location. Identify all possible old and new
 meter locations before switching; a missing file is not proof that no calls
@@ -81,7 +81,7 @@ for the complete backup set.
 Record spent attempts, the configured limit and pending reservations before
 changing the meter location. Preserve the entire meter, including pending
 reservations; do not turn an interrupted request into unused allowance. On
-startup, the current host records interrupted reservations as abandoned while
+startup, the current server records interrupted reservations as abandoned while
 keeping their spent attempts.
 
 - If both locations contain accounting, stop. Do not pick the smaller, newer
@@ -116,7 +116,7 @@ keeping their spent attempts.
    using disposable synthetic state with a fake provider. Do not probe a real
    paid model merely to establish readiness.
 5. Report the update and any failed checks. Only a separately explicit owner
-   Resume starts time and model calls. Keep client and host revisions in the
+   Resume starts time and model calls. Keep client and server revisions in the
    record; deployment, export and actual playtesting are different checks.
 
 ## Roll back or stop
@@ -145,29 +145,35 @@ rehearsal actually checked; this checklist is not a completed rehearsal.
 
 A future command can automate plan, stage, apply, verify and rollback after the
 local Windows package works. Its remaining contract is tracked in
-[#267](https://github.com/compoodment/ClankerWorld/issues/267); no such command
+[#267](https://github.com/ClankerWorldOrg/ClankerWorld/issues/267); no such command
 is implied by this guide.
 
 ## Installing this build on a remote server
 
-Builds from [#1364](https://github.com/compoodment/ClankerWorld/issues/1364) on
-rename the host, its service and its files, and keep nothing from the earlier
-service. Install them fresh rather than updating the old service:
+For a fresh Linux installation, publish the server as above and install the
+complete output under `/opt/clankerworld-server`. The
+[systemd template](../../deploy/clankerworld-server.service) runs
+`ClankerWorld.Server.dll` as `clanker:clanker` with the .NET 10 runtime at
+`/home/clanker/.local/bin/dotnet`. Provision that account and runtime, or adjust
+the unit to the intended account and runtime path, before starting it.
+`StateDirectory=clankerworld-server` creates `/var/lib/clankerworld-server`;
+world state, device authority and model configuration live there. The optional
+environment file is `/etc/clankerworld-server/provider.env`.
 
-1. Stop and disable the old service:
-   `sudo systemctl disable --now clankerworld-viewer.service`.
-2. Install the new host files and the new
-   [systemd template](../../deploy/clankerworld-server.service) from `deploy/`
-   as `/etc/systemd/system/clankerworld-server.service`, then run
-   `sudo systemctl daemon-reload`.
-3. Start it: `sudo systemctl enable --now clankerworld-server.service`.
-4. Pair each device again and add the API keys again in the game. Worlds saved
-   by earlier builds do not open in this build, so the server starts a new one.
-5. Optionally, delete the old `/var/lib/clankerworld-viewer` folder once the new
-   server works.
+Install the reviewed unit, reload systemd and start it:
 
-The world server names (#1364). A new unit sets these environment
-variables, as the [systemd template](../../deploy/clankerworld-server.service) does:
+```bash
+sudo install -m 0644 deploy/clankerworld-server.service /etc/systemd/system/clankerworld-server.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now clankerworld-server.service
+```
+
+Pair the first device through the local approval listener and configure its
+models through the game. For an existing installation, use the paused update
+and backup procedure above; a binary or service rename does not itself require
+re-pairing, deleting state or starting a new world.
+
+The template sets these environment variables:
 
 - `ClankerWorld__World__Mode`
 - `ClankerWorld__Clock__Run`
@@ -193,17 +199,30 @@ The server also reads these settings, which a unit sets only when needed:
 - `ClankerWorld:Providers:UsagePath`
 - `ClankerWorld:World:Seed`
 
-The approval listener, on `ClankerWorld:Pairing:ApprovalPort` and never
-forwarded, serves `POST /api/v1/approval/pairings`,
+`Program.cs` reads these keys; environment overrides replace `:` with `__`.
+`ClankerWorld:World:Mode` accepts only `game`. Both HTTP listeners bind to
+loopback. The ordinary port defaults to 5188; the approval listener is disabled
+when `ClankerWorld:Pairing:ApprovalPort` is unset or zero. Enabled ports must
+be distinct and between 1 and 65535. Client presence defaults to five seconds
+and accepts two to sixty seconds. `ClankerWorld:Clock:Run` enables the clock service, while
+signed presence and pause still decide whether it advances.
+
+Forward only the ordinary listener through the deployment's authenticated HTTPS
+proxy. It serves the discovery-only `GET /api/v1/handshake`, build-only
+`GET /api/v1/status`, pairing routes and signed `/api/v1/owner/*` routes.
+The approval listener, never forwarded, serves `POST /api/v1/approval/pairings`,
 `POST /api/v1/approval/pairings/{pairingId}/approve` and
 `POST /api/v1/approval/devices/{deviceId}/revoke`. Only a local server, which
 the game starts, also serves `POST /api/v1/approval/shutdown` and
 `GET /api/v1/approval/launch-check`, and needs the `X-ClankerWorld-Launch-Secret`
-header and `ClankerWorld:LocalServer:LaunchSecretPath`.
+header and `ClankerWorld:LocalServer:LaunchSecretPath`. All approval routes check
+the local listener and loopback host name; local-server mode also requires the
+launch secret. [Device pairing](device-pairing.md#local-server-started-by-the-game)
+owns those checks and the client bootstrap flow. Route handlers live in
+`src/ClankerWorld.Server/Endpoints/OwnerEndpoints.Pairing.cs`.
 
-Log lines name the agent with `agent=`. The server's events include
+Model-decision logs name the agent with `agent=`. The server's events include
 `server_shutdown`, `approval_listener`, `model_decision`,
-`model_decision_progress`, `model_call` and `model_conversation_call`. Older
-logs used `host_shutdown`, `local_approval`, `cognition_decision`,
-`hosted_decision`, `cognition_provider_call`, `conversation_call` and
-`inhabitant=` for these.
+`model_decision_progress`, `model_call` and `model_conversation_call`.
+`pairing_local_recovery` records local pairing and recovery;
+`local_server outcome=shutdown_requested` records the game's shutdown request.
