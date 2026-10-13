@@ -201,7 +201,7 @@ public sealed partial class WorldRuntime
             ConstructionReceipts = (worldSimulation.ConstructionReceipts ?? []).Append(receipt)
                 .OrderBy(item => item.InstructionId, StringComparer.Ordinal).ToArray(),
         };
-        CreditOrderEffect(instruction, ConstructionOrderReceipt(receipt.BuildingInstanceId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(ConstructionOrderReceipt(receipt.BuildingInstanceId)), 1);
     }
 
     private static void ValidateConstructionOrderBindings(WorldContentSimulationState? simulation,

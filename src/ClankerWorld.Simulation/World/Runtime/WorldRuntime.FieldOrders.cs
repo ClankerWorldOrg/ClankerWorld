@@ -76,7 +76,7 @@ public sealed partial class WorldRuntime
                 if (completed is not null)
                 {
                     var receipt = FieldWorkOrderReceipt(actor, WorldTick, completed.Position, work.Kind, completed.Cycle);
-                    CreditOrderEffect(instruction, receipt, 1);
+                    CreditOrderEffect(instruction, Identity.Parse(receipt), 1);
                 }
                 return;
             }

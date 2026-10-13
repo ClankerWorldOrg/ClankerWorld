@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -20,16 +21,26 @@ public sealed record Identity : IComparable<Identity>
         return new(value);
     }
 
+    public static Identity? ParseOptional(string? value) => value is null ? null : Parse(value);
+
+    /// <summary>Retains an existing memory key's exact spelling; recall applies its own bounds.</summary>
+    public static Identity ParseStoredMemory(string value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        return new(value);
+    }
+
     public int CompareTo(Identity? other) => StringComparer.Ordinal.Compare(Value, other?.Value);
     public static bool operator <(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) < 0;
     public static bool operator <=(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) <= 0;
     public static bool operator >(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) > 0;
     public static bool operator >=(Identity? left, Identity? right) => StringComparer.Ordinal.Compare(left?.Value, right?.Value) >= 0;
     public override string ToString() => Value;
-    public static implicit operator string(Identity value) => value.Value;
+    [return: NotNullIfNotNull(nameof(value))]
+    public static implicit operator string?(Identity? value) => value?.Value;
 }
 
-public sealed class IdentityJsonConverter : JsonConverter<Identity>
+public class IdentityJsonConverter : JsonConverter<Identity>
 {
     public override Identity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -49,5 +60,16 @@ public sealed class IdentityJsonConverter : JsonConverter<Identity>
     {
         if (!IdentityRules.Reference(value, DerivedId.MaximumLength)) throw new JsonException("Invalid identity key.");
         return Identity.Parse(value!);
+    }
+}
+
+public sealed class StoredMemoryIdentityJsonConverter : IdentityJsonConverter
+{
+    public override Identity Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.TokenType == JsonTokenType.String ? reader.GetString() : null;
+        if (string.IsNullOrWhiteSpace(value))
+            throw new JsonException("A stored memory identity must be a nonblank string.");
+        return Identity.ParseStoredMemory(value);
     }
 }

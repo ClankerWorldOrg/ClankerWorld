@@ -109,9 +109,9 @@ public sealed class TownHeirWillTests
         Assert.Equal(2, food.Sum(lot => lot.Quantity));
         Assert.All(food, lot => Assert.Contains(lot.OwnerId, estate.BeneficiaryIds));
         Assert.Equal(food.Select(lot => lot.OwnerId).Distinct().Order(StringComparer.Ordinal),
-            settled.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal))
+            settled.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal))
                 .Select(memory => memory.OwnerId).Order(StringComparer.Ordinal));
-        Assert.All(settled.Memories.Where(memory => memory.Id.StartsWith("final-words:", StringComparison.Ordinal)),
+        Assert.All(settled.Memories.Where(memory => memory.Id.Value.StartsWith("final-words:", StringComparison.Ordinal)),
             memory =>
             {
                 Assert.Equal("private", memory.Visibility);
@@ -235,7 +235,7 @@ public sealed class TownHeirWillTests
         ], settled.Inventory.Lots.Where(lot => lot.ProvenanceLotId is "wood-lot" or "bread-lot")
             .Select(lot => (lot.OwnerId, lot.ProvenanceLotId!, lot.Quantity, lot.StorageBuildingId))
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ThenBy(item => item.Item2, StringComparer.Ordinal));
-        var memory = Assert.Single(settled.Memories, item => item.Id.StartsWith("final-words:", StringComparison.Ordinal));
+        var memory = Assert.Single(settled.Memories, item => item.Id.Value.StartsWith("final-words:", StringComparison.Ordinal));
         Assert.Equal(("bob", "alice", "Alice's final words were: 'Share the bread.'", "private"),
             (memory.OwnerId, memory.SubjectId, memory.Summary, memory.Visibility));
         Assert.Equal(settled, SocietyCheckpointCodec.Decode(SocietyCheckpointCodec.Encode(settled)), SocietyCheckpointComparer.Instance);

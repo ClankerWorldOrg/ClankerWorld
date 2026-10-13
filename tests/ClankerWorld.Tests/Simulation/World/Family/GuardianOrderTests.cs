@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
@@ -187,7 +188,7 @@ public sealed partial class ParenthoodTests
             order with { RequestedUnits = 2 },
             order with { RepeatUntilCancelled = true },
             order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
+            order with { LastEffectId = Identity.Parse("invented") },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
             {

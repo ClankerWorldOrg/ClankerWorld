@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -388,7 +389,7 @@ public sealed partial class WorldFieldOrderTests
             Order(world, receipt) with { TargetAgentId = Actor },
             Order(world, receipt) with { TargetPosition = new(1, 2) },
             Order(world, receipt) with { ProgressUnit = "food_items" },
-            Order(world, receipt) with { LastEffectId = "field:work:unearned" },
+            Order(world, receipt) with { LastEffectId = Identity.Parse("field:work:unearned") },
         })
             Assert.Throws<InvalidDataException>(() => Restore(state with
             { Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));

@@ -1106,7 +1106,7 @@ public sealed partial class WorldRuntime
         if (!society.Checkpoint.Memories.Any(memory => memory.Id == memoryId))
         {
             society.Apply(checkpoint => SocietyRules.RecordSocialMemory(checkpoint, new SocietySocialMemory(
-                memoryId, request.Requester, helperId,
+                Identity.Parse(memoryId), request.Requester, helperId,
                 $"Grateful for {society.Checkpoint.GetAgent(helperId).Name}'s help with project materials.", "public", WorldTick)
             { Kind = SocietyMemoryKind.Relationship }));
         }

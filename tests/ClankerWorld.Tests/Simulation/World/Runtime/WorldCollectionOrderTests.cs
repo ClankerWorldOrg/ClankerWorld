@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Society;
@@ -260,7 +261,7 @@ public sealed partial class WorldCollectionOrderTests
         var receipt = Submit(world, actor, "long", "collect one wood");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         using var restored = Restore(WorldRuntimeCodec.Decode(saved));
         Assert.Equal(saved, WorldRuntimeCodec.Encode(restored.ExportState()));
@@ -448,8 +449,8 @@ public sealed partial class WorldCollectionOrderTests
             valid with { TargetMaterialKind = "cloth" }, valid with { TargetFoodKind = "berries" },
             valid with { TargetPosition = new(10_000_001, 1) }, valid with { TargetResourceId = "tree" },
             valid with { RequestedUnits = 0 }, valid with { CompletedUnits = -1 },
-            valid with { ProgressUnit = "harvests" }, valid with { LastEffectId = "collect:personal:unearned" },
-            valid with { CompletedUnits = 1, LastEffectId = "gather:material:wrong-action" },
+            valid with { ProgressUnit = "harvests" }, valid with { LastEffectId = Identity.Parse("collect:personal:unearned") },
+            valid with { CompletedUnits = 1, LastEffectId = Identity.Parse("gather:material:wrong-action") },
         })
         {
             var corrupt = saved with

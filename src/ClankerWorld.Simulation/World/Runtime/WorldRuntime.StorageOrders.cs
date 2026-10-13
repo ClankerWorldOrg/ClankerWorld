@@ -39,7 +39,7 @@ public sealed partial class WorldRuntime
         {
             // Split inventory identities can grow; keep the saved receipt bounded.
             var receipt = PersonalStorageReceipt(effect.MoveId);
-            CreditOrderEffect(instruction, receipt,
+            CreditOrderEffect(instruction, Identity.Parse(receipt),
                 order.ProgressUnit == "storage_loads" ? 1 : effect.Quantity);
         }
     }

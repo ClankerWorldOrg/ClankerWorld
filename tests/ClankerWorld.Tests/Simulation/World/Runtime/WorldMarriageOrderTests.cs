@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -291,7 +292,7 @@ public sealed class WorldMarriageOrderTests
         var finished = Assert.Single(completed.Instructions!);
         Assert.Equal("married", finished.Task!.TalkOutcome);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [finished with { Task = finished.Task with { LastEffectId = "marriage-order:forged" } }] }));
+        { Instructions = [finished with { Task = finished.Task with { LastEffectId = Identity.Parse("marriage-order:forged") } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Marriages = completed.Marriages!.Select(item => item with { CompletedTick = null, ChosenSurname = null, SurnameReceipt = null }).ToArray() }));
         Assert.Single(world.ExportState().Events, item => item.Kind == "marriage_accepted");
@@ -309,7 +310,7 @@ public sealed class WorldMarriageOrderTests
         var changedOutcome = finished with { Task = finished.Task! with { TalkOutcome = "proposal_declined" } };
         var forgedReceipt = "marriage-order:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{changedOutcome.InstructionId}|{changedOutcome.TargetAgentId}|{changedOutcome.Task!.TargetAgentId}|{changedOutcome.Task.TalkConversationId}|{changedOutcome.Task.TalkOutcome}")));
-        changedOutcome = changedOutcome with { Task = changedOutcome.Task! with { LastEffectId = forgedReceipt } };
+        changedOutcome = changedOutcome with { Task = changedOutcome.Task! with { LastEffectId = Identity.Parse(forgedReceipt) } };
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(trimmed with { Instructions = [changedOutcome] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(trimmed with { Marriages = [] }));
     }

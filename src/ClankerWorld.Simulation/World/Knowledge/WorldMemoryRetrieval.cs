@@ -113,7 +113,7 @@ internal static class WorldMemoryRetrieval
         long worldTick)
     {
         var existing = compaction?.Sources ?? [];
-        var assessed = existing.Select(item => (item.Kind, item.SourceId)).ToHashSet();
+        var assessed = existing.Select(item => (item.Kind, SourceId: item.SourceId.Value)).ToHashSet();
         var unassessed = SourceRecords(socialMemories, beliefs, ownerId, worldTick)
             .Where(source => !source.Permanent)
             .Take(MaximumScanned)
@@ -123,8 +123,8 @@ internal static class WorldMemoryRetrieval
         // Older saves can contain protected sources' scores. Include those
         // occupied slots when checking which new assessments the writer retains.
         var retainable = SocietyRules.RetainedMemoryImportanceSources(existing.Concat(unassessed.Select(source =>
-                new SocietyAgentMemoryImportance(source.Id, ImportanceKey(source).Kind, source.SourceTick, 0, 0, worldTick))))
-            .Select(item => (item.Kind, item.SourceId)).ToHashSet();
+                new SocietyAgentMemoryImportance(Identity.Parse(source.Id), ImportanceKey(source).Kind, source.SourceTick, 0, 0, worldTick))))
+            .Select(item => (item.Kind, SourceId: item.SourceId.Value)).ToHashSet();
         var batch = unassessed.Where(source => retainable.Contains(ImportanceKey(source)))
             .OrderBy(item => item.SourceTick)
             .ThenBy(item => KindOrder(item.Kind))

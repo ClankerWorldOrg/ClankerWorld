@@ -63,10 +63,10 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.True(PersonalEquipmentRules.IsCarried(payment, first));
         Assert.True(PersonalEquipmentRules.IsCarried(world.Society.Inventory.GetLot("barter-recall-gold"), second));
         Assert.Equal(1, world.Society.Inventory.GetLot("barter-recall-clothing").Quantity);
-        var memories = world.Society.Memories.Where(memory => memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) &&
+        var memories = world.Society.Memories.Where(memory => memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)).ToArray();
         Assert.Equal(2, memories.Length);
-        Assert.Equal(2, memories.Select(memory => memory.Id).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(2, memories.Select(memory => memory.Id.Value).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(memories[0].SourceTick, memories[1].SourceTick);
         foreach (var memory in memories)
         {
@@ -107,7 +107,7 @@ public sealed partial class GrownAgentHelperMemoryTests
         Assert.Equal(source.SourceTick, recalled.SourceTick);
         Assert.Equal(source.Visibility, recalled.Visibility);
         Assert.DoesNotContain(observation.RetrievedMemories ?? [], item => item.Id == memories.Single(memory => memory.OwnerId != owner).Id);
-        Assert.InRange(source.Id.Length, 1, 128);
+        Assert.InRange(source.Id.Value.Length, 1, 128);
         for (var tick = 0; tick < 2; tick++)
         {
             await AdvanceNativeBarter(reload, reloadHost);
@@ -122,21 +122,21 @@ public sealed partial class GrownAgentHelperMemoryTests
                 .SocialStanding!.Single(item => item.SubjectId == memory.SubjectId).Trust);
         }
         if (nativeBorn)
-            await RepeatNativeBarterWithoutReplacingMemory(reload.ExportState(), first, second, payment.Id, beforeTrust, recallFirst);
+            await RepeatNativeBarterPreservingSavedMemoryKeys(reload.ExportState(), first, second, payment.Id, beforeTrust, legacyKeys: recallFirst);
     }
 
-    private static async Task RepeatNativeBarterWithoutReplacingMemory(WorldRuntimeState state,
+    private static async Task RepeatNativeBarterPreservingSavedMemoryKeys(WorldRuntimeState state,
         string first, string second, string paymentId, Dictionary<string, int> beforeTrust, bool legacyKeys)
     {
         var checkpoint = state.Society.Society;
-        // These are the memories earned above, not fabricated experience. Only
-        // rebind their keys to the old saved format for the compatibility row.
+        // Retain the actual earned memories, including the supported older pair
+        // spelling. Only the keys change in this controlled compatibility row.
         var savedMemories = checkpoint.Memories.Select(memory => legacyKeys &&
-            memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) &&
+            memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)
-                ? memory with { Id = "trust-memory:" + memory.OwnerId + ":" + memory.SubjectId } : memory)
-            .OrderBy(memory => memory.Id, StringComparer.Ordinal).ToArray();
-        var previous = savedMemories.Where(memory => memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) &&
+                ? memory with { Id = Identity.ParseStoredMemory("trust-memory:" + memory.OwnerId + ":" + memory.SubjectId) } : memory)
+            .OrderBy(memory => memory.Id.Value, StringComparer.Ordinal).ToArray();
+        var previous = savedMemories.Where(memory => memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)).ToArray();
         Assert.Equal(2, previous.Length);
         // Explicit fixture transfers return the actual exchanged units so the
@@ -163,7 +163,7 @@ public sealed partial class GrownAgentHelperMemoryTests
             await AdvanceNativeBarter(world, host);
         Assert.Equal(2, world.Society.Inventory.Offers.Count(offer => offer.FirstPartyId == first &&
             offer.SecondPartyId == second && offer.State == DirectBarterState.Settled));
-        var retained = world.Society.Memories.Where(memory => memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) &&
+        var retained = world.Society.Memories.Where(memory => memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) &&
             (memory.OwnerId == first && memory.SubjectId == second || memory.OwnerId == second && memory.SubjectId == first)).ToArray();
         Assert.Equal(2, retained.Length);
         foreach (var memory in previous)
