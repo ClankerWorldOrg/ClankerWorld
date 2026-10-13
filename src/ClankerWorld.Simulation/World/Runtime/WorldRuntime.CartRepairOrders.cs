@@ -10,7 +10,7 @@ public sealed partial class WorldRuntime
 {
     private InventoryLot? CartForRepairOrder(string actor, AgentState person) =>
         society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 && IsValidInstructionIdentifier(lot.Id) &&
+                lot.OwnerId == actor && lot.ConditionBasisPoints < 10_000 && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) &&
                 !HasActiveContainerReservation(society.Checkpoint.Inventory, lot.Id))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
@@ -71,7 +71,7 @@ public sealed partial class WorldRuntime
         if (candidate.Id != RepairCartPrefix + cart.Id ||
             society.Checkpoint.Inventory.GetLot(cart.Id).ConditionBasisPoints <= cart.ConditionBasisPoints) return;
         // This receipt identifies this instruction's native repair, not a pre-existing healthy cart.
-        CreditOrderEffect(instruction, CartRepairOrderReceipt(instruction, WorldTick), 1);
+        CreditOrderEffect(instruction, Identity.Parse(CartRepairOrderReceipt(instruction, WorldTick)), 1);
     }
 
     private const string CartRepairOrderReceiptPrefix = "cart-repair-order:";
@@ -84,13 +84,18 @@ public sealed partial class WorldRuntime
     private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
     {
         var receipt = instruction.Task!.LastEffectId;
-        if (receipt is null || receipt.Length > DerivedId.MaximumLength ||
-            !receipt.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
-        var separator = receipt.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
+        if (receipt is null || receipt.Value.Length > DerivedId.MaximumLength ||
+            !receipt.Value.StartsWith(CartRepairOrderReceiptPrefix, StringComparison.Ordinal)) return null;
+        var separator = receipt.Value.IndexOf(':', CartRepairOrderReceiptPrefix.Length);
         return separator > CartRepairOrderReceiptPrefix.Length &&
-            long.TryParse(receipt.AsSpan(CartRepairOrderReceiptPrefix.Length, separator - CartRepairOrderReceiptPrefix.Length),
+            long.TryParse(receipt.Value.AsSpan(CartRepairOrderReceiptPrefix.Length, separator - CartRepairOrderReceiptPrefix.Length),
                 NumberStyles.None, CultureInfo.InvariantCulture, out var tick) &&
             tick >= instruction.SubmittedTick && tick <= worldTick &&
             receipt == CartRepairOrderReceipt(instruction, tick) ? tick : null;
     }
+
+    internal static IEnumerable<string> RequiredCartRepairReservations(IEnumerable<OwnerQueuedInstruction> instructions, long tick) =>
+        instructions.Where(instruction => instruction.Task is { Action: "repair_handcart", CompletedUnits: > 0 })
+            .SelectMany(instruction => CartRepairOrderReceiptTick(instruction, tick) is { } repairedTick
+                ? CartRepairKinds.Select(kind => CartRepairReservationId(repairedTick, instruction.TargetAgentId, kind)) : []);
 }

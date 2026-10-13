@@ -105,7 +105,7 @@ public sealed class ApprovalListenerTests
                 new OwnerClientPresenceLease(TimeSpan.FromMinutes(1)), logger);
             // Ticks committed in memory but not yet written, as when the host stops mid-loop.
             Assert.True((await runtime.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(runtime).WaitAsync(provider.Started.Task);
             var tick = runtime.WorldTick;
 
             Assert.Equal(ShutdownSaveOutcome.Saved, service.SaveBeforeShutdown(pauseWorld: true));

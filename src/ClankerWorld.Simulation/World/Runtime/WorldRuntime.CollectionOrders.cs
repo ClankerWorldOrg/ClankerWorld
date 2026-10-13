@@ -46,7 +46,7 @@ public sealed partial class WorldRuntime
         if (CollectPersonalGoods(instruction.TargetAgentId, lotId, remaining) is { } effect)
         {
             var receipt = PersonalCollectionReceipt(effect.MoveId);
-            CreditOrderEffect(instruction, receipt,
+            CreditOrderEffect(instruction, Identity.Parse(receipt),
                 order.ProgressUnit == "collection_loads" ? 1 : effect.Quantity);
         }
     }

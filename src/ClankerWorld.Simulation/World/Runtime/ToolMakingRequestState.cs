@@ -13,7 +13,7 @@ public sealed record ToolMakingRequestState(
     string RecipeId, string ItemKind, long RequestedTick, long LastTransitionTick,
     ToolMakingRequestStatus Status = ToolMakingRequestStatus.Requested,
     string? WorkerId = null, long? AcceptedTick = null,
-    string? JobId = null, string? OfferId = null, string? Blocker = null);
+    string? JobId = null, Identity? OfferId = null, string? Blocker = null);
 
 public static class ToolMakingRequestRules
 {

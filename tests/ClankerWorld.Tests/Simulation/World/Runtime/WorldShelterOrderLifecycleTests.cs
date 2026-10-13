@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Diagnostics;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -186,11 +187,11 @@ public sealed partial class WorldShelterOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("cancel-held-shelter", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             var stopped = Person(world, actor).Position;
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
             for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {
@@ -227,7 +228,7 @@ public sealed partial class WorldShelterOrderTests
             completed with { ShelterBinding = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } },
             completed with { ShelterBinding = completed.ShelterBinding! with { OwnerId = "household:missing" } },
             completed with { ShelterCompletion = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } },
-            completed with { ShelterCompletion = completed.ShelterCompletion! with { FuelReservationId = "invented-fuel" } },
+            completed with { ShelterCompletion = completed.ShelterCompletion! with { FuelReservationId = Identity.Parse("invented-fuel") } },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(saved with
             {
@@ -239,6 +240,6 @@ public sealed partial class WorldShelterOrderTests
         var unknown = Submit(unsupported, actor, "unknown-shelter", "shelter inside the moon");
         Assert.Equal("not_understood", Order(unsupported, unknown).Status);
         Assert.Empty(provider.Requests);
-        Assert.Contains(unknown.InstructionId, unsupported.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, unsupported.ExportState().CompletedInstructionIds!);
     }
 }

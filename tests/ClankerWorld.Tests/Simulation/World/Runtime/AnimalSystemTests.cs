@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Reflection;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
@@ -194,7 +195,7 @@ public sealed class AnimalSystemTests
         }
 
         public bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity) => throw new NotSupportedException();
-        public void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units) => throw new NotSupportedException();
+        public void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units) => throw new NotSupportedException();
         public int DestinationRoom(string buildingId, InventoryLot? movingRoot = null) => throw new NotSupportedException();
         public List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0) => throw new NotSupportedException();
         public int FreeCarryCapacity(string actor) => throw new NotSupportedException();

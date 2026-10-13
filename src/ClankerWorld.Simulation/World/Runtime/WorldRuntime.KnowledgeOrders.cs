@@ -131,7 +131,7 @@ public sealed partial class WorldRuntime
                 Task = current.Task! with { KnowledgeCopySourceArtifactId = null },
             };
         }
-        CreditOrderEffect(instruction, AgentKnowledgeRules.WritingReceiptId(artifactId), 1);
+        CreditOrderEffect(instruction, Identity.Parse(AgentKnowledgeRules.WritingReceiptId(artifactId)), 1);
     }
 
     private void CancelKnowledgeWritingForOrder(OwnerQueuedInstruction instruction)
@@ -154,8 +154,7 @@ public sealed partial class WorldRuntime
                 instruction.TargetAgentId != project.ActorId || instruction.Task!.TargetKnowledgeKind != project.Kind ||
                 instruction.Task.KnowledgeWritingProjectId != project.Id || !MatchesKnowledgeSource(instruction.Task, project.SourceArtifactId, bound: true) ||
                 !IsActiveOrder(instruction.Task.Status) || instruction.Task.Status == "queued" ||
-                saved.Where(item => item.TargetAgentId == project.ActorId && item.Task is { } order && IsActiveOrder(order.Status))
-                    .OrderBy(item => item.SubmissionSequence).FirstOrDefault()?.InstructionId != instruction.InstructionId)
+                FirstActiveOrderFor(saved, project.ActorId)?.InstructionId != instruction.InstructionId)
                 throw new InvalidDataException("Ordered writing has no matching current owner task.");
         }
         foreach (var artifact in knowledge.Artifacts.Where(item => item.OrderInstructionId is not null))

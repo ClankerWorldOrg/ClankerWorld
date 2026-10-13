@@ -28,14 +28,14 @@ public sealed class ChildDeliveryHouseholdChangeTests
         var step = ReachIdentityCheckpoint(host);
         try
         {
-            await choices.IdentityEntered.Task;
+            await ModelWorkHarness.For(world).WaitAsync(choices.IdentityEntered.Task);
             Assert.False(step.IsCompleted, "The host must wait for the held identity input without advancing another tick.");
             await ReachIdentityCheckpoint(replayHost);
             var requested = world.Agents.SelectMany(person => (person.IdentityMoments ?? [])
                 .Where(moment => moment.Outcome == "requested").Select(moment => (person.AgentId, moment.Kind))).ToArray();
             Assert.NotEmpty(requested);
             choices.IdentityResponseGate.SetResult();
-            await step;
+            await ModelWorkHarness.For(world).WaitAsync(step);
             Assert.Equal(WorldRuntimeCodec.Encode(world.ExportState()), WorldRuntimeCodec.Encode(replay.ExportState()));
             await host.Step();
             await replayHost.Step();
@@ -47,7 +47,7 @@ public sealed class ChildDeliveryHouseholdChangeTests
         finally
         {
             choices.IdentityResponseGate.TrySetResult();
-            await step;
+            await ModelWorkHarness.For(world).WaitAsync(step);
         }
 
         static async Task ReachIdentityCheckpoint(CheckpointHost checkpointHost)

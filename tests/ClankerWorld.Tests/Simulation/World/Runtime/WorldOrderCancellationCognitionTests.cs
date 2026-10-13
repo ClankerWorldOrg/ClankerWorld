@@ -19,7 +19,7 @@ public sealed partial class WorldRuntimeTests
         var intention = Assert.Single(admitted.Society.Cognition.Runtimes,
             item => item.AgentId == HarvestInstructionActor).CurrentIntention!;
         Assert.Equal("seek_food", intention.CandidateId);
-        Assert.Equal(order.InstructionId, intention.OperativeOrderInstructionId);
+        Assert.Equal(order.InstructionId.Value, intention.OperativeOrderInstructionId);
         var position = CancellationActorPosition(admitted);
         Assert.NotEqual(CancellationActorPosition(before), position);
         Assert.Equal("doing", CancellationOrder(admitted, order.InstructionId).Status);
@@ -162,7 +162,7 @@ public sealed partial class WorldRuntimeTests
 
             var freshRequest = Assert.Single(provider.Requests, request => request.RunEpoch != originalRequest.RunEpoch);
             Assert.Equal(resumeWorld.Society.RunEpoch, freshRequest.RunEpoch);
-            Assert.Equal(order.InstructionId, freshRequest.OperativeOrderInstructionId);
+            Assert.Equal(order.InstructionId.Value, freshRequest.OperativeOrderInstructionId);
             Assert.Contains(freshRequest.ObserverGuidance!, message => message.InstructionId == order.InstructionId);
             Assert.Null(Assert.Single(resumeWorld.ExportState().Instructions!,
                 instruction => instruction.InstructionId == order.InstructionId).ObservedTick);

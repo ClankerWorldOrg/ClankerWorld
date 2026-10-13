@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
@@ -61,7 +62,7 @@ public sealed class LiveConversationSnapshotTests
         var sent = new ConcurrentDictionary<string, byte>(StringComparer.Ordinal);
         using var next = WorldRuntime.Restore(world.ExportState(), actor => new InvitationProvider(actor, pairs, sent));
         foreach (var actor in pairs.Keys)
-            next.SubmitInstruction(new("next-invitation:" + actor, "owner:test", actor,
+            next.SubmitInstruction(new(DerivedId.Create("next-invitation:" + actor), "owner:test", actor,
                 OwnerInstructionKind.Suggestion, "Talk with your nearby neighbor."));
         for (var tick = 0; tick < 20 && next.Conversations.Count < 34; tick++)
         {

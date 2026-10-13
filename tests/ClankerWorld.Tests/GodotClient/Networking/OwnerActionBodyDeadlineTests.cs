@@ -33,12 +33,12 @@ public sealed class OwnerActionBodyDeadlineTests
         var gate = new OwnerActionGate();
         var first = gate.RunAsync(async () =>
             await api.SetPausedAsync(new("http://127.0.0.1:5188"), new("server", "world"), "device", true, signer, cancellation.Token));
-        await handler.Body.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(handler.Body.Started.Task);
         if (callerCancels) cancellation.Cancel();
         else clock.Advance(TimeSpan.FromMilliseconds(500));
         try
         {
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(first));
             Assert.True(handler.Body.ReadToken.IsCancellationRequested);
             Assert.Equal(callerCancels, cancellation.IsCancellationRequested);
         }

@@ -81,7 +81,7 @@ public sealed class HouseholdJoinRequestTests
         world.SubmitInstruction(new("waiting-housing-lesson-guidance", "owner:test", member,
             OwnerInstructionKind.Suggestion, "Think about your next task."));
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        // Registration precedes the provider's background startup. The lesson
+        // Registration precedes manually controlled provider entry. The lesson
         // must continue while that exact request is pending in either phase.
         var (heldRequest, heldTask) = CapturePendingHousingCall(world, member);
         Assert.Equal(member, heldRequest.Observation.AgentId);
@@ -111,7 +111,7 @@ public sealed class HouseholdJoinRequestTests
         var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
         Volatile.Write(ref allowStart, 1);
         harness.RunPendingWork();
-        await held.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(held.Started.Task);
         Assert.Same(heldRequest.Observation, Assert.Single(held.Requests));
         Assert.Equal(beforeEntry, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");

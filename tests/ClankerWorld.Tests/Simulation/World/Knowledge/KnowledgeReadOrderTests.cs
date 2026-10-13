@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -178,7 +179,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Instructions = [instruction with { Task = instruction.Task with { TargetKnowledgeArtifactId = "another-artifact" } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Task = instruction.Task with { LastEffectId = "read-order:forged" } }] }));
+        { Instructions = [instruction with { Task = instruction.Task with { LastEffectId = Identity.Parse("read-order:forged") } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Knowledge = completed.Knowledge! with { Facts = completed.Knowledge!.Facts.Where(fact => fact.OwnerId != reader).ToArray() } }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
@@ -225,7 +226,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
             // A controlled existing ledger isolates its saved capacity boundary.
             var existing = state.Map.Tiles.Where(tile => state.Map.IsPassable(tile.Position) && artifact.Facts.All(fact => fact.Position != tile.Position))
                 .Take(full ? 128 : 127).Select(tile => new AgentKnowledgeFact(
-                    $"knowledge-fact:{reader}:{tile.Position.X}:{tile.Position.Y}", reader, reader, tile.Position,
+                    DerivedId.Create($"knowledge-fact:{reader}:{tile.Position.X}:{tile.Position.Y}"), reader, reader, tile.Position,
                     tile.Terrain.ToString(), [], state.Society.Society.WorldTick, "firsthand")).ToArray();
             Assert.Equal(full ? 128 : 127, existing.Length);
             using var world = WorldRuntime.Restore(state with

@@ -539,17 +539,12 @@ public sealed partial class WorldRuntime
 
             var completed = CompleteProductionJob(job, recipe, targetTick);
 
-            worldSimulation = new WorldContentSimulationState(
-                worldSimulation.Buildings,
-                worldSimulation.ProductionJobs
-                    .Select(candidate => candidate.JobId == job.JobId
-                        ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled }
-                        : candidate)
-                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal)
-                    .ToArray(),
-                worldSimulation.NextProductionJobSequence,
-                worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts);
+            worldSimulation = worldSimulation with
+            {
+                ProductionJobs = worldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
+                    ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled } : candidate)
+                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal).ToArray(),
+            };
             if (completed && HouseToolsContent.IsCrudeToolRecipe(recipe))
                 AppendEvent("house_tool_made", $"{job.WorkerId}|{recipe.Outputs.Single().ResourceId}",
                     worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
@@ -569,7 +564,7 @@ public sealed partial class WorldRuntime
         long targetTick)
     {
         var inventoryState = society.Checkpoint.Inventory;
-        var inputs = job.InputReservationIds.Select(inventoryState.GetReservation).ToArray();
+        var inputs = job.InputReservationIds.Select(id => inventoryState.GetReservation(id)).ToArray();
         var knifePlan = job.ToolLotId is null ? null : ToolProgressionRules.PlanWorkForLot(inventoryState,
             job.WorkerId, ToolFamily.Knife, job.ToolLotId);
         var inputUnusable = inputs.Any(reservation =>
@@ -597,7 +592,7 @@ public sealed partial class WorldRuntime
         ApplyInventoryTransition(inventory =>
         {
             var current = inventory;
-            foreach (var reservationId in job.InputReservationIds.Order(StringComparer.Ordinal))
+            foreach (var reservationId in job.InputReservationIds.Order())
             {
                 current = InventoryAuthority.ConsumeReservation(current, reservationId);
             }

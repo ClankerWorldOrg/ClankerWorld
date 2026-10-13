@@ -160,7 +160,7 @@ internal static class MarketFreshConsentScenario
         await UntilAsync(world, () => world.ExportState().CompletedInstructionIds!.Contains(order.InstructionId), 32);
         Assert.DoesNotContain(provider.Offered, candidate => candidate.Id.StartsWith("market_", StringComparison.Ordinal));
         Assert.Equal(foodBefore - 1, CarriedFoodQuantity(world, actor));
-        Assert.Contains(order.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(order.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "instruction_applied" &&
             item.Detail == order.InstructionId + ":consume_food");
         Assert.Empty(CurrentMarket(world).StockReceipts);

@@ -55,12 +55,12 @@ public sealed partial class WorldRuntimeTests
         var closed = state.Events.Where(item => item.Kind == "instruction_not_understood").ToArray();
         if (understood)
         {
-            Assert.DoesNotContain(order.InstructionId, state.CompletedInstructionIds ?? []);
+            Assert.DoesNotContain(order.InstructionId.Value, state.CompletedInstructionIds ?? []);
             Assert.Empty(closed);
         }
         else
         {
-            Assert.Contains(order.InstructionId, state.CompletedInstructionIds ?? []);
+            Assert.Contains(order.InstructionId.Value, state.CompletedInstructionIds ?? []);
             Assert.Single(closed);
         }
     }
@@ -98,14 +98,14 @@ public sealed partial class WorldRuntimeTests
         var firstGuidance = firstPrompt.ObserverGuidance ?? throw new InvalidOperationException();
         Assert.Equal(AgentObservation.MaximumObserverGuidanceCount, firstGuidance.Count);
         Assert.Equal(suggestions.Take(AgentObservation.MaximumObserverGuidanceCount)
-            .Select(item => item.InstructionId).ToArray(), firstGuidance.Select(item => item.InstructionId).ToArray());
+            .Select(item => item.InstructionId.Value).ToArray(), firstGuidance.Select(item => item.InstructionId).ToArray());
         var afterFirstPrompt = world.ExportState();
         foreach (var suggestion in suggestions.Take(AgentObservation.MaximumObserverGuidanceCount))
         {
             var saved = Assert.Single(afterFirstPrompt.Instructions!, item => item.InstructionId == suggestion.InstructionId);
             Assert.NotNull(saved.GuidancePromptedTick);
             Assert.Null(saved.ObservedTick);
-            Assert.DoesNotContain(suggestion.InstructionId, afterFirstPrompt.CompletedInstructionIds ?? []);
+            Assert.DoesNotContain(suggestion.InstructionId.Value, afterFirstPrompt.CompletedInstructionIds ?? []);
         }
         var hiddenSuggestion = Assert.Single(afterFirstPrompt.Instructions!, item =>
             item.InstructionId == suggestions[^1].InstructionId);
@@ -126,10 +126,10 @@ public sealed partial class WorldRuntimeTests
         var orderGuidance = orderPrompt.ObserverGuidance ?? throw new InvalidOperationException();
         Assert.Equal(AgentObservation.MaximumObserverGuidanceCount, orderGuidance.Count);
         Assert.Equal(suggestions.Take(AgentObservation.MaximumObserverGuidanceCount - 1)
-                .Select(item => item.InstructionId).Append(order.InstructionId).ToArray(),
+                .Select(item => item.InstructionId.Value).Append(order.InstructionId).ToArray(),
             orderGuidance.Select(item => item.InstructionId).ToArray());
         var afterOrder = world.ExportState();
-        Assert.Contains(order.InstructionId, afterOrder.CompletedInstructionIds ?? []);
+        Assert.Contains(order.InstructionId.Value, afterOrder.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(afterOrder.CompletedInstructionIds ?? [], completedId =>
             suggestions.Any(item => item.InstructionId == completedId));
         foreach (var suggestion in suggestions)
@@ -160,7 +160,7 @@ public sealed partial class WorldRuntimeTests
             var saved = Assert.Single(finalState.Instructions!, item => item.InstructionId == suggestion.InstructionId);
             Assert.Null(saved.ObservedTick);
             Assert.Null(saved.ObserverReply);
-            Assert.DoesNotContain(suggestion.InstructionId, finalState.CompletedInstructionIds ?? []);
+            Assert.DoesNotContain(suggestion.InstructionId.Value, finalState.CompletedInstructionIds ?? []);
         }
         world.Validate();
     }
@@ -219,7 +219,7 @@ public sealed partial class WorldRuntimeTests
         var unsupported = world.SubmitInstruction(new OwnerInstructionRequest("heat", "owner:test",
             OrderedAgent, OwnerInstructionKind.Order, "heat the house"));
         var closed = world.ExportState();
-        Assert.Contains(unsupported.InstructionId, closed.CompletedInstructionIds ?? []);
+        Assert.Contains(unsupported.InstructionId.Value, closed.CompletedInstructionIds ?? []);
         Assert.Equal("not_understood", Assert.Single(closed.Instructions!,
             item => item.InstructionId == unsupported.InstructionId).Task!.Status);
         Assert.Single(closed.Events, item => item.Kind == "instruction_not_understood" &&
@@ -233,8 +233,8 @@ public sealed partial class WorldRuntimeTests
         Assert.True((await restored.AdvanceOneTickAsync()).Advanced);
 
         var after = restored.ExportState();
-        Assert.Contains(unsupported.InstructionId, after.CompletedInstructionIds ?? []);
-        Assert.Contains(valid.InstructionId, after.CompletedInstructionIds ?? []);
+        Assert.Contains(unsupported.InstructionId.Value, after.CompletedInstructionIds ?? []);
+        Assert.Contains(valid.InstructionId.Value, after.CompletedInstructionIds ?? []);
         Assert.DoesNotContain(after.Society.Society.Inventory.Lots, lot => lot.Id == foodLotId);
         Assert.Single(after.Events, item => item.Kind == "instruction_not_understood" &&
             item.Detail == OrderedAgent + ":" + unsupported.InstructionId);
@@ -261,7 +261,7 @@ public sealed partial class WorldRuntimeTests
             await AdvanceWithModelDecisionsAsync(world);
 
         var modelCalls = modelProvider.CallCount - callsBefore;
-        Assert.DoesNotContain(order.InstructionId, world.ExportState().CompletedInstructionIds ?? []);
+        Assert.DoesNotContain(order.InstructionId.Value, world.ExportState().CompletedInstructionIds ?? []);
         Assert.InRange(modelCalls, 1, 10);
     }
 
@@ -322,8 +322,8 @@ public sealed partial class WorldRuntimeTests
         // The refusal used no message number, so the next valid message is still the first.
         var accepted = world.SubmitInstruction(new OwnerInstructionRequest("valid-after-refusal", "owner:test",
             OrderedAgent, OwnerInstructionKind.Suggestion, "Rest when you can."));
-        Assert.Equal("private-instruction-0000000001", accepted.InstructionId);
-        Assert.Equal(accepted.InstructionId, Assert.Single(world.ExportState().Instructions!).InstructionId);
+        Assert.Equal("private-instruction-0000000001", accepted.InstructionId.Value);
+        Assert.Equal(accepted.InstructionId.Value, Assert.Single(world.ExportState().Instructions!).InstructionId);
         world.Validate();
     }
 
@@ -362,9 +362,9 @@ public sealed partial class WorldRuntimeTests
             "owner:test", "founder-mira", OwnerInstructionKind.Order, "build a wall"));
         var exported = world.ExportState();
         Assert.All(closedOrders.Append(otherAgentOrder), order =>
-            Assert.Contains(order.InstructionId, exported.CompletedInstructionIds ?? []));
+            Assert.Contains(order.InstructionId.Value, exported.CompletedInstructionIds ?? []));
         // The oldest suggestions were heard by a personal model and answered.
-        var heardIds = heard.Select(item => item.InstructionId).ToHashSet(StringComparer.Ordinal);
+        var heardIds = heard.Select(item => item.InstructionId.Value).ToHashSet(StringComparer.Ordinal);
         var withHeardMessages = exported with
         {
             Instructions = exported.Instructions!.Select(item => heardIds.Contains(item.InstructionId)
@@ -384,7 +384,7 @@ public sealed partial class WorldRuntimeTests
             // bounded to the newest few, heard or not, so more suggestions never hide orders.
             Assert.Equal(
                 heard.TakeLast(closedMessagesShown).Append(waiting)
-                    .Concat(closedOrders.TakeLast(closedMessagesShown)).Select(item => item.InstructionId).ToArray(),
+                    .Concat(closedOrders.TakeLast(closedMessagesShown)).Select(item => item.InstructionId.Value).ToArray(),
                 forAgent.Select(item => item.InstructionId).ToArray());
             Assert.All(forAgent.Take(closedMessagesShown), item =>
             {
@@ -401,7 +401,7 @@ public sealed partial class WorldRuntimeTests
                 Assert.Null(item.ObserverReply);
             });
             var otherAgent = Assert.Single(projected, item => item.TargetAgentId != OrderedAgent);
-            Assert.Equal(otherAgentOrder.InstructionId, otherAgent.InstructionId);
+            Assert.Equal(otherAgentOrder.InstructionId.Value, otherAgent.InstructionId);
             Assert.Equal("completed", otherAgent.State);
             Assert.Null(otherAgent.ObservedTick);
         }
@@ -436,7 +436,7 @@ public sealed partial class WorldRuntimeTests
     private static async Task AdvanceWithModelDecisionsAsync(WorldRuntime world)
     {
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        // Give a started model decision time to finish before the next tick.
+        // Finish returned wrappers before the next native admission tick.
         await ModelWorkHarness.For(world).SettleAsync();
     }
 }

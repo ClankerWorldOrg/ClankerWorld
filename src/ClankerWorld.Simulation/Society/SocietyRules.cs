@@ -558,7 +558,7 @@ public static partial class SocietyRules
         {
             Memories = checkpoint.Memories.Append(memory with
             { Summary = NormalizeRequiredText(memory.Summary, nameof(memory.Summary)) })
-                .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
         };
         return Commit(next, "social_memory_recorded", memory.Id, memory.Id);
     }
@@ -582,7 +582,7 @@ public static partial class SocietyRules
         return checkpoint with
         {
             Beliefs = (checkpoint.Beliefs ?? []).Append(normalized)
-                .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
+                .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray(),
         };
     }
 
@@ -623,9 +623,9 @@ public static partial class SocietyRules
                 ? item with { SupersededByBeliefId = replacement.Id, SupersededTick = checkpoint.WorldTick }
                 : item)
             .Append(replacement)
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
-        var archived = checkpoint.ArchivedBeliefs.Select(item => item.Belief.Id).ToHashSet(StringComparer.Ordinal);
-        var byId = revised.ToDictionary(item => item.Id, StringComparer.Ordinal);
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
+        var archived = checkpoint.ArchivedBeliefs.Select(item => item.Belief.Id.Value).ToHashSet(StringComparer.Ordinal);
+        var byId = revised.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         return checkpoint with
         {
             Beliefs = revised.Where(item => !archived.Contains(item.Id)).ToArray(),
@@ -657,7 +657,7 @@ public static partial class SocietyRules
         foreach (var score in scores)
         {
             ArgumentNullException.ThrowIfNull(score);
-            if (!IsCanonicalBoundedText(score.SourceId, 128) || !Enum.IsDefined(score.Kind) ||
+            if (!BoundedText.IsValid(score.SourceId, 128, requireTrimmed: true) || !Enum.IsDefined(score.Kind) ||
                 score.SourceTick < 0 || score.SourceTick > checkpoint.WorldTick ||
                 score.ImportanceBasisPoints is < 0 or > 10_000 ||
                 score.ImportanceConfidenceBasisPoints is < 0 or > 10_000)
@@ -677,19 +677,22 @@ public static partial class SocietyRules
             combined[$"{score.Kind}:{score.SourceId}"] = score with { AssessedTick = checkpoint.WorldTick };
         }
 
-        var boundedSources = combined.Values
-            .OrderByDescending(item => item.SourceTick)
-            .ThenBy(item => item.Kind)
-            .ThenBy(item => item.SourceId, StringComparer.Ordinal)
-            .Take(256)
+        var boundedSources = RetainedMemoryImportanceSources(combined.Values)
             .OrderBy(item => item.Kind)
-            .ThenBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
+            .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal).ToArray();
         var compactions = (checkpoint.MemoryCompactions ?? [])
             .Where(item => item.OwnerId != owner)
             .Append(new SocietyAgentMemoryCompaction(owner, boundedSources))
             .OrderBy(item => item.OwnerId, StringComparer.Ordinal).ToArray();
         return checkpoint with { MemoryCompactions = compactions };
     }
+
+    internal static IEnumerable<SocietyAgentMemoryImportance> RetainedMemoryImportanceSources(
+        IEnumerable<SocietyAgentMemoryImportance> sources) => sources
+        .OrderByDescending(item => item.SourceTick)
+        .ThenBy(item => item.Kind)
+        .ThenBy(item => item.SourceId.Value, StringComparer.Ordinal)
+        .Take(256);
 
     public static SocietyOperationResult CreateOrganization(
         SocietyCheckpoint checkpoint,
@@ -1239,14 +1242,14 @@ public static partial class SocietyRules
         EnsureCanonicalIds(checkpoint.Households.Select(item => item.Id), "households");
         EnsureCanonicalIds(checkpoint.Relationships.Select(item => item.Id), "relationships");
         EnsureCanonicalIds(checkpoint.Organizations.Select(item => item.Id), "organizations");
-        EnsureCanonicalIds(checkpoint.Memories.Select(item => item.Id), "memories");
+        EnsureCanonicalIds(checkpoint.Memories.Select(item => (string?)item.Id), "memories");
         ValidateMemoryArchive(checkpoint);
-        foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.StartsWith("player-rename:", StringComparison.Ordinal)))
+        foreach (var memory in checkpoint.AllMemories().Where(item => item.Permanent || item.Id.Value.StartsWith("player-rename:", StringComparison.Ordinal)))
         {
             if (!memory.Permanent || !checkpoint.Agents.Any(person => person.Id == memory.OwnerId) || memory.SubjectId != memory.OwnerId ||
                 memory.Visibility != "private" || memory.TombstonedTick is not null ||
                 memory.SourceTick < 0 || memory.SourceTick > checkpoint.WorldTick ||
-                !IsCanonicalBoundedText(memory.Summary, 256))
+                !BoundedText.IsValid(memory.Summary, 256, requireTrimmed: true))
                 throw new InvalidDataException("A permanent personal memory must retain its owner, source date and private contents.");
         }
         ValidateAgentBeliefs(checkpoint);
@@ -1328,11 +1331,11 @@ public static partial class SocietyRules
 
     private static void ValidateAgentBeliefs(SocietyCheckpoint checkpoint)
     {
-        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => item.Id), "agent beliefs");
-        var beliefs = checkpoint.AllBeliefs().OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
-        EnsureCanonicalIds(beliefs.Select(item => item.Id), "agent beliefs");
+        EnsureCanonicalIds((checkpoint.Beliefs ?? []).Select(item => (string?)item.Id), "agent beliefs");
+        var beliefs = checkpoint.AllBeliefs().OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
+        EnsureCanonicalIds(beliefs.Select(item => (string?)item.Id), "agent beliefs");
         if (beliefs.Length == 0) return;
-        var byId = beliefs.ToDictionary(item => item.Id, StringComparer.Ordinal);
+        var byId = beliefs.ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         var index = new SocietyBeliefValidationIndex(checkpoint, byId);
         foreach (var belief in beliefs)
         {
@@ -1358,8 +1361,8 @@ public static partial class SocietyRules
     {
         var compactions = checkpoint.MemoryCompactions ?? [];
         EnsureCanonicalIds(compactions.Select(item => item.OwnerId), "agent memory compactions");
-        var memoryById = checkpoint.AllMemories().ToDictionary(item => item.Id, StringComparer.Ordinal);
-        var beliefById = checkpoint.AllBeliefs().ToDictionary(item => item.Id, StringComparer.Ordinal);
+        var memoryById = checkpoint.AllMemories().ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
+        var beliefById = checkpoint.AllBeliefs().ToDictionary(item => item.Id.Value, StringComparer.Ordinal);
         foreach (var compaction in compactions)
         {
             if (string.IsNullOrWhiteSpace(compaction.OwnerId) || compaction.OwnerId != compaction.OwnerId.Trim() ||
@@ -1369,7 +1372,7 @@ public static partial class SocietyRules
                 throw new InvalidDataException("An agent memory compaction is malformed.");
 
             var expected = compaction.Sources.OrderBy(item => item.Kind)
-                .ThenBy(item => item.SourceId, StringComparer.Ordinal).ToArray();
+                .ThenBy(item => (string?)item.SourceId, StringComparer.Ordinal).ToArray();
             if (!compaction.Sources.SequenceEqual(expected) ||
                 compaction.Sources.Select(item => $"{item.Kind}:{item.SourceId}")
                     .Distinct(StringComparer.Ordinal).Count() != compaction.Sources.Count)
@@ -1377,7 +1380,7 @@ public static partial class SocietyRules
 
             foreach (var source in compaction.Sources)
             {
-                if (!IsCanonicalBoundedText(source.SourceId, 128) || !Enum.IsDefined(source.Kind) ||
+                if (!BoundedText.IsValid(source.SourceId, 128, requireTrimmed: true) || !Enum.IsDefined(source.Kind) ||
                     source.SourceTick < 0 || source.SourceTick > checkpoint.WorldTick ||
                     source.AssessedTick < source.SourceTick || source.AssessedTick > checkpoint.WorldTick ||
                     source.ImportanceBasisPoints is < 0 or > 10_000 ||
@@ -1404,16 +1407,16 @@ public static partial class SocietyRules
         bool allowSupersedes,
         SocietyBeliefValidationIndex? index = null)
     {
-        if (!IsSafeBeliefId(belief.Id) || string.IsNullOrWhiteSpace(belief.OwnerId) ||
+        if (!IdentityRules.Belief(belief.Id) || string.IsNullOrWhiteSpace(belief.OwnerId) ||
             belief.OwnerId != belief.OwnerId.Trim() || belief.OwnerId.Any(char.IsControl) ||
-            !IsCanonicalBoundedText(belief.Statement, 512) ||
+            !BoundedText.IsValid(belief.Statement, 512, requireTrimmed: true) ||
             belief.Statement.Any(char.IsControl) || !Enum.IsDefined(belief.Provenance) || !Enum.IsDefined(belief.Kind) ||
             belief.ConfidenceBasisPoints is < 0 or > 10_000 || belief.FormedTick < 0 ||
             belief.FormedTick > checkpoint.WorldTick || belief.SourceEventId is <= 0 ||
-            belief.SourceTurnId is { } sourceTurnId && !IsCanonicalBoundedText(sourceTurnId, 600) ||
+            belief.SourceTurnId is { } sourceTurnId && !BoundedText.IsValid(sourceTurnId, 600, requireTrimmed: true) ||
             belief.SupersededTick is < 0 || belief.SupersededTick > checkpoint.WorldTick ||
-            belief.SupersededByBeliefId is { } superseding && !IsSafeBeliefId(superseding) ||
-            belief.SupersedesBeliefId is { } superseded && !IsSafeBeliefId(superseded))
+            belief.SupersededByBeliefId is { } superseding && !IdentityRules.Belief(superseding) ||
+            belief.SupersedesBeliefId is { } superseded && !IdentityRules.Belief(superseded))
             throw new InvalidDataException("An agent belief has invalid bounded fields.");
 
         index ??= new SocietyBeliefValidationIndex(checkpoint);
@@ -1441,14 +1444,14 @@ public static partial class SocietyRules
 
     private static SocietyAgentBelief NormalizeBelief(SocietyAgentBelief belief) => belief with
     {
-        Id = NormalizeRequiredText(belief.Id, nameof(belief.Id)),
+        Id = Identity.Parse(NormalizeRequiredText(belief.Id, nameof(belief.Id))),
         OwnerId = NormalizeRequiredText(belief.OwnerId, nameof(belief.OwnerId)),
         Statement = NormalizeBeliefStatement(belief.Statement),
         SourceAgentId = NormalizeOptionalText(belief.SourceAgentId),
         SourceTurnId = NormalizeOptionalText(belief.SourceTurnId),
         AboutAgentId = NormalizeOptionalText(belief.AboutAgentId),
-        SupersedesBeliefId = NormalizeOptionalText(belief.SupersedesBeliefId),
-        SupersededByBeliefId = NormalizeOptionalText(belief.SupersededByBeliefId),
+        SupersedesBeliefId = Identity.ParseOptional(NormalizeOptionalText(belief.SupersedesBeliefId)),
+        SupersededByBeliefId = Identity.ParseOptional(NormalizeOptionalText(belief.SupersededByBeliefId)),
     };
 
     private static string NormalizeBeliefStatement(string statement)
@@ -1459,16 +1462,6 @@ public static partial class SocietyRules
             throw new ArgumentOutOfRangeException(nameof(statement), "A belief must be bounded single-line text.");
         return normalized;
     }
-
-    private static bool IsCanonicalBoundedText(string? value, int maximumLength) =>
-        value is { Length: > 0 } && value.Length <= maximumLength &&
-        value == value.Trim() && !value.Any(char.IsControl);
-
-    // Belief IDs appear in operational telemetry. Keep caller-provided prose
-    // and other private content out of this identifier channel.
-    private static bool IsSafeBeliefId(string? value) =>
-        IsCanonicalBoundedText(value, DerivedId.MaximumLength) &&
-        value!.All(character => char.IsAsciiLetterOrDigit(character) || character is ':' or '-' or '_');
 
     /// <summary>
     /// Only an accepted will carries heirs and an exact plan that covers every
@@ -1555,9 +1548,12 @@ public static partial class SocietyRules
                 relationship.ProposerId == agent.Id || relationship.TargetId == agent.Id
                     ? relationship with
                     {
-                        State = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
-                            ? SocietyRelationshipState.EndedByDeath
-                            : relationship.State,
+                        State = relationship.State switch
+                        {
+                            SocietyRelationshipState.Accepted => SocietyRelationshipState.EndedByDeath,
+                            SocietyRelationshipState.Proposed => SocietyRelationshipState.Revoked,
+                            _ => relationship.State,
+                        },
                         Consent = relationship.State is SocietyRelationshipState.Accepted or SocietyRelationshipState.Proposed
                             ? SocietyConsentState.Revoked
                             : relationship.Consent,
@@ -1792,7 +1788,10 @@ public static partial class SocietyRules
                     nextLots.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
                     current.Inventory.Reservations,
                     current.Inventory.Offers,
-                    inventoryEvents, current.Inventory.EventHistoryFloor),
+                    inventoryEvents, current.Inventory.EventHistoryFloor)
+                {
+                    ArchivedRepairReservationCount = current.Inventory.ArchivedRepairReservationCount,
+                },
                 Estates = current.Estates.Select(item =>
                         item.Id == estate.Id ? item with { Settled = true } : item)
                     .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray(),
@@ -1804,7 +1803,7 @@ public static partial class SocietyRules
             {
                 var memoryId = FinalWordsMemoryId(estate.Id, listener);
                 current = RecordSocialMemory(current, new SocietySocialMemory(
-                    memoryId, listener, estate.DeceasedId,
+                    Identity.Parse(memoryId), listener, estate.DeceasedId,
                     $"{speaker}'s final words were: '{words}'", "private", targetTick)
                 { Kind = SocietyMemoryKind.LifeEvent }).Checkpoint;
             }
@@ -1840,15 +1839,16 @@ public static partial class SocietyRules
                     InventoryReservationState.Committed
                 ? reservation with { State = InventoryReservationState.Released }
                 : reservation)
-            .OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
-        var offers = inventory.Offers.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray();
+            .OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
+        var offers = inventory.Offers.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray();
         var events = inventory.Events.ToList();
         events.Add(new InventoryEvent(
             checked(inventory.EventHistoryFloor + events.Count + 1L),
             targetTick,
             "estate_escrow_created",
             estateId));
-        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor);
+        return new InventoryCheckpoint(targetTick, lots, reservations, offers, events, inventory.EventHistoryFloor)
+        { ArchivedRepairReservationCount = inventory.ArchivedRepairReservationCount };
     }
 
     private static InventoryCheckpoint WithInventoryTick(
@@ -2265,7 +2265,7 @@ public static partial class SocietyRules
     }
 
     private static void EnsureCanonicalIds(
-        IEnumerable<string> ids,
+        IEnumerable<string?> ids,
         string name)
     {
         var actual = ids.ToArray();

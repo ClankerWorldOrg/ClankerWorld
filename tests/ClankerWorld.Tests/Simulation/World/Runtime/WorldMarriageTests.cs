@@ -285,7 +285,6 @@ public sealed partial class WorldConversationTests
         for (var attempt = 0; attempt < 160 && !finished(); attempt++)
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(finished(), "The normal personal-model marriage path did not reach its expected transition.");
     }
