@@ -652,6 +652,8 @@ public sealed partial class WorldRuntime
     {
         var people = checkpoint.Agents.Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
         var instructionIds = new HashSet<string>(StringComparer.Ordinal);
+        var completed = completedInstructionIds.ToHashSet(StringComparer.Ordinal);
+        var byId = new Dictionary<string, OwnerQueuedInstruction>(StringComparer.Ordinal);
         var idempotencyKeys = new HashSet<string>(StringComparer.Ordinal);
         var sequences = new HashSet<long>();
         foreach (var instruction in instructions)
@@ -680,15 +682,15 @@ public sealed partial class WorldRuntime
                      CognitionDecisionResponse.NormalizeObserverReply(instruction.ObserverReply) != instruction.ObserverReply) ||
                 instruction.Kind == OwnerInstructionKind.Suggestion && instruction.Task is not null ||
                 instruction.Kind == OwnerInstructionKind.Order && instruction.Task is null ||
-                instruction.Task is { } order && !IsValidSavedOrder(order, instruction, completedInstructionIds,
+                instruction.Task is { } order && !IsValidSavedOrder(order, instruction, completed,
                     people, checkpoint.WorldTick, worldContent))
                 throw new InvalidDataException("The saved owner instruction or observer response is invalid.");
+            byId.Add(instruction.InstructionId, instruction);
         }
 
         if (completedInstructionIds.Any(id => string.IsNullOrWhiteSpace(id) || !instructionIds.Contains(id)) ||
-            completedInstructionIds.Distinct(StringComparer.Ordinal).Count() != completedInstructionIds.Count)
+            completed.Count != completedInstructionIds.Count)
             throw new InvalidDataException("The completed owner instruction list is invalid.");
-        var completed = completedInstructionIds.ToHashSet(StringComparer.Ordinal);
         if (instructions.Any(item => item.Kind == OwnerInstructionKind.Suggestion &&
                 completed.Contains(item.InstructionId) && item.ObservedTick is null))
             throw new InvalidDataException("A suggestion cannot be completed before an agent's personal model observes it.");
@@ -696,8 +698,7 @@ public sealed partial class WorldRuntime
         var cancellationKeys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var cancellation in cancellations)
         {
-            var instruction = cancellation is null ? null : instructions.SingleOrDefault(item =>
-                item.InstructionId == cancellation.OrderId);
+            var instruction = cancellation is null ? null : byId.GetValueOrDefault(cancellation.OrderId);
             if (cancellation is null || string.IsNullOrWhiteSpace(cancellation.IdempotencyKey) ||
                 cancellation.IdempotencyKey.Length > DerivedId.MaximumLength || cancellation.IdempotencyKey.Any(char.IsControl) ||
                 cancellation.IdempotencyKey != cancellation.IdempotencyKey.Trim() ||
@@ -720,7 +721,7 @@ public sealed partial class WorldRuntime
     private static bool IsValidSavedOrder(
         OrderTask order,
         OwnerQueuedInstruction instruction,
-        IReadOnlyList<string> completedInstructionIds,
+        HashSet<string> completedInstructionIds,
         HashSet<string> people,
         long worldTick,
         DeclarativeWorldContentState worldContent)
@@ -728,7 +729,7 @@ public sealed partial class WorldRuntime
         var knownStatus = order.Status is "queued" or "waiting" or "doing" or "interrupted" or "blocked" or
             "finished" or "cancelled" or "not_understood";
         var terminal = order.Status is "finished" or "cancelled" or "not_understood";
-        var isCompleted = completedInstructionIds.Contains(instruction.InstructionId, StringComparer.Ordinal);
+        var isCompleted = completedInstructionIds.Contains(instruction.InstructionId);
         if (order.Action != "read_knowledge" && (order.TargetKnowledgeArtifactId is not null || order.KnowledgeReadCompletion is not null)) return false;
         if (!IsConversationOrder(order.Action) && (order.TalkConversationId is not null || order.TalkOutcome is not null)) return false;
         if (!IsCartOrder(order.Action) && order.TargetCartLotId is not null) return false;

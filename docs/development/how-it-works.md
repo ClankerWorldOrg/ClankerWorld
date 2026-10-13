@@ -581,6 +581,9 @@ operation keeps blocked reasons and retry waits together and refuses to reopen
 closed work. The string status is derived for saves and observations. Runtime
 completion comes from that status; only suggestions need a separate completion
 set. The checkpoint's completed-instruction list is derived when exported.
+`InstructionStore` indexes active orders by agent and submission sequence;
+pending-order lookup and replacement use that queue. Restoring a checkpoint
+rebuilds it, and replacing an instruction updates it in the same operation.
 
 `ParseOrderTask` reads a complete, bounded grammar for eating food,
 seeking a food source, harvesting food, gathering supported raw materials,

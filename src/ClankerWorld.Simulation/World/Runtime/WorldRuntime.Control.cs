@@ -300,21 +300,11 @@ public sealed partial class WorldRuntime
             .Where(item => item.Task?.IsTerminal == true).Select(item => item.InstructionId));
 
     private OwnerQueuedInstruction? PendingInstructionFor(string agentId) =>
-        instructionsByIdempotency.Values
-            .Where(item => item.TargetAgentId == agentId &&
-                item.Kind == OwnerInstructionKind.Order &&
-                item.Task is not null && IsActiveOrder(item.Task.Status) &&
-                !IsInstructionComplete(item))
-            .OrderBy(item => item.SubmissionSequence)
-            .FirstOrDefault();
+        instructionsByIdempotency.FirstActiveFor(agentId);
 
     private void ReplacePendingOrders(string agentId)
     {
-        foreach (var instruction in instructionsByIdempotency.Values
-                     .Where(item => item.TargetAgentId == agentId &&
-                         item.Kind == OwnerInstructionKind.Order && item.Task is { } order &&
-                         IsActiveOrder(order.Status) && !IsInstructionComplete(item))
-                     .OrderBy(item => item.SubmissionSequence).ToArray())
+        foreach (var instruction in instructionsByIdempotency.ActiveFor(agentId))
         {
             CancelActiveOrder(instruction, "replaced", "Replaced by a newer order.");
         }

@@ -71,7 +71,7 @@ public sealed partial class WorldRuntime : IDisposable
     private Dictionary<string, DeceasedAgentState> deceasedAgents = new(StringComparer.Ordinal);
     private Dictionary<string, ResourceState> resources = new(StringComparer.Ordinal);
     private WorldKnowledgeState knowledge = WorldKnowledgeState.Empty;
-    private Dictionary<string, OwnerQueuedInstruction> instructionsByIdempotency =
+    private InstructionStore instructionsByIdempotency =
         new(StringComparer.Ordinal);
     private Dictionary<string, OwnerInstructionReceipt> instructionReceipts =
         new(StringComparer.Ordinal);
@@ -434,11 +434,10 @@ public sealed partial class WorldRuntime : IDisposable
                     instruction.SubmissionSequence));
         }
 
-        foreach (var completedInstructionId in state.CompletedInstructionIds ?? [])
-        {
-            if (runtime.instructionsByIdempotency.Values.Any(item => item.InstructionId == completedInstructionId && item.Kind == OwnerInstructionKind.Suggestion))
-                runtime.completedSuggestionIds.Add(completedInstructionId);
-        }
+        var savedCompletedIds = (state.CompletedInstructionIds ?? []).ToHashSet(StringComparer.Ordinal);
+        runtime.completedSuggestionIds.UnionWith(runtime.instructionsByIdempotency.Values
+            .Where(item => item.Kind == OwnerInstructionKind.Suggestion && savedCompletedIds.Contains(item.InstructionId))
+            .Select(item => item.InstructionId));
 
         foreach (var cancellation in state.OrderCancellations ?? [])
         {
