@@ -198,17 +198,20 @@ public sealed class PrivateMemorySummaryTests
         using var world = WorldRuntime.Restore(state with { JevEnabled = true, RoutineHelper = new("jev", "jev-1.13.0") },
             id => id == owner ? held : new SummaryProvider(DecisionProviderKind.Deterministic));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(commitPermitted: () => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(commitPermitted: () => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        var observation = await held.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        var observation = await ModelWorkHarness.For(world).WaitAsync(held.Started.Task);
         Assert.NotEmpty(observation.MemorySummaryOptions!);
+        var completion = Assert.Single(world.PendingModelWork, item =>
+            item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == owner).Completion;
         world.Pause();
         Assert.True(world.SetRoutineHelper(RoutineHelperSettings.Off));
         var switched = WorldRuntimeCodec.Encode(world.ExportState());
         held.Release.SetResult(true);
-        await held.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(held.Returned.Task);
+        await ModelWorkHarness.For(world).WaitAsync(completion);
+        Assert.False((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(switched, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Empty(world.Society.MemorySummaries);
     }
@@ -312,9 +315,9 @@ public sealed class PrivateMemorySummaryTests
     {
         public DecisionProviderKind Kind => DecisionProviderKind.Jev;
         public long ProviderEpoch => 1;
-        public TaskCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<AgentObservation> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             Started.TrySetResult(request.Observation);
