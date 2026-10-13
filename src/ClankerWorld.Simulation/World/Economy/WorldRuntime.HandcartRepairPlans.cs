@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
         if (!target.Allowed) return target;
         return HasCarriedMaterial(plan.Actor, plan.Choice.ItemKind, 1) || HasCarriedEquipmentAtLeast(plan.Actor, plan.Choice.ItemKind)
             ? ActionCheck.Refuse(ActionRefusalReason.TargetUnavailable, "they already carry this repair input")
-            : CheckEquipmentPickup(plan.Actor, plan.Pickup);
+            : CheckEquipmentPickup(plan.Actor, plan.Pickup, "repair input", ReachPurpose.HandcartRepair);
     }
 
     private void ApplyHandcartRepairPlan(HandcartRepairActionPlan plan)
