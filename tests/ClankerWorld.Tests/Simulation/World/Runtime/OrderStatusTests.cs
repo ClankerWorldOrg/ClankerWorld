@@ -59,5 +59,9 @@ public sealed class OrderStatusTests
         Assert.Equal(status, restored.LifecycleStatus);
         Assert.Contains($"\"Status\":\"{status.ToWireValue()}\"", json);
         Assert.DoesNotContain("LifecycleStatus", json);
+        using var document = JsonDocument.Parse(json);
+        var definition = document.RootElement.GetProperty("Definition");
+        Assert.Equal("move_to", definition.GetProperty("kind").GetString());
+        Assert.False(definition.TryGetProperty("Action", out _));
     }
 }
