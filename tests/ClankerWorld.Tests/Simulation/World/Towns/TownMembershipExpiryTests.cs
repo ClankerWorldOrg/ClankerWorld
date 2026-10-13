@@ -120,10 +120,12 @@ public sealed partial class TownMembershipTests
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    public async Task AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan(bool deferEntry, bool delayEntry)
+    [InlineData(false, false, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    public async Task AnAcceptanceHeldPastTheDeadlineCannotJoinButALaterOrdinarySponsoredProposalCan(
+        bool deferEntry, bool delayEntry, bool deferReturn)
     {
         var newcomer = NewAgentId();
         var approved = await OneSponsoredApprovalAsync("membership-held-acceptance", newcomer);
@@ -131,7 +133,7 @@ public sealed partial class TownMembershipTests
         var deadline = proposal.SettledTick!.Value + AcceptanceDay;
         using var waiting = Reopen(approved, new ScriptedModel());
         await AdvanceUntil(waiting, () => waiting.WorldTick == deadline - 2, AcceptanceDay);
-        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry, delayEntry);
+        var holding = new HeldAdmissionModel(newcomer, Civic(First, "accept_admission") + proposal.Id + "|", deferEntry, delayEntry, deferReturn);
         using var world = Reopen(Paused(waiting), holding);
         Task? capturedHeldTask = null;
         try
@@ -177,13 +179,19 @@ public sealed partial class TownMembershipTests
                 intention.DecisionGeneration > offered.DecisionGeneration && intention.WorldTick > offered.WorldTick;
             for (var tick = 0; tick < 8 && (!discarded || !outcomes.Any(NewerIdle)); tick++)
             {
-                // A provider's reply signal precedes completion of the runtime's wrapping task.
-                // Wait only for an actual in-flight call, without spending any deadline ticks.
-                if (world.Agents.Single(person => person.AgentId == newcomer).LastModelAttempt?.Status == "waiting")
+                // Snapshot actual wrapping tasks; an empty queue has nothing to wait for.
+                var beforeCompletion = WorldRuntimeCodec.Encode(world.ExportState());
+                var completion = GrownAgentHelperMemoryTests.WaitForRequests(world).WaitAsync(TimeSpan.FromSeconds(5));
+                if (deferReturn && tick == 0)
                 {
-                    using var completionTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    while (!world.ModelDecisionsFinished(newcomer)) await Task.Delay(1, completionTimeout.Token);
+                    Assert.True(holding.Replied.Task.IsCompletedSuccessfully);
+                    Assert.False(heldTask.IsCompleted);
+                    Assert.False(completion.IsCompleted);
+                    Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
+                    holding.ReturnAllowed.TrySetResult(true);
                 }
+                await completion;
+                Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
                 var completed = await world.AdvanceOneTickNonBlockingAsync();
                 Assert.True(completed.Advanced);
                 discarded |= completed.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == newcomer);
@@ -228,6 +236,7 @@ public sealed partial class TownMembershipTests
         {
             holding.Enter.TrySetResult(true);
             holding.Release.TrySetResult(true);
+            holding.ReturnAllowed.TrySetResult(true);
             if (capturedHeldTask is not null) await capturedHeldTask.WaitAsync(TimeSpan.FromSeconds(30));
         }
     }
@@ -357,12 +366,13 @@ public sealed partial class TownMembershipTests
         private readonly string newcomer;
         private readonly bool delayEntry;
 
-        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry, bool delayEntry)
+        public HeldAdmissionModel(string newcomer, string choice, bool deferEntry, bool delayEntry, bool deferReturn)
         {
             this.newcomer = newcomer;
             this.delayEntry = delayEntry;
             Choice = choice;
             if (!deferEntry) Enter.TrySetResult(true);
+            if (!deferReturn) ReturnAllowed.TrySetResult(true);
         }
 
         public const string StaleThought = "This held admission reply must not commit after expiry.";
@@ -374,6 +384,7 @@ public sealed partial class TownMembershipTests
         public TaskCompletionSource<CognitionDecisionRequest> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<bool> Release { get; } = new();
         public TaskCompletionSource<CognitionDecisionResponse> Replied { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> ReturnAllowed { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
         public DecisionProviderKind KindFor(AgentObservation observation) => observation.AgentId == newcomer
@@ -399,7 +410,11 @@ public sealed partial class TownMembershipTests
                 observation.RunEpoch, observation.DecisionGeneration, observation.ObservationDigest, selected, 1,
                 observation.Candidates.ToDictionary(candidate => candidate.Id, candidate => candidate.Id == selected ? 1d : 0d, StringComparer.Ordinal),
                 PrivateThought: held ? StaleThought : null);
-            if (held) Replied.TrySetResult(response);
+            if (held)
+            {
+                Replied.TrySetResult(response);
+                await ReturnAllowed.Task;
+            }
             return response;
         }
     }

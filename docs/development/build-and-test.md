@@ -86,9 +86,13 @@ bound and preserves complete checkpoint bytes. Private release gates complete
 inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
 uses the same request; another row delays real provider entry for six seconds.
-Reply and actual wrapper-completion waits retain their
-five-second bounds; the completion loop retains eight world ticks. The remaining
-deadline, stale-generation, thought exclusion, physical-property, later ordinary
+Reply and actual wrapper-completion waits retain their five-second bounds.
+Completion reuses the shared request-task wait, which also finishes when no
+call is pending; saved attempt status is not a live task boundary. A deferred-return
+row holds the provider after reply construction and checks that the shared wait
+remains incomplete with checkpoint bytes unchanged. The completion loop retains
+eight world ticks. The remaining deadline, stale-generation, thought exclusion,
+physical-property, later ordinary
 sponsorship, pause, replay, rollback and strict-reload checks remain.
 
 The held housing-reply fixture captures the registered request before waiting
@@ -216,8 +220,8 @@ calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
 come from the live runtime. Admission includes its committed world tick. A
 refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
 for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
-A test clock can be passed to the runtime for identity, will and conversation
-deadlines; production uses `TimeProvider.System`.
+Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
+will and conversation deadlines; production uses `TimeProvider.System`.
 
 The proof fixtures use this harness; remaining clock waits move in #1818. New
 model tests use the harness and no reflection into runtime queues.
@@ -582,7 +586,9 @@ headings in every Markdown file, that each entry in `changes/` starts with
 a `- ` bullet, and that game-design chapters don't describe what is built,
 such as "not built yet" or "remains unfinished". They do not check that any particular page exists. The
 documentation test reads each page with both LF and CRLF line endings, and CI
-also runs it on a Windows checkout. That job is separate from a Windows game
+also runs it on a Windows checkout. When the change needs code checks, that
+job also runs `IdentityTextBoundaryTests` against the native checkout paths and
+the base commit's identity/text allowances. That job is separate from a Windows game
 playtest and from the native provider-storage checks.
 
 To find sentences a change may have made false, search every page for the

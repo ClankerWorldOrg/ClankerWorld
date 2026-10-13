@@ -647,6 +647,12 @@ agent ID. A valid long-seed newborn can bind both roles, including when
 reloading a birth saved before provider storage recovered; no identity is
 truncated or replaced. Repeated recovery preserves later owner overrides and
 the separate historical birth descriptor.
+Shutdown completes pending newborn bindings in installation provider storage
+before acknowledging a saved world. Frozen bindings are staged before a prepared
+birth becomes visible, so shutdown during tick publication retains the original key.
+A failed binding refuses shutdown for a
+paused retry, retaining the frozen original default key even if that default
+changes. Key bytes never enter the world checkpoint; its format is unchanged.
 
 Schema 50 saves an unresolved dependent-guardian search, including its current
 relative, household or Town stage, start tick and offered adults. Each stage
@@ -699,12 +705,13 @@ The paired authority identity belongs to the installation, not the selected
 simulation world.
 
 Load World checks each inactive checkpoint against the current runtime before
-marking it compatible. The server keeps only a process-local structural verdict
-and history head for each catalog identity, keyed by a SHA-256 hash of the
-checkpoint bytes. File replacement, catalog-identity changes and a server restart
-force a new structural check. Every list still verifies the referenced history
-chain and current model credentials;
-selection reads and restores the checkpoint again before changing worlds.
+marking it compatible. The server keeps a process-local structural proof,
+including the history head and saved helper selection, for each catalog identity.
+A SHA-256 hash of the checkpoint bytes identifies the proof. File replacement,
+catalog-identity changes and a server restart force a new structural check.
+Every list still verifies the referenced history chain and current model
+credentials; selection reads and restores the checkpoint again before changing
+worlds.
 Checking a changed checkpoint can therefore still be slow, especially on a
 large generated map, while repeated unchanged lists avoid rebuilding worlds.
 After a server start, a background task makes the structural check for each
@@ -1896,7 +1903,11 @@ branch position rather than a possibly corrected clock. If play continues from
 an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
-rotation, and every required history segment must verify. A damaged newer autosave is retained and skipped. No usable
+rotation, and every required history segment must verify. Model preflight includes
+the saved OpenAI Decisions helper's selected key as well as agent assignments.
+Load World rechecks that key's availability even when its structural checkpoint
+proof is cached; a missing named key never substitutes the installation default.
+A damaged newer autosave is retained and skipped. No usable
 candidate leaves recovery pending; named saves and other worlds are not automatic
 fallbacks. An older alpha schema receives a format explanation, never a migration.
 

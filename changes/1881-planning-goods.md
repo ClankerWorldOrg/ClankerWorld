@@ -1,0 +1,1 @@
+- Households wait for usable building materials and keep gathering shortages visible while their wood is still on sale at a borrowed Market stall.

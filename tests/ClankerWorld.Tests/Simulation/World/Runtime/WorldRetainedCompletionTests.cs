@@ -7,10 +7,16 @@ namespace ClankerWorld.Tests;
 
 public sealed partial class WorldRuntimeTests
 {
-    [Fact]
-    public async Task AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AnAcceptedReplyWithNewerQueuedWorkTakesNoSafeRoutineTheSameTick(bool delayedStartup, bool deferReturn)
     {
-        var provider = new HeldFirstReplyProvider("seek_food");
+        var provider = new HeldFirstReplyProvider("seek_food", deferReturn: deferReturn);
+        var preparation = new InlineCompletionSource<bool>(TaskCreationOptions.None);
+        if (delayedStartup) provider.PreparationGate = preparation.Task;
         using var setup = CreateKnownBerryOrderWorld(_ => new DeterministicDecisionProvider());
         var state = setup.ExportState();
         var farStand = FarFromBerries(state, 15, 60);
@@ -28,25 +34,56 @@ public sealed partial class WorldRuntimeTests
             ? provider
             : new ActionCoverageRecorder(chooseIdle: true));
         GridPoint Position() => world.Agents.Single(item => item.AgentId == HarvestInstructionActor).Position;
-        Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
-        // Newer guidance keeps the actor queued after its held reply is accepted.
-        world.SubmitInstruction(new OwnerInstructionRequest("retained-suggestion", "owner:test",
-            HarvestInstructionActor, OwnerInstructionKind.Suggestion, "Find something to eat."));
-        for (var tick = 0; tick < 3; tick++)
+        try
+        {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-        provider.Release.TrySetResult(true);
-        await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
-        await ModelWorkHarness.For(world).SettleAsync();
+            var frame = WorldRuntimeCodec.Encode(world.ExportState());
+            var entered = ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
+            if (delayedStartup)
+            {
+                Assert.False(entered.IsCompleted);
+                Assert.Equal(0, provider.CallCount);
+                Assert.Equal(frame, WorldRuntimeCodec.Encode(world.ExportState()));
+                preparation.TrySetResult(true);
+            }
+            await entered;
+            Assert.Equal(1, provider.CallCount);
+            Assert.Equal(frame, WorldRuntimeCodec.Encode(world.ExportState()));
+            // Newer guidance keeps the actor queued after its held reply is accepted.
+            world.SubmitInstruction(new OwnerInstructionRequest("retained-suggestion", "owner:test",
+                HarvestInstructionActor, OwnerInstructionKind.Suggestion, "Find something to eat."));
+            for (var tick = 0; tick < 3; tick++)
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
+            var heldFrame = WorldRuntimeCodec.Encode(world.ExportState());
+            var returned = HeldHarvestWork(world).Task;
+            Assert.False(returned.IsCompleted);
+            provider.Release.TrySetResult(true);
+            if (deferReturn)
+            {
+                await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
+                Assert.False(returned.IsCompleted);
+                Assert.Equal(heldFrame, WorldRuntimeCodec.Encode(world.ExportState()));
+                provider.ReturnAllowed.TrySetResult(true);
+            }
+            await ModelWorkHarness.For(world).WaitAsync(returned);
+            Assert.True(provider.Returned.Task.IsCompletedSuccessfully);
+            Assert.Equal(heldFrame, WorldRuntimeCodec.Encode(world.ExportState()));
 
-        var before = Position();
-        var completion = await world.TickModelWorkAsync();
-        Assert.Contains(completion.Decisions, item => item.AgentId == HarvestInstructionActor &&
-            item.Admission.Intention?.CandidateId == "seek_food");
-        Assert.Contains(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == HarvestInstructionActor);
-        Assert.True(world.ExportState().Map.FootDistance(before, Position()) <= 1);
-        Assert.True(completion.Events.Count(item => item.Kind == "agent_moved" &&
-            item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal)) <= 1);
+            var before = Position();
+            var completion = await world.TickModelWorkAsync();
+            Assert.Contains(completion.Decisions, item => item.AgentId == HarvestInstructionActor &&
+                item.Admission.Intention?.CandidateId == "seek_food");
+            Assert.Contains(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == HarvestInstructionActor);
+            Assert.True(world.ExportState().Map.FootDistance(before, Position()) <= 1);
+            Assert.True(completion.Events.Count(item => item.Kind == "agent_moved" &&
+                item.Detail.StartsWith(HarvestInstructionActor + ":", StringComparison.Ordinal)) <= 1);
+        }
+        finally
+        {
+            preparation.TrySetResult(true);
+            provider.Release.TrySetResult(true);
+            provider.ReturnAllowed.TrySetResult(true);
+        }
     }
 
     [Theory]
@@ -284,7 +321,7 @@ public sealed partial class WorldRuntimeTests
         await ModelWorkHarness.For(world).SettleAsync();
         var pending = world.PendingModelWork.FirstOrDefault(item => item.Transition.Kind == ModelWorkKind.Decision &&
             item.Transition.ActorId == HarvestInstructionActor);
-        if (pending is not null) await pending.Completion;
+        if (pending is not null) await ModelWorkHarness.For(world).WaitAsync(pending.Completion);
     }
 
     private static GridPoint FarFromBerries(WorldRuntimeState state, int nearest, int farthest)
