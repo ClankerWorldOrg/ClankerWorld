@@ -107,11 +107,13 @@ public sealed partial class WorldRuntime : IDisposable
     private ReadOnlyCollection<AgentConversation> conversations => conversationSystem.State.Conversations;
     private ReadOnlyCollection<AgentMarriage> marriages => conversationSystem.State.Marriages;
     private IReadOnlyList<AgentConversationDailyBudget> conversationBudgets => conversationSystem.State.Budgets;
-    private GridPoint SharedStoragePosition =>
-        map.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
-        worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
-        towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
-        map.Resources.First(item => item.Id == "berry-patch").Position;
+    private GridPoint SharedStoragePosition => StartingStoragePosition(map, worldSimulation, towns);
+    private static GridPoint StartingStoragePosition(WorldMap sourceMap, WorldContentSimulationState? simulation,
+        IReadOnlyList<TownRuntimeState>? sourceTowns) =>
+        sourceMap.MapObjects.FirstOrDefault(item => item.Id == "storage")?.Position ??
+        simulation?.Buildings.FirstOrDefault(item => item.InstanceId == "first-town-warehouse")?.Position ??
+        sourceTowns?.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??
+        sourceMap.Resources.First(item => item.Id == "berry-patch").Position;
     private GridPoint WeatherAnchor =>
         map.MapObjects.FirstOrDefault(item => item.Kind == "cooking")?.Position ??
         towns.FirstOrDefault(item => item.OriginSite is not null)?.OriginSite ??

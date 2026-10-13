@@ -79,6 +79,46 @@ public sealed partial class ServerHttpTests
 
     [Theory]
     [InlineData(0)]
+    [InlineData(3)]
+    public async Task AutosaveConfigurationKeepsAUsableCopyWhenTheNewestCheckpointIsDamaged(int rotation)
+    {
+        var directory = Directory.CreateTempSubdirectory("autosave-configure-recovery-");
+        try
+        {
+            using var host = new ServerWebApplicationFactory(directory.FullName);
+            using var client = host.CreateClient();
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var device = await StartAndActivateAsync(host, client, key);
+            var runtime = host.Services.GetRequiredService<WorldRuntime>();
+            runtime.Pause();
+            var saves = host.Services.GetRequiredService<ManualWorldSaveStore>();
+            var file = host.Services.GetRequiredService<WorldStateFile>();
+            var settings = host.Services.GetRequiredService<WorldAutosaveStore>().Capture();
+            var copies = Enumerable.Range(0, 5).Select(_ => saves.CreateAutosave(runtime, [], settings)).ToArray();
+            var root = file.Path + ".manual";
+            var damaged = Path.Combine(root, copies[^1].Id + ".save");
+            File.WriteAllText(damaged, "damaged checkpoint");
+            var damagedMetadata = File.ReadAllBytes(Path.Combine(root, copies[^1].Id + ".meta.json"));
+            var activeBytes = File.ReadAllBytes(file.Path);
+            var action = new OwnerAutosaveConfigurationAction(true, 1, rotation, runtime.Society.WorldId);
+
+            using var response = await SendSignedAsync(host, client, key, device.DeviceId,
+                "/api/v1/owner/saves/autosave/configure", action, OwnerHttpBinding.AutosaveConfigurationPayload(action));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var count = Math.Max(1, rotation);
+            Assert.Equal(copies.Take(4).TakeLast(count).Select(save => save.Id).Append(copies[^1].Id).Order(),
+                saves.List(runtime.Society.WorldId).Select(save => save.Id).Order());
+            using var verified = WorldRuntime.Restore(saves.Read(copies[^2].Id));
+            Assert.Equal("damaged checkpoint", File.ReadAllText(damaged));
+            Assert.Equal(damagedMetadata, File.ReadAllBytes(Path.Combine(root, copies[^1].Id + ".meta.json")));
+            Assert.Equal(activeBytes, File.ReadAllBytes(file.Path));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Theory]
+    [InlineData(0)]
     public async Task AutosaveConfigurationNeverTrimsAnotherWorld(int rotation)
     {
         var directory = Directory.CreateTempSubdirectory("autosave-world-boundary-");
@@ -96,6 +136,7 @@ public sealed partial class ServerHttpTests
             var settings = new WorldAutosaveSettings(other.Society.WorldId, true, 1, 3, DateTimeOffset.MinValue, 0);
             var otherIds = Enumerable.Range(0, 3).Select(_ => saves.CreateAutosave(other, [], settings).Id).ToArray();
             var root = host.Services.GetRequiredService<WorldStateFile>().Path + ".manual";
+            File.WriteAllText(Path.Combine(root, otherIds[^1] + ".save"), "damaged foreign checkpoint");
             var before = otherIds.SelectMany(id => new[] { id + ".save", id + ".meta.json" })
                 .ToDictionary(name => name, name => File.ReadAllBytes(Path.Combine(root, name)));
             var activeSettings = settings with { WorldId = runtime.Society.WorldId };

@@ -423,20 +423,28 @@ public sealed partial class GrownAgentHelperMemoryTests
         }
     }
 
-    internal static async Task WaitForRequests(WorldRuntime world)
+    internal static async Task WaitForRequests(WorldRuntime world, params Task[] additionalTasks)
     {
         var field = typeof(WorldRuntime).GetField("pendingModelCalls", BindingFlags.Instance | BindingFlags.NonPublic);
         var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         var tasks = pending.Values.Cast<object>().Select(item => Assert.IsAssignableFrom<Task>(item.GetType().GetProperty("Task")!.GetValue(item))).ToArray();
-        await Task.WhenAll(tasks).WaitAsync(TimeSpan.FromSeconds(30));
+        await Task.WhenAll(tasks.Concat(additionalTasks)).WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     private static async Task<byte[]> CreateBornAsync()
     {
         var prepared = await CookedBirthFixture.PrepareAsync(inPot: true);
         using var world = CookedBirthFixture.Restore(prepared);
-        for (var tick = 0; tick < 650 && world.Society.Births.Count == 0; tick++)
+        for (var tick = 0; tick < 40 && world.Agents.Single(person => person.AgentId == prepared.First)
+                 .Parenthood?.Stage != "preparing"; tick++)
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        var plan = world.Agents.Single(person => person.AgentId == prepared.First).Parenthood!;
+        Assert.Equal("preparing", plan.Stage);
+        // These checks need a native descendant, not the idle preparation ticks.
+        ParenthoodTests.PositionFamilyFixtureAt(world, plan.LastTransitionTick + 598);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        Assert.Empty(world.Society.Births);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var birth = Assert.Single(world.Society.Births);
         Assert.Contains(world.ExportState().Events, item => item.Kind == "child_born" && item.Detail == birth.ChildId);
         return WorldRuntimeCodec.Encode(world.ExportState());

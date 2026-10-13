@@ -121,7 +121,7 @@ public sealed partial class OwnerWorldObservationStore
         LandHearingElectionView Election(TownLandCaseJudgeContest contest) => new(contest.Id, contest.Stage,
             contest.Round, contest.RoundDeadlineTick, contest.Candidates.Select(id => new CivicCandidateView(id,
                 AgentName(id), contest.Ballots.Count(ballot => ballot.CandidateId == id))).ToArray(),
-            contest.WinnerId is { } winner ? AgentName(winner) : null, contest.Reason);
+            contest.WinnerId is { } winner ? AgentName(winner) : null, HearingReasonText.Describe(contest.Reason));
         LandHearingEvidenceView Evidence(TownLandEvidence evidence, TownLandCase item)
         {
             var right = item.Revisions.SelectMany(revision => revision.RightVersions)
@@ -179,7 +179,7 @@ public sealed partial class OwnerWorldObservationStore
                             item.Revisions.Single(old => old.Number == ruling.Revision).NoticeId, ruling.Tick))).ToArray(),
                     }).ToArray(),
                     item.Judge is { } judge ? Judge(judge) : null,
-                    item.JudgeHistory.Select(term => new LandHearingJudgeTermView(Judge(term.Judge), term.EndedTick, term.Reason)).ToArray(),
+                    item.JudgeHistory.Select(term => new LandHearingJudgeTermView(Judge(term.Judge), term.EndedTick, HearingReasonText.Describe(term.Reason)!)).ToArray(),
                     item.Contest is { } contest ? Election(contest) : null,
                     item.ContestHistory.Count > 0 ? Election(item.ContestHistory[^1]) : null,
                     item.ReopenRequests.Select(request => new LandHearingReopenRequestView(request.Id, request.AgentId,
@@ -1571,11 +1571,7 @@ public sealed partial class OwnerWorldObservationStore
             { Returning: false, OutingPath.Count: > 0, Goal: { Kind: "resource", OrderInstructionId: { } id } goal } exploration ||
             exploration.OutingPath[^1] != physical.Position)
             return null;
-        var instruction = (state.Instructions ?? []).Where(item =>
-                item.TargetAgentId == physical.AgentId && item.Kind == OwnerInstructionKind.Order &&
-                item.Task is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" } &&
-                !(state.CompletedInstructionIds ?? []).Contains(item.InstructionId, StringComparer.Ordinal))
-            .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+        var instruction = WorldRuntime.FirstActiveOrderFor(state.Instructions ?? [], physical.AgentId);
         if (instruction is null || instruction.InstructionId != id || instruction.Task is not
             { Status: "doing", TargetResourceId: null, TargetPosition: null } order)
             return null;
