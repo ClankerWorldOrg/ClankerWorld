@@ -2,7 +2,7 @@
 title: How the game works
 type: architecture
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # How the game works
@@ -806,8 +806,11 @@ satisfy it. Each transfer still uses one exact source lot, its unreserved
 quantity and the destination's available room.
 
 The order binds a native route, building identity, owner and listed position,
-then the exact carried lot and requested-kind quantity. Household pickup uses
-the existing ownership transfer and `DeliveryBuildingId` promise; a Town
+then the exact carried lot and requested-kind quantity. Partial pickup derives
+the lot handle through the same `DerivedId.Create` factory as the inventory
+transition, preserving the binding when the complete split identity is hashed.
+Household pickup uses the existing ownership transfer and `DeliveryBuildingId`
+promise; a Town
 Warehouse never becomes a household delivery destination. A matching carried
 shipment can be explicitly bound before its final delivery. Continuing a bound
 shipment does not repeat ingredient-demand selection, because inbound stock
