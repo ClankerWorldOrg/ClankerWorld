@@ -35,10 +35,6 @@
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.HouseholdDeparture.cs": [
     "person.AgeBand is SocietyAgeBand.Infant or SocietyAgeBand.Child or SocietyAgeBand.Adolescent"
   ],
-  "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Housing.cs": [
-    "person.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder",
-    "societyPerson.AgeBand is SocietyAgeBand.Adult or SocietyAgeBand.Elder"
-  ],
   "src/ClankerWorld.Simulation/World/Community/WorldRuntime.Learning.cs": [
     "FindUnoccupiedRoute(actor, agents[actor].Position, SharedStoragePosition, ResourceInteractionRange)"
   ],

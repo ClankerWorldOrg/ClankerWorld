@@ -1,0 +1,1 @@
+- Housing choices now explain when the selected House, request or adult membership changes before an answer can act.

@@ -405,6 +405,9 @@ application; native preparation, birth and continuity maintenance remain.
 Partnership choices retain the selected person or exact relationship and consent
 revision. The shared check runs at all three boundaries; existing Society
 transitions and marriage cleanup remain their native commit path.
+Housing admission choices retain their request, House and adult electorate.
+Other members' answers can accumulate without changing that selection; a changed
+House, electorate or request receives the same check at all three boundaries.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

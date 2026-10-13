@@ -78,7 +78,7 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "household_", ["household_"], [], static (runtime, action) =>
     {
-        runtime.ApplyHousingCandidate(action.AgentId, action.CandidateId);
+        runtime.ApplyHousingCandidate(action.AgentId, action.CandidateId, action.Plan);
         return true;
     }),
         new(ActionPhase.Ordinary, "learn:", ["learn:", "lesson_"], [], static (runtime, action) =>
