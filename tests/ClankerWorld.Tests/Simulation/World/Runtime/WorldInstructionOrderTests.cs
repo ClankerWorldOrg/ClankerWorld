@@ -435,8 +435,8 @@ public sealed partial class WorldRuntimeTests
 
     private static async Task AdvanceWithModelDecisionsAsync(WorldRuntime world)
     {
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         // Give a started model decision time to finish before the next tick.
-        await Task.Delay(5);
+        await ModelWorkHarness.For(world).SettleAsync();
     }
 }
