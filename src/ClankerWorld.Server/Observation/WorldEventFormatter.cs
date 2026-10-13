@@ -125,9 +125,9 @@ public static class WorldEventFormatter
         var townProjectName = TownProjectForEvent(snapshot, payload)?.Name ?? "a Town project";
         var townProjectSubject = townProjectName == "a Town project" ? "A Town project" : townProjectName;
         var marketFields = PipeFields(payload);
-        var marketSeller = marketFields.Length > 3 ? Name(snapshot, marketFields[3]) : "Someone";
-        var marketBuyer = marketFields.Length > 4 ? Name(snapshot, marketFields[4]) : "a customer";
-        var marketBuyerSubject = marketFields.Length > 4 ? marketBuyer : "A customer";
+        var marketSeller = marketFields is [_, _, _, _, ..] ? Name(snapshot, marketFields[3]) : "Someone";
+        var marketBuyer = marketFields is [_, _, _, _, _, ..] ? Name(snapshot, marketFields[4]) : "a customer";
+        var marketBuyerSubject = marketFields is [_, _, _, _, _, ..] ? marketBuyer : "A customer";
         var animalName = snapshot?.Animals.FirstOrDefault(animal => payload.SubjectIds.Contains(animal.Id))?.Name ?? "An animal";
 
         return worldEvent.Kind switch
@@ -429,10 +429,10 @@ public static class WorldEventFormatter
     private static string DescribeLandHearing(EventView worldEvent, WorldSnapshotView? snapshot)
     {
         var fields = PipeFields(worldEvent.Payload!);
-        var town = fields.Length >= 2 ? snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
-        var caseId = fields.Length >= 2 ? fields[1] : "";
-        var number = caseId.Length > 0 ? caseId[(caseId.LastIndexOf(':') + 1)..] : "";
-        var subject = number.Length > 0 ? "land case " + number : "a land case";
+        var town = fields is [_, _, ..] ? snapshot?.Towns.FirstOrDefault(item => item.Id == fields[0]) : null;
+        var caseId = fields is [_, _, ..] ? fields[1] : "";
+        var number = !string.IsNullOrEmpty(caseId) ? caseId[(caseId.LastIndexOf(':') + 1)..] : "";
+        var subject = !string.IsNullOrEmpty(number) ? "land case " + number : "a land case";
         var townName = town?.Name ?? "A Town";
         var actor = fields.Length == 5 ? snapshot?.Agents.FirstOrDefault(item => item.Id == fields[3])?.DisplayName : null;
         var action = fields.Length == 5 ? fields[4] : "";
@@ -473,7 +473,7 @@ public static class WorldEventFormatter
     {
         var fields = PipeFields(payload);
         var actor = Name(snapshot, fields[0]);
-        return fields.Length > 2 && fields[2] == "displaced"
+        return fields is [_, _, _, ..] && fields[2] == "displaced"
             ? $"{actor} moved out of their overcrowded House. They can go back for their belongings."
             : $"{actor} left their household. They can go back for their belongings.";
     }
@@ -482,7 +482,7 @@ public static class WorldEventFormatter
     {
         var fields = PipeFields(payload);
         var actor = Name(snapshot, fields[0]);
-        return (fields.Length > 2 ? fields[2] : string.Empty) switch
+        return (fields is [_, _, _, ..] ? fields[2] : string.Empty) switch
         {
             "volunteer" => $"{actor} volunteered to move out of their overcrowded House.",
             "latest_unrelated_arrival" => $"{actor} must move out of their overcrowded House. They're the newest arrival who isn't family.",
@@ -494,7 +494,7 @@ public static class WorldEventFormatter
     private static string DescribeRelocationCancellation(WorldSnapshotView? snapshot, WorldEventPayload payload)
     {
         var fields = PipeFields(payload);
-        var reason = (fields.Length > 2 ? fields[2] : string.Empty) switch
+        var reason = (fields is [_, _, _, ..] ? fields[2] : string.Empty) switch
         {
             "room" => "the House now has enough places",
             "care" => "their dependent children still need their care",
