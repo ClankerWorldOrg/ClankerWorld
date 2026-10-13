@@ -252,7 +252,7 @@ public sealed partial class WorldRuntime
                 else
                 {
                     var definition = content.Buildings.FirstOrDefault(item => item.CanonicalId == binding.DefinitionId);
-                    if (simulation is null || !ValidConstructionIdentity(binding.BuildingInstanceId) || definition is null ||
+                    if (simulation is null || !IdentityRules.Reference(binding.BuildingInstanceId, int.MaxValue, requireTrimmed: true) || definition is null ||
                         binding.BuildingPosition is not { X: >= 0, Y: >= 0 } || binding.BuildingPlacedTick is not { } placed || placed < 0 || placed > worldTick ||
                         binding.OwnerId is { } owner && !householdIds.Contains(owner) ||
                         order.TargetBuildingKind == "house" && (!definition.Tags.Contains("house", StringComparer.Ordinal) || binding.OwnerId is null) ||

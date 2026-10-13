@@ -496,9 +496,9 @@ public sealed partial class WorldRuntime
         ArgumentException.ThrowIfNullOrWhiteSpace(request.IssuerId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TargetAgentId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Text);
-        if (!IsValidInstructionIdentifier(request.IdempotencyKey.Trim()))
+        if (!IdentityRules.Reference(request.IdempotencyKey.Trim(), OwnerQueuedInstruction.MaximumIdentifierLength))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction idempotency key must be at most 128 characters without control characters.");
-        if (!IsValidInstructionIdentifier(request.IssuerId.Trim()))
+        if (!IdentityRules.Reference(request.IssuerId.Trim(), OwnerQueuedInstruction.MaximumIdentifierLength))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction issuer ID must be at most 128 characters without control characters.");
         if (request.Kind is not (OwnerInstructionKind.Suggestion or OwnerInstructionKind.Order))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction kind must be suggestion or order.");
@@ -506,11 +506,6 @@ public sealed partial class WorldRuntime
         if (text.Length > OwnerQueuedInstruction.MaximumTextLength || text.Any(char.IsControl))
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction text must be at most 512 characters without control characters.");
     }
-
-    private static bool IsValidInstructionIdentifier(string? value) =>
-        !string.IsNullOrWhiteSpace(value) &&
-        value.Length <= OwnerQueuedInstruction.MaximumIdentifierLength &&
-        !value.Any(char.IsControl);
 
     private static string ToWireValue(OwnerInstructionKind kind) => kind switch
     {
