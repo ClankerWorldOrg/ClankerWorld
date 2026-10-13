@@ -252,8 +252,8 @@ internal static class MarketFreshConsentScenario
         state with { Society = state.Society with { Society = state.Society.Society with { Inventory = inventory } } };
     private static async Task StepAsync(WorldRuntime world)
     {
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await Task.Delay(1);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).SettleAsync();
     }
 
     private static async Task UntilAsync(WorldRuntime world, Func<bool> reached, int maximum,
@@ -279,10 +279,10 @@ internal static class MarketFreshConsentScenario
         internal Func<bool> AtSite { get; set; } = () => false;
         internal Func<bool> Borrowed { get; set; } = () => false;
         internal Func<bool> Deposited { get; set; } = () => false;
-        internal TaskCompletionSource<long> HeldBorrow { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<long> HeldDeposit { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<bool> ReleaseBorrow { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal TaskCompletionSource<bool> ReleaseDeposit { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal InlineCompletionSource<long> HeldBorrow { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<long> HeldDeposit { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<bool> ReleaseBorrow { get; } = new(TaskCreationOptions.None);
+        internal InlineCompletionSource<bool> ReleaseDeposit { get; } = new(TaskCreationOptions.None);
         internal ConcurrentQueue<(string Id, long Tick)> Selected { get; } = new();
 
         internal Choices CreateProvider(string id) => id != actor ? new Choices(id) : new Choices(id,

@@ -85,7 +85,8 @@ advancing to expiry. The entry wait has a separate thirty-second diagnostic
 bound and preserves complete checkpoint bytes. Private release gates complete
 inline, so releasing the late reply does not queue extra provider continuations.
 A private deferred-entry row gates that startup signal until expiry and checks that the late reply
-uses the same request; another row delays real provider entry for six seconds.
+uses the same request; another row leaves the actual provider entry queued until
+after capturing the frozen checkpoint, then runs it without advancing the world.
 Reply and actual wrapper-completion waits retain their five-second bounds.
 Completion reuses the shared request-task wait, which also finishes when no
 call is pending; saved attempt status is not a live task boundary. A deferred-return
