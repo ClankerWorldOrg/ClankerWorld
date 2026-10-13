@@ -31,9 +31,8 @@ public sealed class ModelRequestWordingTests
             }).ToArray(),
         };
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)), _ => provider);
-        await world.AdvanceOneTickNonBlockingAsync();
-        for (var attempt = 0; attempt < 50 && handler.Bodies.Count < WorldRuntime.RequiredFounders; attempt++)
-            await Task.Delay(10);
+        await world.TickModelWorkAsync();
+        await ModelWorkHarness.For(world).WaitForAllAsync();
         Assert.NotEmpty(handler.Bodies);
         foreach (var body in handler.Bodies)
         {
@@ -68,13 +67,16 @@ public sealed class ModelRequestWordingTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task RenderedRecipeAccountsBelongOnlyToTheRequestingPerson(bool personal)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task RenderedRecipeAccountsBelongOnlyToTheRequestingPerson(bool personal, bool deferBodyRead)
     {
         var (state, author, recipeId) = await RecipeKnowledgePipelineTests.ProducedRecipe();
         var name = state.WorldContent!.Recipes.Single(item => item.CanonicalId == recipeId).DisplayName;
-        var handler = new SyntheticModelHandler(personal);
+        var handler = new SyntheticModelHandler(personal)
+        { ReadAllowed = deferBodyRead ? new InlineCompletionSource() : null };
         using var client = new HttpClient(handler);
         IDecisionProvider provider = personal
             ? new OpenAiCompatibleDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model")
@@ -83,9 +85,22 @@ public sealed class ModelRequestWordingTests
         foreach (var person in state.Agents)
             world.SubmitInstruction(new OwnerInstructionRequest(DerivedId.Create("recipe-context:" + person.AgentId), "owner:test",
                 person.AgentId, OwnerInstructionKind.Suggestion, "Tell me what you have learned."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        for (var attempt = 0; attempt < 50 && handler.Bodies.Count < WorldRuntime.RequiredFounders; attempt++)
-            await Task.Delay(10);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        var frame = WorldRuntimeCodec.Encode(world.ExportState());
+        var completed = ModelWorkHarness.For(world).WaitForAllAsync();
+        try
+        {
+            if (deferBodyRead)
+            {
+                Assert.False(completed.IsCompleted);
+                Assert.Empty(handler.Bodies);
+                Assert.Equal(frame, WorldRuntimeCodec.Encode(world.ExportState()));
+                handler.ReadAllowed!.TrySetResult();
+            }
+            await completed;
+            Assert.Equal(frame, WorldRuntimeCodec.Encode(world.ExportState()));
+        }
+        finally { handler.ReadAllowed?.TrySetResult(); }
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var body in handler.Bodies)
         {
@@ -105,9 +120,11 @@ public sealed class ModelRequestWordingTests
     private sealed class SyntheticModelHandler(bool personal) : HttpMessageHandler
     {
         public ConcurrentQueue<string> Bodies { get; } = new();
+        public InlineCompletionSource? ReadAllowed { get; init; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            if (ReadAllowed is not null) await ReadAllowed.Task.WaitAsync(cancellationToken);
             Bodies.Enqueue(await request.Content!.ReadAsStringAsync(cancellationToken));
             var answer = "{\"selected_candidate_id\":\"safe_idle\",\"confidence\":1,\"probabilities\":{\"safe_idle\":1}}";
             var body = personal

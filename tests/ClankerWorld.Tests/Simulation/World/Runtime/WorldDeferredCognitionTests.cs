@@ -28,7 +28,7 @@ public sealed class WorldDeferredCognitionTests
         var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var first = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         var rejectedAction = Assert.Single(first.Decisions, item => item.AgentId == NameTargetId).Admission;
         Assert.True(rejectedAction.FellBack);
@@ -72,9 +72,9 @@ public sealed class WorldDeferredCognitionTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(4000)]
-    public async Task DuplicateNameRetryConsumesASecondConfiguredProviderAllowance(int firstReplyDelayMilliseconds)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DuplicateNameRetryConsumesASecondConfiguredProviderAllowance(bool deferSchedulerEntry)
     {
         var directory = Directory.CreateTempSubdirectory("clankerworld-name-retry-meter-");
         try
@@ -86,14 +86,14 @@ public sealed class WorldDeferredCognitionTests
             _ = configuration.Configure(new("planning", "openai", "retry-meter-model", "retry-meter-key", false));
             var usage = new ProviderUsageStore(Path.Combine(directory.FullName, "usage.json"));
             _ = usage.Configure(new ProviderUsageLimitAction(2));
-            var handler = new SequencedNameResponseHandler(firstReplyDelayMilliseconds, "Taken Lake", "Maia Vale");
+            var handler = new SequencedNameResponseHandler("Taken Lake", "Maia Vale");
             var router = new ConfigurableDecisionProvider(configuration,
                 new FixedHttpClientFactory(handler), usageStore: usage);
             using var world = CreateNameTestWorld("duplicate-name-retry-meter", router);
             Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
             world.StartWorld();
 
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.True((await ModelWorkHarness.For(world).TickAsync(runPendingWork: !deferSchedulerEntry)).Advanced);
             _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
             Assert.InRange(handler.RequestCount, 1, 2);
             Assert.InRange(usage.Capture().Attempts, 1, 2);
@@ -123,7 +123,7 @@ public sealed class WorldDeferredCognitionTests
         var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         var result = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         var admission = Assert.Single(result.Decisions, item => item.AgentId == NameTargetId).Admission;
 
@@ -145,12 +145,12 @@ public sealed class WorldDeferredCognitionTests
         var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         // Retained work is refreshed on the tick after the first reply is admitted.
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.SecondFailed.Task.WaitAsync(TimeSpan.FromSeconds(3));
-        await Task.Delay(100);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(provider.SecondFailed.Task);
+        await ModelWorkHarness.For(world).SettleAsync();
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
 
         var namedAgent = world.Society.GetAgent(NameTargetId);
@@ -180,7 +180,7 @@ public sealed class WorldDeferredCognitionTests
         var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         // How many ticks a model reply takes depends on the runner, so an ordinary
@@ -204,7 +204,7 @@ public sealed class WorldDeferredCognitionTests
                 Assert.True(retry.NeedsName);
                 Assert.True(retry.IsNameRetry);
             });
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         // Ordinary personal decisions can follow exhaustion when the world
         // context changes; neither may reopen the completed naming attempt.
         Assert.Equal(2, provider.ObservedRequests.Count(request => request.NeedsName || request.IsNameRetry));
@@ -279,18 +279,12 @@ public sealed class WorldDeferredCognitionTests
         var secondPlaceholder = world.Society.GetAgent(NameOwnerId).Name;
         world.StartWorld();
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await Task.WhenAll(firstProvider.FirstReturned.Task, secondProvider.FirstReturned.Task)
-            .WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await Task.WhenAll(firstProvider.FirstReturned.Task, secondProvider.FirstReturned.Task);
         // Each provider signals just before the runtime's call task finishes,
         // so wait for both calls to finish before the tick that admits them together.
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(3);
-        while (!world.ModelDecisionsFinished(NameTargetId, NameOwnerId))
-        {
-            Assert.True(DateTime.UtcNow < deadline, "Both model calls should finish.");
-            await Task.Delay(1);
-        }
-        var simultaneous = await world.AdvanceOneTickNonBlockingAsync();
+        await ModelWorkHarness.For(world).WaitForKindAsync(ModelWorkKind.Decision);
+        var simultaneous = await world.TickModelWorkAsync();
         Assert.True(simultaneous.Advanced);
         Assert.Contains(simultaneous.Decisions, item => item.AgentId == NameTargetId && item.Admission.Accepted);
         Assert.Contains(simultaneous.Decisions, item => item.AgentId == NameOwnerId && item.Admission.Accepted);
@@ -315,10 +309,10 @@ public sealed class WorldDeferredCognitionTests
         var placeholder = world.Society.GetAgent(NameTargetId).Name;
         world.StartWorld();
 
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.SecondStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(provider.SecondStarted.Task);
         Assert.True(provider.SecondObservation!.IsNameRetry);
         var completedBeforeCancellation = world.ExportState().Events.Count(item =>
             item.Kind == "hosted_decision_completed");
@@ -342,8 +336,8 @@ public sealed class WorldDeferredCognitionTests
             ? restoredProvider
             : new DeterministicDecisionProvider());
         restored.Resume();
-        Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await restoredProvider.FirstReturned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await restored.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(restored).WaitAsync(restoredProvider.FirstReturned.Task);
         var completed = await AdvanceUntilAcceptedAsync(restored, NameTargetId);
         Assert.True(Assert.Single(completed.Decisions, item => item.AgentId == NameTargetId).Admission.Accepted);
         Assert.True(Assert.Single(restoredProvider.ObservedRequests).IsNameRetry);
@@ -360,10 +354,10 @@ public sealed class WorldDeferredCognitionTests
         using var world = CreateNameTestWorld("rename-queued-name-retry", provider, quietOthers: true);
         Assert.True(world.RenameAgent(NameOwnerId, "Taken Name"));
         world.StartWorld();
-        await world.AdvanceOneTickNonBlockingAsync();
+        await world.TickModelWorkAsync();
         _ = await AdvanceUntilAcceptedAsync(world, NameTargetId);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await provider.SecondStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(provider.SecondStarted.Task);
         world.Pause();
         var saved = world.ExportState();
         saved = saved with
@@ -389,8 +383,8 @@ public sealed class WorldDeferredCognitionTests
         if (otherWork) Assert.Equal(["other_work"], queued!.TriggerIds);
         else Assert.Null(queued);
         restored.Resume();
-        await restored.AdvanceOneTickNonBlockingAsync();
-        await Task.Delay(100);
+        await restored.TickModelWorkAsync();
+        await ModelWorkHarness.For(world).SettleAsync();
         Assert.DoesNotContain(freshProvider.ObservedRequests, request => request.IsNameRetry || request.NeedsName);
         if (!otherWork) Assert.Equal(0, freshProvider.CallCount);
         Assert.Equal("Player Name", restored.Society.GetAgent(NameTargetId).Name);
@@ -401,16 +395,17 @@ public sealed class WorldDeferredCognitionTests
     [InlineData(true)]
     public async Task HelperSwitchPreservesMemoriesDiscardsLateRepliesAndReplaysItsSavedChoice(bool deferReturn)
     {
-        var returnAllowed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var returnAllowed = new InlineCompletionSource<bool>();
         var modelProvider = new HeldModelProvider(ignoreCancellation: true, kind: DecisionProviderKind.OpenAiDecisions,
             returnAllowed: deferReturn ? returnAllowed.Task : null);
         using var world = new WorldRuntime("helper-switch", id => id == "founder-scout" ? modelProvider : new QuietDecisionProvider());
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        var harness = ModelWorkHarness.For(world);
+        Assert.True((await harness.TickAsync()).Advanced);
         // Capture the registered worker before pause removes it from the pending collection.
-        var completion = GrownAgentHelperMemoryTests.WaitForRequests(world);
+        var completion = harness.WaitForDecisionAsync("founder-scout");
         try
         {
-            await Task.WhenAny(modelProvider.Started.Task, completion).WaitAsync(TimeSpan.FromSeconds(30));
+            await harness.WaitAsync(Task.WhenAny(modelProvider.Started.Task, completion));
             Assert.True(modelProvider.Started.Task.IsCompleted, "The registered worker finished before provider entry.");
             Assert.False(completion.IsCompleted);
             world.Pause();
@@ -427,14 +422,14 @@ public sealed class WorldDeferredCognitionTests
             modelProvider.Release.TrySetResult(true);
             if (deferReturn)
             {
-                await modelProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(30));
+                await harness.WaitAsync(modelProvider.Returned.Task);
                 Assert.False(completion.IsCompleted);
                 Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
                 returnAllowed.TrySetResult(true);
             }
             await completion;
             Assert.True(modelProvider.Returned.Task.IsCompleted);
-            Assert.False((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            Assert.False((await harness.TickAsync()).Advanced);
             Assert.Equal(saved, WorldRuntimeCodec.Encode(world.ExportState()));
             Assert.Equal(memories, world.Society.Memories);
             using var first = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), _ => new QuietDecisionProvider());
@@ -470,23 +465,23 @@ public sealed class WorldDeferredCognitionTests
         using var world = new WorldRuntime("deferred-founder", id =>
             id == "founder-scout" ? modelProvider : new QuietDecisionProvider());
 
-        var first = await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3));
+        var first = await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask());
         Assert.True(first.Advanced);
         Assert.Equal(1, world.WorldTick);
         Assert.Contains(first.Decisions, item => item.AgentId != "founder-scout" && item.Admission.Accepted);
-        await modelProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Started.Task);
         Assert.Contains(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
         Assert.Contains(new OwnerWorldObservationStore(world).GetSnapshot().Agents
                 .Single(item => item.Id == "founder-scout").DecisionFactors,
             item => item.Key == "decision-pending");
 
         for (var tick = 0; tick < 3; tick++)
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(3))).Advanced);
+            Assert.True((await ModelWorkHarness.For(world).WaitAsync(world.TickModelWorkAsync().AsTask())).Advanced);
         Assert.Equal(4, world.WorldTick);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "hosted_decision_completed");
 
         modelProvider.Release.TrySetResult(true);
-        await modelProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Returned.Task);
         var admitted = await AdvanceUntilAcceptedAsync(world, "founder-scout");
         Assert.Contains(admitted.Events, item => item.Kind == "hosted_decision_completed");
         Assert.DoesNotContain(world.ExportState().Society.Cognition.Queue, item => item.AgentId == "founder-scout");
@@ -499,13 +494,13 @@ public sealed class WorldDeferredCognitionTests
             privateThought: "I should gather food before the others wake.", chosenName: "Aster Vale");
         using var world = CreateNameTestWorld("private-thoughts", modelProvider);
         world.StartWorld();
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await modelProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Started.Task);
         Assert.True(modelProvider.NeedsNameObserved);
         Assert.True(world.RenameAgent(NameTargetId, "Player-picked"));
         Assert.False(world.Society.IsPaused);
         modelProvider.Release.TrySetResult(true);
-        await modelProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await ModelWorkHarness.For(world).WaitAsync(modelProvider.Returned.Task);
         var admitted = await AdvanceUntilAcceptedAsync(world, NameTargetId);
         Assert.False(Assert.Single(admitted.Decisions, item => item.AgentId == NameTargetId).Admission.FellBack);
         Assert.Equal("Player-picked", world.Society.GetAgent(NameTargetId).Name);
@@ -532,8 +527,8 @@ public sealed class WorldDeferredCognitionTests
             id == targetId ? staleProvider : new DeterministicDecisionProvider());
         var first = world.SubmitInstruction(new OwnerInstructionRequest("observer-first", "owner:test", targetId,
             OwnerInstructionKind.Suggestion, "Try the berries beside the river."));
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await staleProvider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(world).WaitAsync(staleProvider.Started.Task);
         var initialObservation = Assert.Single(staleProvider.ObservedRequests);
         Assert.Equal(world.Society.WorldId, initialObservation.WorldId);
         Assert.Equal(targetId, initialObservation.AgentId);
@@ -542,7 +537,7 @@ public sealed class WorldDeferredCognitionTests
         world.Pause();
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         staleProvider.Release.TrySetResult(true);
-        await staleProvider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        await ModelWorkHarness.For(world).WaitAsync(staleProvider.Returned.Task);
         var pausedInstruction = Assert.Single(world.ExportState().Instructions!, item => item.InstructionId == first.InstructionId);
         Assert.Null(pausedInstruction.ObservedTick);
         Assert.Null(pausedInstruction.ObserverReply);
@@ -554,8 +549,8 @@ public sealed class WorldDeferredCognitionTests
         var second = restored.SubmitInstruction(new OwnerInstructionRequest("observer-second", "owner:test", targetId,
             OwnerInstructionKind.Suggestion, "Look for a grove after you eat."));
         restored.Resume();
-        Assert.True((await restored.AdvanceOneTickNonBlockingAsync()).Advanced);
-        await replacement.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        Assert.True((await restored.TickModelWorkAsync()).Advanced);
+        await ModelWorkHarness.For(restored).WaitAsync(replacement.Started.Task);
         var retryObservation = Assert.Single(replacement.ObservedRequests);
         Assert.Equal(saved.Society.Society.WorldId, retryObservation.WorldId);
         Assert.Equal(targetId, retryObservation.AgentId);
@@ -589,28 +584,24 @@ public sealed class WorldDeferredCognitionTests
 
     private static async Task<WorldStepResult> AdvanceUntilAcceptedAsync(WorldRuntime world, string agentId)
     {
-        var field = typeof(WorldRuntime).GetField("pendingModelCalls",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-        var pending = Assert.IsAssignableFrom<System.Collections.IDictionary>(field!.GetValue(world));
         for (var tick = 0; tick < 20; tick++)
         {
-            // Finish the registered wrapper task, including provider metering,
-            // without spending native ticks on thread-pool scheduling.
-            if (pending.Contains(agentId))
+            var pending = world.PendingModelWork.FirstOrDefault(item =>
+                item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == agentId);
+            var checkpoint = WorldRuntimeCodec.Encode(world.ExportState());
+            await ModelWorkHarness.For(world).WaitForDecisionAsync(agentId);
+            if (pending is not null)
             {
-                var call = pending[agentId]!;
-                var task = Assert.IsAssignableFrom<Task>(call.GetType().GetProperty("Task")!.GetValue(call));
-                var checkpoint = WorldRuntimeCodec.Encode(world.ExportState());
-                await task.WaitAsync(TimeSpan.FromSeconds(30));
-                Assert.Same(call, pending[agentId]);
+                var current = Assert.Single(world.PendingModelWork, item =>
+                    item.Transition.Kind == ModelWorkKind.Decision && item.Transition.ActorId == agentId);
+                Assert.Same(pending.Completion, current.Completion);
                 Assert.Equal(checkpoint, WorldRuntimeCodec.Encode(world.ExportState()));
             }
-            var step = await world.AdvanceOneTickNonBlockingAsync();
+            var step = await world.TickModelWorkAsync();
             Assert.True(step.Advanced);
-            if (step.Decisions.Any(item => item.AgentId == agentId && item.Admission.Accepted))
-                return step;
+            if (step.Decisions.Any(item => item.AgentId == agentId && item.Admission.Accepted)) return step;
         }
-        throw new TimeoutException($"The completed hosted decision for {agentId} was not admitted within 20 ticks.");
+        throw new InvalidOperationException($"No decision for {agentId} admitted within 20 ticks.");
     }
 
     private static WorldRuntime CreateNameTestWorld(
@@ -656,8 +647,8 @@ public sealed class WorldDeferredCognitionTests
         bool failSecond = false) : IDecisionProvider
     {
         private int callCount;
-        private readonly TaskCompletionSource<CognitionDecisionResponse> heldSecondReply =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly InlineCompletionSource<CognitionDecisionResponse> heldSecondReply =
+            new(TaskCreationOptions.None);
         private CognitionDecisionResponse? secondReply;
         private Task<CognitionDecisionResponse>? secondResponseTask;
 
@@ -667,9 +658,9 @@ public sealed class WorldDeferredCognitionTests
         }
 
         public ConcurrentQueue<AgentObservation> ObservedRequests { get; } = new();
-        public TaskCompletionSource<bool> FirstReturned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> SecondStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> SecondFailed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> FirstReturned { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> SecondStarted { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> SecondFailed { get; } = new(TaskCreationOptions.None);
         public AgentObservation? SecondObservation { get; private set; }
         public CancellationToken SecondCancellationToken { get; private set; }
         public int CallCount => Volatile.Read(ref callCount);
@@ -743,7 +734,7 @@ public sealed class WorldDeferredCognitionTests
         public HttpClient CreateClient(string name) => new(handler, disposeHandler: false);
     }
 
-    private sealed class SequencedNameResponseHandler(int firstReplyDelayMilliseconds, params string[] names) : HttpMessageHandler
+    private sealed class SequencedNameResponseHandler(params string[] names) : HttpMessageHandler
     {
         private int requestCount;
 
@@ -755,8 +746,7 @@ public sealed class WorldDeferredCognitionTests
         {
             var call = Interlocked.Increment(ref requestCount);
             _ = await request.Content!.ReadAsStringAsync(cancellationToken);
-            // The delayed row outlives the former three-second admission poll.
-            if (call == 1) await Task.Delay(firstReplyDelayMilliseconds, cancellationToken);
+
             var answer = JsonSerializer.Serialize(new
             {
                 selected_candidate_id = "safe_idle",
@@ -783,9 +773,9 @@ public sealed class WorldDeferredCognitionTests
         string? chosenName = null,
         Task? returnAllowed = null) : IDecisionProvider
     {
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 1;
         public bool NeedsNameObserved { get; private set; }
@@ -813,9 +803,9 @@ public sealed class WorldDeferredCognitionTests
 
     private sealed class HeldGuidanceReplyProvider(string replyText) : IDecisionProvider
     {
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public ConcurrentQueue<AgentObservation> ObservedRequests { get; } = new();
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;
         public long ProviderEpoch => 1;
