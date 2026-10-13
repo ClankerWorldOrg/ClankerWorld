@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Runtime;
@@ -54,7 +55,7 @@ public sealed class OwnerClientPresenceLeaseTests
     }
 
     [Theory]
-    [InlineData("founder:00000000000000000000000000000001")]
+    [InlineData(NormalPathWorld.Founder1)]
     public async Task ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText(string actorId)
     {
         var directory = Path.Combine(Path.GetTempPath(), $"clankerworld-hosted-log-{Guid.NewGuid():N}");

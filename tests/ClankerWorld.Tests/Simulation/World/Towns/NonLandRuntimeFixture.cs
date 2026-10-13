@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -144,7 +145,7 @@ internal static class NonLandRuntimeFixture
     }
 
     internal static void Wake(WorldRuntime world, string actor, string key) =>
-        world.SubmitInstruction(new(key, "owner:test", actor, OwnerInstructionKind.Suggestion,
+        world.SubmitInstruction(new(DerivedId.Create(key), "owner:test", actor, OwnerInstructionKind.Suggestion,
             "Consider the current public case and make your own choice."));
 
     private static async Task<byte[]> CreateReadyHearingAsync() => await PrepareReadyHearingAsync(await FiledAsync());

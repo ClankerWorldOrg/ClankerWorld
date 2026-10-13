@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 public sealed class HearthReachabilityTests(HearthReachabilityTests.Fixture fixture)
     : IClassFixture<HearthReachabilityTests.Fixture>
 {
-    private const string Actor = NormalPathWorld.Founder1;
+    private const string Actor = "founder:00000000000000000000000000000001";
     private const string Fuel = "hearth-control-fuel";
     private const string House = "first-town-house-a";
 

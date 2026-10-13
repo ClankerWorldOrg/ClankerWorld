@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
@@ -144,7 +145,7 @@ public sealed partial class PhysicalKnowledgePipelineTests
         Assert.Contains("knowledge_write:field_record", provider.Offered);
         Assert.Equal(actor, written.CreatorId);
         Assert.All(written.Materials, material => Assert.StartsWith(job.JobId + ":output:", material.LotId));
-        Assert.All(written.Facts, fact => Assert.Contains(final.Knowledge.Facts,
+        Assert.All(written.Facts, fact => Assert.Contains(final.Knowledge.Facts.Concat(final.Knowledge.EarlierFacts),
             learned => learned.OwnerId == actor && FactIdentity(learned) == FactIdentity(fact)));
         Assert.Equal(1, final.Society.Society.Inventory.GetLot(written.LotId).Quantity);
         Assert.Equal(WorldRuntimeCodec.Encode(final), WorldRuntimeCodec.Encode(restored.ExportState()));

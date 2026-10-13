@@ -38,7 +38,7 @@ internal static class NormalPathWorld
         GridPoint? roughTownSite = null, WorldSizePreset size = WorldSizePreset.Small, int? ticksPerDay = null, int calendarOffsetTicks = 0)
     {
         var options = new GeographyOptions(seed, size);
-        var world = new WorldRuntime(options.Seed, providerFactory,
+        var world = new WorldRuntime(options.Seed, _ => new DeterministicDecisionProvider(),
             startPace: WorldStartPace.FounderSetup, geographyOptions: options);
         var map = world.ExportState().Map;
         var anchor = roughTownSite ?? FindStartingTownSite(map);
