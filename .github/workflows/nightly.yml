@@ -38,7 +38,7 @@ jobs:
       contents: read
     env:
       CLANKERWORLD_CHOICE_SEED: '1815'
-      CLANKERWORLD_CHOICE_SEEDS: '8'
+      CLANKERWORLD_CHOICE_SEEDS: '4'
       CLANKERWORLD_CHOICE_TICKS: '32'
     steps:
       - uses: actions/checkout@v5

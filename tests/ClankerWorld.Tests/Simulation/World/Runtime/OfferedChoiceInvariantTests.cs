@@ -22,10 +22,12 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
         for (var offset = 0; offset < seeds; offset++)
         {
             var seed = checked(firstSeed + offset);
+            output.WriteLine($"Preparing seed={seed}; scenario=mixed.");
             using var baseline = WorldRuntime.Restore(await OfferedChoiceWorld.CreateAsync(seed), _ => new SweepChoiceProvider());
             AssertScenario(baseline.ExportState());
             for (var frame = 0; frame < frames; frame++)
             {
+                output.WriteLine($"Sweeping seed={seed}; scenario=mixed; tick={baseline.WorldTick}; frame={frame}.");
                 foreach (var person in baseline.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active &&
                     person.AgeBand != SocietyAgeBand.Infant))
                     baseline.SubmitInstruction(new(DerivedId.Numbered("choice-refresh:" + person.Id + ":", frame + 1),

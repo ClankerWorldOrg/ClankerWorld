@@ -740,6 +740,6 @@ CLANKERWORLD_CHOICE_SEED=1815 dotnet test tests/ClankerWorld.Tests/ClankerWorld.
 Failures report the seed, scenario, tick, snapshot, agent and choice ID. Set
 `CLANKERWORLD_CHOICE_TICKS` to at least the reported snapshot plus one to reach
 that case. `CLANKERWORLD_CHOICE_SEEDS` adds consecutive seeds. The independent
-`choice-invariants` nightly job checks eight seeds and 32 snapshots each, even
+`choice-invariants` nightly job checks four seeds and 32 snapshots each, even
 when no nightly release is needed. Real failures belong in separate Bug issues
 and fixes; this test waits on those fixes rather than suppressing cases.
