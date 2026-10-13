@@ -718,3 +718,28 @@ refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals
 `SecondGenerationFixture.Add` adds a child through an accepted Society birth,
 including food consumption, parentage, care and household membership, then adds
 the physical agent and Town residency. It retains the production-generated child ID.
+
+### Every offered choice
+
+`OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
+split stock, a broken vessel, a borrowed Market stall, a full carrier, occupied
+tiles, a swimmer, a mounted rider and a boat passenger. Paid buildings, borrowing,
+birth and transport use the shared native operations. Each native queued choice
+runs in its own trusted server trial copy, through normal admission, action
+application and post-action reconciliation. The test requires a strict save
+round-trip and progress or a refusal reason. It does not recover or skip a
+throwing action.
+
+The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
+with:
+
+```sh
+CLANKERWORLD_CHOICE_SEED=1815 dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --filter FullyQualifiedName~OfferedChoiceInvariantTests
+```
+
+Failures report the seed, scenario, tick, snapshot, agent and choice ID. Set
+`CLANKERWORLD_CHOICE_TICKS` to at least the reported snapshot plus one to reach
+that case. `CLANKERWORLD_CHOICE_SEEDS` adds consecutive seeds. The independent
+`choice-invariants` nightly job checks eight seeds and 32 snapshots each, even
+when no nightly release is needed. Real failures belong in separate Bug issues
+and fixes; this test waits on those fixes rather than suppressing cases.

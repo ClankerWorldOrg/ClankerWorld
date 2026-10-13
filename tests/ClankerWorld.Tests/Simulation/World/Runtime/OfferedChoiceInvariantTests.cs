@@ -30,6 +30,7 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
                     person.AgeBand != SocietyAgeBand.Infant))
                     baseline.SubmitInstruction(new(DerivedId.Numbered("choice-refresh:" + person.Id + ":", frame + 1),
                         "owner:choice-test", person.Id, OwnerInstructionKind.Suggestion, "Consider the choices available here."));
+                var offered = baseline.PrepareChoiceTrialOffers();
                 var original = baseline.ExportState();
                 var recorder = new SweepChoiceProvider();
                 using var discovery = baseline.CopyForChoiceTrial(_ => recorder);
@@ -37,8 +38,8 @@ public sealed class OfferedChoiceInvariantTests(ITestOutputHelper output)
                 StrictCheckpoint(discovery);
                 var control = ActionState(discovery.ExportState());
                 var observations = recorder.Observations.ToArray();
-                Assert.Equal(original.Agents.Count(person => original.Society.Society.GetAgent(person.AgentId).AgeBand != SocietyAgeBand.Infant),
-                    observations.Select(observation => observation.AgentId).Distinct(StringComparer.Ordinal).Count());
+                Assert.Equal(offered.Select(observation => observation.AgentId).Order(StringComparer.Ordinal),
+                    observations.Select(observation => observation.AgentId).Order(StringComparer.Ordinal));
                 foreach (var observation in observations)
                     foreach (var candidate in observation.Candidates)
                     {

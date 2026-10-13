@@ -132,6 +132,17 @@ public sealed partial class WorldRuntime
         RestoreCore(ExportState(), providers, maxCognitionDispatchPerCycle, trustedPreparedState: true,
             applyLoadTransitions: false);
 
+    internal IReadOnlyList<AgentObservation> PrepareChoiceTrialOffers()
+    {
+        gate.Wait();
+        try
+        {
+            EnqueueDueCognition(new HashSet<string>(StringComparer.Ordinal));
+            return society.Capture().Cognition.Queue.Select(entry => entry.Observation).ToArray();
+        }
+        finally { gate.Release(); }
+    }
+
     // Probe the native action phase in the same trusted copy used by tick preparation.
     // Inline fixture replies keep unrelated background scheduling out of the invariant.
     internal async ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> ApplyChoiceTrialAsync()
@@ -139,7 +150,6 @@ public sealed partial class WorldRuntime
         await gate.WaitAsync().ConfigureAwait(false);
         try
         {
-            EnqueueDueCognition(new HashSet<string>(StringComparer.Ordinal));
             var decisions = new List<SocietyCognitionDispatchResult>();
             for (var cycle = 0; cycle < agents.Count && society.Capture().Cognition.Queue.Count > 0; cycle++)
             {

@@ -28,8 +28,13 @@ internal sealed class SweepChoiceProvider(string? actor = null, string? choice =
     public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
     {
         var observation = request.Observation;
-        Observations.Add(observation);
-        var selected = observation.AgentId == actor && choice is not null
+        // Identity moments are background lifecycle replies, not physical actions.
+        // Keep the existing identity so a longer sweep can reach ordinary child turns.
+        var identityMoment = observation.IdentityMoment is not null;
+        if (!identityMoment)
+            Observations.Add(observation);
+        var selected = identityMoment ? observation.Candidates.Single()
+            : observation.AgentId == actor && choice is not null
             ? observation.Candidates.Single(candidate => candidate.Id == choice)
             : observation.Candidates.Single(candidate => candidate.Id == "safe_idle");
         return ValueTask.FromResult(new CognitionDecisionResponse(request.RequestId, observation.AgentId,
@@ -37,8 +42,8 @@ internal sealed class SweepChoiceProvider(string? actor = null, string? choice =
             selected.Id, 1, observation.Candidates.ToDictionary(candidate => candidate.Id,
                 candidate => candidate.Id == selected.Id ? 1d : 0d, StringComparer.Ordinal),
             ChosenName: observation.NeedsName ? observation.Self!.Name : null,
-            ChosenPersonality: observation.NeedsPersonality ? "curious" : null,
-            ChosenAspiration: observation.NeedsAspiration ? "explore" : null,
+            ChosenPersonality: !identityMoment && observation.NeedsPersonality ? "curious" : null,
+            ChosenAspiration: !identityMoment && observation.NeedsAspiration ? "explore" : null,
             CivicProposal: selected.Id.Contains("|propose|", StringComparison.Ordinal) ? "Take care of shared places." : null));
     }
 }
