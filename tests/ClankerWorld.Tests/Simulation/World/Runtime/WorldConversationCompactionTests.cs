@@ -35,7 +35,7 @@ public sealed partial class WorldConversationTests
             Assert.Equal(before, Assert.Single(world.Conversations));
 
             provider.ReleaseFirstTurn();
-            await pending.WaitAsync(TimeSpan.FromSeconds(10));
+            await pending;
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             var admitted = Assert.Single(Assert.Single(world.Conversations).Turns);
             Assert.Equal("The held turn survived saving.", admitted.Text);
@@ -144,12 +144,7 @@ public sealed partial class WorldConversationTests
 
     private static Task PendingCompactionTurn(WorldRuntime world)
     {
-        // Await the runtime's admission task, not just the provider response:
-        // its continuation must finish before the next controlled test tick.
-        var field = typeof(WorldRuntime).GetField("pendingConversationTurns",
-            BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var pending = Assert.Single(Assert.IsAssignableFrom<IDictionary>(field.GetValue(world)).Values.Cast<object>());
-        return Assert.IsAssignableFrom<Task>(pending.GetType().GetProperty("Task")!.GetValue(pending));
+        return Assert.Single(world.PendingModelWork, item => item.Transition.Kind == ModelWorkKind.Conversation).Completion;
     }
 
     private sealed class CompactionConversationProvider : IDecisionProvider, IAgentConversationProvider
@@ -157,7 +152,7 @@ public sealed partial class WorldConversationTests
         private readonly ConversationProvider decisions = ConsentReviewProvider();
         public DecisionProviderKind Kind => decisions.Kind;
         public long ProviderEpoch => decisions.ProviderEpoch;
-        public List<(AgentConversationTurnRequest Request, TaskCompletionSource<AgentConversationTurnResponse> Response)> Turns { get; } = [];
+        public List<(AgentConversationTurnRequest Request, InlineCompletionSource<AgentConversationTurnResponse> Response)> Turns { get; } = [];
 
         public bool CanSpeakAs(string agentId) => decisions.CanSpeakAs(agentId);
         public ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request,
@@ -167,7 +162,7 @@ public sealed partial class WorldConversationTests
             CancellationToken cancellationToken = default)
         {
             request.Validate();
-            var response = new TaskCompletionSource<AgentConversationTurnResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var response = new InlineCompletionSource<AgentConversationTurnResponse>(TaskCreationOptions.None);
             Turns.Add((request, response));
             return new(response.Task.WaitAsync(cancellationToken));
         }

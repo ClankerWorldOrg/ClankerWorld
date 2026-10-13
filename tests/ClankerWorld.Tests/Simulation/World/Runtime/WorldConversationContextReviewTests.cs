@@ -21,8 +21,8 @@ public sealed partial class WorldConversationTests
                      request.Observation.Candidates.Any(candidate => candidate.Id.StartsWith(
                          "conversation_wrapup_accept:", StringComparison.Ordinal)))); tick++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            _ = await world.TickModelWorkAsync();
+
         }
 
         var conversation = Assert.Single(world.Conversations, item => item.Status == AgentConversationStatus.WrapUp);
@@ -57,9 +57,9 @@ public sealed partial class WorldConversationTests
 
         for (var tick = 0; tick < 64; tick++)
         {
-            _ = await dialogue.AdvanceOneTickNonBlockingAsync();
-            _ = await baseline.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            _ = await dialogue.TickModelWorkAsync();
+            _ = await baseline.TickModelWorkAsync();
+
         }
 
         Assert.Equal(dialogue.WorldTick, baseline.WorldTick);
@@ -123,7 +123,7 @@ public sealed partial class WorldConversationTests
         using var world = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id is InitiatorId or InviteeId ? provider : new DeterministicDecisionProvider());
         world.Resume();
-        using var resumeDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var resumeDeadline = new CancellationTokenSource();
         // Await both fresh resume decisions before spending lesson ticks. The
         // other participant may keep teaching while a model reply is pending.
         for (var tick = 0; tick < 30 && world.Conversations.Single().Status != AgentConversationStatus.AwaitingSpeaker; tick++)
@@ -135,8 +135,8 @@ public sealed partial class WorldConversationTests
         Assert.InRange(progress, 3, 19);
         for (var tick = 0; tick < 3; tick++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(2);
+            _ = await world.TickModelWorkAsync();
+
             Assert.Equal(progress, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         }
         Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
@@ -147,7 +147,7 @@ public sealed partial class WorldConversationTests
         var completionStartTick = world.WorldTick;
         const int completionTickHorizon = 80;
         const int maxCompletionAttempts = completionTickHorizon * 10;
-        using var completionDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var completionDeadline = new CancellationTokenSource();
         long? conversationClosedAtTick = null;
         var completionAttempts = 0;
         try
@@ -166,8 +166,8 @@ public sealed partial class WorldConversationTests
                 }
                 else
                 {
-                    _ = await world.AdvanceOneTickNonBlockingAsync(cancellationToken: completionDeadline.Token);
-                    await Task.Delay(2, completionDeadline.Token);
+                    _ = await world.TickModelWorkAsync(cancellationToken: completionDeadline.Token);
+
                 }
             }
         }

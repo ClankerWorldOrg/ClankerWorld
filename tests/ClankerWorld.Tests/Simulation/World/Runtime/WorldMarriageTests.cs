@@ -269,12 +269,12 @@ public sealed partial class WorldConversationTests
             item.Turns.Count == 1 && item.Status == AgentConversationStatus.AwaitingSpeaker));
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         var calls = first.TurnRequests.Count + second.TurnRequests.Count;
-        Assert.False((await world.AdvanceOneTickNonBlockingAsync(() => false)).Advanced);
+        Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
         Assert.Equal("Aster Ash", world.Society.GetAgent(InitiatorId).Name);
         Assert.Equal("Rowan Reed", world.Society.GetAgent(InviteeId).Name);
         Assert.Null(Assert.Single(world.Marriages).CompletedTick);
-        Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+        Assert.True((await world.TickModelWorkAsync()).Advanced);
         Assert.Equal(calls, first.TurnRequests.Count + second.TurnRequests.Count);
         Assert.NotNull(Assert.Single(world.Marriages).CompletedTick);
         Assert.Equal("Rowan Ash", world.Society.GetAgent(InviteeId).Name);
@@ -284,8 +284,8 @@ public sealed partial class WorldConversationTests
     {
         for (var attempt = 0; attempt < 160 && !finished(); attempt++)
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await Task.Delay(3);
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.True(finished(), "The normal personal-model marriage path did not reach its expected transition.");
     }

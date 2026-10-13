@@ -135,8 +135,8 @@ public sealed partial class WorldConversationTests
         world.StartWorld();
         for (var attempt = 0; attempt < 80 && (world.Society.Beliefs ?? []).Count(item => item.SourceTurnId is not null) < 12; attempt++)
         {
-            _ = await world.AdvanceOneTickNonBlockingAsync();
-            await Task.Delay(5);
+            _ = await world.TickModelWorkAsync();
+            await ModelWorkHarness.For(world).SettleAsync();
         }
         var beliefs = world.Society.Beliefs!;
         Assert.True(beliefs.Count(item => item.SourceTurnId is not null) >= 12,
