@@ -121,8 +121,14 @@ new observation timeline.
 Aging-override and Jev actions additionally bind the selected world ID into their
 version-2 signed payloads. The host advertises both formats on challenge
 issuance; the client refuses to submit them to a host without that support.
-Both endpoints check the target world under the same mutation gate used by
-world selection, before changing or saving settings. A stale target returns
+World-bound actions use one `OwnerWorldRequestFilter<TAction>`: it validates
+and authenticates the action, then holds the world-selection mutation gate
+through the target-world check, synchronous handler and durable save. This
+covers instructions, order cancellation, building management, life pace, Jev,
+routine helpers, developer edits, autosaves and recovery cleanup. Each route
+keeps its existing refusal response; runtime operations retain their own checks
+for callers outside HTTP. Deletion may deliberately target an inactive world's
+saved files, so its catalog and save-identity checks remain separate. A stale target returns
 409 without changing the newly selected world, and a request without a target
 returns 400. The pairing authority and world-save schema are unchanged.
 
