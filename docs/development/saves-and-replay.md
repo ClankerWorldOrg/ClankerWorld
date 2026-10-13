@@ -699,12 +699,13 @@ The paired authority identity belongs to the installation, not the selected
 simulation world.
 
 Load World checks each inactive checkpoint against the current runtime before
-marking it compatible. The server keeps only a process-local structural verdict
-and history head for each catalog identity, keyed by a SHA-256 hash of the
-checkpoint bytes. File replacement, catalog-identity changes and a server restart
-force a new structural check. Every list still verifies the referenced history
-chain and current model credentials;
-selection reads and restores the checkpoint again before changing worlds.
+marking it compatible. The server keeps a process-local structural proof,
+including the history head and saved helper selection, for each catalog identity.
+A SHA-256 hash of the checkpoint bytes identifies the proof. File replacement,
+catalog-identity changes and a server restart force a new structural check.
+Every list still verifies the referenced history chain and current model
+credentials; selection reads and restores the checkpoint again before changing
+worlds.
 Checking a changed checkpoint can therefore still be slow, especially on a
 large generated map, while repeated unchanged lists avoid rebuilding worlds.
 After a server start, a background task makes the structural check for each
