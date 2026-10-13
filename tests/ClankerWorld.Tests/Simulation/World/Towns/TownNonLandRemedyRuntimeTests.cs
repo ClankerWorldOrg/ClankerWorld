@@ -198,17 +198,22 @@ public sealed class TownNonLandRemedyRuntimeTests
         var compacted = RepairHistoryTests.SaveAfterLaterRepairs(replay.ExportState());
         Assert.All(receipt.RepairInputs, input => Assert.Contains(input.Reservation, compacted.Society.Society.Inventory.Reservations));
         NonLandRuntimeFixture.Strict(compacted);
+        var damagedReceipt = receipt with
+        {
+            RepairInputs = receipt.RepairInputs.Select(input => input with
+            { Reservation = input.Reservation with { Id = null! } }).ToArray(),
+        };
+        damagedReceipt = damagedReceipt with { Version = TownSystem.NonLandDigest(damagedReceipt with { Version = "" }) };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(compacted with
         {
             Towns = compacted.Towns!.Select(town => town with
             {
                 NonLandHearings = town.NonLandHearings with
                 {
-                    NativeReceipts = town.NonLandHearings.NativeReceipts.Select(item => item with
-                    {
-                        RepairInputs = item.RepairInputs.Select(input => input with
-                        { Reservation = input.Reservation with { Id = null! } }).ToArray(),
-                    }).ToArray(),
+                    NativeReceipts = town.NonLandHearings.NativeReceipts.Select(item => item.Id == damagedReceipt.Id
+                        ? damagedReceipt : item).ToArray(),
+                    Effects = town.NonLandHearings.Effects.Select(effect => effect.NativeReceiptId == damagedReceipt.Id
+                        ? effect with { NativeReceiptVersion = damagedReceipt.Version } : effect).ToArray(),
                 },
             }).ToArray(),
         }));
