@@ -996,13 +996,14 @@ public static partial class InventoryAuthority
             }
         }
 
-        var next = checkpoint with
+        var next = new InventoryCheckpoint(
+            nextTick,
+            lots ?? checkpoint.Lots,
+            reservations ?? checkpoint.Reservations,
+            offers ?? checkpoint.Offers,
+            events, checkpoint.EventHistoryFloor)
         {
-            WorldTick = nextTick,
-            Lots = lots ?? checkpoint.Lots,
-            Reservations = reservations ?? checkpoint.Reservations,
-            Offers = offers ?? checkpoint.Offers,
-            Events = events,
+            ArchivedRepairReservationCount = checkpoint.ArchivedRepairReservationCount,
         };
         ValidateCheckpoint(next);
         return InventoryStorageHistory.RecordTransition(checkpoint, next);
