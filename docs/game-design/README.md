@@ -2,7 +2,7 @@
 title: Game design
 type: game-design-index
 status: active
-updated: 2026-10-08
+updated: 2026-10-13
 ---
 
 # Game design
@@ -18,7 +18,7 @@ conversation, exploration and building. There is no fictional population cap;
 hardware, provider capacity and cost still impose practical limits. Whether to
 limit automatic births is a question for measured playtesting.
 
-These pages describe the intended game, including things that are not built.
+These pages describe the intended game, with agreement labels and open questions.
 See [what works today](../what-works.md) for the current build and
 [Issues](https://github.com/compoodment/ClankerWorld/issues) for work and discussion.
 A choice recorded here does not require every feature to be built immediately.
@@ -58,7 +58,8 @@ provisional.
 
 The player's [role and intervention controls](interface-and-art.md#player-guidance-and-orders)
 are agreed: the observer can send suggestions and orders through the game's
-normal rules. These controls do not mean every intended action is built yet.
+normal rules. Their current availability is recorded in
+[what works today](../what-works.md).
 
 Government and the economy is still partly open. Taxes
 ([#1255](https://github.com/compoodment/ClankerWorld/issues/1255)) and
