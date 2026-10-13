@@ -77,13 +77,18 @@ public sealed partial class WorldRuntime
 
     private void AddParenthoodCandidates(List<CognitionCandidate> candidates, string actor)
     {
-        var options = new List<CognitionCandidate>();
-        AddParenthoodCandidateOptions(options, actor);
-        foreach (var candidate in options)
+        var start = candidates.Count;
+        AddParenthoodCandidateOptions(candidates, actor);
+        for (var index = start; index < candidates.Count;)
         {
-            if (ParenthoodChoice.Decode(candidate.Id) is not { } choice) { candidates.Add(candidate); continue; }
+            var candidate = candidates[index];
+            if (ParenthoodChoice.Decode(candidate.Id) is not { } choice) { index++; continue; }
             if (PlanParenthoodAction(actor, choice) is { } plan && CheckParenthoodActionPlan(plan).Allowed)
-                candidates.Add(candidate with { ActionPlan = plan });
+            {
+                candidates[index] = candidate with { ActionPlan = plan };
+                index++;
+            }
+            else candidates.RemoveAt(index);
         }
     }
 
