@@ -46,9 +46,9 @@ public partial class Main
 
             OwnerWorldEvent[] events =
             [
-                new(1, 1, "ornament_worn", wearerId + ":ornament:smith:output:ornament"),
-                new(2, 1, "ornament_removed", wearerId + ":ornament:smith:output:ornament"),
-                new(3, 1, "ornament_given", wearerId + ":ornament_gift:" + recipientId + ":smith:output:ornament:gift:actual-lot"),
+                new(1, 1, "ornament_worn", wearerId + ":ornament:smith:output:ornament") { Text = "Mira put on an ornament." },
+                new(2, 1, "ornament_removed", wearerId + ":ornament:smith:output:ornament") { Text = "Mira took off an ornament." },
+                new(3, 1, "ornament_given", wearerId + ":ornament_gift:" + recipientId + ":smith:output:ornament:gift:actual-lot") { Text = "Mira gave an ornament to Orin." },
             ];
             var handshake = new OwnerWorldHandshake(new(1, 1),
                 ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",

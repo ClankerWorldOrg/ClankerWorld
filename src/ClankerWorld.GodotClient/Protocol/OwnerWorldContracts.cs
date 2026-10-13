@@ -684,6 +684,9 @@ public sealed record OwnerWorldSnapshot(
 
     public OwnerWorldAuthoringState? Authoring { get; init; }
 
+    /// <summary>Current server text for the visible retained events, including renamed people.</summary>
+    public IReadOnlyDictionary<long, string> EventTexts { get; init; } = new Dictionary<long, string>();
+
     public IReadOnlyList<OwnerWorldInstruction> Instructions { get; init; } = [];
 
     public OwnerWorldCognition? Cognition { get; init; }

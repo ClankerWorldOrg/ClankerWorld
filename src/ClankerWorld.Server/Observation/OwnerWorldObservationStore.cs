@@ -547,7 +547,7 @@ public sealed partial class OwnerWorldObservationStore
             ? WeatherRules.At(currentSystems,
                 weatherAnchor, map.Height)
             : WeatherKind.Clear;
-        return new WorldSnapshotView(
+        var snapshot = new WorldSnapshotView(
             state.Society.Society.WorldId,
             state.Society.Society.WorldTick,
             map.ManifestDigest,
@@ -935,6 +935,15 @@ public sealed partial class OwnerWorldObservationStore
                         .ToArray(),
                 })
                 .ToArray(),
+        };
+        var visibleEvents = ClankerWorld.Presentation.EventVocabulary.PlayerEvents(
+            state.Events.TakeLast(ClankerWorld.Presentation.EventVocabulary.RetainedEventCount),
+            item => item.EventId, item => item.Kind,
+            item => ClankerWorld.Presentation.EventVocabulary.ModelStatusFields(item.Detail));
+        return snapshot with
+        {
+            EventTexts = visibleEvents.TakeLast(ClankerWorld.Presentation.EventVocabulary.VisibleEventCount)
+                .ToDictionary(item => item.EventId, item => ToEvent(item, snapshot).Text),
         };
     }
 

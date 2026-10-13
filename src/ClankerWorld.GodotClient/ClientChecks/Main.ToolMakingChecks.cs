@@ -81,10 +81,10 @@ public partial class Main
             if (!agentDetails.GetParsedText().Contains("River Blacksmith accepted your stone pickaxe request.", StringComparison.Ordinal))
                 throw new InvalidOperationException("The agent card must show its own request note from the wire.");
             OwnerWorldEvent[] events = [
-                new(1, 1, "tool_request_placed", customerId + ":" + requestId),
-                new(2, 1, "tool_request_accepted", smithId + ":" + requestId),
-                new(3, 1, "tool_request_ready", smithId + ":" + requestId),
-                new(4, 1, "tool_request_completed", customerId + ":" + requestId),
+                new(1, 1, "tool_request_placed", customerId + ":" + requestId) { Text = "Mira asked the Blacksmith for a tool." },
+                new(2, 1, "tool_request_accepted", smithId + ":" + requestId) { Text = "Orin agreed to make the tool." },
+                new(3, 1, "tool_request_ready", smithId + ":" + requestId) { Text = "The tool is ready and can be handed over once it's paid for." },
+                new(4, 1, "tool_request_completed", customerId + ":" + requestId) { Text = "The tool was paid for and handed over." },
             ];
             var handshake = new OwnerWorldHandshake(new(1, 1),
                 ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
