@@ -405,17 +405,17 @@ public sealed partial class WorldProductionOrderTests
         var receipt = Submit(world, actor, "held-production", "make rope");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             for (var tick = 0; tick < 20 && world.WorldSimulation.ProductionJobs.Count == 0; tick++)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             var job = Assert.Single(world.WorldSimulation.ProductionJobs);
             Assert.True(world.CancelOrder(new("stop-held-production", "owner:test", world.Society.WorldId,
                 actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             while (world.WorldTick <= job.CompletionTick + 2)
-                Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+                Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(WorldProductionJobState.Cancelled, Job(world, job.JobId).State);
             Assert.Equal(0, Produced(world, "rope"));
@@ -587,9 +587,9 @@ public sealed partial class WorldProductionOrderTests
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();
