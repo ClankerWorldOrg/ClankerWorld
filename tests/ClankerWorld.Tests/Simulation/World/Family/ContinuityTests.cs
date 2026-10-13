@@ -208,7 +208,7 @@ public sealed partial class ParenthoodTests
         using var modelWorld = WorldRuntime.Restore(state, _ => new OpenAiCompatibleDecisionProvider(client,
             () => "synthetic-key", new Uri("https://model.test/v1/chat/completions"), "synthetic-model"));
         await modelWorld.TickModelWorkAsync();
-        for (var attempt = 0; attempt < 100 && handler.Bodies.Count < state.Agents.Count; attempt++) await ModelWorkHarness.For(world).SettleAsync();
+        await ModelWorkHarness.For(modelWorld).WaitForAllAsync();
         var requests = handler.Bodies.Select(body =>
         {
             using var payload = JsonDocument.Parse(body);
@@ -217,6 +217,7 @@ public sealed partial class ParenthoodTests
             return (System: messages[0].GetProperty("content").GetString()!, Agent: user.RootElement.GetProperty("agent_id").GetString()!,
                 Continuity: user.RootElement.GetProperty("self").GetProperty("continuity").GetString());
         }).ToArray();
+        Assert.Equal(state.Agents.Select(item => item.AgentId).Order(), requests.Select(item => item.Agent).Order());
         var rendered = Assert.Single(requests, item => item.Agent == first);
         Assert.Contains("Continuity, when present", rendered.System, StringComparison.Ordinal);
         Assert.Contains("may put off having a child for up to two days but may not refuse", rendered.Continuity, StringComparison.Ordinal);

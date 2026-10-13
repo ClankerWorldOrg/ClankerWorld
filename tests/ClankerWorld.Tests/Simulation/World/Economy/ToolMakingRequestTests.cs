@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.Kernel;
@@ -399,7 +400,7 @@ public sealed partial class ToolMakingRequestTests
             WorldSimulation = state.WorldSimulation with
             {
                 ProductionJobs = state.WorldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
-                    ? candidate with { InputReservationIds = ids } : candidate).ToArray(),
+                    ? candidate with { InputReservationIds = (ids).Select(Identity.Parse).ToArray() } : candidate).ToArray(),
             },
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(WithReceiptIds([])));
@@ -607,7 +608,7 @@ public sealed partial class ToolMakingRequestTests
         // The host schedules personal choices without blocking. Wait for the
         // actual offered choice before asking a later tick to admit its reply.
         await host.Advance();
-        await choices.Chosen.Task;
+        await ModelWorkHarness.For(world).WaitAsync(choices.Chosen.Task);
         for (var step = 0; step < 8 && world.ToolMakingRequests.Count == 0; step++) await host.Advance();
         var request = Assert.Single(world.ToolMakingRequests);
         Assert.Equal((recipe.CanonicalId, buyer, shop.HouseholdId, shop.InstanceId),

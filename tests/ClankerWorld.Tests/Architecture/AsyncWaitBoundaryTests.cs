@@ -68,6 +68,20 @@ public sealed class AsyncWaitBoundaryTests
             entries.Select(item => item.Rule).Distinct().Order(StringComparer.Ordinal));
     }
 
+    [Theory]
+    [InlineData("timeout-cancellation", "class Example { CancellationTokenSource deadline = new(100); }")]
+    [InlineData("timeout-cancellation", "class Example { CancellationTokenSource Deadline { get; } = new(100); }")]
+    [InlineData("timeout-cancellation", "class Example { CancellationTokenSource Deadline() => new(100); }")]
+    [InlineData("timeout-cancellation", "class Example { CancellationTokenSource Deadline() { return new(100); } }")]
+    [InlineData("timeout-wait", "class Limits { public static TimeSpan Deadline => TimeSpan.FromSeconds(1); void Wait() { task.WaitAsync(Limits.Deadline); } }")]
+    [InlineData("timeout-wait", "class Example { TimeSpan deadline = TimeSpan.FromSeconds(1); void Wait() { task.WaitAsync(this.deadline); } }")]
+    public void AlternativeTimeoutSyntaxCannotBypassTheAllowanceLedger(string rule, string source)
+    {
+        var entry = Assert.Single(ScanSource("example.cs", source));
+        Assert.Equal(rule, entry.Rule);
+        Assert.Equal(1, entry.Count);
+    }
+
     public static Allowance[] Scan(string root) => Directory.EnumerateFiles(System.IO.Path.Combine(root, "tests"), "*.cs", SearchOption.AllDirectories)
         .Select(path => (Path: System.IO.Path.GetRelativePath(root, path).Replace('\\', '/'), Source: path))
         .Where(item => !item.Path.Contains("/obj/", StringComparison.Ordinal) && !item.Path.Contains("/bin/", StringComparison.Ordinal) &&
@@ -100,8 +114,10 @@ public sealed class AsyncWaitBoundaryTests
                 arguments[0].Expression.ToString() != "-1") Add("delay", invocation);
             if (name == "WaitAsync" && arguments.Count > 0)
             {
-                var first = arguments[0].Expression.ToString();
-                if (first.Contains("TimeSpan", StringComparison.Ordinal) || durations.Contains(first)) Add("timeout-wait", invocation);
+                var expression = arguments[0].Expression;
+                var first = expression.ToString();
+                var durationName = expression is MemberAccessExpressionSyntax duration ? duration.Name.Identifier.ValueText : first;
+                if (first.Contains("TimeSpan", StringComparison.Ordinal) || durations.Contains(durationName)) Add("timeout-wait", invocation);
             }
             if (name == "CancelAfter") Add("timeout-cancellation", invocation);
             if (name == "Sleep" && receiver.EndsWith("Thread", StringComparison.Ordinal)) Add("sleep", invocation);
@@ -122,9 +138,18 @@ public sealed class AsyncWaitBoundaryTests
             if (name.StartsWith("Get", StringComparison.Ordinal) && member.Expression is TypeOfExpressionSyntax type &&
                 type.Type.ToString().EndsWith("WorldRuntime", StringComparison.Ordinal)) Add("reflection", invocation);
         }
-        foreach (var creation in root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
-            if (creation.Type.ToString().EndsWith("CancellationTokenSource", StringComparison.Ordinal) && creation.ArgumentList is { Arguments.Count: > 0 } arguments &&
+        foreach (var creation in root.DescendantNodes().OfType<BaseObjectCreationExpressionSyntax>())
+        {
+            var type = creation is ObjectCreationExpressionSyntax explicitCreation ? explicitCreation.Type : creation.Ancestors().Select(node => node switch
+            {
+                VariableDeclarationSyntax declaration => declaration.Type,
+                PropertyDeclarationSyntax property => property.Type,
+                MethodDeclarationSyntax method => method.ReturnType,
+                _ => null,
+            }).OfType<TypeSyntax>().FirstOrDefault();
+            if (type?.ToString().EndsWith("CancellationTokenSource", StringComparison.Ordinal) == true && creation.ArgumentList is { Arguments.Count: > 0 } arguments &&
                 !arguments.Arguments[0].Expression.ToString().Contains("Timeout.Infinite", StringComparison.Ordinal)) Add("timeout-cancellation", creation);
+        }
         foreach (var member in root.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
             if (member.Name.Identifier.ValueText == "RunContinuationsAsynchronously") Add("async-fake", member);
         return found.GroupBy(item => item).Select(group => new Allowance(path, group.Key.Rule, group.Key.Expression, group.Count()))

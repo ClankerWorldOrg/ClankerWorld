@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -181,7 +182,7 @@ public sealed class WorldCartOrderTests
         var forged = finished with
         {
             Instructions = finished.Instructions.Select(item => item with
-            { Task = item.Task! with { LastEffectId = "cart-order:" + new string('0', 64) } }).ToArray()
+            { Task = item.Task! with { LastEffectId = Identity.Parse("cart-order:" + new string('0', 64)) } }).ToArray()
         };
         Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(forged));
     }

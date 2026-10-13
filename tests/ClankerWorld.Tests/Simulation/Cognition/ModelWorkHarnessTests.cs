@@ -136,6 +136,34 @@ public sealed class ModelWorkHarnessTests
         Assert.Single(harness.Transitions, item => item.Kind == ModelWorkKind.IdentityMoment && item.Stage == ModelWorkStage.Discarded);
     }
 
+    [Fact]
+    public async Task ReleasedClockWaitCanDisposeItsRequestTimerWhileAdvancing()
+    {
+        for (var attempt = 0; attempt < 64; attempt++)
+        {
+            var clock = new ManualTimeProvider();
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60), clock);
+            var reply = clock.DelayAsync(TimeSpan.FromSeconds(16));
+            // A returned HTTP reply can dispose its still-pending request timer
+            // on the pool while the test is advancing the shared clock.
+            var completion = reply.ContinueWith(_ => deadline.Dispose(), CancellationToken.None,
+                TaskContinuationOptions.None, TaskScheduler.Default);
+            var future = Enumerable.Range(0, 4096).Select(_ => clock.CreateTimer(_ => { }, null,
+                TimeSpan.FromSeconds(120), Timeout.InfiniteTimeSpan)).ToArray();
+            try
+            {
+                clock.Advance(TimeSpan.FromSeconds(16));
+                await ModelWorkHarness.WaitForSignalAsync(completion);
+                Assert.Equal(DateTimeOffset.UnixEpoch.AddSeconds(16), clock.GetUtcNow());
+                Assert.False(deadline.IsCancellationRequested);
+            }
+            finally
+            {
+                foreach (var timer in future) timer.Dispose();
+            }
+        }
+    }
+
     private sealed class IdentityOnlyProvider(ScriptedProvider provider) : IDecisionProvider
     {
         public DecisionProviderKind Kind => DecisionProviderKind.LargeLanguageModel;

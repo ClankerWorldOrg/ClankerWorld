@@ -21,8 +21,8 @@ public sealed partial class WorldRuntimeTests
         var dispatch = await world.TickModelWorkAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == HarvestInstructionActor);
-        // Native dispatch is committed; a loaded thread pool can start the held provider later.
-        await provider.Started.Task;
+        // Native dispatch and held provider entry are controlled by the scheduler.
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         var before = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(before, WorldRuntimeCodec.Encode(world.ExportState()));
@@ -104,7 +104,7 @@ public sealed partial class WorldRuntimeTests
         var dispatch = await world.TickModelWorkAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == actor);
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         var relationships = world.Society.Relationships.ToArray();
         var position = world.Agents.Single(person => person.AgentId == actor).Position;
         for (var tick = 0; tick < 3; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
@@ -170,7 +170,7 @@ public sealed partial class WorldRuntimeTests
         var dispatch = await world.TickModelWorkAsync();
         Assert.True(dispatch.Advanced);
         Assert.Contains(dispatch.Events, item => item.Kind == "hosted_decision_started" && item.Detail == actor);
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         Assert.Contains(provider.Requests.Single().Candidates, candidate => candidate.Id == "household_leave");
         var buildings = world.WorldSimulation.Buildings.ToArray();
         var relationships = world.Society.Relationships.ToArray();

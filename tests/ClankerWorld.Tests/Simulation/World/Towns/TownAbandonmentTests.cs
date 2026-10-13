@@ -324,14 +324,14 @@ public sealed partial class TownMembershipTests
         model.OtherChoices.Scripts[settler] = [Civic(Second, "resettle")];
         using var world = Reopen(Calm(At(WithInventory(state, inventory), position, visitor, settler)), model);
         var deadline = TimeSpan.FromSeconds(10);
-        Assert.True((await world.TickModelWorkAsync().AsTask()).Advanced);
+        Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(deadline)).Advanced);
         Assert.True(world.Towns.Single(town => town.Id == Second).IsAbandoned);
         // Capture the valid salvage request before another tick can commit the revival.
-        await model.WaitForPendingAsync();
+        await ModelWorkHarness.WaitForSignalAsync(model.WaitForPendingAsync());
         for (var tick = 0; tick < 12 &&
                  !world.Towns.Single(town => town.Id == Second).ResidentIds.Contains(settler); tick++)
         {
-            Assert.True((await world.TickModelWorkAsync().AsTask()).Advanced);
+            Assert.True((await world.TickModelWorkAsync().AsTask().WaitAsync(deadline)).Advanced);
             await ModelWorkHarness.For(world).SettleAsync();
         }
         Assert.NotNull(model.Pending);
@@ -342,7 +342,7 @@ public sealed partial class TownMembershipTests
         for (var tick = 0; tick < 10 && !completed; tick++)
         {
             await ModelWorkHarness.For(world).SettleAsync();
-            var step = await world.TickModelWorkAsync().AsTask();
+            var step = await world.TickModelWorkAsync().AsTask().WaitAsync(deadline);
             Assert.True(step.Advanced);
             completed = step.Decisions.Any(decision => decision.AgentId == visitor && decision.Admission.FellBack) ||
                 step.Events.Any(item => item.Kind == "hosted_decision_discarded" && item.Detail == visitor);

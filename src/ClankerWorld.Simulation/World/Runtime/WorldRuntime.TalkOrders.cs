@@ -151,7 +151,7 @@ public sealed partial class WorldRuntime
             if (outcome is null) continue; // Accepted marriage still has its own unfinished surname session.
             var current = instruction with { Task = instruction.Task! with { TalkOutcome = outcome } };
             instructionsByIdempotency[current.IdempotencyKey] = current;
-            CreditOrderEffect(current, TalkOrderEffectId(current), 1);
+            CreditOrderEffect(current, Identity.Parse(TalkOrderEffectId(current)), 1);
         }
     }
 

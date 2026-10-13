@@ -61,13 +61,12 @@ public sealed class QueuedIdentityRoutingTests
                 Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
                 provider.Complete.TrySetResult(true);
             }
-            await completion;
+            await ModelWorkHarness.For(world).WaitAsync(completion);
             Assert.Equal(beforeCompletion, WorldRuntimeCodec.Encode(world.ExportState()));
-            using var deadline = new CancellationTokenSource();
             var admitted = false;
             for (var tick = 0; tick < 20 && !admitted; tick++)
             {
-                var step = await world.TickModelWorkAsync(cancellationToken: deadline.Token);
+                var step = await world.TickModelWorkAsync();
                 Assert.True(step.Advanced);
                 var decisions = step.Decisions.Where(item => item.AgentId == Actor).ToArray();
                 if (decisions.Length == 0)

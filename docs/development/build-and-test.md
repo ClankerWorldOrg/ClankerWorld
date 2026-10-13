@@ -59,6 +59,19 @@ Shared compiler, analyzer and version settings live in
 [Directory.Build.props](../../Directory.Build.props). Use its version fields
 rather than adding a second version constant.
 
+Ornament trade fixtures create their stock through actual paid native production
+and cache only strict checkpoint bytes. Each case decodes fresh state and uses
+its own runtime and providers. Setup stops when the real output appears;
+protected-stock cases require a valid trade control and an ordinary action
+observation before checking refusal, ownership, reservations and capacity.
+
+Native land-hearing fixtures use twenty-tick test days for actual elections,
+notice windows and expiry rulings. Their age, continuity, animal and weather
+clocks are rescaled together. Later-generation family growth keeps its forty-tick test
+day; only the completed family checkpoint is reclocked for hearing setup.
+Personal consent, saved election ties, strict reload and paired checkpoint
+replay remain checked through the real runtime transitions.
+
 The client bundles one third-party font, Fusion Pixel 12px, in
 `src/ClankerWorld.GodotClient/UI/Theme/Fonts/`, under the SIL Open Font
 License. Keep `fusion-pixel-OFL.txt` beside it; the export preset's include
@@ -74,7 +87,15 @@ that same tick. Pass `runPendingWork: false` to keep work registered without
 starting it, and call `RunPendingWork` when the test permits provider entry.
 `ScriptedProvider.Hold()` returns a `HeldCall`: check `IsEntered`, then use
 `Reply(choice)` or `Fail()` to complete the actual runtime wrapper. Inline
-provider gates keep reply completion independent of the thread pool.
+provider gates keep reply completion independent of the thread pool. Use the
+harness's `WaitAsync` for expected provider signals: its thirty-second bound
+diagnoses missing signals without advancing native ticks or controlling entry.
+A synchronously blocking provider needs a controlled worker to run pending work;
+use static `WaitForSignalAsync(signal, deadline)` for its entry and worker guards
+so waiting does not start queued work on the waiting thread. When a host tick
+owns an uncommitted deterministic request, include that tick in
+`WaitForExistingAsync(runtime, predicate, tick)` so the actual host operation
+shares the failure bound even while the live model queues are empty.
 
 `SettleAsync` starts pending work and finishes returned wrappers while held
 calls remain held. `PendingModelWork` snapshots all four live queues, with the
@@ -83,30 +104,48 @@ calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
 come from the live runtime. Admission includes its committed world tick. A
 refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
 for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
-A test clock can be passed to the runtime for identity, will and conversation
-deadlines; production uses `TimeProvider.System`.
+Pass a test clock to `ModelWorkHarness.For(runtime, clock)` to control identity,
+will and conversation deadlines; production uses `TimeProvider.System`.
+
+Client pairing, signed actions, catalogs and local-server lifecycle tests pass
+their clock to the client constructor. Advance it after the actual request or
+body read enters. Keep entry and completion waits bounded with
+`ModelWorkHarness.WaitForSignalAsync`; its diagnostic deadline does not advance
+the test clock or replace the client's timeout or caller cancellation.
+The manual clock synchronizes timer state and invokes callbacks outside that
+state lock, so a returned HTTP call can dispose its deadline on another thread.
 
 Host fixtures use `AdvanceWithModelWorkAsync(world)` to keep the real host save
 and commit path while controlling the same work queues. Use `WaitForAllAsync`
-when every pending input must complete before a paired continuation, and select
-one kind or actor when a different reply is deliberately held. Inline completion
-sources keep provider gates independent of xUnit's synchronization context.
+when every pending input must finish before paired checkpoint continuations,
+including ordinary decisions, life-moment identities, wills and conversations.
+Waiting spends no native ticks; select a kind or actor when another reply must
+stay held. Compare complete checkpoint bytes after matching external inputs,
+and retain native admission, refusal, rollback and strict reload assertions.
 
-`WaitAsync` starts queued work before waiting. `WaitForSignalAsync` waits with a
-diagnostic deadline without starting any work. For synchronous blocking entry,
-register work with `TickAsync(runPendingWork: false)`, start `RunPendingWork` on
-a controlled worker, and use the signal-only wait before releasing that entry.
+Keep a physical-work checkpoint frozen while observing provider entry or a late
+cancelled reply. Collection, storage and field work can progress during extra
+ticks; a tick limit alone does not bound a stalled host operation or missing
+signal. Expected entry, reply and actual wrapper waits retain shared diagnostic
+deadlines. `WaitAsync` starts queued work before waiting; `WaitForSignalAsync`
+does not. For synchronous blocking entry, register with
+`TickAsync(runPendingWork: false)`, run `RunPendingWork` on a controlled worker,
+and use the signal-only wait before releasing that entry.
 
-Client and local-server deadline tests pass `ManualTimeProvider` to the client
-or server and advance it after the actual request or body read enters. This
-covers startup/relaunch, pairing, signed actions and the world catalog; normal
-clients and hosts keep system time and the existing deadline values.
+Tests of production scheduling or concurrency retain the production scheduler.
+For example, the conversation usage-limit regression must reserve and pause
+while the real tick gate is held; a manual scheduler would move that work after
+gate release and erase the deadlock proof. Its watchdogs diagnose failures and
+do not provide model-entry synchronization.
 
-`AsyncWaitBoundaryTests` bans new clock waits, timeout cancellations, runtime
+`AsyncWaitBoundaryTests` rejects new clock waits, timeout cancellations, runtime
 reflection and asynchronous provider gates outside `TestSupport/ModelWork/`.
-Its expression-specific legacy allowance list must match the source and can only
-shrink relative to the checkout's parent. Fetch two commits when running the
-guard. The nightly workflow also runs harness tests with one processor.
+Its expression-specific legacy ledger includes existing provider-timeout and
+production-concurrency diagnostics; entries must match the source and can only
+shrink against the checkout's first parent. Required PR CI uses a synthetic merge
+whose first parent is the base; a local head-only run compares only its preceding
+commit. Fetch two commits when running the guard. The nightly workflow also
+runs harness tests with one processor.
 
 ## Which checks to run
 
@@ -337,8 +376,10 @@ self-contained `win-x64` world server in `server/` (`dotnet publish`, no .NET in
 needed on the player's PC), a short `README.txt`, a `package.json` naming its entry points
 (`{"game": "ClankerWorld.exe", "server": "server/ClankerWorld.Server.exe"}`)
 and a `manifest.sha256` of every file. The launcher and the game read the
-entry points from the version they check or start, so a newer package can
-move its programs without making an installed version look damaged; a
+entry points relative to the version's package root. When the game is in a
+subfolder, it finds the enclosing manifest that names its executable; local
+developer runs use the same root for the server and options marker. A newer
+package can move its programs without making an installed version look damaged; a
 version without `package.json` is older, with its server in `host/`. The script refuses an export that was not built from the current
 commit, stages the server and version from committed inputs (excluding local
 edits), and checks that the server assembly carries the same version and commit,
@@ -468,7 +509,9 @@ headings in every Markdown file, that each entry in `changes/` starts with
 a `- ` bullet, and that game-design chapters don't describe what is built,
 such as "not built yet" or "remains unfinished". They do not check that any particular page exists. The
 documentation test reads each page with both LF and CRLF line endings, and CI
-also runs it on a Windows checkout. That job is separate from a Windows game
+also runs it on a Windows checkout. When the change needs code checks, that
+job also runs `IdentityTextBoundaryTests` against the native checkout paths and
+the base commit's identity/text allowances. That job is separate from a Windows game
 playtest and from the native provider-storage checks.
 
 To find sentences a change may have made false, search every page for the
@@ -587,3 +630,41 @@ the [playtest results procedure](../../playtest/README.md#keeping-the-list-curre
 Do not deploy, change credentials or modify the active playtest save just to
 run a check; that needs the owner's separate go-ahead. Use a disposable world
 for setup, placement and damaged-save cases.
+
+## Hard test worlds
+
+`NormalPathWorld.CreateGenerated` defaults to 128-character saved founder IDs
+and names containing accents, emoji and combining marks. The fixture prepares
+these identities through the Society founder operations after validating ordinary
+GUID placement; the game's founder placement grammar stays unchanged. Tests
+refer to `NormalPathWorld.Founder1` through `Founder4` instead of short literals.
+`SecondGenerationFixture.Add` adds a child through an accepted Society birth,
+including food consumption, parentage, care and household membership, then adds
+the physical agent and Town residency. It retains the production-generated child ID.
+
+### Every offered choice
+
+`OfferedChoiceInvariantTests` builds a small seeded hard world with a born child,
+split stock, a broken vessel, a borrowed Market stall, a full carrier, occupied
+tiles, a swimmer, a mounted rider and a boat passenger. Birth, split stock and paid
+building inputs use shared native operations. Stall occupancy, mounted-animal and
+underway-boat records are controlled strict-valid fixture state. Each native queued choice
+runs in its own trusted server trial copy, through normal admission, action
+application and post-action reconciliation. The test requires a strict save
+round-trip, acceptance of the exact offered choice without fallback, and progress
+or a native refusal reason. It does not recover or skip a throwing action.
+Progress includes medical consent, treatment and supply trips; model admission metadata alone does not count.
+
+The normal PR suite checks one seed and one snapshot. Reproduce a reported seed
+with:
+
+```sh
+CLANKERWORLD_CHOICE_SEED=1815 dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj -c Release --filter FullyQualifiedName~OfferedChoiceInvariantTests
+```
+
+Failures report the seed, scenario, tick, snapshot, agent and choice ID. Set
+`CLANKERWORLD_CHOICE_TICKS` to at least the reported snapshot plus one to reach
+that case. `CLANKERWORLD_CHOICE_SEEDS` adds consecutive seeds. The independent
+`choice-invariants` nightly job checks four seeds and 32 snapshots each, even
+when no nightly release is needed. Real failures belong in separate Bug issues
+and fixes; this test waits on those fixes rather than suppressing cases.

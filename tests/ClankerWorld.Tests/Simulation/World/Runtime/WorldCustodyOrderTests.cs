@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
@@ -500,7 +501,7 @@ public sealed class WorldCustodyOrderTests
         var completedOrder = Order(world, receipt);
         var wrongAction = completedOrder with
         {
-            LastEffectId = "collect:personal:" + completedOrder.LastEffectId!["store:personal:".Length..],
+            LastEffectId = Identity.Parse("collect:personal:" + completedOrder.LastEffectId!.Value["store:personal:".Length..]),
         };
         Assert.Throws<InvalidDataException>(() => Restore(finished with
         {
@@ -524,7 +525,7 @@ public sealed class WorldCustodyOrderTests
         for (var tick = 0; tick < 3; tick++) await Tick(world);
         Assert.DoesNotContain(provider.Requests, request => request.OperativeOrderInstructionId == unknown.InstructionId ||
             request.ObserverGuidance?.Any(message => message.InstructionId == unknown.InstructionId) == true);
-        Assert.Contains(unknown.InstructionId, world.ExportState().CompletedInstructionIds!);
+        Assert.Contains(unknown.InstructionId.Value, world.ExportState().CompletedInstructionIds!);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "personal_goods_collected");
     }
 

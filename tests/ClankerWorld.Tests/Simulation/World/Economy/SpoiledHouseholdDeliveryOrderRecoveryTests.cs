@@ -70,9 +70,9 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         var final = world.ExportState();
         var finished = RecoveryFoodOrder(final, receipt.InstructionId);
         Assert.Equal(("finished", 1), (finished.Status, finished.CompletedUnits));
-        Assert.StartsWith("consume:", finished.LastEffectId);
-        Assert.InRange(finished.LastEffectId!.Length, 1, 512);
-        Assert.Contains(receipt.InstructionId, final.CompletedInstructionIds ?? []);
+        Assert.StartsWith("consume:", finished.LastEffectId?.Value);
+        Assert.InRange(finished.LastEffectId!.Value.Length, 1, 512);
+        Assert.Contains(receipt.InstructionId.Value, final.CompletedInstructionIds ?? []);
         Assert.Single(final.Events, item => item.Kind == "household_food_collected" &&
             item.Detail == $"{actor}:{UrgentRecoveryMeal}:1");
         Assert.Single(final.Events, item => item.Kind == "food_consumed" && item.Detail == actor);
@@ -98,7 +98,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             var request = Assert.Single(provider.Requests);
             Assert.Null(request.OperativeOrderInstructionId);
             Assert.Contains(request.Candidates, candidate => candidate.Id == "recover_household_delivery");
@@ -210,7 +210,7 @@ public sealed partial class SpoiledHouseholdDeliveryTests
     private static void AssertRecoveryStockConserved(WorldRuntime world, WorldRuntimeState original, bool mealConsumed)
     {
         var originalReservations = original.Society.Society.Inventory.Reservations;
-        var originalIds = originalReservations.Select(reservation => reservation.Id).ToHashSet(StringComparer.Ordinal);
+        var originalIds = originalReservations.Select(reservation => reservation.Id.Value).ToHashSet(StringComparer.Ordinal);
         Assert.Equal(originalReservations, world.Society.Inventory.Reservations.Where(reservation => originalIds.Contains(reservation.Id)));
         var addedReservations = world.Society.Inventory.Reservations.Where(reservation => !originalIds.Contains(reservation.Id));
         if (mealConsumed)

@@ -29,13 +29,13 @@ public sealed class PairingBodyDeadlineTests
             "activate" => client.ActivatePairingAsync(origin, CreatePairing(), signer, cancellation.Token),
             _ => throw new ArgumentOutOfRangeException(nameof(operation)),
         };
-        await handler.Body.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(handler.Body.Started.Task);
         if (callerCancels) cancellation.Cancel();
         else clock.Advance(TimeSpan.FromMilliseconds(500));
         try
         {
             // Advance the client's own deadline after the stalled read has entered.
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ModelWorkHarness.WaitForSignalAsync(first));
         }
         finally { cancellation.Cancel(); }
         Assert.True(handler.Body.Cancelled);

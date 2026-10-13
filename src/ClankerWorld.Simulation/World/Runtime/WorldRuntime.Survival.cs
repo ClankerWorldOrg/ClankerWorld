@@ -347,7 +347,7 @@ public sealed partial class WorldRuntime
         return carried is not null && ToolProgressionRules.Find(carried.ItemKind)!.Tier >= requested.Tier;
     }
 
-    private sealed record FireFuelEffect(string BuildingId, string FuelReservationId);
+    private sealed record FireFuelEffect(string BuildingId, Identity FuelReservationId);
 
     private void TendFire(string actor, AgentState person)
     {
@@ -377,7 +377,7 @@ public sealed partial class WorldRuntime
         }
         var fuel = society.Checkpoint.Inventory.Lots.First(lot => lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
             lot.DeliveryBuildingId is null && lot.ContainerLotId is null && lot.ItemKind == "wood" && AvailableLotQuantity(lot) > 0);
-        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id).ToHashSet(StringComparer.Ordinal);
+        var previousReservations = society.Checkpoint.Inventory.Reservations.Select(item => item.Id.Value).ToHashSet(StringComparer.Ordinal);
         var result = society.Apply(checkpoint => ClankerWorld.Simulation.Society.SocietyRules.ConsumeInventory(checkpoint, actor, fuel.Id, 1, "heating_fuel"));
         var payment = result.Checkpoint.Inventory.Reservations.Single(item => !previousReservations.Contains(item.Id) &&
             item.OwnerId == actor && item.LotId == fuel.Id && item.Quantity == 1 && item.Purpose == "heating_fuel" &&
@@ -499,19 +499,8 @@ public sealed partial class WorldRuntime
     {
         if (IsPreparedMeal(lot.ItemKind)) return lot.ItemKind;
         var inventory = society.Checkpoint.Inventory;
-        var visited = new HashSet<string>(StringComparer.Ordinal);
-        var originId = lot.Id;
-        while (lot.ProvenanceLotId is { } parent && visited.Add(lot.Id))
-        {
-            originId = parent;
-            if (inventory.Lots.FirstOrDefault(item => item.Id == parent) is not { } source)
-            {
-                break;
-            }
-            lot = source;
-        }
-        var job = worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? [])
-            .FirstOrDefault(job => originId.StartsWith(job.JobId + ":output:", StringComparison.Ordinal));
+        (lot, var originId) = InventoryIndex.For(inventory).ProvenanceOrigin(lot);
+        var job = WorldProductionJob.OutputSource(worldSimulation.ProductionJobs.Concat(worldSimulation.CropBuilds ?? []), originId);
         if (job is not null)
         {
             return worldContent.Recipes.FirstOrDefault(recipe => recipe.CanonicalId == job.RecipeId)?.IsCrop == true ? "crops" : "cooked";

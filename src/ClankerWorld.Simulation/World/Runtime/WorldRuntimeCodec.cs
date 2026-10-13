@@ -30,6 +30,7 @@ public static class WorldRuntimeCodec
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
         };
+        options.Converters.Add(new StoredIdentityJsonConverter());
         options.Converters.Add(new WorldTerrainChunkCodec());
         return options;
     }

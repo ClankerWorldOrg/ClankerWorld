@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using System.Collections.Concurrent;
 using System.Text.Json;
@@ -47,9 +48,8 @@ public sealed class TownProjectRuntimeTests
         for (var tick = 0; tick < 100 && !scenario.Policy.DonationStarted.Task.IsCompleted; tick++)
         {
             await scenario.World.TickModelWorkAsync();
-
         }
-        await scenario.Policy.DonationStarted.Task;
+        await ModelWorkHarness.For(scenario.World).WaitAsync(scenario.Policy.DonationStarted.Task);
         Assert.Equal(scenario.Project.Plan.Site, scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         for (var tick = 0; tick < 3; tick++)
         {
@@ -369,9 +369,8 @@ public sealed class TownProjectRuntimeTests
         for (var tick = 0; tick < 80 && !policy.VoteStarted.Task.IsCompleted; tick++)
         {
             await scenario.World.TickModelWorkAsync();
-
         }
-        await policy.VoteStarted.Task;
+        await ModelWorkHarness.For(scenario.World).WaitAsync(policy.VoteStarted.Task);
         var original = Assert.Single(scenario.World.Towns[0].Council!.Proposals);
         Assert.Equal("project", original.Kind);
         Assert.Equal("pending", original.Status);
@@ -386,12 +385,11 @@ public sealed class TownProjectRuntimeTests
         scenario.World.AddAgent("agent:00000000000000000000000000000099", site);
         Assert.Equal("cancelled", scenario.World.Towns[0].Council!.Proposals[0].Status);
         policy.ReleaseVote.TrySetResult(true);
-        var lateReply = await policy.VoteReturned.Task;
+        var lateReply = await ModelWorkHarness.For(scenario.World).WaitAsync(policy.VoteReturned.Task);
         Assert.Equal(DecisionProviderKind.LargeLanguageModel, lateReply.Provider);
         for (var tick = 0; tick < 8; tick++)
         {
             await scenario.World.TickModelWorkAsync();
-
         }
         var refused = scenario.World.Towns[0].Council!.Proposals.Single(item => item.Id == original.Id);
         Assert.Equal("cancelled", refused.Status);
@@ -463,7 +461,7 @@ public sealed class TownProjectRuntimeTests
             GroundPosition: remote ? new(9, 9) : new(4, 4))]);
         inventory = InventoryAuthority.Reserve(inventory, "paid-load", owner, "load", 4, "town-project:project", 10);
         var project = new TownProject("project", "proposal", plan, 0, "supplying", 0, 0,
-            [new("delivery", "worker", "source", "load", "wood", 4, 0, 0, "paid-load")]);
+            [new("delivery", "worker", "source", "load", "wood", 4, 0, 0, Identity.Parse("paid-load"))]);
         Assert.Equal(expected, TownProjectRules.DeliveredQuantity(project, TownBorderRules.FirstTownId, inventory, "wood"));
         Assert.Equal(4, inventory.GetLot("load").Quantity);
         Assert.Equal(InventoryReservationState.Reserved, inventory.GetReservation("paid-load").State);
@@ -504,7 +502,7 @@ public sealed class TownProjectRuntimeTests
 
 internal sealed class TownProjectScenario : IDisposable
 {
-    internal const string Author = "founder:00000000000000000000000000000001";
+    internal const string Author = NormalPathWorld.Founder1;
     internal const string PlayableSeed = "town-project-real-donation";
     internal const string Name = "Communal Hall";
     internal const string LaterNotice = "Harvest dates: Post the next harvest dates at our Hall.";
@@ -729,9 +727,9 @@ internal sealed class TownProjectPolicy
             {
                 var workerMaterial = actor switch
                 {
-                    "founder:00000000000000000000000000000002" => "wood",
+                    NormalPathWorld.Founder2 => "wood",
                     TownProjectScenario.Author => "stone",
-                    "founder:00000000000000000000000000000003" when policy.ProjectLocalId == MarketContent.Hall2x2().LocalId => "fiber",
+                    NormalPathWorld.Founder3 when policy.ProjectLocalId == MarketContent.Hall2x2().LocalId => "fiber",
                     _ => null,
                 };
                 // Real starter tools, collected by separate people so a whole harvest fits.

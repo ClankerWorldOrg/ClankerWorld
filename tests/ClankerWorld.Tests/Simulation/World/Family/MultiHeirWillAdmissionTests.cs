@@ -17,7 +17,6 @@ namespace ClankerWorld.Tests;
 public sealed class MultiHeirWillAdmissionTests
 {
     private const string Actor = "founder-scout";
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
 
     [Theory]
     [InlineData(false, false)]
@@ -38,7 +37,7 @@ public sealed class MultiHeirWillAdmissionTests
         Assert.Equal(externalLongHeir, heirId.Length > CognitionWillContext.MaximumHeirKeyLength);
 
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await handler.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(handler.Started.Task);
         for (var attempt = 0; attempt < 20 && Assert.Single(world.Society.Estates).WillStatus == "pending"; attempt++)
         {
             await ModelWorkHarness.For(world).SettleAsync();
@@ -97,13 +96,13 @@ public sealed class MultiHeirWillAdmissionTests
         var provider = new HeldWillProvider();
         using var world = NewWorld(provider);
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
         var pendingWill = NativeWillFixture.PendingTask(world);
 
         // This legal provider completion permits its awaiting continuation to
         // run inline on the completion thread, as configured HTTP adapters do.
-        await Task.Run(provider.Complete);
-        await pendingWill;
+        await ModelWorkHarness.WaitForSignalAsync(Task.Run(provider.Complete));
+        await ModelWorkHarness.WaitForSignalAsync(pendingWill);
         Assert.Equal("pending", Assert.Single(world.Society.Estates).WillStatus);
         var changed = false;
         var result = await world.TickModelWorkAsync(null, (_, _) =>
@@ -148,12 +147,12 @@ public sealed class MultiHeirWillAdmissionTests
 
             presence.RecordAuthenticatedReconnect("owner");
             Assert.True(await service.AdvanceWithModelWorkAsync(world));
-            await provider.Started.Task;
+            await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
             var tick = world.WorldTick;
             clock.Advance(TimeSpan.FromSeconds(5));
 
             Assert.False(await service.AdvanceWithModelWorkAsync(world));
-            await provider.Cancelled.Task;
+            await ModelWorkHarness.WaitForSignalAsync(provider.Cancelled.Task);
             Assert.False(await service.AdvanceWithModelWorkAsync(world));
             Assert.Equal(tick, world.WorldTick);
             Assert.Equal(1, provider.CallCount);
@@ -193,16 +192,16 @@ public sealed class MultiHeirWillAdmissionTests
             usage.WarningReached += effects.RecordWarning;
 
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await handler.Started.Task;
+            await ModelWorkHarness.WaitForSignalAsync(handler.Started.Task);
             Assert.Equal(1, usage.Capture().Attempts);
 
             // Cancellation finishes the real configured usage reservation on
             // the same thread that owns the runtime gate. Its limit callback
             // must defer gate acquisition, then save the paused world.
             pause = Task.Run(world.Pause);
-            await pause;
-            await logger.WaitForAsync(message => message.Contains(
-                "provider_usage_limit_reached outcome=paused scope=installation", StringComparison.Ordinal));
+            await ModelWorkHarness.WaitForSignalAsync(pause);
+            await ModelWorkHarness.WaitForSignalAsync(logger.WaitForAsync(message => message.Contains(
+                "provider_usage_limit_reached outcome=paused scope=installation", StringComparison.Ordinal)));
 
             var captured = usage.Capture();
             Assert.Equal(1, captured.Attempts);

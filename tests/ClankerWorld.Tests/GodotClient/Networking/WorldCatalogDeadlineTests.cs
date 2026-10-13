@@ -20,10 +20,10 @@ public sealed class WorldCatalogDeadlineTests
         var api = new OwnerWorldApi(client, clock);
         var loading = request.RefreshAsync(token => api.ListWorldsAsync(
             new("http://127.0.0.1:5188"), new("server", "world"), "device", signer, token));
-        await handler.Started.Task;
+        await ModelWorkHarness.WaitForSignalAsync(handler.Started.Task);
         Assert.True(request.IsLoading);
         clock.Advance(TimeSpan.FromSeconds(16));
-        await loading;
+        await ModelWorkHarness.WaitForSignalAsync(loading);
         Assert.Null(request.Failure);
         Assert.False(request.IsLoading);
         Assert.Equal("active", request.Catalog!.ActiveId);
@@ -34,7 +34,11 @@ public sealed class WorldCatalogDeadlineTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task CatalogHonorsListDeadlineAndScreenCancellationAfterASlowChallenge(bool screenCancels)
+    public Task CatalogHonorsListDeadlineAndScreenCancellationAfterASlowChallenge(bool screenCancels) =>
+        // Keep completion independent of the runner's synchronization context.
+        Task.Run(() => AssertCatalogCancellationAsync(screenCancels));
+
+    private static async Task AssertCatalogCancellationAsync(bool screenCancels)
     {
         var clock = new ManualTimeProvider();
         using var handler = new CatalogHandler(clock, Timeout.InfiniteTimeSpan, TimeSpan.FromSeconds(1));
@@ -51,19 +55,23 @@ public sealed class WorldCatalogDeadlineTests
         });
         try
         {
-            await handler.ChallengeStarted.Task;
+            await ModelWorkHarness.WaitForSignalAsync(handler.ChallengeStarted.Task);
+            Assert.True(request.IsLoading);
+            Assert.False(loading.IsCompleted);
+            Assert.False(handler.Started.Task.IsCompleted);
+            Assert.False(listDeadline.IsCancellationRequested);
             clock.Advance(TimeSpan.FromSeconds(1));
-            var first = await Task.WhenAny(handler.Started.Task, loading);
+            var first = await ModelWorkHarness.WaitForSignalAsync(Task.WhenAny(handler.Started.Task, loading));
             if (first == loading)
             {
-                await loading;
+                await ModelWorkHarness.WaitForSignalAsync(loading);
                 Assert.Fail($"Catalog request completed before the list request began: {request.Failure}");
             }
             Assert.True(request.IsLoading);
             // The list's real 60-second deadline includes the one-second challenge.
             if (screenCancels) request.Cancel();
             else clock.Advance(TimeSpan.FromSeconds(59));
-            await loading;
+            await ModelWorkHarness.WaitForSignalAsync(loading);
         }
         finally { listDeadline.Cancel(); }
         Assert.True(handler.Cancelled);
@@ -97,6 +105,19 @@ public sealed class WorldCatalogDeadlineTests
             }
             if (request.RequestUri.AbsolutePath != OwnerPairingEndpoints.OwnerWorldList)
                 return Reply(new OwnerControlReceipt("pause", true, true, 1, 1, 1));
+            if (delay == Timeout.InfiniteTimeSpan)
+            {
+                // Retain main's direct cancellation completion: no queued delay
+                // continuation sits between cancellation and the held HTTP reply.
+                var cancelled = new TaskCompletionSource<HttpResponseMessage>();
+                using var registration = cancellationToken.Register(() =>
+                {
+                    Cancelled = true;
+                    cancelled.TrySetCanceled(cancellationToken);
+                });
+                Started.TrySetResult();
+                return await cancelled.Task.ConfigureAwait(false);
+            }
             var replyDelay = clock.DelayAsync(delay, cancellationToken);
             Started.TrySetResult();
             try { await replyDelay.ConfigureAwait(false); }

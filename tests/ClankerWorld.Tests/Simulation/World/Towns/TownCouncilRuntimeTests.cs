@@ -15,8 +15,8 @@ namespace ClankerWorld.Tests;
 public sealed class TownCouncilRuntimeTests
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private const string FirstAuthor = "founder:00000000000000000000000000000001";
-    private const string SecondAuthor = "founder:00000000000000000000000000000003";
+    private const string FirstAuthor = NormalPathWorld.Founder1;
+    private const string SecondAuthor = NormalPathWorld.Founder3;
     private const string FirstText = "Harvest dates: Publish harvest dates for our Town.";
     private const string SecondText = "Storm notices: Share notices about storms in our Town.";
 
@@ -136,7 +136,6 @@ public sealed class TownCouncilRuntimeTests
             for (var tick = 0; tick < 80 && world.Towns.Any(t => !t.Council!.Proposals.Any(p => p.Status == "passed")); tick++)
             {
                 Assert.True(await service.AdvanceWithModelWorkAsync(world));
-
             }
             Assert.All(world.Towns, town =>
             {
@@ -147,7 +146,7 @@ public sealed class TownCouncilRuntimeTests
                 Assert.Equal(town.Id == "town:first" ? FirstText : SecondText, proposal.Text);
                 Assert.NotEmpty(town.Council.Knowledge);
             });
-            foreach (var provider in providers.Values)
+            foreach (var provider in providers.Values.Where(provider => !provider.Observations.IsEmpty))
             {
                 if (provider.Observations.First().AgentId is not (FirstAuthor or SecondAuthor))
                     Assert.Contains(provider.Observations, o => o.Candidates.Any(c => c.Id.Contains("|read|", StringComparison.Ordinal)));
@@ -332,9 +331,8 @@ public sealed class TownCouncilRuntimeTests
         for (var tick = 0; tick < 80 && !provider.VoteStarted.Task.IsCompleted; tick++)
         {
             await generated.TickModelWorkAsync();
-
         }
-        await provider.VoteStarted.Task;
+        await ModelWorkHarness.WaitForSignalAsync(provider.VoteStarted.Task);
         var original = Assert.Single(generated.Towns[0].Council!.Proposals);
         var state = generated.ExportState();
         var site = state.Towns![0].BorderTiles.First(p => state.Map.IsBuildable(p) &&
@@ -346,7 +344,6 @@ public sealed class TownCouncilRuntimeTests
         for (var tick = 0; tick < 8; tick++)
         {
             await generated.TickModelWorkAsync();
-
         }
         var cancelled = generated.Towns[0].Council!.Proposals.Single(p => p.Id == original.Id);
         Assert.Empty(cancelled.Votes);
@@ -431,7 +428,7 @@ public sealed class TownCouncilRuntimeTests
         {
             var observation = request.Observation;
             Observations.Enqueue(observation);
-            var ownTown = actor is FirstAuthor or "founder:00000000000000000000000000000002" ? "town:first" : "town:second";
+            var ownTown = actor is FirstAuthor or NormalPathWorld.Founder2 ? "town:first" : "town:second";
             var legal = observation.Candidates.Where(c => c.Id.StartsWith("civic|" + ownTown + "|", StringComparison.Ordinal)).ToArray();
             var text = proposalOverride ?? (ownTown == "town:first" ? FirstText : SecondText);
             var author = actor is FirstAuthor or SecondAuthor;

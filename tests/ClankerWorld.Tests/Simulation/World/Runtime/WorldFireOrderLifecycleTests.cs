@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Diagnostics;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -98,10 +99,10 @@ public sealed partial class WorldFireOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("stop-held-fire", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
             for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {
@@ -229,7 +230,7 @@ public sealed partial class WorldFireOrderTests
         foreach (var bad in new[]
         {
             order with { ShelterCompletion = null },
-            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = "missing-fuel-payment" } },
+            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = Identity.Parse("missing-fuel-payment") } },
             order with { ShelterCompletion = order.ShelterCompletion with { WorldTick = world.WorldTick + 1 } },
             order with { ShelterBinding = order.ShelterBinding! with { OwnerId = Beta } },
         })
