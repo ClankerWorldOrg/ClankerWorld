@@ -306,10 +306,10 @@ jobs:
         run: dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
       - name: Verify documentation and source boundaries on Windows
         env:
-          SOURCE_TESTS: ${{ needs.scope.outputs.tests }}
+          SOURCE_CODE: ${{ needs.scope.outputs.code }}
         run: |
           $filter = 'FullyQualifiedName~DocumentationTests'
-          if ($env:SOURCE_TESTS -ne 'false') { $filter += '|FullyQualifiedName~IdentityTextBoundaryTests' }
+          if ($env:SOURCE_CODE -ne 'false') { $filter += '|FullyQualifiedName~IdentityTextBoundaryTests' }
           dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --configuration Release --no-restore --filter $filter
 
   # Skipped when scope skips the test suite; GitHub counts a skipped required job as passed.
