@@ -110,7 +110,10 @@ public sealed partial class WorldRuntime
     }),
         new(ActionPhase.Ordinary, "shop_", ["shop_"], [], static (runtime, action) =>
     {
-        runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId);
+        if (action.CandidateId == "shop_stock_store")
+            runtime.ApplyStoreStockPlan(action.Plan as StoreStockActionPlan ?? runtime.PlanStoreStock(action.AgentId));
+        else
+            runtime.ApplyShopCandidate(action.AgentId, action.State, action.CandidateId);
         return true;
     }),
         new(ActionPhase.Ordinary, "haul_household_stock", [], ["haul_household_stock"], static (runtime, action) =>

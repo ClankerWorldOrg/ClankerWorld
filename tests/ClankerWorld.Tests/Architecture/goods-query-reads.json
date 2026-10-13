@@ -48,7 +48,7 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdPlanning.cs": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.KnowledgeStorage.cs": 1,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.AgentProjects.cs": 7,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.StoreStock.cs": 2,
+  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.StoreStock.cs": 0,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ToolMakingRequests.cs": 3,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.DirectBarter.cs": 4,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.WorkstationSupply.cs": 0,
