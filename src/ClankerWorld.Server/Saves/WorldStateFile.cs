@@ -311,6 +311,9 @@ public sealed class WorldStateFile
             }
             var segment = JsonSerializer.Deserialize<WorldHistorySegment>(bytes)
                 ?? throw new InvalidDataException("The world history archive is empty.");
+            if (segment.Streams is null ||
+                segment.Streams.Any(batch => batch is null || string.IsNullOrWhiteSpace(batch.Name)))
+                throw new InvalidDataException("The world history archive contains invalid streams.");
             foreach (var batch in segment.Streams.Where(batch => WorldHistory.IsRecordStream(batch.Name)))
             {
                 if (batch.Events.ValueKind != JsonValueKind.Array || batch.Events.GetArrayLength() == 0 ||

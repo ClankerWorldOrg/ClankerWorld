@@ -495,7 +495,6 @@
   "src/ClankerWorld.Simulation/World/Towns/HouseholdLandGrants.cs|id|\u0022land_use:\u0022 \u002B Digest(request.TownId \u002B \u0022|\u0022 \u002B request.HouseholdId \u002B \u0022|\u0022 \u002B request.AgreedEndTick?.ToString(CultureInfo.InvariantCulture) \u002B \u0022|\u0022 \u002B TownLandClaimRules.DescribeTiles(request.Tiles))": 1,
   "src/ClankerWorld.Simulation/World/Towns/MarketTradeContracts.cs|length|\u003E 0": 2,
   "src/ClankerWorld.Simulation/World/Towns/RiverBridges.cs|length|id.Length \u003E 64": 1,
-  "src/ClankerWorld.Simulation/World/Towns/TownCouncil.cs|id|\u0022notice:\u0022 \u002B (state.Notices.Count \u002B 1)": 1,
   "src/ClankerWorld.Simulation/World/Towns/TownCouncil.cs|length|\u003C 1": 1,
   "src/ClankerWorld.Simulation/World/Towns/TownCouncil.cs|length|definite.Length \u003E 0": 1,
   "src/ClankerWorld.Simulation/World/Towns/TownCouncilValidation.cs|length|notice.Text.Length \u003E 32768": 1,
