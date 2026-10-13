@@ -63,8 +63,8 @@ public sealed partial class WorldRuntime
                 var request = new CognitionDecisionRequest(
                     $"will:{estate.Id}", provider.ProviderEpoch, observation);
                 request.Validate();
-                var cancellation = new CancellationTokenSource(WillDecisionTimeout);
-                var task = Task.Run(async () =>
+                var cancellation = new CancellationTokenSource(WillDecisionTimeout, modelTimeProvider);
+                var task = ScheduleModelWork(ModelWorkKind.Will, estate.DeceasedId, request.RequestId, async () =>
                 {
                     try
                     {
@@ -80,7 +80,7 @@ public sealed partial class WorldRuntime
                     {
                         return new WillDecisionOutcome(null, $"provider_{exception.GetType().Name}");
                     }
-                });
+                }, decision: request);
                 pendingWills.Add(estate.Id, new PendingWillDecision(estate.Id, request,
                     observation.Candidates.Select(item => item.Id).ToHashSet(StringComparer.Ordinal),
                     context.HeirKeys, context.ItemKeys, task, cancellation));
@@ -300,6 +300,7 @@ public sealed partial class WorldRuntime
                     continue;
                 }
 
+                admittedModelReplies.Add(pending.Request.RequestId);
                 // Final words belong to an admitted reply; they stand even when
                 // its division is unusable and default inheritance applies.
                 var finalWords = response.Will?.FinalWords;
@@ -378,6 +379,7 @@ public sealed partial class WorldRuntime
     {
         var estateIsPending = society.Checkpoint.Estates.Any(item => item.Id == estateId && item.WillStatus == "pending");
         if (!pendingWills.Remove(estateId, out var pending)) return;
+        FinishModelWork(pending.Request.RequestId, ModelWorkStage.Cancelled);
         if (estateIsPending) pendingWillCancellationReasons[estateId] = reason;
         else pendingWillCancellationReasons.Remove(estateId);
         CancelProviderCall(pending.Cancellation, underRuntimeGate);

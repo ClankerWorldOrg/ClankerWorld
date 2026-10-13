@@ -235,6 +235,29 @@ filter copies that licence into the game data. Do not edit the font file: the
 licence reserves the name Fusion Pixel for unmodified copies. The heading
 lettering, Timber, is drawn in code in `UI/Theme/TimberFont.cs`.
 
+## Testing model work
+
+Use `ModelWorkHarness.For(world)` for tests of the nonblocking tick. `TickAsync`
+commits one tick, then runs scheduled model work; it never admits a reply in
+that same tick. Pass `runPendingWork: false` to keep work registered without
+starting it, and call `RunPendingWork` when the test permits provider entry.
+`ScriptedProvider.Hold()` returns a `HeldCall`: check `IsEntered`, then use
+`Reply(choice)` or `Fail()` to complete the actual runtime wrapper. Inline
+provider gates keep reply completion independent of the thread pool.
+
+`SettleAsync` starts pending work and finishes returned wrappers while held
+calls remain held. `PendingModelWork` snapshots all four live queues, with the
+request and actual completion task. Observe registered, started and finished
+calls through `IModelWorkObserver`; admitted, discarded and cancelled outcomes
+come from the live runtime. Admission includes its committed world tick. A
+refused tick publishes no admission. Use `TickUntilAdmittedAsync(actor, maxTicks)`
+for bounded acceptance and `AdvanceTogetherAsync(other)` for paired checkpoints.
+A test clock can be passed to the runtime for identity, will and conversation
+deadlines; production uses `TimeProvider.System`.
+
+The proof fixtures use this harness; remaining clock waits move in #1818. New
+model tests use the harness and no reflection into runtime queues.
+
 ## Which checks to run
 
 | Change | Check |

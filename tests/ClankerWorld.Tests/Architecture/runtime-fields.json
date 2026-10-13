@@ -59,7 +59,11 @@
     "providerFactory",
     "agentWorld",
     "tickGate",
-    "farmingWorld"
+    "farmingWorld",
+    "modelWorkScheduler",
+    "modelWorkObserver",
+    "modelTimeProvider",
+    "modelWork"
   ],
   "scratch": [
     "guardianPlacementActions",
@@ -69,6 +73,7 @@
     "previousPlannedRoutes",
     "routeSearches",
     "attemptedActions",
-    "withheldActions"
+    "withheldActions",
+    "admittedModelReplies"
   ]
 }
