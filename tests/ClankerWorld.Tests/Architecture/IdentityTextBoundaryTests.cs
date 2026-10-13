@@ -80,6 +80,28 @@ public sealed class IdentityTextBoundaryTests
             !normalized.Split('/').Any(part => part is "bin" or "obj" or ".godot");
     }
 
+    [Fact]
+    public void AdditionalSourceChecksIdentityArgumentsWhenFrameworkInheritanceIsUnavailable()
+    {
+        // Godot's Marker -> Button -> Control inheritance is absent from the source-only scan.
+        var tree = CSharpSyntaxTree.ParseText("""
+            class Marker : Button { }
+            class Actions
+            {
+                void PresentMovingMarker(string id, Control marker, Vector2 offset) { }
+                void Invoke(string actor, Marker marker) => PresentMovingMarker("agent:" + actor, marker, new(4, 4));
+                void Label(string text, Control marker) { }
+                void Show(string actor, Marker marker) => Label($"Hello {actor}", marker);
+            }
+            """, path: "/source/src/ClankerWorld.GodotClient/Actions.cs");
+        var compilation = CSharpCompilation.Create("MissingFrameworkControl", references:
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+        var actual = ScanAdditionalSource([tree], compilation, "/source");
+        Assert.Single(actual);
+        Assert.Equal(1, actual.Values.Sum());
+        Assert.ThrowsAny<Exception>(() => AssertWithinBudget(new(StringComparer.Ordinal), actual));
+    }
+
     private static SortedDictionary<string, int> ScanAdditionalSource(IEnumerable<SyntaxTree> trees,
         CSharpCompilation compilation, string root)
     {
@@ -188,10 +210,15 @@ public sealed class IdentityTextBoundaryTests
                         return (call.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText != "Create";
                 }
                 if (argument.NameColon is { } named) return IdentityName(named.Name.Identifier.ValueText);
-                if (model?.GetSymbolInfo(argument.Parent!.Parent!).Symbol is IMethodSymbol method)
+                if (model is not null)
                 {
+                    var info = model.GetSymbolInfo(arguments.Parent!);
                     var index = arguments.Arguments.IndexOf(argument);
-                    return index < method.Parameters.Length && IdentityName(method.Parameters[index].Name);
+                    // Missing framework assemblies can leave a declared method as a candidate.
+                    // Check every candidate rather than silently allowing a new identity there.
+                    var methods = info.Symbol is IMethodSymbol resolved
+                        ? [resolved] : info.CandidateSymbols.OfType<IMethodSymbol>();
+                    return methods.Any(method => index < method.Parameters.Length && IdentityName(method.Parameters[index].Name));
                 }
                 return false;
             }

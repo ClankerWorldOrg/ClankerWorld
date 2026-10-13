@@ -44,7 +44,8 @@ and counts toward the limit. Names and source text keep their original values.
 `IdentityTextBoundaryTests` uses semantic binding to scan production source for hand-built IDs in
 identity-valued assignments, returns and arguments, and for literal length
 comparisons and relational length patterns. It scans each source file once,
-including with Windows paths. Existing expressions are recorded
+including with Windows paths, and checks method candidates when a framework
+assembly is unavailable. Existing expressions are recorded
 in `tests/ClankerWorld.Tests/Architecture/identity-text-uses.json`. Each
 allowance belongs to its exact file and expression; it cannot fund a new use.
 The check requires obsolete allowances to be removed and compares the file
