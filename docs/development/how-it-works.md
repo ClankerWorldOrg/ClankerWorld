@@ -4066,8 +4066,10 @@ data folder (or `user://reports` without a local server), keeping the five
 newest.
 
 `WorldEventFormatter` in the server builds descriptions from one owner snapshot.
-The observation sends its derived `Text` on each event; the game displays that text
-and keeps its existing event filtering and location controls. Descriptions resolve
+The observation sends its derived `Text` on each event. Each snapshot also refreshes
+text for the 30 visible rows, using the same retained-event filter as the game, so
+renames and changed Town or content names update existing rows. The game displays
+that text and keeps its event filtering and location controls. Descriptions resolve
 complete agent and Town IDs from the owner snapshot;
 colons inside those IDs are part of the identity. `WorldEventEntry` stores a
 kind-discriminated `WorldEventPayload`: actor, captured position and each kind’s

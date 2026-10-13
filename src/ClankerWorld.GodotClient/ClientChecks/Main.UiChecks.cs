@@ -4207,15 +4207,15 @@ public partial class Main
         };
         OwnerWorldEvent[] events =
         [
-            new(1, 1, "tree_planted", founderId + ":planted-tree-3-4:broadleaf"),
-            new(2, 1, "field_prepared", "founder-scout:field-2-2:"),
-            new(3, 1, "child_born", childId),
-            new(4, 1, "agent_removed", agentId),
-            new(5, 1, "town_resident_joined", "town:first:" + founderId + ":founder_joined:residents:4"),
-            new(6, 1, "town_resident_left", "town:first:" + agentId + ":residents:3"),
-            new(7, 1, "town_civic_law", "town:first|record-ui|actor-ui"),
-            new(8, 1, "town_civic_government", "town:first|record-ui|actor-ui"),
-            new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui"),
+            new(1, 1, "tree_planted", founderId + ":planted-tree-3-4:broadleaf") { Text = "Rowan planted a tree." },
+            new(2, 1, "field_prepared", "founder-scout:field-2-2:") { Text = "Scout tilled a field." },
+            new(3, 1, "child_born", childId) { Text = "Mira was born." },
+            new(4, 1, "agent_removed", agentId) { Text = "Aster died." },
+            new(5, 1, "town_resident_joined", "town:first:" + founderId + ":founder_joined:residents:4") { Text = "Rowan joined First Town." },
+            new(6, 1, "town_resident_left", "town:first:" + agentId + ":residents:3") { Text = "Aster left First Town." },
+            new(7, 1, "town_civic_law", "town:first|record-ui|actor-ui") { Text = "First Town recorded a law decision. See the Towns page for its wording and scope." },
+            new(8, 1, "town_civic_government", "town:first|record-ui|actor-ui") { Text = "First Town recorded a resident government decision. See the Towns page for the vote or handover." },
+            new(9, 1, "town_civic_mayor", "town:first|record-ui|actor-ui") { Text = "First Town recorded a mayoral election or office change. See the Towns page for its result." },
         ];
         var handshake = new OwnerWorldHandshake(new(1, 1),
             ["owner-observation.read.v1", "agent-inspection.read.v1", "spatial-knowledge.read.v1",
@@ -4246,6 +4246,7 @@ public partial class Main
             {
                 Agents = snapshot.Agents.Select(person => person.Id == founderId
                     ? person with { DisplayName = "Renamed Rowan" } : person).ToArray(),
+                EventTexts = new Dictionary<long, string> { [1] = "Renamed Rowan planted a tree.", [5] = "Renamed Rowan joined First Town." },
             };
             baseline = baseline with { Snapshot = snapshot };
             if (!observationSession.TryAccept(new(handshake, baseline), 0, out failure))

@@ -149,9 +149,9 @@ public partial class Main
             RenderEventLog();
             await Settle();
             if (EventRows().Length != 0) throw new InvalidOperationException("A slow successful model reply must add no Event Log row.");
-            knownEvents[2_002] = new(2_002, 2, "model_attempt_status", "founder-scout:timed_out");
+            knownEvents[2_002] = new(2_002, 2, "model_attempt_status", "founder-scout:timed_out") { Text = "Scout could not get a model reply: the model reply timed out." };
             knownEvents[2_003] = new(2_003, 3, "model_attempt_status", "founder-scout:waiting");
-            knownEvents[2_004] = new(2_004, 4, "model_attempt_status", "founder-scout:timed_out");
+            knownEvents[2_004] = new(2_004, 4, "model_attempt_status", "founder-scout:timed_out") { Text = "Scout could not get a model reply: the model reply timed out." };
             RenderEventLog();
             await Settle();
             var failureRow = EventRows().Single();

@@ -23,7 +23,7 @@ public partial class Main
         var offersNewcomer = WorldEventText.OffersNewcomer(snapshot);
         var entries = GameUiText.PlayerEvents(knownEvents.Values)
             .OrderByDescending(worldEvent => worldEvent.EventId)
-            .Take(30)
+            .Take(ClankerWorld.Presentation.EventVocabulary.VisibleEventCount)
             .Select(worldEvent => (worldEvent.EventId, Located: worldEvent.Position is not null,
                 Clock: DisplayWorldClock(worldEvent.WorldTick), Text: DescribeWorldEvent(worldEvent, snapshot)))
             .ToArray();

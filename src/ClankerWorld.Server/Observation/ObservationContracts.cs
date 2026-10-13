@@ -711,6 +711,9 @@ public sealed record WorldSnapshotView(
     /// </summary>
     public AuthoringStateView? Authoring { get; init; }
 
+    /// <summary>Current server text for the visible retained events, including renamed people.</summary>
+    public IReadOnlyDictionary<long, string> EventTexts { get; init; } = new Dictionary<long, string>();
+
     public IReadOnlyList<InstructionView> Instructions { get; init; } = [];
 
     public CognitionView? Cognition { get; init; }

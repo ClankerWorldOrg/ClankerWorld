@@ -2275,7 +2275,9 @@ inference or migration runs.
 
 Owner event observations include server-formatted `Text`. It is derived from the
 same captured state as the event slice and is not stored in accepted history.
-The game displays it without parsing event details. This presentation step leaves
+The snapshot refreshes the 30 visible descriptions from its current names and
+relationships; renaming still updates existing rows. The game displays this text
+without parsing event details. This presentation step leaves
 checkpoint bytes and the current schema unchanged; typed saved payloads follow
 in the event refactor stack.
 
