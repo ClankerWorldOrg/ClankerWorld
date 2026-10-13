@@ -370,9 +370,10 @@ Saves, the owner authority and the provider files sit in separate folders
 there, never in the game folder.
 
 `POST /api/v1/approval/shutdown` exists only on a local server. It
-pauses the world, cancels model work and writes its checkpoint before
-returning 202. The response completion callback requests process exit, so server
-teardown follows the acknowledgement. If writing fails, it returns 503 and
+pauses the world, cancels model work, saves pending newborn model bindings in
+provider storage and writes its checkpoint before returning 202. The response
+completion callback requests process exit, so server teardown follows the
+acknowledgement. If either write fails, it returns 503 and
 keeps the server alive and paused so the game can retry. Pending startup recovery
 returns 409 without rewriting the refused checkpoint. Whenever a world
 server stops, it waits for the tick loop to finish and writes a final checkpoint

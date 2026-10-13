@@ -116,7 +116,7 @@ public sealed partial class WorldRuntimeService(
     private static partial void LogShutdownSave(ILogger logger, string outcome, long worldTick);
 
     /// <summary>
-    /// Cancels model work and writes the checkpoint. Local server shutdown pauses
+    /// Cancels model work, completes pending child bindings and writes the checkpoint. Local server shutdown pauses
     /// first, so a prepared tick cannot commit after this save. A failed write
     /// leaves the local server alive and paused; a halted world stays untouched.
     /// </summary>
@@ -134,6 +134,11 @@ public sealed partial class WorldRuntimeService(
             {
                 if (pauseWorld) runtime.Pause();
                 runtime.CancelPendingModelCalls();
+                if (!TryBindPendingChildModels(out _))
+                {
+                    if (logger is not null) LogShutdownSave(logger, "save_failed", runtime.WorldTick);
+                    return ShutdownSaveOutcome.WriteFailed;
+                }
                 _ = stateFile.Save(runtime);
             }
             recoveryWritePending = false;
