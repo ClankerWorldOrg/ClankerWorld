@@ -39,7 +39,6 @@
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BlacksmithStock.cs": 0,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.BuildingExpansion.cs": 3,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.ShopTrade.cs": 7,
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs": 2,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.FarmhouseStock.cs": 0,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs": 14,
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.HouseholdHauling.cs": 0,

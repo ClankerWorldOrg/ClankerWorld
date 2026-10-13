@@ -84,20 +84,12 @@ public sealed partial class WorldRuntime
         WornEquipmentItems(actor).FirstOrDefault(lot => CanPrepareEquipmentRepair(actor, person, lot));
 
     private bool CanPrepareEquipmentRepair(string actor, AgentState person, InventoryLot lot) =>
-        MissingRepairInputUnits(actor, lot) <= FreeCarryCapacity(actor) &&
-        EquipmentRepairSite(actor, lot) is { } site &&
-        (person.Position == site.Position || FindUnoccupiedRoute(actor, person.Position, site.Position, 0).Count > 0) &&
-        PersonalEquipmentRules.RepairMaterials(lot.ItemKind).All(input => HasCarriedOwnItem(actor, input.ResourceId) ||
-            SharedItem(input.ResourceId, actor, site.Position) is not null);
+        PlanEquipmentRepair(actor, lot) is not null;
 
-    private IEnumerable<InventoryLot> WornEquipmentItems(string actor) => society.Checkpoint.Inventory.Lots
-        .Where(lot => lot.Quantity == 1 && lot.OwnerId == actor && PersonalEquipmentRules.IsCarried(lot, actor) &&
-            lot.DeliveryBuildingId is null && lot.ConditionBasisPoints <= 4_000 &&
-            (PersonalEquipmentRules.IsGarment(lot.ItemKind) || PersonalEquipmentRules.IsCarryAid(lot.ItemKind)) &&
-            society.Checkpoint.Inventory.Reservations.All(item => item.LotId != lot.Id || item.State is not
-                (InventoryReservationState.Reserved or InventoryReservationState.PartiallyConsumed or InventoryReservationState.Committed)))
-        .OrderBy(lot => lot.Id == agents[actor].Equipment?.CarryAidLotId ? 0 : 1)
-        .ThenBy(lot => lot.Id, StringComparer.Ordinal);
+    private IEnumerable<InventoryLot> WornEquipmentItems(string actor) =>
+        FindGoods(EquipmentRepairTargetRequest(actor)).Matches.Select(match => match.Lot)
+            .OrderBy(lot => lot.Id == agents[actor].Equipment?.CarryAidLotId ? 0 : 1)
+            .ThenBy(lot => lot.Id, StringComparer.Ordinal);
 
     private PlacedBuilding? EquipmentRepairSite(string actor, InventoryLot lot) =>
         HouseholdBuildingWithTag(HouseholdFor(actor), lot.ItemKind == "basket" ? "house" : "tailor");
@@ -109,9 +101,9 @@ public sealed partial class WorldRuntime
         if (!IsAdult(actor)) return;
         if (BetterCarryAid(actor) is { } aid)
             AddPrivateEquipmentCandidate(candidates, PlanPrivateEquipment(actor, true, aid), $"Equip a {aid.ItemKind} to carry more supplies.", 14);
-        if (!NeedsUrgentFood(person) && !NeedsUrgentWarmth(person) && RepairableEquipment(actor, person) is { } worn &&
-            EquipmentRepairSite(actor, worn) is { } site)
-            candidates.Add(new("repair_equipment", $"Bring materials to repair the worn {worn.ItemKind.Replace('_', ' ')}.", 12, site.InstanceId));
+        if (PlanEquipmentRepair(actor) is { } repair && CheckEquipmentRepairPlan(repair).Allowed)
+            candidates.Add(new("repair_equipment", $"Bring materials to repair the worn {repair.ItemKind.Replace('_', ' ')}.", 12, repair.BuildingId)
+            { ActionPlan = repair });
     }
 
     private void AddPrivateEquipmentCandidate(List<CognitionCandidate> candidates, PrivateEquipmentActionPlan? plan, string description, int priority)
@@ -182,15 +174,23 @@ public sealed partial class WorldRuntime
             MoveToward(actor, person, site.Position, "repair_equipment", 0);
             return;
         }
+        var materials = PersonalEquipmentRules.RepairMaterials(target.ItemKind).Select(input =>
+            new PlannedRepairMaterial(SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId)
+                .First(match => PersonalEquipmentRules.IsCarried(match.Lot, actor) && match.Quantity >= input.Amount).Lot.Id,
+                input.ResourceId, input.Amount)).ToArray();
+        StartEquipmentRepair(actor, person, target.Id, site.InstanceId, materials, orderInstructionId);
+    }
+
+    private void StartEquipmentRepair(string actor, AgentState person, string targetId, string buildingId,
+        IReadOnlyList<PlannedRepairMaterial> materials, string? orderInstructionId = null)
+    {
         var ids = new List<string>();
         ApplyInventoryTransition(inventory =>
         {
-            foreach (var input in PersonalEquipmentRules.RepairMaterials(target.ItemKind))
+            foreach (var material in materials)
             {
-                var material = SpendingGoods(actor, GoodsUse.Spend, [actor], input.ResourceId, inventory: inventory)
-                    .First(match => PersonalEquipmentRules.IsCarried(match.Lot, actor) && match.Quantity >= input.Amount).Lot;
-                var id = EquipmentRepairReservationId(WorldTick, actor, input.ResourceId);
-                inventory = InventoryAuthority.Reserve(inventory, id, actor, material.Id, input.Amount,
+                var id = EquipmentRepairReservationId(WorldTick, actor, material.ItemKind);
+                inventory = InventoryAuthority.Reserve(inventory, id, actor, material.StockId, material.Quantity,
                     "equipment_repair", WorldTick + 120, holdAccess: InventoryHoldRules.BorrowedBy(actor));
                 ids.Add(id);
             }
@@ -199,10 +199,10 @@ public sealed partial class WorldRuntime
         agents[actor] = agents[actor] with
         {
             Equipment = (person.Equipment ?? new PersonalEquipment()) with
-            { Repair = new(target.Id, site.InstanceId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
+            { Repair = new(targetId, buildingId, WorldTick, 0, ids.ToArray(), orderInstructionId) },
         };
         checkpointSchemaVersion = StateSchemaVersion;
-        AppendEvent("equipment_repair_started", $"{actor}|{target.Id}|{site.InstanceId}");
+        AppendEvent("equipment_repair_started", $"{actor}|{targetId}|{buildingId}");
     }
 
     private EquipmentRepairWork? ContinueEquipmentRepair(string actor)
@@ -213,7 +213,7 @@ public sealed partial class WorldRuntime
         if (!CanContinueEquipmentRepair(actor) ||
             worldSimulation.Buildings.FirstOrDefault(item => item.InstanceId == repair.BuildingId) is not { } site ||
             site.HouseholdId != HouseholdFor(actor) || person.Position != site.Position ||
-            society.Checkpoint.Inventory.Lots.FirstOrDefault(item => item.Id == repair.LotId) is not { } target ||
+            InventoryIndex.For(society.Checkpoint.Inventory).Find(repair.LotId) is not { } target ||
             !PersonalEquipmentRules.IsCarried(target, actor) || target.Quantity != 1 ||
             repair.MaterialReservationIds.Any(id => society.Checkpoint.Inventory.GetReservation(id) is not
             { State: InventoryReservationState.Reserved } reservation || reservation.ExpiryTick < WorldTick))

@@ -67,9 +67,6 @@
     "agents[actor].FullnessBasisPoints \u003E= 6_500",
     "agents[other].FullnessBasisPoints \u003E= 6_500"
   ],
-  "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Equipment.cs": [
-    "FindUnoccupiedRoute(actor, person.Position, site.Position, 0)"
-  ],
   "src/ClankerWorld.Simulation/World/Economy/WorldRuntime.Handcarts.cs": [
     "FindUnoccupiedRoute(actor, person.Position, building.Position, 0)",
     "FindUnoccupiedRoute(actor, person.Position, position, 0)",
