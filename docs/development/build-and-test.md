@@ -2,7 +2,7 @@
 title: Build and test
 type: development-reference
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # Build and test
@@ -540,8 +540,9 @@ shortcuts, HKCU registration and preserved file hashes. Its older setup is a
 synthetic metadata/README fixture; it is not a published launcher release.
 The required `verify` job waits for this check whenever code checks run.
 Native logs and results are in `windows-installer-evidence`; the owner's
-Windows 11 install/play/uninstall/reinstall check remains in
-[`playtest/1567-windows-installer.md`](../../playtest/1567-windows-installer.md).
+Windows 11 install/play/uninstall/reinstall check is kept in the
+[playtest list](../../playtest/README.md), and folded into the release checklist
+before publishing.
 
 ## Compare tick equivalence
 

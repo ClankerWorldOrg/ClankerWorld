@@ -1411,7 +1411,7 @@ Each check is one short play session. Its steps say what to do, then, after the 
   - Turn **Detailed logs** on, play, then open the logs folder. → `game.log` has extra engine detail, and `server.log` has a line saying it was a detailed launch.
   - Quit, turn **Detailed logs** off and play again. → The new logs are back to normal detail.
   - Choose **Report a problem**. → The report includes the current run's logs.
-  - Choose **Run a local build** and pick an unzipped portable `ClankerWorld.exe` with its `host` folder beside it. → It starts with the data folder and log options you chose.
+  - Choose **Run a local build** and pick an unzipped portable `ClankerWorld.exe` with its `server` folder beside it. → It starts with the data folder and log options you chose.
   - Pick an incomplete build, or one too old to support test data. → The launcher explains why it refuses, and your saves are safe.
   - Turn **Developer mode** off. → All three developer options disappear, and **Play** uses your usual data.
 - [ ] **Opening Developer tools.** ([#675](https://github.com/compoodment/ClankerWorld/issues/675), Refs #944, [#998](https://github.com/compoodment/ClankerWorld/issues/998), [PR #1070](https://github.com/compoodment/ClankerWorld/pull/1070), [#1566](https://github.com/ClankerWorldOrg/ClankerWorld/issues/1566))
