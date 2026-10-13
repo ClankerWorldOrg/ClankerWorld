@@ -131,6 +131,9 @@ internal static class GoodsInventoryQuery
         }
         if (lot.Quantity == 0) return GoodsReason.Empty;
         if (Quantity(index, lot, request.Use) <= 0) return GoodsReason.Reservation;
+        if (request.Use is not (GoodsUse.ConsumeAt or GoodsUse.Cargo) &&
+            InventoryHoldRules.For(index, lot).Any(hold => hold.Purpose == InventoryHoldPurpose.SupplyTrip))
+            return GoodsReason.Reservation;
         if (request.Use is GoodsUse.VesselFor or GoodsUse.ReturnVessel)
         {
             if (!InventoryContainerRules.IsContainer(lot.ItemKind) || lot.ContainerLotId is not null) return GoodsReason.Vessel;

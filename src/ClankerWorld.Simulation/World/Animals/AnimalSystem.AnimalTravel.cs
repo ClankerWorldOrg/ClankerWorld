@@ -50,6 +50,9 @@ internal sealed partial class AnimalSystem
                 if (InventoryContainerRules.IsContainer(lot.ItemKind) && HasActiveContainerReservation(inventory, lot.Id)) continue;
                 var quantity = InventoryContainerRules.IsContainer(lot.ItemKind) ? 1 : Math.Min(excess, world.PhysicalUnreservedQuantity(lot));
                 if (quantity <= 0) continue;
+                if (InventoryHoldRules.Family(InventoryIndex.For(inventory), lot)
+                    .Contains(new InventoryHold(InventoryHoldPurpose.SupplyTrip, rider)))
+                    FinishAnimalSupplyTrip(world, rider);
                 world.ApplyInventoryTransition(current => InventoryAuthority.Relocate(current,
                     AnimalCargoDismountId(rider, world.WorldTick, world.NextEventId, lot.Id),
                     lot.Id, lot.OwnerId, quantity, groundPosition: new(person.Position.X, person.Position.Y),

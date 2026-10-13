@@ -234,7 +234,16 @@ internal sealed partial class AnimalSystem
         if (quantity == 0 || household is null) return true;
         var people = world.Society.Agents.Where(person => person.Status == SocietyAgentStatus.Active && person.HouseholdId == household)
             .Select(person => person.Id).ToHashSet(StringComparer.Ordinal);
-        var ready = world.HoldingsTotal(people.Append(household), world.EdibleFoodGoods);
+        var owners = people.Append(household).ToArray();
+        var ready = world.HoldingsTotal(owners, world.EdibleFoodGoods);
+        // General holdings exclude trip stock. Include this task's authorized
+        // servings before subtracting its consumption, so they are counted once.
+        var index = InventoryIndex.For(world.Society.Inventory);
+        var tripHold = new InventoryHold(InventoryHoldPurpose.SupplyTrip, actor);
+        ready += world.FindGoods(new(GoodsUse.ConsumeAt, actor, new(owners), world.EdibleFoodGoods)).Matches
+            .Where(match => match.RequiredHolds.Contains(tripHold) &&
+                InventoryHoldRules.Allows(index, match.Lot, InventoryHoldRules.SupplyTripFor(actor)))
+            .Sum(match => (long)match.Quantity);
         return ready - quantity >= people.Count * 2 + (world.Agents.Values.Any(person => people.Contains(person.AgentId) && ActiveParenthood(person.Parenthood)) ? 4 : 0);
     }
     internal static void ConsumeAnimalInputs(IAnimalWorld world, string actor, string purpose, List<(InventoryLot Lot, int Quantity)> inputs)

@@ -363,6 +363,12 @@ report each match's required holds; an executor still states only the purposes
 and holders it is authorized to use. Saved hold collections compare by value,
 so reload retains ordinary lot and reservation equality.
 
+Supply-trip stock is excluded from unrelated goods uses. Animal care can use its
+matching trip hold and counts those servings once when protecting family meals.
+Collection and delivery permit the named borrower's complete vessel; other
+promises stay protected. A forced dismount cancels a trip if it puts down any of
+that trip's load, preserving unrelated reservations and property ownership.
+
 `World/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
 for sale at a borrowed Market stall. `ConsumeAt` matches the inventory

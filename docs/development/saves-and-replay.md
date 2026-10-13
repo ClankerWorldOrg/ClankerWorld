@@ -13,11 +13,14 @@ This page owns save implementation and recovery requirements. The
 
 ## Stock holds
 
-World schema 132 adds optional typed holds to inventory lots and the matching
+World schema 132 introduced optional typed holds to inventory lots and matching
 authorization to reservations. Each hold records a purpose and an exact holder;
 the inventory core checks both, including vessel families. Splits keep their
 effective holds when goods leave a vessel, and a saved reservation rechecks its
-authorization before consumption or barter settlement. Delivery holders are destination buildings, borrowers and
+authorization before consumption or barter settlement.
+
+World schema 133 requires matching holds for saved custody and promises.
+Delivery holders are destination buildings, borrowers and
 supply-trip holders are their actors, and Market holders are occupancy IDs.
 Strict world validation checks each hold against its corresponding saved promise
 and refuses a missing or inconsistent link. Hold lists have unique entries in purpose/holder order and
@@ -1260,7 +1263,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 132. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 133. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
