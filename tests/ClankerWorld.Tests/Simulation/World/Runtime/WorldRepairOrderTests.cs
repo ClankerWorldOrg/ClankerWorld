@@ -330,13 +330,13 @@ public sealed class WorldRepairOrderTests
         var receipt = Submit(world, actor, "held", "repair clothing");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var repair = world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!;
             Assert.True(world.CancelOrder(new("stop-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(3));
-            for (var tick = 0; tick < 12; tick++) Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
+            for (var tick = 0; tick < 12; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(1, Quantity(world, actor, "cloth"));
             Assert.All(repair.MaterialReservationIds, id => Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation(id).State));
@@ -461,9 +461,9 @@ public sealed class WorldRepairOrderTests
         public DecisionProviderKind Kind => kind;
         public long ProviderEpoch => 0;
         public ConcurrentQueue<AgentObservation> Requests { get; } = new();
-        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public TaskCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public InlineCompletionSource<bool> Started { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Release { get; } = new(TaskCreationOptions.None);
+        public InlineCompletionSource<bool> Returned { get; } = new(TaskCreationOptions.None);
         public async ValueTask<CognitionDecisionResponse> DecideAsync(CognitionDecisionRequest request, CancellationToken cancellationToken = default)
         {
             request.Validate();

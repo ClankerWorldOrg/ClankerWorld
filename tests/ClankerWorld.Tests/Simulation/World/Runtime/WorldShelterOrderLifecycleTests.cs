@@ -185,20 +185,19 @@ public sealed partial class WorldShelterOrderTests
         var receipt = Submit(world, actor, "held-shelter", "shelter in my House");
         try
         {
-            Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
-            await provider.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True((await world.TickModelWorkAsync()).Advanced);
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             Assert.True(world.CancelOrder(new("cancel-held-shelter", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             var stopped = Person(world, actor).Position;
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            var deadline = Stopwatch.StartNew();
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             var admitted = false;
-            while (!admitted && deadline.Elapsed < TimeSpan.FromSeconds(5))
+            for (var admissionTick = 0; admissionTick < 20 && !admitted; admissionTick++)
             {
-                var step = await world.AdvanceOneTickNonBlockingAsync();
+                var step = await world.TickModelWorkAsync();
                 Assert.True(step.Advanced);
                 admitted = step.Decisions.Any(item => item.AgentId == actor && item.Admission.Accepted);
-                if (!admitted) await Task.Delay(10);
+                if (!admitted) await ModelWorkHarness.For(world).SettleAsync();
             }
             Assert.True(admitted, "A post-release decision must actually be admitted before checking the cancelled order.");
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
