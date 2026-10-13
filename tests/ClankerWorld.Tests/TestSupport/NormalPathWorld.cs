@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Content;
 using ClankerWorld.Simulation.World;
@@ -129,7 +130,11 @@ internal static class NormalPathWorld
                     { Voters = election.Voters.Select(ReplaceFounder).ToArray() }).ToArray(),
                 } : null,
             }).ToArray(),
-            Events = placed.Events.Select(entry => entry with { Detail = ReplaceFounder(entry.Detail) }).ToArray(),
+            Events = placed.Events.Select(entry => entry with
+            {
+                Payload = JsonSerializer.Deserialize<WorldEventPayload>(
+                    ReplaceFounder(JsonSerializer.Serialize(entry.Payload, JsonSerializerOptions.Web)), JsonSerializerOptions.Web)!,
+            }).ToArray(),
         };
     }
 
