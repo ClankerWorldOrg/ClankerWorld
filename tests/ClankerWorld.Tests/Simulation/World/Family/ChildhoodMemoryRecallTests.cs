@@ -71,8 +71,8 @@ public sealed class ChildhoodMemoryRecallTests
         Assert.Contains(chooser.Observations, observation => observation.Candidates.Any(candidate => candidate.Id == choice));
         var memory = Assert.Single(world.Society.Memories, memory => memory.OwnerId == child);
         Assert.Equal(parent, memory.SubjectId);
-        Assert.StartsWith($"child-social:{kind}:", memory.Id);
-        Assert.InRange(memory.Id.Length, 1, 128);
+        Assert.StartsWith($"child-social:{kind}:", memory.Id.Value);
+        Assert.InRange(memory.Id.Value.Length, 1, 128);
         using var replay = WorldRuntime.Restore(state,
             id => id == child ? new SocialProvider(choice) : new ActionCoverageRecorder(chooseIdle: true));
         while (replay.WorldTick < world.WorldTick)
@@ -82,7 +82,7 @@ public sealed class ChildhoodMemoryRecallTests
         Assert.True(world.RenameAgent(child, chosen));
         var rename = Assert.Single(world.Society.Memories, item => item.OwnerId == child && item.Permanent);
         Assert.Equal(child, rename.SubjectId);
-        Assert.InRange(rename.Id.Length, 1, 128);
+        Assert.InRange(rename.Id.Value.Length, 1, 128);
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         var recall = new SocialProvider("safe_idle");
         using var restored = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved),
@@ -115,13 +115,15 @@ public sealed class ChildhoodMemoryRecallTests
     {
         using var seed = new WorldRuntime("child-memory-validation");
         var state = seed.ExportState();
-        var valid = new SocietySocialMemory("valid-memory", "founder-scout", "founder-mira", "A shared game.", "public", 0);
+        var valid = new SocietySocialMemory(Identity.Parse("valid-memory"), "founder-scout", "founder-mira", "A shared game.", "public", 0);
+        Assert.Throws<ArgumentException>(() => Identity.Parse(new string('x', 129)));
+        Assert.Throws<ArgumentException>(() => Identity.Parse("control\0memory"));
         var memories = new[]
         {
             valid,
-            valid with { Id = new string('x', 129) },
-            valid with { Id = " padded-memory" },
-            valid with { Id = "control\u0001memory" },
+            valid with { Id = Identity.ParseStoredMemory(new string('x', 129)) },
+            valid with { Id = Identity.ParseStoredMemory("control\0memory") },
+            valid with { Id = Identity.Parse(" padded-memory") },
         };
         state = state with
         {
@@ -129,7 +131,7 @@ public sealed class ChildhoodMemoryRecallTests
             RoutineHelper = RoutineHelperSettings.Off,
             Society = state.Society with
             {
-                Society = state.Society.Society with { Memories = memories.OrderBy(item => item.Id, StringComparer.Ordinal).ToArray() },
+                Society = state.Society.Society with { Memories = memories.OrderBy(item => item.Id.Value, StringComparer.Ordinal).ToArray() },
             },
         };
         var capture = new SocialProvider("safe_idle");
@@ -138,8 +140,8 @@ public sealed class ChildhoodMemoryRecallTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var observation = Assert.Single(capture.Observations);
         observation.Validate();
-        Assert.Equal(valid.Id, Assert.Single(observation.RetrievedMemories!).Id);
-        Assert.Equal(memories.OrderBy(item => item.Id, StringComparer.Ordinal), world.Society.Memories);
+        Assert.Equal(valid.Id.Value, Assert.Single(observation.RetrievedMemories!).Id);
+        Assert.Equal(memories.OrderBy(item => item.Id.Value, StringComparer.Ordinal), world.Society.Memories);
     }
 
     private sealed class SocialProvider(string choice) : IDecisionProvider

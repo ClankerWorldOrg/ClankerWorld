@@ -67,7 +67,10 @@ public sealed record OwnerWorldBoat(string Id, string TownId, string TownName, O
 public sealed record OwnerWorldBoatTripRequest(string Id, long Sequence, string PassengerId, string PassengerName,
     string BoatTownId, string OriginPortId, string DestinationPortId, string Status, string? BoatId);
 
-public sealed record OwnerWorldGroundStock(OwnerWorldPosition Position, string OwnerId, string Kind, int Quantity);
+public sealed record OwnerWorldGroundStock(OwnerWorldPosition Position, string OwnerId, string Kind, int Quantity)
+{
+    public string OwnerName { get; init; } = "Unknown owner";
+}
 
 public sealed record OwnerWorldObject(string Id, string Kind, OwnerWorldPosition Position);
 
@@ -221,7 +224,10 @@ public sealed record OwnerLandTransfer(string Id, string FilerId, string FilerNa
     public OwnerLandSalePrice? Price { get; init; }
     public OwnerLandSalePayment? Payment { get; init; }
 }
-public sealed record OwnerLandSalePrice(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity);
+public sealed record OwnerLandSalePrice(string SellerHouseholdId, string SellerHouseholdName, string ItemKind, int Quantity)
+{
+    public string ItemName { get; init; } = "goods";
+}
 public sealed record OwnerLandSalePayment(string BuyerAgentId, string BuyerName, string SellerAgentId, string SellerName,
     OwnerWorldPosition Position, long Tick);
 

@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -114,8 +115,10 @@ public sealed class KnowledgeOrderTests
         AssertReload(world.ExportState());
     }
 
-    [Fact]
-    public async Task QueuedWritingStartsAfterTheActiveOrderAndCreditsItsOwnItem()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task QueuedWritingStartsAfterTheActiveOrderAndCreditsItsOwnItem(bool replace)
     {
         var state = await Prepared();
         var actor = state.Agents[0].AgentId;
@@ -126,6 +129,14 @@ public sealed class KnowledgeOrderTests
         var second = Submit(world, "second-writing", "draw a map", queue: true);
         Assert.Equal("queued", Order(world, second).Status);
         Assert.Equal(JsonSerializer.Serialize(project), JsonSerializer.Serialize(Assert.Single(world.ExportState().Knowledge!.WritingProjects)));
+        if (replace)
+        {
+            var original = first;
+            first = Submit(world, "replacement", "write a record");
+            Assert.Equal("cancelled", Order(world, original).Status);
+            Assert.Equal("queued", Order(world, second).Status);
+            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        }
         AssertReload(world.ExportState());
         await FinishTogether(world, first);
         Assert.Equal(0, Order(world, second).CompletedUnits);
@@ -229,7 +240,7 @@ public sealed class KnowledgeOrderTests
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
                 { Task = item.Task!.UpdateDefinition(definition => definition switch { WriteKnowledgeOrderDefinition task => task with { TargetKnowledgeKind = "field_map" }, CopyKnowledgeOrderDefinition task => task with { TargetKnowledgeKind = "field_map" }, _ => throw new InvalidOperationException() }) } : item).ToArray() },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
-                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = "writing:artifact:knowledge-artifact-000001", RepeatUntilCancelled = true } } : item).ToArray() },
+                { Task = item.Task! with { CompletedUnits = 1, LastEffectId = Identity.Parse("writing:artifact:knowledge-artifact-000001"), RepeatUntilCancelled = true } } : item).ToArray() },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(broken));
         AssertReload(working);
     }

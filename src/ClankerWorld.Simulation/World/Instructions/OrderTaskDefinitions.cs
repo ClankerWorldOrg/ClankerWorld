@@ -89,7 +89,7 @@ public abstract record MaterialOrderFamilyDefinition : OrderTaskDefinition
                         order.Status != "not_understood" &&
                         (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                         (order.QuantityIsExplicit ? order.ProgressUnit == "material_items" : order.ProgressUnit == "harvests" && order.RequestedUnits == 1) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("gather:material:", StringComparison.Ordinal) == true);
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("gather:material:", StringComparison.Ordinal) == true);
     }
 }
 
@@ -173,8 +173,8 @@ public abstract record KnowledgeOrderFamilyDefinition : OrderTaskDefinition
                         (order.KnowledgeWritingProjectId is null || !terminal && order.Status != "queued" &&
                             WorldRuntime.IsValidProductionBindingId(order.KnowledgeWritingProjectId)) &&
                         (order.CompletedUnits == 0 ? order.LastEffectId is null :
-                            order.LastEffectId is { } receipt && receipt.StartsWith("writing:artifact:", StringComparison.Ordinal) &&
-                            receipt.Length <= DerivedId.MaximumLength && WorldRuntime.IsValidProductionBindingId(receipt["writing:artifact:".Length..]));
+                            order.LastEffectId is { } receipt && receipt.Value.StartsWith("writing:artifact:", StringComparison.Ordinal) &&
+                            receipt.Value.Length <= DerivedId.MaximumLength && WorldRuntime.IsValidProductionBindingId(receipt.Value["writing:artifact:".Length..]));
     }
 }
 
@@ -213,7 +213,7 @@ public abstract record AnimalOrderFamilyDefinition : OrderTaskDefinition
                         order.TargetResourceId is null && order.TargetAgentId is null && order.TargetPosition is null &&
                         order.Status != "not_understood" &&
                         (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits == 1) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("animal-order:", StringComparison.Ordinal) == true);
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("animal-order:", StringComparison.Ordinal) == true);
     }
 }
 
@@ -366,7 +366,7 @@ public abstract record FieldOrderFamilyDefinition : OrderTaskDefinition
                         (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
                         order.Status != "not_understood" &&
                         (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("field:work:", StringComparison.Ordinal) == true);
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("field:work:", StringComparison.Ordinal) == true);
     }
 }
 
@@ -383,7 +383,7 @@ public abstract record RepairOrderFamilyDefinition : OrderTaskDefinition
                         (order.RepeatUntilCancelled || order.CompletedUnits <= order.RequestedUnits) &&
                         order.Status != "not_understood" &&
                         (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith(order.Action == "repair_tool" ? "repair:tool:" : "repair:equipment:", StringComparison.Ordinal) == true);
     }
 }
 
@@ -409,7 +409,7 @@ public abstract record CollectionOrderFamilyDefinition : OrderTaskDefinition
                             "collect_equipment" => "equipment_items",
                             _ => "material_items",
                         }) : order.ProgressUnit == "collection_loads" && order.RequestedUnits == 1) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("collect:personal:", StringComparison.Ordinal) == true);
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("collect:personal:", StringComparison.Ordinal) == true);
     }
 }
 
@@ -429,7 +429,7 @@ public abstract record StorageOrderFamilyDefinition : OrderTaskDefinition
                         (order.Status == "finished") == (!order.RepeatUntilCancelled && order.CompletedUnits >= order.RequestedUnits) &&
                         (order.QuantityIsExplicit ? order.ProgressUnit == (order.Action == "store_equipment" ? "equipment_items" : "material_items")
                             : order.ProgressUnit == "storage_loads" && order.RequestedUnits == 1) &&
-                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.StartsWith("store:personal:", StringComparison.Ordinal) == true);
+                        (order.CompletedUnits == 0 ? order.LastEffectId is null : order.LastEffectId?.Value.StartsWith("store:personal:", StringComparison.Ordinal) == true);
     }
 }
 

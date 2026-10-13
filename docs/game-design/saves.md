@@ -2,7 +2,7 @@
 title: Saving and recovery
 type: game-design
 status: active
-updated: 2026-10-08
+updated: 2026-10-13
 ---
 
 # Saving and recovery
@@ -42,9 +42,9 @@ everything that is available in the current build. See [what works today](../wha
   of play. If the latest saved state is damaged, a recovery screen on restart
   offers the last good autosave.
 - The player must be able to **intentionally overwrite an existing named
-  manual save** rather than accumulating a new checkpoint every time. In Save
-  World, select an existing checkpoint and confirm overwriting that specific
-  checkpoint; creating a new save remains a separate action. Typing a matching
+  manual save** rather than accumulating a new save every time. In Save
+  World, select an existing save and confirm overwriting that specific
+  save; creating a new save remains a separate action. Typing a matching
   name alone must not replace an existing save. **Agreed on October 8
   ([#1275](https://github.com/compoodment/ClankerWorld/issues/1275)):**
   overwriting keeps a visible **Before overwriting** copy of the replaced save
@@ -100,7 +100,7 @@ everything that is available in the current build. See [what works today](../wha
 playtest worlds to remain loadable as the New World flow and save format change;
 they expect to create fresh worlds to test new features. No migration code is
 written only to keep an alpha save loading. An alpha build opens world
-saves only when they use its current checkpoint schema; an older schema is
+saves only when they use its current save format; an older format is
 refused with a reason and its file is kept unchanged. This is not permission to
 delete or overwrite a save. Finished stable releases follow the migration rule
 above.

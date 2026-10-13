@@ -539,17 +539,12 @@ public sealed partial class WorldRuntime
 
             var completed = CompleteProductionJob(job, recipe, targetTick);
 
-            worldSimulation = new WorldContentSimulationState(
-                worldSimulation.Buildings,
-                worldSimulation.ProductionJobs
-                    .Select(candidate => candidate.JobId == job.JobId
-                        ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled }
-                        : candidate)
-                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal)
-                    .ToArray(),
-                worldSimulation.NextProductionJobSequence,
-                worldSimulation.CropBuilds, worldSimulation.BuildingExpansions, worldSimulation.GuestInvitations,
-                worldSimulation.ConstructionReceipts);
+            worldSimulation = worldSimulation with
+            {
+                ProductionJobs = worldSimulation.ProductionJobs.Select(candidate => candidate.JobId == job.JobId
+                    ? candidate with { State = completed ? WorldProductionJobState.Completed : WorldProductionJobState.Cancelled } : candidate)
+                    .OrderBy(candidate => candidate.JobId, StringComparer.Ordinal).ToArray(),
+            };
             if (completed && HouseToolsContent.IsCrudeToolRecipe(recipe))
                 AppendEvent(new HouseToolMadeEventPayload(job.WorkerId, recipe.Outputs.Single().ResourceId), worldSimulation.Buildings.FirstOrDefault(building => building.InstanceId == job.BuildingInstanceId)?.Position);
             else

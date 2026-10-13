@@ -150,7 +150,7 @@ public sealed class LearningTests
         }
         Assert.Equal(SocietyWorkRole.Trader, restored.Society.GetAgent(learner).CurrentRole);
         Assert.Equal("completed", restored.Agents.Single(person => person.AgentId == learner).Lesson!.Stage);
-        Assert.Contains(restored.Society.Memories, memory => memory.OwnerId == learner && memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
+        Assert.Contains(restored.Society.Memories, memory => memory.OwnerId == learner && memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal));
         var completed = restored.Agents.Single(person => person.AgentId == learner);
         var skill = Assert.Single(completed.Skills!);
         Assert.Equal(SkillKind.Building, skill.Kind);

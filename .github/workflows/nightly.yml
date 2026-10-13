@@ -29,6 +29,39 @@ env:
   KEEP_NIGHTLIES: 7
 
 jobs:
+  choice-invariants:
+    # Run even when release packaging skips an unchanged main commit.
+    if: github.repository == 'ClankerWorldOrg/ClankerWorld'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      CLANKERWORLD_CHOICE_SEED: '1815'
+      CLANKERWORLD_CHOICE_SEEDS: '4'
+      CLANKERWORLD_CHOICE_TICKS: '32'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet restore tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj --locked-mode
+      - name: Test every offered choice across hard-world seeds and ticks
+        run: >-
+          dotnet test tests/ClankerWorld.Tests/ClankerWorld.Tests.csproj
+          -c Release --no-restore --filter FullyQualifiedName~OfferedChoiceInvariantTests
+          --logger 'trx;LogFileName=choice-invariants.trx'
+          --results-directory .evidence/choice-invariants
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-choice-invariants
+          path: .evidence/choice-invariants
+          if-no-files-found: ignore
+
   nightly:
     if: github.repository == 'ClankerWorldOrg/ClankerWorld'
     runs-on: ubuntu-latest

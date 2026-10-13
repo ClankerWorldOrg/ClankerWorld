@@ -21,6 +21,7 @@ public sealed record LocalServerLayout(
     string DataDirectory)
 {
     public string SecretPath => Path.Combine(DataDirectory, "server", "launch.secret");
+    public string StartupLockPath => Path.Combine(DataDirectory, "server", "startup.lock");
     public string LogPath => Path.Combine(DataDirectory, "logs", "server.log");
     /// <summary>The log of the launch before this one, kept so a crash can still be reported.</summary>
     public string PreviousLogPath => Path.Combine(DataDirectory, "logs", "server.previous.log");
@@ -29,17 +30,16 @@ public sealed record LocalServerLayout(
     public string SettingsDirectory => Path.Combine(DataDirectory, "settings");
 
     /// <summary>
-    /// Finds the world server that the package.json beside the game names. A
+    /// Finds the world server named by the game's package root. A
     /// development build or a server-only setup has none, and keeps
     /// connecting to whatever server the player chose.
     /// </summary>
     public static LocalServerLayout? FindBundled(string gameExecutablePath, string localApplicationData)
     {
-        var gameDirectory = Path.GetDirectoryName(Path.GetFullPath(gameExecutablePath));
-        if (gameDirectory is null || string.IsNullOrWhiteSpace(localApplicationData) ||
-            PackageEntryPoints.ReadInstalled(gameDirectory) is not { } entryPoints)
+        if (string.IsNullOrWhiteSpace(localApplicationData) ||
+            PackageEntryPoints.FindInstalledForGame(gameExecutablePath) is not { } package)
             return null;
-        var serverExecutable = Path.Combine(gameDirectory, entryPoints.Server);
+        var serverExecutable = Path.Combine(package.Directory, package.EntryPoints.Server);
         return File.Exists(serverExecutable)
             ? new LocalServerLayout(serverExecutable, [], Path.GetDirectoryName(serverExecutable)!,
                 Path.Combine(localApplicationData, "ClankerWorld"))
@@ -189,6 +189,7 @@ public sealed class LocalServer : IAsyncDisposable
     private Uri ApprovalOrigin => new($"http://127.0.0.1:{approvalPort}/");
 
     public bool StartedServer => process is not null;
+    internal int? StartedServerProcessId => process?.Id;
 
     public LocalServerLayout Layout => layout;
 
@@ -196,6 +197,44 @@ public sealed class LocalServer : IAsyncDisposable
     public IReadOnlyCollection<string> SecretsToHide() => secret is null ? [] : [secret];
 
     public async Task<LocalServerStart> StartAsync(string expectedVersion, string expectedRevision,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        FileStream startup;
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(layout.StartupLockPath)!);
+            var options = new FileStreamOptions
+            {
+                Mode = FileMode.OpenOrCreate,
+                Access = FileAccess.ReadWrite,
+                Share = FileShare.None,
+            };
+            if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+            startup = new FileStream(layout.StartupLockPath, options);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Another game may still be starting its companion. Refuse before
+            // probing or changing its secret, log or process. Keep the lock file:
+            // deleting it would let another opener lock a different file.
+            return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
+        }
+        using (startup)
+        {
+            try { return await StartExclusiveAsync(expectedVersion, expectedRevision, cancellationToken); }
+            catch (OperationCanceledException)
+            {
+                // Finish our child's stop attempt before releasing startup ownership.
+                // A refused shutdown preserves its paused world for retry;
+                // a reused server belongs to another launch.
+                if (process is not null) await StopAsync(CancellationToken.None);
+                throw;
+            }
+        }
+    }
+
+    private async Task<LocalServerStart> StartExclusiveAsync(string expectedVersion, string expectedRevision,
         CancellationToken cancellationToken)
     {
         if (process is { HasExited: false }) return new LocalServerStart(LocalServerStartOutcome.Started);
@@ -225,16 +264,30 @@ public sealed class LocalServer : IAsyncDisposable
             await Task.Delay(250, cancellationToken);
         }
 
+        byte[]? previousSecret = null;
+        var secretWritten = false;
         try
         {
+            if (File.Exists(layout.SecretPath)) previousSecret = File.ReadAllBytes(layout.SecretPath);
             secret = WriteFreshSecret();
+            secretWritten = true;
             process = Launch();
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
             System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            await StopLoggingAsync();
-            process = null;
+            if (process is { HasExited: false } running)
+            {
+                running.Kill(entireProcessTree: true);
+                await running.WaitForExitAsync(CancellationToken.None);
+            }
+            await ForgetProcessAsync();
+            if (secretWritten)
+            {
+                if (previousSecret is null) File.Delete(layout.SecretPath);
+                else WriteSecret(previousSecret);
+            }
+            secret = null;
             return new LocalServerStart(LocalServerStartOutcome.CouldNotStart, exception.GetType().Name);
         }
 
@@ -413,17 +466,28 @@ public sealed class LocalServer : IAsyncDisposable
     {
         var value = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        WriteSecret(System.Text.Encoding.UTF8.GetBytes(value));
+        return value;
+    }
+
+    private void WriteSecret(byte[] bytes)
+    {
         Directory.CreateDirectory(Path.GetDirectoryName(layout.SecretPath)!);
         // The player's own data folder is private to their Windows account.
         // Elsewhere, restrict the file to this user before writing the value.
-        var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
+        var temporary = layout.SecretPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
         if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
-        using (var file = new FileStream(layout.SecretPath, options))
-        using (var writer = new StreamWriter(file))
+        try
         {
-            writer.Write(value);
+            using (var file = new FileStream(temporary, options))
+            {
+                file.Write(bytes);
+                file.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, layout.SecretPath, overwrite: true);
         }
-        return value;
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
 
     private Process Launch()
@@ -448,6 +512,7 @@ public sealed class LocalServer : IAsyncDisposable
         started.OutputDataReceived += (_, line) => WriteLog(line.Data);
         started.ErrorDataReceived += (_, line) => WriteLog(line.Data);
         if (!started.Start()) throw new InvalidOperationException("The host process did not start.");
+        process = started;
         started.BeginOutputReadLine();
         started.BeginErrorReadLine();
         return started;

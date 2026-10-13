@@ -59,6 +59,7 @@ public sealed partial class ManualWorldSaveStore
     private const string LegacyBranchKey = "";
     private readonly object gate;
     private readonly string directory;
+    private readonly WorldStateFile stateFile;
     private readonly ILogger<ManualWorldSaveStore>? logger;
     private readonly HashSet<string> reportedInvalidMetadata = new(StringComparer.Ordinal);
 
@@ -66,6 +67,7 @@ public sealed partial class ManualWorldSaveStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(activeSavePath);
         directory = Path.GetFullPath(activeSavePath) + ".manual";
+        stateFile = new WorldStateFile(activeSavePath);
         this.logger = logger;
         gate = mutationGate ?? new object();
     }
@@ -95,6 +97,7 @@ public sealed partial class ManualWorldSaveStore
         ArgumentNullException.ThrowIfNull(assignments);
         lock (gate)
         {
+            RequireNoPendingLoad();
             var state = runtime.ExportState();
             if (!state.Society.Society.IsPaused)
                 throw new InvalidOperationException("Pause the world before overwriting a manual save.");
@@ -181,6 +184,7 @@ public sealed partial class ManualWorldSaveStore
         name = NormalizeName(name);
         lock (gate)
         {
+            RequireNoPendingLoad();
             var state = runtime.ExportState();
             if (!isAutosave && !state.Society.Society.IsPaused)
                 throw new InvalidOperationException("Pause the world before making a manual save.");
@@ -425,6 +429,7 @@ public sealed partial class ManualWorldSaveStore
         if (!IsId(id)) throw new ArgumentException("Invalid save ID.", nameof(id));
         lock (gate)
         {
+            RequireNoPendingLoad();
             var intent = Path.Combine(directory, id + ".deleting.json");
             var source = File.Exists(intent) ? intent : MetadataPath(id);
             var metadata = ReadDeletionMetadata(source, id);
@@ -440,6 +445,7 @@ public sealed partial class ManualWorldSaveStore
     {
         lock (gate)
         {
+            RequireNoPendingLoad();
             if (!Directory.Exists(directory)) return;
             var foreignSaveIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var path in Directory.GetFiles(directory, "*.json"))
@@ -560,25 +566,39 @@ public sealed partial class ManualWorldSaveStore
         if (count is < 1 or > 10) throw new ArgumentOutOfRangeException(nameof(count));
         lock (gate)
         {
+            RequireNoPendingLoad();
             // Each branch keeps its own newest autosaves, so playing one branch
             // never retires another branch's history. Unknown histories stay
             // recoverable rather than being merged into the pre-branch group.
-            var candidates = List(worldId).Where(item => item.IsAutosave && !ReadMetadata(item.Id).HasInvalidBranchMetadata)
-                .GroupBy(item => item.Branch?.Id ?? LegacyBranchKey, StringComparer.Ordinal)
-                .SelectMany(branch => branch.Where(item => item.Id != preserveId)
+            var branches = List(worldId).Where(item => item.IsAutosave && !ReadMetadata(item.Id).HasInvalidBranchMetadata)
+                .GroupBy(item => item.Branch?.Id ?? LegacyBranchKey, StringComparer.Ordinal);
+            foreach (var branch in branches)
+            {
+                var verifiedCount = 0;
+                foreach (var save in branch
                     // Branch positions keep creation order when the clock moves backwards.
                     // Genuine pre-branch saves have position zero and keep their UTC ordering.
                     .OrderByDescending(item => item.BranchPosition)
                     .ThenByDescending(item => item.CreatedUtc)
-                    .ThenBy(item => item.Id, StringComparer.Ordinal)
-                    .Skip(branch.Any(item => item.Id == preserveId) ? count - 1 : count))
-                .ToArray();
-            foreach (var old in candidates)
-            {
-                // The new snapshot is already durable before older rotations
-                // are retired. Named manual saves are never included here.
-                File.Delete(MetadataPath(old.Id));
-                File.Delete(StatePath(old.Id));
+                    .ThenBy(item => item.Id, StringComparer.Ordinal))
+                {
+                    var metadata = ReadMetadata(save.Id);
+                    try
+                    {
+                        VerifyCheckpoint(File.ReadAllBytes(CommittedStatePath(save.Id, metadata)), metadata.WorldId, stateFile);
+                    }
+                    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or
+                        InvalidDataException or JsonException or ArgumentException)
+                    {
+                        if (logger is not null)
+                            ManualWorldSaveTelemetry.UnverifiedAutosaveRetained(logger, save.Id, exception.GetType().Name);
+                        continue;
+                    }
+                    // Damaged copies neither rotate nor displace a usable predecessor.
+                    // A pinned older copy may exceed the count, just as in recovery cleanup.
+                    if (++verifiedCount > count && save.Id != preserveId)
+                        Delete(save.Id, metadata.WorldId!, save.CreatedUtc);
+                }
             }
         }
     }

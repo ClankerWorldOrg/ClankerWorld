@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Globalization;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -65,7 +66,7 @@ public sealed partial class WorldExpansionOrderTests
         Assert.Equal(stoneBefore - stoneCost, Quantity(world, "stone"));
         Assert.All(job.InputReservationIds, id => Assert.Equal(InventoryReservationState.Completed,
             world.Society.Inventory.GetReservation(id).State));
-        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId, StringComparison.Ordinal);
+        Assert.StartsWith("expand:job:", Order(world, receipt).LastEffectId?.Value, StringComparison.Ordinal);
         Assert.Single(world.ExportState().Events, item => item.Kind == "building_expanded");
         await TickTogether(world, replay);
         Assert.Single(world.WorldSimulation.BuildingExpansions!);

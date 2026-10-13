@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
+using System.Text;
 using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -12,8 +14,8 @@ namespace ClankerWorld.Tests;
 
 public sealed class NewbornModelBindingCheckpointTests
 {
-    private const string First = "founder:00000000000000000000000000000001";
-    private const string Second = "founder:00000000000000000000000000000002";
+    private const string First = NormalPathWorld.Founder1;
+    private const string Second = NormalPathWorld.Founder2;
     private static readonly ConcurrentDictionary<(int SeedSuffix, bool SeedIdentified), Lazy<Task<byte[]>>> Prepared = new();
 
     [Theory]
@@ -125,6 +127,182 @@ public sealed class NewbornModelBindingCheckpointTests
 
     internal static Task<byte[]> BeforeBirth(int seedSuffix) => BeforeBirth(seedSuffix, seedIdentified: true);
 
+    [Theory]
+    [InlineData(false, false, WorldTickFailurePolicy.RefuseSingleAction)]
+    [InlineData(true, false, WorldTickFailurePolicy.RefuseSingleAction)]
+    [InlineData(true, true, WorldTickFailurePolicy.RefuseSingleAction)]
+    [InlineData(true, true, WorldTickFailurePolicy.Strict)]
+    public async Task ShutdownPreservesThePendingNewbornCredentialThroughRestart(
+        bool rotateDefault, bool refuseShutdownFirst, WorldTickFailurePolicy failurePolicy)
+    {
+        var state = WorldRuntimeCodec.Decode(await Prepared.GetOrAdd((9, true),
+            fixture => new(() => BeforeBirth(fixture.SeedSuffix, fixture.SeedIdentified))).Value);
+        var directory = Directory.CreateTempSubdirectory("newborn-shutdown-recovery-");
+        try
+        {
+            var providerDirectory = Path.Combine(directory.FullName, "providers");
+            var providerPath = Path.Combine(providerDirectory, "choices.json");
+            const string originalKey = "synthetic-birth-default-key";
+            const string replacementKey = "synthetic-replacement-default-key";
+            var expectedDigest = SHA256.HashData(Encoding.UTF8.GetBytes(originalKey));
+            var providers = new ProviderConfigurationStore(providerPath,
+                new("openai", null, null, "synthetic-model", originalKey, null, null));
+            foreach (var parent in new[] { First, Second })
+                providers.Configure(new("personal", "openai", "synthetic-model", null, false, parent));
+            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
+            var presence = new OwnerClientPresenceLease(TimeSpan.FromHours(1));
+            presence.RecordAuthenticatedReconnect("test-owner");
+            var logger = new RecordingLogger<WorldRuntimeService>();
+            using var world = WorldRuntime.Restore(state, Providers);
+            file.Save(world);
+            Directory.Move(providerDirectory, providerDirectory + ".held");
+            File.WriteAllText(providerDirectory, "Controlled provider write refusal.");
+            using var service = new WorldRuntimeService(world, file, presence, logger,
+                providers: providers, failurePolicy: failurePolicy);
+            Assert.False(await service.TryAdvanceOnceAsync());
+            Assert.True(world.Society.IsPaused);
+            var childId = Assert.Single(world.Society.Births).ChildId;
+            var selection = world.Agents.Single(person => person.AgentId == childId).ChildModelSelection!;
+            var birthTick = world.WorldTick;
+            Assert.Equal(selection, WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path))
+                .Agents.Single(person => person.AgentId == childId).ChildModelSelection);
+            Assert.DoesNotContain(providers.CaptureRuntimeConfiguration().CredentialSlots ?? [],
+                slot => slot.Id == selection.CredentialSlotId);
+            if (refuseShutdownFirst)
+            {
+                var checkpoint = File.ReadAllBytes(file.Path);
+                Assert.Equal(ShutdownSaveOutcome.WriteFailed, service.SaveBeforeShutdown(pauseWorld: true));
+                Assert.Equal(checkpoint, File.ReadAllBytes(file.Path));
+                Assert.Equal(birthTick, world.WorldTick);
+                Assert.True(world.Society.IsPaused);
+            }
+            File.Delete(providerDirectory);
+            Directory.Move(providerDirectory + ".held", providerDirectory);
+            if (rotateDefault)
+                providers.Configure(new("planning", "openai", "synthetic-model", replacementKey, false));
+
+            Assert.Equal(ShutdownSaveOutcome.Saved, service.SaveBeforeShutdown(pauseWorld: true));
+
+            var saved = File.ReadAllBytes(file.Path);
+            Assert.DoesNotContain(originalKey, Encoding.UTF8.GetString(saved), StringComparison.Ordinal);
+            Assert.DoesNotContain(replacementKey, Encoding.UTF8.GetString(saved), StringComparison.Ordinal);
+            using var restarted = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), Providers);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(restarted.ExportState()));
+            Assert.Equal(birthTick, restarted.WorldTick);
+            Assert.True(restarted.Society.IsPaused);
+            Assert.Equal(selection, restarted.Agents.Single(person => person.AgentId == childId).ChildModelSelection);
+            var reopened = new ProviderConfigurationStore(providerPath, EmptySeed());
+            var configuration = reopened.CaptureRuntimeConfiguration();
+            var slot = Assert.Single(configuration.CredentialSlots ?? [], item => item.Id == selection.CredentialSlotId);
+            Assert.Equal(expectedDigest, SHA256.HashData(Encoding.UTF8.GetBytes(slot.ApiKey)));
+            var rows = configuration.Assignments!.Where(item => item.AgentId == childId).ToArray();
+            Assert.Equal(new[] { PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.RoutineRole }.Order(),
+                rows.Select(row => row.Role).Order());
+            Assert.All(rows, row =>
+            {
+                Assert.Equal(selection.CredentialSlotId, row.CredentialSlotId);
+                Assert.Equal(selection.Provider, row.Provider);
+                Assert.Equal(selection.ModelId, row.Model);
+                Assert.Equal(selection.ChoiceReason, row.SelectionReason);
+            });
+            using var restartedService = new WorldRuntimeService(restarted, file, presence, logger,
+                providers: reopened, failurePolicy: failurePolicy);
+            Assert.False(await restartedService.TryAdvanceOnceAsync());
+            Assert.Equal(configuration.Revision, reopened.CaptureRuntimeConfiguration().Revision);
+            Assert.Equal(saved, File.ReadAllBytes(file.Path));
+            restarted.Resume();
+            Assert.True(await restartedService.TryAdvanceOnceAsync(), string.Join("\n", logger.Messages));
+            Assert.Single(restarted.Society.Births);
+            Assert.Equal(selection, restarted.Agents.Single(person => person.AgentId == childId).ChildModelSelection);
+            Assert.Equal(configuration.Revision, reopened.CaptureRuntimeConfiguration().Revision);
+            using var final = WorldRuntime.Restore(WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path)), Providers);
+            Assert.Equal(File.ReadAllBytes(file.Path), WorldRuntimeCodec.Encode(final.ExportState()));
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    [Theory]
+    [InlineData(WorldTickFailurePolicy.RefuseSingleAction)]
+    [InlineData(WorldTickFailurePolicy.Strict)]
+    public async Task ShutdownAtTheCommittedBirthBoundaryKeepsTheFrozenOriginalKey(WorldTickFailurePolicy failurePolicy)
+    {
+        var state = WorldRuntimeCodec.Decode(await Prepared.GetOrAdd((9, true),
+            fixture => new(() => BeforeBirth(fixture.SeedSuffix, fixture.SeedIdentified))).Value);
+        var directory = Directory.CreateTempSubdirectory("newborn-shutdown-boundary-");
+        try
+        {
+            var providerPath = Path.Combine(directory.FullName, "providers", "choices.json");
+            const string originalKey = "synthetic-birth-default-key";
+            const string replacementKey = "synthetic-replacement-default-key";
+            var providers = new ProviderConfigurationStore(providerPath,
+                new("openai", null, null, "synthetic-model", originalKey, null, null));
+            foreach (var parent in new[] { First, Second })
+                providers.Configure(new("personal", "openai", "synthetic-model", null, false, parent));
+            var file = new WorldStateFile(Path.Combine(directory.FullName, "world.json"));
+            var presence = new OwnerClientPresenceLease(TimeSpan.FromHours(1));
+            presence.RecordAuthenticatedReconnect("test-owner");
+            using var world = WorldRuntime.Restore(state, Providers);
+            file.Save(world);
+            WorldRuntimeService? service = null;
+            ShutdownSaveOutcome? shutdown = null;
+            long publishedRevision = -1;
+            var logger = new ShutdownBoundaryLogger(() =>
+            {
+                Assert.Single(world.Society.Births);
+                providers.Configure(new("planning", "openai", "synthetic-model", replacementKey, false));
+                shutdown = service!.SaveBeforeShutdown(pauseWorld: true);
+                publishedRevision = providers.CaptureRuntimeConfiguration().Revision;
+            });
+            using var advancing = new WorldRuntimeService(world, file, presence, logger,
+                providers: providers, failurePolicy: failurePolicy);
+            service = advancing;
+            Assert.True(await advancing.TryAdvanceOnceAsync());
+            Assert.True(logger.Reached);
+            Assert.Equal(ShutdownSaveOutcome.Saved, shutdown);
+
+            var saved = File.ReadAllBytes(file.Path);
+            Assert.DoesNotContain(originalKey, Encoding.UTF8.GetString(saved), StringComparison.Ordinal);
+            Assert.DoesNotContain(replacementKey, Encoding.UTF8.GetString(saved), StringComparison.Ordinal);
+            using var restarted = WorldRuntime.Restore(WorldRuntimeCodec.Decode(saved), Providers);
+            Assert.Equal(saved, WorldRuntimeCodec.Encode(restarted.ExportState()));
+            Assert.Equal(world.WorldTick, restarted.WorldTick);
+            Assert.True(restarted.Society.IsPaused);
+            var childId = Assert.Single(restarted.Society.Births).ChildId;
+            var selection = restarted.Agents.Single(person => person.AgentId == childId).ChildModelSelection!;
+            Assert.Equal(selection, world.Agents.Single(person => person.AgentId == childId).ChildModelSelection);
+            var configuration = new ProviderConfigurationStore(providerPath, EmptySeed()).CaptureRuntimeConfiguration();
+            Assert.Equal(publishedRevision, configuration.Revision);
+            var slot = Assert.Single(configuration.CredentialSlots ?? [], item => item.Id == selection.CredentialSlotId);
+            Assert.Equal(SHA256.HashData(Encoding.UTF8.GetBytes(originalKey)),
+                SHA256.HashData(Encoding.UTF8.GetBytes(slot.ApiKey)));
+            var rows = configuration.Assignments!.Where(item => item.AgentId == childId).ToArray();
+            Assert.Equal(new[] { PlayerDecisionProviders.PlanningRole, PlayerDecisionProviders.RoutineRole }.Order(),
+                rows.Select(row => row.Role).Order());
+            Assert.All(rows, row =>
+            {
+                Assert.Equal(selection.CredentialSlotId, row.CredentialSlotId);
+                Assert.Equal(selection.Provider, row.Provider);
+                Assert.Equal(selection.ModelId, row.Model);
+                Assert.Equal(selection.ChoiceReason, row.SelectionReason);
+            });
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    private sealed class ShutdownBoundaryLogger(Action shutdown) : Microsoft.Extensions.Logging.ILogger<WorldRuntimeService>
+    {
+        public bool Reached { get; private set; }
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel level) => true;
+        public void Log<TState>(Microsoft.Extensions.Logging.LogLevel level, Microsoft.Extensions.Logging.EventId eventId,
+            TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            if (Reached || !formatter(state, exception).Contains("world_tick_gate state=advancing", StringComparison.Ordinal)) return;
+            Reached = true;
+            shutdown();
+        }
+    }
+
     [Fact]
     public async Task FailedLiveBirthCheckpointRetainsTheFrozenDefaultCredentialUntilRecovery()
     {
@@ -215,9 +393,10 @@ public sealed class NewbornModelBindingCheckpointTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var plan = world.Agents.Single(person => person.AgentId == First).Parenthood!;
         Assert.Equal("preparing", plan.Stage);
-        // Advance the real waiting ticks; no clock, preparation or birth is fabricated.
-        while (world.WorldTick < plan.LastTransitionTick + 599)
-            Assert.True((await world.AdvanceOneTickAsync()).Advanced);
+        // Binding starts at the native birth boundary; the parenthood tests
+        // cover the waiting period. Keep a real unborn tick before the birth.
+        ParenthoodTests.PositionFamilyFixtureAt(world, plan.LastTransitionTick + 598);
+        Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Empty(world.Society.Births);
         return WorldRuntimeCodec.Encode(world.ExportState());
     }

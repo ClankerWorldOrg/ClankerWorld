@@ -88,29 +88,8 @@ public sealed partial class WorldRuntime
         bool allowSwimming = true,
         int additionalCarriedUnits = 0)
     {
-        var occupied = agents.Values
-            .Where(item => item.AgentId != agentId)
-            .Select(item => item.Position)
-            .ToHashSet();
-        occupied.UnionWith(animalWorld.Animals.Where(animal => animal.DiedTick is null && animal.RiderId != agentId &&
-            animal.LeaderId != agentId && animal.Position != destination).Select(animal => animal.Position));
-        if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
-            animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
-            return [];
-        if (interactionRange == 0 && worldSimulation.Buildings.Any(building =>
-                building.Position == destination &&
-                building.HouseholdId is not null &&
-                (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
-                 WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
-                 CanEnterGuardianPlacementHouse(agentId, building))))
-            occupied.Remove(destination);
-        if (interactionRange == 0 && occupied.Contains(destination) &&
-            CanShareTownDestination(agentId, destination))
-            occupied.Remove(destination);
-        // Other occupied exact destinations cannot be reached. Avoid searching
-        // an entire map when neither household nor public Town sharing applies.
-        if (interactionRange == 0 && origin != destination && occupied.Contains(destination))
-            return [];
+        var occupied = RouteOccupiedTiles(agentId, origin, destination, interactionRange);
+        if (occupied is null) return [];
         if (AttachedHandcart(agentId) is null)
             return SharedUnoccupiedRoute(origin, occupied, destination, interactionRange,
                 allowSwimming && CanSwim(agentId, origin, additionalCarriedUnits));
@@ -159,6 +138,35 @@ public sealed partial class WorldRuntime
         }
 
         return [];
+    }
+
+    private HashSet<GridPoint>? RouteOccupiedTiles(string agentId, GridPoint origin,
+        GridPoint destination, int interactionRange)
+    {
+        var occupied = agents.Values
+            .Where(item => item.AgentId != agentId)
+            .Select(item => item.Position)
+            .ToHashSet();
+        occupied.UnionWith(animalWorld.Animals.Where(animal => animal.DiedTick is null && animal.RiderId != agentId &&
+            animal.LeaderId != agentId && animal.Position != destination).Select(animal => animal.Position));
+        if (interactionRange == 0 && animalWorld.Animals.Any(animal => (animal.RiderId == agentId || animal.LeaderId == agentId)) &&
+            animalWorld.Animals.Any(animal => animal.DiedTick is null && animal.RiderId != agentId && animal.LeaderId != agentId && animal.Position == destination))
+            return null;
+        if (interactionRange == 0 && worldSimulation.Buildings.Any(building =>
+                building.Position == destination &&
+                building.HouseholdId is not null &&
+                (building.HouseholdId == society.Checkpoint.GetAgent(agentId).HouseholdId ||
+                 WeatherAt(building.Position) == WeatherKind.Storm && HasHouseGuestInvitation(agentId, building.InstanceId) ||
+                 CanEnterGuardianPlacementHouse(agentId, building))))
+            occupied.Remove(destination);
+        if (interactionRange == 0 && occupied.Contains(destination) &&
+            CanShareTownDestination(agentId, destination))
+            occupied.Remove(destination);
+        // Other occupied exact destinations cannot be reached. Avoid searching
+        // an entire map when neither household nor public Town sharing applies.
+        if (interactionRange == 0 && origin != destination && occupied.Contains(destination))
+            return null;
+        return occupied;
     }
 
     private bool CanShareTownDestination(string actor, GridPoint destination) =>

@@ -100,7 +100,7 @@ public sealed class DescendantConversationListenerTests
             Assert.Equal(turn.Text, belief.Statement);
             Assert.Equal(SocietyBeliefProvenance.Hearsay, belief.Provenance);
             Assert.Throws<InvalidOperationException>(() => SocietyRules.RecordAgentBelief(left.Society,
-                belief with { Id = "belief:unknown-native-owner", OwnerId = "missing-listener" }));
+                belief with { Id = Identity.Parse("belief:unknown-native-owner"), OwnerId = "missing-listener" }));
             // Salience indexes refer to the same genuine heard belief and native
             // owner. Scoring it must not make an otherwise valid world unloadable.
             var compacted = SocietyRules.RecordAgentMemoryCompaction(left.Society, child,

@@ -2,7 +2,7 @@
 title: The world, time and survival
 type: game-design
 status: active
-updated: 2026-10-12
+updated: 2026-10-13
 ---
 
 # The world, time and survival
@@ -63,7 +63,7 @@ everything that is available in the current build. See [what works today](../wha
   can **Check key** to see which models that key can use.
 - Keep one simulation/game-rules implementation for both ways of running the
   world server. The player-facing Godot client should not become the
-  authority merely because the host runs locally. Closing the game still
+  authority merely because the server runs locally. Closing the game still
   freezes the world, without offline catch-up.
 - **On a player's computer, the local server is a separate process bundled with the game.** The game
   starts it, and it listens only on the loopback address, which means only
@@ -134,9 +134,8 @@ is the only player for now, so this waits until then.
 
 - **The world freezes when the game is closed.** It resumes from the saved
   state when reopened, without unattended catch-up simulation or provider
-  spending. The current game already stops ticks
-  after the last authenticated client disconnects; a much older design-log
-  direction for unattended simulation was superseded in the repository.
+  spending. This supersedes the earlier design-log direction for unattended
+  simulation.
 - While the game is open, the **pause button and Pause Menu are the only
   ordinary player-opened controls that pause the simulation**. Opening the map,
   World Info, agent inspection, or a conversation panel leaves time running.
@@ -173,10 +172,9 @@ is the only player for now, so this waits until then.
 - The finished game offers an **optional AI-usage limit** alongside
   a visible usage meter. When the limit is reached, it pauses the world and
   asks before making further paid model calls; it does not cap the fictional
-  population. The playtest UI's `Model limit`
-  wording is confusing; describe it in ordinary terms as a count of paid
-  model-call attempts, clarify that reaching it pauses time, and do not imply
-  a precise currency or token budget.
+  population. Describe the limit as a count of model-call attempts, clarify
+  that reaching it pauses time, and do not imply a precise currency or token
+  budget.
 - **How the limit counts, agreed on October 1
   ([#639](https://github.com/compoodment/ClankerWorld/issues/639)):** one
   limit covers the whole installation, every world included, because the bill
@@ -186,7 +184,7 @@ is the only player for now, so this waits until then.
   Event Log warning appears at 80% of the limit. The control belongs in
   **Game** settings, not World settings, and loading an older save never
   rolls the count back.
-- **The current prototype's 24-real-minute day is rejected as ClankerWorld's
+- **A 24-real-minute day is rejected as ClankerWorld's
   finished-game pace.** It was an implementation choice, not a user-approved
   design decision.
 - **Accepted starting pace for playtesting:** a custom **40-day year** with
@@ -608,22 +606,6 @@ protection over discretionary work or long travel, but it is not a rigid rule
 that every other action disappears. These are initial playtest thresholds,
 not proven balance targets. The point at which routine food errands start,
 and how much warmth is needed for a particular outing, remain to be tuned.
-
-The current priority prototype treats these as preferences rather than blanket
-activity gates. Routine food seeking becomes a priority below 45% fullness, carried food
-becomes attractive below 40%, and a new exploration outing asks for a 30%
-food reserve. Food gathering remains an optional lower-priority choice below
-70%; the existing small barter reserve is unchanged. These three routine values are **provisional**, not additional
-owner-approved thresholds. Construction and ongoing projects yield to urgent
-food needs; nearby care and family responses remain possible. Low warmth
-interrupts work only while the agent is still losing warmth, not while safely
-warming in shelter. Recovering agents retain a choice to stay in cover, and new
-scouting trips estimate exposed round-trip warmth needs instead of assuming
-that starting shelter travels with the agent. This estimate uses nearby weather
-and movement costs, not knowledge of the whole map or a guarantee of safety.
-Illness, exposure damage and food production are unchanged. The
-[controlled comparison](../development/survival-priority-prototype.md) reports
-the original regressions and revised measurements; this is not settled balance.
 
 The approved [food and material pipelines](towns.md#item-and-resource-pipelines)
 give farming, cooking, fresh water and care supplies concrete sources and uses.

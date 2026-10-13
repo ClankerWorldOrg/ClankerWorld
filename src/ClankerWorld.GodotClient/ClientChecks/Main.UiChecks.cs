@@ -234,7 +234,7 @@ public partial class Main
                     Fertility = Convert.ToBase64String(Enumerable.Repeat((byte)67, 16).ToArray()),
                 },
                 Fields = [new(new(1, 1), "household:field-smoke", "growing", "cultivated_greens", 67, null, null)],
-                GroundStocks = [new(new(1, 1), "household:field-smoke", "cultivated_greens", 3)],
+                GroundStocks = [new(new(1, 1), "household:field-smoke", "cultivated_greens", 3) { OwnerName = "Farm household" }],
                 Stockpiles = [new("household:field-smoke", "Farm household", [])],
             };
             RenderMap(fieldMap);
@@ -255,6 +255,19 @@ public partial class Main
                 !TileCardText().Contains("Household\nFarm household", StringComparison.Ordinal) ||
                 !TileCardText().Contains("3 cultivated greens", StringComparison.Ordinal))
                 throw new InvalidOperationException("Field ownership, crop and soil inspection must show on the tile card and fit at 200% interface size: " + TileCardText());
+            await VerifyCrowdedTileCardsAsync(fieldMap, displayWindow);
+            foreach (var ownerName in new[] { "Élodie Lake", "Élodie Ridge" })
+            {
+                const string ownerId = "agent:ground-stock-ui";
+                var namedGround = fieldMap with
+                {
+                    GroundStocks = [new(new(1, 1), ownerId, "wood", 2) { OwnerName = ownerName }],
+                };
+                RenderTileInspection(namedGround);
+                if (!TileCardText().Contains("on the ground · " + ownerName, StringComparison.Ordinal) ||
+                    TileCardText().Contains(ownerId, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Ground goods must display the server's owner name after each refresh: " + TileCardText());
+            }
             householdPropertyFilter.ButtonPressed = false;
             selectedTile = null;
             selectedTilePanel.Hide();
@@ -1654,6 +1667,7 @@ public partial class Main
             VerifyChildModelStatus();
             VerifyModelSetupCheckControls();
             VerifyModelSettingsLayout();
+            await VerifyHelperKeyDeletionRefusalAsync(sample);
             Render(sample with { JevEnabled = true, RoutineHelperProvider = "jev", RoutineHelperModel = "jev-1.13.0" }, []);
             if (SelectedRoutineHelper() != "jev" || routineHelperModelPicker.Model != "jev-1.13.0")
                 throw new InvalidOperationException("World Settings must reflect the saved helper and model.");

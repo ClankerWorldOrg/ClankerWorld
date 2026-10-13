@@ -71,6 +71,8 @@ public sealed class WorldEventTextTests
     [InlineData("building_placed", "legacy:clinic", "A new Clinic was built.")]
     [InlineData("recipe_completed", "job:wooden-axe", "A batch of wooden axe was made.")]
     [InlineData("weather_changed", "region:rain", "The weather turned to rain.")]
+    [InlineData("food_policy_adopted", "essential_first", "Scarce shared household food is now reserved for hungry members.")]
+    [InlineData("food_policy_adopted", "open", "Shared household food is open to everyone again.")]
     [InlineData("recipe_completed", "job:sha256:bad/recipe/wooden-axe@1.2.0", "A batch of sha256 was made.")]
     [InlineData("recipe_completed", "job:" + Digest + "/recipe/wooden-axe", "A batch of sha256 was made.")]
     public void LegacyAndMalformedDetailsKeepTheirSafeExistingBehavior(string kind, string detail, string expected) =>

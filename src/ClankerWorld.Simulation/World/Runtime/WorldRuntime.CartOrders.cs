@@ -37,7 +37,7 @@ public sealed partial class WorldRuntime
                 if (!subject.StartsWith(noun + " ", StringComparison.OrdinalIgnoreCase)) continue;
                 var id = subject[(noun.Length + 1)..].Trim();
                 // Consume the whole target. Extra words and nonexistent IDs are not guessed away.
-                if (IsValidInstructionIdentifier(id) && society.Checkpoint.Inventory.Lots.Any(lot => lot.Id == id && lot.ItemKind == InventoryContainerRules.Handcart))
+                if (IdentityRules.Reference(id, OwnerQueuedInstruction.MaximumIdentifierLength) && society.Checkpoint.Inventory.Lots.Any(lot => lot.Id == id && lot.ItemKind == InventoryContainerRules.Handcart))
                     return new OrderTask((action) switch
                     {
                         "attach_handcart" => new AttachHandcartOrderDefinition(TargetCartLotId: id),
@@ -55,7 +55,7 @@ public sealed partial class WorldRuntime
                 {
                     var carts = society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
                         lot.OwnerId == actor && CartPosition(lot) == position).ToArray();
-                    if (carts.Length == 1 && IsValidInstructionIdentifier(carts[0].Id))
+                    if (carts.Length == 1 && IdentityRules.Reference(carts[0].Id, OwnerQueuedInstruction.MaximumIdentifierLength))
                         return new OrderTask((action) switch
                         {
                             "attach_handcart" => new AttachHandcartOrderDefinition(TargetCartLotId: carts[0].Id),
@@ -83,7 +83,7 @@ public sealed partial class WorldRuntime
         if (order.Action == "park_handcart") return AttachedHandcart(actor);
         if (order.Action == "repair_handcart") return CartForRepairOrder(actor, person);
         return society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == InventoryContainerRules.Handcart &&
-                lot.OwnerId == actor && IsValidInstructionIdentifier(lot.Id) && CanPullHandcart(lot) && !handcartHitches.Any(hitch => hitch.CartLotId == lot.Id))
+                lot.OwnerId == actor && IdentityRules.Reference(lot.Id, OwnerQueuedInstruction.MaximumIdentifierLength) && CanPullHandcart(lot) && !handcartHitches.Any(hitch => hitch.CartLotId == lot.Id))
             .OrderBy(lot => map.FootDistance(person.Position, CartPosition(lot))).ThenBy(lot => lot.Id, StringComparer.Ordinal)
             .FirstOrDefault(lot => person.Position == CartPosition(lot) || FindUnoccupiedRoute(actor, person.Position, CartPosition(lot), 0).Count > 0);
     }
@@ -156,7 +156,7 @@ public sealed partial class WorldRuntime
         ApplyHandcartCandidate(instruction.TargetAgentId, person, parking ? "park_handcart" : AttachCartPrefix + cart.Id);
         var isAttached = AttachedHandcart(instruction.TargetAgentId)?.Id == cart.Id;
         if (parking ? wasAttached && !isAttached : !wasAttached && isAttached)
-            CreditOrderEffect(instruction, CartOrderEffectId(instruction), 1);
+            CreditOrderEffect(instruction, Identity.Parse(CartOrderEffectId(instruction)), 1);
     }
 
     internal static string CartOrderEffectId(OwnerQueuedInstruction instruction) =>

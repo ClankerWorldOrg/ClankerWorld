@@ -216,7 +216,12 @@ public static class WorldEventFormatter
             "ornament_worn" => $"{LeadingName(snapshot, payload)} put on an ornament.",
             "ornament_removed" => $"{LeadingName(snapshot, payload)} took off an ornament.",
             "ornament_given" => $"{LeadingName(snapshot, payload)} gave an ornament to {OrnamentGiftRecipient(snapshot, payload)}.",
-            "food_policy_adopted" => $"The council adopted a new policy: {EventVocabulary.HumanizeIdentifier((payload as FoodPolicyAdoptedEventPayload)?.Policy ?? "").ToLowerInvariant()}.",
+            "food_policy_adopted" => (payload as FoodPolicyAdoptedEventPayload)?.Policy switch
+            {
+                "essential_first" => "Scarce shared household food is now reserved for hungry members.",
+                "open" => "Shared household food is open to everyone again.",
+                _ => "The rule for shared household food changed.",
+            },
             "barter_completed" => $"{Name(snapshot, payload.ActorId ?? "")} completed a trade.",
             "tool_request_placed" => $"{LeadingName(snapshot, payload)} asked the Blacksmith for a tool.",
             "tool_request_accepted" => $"{LeadingName(snapshot, payload)} agreed to make the tool.",
