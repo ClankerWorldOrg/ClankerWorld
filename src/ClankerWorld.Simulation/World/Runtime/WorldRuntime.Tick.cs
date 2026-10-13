@@ -759,19 +759,7 @@ public sealed partial class WorldRuntime
             ReconcileMedicalSupplyTrips();
             // An agent whose reply was accepted this tick already acted, even if newer work stays queued.
             if (deferModelCalls) ApplySafeRoutinesWhileWaiting(waiting.Except(decisions.Select(item => item.AgentId), StringComparer.Ordinal), orderActorsHandledThisTick);
-            ReconcileGuardianPlacements();
-            AdvanceGuardianPlacementFollowers(orderActorsHandledThisTick);
-            AdvanceBridgeTraffic();
-            SettleGuardianSearches();
-            ReconcileGuardianPlacements();
-            MaintainTownProjects();
-            MaintainMarkets();
-            MaintainToolMakingRequests();
-            RefreshTownLandHearings();
-            MaintainKnowledgeWriting();
-            ProcessBoatQueue();
-            ReconcileAnimalCustody();
-            CompleteClosedTalkOrders();
+            CompleteActionPhase(orderActorsHandledThisTick);
 
             ArchiveOldAgentMemories(activeModelCallIds);
             AppendEvent("tick_advanced", targetTick.ToString(System.Globalization.CultureInfo.InvariantCulture));
@@ -785,6 +773,24 @@ public sealed partial class WorldRuntime
         {
             gate.Release();
         }
+    }
+
+    private void CompleteActionPhase(IEnumerable<string> handledActors)
+    {
+        ReconcileGuardianPlacements();
+        AdvanceGuardianPlacementFollowers(handledActors);
+        AdvanceBridgeTraffic();
+        SettleGuardianSearches();
+        ReconcileGuardianPlacements();
+        MaintainTownProjects();
+        MaintainMarkets();
+        MaintainToolMakingRequests();
+        RefreshTownLandHearings();
+        MaintainKnowledgeWriting();
+        ProcessBoatQueue();
+        ReconcileAnimalCustody();
+        CompleteClosedTalkOrders();
+
     }
 
 }

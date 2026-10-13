@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using ClankerWorld.Simulation.Cognition;
+using ClankerWorld.Simulation.Society;
 
 namespace ClankerWorld.Simulation.World;
 
@@ -131,10 +132,26 @@ public sealed partial class WorldRuntime
         RestoreCore(ExportState(), providers, maxCognitionDispatchPerCycle, trustedPreparedState: true,
             applyLoadTransitions: false);
 
-    // The choice invariant uses the same isolated preparation and checkpoint callback
-    // as the server, with inline fixture replies so no background timing is involved.
-    internal ValueTask<WorldStepResult> AdvanceChoiceTrialAsync(Func<WorldRuntime, Action> prepareCheckpoint) =>
-        AdvanceOneTickCoreAsync(false, null, null, CancellationToken.None, prepareCheckpoint, WorldTickFailurePolicy.Strict);
+    // Probe the native action phase in the same trusted copy used by tick preparation.
+    // Inline fixture replies keep unrelated background scheduling out of the invariant.
+    internal async ValueTask<IReadOnlyList<SocietyCognitionDispatchResult>> ApplyChoiceTrialAsync()
+    {
+        await gate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            EnqueueDueCognition(new HashSet<string>(StringComparer.Ordinal));
+            var decisions = new List<SocietyCognitionDispatchResult>();
+            for (var cycle = 0; cycle < agents.Count && society.Capture().Cognition.Queue.Count > 0; cycle++)
+            {
+                var dispatched = await society.DispatchCognitionAsync().ConfigureAwait(false);
+                decisions.AddRange(dispatched.Decisions);
+                foreach (var decision in dispatched.Decisions) ApplyDecision(decision);
+            }
+            CompleteActionPhase(decisions.Select(decision => decision.AgentId));
+            return decisions;
+        }
+        finally { gate.Release(); }
+    }
 
     /// <summary>Replay an accepted refusal alongside the same recorded decision inputs, without reproducing the defect.</summary>
     public ValueTask<WorldStepResult> AdvanceOneTickReplayingActionRefusalAsync(

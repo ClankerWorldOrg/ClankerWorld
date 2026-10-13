@@ -44,6 +44,10 @@ internal static class OfferedChoiceScenario
         state = WithInventory(state, inventory);
         state = Rider(state);
         state = Passenger(state, seed);
+        var swimming = state.Map.Tiles.Select(tile => tile.Position)
+            .Where(point => SwimmingRules.IsSwimmingWater(state.Map, point) && !state.Agents.Any(person => person.Position == point))
+            .OrderBy(point => state.Map.FootDistance(entrance, point)).First();
+        state = state with { Agents = state.Agents.Select(person => person.AgentId == NormalPathWorld.Founder2 ? person with { Position = swimming } : person).ToArray() };
         // Keep all four adult choice queues due, and make needs meaningful without starvation.
         state = state with
         {

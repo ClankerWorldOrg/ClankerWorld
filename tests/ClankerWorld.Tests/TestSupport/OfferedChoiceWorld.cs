@@ -12,7 +12,11 @@ internal static class OfferedChoiceWorld
         using var world = NormalPathWorld.CreateGenerated("choice-sweep-" + seed, _ => new SweepChoiceProvider(), ticksPerDay: 8);
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         var state = world.ExportState();
-        return OfferedChoiceScenario.Prepare(SecondGenerationFixture.Add(state).State, seed);
+        var prepared = OfferedChoiceScenario.Prepare(SecondGenerationFixture.Add(state).State, seed);
+        using var ordered = WorldRuntime.Restore(prepared, _ => new SweepChoiceProvider());
+        ordered.SubmitInstruction(new("sweep-full-carrier-order", "owner:choice-test", NormalPathWorld.Founder2,
+            OwnerInstructionKind.Order, "store four stone in my House"));
+        return ordered.ExportState();
     }
 }
 
