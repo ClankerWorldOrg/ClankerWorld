@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Net;
 using System.Collections.Concurrent;
 using System.Text;
@@ -80,7 +81,7 @@ public sealed class ModelRequestWordingTests
             : new JevDecisionProvider(client, () => "synthetic-key", new Uri("https://model.test/v1/systemone"));
         using var world = WorldRuntime.Restore(state, _ => provider);
         foreach (var person in state.Agents)
-            world.SubmitInstruction(new OwnerInstructionRequest("recipe-context:" + person.AgentId, "owner:test",
+            world.SubmitInstruction(new OwnerInstructionRequest(DerivedId.Create("recipe-context:" + person.AgentId), "owner:test",
                 person.AgentId, OwnerInstructionKind.Suggestion, "Tell me what you have learned."));
         Assert.True((await world.AdvanceOneTickNonBlockingAsync()).Advanced);
         for (var attempt = 0; attempt < 50 && handler.Bodies.Count < WorldRuntime.RequiredFounders; attempt++)

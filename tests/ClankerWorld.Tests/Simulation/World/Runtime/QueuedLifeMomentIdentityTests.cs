@@ -7,7 +7,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class QueuedLifeMomentIdentityTests
 {
-    private const string Actor = "founder:00000000000000000000000000000001";
+    private const string Actor = NormalPathWorld.Founder1;
     private const string FirstPersonality = "Patient and curious";
     private const string LaterPersonality = "More willing to take chances";
 
