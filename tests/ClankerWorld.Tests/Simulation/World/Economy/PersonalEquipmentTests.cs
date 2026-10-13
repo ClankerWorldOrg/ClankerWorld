@@ -616,6 +616,7 @@ public sealed class PersonalEquipmentTests
                     ? lot with { DeliveryBuildingId = house.InstanceId } : lot).ToArray(),
             };
         }
+        inventory = StockHoldTestState.Custody(inventory);
         var startingSite = initial.WorldSimulation.Buildings.Single(item => item.InstanceId == "first-town-warehouse").Position;
         state = WithInventory(state, inventory) with
         {
