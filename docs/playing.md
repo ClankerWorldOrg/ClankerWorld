@@ -1243,6 +1243,8 @@ save-name limit, it is shortened between whole characters, including emoji.
 World Settings offers rotating
 autosaves as well as automatic recovery. If the world server's clock moves backwards,
 the next rotating save waits one configured interval from the corrected time.
+Damaged autosaves are kept separately from the chosen number of usable copies,
+including when rotation is off.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and
