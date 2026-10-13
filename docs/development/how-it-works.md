@@ -1038,8 +1038,10 @@ count goods acquired or food consumed. Food-source travel finishes on arrival wi
 interaction range of the requested food site; exact-tile travel requires the
 tile itself. Counted travel is refused.
 An unrelated action, blocked movement or unavailable food leaves the instruction
-pending, including across reload. A recognized new order replaces outstanding
-orders unless `Queue` is true; queued orders run in submission order. Cancel
+pending, including across reload. A recognized new order replaces the current
+non-queued task unless `Queue` is true, preserving the queue. Pending selection
+and saved work bindings prefer that current task, then queued tasks in submission
+order. Cancel
 retains an idempotent receipt, including a no-op cancellation of a closed order.
 Receipt-only owner changes supersede a concurrently prepared tick too.
 Cancellation matches the complete native agent identity to its saved order,
