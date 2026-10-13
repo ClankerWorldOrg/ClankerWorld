@@ -72,6 +72,12 @@ runs the actual production duration with independent runtime and providers.
 Order bindings, reservations, private output, vessel preservation, strict
 reload and paired checkpoint replay remain checked in each existing case.
 
+Restaurant pipeline fixtures also share strict bytes from their original
+generated world and genuinely paid Restaurant placement. Each case decodes
+fresh state before adding its own ingredients, payment, cargo and visitor
+positions, then uses independent runtime and providers. Real milling, cooking,
+travel, trade, order survival, refusal and exact checkpoint replay stay checked.
+
 Native land-hearing fixtures use twenty-tick test days for actual elections,
 notice windows and expiry rulings. Their age, continuity, animal and weather
 clocks are rescaled together. Later-generation family growth keeps its forty-tick test
