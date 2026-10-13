@@ -57,6 +57,21 @@ public sealed class InstructionStoreTests
     }
 
     [Fact]
+    public void CurrentWorkPrecedesOlderQueuedSubmissionsUntilItCloses()
+    {
+        var store = new InstructionStore(StringComparer.Ordinal);
+        var queued = Instruction(1, FirstAgent);
+        var current = Instruction(9, FirstAgent);
+        store.Add(queued.IdempotencyKey, queued);
+        store.Add(current.IdempotencyKey, current);
+        var started = current with { Task = current.Task!.Transition(OrderStatus.Waiting) };
+        store[current.IdempotencyKey] = started;
+        Assert.Same(started, store.FirstActiveFor(FirstAgent));
+        store[current.IdempotencyKey] = started with { Task = started.Task!.Transition(OrderStatus.Cancelled) };
+        Assert.Same(queued, store.FirstActiveFor(FirstAgent));
+    }
+
+    [Fact]
     public void RebuildingTheStoreKeepsClosedHistoryAndSuggestionsOutOfTheActiveQueue()
     {
         var store = new InstructionStore(StringComparer.Ordinal);
