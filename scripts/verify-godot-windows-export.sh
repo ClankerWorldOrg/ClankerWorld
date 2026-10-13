@@ -139,6 +139,7 @@ printf 'Staging committed Godot client source for an isolated export\n'
 mkdir -p "${staged_repo_root}"
 git -C "${repo_root}" archive "${build_revision}" \
     global.json Directory.Build.props src/ClankerWorld.GodotClient \
+    src/ClankerWorld.Shared/Contracts \
     src/ClankerWorld.Shared/AgentPlacementRules.cs \
     src/ClankerWorld.Shared/BuildInformation.cs | tar -C "${staged_repo_root}" -xf -
 if [[ ! -f "${staged_project_file}" ]]; then
