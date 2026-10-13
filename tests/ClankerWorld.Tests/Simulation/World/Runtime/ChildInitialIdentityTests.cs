@@ -43,7 +43,7 @@ public sealed class ChildInitialIdentityTests
         for (var tick = 0; tick < 24 && !handler.Started.Task.IsCompleted; tick++)
             Assert.True((await world.TickModelWorkAsync()).Advanced);
         handler.StartGate?.TrySetResult(true);
-        await handler.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(handler.Started.Task);
         Assert.Equal(SocietyAgeBand.Child, world.Society.GetAgent(childId).AgeBand);
         var observation = Assert.Single(world.ExportState().Society.Cognition.Queue, entry => entry.AgentId == childId).Observation;
         var background = Assert.IsAssignableFrom<IReadOnlyList<CognitionParentIdentity>>(observation.Self!.FamilyBackground);
@@ -221,11 +221,11 @@ public sealed class ChildInitialIdentityTests
         var model = PersonalModel(client);
         using var world = WorldRuntime.Restore(state, id => id == childId ? model : new QuietProvider());
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await held.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(held.Started.Task);
         world.Pause();
         var saved = WorldRuntimeCodec.Encode(world.ExportState());
         held.Release.TrySetResult(true);
-        await held.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(held.Returned.Task);
         Assert.True(world.Agents.Single(person => person.AgentId == childId).IdentityChoicePending);
         Assert.DoesNotContain(world.ExportState().Events, item => item.Kind == "agent_identity_chosen" && item.Detail == childId);
         using var reply = new ChildReplyHandler();
@@ -281,7 +281,7 @@ public sealed class ChildInitialIdentityTests
             state = firstGeneration.ExportState();
         }
 
-        const string partnerId = "founder:00000000000000000000000000000003";
+        const string partnerId = NormalPathWorld.Founder3;
         Assert.Equal(SocietyAgeBand.Adult, state.Society.Society.GetAgent(partnerId).AgeBand);
         var household = state.Society.Society.GetAgent(parentId).HouseholdId!;
         var home = state.WorldSimulation!.Buildings.Single(building => building.HouseholdId == household &&

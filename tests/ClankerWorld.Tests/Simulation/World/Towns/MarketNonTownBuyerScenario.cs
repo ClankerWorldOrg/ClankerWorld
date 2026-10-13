@@ -65,7 +65,6 @@ internal static class MarketNonTownBuyerScenario
         for (var step = 0; step < 80 && walking.Agents.Single(person => person.AgentId == Buyer).IdentityChoicePending; step++)
         {
             Assert.True((await walking.TickModelWorkAsync()).Advanced);
-
             visited.Add(walking.Agents.Single(person => person.AgentId == Buyer).Position);
             AssertOutsideMembership(walking, household);
         }

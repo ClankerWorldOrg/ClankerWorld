@@ -89,9 +89,8 @@ public sealed class MarketConstructionRuntimeTests
         {
             await scenario.World.TickModelWorkAsync();
             ledger.Observe(scenario.World.ExportState());
-
         }
-        await policy.DonationStarted.Task;
+        await ModelWorkHarness.WaitForSignalAsync(policy.DonationStarted.Task);
         Assert.Equal(scenario.Project.Plan.Site,
             scenario.World.Agents.Single(person => person.AgentId == traveler.Actor).Position);
         var freshChoice = policy.Choices.Last(choice => choice.Actor == traveler.Actor &&

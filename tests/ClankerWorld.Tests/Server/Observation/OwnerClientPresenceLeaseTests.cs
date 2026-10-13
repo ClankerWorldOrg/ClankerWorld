@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Server.Runtime;
@@ -55,7 +56,7 @@ public sealed class OwnerClientPresenceLeaseTests
     }
 
     [Theory]
-    [InlineData("founder:00000000000000000000000000000001")]
+    [InlineData(NormalPathWorld.Founder1)]
     public async Task ModelFailureLogReportsCompleteActorAndOutcomeWithoutProviderExceptionText(string actorId)
     {
         var directory = Path.Combine(Path.GetTempPath(), $"clankerworld-hosted-log-{Guid.NewGuid():N}");
@@ -128,7 +129,8 @@ public sealed class OwnerClientPresenceLeaseTests
             var harness = ModelWorkHarness.For(runtime);
             var tick = service.TryAdvanceOnceAsync(lifetime.Token).AsTask();
             // This deterministic provider belongs to the uncommitted tick itself.
-            var completion = Task.WhenAll(harness.WaitForKindAsync(ModelWorkKind.Decision), tick);
+            var completion = ModelWorkHarness.WaitForExistingAsync(runtime,
+                item => item.Transition.Kind == ModelWorkKind.Decision, tick);
             try
             {
                 await harness.WaitAsync(Task.WhenAny(provider.Started.Task, completion));

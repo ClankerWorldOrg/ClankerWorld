@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using System.Collections.Concurrent;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
@@ -32,7 +33,7 @@ public sealed class WorldRepairOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(("doing", 0, "repairs"), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits, Order(world, receipt).ProgressUnit));
         var work = Assert.IsType<EquipmentRepairWork>(world.Agents.Single(person => person.AgentId == actor).Equipment?.Repair);
-        Assert.Equal(receipt.InstructionId, work.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, work.OrderInstructionId);
         Assert.Equal(3_000, world.Society.Inventory.GetLot("repair-target").ConditionBasisPoints);
         var projected = Assert.Single(new OwnerWorldObservationStore(world).GetSnapshot().Instructions,
             item => item.InstructionId == receipt.InstructionId).Task!;
@@ -48,8 +49,10 @@ public sealed class WorldRepairOrderTests
         world.Validate();
     }
 
-    [Fact]
-    public async Task CountedRepairsQueueAndPartlyWorkedRepairsReplayWithoutDuplicateCosts()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CountedRepairsQueueAndPartlyWorkedRepairsReplayWithoutDuplicateCosts(bool replace)
     {
         var state = Prepared("sack");
         var actor = Actor(state);
@@ -60,6 +63,13 @@ public sealed class WorldRepairOrderTests
         using var world = Restore(WithInventory(state, inventory));
         var first = Submit(world, actor, "two", "repair two sacks");
         var second = Submit(world, actor, "queued", "repair a basic garment", queue: true);
+        if (replace)
+        {
+            var original = first;
+            first = Submit(world, actor, "replacement", "repair two sacks");
+            Assert.Equal("cancelled", Order(world, original).Status);
+            Assert.Equal("queued", Order(world, second).Status);
+        }
         for (var tick = 0; tick < 4; tick++) Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(0, Order(world, first).CompletedUnits);
         Assert.Equal("queued", Order(world, second).Status);
@@ -227,7 +237,7 @@ public sealed class WorldRepairOrderTests
             valid with { TargetEquipmentKind = "sword" }, valid with { TargetEquipmentKind = "basket" },
             valid with { TargetMaterialKind = "wood" }, valid with { TargetFoodKind = "berries" },
             valid with { TargetResourceId = "tree" }, valid with { TargetPosition = new(1, 1) },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "repair:equipment:unearned" },
+            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = Identity.Parse("repair:equipment:unearned") },
             valid with { TargetAgentId = actor },
         })
         {
@@ -252,14 +262,14 @@ public sealed class WorldRepairOrderTests
         {
             Agents = state.Agents.Select(person => person.AgentId == actor ? person with
             {
-                Equipment = new(Repair: new("repair-existing", Shop, started, 0, ["ordinary-repair-cloth"])),
+                Equipment = new(Repair: new("repair-existing", Shop, started, 0, [Identity.Parse("ordinary-repair-cloth")])),
             } : person).ToArray(),
         };
         using var world = Restore(state);
         var receipt = Submit(world, actor, "take-over", "repair clothing");
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         Assert.Equal(InventoryReservationState.Released, world.Society.Inventory.GetReservation("ordinary-repair-cloth").State);
-        Assert.Equal(receipt.InstructionId, world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!.OrderInstructionId);
+        Assert.Equal(receipt.InstructionId.Value, world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!.OrderInstructionId);
         Assert.Equal(0, Order(world, receipt).CompletedUnits);
         await Finish(world, receipt);
         Assert.Equal(("finished", 1), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
@@ -324,11 +334,11 @@ public sealed class WorldRepairOrderTests
         try
         {
             Assert.True((await world.TickModelWorkAsync()).Advanced);
-            await provider.Started.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
             var repair = world.Agents.Single(person => person.AgentId == actor).Equipment!.Repair!;
             Assert.True(world.CancelOrder(new("stop-held", "owner:test", world.Society.WorldId, actor, receipt.InstructionId)).Changed);
             provider.Release.TrySetResult(true);
-            await provider.Returned.Task;
+            await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
             for (var tick = 0; tick < 12; tick++) Assert.True((await world.TickModelWorkAsync()).Advanced);
             Assert.Equal(("cancelled", 0), (Order(world, receipt).Status, Order(world, receipt).CompletedUnits));
             Assert.Equal(1, Quantity(world, actor, "cloth"));
@@ -350,7 +360,7 @@ public sealed class WorldRepairOrderTests
         var receipt = Submit(world, actor, "long", "repair one garment");
         await Finish(world, receipt);
         Assert.Equal("finished", Order(world, receipt).Status);
-        Assert.InRange(Order(world, receipt).LastEffectId!.Length, 1, 512);
+        Assert.InRange(Order(world, receipt).LastEffectId!.Value.Length, 1, 512);
         var saved = world.ExportState();
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var restored = Restore(WorldRuntimeCodec.Decode(bytes));

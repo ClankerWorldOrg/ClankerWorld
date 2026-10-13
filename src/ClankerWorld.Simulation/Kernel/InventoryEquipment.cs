@@ -22,7 +22,7 @@ public static partial class InventoryAuthority
 
     /// <summary>Consumes the owner's exact repair inputs and restores one selected unit atomically.</summary>
     public static InventoryCheckpoint RepairSingleUnit(InventoryCheckpoint checkpoint, string lotId,
-        int conditionRestoredBasisPoints, IReadOnlyList<string> materialReservationIds)
+        int conditionRestoredBasisPoints, IReadOnlyList<Identity> materialReservationIds)
     {
         ValidateCheckpoint(checkpoint);
         ArgumentNullException.ThrowIfNull(materialReservationIds);
@@ -32,8 +32,8 @@ public static partial class InventoryAuthority
         if (lot.Quantity != 1 || lot.ConditionBasisPoints >= 10_000)
             throw new InvalidOperationException("Repair requires one selected worn unit.");
         EnsureUnreservedQuantity(checkpoint, lot, 1);
-        if (materialReservationIds.Count == 0 || materialReservationIds.Any(string.IsNullOrWhiteSpace) ||
-            materialReservationIds.Distinct(StringComparer.Ordinal).Count() != materialReservationIds.Count)
+        if (materialReservationIds.Count == 0 || materialReservationIds.Any(id => id is null) ||
+            materialReservationIds.Distinct().Count() != materialReservationIds.Count)
             throw new InvalidOperationException("Repair requires distinct reserved material inputs.");
         foreach (var id in materialReservationIds)
         {
@@ -46,7 +46,7 @@ public static partial class InventoryAuthority
         // Each intermediate checkpoint is local. A later failed consumption
         // returns neither restored condition nor partially spent inputs.
         var repaired = checkpoint;
-        foreach (var id in materialReservationIds.Order(StringComparer.Ordinal))
+        foreach (var id in materialReservationIds.Order())
             repaired = ConsumeReservation(repaired, id);
         return Commit(repaired,
             lots: repaired.Lots.Select(item => item.Id == lot.Id

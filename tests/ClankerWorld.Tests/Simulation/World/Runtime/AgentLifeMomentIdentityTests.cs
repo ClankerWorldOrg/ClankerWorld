@@ -14,7 +14,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class AgentLifeMomentIdentityTests
 {
-    private const string ActorId = "founder:00000000000000000000000000000001";
+    private const string ActorId = NormalPathWorld.Founder1;
     private const string Personality = "Patient and curious";
     private const string Aspiration = "Explore the riverbanks";
 
@@ -100,14 +100,14 @@ public sealed class AgentLifeMomentIdentityTests
         var provider = new HeldIdentityProvider();
         using var world = WorldRuntime.Restore(MidlifeState(), Route(provider));
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         Assert.Equal("requested", world.Agents.Single(item => item.AgentId == ActorId).IdentityMoments!.Single().Outcome);
         var saved = WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(world.ExportState()));
         if (interruption == "pause") world.Pause();
         else if (interruption == "disconnect" || interruption == "reload") world.CancelPendingModelCalls();
         else provider.Epoch++;
         provider.Release.TrySetResult(true);
-        await provider.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
         using var restored = interruption == "reload" ? WorldRuntime.Restore(saved, Route(provider)) : null;
         var current = restored ?? world;
         current.Resume();
@@ -157,9 +157,9 @@ public sealed class AgentLifeMomentIdentityTests
         var provider = new HeldIdentityProvider();
         using var world = WorldRuntime.Restore(state, Route(provider));
         await world.TickModelWorkAsync();
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         provider.Release.TrySetResult(true);
-        await provider.Returned.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Returned.Task);
         await ModelWorkHarness.For(world).SettleAsync();
         await world.TickModelWorkAsync();
         var deceased = world.ExportState().DeceasedAgents!.Single(item => item.AgentId == ActorId);
@@ -363,7 +363,7 @@ public sealed class AgentLifeMomentIdentityTests
             await world.TickModelWorkAsync();
             // Wait for the real accounting callback to finish pausing. A short
             // polling window raced the background provider on busy CI runners.
-            await paused.Task;
+            await ModelWorkHarness.For(world).WaitAsync(paused.Task);
             Assert.True(world.Society.IsPaused);
             Assert.Single(handler.MomentBodies);
             Assert.Equal(1, usage.Capture().Attempts);
@@ -429,7 +429,7 @@ public sealed class AgentLifeMomentIdentityTests
             Assert.Equal(1, writes);
             if (boundary == "admitted")
             {
-                await provider.Started.Task;
+                await ModelWorkHarness.WaitForSignalAsync(provider.Started.Task);
                 var saved = WorldRuntimeCodec.Decode(File.ReadAllBytes(file.Path));
                 Assert.Equal("requested", Assert.Single(saved.Agents.Single(person => person.AgentId == ActorId).IdentityMoments!).Outcome);
                 Assert.Single(saved.Events, item => item.Kind == "agent_identity_moment_started" && item.Detail.StartsWith(ActorId, StringComparison.Ordinal));

@@ -20,7 +20,7 @@ public sealed partial class PurposefulExplorationTests
         Assert.Equal(choice, world.ExportState().Society.Cognition.Runtimes.Single(item => item.AgentId == actor).CurrentIntention!.CandidateId);
         world.SubmitInstruction(new("held-scout-suggestion", "owner:test", actor, OwnerInstructionKind.Suggestion, "Think about your next task."));
         Assert.True((await world.TickModelWorkAsync()).Advanced);
-        await provider.Started.Task;
+        await ModelWorkHarness.For(world).WaitAsync(provider.Started.Task);
         var pending = WorldRuntimeCodec.Encode(world.ExportState());
         Assert.False((await world.TickModelWorkAsync(() => false)).Advanced);
         Assert.Equal(pending, WorldRuntimeCodec.Encode(world.ExportState()));

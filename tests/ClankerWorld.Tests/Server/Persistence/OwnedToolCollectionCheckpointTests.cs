@@ -9,7 +9,7 @@ namespace ClankerWorld.Tests;
 
 public sealed class OwnedToolCollectionCheckpointTests
 {
-    private const string Actor = "founder:00000000000000000000000000000003";
+    private const string Actor = NormalPathWorld.Founder3;
     private const string House = "first-town-house-b";
     private static readonly Lazy<byte[]> Generated = new(() =>
     {

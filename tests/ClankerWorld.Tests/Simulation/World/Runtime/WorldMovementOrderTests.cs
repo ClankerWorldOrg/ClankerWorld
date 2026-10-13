@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.Kernel;
 using ClankerWorld.Simulation.World;
@@ -309,7 +310,7 @@ public sealed partial class WorldRuntimeTests
             // physical frame fixed while waiting for this exact held call.
             var call = HeldHarvestWork(world);
             Assert.Equal(HarvestInstructionActor, call.Request.Observation.AgentId);
-            Assert.Equal(receipt.InstructionId, call.Request.Observation.OperativeOrderInstructionId);
+            Assert.Equal(receipt.InstructionId.Value, call.Request.Observation.OperativeOrderInstructionId);
             Assert.False(call.Task.IsCompleted);
             var position = CancellationActorPosition(world.ExportState());
             var beforeEntry = WorldRuntimeCodec.Encode(world.ExportState());
@@ -361,7 +362,7 @@ public sealed partial class WorldRuntimeTests
             order with { RequestedUnits = 2 },
             order with { RepeatUntilCancelled = true },
             order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
+            order with { LastEffectId = Identity.Parse("invented") },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
             {

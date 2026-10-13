@@ -22,7 +22,6 @@ public sealed partial class WorldConversationTests
                          "conversation_wrapup_accept:", StringComparison.Ordinal)))); tick++)
         {
             _ = await world.TickModelWorkAsync();
-
         }
 
         var conversation = Assert.Single(world.Conversations, item => item.Status == AgentConversationStatus.WrapUp);
@@ -59,7 +58,6 @@ public sealed partial class WorldConversationTests
         {
             _ = await dialogue.TickModelWorkAsync();
             _ = await baseline.TickModelWorkAsync();
-
         }
 
         Assert.Equal(dialogue.WorldTick, baseline.WorldTick);
@@ -124,7 +122,7 @@ public sealed partial class WorldConversationTests
             id => id is InitiatorId or InviteeId ? provider : new DeterministicDecisionProvider());
         var harness = ModelWorkHarness.For(world);
         world.Resume();
-        using var resumeDeadline = new CancellationTokenSource();
+        using var resumeDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         // Await both fresh resume decisions before spending lesson ticks. The
         // other participant may keep teaching while a model reply is pending.
         for (var tick = 0; tick < 30 && world.Conversations.Single().Status != AgentConversationStatus.AwaitingSpeaker; tick++)
@@ -138,7 +136,6 @@ public sealed partial class WorldConversationTests
         for (var tick = 0; tick < 3; tick++)
         {
             _ = await world.TickModelWorkAsync();
-
             Assert.Equal(progress, world.Agents.Single(person => person.AgentId == learner).Lesson!.Progress);
         }
         Assert.Empty(world.Agents.Single(person => person.AgentId == learner).Skills ?? []);
@@ -149,7 +146,7 @@ public sealed partial class WorldConversationTests
         var completionStartTick = world.WorldTick;
         const int completionTickHorizon = 80;
         const int maxCompletionAttempts = completionTickHorizon * 10;
-        using var completionDeadline = new CancellationTokenSource();
+        using var completionDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         long? conversationClosedAtTick = null;
         var completionAttempts = 0;
         try
@@ -169,7 +166,6 @@ public sealed partial class WorldConversationTests
                 else
                 {
                     _ = await world.TickModelWorkAsync(cancellationToken: completionDeadline.Token);
-
                 }
             }
         }

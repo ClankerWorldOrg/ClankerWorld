@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Reflection;
 using ClankerWorld.Simulation.Cognition;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Server.Saves;
@@ -35,7 +33,7 @@ public sealed partial class WorldConversationTests
             Assert.Equal(before, Assert.Single(world.Conversations));
 
             provider.ReleaseFirstTurn();
-            await pending;
+            await ModelWorkHarness.WaitForSignalAsync(pending);
             Assert.True((await world.AdvanceOneTickAsync()).Advanced);
             var admitted = Assert.Single(Assert.Single(world.Conversations).Turns);
             Assert.Equal("The held turn survived saving.", admitted.Text);

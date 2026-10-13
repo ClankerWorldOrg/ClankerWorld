@@ -1,3 +1,4 @@
+using ClankerWorld.Simulation;
 using ClankerWorld.Simulation.World;
 using ClankerWorld.Simulation.Society;
 using ClankerWorld.Server.Observation;
@@ -90,7 +91,7 @@ public sealed partial class ParenthoodTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task QueuedGuardianOrderCannotAppointAnyoneAfterCancellationOrReplacement(bool replace)
+    public async Task QueuedGuardianOrderWaitsBehindReplacementAndCannotAppointAfterCancellation(bool replace)
     {
         var initial = await GuardianOrderState();
         var (child, adult) = GuardianOrderPeople(initial);
@@ -109,7 +110,7 @@ public sealed partial class ParenthoodTests
         for (var tick = 0; tick < 3; tick++) Assert.True((await restored.TickModelWorkAsync()).Advanced);
         Assert.Null(restored.Society.GetAgent(child).PrimaryCaregiverId);
         var order = restored.ExportState().Instructions!.Single(item => item.InstructionId == receipt.InstructionId).Task!;
-        Assert.Equal("cancelled", order.Status);
+        Assert.Equal(replace ? "queued" : "cancelled", order.Status);
         Assert.Equal(0, order.CompletedUnits);
         restored.Validate();
     }
@@ -187,7 +188,7 @@ public sealed partial class ParenthoodTests
             order with { RequestedUnits = 2 },
             order with { RepeatUntilCancelled = true },
             order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
+            order with { LastEffectId = Identity.Parse("invented") },
         })
             Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
             {

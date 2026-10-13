@@ -13,7 +13,7 @@ internal interface IAnimalWorld
     InventoryLot? AttachedHandcart(string actor);
     int AvailableLotQuantity(InventoryLot lot);
     bool CanRemoveWorkstationStock(InventoryCheckpoint inventory, InventoryLot root, int quantity);
-    void CreditOrderEffect(OwnerQueuedInstruction instruction, string effectId, int units);
+    void CreditOrderEffect(OwnerQueuedInstruction instruction, Identity effectId, int units);
     int DestinationRoom(string buildingId, InventoryLot? movingRoot = null);
     GoodsAnswer FindGoods(GoodsRequest request);
     List<GridPoint> FindUnoccupiedRoute(string agentId, GridPoint origin, GridPoint destination, int interactionRange, bool allowSwimming = true, int additionalCarriedUnits = 0);

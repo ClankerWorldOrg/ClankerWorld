@@ -6,6 +6,91 @@ namespace ClankerWorld.GodotClient;
 
 public partial class Main
 {
+    private async Task VerifyCrowdedTileCardsAsync(OwnerWorldSnapshot map, Window window)
+    {
+        var originalSize = window.Size;
+        var originalRenderSize = window.ContentScaleSize;
+        var menuVisible = mainMenuOverlay.Visible;
+        var pauseVisible = pauseMenuPanel.Visible;
+        var shadeVisible = menuShade.Visible;
+        mainMenuOverlay.Hide();
+        pauseMenuPanel.Hide();
+        menuShade.Hide();
+        string[] kinds = ["wood", "stone", "grain", "grain_seed", "cultivated_greens", "cultivated_green_seed",
+            "tree_seed", "sapling", "medicinal_herbs", "bandage", "medicine", "gold_ore", "gold", "gold_ornament",
+            "diamond_ornament", "iron_fittings", "cloth", "wool", "leather", "milk", "simple_meal", "stew", "berry", "fish"];
+        var crowded = map with
+        {
+            Fields = [],
+            GroundStocks = kinds.Select(kind => new OwnerWorldGroundStock(new(1, 1), "household:field-smoke", kind, 1)).ToArray(),
+        };
+        try
+        {
+            foreach (var size in new[] { new Vector2I(1280, 720), new Vector2I(1920, 1080) })
+            {
+                window.Size = size;
+                window.ContentScaleSize = size;
+                RenderMap(crowded);
+                selectedTile = new(1, 1);
+                selectedTilePanel.Show();
+                RenderTileInspection(crowded);
+                for (var frame = 0; frame < 5; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (GetViewportRect().Size != new Vector2(size.X, size.Y))
+                    throw new InvalidOperationException($"The crowded-card check must render at {size}, got {GetViewportRect().Size}.");
+                if (tileThings.GetChildCount() != kinds.Length ||
+                    !GetViewportRect().Encloses(selectedTilePanel.GetGlobalRect()))
+                    throw new InvalidOperationException($"Crowded tile cards must preserve all rows inside the viewport at {size}: {selectedTilePanel.GetGlobalRect()}.");
+                var close = selectedTilePanel.FindChildren("*", nameof(Button), recursive: true, owned: false)
+                    .OfType<Button>().Single(button => button.TooltipText == "Close tile inspection");
+                if (!selectedTilePanel.GetGlobalRect().Encloses(close.GetGlobalRect()))
+                    throw new InvalidOperationException("Close must stay visible on a crowded tile card.");
+                var scroll = selectedTilePanel.FindChildren("*", nameof(ScrollContainer), recursive: true, owned: false)
+                    .OfType<ScrollContainer>().SingleOrDefault();
+                if (scroll?.GetVScrollBar().IsVisibleInTree() == true)
+                {
+                    scroll.ScrollVertical = 0;
+                    var overScroll = scroll.GetGlobalRect().GetCenter();
+                    var zoom = cameraZoom;
+                    GetViewport().PushInput(new InputEventMouseMotion { Position = overScroll, GlobalPosition = overScroll }, true);
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    GetViewport().PushInput(new InputEventMouseButton
+                    {
+                        Position = overScroll,
+                        GlobalPosition = overScroll,
+                        ButtonIndex = MouseButton.WheelDown,
+                        Pressed = true,
+                    }, true);
+                    await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                    if (scroll.ScrollVertical <= 0 || !Mathf.IsEqualApprox(cameraZoom, zoom))
+                        throw new InvalidOperationException($"The mouse wheel must scroll the crowded card without zooming the map: scroll={scroll.ScrollVertical}, max={scroll.GetVScrollBar().MaxValue}, page={scroll.GetVScrollBar().Page}, zoom={zoom}/{cameraZoom}, hover={GetViewport().GuiGetHoveredControl()?.GetPath()}, rect={scroll.GetGlobalRect()}.");
+                    close.GrabFocus();
+                    await VerifyKeyboardScrollAsync(scroll, selectedTilePanel);
+                    scroll.GetVScrollBar().GrabFocus();
+                    await KeyboardKeyAsync(Key.End);
+                    if (!scroll.GetGlobalRect().Grow(1).Encloses(tileThings.GetChild<Control>(kinds.Length - 1).GetGlobalRect()))
+                        throw new InvalidOperationException("Scrolling to the end must reveal the last ground-goods row.");
+                }
+                var crowdedHeight = selectedTilePanel.Size.Y;
+                RenderMap(crowded with { GroundStocks = [] });
+                RenderTileInspection(crowded with { GroundStocks = [] });
+                for (var frame = 0; frame < 5; frame++) await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+                if (selectedTilePanel.Size.Y >= crowdedHeight || !GetViewportRect().Encloses(selectedTilePanel.GetGlobalRect()))
+                    throw new InvalidOperationException("A short tile card must shrink again after inspecting crowded ground.");
+            }
+        }
+        finally
+        {
+            window.Size = originalSize;
+            window.ContentScaleSize = originalRenderSize;
+            RenderMap(map);
+            selectedTile = new(1, 1);
+            RenderTileInspection(map);
+            mainMenuOverlay.Visible = menuVisible;
+            pauseMenuPanel.Visible = pauseVisible;
+            menuShade.Visible = shadeVisible;
+        }
+    }
+
     /// <summary>
     /// The hover label shows a picture of the ground, the World Map marks Towns
     /// and agents on parchment with a legend, and each map filter says what it draws.

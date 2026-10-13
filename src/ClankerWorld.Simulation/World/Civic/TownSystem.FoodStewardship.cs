@@ -11,8 +11,8 @@ internal sealed partial class TownSystem
         .Select(person => person.Id).Order(StringComparer.Ordinal).ToArray();
 
     internal static int ContributionScore(ICivicWorld world, string actor) => world.Society.Memories.Count(memory => memory.SubjectId == actor &&
-            (memory.Id.StartsWith("project-gratitude:", StringComparison.Ordinal) || memory.Id.StartsWith("trust-memory:", StringComparison.Ordinal) ||
-                memory.Id.StartsWith("lesson-gratitude:", StringComparison.Ordinal))) +
+            (memory.Id.Value.StartsWith("project-gratitude:", StringComparison.Ordinal) || memory.Id.Value.StartsWith("trust-memory:", StringComparison.Ordinal) ||
+                memory.Id.Value.StartsWith("lesson-gratitude:", StringComparison.Ordinal))) +
         (world.Agents.GetValueOrDefault(actor)?.Project?.Stage == "completed" ? 1 : 0);
 
     internal static int SharedFoodQuantity(ICivicWorld world) => world.Society.Inventory.Lots.Where(lot =>

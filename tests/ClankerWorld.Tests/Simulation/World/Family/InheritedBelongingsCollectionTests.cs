@@ -55,7 +55,7 @@ public sealed class InheritedBelongingsCollectionTests
         using var dying = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(state)),
             id => id == deceased ? will : new ActionCoverageRecorder(chooseIdle: true));
         Assert.True((await dying.TickModelWorkAsync()).Advanced);
-        await will.Completed.Task;
+        await ModelWorkHarness.WaitForSignalAsync(will.Completed.Task);
         for (var tick = 0; tick < 20 && dying.Society.Estates.Single().WillStatus != "accepted"; tick++)
             Assert.True((await dying.TickModelWorkAsync()).Advanced);
         var estate = Assert.Single(dying.Society.Estates);
