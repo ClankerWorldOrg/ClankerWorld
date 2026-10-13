@@ -137,7 +137,7 @@ public sealed partial class WorldRuntime
     /// Store a spare generic tool at home so preparation materials have room
     /// to travel. Building work uses an available hammer or proceeds by hand.
     /// </summary>
-    private InventoryLot? BuildingPreparationToolToStore(string actor, string householdId)
+    private InventoryLot? BuildingPreparationToolToStore(string actor, string householdId, string? sourceLotId = null)
     {
         if (agents[actor].Project is { Stage: not ("completed" or "cancelled") } ||
             HouseForHousehold(householdId) is not { } house || DestinationRoom(house.InstanceId) == 0 ||
@@ -151,11 +151,11 @@ public sealed partial class WorldRuntime
         if (free >= required)
             return null;
 
-        var tool = society.Checkpoint.Inventory.Lots.Where(lot =>
+        var tool = SpendingGoods(actor, GoodsUse.ConsumeAt, [actor, householdId], "tool").Select(match => match.Lot).Where(lot =>
                 (lot.OwnerId == actor || lot.OwnerId == householdId) &&
                 PersonalEquipmentRules.IsCarried(lot, actor) && lot.DeliveryBuildingId is null &&
                 lot.ContainerLotId is null &&
-                lot.ItemKind == "tool" && AvailableLotQuantity(lot) > 0)
+                lot.ItemKind == "tool" && AvailableLotQuantity(lot) > 0 && (sourceLotId is null || lot.Id == sourceLotId))
             .OrderBy(lot => lot.Id, StringComparer.Ordinal).FirstOrDefault();
         return tool is not null && free + Math.Min(1, AvailableLotQuantity(tool)) >= required ? tool : null;
     }

@@ -1,0 +1,1 @@
+- Household stock choices keep their selected supplies and load through delivery or recovery. If that shipment or its destination becomes unavailable, the Event Log explains why the agent waited.

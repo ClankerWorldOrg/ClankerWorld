@@ -134,6 +134,14 @@ and quantities. The ordered routes apply those values after the same offer,
 admission and application check. Neither path selects replacement goods during
 application. Private forwarders retain their original signatures.
 
+Household stock choices use `HouseholdStockActionPlan` for collected deliveries,
+preparation-tool storage, loose-stock pickup, spare-food storage and unusable
+shipment recovery. Their original branch order and choice wording remain.
+Each plan binds its household, selected lot, House or storage pile, quantities,
+and vessel family. The shared check revalidates that exact shipment and named
+hold authorization before any movement or transfer. `GoodsPlanFamily` supplies
+one immutable family capture for both Town salvage and household shipments.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -475,6 +483,11 @@ goods and broken carts, but excludes a family reserved for another job. Actions
 recheck the same query before unloading; load selection uses `ConsumeAt` and
 retains its native custody and food-policy rules. `Kernel/FoodRules.cs` is the
 single food catalog: ingredients can be stored without becoming edible servings.
+
+`CarriedDelivery` reads a carried shipment, including unusable property, with
+its exact destination and borrower hold authorization. Delivery and recovery
+apply their existing usability, equipment and whole-family reservation rules
+after this query. They recheck the chosen shipment rather than picking another.
 
 `Salvage` reads unreserved physical communal stock at an abandoned Town from
 the actor's current interaction point. It retains damaged or spoiled property
