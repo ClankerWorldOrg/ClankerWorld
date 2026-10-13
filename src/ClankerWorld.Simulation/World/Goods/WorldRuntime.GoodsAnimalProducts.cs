@@ -4,6 +4,11 @@ namespace ClankerWorld.Simulation.World;
 
 public sealed partial class WorldRuntime
 {
+    // Already promised feed still occupies the yard's target stock. Preserve
+    // physical work accounting here; collection uses its own promise checks.
+    private int AnimalYardFeedStock(string yardId) => InventoryIndex.For(society.Checkpoint.Inventory)
+        .StoredAt(yardId).Where(lot => AnimalRules.IsFeed(lot.ItemKind)).Sum(AvailableLotQuantity);
+
     private static GoodsReason? AnimalProductGoodsExclusion(GoodsRequest request, InventoryIndex index, InventoryLot lot)
     {
         if (lot.ContainerLotId is not null || lot.StorageBuildingId is not null || lot.CarrierId is not null || lot.GroundPosition is null)

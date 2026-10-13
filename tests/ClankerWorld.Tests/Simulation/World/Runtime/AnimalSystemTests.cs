@@ -166,6 +166,7 @@ public sealed class AnimalSystemTests
         public string HouseholdFor(string actor) => Society.GetAgent(actor).HouseholdId!;
         public void AppendEvent(string kind, string detail, GridPoint? eventPosition = null) => Events.Add((kind, detail, eventPosition));
         public void ApplyInventoryTransition(Func<InventoryCheckpoint, InventoryCheckpoint> transition) => Society = Society with { Inventory = transition(Society.Inventory) };
+        public int AnimalYardFeedStock(string yardId) => throw new NotSupportedException();
         public int AvailableLotQuantity(InventoryLot lot) => Math.Max(0, InventoryRules.AvailableQuantity(InventoryIndex.For(Society.Inventory), lot));
         public InventoryLot? AttachedHandcart(string actor) => null;
         public BoatState? PassengerBoat(string actor) => null;

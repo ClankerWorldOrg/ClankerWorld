@@ -330,6 +330,11 @@ and any required dismount. One check runs at offer, admission and apply. The
 product goods query accepts only the selected ready-product reservation;
 collection releases it through the existing animal operation before moving
 that stock. A changed stock or animal produces the standard choice refusal.
+Animal supply pickup also retains its source, quantity, complete vessel
+contents, yard and care target. Its check uses the same supply-demand rule as
+offering, and filters before the twelve-choice cap. A successful pickup starts
+the existing physical supply trip with the selected load and its stock hold;
+trip completion and care inputs remain separate operations.
 
 Fertility uses `Derived` keyed by the map snapshot, with a cache shared by
 prepared farming systems for the same world seed. A changed map gets a new

@@ -78,6 +78,8 @@ internal sealed partial class AnimalSystem
     }
     internal bool ApplyAnimalCandidate(IAnimalWorld world, string actor, string candidateId, ActionPlan? originalPlan = null)
     {
+        if (originalPlan is AnimalSupplyActionPlan supplyPlan)
+        { ApplyAnimalSupplyPlan(world, supplyPlan); return true; }
         if (originalPlan is AnimalProductActionPlan captured)
         { ApplyAnimalProductPlan(world, captured); return true; }
         if (candidateId == "drink_milk")
