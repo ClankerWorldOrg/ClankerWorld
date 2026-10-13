@@ -79,7 +79,8 @@ internal static class OfferedChoiceScenario
         var horse = new AnimalState("sweep-horse", "Éclair 🐎", "horse", "female",
             -(long)AnimalRules.Definition("horse").AdultDays * day, site, DerivedId.Create("household:" + home), home,
             "sweep-paid-yard", CareUntilTick: state.Society.Society.WorldTick + day, RiderId: actor,
-            SaddleLotId: "sweep-saddle") { SaddleReservationId = "sweep-saddle-hold" };
+            SaddleLotId: "sweep-saddle")
+        { SaddleReservationId = "sweep-saddle-hold" };
         return WithInventory(state, inventory) with
         {
             AnimalWorld = new(true, [horse], []),
@@ -107,7 +108,8 @@ internal static class OfferedChoiceScenario
         state = PaidProject(state, new("Port arrivée 🧭", second.Definition.CanonicalId, second.Point,
             secondGeometry.ApproachTiles.First(state.Map.IsBuildable), second.Definition.BuildCosts), out var destination);
         state = PaidProject(state, new("Bateau ⛵", first.Definition.CanonicalId, first.Point,
-            geometry.ApproachTiles.First(state.Map.IsBuildable), PortContent.BoatCosts) { BoatPortId = origin.CompletedBuildingId }, out var paidBoat);
+            geometry.ApproachTiles.First(state.Map.IsBuildable), PortContent.BoatCosts)
+        { BoatPortId = origin.CompletedBuildingId }, out var paidBoat);
         var path = PortNavigationRules.WaterRoute(state.Map, geometry.DockingTiles[0], secondGeometry.DockingTiles, Occupied(state));
         var requestId = DerivedId.Numbered("boat-request:", 1);
         var actor = NormalPathWorld.Founder4;
