@@ -73,6 +73,16 @@ internal static class WorldEvents
         "pottery_content_staged" => new PotteryContentStagedEventPayload(actor, PackageId),
         "silo_content_staged" => new SiloContentStagedEventPayload(actor, PackageId),
         "tailor_content_staged" => new TailorContentStagedEventPayload(actor, PackageId),
+        "animal_content_staged" => new AnimalContentStagedEventPayload(actor, PackageId),
+        "care_content_staged" => new CareContentStagedEventPayload(actor, PackageId),
+        "house_tools_content_staged" => new HouseToolsContentStagedEventPayload(actor, PackageId),
+        "knowledge_content_staged" => new KnowledgeContentStagedEventPayload(actor, PackageId),
+        "market_content_staged" => new MarketContentStagedEventPayload(actor, PackageId),
+        "ornament_content_staged" => new OrnamentContentStagedEventPayload(actor, PackageId),
+        "port_content_staged" => new PortContentStagedEventPayload(actor, PackageId),
+        "store_content_staged" => new StoreContentStagedEventPayload(actor, PackageId),
+        "street_lantern_content_staged" => new StreetLanternContentStagedEventPayload(actor, PackageId),
+        "town_hall_content_staged" => new TownHallContentStagedEventPayload(actor, PackageId),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown event kind."),
     };
 
@@ -92,6 +102,9 @@ internal static class WorldEvents
         "nonviolent_hearing" => new TownCivicNonviolentHearingEventPayload(actor, TownId, SubjectId, NoticeText),
         "law_case" => new TownCivicLawCaseEventPayload(actor, TownId, SubjectId, NoticeText),
         "remedy" => new TownCivicRemedyEventPayload(actor, TownId, SubjectId, NoticeText),
+        "candidate" => new TownCivicCandidateEventPayload(actor, TownId, SubjectId, NoticeText),
+        "nomination" => new TownCivicNominationEventPayload(actor, TownId, SubjectId, NoticeText),
+        "land_use" => new TownCivicLandUseEventPayload(actor, TownId, SubjectId, NoticeText),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown event kind."),
     };
 
