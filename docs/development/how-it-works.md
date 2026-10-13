@@ -215,6 +215,13 @@ checks that same plan before starting work or collecting its exact seed.
 replanting reservation. Field reach explicitly uses terrain eligibility while
 temporary occupants pass; movement continues to check the actual route.
 
+Tree planting and replanting carry `TreeActionPlan` with the exact seed, its
+orchard reservation, the selected open tile or stump, and the chosen species.
+The same check preserves those selections before pickup or planting. Shared
+seeds use the common exact equipment pickup operation. `TreePlanting` goods
+queries include only the seed's own orchard claim alongside free usable stock;
+new claims and regrown or newly occupied targets refuse the original plan.
+
 `ActorCapabilities` checks each action's declared life stages, boat, mounted,
 urgent-need and active-order policy against a current read-only actor snapshot.
 Systems receive that snapshot per call; it is neither saved nor cached. Reach
@@ -482,7 +489,7 @@ Within the Simulation source, `GoodsQueryBoundaryTests` keeps a per-file budget
 of direct references to `InventoryCheckpoint.Lots` and `InventoryIndex.Lots`
 outside `Goods/` and validation code. The recorded baseline in
 [`goods-query-reads.json`](../../tests/ClankerWorld.Tests/Architecture/goods-query-reads.json)
-is 217 references across 60 files. Named delivery, hold and cargo operations
+is 216 references across 60 files. Named delivery, hold and cargo operations
 replace direct inventory writes; their remaining references perform inventory
 transitions, while selection uses the shared query.
 The guard binds C# property symbols, including aliases and conditional access;
