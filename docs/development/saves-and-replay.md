@@ -2090,6 +2090,21 @@ autosaves therefore does not create empty branches, while a missing or damaged
 checkpoint cannot replace a recovery copy. If loading fails, the branch record
 is restored along with the world.
 
+A manual load first records a private `pending-load.json` intent in `.manual`,
+naming the selected save, its before-load copy, effective autosave settings and
+the previous timeline. The intent stays until checkpoint, model assignments,
+autosave settings and loaded timeline all commit. Startup finishes that intent
+before opening the active world, including loads within the same world. If a
+load fails, its intent switches to rollback before restoring the before-load
+copy; an interrupted rollback therefore resumes in the same direction. The
+source snapshots remain unchanged. While its intent is pending, the shared save
+mutation gate refuses snapshot changes and world switching, including requests
+already admitted before shutdown. An unfinished live rollback stops the host;
+an unreadable intent or failed recovery stops startup and preserves the files.
+Include this intent in an installation
+backup; older binaries cannot resolve it, so complete recovery before rollback.
+No world schema or replay event changes.
+
 The branch record is written before a new save's metadata is published, so an
 interruption leaves it pointing at an unlisted save whose position still keeps the
 next save on the same branch. A missing or damaged record never blocks saving:
