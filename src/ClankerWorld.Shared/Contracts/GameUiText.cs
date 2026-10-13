@@ -1,6 +1,4 @@
-using ClankerWorld.GodotClient.Protocol;
-
-namespace ClankerWorld.GodotClient.UI;
+namespace ClankerWorld.Contracts;
 
 /// <summary>
 /// Converts simulation identifiers into the deliberately small, player-facing
@@ -159,34 +157,6 @@ public static class GameUiText
         _ => HumanizeIdentifier(kind),
     };
 
-    public static string FriendlyFailure(Exception exception) => exception switch
-    {
-        Pairing.OwnerAgentNameTakenException =>
-            "that first name belongs to another agent. Choose a different first name",
-        Pairing.OwnerWorldGenerationException =>
-            "there is no room for a first Town with these settings. Choose another seed or change the terrain settings",
-        Pairing.OwnerActionCompatibilityException =>
-            "the game and world server need matching updates before making this change. Update both; your device pairing can stay as it is",
-        System.Net.Http.HttpRequestException { StatusCode: { } code } => code switch
-        {
-            System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden =>
-                "this device is not allowed in. Try connecting it again",
-            System.Net.HttpStatusCode.NotFound => "the world server doesn't know about that",
-            System.Net.HttpStatusCode.Conflict => "something changed on the world server. Try again",
-            System.Net.HttpStatusCode.TooManyRequests => "the world server is busy. Try again later",
-            >= System.Net.HttpStatusCode.InternalServerError => "the world server had a problem. Try again",
-            _ => "the world server could not accept that request",
-        },
-        System.Net.Http.HttpRequestException => "cannot reach the world server",
-        OperationCanceledException => "the world server took too long to answer",
-        System.Text.Json.JsonException or InvalidDataException => "the world server sent something unexpected",
-        UnauthorizedAccessException => "the game could not access a needed file. Check its access permissions",
-        System.Security.Cryptography.CryptographicException => "the device key could not be used. Try connecting this device again",
-        IOException => "the game could not read or save a needed file. Check storage and try again",
-        ArgumentException => "a setting could not be used. Check the entered values",
-        _ => "the action could not be completed. Try again",
-    };
-
     public static string ResourceQuantity(string kind, int? quantity, int? capacity) => quantity is null ? "" :
         (kind == "fertile_land" ? "Soil " : "") + quantity + (capacity is null ? "" : "/" + capacity);
 
@@ -253,17 +223,12 @@ public static class GameUiText
         var daysPerYear = calendarPace?.DaysPerYear ?? 365;
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(ticksPerDay);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(daysPerYear);
-        var offset = calendarPace?.CalendarOffsetTicks ?? 0;
-        ArgumentOutOfRangeException.ThrowIfNegative(offset);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(offset, ticksPerDay);
-        // Shift the calendar, not elapsed world time. Splitting the raw tick
-        // first keeps even the largest representable tick overflow-safe.
-        var shiftedTickOfDay = worldTick % ticksPerDay + (long)offset;
-        var dayIndex = worldTick / ticksPerDay + shiftedTickOfDay / ticksPerDay;
+        var (dayIndex, tickOfDay) = CalendarRules.FromTick(worldTick, ticksPerDay,
+            calendarPace?.CalendarOffsetTicks ?? 0);
         var date = SeasonDateLengths(calendarPace, dateFormat) is { } seasonLengths
             ? FormatSeasonDate(dayIndex, daysPerYear, seasonLengths)
             : FormatWorldDate(dayIndex, daysPerYear, dateFormat);
-        var minuteOfDay = (int)((shiftedTickOfDay % ticksPerDay * MinutesPerDay) / ticksPerDay);
+        var minuteOfDay = (int)(((long)tickOfDay * MinutesPerDay) / ticksPerDay);
         var hour = minuteOfDay / 60;
         var minute = minuteOfDay % 60;
         if (!useTwelveHourClock) return $"{date} · {hour:00}:{minute:00}";
@@ -289,12 +254,8 @@ public static class GameUiText
     {
         var year = (dayIndex / daysPerYear) + 1;
         var day = (int)(dayIndex % daysPerYear);
-        var season = 0;
-        while (day >= seasonLengths[season])
-        {
-            day -= seasonLengths[season];
-            season++;
-        }
+        var (season, firstDay) = CalendarRules.SeasonAtDay(day, seasonLengths[0], seasonLengths[1], seasonLengths[2]);
+        day -= firstDay;
         return $"{SeasonNames[season]} {day + 1}, Year {year}";
     }
 
@@ -429,13 +390,10 @@ public static class GameUiText
 
     private static string Plural(int count, string unit) => count == 1 ? $"1 {unit}" : $"{count} {unit}s";
 
-    public static string FullnessState(int fullnessBasisPoints) => fullnessBasisPoints switch
-    {
-        >= 7_000 => "well fed",
-        >= 3_500 => "fed",
-        >= 2_500 => "hungry",
-        _ => "very hungry",
-    };
+    public static string FullnessState(int fullnessBasisPoints) => NeedStates.FullnessState(fullnessBasisPoints);
+
+    public static string NeedLabel(OwnerWorldAgent agent, string key) =>
+        agent.DecisionFactors.FirstOrDefault(factor => factor.Key == key)?.Detail ?? string.Empty;
 
     /// <summary>
     /// Short present-tense activity for the roster. The host summary already

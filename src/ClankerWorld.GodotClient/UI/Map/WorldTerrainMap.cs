@@ -46,20 +46,8 @@ public sealed class WorldTerrainMap
         foreach (var tile in tiles)
         {
             if (tile.X < 0 || tile.X >= width || tile.Y < 0 || tile.Y >= height) continue;
-            terrain[tile.Y * width + tile.X] = tile.Terrain switch
-            {
-                "meadow" => 1,
-                "water" => 2,
-                "mountain" => 3,
-                "river" => 4,
-                "lake" => 5,
-                "ocean" => 6,
-                "sand" => 7,
-                "forest" => 8,
-                "snow" => 9,
-                "peak" => 10,
-                _ => 0,
-            };
+            terrain[tile.Y * width + tile.X] = tile.Terrain is "meadow" or "water" or "mountain" or "river" or "lake" or "ocean" or "peak" or "sand" or "forest" or "snow"
+                ? TerrainCodes.RenderKind(TerrainCodes.Encode(tile.Terrain)) : (byte)0;
         }
         return WithLayers(width, height, terrain, layers, wrapsEastWest);
     }
@@ -68,27 +56,14 @@ public sealed class WorldTerrainMap
         OwnerWorldPackedMapLayers? layers = null, bool wrapsEastWest = false)
     {
         ArgumentNullException.ThrowIfNull(packed);
-        if (packed.Encoding != "terrain-kind-v1" || packed.Width <= 0 || packed.Height <= 0)
+        if (packed.Encoding != TerrainCodes.TerrainEncoding || packed.Width <= 0 || packed.Height <= 0)
             throw new InvalidDataException("The world terrain encoding or dimensions are unsupported.");
         var source = Convert.FromBase64String(packed.Data);
         if (source.Length != checked(packed.Width * packed.Height))
             throw new InvalidDataException("The packed world terrain length is invalid.");
         var terrain = new byte[source.Length];
         for (var index = 0; index < source.Length; index++)
-            terrain[index] = source[index] switch
-            {
-                0 => 1, // meadow
-                1 => 2, // fixture water
-                2 => 3, // mountain
-                3 => 4, // river
-                4 => 5, // lake
-                5 => 6, // ocean
-                6 => 10, // peak
-                7 => 7, // sand
-                8 => 8, // forest
-                9 => 9, // snow
-                _ => throw new InvalidDataException("The packed world terrain contains an unknown kind."),
-            };
+            terrain[index] = TerrainCodes.RenderKind(source[index]);
         return WithLayers(packed.Width, packed.Height, terrain, layers, wrapsEastWest);
     }
 
@@ -275,63 +250,11 @@ public sealed class WorldTerrainMap
         return bytes;
     }
 
-    public static string NameFor(byte kind) => kind switch
-    {
-        1 => "Meadow",
-        2 => "Water",
-        3 => "Mountain",
-        4 => "River",
-        5 => "Lake",
-        6 => "Ocean",
-        7 => "Sand",
-        8 => "Forest",
-        9 => "Snow",
-        10 => "Peak",
-        _ => "Unavailable",
-    };
-
-    public static string? ClimateName(byte? value) => value switch
-    {
-        0 => "Tropical",
-        1 => "Dry",
-        2 => "Temperate",
-        3 => "Cold",
-        4 => "Polar",
-        _ => null,
-    };
-
-    public static string? SurfaceName(byte? value) => value switch
-    {
-        0 => "Grass",
-        1 => "Sand",
-        2 => "Rock",
-        3 => "Snow",
-        4 => "Water",
-        5 => "Forest floor",
-        6 => "Dry scrub",
-        7 => "Fertile soil",
-        _ => null,
-    };
-
-    public static string? HydrologyName(byte? value) => value switch
-    {
-        0 => "Land",
-        1 => "Ocean",
-        2 => "Lake",
-        3 => "River",
-        _ => null,
-    };
-
-    public static string? VegetationName(byte? value) => value switch
-    {
-        0 => "None",
-        1 => "Grass",
-        2 => "Forest",
-        3 => "Scrub",
-        4 => "Tundra",
-        5 => "Cactus",
-        _ => null,
-    };
+    public static string NameFor(byte value) => TerrainCodes.NameFor(value);
+    public static string? ClimateName(byte? value) => TerrainCodes.ClimateName(value);
+    public static string? SurfaceName(byte? value) => TerrainCodes.SurfaceName(value);
+    public static string? HydrologyName(byte? value) => TerrainCodes.HydrologyName(value);
+    public static string? VegetationName(byte? value) => TerrainCodes.VegetationName(value);
 
     public static string? NaturalObjectName(string? value) => value switch
     {

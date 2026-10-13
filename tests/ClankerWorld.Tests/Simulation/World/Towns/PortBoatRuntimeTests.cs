@@ -75,7 +75,7 @@ public sealed partial class PortBoatRuntimeTests
         Assert.Equal(boat.Journey.ReservedDock.X, displayed.ReservedDock!.X);
         Assert.Equal("boat_travel", client.Agents.Single(person => person.Id == traveler).Route.Status);
         Assert.Equal("underway", Assert.Single(client.BoatRequests).Status);
-        Assert.Contains("Passenger:", Client.GameUiText.BoatDescription(displayed), StringComparison.Ordinal);
+        Assert.Contains("Passenger:", ClankerWorld.Contracts.GameUiText.BoatDescription(displayed), StringComparison.Ordinal);
         policy.Trips = false;
         var saved = WorldRuntimeCodec.Encode(scenario.World.ExportState());
         Assert.False((await scenario.World.AdvanceOneTickAsync(() => false)).Advanced);

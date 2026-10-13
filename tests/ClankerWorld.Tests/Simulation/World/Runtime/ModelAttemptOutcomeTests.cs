@@ -115,7 +115,7 @@ public sealed class ModelAttemptOutcomeTests
     {
         var events = new OwnerWorldObservationStore(world).GetEventsAfter(0).Events.Select(item =>
             new ClankerWorld.Contracts.OwnerWorldEvent(item.EventId, item.WorldTick, item.Kind, item.Detail));
-        return ClankerWorld.GodotClient.UI.GameUiText.PlayerEvents(events)
+        return ClankerWorld.Contracts.GameUiText.PlayerEvents(events)
             .Where(item => item.Kind == "model_attempt_status" && item.Detail.StartsWith(TargetId + ":", StringComparison.Ordinal)).ToArray();
     }
 

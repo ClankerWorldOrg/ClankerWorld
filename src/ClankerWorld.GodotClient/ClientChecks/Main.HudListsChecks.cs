@@ -263,9 +263,9 @@ public partial class Main
         }
         Change(person with { PublicIntention = new("seek_food", "looking for food", "deterministic", 1) }, "Looking for food");
         Change(person with { DecisionFactors = [.. person.DecisionFactors, new("decision-pending", "waiting")] }, "Deciding what to do");
-        Change(person with { FullnessBasisPoints = 1_500 }, "Hungry");
-        Change(person with { Survival = new(3_000, 0, false, false, 10_000, null) }, "Cold");
-        Change(person with { Survival = new(10_000, 2_000, false, false, 10_000, null) }, "Ill");
+        Change(person with { FullnessBasisPoints = 1_500, DecisionFactors = [.. person.DecisionFactors, new("fullness-state", "very hungry")] }, "Hungry");
+        Change(person with { Survival = new(3_000, 0, false, false, 10_000, null), DecisionFactors = [.. person.DecisionFactors, new("warmth-state", "cold")] }, "Cold");
+        Change(person with { Survival = new(10_000, 2_000, false, false, 10_000, null), DecisionFactors = [.. person.DecisionFactors, new("illness-state", "ill")] }, "Ill");
         Change(person with { DecisionFactors = [new("age-band", "child")] }, string.Empty, changedPixels: true);
         Change(person with { Lifecycle = "dead" }, "Died", changedPixels: true);
         RenderAgentList(snapshot);

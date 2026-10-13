@@ -44,8 +44,8 @@ public sealed partial class ServerHttpTests
             var failure = await Assert.ThrowsAsync<OwnerAgentNameTakenException>(() => api.RenameAgentAsync(
                 uri, authority, device.DeviceId, new ClankerWorld.Contracts.OwnerAgentRenameAction(second, duplicate), signer, default));
             Assert.Equal(HttpStatusCode.Conflict, failure.StatusCode);
-            Assert.Contains("another agent", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
-            Assert.Contains("Choose a different first name", Client.GameUiText.FriendlyFailure(failure), StringComparison.Ordinal);
+            Assert.Contains("another agent", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure), StringComparison.Ordinal);
+            Assert.Contains("Choose a different first name", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(failure), StringComparison.Ordinal);
             Assert.Equal(before, WorldRuntimeCodec.Encode(runtime.ExportState()));
             Assert.Equal(diskBefore, File.ReadAllBytes(file.Path));
             var renamed = await api.RenameAgentAsync(uri, authority, device.DeviceId,

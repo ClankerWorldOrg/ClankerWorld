@@ -13,7 +13,7 @@ public static class IllnessRules
 {
     public static int WorkRatePercent(int illnessBasisPoints) => Math.Clamp(illnessBasisPoints, 0, 10_000) switch
     {
-        < 2_500 => 100,
+        < ClankerWorld.Contracts.NeedStates.VeryHungryThreshold => 100,
         < 5_000 => 75,
         < 7_500 => 50,
         _ => 25,
@@ -64,7 +64,7 @@ public sealed partial class WorldRuntime
     private const int ComfortableFullness = 4_000;
     private const int ComfortableWarmth = 6_000;
     private const int UrgentFullness = 2_000;
-    private const int UrgentWarmth = 3_500;
+    private const int UrgentWarmth = ClankerWorld.Contracts.NeedStates.ColdThreshold;
     // Provisional routine and outing reserves, not owner-approved balance.
     private const int RoutineFoodSeekFullness = 4_500;
     private const int OutingFullnessReserve = 3_000;

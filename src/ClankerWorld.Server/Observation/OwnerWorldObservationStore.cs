@@ -987,8 +987,8 @@ public sealed partial class OwnerWorldObservationStore
     {
         var bytes = new byte[checked(map.Width * map.Height)];
         foreach (var tile in map.Tiles)
-            bytes[tile.Position.Y * map.Width + tile.Position.X] = checked((byte)tile.Terrain);
-        return new PackedTerrainView(map.Width, map.Height, "terrain-kind-v1",
+            bytes[tile.Position.Y * map.Width + tile.Position.X] = TerrainCodes.Encode(tile.Terrain.ToString());
+        return new PackedTerrainView(map.Width, map.Height, TerrainCodes.TerrainEncoding,
             Convert.ToBase64String(bytes));
     }
 
@@ -1001,7 +1001,7 @@ public sealed partial class OwnerWorldObservationStore
             map.HydrologyKinds is not { } hydrology || map.SurfaceKinds is not { } surface ||
             map.VegetationKinds is not { } vegetation) return null;
         var fertility = cachedFertility ?? (worldSeed is null ? null : new LandFertility(map, worldSeed));
-        return new PackedMapLayersView(map.Width, map.Height, "map-layers-v2",
+        return new PackedMapLayersView(map.Width, map.Height, TerrainCodes.LayersEncoding,
             Convert.ToBase64String(climate), Convert.ToBase64String(elevation),
             Convert.ToBase64String(hydrology), Convert.ToBase64String(surface),
             Convert.ToBase64String(vegetation))
@@ -1058,6 +1058,9 @@ public sealed partial class OwnerWorldObservationStore
             new("role", agent.CurrentRole.ToString().ToLowerInvariant()),
             new("household", household?.Name ?? "unhoused"),
             new("fullness", $"{physical.FullnessBasisPoints} basis points"),
+            new("fullness-state", NeedStates.FullnessState(physical.FullnessBasisPoints)),
+            new("warmth-state", physical.Survival is { } needs ? NeedStates.WarmthState(needs.WarmthBasisPoints) : string.Empty),
+            new("illness-state", physical.Survival is { } health ? NeedStates.IllnessState(health.IllnessBasisPoints) : string.Empty),
         };
         var personalStored = state.Society.Society.Inventory.Lots.Where(lot => lot.OwnerId == agent.Id &&
             !PersonalEquipmentRules.IsPhysicallyCarried(state.Society.Society.Inventory, lot, agent.Id) &&
@@ -1110,7 +1113,10 @@ public sealed partial class OwnerWorldObservationStore
         if (modelStatus == "waiting" && state.Society.Society.IsPaused) modelStatus = "canceled";
         decisionFactors.Add(new DecisionFactorView("model-status", modelStatus));
         if (physical.LastModelAttempt?.LastAcceptedCandidateId is { } acceptedCandidate)
+        {
             decisionFactors.Add(new DecisionFactorView("last-model-choice", acceptedCandidate));
+            decisionFactors.Add(new DecisionFactorView("last-model-activity", GameUiText.ActivityPhrase(acceptedCandidate, null)));
+        }
         if (physical.LastModelAttempt?.SetupBlocker is { } setupBlocker)
             decisionFactors.Add(new DecisionFactorView("model-setup-blocker", setupBlocker));
         if (state.Society.Cognition.Queue.Any(item => item.AgentId == agent.Id))
@@ -1590,7 +1596,7 @@ public sealed partial class OwnerWorldObservationStore
         long worldTick,
         string? purposeSummary = null) => new(
         candidateId,
-        purposeSummary ?? PublicIntentionSummary(candidateId),
+        GameUiText.ActivityPhrase(candidateId, purposeSummary ?? PublicIntentionSummary(candidateId)),
         provider,
         worldTick);
 

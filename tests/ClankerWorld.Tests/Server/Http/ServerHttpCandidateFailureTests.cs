@@ -107,9 +107,9 @@ public sealed partial class ServerHttpTests
                 }, signer, default));
             AssertAttemptSequence(expectedAttempts);
             Assert.Equal(HttpStatusCode.Conflict, previewFailure.StatusCode);
-            Assert.Equal(Client.GameUiText.FriendlyFailure(previewFailure), Client.GameUiText.FriendlyFailure(createFailure));
-            Assert.Contains("Choose another seed", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
-            Assert.DoesNotContain("starting clearing", Client.GameUiText.FriendlyFailure(previewFailure), StringComparison.Ordinal);
+            Assert.Equal(ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure), ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(createFailure));
+            Assert.Contains("Choose another seed", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure), StringComparison.Ordinal);
+            Assert.DoesNotContain("starting clearing", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(previewFailure), StringComparison.Ordinal);
             Assert.Equal(oldCatalog, JsonSerializer.SerializeToUtf8Bytes(catalog.Capture(), WebJsonOptions));
             Assert.Equal(oldBytes, WorldRuntimeCodec.Encode(oldWorld.ExportState()));
             Assert.Equal(authorityIdentity, host.Services.GetRequiredService<OwnerAuthorityStore>().Identity);
@@ -168,7 +168,7 @@ public sealed partial class ServerHttpTests
             ExpectedManifestDigest: preview.ManifestDigest, ExpectedMapLayersDigest: preview.MapLayersDigest);
         var identityFailure = await Assert.ThrowsAsync<HttpRequestException>(() => api.CreateWorldAsync(uri,
             authority, device.DeviceId, wrongClientAttempt, signer, default));
-        Assert.Equal("something changed on the world server. Try again", Client.GameUiText.FriendlyFailure(identityFailure));
+        Assert.Equal("something changed on the world server. Try again", ClankerWorld.GodotClient.UI.GameUiFailures.FriendlyFailure(identityFailure));
         AssertAttemptSequence(0, 1, 2);
         Assert.Equal(oldCatalog, JsonSerializer.SerializeToUtf8Bytes(catalog.Capture(), WebJsonOptions));
         Assert.Equal(oldBytes, WorldRuntimeCodec.Encode(oldWorld.ExportState()));

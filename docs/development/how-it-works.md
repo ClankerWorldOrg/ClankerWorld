@@ -55,6 +55,15 @@ every wire record and reads it through the actual game assembly, comparing the
 complete JSON and refusing an unmapped field. This contract belongs to the game
 and world server of the same build; it changes no saved world schema.
 
+The server adds need-state labels to the existing decision-factor collection
+and writes the displayed activity into the existing public-intention summary.
+The roster and cards read those labels; they do not infer need states or
+activities from numbers and choice prefixes. Cold uses the same threshold as
+urgent warmth in the simulation. The shared contract also owns packed terrain
+codes/layer names and calendar formatting; the server supplies the saved
+calendar pace, and the game applies its date and 12/24-hour display preferences.
+No new gameplay or saved fields are introduced.
+
 ## Derived identities
 
 `DerivedId` owns the 128 UTF-16-unit limit for identities assembled from other
