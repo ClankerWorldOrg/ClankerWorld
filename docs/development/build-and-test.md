@@ -157,6 +157,12 @@ late personality, aspiration or identity event applied. Immediate, deferred and
 four-second entry cases use thirty-second phase diagnostic bounds; no extra
 native tick is spent on scheduling.
 
+Ornament trade fixtures create their stock through actual paid native production
+and cache only strict checkpoint bytes. Each case decodes fresh state and uses
+its own runtime and providers. Setup stops when the real output appears;
+protected-stock cases require a valid trade control and an ordinary action
+observation before checking refusal, ownership, reservations and capacity.
+
 Paired native host checkpoint fixtures must finish matching external inputs
 before advancing either continuation. Ordinary model decisions, life-moment
 identity replies, wills and conversation turns use separate task queues. Native
