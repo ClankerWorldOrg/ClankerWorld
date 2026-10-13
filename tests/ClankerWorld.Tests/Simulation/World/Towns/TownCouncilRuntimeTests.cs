@@ -147,7 +147,7 @@ public sealed class TownCouncilRuntimeTests
                 Assert.Equal(town.Id == "town:first" ? FirstText : SecondText, proposal.Text);
                 Assert.NotEmpty(town.Council.Knowledge);
             });
-            foreach (var provider in providers.Values.Where(provider => provider.Observations.Count > 0))
+        foreach (var provider in providers.Values.Where(provider => !provider.Observations.IsEmpty))
             {
                 if (provider.Observations.First().AgentId is not (FirstAuthor or SecondAuthor))
                     Assert.Contains(provider.Observations, o => o.Candidates.Any(c => c.Id.Contains("|read|", StringComparison.Ordinal)));
