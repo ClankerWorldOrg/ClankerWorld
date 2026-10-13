@@ -13,13 +13,14 @@ public partial class FittedLabel : Label
     private string automaticTooltip = string.Empty;
 
     // Ordinary label assignments use the same fitting path as FullText.
-    public new string Text { get => fullText; set => FullText = value; }
+    public new string Text { get => base.Text; set => FullText = value; }
 
     public FittedLabel()
     {
         // Trimming without a mark keeps the minimum width small; the text set
         // here always fits, so Godot never needs to trim it.
         TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
+        SizeFlagsHorizontal = SizeFlags.ExpandFill;
     }
 
     /// <summary>The whole text; <see cref="Label.Text"/> holds what fits.</summary>

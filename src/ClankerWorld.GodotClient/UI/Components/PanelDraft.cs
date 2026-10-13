@@ -51,13 +51,12 @@ public sealed class PanelDraft : IDisposable
             case OptionButton choice when choice.Selected >= 0:
                 var id = choice.GetSelectedId();
                 var metadata = choice.GetItemMetadata(choice.Selected);
-                var caption = choice.GetItemText(choice.Selected);
                 restore.Add(() =>
                 {
                     if (!GodotObject.IsInstanceValid(choice)) return;
                     for (var index = 0; index < choice.ItemCount; index++)
-                        if (choice.GetItemId(index) == id && choice.GetItemMetadata(index).Equals(metadata) &&
-                            choice.GetItemText(index) == caption)
+                        if (choice.GetItemMetadata(index).Equals(metadata) &&
+                            (metadata.VariantType != Variant.Type.Nil || choice.GetItemId(index) == id))
                         { choice.Select(index); break; }
                 });
                 break;

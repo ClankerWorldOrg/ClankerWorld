@@ -75,7 +75,7 @@ public partial class Main
     private void AddTileFact(string key, string value)
     {
         tileFacts.AddChild(new Label { Text = key, ThemeTypeVariation = "DimLabel" });
-        tileFacts.AddChild(new Label
+        tileFacts.AddChild(new FittedLabel
         {
             Text = value,
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
@@ -116,7 +116,7 @@ public partial class Main
     private string TileCardText() => string.Join("\n",
         new[] { tileTitle.Text, tileSubtitle.Text }.Concat(tileFacts.GetChildren().Concat(tileThings.GetChildren())
             .SelectMany(node => node is Label label ? [label] : node.FindChildren("*", nameof(Label), recursive: true, owned: false).OfType<Label>())
-            .Select(label => label.Text)));
+            .Select(label => label is FittedLabel fitted ? fitted.FullText : label.Text)));
 
     private void RenderTileCard(OwnerWorldSnapshot snapshot, Vector2I tile, OwnerWorldTown? town,
         IReadOnlyList<(string Key, string Value)> landFacts, string? weather, int? moisture)

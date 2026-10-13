@@ -33,7 +33,7 @@ public partial class Main
             string text;
             if (inside)
             {
-                if (!buildingQuickCard.Visible || buildingQuickHeader.NameLabel.Text != "Animal yard")
+                if (!buildingQuickCard.Visible || buildingQuickHeader.NameLabel.FullText != "Animal yard")
                     throw new InvalidOperationException("The yard must keep its real building card accessible.");
                 buildingDetailsButton.EmitSignal(BaseButton.SignalName.Pressed);
                 text = string.Join('\n', buildingDetailsContent.FindChildren("*", nameof(Label), owned: false)

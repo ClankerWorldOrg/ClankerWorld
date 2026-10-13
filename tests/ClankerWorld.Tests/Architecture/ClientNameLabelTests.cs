@@ -22,6 +22,7 @@ public sealed class ClientNameLabelTests
     [InlineData("class X { Label NameLabel { get; } = new(); }", true)]
     [InlineData("class X { void F() { var title = new Label { Text = town.Name }; } }", true)]
     [InlineData("class X { void F() { var row = new Label { Text = $\"Steward: {person.DisplayName}\" }; } }", true)]
+    [InlineData("class X { void F() { var row = new Label(); row.Text = town.Name; } }", true)]
     [InlineData("class X { void F() { var row = new FittedLabel { Text = person.DisplayName }; } }", false)]
     [InlineData("class X { void F() { var title = new Label { Text = \"Family Tree\" }; } }", false)]
     public void GuardDistinguishesNamesFromStaticCopy(string source, bool refused) =>
@@ -30,6 +31,10 @@ public sealed class ClientNameLabelTests
     private static List<int> PlainNames(string source)
     {
         var root = CSharpSyntaxTree.ParseText(source).GetRoot();
+        var plainLabels = root.DescendantNodes().OfType<VariableDeclarationSyntax>()
+            .SelectMany(declaration => declaration.Variables.Where(variable => declaration.Type.ToString() == "Label" ||
+                variable.Initializer?.Value is ObjectCreationExpressionSyntax { Type: IdentifierNameSyntax { Identifier.ValueText: "Label" } }))
+            .Select(variable => variable.Identifier.ValueText).ToHashSet(StringComparer.Ordinal);
         List<int> lines = [];
         foreach (var node in root.DescendantNodes())
         {
@@ -42,6 +47,10 @@ public sealed class ClientNameLabelTests
                     creation.Initializer?.Expressions.OfType<AssignmentExpressionSyntax>().Any(assignment =>
                         assignment.Left.ToString() == "Text" && assignment.Right.DescendantNodesAndSelf()
                             .OfType<IdentifierNameSyntax>().Any(identifier => Name(identifier.Identifier.ValueText))) == true,
+                AssignmentExpressionSyntax assignment => assignment.Left is MemberAccessExpressionSyntax
+                { Expression: IdentifierNameSyntax label, Name.Identifier.ValueText: "Text" } &&
+                    plainLabels.Contains(label.Identifier.ValueText) && assignment.Right.DescendantNodesAndSelf()
+                        .OfType<IdentifierNameSyntax>().Any(identifier => Name(identifier.Identifier.ValueText)),
                 _ => false,
             };
             if (plainName) lines.Add(node.GetLocation().GetLineSpan().StartLinePosition.Line + 1);
