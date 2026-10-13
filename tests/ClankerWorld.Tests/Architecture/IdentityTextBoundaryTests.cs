@@ -40,15 +40,17 @@ public sealed class IdentityTextBoundaryTests
                 Receipt Make(string actor) => new($"other:{actor}");
                 void Set(string actor) { var id = "hand:" + actor; }
                 string Safe(string actor) => DerivedId.Create($"receipt:{actor}");
+                string Parsed(string actor) => Identity.Parse($"parsed:{actor}");
                 string Label(string actor) => $"Hello {actor}";
             }
             static class DerivedId { public static string Create(string value) => value; }
+            static class Identity { public static string Parse(string value) => value; }
             """;
         var tree = CSharpSyntaxTree.ParseText(source, path: "/source/src/Generator.cs");
         var compilation = CSharpCompilation.Create("IdentityControl", [tree],
             [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
         var actual = Scan([tree], compilation, "/source");
-        Assert.Equal(3, actual.Values.Sum());
+        Assert.Equal(4, actual.Values.Sum());
         Assert.ThrowsAny<Exception>(() => AssertWithinBudget(new(StringComparer.Ordinal), actual));
         var recorded = new SortedDictionary<string, int>(actual, StringComparer.Ordinal);
         recorded.Remove(actual.Keys.First());
@@ -123,7 +125,9 @@ public sealed class IdentityTextBoundaryTests
                 {
                     var owner = (model?.GetSymbolInfo(call).Symbol as IMethodSymbol)?.ContainingType.Name;
                     var syntaxOwner = (call.Expression as MemberAccessExpressionSyntax)?.Expression.ToString();
-                    if (owner is "DerivedId" or "Identity" || syntaxOwner is "DerivedId" or "Identity") return false;
+                    if (owner == "DerivedId" || syntaxOwner == "DerivedId") return false;
+                    if (owner == "Identity" || syntaxOwner == "Identity")
+                        return (call.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText != "Create";
                 }
                 if (argument.NameColon is { } named) return IdentityName(named.Name.Identifier.ValueText);
                 if (model?.GetSymbolInfo(argument.Parent!.Parent!).Symbol is IMethodSymbol method)
