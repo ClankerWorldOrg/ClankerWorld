@@ -41,7 +41,7 @@ public sealed class OwnerRequest<T>(Func<bool> isCurrent, Action<bool> setBusy)
         CancellationToken cancellationToken = default)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        deadline.CancelAfter(TimeSpan.FromSeconds(30));
+        deadline.CancelAfter(TimeSpan.FromMinutes(2));
         var context = new OwnerRequestContext(isCurrent, deadline.Token);
         context.EnsureCurrent();
         try
