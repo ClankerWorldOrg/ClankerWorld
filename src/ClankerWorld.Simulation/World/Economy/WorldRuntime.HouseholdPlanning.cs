@@ -79,10 +79,8 @@ public sealed partial class WorldRuntime
         costs.All(cost => HouseholdMaterialInHand(householdId, cost.ResourceId) >= cost.Amount);
 
     private long HouseholdMaterialInHand(string householdId, string itemKind) =>
-        society.Checkpoint.Inventory.Lots.Where(lot => lot.ItemKind == itemKind &&
-                (lot.OwnerId == householdId ||
-                 agents.ContainsKey(lot.OwnerId) && HouseholdFor(lot.OwnerId) == householdId))
-            .Sum(lot => (long)AvailableLotQuantity(lot));
+        HoldingsTotal(agents.Keys.Where(actor => HouseholdFor(actor) == householdId).Prepend(householdId),
+            GoodsKinds.One(itemKind));
 
     /// <summary>
     /// The first material missing for the first building the household still
