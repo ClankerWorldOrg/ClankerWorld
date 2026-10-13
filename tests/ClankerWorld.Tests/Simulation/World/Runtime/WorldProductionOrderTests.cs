@@ -12,7 +12,7 @@ using ClankerWorld.Server.Observation;
 
 namespace ClankerWorld.Tests;
 
-public sealed class WorldProductionOrderTests
+public sealed partial class WorldProductionOrderTests
 {
     private const string Household = "household:first";
     private const string House = "first-town-house-a";

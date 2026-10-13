@@ -1237,7 +1237,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 130. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 131. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1884,6 +1884,31 @@ unchanged. Required counts must match the reachable archive on load and world
 compatibility checks. Current-format reload and replay preserve retry state,
 latest visible outcomes and learned sources. Earlier alpha schemas are refused
 and preserved without migration. The version is provisional until merge.
+
+## Bounded production history
+
+World schema 131 adds the required cumulative `ArchivedProductionJobCount`.
+The shared checkpoint planner keeps all running and paused work and the newest
+32 terminal jobs by start tick, then identity. It also keeps exact jobs still
+used by recipe accounts, written recipes, unfinished projects, tool requests and
+retained orders. Production-order progress counts every paid batch, so those
+jobs remain until the order system retires their links; this does not change
+order history. Usable unprepared edible lots keep their original job while food
+variety still uses it, including after transfer or a provenance split.
+
+Older unreferenced jobs enter the existing digest-addressed archive before the
+smaller checkpoint is published. Their original owner, recipe, work times and
+input reservation references remain complete; physical goods and consumed
+payment receipts stay unchanged. The checkpoint's cumulative count must match
+the reachable archive. Owner responses independently show all current work
+and the 32-job terminal window, rather than resending old proof-only jobs.
+
+Native paid production, held work, retained-order progress, recipe learning,
+strict reload, continued play, refused ticks and failed archive/checkpoint
+writes are checked. Food classification shares the inventory index's original
+provenance walk, so retirement cannot change an existing meal's source.
+Earlier alpha schemas are refused and preserved without migration. This
+version is provisional until merge.
 
 ## Checkpoints, history and backups
 

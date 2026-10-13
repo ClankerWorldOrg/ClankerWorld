@@ -37,6 +37,7 @@ public static partial class WorldHistory
         }
         var archived = new List<ArchivedEventBatch>();
         var towns = CompactCouncils(state.Towns!, archived);
+        var simulation = CompactProduction(state, archived);
         var world = Window("world", state.Events, item => item.EventId, state.EventHistoryFloor, archived);
         var society = state.Society.Society;
         var social = Window("society", society.Events, item => item.EventId, society.EventHistoryFloor, archived);
@@ -58,6 +59,7 @@ public static partial class WorldHistory
             SchemaVersion = WorldRuntime.StateSchemaVersion,
             BoatTransport = transport,
             Towns = towns,
+            WorldSimulation = simulation,
             Events = world.Events,
             EventHistoryFloor = world.Floor,
             Society = state.Society with
