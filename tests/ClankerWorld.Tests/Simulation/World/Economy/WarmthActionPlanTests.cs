@@ -94,8 +94,9 @@ public sealed class WarmthActionPlanTests(HearthReachabilityTests.Fixture fixtur
         if (tree)
         {
             inventory = InventoryAuthority.AddLot(inventory, "fire-plan-gathering-axe", "wooden_axe", Actor, 1);
-            var unavailable = state.Map.Resources.Where(source => source.Kind == "wood" &&
-                (!TreeGrowthRules.IsWoodTree(source.TreeKind) || state.WorldSystems!.Ecology.Resources.Single(item => item.Id == source.Id).Quantity <= 1))
+            var trees = state.Map.Resources.Where(source => TreeGrowthRules.IsWoodTree(source.TreeKind))
+                .Select(source => source.Id).ToHashSet(StringComparer.Ordinal);
+            var unavailable = state.Map.Resources.Where(source => !trees.Contains(source.Id))
                 .Select(source => source.Id).ToHashSet(StringComparer.Ordinal);
             state = state with
             {
@@ -106,7 +107,8 @@ public sealed class WarmthActionPlanTests(HearthReachabilityTests.Fixture fixtur
                     Ecology = state.WorldSystems.Ecology with
                     {
                         Resources = state.WorldSystems.Ecology.Resources.Select(item => unavailable.Contains(item.Id) && item.Quantity > 0
-                            ? EcologyRules.Harvest(item, item.Quantity).Resource! : item).ToArray(),
+                            ? EcologyRules.Harvest(item, item.Quantity).Resource!
+                            : trees.Contains(item.Id) && item.Quantity > 0 ? item with { Quantity = 2, Capacity = 2 } : item).ToArray(),
                     },
                 },
             };
