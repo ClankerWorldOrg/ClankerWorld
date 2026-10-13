@@ -778,10 +778,10 @@ public static partial class InventoryAuthority
         EnsureOwnerAndAvailableQuantity(checkpoint, firstLot, proposal.FirstPartyId, proposal.FirstQuantity);
         EnsureOwnerAndAvailableQuantity(checkpoint, secondLot, proposal.SecondPartyId, proposal.SecondQuantity);
         var firstReservation = new InventoryReservation(
-            Identity.ParseStored(DerivedId.Create($"{proposal.Id}:first")), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
+            Identity.Parse(DerivedId.Create($"{proposal.Id}:first")), proposal.FirstPartyId, proposal.FirstLotId, proposal.FirstQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved);
         var secondReservation = new InventoryReservation(
-            Identity.ParseStored(DerivedId.Create($"{proposal.Id}:second")), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
+            Identity.Parse(DerivedId.Create($"{proposal.Id}:second")), proposal.SecondPartyId, proposal.SecondLotId, proposal.SecondQuantity,
             $"barter:{proposal.Id}", proposal.ExpiryTick, true, InventoryReservationState.Reserved);
         if (checkpoint.Reservations.Any(reservation =>
             string.Equals(reservation.Id, firstReservation.Id, StringComparison.Ordinal) ||

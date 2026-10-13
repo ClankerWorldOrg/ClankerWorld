@@ -67,6 +67,14 @@ public sealed class TypedInventoryCompatibilityTests
     {
         var stock = Stock();
         var key = Spelling(spelling);
+        if (kind == "offer" && spelling == "control")
+        {
+            var before = InventoryCheckpointCodec.Encode(stock);
+            Assert.Throws<ArgumentException>(() => InventoryAuthority.CreateDirectBarterOffer(stock,
+                new(Identity.ParseStored(key), 1, "alpha", "bravo", "first", 1, "second", 1, 20)));
+            Assert.Equal(before, InventoryCheckpointCodec.Encode(stock));
+            return;
+        }
         var admitted = kind == "reservation"
             ? InventoryAuthority.Reserve(stock, key, "alpha", "first", 1, "work", 20)
             : InventoryAuthority.CreateDirectBarterOffer(stock,
