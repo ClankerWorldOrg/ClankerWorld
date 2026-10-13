@@ -167,7 +167,7 @@ internal static class WorldMemoryRetrieval
                 null,
                 null,
                 false,
-                memory.Permanent));
+                SocietyMemoryArchiveRules.IsPermanent(memory)));
 
         var privateBeliefs = beliefs
             .Where(belief => string.Equals(belief.OwnerId, ownerId, StringComparison.Ordinal) &&

@@ -1,0 +1,1 @@
+- Heirs keep recalling final words after many newer experiences. Other protected social memories use the same recall protection as permanent name changes.

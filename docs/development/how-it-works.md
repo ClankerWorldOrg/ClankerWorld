@@ -1655,7 +1655,8 @@ either participant is talking. Conversation logs record only purpose, bounded
 turn count, latency and usage totals, including reported usage for rejected speech.
 
 Personal requests retrieve at most four own-memory/belief excerpts and sixteen
-recent own-map facts. Permanent rename experiences take precedence, newest first,
+recent own-map facts. Social memories protected by `SocietyMemoryArchiveRules`,
+including final words and permanent rename experiences, take precedence, newest first,
 including before the 256-source scan limit; ordinary sources retain their
 relevance and salience ranking. The owner's bounded 16-entry Memories projection
 also keeps permanent entries first and marks them Permanent. All rename source
