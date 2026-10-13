@@ -144,7 +144,11 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var written = Assert.Single(final.Knowledge!.Artifacts);
         Assert.Contains("knowledge_write:field_record", provider.Offered);
         Assert.Equal(actor, written.CreatorId);
-        Assert.All(written.Materials, material => Assert.StartsWith(job.JobId + ":output:", material.LotId));
+        Assert.All(written.Materials, material =>
+        {
+            var lot = final.Society.Society.Inventory.GetLot(material.LotId);
+            Assert.StartsWith(job.JobId + ":output:", lot.ProvenanceLotId ?? lot.Id);
+        });
         Assert.All(written.Facts, fact => Assert.Contains(final.Knowledge.Facts.Concat(final.Knowledge.EarlierFacts),
             learned => learned.OwnerId == actor && FactIdentity(learned) == FactIdentity(fact)));
         Assert.Equal(1, final.Society.Society.Inventory.GetLot(written.LotId).Quantity);
