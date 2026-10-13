@@ -423,9 +423,9 @@ public partial class Main
             row.AddChild(new ColorRect { Color = color, CustomMinimumSize = new Vector2(4, 0) });
             var titleRow = new HBoxContainer();
             titleRow.AddThemeConstantOverride("separation", 8);
-            var title = new Label { ThemeTypeVariation = "HeadingLabel" };
+            var title = new FittedLabel { ThemeTypeVariation = "HeadingLabel" };
             titleRow.AddChild(title);
-            var branchTag = new Label
+            var branchTag = new FittedLabel
             {
                 Text = ShortBranchTag(lane.Title),
                 TooltipText = lane.Title,

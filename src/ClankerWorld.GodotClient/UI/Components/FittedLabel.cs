@@ -10,6 +10,10 @@ namespace ClankerWorld.GodotClient.UI;
 public partial class FittedLabel : Label
 {
     private string fullText = string.Empty;
+    private string automaticTooltip = string.Empty;
+
+    // Ordinary label assignments use the same fitting path as FullText.
+    public new string Text { get => base.Text; set => FullText = value; }
 
     public FittedLabel()
     {
@@ -25,6 +29,11 @@ public partial class FittedLabel : Label
         set
         {
             fullText = value;
+            if (TooltipText.Length == 0 || TooltipText == automaticTooltip)
+            {
+                automaticTooltip = value;
+                TooltipText = value;
+            }
             Fit();
         }
     }
@@ -40,8 +49,11 @@ public partial class FittedLabel : Label
         var font = GetThemeFont("font");
         var size = GetThemeFontSize("font_size");
         // A hidden label keeps only its minimum width, so keep the whole text until it is shown and laid out.
-        Text = width <= 0 || font is null || !IsVisibleInTree()
+        base.Text = width <= 0 || font is null || !IsVisibleInTree()
             ? fullText
+            : AutowrapMode != TextServer.AutowrapMode.Off
+                ? MaxLinesVisible <= 0 ? fullText : Shorten(fullText, font.GetHeight(size) * MaxLinesVisible,
+                    text => font.GetMultilineStringSize(text, HorizontalAlignment.Left, width, size).Y)
             : Shorten(fullText, width, text => font.GetStringSize(text, HorizontalAlignment.Left, -1, size).X);
     }
 

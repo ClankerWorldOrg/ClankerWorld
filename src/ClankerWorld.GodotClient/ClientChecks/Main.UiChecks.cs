@@ -983,6 +983,7 @@ public partial class Main
         {
             await VerifyTitleKeyboardAsync();
             VerifyEventLogAgentNames();
+            VerifyPanelDraftPreservation();
             await VerifyNewcomerOfferAsync();
             await VerifyAcknowledgedAgentPlacementAsync();
             VerifyOrnamentPresentation();

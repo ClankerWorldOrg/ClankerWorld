@@ -12,8 +12,8 @@ namespace ClankerWorld.GodotClient;
 public partial class Main
 {
     private readonly TextureRect tileSwatch = new();
-    private readonly Label tileTitle = new();
-    private readonly Label tileSubtitle = new();
+    private readonly FittedLabel tileTitle = new();
+    private readonly FittedLabel tileSubtitle = new();
     private readonly GridContainer tileFacts = new();
     private readonly Label tileThingsHeading = new();
     private readonly VBoxContainer tileThings = new();
@@ -96,7 +96,7 @@ public partial class Main
             TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
             SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
         });
-        row.AddChild(new Label { Text = name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+        row.AddChild(new FittedLabel { Text = name, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
         if (detail.Length > 0)
             row.AddChild(new Label { Text = detail, ThemeTypeVariation = "DimLabel", SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
         tileThings.AddChild(row);

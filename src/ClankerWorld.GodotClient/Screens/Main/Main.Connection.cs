@@ -1,3 +1,4 @@
+using ClankerWorld.GodotClient.UI;
 using ClankerWorld.GodotClient.ClientState;
 using ClankerWorld.GodotClient.Launcher;
 using ClankerWorld.GodotClient.Pairing;
@@ -332,7 +333,8 @@ public partial class Main
             {
                 knownEvents.Clear();
             }
-            Render(observationSession.Current!.Baseline.Snapshot, reconnect.Baseline.Events.Events);
+            using (var draft = timelineChanged ? null : new PanelDraft(this))
+                Render(observationSession.Current!.Baseline.Snapshot, reconnect.Baseline.Events.Events);
             renderedObservationGeneration = observationSession.RequestGeneration;
             successfulRefreshCount++;
             if (!isOwnerAction)

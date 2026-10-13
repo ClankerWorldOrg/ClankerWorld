@@ -11,7 +11,7 @@ public partial class Main
     private const int MaximumVisibleConversationTurns = 7;
 
     private readonly PanelContainer conversationPanel = new();
-    private readonly Label conversationReaderTitle = new();
+    private readonly FittedLabel conversationReaderTitle = new();
     private readonly Label conversationReaderStatus = new() { ThemeTypeVariation = "DimLabel" };
     private readonly Label conversationReaderSummary = new() { AutowrapMode = TextServer.AutowrapMode.WordSmart };
     private readonly Button conversationHistoryButton = new();

@@ -44,7 +44,7 @@ public partial class Main
     private readonly PanelContainer thoughtsInset = new() { ThemeTypeVariation = "InsetPanel" };
     private readonly Button readThoughtsButton = new();
     private readonly PanelContainer thoughtsPanel = new();
-    private readonly Label thoughtsReaderTitle = new();
+    private readonly FittedLabel thoughtsReaderTitle = new();
     private readonly RichTextLabel thoughtsReaderText = new();
     private string? renderedThoughtsReader;
     private bool agentProfileRequested;
@@ -450,7 +450,7 @@ public partial class Main
         refusedAgentRename.Forget();
         renameRow.Visible = !renameRow.Visible;
         if (!renameRow.Visible) return;
-        renameAgentInput.Text = selectedActorNameLabel.Text;
+        renameAgentInput.Text = selectedActorNameLabel.FullText;
         renameAgentInput.CallDeferred(Control.MethodName.GrabFocus);
         renameAgentInput.CallDeferred(LineEdit.MethodName.SelectAll);
     }

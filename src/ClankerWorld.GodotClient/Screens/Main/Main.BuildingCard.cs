@@ -155,7 +155,7 @@ public partial class Main
     private static HBoxContainer SectionRow(string title, Label summary)
     {
         var row = new HBoxContainer();
-        row.AddChild(new Label { Text = title, ThemeTypeVariation = "SectionLabel", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
+        row.AddChild(new FittedLabel { Text = title, ThemeTypeVariation = "SectionLabel", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill });
         row.AddChild(summary);
         return row;
     }
@@ -801,7 +801,7 @@ public partial class Main
         {
             var row = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
             row.AddThemeConstantOverride("separation", 2);
-            row.AddChild(new Label { Text = recipe.Name, AutowrapMode = TextServer.AutowrapMode.WordSmart });
+            row.AddChild(new FittedLabel { Text = recipe.Name, AutowrapMode = TextServer.AutowrapMode.WordSmart });
             row.AddChild(new Label
             {
                 Text = RecipeMaterialsText(recipe),

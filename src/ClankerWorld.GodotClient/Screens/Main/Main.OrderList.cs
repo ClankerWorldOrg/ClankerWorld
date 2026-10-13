@@ -16,7 +16,7 @@ public partial class Main
 {
     private readonly Button allOrdersButton = new();
     private readonly PanelContainer ordersPanel = new();
-    private readonly Label ordersReaderTitle = new();
+    private readonly FittedLabel ordersReaderTitle = new();
     private readonly RichTextLabel ordersReaderText = new();
     private string? renderedOrdersReader;
 
