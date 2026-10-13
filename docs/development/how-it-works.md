@@ -345,6 +345,18 @@ Physical movement may preserve damaged or spoiled property. Consumption still
 requires usable inputs. `InventoryAuthority` remains the authority for an actual
 reservation, transfer, container operation or consumption.
 
+`Kernel/InventoryHolds.cs` adds typed stock holds for Market stalls, deliveries,
+supply trips and borrowed goods. A hold covers a lot's whole physical quantity;
+vessel operations also check every member, and contents inherit their vessel's
+holds. Inventory callers must supply the exact purpose and holder for every
+hold they use. Splits retain holds on both portions; detached goods retain
+their inherited vessel holds. Wear and repair also check contained stock.
+A reservation saves its
+authorized holds and rechecks them when consumed or settled. Hold changes use
+`HoldStock` and `ReleaseStock`, without adding inventory events or changing stock
+history. The next part of #1821 connects the existing promise lifecycles and
+goods queries to these operations.
+
 `World/Goods/` supplies usable-goods and physical-recovery query uses. `Holdings` excludes unusable
 lots or parent vessels, reserved quantities, delivery promises and goods held
 for sale at a borrowed Market stall. `ConsumeAt` matches the inventory
