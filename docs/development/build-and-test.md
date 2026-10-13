@@ -92,6 +92,11 @@ when every pending input must complete before a paired continuation, and select
 one kind or actor when a different reply is deliberately held. Inline completion
 sources keep provider gates independent of xUnit's synchronization context.
 
+`WaitAsync` starts queued work before waiting. `WaitForSignalAsync` waits with a
+diagnostic deadline without starting any work. For synchronous blocking entry,
+register work with `TickAsync(runPendingWork: false)`, start `RunPendingWork` on
+a controlled worker, and use the signal-only wait before releasing that entry.
+
 Client and local-server deadline tests pass `ManualTimeProvider` to the client
 or server and advance it after the actual request or body read enters. This
 covers startup/relaunch, pairing, signed actions and the world catalog; normal
