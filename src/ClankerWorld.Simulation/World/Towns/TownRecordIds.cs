@@ -4,7 +4,7 @@ internal static class TownRecordIds
 {
     internal static string Nomination(string actor, string nominee) => DerivedId.Create("nomination:" + actor + "->" + nominee);
     internal static string Admission(string subject) => DerivedId.Create("admission:" + subject);
-    internal static string LandRequest(string town, int ordinal) => DerivedId.Create("land-request:" + town + ":" + ordinal);
+    internal static string LandRequest(string town, long ordinal) => DerivedId.Create("land-request:" + town + ":" + ordinal);
     internal static string UnopenedHearing(string proposal) => DerivedId.Create(proposal + ":unopened");
     internal static string LawEvidence(string law, int version) => DerivedId.Create("law:" + law + ":" + version);
     internal static string PersonParty(string role, string person) => DerivedId.Create(role + ":" + person);

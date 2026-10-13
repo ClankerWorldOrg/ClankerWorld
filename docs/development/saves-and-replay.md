@@ -1237,7 +1237,7 @@ on load. Earlier society envelopes and private schemas are refused and their
 files preserved; there is no name inference, migration or silent renaming.
 
 The alpha accepts only the current world checkpoint schema, currently
-`WorldRuntime.StateSchemaVersion` 128. The minimum supported schema is
+`WorldRuntime.StateSchemaVersion` 129. The minimum supported schema is
 the same value, so older alpha checkpoints are refused with a reason and left
 unchanged; no world migration runs. The current schema also includes
 a bounded model-attempt status and exact last accepted model choice per agent, plus
@@ -1865,6 +1865,25 @@ production uses the ordinary household recipe and reusable-vessel state.
 Inventory lot splits leave all actively reserved stock in the original lot,
 including production and barter commitments. Only the unreserved remainder can
 move to the new lot; rejected splits leave state and event history unchanged.
+
+## Bounded Council history
+
+World schema 129 adds required cumulative retired-election and retired-notice
+counts. Checkpoint compaction uses the existing recent-window/dependency pattern:
+eight settled elections and 32 recent notices remain, together with forced
+Council elections, notices for retained contests, and each agent's three recent
+learned notice sources. Every retained notice keeps its read and relay chain.
+Other civic notices remain authority for laws, permissions and hearings.
+Notice numbering includes retired notices, so new notices and linked case
+records cannot reuse an earlier identity.
+
+Full retired elections, notices and their knowledge receipts go into the same
+digest-addressed segments as event prefixes. Archive publication precedes the
+smaller checkpoint and live-state replacement; a failed write leaves both
+unchanged. Required counts must match the reachable archive on load and world
+compatibility checks. Current-format reload and replay preserve retry state,
+latest visible outcomes and learned sources. Earlier alpha schemas are refused
+and preserved without migration. The version is provisional until merge.
 
 ## Checkpoints, history and backups
 

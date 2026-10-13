@@ -2784,8 +2784,12 @@ Saved notice receipts enter a bounded `CognitionSelfContext.CivicNote` excerpt
 with read/relay provenance and readable names/world days. An actor receives no
 unseen civic dump. Owner observations project each council, its latest eight
 proposals, the current election and the latest archived election onto the normal
-Godot Towns page. Failed and cancelled outcomes remain visible; the complete
-authoritative proposal and election history stays in the checkpoint. Long Town
+Godot Towns page. Failed and cancelled outcomes remain visible. The checkpoint keeps eight recent
+elections plus elections referenced by government changes. It keeps 32 recent
+notices, each agent's three recent learned sources with their relay receipts,
+and notices needed by retained elections or other civic systems. Older election
+outcomes and notices move to the durable history archive before retirement.
+The complete authoritative proposal ledger stays in the checkpoint. Long Town
 readouts scroll within the available screen height. A passed structured law
 proposal records its scoped wording without creating physical or ownership
 powers. Bounded civic lifecycle telemetry records Town identity and
