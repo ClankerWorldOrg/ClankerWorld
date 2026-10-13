@@ -176,13 +176,13 @@ public sealed partial class PhysicalKnowledgePipelineTests
         var instruction = Assert.Single(completed.Instructions!);
         Assert.Equal(1, instruction.Task!.CompletedUnits);
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Task = instruction.Task with { TargetKnowledgeArtifactId = "another-artifact" } }] }));
+        { Instructions = [instruction with { Task = instruction.Task.UpdateDefinition(definition => definition switch { ReadKnowledgeOrderDefinition task => task with { TargetKnowledgeArtifactId = "another-artifact" }, _ => throw new InvalidOperationException() }) }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Instructions = [instruction with { Task = instruction.Task with { LastEffectId = "read-order:forged" } }] }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
         { Knowledge = completed.Knowledge! with { Facts = completed.Knowledge!.Facts.Where(fact => fact.OwnerId != reader).ToArray() } }));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(completed with
-        { Instructions = [instruction with { Task = instruction.Task with { KnowledgeReadCompletion = instruction.Task.KnowledgeReadCompletion! with { LearnedSites = [] } } }] }));
+        { Instructions = [instruction with { Task = instruction.Task.UpdateDefinition(definition => definition switch { ReadKnowledgeOrderDefinition task => task with { KnowledgeReadCompletion = instruction.Task.KnowledgeReadCompletion! with { LearnedSites = [] } }, _ => throw new InvalidOperationException() }) }] }));
         Assert.Single(completed.Events, item => item.Kind == "agent_knowledge_artifact_read");
     }
 

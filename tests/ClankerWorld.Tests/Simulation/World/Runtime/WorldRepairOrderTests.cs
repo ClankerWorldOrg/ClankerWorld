@@ -222,22 +222,19 @@ public sealed class WorldRepairOrderTests
         };
         Assert.Throws<InvalidDataException>(() => Restore(corrupt));
         var valid = Order(world, receipt);
-        foreach (var invalid in new[]
-        {
-            valid with { TargetEquipmentKind = "sword" }, valid with { TargetEquipmentKind = "basket" },
-            valid with { TargetMaterialKind = "wood" }, valid with { TargetFoodKind = "berries" },
-            valid with { TargetResourceId = "tree" }, valid with { TargetPosition = new(1, 1) },
-            valid with { ProgressUnit = "material_items" }, valid with { LastEffectId = "repair:equipment:unearned" },
-            valid with { TargetAgentId = actor },
-        })
-        {
-            corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = invalid } : item).ToArray()
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "sword" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetResourceId"] = "tree" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(1, 1) }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["ProgressUnit"] = "material_items" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["LastEffectId"] = "repair:equipment:unearned" }),
+    new OrderSaveChange(valid, new Dictionary<string, object?> { ["TargetAgentId"] = actor })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
     }
 
     [Fact]

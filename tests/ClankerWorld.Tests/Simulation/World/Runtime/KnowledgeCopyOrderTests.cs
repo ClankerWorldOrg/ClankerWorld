@@ -366,14 +366,14 @@ public sealed class KnowledgeCopyOrderTests
         Assert.True((await world.AdvanceOneTickAsync()).Advanced);
         state = world.ExportState();
         var instruction = state.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
-        foreach (var changed in new[]
-        {
-            instruction.Task! with { KnowledgeCopySourceArtifactId = "missing-artifact" },
-            instruction.Task! with { KnowledgeCopySourceArtifactId = null },
-            instruction.Task! with { Action = "write_knowledge", ProgressUnit = "artifacts", KnowledgeCopySourceArtifactId = null },
-            instruction.Task! with { CompletedUnits = 1, RepeatUntilCancelled = true, LastEffectId = "writing:artifact:knowledge-artifact-000001" },
-        }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
-        { Instructions = state.Instructions!.Select(item => item == instruction ? item with { Task = changed } : item).ToArray() }));
+        foreach (var changed in new OrderSaveChange[]
+{
+    new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["KnowledgeCopySourceArtifactId"] = "missing-artifact" }),
+    new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["KnowledgeCopySourceArtifactId"] = null }),
+    new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["Action"] = "write_knowledge", ["ProgressUnit"] = "artifacts", ["KnowledgeCopySourceArtifactId"] = null }),
+    new OrderSaveChange(instruction.Task!, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["RepeatUntilCancelled"] = true, ["LastEffectId"] = "writing:artifact:knowledge-artifact-000001" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, changed));
         AssertReload(state);
     }
 

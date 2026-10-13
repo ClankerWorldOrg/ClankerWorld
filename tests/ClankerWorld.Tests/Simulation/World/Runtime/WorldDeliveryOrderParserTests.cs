@@ -168,14 +168,8 @@ public sealed class WorldDeliveryOrderParserTests
         var saved = world.ExportState();
         using var valid = WorldRuntime.Restore(saved);
         Assert.Equal(WorldRuntimeCodec.Encode(saved), WorldRuntimeCodec.Encode(valid.ExportState()));
-        var corrupt = saved with
-        {
-            Instructions = saved.Instructions!.Select(item => item with
-            {
-                Task = item.Task! with { TargetAgentId = Actor },
-            }).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(corrupt));
+        var corrupt = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(corrupt));
     }
 
     private static WorldRuntime CreateWorld(bool activeInputs = false)

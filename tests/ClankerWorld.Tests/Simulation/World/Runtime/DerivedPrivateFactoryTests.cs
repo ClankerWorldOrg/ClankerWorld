@@ -191,21 +191,16 @@ public sealed partial class GrownAgentHelperMemoryTests
         var recipe = state.WorldContent!.Recipes.OrderBy(record => record.CanonicalId, StringComparer.Ordinal).Last().CanonicalId;
         // Pure factory inputs: the world/people/stock are native; the owner-task
         // record is a controlled supported shape, not an admitted model reply.
-        var action = factory switch
+        OrderTaskDefinition definition = factory switch
         {
-            "CartCargoOrderEffectId" => "load_handcart",
-            "TalkOrderEffectId" => "talk",
-            "ShelterOrderReceipt" => "tend_fire",
-            "KnowledgeReadOrderEffectId" => "read_knowledge",
-            _ => "repair_handcart",
+            "CartCargoOrderEffectId" => new LoadHandcartOrderDefinition(TargetCartLotId: cartId, TargetItemKind: "wood"),
+            "TalkOrderEffectId" => new TalkToOrderDefinition(relative),
+            "ShelterOrderReceipt" => new TendFireOrderDefinition(),
+            "KnowledgeReadOrderEffectId" => new ReadKnowledgeOrderDefinition(TargetKnowledgeArtifactId: "knowledge-artifact-000512",
+                KnowledgeReadCompletion: new(society.WorldTick, [position]) { LearnedRecipes = [recipe] }),
+            _ => new RepairHandcartOrderDefinition(TargetCartLotId: cartId),
         };
-        var order = new OrderTask(action, "finished", 1, 1, "tasks", false, TargetAgentId: relative)
-        {
-            TargetCartLotId = cartId,
-            TargetItemKind = "wood",
-            TargetKnowledgeArtifactId = "knowledge-artifact-000512",
-            KnowledgeReadCompletion = new(society.WorldTick, [position]) { LearnedRecipes = [recipe] },
-        };
+        var order = new OrderTask(definition, "finished", 1, 1, "tasks", false);
         var instruction = new OwnerQueuedInstruction("instruction:" + new string('i', 116), "inventory-task", "owner:test",
             actor, OwnerInstructionKind.Order, "Remember this completed work.", society.WorldTick,
             society.RunEpoch, 1, OwnerInstructionState.Queued, Task: order);

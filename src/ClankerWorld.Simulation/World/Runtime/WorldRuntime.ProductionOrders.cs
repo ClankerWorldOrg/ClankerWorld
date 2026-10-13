@@ -100,7 +100,11 @@ public sealed partial class WorldRuntime
         {
             var project = new AgentProject("build:recipe:" + entry.Recipe.CanonicalId,
                 entry.Recipe.DisplayName, WorldTick, "acquiring", LastTransitionTick: WorldTick);
-            order = order with { ProductionBuildingId = buildingId, ProductionJobId = null, ProductionProjectStartedTick = WorldTick };
+            order = order.UpdateDefinition(definition => definition switch
+{
+    ProduceItemOrderDefinition task => task with { ProductionBuildingId = buildingId, ProductionJobId = null, ProductionProjectStartedTick = WorldTick },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+});
             instruction = instruction with { Task = order };
             instructionsByIdempotency[instruction.IdempotencyKey] = instruction;
             agents[actor] = person with { Project = project };
@@ -119,7 +123,11 @@ public sealed partial class WorldRuntime
             var current = instructionsByIdempotency[instruction.IdempotencyKey];
             instructionsByIdempotency[instruction.IdempotencyKey] = current with
             {
-                Task = current.Task! with { ProductionJobId = startedJobId },
+                Task = current.Task!.UpdateDefinition(definition => definition switch
+{
+    ProduceItemOrderDefinition task => task with { ProductionJobId = startedJobId },
+    _ => throw new InvalidOperationException("This order kind does not own the requested fields."),
+}),
             };
         }
         if (currentProject.Stage is "blocked" or "cancelled")

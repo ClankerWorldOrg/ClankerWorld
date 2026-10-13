@@ -282,7 +282,7 @@ public sealed class WorldMarriageOrderTests
             if (instruction.Task!.TalkConversationId is not null)
             {
                 Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(current with
-                { Instructions = [instruction with { Task = instruction.Task with { TargetAgentId = current.Agents[2].AgentId } }] }));
+                { Instructions = [instruction with { Task = instruction.Task.UpdateDefinition(definition => definition switch { ProposeMarriageOrderDefinition task => task with { TargetAgentId = current.Agents[2].AgentId }, _ => throw new InvalidOperationException() }) }] }));
                 if (instruction.Task.CompletedUnits == 0)
                     Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(current with { Conversations = [] }));
             }
@@ -306,7 +306,7 @@ public sealed class WorldMarriageOrderTests
         };
         using var trimmedReload = WorldRuntime.Restore(WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(trimmed)), id => new PersonalProvider(id));
         Assert.Equal(finished.Task, Assert.Single(trimmedReload.ExportState().Instructions!).Task);
-        var changedOutcome = finished with { Task = finished.Task! with { TalkOutcome = "proposal_declined" } };
+        var changedOutcome = finished with { Task = finished.Task!.UpdateDefinition(definition => definition switch { ProposeMarriageOrderDefinition task => task with { TalkOutcome = "proposal_declined" }, _ => throw new InvalidOperationException() }) };
         var forgedReceipt = "marriage-order:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{changedOutcome.InstructionId}|{changedOutcome.TargetAgentId}|{changedOutcome.Task!.TargetAgentId}|{changedOutcome.Task.TalkConversationId}|{changedOutcome.Task.TalkOutcome}")));
         changedOutcome = changedOutcome with { Task = changedOutcome.Task! with { LastEffectId = forgedReceipt } };

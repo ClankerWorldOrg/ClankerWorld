@@ -221,20 +221,16 @@ public sealed partial class WorldShelterOrderTests
         var completed = Order(world, receipt);
         Assert.Equal(1, completed.CompletedUnits);
         var saved = world.ExportState();
-        foreach (var corrupt in new[]
-        {
-            completed with { ShelterBinding = null },
-            completed with { ShelterCompletion = null },
-            completed with { ShelterBinding = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } },
-            completed with { ShelterBinding = completed.ShelterBinding! with { OwnerId = "household:missing" } },
-            completed with { ShelterCompletion = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } },
-            completed with { ShelterCompletion = completed.ShelterCompletion! with { FuelReservationId = "invented-fuel" } },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = corrupt } : item).ToArray(),
-            }));
+        foreach (var corrupt in new OrderSaveChange[]
+{
+    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = null }),
+    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = null }),
+    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { BuildingPlacedTick = world.WorldTick + 1 } }),
+    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterBinding"] = completed.ShelterBinding! with { OwnerId = "household:missing" } }),
+    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { WorldTick = world.WorldTick + 1 } }),
+    new OrderSaveChange(completed, new Dictionary<string, object?> { ["ShelterCompletion"] = completed.ShelterCompletion! with { FuelReservationId = "invented-fuel" } })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, corrupt));
         var provider = new ShelterChoices(DecisionProviderKind.LargeLanguageModel);
         using var unsupported = WorldRuntime.Restore(state, id => id == actor ? provider : new ShelterChoices());
         var unknown = Submit(unsupported, actor, "unknown-shelter", "shelter inside the moon");

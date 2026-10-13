@@ -186,19 +186,15 @@ public sealed partial class WorldDeliveryOrderTests
         await Tick(world);
         var saved = world.ExportState();
         var order = Order(world, receipt);
-        foreach (var bad in new[]
-        {
-            order with { DeliveryQuantity = 3 },
-            order with { DeliveryQuantity = null },
-            order with { DeliveryRoute = "household_food" },
-            order with { TargetStorageOwnerId = "household:missing" },
-            order with { TargetStoragePosition = null },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = bad } : item).ToArray(),
-            }));
+        foreach (var bad in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["DeliveryQuantity"] = 3 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["DeliveryQuantity"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["DeliveryRoute"] = "household_food" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStorageOwnerId"] = "household:missing" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetStoragePosition"] = null })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, bad));
         var provider = new DeliveryChoices(DecisionProviderKind.LargeLanguageModel);
         using var unsupported = WorldRuntime.Restore(state, id => id == actor ? provider : new DeliveryChoices());
         var unknown = Submit(unsupported, actor, "unsupported-delivery", "supply two photons to my Clinic");

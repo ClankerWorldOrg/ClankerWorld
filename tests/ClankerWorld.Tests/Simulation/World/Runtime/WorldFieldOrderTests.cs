@@ -367,22 +367,21 @@ public sealed partial class WorldFieldOrderTests
         var state = world.ExportState();
         var field = Assert.Single(state.Fields!);
         Assert.Throws<InvalidDataException>(() => Restore(state with { Fields = [field with { Work = field.Work! with { OrderInstructionId = "wrong-order" } }] }));
-        foreach (var invalid in new[]
-        {
-            Order(world, receipt) with { TargetCropKind = "potatoes" },
-            Order(world, receipt) with { TargetCropKind = "apples" },
-            Order(world, receipt) with { TargetCropKind = null },
-            Order(world, receipt) with { Action = "tend_field" },
-            Order(world, receipt) with { TargetFoodKind = "berries" },
-            Order(world, receipt) with { TargetMaterialKind = "wood" },
-            Order(world, receipt) with { TargetEquipmentKind = "basket" },
-            Order(world, receipt) with { TargetAgentId = Actor },
-            Order(world, receipt) with { TargetPosition = new(1, 2) },
-            Order(world, receipt) with { ProgressUnit = "food_items" },
-            Order(world, receipt) with { LastEffectId = "field:work:unearned" },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(state with
-            { Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId ? item with { Task = invalid } : item).ToArray() }));
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetCropKind"] = "potatoes" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetCropKind"] = "apples" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetCropKind"] = null }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["Action"] = "tend_field" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetEquipmentKind"] = "basket" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetAgentId"] = Actor }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(1, 2) }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["ProgressUnit"] = "food_items" }),
+    new OrderSaveChange(Order(world, receipt), new Dictionary<string, object?> { ["LastEffectId"] = "field:work:unearned" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, invalid));
         Assert.Throws<InvalidDataException>(() => Restore(state with { SchemaVersion = 71 }));
     }
 

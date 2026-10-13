@@ -193,17 +193,13 @@ public sealed partial class WorldConstructionOrderTests
             Agents = state.Agents.Select(person => person.AgentId == setup.Actor
                 ? person with { Project = person.Project! with { Stage = "completed", WorkDone = 10 } } : person).ToArray(),
         }));
-        foreach (var bad in new[]
-        {
-            order with { ConstructionStartedTick = order.ConstructionStartedTick + 1 },
-            order with { ConstructionInstanceId = "a-different-building" },
-            order with { ConstructionOwnerId = null },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(state with
-            {
-                Instructions = state.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = bad } : item).ToArray(),
-            }));
+        foreach (var bad in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ConstructionStartedTick"] = order.ConstructionStartedTick + 1 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ConstructionInstanceId"] = "a-different-building" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ConstructionOwnerId"] = null })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, bad));
         using var replay = Reload(world);
         Assert.Equal(0, Order(replay, receipt).CompletedUnits);
         AssertInputs(replay, 10, 4);

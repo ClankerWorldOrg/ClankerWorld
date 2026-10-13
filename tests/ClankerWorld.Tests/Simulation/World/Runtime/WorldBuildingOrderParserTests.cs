@@ -202,14 +202,8 @@ public sealed class WorldBuildingOrderParserTests
         var bytes = WorldRuntimeCodec.Encode(saved);
         using var valid = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(valid.ExportState()));
-        var mixed = saved with
-        {
-            Instructions = saved.Instructions!.Select(instruction => instruction with
-            {
-                Task = instruction.Task! with { TargetAgentId = Actor },
-            }).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(mixed));
+        var mixed = OrderSaveMutation.Encode(saved, new(Assert.Single(saved.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(mixed));
     }
 
     private static WorldRuntime CreateWorld(IEnumerable<ContentPackageManifest>? available = null)

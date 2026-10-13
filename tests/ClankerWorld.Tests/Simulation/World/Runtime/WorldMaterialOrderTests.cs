@@ -233,18 +233,17 @@ public sealed partial class WorldRuntimeTests
         var receipt = SubmitMaterialOrder(world, "validation", "gather two fiber");
         var saved = world.ExportState();
         var order = CancellationOrder(saved, receipt.InstructionId);
-        foreach (var invalid in new[] { order with { TargetMaterialKind = null }, order with { TargetMaterialKind = "cloth" },
-                     order with { TargetFoodKind = "berries" }, order with { TargetAgentId = HarvestInstructionActor },
-                     order with { ProgressUnit = "food_items" },
-                     order with { LastEffectId = "gather:material:fake" }, order with { CompletedUnits = 1 } })
-        {
-            var damaged = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                ? item with { Task = invalid } : item).ToArray()
-            };
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(WorldRuntimeCodec.Encode(damaged)));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "cloth" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = HarvestInstructionActor }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ProgressUnit"] = "food_items" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "gather:material:fake" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1 })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
     }
 
     [Fact]

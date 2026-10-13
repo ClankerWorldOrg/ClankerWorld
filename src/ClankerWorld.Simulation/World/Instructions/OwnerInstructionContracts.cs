@@ -38,47 +38,18 @@ public sealed record OwnerInstructionRequest(
 /// by the world simulation. The original instruction text remains on
 /// its own message record; this typed state is the physical task the host understood.
 /// </summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record OrderTask(
-    string Action,
+    OrderTaskDefinition Definition,
     string Status,
     int RequestedUnits,
     int CompletedUnits,
     string ProgressUnit,
     bool RepeatUntilCancelled,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool QuantityIsExplicit = false,
-    string? TargetFoodKind = null,
-    string? TargetResourceId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null,
     string? BlockedReason = null,
     string? LastEffectId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaitForDecisionAfterFailure = false,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetAgentId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetMaterialKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetEquipmentKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCropKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetRecipeId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetOutputKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionBuildingId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionJobId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ProductionProjectStartedTick = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetLotId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryPurpose = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryRoute = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryLotId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeliveryQuantity = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetDefinitionId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ConstructionOwnerId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? ConstructionPosition = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ConstructionStartedTick = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ConstructionInstanceId = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerBuildingExpansionBinding? ExpansionBinding = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterBinding? ShelterBinding = null,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterCompletion? ShelterCompletion = null)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool WaitForDecisionAfterFailure = false)
 {
     private OrderStatus status = OrderStatusRules.Parse(Status);
 
@@ -109,16 +80,373 @@ public sealed record OrderTask(
         };
     }
 
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetAnimalId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public OwnerBoatTravelBinding? BoatTravel { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetKnowledgeKind { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? KnowledgeWritingProjectId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? KnowledgeCopySourceArtifactId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetCartLotId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TalkConversationId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TalkOutcome { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetKnowledgeArtifactId { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public OwnerKnowledgeReadCompletion? KnowledgeReadCompletion { get; init; }
+    public OrderTask UpdateDefinition(Func<OrderTaskDefinition, OrderTaskDefinition> update) =>
+        this with { Definition = update(Definition) };
+
+    [JsonIgnore] public string Action => Definition.Action;
+
+    [JsonIgnore]
+    public string? TargetFoodKind => Definition switch
+    {
+        ConsumeFoodOrderDefinition task => task.TargetFoodKind,
+        SeekFoodOrderDefinition task => task.TargetFoodKind,
+        HarvestFoodOrderDefinition task => task.TargetFoodKind,
+        CollectFoodOrderDefinition task => task.TargetFoodKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetResourceId => Definition switch
+    {
+        SeekFoodOrderDefinition task => task.TargetResourceId,
+        HarvestFoodOrderDefinition task => task.TargetResourceId,
+        GatherMaterialOrderDefinition task => task.TargetResourceId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public GridPoint? TargetPosition => Definition switch
+    {
+        SeekFoodOrderDefinition task => task.TargetPosition,
+        HarvestFoodOrderDefinition task => task.TargetPosition,
+        GatherMaterialOrderDefinition task => task.TargetPosition,
+        MoveToOrderDefinition task => task.TargetPosition,
+        SeekShelterOrderDefinition task => task.TargetPosition,
+        TendFireOrderDefinition task => task.TargetPosition,
+        ConstructBuildingOrderDefinition task => task.TargetPosition,
+        ExpandBuildingOrderDefinition task => task.TargetPosition,
+        DeliverStockOrderDefinition task => task.TargetPosition,
+        CollectGoodsOrderDefinition task => task.TargetPosition,
+        StoreGoodsOrderDefinition task => task.TargetPosition,
+        ReturnBorrowedOrderDefinition task => task.TargetPosition,
+        ProduceItemOrderDefinition task => task.TargetPosition,
+        PlantTreeOrderDefinition task => task.TargetPosition,
+        PlantBroadleafOrderDefinition task => task.TargetPosition,
+        PlantConiferOrderDefinition task => task.TargetPosition,
+        PlantOrchardOrderDefinition task => task.TargetPosition,
+        TillFieldOrderDefinition task => task.TargetPosition,
+        PlantFieldOrderDefinition task => task.TargetPosition,
+        TendFieldOrderDefinition task => task.TargetPosition,
+        HarvestFieldOrderDefinition task => task.TargetPosition,
+        CollectMaterialOrderDefinition task => task.TargetPosition,
+        CollectEquipmentOrderDefinition task => task.TargetPosition,
+        CollectFoodOrderDefinition task => task.TargetPosition,
+        StoreMaterialOrderDefinition task => task.TargetPosition,
+        StoreEquipmentOrderDefinition task => task.TargetPosition,
+        TravelByBoatOrderDefinition task => task.TargetPosition,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetAgentId => Definition switch
+    {
+        AcceptGuardianshipOrderDefinition task => task.TargetAgentId,
+        TalkToOrderDefinition task => task.TargetAgentId,
+        ProposeMarriageOrderDefinition task => task.TargetAgentId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetMaterialKind => Definition switch
+    {
+        GatherMaterialOrderDefinition task => task.TargetMaterialKind,
+        CollectMaterialOrderDefinition task => task.TargetMaterialKind,
+        StoreMaterialOrderDefinition task => task.TargetMaterialKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetEquipmentKind => Definition switch
+    {
+        RepairEquipmentOrderDefinition task => task.TargetEquipmentKind,
+        RepairToolOrderDefinition task => task.TargetEquipmentKind,
+        CollectEquipmentOrderDefinition task => task.TargetEquipmentKind,
+        StoreEquipmentOrderDefinition task => task.TargetEquipmentKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetCropKind => Definition switch
+    {
+        PlantFieldOrderDefinition task => task.TargetCropKind,
+        TendFieldOrderDefinition task => task.TargetCropKind,
+        HarvestFieldOrderDefinition task => task.TargetCropKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetRecipeId => Definition switch
+    {
+        ProduceItemOrderDefinition task => task.TargetRecipeId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetOutputKind => Definition switch
+    {
+        ProduceItemOrderDefinition task => task.TargetOutputKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? ProductionBuildingId => Definition switch
+    {
+        ProduceItemOrderDefinition task => task.ProductionBuildingId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? ProductionJobId => Definition switch
+    {
+        ProduceItemOrderDefinition task => task.ProductionJobId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public long? ProductionProjectStartedTick => Definition switch
+    {
+        ProduceItemOrderDefinition task => task.ProductionProjectStartedTick,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetItemKind => Definition switch
+    {
+        ReadKnowledgeOrderDefinition task => task.TargetItemKind,
+        LoadHandcartOrderDefinition task => task.TargetItemKind,
+        UnloadHandcartOrderDefinition task => task.TargetItemKind,
+        UnloadHandcartGroundOrderDefinition task => task.TargetItemKind,
+        DeliverStockOrderDefinition task => task.TargetItemKind,
+        CollectGoodsOrderDefinition task => task.TargetItemKind,
+        StoreGoodsOrderDefinition task => task.TargetItemKind,
+        ReturnBorrowedOrderDefinition task => task.TargetItemKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetStorageBuildingId => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.TargetStorageBuildingId,
+        StoreGoodsOrderDefinition task => task.TargetStorageBuildingId,
+        ReturnBorrowedOrderDefinition task => task.TargetStorageBuildingId,
+        StoreMaterialOrderDefinition task => task.TargetStorageBuildingId,
+        StoreEquipmentOrderDefinition task => task.TargetStorageBuildingId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetStorageOwnerId => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.TargetStorageOwnerId,
+        StoreGoodsOrderDefinition task => task.TargetStorageOwnerId,
+        ReturnBorrowedOrderDefinition task => task.TargetStorageOwnerId,
+        StoreMaterialOrderDefinition task => task.TargetStorageOwnerId,
+        StoreEquipmentOrderDefinition task => task.TargetStorageOwnerId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public GridPoint? TargetStoragePosition => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.TargetStoragePosition,
+        StoreGoodsOrderDefinition task => task.TargetStoragePosition,
+        ReturnBorrowedOrderDefinition task => task.TargetStoragePosition,
+        StoreMaterialOrderDefinition task => task.TargetStoragePosition,
+        StoreEquipmentOrderDefinition task => task.TargetStoragePosition,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetLotId => Definition switch
+    {
+        LoadHandcartOrderDefinition task => task.TargetLotId,
+        UnloadHandcartOrderDefinition task => task.TargetLotId,
+        UnloadHandcartGroundOrderDefinition task => task.TargetLotId,
+        ReturnBorrowedOrderDefinition task => task.TargetLotId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? DeliveryPurpose => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.DeliveryPurpose,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetBuildingKind => Definition switch
+    {
+        SeekShelterOrderDefinition task => task.TargetBuildingKind,
+        TendFireOrderDefinition task => task.TargetBuildingKind,
+        ConstructBuildingOrderDefinition task => task.TargetBuildingKind,
+        ExpandBuildingOrderDefinition task => task.TargetBuildingKind,
+        DeliverStockOrderDefinition task => task.TargetBuildingKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? DeliveryRoute => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.DeliveryRoute,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? DeliveryLotId => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.DeliveryLotId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public int? DeliveryQuantity => Definition switch
+    {
+        DeliverStockOrderDefinition task => task.DeliveryQuantity,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetDefinitionId => Definition switch
+    {
+        ConstructBuildingOrderDefinition task => task.TargetDefinitionId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? ConstructionOwnerId => Definition switch
+    {
+        ConstructBuildingOrderDefinition task => task.ConstructionOwnerId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public GridPoint? ConstructionPosition => Definition switch
+    {
+        ConstructBuildingOrderDefinition task => task.ConstructionPosition,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public long? ConstructionStartedTick => Definition switch
+    {
+        ConstructBuildingOrderDefinition task => task.ConstructionStartedTick,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? ConstructionInstanceId => Definition switch
+    {
+        ConstructBuildingOrderDefinition task => task.ConstructionInstanceId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public OwnerBuildingExpansionBinding? ExpansionBinding => Definition switch
+    {
+        ExpandBuildingOrderDefinition task => task.ExpansionBinding,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public OwnerShelterBinding? ShelterBinding => Definition switch
+    {
+        SeekShelterOrderDefinition task => task.ShelterBinding,
+        TendFireOrderDefinition task => task.ShelterBinding,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public OwnerShelterCompletion? ShelterCompletion => Definition switch
+    {
+        SeekShelterOrderDefinition task => task.ShelterCompletion,
+        TendFireOrderDefinition task => task.ShelterCompletion,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetAnimalId => Definition switch
+    {
+        AnimalCareOrderDefinition task => task.TargetAnimalId,
+        AnimalCollectOrderDefinition task => task.TargetAnimalId,
+        AnimalTameOrderDefinition task => task.TargetAnimalId,
+        AnimalLeadHomeOrderDefinition task => task.TargetAnimalId,
+        AnimalSaddleOrderDefinition task => task.TargetAnimalId,
+        AnimalMountOrderDefinition task => task.TargetAnimalId,
+        AnimalDismountOrderDefinition task => task.TargetAnimalId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public OwnerBoatTravelBinding? BoatTravel => Definition switch
+    {
+        TravelByBoatOrderDefinition task => task.BoatTravel,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetKnowledgeKind => Definition switch
+    {
+        WriteKnowledgeOrderDefinition task => task.TargetKnowledgeKind,
+        CopyKnowledgeOrderDefinition task => task.TargetKnowledgeKind,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? KnowledgeWritingProjectId => Definition switch
+    {
+        WriteKnowledgeOrderDefinition task => task.KnowledgeWritingProjectId,
+        CopyKnowledgeOrderDefinition task => task.KnowledgeWritingProjectId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? KnowledgeCopySourceArtifactId => Definition switch
+    {
+        CopyKnowledgeOrderDefinition task => task.KnowledgeCopySourceArtifactId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetCartLotId => Definition switch
+    {
+        AttachHandcartOrderDefinition task => task.TargetCartLotId,
+        ParkHandcartOrderDefinition task => task.TargetCartLotId,
+        RepairHandcartOrderDefinition task => task.TargetCartLotId,
+        LoadHandcartOrderDefinition task => task.TargetCartLotId,
+        UnloadHandcartOrderDefinition task => task.TargetCartLotId,
+        UnloadHandcartGroundOrderDefinition task => task.TargetCartLotId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TalkConversationId => Definition switch
+    {
+        TalkToOrderDefinition task => task.TalkConversationId,
+        ProposeMarriageOrderDefinition task => task.TalkConversationId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TalkOutcome => Definition switch
+    {
+        TalkToOrderDefinition task => task.TalkOutcome,
+        ProposeMarriageOrderDefinition task => task.TalkOutcome,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public string? TargetKnowledgeArtifactId => Definition switch
+    {
+        ReadKnowledgeOrderDefinition task => task.TargetKnowledgeArtifactId,
+        _ => null,
+    };
+
+    [JsonIgnore]
+    public OwnerKnowledgeReadCompletion? KnowledgeReadCompletion => Definition switch
+    {
+        ReadKnowledgeOrderDefinition task => task.KnowledgeReadCompletion,
+        _ => null,
+    };
 }
 
 public sealed record OwnerBoatTravelBinding(string DestinationPortId, string? RequestId = null);

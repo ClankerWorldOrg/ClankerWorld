@@ -17,8 +17,11 @@ public sealed partial class WorldRuntime
         if (text.StartsWith("please ", StringComparison.OrdinalIgnoreCase)) text = text[7..].TrimStart();
         if (!IsAdult(actor) || !text.Equals("propose marriage", StringComparison.OrdinalIgnoreCase) &&
             !text.Equals("propose marriage to my partner", StringComparison.OrdinalIgnoreCase)) return null;
-        return new("propose_marriage", "queued", 1, 0, "marriage_attempts", false,
-            TargetAgentId: CurrentMarriageOrderPartner(actor));
+        return new OrderTask(new ProposeMarriageOrderDefinition(TargetAgentId: CurrentMarriageOrderPartner(actor)),
+    "queued",
+    1,
+    0,
+    "marriage_attempts", false);
     }
 
     private string? CurrentMarriageOrderPartner(string actor)
@@ -87,7 +90,7 @@ public sealed partial class WorldRuntime
         return conversation.Outcome is "agreed" or "disagreed" ? "not_proposed" : conversation.Outcome;
     }
 
-    private static bool IsValidMarriageOrder(OwnerQueuedInstruction instruction, HashSet<string> people)
+    internal static bool IsValidMarriageOrder(OwnerQueuedInstruction instruction, HashSet<string> people)
     {
         var order = instruction.Task!;
         return (order.TargetAgentId is null ? order.TalkConversationId is null && order.CompletedUnits == 0 :

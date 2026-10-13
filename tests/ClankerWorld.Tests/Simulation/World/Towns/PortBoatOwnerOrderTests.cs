@@ -175,18 +175,17 @@ public sealed partial class PortBoatRuntimeTests
         var initial = scenario.World.ExportState();
         var instruction = initial.Instructions!.Single(item => item.InstructionId == receipt.InstructionId);
         var order = instruction.Task!;
-        foreach (var damaged in new[]
-        {
-            order with { BoatTravel = null },
-            order with { BoatTravel = new("unknown-port") },
-            order with { BoatTravel = order.BoatTravel! with { RequestId = "boat-request:999" } },
-            (order with { CompletedUnits = 1 }).Transition(OrderStatus.Finished),
-            order with { TargetPosition = null },
-            order with { TargetResourceId = "invented-food" },
-            order with { RepeatUntilCancelled = true },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(initial with
-            { Instructions = [instruction with { Task = damaged }] }));
+        foreach (var damaged in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["BoatTravel"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["BoatTravel"] = new OwnerBoatTravelBinding("unknown-port") }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["BoatTravel"] = order.BoatTravel! with { RequestId = "boat-request:999" } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["Status"] = "finished" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetPosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetResourceId"] = "invented-food" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RepeatUntilCancelled"] = true })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(initial, damaged));
         await scenario.UntilAsync(() => scenario.World.Boats[0].Journey is not null, 120);
         var state = scenario.World.ExportState();
         var request = Assert.Single(state.BoatTransport.Requests);

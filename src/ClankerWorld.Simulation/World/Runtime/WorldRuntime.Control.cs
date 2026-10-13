@@ -63,7 +63,11 @@ public sealed partial class WorldRuntime
                 OwnerInstructionState.Queued,
                 Queue: request.Queue,
                 Task: request.Kind != OwnerInstructionKind.Order ? null : parsedOrder ??
-                    new OrderTask("unknown", "queued", 0, 0, "none", false));
+                    new OrderTask(new UnknownOrderDefinition(),
+    "queued",
+    0,
+    0,
+    "none", false));
             instructionsByIdempotency.Add(instruction.IdempotencyKey, instruction);
             var receipt = new OwnerInstructionReceipt(
                 instruction.InstructionId,
@@ -512,7 +516,7 @@ public sealed partial class WorldRuntime
             throw new ArgumentOutOfRangeException(nameof(request), "Instruction text must be at most 512 characters without control characters.");
     }
 
-    private static bool IsValidInstructionIdentifier(string? value) =>
+    internal static bool IsValidInstructionIdentifier(string? value) =>
         !string.IsNullOrWhiteSpace(value) &&
         value.Length <= OwnerQueuedInstruction.MaximumIdentifierLength &&
         !value.Any(char.IsControl);

@@ -357,22 +357,19 @@ public sealed partial class WorldRuntimeTests
         var instruction = Assert.Single(state.Instructions!);
         var order = instruction.Task!;
         Assert.Equal("move_to", order.Action);
-        foreach (var damaged in new[]
-        {
-            order with { TargetPosition = null },
-            order with { TargetFoodKind = "berries" },
-            order with { TargetMaterialKind = "wood" },
-            order with { TargetResourceId = "berry-patch" },
-            order with { TargetAgentId = OrderedAgent },
-            order with { RequestedUnits = 2 },
-            order with { RepeatUntilCancelled = true },
-            order with { CompletedUnits = 1 },
-            order with { LastEffectId = "invented" },
-        })
-            Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
-            {
-                Instructions = [instruction with { Task = damaged }],
-            }));
+        foreach (var damaged in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetPosition"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetFoodKind"] = "berries" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetMaterialKind"] = "wood" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetResourceId"] = "berry-patch" }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["TargetAgentId"] = OrderedAgent }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RequestedUnits"] = 2 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["RepeatUntilCancelled"] = true }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1 }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["LastEffectId"] = "invented" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, damaged));
         Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(state with
         {
             SchemaVersion = WorldRuntime.StateSchemaVersion - 1,

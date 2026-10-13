@@ -227,18 +227,14 @@ public sealed partial class WorldFireOrderTests
         var order = Order(world, receipt);
         Assert.NotNull(order.ShelterCompletion);
         var saved = world.ExportState();
-        foreach (var bad in new[]
-        {
-            order with { ShelterCompletion = null },
-            order with { ShelterCompletion = order.ShelterCompletion with { FuelReservationId = "missing-fuel-payment" } },
-            order with { ShelterCompletion = order.ShelterCompletion with { WorldTick = world.WorldTick + 1 } },
-            order with { ShelterBinding = order.ShelterBinding! with { OwnerId = Beta } },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = bad } : item).ToArray(),
-            }));
+        foreach (var bad in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ShelterCompletion"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ShelterCompletion"] = order.ShelterCompletion with { FuelReservationId = "missing-fuel-payment" } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ShelterCompletion"] = order.ShelterCompletion with { WorldTick = world.WorldTick + 1 } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ShelterBinding"] = order.ShelterBinding! with { OwnerId = Beta } })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, bad));
         var paid = world.Society.Inventory.GetReservation(order.ShelterCompletion.FuelReservationId!);
         foreach (var invalid in new[] { paid with { Purpose = "other_work" }, paid with { State = InventoryReservationState.Released } })
             Assert.Throws<InvalidDataException>(() => Restore(WithInventory(saved, world.Society.Inventory with

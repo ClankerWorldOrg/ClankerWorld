@@ -1,1 +1,1 @@
-- Saves keep each agent's current orders and six most recent ended orders. Older alpha saves are kept on disk but cannot be loaded.
+- Saves keep typed tasks for each agent's current orders and six most recent ended orders. Older alpha saves are kept on disk but cannot be loaded.

@@ -217,23 +217,16 @@ public sealed partial class WorldExpansionOrderTests
         var saved = world.ExportState();
         var order = Order(world, receipt);
         var binding = Assert.IsType<OwnerBuildingExpansionBinding>(order.ExpansionBinding);
-        foreach (var invalid in new[]
-        {
-            order with { ExpansionBinding = null },
-            order with { ExpansionBinding = binding with { JobId = "expansion-missing" } },
-            order with { ExpansionBinding = binding with { OwnerId = OtherHousehold } },
-            order with { ExpansionBinding = binding with { ExpectedRevision = binding.ExpectedRevision + 1 } },
-            order with { ExpansionBinding = binding with { TargetPosition = new(binding.TargetPosition.X + 1, binding.TargetPosition.Y) } },
-            (order with { CompletedUnits = 1, LastEffectId = "expand:job:" + new string('0', 64) }).Transition(OrderStatus.Finished),
-        })
-        {
-            var corrupt = saved with
-            {
-                Instructions = saved.Instructions!.Select(item => item.InstructionId == receipt.InstructionId
-                    ? item with { Task = invalid } : item).ToArray(),
-            };
-            Assert.Throws<InvalidDataException>(() => Restore(corrupt));
-        }
+        foreach (var invalid in new OrderSaveChange[]
+{
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = null }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { JobId = "expansion-missing" } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { OwnerId = OtherHousehold } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { ExpectedRevision = binding.ExpectedRevision + 1 } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["ExpansionBinding"] = binding with { TargetPosition = new(binding.TargetPosition.X + 1, binding.TargetPosition.Y) } }),
+    new OrderSaveChange(order, new Dictionary<string, object?> { ["CompletedUnits"] = 1, ["LastEffectId"] = "expand:job:" + new string('0', 64), ["Status"] = "finished" })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(saved, invalid));
         var unlinked = saved with
         {
             WorldSimulation = saved.WorldSimulation! with

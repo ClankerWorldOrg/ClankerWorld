@@ -192,14 +192,8 @@ public sealed class WorldShelterOrderParserTests
         using var valid = WorldRuntime.Restore(WorldRuntimeCodec.Decode(bytes));
         Assert.Equal(bytes, WorldRuntimeCodec.Encode(valid.ExportState()));
         var state = WorldRuntimeCodec.Decode(bytes);
-        var poisoned = state with
-        {
-            Instructions = state.Instructions!.Select(item => item with
-            {
-                Task = item.Task! with { TargetAgentId = Actor },
-            }).ToArray(),
-        };
-        Assert.Throws<InvalidDataException>(() => WorldRuntime.Restore(poisoned));
+        var poisoned = OrderSaveMutation.Encode(state, new(Assert.Single(state.Instructions!).Task!, new Dictionary<string, object?> { ["TargetAgentId"] = Actor }));
+        Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Decode(poisoned));
     }
 
     private static OrderTask Submit(WorldRuntime world, string key, string text)

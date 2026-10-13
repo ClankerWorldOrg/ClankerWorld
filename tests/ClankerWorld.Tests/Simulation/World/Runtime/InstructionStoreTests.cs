@@ -81,7 +81,7 @@ public sealed class InstructionStoreTests
     private static OwnerQueuedInstruction Instruction(long sequence, string agent) => new(
         $"private-instruction-{sequence:D10}", $"request-{sequence}", "owner:test", agent,
         OwnerInstructionKind.Order, "move to 1, 1", 0, 0, sequence, OwnerInstructionState.Queued,
-        Task: new("move_to", "queued", 1, 0, "arrivals", false, TargetPosition: new(1, 1)));
+        Task: new(new MoveToOrderDefinition(new(1, 1)), "queued", 1, 0, "arrivals", false));
 
     [Fact]
     public void PruningKeepsSixNewestClosedOrdersPerAgentAndEveryActiveOrder()

@@ -81,7 +81,7 @@ public sealed partial class WorldRuntime
             $"{CartOrderEffectId(instruction)}|repair-handcart:{tick}:{instruction.TargetAgentId}:{instruction.Task!.TargetCartLotId}",
             CartRepairOrderReceiptPrefix + tick.ToString(CultureInfo.InvariantCulture) + ":");
 
-    private static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
+    internal static long? CartRepairOrderReceiptTick(OwnerQueuedInstruction instruction, long worldTick)
     {
         var receipt = instruction.Task!.LastEffectId;
         if (receipt is null || receipt.Length > DerivedId.MaximumLength ||

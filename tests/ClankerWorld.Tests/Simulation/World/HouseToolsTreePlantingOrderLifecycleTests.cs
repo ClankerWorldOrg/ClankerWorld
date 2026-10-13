@@ -244,22 +244,18 @@ public sealed partial class HouseToolsBehaviorTests
         Assert.Contains(trees, tree => tree.Position == target && tree.TreeKind == TreeGrowthRules.Conifer);
         Assert.Contains(trees, tree => tree.Position != target && tree.TreeKind == TreeGrowthRules.Broadleaf);
         state = world.ExportState();
-        foreach (var corrupt in new[]
-        {
-            Order(world, second) with { ProgressUnit = "fields" },
-            Order(world, second) with { CompletedUnits = 2 },
-            Order(world, second) with { LastEffectId = null },
-            Order(world, second) with { LastEffectId = "tree:plant:planted-tree-made-up" },
-            Order(world, second) with { LastEffectId = "tree:plant:planted-tree-+1-2" },
-            Order(world, second) with { TargetPosition = new(-1, -2), LastEffectId = "tree:plant:planted-tree--1--2" },
-            Order(world, second) with { TargetCropKind = "grain" },
-            Order(world, second) with { TargetAgentId = actor },
-        })
-            Assert.Throws<InvalidDataException>(() => Restore(state with
-            {
-                Instructions = state.Instructions!.Select(instruction => instruction.InstructionId == second.InstructionId
-                    ? instruction with { Task = corrupt } : instruction).ToArray(),
-            }));
+        foreach (var corrupt in new OrderSaveChange[]
+{
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["ProgressUnit"] = "fields" }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["CompletedUnits"] = 2 }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["LastEffectId"] = null }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["LastEffectId"] = "tree:plant:planted-tree-made-up" }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["LastEffectId"] = "tree:plant:planted-tree-+1-2" }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["TargetPosition"] = new GridPoint(-1, -2), ["LastEffectId"] = "tree:plant:planted-tree--1--2" }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["TargetCropKind"] = "grain" }),
+    new OrderSaveChange(Order(world, second), new Dictionary<string, object?> { ["TargetAgentId"] = actor })
+})
+            Assert.Throws<InvalidDataException>(() => OrderSaveMutation.Decode(state, corrupt));
         world.Validate();
     }
 }

@@ -227,7 +227,7 @@ public sealed class KnowledgeOrderTests
             working with { Knowledge = working.Knowledge with { WritingProjects = [project with { OrderInstructionId = "missing-order" }] } },
             working with { Knowledge = working.Knowledge with { WritingProjects = [project with { OrderInstructionId = null }] } },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
-                { Task = item.Task! with { TargetKnowledgeKind = "field_map" } } : item).ToArray() },
+                { Task = item.Task!.UpdateDefinition(definition => definition switch { WriteKnowledgeOrderDefinition task => task with { TargetKnowledgeKind = "field_map" }, CopyKnowledgeOrderDefinition task => task with { TargetKnowledgeKind = "field_map" }, _ => throw new InvalidOperationException() }) } : item).ToArray() },
             working with { Instructions = working.Instructions!.Select(item => item == instruction ? item with
                 { Task = item.Task! with { CompletedUnits = 1, LastEffectId = "writing:artifact:knowledge-artifact-000001", RepeatUntilCancelled = true } } : item).ToArray() },
         }) Assert.Throws<InvalidDataException>(() => WorldRuntimeCodec.Encode(broken));
