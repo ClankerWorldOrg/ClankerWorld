@@ -1571,11 +1571,7 @@ public sealed partial class OwnerWorldObservationStore
             { Returning: false, OutingPath.Count: > 0, Goal: { Kind: "resource", OrderInstructionId: { } id } goal } exploration ||
             exploration.OutingPath[^1] != physical.Position)
             return null;
-        var instruction = (state.Instructions ?? []).Where(item =>
-                item.TargetAgentId == physical.AgentId && item.Kind == OwnerInstructionKind.Order &&
-                item.Task is { Status: "queued" or "waiting" or "doing" or "interrupted" or "blocked" } &&
-                !(state.CompletedInstructionIds ?? []).Contains(item.InstructionId, StringComparer.Ordinal))
-            .OrderBy(item => item.SubmissionSequence).FirstOrDefault();
+        var instruction = WorldRuntime.FirstActiveOrderFor(state.Instructions ?? [], physical.AgentId);
         if (instruction is null || instruction.InstructionId != id || instruction.Task is not
             { Status: "doing", TargetResourceId: null, TargetPosition: null } order)
             return null;

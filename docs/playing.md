@@ -102,7 +102,8 @@ restarted, check whether your request already took effect before sending it
 again. Check and send again then releases the old saved request; an instruction
 for the same agent and world is ready to review in their Profile before you
 press Send. Discard it restores the other controls but does not undo anything
-the server already accepted.
+the server already accepted. Use **Tab** or **Shift+Tab** to reach the recovery
+buttons and **Enter** to choose one; focus then returns to the screen underneath.
 
 ### Report a problem
 
@@ -258,6 +259,8 @@ connected and paired. Saving a key does not run a model or place an agent.
 Choose the saved key later in **Add Agent** or an agent's **Model** panel.
 **Open model settings** in that panel opens the agent's model in World
 Settings, where you can also delete a saved key.
+A key used by the routine helper cannot be deleted. Choose another helper key
+or turn the helper off first.
 
 To check a selected model, press **Test model · 1 paid call** in Add Agent or
 an agent's Model panel. It uses the chosen **Thinking** setting too. This sends one real request and counts toward the
@@ -1243,6 +1246,8 @@ save-name limit, it is shortened between whole characters, including emoji.
 World Settings offers rotating
 autosaves as well as automatic recovery. If the world server's clock moves backwards,
 the next rotating save waits one configured interval from the corrected time.
+Damaged autosaves are kept separately from the chosen number of usable copies,
+including when rotation is off.
 **Load World** shows each world as a
 card with a small map of it, when it was last saved and its seed, and marks the
 current world and any it cannot open. Double-click a card, or choose it and

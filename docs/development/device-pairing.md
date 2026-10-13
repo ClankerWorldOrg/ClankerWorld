@@ -73,6 +73,10 @@ Routine helper changes require `clankerworld.owner-routine-helper.v1`, signing
 the observed world ID, helper, model and optional saved OpenAI key-slot ID. The
 server holds the world-selection gate through validation and persistence, and
 refuses a changed world or an unpaused world.
+Named-key deletion checks the active world's routine helper together with agent
+assignments. It holds the same world-selection gate as helper changes, so an
+active helper's key cannot disappear during a switch. Refusal preserves the key
+file and the world's helper settings.
 A request that names Anthropic or a thinking level requires
 `clankerworld.owner-model-thinking.v1`: model settings, model lists, saved keys,
 Test model and founder or agent placement. Their payloads gain a final

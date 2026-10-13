@@ -528,7 +528,8 @@ public sealed partial class PortBoatRuntimeTests
             Build = true,
             Freshwater = freshwater,
             FirstPortSite = freshwater ? new(202, 99) : new(189, 14),
-            SecondPortSite = freshwater ? new(201, 108) : new(198, 13),
+            // The nearer freshwater bank at (201,108) now supplies the Town's starter clay.
+            SecondPortSite = freshwater ? new(201, 109) : new(198, 13),
             PortLocalId = freshwater ? "port-east" : "port-south",
         };
         using var placed = new WorldRuntime("probe-a", policy.CreateProvider,
@@ -596,6 +597,9 @@ public sealed partial class PortBoatRuntimeTests
         };
         using var scenario = new BoatScenario(state, policy);
         await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Count > 0, 80);
+        if (freshwater)
+            Assert.DoesNotContain(scenario.World.ExportState().Map.Resources,
+                resource => resource.Position == policy.SecondPortSite);
         if (stopBeforeFirstPort)
         {
             await scenario.UntilAsync(() => scenario.World.Towns[0].Projects.Single() is { Stage: "working", WorkDone: > 0 }, 300);

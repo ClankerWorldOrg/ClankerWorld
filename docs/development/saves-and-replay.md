@@ -699,12 +699,13 @@ The paired authority identity belongs to the installation, not the selected
 simulation world.
 
 Load World checks each inactive checkpoint against the current runtime before
-marking it compatible. The server keeps only a process-local structural verdict
-and history head for each catalog identity, keyed by a SHA-256 hash of the
-checkpoint bytes. File replacement, catalog-identity changes and a server restart
-force a new structural check. Every list still verifies the referenced history
-chain and current model credentials;
-selection reads and restores the checkpoint again before changing worlds.
+marking it compatible. The server keeps a process-local structural proof,
+including the history head and saved helper selection, for each catalog identity.
+A SHA-256 hash of the checkpoint bytes identifies the proof. File replacement,
+catalog-identity changes and a server restart force a new structural check.
+Every list still verifies the referenced history chain and current model
+credentials; selection reads and restores the checkpoint again before changing
+worlds.
 Checking a changed checkpoint can therefore still be slow, especially on a
 large generated map, while repeated unchanged lists avoid rebuilding worlds.
 After a server start, a background task makes the structural check for each
@@ -1896,7 +1897,11 @@ branch position rather than a possibly corrected clock. If play continues from
 an older save and its new branch has no autosave yet, recovery considers only
 autosaves at or before that loaded point. Candidate metadata, current-format
 checkpoint, world identity, saved tick, model routing, autosave interval and
-rotation, and every required history segment must verify. A damaged newer autosave is retained and skipped. No usable
+rotation, and every required history segment must verify. Model preflight includes
+the saved OpenAI Decisions helper's selected key as well as agent assignments.
+Load World rechecks that key's availability even when its structural checkpoint
+proof is cached; a missing named key never substitutes the installation default.
+A damaged newer autosave is retained and skipped. No usable
 candidate leaves recovery pending; named saves and other worlds are not automatic
 fallbacks. An older alpha schema receives a format explanation, never a migration.
 
@@ -1934,6 +1939,9 @@ Rotating autosaves are a separate
 mechanism and must not delete another world's checkpoints, or another branch's.
 Updating autosave configuration trims only that configured world, including
 rotation off, and counts each branch's autosaves separately.
+Only copies whose checkpoint, world identity, required history and full runtime
+restore verify count toward retention. Unverifiable copies are preserved and
+reported, so a damaged newer copy cannot displace a usable predecessor.
 The schedule persists a new interval anchor if the server clock moves backwards,
 so restart cannot restore the resulting delay. This changes only the adjacent
 schedule timestamp; it keeps the saved world tick and existing snapshot files.
