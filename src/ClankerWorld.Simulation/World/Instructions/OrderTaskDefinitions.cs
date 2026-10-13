@@ -457,299 +457,299 @@ public abstract record UnknownOrderFamilyDefinition : OrderTaskDefinition
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ConsumeFoodOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetFoodKind = null) : FoodOrderFamilyDefinition
 {
-    public override string Action => "consume_food";
+    [JsonIgnore] public override string Action => "consume_food";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record SeekFoodOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetFoodKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetResourceId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : FoodOrderFamilyDefinition
 {
-    public override string Action => "seek_food";
+    [JsonIgnore] public override string Action => "seek_food";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HarvestFoodOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetFoodKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetResourceId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : FoodOrderFamilyDefinition
 {
-    public override string Action => "harvest_food";
+    [JsonIgnore] public override string Action => "harvest_food";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record GatherMaterialOrderDefinition(string TargetMaterialKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetResourceId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : MaterialOrderFamilyDefinition
 {
-    public override string Action => "gather_material";
+    [JsonIgnore] public override string Action => "gather_material";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record MoveToOrderDefinition(GridPoint TargetPosition) : MoveOrderFamilyDefinition
 {
-    public override string Action => "move_to";
+    [JsonIgnore] public override string Action => "move_to";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AcceptGuardianshipOrderDefinition(string TargetAgentId) : GuardianOrderFamilyDefinition
 {
-    public override string Action => "accept_guardianship";
+    [JsonIgnore] public override string Action => "accept_guardianship";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TalkToOrderDefinition(string TargetAgentId, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkConversationId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkOutcome = null) : TalkOrderFamilyDefinition
 {
-    public override string Action => "talk_to";
+    [JsonIgnore] public override string Action => "talk_to";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ProposeMarriageOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetAgentId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkConversationId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TalkOutcome = null) : MarriageOrderFamilyDefinition
 {
-    public override string Action => "propose_marriage";
+    [JsonIgnore] public override string Action => "propose_marriage";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReadKnowledgeOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetKnowledgeArtifactId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerKnowledgeReadCompletion? KnowledgeReadCompletion = null) : KnowledgeReadOrderFamilyDefinition
 {
-    public override string Action => "read_knowledge";
+    [JsonIgnore] public override string Action => "read_knowledge";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record WriteKnowledgeOrderDefinition(string TargetKnowledgeKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? KnowledgeWritingProjectId = null) : KnowledgeOrderFamilyDefinition
 {
-    public override string Action => "write_knowledge";
+    [JsonIgnore] public override string Action => "write_knowledge";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CopyKnowledgeOrderDefinition(string TargetKnowledgeKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? KnowledgeWritingProjectId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? KnowledgeCopySourceArtifactId = null) : KnowledgeOrderFamilyDefinition
 {
-    public override string Action => "copy_knowledge";
+    [JsonIgnore] public override string Action => "copy_knowledge";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AttachHandcartOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCartLotId = null) : CartOrderFamilyDefinition
 {
-    public override string Action => "attach_handcart";
+    [JsonIgnore] public override string Action => "attach_handcart";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ParkHandcartOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCartLotId = null) : CartOrderFamilyDefinition
 {
-    public override string Action => "park_handcart";
+    [JsonIgnore] public override string Action => "park_handcart";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RepairHandcartOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCartLotId = null) : CartOrderFamilyDefinition
 {
-    public override string Action => "repair_handcart";
+    [JsonIgnore] public override string Action => "repair_handcart";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record LoadHandcartOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCartLotId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetLotId = null) : CartCargoOrderFamilyDefinition
 {
-    public override string Action => "load_handcart";
+    [JsonIgnore] public override string Action => "load_handcart";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record UnloadHandcartOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCartLotId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetLotId = null) : CartCargoOrderFamilyDefinition
 {
-    public override string Action => "unload_handcart";
+    [JsonIgnore] public override string Action => "unload_handcart";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record UnloadHandcartGroundOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCartLotId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetLotId = null) : CartCargoOrderFamilyDefinition
 {
-    public override string Action => "unload_handcart_ground";
+    [JsonIgnore] public override string Action => "unload_handcart_ground";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalCareOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_care";
+    [JsonIgnore] public override string Action => "animal_care";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalCollectOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_collect";
+    [JsonIgnore] public override string Action => "animal_collect";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalTameOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_tame";
+    [JsonIgnore] public override string Action => "animal_tame";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalLeadHomeOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_lead_home";
+    [JsonIgnore] public override string Action => "animal_lead_home";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalSaddleOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_saddle";
+    [JsonIgnore] public override string Action => "animal_saddle";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalMountOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_mount";
+    [JsonIgnore] public override string Action => "animal_mount";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AnimalDismountOrderDefinition(string TargetAnimalId) : AnimalOrderFamilyDefinition
 {
-    public override string Action => "animal_dismount";
+    [JsonIgnore] public override string Action => "animal_dismount";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record SeekShelterOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterBinding? ShelterBinding = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterCompletion? ShelterCompletion = null) : ShelterOrderFamilyDefinition
 {
-    public override string Action => "seek_shelter";
+    [JsonIgnore] public override string Action => "seek_shelter";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TendFireOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterBinding? ShelterBinding = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerShelterCompletion? ShelterCompletion = null) : ShelterOrderFamilyDefinition
 {
-    public override string Action => "tend_fire";
+    [JsonIgnore] public override string Action => "tend_fire";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ConstructBuildingOrderDefinition(string TargetDefinitionId, string TargetBuildingKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ConstructionOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? ConstructionPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ConstructionStartedTick = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ConstructionInstanceId = null) : BuildingOrderFamilyDefinition
 {
-    public override string Action => "construct_building";
+    [JsonIgnore] public override string Action => "construct_building";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ExpandBuildingOrderDefinition(string TargetBuildingKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] OwnerBuildingExpansionBinding? ExpansionBinding = null) : BuildingOrderFamilyDefinition
 {
-    public override string Action => "expand_building";
+    [JsonIgnore] public override string Action => "expand_building";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record DeliverStockOrderDefinition(string TargetItemKind, string DeliveryPurpose, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetBuildingKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryRoute = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? DeliveryLotId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeliveryQuantity = null) : DeliveryOrderFamilyDefinition
 {
-    public override string Action => "deliver_stock";
+    [JsonIgnore] public override string Action => "deliver_stock";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CollectGoodsOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null) : GoodsOrderFamilyDefinition
 {
-    public override string Action => "collect_goods";
+    [JsonIgnore] public override string Action => "collect_goods";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record StoreGoodsOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null) : GoodsOrderFamilyDefinition
 {
-    public override string Action => "store_goods";
+    [JsonIgnore] public override string Action => "store_goods";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ReturnBorrowedOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetItemKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetLotId = null) : GoodsOrderFamilyDefinition
 {
-    public override string Action => "return_borrowed";
+    [JsonIgnore] public override string Action => "return_borrowed";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ProduceItemOrderDefinition(string TargetRecipeId, string TargetOutputKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ProductionJobId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] long? ProductionProjectStartedTick = null) : ProductionOrderFamilyDefinition
 {
-    public override string Action => "produce_item";
+    [JsonIgnore] public override string Action => "produce_item";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PlantTreeOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : TreeOrderFamilyDefinition
 {
-    public override string Action => "plant_tree";
+    [JsonIgnore] public override string Action => "plant_tree";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PlantBroadleafOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : TreeOrderFamilyDefinition
 {
-    public override string Action => "plant_broadleaf";
+    [JsonIgnore] public override string Action => "plant_broadleaf";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PlantConiferOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : TreeOrderFamilyDefinition
 {
-    public override string Action => "plant_conifer";
+    [JsonIgnore] public override string Action => "plant_conifer";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PlantOrchardOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : TreeOrderFamilyDefinition
 {
-    public override string Action => "plant_orchard";
+    [JsonIgnore] public override string Action => "plant_orchard";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TillFieldOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : FieldOrderFamilyDefinition
 {
-    public override string Action => "till_field";
+    [JsonIgnore] public override string Action => "till_field";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PlantFieldOrderDefinition(string TargetCropKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : FieldOrderFamilyDefinition
 {
-    public override string Action => "plant_field";
+    [JsonIgnore] public override string Action => "plant_field";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TendFieldOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCropKind = null) : FieldOrderFamilyDefinition
 {
-    public override string Action => "tend_field";
+    [JsonIgnore] public override string Action => "tend_field";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record HarvestFieldOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetCropKind = null) : FieldOrderFamilyDefinition
 {
-    public override string Action => "harvest_field";
+    [JsonIgnore] public override string Action => "harvest_field";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RepairEquipmentOrderDefinition(string TargetEquipmentKind) : RepairOrderFamilyDefinition
 {
-    public override string Action => "repair_equipment";
+    [JsonIgnore] public override string Action => "repair_equipment";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RepairToolOrderDefinition(string TargetEquipmentKind) : RepairOrderFamilyDefinition
 {
-    public override string Action => "repair_tool";
+    [JsonIgnore] public override string Action => "repair_tool";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CollectMaterialOrderDefinition(string TargetMaterialKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : CollectionOrderFamilyDefinition
 {
-    public override string Action => "collect_material";
+    [JsonIgnore] public override string Action => "collect_material";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CollectEquipmentOrderDefinition(string TargetEquipmentKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : CollectionOrderFamilyDefinition
 {
-    public override string Action => "collect_equipment";
+    [JsonIgnore] public override string Action => "collect_equipment";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CollectFoodOrderDefinition([property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetFoodKind = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : CollectionOrderFamilyDefinition
 {
-    public override string Action => "collect_food";
+    [JsonIgnore] public override string Action => "collect_food";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record StoreMaterialOrderDefinition(string TargetMaterialKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null) : StorageOrderFamilyDefinition
 {
-    public override string Action => "store_material";
+    [JsonIgnore] public override string Action => "store_material";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record StoreEquipmentOrderDefinition(string TargetEquipmentKind, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageBuildingId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TargetStorageOwnerId = null, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetStoragePosition = null) : StorageOrderFamilyDefinition
 {
-    public override string Action => "store_equipment";
+    [JsonIgnore] public override string Action => "store_equipment";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record TravelByBoatOrderDefinition(OwnerBoatTravelBinding BoatTravel, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] GridPoint? TargetPosition = null) : BoatOrderFamilyDefinition
 {
-    public override string Action => "travel_by_boat";
+    [JsonIgnore] public override string Action => "travel_by_boat";
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record UnknownOrderDefinition : UnknownOrderFamilyDefinition
 {
-    public override string Action => "unknown";
+    [JsonIgnore] public override string Action => "unknown";
 }
